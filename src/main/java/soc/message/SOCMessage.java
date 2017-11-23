@@ -26,7 +26,7 @@ import java.util.Enumeration;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
-import com.google.protobuf.GeneratedMessageLite;
+import com.google.protobuf.GeneratedMessageV3;
 
 import soc.game.SOCGame;
 import soc.proto.GameMessage;
@@ -456,7 +456,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * Cached result from {@link #toProto()} for use by later calls to {@link #makeProto()}.
      * @since 3.0.00
      */
-    protected GeneratedMessageLite<?,?> cachedProto;
+    protected GeneratedMessageV3 cachedProto;
 
     /**
      * @return  the message type
@@ -564,9 +564,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * @see #makeCmd()
      * @since 3.0.00
      */
-    public final GeneratedMessageLite<?,?> makeProto(final boolean fromServer)
+    public final GeneratedMessageV3 makeProto(final boolean fromServer)
     {
-        GeneratedMessageLite<?,?> proto = cachedProto;
+        GeneratedMessageV3 proto = cachedProto;
         if (proto == null)
         {
             proto = (fromServer) ? toProtoFromServer() : toProtoFromClient();

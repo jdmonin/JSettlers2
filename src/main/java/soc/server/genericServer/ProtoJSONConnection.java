@@ -30,6 +30,8 @@ import java.net.Socket;
 import java.util.Date;
 import java.util.Vector;
 
+import com.google.protobuf.util.JsonFormat;
+
 
 /**
  * A protobuf JSON client's connection at a web app server like Jetty or Tomcat,
@@ -256,7 +258,7 @@ public final class ProtoJSONConnection
      *
      * @param msg  Message to send
      */
-    public final void put(SOCMessage msg)  // TODO later: pure proto: Message.FromServer instead
+    public final void put(SOCMessage msg)  // TODO later: pure proto: Message.FromServer instead of SOCMessage
     {
         final Message.FromServer pmsg = (Message.FromServer) msg.makeProto(true);
         if (pmsg == null)

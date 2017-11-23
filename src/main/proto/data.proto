@@ -22,7 +22,7 @@
 syntax = "proto3";
 
 option java_package = "soc.proto";
-option optimize_for = LITE_RUNTIME;  // omit unused features, produce smaller/cleaner generated code
+option optimize_for = SPEED;  // json needs proto metadata, can't use smaller/cleaner LITE_RUNTIME
 
 // Protobuf Data structures. For messages see message.proto, game_message.proto
 

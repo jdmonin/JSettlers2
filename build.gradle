@@ -84,25 +84,13 @@ task fullJar(type: Jar) {
 protobuf {
     generatedFilesBaseDir = "${projectDir}/generated/src/proto"
     protoc {
-        artifact = 'com.google.protobuf:protoc:3.0.0'
-    }
-    // use protobuf-lite, not full protobuf-java:
-    plugins {
-        javalite {
-            // The codegen for lite comes as a separate artifact
-           artifact = 'com.google.protobuf:protoc-gen-javalite:3.0.0'
-        }
+        artifact = 'com.google.protobuf:protoc:3.4.0'
     }
     generateProtoTasks {
         all().each { task ->
             task.builtins {
-                remove java
+                java { }
                 python { }  // will run protoc -python_out=... only if src/main/python/ has files
-            }
-            task.plugins {
-                javalite {
-                    outputSubDir = 'java'  // generated/src/proto/main/java/, not default javalite, to match rest of proj structure
-                }
             }
         }
     }
@@ -131,12 +119,12 @@ war {
     from(serverJar) {
         into "WEB-INF/lib"
     }
-    rootSpec.exclude("**/protobuf*.jar")
 }
 
 dependencies {
     testCompile 'junit:junit:4.12'
-    compile 'com.google.protobuf:protobuf-lite:3.0.1'
+    providedCompile 'com.google.protobuf:protobuf-java:3.4.0'
+    providedCompile 'com.google.protobuf:protobuf-java-util:3.4.0'   // for proto3 <-> json
     providedCompile 'javax.servlet:javax.servlet-api:3.1.0'  // Java EE 7
     providedCompile 'javax.websocket:javax.websocket-api:1.0'  // for java EE 7
 }

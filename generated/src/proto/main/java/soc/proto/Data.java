@@ -8,6 +8,12 @@ public final class Data {
   public static void registerAllExtensions(
       com.google.protobuf.ExtensionRegistryLite registry) {
   }
+
+  public static void registerAllExtensions(
+      com.google.protobuf.ExtensionRegistry registry) {
+    registerAllExtensions(
+        (com.google.protobuf.ExtensionRegistryLite) registry);
+  }
   /**
    * <pre>
    * Structs here are suffixed "Data" since we eventually want them used in the java code. Many struct names will then get
@@ -17,7 +23,7 @@ public final class Data {
    * Protobuf enum {@code ResourceType}
    */
   public enum ResourceType
-      implements com.google.protobuf.Internal.EnumLite {
+      implements com.google.protobuf.ProtocolMessageEnum {
     /**
      * <pre>
      * For now, we're still tied to the integer values. Therefore I want the values to be the same as we currently use
@@ -98,6 +104,10 @@ public final class Data {
 
 
     public final int getNumber() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
       return value;
     }
 
@@ -134,6 +144,33 @@ public final class Data {
             }
           };
 
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      return getDescriptor().getValues().get(ordinal());
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return soc.proto.Data.getDescriptor().getEnumTypes().get(0);
+    }
+
+    private static final ResourceType[] VALUES = values();
+
+    public static ResourceType valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
+      return VALUES[desc.getIndex()];
+    }
+
     private final int value;
 
     private ResourceType(int value) {
@@ -153,7 +190,7 @@ public final class Data {
    * Protobuf enum {@code GameState}
    */
   public enum GameState
-      implements com.google.protobuf.Internal.EnumLite {
+      implements com.google.protobuf.ProtocolMessageEnum {
     /**
      * <pre>
      * New game
@@ -520,6 +557,10 @@ public final class Data {
 
 
     public final int getNumber() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
       return value;
     }
 
@@ -580,6 +621,33 @@ public final class Data {
             }
           };
 
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      return getDescriptor().getValues().get(ordinal());
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return soc.proto.Data.getDescriptor().getEnumTypes().get(1);
+    }
+
+    private static final GameState[] VALUES = values();
+
+    public static GameState valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
+      return VALUES[desc.getIndex()];
+    }
+
     private final int value;
 
     private GameState(int value) {
@@ -599,7 +667,7 @@ public final class Data {
    * Protobuf enum {@code SeatLockState}
    */
   public enum SeatLockState
-      implements com.google.protobuf.Internal.EnumLite {
+      implements com.google.protobuf.ProtocolMessageEnum {
     /**
      * <pre>
      * Seat not locked.
@@ -674,6 +742,10 @@ public final class Data {
 
 
     public final int getNumber() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
       return value;
     }
 
@@ -706,6 +778,33 @@ public final class Data {
             }
           };
 
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      return getDescriptor().getValues().get(ordinal());
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return soc.proto.Data.getDescriptor().getEnumTypes().get(2);
+    }
+
+    private static final SeatLockState[] VALUES = values();
+
+    public static SeatLockState valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
+      return VALUES[desc.getIndex()];
+    }
+
     private final int value;
 
     private SeatLockState(int value) {
@@ -716,7 +815,49 @@ public final class Data {
   }
 
 
+  public static com.google.protobuf.Descriptors.FileDescriptor
+      getDescriptor() {
+    return descriptor;
+  }
+  private static  com.google.protobuf.Descriptors.FileDescriptor
+      descriptor;
   static {
+    java.lang.String[] descriptorData = {
+      "\n\ndata.proto*`\n\014ResourceType\022\020\n\014NOT_YET_" +
+      "USED\020\000\022\010\n\004CLAY\020\001\022\007\n\003ORE\020\002\022\t\n\005SHEEP\020\003\022\t\n\005" +
+      "WHEAT\020\004\022\010\n\004WOOD\020\005\022\013\n\007UNKNOWN\020\006*\245\005\n\tGameS" +
+      "tate\022\007\n\003NEW\020\000\022\t\n\005READY\020\001\022\"\n\036READY_RESET_" +
+      "WAIT_ROBOT_DISMISS\020\004\022\013\n\007START1A\020\005\022\013\n\007STA" +
+      "RT1B\020\006\022\013\n\007START2A\020\n\022)\n%STARTS_WAITING_FO" +
+      "R_PICK_GOLD_RESOURCE\020\016\022\013\n\007START2B\020\013\022\013\n\007S" +
+      "TART3A\020\014\022\013\n\007START3B\020\r\022\020\n\014ROLL_OR_CARD\020\017\022" +
+      "\t\n\005PLAY1\020\024\022\020\n\014PLACING_ROAD\020\036\022\026\n\022PLACING_" +
+      "SETTLEMENT\020\037\022\020\n\014PLACING_CITY\020 \022\022\n\016PLACIN",
+      "G_ROBBER\020!\022\022\n\016PLACING_PIRATE\020\"\022\020\n\014PLACIN" +
+      "G_SHIP\020#\022\026\n\022PLACING_FREE_ROAD1\020(\022\026\n\022PLAC" +
+      "ING_FREE_ROAD2\020)\022\024\n\020PLACING_INV_ITEM\020*\022\030" +
+      "\n\024WAITING_FOR_DISCARDS\0202\022!\n\035WAITING_FOR_" +
+      "ROB_CHOOSE_PLAYER\0203\022\031\n\025WAITING_FOR_DISCO" +
+      "VERY\0204\022\030\n\024WAITING_FOR_MONOPOLY\0205\022 \n\034WAIT" +
+      "ING_FOR_ROBBER_OR_PIRATE\0206\022%\n!WAITING_FO" +
+      "R_ROB_CLOTH_OR_RESOURCE\0207\022\"\n\036WAITING_FOR" +
+      "_PICK_GOLD_RESOURCE\0208\022\024\n\020SPECIAL_BUILDIN" +
+      "G\020d\022\t\n\004OVER\020\350\007\022\016\n\tRESET_OLD\020\351\007*=\n\rSeatLo",
+      "ckState\022\014\n\010UNLOCKED\020\000\022\n\n\006LOCKED\020\001\022\022\n\016CLE" +
+      "AR_ON_RESET\020\002B\r\n\tsoc.protoH\001b\006proto3"
+    };
+    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
+        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
+          public com.google.protobuf.ExtensionRegistry assignDescriptors(
+              com.google.protobuf.Descriptors.FileDescriptor root) {
+            descriptor = root;
+            return null;
+          }
+        };
+    com.google.protobuf.Descriptors.FileDescriptor
+      .internalBuildGeneratedFileFrom(descriptorData,
+        new com.google.protobuf.Descriptors.FileDescriptor[] {
+        }, assigner);
   }
 
   // @@protoc_insertion_point(outer_class_scope)

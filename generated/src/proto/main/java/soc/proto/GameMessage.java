@@ -8,16 +8,22 @@ public final class GameMessage {
   public static void registerAllExtensions(
       com.google.protobuf.ExtensionRegistryLite registry) {
   }
+
+  public static void registerAllExtensions(
+      com.google.protobuf.ExtensionRegistry registry) {
+    registerAllExtensions(
+        (com.google.protobuf.ExtensionRegistryLite) registry);
+  }
   public interface StateOrBuilder extends
       // @@protoc_insertion_point(interface_extends:State)
-      com.google.protobuf.MessageLiteOrBuilder {
+      com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional .GameState state = 1;</code>
+     * <code>.GameState state = 1;</code>
      */
     int getStateValue();
     /**
-     * <code>optional .GameState state = 1;</code>
+     * <code>.GameState state = 1;</code>
      */
     soc.proto.Data.GameState getState();
   }
@@ -45,49 +51,100 @@ public final class GameMessage {
    * Protobuf type {@code State}
    */
   public  static final class State extends
-      com.google.protobuf.GeneratedMessageLite<
-          State, State.Builder> implements
+      com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:State)
       StateOrBuilder {
-    private State() {
+  private static final long serialVersionUID = 0L;
+    // Use State.newBuilder() to construct.
+    private State(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
     }
+    private State() {
+      state_ = 0;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private State(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              int rawValue = input.readEnum();
+
+              state_ = rawValue;
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_State_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_State_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.State.class, soc.proto.GameMessage.State.Builder.class);
+    }
+
     public static final int STATE_FIELD_NUMBER = 1;
     private int state_;
     /**
-     * <code>optional .GameState state = 1;</code>
+     * <code>.GameState state = 1;</code>
      */
     public int getStateValue() {
       return state_;
     }
     /**
-     * <code>optional .GameState state = 1;</code>
+     * <code>.GameState state = 1;</code>
      */
     public soc.proto.Data.GameState getState() {
-      soc.proto.Data.GameState result = soc.proto.Data.GameState.forNumber(state_);
+      soc.proto.Data.GameState result = soc.proto.Data.GameState.valueOf(state_);
       return result == null ? soc.proto.Data.GameState.UNRECOGNIZED : result;
     }
-    /**
-     * <code>optional .GameState state = 1;</code>
-     */
-    private void setStateValue(int value) {
-        state_ = value;
-    }
-    /**
-     * <code>optional .GameState state = 1;</code>
-     */
-    private void setState(soc.proto.Data.GameState value) {
-      if (value == null) {
-        throw new NullPointerException();
-      }
-      
-      state_ = value.getNumber();
-    }
-    /**
-     * <code>optional .GameState state = 1;</code>
-     */
-    private void clearState() {
-      
-      state_ = 0;
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
     }
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
@@ -95,10 +152,11 @@ public final class GameMessage {
       if (state_ != soc.proto.Data.GameState.NEW.getNumber()) {
         output.writeEnum(1, state_);
       }
+      unknownFields.writeTo(output);
     }
 
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
@@ -106,78 +164,129 @@ public final class GameMessage {
         size += com.google.protobuf.CodedOutputStream
           .computeEnumSize(1, state_);
       }
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
 
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.State)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.State other = (soc.proto.GameMessage.State) obj;
+
+      boolean result = true;
+      result = result && state_ == other.state_;
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + STATE_FIELD_NUMBER;
+      hash = (53 * hash) + state_;
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.State parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.State parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static soc.proto.GameMessage.State parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data);
+      return PARSER.parseFrom(data);
     }
     public static soc.proto.GameMessage.State parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data, extensionRegistry);
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static soc.proto.GameMessage.State parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data);
+      return PARSER.parseFrom(data);
     }
     public static soc.proto.GameMessage.State parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data, extensionRegistry);
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static soc.proto.GameMessage.State parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static soc.proto.GameMessage.State parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static soc.proto.GameMessage.State parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return parseDelimitedFrom(DEFAULT_INSTANCE, input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static soc.proto.GameMessage.State parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return parseDelimitedFrom(DEFAULT_INSTANCE, input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static soc.proto.GameMessage.State parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static soc.proto.GameMessage.State parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
     public static Builder newBuilder(soc.proto.GameMessage.State prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
 
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
     /**
      * <pre>
      * The current state of the game, sent when it changes.
@@ -202,161 +311,236 @@ public final class GameMessage {
      * Protobuf type {@code State}
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessageLite.Builder<
-          soc.proto.GameMessage.State, Builder> implements
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
         // @@protoc_insertion_point(builder_implements:State)
         soc.proto.GameMessage.StateOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_State_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_State_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.State.class, soc.proto.GameMessage.State.Builder.class);
+      }
+
       // Construct using soc.proto.GameMessage.State.newBuilder()
       private Builder() {
-        super(DEFAULT_INSTANCE);
+        maybeForceBuilderInitialization();
       }
 
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        state_ = 0;
 
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_State_descriptor;
+      }
+
+      public soc.proto.GameMessage.State getDefaultInstanceForType() {
+        return soc.proto.GameMessage.State.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.State build() {
+        soc.proto.GameMessage.State result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.State buildPartial() {
+        soc.proto.GameMessage.State result = new soc.proto.GameMessage.State(this);
+        result.state_ = state_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.State) {
+          return mergeFrom((soc.proto.GameMessage.State)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.State other) {
+        if (other == soc.proto.GameMessage.State.getDefaultInstance()) return this;
+        if (other.state_ != 0) {
+          setStateValue(other.getStateValue());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.State parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.State) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private int state_ = 0;
       /**
-       * <code>optional .GameState state = 1;</code>
+       * <code>.GameState state = 1;</code>
        */
       public int getStateValue() {
-        return instance.getStateValue();
+        return state_;
       }
       /**
-       * <code>optional .GameState state = 1;</code>
+       * <code>.GameState state = 1;</code>
        */
       public Builder setStateValue(int value) {
-        copyOnWrite();
-        instance.setStateValue(value);
+        state_ = value;
+        onChanged();
         return this;
       }
       /**
-       * <code>optional .GameState state = 1;</code>
+       * <code>.GameState state = 1;</code>
        */
       public soc.proto.Data.GameState getState() {
-        return instance.getState();
+        soc.proto.Data.GameState result = soc.proto.Data.GameState.valueOf(state_);
+        return result == null ? soc.proto.Data.GameState.UNRECOGNIZED : result;
       }
       /**
-       * <code>optional .GameState state = 1;</code>
+       * <code>.GameState state = 1;</code>
        */
       public Builder setState(soc.proto.Data.GameState value) {
-        copyOnWrite();
-        instance.setState(value);
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        
+        state_ = value.getNumber();
+        onChanged();
         return this;
       }
       /**
-       * <code>optional .GameState state = 1;</code>
+       * <code>.GameState state = 1;</code>
        */
       public Builder clearState() {
-        copyOnWrite();
-        instance.clearState();
+        
+        state_ = 0;
+        onChanged();
         return this;
       }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
 
       // @@protoc_insertion_point(builder_scope:State)
     }
-    protected final Object dynamicMethod(
-        com.google.protobuf.GeneratedMessageLite.MethodToInvoke method,
-        Object arg0, Object arg1) {
-      switch (method) {
-        case NEW_MUTABLE_INSTANCE: {
-          return new soc.proto.GameMessage.State();
-        }
-        case IS_INITIALIZED: {
-          return DEFAULT_INSTANCE;
-        }
-        case MAKE_IMMUTABLE: {
-          return null;
-        }
-        case NEW_BUILDER: {
-          return new Builder();
-        }
-        case VISIT: {
-          Visitor visitor = (Visitor) arg0;
-          soc.proto.GameMessage.State other = (soc.proto.GameMessage.State) arg1;
-          state_ = visitor.visitInt(state_ != 0, state_,    other.state_ != 0, other.state_);
-          if (visitor == com.google.protobuf.GeneratedMessageLite.MergeFromVisitor
-              .INSTANCE) {
-          }
-          return this;
-        }
-        case MERGE_FROM_STREAM: {
-          com.google.protobuf.CodedInputStream input =
-              (com.google.protobuf.CodedInputStream) arg0;
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry =
-              (com.google.protobuf.ExtensionRegistryLite) arg1;
-          try {
-            boolean done = false;
-            while (!done) {
-              int tag = input.readTag();
-              switch (tag) {
-                case 0:
-                  done = true;
-                  break;
-                default: {
-                  if (!input.skipField(tag)) {
-                    done = true;
-                  }
-                  break;
-                }
-                case 8: {
-                  int rawValue = input.readEnum();
-
-                  state_ = rawValue;
-                  break;
-                }
-              }
-            }
-          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-            throw new RuntimeException(e.setUnfinishedMessage(this));
-          } catch (java.io.IOException e) {
-            throw new RuntimeException(
-                new com.google.protobuf.InvalidProtocolBufferException(
-                    e.getMessage()).setUnfinishedMessage(this));
-          } finally {
-          }
-        }
-        case GET_DEFAULT_INSTANCE: {
-          return DEFAULT_INSTANCE;
-        }
-        case GET_PARSER: {
-          if (PARSER == null) {    synchronized (soc.proto.GameMessage.State.class) {
-              if (PARSER == null) {
-                PARSER = new DefaultInstanceBasedParser(DEFAULT_INSTANCE);
-              }
-            }
-          }
-          return PARSER;
-        }
-      }
-      throw new UnsupportedOperationException();
-    }
-
 
     // @@protoc_insertion_point(class_scope:State)
     private static final soc.proto.GameMessage.State DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new State();
-      DEFAULT_INSTANCE.makeImmutable();
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.State();
     }
 
     public static soc.proto.GameMessage.State getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static volatile com.google.protobuf.Parser<State> PARSER;
+    private static final com.google.protobuf.Parser<State>
+        PARSER = new com.google.protobuf.AbstractParser<State>() {
+      public State parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new State(input, extensionRegistry);
+      }
+    };
 
     public static com.google.protobuf.Parser<State> parser() {
-      return DEFAULT_INSTANCE.getParserForType();
+      return PARSER;
     }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<State> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.State getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
 
   public interface StartGameOrBuilder extends
       // @@protoc_insertion_point(interface_extends:StartGame)
-      com.google.protobuf.MessageLiteOrBuilder {
+      com.google.protobuf.MessageOrBuilder {
 
     /**
      * <pre>
      * new state; ignored from client
      * </pre>
      *
-     * <code>optional .GameState state = 1;</code>
+     * <code>.GameState state = 1;</code>
      */
     int getStateValue();
     /**
@@ -364,7 +548,7 @@ public final class GameMessage {
      * new state; ignored from client
      * </pre>
      *
-     * <code>optional .GameState state = 1;</code>
+     * <code>.GameState state = 1;</code>
      */
     soc.proto.Data.GameState getState();
   }
@@ -381,12 +565,76 @@ public final class GameMessage {
    * Protobuf type {@code StartGame}
    */
   public  static final class StartGame extends
-      com.google.protobuf.GeneratedMessageLite<
-          StartGame, StartGame.Builder> implements
+      com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:StartGame)
       StartGameOrBuilder {
-    private StartGame() {
+  private static final long serialVersionUID = 0L;
+    // Use StartGame.newBuilder() to construct.
+    private StartGame(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
     }
+    private StartGame() {
+      state_ = 0;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private StartGame(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              int rawValue = input.readEnum();
+
+              state_ = rawValue;
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_StartGame_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_StartGame_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.StartGame.class, soc.proto.GameMessage.StartGame.Builder.class);
+    }
+
     public static final int STATE_FIELD_NUMBER = 1;
     private int state_;
     /**
@@ -394,7 +642,7 @@ public final class GameMessage {
      * new state; ignored from client
      * </pre>
      *
-     * <code>optional .GameState state = 1;</code>
+     * <code>.GameState state = 1;</code>
      */
     public int getStateValue() {
       return state_;
@@ -404,46 +652,21 @@ public final class GameMessage {
      * new state; ignored from client
      * </pre>
      *
-     * <code>optional .GameState state = 1;</code>
+     * <code>.GameState state = 1;</code>
      */
     public soc.proto.Data.GameState getState() {
-      soc.proto.Data.GameState result = soc.proto.Data.GameState.forNumber(state_);
+      soc.proto.Data.GameState result = soc.proto.Data.GameState.valueOf(state_);
       return result == null ? soc.proto.Data.GameState.UNRECOGNIZED : result;
     }
-    /**
-     * <pre>
-     * new state; ignored from client
-     * </pre>
-     *
-     * <code>optional .GameState state = 1;</code>
-     */
-    private void setStateValue(int value) {
-        state_ = value;
-    }
-    /**
-     * <pre>
-     * new state; ignored from client
-     * </pre>
-     *
-     * <code>optional .GameState state = 1;</code>
-     */
-    private void setState(soc.proto.Data.GameState value) {
-      if (value == null) {
-        throw new NullPointerException();
-      }
-      
-      state_ = value.getNumber();
-    }
-    /**
-     * <pre>
-     * new state; ignored from client
-     * </pre>
-     *
-     * <code>optional .GameState state = 1;</code>
-     */
-    private void clearState() {
-      
-      state_ = 0;
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
     }
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
@@ -451,10 +674,11 @@ public final class GameMessage {
       if (state_ != soc.proto.Data.GameState.NEW.getNumber()) {
         output.writeEnum(1, state_);
       }
+      unknownFields.writeTo(output);
     }
 
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
@@ -462,78 +686,129 @@ public final class GameMessage {
         size += com.google.protobuf.CodedOutputStream
           .computeEnumSize(1, state_);
       }
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
 
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.StartGame)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.StartGame other = (soc.proto.GameMessage.StartGame) obj;
+
+      boolean result = true;
+      result = result && state_ == other.state_;
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + STATE_FIELD_NUMBER;
+      hash = (53 * hash) + state_;
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.StartGame parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.StartGame parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static soc.proto.GameMessage.StartGame parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data);
+      return PARSER.parseFrom(data);
     }
     public static soc.proto.GameMessage.StartGame parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data, extensionRegistry);
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static soc.proto.GameMessage.StartGame parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data);
+      return PARSER.parseFrom(data);
     }
     public static soc.proto.GameMessage.StartGame parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data, extensionRegistry);
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static soc.proto.GameMessage.StartGame parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static soc.proto.GameMessage.StartGame parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static soc.proto.GameMessage.StartGame parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return parseDelimitedFrom(DEFAULT_INSTANCE, input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static soc.proto.GameMessage.StartGame parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return parseDelimitedFrom(DEFAULT_INSTANCE, input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static soc.proto.GameMessage.StartGame parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static soc.proto.GameMessage.StartGame parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
     public static Builder newBuilder(soc.proto.GameMessage.StartGame prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
 
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
     /**
      * <pre>
      * From client, this message means that a player wants to start the game;
@@ -547,36 +822,155 @@ public final class GameMessage {
      * Protobuf type {@code StartGame}
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessageLite.Builder<
-          soc.proto.GameMessage.StartGame, Builder> implements
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
         // @@protoc_insertion_point(builder_implements:StartGame)
         soc.proto.GameMessage.StartGameOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_StartGame_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_StartGame_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.StartGame.class, soc.proto.GameMessage.StartGame.Builder.class);
+      }
+
       // Construct using soc.proto.GameMessage.StartGame.newBuilder()
       private Builder() {
-        super(DEFAULT_INSTANCE);
+        maybeForceBuilderInitialization();
       }
 
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        state_ = 0;
 
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_StartGame_descriptor;
+      }
+
+      public soc.proto.GameMessage.StartGame getDefaultInstanceForType() {
+        return soc.proto.GameMessage.StartGame.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.StartGame build() {
+        soc.proto.GameMessage.StartGame result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.StartGame buildPartial() {
+        soc.proto.GameMessage.StartGame result = new soc.proto.GameMessage.StartGame(this);
+        result.state_ = state_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.StartGame) {
+          return mergeFrom((soc.proto.GameMessage.StartGame)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.StartGame other) {
+        if (other == soc.proto.GameMessage.StartGame.getDefaultInstance()) return this;
+        if (other.state_ != 0) {
+          setStateValue(other.getStateValue());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.StartGame parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.StartGame) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private int state_ = 0;
       /**
        * <pre>
        * new state; ignored from client
        * </pre>
        *
-       * <code>optional .GameState state = 1;</code>
+       * <code>.GameState state = 1;</code>
        */
       public int getStateValue() {
-        return instance.getStateValue();
+        return state_;
       }
       /**
        * <pre>
        * new state; ignored from client
        * </pre>
        *
-       * <code>optional .GameState state = 1;</code>
+       * <code>.GameState state = 1;</code>
        */
       public Builder setStateValue(int value) {
-        copyOnWrite();
-        instance.setStateValue(value);
+        state_ = value;
+        onChanged();
         return this;
       }
       /**
@@ -584,21 +978,26 @@ public final class GameMessage {
        * new state; ignored from client
        * </pre>
        *
-       * <code>optional .GameState state = 1;</code>
+       * <code>.GameState state = 1;</code>
        */
       public soc.proto.Data.GameState getState() {
-        return instance.getState();
+        soc.proto.Data.GameState result = soc.proto.Data.GameState.valueOf(state_);
+        return result == null ? soc.proto.Data.GameState.UNRECOGNIZED : result;
       }
       /**
        * <pre>
        * new state; ignored from client
        * </pre>
        *
-       * <code>optional .GameState state = 1;</code>
+       * <code>.GameState state = 1;</code>
        */
       public Builder setState(soc.proto.Data.GameState value) {
-        copyOnWrite();
-        instance.setState(value);
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        
+        state_ = value.getNumber();
+        onChanged();
         return this;
       }
       /**
@@ -606,122 +1005,73 @@ public final class GameMessage {
        * new state; ignored from client
        * </pre>
        *
-       * <code>optional .GameState state = 1;</code>
+       * <code>.GameState state = 1;</code>
        */
       public Builder clearState() {
-        copyOnWrite();
-        instance.clearState();
+        
+        state_ = 0;
+        onChanged();
         return this;
       }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
 
       // @@protoc_insertion_point(builder_scope:StartGame)
     }
-    protected final Object dynamicMethod(
-        com.google.protobuf.GeneratedMessageLite.MethodToInvoke method,
-        Object arg0, Object arg1) {
-      switch (method) {
-        case NEW_MUTABLE_INSTANCE: {
-          return new soc.proto.GameMessage.StartGame();
-        }
-        case IS_INITIALIZED: {
-          return DEFAULT_INSTANCE;
-        }
-        case MAKE_IMMUTABLE: {
-          return null;
-        }
-        case NEW_BUILDER: {
-          return new Builder();
-        }
-        case VISIT: {
-          Visitor visitor = (Visitor) arg0;
-          soc.proto.GameMessage.StartGame other = (soc.proto.GameMessage.StartGame) arg1;
-          state_ = visitor.visitInt(state_ != 0, state_,    other.state_ != 0, other.state_);
-          if (visitor == com.google.protobuf.GeneratedMessageLite.MergeFromVisitor
-              .INSTANCE) {
-          }
-          return this;
-        }
-        case MERGE_FROM_STREAM: {
-          com.google.protobuf.CodedInputStream input =
-              (com.google.protobuf.CodedInputStream) arg0;
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry =
-              (com.google.protobuf.ExtensionRegistryLite) arg1;
-          try {
-            boolean done = false;
-            while (!done) {
-              int tag = input.readTag();
-              switch (tag) {
-                case 0:
-                  done = true;
-                  break;
-                default: {
-                  if (!input.skipField(tag)) {
-                    done = true;
-                  }
-                  break;
-                }
-                case 8: {
-                  int rawValue = input.readEnum();
-
-                  state_ = rawValue;
-                  break;
-                }
-              }
-            }
-          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-            throw new RuntimeException(e.setUnfinishedMessage(this));
-          } catch (java.io.IOException e) {
-            throw new RuntimeException(
-                new com.google.protobuf.InvalidProtocolBufferException(
-                    e.getMessage()).setUnfinishedMessage(this));
-          } finally {
-          }
-        }
-        case GET_DEFAULT_INSTANCE: {
-          return DEFAULT_INSTANCE;
-        }
-        case GET_PARSER: {
-          if (PARSER == null) {    synchronized (soc.proto.GameMessage.StartGame.class) {
-              if (PARSER == null) {
-                PARSER = new DefaultInstanceBasedParser(DEFAULT_INSTANCE);
-              }
-            }
-          }
-          return PARSER;
-        }
-      }
-      throw new UnsupportedOperationException();
-    }
-
 
     // @@protoc_insertion_point(class_scope:StartGame)
     private static final soc.proto.GameMessage.StartGame DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new StartGame();
-      DEFAULT_INSTANCE.makeImmutable();
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.StartGame();
     }
 
     public static soc.proto.GameMessage.StartGame getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static volatile com.google.protobuf.Parser<StartGame> PARSER;
+    private static final com.google.protobuf.Parser<StartGame>
+        PARSER = new com.google.protobuf.AbstractParser<StartGame>() {
+      public StartGame parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new StartGame(input, extensionRegistry);
+      }
+    };
 
     public static com.google.protobuf.Parser<StartGame> parser() {
-      return DEFAULT_INSTANCE.getParserForType();
+      return PARSER;
     }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<StartGame> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.StartGame getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
 
   public interface TurnOrBuilder extends
       // @@protoc_insertion_point(interface_extends:Turn)
-      com.google.protobuf.MessageLiteOrBuilder {
+      com.google.protobuf.MessageOrBuilder {
 
     /**
      * <pre>
      * new current player's seat number
      * </pre>
      *
-     * <code>optional uint32 player_number = 1;</code>
+     * <code>uint32 player_number = 1;</code>
      */
     int getPlayerNumber();
 
@@ -730,7 +1080,7 @@ public final class GameMessage {
      * new state, or empty/0 when joining game in progress
      * </pre>
      *
-     * <code>optional .GameState state = 2;</code>
+     * <code>.GameState state = 2;</code>
      */
     int getStateValue();
     /**
@@ -738,7 +1088,7 @@ public final class GameMessage {
      * new state, or empty/0 when joining game in progress
      * </pre>
      *
-     * <code>optional .GameState state = 2;</code>
+     * <code>.GameState state = 2;</code>
      */
     soc.proto.Data.GameState getState();
   }
@@ -759,12 +1109,82 @@ public final class GameMessage {
    * Protobuf type {@code Turn}
    */
   public  static final class Turn extends
-      com.google.protobuf.GeneratedMessageLite<
-          Turn, Turn.Builder> implements
+      com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:Turn)
       TurnOrBuilder {
-    private Turn() {
+  private static final long serialVersionUID = 0L;
+    // Use Turn.newBuilder() to construct.
+    private Turn(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
     }
+    private Turn() {
+      playerNumber_ = 0;
+      state_ = 0;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private Turn(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+
+              playerNumber_ = input.readUInt32();
+              break;
+            }
+            case 16: {
+              int rawValue = input.readEnum();
+
+              state_ = rawValue;
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_Turn_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_Turn_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.Turn.class, soc.proto.GameMessage.Turn.Builder.class);
+    }
+
     public static final int PLAYER_NUMBER_FIELD_NUMBER = 1;
     private int playerNumber_;
     /**
@@ -772,32 +1192,10 @@ public final class GameMessage {
      * new current player's seat number
      * </pre>
      *
-     * <code>optional uint32 player_number = 1;</code>
+     * <code>uint32 player_number = 1;</code>
      */
     public int getPlayerNumber() {
       return playerNumber_;
-    }
-    /**
-     * <pre>
-     * new current player's seat number
-     * </pre>
-     *
-     * <code>optional uint32 player_number = 1;</code>
-     */
-    private void setPlayerNumber(int value) {
-      
-      playerNumber_ = value;
-    }
-    /**
-     * <pre>
-     * new current player's seat number
-     * </pre>
-     *
-     * <code>optional uint32 player_number = 1;</code>
-     */
-    private void clearPlayerNumber() {
-      
-      playerNumber_ = 0;
     }
 
     public static final int STATE_FIELD_NUMBER = 2;
@@ -807,7 +1205,7 @@ public final class GameMessage {
      * new state, or empty/0 when joining game in progress
      * </pre>
      *
-     * <code>optional .GameState state = 2;</code>
+     * <code>.GameState state = 2;</code>
      */
     public int getStateValue() {
       return state_;
@@ -817,46 +1215,21 @@ public final class GameMessage {
      * new state, or empty/0 when joining game in progress
      * </pre>
      *
-     * <code>optional .GameState state = 2;</code>
+     * <code>.GameState state = 2;</code>
      */
     public soc.proto.Data.GameState getState() {
-      soc.proto.Data.GameState result = soc.proto.Data.GameState.forNumber(state_);
+      soc.proto.Data.GameState result = soc.proto.Data.GameState.valueOf(state_);
       return result == null ? soc.proto.Data.GameState.UNRECOGNIZED : result;
     }
-    /**
-     * <pre>
-     * new state, or empty/0 when joining game in progress
-     * </pre>
-     *
-     * <code>optional .GameState state = 2;</code>
-     */
-    private void setStateValue(int value) {
-        state_ = value;
-    }
-    /**
-     * <pre>
-     * new state, or empty/0 when joining game in progress
-     * </pre>
-     *
-     * <code>optional .GameState state = 2;</code>
-     */
-    private void setState(soc.proto.Data.GameState value) {
-      if (value == null) {
-        throw new NullPointerException();
-      }
-      
-      state_ = value.getNumber();
-    }
-    /**
-     * <pre>
-     * new state, or empty/0 when joining game in progress
-     * </pre>
-     *
-     * <code>optional .GameState state = 2;</code>
-     */
-    private void clearState() {
-      
-      state_ = 0;
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
     }
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
@@ -867,10 +1240,11 @@ public final class GameMessage {
       if (state_ != soc.proto.Data.GameState.NEW.getNumber()) {
         output.writeEnum(2, state_);
       }
+      unknownFields.writeTo(output);
     }
 
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
@@ -882,78 +1256,133 @@ public final class GameMessage {
         size += com.google.protobuf.CodedOutputStream
           .computeEnumSize(2, state_);
       }
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
 
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.Turn)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.Turn other = (soc.proto.GameMessage.Turn) obj;
+
+      boolean result = true;
+      result = result && (getPlayerNumber()
+          == other.getPlayerNumber());
+      result = result && state_ == other.state_;
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + PLAYER_NUMBER_FIELD_NUMBER;
+      hash = (53 * hash) + getPlayerNumber();
+      hash = (37 * hash) + STATE_FIELD_NUMBER;
+      hash = (53 * hash) + state_;
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.Turn parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.Turn parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static soc.proto.GameMessage.Turn parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data);
+      return PARSER.parseFrom(data);
     }
     public static soc.proto.GameMessage.Turn parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data, extensionRegistry);
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static soc.proto.GameMessage.Turn parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data);
+      return PARSER.parseFrom(data);
     }
     public static soc.proto.GameMessage.Turn parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data, extensionRegistry);
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static soc.proto.GameMessage.Turn parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static soc.proto.GameMessage.Turn parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static soc.proto.GameMessage.Turn parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return parseDelimitedFrom(DEFAULT_INSTANCE, input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static soc.proto.GameMessage.Turn parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return parseDelimitedFrom(DEFAULT_INSTANCE, input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static soc.proto.GameMessage.Turn parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static soc.proto.GameMessage.Turn parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
     public static Builder newBuilder(soc.proto.GameMessage.Turn prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
 
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
     /**
      * <pre>
      * End of the current player's turn, start of a new turn.
@@ -971,36 +1400,162 @@ public final class GameMessage {
      * Protobuf type {@code Turn}
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessageLite.Builder<
-          soc.proto.GameMessage.Turn, Builder> implements
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
         // @@protoc_insertion_point(builder_implements:Turn)
         soc.proto.GameMessage.TurnOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_Turn_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_Turn_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.Turn.class, soc.proto.GameMessage.Turn.Builder.class);
+      }
+
       // Construct using soc.proto.GameMessage.Turn.newBuilder()
       private Builder() {
-        super(DEFAULT_INSTANCE);
+        maybeForceBuilderInitialization();
       }
 
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        playerNumber_ = 0;
 
+        state_ = 0;
+
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_Turn_descriptor;
+      }
+
+      public soc.proto.GameMessage.Turn getDefaultInstanceForType() {
+        return soc.proto.GameMessage.Turn.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.Turn build() {
+        soc.proto.GameMessage.Turn result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.Turn buildPartial() {
+        soc.proto.GameMessage.Turn result = new soc.proto.GameMessage.Turn(this);
+        result.playerNumber_ = playerNumber_;
+        result.state_ = state_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.Turn) {
+          return mergeFrom((soc.proto.GameMessage.Turn)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.Turn other) {
+        if (other == soc.proto.GameMessage.Turn.getDefaultInstance()) return this;
+        if (other.getPlayerNumber() != 0) {
+          setPlayerNumber(other.getPlayerNumber());
+        }
+        if (other.state_ != 0) {
+          setStateValue(other.getStateValue());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.Turn parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.Turn) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private int playerNumber_ ;
       /**
        * <pre>
        * new current player's seat number
        * </pre>
        *
-       * <code>optional uint32 player_number = 1;</code>
+       * <code>uint32 player_number = 1;</code>
        */
       public int getPlayerNumber() {
-        return instance.getPlayerNumber();
+        return playerNumber_;
       }
       /**
        * <pre>
        * new current player's seat number
        * </pre>
        *
-       * <code>optional uint32 player_number = 1;</code>
+       * <code>uint32 player_number = 1;</code>
        */
       public Builder setPlayerNumber(int value) {
-        copyOnWrite();
-        instance.setPlayerNumber(value);
+        
+        playerNumber_ = value;
+        onChanged();
         return this;
       }
       /**
@@ -1008,34 +1563,36 @@ public final class GameMessage {
        * new current player's seat number
        * </pre>
        *
-       * <code>optional uint32 player_number = 1;</code>
+       * <code>uint32 player_number = 1;</code>
        */
       public Builder clearPlayerNumber() {
-        copyOnWrite();
-        instance.clearPlayerNumber();
+        
+        playerNumber_ = 0;
+        onChanged();
         return this;
       }
 
+      private int state_ = 0;
       /**
        * <pre>
        * new state, or empty/0 when joining game in progress
        * </pre>
        *
-       * <code>optional .GameState state = 2;</code>
+       * <code>.GameState state = 2;</code>
        */
       public int getStateValue() {
-        return instance.getStateValue();
+        return state_;
       }
       /**
        * <pre>
        * new state, or empty/0 when joining game in progress
        * </pre>
        *
-       * <code>optional .GameState state = 2;</code>
+       * <code>.GameState state = 2;</code>
        */
       public Builder setStateValue(int value) {
-        copyOnWrite();
-        instance.setStateValue(value);
+        state_ = value;
+        onChanged();
         return this;
       }
       /**
@@ -1043,21 +1600,26 @@ public final class GameMessage {
        * new state, or empty/0 when joining game in progress
        * </pre>
        *
-       * <code>optional .GameState state = 2;</code>
+       * <code>.GameState state = 2;</code>
        */
       public soc.proto.Data.GameState getState() {
-        return instance.getState();
+        soc.proto.Data.GameState result = soc.proto.Data.GameState.valueOf(state_);
+        return result == null ? soc.proto.Data.GameState.UNRECOGNIZED : result;
       }
       /**
        * <pre>
        * new state, or empty/0 when joining game in progress
        * </pre>
        *
-       * <code>optional .GameState state = 2;</code>
+       * <code>.GameState state = 2;</code>
        */
       public Builder setState(soc.proto.Data.GameState value) {
-        copyOnWrite();
-        instance.setState(value);
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        
+        state_ = value.getNumber();
+        onChanged();
         return this;
       }
       /**
@@ -1065,122 +1627,66 @@ public final class GameMessage {
        * new state, or empty/0 when joining game in progress
        * </pre>
        *
-       * <code>optional .GameState state = 2;</code>
+       * <code>.GameState state = 2;</code>
        */
       public Builder clearState() {
-        copyOnWrite();
-        instance.clearState();
+        
+        state_ = 0;
+        onChanged();
         return this;
       }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
 
       // @@protoc_insertion_point(builder_scope:Turn)
     }
-    protected final Object dynamicMethod(
-        com.google.protobuf.GeneratedMessageLite.MethodToInvoke method,
-        Object arg0, Object arg1) {
-      switch (method) {
-        case NEW_MUTABLE_INSTANCE: {
-          return new soc.proto.GameMessage.Turn();
-        }
-        case IS_INITIALIZED: {
-          return DEFAULT_INSTANCE;
-        }
-        case MAKE_IMMUTABLE: {
-          return null;
-        }
-        case NEW_BUILDER: {
-          return new Builder();
-        }
-        case VISIT: {
-          Visitor visitor = (Visitor) arg0;
-          soc.proto.GameMessage.Turn other = (soc.proto.GameMessage.Turn) arg1;
-          playerNumber_ = visitor.visitInt(playerNumber_ != 0, playerNumber_,
-              other.playerNumber_ != 0, other.playerNumber_);
-          state_ = visitor.visitInt(state_ != 0, state_,    other.state_ != 0, other.state_);
-          if (visitor == com.google.protobuf.GeneratedMessageLite.MergeFromVisitor
-              .INSTANCE) {
-          }
-          return this;
-        }
-        case MERGE_FROM_STREAM: {
-          com.google.protobuf.CodedInputStream input =
-              (com.google.protobuf.CodedInputStream) arg0;
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry =
-              (com.google.protobuf.ExtensionRegistryLite) arg1;
-          try {
-            boolean done = false;
-            while (!done) {
-              int tag = input.readTag();
-              switch (tag) {
-                case 0:
-                  done = true;
-                  break;
-                default: {
-                  if (!input.skipField(tag)) {
-                    done = true;
-                  }
-                  break;
-                }
-                case 8: {
-
-                  playerNumber_ = input.readUInt32();
-                  break;
-                }
-                case 16: {
-                  int rawValue = input.readEnum();
-
-                  state_ = rawValue;
-                  break;
-                }
-              }
-            }
-          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-            throw new RuntimeException(e.setUnfinishedMessage(this));
-          } catch (java.io.IOException e) {
-            throw new RuntimeException(
-                new com.google.protobuf.InvalidProtocolBufferException(
-                    e.getMessage()).setUnfinishedMessage(this));
-          } finally {
-          }
-        }
-        case GET_DEFAULT_INSTANCE: {
-          return DEFAULT_INSTANCE;
-        }
-        case GET_PARSER: {
-          if (PARSER == null) {    synchronized (soc.proto.GameMessage.Turn.class) {
-              if (PARSER == null) {
-                PARSER = new DefaultInstanceBasedParser(DEFAULT_INSTANCE);
-              }
-            }
-          }
-          return PARSER;
-        }
-      }
-      throw new UnsupportedOperationException();
-    }
-
 
     // @@protoc_insertion_point(class_scope:Turn)
     private static final soc.proto.GameMessage.Turn DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new Turn();
-      DEFAULT_INSTANCE.makeImmutable();
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.Turn();
     }
 
     public static soc.proto.GameMessage.Turn getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static volatile com.google.protobuf.Parser<Turn> PARSER;
+    private static final com.google.protobuf.Parser<Turn>
+        PARSER = new com.google.protobuf.AbstractParser<Turn>() {
+      public Turn parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new Turn(input, extensionRegistry);
+      }
+    };
 
     public static com.google.protobuf.Parser<Turn> parser() {
-      return DEFAULT_INSTANCE.getParserForType();
+      return PARSER;
     }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Turn> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.Turn getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
 
   public interface EndTurnOrBuilder extends
       // @@protoc_insertion_point(interface_extends:EndTurn)
-      com.google.protobuf.MessageLiteOrBuilder {
+      com.google.protobuf.MessageOrBuilder {
   }
   /**
    * <pre>
@@ -1190,93 +1696,208 @@ public final class GameMessage {
    * Protobuf type {@code EndTurn}
    */
   public  static final class EndTurn extends
-      com.google.protobuf.GeneratedMessageLite<
-          EndTurn, EndTurn.Builder> implements
+      com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:EndTurn)
       EndTurnOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use EndTurn.newBuilder() to construct.
+    private EndTurn(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
     private EndTurn() {
     }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private EndTurn(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_EndTurn_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_EndTurn_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.EndTurn.class, soc.proto.GameMessage.EndTurn.Builder.class);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      unknownFields.writeTo(output);
     }
 
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
 
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.EndTurn)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.EndTurn other = (soc.proto.GameMessage.EndTurn) obj;
+
+      boolean result = true;
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.EndTurn parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.EndTurn parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static soc.proto.GameMessage.EndTurn parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data);
+      return PARSER.parseFrom(data);
     }
     public static soc.proto.GameMessage.EndTurn parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data, extensionRegistry);
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static soc.proto.GameMessage.EndTurn parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data);
+      return PARSER.parseFrom(data);
     }
     public static soc.proto.GameMessage.EndTurn parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data, extensionRegistry);
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static soc.proto.GameMessage.EndTurn parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static soc.proto.GameMessage.EndTurn parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static soc.proto.GameMessage.EndTurn parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return parseDelimitedFrom(DEFAULT_INSTANCE, input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static soc.proto.GameMessage.EndTurn parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return parseDelimitedFrom(DEFAULT_INSTANCE, input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static soc.proto.GameMessage.EndTurn parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static soc.proto.GameMessage.EndTurn parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
     public static Builder newBuilder(soc.proto.GameMessage.EndTurn prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
 
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
     /**
      * <pre>
      * Player wants to end their turn. 
@@ -1285,117 +1906,186 @@ public final class GameMessage {
      * Protobuf type {@code EndTurn}
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessageLite.Builder<
-          soc.proto.GameMessage.EndTurn, Builder> implements
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
         // @@protoc_insertion_point(builder_implements:EndTurn)
         soc.proto.GameMessage.EndTurnOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_EndTurn_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_EndTurn_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.EndTurn.class, soc.proto.GameMessage.EndTurn.Builder.class);
+      }
+
       // Construct using soc.proto.GameMessage.EndTurn.newBuilder()
       private Builder() {
-        super(DEFAULT_INSTANCE);
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_EndTurn_descriptor;
+      }
+
+      public soc.proto.GameMessage.EndTurn getDefaultInstanceForType() {
+        return soc.proto.GameMessage.EndTurn.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.EndTurn build() {
+        soc.proto.GameMessage.EndTurn result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.EndTurn buildPartial() {
+        soc.proto.GameMessage.EndTurn result = new soc.proto.GameMessage.EndTurn(this);
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.EndTurn) {
+          return mergeFrom((soc.proto.GameMessage.EndTurn)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.EndTurn other) {
+        if (other == soc.proto.GameMessage.EndTurn.getDefaultInstance()) return this;
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.EndTurn parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.EndTurn) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
       }
 
 
       // @@protoc_insertion_point(builder_scope:EndTurn)
     }
-    protected final Object dynamicMethod(
-        com.google.protobuf.GeneratedMessageLite.MethodToInvoke method,
-        Object arg0, Object arg1) {
-      switch (method) {
-        case NEW_MUTABLE_INSTANCE: {
-          return new soc.proto.GameMessage.EndTurn();
-        }
-        case IS_INITIALIZED: {
-          return DEFAULT_INSTANCE;
-        }
-        case MAKE_IMMUTABLE: {
-          return null;
-        }
-        case NEW_BUILDER: {
-          return new Builder();
-        }
-        case VISIT: {
-          Visitor visitor = (Visitor) arg0;
-          soc.proto.GameMessage.EndTurn other = (soc.proto.GameMessage.EndTurn) arg1;
-          if (visitor == com.google.protobuf.GeneratedMessageLite.MergeFromVisitor
-              .INSTANCE) {
-          }
-          return this;
-        }
-        case MERGE_FROM_STREAM: {
-          com.google.protobuf.CodedInputStream input =
-              (com.google.protobuf.CodedInputStream) arg0;
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry =
-              (com.google.protobuf.ExtensionRegistryLite) arg1;
-          try {
-            boolean done = false;
-            while (!done) {
-              int tag = input.readTag();
-              switch (tag) {
-                case 0:
-                  done = true;
-                  break;
-                default: {
-                  if (!input.skipField(tag)) {
-                    done = true;
-                  }
-                  break;
-                }
-              }
-            }
-          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-            throw new RuntimeException(e.setUnfinishedMessage(this));
-          } catch (java.io.IOException e) {
-            throw new RuntimeException(
-                new com.google.protobuf.InvalidProtocolBufferException(
-                    e.getMessage()).setUnfinishedMessage(this));
-          } finally {
-          }
-        }
-        case GET_DEFAULT_INSTANCE: {
-          return DEFAULT_INSTANCE;
-        }
-        case GET_PARSER: {
-          if (PARSER == null) {    synchronized (soc.proto.GameMessage.EndTurn.class) {
-              if (PARSER == null) {
-                PARSER = new DefaultInstanceBasedParser(DEFAULT_INSTANCE);
-              }
-            }
-          }
-          return PARSER;
-        }
-      }
-      throw new UnsupportedOperationException();
-    }
-
 
     // @@protoc_insertion_point(class_scope:EndTurn)
     private static final soc.proto.GameMessage.EndTurn DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new EndTurn();
-      DEFAULT_INSTANCE.makeImmutable();
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.EndTurn();
     }
 
     public static soc.proto.GameMessage.EndTurn getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static volatile com.google.protobuf.Parser<EndTurn> PARSER;
+    private static final com.google.protobuf.Parser<EndTurn>
+        PARSER = new com.google.protobuf.AbstractParser<EndTurn>() {
+      public EndTurn parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new EndTurn(input, extensionRegistry);
+      }
+    };
 
     public static com.google.protobuf.Parser<EndTurn> parser() {
-      return DEFAULT_INSTANCE.getParserForType();
+      return PARSER;
     }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<EndTurn> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.EndTurn getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
 
   public interface GameMessageFromServerOrBuilder extends
       // @@protoc_insertion_point(interface_extends:GameMessageFromServer)
-      com.google.protobuf.MessageLiteOrBuilder {
+      com.google.protobuf.MessageOrBuilder {
 
     /**
      * <pre>
      * Name of game
      * </pre>
      *
-     * <code>optional string ga_name = 1;</code>
+     * <code>string ga_name = 1;</code>
      */
     java.lang.String getGaName();
     /**
@@ -1403,7 +2093,7 @@ public final class GameMessage {
      * Name of game
      * </pre>
      *
-     * <code>optional string ga_name = 1;</code>
+     * <code>string ga_name = 1;</code>
      */
     com.google.protobuf.ByteString
         getGaNameBytes();
@@ -1413,23 +2103,63 @@ public final class GameMessage {
      * state
      * </pre>
      *
-     * <code>optional .State game_state = 2;</code>
+     * <code>.State game_state = 2;</code>
+     */
+    boolean hasGameState();
+    /**
+     * <pre>
+     * state
+     * </pre>
+     *
+     * <code>.State game_state = 2;</code>
      */
     soc.proto.GameMessage.State getGameState();
+    /**
+     * <pre>
+     * state
+     * </pre>
+     *
+     * <code>.State game_state = 2;</code>
+     */
+    soc.proto.GameMessage.StateOrBuilder getGameStateOrBuilder();
 
     /**
      * <pre>
      * turn
      * </pre>
      *
-     * <code>optional .StartGame start_game = 100;</code>
+     * <code>.StartGame start_game = 100;</code>
+     */
+    boolean hasStartGame();
+    /**
+     * <pre>
+     * turn
+     * </pre>
+     *
+     * <code>.StartGame start_game = 100;</code>
      */
     soc.proto.GameMessage.StartGame getStartGame();
+    /**
+     * <pre>
+     * turn
+     * </pre>
+     *
+     * <code>.StartGame start_game = 100;</code>
+     */
+    soc.proto.GameMessage.StartGameOrBuilder getStartGameOrBuilder();
 
     /**
-     * <code>optional .Turn turn = 101;</code>
+     * <code>.Turn turn = 101;</code>
+     */
+    boolean hasTurn();
+    /**
+     * <code>.Turn turn = 101;</code>
      */
     soc.proto.GameMessage.Turn getTurn();
+    /**
+     * <code>.Turn turn = 101;</code>
+     */
+    soc.proto.GameMessage.TurnOrBuilder getTurnOrBuilder();
 
     public soc.proto.GameMessage.GameMessageFromServer.MsgCase getMsgCase();
   }
@@ -1437,13 +2167,118 @@ public final class GameMessage {
    * Protobuf type {@code GameMessageFromServer}
    */
   public  static final class GameMessageFromServer extends
-      com.google.protobuf.GeneratedMessageLite<
-          GameMessageFromServer, GameMessageFromServer.Builder> implements
+      com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:GameMessageFromServer)
       GameMessageFromServerOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use GameMessageFromServer.newBuilder() to construct.
+    private GameMessageFromServer(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
     private GameMessageFromServer() {
       gaName_ = "";
     }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private GameMessageFromServer(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              java.lang.String s = input.readStringRequireUtf8();
+
+              gaName_ = s;
+              break;
+            }
+            case 18: {
+              soc.proto.GameMessage.State.Builder subBuilder = null;
+              if (msgCase_ == 2) {
+                subBuilder = ((soc.proto.GameMessage.State) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.State.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.State) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 2;
+              break;
+            }
+            case 802: {
+              soc.proto.GameMessage.StartGame.Builder subBuilder = null;
+              if (msgCase_ == 100) {
+                subBuilder = ((soc.proto.GameMessage.StartGame) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.StartGame.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.StartGame) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 100;
+              break;
+            }
+            case 810: {
+              soc.proto.GameMessage.Turn.Builder subBuilder = null;
+              if (msgCase_ == 101) {
+                subBuilder = ((soc.proto.GameMessage.Turn) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.Turn.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.Turn) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 101;
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_GameMessageFromServer_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_GameMessageFromServer_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.GameMessageFromServer.class, soc.proto.GameMessage.GameMessageFromServer.Builder.class);
+    }
+
     private int msgCase_ = 0;
     private java.lang.Object msg_;
     public enum MsgCase
@@ -1484,75 +2319,46 @@ public final class GameMessage {
           msgCase_);
     }
 
-    private void clearMsg() {
-      msgCase_ = 0;
-      msg_ = null;
-    }
-
     public static final int GA_NAME_FIELD_NUMBER = 1;
-    private java.lang.String gaName_;
+    private volatile java.lang.Object gaName_;
     /**
      * <pre>
      * Name of game
      * </pre>
      *
-     * <code>optional string ga_name = 1;</code>
+     * <code>string ga_name = 1;</code>
      */
     public java.lang.String getGaName() {
-      return gaName_;
+      java.lang.Object ref = gaName_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        gaName_ = s;
+        return s;
+      }
     }
     /**
      * <pre>
      * Name of game
      * </pre>
      *
-     * <code>optional string ga_name = 1;</code>
+     * <code>string ga_name = 1;</code>
      */
     public com.google.protobuf.ByteString
         getGaNameBytes() {
-      return com.google.protobuf.ByteString.copyFromUtf8(gaName_);
-    }
-    /**
-     * <pre>
-     * Name of game
-     * </pre>
-     *
-     * <code>optional string ga_name = 1;</code>
-     */
-    private void setGaName(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  
-      gaName_ = value;
-    }
-    /**
-     * <pre>
-     * Name of game
-     * </pre>
-     *
-     * <code>optional string ga_name = 1;</code>
-     */
-    private void clearGaName() {
-      
-      gaName_ = getDefaultInstance().getGaName();
-    }
-    /**
-     * <pre>
-     * Name of game
-     * </pre>
-     *
-     * <code>optional string ga_name = 1;</code>
-     */
-    private void setGaNameBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  checkByteStringIsUtf8(value);
-      
-      gaName_ = value.toStringUtf8();
+      java.lang.Object ref = gaName_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        gaName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
     }
 
     public static final int GAME_STATE_FIELD_NUMBER = 2;
@@ -1561,7 +2367,17 @@ public final class GameMessage {
      * state
      * </pre>
      *
-     * <code>optional .State game_state = 2;</code>
+     * <code>.State game_state = 2;</code>
+     */
+    public boolean hasGameState() {
+      return msgCase_ == 2;
+    }
+    /**
+     * <pre>
+     * state
+     * </pre>
+     *
+     * <code>.State game_state = 2;</code>
      */
     public soc.proto.GameMessage.State getGameState() {
       if (msgCase_ == 2) {
@@ -1574,56 +2390,13 @@ public final class GameMessage {
      * state
      * </pre>
      *
-     * <code>optional .State game_state = 2;</code>
+     * <code>.State game_state = 2;</code>
      */
-    private void setGameState(soc.proto.GameMessage.State value) {
-      if (value == null) {
-        throw new NullPointerException();
-      }
-      msg_ = value;
-      msgCase_ = 2;
-    }
-    /**
-     * <pre>
-     * state
-     * </pre>
-     *
-     * <code>optional .State game_state = 2;</code>
-     */
-    private void setGameState(
-        soc.proto.GameMessage.State.Builder builderForValue) {
-      msg_ = builderForValue.build();
-      msgCase_ = 2;
-    }
-    /**
-     * <pre>
-     * state
-     * </pre>
-     *
-     * <code>optional .State game_state = 2;</code>
-     */
-    private void mergeGameState(soc.proto.GameMessage.State value) {
-      if (msgCase_ == 2 &&
-          msg_ != soc.proto.GameMessage.State.getDefaultInstance()) {
-        msg_ = soc.proto.GameMessage.State.newBuilder((soc.proto.GameMessage.State) msg_)
-            .mergeFrom(value).buildPartial();
-      } else {
-        msg_ = value;
-      }
-      msgCase_ = 2;
-    }
-    /**
-     * <pre>
-     * state
-     * </pre>
-     *
-     * <code>optional .State game_state = 2;</code>
-     */
-    private void clearGameState() {
+    public soc.proto.GameMessage.StateOrBuilder getGameStateOrBuilder() {
       if (msgCase_ == 2) {
-        msgCase_ = 0;
-        msg_ = null;
+         return (soc.proto.GameMessage.State) msg_;
       }
+      return soc.proto.GameMessage.State.getDefaultInstance();
     }
 
     public static final int START_GAME_FIELD_NUMBER = 100;
@@ -1632,7 +2405,17 @@ public final class GameMessage {
      * turn
      * </pre>
      *
-     * <code>optional .StartGame start_game = 100;</code>
+     * <code>.StartGame start_game = 100;</code>
+     */
+    public boolean hasStartGame() {
+      return msgCase_ == 100;
+    }
+    /**
+     * <pre>
+     * turn
+     * </pre>
+     *
+     * <code>.StartGame start_game = 100;</code>
      */
     public soc.proto.GameMessage.StartGame getStartGame() {
       if (msgCase_ == 100) {
@@ -1645,61 +2428,24 @@ public final class GameMessage {
      * turn
      * </pre>
      *
-     * <code>optional .StartGame start_game = 100;</code>
+     * <code>.StartGame start_game = 100;</code>
      */
-    private void setStartGame(soc.proto.GameMessage.StartGame value) {
-      if (value == null) {
-        throw new NullPointerException();
-      }
-      msg_ = value;
-      msgCase_ = 100;
-    }
-    /**
-     * <pre>
-     * turn
-     * </pre>
-     *
-     * <code>optional .StartGame start_game = 100;</code>
-     */
-    private void setStartGame(
-        soc.proto.GameMessage.StartGame.Builder builderForValue) {
-      msg_ = builderForValue.build();
-      msgCase_ = 100;
-    }
-    /**
-     * <pre>
-     * turn
-     * </pre>
-     *
-     * <code>optional .StartGame start_game = 100;</code>
-     */
-    private void mergeStartGame(soc.proto.GameMessage.StartGame value) {
-      if (msgCase_ == 100 &&
-          msg_ != soc.proto.GameMessage.StartGame.getDefaultInstance()) {
-        msg_ = soc.proto.GameMessage.StartGame.newBuilder((soc.proto.GameMessage.StartGame) msg_)
-            .mergeFrom(value).buildPartial();
-      } else {
-        msg_ = value;
-      }
-      msgCase_ = 100;
-    }
-    /**
-     * <pre>
-     * turn
-     * </pre>
-     *
-     * <code>optional .StartGame start_game = 100;</code>
-     */
-    private void clearStartGame() {
+    public soc.proto.GameMessage.StartGameOrBuilder getStartGameOrBuilder() {
       if (msgCase_ == 100) {
-        msgCase_ = 0;
-        msg_ = null;
+         return (soc.proto.GameMessage.StartGame) msg_;
       }
+      return soc.proto.GameMessage.StartGame.getDefaultInstance();
     }
 
     public static final int TURN_FIELD_NUMBER = 101;
     /**
-     * <code>optional .Turn turn = 101;</code>
+     * <code>.Turn turn = 101;</code>
+     */
+    public boolean hasTurn() {
+      return msgCase_ == 101;
+    }
+    /**
+     * <code>.Turn turn = 101;</code>
      */
     public soc.proto.GameMessage.Turn getTurn() {
       if (msgCase_ == 101) {
@@ -1708,50 +2454,29 @@ public final class GameMessage {
       return soc.proto.GameMessage.Turn.getDefaultInstance();
     }
     /**
-     * <code>optional .Turn turn = 101;</code>
+     * <code>.Turn turn = 101;</code>
      */
-    private void setTurn(soc.proto.GameMessage.Turn value) {
-      if (value == null) {
-        throw new NullPointerException();
-      }
-      msg_ = value;
-      msgCase_ = 101;
-    }
-    /**
-     * <code>optional .Turn turn = 101;</code>
-     */
-    private void setTurn(
-        soc.proto.GameMessage.Turn.Builder builderForValue) {
-      msg_ = builderForValue.build();
-      msgCase_ = 101;
-    }
-    /**
-     * <code>optional .Turn turn = 101;</code>
-     */
-    private void mergeTurn(soc.proto.GameMessage.Turn value) {
-      if (msgCase_ == 101 &&
-          msg_ != soc.proto.GameMessage.Turn.getDefaultInstance()) {
-        msg_ = soc.proto.GameMessage.Turn.newBuilder((soc.proto.GameMessage.Turn) msg_)
-            .mergeFrom(value).buildPartial();
-      } else {
-        msg_ = value;
-      }
-      msgCase_ = 101;
-    }
-    /**
-     * <code>optional .Turn turn = 101;</code>
-     */
-    private void clearTurn() {
+    public soc.proto.GameMessage.TurnOrBuilder getTurnOrBuilder() {
       if (msgCase_ == 101) {
-        msgCase_ = 0;
-        msg_ = null;
+         return (soc.proto.GameMessage.Turn) msg_;
       }
+      return soc.proto.GameMessage.Turn.getDefaultInstance();
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
     }
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (!gaName_.isEmpty()) {
-        output.writeString(1, getGaName());
+      if (!getGaNameBytes().isEmpty()) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, gaName_);
       }
       if (msgCase_ == 2) {
         output.writeMessage(2, (soc.proto.GameMessage.State) msg_);
@@ -1762,16 +2487,16 @@ public final class GameMessage {
       if (msgCase_ == 101) {
         output.writeMessage(101, (soc.proto.GameMessage.Turn) msg_);
       }
+      unknownFields.writeTo(output);
     }
 
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (!gaName_.isEmpty()) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeStringSize(1, getGaName());
+      if (!getGaNameBytes().isEmpty()) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, gaName_);
       }
       if (msgCase_ == 2) {
         size += com.google.protobuf.CodedOutputStream
@@ -1785,135 +2510,409 @@ public final class GameMessage {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(101, (soc.proto.GameMessage.Turn) msg_);
       }
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
 
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.GameMessageFromServer)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.GameMessageFromServer other = (soc.proto.GameMessage.GameMessageFromServer) obj;
+
+      boolean result = true;
+      result = result && getGaName()
+          .equals(other.getGaName());
+      result = result && getMsgCase().equals(
+          other.getMsgCase());
+      if (!result) return false;
+      switch (msgCase_) {
+        case 2:
+          result = result && getGameState()
+              .equals(other.getGameState());
+          break;
+        case 100:
+          result = result && getStartGame()
+              .equals(other.getStartGame());
+          break;
+        case 101:
+          result = result && getTurn()
+              .equals(other.getTurn());
+          break;
+        case 0:
+        default:
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + GA_NAME_FIELD_NUMBER;
+      hash = (53 * hash) + getGaName().hashCode();
+      switch (msgCase_) {
+        case 2:
+          hash = (37 * hash) + GAME_STATE_FIELD_NUMBER;
+          hash = (53 * hash) + getGameState().hashCode();
+          break;
+        case 100:
+          hash = (37 * hash) + START_GAME_FIELD_NUMBER;
+          hash = (53 * hash) + getStartGame().hashCode();
+          break;
+        case 101:
+          hash = (37 * hash) + TURN_FIELD_NUMBER;
+          hash = (53 * hash) + getTurn().hashCode();
+          break;
+        case 0:
+        default:
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.GameMessageFromServer parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.GameMessageFromServer parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static soc.proto.GameMessage.GameMessageFromServer parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data);
+      return PARSER.parseFrom(data);
     }
     public static soc.proto.GameMessage.GameMessageFromServer parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data, extensionRegistry);
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static soc.proto.GameMessage.GameMessageFromServer parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data);
+      return PARSER.parseFrom(data);
     }
     public static soc.proto.GameMessage.GameMessageFromServer parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data, extensionRegistry);
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static soc.proto.GameMessage.GameMessageFromServer parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static soc.proto.GameMessage.GameMessageFromServer parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static soc.proto.GameMessage.GameMessageFromServer parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return parseDelimitedFrom(DEFAULT_INSTANCE, input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static soc.proto.GameMessage.GameMessageFromServer parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return parseDelimitedFrom(DEFAULT_INSTANCE, input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static soc.proto.GameMessage.GameMessageFromServer parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static soc.proto.GameMessage.GameMessageFromServer parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
     public static Builder newBuilder(soc.proto.GameMessage.GameMessageFromServer prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
 
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
     /**
      * Protobuf type {@code GameMessageFromServer}
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessageLite.Builder<
-          soc.proto.GameMessage.GameMessageFromServer, Builder> implements
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
         // @@protoc_insertion_point(builder_implements:GameMessageFromServer)
         soc.proto.GameMessage.GameMessageFromServerOrBuilder {
-      // Construct using soc.proto.GameMessage.GameMessageFromServer.newBuilder()
-      private Builder() {
-        super(DEFAULT_INSTANCE);
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_GameMessageFromServer_descriptor;
       }
 
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_GameMessageFromServer_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.GameMessageFromServer.class, soc.proto.GameMessage.GameMessageFromServer.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.GameMessageFromServer.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        gaName_ = "";
+
+        msgCase_ = 0;
+        msg_ = null;
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_GameMessageFromServer_descriptor;
+      }
+
+      public soc.proto.GameMessage.GameMessageFromServer getDefaultInstanceForType() {
+        return soc.proto.GameMessage.GameMessageFromServer.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.GameMessageFromServer build() {
+        soc.proto.GameMessage.GameMessageFromServer result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.GameMessageFromServer buildPartial() {
+        soc.proto.GameMessage.GameMessageFromServer result = new soc.proto.GameMessage.GameMessageFromServer(this);
+        result.gaName_ = gaName_;
+        if (msgCase_ == 2) {
+          if (gameStateBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = gameStateBuilder_.build();
+          }
+        }
+        if (msgCase_ == 100) {
+          if (startGameBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = startGameBuilder_.build();
+          }
+        }
+        if (msgCase_ == 101) {
+          if (turnBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = turnBuilder_.build();
+          }
+        }
+        result.msgCase_ = msgCase_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.GameMessageFromServer) {
+          return mergeFrom((soc.proto.GameMessage.GameMessageFromServer)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.GameMessageFromServer other) {
+        if (other == soc.proto.GameMessage.GameMessageFromServer.getDefaultInstance()) return this;
+        if (!other.getGaName().isEmpty()) {
+          gaName_ = other.gaName_;
+          onChanged();
+        }
+        switch (other.getMsgCase()) {
+          case GAME_STATE: {
+            mergeGameState(other.getGameState());
+            break;
+          }
+          case START_GAME: {
+            mergeStartGame(other.getStartGame());
+            break;
+          }
+          case TURN: {
+            mergeTurn(other.getTurn());
+            break;
+          }
+          case MSG_NOT_SET: {
+            break;
+          }
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.GameMessageFromServer parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.GameMessageFromServer) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int msgCase_ = 0;
+      private java.lang.Object msg_;
       public MsgCase
           getMsgCase() {
-        return instance.getMsgCase();
+        return MsgCase.forNumber(
+            msgCase_);
       }
 
       public Builder clearMsg() {
-        copyOnWrite();
-        instance.clearMsg();
+        msgCase_ = 0;
+        msg_ = null;
+        onChanged();
         return this;
       }
 
 
+      private java.lang.Object gaName_ = "";
       /**
        * <pre>
        * Name of game
        * </pre>
        *
-       * <code>optional string ga_name = 1;</code>
+       * <code>string ga_name = 1;</code>
        */
       public java.lang.String getGaName() {
-        return instance.getGaName();
+        java.lang.Object ref = gaName_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          gaName_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
       }
       /**
        * <pre>
        * Name of game
        * </pre>
        *
-       * <code>optional string ga_name = 1;</code>
+       * <code>string ga_name = 1;</code>
        */
       public com.google.protobuf.ByteString
           getGaNameBytes() {
-        return instance.getGaNameBytes();
+        java.lang.Object ref = gaName_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          gaName_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
       }
       /**
        * <pre>
        * Name of game
        * </pre>
        *
-       * <code>optional string ga_name = 1;</code>
+       * <code>string ga_name = 1;</code>
        */
       public Builder setGaName(
           java.lang.String value) {
-        copyOnWrite();
-        instance.setGaName(value);
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        gaName_ = value;
+        onChanged();
         return this;
       }
       /**
@@ -1921,11 +2920,12 @@ public final class GameMessage {
        * Name of game
        * </pre>
        *
-       * <code>optional string ga_name = 1;</code>
+       * <code>string ga_name = 1;</code>
        */
       public Builder clearGaName() {
-        copyOnWrite();
-        instance.clearGaName();
+        
+        gaName_ = getDefaultInstance().getGaName();
+        onChanged();
         return this;
       }
       /**
@@ -1933,35 +2933,70 @@ public final class GameMessage {
        * Name of game
        * </pre>
        *
-       * <code>optional string ga_name = 1;</code>
+       * <code>string ga_name = 1;</code>
        */
       public Builder setGaNameBytes(
           com.google.protobuf.ByteString value) {
-        copyOnWrite();
-        instance.setGaNameBytes(value);
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+        
+        gaName_ = value;
+        onChanged();
         return this;
       }
 
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.State, soc.proto.GameMessage.State.Builder, soc.proto.GameMessage.StateOrBuilder> gameStateBuilder_;
       /**
        * <pre>
        * state
        * </pre>
        *
-       * <code>optional .State game_state = 2;</code>
+       * <code>.State game_state = 2;</code>
        */
-      public soc.proto.GameMessage.State getGameState() {
-        return instance.getGameState();
+      public boolean hasGameState() {
+        return msgCase_ == 2;
       }
       /**
        * <pre>
        * state
        * </pre>
        *
-       * <code>optional .State game_state = 2;</code>
+       * <code>.State game_state = 2;</code>
+       */
+      public soc.proto.GameMessage.State getGameState() {
+        if (gameStateBuilder_ == null) {
+          if (msgCase_ == 2) {
+            return (soc.proto.GameMessage.State) msg_;
+          }
+          return soc.proto.GameMessage.State.getDefaultInstance();
+        } else {
+          if (msgCase_ == 2) {
+            return gameStateBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.State.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * state
+       * </pre>
+       *
+       * <code>.State game_state = 2;</code>
        */
       public Builder setGameState(soc.proto.GameMessage.State value) {
-        copyOnWrite();
-        instance.setGameState(value);
+        if (gameStateBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          gameStateBuilder_.setMessage(value);
+        }
+        msgCase_ = 2;
         return this;
       }
       /**
@@ -1969,12 +3004,17 @@ public final class GameMessage {
        * state
        * </pre>
        *
-       * <code>optional .State game_state = 2;</code>
+       * <code>.State game_state = 2;</code>
        */
       public Builder setGameState(
           soc.proto.GameMessage.State.Builder builderForValue) {
-        copyOnWrite();
-        instance.setGameState(builderForValue);
+        if (gameStateBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          gameStateBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 2;
         return this;
       }
       /**
@@ -1982,11 +3022,25 @@ public final class GameMessage {
        * state
        * </pre>
        *
-       * <code>optional .State game_state = 2;</code>
+       * <code>.State game_state = 2;</code>
        */
       public Builder mergeGameState(soc.proto.GameMessage.State value) {
-        copyOnWrite();
-        instance.mergeGameState(value);
+        if (gameStateBuilder_ == null) {
+          if (msgCase_ == 2 &&
+              msg_ != soc.proto.GameMessage.State.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.State.newBuilder((soc.proto.GameMessage.State) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 2) {
+            gameStateBuilder_.mergeFrom(value);
+          }
+          gameStateBuilder_.setMessage(value);
+        }
+        msgCase_ = 2;
         return this;
       }
       /**
@@ -1994,34 +3048,127 @@ public final class GameMessage {
        * state
        * </pre>
        *
-       * <code>optional .State game_state = 2;</code>
+       * <code>.State game_state = 2;</code>
        */
       public Builder clearGameState() {
-        copyOnWrite();
-        instance.clearGameState();
+        if (gameStateBuilder_ == null) {
+          if (msgCase_ == 2) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 2) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          gameStateBuilder_.clear();
+        }
         return this;
+      }
+      /**
+       * <pre>
+       * state
+       * </pre>
+       *
+       * <code>.State game_state = 2;</code>
+       */
+      public soc.proto.GameMessage.State.Builder getGameStateBuilder() {
+        return getGameStateFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * state
+       * </pre>
+       *
+       * <code>.State game_state = 2;</code>
+       */
+      public soc.proto.GameMessage.StateOrBuilder getGameStateOrBuilder() {
+        if ((msgCase_ == 2) && (gameStateBuilder_ != null)) {
+          return gameStateBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 2) {
+            return (soc.proto.GameMessage.State) msg_;
+          }
+          return soc.proto.GameMessage.State.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * state
+       * </pre>
+       *
+       * <code>.State game_state = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.State, soc.proto.GameMessage.State.Builder, soc.proto.GameMessage.StateOrBuilder> 
+          getGameStateFieldBuilder() {
+        if (gameStateBuilder_ == null) {
+          if (!(msgCase_ == 2)) {
+            msg_ = soc.proto.GameMessage.State.getDefaultInstance();
+          }
+          gameStateBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.State, soc.proto.GameMessage.State.Builder, soc.proto.GameMessage.StateOrBuilder>(
+                  (soc.proto.GameMessage.State) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 2;
+        onChanged();;
+        return gameStateBuilder_;
       }
 
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.StartGame, soc.proto.GameMessage.StartGame.Builder, soc.proto.GameMessage.StartGameOrBuilder> startGameBuilder_;
       /**
        * <pre>
        * turn
        * </pre>
        *
-       * <code>optional .StartGame start_game = 100;</code>
+       * <code>.StartGame start_game = 100;</code>
        */
-      public soc.proto.GameMessage.StartGame getStartGame() {
-        return instance.getStartGame();
+      public boolean hasStartGame() {
+        return msgCase_ == 100;
       }
       /**
        * <pre>
        * turn
        * </pre>
        *
-       * <code>optional .StartGame start_game = 100;</code>
+       * <code>.StartGame start_game = 100;</code>
+       */
+      public soc.proto.GameMessage.StartGame getStartGame() {
+        if (startGameBuilder_ == null) {
+          if (msgCase_ == 100) {
+            return (soc.proto.GameMessage.StartGame) msg_;
+          }
+          return soc.proto.GameMessage.StartGame.getDefaultInstance();
+        } else {
+          if (msgCase_ == 100) {
+            return startGameBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.StartGame.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * turn
+       * </pre>
+       *
+       * <code>.StartGame start_game = 100;</code>
        */
       public Builder setStartGame(soc.proto.GameMessage.StartGame value) {
-        copyOnWrite();
-        instance.setStartGame(value);
+        if (startGameBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          startGameBuilder_.setMessage(value);
+        }
+        msgCase_ = 100;
         return this;
       }
       /**
@@ -2029,12 +3176,17 @@ public final class GameMessage {
        * turn
        * </pre>
        *
-       * <code>optional .StartGame start_game = 100;</code>
+       * <code>.StartGame start_game = 100;</code>
        */
       public Builder setStartGame(
           soc.proto.GameMessage.StartGame.Builder builderForValue) {
-        copyOnWrite();
-        instance.setStartGame(builderForValue);
+        if (startGameBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          startGameBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 100;
         return this;
       }
       /**
@@ -2042,11 +3194,25 @@ public final class GameMessage {
        * turn
        * </pre>
        *
-       * <code>optional .StartGame start_game = 100;</code>
+       * <code>.StartGame start_game = 100;</code>
        */
       public Builder mergeStartGame(soc.proto.GameMessage.StartGame value) {
-        copyOnWrite();
-        instance.mergeStartGame(value);
+        if (startGameBuilder_ == null) {
+          if (msgCase_ == 100 &&
+              msg_ != soc.proto.GameMessage.StartGame.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.StartGame.newBuilder((soc.proto.GameMessage.StartGame) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 100) {
+            startGameBuilder_.mergeFrom(value);
+          }
+          startGameBuilder_.setMessage(value);
+        }
+        msgCase_ = 100;
         return this;
       }
       /**
@@ -2054,235 +3220,271 @@ public final class GameMessage {
        * turn
        * </pre>
        *
-       * <code>optional .StartGame start_game = 100;</code>
+       * <code>.StartGame start_game = 100;</code>
        */
       public Builder clearStartGame() {
-        copyOnWrite();
-        instance.clearStartGame();
+        if (startGameBuilder_ == null) {
+          if (msgCase_ == 100) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 100) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          startGameBuilder_.clear();
+        }
         return this;
+      }
+      /**
+       * <pre>
+       * turn
+       * </pre>
+       *
+       * <code>.StartGame start_game = 100;</code>
+       */
+      public soc.proto.GameMessage.StartGame.Builder getStartGameBuilder() {
+        return getStartGameFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * turn
+       * </pre>
+       *
+       * <code>.StartGame start_game = 100;</code>
+       */
+      public soc.proto.GameMessage.StartGameOrBuilder getStartGameOrBuilder() {
+        if ((msgCase_ == 100) && (startGameBuilder_ != null)) {
+          return startGameBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 100) {
+            return (soc.proto.GameMessage.StartGame) msg_;
+          }
+          return soc.proto.GameMessage.StartGame.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * turn
+       * </pre>
+       *
+       * <code>.StartGame start_game = 100;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.StartGame, soc.proto.GameMessage.StartGame.Builder, soc.proto.GameMessage.StartGameOrBuilder> 
+          getStartGameFieldBuilder() {
+        if (startGameBuilder_ == null) {
+          if (!(msgCase_ == 100)) {
+            msg_ = soc.proto.GameMessage.StartGame.getDefaultInstance();
+          }
+          startGameBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.StartGame, soc.proto.GameMessage.StartGame.Builder, soc.proto.GameMessage.StartGameOrBuilder>(
+                  (soc.proto.GameMessage.StartGame) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 100;
+        onChanged();;
+        return startGameBuilder_;
       }
 
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.Turn, soc.proto.GameMessage.Turn.Builder, soc.proto.GameMessage.TurnOrBuilder> turnBuilder_;
       /**
-       * <code>optional .Turn turn = 101;</code>
+       * <code>.Turn turn = 101;</code>
        */
-      public soc.proto.GameMessage.Turn getTurn() {
-        return instance.getTurn();
+      public boolean hasTurn() {
+        return msgCase_ == 101;
       }
       /**
-       * <code>optional .Turn turn = 101;</code>
+       * <code>.Turn turn = 101;</code>
+       */
+      public soc.proto.GameMessage.Turn getTurn() {
+        if (turnBuilder_ == null) {
+          if (msgCase_ == 101) {
+            return (soc.proto.GameMessage.Turn) msg_;
+          }
+          return soc.proto.GameMessage.Turn.getDefaultInstance();
+        } else {
+          if (msgCase_ == 101) {
+            return turnBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.Turn.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.Turn turn = 101;</code>
        */
       public Builder setTurn(soc.proto.GameMessage.Turn value) {
-        copyOnWrite();
-        instance.setTurn(value);
+        if (turnBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          turnBuilder_.setMessage(value);
+        }
+        msgCase_ = 101;
         return this;
       }
       /**
-       * <code>optional .Turn turn = 101;</code>
+       * <code>.Turn turn = 101;</code>
        */
       public Builder setTurn(
           soc.proto.GameMessage.Turn.Builder builderForValue) {
-        copyOnWrite();
-        instance.setTurn(builderForValue);
+        if (turnBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          turnBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 101;
         return this;
       }
       /**
-       * <code>optional .Turn turn = 101;</code>
+       * <code>.Turn turn = 101;</code>
        */
       public Builder mergeTurn(soc.proto.GameMessage.Turn value) {
-        copyOnWrite();
-        instance.mergeTurn(value);
+        if (turnBuilder_ == null) {
+          if (msgCase_ == 101 &&
+              msg_ != soc.proto.GameMessage.Turn.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.Turn.newBuilder((soc.proto.GameMessage.Turn) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 101) {
+            turnBuilder_.mergeFrom(value);
+          }
+          turnBuilder_.setMessage(value);
+        }
+        msgCase_ = 101;
         return this;
       }
       /**
-       * <code>optional .Turn turn = 101;</code>
+       * <code>.Turn turn = 101;</code>
        */
       public Builder clearTurn() {
-        copyOnWrite();
-        instance.clearTurn();
+        if (turnBuilder_ == null) {
+          if (msgCase_ == 101) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 101) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          turnBuilder_.clear();
+        }
         return this;
       }
+      /**
+       * <code>.Turn turn = 101;</code>
+       */
+      public soc.proto.GameMessage.Turn.Builder getTurnBuilder() {
+        return getTurnFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.Turn turn = 101;</code>
+       */
+      public soc.proto.GameMessage.TurnOrBuilder getTurnOrBuilder() {
+        if ((msgCase_ == 101) && (turnBuilder_ != null)) {
+          return turnBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 101) {
+            return (soc.proto.GameMessage.Turn) msg_;
+          }
+          return soc.proto.GameMessage.Turn.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.Turn turn = 101;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.Turn, soc.proto.GameMessage.Turn.Builder, soc.proto.GameMessage.TurnOrBuilder> 
+          getTurnFieldBuilder() {
+        if (turnBuilder_ == null) {
+          if (!(msgCase_ == 101)) {
+            msg_ = soc.proto.GameMessage.Turn.getDefaultInstance();
+          }
+          turnBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.Turn, soc.proto.GameMessage.Turn.Builder, soc.proto.GameMessage.TurnOrBuilder>(
+                  (soc.proto.GameMessage.Turn) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 101;
+        onChanged();;
+        return turnBuilder_;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
 
       // @@protoc_insertion_point(builder_scope:GameMessageFromServer)
     }
-    protected final Object dynamicMethod(
-        com.google.protobuf.GeneratedMessageLite.MethodToInvoke method,
-        Object arg0, Object arg1) {
-      switch (method) {
-        case NEW_MUTABLE_INSTANCE: {
-          return new soc.proto.GameMessage.GameMessageFromServer();
-        }
-        case IS_INITIALIZED: {
-          return DEFAULT_INSTANCE;
-        }
-        case MAKE_IMMUTABLE: {
-          return null;
-        }
-        case NEW_BUILDER: {
-          return new Builder();
-        }
-        case VISIT: {
-          Visitor visitor = (Visitor) arg0;
-          soc.proto.GameMessage.GameMessageFromServer other = (soc.proto.GameMessage.GameMessageFromServer) arg1;
-          gaName_ = visitor.visitString(!gaName_.isEmpty(), gaName_,
-              !other.gaName_.isEmpty(), other.gaName_);
-          switch (other.getMsgCase()) {
-            case GAME_STATE: {
-              msg_ = visitor.visitOneofMessage(
-                  msgCase_ == 2,
-                  msg_,
-                  other.msg_);
-              break;
-            }
-            case START_GAME: {
-              msg_ = visitor.visitOneofMessage(
-                  msgCase_ == 100,
-                  msg_,
-                  other.msg_);
-              break;
-            }
-            case TURN: {
-              msg_ = visitor.visitOneofMessage(
-                  msgCase_ == 101,
-                  msg_,
-                  other.msg_);
-              break;
-            }
-            case MSG_NOT_SET: {
-              visitor.visitOneofNotSet(msgCase_ != 0);
-              break;
-            }
-          }
-          if (visitor == com.google.protobuf.GeneratedMessageLite.MergeFromVisitor
-              .INSTANCE) {
-            if (other.msgCase_ != 0) {
-              msgCase_ = other.msgCase_;
-            }
-          }
-          return this;
-        }
-        case MERGE_FROM_STREAM: {
-          com.google.protobuf.CodedInputStream input =
-              (com.google.protobuf.CodedInputStream) arg0;
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry =
-              (com.google.protobuf.ExtensionRegistryLite) arg1;
-          try {
-            boolean done = false;
-            while (!done) {
-              int tag = input.readTag();
-              switch (tag) {
-                case 0:
-                  done = true;
-                  break;
-                default: {
-                  if (!input.skipField(tag)) {
-                    done = true;
-                  }
-                  break;
-                }
-                case 10: {
-                  String s = input.readStringRequireUtf8();
-
-                  gaName_ = s;
-                  break;
-                }
-                case 18: {
-                  soc.proto.GameMessage.State.Builder subBuilder = null;
-                  if (msgCase_ == 2) {
-                    subBuilder = ((soc.proto.GameMessage.State) msg_).toBuilder();
-                  }
-                  msg_ =
-                       input.readMessage(soc.proto.GameMessage.State.parser(), extensionRegistry);
-                  if (subBuilder != null) {
-                    subBuilder.mergeFrom((soc.proto.GameMessage.State) msg_);
-                    msg_ = subBuilder.buildPartial();
-                  }
-                  msgCase_ = 2;
-                  break;
-                }
-                case 802: {
-                  soc.proto.GameMessage.StartGame.Builder subBuilder = null;
-                  if (msgCase_ == 100) {
-                    subBuilder = ((soc.proto.GameMessage.StartGame) msg_).toBuilder();
-                  }
-                  msg_ =
-                       input.readMessage(soc.proto.GameMessage.StartGame.parser(), extensionRegistry);
-                  if (subBuilder != null) {
-                    subBuilder.mergeFrom((soc.proto.GameMessage.StartGame) msg_);
-                    msg_ = subBuilder.buildPartial();
-                  }
-                  msgCase_ = 100;
-                  break;
-                }
-                case 810: {
-                  soc.proto.GameMessage.Turn.Builder subBuilder = null;
-                  if (msgCase_ == 101) {
-                    subBuilder = ((soc.proto.GameMessage.Turn) msg_).toBuilder();
-                  }
-                  msg_ =
-                       input.readMessage(soc.proto.GameMessage.Turn.parser(), extensionRegistry);
-                  if (subBuilder != null) {
-                    subBuilder.mergeFrom((soc.proto.GameMessage.Turn) msg_);
-                    msg_ = subBuilder.buildPartial();
-                  }
-                  msgCase_ = 101;
-                  break;
-                }
-              }
-            }
-          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-            throw new RuntimeException(e.setUnfinishedMessage(this));
-          } catch (java.io.IOException e) {
-            throw new RuntimeException(
-                new com.google.protobuf.InvalidProtocolBufferException(
-                    e.getMessage()).setUnfinishedMessage(this));
-          } finally {
-          }
-        }
-        case GET_DEFAULT_INSTANCE: {
-          return DEFAULT_INSTANCE;
-        }
-        case GET_PARSER: {
-          if (PARSER == null) {    synchronized (soc.proto.GameMessage.GameMessageFromServer.class) {
-              if (PARSER == null) {
-                PARSER = new DefaultInstanceBasedParser(DEFAULT_INSTANCE);
-              }
-            }
-          }
-          return PARSER;
-        }
-      }
-      throw new UnsupportedOperationException();
-    }
-
 
     // @@protoc_insertion_point(class_scope:GameMessageFromServer)
     private static final soc.proto.GameMessage.GameMessageFromServer DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new GameMessageFromServer();
-      DEFAULT_INSTANCE.makeImmutable();
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.GameMessageFromServer();
     }
 
     public static soc.proto.GameMessage.GameMessageFromServer getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static volatile com.google.protobuf.Parser<GameMessageFromServer> PARSER;
+    private static final com.google.protobuf.Parser<GameMessageFromServer>
+        PARSER = new com.google.protobuf.AbstractParser<GameMessageFromServer>() {
+      public GameMessageFromServer parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new GameMessageFromServer(input, extensionRegistry);
+      }
+    };
 
     public static com.google.protobuf.Parser<GameMessageFromServer> parser() {
-      return DEFAULT_INSTANCE.getParserForType();
+      return PARSER;
     }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<GameMessageFromServer> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.GameMessageFromServer getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
 
   public interface GameMessageFromClientOrBuilder extends
       // @@protoc_insertion_point(interface_extends:GameMessageFromClient)
-      com.google.protobuf.MessageLiteOrBuilder {
+      com.google.protobuf.MessageOrBuilder {
 
     /**
      * <pre>
      * Name of game
      * </pre>
      *
-     * <code>optional string ga_name = 1;</code>
+     * <code>string ga_name = 1;</code>
      */
     java.lang.String getGaName();
     /**
@@ -2290,7 +3492,7 @@ public final class GameMessage {
      * Name of game
      * </pre>
      *
-     * <code>optional string ga_name = 1;</code>
+     * <code>string ga_name = 1;</code>
      */
     com.google.protobuf.ByteString
         getGaNameBytes();
@@ -2300,14 +3502,38 @@ public final class GameMessage {
      * turn
      * </pre>
      *
-     * <code>optional .StartGame start_game = 100;</code>
+     * <code>.StartGame start_game = 100;</code>
+     */
+    boolean hasStartGame();
+    /**
+     * <pre>
+     * turn
+     * </pre>
+     *
+     * <code>.StartGame start_game = 100;</code>
      */
     soc.proto.GameMessage.StartGame getStartGame();
+    /**
+     * <pre>
+     * turn
+     * </pre>
+     *
+     * <code>.StartGame start_game = 100;</code>
+     */
+    soc.proto.GameMessage.StartGameOrBuilder getStartGameOrBuilder();
 
     /**
-     * <code>optional .EndTurn end_turn = 101;</code>
+     * <code>.EndTurn end_turn = 101;</code>
+     */
+    boolean hasEndTurn();
+    /**
+     * <code>.EndTurn end_turn = 101;</code>
      */
     soc.proto.GameMessage.EndTurn getEndTurn();
+    /**
+     * <code>.EndTurn end_turn = 101;</code>
+     */
+    soc.proto.GameMessage.EndTurnOrBuilder getEndTurnOrBuilder();
 
     public soc.proto.GameMessage.GameMessageFromClient.MsgCase getMsgCase();
   }
@@ -2315,13 +3541,104 @@ public final class GameMessage {
    * Protobuf type {@code GameMessageFromClient}
    */
   public  static final class GameMessageFromClient extends
-      com.google.protobuf.GeneratedMessageLite<
-          GameMessageFromClient, GameMessageFromClient.Builder> implements
+      com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:GameMessageFromClient)
       GameMessageFromClientOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use GameMessageFromClient.newBuilder() to construct.
+    private GameMessageFromClient(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
     private GameMessageFromClient() {
       gaName_ = "";
     }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private GameMessageFromClient(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              java.lang.String s = input.readStringRequireUtf8();
+
+              gaName_ = s;
+              break;
+            }
+            case 802: {
+              soc.proto.GameMessage.StartGame.Builder subBuilder = null;
+              if (msgCase_ == 100) {
+                subBuilder = ((soc.proto.GameMessage.StartGame) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.StartGame.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.StartGame) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 100;
+              break;
+            }
+            case 810: {
+              soc.proto.GameMessage.EndTurn.Builder subBuilder = null;
+              if (msgCase_ == 101) {
+                subBuilder = ((soc.proto.GameMessage.EndTurn) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.EndTurn.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.EndTurn) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 101;
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_GameMessageFromClient_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_GameMessageFromClient_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.GameMessageFromClient.class, soc.proto.GameMessage.GameMessageFromClient.Builder.class);
+    }
+
     private int msgCase_ = 0;
     private java.lang.Object msg_;
     public enum MsgCase
@@ -2360,75 +3677,46 @@ public final class GameMessage {
           msgCase_);
     }
 
-    private void clearMsg() {
-      msgCase_ = 0;
-      msg_ = null;
-    }
-
     public static final int GA_NAME_FIELD_NUMBER = 1;
-    private java.lang.String gaName_;
+    private volatile java.lang.Object gaName_;
     /**
      * <pre>
      * Name of game
      * </pre>
      *
-     * <code>optional string ga_name = 1;</code>
+     * <code>string ga_name = 1;</code>
      */
     public java.lang.String getGaName() {
-      return gaName_;
+      java.lang.Object ref = gaName_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        gaName_ = s;
+        return s;
+      }
     }
     /**
      * <pre>
      * Name of game
      * </pre>
      *
-     * <code>optional string ga_name = 1;</code>
+     * <code>string ga_name = 1;</code>
      */
     public com.google.protobuf.ByteString
         getGaNameBytes() {
-      return com.google.protobuf.ByteString.copyFromUtf8(gaName_);
-    }
-    /**
-     * <pre>
-     * Name of game
-     * </pre>
-     *
-     * <code>optional string ga_name = 1;</code>
-     */
-    private void setGaName(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  
-      gaName_ = value;
-    }
-    /**
-     * <pre>
-     * Name of game
-     * </pre>
-     *
-     * <code>optional string ga_name = 1;</code>
-     */
-    private void clearGaName() {
-      
-      gaName_ = getDefaultInstance().getGaName();
-    }
-    /**
-     * <pre>
-     * Name of game
-     * </pre>
-     *
-     * <code>optional string ga_name = 1;</code>
-     */
-    private void setGaNameBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  checkByteStringIsUtf8(value);
-      
-      gaName_ = value.toStringUtf8();
+      java.lang.Object ref = gaName_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        gaName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
     }
 
     public static final int START_GAME_FIELD_NUMBER = 100;
@@ -2437,7 +3725,17 @@ public final class GameMessage {
      * turn
      * </pre>
      *
-     * <code>optional .StartGame start_game = 100;</code>
+     * <code>.StartGame start_game = 100;</code>
+     */
+    public boolean hasStartGame() {
+      return msgCase_ == 100;
+    }
+    /**
+     * <pre>
+     * turn
+     * </pre>
+     *
+     * <code>.StartGame start_game = 100;</code>
      */
     public soc.proto.GameMessage.StartGame getStartGame() {
       if (msgCase_ == 100) {
@@ -2450,61 +3748,24 @@ public final class GameMessage {
      * turn
      * </pre>
      *
-     * <code>optional .StartGame start_game = 100;</code>
+     * <code>.StartGame start_game = 100;</code>
      */
-    private void setStartGame(soc.proto.GameMessage.StartGame value) {
-      if (value == null) {
-        throw new NullPointerException();
-      }
-      msg_ = value;
-      msgCase_ = 100;
-    }
-    /**
-     * <pre>
-     * turn
-     * </pre>
-     *
-     * <code>optional .StartGame start_game = 100;</code>
-     */
-    private void setStartGame(
-        soc.proto.GameMessage.StartGame.Builder builderForValue) {
-      msg_ = builderForValue.build();
-      msgCase_ = 100;
-    }
-    /**
-     * <pre>
-     * turn
-     * </pre>
-     *
-     * <code>optional .StartGame start_game = 100;</code>
-     */
-    private void mergeStartGame(soc.proto.GameMessage.StartGame value) {
-      if (msgCase_ == 100 &&
-          msg_ != soc.proto.GameMessage.StartGame.getDefaultInstance()) {
-        msg_ = soc.proto.GameMessage.StartGame.newBuilder((soc.proto.GameMessage.StartGame) msg_)
-            .mergeFrom(value).buildPartial();
-      } else {
-        msg_ = value;
-      }
-      msgCase_ = 100;
-    }
-    /**
-     * <pre>
-     * turn
-     * </pre>
-     *
-     * <code>optional .StartGame start_game = 100;</code>
-     */
-    private void clearStartGame() {
+    public soc.proto.GameMessage.StartGameOrBuilder getStartGameOrBuilder() {
       if (msgCase_ == 100) {
-        msgCase_ = 0;
-        msg_ = null;
+         return (soc.proto.GameMessage.StartGame) msg_;
       }
+      return soc.proto.GameMessage.StartGame.getDefaultInstance();
     }
 
     public static final int END_TURN_FIELD_NUMBER = 101;
     /**
-     * <code>optional .EndTurn end_turn = 101;</code>
+     * <code>.EndTurn end_turn = 101;</code>
+     */
+    public boolean hasEndTurn() {
+      return msgCase_ == 101;
+    }
+    /**
+     * <code>.EndTurn end_turn = 101;</code>
      */
     public soc.proto.GameMessage.EndTurn getEndTurn() {
       if (msgCase_ == 101) {
@@ -2513,50 +3774,29 @@ public final class GameMessage {
       return soc.proto.GameMessage.EndTurn.getDefaultInstance();
     }
     /**
-     * <code>optional .EndTurn end_turn = 101;</code>
+     * <code>.EndTurn end_turn = 101;</code>
      */
-    private void setEndTurn(soc.proto.GameMessage.EndTurn value) {
-      if (value == null) {
-        throw new NullPointerException();
-      }
-      msg_ = value;
-      msgCase_ = 101;
-    }
-    /**
-     * <code>optional .EndTurn end_turn = 101;</code>
-     */
-    private void setEndTurn(
-        soc.proto.GameMessage.EndTurn.Builder builderForValue) {
-      msg_ = builderForValue.build();
-      msgCase_ = 101;
-    }
-    /**
-     * <code>optional .EndTurn end_turn = 101;</code>
-     */
-    private void mergeEndTurn(soc.proto.GameMessage.EndTurn value) {
-      if (msgCase_ == 101 &&
-          msg_ != soc.proto.GameMessage.EndTurn.getDefaultInstance()) {
-        msg_ = soc.proto.GameMessage.EndTurn.newBuilder((soc.proto.GameMessage.EndTurn) msg_)
-            .mergeFrom(value).buildPartial();
-      } else {
-        msg_ = value;
-      }
-      msgCase_ = 101;
-    }
-    /**
-     * <code>optional .EndTurn end_turn = 101;</code>
-     */
-    private void clearEndTurn() {
+    public soc.proto.GameMessage.EndTurnOrBuilder getEndTurnOrBuilder() {
       if (msgCase_ == 101) {
-        msgCase_ = 0;
-        msg_ = null;
+         return (soc.proto.GameMessage.EndTurn) msg_;
       }
+      return soc.proto.GameMessage.EndTurn.getDefaultInstance();
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
     }
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (!gaName_.isEmpty()) {
-        output.writeString(1, getGaName());
+      if (!getGaNameBytes().isEmpty()) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, gaName_);
       }
       if (msgCase_ == 100) {
         output.writeMessage(100, (soc.proto.GameMessage.StartGame) msg_);
@@ -2564,16 +3804,16 @@ public final class GameMessage {
       if (msgCase_ == 101) {
         output.writeMessage(101, (soc.proto.GameMessage.EndTurn) msg_);
       }
+      unknownFields.writeTo(output);
     }
 
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (!gaName_.isEmpty()) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeStringSize(1, getGaName());
+      if (!getGaNameBytes().isEmpty()) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, gaName_);
       }
       if (msgCase_ == 100) {
         size += com.google.protobuf.CodedOutputStream
@@ -2583,135 +3823,390 @@ public final class GameMessage {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(101, (soc.proto.GameMessage.EndTurn) msg_);
       }
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
 
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.GameMessageFromClient)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.GameMessageFromClient other = (soc.proto.GameMessage.GameMessageFromClient) obj;
+
+      boolean result = true;
+      result = result && getGaName()
+          .equals(other.getGaName());
+      result = result && getMsgCase().equals(
+          other.getMsgCase());
+      if (!result) return false;
+      switch (msgCase_) {
+        case 100:
+          result = result && getStartGame()
+              .equals(other.getStartGame());
+          break;
+        case 101:
+          result = result && getEndTurn()
+              .equals(other.getEndTurn());
+          break;
+        case 0:
+        default:
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + GA_NAME_FIELD_NUMBER;
+      hash = (53 * hash) + getGaName().hashCode();
+      switch (msgCase_) {
+        case 100:
+          hash = (37 * hash) + START_GAME_FIELD_NUMBER;
+          hash = (53 * hash) + getStartGame().hashCode();
+          break;
+        case 101:
+          hash = (37 * hash) + END_TURN_FIELD_NUMBER;
+          hash = (53 * hash) + getEndTurn().hashCode();
+          break;
+        case 0:
+        default:
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.GameMessageFromClient parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.GameMessageFromClient parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static soc.proto.GameMessage.GameMessageFromClient parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data);
+      return PARSER.parseFrom(data);
     }
     public static soc.proto.GameMessage.GameMessageFromClient parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data, extensionRegistry);
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static soc.proto.GameMessage.GameMessageFromClient parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data);
+      return PARSER.parseFrom(data);
     }
     public static soc.proto.GameMessage.GameMessageFromClient parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, data, extensionRegistry);
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static soc.proto.GameMessage.GameMessageFromClient parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static soc.proto.GameMessage.GameMessageFromClient parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static soc.proto.GameMessage.GameMessageFromClient parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return parseDelimitedFrom(DEFAULT_INSTANCE, input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static soc.proto.GameMessage.GameMessageFromClient parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return parseDelimitedFrom(DEFAULT_INSTANCE, input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static soc.proto.GameMessage.GameMessageFromClient parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static soc.proto.GameMessage.GameMessageFromClient parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageLite.parseFrom(
-          DEFAULT_INSTANCE, input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
     public static Builder newBuilder(soc.proto.GameMessage.GameMessageFromClient prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
 
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
     /**
      * Protobuf type {@code GameMessageFromClient}
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessageLite.Builder<
-          soc.proto.GameMessage.GameMessageFromClient, Builder> implements
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
         // @@protoc_insertion_point(builder_implements:GameMessageFromClient)
         soc.proto.GameMessage.GameMessageFromClientOrBuilder {
-      // Construct using soc.proto.GameMessage.GameMessageFromClient.newBuilder()
-      private Builder() {
-        super(DEFAULT_INSTANCE);
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_GameMessageFromClient_descriptor;
       }
 
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_GameMessageFromClient_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.GameMessageFromClient.class, soc.proto.GameMessage.GameMessageFromClient.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.GameMessageFromClient.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        gaName_ = "";
+
+        msgCase_ = 0;
+        msg_ = null;
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_GameMessageFromClient_descriptor;
+      }
+
+      public soc.proto.GameMessage.GameMessageFromClient getDefaultInstanceForType() {
+        return soc.proto.GameMessage.GameMessageFromClient.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.GameMessageFromClient build() {
+        soc.proto.GameMessage.GameMessageFromClient result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.GameMessageFromClient buildPartial() {
+        soc.proto.GameMessage.GameMessageFromClient result = new soc.proto.GameMessage.GameMessageFromClient(this);
+        result.gaName_ = gaName_;
+        if (msgCase_ == 100) {
+          if (startGameBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = startGameBuilder_.build();
+          }
+        }
+        if (msgCase_ == 101) {
+          if (endTurnBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = endTurnBuilder_.build();
+          }
+        }
+        result.msgCase_ = msgCase_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.GameMessageFromClient) {
+          return mergeFrom((soc.proto.GameMessage.GameMessageFromClient)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.GameMessageFromClient other) {
+        if (other == soc.proto.GameMessage.GameMessageFromClient.getDefaultInstance()) return this;
+        if (!other.getGaName().isEmpty()) {
+          gaName_ = other.gaName_;
+          onChanged();
+        }
+        switch (other.getMsgCase()) {
+          case START_GAME: {
+            mergeStartGame(other.getStartGame());
+            break;
+          }
+          case END_TURN: {
+            mergeEndTurn(other.getEndTurn());
+            break;
+          }
+          case MSG_NOT_SET: {
+            break;
+          }
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.GameMessageFromClient parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.GameMessageFromClient) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int msgCase_ = 0;
+      private java.lang.Object msg_;
       public MsgCase
           getMsgCase() {
-        return instance.getMsgCase();
+        return MsgCase.forNumber(
+            msgCase_);
       }
 
       public Builder clearMsg() {
-        copyOnWrite();
-        instance.clearMsg();
+        msgCase_ = 0;
+        msg_ = null;
+        onChanged();
         return this;
       }
 
 
+      private java.lang.Object gaName_ = "";
       /**
        * <pre>
        * Name of game
        * </pre>
        *
-       * <code>optional string ga_name = 1;</code>
+       * <code>string ga_name = 1;</code>
        */
       public java.lang.String getGaName() {
-        return instance.getGaName();
+        java.lang.Object ref = gaName_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          gaName_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
       }
       /**
        * <pre>
        * Name of game
        * </pre>
        *
-       * <code>optional string ga_name = 1;</code>
+       * <code>string ga_name = 1;</code>
        */
       public com.google.protobuf.ByteString
           getGaNameBytes() {
-        return instance.getGaNameBytes();
+        java.lang.Object ref = gaName_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          gaName_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
       }
       /**
        * <pre>
        * Name of game
        * </pre>
        *
-       * <code>optional string ga_name = 1;</code>
+       * <code>string ga_name = 1;</code>
        */
       public Builder setGaName(
           java.lang.String value) {
-        copyOnWrite();
-        instance.setGaName(value);
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        gaName_ = value;
+        onChanged();
         return this;
       }
       /**
@@ -2719,11 +4214,12 @@ public final class GameMessage {
        * Name of game
        * </pre>
        *
-       * <code>optional string ga_name = 1;</code>
+       * <code>string ga_name = 1;</code>
        */
       public Builder clearGaName() {
-        copyOnWrite();
-        instance.clearGaName();
+        
+        gaName_ = getDefaultInstance().getGaName();
+        onChanged();
         return this;
       }
       /**
@@ -2731,35 +4227,70 @@ public final class GameMessage {
        * Name of game
        * </pre>
        *
-       * <code>optional string ga_name = 1;</code>
+       * <code>string ga_name = 1;</code>
        */
       public Builder setGaNameBytes(
           com.google.protobuf.ByteString value) {
-        copyOnWrite();
-        instance.setGaNameBytes(value);
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+        
+        gaName_ = value;
+        onChanged();
         return this;
       }
 
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.StartGame, soc.proto.GameMessage.StartGame.Builder, soc.proto.GameMessage.StartGameOrBuilder> startGameBuilder_;
       /**
        * <pre>
        * turn
        * </pre>
        *
-       * <code>optional .StartGame start_game = 100;</code>
+       * <code>.StartGame start_game = 100;</code>
        */
-      public soc.proto.GameMessage.StartGame getStartGame() {
-        return instance.getStartGame();
+      public boolean hasStartGame() {
+        return msgCase_ == 100;
       }
       /**
        * <pre>
        * turn
        * </pre>
        *
-       * <code>optional .StartGame start_game = 100;</code>
+       * <code>.StartGame start_game = 100;</code>
+       */
+      public soc.proto.GameMessage.StartGame getStartGame() {
+        if (startGameBuilder_ == null) {
+          if (msgCase_ == 100) {
+            return (soc.proto.GameMessage.StartGame) msg_;
+          }
+          return soc.proto.GameMessage.StartGame.getDefaultInstance();
+        } else {
+          if (msgCase_ == 100) {
+            return startGameBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.StartGame.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * turn
+       * </pre>
+       *
+       * <code>.StartGame start_game = 100;</code>
        */
       public Builder setStartGame(soc.proto.GameMessage.StartGame value) {
-        copyOnWrite();
-        instance.setStartGame(value);
+        if (startGameBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          startGameBuilder_.setMessage(value);
+        }
+        msgCase_ = 100;
         return this;
       }
       /**
@@ -2767,12 +4298,17 @@ public final class GameMessage {
        * turn
        * </pre>
        *
-       * <code>optional .StartGame start_game = 100;</code>
+       * <code>.StartGame start_game = 100;</code>
        */
       public Builder setStartGame(
           soc.proto.GameMessage.StartGame.Builder builderForValue) {
-        copyOnWrite();
-        instance.setStartGame(builderForValue);
+        if (startGameBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          startGameBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 100;
         return this;
       }
       /**
@@ -2780,11 +4316,25 @@ public final class GameMessage {
        * turn
        * </pre>
        *
-       * <code>optional .StartGame start_game = 100;</code>
+       * <code>.StartGame start_game = 100;</code>
        */
       public Builder mergeStartGame(soc.proto.GameMessage.StartGame value) {
-        copyOnWrite();
-        instance.mergeStartGame(value);
+        if (startGameBuilder_ == null) {
+          if (msgCase_ == 100 &&
+              msg_ != soc.proto.GameMessage.StartGame.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.StartGame.newBuilder((soc.proto.GameMessage.StartGame) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 100) {
+            startGameBuilder_.mergeFrom(value);
+          }
+          startGameBuilder_.setMessage(value);
+        }
+        msgCase_ = 100;
         return this;
       }
       /**
@@ -2792,206 +4342,363 @@ public final class GameMessage {
        * turn
        * </pre>
        *
-       * <code>optional .StartGame start_game = 100;</code>
+       * <code>.StartGame start_game = 100;</code>
        */
       public Builder clearStartGame() {
-        copyOnWrite();
-        instance.clearStartGame();
+        if (startGameBuilder_ == null) {
+          if (msgCase_ == 100) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 100) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          startGameBuilder_.clear();
+        }
         return this;
+      }
+      /**
+       * <pre>
+       * turn
+       * </pre>
+       *
+       * <code>.StartGame start_game = 100;</code>
+       */
+      public soc.proto.GameMessage.StartGame.Builder getStartGameBuilder() {
+        return getStartGameFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * turn
+       * </pre>
+       *
+       * <code>.StartGame start_game = 100;</code>
+       */
+      public soc.proto.GameMessage.StartGameOrBuilder getStartGameOrBuilder() {
+        if ((msgCase_ == 100) && (startGameBuilder_ != null)) {
+          return startGameBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 100) {
+            return (soc.proto.GameMessage.StartGame) msg_;
+          }
+          return soc.proto.GameMessage.StartGame.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * turn
+       * </pre>
+       *
+       * <code>.StartGame start_game = 100;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.StartGame, soc.proto.GameMessage.StartGame.Builder, soc.proto.GameMessage.StartGameOrBuilder> 
+          getStartGameFieldBuilder() {
+        if (startGameBuilder_ == null) {
+          if (!(msgCase_ == 100)) {
+            msg_ = soc.proto.GameMessage.StartGame.getDefaultInstance();
+          }
+          startGameBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.StartGame, soc.proto.GameMessage.StartGame.Builder, soc.proto.GameMessage.StartGameOrBuilder>(
+                  (soc.proto.GameMessage.StartGame) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 100;
+        onChanged();;
+        return startGameBuilder_;
       }
 
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.EndTurn, soc.proto.GameMessage.EndTurn.Builder, soc.proto.GameMessage.EndTurnOrBuilder> endTurnBuilder_;
       /**
-       * <code>optional .EndTurn end_turn = 101;</code>
+       * <code>.EndTurn end_turn = 101;</code>
        */
-      public soc.proto.GameMessage.EndTurn getEndTurn() {
-        return instance.getEndTurn();
+      public boolean hasEndTurn() {
+        return msgCase_ == 101;
       }
       /**
-       * <code>optional .EndTurn end_turn = 101;</code>
+       * <code>.EndTurn end_turn = 101;</code>
+       */
+      public soc.proto.GameMessage.EndTurn getEndTurn() {
+        if (endTurnBuilder_ == null) {
+          if (msgCase_ == 101) {
+            return (soc.proto.GameMessage.EndTurn) msg_;
+          }
+          return soc.proto.GameMessage.EndTurn.getDefaultInstance();
+        } else {
+          if (msgCase_ == 101) {
+            return endTurnBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.EndTurn.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.EndTurn end_turn = 101;</code>
        */
       public Builder setEndTurn(soc.proto.GameMessage.EndTurn value) {
-        copyOnWrite();
-        instance.setEndTurn(value);
+        if (endTurnBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          endTurnBuilder_.setMessage(value);
+        }
+        msgCase_ = 101;
         return this;
       }
       /**
-       * <code>optional .EndTurn end_turn = 101;</code>
+       * <code>.EndTurn end_turn = 101;</code>
        */
       public Builder setEndTurn(
           soc.proto.GameMessage.EndTurn.Builder builderForValue) {
-        copyOnWrite();
-        instance.setEndTurn(builderForValue);
+        if (endTurnBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          endTurnBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 101;
         return this;
       }
       /**
-       * <code>optional .EndTurn end_turn = 101;</code>
+       * <code>.EndTurn end_turn = 101;</code>
        */
       public Builder mergeEndTurn(soc.proto.GameMessage.EndTurn value) {
-        copyOnWrite();
-        instance.mergeEndTurn(value);
+        if (endTurnBuilder_ == null) {
+          if (msgCase_ == 101 &&
+              msg_ != soc.proto.GameMessage.EndTurn.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.EndTurn.newBuilder((soc.proto.GameMessage.EndTurn) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 101) {
+            endTurnBuilder_.mergeFrom(value);
+          }
+          endTurnBuilder_.setMessage(value);
+        }
+        msgCase_ = 101;
         return this;
       }
       /**
-       * <code>optional .EndTurn end_turn = 101;</code>
+       * <code>.EndTurn end_turn = 101;</code>
        */
       public Builder clearEndTurn() {
-        copyOnWrite();
-        instance.clearEndTurn();
+        if (endTurnBuilder_ == null) {
+          if (msgCase_ == 101) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 101) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          endTurnBuilder_.clear();
+        }
         return this;
       }
+      /**
+       * <code>.EndTurn end_turn = 101;</code>
+       */
+      public soc.proto.GameMessage.EndTurn.Builder getEndTurnBuilder() {
+        return getEndTurnFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.EndTurn end_turn = 101;</code>
+       */
+      public soc.proto.GameMessage.EndTurnOrBuilder getEndTurnOrBuilder() {
+        if ((msgCase_ == 101) && (endTurnBuilder_ != null)) {
+          return endTurnBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 101) {
+            return (soc.proto.GameMessage.EndTurn) msg_;
+          }
+          return soc.proto.GameMessage.EndTurn.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.EndTurn end_turn = 101;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.EndTurn, soc.proto.GameMessage.EndTurn.Builder, soc.proto.GameMessage.EndTurnOrBuilder> 
+          getEndTurnFieldBuilder() {
+        if (endTurnBuilder_ == null) {
+          if (!(msgCase_ == 101)) {
+            msg_ = soc.proto.GameMessage.EndTurn.getDefaultInstance();
+          }
+          endTurnBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.EndTurn, soc.proto.GameMessage.EndTurn.Builder, soc.proto.GameMessage.EndTurnOrBuilder>(
+                  (soc.proto.GameMessage.EndTurn) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 101;
+        onChanged();;
+        return endTurnBuilder_;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
 
       // @@protoc_insertion_point(builder_scope:GameMessageFromClient)
     }
-    protected final Object dynamicMethod(
-        com.google.protobuf.GeneratedMessageLite.MethodToInvoke method,
-        Object arg0, Object arg1) {
-      switch (method) {
-        case NEW_MUTABLE_INSTANCE: {
-          return new soc.proto.GameMessage.GameMessageFromClient();
-        }
-        case IS_INITIALIZED: {
-          return DEFAULT_INSTANCE;
-        }
-        case MAKE_IMMUTABLE: {
-          return null;
-        }
-        case NEW_BUILDER: {
-          return new Builder();
-        }
-        case VISIT: {
-          Visitor visitor = (Visitor) arg0;
-          soc.proto.GameMessage.GameMessageFromClient other = (soc.proto.GameMessage.GameMessageFromClient) arg1;
-          gaName_ = visitor.visitString(!gaName_.isEmpty(), gaName_,
-              !other.gaName_.isEmpty(), other.gaName_);
-          switch (other.getMsgCase()) {
-            case START_GAME: {
-              msg_ = visitor.visitOneofMessage(
-                  msgCase_ == 100,
-                  msg_,
-                  other.msg_);
-              break;
-            }
-            case END_TURN: {
-              msg_ = visitor.visitOneofMessage(
-                  msgCase_ == 101,
-                  msg_,
-                  other.msg_);
-              break;
-            }
-            case MSG_NOT_SET: {
-              visitor.visitOneofNotSet(msgCase_ != 0);
-              break;
-            }
-          }
-          if (visitor == com.google.protobuf.GeneratedMessageLite.MergeFromVisitor
-              .INSTANCE) {
-            if (other.msgCase_ != 0) {
-              msgCase_ = other.msgCase_;
-            }
-          }
-          return this;
-        }
-        case MERGE_FROM_STREAM: {
-          com.google.protobuf.CodedInputStream input =
-              (com.google.protobuf.CodedInputStream) arg0;
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry =
-              (com.google.protobuf.ExtensionRegistryLite) arg1;
-          try {
-            boolean done = false;
-            while (!done) {
-              int tag = input.readTag();
-              switch (tag) {
-                case 0:
-                  done = true;
-                  break;
-                default: {
-                  if (!input.skipField(tag)) {
-                    done = true;
-                  }
-                  break;
-                }
-                case 10: {
-                  String s = input.readStringRequireUtf8();
-
-                  gaName_ = s;
-                  break;
-                }
-                case 802: {
-                  soc.proto.GameMessage.StartGame.Builder subBuilder = null;
-                  if (msgCase_ == 100) {
-                    subBuilder = ((soc.proto.GameMessage.StartGame) msg_).toBuilder();
-                  }
-                  msg_ =
-                       input.readMessage(soc.proto.GameMessage.StartGame.parser(), extensionRegistry);
-                  if (subBuilder != null) {
-                    subBuilder.mergeFrom((soc.proto.GameMessage.StartGame) msg_);
-                    msg_ = subBuilder.buildPartial();
-                  }
-                  msgCase_ = 100;
-                  break;
-                }
-                case 810: {
-                  soc.proto.GameMessage.EndTurn.Builder subBuilder = null;
-                  if (msgCase_ == 101) {
-                    subBuilder = ((soc.proto.GameMessage.EndTurn) msg_).toBuilder();
-                  }
-                  msg_ =
-                       input.readMessage(soc.proto.GameMessage.EndTurn.parser(), extensionRegistry);
-                  if (subBuilder != null) {
-                    subBuilder.mergeFrom((soc.proto.GameMessage.EndTurn) msg_);
-                    msg_ = subBuilder.buildPartial();
-                  }
-                  msgCase_ = 101;
-                  break;
-                }
-              }
-            }
-          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-            throw new RuntimeException(e.setUnfinishedMessage(this));
-          } catch (java.io.IOException e) {
-            throw new RuntimeException(
-                new com.google.protobuf.InvalidProtocolBufferException(
-                    e.getMessage()).setUnfinishedMessage(this));
-          } finally {
-          }
-        }
-        case GET_DEFAULT_INSTANCE: {
-          return DEFAULT_INSTANCE;
-        }
-        case GET_PARSER: {
-          if (PARSER == null) {    synchronized (soc.proto.GameMessage.GameMessageFromClient.class) {
-              if (PARSER == null) {
-                PARSER = new DefaultInstanceBasedParser(DEFAULT_INSTANCE);
-              }
-            }
-          }
-          return PARSER;
-        }
-      }
-      throw new UnsupportedOperationException();
-    }
-
 
     // @@protoc_insertion_point(class_scope:GameMessageFromClient)
     private static final soc.proto.GameMessage.GameMessageFromClient DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new GameMessageFromClient();
-      DEFAULT_INSTANCE.makeImmutable();
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.GameMessageFromClient();
     }
 
     public static soc.proto.GameMessage.GameMessageFromClient getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static volatile com.google.protobuf.Parser<GameMessageFromClient> PARSER;
+    private static final com.google.protobuf.Parser<GameMessageFromClient>
+        PARSER = new com.google.protobuf.AbstractParser<GameMessageFromClient>() {
+      public GameMessageFromClient parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new GameMessageFromClient(input, extensionRegistry);
+      }
+    };
 
     public static com.google.protobuf.Parser<GameMessageFromClient> parser() {
-      return DEFAULT_INSTANCE.getParserForType();
+      return PARSER;
     }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<GameMessageFromClient> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.GameMessageFromClient getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
 
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_State_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_State_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_StartGame_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_StartGame_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_Turn_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_Turn_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_EndTurn_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_EndTurn_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_GameMessageFromServer_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_GameMessageFromServer_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_GameMessageFromClient_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_GameMessageFromClient_fieldAccessorTable;
 
+  public static com.google.protobuf.Descriptors.FileDescriptor
+      getDescriptor() {
+    return descriptor;
+  }
+  private static  com.google.protobuf.Descriptors.FileDescriptor
+      descriptor;
   static {
+    java.lang.String[] descriptorData = {
+      "\n\022game_message.proto\032\ndata.proto\"\"\n\005Stat" +
+      "e\022\031\n\005state\030\001 \001(\0162\n.GameState\"&\n\tStartGam" +
+      "e\022\031\n\005state\030\001 \001(\0162\n.GameState\"8\n\004Turn\022\025\n\r" +
+      "player_number\030\001 \001(\r\022\031\n\005state\030\002 \001(\0162\n.Gam" +
+      "eState\"\t\n\007EndTurn\"\206\001\n\025GameMessageFromSer" +
+      "ver\022\017\n\007ga_name\030\001 \001(\t\022\034\n\ngame_state\030\002 \001(\013" +
+      "2\006.StateH\000\022 \n\nstart_game\030d \001(\0132\n.StartGa" +
+      "meH\000\022\025\n\004turn\030e \001(\0132\005.TurnH\000B\005\n\003msg\"o\n\025Ga" +
+      "meMessageFromClient\022\017\n\007ga_name\030\001 \001(\t\022 \n\n" +
+      "start_game\030d \001(\0132\n.StartGameH\000\022\034\n\010end_tu",
+      "rn\030e \001(\0132\010.EndTurnH\000B\005\n\003msgB\r\n\tsoc.proto" +
+      "H\001P\000b\006proto3"
+    };
+    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
+        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
+          public com.google.protobuf.ExtensionRegistry assignDescriptors(
+              com.google.protobuf.Descriptors.FileDescriptor root) {
+            descriptor = root;
+            return null;
+          }
+        };
+    com.google.protobuf.Descriptors.FileDescriptor
+      .internalBuildGeneratedFileFrom(descriptorData,
+        new com.google.protobuf.Descriptors.FileDescriptor[] {
+          soc.proto.Data.getDescriptor(),
+        }, assigner);
+    internal_static_State_descriptor =
+      getDescriptor().getMessageTypes().get(0);
+    internal_static_State_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_State_descriptor,
+        new java.lang.String[] { "State", });
+    internal_static_StartGame_descriptor =
+      getDescriptor().getMessageTypes().get(1);
+    internal_static_StartGame_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_StartGame_descriptor,
+        new java.lang.String[] { "State", });
+    internal_static_Turn_descriptor =
+      getDescriptor().getMessageTypes().get(2);
+    internal_static_Turn_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_Turn_descriptor,
+        new java.lang.String[] { "PlayerNumber", "State", });
+    internal_static_EndTurn_descriptor =
+      getDescriptor().getMessageTypes().get(3);
+    internal_static_EndTurn_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_EndTurn_descriptor,
+        new java.lang.String[] { });
+    internal_static_GameMessageFromServer_descriptor =
+      getDescriptor().getMessageTypes().get(4);
+    internal_static_GameMessageFromServer_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_GameMessageFromServer_descriptor,
+        new java.lang.String[] { "GaName", "GameState", "StartGame", "Turn", "Msg", });
+    internal_static_GameMessageFromClient_descriptor =
+      getDescriptor().getMessageTypes().get(5);
+    internal_static_GameMessageFromClient_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_GameMessageFromClient_descriptor,
+        new java.lang.String[] { "GaName", "StartGame", "EndTurn", "Msg", });
+    soc.proto.Data.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

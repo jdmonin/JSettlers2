@@ -218,7 +218,7 @@ public final class ProtoConnection
      * @param msg  Message to send
      * @since 3.0.00
      */
-    public final void put(SOCMessage msg)  // TODO later: pure proto: Message.FromServer instead
+    public final void put(SOCMessage msg)  // TODO later: pure proto: Message.FromServer instead of SOCMessage
     {
         final Message.FromServer pmsg = (Message.FromServer) msg.makeProto(true);
         if (pmsg == null)

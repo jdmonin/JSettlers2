@@ -21,10 +21,10 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='game_message.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x12game_message.proto\x1a\ndata.proto\"\"\n\x05State\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"&\n\tStartGame\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"8\n\x04Turn\x12\x15\n\rplayer_number\x18\x01 \x01(\r\x12\x19\n\x05state\x18\x02 \x01(\x0e\x32\n.GameState\"\t\n\x07\x45ndTurn\"\x86\x01\n\x15GameMessageFromServer\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x1c\n\ngame_state\x18\x02 \x01(\x0b\x32\x06.StateH\x00\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12\x15\n\x04turn\x18\x65 \x01(\x0b\x32\x05.TurnH\x00\x42\x05\n\x03msg\"o\n\x15GameMessageFromClient\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12\x1c\n\x08\x65nd_turn\x18\x65 \x01(\x0b\x32\x08.EndTurnH\x00\x42\x05\n\x03msgB\r\n\tsoc.protoH\x03P\x00\x62\x06proto3')
+  serialized_pb=_b('\n\x12game_message.proto\x1a\ndata.proto\"\"\n\x05State\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"&\n\tStartGame\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"8\n\x04Turn\x12\x15\n\rplayer_number\x18\x01 \x01(\r\x12\x19\n\x05state\x18\x02 \x01(\x0e\x32\n.GameState\"\t\n\x07\x45ndTurn\"\x86\x01\n\x15GameMessageFromServer\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x1c\n\ngame_state\x18\x02 \x01(\x0b\x32\x06.StateH\x00\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12\x15\n\x04turn\x18\x65 \x01(\x0b\x32\x05.TurnH\x00\x42\x05\n\x03msg\"o\n\x15GameMessageFromClient\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12\x1c\n\x08\x65nd_turn\x18\x65 \x01(\x0b\x32\x08.EndTurnH\x00\x42\x05\n\x03msgB\r\n\tsoc.protoH\x01P\x00\x62\x06proto3')
   ,
-  dependencies=[data__pb2.DESCRIPTOR,])
-_sym_db.RegisterFileDescriptor(DESCRIPTOR)
+  dependencies=[data__pb2.DESCRIPTOR,],
+  public_dependencies=[data__pb2.DESCRIPTOR,])
 
 
 
@@ -284,6 +284,7 @@ DESCRIPTOR.message_types_by_name['Turn'] = _TURN
 DESCRIPTOR.message_types_by_name['EndTurn'] = _ENDTURN
 DESCRIPTOR.message_types_by_name['GameMessageFromServer'] = _GAMEMESSAGEFROMSERVER
 DESCRIPTOR.message_types_by_name['GameMessageFromClient'] = _GAMEMESSAGEFROMCLIENT
+_sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 State = _reflection.GeneratedProtocolMessageType('State', (_message.Message,), dict(
   DESCRIPTOR = _STATE,
@@ -329,5 +330,5 @@ _sym_db.RegisterMessage(GameMessageFromClient)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\tsoc.protoH\003'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\tsoc.protoH\001'))
 # @@protoc_insertion_point(module_scope)
