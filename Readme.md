@@ -123,3 +123,4 @@ example, 2007-2011) means the file was contributed to by that person in
 each year of that range. See individual source files for the license
 heading and other details.
 
+Includes jQuery licensed under the MIT License.

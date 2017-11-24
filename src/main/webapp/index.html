@@ -10,8 +10,9 @@
 <head>
   <title>JSettlers-WebApp Demo</title>
   <meta charset="UTF-8">
+  <script src="inc/jquery-3.2.1.min.js"></script>
 </head>
-<body onLoad="init()">
+<body>
 
 <H3>JSettlers Web App</H3>
 
@@ -19,13 +20,19 @@
   <form name="login" onsubmit="event.preventDefault(); doLogin(); return false;">
     <label for="nick"><B>Nickname:</B></label>
     <input name="nick" size=20 />
-     &nbsp; &nbsp;
+    &nbsp; &nbsp;
     <button name="connect" type="submit">Connect</button>
     to <span id="connURL"></span>
   </form>
 </div>
 
 <HR noshade>
+
+<div id="connected_div" style="display:none">
+  Connected
+
+  <HR noshade>
+</div>
 
 TBD here
 
@@ -34,12 +41,30 @@ TBD here
 nickname = null;  // demo user's nickname (login account)
 wsURL = null;  // websocket url to connect to, calculated and displayed in init()
 wsConn = null;  // websocket, after doConnect()
+hasFirstMessage = false;  // true at first message received from server
 
-function init()
+// jquery setup
+$(function(){
+   initPage();
+});
+
+function initPage()
 {
     var wsProto = (window.location.protocol == "https:") ? "wss://" : "ws://";
     wsURL = wsProto + window.location.host + "/socserver/apisock"
     document.getElementById("connURL").innerHTML = wsURL;
+}
+
+function atFirstMessage(wsEvent)
+{
+    console.log("L57 atFirstMsg");
+    $("#connected_div").show();
+    document.forms.login.connect.disabled = true;
+
+    // send our version
+    // TODO get an actual locale
+    var versMsg = { "vers": { "versNum": 3000, "versStr": "3.0.00", "versBuild": "WS20171124", "cliLocale": "en_US" } };
+    wsConn.send(JSON.stringify(versMsg));
 }
 
 function doLogin()
@@ -62,17 +87,16 @@ function doLogin()
 
     wsConn.onopen = function(event)
     {
-	console.log("at onOpen");
-	if (event.data === undefined)
-	    return;
-
-	showMessage(event.data);  // server's initial reply
-	document.forms.login.connect.disabled = true;
-	// TODO send our version json, etc
+	console.log("ws onOpen");
     }
 
     wsConn.onmessage = function(event)
     {
+	if (! hasFirstMessage)
+	{
+	    hasFirstMessage = true;
+	    atFirstMessage(event);
+	}
 	showMessage(event.data);
     }
 
@@ -80,7 +104,7 @@ function doLogin()
     {
 	wsConn = null;
 	showMessage("Disconnected.");
-	console.log("at onClose. Code " + closeEvent.code + " reason " + closeEvent.reason);
+	console.log("ws onClose. Code " + closeEvent.code + " reason " + closeEvent.reason);
     }
 
     wsConn.onerror = function(event)
