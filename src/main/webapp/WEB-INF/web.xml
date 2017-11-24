@@ -19,19 +19,11 @@
     </description>
 
     <!--
-     Main background thread to start the actual SOCServer.
-     Declared here instead of with annotation so it can be operationally shut down
-     while leaving the web site content accessible.
+     Placeholder for any servlet context if needed; may remove later.
     -->
-    <listener><listener-class>socweb.server.Main</listener-class></listener>
+    <listener><listener-class>socweb.misc.Main</listener-class></listener>
 
     <!--
-    <servlet>
-        <servlet-name>JSettlersServerServlet</servlet-name>
-        <servlet-class>soc.webserver.example.RunServer</servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
-
     <servlet>
         <servlet-name>PlayServlet</servlet-name>
         <servlet-class>soc.webserver.example.Play</servlet-class>

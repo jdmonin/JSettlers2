@@ -42,6 +42,6 @@ tasks.withType(Jar) {
 }
 
 war {
-    archiveName = 'jsweb.war'  // no version, for bookmark-friendly prefix at deploy
+    archiveName = 'socweb.war'  // no version, for bookmark-friendly prefix at deploy
 }
 
