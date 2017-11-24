@@ -401,6 +401,7 @@ notes:
 - For very basic testing, see the sample protobuf robot client class `soc.robot.protobuf.DummyProtoClient`.
      - So that the standalone proto bot can connect, start the server with the flag property to print its random
        cookie: `-Djsettlers.bots.showcookie=Y` or set a specific cookie like `-Djsettlers.bots.cookie=PRO`.
+     - Make sure `protobuf-java-3.4.0.jar` is in the client's $CLASSPATH
      - Start the sample client with a command line like:
 
            java -cp $CLASSPATH:JSettlers.jar soc.robot.protobuf.DummyProtoClient localhost PRO
@@ -408,14 +409,16 @@ notes:
      - This sample client connects like a bot but can't participate in games at this point.
 - To run JSettlersServer under Jetty or Tomcat to use protobuf as JSON over websockets,
   you will need to build `socserver.war` and copy related runtime JARs.  
-  Details for Jetty:
+  Details for Jetty 9.2:
      - Run `gradle war` to build socserver.war, which includes JSettlersServer.jar
        but not its runtime-dependency JARs
      - Copy `build/libs/socserver.war` to $JETTY_HOME/webapps/
      - Copy the runtime JARs to $JETTY_HOME/lib/ext/  
        gson-2.7.jar, guava-19.0.jar, protobuf-java-3.4.0.jar, protobuf-java-util-3.4.0.jar
      - To run with those libs, start jetty with a command like: `java -jar $JETTY_HOME/start.jar --module=ext`
-     - The server listens on endpoint path `/socserver/apisock` for JSON over websockets
+     - The server listens on endpoint path `/socserver/apisock` for JSON over websockets,
+       port `4000` for Protobuf, and port `8880` for the classic SOCMessage protocol
+     - At startup the server prints its random robot cookie to the Jetty log, for bot development and testing
      - Example Message.FromServer as JSON:
 
            { "vers": { "versNum": 3000, "versStr": "3.0.00", "versBuild": "JX20171123", "srvFeats": ";ch;" } }

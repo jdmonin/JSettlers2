@@ -33,11 +33,11 @@ import com.google.protobuf.util.JsonFormat;
 /**
  * A protobuf JSON client's connection at a web app server like Jetty or Tomcat,
  * via WebSocket or some other connection through that web app framework.
- * Reads from the net, writes atomically to the net and
- * holds the connection data.
+ * Translates protobuf to/from JSON and is called by {@link socweb.server.WSEndpoint}
+ * which receives data from the client and sends data out to it.
  *<P>
  * This non-Runnable class has no run method to read inbound data:
- * Instead, the web app server handles that using these calls:
+ * Instead the web app server uses these calls:
  *<UL>
  * <LI> When the connection is ready for use: Make a new {@code ProtoJSONConnection}.
  *      Constructor calls its {@link Server} parameter which in turn calls {@link #connect()}.
@@ -45,7 +45,9 @@ import com.google.protobuf.util.JsonFormat;
  * <LI> If an error occurs: {@link #hasError(Throwable)}
  * <LI> When the client closes its connection: {@link #closeInput()}
  *</UL>
- *
+ * This class sends outbound information using the calls in
+ * {@link ProtoJSONConnection.ClientSession}.
+ *<P>
  * Added in v3.0.00 based on ProtoConnection and its parent NetConnection.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;

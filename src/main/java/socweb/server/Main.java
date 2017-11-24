@@ -21,6 +21,7 @@
 
 package socweb.server;
 
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -33,6 +34,7 @@ import javax.servlet.ServletRequestListener;
 import javax.servlet.http.HttpServletRequest;
 
 import soc.server.SOCServer;
+import soc.server.genericServer.Server;
 import soc.util.Version;
 
 /**
@@ -104,7 +106,10 @@ public class Main implements ServletContextListener, ServletRequestListener
             ctx.log("JSettlers Server version " + Version.version() + " build " + Version.buildnum());
             try
             {
-                srv = new SOCServer(SOCServer.SOC_PORT_DEFAULT, null);  // TODO how to specify properties
+                Properties pr = new Properties();  // TODO how to specify properties operationally at runtime
+                pr.put(Server.PROP_SERVER_PROTOBUF, "Y");
+                pr.put(SOCServer.PROP_JSETTLERS_BOTS_SHOWCOOKIE, "Y");  // for bot testing
+                srv = new SOCServer(SOCServer.SOC_PORT_DEFAULT, pr);
             } catch (Throwable th) {
                 srv = null;
                 ctx.log("SOCServer startup failed", th);
