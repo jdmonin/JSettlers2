@@ -9,11 +9,92 @@
 
 <head>
   <title>JSettlers-WebApp Demo</title>
+  <meta charset="UTF-8">
 </head>
-<body>
+<body onLoad="init()">
 
 <H3>JSettlers Web App</H3>
 
+<div id="login_form">
+  <form name="login" onsubmit="event.preventDefault(); doLogin(); return false;">
+    <label for="nick"><B>Nickname:</B></label>
+    <input name="nick" size=20 />
+     &nbsp; &nbsp;
+    <button name="connect" type="submit">Connect</button>
+    to <span id="connURL"></span>
+  </form>
+</div>
+
+<HR noshade>
+
 TBD here
+
+<script>
+
+nickname = null;  // demo user's nickname (login account)
+wsURL = null;  // websocket url to connect to, calculated and displayed in init()
+wsConn = null;  // websocket, after doConnect()
+
+function init()
+{
+    var wsProto = (window.location.protocol == "https:") ? "wss://" : "ws://";
+    wsURL = wsProto + window.location.host + "/socserver/apisock"
+    document.getElementById("connURL").innerHTML = wsURL;
+}
+
+function doLogin()
+{
+    if (wsConn != null)
+	return;
+
+    var nick = document.forms.login.nick.value.trim();
+    if (0 == nick.length)
+    {
+	alert("Please enter a nickname.");
+	return;
+    }
+
+    nickname = nick;
+
+    console.log("Conecting to " + wsURL);
+
+    wsConn = new WebSocket(wsURL);
+
+    wsConn.onopen = function(event)
+    {
+	console.log("at onOpen");
+	if (event.data === undefined)
+	    return;
+
+	showMessage(event.data);  // server's initial reply
+	document.forms.login.connect.disabled = true;
+	// TODO send our version json, etc
+    }
+
+    wsConn.onmessage = function(event)
+    {
+	showMessage(event.data);
+    }
+
+    wsConn.onclose = function(closeEvent)
+    {
+	wsConn = null;
+	showMessage("Disconnected.");
+	console.log("at onClose. Code " + closeEvent.code + " reason " + closeEvent.reason);
+    }
+
+    wsConn.onerror = function(event)
+    {
+	showMessage("Websocket received error.");
+    }
+}
+
+function showMessage(txt)
+{
+    // this is temporary
+    alert("Msg: " + txt);
+}
+
+</script>
 
 </body></html>
