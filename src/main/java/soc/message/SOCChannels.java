@@ -25,6 +25,8 @@ import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import soc.proto.Message;
+
 
 /**
  * This message lists all the chat channels on a server.
@@ -129,6 +131,15 @@ public class SOCChannels extends SOCMessage
         }
 
         return new SOCChannels(cl);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        Message.Channels.Builder b = Message.Channels.newBuilder()
+            .addAllNames(channels);
+        return Message.FromServer.newBuilder()
+            .setChannels(b).build();
     }
 
     /**

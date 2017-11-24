@@ -26,6 +26,7 @@ import java.util.List;
 
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.proto.Message;
 import soc.util.SOCGameList;
 
 /**
@@ -149,6 +150,25 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
             return null;  // must have an even # of strings
 
         return new SOCGamesWithOptions(gl);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        Message.Games.Builder b = Message.Games.newBuilder();
+        final int L = pa.size();
+        for (int ii = 0; ii < L; )
+        {
+            Message._GameWithOptions.Builder gb = Message._GameWithOptions.newBuilder();
+            gb.setGaName(pa.get(ii));
+            ++ii;
+            gb.setOpts(pa.get(ii));
+            ++ii;
+            b.addGame(gb);
+        }
+
+        return Message.FromServer.newBuilder()
+            .setGames(b).build();
     }
 
 }
