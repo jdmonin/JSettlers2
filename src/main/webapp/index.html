@@ -103,20 +103,20 @@ function doLogin()
     wsConn.onclose = function(closeEvent)
     {
 	wsConn = null;
-	showMessage("Disconnected.");
+	alert("Disconnected.");
 	console.log("ws onClose. Code " + closeEvent.code + " reason " + closeEvent.reason);
     }
 
     wsConn.onerror = function(event)
     {
-	showMessage("Websocket received error.");
+	alert("Websocket received error.");
     }
 }
 
-function showMessage(txt)
+function showMessage(jsonTxt)
 {
-    // this is temporary
-    alert("Msg: " + txt);
+    // this is temporary until we have a message dispatcher
+    console.log("From server: " + jsonTxt);
 }
 
 </script>
