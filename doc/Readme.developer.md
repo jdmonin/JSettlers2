@@ -217,6 +217,8 @@ Written for Eclipse 3.6, should be applicable to other versions with minor chang
 These instructions can be adapted to import JSettlers and its `build.xml` into
 other IDEs.
 
+### Download required library JARs
+
 - For API JARs (protobuf, servlets, websockets):
      - Locate `protobuf-java-3.4.0.jar` by
        [searching maven for g:"com.google.protobuf" AND a:"protobuf-java" AND v:"3.4.0"](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.google.protobuf%22%20AND%20a%3A%22protobuf-java%22%20AND%20v%3A%223.4.0%22),
@@ -235,6 +237,9 @@ other IDEs.
           - [search maven for g:"com.google.code.gson" AND a:"gson" AND v:"2.7"](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.google.code.gson%22%20AND%20a%3A%22gson%22%20AND%20v%3A%222.7%22)
      - Locate and download `guava-19.0.jar`
           - [search maven for g:"com.google.guava" AND a:"guava" AND v:"19.0"](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.google.guava%22%20AND%20a%3A%22guava%22%20AND%20v%3A%2219.0%22)
+
+### Set up the Project
+
 - Choose File -> New -> Project... -> Java -> Java Project from Existing Ant Buildfile.
 - Browse to the cloned repo's `build.xml`, select the "javac" task in target "compile"
 - Check the box "Link to the buildfile in the file system"
@@ -366,7 +371,7 @@ notes:
 - Development and the JSettlers build require `protobuf-java-3.4.0.jar`,
   `protobuf-java-util-3.4.0.jar`, and other JARs.
   Running `gradle test` can download them for you, or see above under
-  "Setup instructions for JSettlers as an Eclipse project" for download URLs.
+  "Download required library JARs" for download URLs.
 - `build.gradle` can generate Java classes from the *.proto files.
   There are no protobuf tasks in the Ant `build.xml`, you'll need to use gradle
   if you make changes to *.proto. If you don't need to change any proto files,
@@ -407,40 +412,48 @@ notes:
            java -cp $CLASSPATH:JSettlers.jar soc.robot.protobuf.DummyProtoClient localhost PRO
 
      - This sample client connects like a bot but can't participate in games at this point.
-- To run JSettlersServer under Jetty or Tomcat to use protobuf as JSON over websockets,
-  you will need to build `socserver.war` and copy related runtime JARs.  
-  Details for Jetty 9.2:
-     - Run `gradle war` to build socserver.war, which includes JSettlersServer.jar
-       but not its runtime-dependency JARs
-     - Copy `build/libs/socserver.war` to $JETTY_HOME/webapps/
-     - Copy the runtime JARs to $JETTY_HOME/lib/ext/  
-       gson-2.7.jar, guava-19.0.jar, protobuf-java-3.4.0.jar, protobuf-java-util-3.4.0.jar
-     - To run with those libs, start jetty with a command like: `java -jar $JETTY_HOME/start.jar --module=ext`
-     - The server listens on endpoint path `/socserver/apisock` for JSON over websockets,
-       port `4000` for Protobuf, and port `8880` for the classic SOCMessage protocol
-     - At startup the server prints its random robot cookie to the Jetty log, for bot development and testing
-     - Example Message.FromServer as JSON:
 
-           { "vers": { "versNum": 3000, "versStr": "3.0.00", "versBuild": "JX20171123", "srvFeats": ";ch;" } }
+### SOCServer Web Server for HTML5: Protobuf as JSON over websockets
 
-- For interop with other languages, see the python sample protobuf client `DummyProtoClient`.
-     - The gradle build creates protobuf python classes under `/generated/src/proto/main/python`
-       alongside the java ones; those should work with python 2 or 3.
-     - Like the java `DummyProtoClient`, this sample python client connects like a bot but can't join games.
-       It includes functions to implement `Message.writeDelimitedTo` and `Message.parseDelimitedFrom`
-       since those are included only with protobuf's java runtime, not other languages.
-     - The sample client is written in Python 3.
-     - To install the protobuf python runtime, run:  
-       `pip3 install protobuf`  
-     - DummyProtoClient was tested with python protobuf runtime v3.4.0. To print your installed runtime version, run:  
-       `python3 -c "import google.protobuf; print(google.protobuf.__version__)"`
-     - To run DummyProtoClient, your `PYTHONPATH` must include the `/generated/src/proto/main/python`
-       and `/src/main/python` subdirectories witin the repo. If your shell supports environment variables,
-       from the repo's top-level directory you could run DummyProtoClient like:
+To run JSettlersServer under Jetty or Tomcat to use protobuf as JSON over websockets,
+you will need to build `socserver.war` and copy related runtime JARs.
 
-           export PYTHONPATH=${PYTHONPATH}:$PWD/generated/src/proto/main/python:$PWD/src/main/python
+#### Details for Jetty 9.2:
 
-           src/main/python/soc/robot/dummy_proto_client.py localhost PRO
+- Run `gradle war` to build socserver.war, which includes JSettlersServer.jar
+  but not its runtime-dependency JARs
+- Copy `build/libs/socserver.war` to $JETTY_HOME/webapps/
+- Copy the runtime JARs to $JETTY_HOME/lib/ext/  
+  gson-2.7.jar, guava-19.0.jar, protobuf-java-3.4.0.jar, protobuf-java-util-3.4.0.jar
+- To run with those libs, start jetty with a command like: `java -jar $JETTY_HOME/start.jar --module=ext`
+- The server listens on endpoint path `/socserver/apisock` for JSON over websockets,
+  port `4000` for Protobuf, and port `8880` for the classic SOCMessage protocol
+- At startup the server prints its random robot cookie to the Jetty log, for bot development and testing
+- Example Message.FromServer as JSON:
+
+       { "vers": { "versNum": 3000, "versStr": "3.0.00", "versBuild": "JX20171123", "srvFeats": ";ch;" } }
+
+### Protobuf Interop with Other Languages
+
+For interop with other languages, see the **python** sample protobuf client `DummyProtoClient`.
+
+- The gradle build creates protobuf python classes under `/generated/src/proto/main/python`
+  alongside the java ones; those should work with python 2 or 3.
+- Like the java `DummyProtoClient`, this sample python client connects like a bot but can't join games.
+  It includes functions to implement `Message.writeDelimitedTo` and `Message.parseDelimitedFrom`
+  since those are included only with protobuf's java runtime, not other languages.
+- The sample client is written in Python 3.
+- To install the protobuf python runtime, run:  
+  `pip3 install protobuf`  
+- DummyProtoClient was tested with python protobuf runtime v3.4.0. To print your installed runtime version, run:  
+  `python3 -c "import google.protobuf; print(google.protobuf.__version__)"`
+- To run DummyProtoClient, your `PYTHONPATH` must include the `/generated/src/proto/main/python`
+  and `/src/main/python` subdirectories witin the repo. If your shell supports environment variables,
+  from the repo's top-level directory you could run DummyProtoClient like:
+
+      export PYTHONPATH=${PYTHONPATH}:$PWD/generated/src/proto/main/python:$PWD/src/main/python
+
+      src/main/python/soc/robot/dummy_proto_client.py localhost PRO
 
 ## To configure a sqlite database for testing
 
