@@ -22,6 +22,8 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.proto.Message;
+
 
 /**
  * From a client, this message is a request to join any existing game
@@ -129,6 +131,19 @@ public class SOCJoinGame extends SOCMessageTemplateJoinGame
         }
 
         return new SOCJoinGame(nn, pw, hn, ga);
+    }
+
+    /**
+     * Same protobuf message type as {@link SOCJoinGameAuth}; protobuf requires
+     * client to authenticate with {@link SOCAuthRequest} first.
+     */
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        Message.JoinGame.Builder b = Message.JoinGame.newBuilder()
+            .setGaName(game);
+        return Message.FromServer.newBuilder()
+            .setGaJoin(b).build();
     }
 
     /**

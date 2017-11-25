@@ -498,6 +498,7 @@ message Games {
  */
 message NewGame {
     _GameWithOptions game = 1;
+    uint32 min_version = 2;  // Minimum client version required to join this game, omitted if 0 or -1; ignored in request from client
 }
 
 /* Server request to this robot client to join a game.

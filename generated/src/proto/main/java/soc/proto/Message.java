@@ -14568,6 +14568,15 @@ public final class Message {
      * <code>._GameWithOptions game = 1;</code>
      */
     soc.proto.Message._GameWithOptionsOrBuilder getGameOrBuilder();
+
+    /**
+     * <pre>
+     * Minimum client version required to join this game, omitted if 0 or -1; ignored in request from client
+     * </pre>
+     *
+     * <code>uint32 min_version = 2;</code>
+     */
+    int getMinVersion();
   }
   /**
    * <pre>
@@ -14588,6 +14597,7 @@ public final class Message {
       super(builder);
     }
     private NewGame() {
+      minVersion_ = 0;
     }
 
     @java.lang.Override
@@ -14629,6 +14639,11 @@ public final class Message {
                 game_ = subBuilder.buildPartial();
               }
 
+              break;
+            }
+            case 16: {
+
+              minVersion_ = input.readUInt32();
               break;
             }
           }
@@ -14676,6 +14691,19 @@ public final class Message {
       return getGame();
     }
 
+    public static final int MIN_VERSION_FIELD_NUMBER = 2;
+    private int minVersion_;
+    /**
+     * <pre>
+     * Minimum client version required to join this game, omitted if 0 or -1; ignored in request from client
+     * </pre>
+     *
+     * <code>uint32 min_version = 2;</code>
+     */
+    public int getMinVersion() {
+      return minVersion_;
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -14691,6 +14719,9 @@ public final class Message {
       if (game_ != null) {
         output.writeMessage(1, getGame());
       }
+      if (minVersion_ != 0) {
+        output.writeUInt32(2, minVersion_);
+      }
       unknownFields.writeTo(output);
     }
 
@@ -14702,6 +14733,10 @@ public final class Message {
       if (game_ != null) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(1, getGame());
+      }
+      if (minVersion_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(2, minVersion_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -14724,6 +14759,8 @@ public final class Message {
         result = result && getGame()
             .equals(other.getGame());
       }
+      result = result && (getMinVersion()
+          == other.getMinVersion());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -14739,6 +14776,8 @@ public final class Message {
         hash = (37 * hash) + GAME_FIELD_NUMBER;
         hash = (53 * hash) + getGame().hashCode();
       }
+      hash = (37 * hash) + MIN_VERSION_FIELD_NUMBER;
+      hash = (53 * hash) + getMinVersion();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -14880,6 +14919,8 @@ public final class Message {
           game_ = null;
           gameBuilder_ = null;
         }
+        minVersion_ = 0;
+
         return this;
       }
 
@@ -14907,6 +14948,7 @@ public final class Message {
         } else {
           result.game_ = gameBuilder_.build();
         }
+        result.minVersion_ = minVersion_;
         onBuilt();
         return result;
       }
@@ -14950,6 +14992,9 @@ public final class Message {
         if (other == soc.proto.Message.NewGame.getDefaultInstance()) return this;
         if (other.hasGame()) {
           mergeGame(other.getGame());
+        }
+        if (other.getMinVersion() != 0) {
+          setMinVersion(other.getMinVersion());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -15093,6 +15138,44 @@ public final class Message {
           game_ = null;
         }
         return gameBuilder_;
+      }
+
+      private int minVersion_ ;
+      /**
+       * <pre>
+       * Minimum client version required to join this game, omitted if 0 or -1; ignored in request from client
+       * </pre>
+       *
+       * <code>uint32 min_version = 2;</code>
+       */
+      public int getMinVersion() {
+        return minVersion_;
+      }
+      /**
+       * <pre>
+       * Minimum client version required to join this game, omitted if 0 or -1; ignored in request from client
+       * </pre>
+       *
+       * <code>uint32 min_version = 2;</code>
+       */
+      public Builder setMinVersion(int value) {
+        
+        minVersion_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Minimum client version required to join this game, omitted if 0 or -1; ignored in request from client
+       * </pre>
+       *
+       * <code>uint32 min_version = 2;</code>
+       */
+      public Builder clearMinVersion() {
+        
+        minVersion_ = 0;
+        onChanged();
+        return this;
       }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
@@ -34727,66 +34810,67 @@ public final class Message {
       "name\030\002 \001(\t\" \n\rDeleteChannel\022\017\n\007ch_name\030\001" +
       " \001(\t\"E\n\020_GameWithOptions\022\017\n\007ga_name\030\001 \001(" +
       "\t\022\014\n\004opts\030\002 \001(\t\022\022\n\nunjoinable\030\003 \001(\010\"(\n\005G" +
-      "ames\022\037\n\004game\030\001 \003(\0132\021._GameWithOptions\"*\n" +
+      "ames\022\037\n\004game\030\001 \003(\0132\021._GameWithOptions\"?\n" +
       "\007NewGame\022\037\n\004game\030\001 \001(\0132\021._GameWithOption" +
-      "s\"J\n\022BotJoinGameRequest\022\037\n\004game\030\001 \001(\0132\021.",
-      "_GameWithOptions\022\023\n\013seat_number\030\002 \001(\r\"0\n" +
-      "\010JoinGame\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013member_nam" +
-      "e\030\002 \001(\t\"/\n\013GameMembers\022\017\n\007ga_name\030\001 \001(\t\022" +
-      "\017\n\007members\030\002 \003(\t\"R\n\007SitDown\022\017\n\007ga_name\030\001" +
-      " \001(\t\022\017\n\007pl_name\030\002 \001(\t\022\023\n\013seat_number\030\003 \001" +
-      "(\r\022\020\n\010is_robot\030\004 \001(\010\"R\n\013SetSeatLock\022\017\n\007g" +
-      "a_name\030\001 \001(\t\022\023\n\013seat_number\030\002 \001(\r\022\035\n\005sta" +
-      "te\030\003 \001(\0162\016.SeatLockState\"/\n\016GameServerTe" +
-      "xt\022\017\n\007ga_name\030\001 \001(\t\022\014\n\004text\030\002 \001(\t\"A\n\016Gam" +
-      "ePlayerText\022\017\n\007ga_name\030\001 \001(\t\022\020\n\010nickname",
-      "\030\002 \001(\t\022\014\n\004text\030\003 \001(\t\" \n\rBotTimingPing\022\017\n" +
-      "\007ga_name\030\001 \001(\t\"\037\n\014BotAdminPing\022\017\n\007ga_nam" +
-      "e\030\001 \001(\t\"\035\n\nBotDismiss\022\017\n\007ga_name\030\001 \001(\t\"." +
-      "\n\tLeaveGame\022\017\n\007ga_name\030\001 \001(\t\022\020\n\010nickname" +
-      "\030\002 \001(\t\"\035\n\nDeleteGame\022\017\n\007ga_name\030\001 \001(\t\"\317\010" +
-      "\n\nFromServer\022\030\n\004vers\030\001 \001(\0132\010.VersionH\000\022." +
-      "\n\021reject_connection\030\002 \001(\0132\021.RejectConnec" +
-      "tionH\000\022(\n\013status_text\030\003 \001(\0132\021.ServerStat" +
-      "usTextH\000\022(\n\016broadcast_text\030\004 \001(\0132\016.Broad" +
-      "castTextH\000\022\"\n\013server_ping\030\005 \001(\0132\013.Server",
-      "PingH\000\022.\n\014game_message\030\017 \001(\0132\026.GameMessa" +
-      "geFromServerH\000\022-\n\021bot_update_params\030\024 \001(" +
-      "\0132\020.BotUpdateParamsH\000\022)\n\017bot_admin_reset" +
-      "\030\025 \001(\0132\016.BotAdminResetH\000\022\035\n\010channels\030d \001" +
-      "(\0132\t.ChannelsH\000\022\035\n\006ch_new\030e \001(\0132\013.NewCha" +
-      "nnelH\000\022\037\n\007ch_join\030f \001(\0132\014.JoinChannelH\000\022" +
-      "%\n\nch_members\030g \001(\0132\017.ChannelMembersH\000\022\037" +
-      "\n\007ch_text\030h \001(\0132\014.ChannelTextH\000\022!\n\010ch_le" +
-      "ave\030i \001(\0132\r.LeaveChannelH\000\022#\n\tch_delete\030" +
-      "j \001(\0132\016.DeleteChannelH\000\022\030\n\005games\030\310\001 \001(\0132",
-      "\006.GamesH\000\022\033\n\006ga_new\030\311\001 \001(\0132\010.NewGameH\000\022\035" +
-      "\n\007ga_join\030\312\001 \001(\0132\t.JoinGameH\000\022,\n\014bot_joi" +
-      "n_req\030\313\001 \001(\0132\023.BotJoinGameRequestH\000\022#\n\ng" +
-      "a_members\030\314\001 \001(\0132\014.GameMembersH\000\022\035\n\010sit_" +
-      "down\030\315\001 \001(\0132\010.SitDownH\000\022&\n\rset_seat_lock" +
-      "\030\316\001 \001(\0132\014.SetSeatLockH\000\022\'\n\013server_text\030\317" +
-      "\001 \001(\0132\017.GameServerTextH\000\022\'\n\013player_text\030" +
-      "\320\001 \001(\0132\017.GamePlayerTextH\000\022*\n\017bot_timing_" +
-      "ping\030\321\001 \001(\0132\016.BotTimingPingH\000\022(\n\016bot_adm" +
-      "in_ping\030\322\001 \001(\0132\r.BotAdminPingH\000\022#\n\013bot_d",
-      "ismiss\030\323\001 \001(\0132\013.BotDismissH\000\022\037\n\010ga_leave" +
-      "\030\324\001 \001(\0132\n.LeaveGameH\000\022!\n\tga_delete\030\325\001 \001(" +
-      "\0132\013.DeleteGameH\000B\005\n\003msg\"\231\004\n\nFromClient\022\030" +
-      "\n\004vers\030\001 \001(\0132\010.VersionH\000\022 \n\010auth_req\030\002 \001" +
-      "(\0132\014.AuthRequestH\000\022\037\n\nim_a_robot\030\003 \001(\0132\t" +
-      ".ImARobotH\000\022\"\n\013server_ping\030\004 \001(\0132\013.Serve" +
-      "rPingH\000\022\036\n\tleave_all\030\005 \001(\0132\t.LeaveAllH\000\022" +
-      ".\n\014game_message\030\017 \001(\0132\026.GameMessageFromC" +
-      "lientH\000\022\037\n\007ch_join\030d \001(\0132\014.JoinChannelH\000" +
-      "\022\037\n\007ch_text\030e \001(\0132\014.ChannelTextH\000\022!\n\010ch_",
-      "leave\030f \001(\0132\r.LeaveChannelH\000\022\033\n\006ga_new\030\310" +
-      "\001 \001(\0132\010.NewGameH\000\022\035\n\007ga_join\030\311\001 \001(\0132\t.Jo" +
-      "inGameH\000\022\035\n\010sit_down\030\312\001 \001(\0132\010.SitDownH\000\022" +
-      "&\n\rset_seat_lock\030\313\001 \001(\0132\014.SetSeatLockH\000\022" +
-      "*\n\016ga_player_text\030\314\001 \001(\0132\017.GamePlayerTex" +
-      "tH\000\022\037\n\010ga_leave\030\315\001 \001(\0132\n.LeaveGameH\000B\005\n\003" +
-      "msgB\r\n\tsoc.protoH\001P\000P\001b\006proto3"
+      "s\022\023\n\013min_version\030\002 \001(\r\"J\n\022BotJoinGameReq",
+      "uest\022\037\n\004game\030\001 \001(\0132\021._GameWithOptions\022\023\n" +
+      "\013seat_number\030\002 \001(\r\"0\n\010JoinGame\022\017\n\007ga_nam" +
+      "e\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\"/\n\013GameMemb" +
+      "ers\022\017\n\007ga_name\030\001 \001(\t\022\017\n\007members\030\002 \003(\t\"R\n" +
+      "\007SitDown\022\017\n\007ga_name\030\001 \001(\t\022\017\n\007pl_name\030\002 \001" +
+      "(\t\022\023\n\013seat_number\030\003 \001(\r\022\020\n\010is_robot\030\004 \001(" +
+      "\010\"R\n\013SetSeatLock\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013sea" +
+      "t_number\030\002 \001(\r\022\035\n\005state\030\003 \001(\0162\016.SeatLock" +
+      "State\"/\n\016GameServerText\022\017\n\007ga_name\030\001 \001(\t" +
+      "\022\014\n\004text\030\002 \001(\t\"A\n\016GamePlayerText\022\017\n\007ga_n",
+      "ame\030\001 \001(\t\022\020\n\010nickname\030\002 \001(\t\022\014\n\004text\030\003 \001(" +
+      "\t\" \n\rBotTimingPing\022\017\n\007ga_name\030\001 \001(\t\"\037\n\014B" +
+      "otAdminPing\022\017\n\007ga_name\030\001 \001(\t\"\035\n\nBotDismi" +
+      "ss\022\017\n\007ga_name\030\001 \001(\t\".\n\tLeaveGame\022\017\n\007ga_n" +
+      "ame\030\001 \001(\t\022\020\n\010nickname\030\002 \001(\t\"\035\n\nDeleteGam" +
+      "e\022\017\n\007ga_name\030\001 \001(\t\"\317\010\n\nFromServer\022\030\n\004ver" +
+      "s\030\001 \001(\0132\010.VersionH\000\022.\n\021reject_connection" +
+      "\030\002 \001(\0132\021.RejectConnectionH\000\022(\n\013status_te" +
+      "xt\030\003 \001(\0132\021.ServerStatusTextH\000\022(\n\016broadca" +
+      "st_text\030\004 \001(\0132\016.BroadcastTextH\000\022\"\n\013serve",
+      "r_ping\030\005 \001(\0132\013.ServerPingH\000\022.\n\014game_mess" +
+      "age\030\017 \001(\0132\026.GameMessageFromServerH\000\022-\n\021b" +
+      "ot_update_params\030\024 \001(\0132\020.BotUpdateParams" +
+      "H\000\022)\n\017bot_admin_reset\030\025 \001(\0132\016.BotAdminRe" +
+      "setH\000\022\035\n\010channels\030d \001(\0132\t.ChannelsH\000\022\035\n\006" +
+      "ch_new\030e \001(\0132\013.NewChannelH\000\022\037\n\007ch_join\030f" +
+      " \001(\0132\014.JoinChannelH\000\022%\n\nch_members\030g \001(\013" +
+      "2\017.ChannelMembersH\000\022\037\n\007ch_text\030h \001(\0132\014.C" +
+      "hannelTextH\000\022!\n\010ch_leave\030i \001(\0132\r.LeaveCh" +
+      "annelH\000\022#\n\tch_delete\030j \001(\0132\016.DeleteChann",
+      "elH\000\022\030\n\005games\030\310\001 \001(\0132\006.GamesH\000\022\033\n\006ga_new" +
+      "\030\311\001 \001(\0132\010.NewGameH\000\022\035\n\007ga_join\030\312\001 \001(\0132\t." +
+      "JoinGameH\000\022,\n\014bot_join_req\030\313\001 \001(\0132\023.BotJ" +
+      "oinGameRequestH\000\022#\n\nga_members\030\314\001 \001(\0132\014." +
+      "GameMembersH\000\022\035\n\010sit_down\030\315\001 \001(\0132\010.SitDo" +
+      "wnH\000\022&\n\rset_seat_lock\030\316\001 \001(\0132\014.SetSeatLo" +
+      "ckH\000\022\'\n\013server_text\030\317\001 \001(\0132\017.GameServerT" +
+      "extH\000\022\'\n\013player_text\030\320\001 \001(\0132\017.GamePlayer" +
+      "TextH\000\022*\n\017bot_timing_ping\030\321\001 \001(\0132\016.BotTi" +
+      "mingPingH\000\022(\n\016bot_admin_ping\030\322\001 \001(\0132\r.Bo",
+      "tAdminPingH\000\022#\n\013bot_dismiss\030\323\001 \001(\0132\013.Bot" +
+      "DismissH\000\022\037\n\010ga_leave\030\324\001 \001(\0132\n.LeaveGame" +
+      "H\000\022!\n\tga_delete\030\325\001 \001(\0132\013.DeleteGameH\000B\005\n" +
+      "\003msg\"\231\004\n\nFromClient\022\030\n\004vers\030\001 \001(\0132\010.Vers" +
+      "ionH\000\022 \n\010auth_req\030\002 \001(\0132\014.AuthRequestH\000\022" +
+      "\037\n\nim_a_robot\030\003 \001(\0132\t.ImARobotH\000\022\"\n\013serv" +
+      "er_ping\030\004 \001(\0132\013.ServerPingH\000\022\036\n\tleave_al" +
+      "l\030\005 \001(\0132\t.LeaveAllH\000\022.\n\014game_message\030\017 \001" +
+      "(\0132\026.GameMessageFromClientH\000\022\037\n\007ch_join\030" +
+      "d \001(\0132\014.JoinChannelH\000\022\037\n\007ch_text\030e \001(\0132\014",
+      ".ChannelTextH\000\022!\n\010ch_leave\030f \001(\0132\r.Leave" +
+      "ChannelH\000\022\033\n\006ga_new\030\310\001 \001(\0132\010.NewGameH\000\022\035" +
+      "\n\007ga_join\030\311\001 \001(\0132\t.JoinGameH\000\022\035\n\010sit_dow" +
+      "n\030\312\001 \001(\0132\010.SitDownH\000\022&\n\rset_seat_lock\030\313\001" +
+      " \001(\0132\014.SetSeatLockH\000\022*\n\016ga_player_text\030\314" +
+      "\001 \001(\0132\017.GamePlayerTextH\000\022\037\n\010ga_leave\030\315\001 " +
+      "\001(\0132\n.LeaveGameH\000B\005\n\003msgB\r\n\tsoc.protoH\001P" +
+      "\000P\001b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -34921,7 +35005,7 @@ public final class Message {
     internal_static_NewGame_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_NewGame_descriptor,
-        new java.lang.String[] { "Game", });
+        new java.lang.String[] { "Game", "MinVersion", });
     internal_static_BotJoinGameRequest_descriptor =
       getDescriptor().getMessageTypes().get(20);
     internal_static_BotJoinGameRequest_fieldAccessorTable = new

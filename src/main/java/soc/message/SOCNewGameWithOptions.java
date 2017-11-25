@@ -25,6 +25,7 @@ import java.util.StringTokenizer;
 
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.proto.Message;
 
 /**
  * This broadcast message from server announces a new game, with a certain
@@ -204,6 +205,21 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
             opts = null;
 
         return new SOCNewGameWithOptions(ga, opts, minVers);
+    }
+
+    /** Same protobuf message type as {@link SOCNewGameWithOptionsRequest} and {@link SOCNewGame}. */
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        Message._GameWithOptions.Builder gb = Message._GameWithOptions.newBuilder()
+            .setGaName(game)
+            .setOpts(p2);  // optstr or "-"
+        Message.NewGame.Builder b = Message.NewGame.newBuilder()
+             .setGame(gb);
+        if (gameMinVers > 0)
+            b.setMinVersion(gameMinVers);
+        return Message.FromServer.newBuilder()
+            .setGaNew(b).build();
     }
 
     /**

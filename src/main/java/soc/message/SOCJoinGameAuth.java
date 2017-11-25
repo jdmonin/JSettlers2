@@ -20,6 +20,8 @@
  **/
 package soc.message;
 
+import soc.proto.Message;
+
 
 /**
  * This message from server to a client means that the client's player
@@ -95,6 +97,16 @@ public class SOCJoinGameAuth extends SOCMessage
     public static SOCJoinGameAuth parseDataStr(String s)
     {
         return new SOCJoinGameAuth(s);
+    }
+
+    /** Same protobuf message type as {@link SOCJoinGame}. */
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        Message.JoinGame.Builder b = Message.JoinGame.newBuilder()
+            .setGaName(game);
+        return Message.FromServer.newBuilder()
+            .setGaJoin(b).build();
     }
 
     /**
