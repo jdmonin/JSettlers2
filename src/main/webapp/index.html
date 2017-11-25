@@ -98,6 +98,16 @@ function doLogin()
 	    atFirstMessage(event);
 	}
 	showMessage(event.data);
+	try {
+	    msgObj = JSON.parse(event.data);
+	    var mkeys = Object.keys(msgObj);
+	    if (mkeys.length == 1)
+		console.log("type for dispatch: " + mkeys[0]);
+	    else
+		console.log("(malformed: keys)");
+	} catch(e) {
+	    console.log("(malformed: parser)");
+	}
     }
 
     wsConn.onclose = function(closeEvent)
