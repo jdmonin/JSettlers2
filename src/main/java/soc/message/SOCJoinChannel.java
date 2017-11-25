@@ -22,6 +22,8 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.proto.Message;
+
 
 /**
  * From a client, this message is a request to join or create a chat channel.
@@ -172,6 +174,17 @@ public class SOCJoinChannel extends SOCMessage
         }
 
         return new SOCJoinChannel(nn, pw, hn, ch);
+    }
+
+    /** SOCJoinChannel maps to the same protobuf message as {@link SOCJoinChannelAuth}. */
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        Message.JoinChannel.Builder b = Message.JoinChannel.newBuilder()
+            .setChName(channel)
+            .setMemberName(nickname);
+        return Message.FromServer.newBuilder()
+            .setChJoin(b).build();
     }
 
     /**

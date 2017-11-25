@@ -21,6 +21,7 @@
  **/
 package soc.message;
 
+import soc.proto.Message;
 import soc.server.genericServer.Connection;
 
 import java.util.ArrayList;
@@ -176,6 +177,16 @@ public class SOCChannelMembers extends SOCMessage
         }
 
         return new SOCChannelMembers(ch, ml);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        Message.ChannelMembers.Builder b = Message.ChannelMembers.newBuilder()
+            .setChName(channel)
+            .addAllMembers(members);
+        return Message.FromServer.newBuilder()
+            .setChMembers(b).build();
     }
 
     /**

@@ -22,6 +22,8 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.proto.Message;
+
 
 /**
  * From a client, this message tells the server the client is leaving a chat channel.
@@ -140,6 +142,16 @@ public class SOCLeaveChannel extends SOCMessage
         }
 
         return new SOCLeaveChannel(nn, hn, ch);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        Message.LeaveChannel.Builder b = Message.LeaveChannel.newBuilder()
+            .setChName(channel)
+            .setNickname(nickname);
+        return Message.FromServer.newBuilder()
+            .setChLeave(b).build();
     }
 
     /**

@@ -22,6 +22,8 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.proto.Message;
+
 
 /**
  * This message means that the server has authorized
@@ -121,6 +123,17 @@ public class SOCJoinChannelAuth extends SOCMessage
         }
 
         return new SOCJoinChannelAuth(nn, ch);
+    }
+
+    /** SOCJoinChannelAuth maps to the same protobuf message as {@link SOCJoinChannel}. */
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        Message.JoinChannel.Builder b = Message.JoinChannel.newBuilder()
+            .setChName(channel)
+            .setMemberName(nickname);
+        return Message.FromServer.newBuilder()
+            .setChJoin(b).build();
     }
 
     /**

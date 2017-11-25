@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2014,2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,6 +19,8 @@
  * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
+
+import soc.proto.Message;
 
 
 /**
@@ -84,6 +86,15 @@ public class SOCDeleteChannel extends SOCMessage
     public static SOCDeleteChannel parseDataStr(String s)
     {
         return new SOCDeleteChannel(s);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        Message.DeleteChannel.Builder b = Message.DeleteChannel.newBuilder()
+            .setChName(channel);
+        return Message.FromServer.newBuilder()
+            .setChDelete(b).build();
     }
 
     /**

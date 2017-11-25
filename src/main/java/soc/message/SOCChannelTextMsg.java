@@ -22,6 +22,8 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.proto.Message;
+
 
 /**
  * This message contains a text message sent to a chat channel.
@@ -144,6 +146,18 @@ public class SOCChannelTextMsg extends SOCMessage
         }
 
         return new SOCChannelTextMsg(ch, nn, tm);
+    }
+
+    /** SOCJoinChannel maps to the same protobuf message as {@link SOCJoinChannelAuth}. */
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        Message.ChannelText.Builder b = Message.ChannelText.newBuilder()
+            .setChName(channel)
+            .setNickname(nickname)
+            .setText(text);
+        return Message.FromServer.newBuilder()
+            .setChText(b).build();
     }
 
     /**
