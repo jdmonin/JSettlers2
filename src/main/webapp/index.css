@@ -1,0 +1,23 @@
+/*
+ css for index.html
+
+ This file is part of the Java Settlers Web App.
+
+ This file Copyright (C) 2017 Jeremy D Monin (jeremy@nand.net)
+
+ Open-source license: TBD
+ */
+
+body {
+    font-family: Verdana, Geneva, sans-serif;
+}
+
+// list of active games or chat channels
+
+ul.actives {
+  list-style: none;  list-style-type: none;
+  background: #9999ff;  margin: 0;  padding: 0;
+}
+ul.actives li {
+  background: #3333ff;  color: #ffffff;  margin: 4px;  padding: 2px;
+}

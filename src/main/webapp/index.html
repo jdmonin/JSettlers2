@@ -11,6 +11,7 @@
   <title>JSettlers-WebApp Demo</title>
   <meta charset="UTF-8">
   <script src="inc/jquery-3.2.1.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="index.css">
 </head>
 <body>
 
@@ -32,9 +33,21 @@
   Connected
 
   <HR noshade>
+
+  <table border=0>
+    <tr valign="top">
+      <td style="padding-right: 24px;">
+	<!-- TODO what if server doesn't support chat feature? -->
+        <div id="chat_channel_list" class="actives">Chat Channels:<BR/></div>
+      </td>
+      <td>
+        <div id="game_list" class="actives">Current Games:<BR/></div>
+      </td>
+  </table>
+
 </div>
 
-TBD here
+
 
 <script>
 
@@ -55,9 +68,10 @@ function initPage()
     document.getElementById("connURL").innerHTML = wsURL;
 }
 
+// WebSocket callbacks; login button //
+
 function atFirstMessage(wsEvent)
 {
-    console.log("L57 atFirstMsg");
     $("#connected_div").show();
     document.forms.login.connect.disabled = true;
 
@@ -98,16 +112,27 @@ function doLogin()
 	    atFirstMessage(event);
 	}
 	showMessage(event.data);
-	try {
+        var msgObj = null;
+	try
+	{
 	    msgObj = JSON.parse(event.data);
 	    var mkeys = Object.keys(msgObj);
-	    if (mkeys.length == 1)
-		console.log("type for dispatch: " + mkeys[0]);
-	    else
+	    if (mkeys.length != 1)
+	    {
 		console.log("(malformed: keys)");
+		msgObj = null;
+	    }
 	} catch(e) {
 	    console.log("(malformed: parser)");
 	}
+
+	if (msgObj != null)
+	    try
+	    {
+		msgDispatch(mkeys[0], msgObj[mkeys[0]]);
+	    } catch(e) {
+		console.log("dispatch error: " + e);
+	    }
     }
 
     wsConn.onclose = function(closeEvent)
@@ -128,6 +153,101 @@ function showMessage(jsonTxt)
     // this is temporary until we have a message dispatcher
     console.log("From server: " + jsonTxt);
 }
+
+// TODO separate include file
+
+dispatchTo =
+{
+    channels: function(mData)
+    {
+	if (mData.names)
+	    listPopulate('chat_channel_list', mData.names);
+    },
+    games: function(mData)
+    {
+	if (mData.game)
+	{
+	    var gaNames = [];
+	    mData.game.forEach(function(gaObj, i) { gaNames[i] = gaObj.gaName; } );
+	    listPopulate('game_list', gaNames);
+	}
+    },
+    chNew: function(mData)
+    {
+	listAdd('chat_channel_list', mData.chName);
+    },
+    chDelete: function(mData)
+    {
+	listRemove('chat_channel_list', mData.chName);
+    },
+};
+
+function msgDispatch(mType, mData)
+{
+    console.log("type for dispatch: " + mType);
+    console.log("    mData is: " + JSON.stringify(mData));
+    var dfunc = dispatchTo[mType];
+    if (dfunc)
+	dfunc(mData);
+}
+
+// UI //
+
+/* chat channel list, game list */
+
+function alphaCompareStrings(a,b)
+{
+    return a.toLocaleUpperCase().localeCompare(b.toLocaleUpperCase());
+}
+
+function alphaCompareElems(a, b)
+{
+    return $(a).text().toLocaleUpperCase().localeCompare($(b).text().toLocaleUpperCase());
+}
+
+// populate alphabetical chat_channel_list or game_list from itemNames string array
+function listPopulate(listId, itemNames)
+{
+    if (! itemNames)
+	return;  // empty, undefined, null
+
+    itemNames.sort(alphaCompareStrings);
+    var newUL = $('<ul />', {'class': 'actives', 'style': "padding-left: 0;" });  // must force 0 padding here too
+    $.each(itemNames, function(i)
+    {
+	var li = $('<li />').text(itemNames[i]).appendTo(newUL);
+    });
+    $('#' + listId).append(newUL);
+}
+
+// add itemName to chat_channel_list or game_list alphabetically
+function listAdd(listId, itemName)
+{
+    var newLI = $('<li />').text(itemName);
+    var UL = $('#' + listId + ' ul');
+    if (UL.length)
+    {
+	newLI.hide();
+	$('li', '#' + listId + ' ul').add(newLI.fadeIn(700)).sort(alphaCompareElems).appendTo(UL);
+    } else {
+	// is first channel or game: no list yet
+        var newUL = $('<ul />', {'class': 'actives', 'style': "padding-left: 0;" });
+	newLI.fadeIn(700).appendTo(newUL);
+	$('#' + listId).append(newUL);
+    }
+}
+
+function listRemove(listId, itemName)
+{
+    var ul = $('#' + listId + ' ul');
+    if (! ul.length)
+	return;
+    var li = ul.find(':contains(' + itemName + ')');
+    if (! li.length)
+	return;
+    li.fadeOut(700, function(){ $(this).remove(); });
+}
+
 
 </script>
 
