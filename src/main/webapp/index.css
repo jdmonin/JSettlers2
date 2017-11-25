@@ -19,5 +19,6 @@ ul.actives {
   background: #9999ff;  margin: 0;  padding: 0;
 }
 ul.actives li {
-  background: #3333ff;  color: #ffffff;  margin: 4px;  padding: 2px;
+  background: #3333ff;  color: #ffffff;  margin: 4px;  padding: 6px;
+  min-width: 120px;  border-radius: 4px;
 }
