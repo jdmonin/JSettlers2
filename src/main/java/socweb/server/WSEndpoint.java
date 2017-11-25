@@ -55,8 +55,7 @@ public class WSEndpoint
         System.err.println("L47 WebSocket Connected");
         session = s;
         conn = new ProtoJSONConnection(this, Main.srv);
-        conn.connect();  // adds to srv's set of unnamed connections, to be named at auth
-        // TODO error handling: log and disconnect (with explanation) if Main.srv is null or connnect() returns false
+        // TODO error handling: log and disconnect (with explanation) if Main.srv is null
     }
 
     @OnMessage
@@ -96,6 +95,13 @@ public class WSEndpoint
         return (session != null) && session.isOpen();
     }
 
+    /**
+     * {@inheritDoc}
+     *<P>
+     * Since this sends synchronously, only 1 thread should call this method
+     * or risk {@code IllegalStateException: Blocking message pending 10000 for BLOCKING}
+     * as warned about in 2015-08 comment at https://bugs.eclipse.org/bugs/show_bug.cgi?id=474488 (jetty 9.2).
+     */
     public void sendJSON(final String objAsJson)
         throws IOException
     {

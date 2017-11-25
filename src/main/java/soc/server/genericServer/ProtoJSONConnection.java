@@ -76,7 +76,8 @@ public final class ProtoJSONConnection
 
     /**
      * Initialize the connection data.
-     * Also calls {@link Server#addConnection(Connection) srv.addConnection(this)}.
+     * Also calls {@link Server#addConnection(Connection) srv.addConnection(this)}
+     * which calls {@link #connect()}.
      * @throws IllegalArgumentException if {@code sess} or {@code srv} is null
      */
     public ProtoJSONConnection(ClientSession sess, Server srv)
@@ -449,6 +450,7 @@ public final class ProtoJSONConnection
 
         /**
          * Send this preformatted JSON object to the client.
+         * Synchronous blocking send: Waits for message send to be completed.
          * @see ProtoJSONConnection#processFromClient(String)
          */
         void sendJSON(String objAsJson)
