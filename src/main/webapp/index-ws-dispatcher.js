@@ -32,6 +32,15 @@ dispatchTo =
     {
 	listRemove('chat_channel_list', mData.chName);
     },
+    gaNew: function(mData)
+    {
+	listAdd('game_list', mData.game.gaName);
+	    // TODO note minVersion (may be absent) in case it's higher than our version
+    },
+    gaDelete: function(mData)
+    {
+	listRemove('game_list', mData.gaName);
+    },
 };
 
 function msgDispatch(mType, mData)
