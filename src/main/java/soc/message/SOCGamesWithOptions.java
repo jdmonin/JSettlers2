@@ -156,10 +156,10 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
     protected Message.FromServer toProtoFromServer()
     {
         Message.Games.Builder b = Message.Games.newBuilder();
+        Message._GameWithOptions.Builder gb = Message._GameWithOptions.newBuilder();
         final int L = pa.size();
         for (int ii = 0; ii < L; )
         {
-            Message._GameWithOptions.Builder gb = Message._GameWithOptions.newBuilder();
             gb.setGaName(pa.get(ii));
             ++ii;
             gb.setOpts(pa.get(ii));

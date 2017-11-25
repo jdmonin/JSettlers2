@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import soc.game.SOCGame;
+import soc.proto.Message;
 
 
 /**
@@ -186,6 +187,21 @@ public class SOCGames extends SOCMessage
         }
 
         return new SOCGames(ga);
+    }
+
+    protected Message.FromServer toProtoFromServer()
+    {
+        Message.Games.Builder b = Message.Games.newBuilder();
+        Message._GameWithOptions.Builder gb = Message._GameWithOptions.newBuilder();
+        gb.setOpts("-");
+        for (String gaName : games)
+        {
+            gb.setGaName(gaName);
+            b.addGame(gb);
+        }
+
+        return Message.FromServer.newBuilder()
+            .setGames(b).build();
     }
 
     /**
