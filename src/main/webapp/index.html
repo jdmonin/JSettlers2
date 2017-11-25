@@ -11,6 +11,7 @@
   <title>JSettlers-WebApp Demo</title>
   <meta charset="UTF-8">
   <script src="inc/jquery-3.2.1.min.js"></script>
+  <script async src="index-ws-dispatcher.js"></script>
   <link rel="stylesheet" type="text/css" href="index.css">
 </head>
 <body>
@@ -22,7 +23,8 @@
     <label for="nick"><B>Nickname:</B></label>
     <input name="nick" size=20 />
     &nbsp; &nbsp;
-    <button name="connect" type="submit">Connect</button>
+    <button name="connect" type="submit" disabled="disable" id="connect_btn">Connect</button>
+	<!-- enabled when index-ws-dispatcher.js loads -->
     to <span id="connURL"></span>
   </form>
 </div>
@@ -77,7 +79,7 @@ function atFirstMessage(wsEvent)
 
     // send our version
     // TODO get an actual locale
-    var versMsg = { "vers": { "versNum": 3000, "versStr": "3.0.00", "versBuild": "WS20171124", "cliLocale": "en_US" } };
+    var versMsg = { "vers": { "versNum": 3000, "versStr": "3.0.00", "versBuild": "WS20171125", "cliLocale": "en_US" } };
     wsConn.send(JSON.stringify(versMsg));
 }
 
@@ -154,48 +156,13 @@ function showMessage(jsonTxt)
     console.log("From server: " + jsonTxt);
 }
 
-// TODO separate include file
-
-dispatchTo =
-{
-    channels: function(mData)
-    {
-	if (mData.names)
-	    listPopulate('chat_channel_list', mData.names);
-    },
-    games: function(mData)
-    {
-	if (mData.game)
-	{
-	    var gaNames = [];
-	    mData.game.forEach(function(gaObj, i) { gaNames[i] = gaObj.gaName; } );
-	    listPopulate('game_list', gaNames);
-	}
-    },
-    chNew: function(mData)
-    {
-	listAdd('chat_channel_list', mData.chName);
-    },
-    chDelete: function(mData)
-    {
-	listRemove('chat_channel_list', mData.chName);
-    },
-};
-
-function msgDispatch(mType, mData)
-{
-    console.log("type for dispatch: " + mType);
-    console.log("    mData is: " + JSON.stringify(mData));
-    var dfunc = dispatchTo[mType];
-    if (dfunc)
-	dfunc(mData);
-}
+// For dispatchTo and function msgDispatch, see index-ws-dispatcher.js //
 
 // UI //
 
 /* chat channel list, game list */
 
-function alphaCompareStrings(a,b)
+function alphaCompareStrings(a, b)
 {
     return a.toLocaleUpperCase().localeCompare(b.toLocaleUpperCase());
 }
