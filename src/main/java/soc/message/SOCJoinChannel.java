@@ -96,7 +96,7 @@ public class SOCJoinChannel extends SOCMessage
     }
 
     /**
-     * Get the optional server host name to which the client is connecting, or "-"
+     * Get the optional server host name to which the client is connecting, or "-".
      * Since the client is already connected when it sends the message, this is only informational.
      * @return the host name
      */
