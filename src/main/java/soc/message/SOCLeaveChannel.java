@@ -40,7 +40,7 @@ public class SOCLeaveChannel extends SOCMessage
     private static final long serialVersionUID = 2000L;  // renamed in v2.0.00; previous structural change v1.1.11
 
     /**
-     * Nickname of the leaving member
+     * Nickname of the leaving member; ignored from client, can send "-" but not blank
      */
     private String nickname;
 
@@ -50,15 +50,15 @@ public class SOCLeaveChannel extends SOCMessage
     private String channel;
 
     /**
-     * Host name
+     * Optional host name, or "-"
      */
     private String host;
 
     /**
      * Create a Leave message.
      *
-     * @param nn  nickname
-     * @param hn  host name
+     * @param nn  nickname; ignored from client, can send "-" but not blank for this field
+     * @param hn  optional host name, or "-"
      * @param ch  name of chat channel
      */
     public SOCLeaveChannel(String nn, String hn, String ch)
@@ -70,7 +70,7 @@ public class SOCLeaveChannel extends SOCMessage
     }
 
     /**
-     * @return the nickname
+     * @return the nickname; can be "-" but not blank when sent from client
      */
     public String getNickname()
     {
@@ -78,7 +78,7 @@ public class SOCLeaveChannel extends SOCMessage
     }
 
     /**
-     * @return the host name
+     * @return the optional host name, or "-"
      */
     public String getHost()
     {
@@ -106,9 +106,9 @@ public class SOCLeaveChannel extends SOCMessage
     /**
      * {@code LEAVECHANNEL} sep <em>nickname</em> sep2 <em>host</em> sep2 <em>channel</em>
      *
-     * @param nn  the neckname
-     * @param hn  the host name
-     * @param ch  the new channel name
+     * @param nn  the nickname; ignored from client, can send "-" but not blank
+     * @param hn  the optional host name, or "-"
+     * @param ch  the name of chat channel
      * @return    the command string
      */
     public static String toCmd(String nn, String hn, String ch)

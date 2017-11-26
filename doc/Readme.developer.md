@@ -25,9 +25,9 @@
 
 ### Project layout
 
-This project uses ant (or IDEs) to build. For developer familiarity, the project
-uses the directory structure/layout of a maven/gradle project. v2 and later
-versions use gradle to build. Stable versions 1.x.xx used ant.
+This project uses gradle or ant (or IDEs) to build. For developer familiarity,
+the project uses the directory structure/layout of a maven/gradle project. v2
+and newer versions use gradle to build. The 1.x.xx versions used ant.
 
 Also see the "Build Setup and Results" section.
 
@@ -68,10 +68,10 @@ scenario.
 
 Coding is done in Java 7, but should compile cleanly in newer JDKs. (v1.2 and
 v2.0 used java 5 for backwards compatibility; earlier versions used java 1.4.)
-The build system is Ant, which is natively understood by Eclipse, or Gradle.
-Use any IDE you want, including vi.  Use spaces, not tabs.  Please try to keep
-the other conventions of the code already there (see "Coding Style" below for
-more details.).
+The build system is Ant, which is natively understood by Eclipse, and Gradle.
+Use any IDE you want, including vi.  Use spaces, not tabs.  Please try to
+keep the other conventions of the code already there (see "Coding Style"
+below for more details.).
 
 When adding new methods or fields, describe them in javadoc, including the
 `@since` marker and the one-sentence summary (even though some old methods
@@ -291,8 +291,8 @@ If you simply want to run the client or server, you only need the Java Runtime
 or PostgreSQL installed and configured, or the sqlite jdbc driver for a
 file-based local database.
 
-This project was designed to build with eclipse, or with the Ant tool available
-from [http://ant.apache.org/](http://ant.apache.org/).
+This project was designed to build with gradle or ant, and from within an IDE
+like eclipse. Gradle builds output to `build/libs/`, ant outputs to `target/`.
 
 If not using an IDE like eclipse, check the `build.xml` file. There may be
 build variables you may want to change locally. These can be changed by

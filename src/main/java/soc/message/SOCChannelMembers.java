@@ -32,7 +32,11 @@ import java.util.Vector;
 
 /**
  * This message lists all the members of a single chat channel.
-<P>
+ *<P>
+ * When joining a channel, after {@link SOCJoinChannelAuth} the client is sent this message
+ * with all current members (not including the client), then client and those other
+ * channel members are sent a {@link SOCJoinChannel} to announce client's nickname joining.
+ *<P>
  * Before v2.0.00 this class was named {@code SOCMembers}.
  *
  * @author Robert S Thomas

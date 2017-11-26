@@ -90,7 +90,7 @@ public class SOCJoinChannelAuth extends SOCMessage
     /**
      * JOINCHANNELAUTH sep nickname sep2 channel
      *
-     * @param nn  the neckname
+     * @param nn  the nickname
      * @param ch  the channel name
      * @return    the command string
      */

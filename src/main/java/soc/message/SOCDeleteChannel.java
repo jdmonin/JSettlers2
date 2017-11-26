@@ -27,6 +27,7 @@ import soc.proto.Message;
  * This message means that a chat channel has been destroyed.
  *
  * @author Robert S Thomas
+ * @see SOCDeleteGame
  */
 public class SOCDeleteChannel extends SOCMessage
 {

@@ -31,8 +31,8 @@ import soc.proto.Message;
  * and {@link SOCJoinChannel} to all members of the channel.
  *<P>
  * Once a client has successfully joined or created any channel or game, the
- * password field can be left blank in later join/create requests.  All server
- * versions ignore the password field after a successful request.
+ * nickname and password fields can be left blank in later join/create requests.
+ * All server versions ignore the password field after a successful request.
  *<P>
  * Before v2.0.00 this class was named {@code SOCJoin}.
  *
@@ -44,7 +44,7 @@ public class SOCJoinChannel extends SOCMessage
     private static final long serialVersionUID = 2000L;  // renamed in v2.0.00; previous structural change v1.0.0 or earlier
 
     /**
-     * Nickname of the joining member
+     * Nickname of the joining member, or "-" if already auth'd to server
      */
     private String nickname;
 
@@ -59,7 +59,7 @@ public class SOCJoinChannel extends SOCMessage
     private String channel;
 
     /**
-     * Server host name to which the client is connecting.
+     * Optional server host name to which the client is connecting, or "-".
      * Since the client is already connected when it sends the message, this is informational.
      */
     private String host;
@@ -67,9 +67,9 @@ public class SOCJoinChannel extends SOCMessage
     /**
      * Create a Join Channel message.
      *
-     * @param nn  nickname
+     * @param nn  nickname, or "-" if already auth'd to server
      * @param pw  optional password, or "" if none
-     * @param hn  server host name
+     * @param hn  optional server host name, or "-"
      * @param ch  name of chat channel
      */
     public SOCJoinChannel(String nn, String pw, String hn, String ch)
@@ -82,7 +82,7 @@ public class SOCJoinChannel extends SOCMessage
     }
 
     /**
-     * @return the nickname
+     * @return the nickname, or "-" if already auth'd to server
      */
     public String getNickname()
     {
@@ -98,7 +98,7 @@ public class SOCJoinChannel extends SOCMessage
     }
 
     /**
-     * Get the server host name to which the client is connecting.
+     * Get the optional server host name to which the client is connecting, or "-".
      * Since the client is already connected when it sends the message, this is only informational.
      * @return the host name
      */
@@ -128,9 +128,9 @@ public class SOCJoinChannel extends SOCMessage
     /**
      * JOINCHANNEL sep nickname sep2 password sep2 host sep2 channel
      *
-     * @param nn  the nickname
+     * @param nn  the nickname, or "-" if already auth'd to server
      * @param pw  the optional password, or "" if none
-     * @param hn  the server host name
+     * @param hn  the optional server host name, or "-"
      * @param ch  the channel name
      * @return    the command string
      */

@@ -31,8 +31,8 @@ import soc.game.SOCGameOption;
  * If it can create the game, server's reply is a broadcast {@link SOCNewGameWithOptions}.
  *<P>
  * Once a client has successfully joined or created any game or channel, the
- * password field can be left blank in later join/create requests.  All server
- * versions ignore the password field after a successful request.
+ * nickname and password fields can be left blank in later join/create requests.
+ * All server versions ignore the password field after a successful request.
  *<P>
  * Introduced in 1.1.07; check server version against {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}
  * before sending this message.  Older servers should be given {@link SOCJoinGame JOINGAME} instead.
@@ -61,9 +61,9 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
     /**
      * Create a NewGameWithOptionsRequest message.
      *
-     * @param nn  nickname
+     * @param nn  nickname, or "-" if already auth'd to server
      * @param pw  optional password, or "" if none
-     * @param hn  server host name
+     * @param hn  optional server host name, or "-"
      * @param ga  name of the game
      * @param opts the game options, or null;
      *           if null, it probably makes sense to create
@@ -80,9 +80,9 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
     /**
      * Create a NewGameWithOptionsRequest message.
      *
-     * @param nn  nickname
+     * @param nn  nickname, or "-" if already auth'd to server
      * @param pw  optional password, or "" if none
-     * @param hn  server host name
+     * @param hn  optional server host name, or "-"
      * @param ga  name of the game
      * @param optstr the game options as a string name-value pairs, as created by
      *             {@link SOCGameOption#packOptionsToString(Map, boolean)}.
@@ -117,9 +117,9 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
     /**
      * NEWGAMEWITHOPTIONSREQUEST sep nickname sep2 password sep2 host sep2 game sep2 options
      *
-     * @param nn  the nickname
+     * @param nn  the nickname, or "-" if already auth'd to server
      * @param pw  the optional password, or "" if none; not null
-     * @param hn  the server host name
+     * @param hn  the optional server host name, or "-"
      * @param ga  the game name
      * @param optstr the game options as a string name-value pairs, as created by
      *             {@link SOCGameOption#packOptionsToString(Map, boolean)}.
@@ -136,9 +136,9 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
     /**
      * NEWGAMEWITHOPTIONSREQUEST sep nickname sep2 password sep2 host sep2 game sep2 options
      *
-     * @param nn  the nickname
+     * @param nn  the nickname, or "-" if already auth'd to server
      * @param pw  the optional password, or "" if none
-     * @param hn  the server host name
+     * @param hn  the optional server host name, or "-"
      * @param ga  the game name
      * @param opts the game options ({@link SOCGameOption})
      * @return    the command string

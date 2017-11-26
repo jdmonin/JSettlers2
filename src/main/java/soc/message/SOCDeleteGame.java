@@ -27,6 +27,7 @@ import soc.proto.Message;
  * This message means that a soc game has been destroyed.
  *
  * @author Robert S Thomas
+ * @see SOCDeleteChannel
  */
 public class SOCDeleteGame extends SOCMessage
     implements SOCMessageForGame
