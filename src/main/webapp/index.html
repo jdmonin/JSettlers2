@@ -34,7 +34,7 @@
 	<!-- enabled when index-ws-dispatcher.js loads -->
       to <span id="connURL"></span>
     </td></tr>
-    <tr><td>
+    <tr id="login_pass_row"><td>
       <label for="pass">Password:</label>
     </td><td>
       <input name="pass" type="password" size=20 />
@@ -71,8 +71,7 @@
 
 nickname = null;  // demo user's nickname (login account)
 authSent = false;
-authOK = false;  // TODO impl: auth right away if pw on initial form; must auth before join any chat channel or game
-	// for now (TODO) no password on that form, so don't auth until joining a channel or game
+authOK = false;  // must auth before join any chat channel or game; set in index-ws-dispatcher.js
 wsURL = null;  // websocket url to connect to, calculated and displayed in init()
 wsConn = null;  // websocket, after doConnect()
 hasFirstMessage = false;  // true at first message received from server
