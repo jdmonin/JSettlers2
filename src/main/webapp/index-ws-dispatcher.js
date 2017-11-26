@@ -1,6 +1,8 @@
 /*
  websocket dispatcher for index.html
 
+ Also loads chat-channel.js asynchronously.
+
  This file is part of the Java Settlers Web App.
 
  This file Copyright (C) 2017 Jeremy D Monin (jeremy@nand.net)
@@ -10,6 +12,40 @@
 
 dispatchTo =
 {
+    statusText: function(mData)
+    {
+	if (authSent && ! authOK)
+	{
+	    var txt = mData.text;
+	    var txtSpan = $("#status_txt");
+	    if (txt)
+		txtSpan.text(": " + txt);
+	    else
+		txtSpan.text("");
+	    var status = mData.sv || "OK";  // default
+	    var form = document.forms.login;
+	    if (status == "OK_DEBUG_MODE_ON")
+	    {
+		status = "OK";
+		alert("Server's Debug Mode is on.");
+	    }
+	    else if (status == "OK_SET_NICKNAME")
+	    {
+		status = "OK";
+		nickname = mData.details[0];
+		form.nick.value = nickname;
+	    }
+	    if (status == "OK")
+	    {
+		authOK = true;
+	    } else {
+		$("#connect_btn").text("Log In");
+		form.nick.focus();
+		alert("Login failed: " + txt + " (" + status + ")");
+	    }
+	    form.connect.disabled = authOK;
+	}
+    },
     channels: function(mData)
     {
 	if (mData.names)
@@ -31,6 +67,8 @@ dispatchTo =
     chDelete: function(mData)
     {
 	listRemove('chat_channel_list', mData.chName);
+	if (typeof closeChannelWindow === "function")  // loads late
+	    closeChannelWindow(mData.chName, false);
     },
     gaNew: function(mData)
     {
@@ -55,3 +93,11 @@ function msgDispatch(mType, mData)
 // Done loading and defining: Enable the Connect button.
 $('#connect_btn').prop('disabled', false);
 
+// Now that dispatcher is loaded: In case it's needed soon,
+// load chat channel interface functions and message handlers.
+// Don't use $.getScript since it disables caching
+$.ajax({
+    'url': 'chat-channel.js',
+    'dataType': 'script',
+    'cache': (window.location.host != 'localhost')
+    });

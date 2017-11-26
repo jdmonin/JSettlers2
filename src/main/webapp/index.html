@@ -1,5 +1,8 @@
 <html>
 <!--
+ Demo HTML5 client: Login to server and chat. For JSON message format see FromServer and FromClient
+ in https://github.com/jdmonin/JSettlers2/blob/v3/src/main/proto/message.proto
+
  This file is part of the Java Settlers Web App.
 
  This file Copyright (C) 2017 Jeremy D Monin (jeremy@nand.net)
@@ -12,6 +15,7 @@
   <meta charset="UTF-8">
   <script src="inc/jquery-3.2.1.min.js"></script>
   <script async src="index-ws-dispatcher.js"></script>
+  <!-- note: index-ws-dispatcher loads chat-channel.js -->
   <link rel="stylesheet" type="text/css" href="index.css">
 </head>
 <body>
@@ -20,19 +24,31 @@
 
 <div id="login_form">
   <form name="login" onsubmit="event.preventDefault(); doLogin(); return false;">
-    <label for="nick"><B>Nickname:</B></label>
-    <input name="nick" size=20 />
-    &nbsp; &nbsp;
-    <button name="connect" type="submit" disabled="disable" id="connect_btn">Connect</button>
+    <table border=0>
+    <tr><td>
+      <label for="nick"><B>Nickname:</B></label>
+    </td><td>
+      <input name="nick" size=20 />
+      &nbsp;
+      <button name="connect" type="submit" disabled="disable" id="connect_btn">Connect</button>
 	<!-- enabled when index-ws-dispatcher.js loads -->
-    to <span id="connURL"></span>
+      to <span id="connURL"></span>
+    </td></tr>
+    <tr><td>
+      <label for="pass">Password:</label>
+    </td><td>
+      <input name="pass" type="password" size=20 />
+      &nbsp;
+      (optional)
+    </td></tr>
+    </table>
   </form>
 </div>
 
 <HR noshade>
 
 <div id="connected_div" style="display:none">
-  Connected
+  Connected<span id="status_txt"></span>
 
   <HR noshade>
 
@@ -54,9 +70,13 @@
 <script>
 
 nickname = null;  // demo user's nickname (login account)
+authSent = false;
+authOK = false;  // TODO impl: auth right away if pw on initial form; must auth before join any chat channel or game
+	// for now (TODO) no password on that form, so don't auth until joining a channel or game
 wsURL = null;  // websocket url to connect to, calculated and displayed in init()
 wsConn = null;  // websocket, after doConnect()
 hasFirstMessage = false;  // true at first message received from server
+inChannels = [];  // chat channels we're in; see chat-channel.js
 
 // jquery setup
 $(function(){
@@ -80,15 +100,16 @@ function atFirstMessage(wsEvent)
     // send our version
     // TODO get an actual locale
     var versMsg = { "vers": { "versNum": 3000, "versStr": "3.0.00", "versBuild": "WS20171125", "cliLocale": "en_US" } };
-    wsConn.send(JSON.stringify(versMsg));
+    sendToServer(versMsg);
 }
 
 function doLogin()
 {
-    if (wsConn != null)
+    if (authOK)
 	return;
 
-    var nick = document.forms.login.nick.value.trim();
+    var form = document.forms.login;
+    var nick = form.nick.value.trim();
     if (0 == nick.length)
     {
 	alert("Please enter a nickname.");
@@ -96,6 +117,13 @@ function doLogin()
     }
 
     nickname = nick;
+
+    if (wsConn != null)
+    {
+	var authReqMsg = { "authReq": { role: "GAME_PLAYER", nickname: nickname, password: form.pass.value.trim(), authScheme: "CLIENT_PLAINTEXT" }};
+	sendToServer(authReqMsg);
+	return;
+    }
 
     console.log("Conecting to " + wsURL);
 
@@ -135,6 +163,13 @@ function doLogin()
 	    } catch(e) {
 		console.log("dispatch error: " + e);
 	    }
+
+	if (! authSent)
+	{
+	    authSent = true;
+	    var authReqMsg = { "authReq": { role: "GAME_PLAYER", nickname: nickname, password: document.forms.login.pass.value.trim(), authScheme: "CLIENT_PLAINTEXT" }};
+	    sendToServer(authReqMsg);
+	}
     }
 
     wsConn.onclose = function(closeEvent)
@@ -156,11 +191,41 @@ function showMessage(jsonTxt)
     console.log("From server: " + jsonTxt);
 }
 
+function sendToServer(jsonObj)
+{
+    if (! wsConn)
+	return;
+
+    var jsonTxt = JSON.stringify(jsonObj);
+    console.log("To server: " + jsonTxt);
+    wsConn.send(jsonTxt);
+}
+
 // For dispatchTo and function msgDispatch, see index-ws-dispatcher.js //
 
 // UI //
 
 /* chat channel list, game list */
+
+$('#game_list').on('dblclick', 'li', function() {
+    alert( 'game: ' + $(this).text() );
+});
+
+$('#chat_channel_list').on('dblclick', 'li', function() {
+    var chName = $(this).text();
+    var chObj = inChannels[chName];
+    if (! chObj)
+    {
+	newChannelWindow(chName);  // create here to allow popup
+	// ask, await server's reply
+	var joinMsg = { "chJoin": { "chName": chName } };
+	sendToServer(joinMsg);
+    } else {
+	var winObj = chObj.chWindow;
+	if (winObj)
+	    winObj.alert('Use this tab to chat in this channel.');
+    }
+});
 
 function alphaCompareStrings(a, b)
 {
