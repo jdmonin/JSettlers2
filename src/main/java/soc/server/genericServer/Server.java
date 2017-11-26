@@ -568,6 +568,9 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * Callback to process the client's first message command specially.
      * This default implementation does nothing and returns false;
      * override it in your app if needed.
+     *<P>
+     * Unlike most inbound message dispatching, processFirstCommand() runs in
+     * the connection subclass's thread, not any server main thread.
      *
      * @param mes Contents of first message from the client,
      *     or {@code null} if that message couldn't be parsed

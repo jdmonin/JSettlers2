@@ -142,8 +142,12 @@ public abstract class Connection
     /** Are we currently connected and active? */
     public abstract boolean isConnected();
 
-    /** Start ability to read from the net; called only by the server.
-     * (In a network-based subclass, another thread may be started by this method.)
+    /**
+     * Start ability to read from the net; called only by the server framework's
+     * {@link Server#addConnection(Connection)}, not from any code specific to a
+     * connection subclass.
+     *<P>
+     * In a network-based subclass, another thread may be started by this method.
      *
      * @return true if able to connect, false if an error occurred.
      */
