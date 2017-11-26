@@ -1152,9 +1152,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
                     switch (m.getRole())
                     {
                     case GAME_PLAYER:
-                        role = "G";  break;
+                        role = SOCAuthRequest.ROLE_GAME_PLAYER;  break;
                     case USER_ADMIN:
-                        role = "UA";  break;
+                        role = SOCAuthRequest.ROLE_USER_ADMIN;  break;
                     default:
                         role = "?";
                     }
@@ -1165,7 +1165,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
                     default:
                         authScheme = 0;
                     }
-                    return new SOCAuthRequest(role, m.getNickname(), m.getPassword(), authScheme, "");
+                    return new SOCAuthRequest(role, m.getNickname(), m.getPassword(), authScheme, null);
                 }
 
             case Message.FromClient.IM_A_ROBOT_FIELD_NUMBER:
@@ -1188,7 +1188,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case Message.FromClient.CH_JOIN_FIELD_NUMBER:
                 {
                     Message.JoinChannel m = msg.getChJoin();
-                    return new SOCJoinChannel(m.getMemberName(), "", "", m.getChName());
+                    return new SOCJoinChannel(m.getMemberName(), "", "-", m.getChName());
                 }
 
             case Message.FromClient.CH_TEXT_FIELD_NUMBER:
@@ -1200,7 +1200,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case Message.FromClient.CH_LEAVE_FIELD_NUMBER:
                 {
                     Message.LeaveChannel m = msg.getChLeave();
-                    return new SOCLeaveChannel("", "", m.getChName());
+                    return new SOCLeaveChannel("-", "-", m.getChName());
                 }
 
             // games
@@ -1208,19 +1208,19 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case Message.FromClient.GA_NEW_FIELD_NUMBER:
                 {
                     Message._GameWithOptions ga = msg.getGaNew().getGame();
-                    return new SOCNewGameWithOptionsRequest("", "", "", ga.getGaName(), ga.getOpts());
+                    return new SOCNewGameWithOptionsRequest("-", "", "-", ga.getGaName(), ga.getOpts());
                 }
 
             case Message.FromClient.GA_JOIN_FIELD_NUMBER:
                 {
                     Message.JoinGame m = msg.getGaJoin();
-                    return new SOCJoinGame(m.getMemberName(), "", "", m.getGaName());
+                    return new SOCJoinGame(m.getMemberName(), "", "-", m.getGaName());
                 }
 
             case Message.FromClient.SIT_DOWN_FIELD_NUMBER:
                 {
                     Message.SitDown m = msg.getSitDown();
-                    return new SOCSitDown(m.getGaName(), "", m.getSeatNumber(), m.getIsRobot());
+                    return new SOCSitDown(m.getGaName(), "-", m.getSeatNumber(), m.getIsRobot());
                 }
 
             case Message.FromClient.SET_SEAT_LOCK_FIELD_NUMBER:
@@ -1248,7 +1248,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case Message.FromClient.GA_LEAVE_FIELD_NUMBER:
                 {
                     Message.LeaveGame m = msg.getGaLeave();
-                    return new SOCLeaveGame("", "", m.getGaName());
+                    return new SOCLeaveGame("-", "", m.getGaName());
                 }
 
             // within a game
