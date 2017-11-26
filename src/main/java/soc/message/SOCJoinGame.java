@@ -44,8 +44,8 @@ import java.util.StringTokenizer;
  * before receiving {@link SOCGameMembers} about that game.
  *<P>
  * Once a client has successfully joined or created any game or channel, the
- * password field can be left blank in later join/create requests.  All server
- * versions ignore the password field after a successful request.
+ * nickname and password fields can be left blank in later join/create requests.
+ * All server versions ignore the password field after a successful request.
  *<P>
  * Although this is a game-specific message, it's about the game lifecycle
  * so it's handled by {@code SOCServer} instead of a {@code GameHandler}.
@@ -60,9 +60,9 @@ public class SOCJoinGame extends SOCMessageTemplateJoinGame
     /**
      * Create a Join Game message.
      *
-     * @param nn  nickname
+     * @param nn  nickname, or "-" if already auth'd to server
      * @param pw  optional password, or "" if none
-     * @param hn  server host name to which client is connecting
+     * @param hn  optional server host name to which client is connecting, or "-"
      * @param ga  name of the game
      */
     public SOCJoinGame(String nn, String pw, String hn, String ga)
@@ -83,9 +83,9 @@ public class SOCJoinGame extends SOCMessageTemplateJoinGame
     /**
      * JOINGAME sep nickname sep2 password sep2 host sep2 game
      *
-     * @param nn  the nickname
+     * @param nn  the nickname, or "-" if already auth'd to server
      * @param pw  the optional password, or "" if none
-     * @param hn  the server host name to which client is connecting
+     * @param hn  the optional server host name to which client is connecting, or "-"
      * @param ga  the game name
      * @return    the command string
      */

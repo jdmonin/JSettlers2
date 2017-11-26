@@ -40,7 +40,7 @@ public class SOCSitDown extends SOCMessage
     private String game;
 
     /**
-     * Nickname of player
+     * Nickname of player; ignored from client, can send "-" but not blank
      */
     private String nickname;
 
@@ -58,7 +58,7 @@ public class SOCSitDown extends SOCMessage
      * Create a SitDown message.
      *
      * @param ga  the name of the game
-     * @param nk  nickname of the player
+     * @param nk  nickname of the player; ignored from client, can send "-" but not blank
      * @param pn  the seat number
      * @param rf  true if this is a robot
      */
@@ -80,7 +80,7 @@ public class SOCSitDown extends SOCMessage
     }
 
     /**
-     * @return the nickname of the player
+     * @return the nickname of the player; can be "-" but not blank when sent from client
      */
     public String getNickname()
     {
@@ -117,7 +117,7 @@ public class SOCSitDown extends SOCMessage
      * SITDOWN sep game sep2 nickname sep2 playerNumber sep2 robotFlag
      *
      * @param ga  the name of the game
-     * @param nk  nickname of the player
+     * @param nk  nickname of the player; ignored from client, can send "-" but not blank
      * @param pn  the seat number
      * @param rf  the value of the robot flag
      * @return the command string

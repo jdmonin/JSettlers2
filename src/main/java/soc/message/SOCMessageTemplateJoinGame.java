@@ -25,8 +25,8 @@ package soc.message;
  * This message means that someone is joining or creating a game.
  *<P>
  * Once the client has successfully joined or created a game or channel, the
- * password field can be left blank in its later join/create requests.  All server
- * versions ignore the password field after a successful request.
+ * nickname and password fields can be left blank in its later join/create requests.
+ * All server versions ignore the password field after a successful request.
  *<P>
  * v1.1.07: This template class is copied from {@link SOCJoinGame} to
  * share functionality with the new {@link SOCNewGameWithOptions}. - JDM
@@ -42,7 +42,7 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /**
-     * Nickname of the joining member
+     * Nickname of the joining member, or "-" if already auth'd to server
      */
     protected String nickname;
 
@@ -57,7 +57,7 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
     protected String game;
 
     /**
-     * Server host name to which the client is connecting.
+     * Optional server host name to which the client is connecting, or "-".
      * Since the client is already connected when it sends the message, this is only informational.
      */
     protected String host;
@@ -65,9 +65,9 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
     /**
      * Create a Join message. Subclasses should set {@link #messageType} after calling.
      *
-     * @param nn  nickname
+     * @param nn  nickname, or "-" if already auth'd to server
      * @param pw  optional password, or ""
-     * @param hn  server host name
+     * @param hn  optional server host name, or "-"
      * @param ga  name of the game
      */
     public SOCMessageTemplateJoinGame(String nn, String pw, String hn, String ga)
@@ -80,7 +80,7 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
     }
 
     /**
-     * @return the nickname
+     * @return the nickname, or "-" if already auth'd to server
      */
     public String getNickname()
     {
@@ -96,7 +96,7 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
     }
 
     /**
-     * @return the server host name to which client is connecting
+     * @return the optional server host name to which client is connecting, or "-"
      */
     public String getHost()
     {
