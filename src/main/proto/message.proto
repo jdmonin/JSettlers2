@@ -299,6 +299,10 @@ message ServerStatusText {
          *<P>
          * {@code detail} field contains the exact-case username to use.
          *<P>
+         * When joining a game or chat channel, server sends the message with this status before {@link JoinGame}
+         * or (for v2.0.00 and newer) {@link JoinChannel}. In reply to client's {@link AuthRequest} this
+         * status is sent instead of a message with status {@link #SV_OK}.
+         *<P>
          * <B>Bots:</B> Server and client code assume that only human player clients, not bots or
          * {@code SOCDisplaylessPlayerClient}, will need to handle this status value.
          * @since 1.2.00
@@ -430,7 +434,11 @@ message JoinChannel {
 }
 
 /* The members of a single chat channel.
- * <P>
+ *<P>
+ * When joining a channel, after server sends client {@link JoinChannel} the client is sent
+ * this message with all current members (not including the client), then client and those other
+ * channel members are sent a {@link JoinChannel} to announce client's nickname joining.
+ *<P>
  * Before v3.0.00 this message was named {@code SOCChannelMembers}.
  * Before v2.0.00 this message was {@code SOCMembers}.
  * @see GameMembers

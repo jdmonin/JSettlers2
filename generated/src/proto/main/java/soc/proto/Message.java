@@ -4229,6 +4229,10 @@ public final class Message {
        *&lt;P&gt;
        * {&#64;code detail} field contains the exact-case username to use.
        *&lt;P&gt;
+       * When joining a game or chat channel, server sends the message with this status before {&#64;link JoinGame}
+       * or (for v2.0.00 and newer) {&#64;link JoinChannel}. In reply to client's {&#64;link AuthRequest} this
+       * status is sent instead of a message with status {&#64;link #SV_OK}.
+       *&lt;P&gt;
        * &lt;B&gt;Bots:&lt;/B&gt; Server and client code assume that only human player clients, not bots or
        * {&#64;code SOCDisplaylessPlayerClient}, will need to handle this status value.
        * &#64;since 1.2.00
@@ -4501,6 +4505,10 @@ public final class Message {
        * the client must update its internal nickname field.
        *&lt;P&gt;
        * {&#64;code detail} field contains the exact-case username to use.
+       *&lt;P&gt;
+       * When joining a game or chat channel, server sends the message with this status before {&#64;link JoinGame}
+       * or (for v2.0.00 and newer) {&#64;link JoinChannel}. In reply to client's {&#64;link AuthRequest} this
+       * status is sent instead of a message with status {&#64;link #SV_OK}.
        *&lt;P&gt;
        * &lt;B&gt;Bots:&lt;/B&gt; Server and client code assume that only human player clients, not bots or
        * {&#64;code SOCDisplaylessPlayerClient}, will need to handle this status value.
@@ -10136,7 +10144,11 @@ public final class Message {
   /**
    * <pre>
    * The members of a single chat channel.
-   * &lt;P&gt;
+   *&lt;P&gt;
+   * When joining a channel, after server sends client {&#64;link JoinChannel} the client is sent
+   * this message with all current members (not including the client), then client and those other
+   * channel members are sent a {&#64;link JoinChannel} to announce client's nickname joining.
+   *&lt;P&gt;
    * Before v3.0.00 this message was named {&#64;code SOCChannelMembers}.
    * Before v2.0.00 this message was {&#64;code SOCMembers}.
    * &#64;see GameMembers
@@ -10463,7 +10475,11 @@ public final class Message {
     /**
      * <pre>
      * The members of a single chat channel.
-     * &lt;P&gt;
+     *&lt;P&gt;
+     * When joining a channel, after server sends client {&#64;link JoinChannel} the client is sent
+     * this message with all current members (not including the client), then client and those other
+     * channel members are sent a {&#64;link JoinChannel} to announce client's nickname joining.
+     *&lt;P&gt;
      * Before v3.0.00 this message was named {&#64;code SOCChannelMembers}.
      * Before v2.0.00 this message was {&#64;code SOCMembers}.
      * &#64;see GameMembers
