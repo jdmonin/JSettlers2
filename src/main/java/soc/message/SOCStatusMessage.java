@@ -266,6 +266,10 @@ public class SOCStatusMessage extends SOCMessage
      *<P>
      * Status text format: exactUsername + {@link SOCMessage#sep2_char} + text to display
      *<P>
+     * When joining a game or chat channel, the message with this status is sent before {@link SOCJoinGameAuth}
+     * or (for v2.0.00 and newer) {@link SOCJoinChannelAuth}. In reply to client's {@link SOCAuthRequest} this
+     * status is sent instead of a message with status {@link #SV_OK}.
+     *<P>
      * Clients older than v1.2.00 won't recognize this status value, and won't know to update their nickname
      * once authenticated; they will instead be sent {@link #SV_NAME_NOT_FOUND} with status text indicating
      * the exact case-sensitive nickname to use.

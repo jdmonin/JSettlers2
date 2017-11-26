@@ -6676,7 +6676,7 @@ public class SOCServer extends Server
     }
 
     /**
-     * Client has been approved to join game; send the entire state of the game to client.
+     * Client has been approved to join game; send JOINGAMEAUTH and the entire state of the game to client.
      * Gets the game's handler and calls {@link GameHandler#joinGame(SOCGame, Connection, boolean, boolean)};
      * see that method's javadoc for details.
      *<P>

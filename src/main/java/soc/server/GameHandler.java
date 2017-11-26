@@ -101,7 +101,7 @@ public abstract class GameHandler
     public abstract String[] getDebugCommandsHelp();
 
     /**
-     * Client has been approved to join game; send the entire state of the game to client.
+     * Client has been approved to join game; send JOINGAMEAUTH and the entire state of the game to client.
      * Unless <tt>isTakingOver</tt>, send client join event to other players.
      * Assumes NEWGAME (or NEWGAMEWITHOPTIONS) has already been sent out.
      * First message sent to connecting client is JOINGAMEAUTH, unless isReset.

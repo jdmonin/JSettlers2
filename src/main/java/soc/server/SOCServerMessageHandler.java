@@ -1403,7 +1403,7 @@ public class SOCServerMessageHandler
         final String chName = mes.getChannel().trim();
         if (c.getData() != null)
         {
-            handleJOINCHANNEL_postAuth(c, msgUser, chName, cliVers, SOCServer.AUTH_OR_REJECT__OK);
+            handleJOINCHANNEL_postAuth(c, chName, cliVers, SOCServer.AUTH_OR_REJECT__OK);
         } else {
             /**
              * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
@@ -1415,7 +1415,7 @@ public class SOCServerMessageHandler
                  {
                     public void success(final Connection c, final int authResult)
                     {
-                        handleJOINCHANNEL_postAuth(c, msgUser, chName, cv, authResult);
+                        handleJOINCHANNEL_postAuth(c, chName, cv, authResult);
                     }
                  });
         }
@@ -1427,11 +1427,10 @@ public class SOCServerMessageHandler
      * @since 1.2.00
      */
     private void handleJOINCHANNEL_postAuth
-        (final Connection c, String msgUser, final String ch, final int cliVers, final int authResult)
+        (final Connection c, final String ch, final int cliVers, final int authResult)
     {
         final boolean mustSetUsername = (0 != (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME));
-        if (mustSetUsername)
-            msgUser = c.getData();  // set to original case, from db case-insensitive search
+        final String msgUser = c.getData();  // if mustSetUsername, sets to original case from db case-insensitive search
 
         /**
          * Check that the channel name is ok
@@ -1472,14 +1471,14 @@ public class SOCServerMessageHandler
         /**
          * Tell the client that everything is good to go
          */
-        c.put(SOCJoinChannelAuth.toCmd(msgUser, ch));
         final String txt = c.getLocalized("member.welcome");  // "Welcome to Java Settlers of Catan!"
         if (! mustSetUsername)
             c.put(SOCStatusMessage.toCmd
                 (SOCStatusMessage.SV_OK, txt));
         else
             c.put(SOCStatusMessage.toCmd
-                (SOCStatusMessage.SV_OK_SET_NICKNAME, c.getData() + SOCMessage.sep2_char + txt));
+                (SOCStatusMessage.SV_OK_SET_NICKNAME, msgUser + SOCMessage.sep2_char + txt));
+        c.put(SOCJoinChannelAuth.toCmd(msgUser, ch));
 
         /**
          * Add the Connection to the channel
@@ -1507,7 +1506,7 @@ public class SOCServerMessageHandler
 
             try
             {
-                channelList.createChannel(ch, c.getData());
+                channelList.createChannel(ch, msgUser);
                 ((SOCClientData) c.getAppData()).createdChannel();
             }
             catch (Exception e)
@@ -1519,7 +1518,7 @@ public class SOCServerMessageHandler
             srv.broadcast(SOCNewChannel.toCmd(ch));
             c.put(SOCChannelMembers.toCmd(ch, channelList.getMembers(ch)));
             if (D.ebugOn)
-                D.ebugPrintln("*** " + c.getData() + " joined the channel " + ch + " at "
+                D.ebugPrintln("*** " + msgUser + " joined new channel " + ch + " at "
                     + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
             channelList.takeMonitorForChannel(ch);
 

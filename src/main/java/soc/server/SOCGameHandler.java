@@ -779,7 +779,7 @@ public class SOCGameHandler extends GameHandler
     }
 
     /**
-     * Client has been approved to join game; send the entire state of the game to client.
+     * Client has been approved to join game; send JOINGAMEAUTH and the entire state of the game to client.
      * Unless <tt>isTakingOver</tt>, send client join event to other players.
      *<P>
      * Does not add the client to the game's or server's list of players,
