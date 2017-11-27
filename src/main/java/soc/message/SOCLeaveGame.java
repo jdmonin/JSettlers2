@@ -22,6 +22,8 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.proto.Message;
+
 
 /**
  * This message means that someone is leaving a game.
@@ -146,6 +148,16 @@ public class SOCLeaveGame extends SOCMessage
         }
 
         return new SOCLeaveGame(nn, hn, ga);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        Message.LeaveGame.Builder b = Message.LeaveGame.newBuilder()
+            .setGaName(game)
+            .setMemberName(nickname);
+        return Message.FromServer.newBuilder()
+            .setGaLeave(b).build();
     }
 
     /**

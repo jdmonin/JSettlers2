@@ -149,7 +149,7 @@ public class SOCLeaveChannel extends SOCMessage
     {
         Message.LeaveChannel.Builder b = Message.LeaveChannel.newBuilder()
             .setChName(channel)
-            .setNickname(nickname);
+            .setMemberName(nickname);
         return Message.FromServer.newBuilder()
             .setChLeave(b).build();
     }

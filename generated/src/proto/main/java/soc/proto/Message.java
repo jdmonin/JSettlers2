@@ -11761,18 +11761,18 @@ public final class Message {
      * channel member nickname (should be "" for client -&gt; server)
      * </pre>
      *
-     * <code>string nickname = 2;</code>
+     * <code>string member_name = 2;</code>
      */
-    java.lang.String getNickname();
+    java.lang.String getMemberName();
     /**
      * <pre>
      * channel member nickname (should be "" for client -&gt; server)
      * </pre>
      *
-     * <code>string nickname = 2;</code>
+     * <code>string member_name = 2;</code>
      */
     com.google.protobuf.ByteString
-        getNicknameBytes();
+        getMemberNameBytes();
   }
   /**
    * <pre>
@@ -11793,7 +11793,7 @@ public final class Message {
     }
     private LeaveChannel() {
       chName_ = "";
-      nickname_ = "";
+      memberName_ = "";
     }
 
     @java.lang.Override
@@ -11833,7 +11833,7 @@ public final class Message {
             case 18: {
               java.lang.String s = input.readStringRequireUtf8();
 
-              nickname_ = s;
+              memberName_ = s;
               break;
             }
           }
@@ -11902,24 +11902,24 @@ public final class Message {
       }
     }
 
-    public static final int NICKNAME_FIELD_NUMBER = 2;
-    private volatile java.lang.Object nickname_;
+    public static final int MEMBER_NAME_FIELD_NUMBER = 2;
+    private volatile java.lang.Object memberName_;
     /**
      * <pre>
      * channel member nickname (should be "" for client -&gt; server)
      * </pre>
      *
-     * <code>string nickname = 2;</code>
+     * <code>string member_name = 2;</code>
      */
-    public java.lang.String getNickname() {
-      java.lang.Object ref = nickname_;
+    public java.lang.String getMemberName() {
+      java.lang.Object ref = memberName_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        nickname_ = s;
+        memberName_ = s;
         return s;
       }
     }
@@ -11928,16 +11928,16 @@ public final class Message {
      * channel member nickname (should be "" for client -&gt; server)
      * </pre>
      *
-     * <code>string nickname = 2;</code>
+     * <code>string member_name = 2;</code>
      */
     public com.google.protobuf.ByteString
-        getNicknameBytes() {
-      java.lang.Object ref = nickname_;
+        getMemberNameBytes() {
+      java.lang.Object ref = memberName_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        nickname_ = b;
+        memberName_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
@@ -11959,8 +11959,8 @@ public final class Message {
       if (!getChNameBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, chName_);
       }
-      if (!getNicknameBytes().isEmpty()) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, nickname_);
+      if (!getMemberNameBytes().isEmpty()) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, memberName_);
       }
       unknownFields.writeTo(output);
     }
@@ -11973,8 +11973,8 @@ public final class Message {
       if (!getChNameBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, chName_);
       }
-      if (!getNicknameBytes().isEmpty()) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, nickname_);
+      if (!getMemberNameBytes().isEmpty()) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, memberName_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -11994,8 +11994,8 @@ public final class Message {
       boolean result = true;
       result = result && getChName()
           .equals(other.getChName());
-      result = result && getNickname()
-          .equals(other.getNickname());
+      result = result && getMemberName()
+          .equals(other.getMemberName());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -12009,8 +12009,8 @@ public final class Message {
       hash = (19 * hash) + getDescriptor().hashCode();
       hash = (37 * hash) + CH_NAME_FIELD_NUMBER;
       hash = (53 * hash) + getChName().hashCode();
-      hash = (37 * hash) + NICKNAME_FIELD_NUMBER;
-      hash = (53 * hash) + getNickname().hashCode();
+      hash = (37 * hash) + MEMBER_NAME_FIELD_NUMBER;
+      hash = (53 * hash) + getMemberName().hashCode();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -12147,7 +12147,7 @@ public final class Message {
         super.clear();
         chName_ = "";
 
-        nickname_ = "";
+        memberName_ = "";
 
         return this;
       }
@@ -12172,7 +12172,7 @@ public final class Message {
       public soc.proto.Message.LeaveChannel buildPartial() {
         soc.proto.Message.LeaveChannel result = new soc.proto.Message.LeaveChannel(this);
         result.chName_ = chName_;
-        result.nickname_ = nickname_;
+        result.memberName_ = memberName_;
         onBuilt();
         return result;
       }
@@ -12218,8 +12218,8 @@ public final class Message {
           chName_ = other.chName_;
           onChanged();
         }
-        if (!other.getNickname().isEmpty()) {
-          nickname_ = other.nickname_;
+        if (!other.getMemberName().isEmpty()) {
+          memberName_ = other.memberName_;
           onChanged();
         }
         this.mergeUnknownFields(other.unknownFields);
@@ -12338,21 +12338,21 @@ public final class Message {
         return this;
       }
 
-      private java.lang.Object nickname_ = "";
+      private java.lang.Object memberName_ = "";
       /**
        * <pre>
        * channel member nickname (should be "" for client -&gt; server)
        * </pre>
        *
-       * <code>string nickname = 2;</code>
+       * <code>string member_name = 2;</code>
        */
-      public java.lang.String getNickname() {
-        java.lang.Object ref = nickname_;
+      public java.lang.String getMemberName() {
+        java.lang.Object ref = memberName_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          nickname_ = s;
+          memberName_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -12363,16 +12363,16 @@ public final class Message {
        * channel member nickname (should be "" for client -&gt; server)
        * </pre>
        *
-       * <code>string nickname = 2;</code>
+       * <code>string member_name = 2;</code>
        */
       public com.google.protobuf.ByteString
-          getNicknameBytes() {
-        java.lang.Object ref = nickname_;
+          getMemberNameBytes() {
+        java.lang.Object ref = memberName_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b = 
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          nickname_ = b;
+          memberName_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
@@ -12383,15 +12383,15 @@ public final class Message {
        * channel member nickname (should be "" for client -&gt; server)
        * </pre>
        *
-       * <code>string nickname = 2;</code>
+       * <code>string member_name = 2;</code>
        */
-      public Builder setNickname(
+      public Builder setMemberName(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
   
-        nickname_ = value;
+        memberName_ = value;
         onChanged();
         return this;
       }
@@ -12400,11 +12400,11 @@ public final class Message {
        * channel member nickname (should be "" for client -&gt; server)
        * </pre>
        *
-       * <code>string nickname = 2;</code>
+       * <code>string member_name = 2;</code>
        */
-      public Builder clearNickname() {
+      public Builder clearMemberName() {
         
-        nickname_ = getDefaultInstance().getNickname();
+        memberName_ = getDefaultInstance().getMemberName();
         onChanged();
         return this;
       }
@@ -12413,16 +12413,16 @@ public final class Message {
        * channel member nickname (should be "" for client -&gt; server)
        * </pre>
        *
-       * <code>string nickname = 2;</code>
+       * <code>string member_name = 2;</code>
        */
-      public Builder setNicknameBytes(
+      public Builder setMemberNameBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
   checkByteStringIsUtf8(value);
         
-        nickname_ = value;
+        memberName_ = value;
         onChanged();
         return this;
       }
@@ -22383,21 +22383,21 @@ public final class Message {
 
     /**
      * <pre>
-     * this game member is leaving (should be "" for client -&gt; server)
+     * game member nickname (should be "" for client -&gt; server)
      * </pre>
      *
-     * <code>string nickname = 2;</code>
+     * <code>string member_name = 2;</code>
      */
-    java.lang.String getNickname();
+    java.lang.String getMemberName();
     /**
      * <pre>
-     * this game member is leaving (should be "" for client -&gt; server)
+     * game member nickname (should be "" for client -&gt; server)
      * </pre>
      *
-     * <code>string nickname = 2;</code>
+     * <code>string member_name = 2;</code>
      */
     com.google.protobuf.ByteString
-        getNicknameBytes();
+        getMemberNameBytes();
   }
   /**
    * <pre>
@@ -22418,7 +22418,7 @@ public final class Message {
     }
     private LeaveGame() {
       gaName_ = "";
-      nickname_ = "";
+      memberName_ = "";
     }
 
     @java.lang.Override
@@ -22458,7 +22458,7 @@ public final class Message {
             case 18: {
               java.lang.String s = input.readStringRequireUtf8();
 
-              nickname_ = s;
+              memberName_ = s;
               break;
             }
           }
@@ -22519,42 +22519,42 @@ public final class Message {
       }
     }
 
-    public static final int NICKNAME_FIELD_NUMBER = 2;
-    private volatile java.lang.Object nickname_;
+    public static final int MEMBER_NAME_FIELD_NUMBER = 2;
+    private volatile java.lang.Object memberName_;
     /**
      * <pre>
-     * this game member is leaving (should be "" for client -&gt; server)
+     * game member nickname (should be "" for client -&gt; server)
      * </pre>
      *
-     * <code>string nickname = 2;</code>
+     * <code>string member_name = 2;</code>
      */
-    public java.lang.String getNickname() {
-      java.lang.Object ref = nickname_;
+    public java.lang.String getMemberName() {
+      java.lang.Object ref = memberName_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        nickname_ = s;
+        memberName_ = s;
         return s;
       }
     }
     /**
      * <pre>
-     * this game member is leaving (should be "" for client -&gt; server)
+     * game member nickname (should be "" for client -&gt; server)
      * </pre>
      *
-     * <code>string nickname = 2;</code>
+     * <code>string member_name = 2;</code>
      */
     public com.google.protobuf.ByteString
-        getNicknameBytes() {
-      java.lang.Object ref = nickname_;
+        getMemberNameBytes() {
+      java.lang.Object ref = memberName_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        nickname_ = b;
+        memberName_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
@@ -22576,8 +22576,8 @@ public final class Message {
       if (!getGaNameBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, gaName_);
       }
-      if (!getNicknameBytes().isEmpty()) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, nickname_);
+      if (!getMemberNameBytes().isEmpty()) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, memberName_);
       }
       unknownFields.writeTo(output);
     }
@@ -22590,8 +22590,8 @@ public final class Message {
       if (!getGaNameBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, gaName_);
       }
-      if (!getNicknameBytes().isEmpty()) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, nickname_);
+      if (!getMemberNameBytes().isEmpty()) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, memberName_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -22611,8 +22611,8 @@ public final class Message {
       boolean result = true;
       result = result && getGaName()
           .equals(other.getGaName());
-      result = result && getNickname()
-          .equals(other.getNickname());
+      result = result && getMemberName()
+          .equals(other.getMemberName());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -22626,8 +22626,8 @@ public final class Message {
       hash = (19 * hash) + getDescriptor().hashCode();
       hash = (37 * hash) + GA_NAME_FIELD_NUMBER;
       hash = (53 * hash) + getGaName().hashCode();
-      hash = (37 * hash) + NICKNAME_FIELD_NUMBER;
-      hash = (53 * hash) + getNickname().hashCode();
+      hash = (37 * hash) + MEMBER_NAME_FIELD_NUMBER;
+      hash = (53 * hash) + getMemberName().hashCode();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -22764,7 +22764,7 @@ public final class Message {
         super.clear();
         gaName_ = "";
 
-        nickname_ = "";
+        memberName_ = "";
 
         return this;
       }
@@ -22789,7 +22789,7 @@ public final class Message {
       public soc.proto.Message.LeaveGame buildPartial() {
         soc.proto.Message.LeaveGame result = new soc.proto.Message.LeaveGame(this);
         result.gaName_ = gaName_;
-        result.nickname_ = nickname_;
+        result.memberName_ = memberName_;
         onBuilt();
         return result;
       }
@@ -22835,8 +22835,8 @@ public final class Message {
           gaName_ = other.gaName_;
           onChanged();
         }
-        if (!other.getNickname().isEmpty()) {
-          nickname_ = other.nickname_;
+        if (!other.getMemberName().isEmpty()) {
+          memberName_ = other.memberName_;
           onChanged();
         }
         this.mergeUnknownFields(other.unknownFields);
@@ -22935,21 +22935,21 @@ public final class Message {
         return this;
       }
 
-      private java.lang.Object nickname_ = "";
+      private java.lang.Object memberName_ = "";
       /**
        * <pre>
-       * this game member is leaving (should be "" for client -&gt; server)
+       * game member nickname (should be "" for client -&gt; server)
        * </pre>
        *
-       * <code>string nickname = 2;</code>
+       * <code>string member_name = 2;</code>
        */
-      public java.lang.String getNickname() {
-        java.lang.Object ref = nickname_;
+      public java.lang.String getMemberName() {
+        java.lang.Object ref = memberName_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          nickname_ = s;
+          memberName_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -22957,19 +22957,19 @@ public final class Message {
       }
       /**
        * <pre>
-       * this game member is leaving (should be "" for client -&gt; server)
+       * game member nickname (should be "" for client -&gt; server)
        * </pre>
        *
-       * <code>string nickname = 2;</code>
+       * <code>string member_name = 2;</code>
        */
       public com.google.protobuf.ByteString
-          getNicknameBytes() {
-        java.lang.Object ref = nickname_;
+          getMemberNameBytes() {
+        java.lang.Object ref = memberName_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b = 
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          nickname_ = b;
+          memberName_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
@@ -22977,49 +22977,49 @@ public final class Message {
       }
       /**
        * <pre>
-       * this game member is leaving (should be "" for client -&gt; server)
+       * game member nickname (should be "" for client -&gt; server)
        * </pre>
        *
-       * <code>string nickname = 2;</code>
+       * <code>string member_name = 2;</code>
        */
-      public Builder setNickname(
+      public Builder setMemberName(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
   
-        nickname_ = value;
+        memberName_ = value;
         onChanged();
         return this;
       }
       /**
        * <pre>
-       * this game member is leaving (should be "" for client -&gt; server)
+       * game member nickname (should be "" for client -&gt; server)
        * </pre>
        *
-       * <code>string nickname = 2;</code>
+       * <code>string member_name = 2;</code>
        */
-      public Builder clearNickname() {
+      public Builder clearMemberName() {
         
-        nickname_ = getDefaultInstance().getNickname();
+        memberName_ = getDefaultInstance().getMemberName();
         onChanged();
         return this;
       }
       /**
        * <pre>
-       * this game member is leaving (should be "" for client -&gt; server)
+       * game member nickname (should be "" for client -&gt; server)
        * </pre>
        *
-       * <code>string nickname = 2;</code>
+       * <code>string member_name = 2;</code>
        */
-      public Builder setNicknameBytes(
+      public Builder setMemberNameBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
   checkByteStringIsUtf8(value);
         
-        nickname_ = value;
+        memberName_ = value;
         onChanged();
         return this;
       }
@@ -34822,71 +34822,71 @@ public final class Message {
       "\001(\t\"2\n\016ChannelMembers\022\017\n\007ch_name\030\001 \001(\t\022\017" +
       "\n\007members\030\002 \003(\t\">\n\013ChannelText\022\017\n\007ch_nam" +
       "e\030\001 \001(\t\022\020\n\010nickname\030\002 \001(\t\022\014\n\004text\030\003 \001(\t\"" +
-      "1\n\014LeaveChannel\022\017\n\007ch_name\030\001 \001(\t\022\020\n\010nick" +
-      "name\030\002 \001(\t\" \n\rDeleteChannel\022\017\n\007ch_name\030\001" +
-      " \001(\t\"E\n\020_GameWithOptions\022\017\n\007ga_name\030\001 \001(" +
-      "\t\022\014\n\004opts\030\002 \001(\t\022\022\n\nunjoinable\030\003 \001(\010\"(\n\005G" +
-      "ames\022\037\n\004game\030\001 \003(\0132\021._GameWithOptions\"?\n" +
-      "\007NewGame\022\037\n\004game\030\001 \001(\0132\021._GameWithOption" +
-      "s\022\023\n\013min_version\030\002 \001(\r\"J\n\022BotJoinGameReq",
-      "uest\022\037\n\004game\030\001 \001(\0132\021._GameWithOptions\022\023\n" +
-      "\013seat_number\030\002 \001(\r\"0\n\010JoinGame\022\017\n\007ga_nam" +
-      "e\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\"/\n\013GameMemb" +
-      "ers\022\017\n\007ga_name\030\001 \001(\t\022\017\n\007members\030\002 \003(\t\"R\n" +
-      "\007SitDown\022\017\n\007ga_name\030\001 \001(\t\022\017\n\007pl_name\030\002 \001" +
-      "(\t\022\023\n\013seat_number\030\003 \001(\r\022\020\n\010is_robot\030\004 \001(" +
-      "\010\"R\n\013SetSeatLock\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013sea" +
-      "t_number\030\002 \001(\r\022\035\n\005state\030\003 \001(\0162\016.SeatLock" +
-      "State\"/\n\016GameServerText\022\017\n\007ga_name\030\001 \001(\t" +
-      "\022\014\n\004text\030\002 \001(\t\"A\n\016GamePlayerText\022\017\n\007ga_n",
-      "ame\030\001 \001(\t\022\020\n\010nickname\030\002 \001(\t\022\014\n\004text\030\003 \001(" +
-      "\t\" \n\rBotTimingPing\022\017\n\007ga_name\030\001 \001(\t\"\037\n\014B" +
-      "otAdminPing\022\017\n\007ga_name\030\001 \001(\t\"\035\n\nBotDismi" +
-      "ss\022\017\n\007ga_name\030\001 \001(\t\".\n\tLeaveGame\022\017\n\007ga_n" +
-      "ame\030\001 \001(\t\022\020\n\010nickname\030\002 \001(\t\"\035\n\nDeleteGam" +
-      "e\022\017\n\007ga_name\030\001 \001(\t\"\317\010\n\nFromServer\022\030\n\004ver" +
-      "s\030\001 \001(\0132\010.VersionH\000\022.\n\021reject_connection" +
-      "\030\002 \001(\0132\021.RejectConnectionH\000\022(\n\013status_te" +
-      "xt\030\003 \001(\0132\021.ServerStatusTextH\000\022(\n\016broadca" +
-      "st_text\030\004 \001(\0132\016.BroadcastTextH\000\022\"\n\013serve",
-      "r_ping\030\005 \001(\0132\013.ServerPingH\000\022.\n\014game_mess" +
-      "age\030\017 \001(\0132\026.GameMessageFromServerH\000\022-\n\021b" +
-      "ot_update_params\030\024 \001(\0132\020.BotUpdateParams" +
-      "H\000\022)\n\017bot_admin_reset\030\025 \001(\0132\016.BotAdminRe" +
-      "setH\000\022\035\n\010channels\030d \001(\0132\t.ChannelsH\000\022\035\n\006" +
-      "ch_new\030e \001(\0132\013.NewChannelH\000\022\037\n\007ch_join\030f" +
-      " \001(\0132\014.JoinChannelH\000\022%\n\nch_members\030g \001(\013" +
-      "2\017.ChannelMembersH\000\022\037\n\007ch_text\030h \001(\0132\014.C" +
-      "hannelTextH\000\022!\n\010ch_leave\030i \001(\0132\r.LeaveCh" +
-      "annelH\000\022#\n\tch_delete\030j \001(\0132\016.DeleteChann",
-      "elH\000\022\030\n\005games\030\310\001 \001(\0132\006.GamesH\000\022\033\n\006ga_new" +
-      "\030\311\001 \001(\0132\010.NewGameH\000\022\035\n\007ga_join\030\312\001 \001(\0132\t." +
-      "JoinGameH\000\022,\n\014bot_join_req\030\313\001 \001(\0132\023.BotJ" +
-      "oinGameRequestH\000\022#\n\nga_members\030\314\001 \001(\0132\014." +
-      "GameMembersH\000\022\035\n\010sit_down\030\315\001 \001(\0132\010.SitDo" +
-      "wnH\000\022&\n\rset_seat_lock\030\316\001 \001(\0132\014.SetSeatLo" +
-      "ckH\000\022\'\n\013server_text\030\317\001 \001(\0132\017.GameServerT" +
-      "extH\000\022\'\n\013player_text\030\320\001 \001(\0132\017.GamePlayer" +
-      "TextH\000\022*\n\017bot_timing_ping\030\321\001 \001(\0132\016.BotTi" +
-      "mingPingH\000\022(\n\016bot_admin_ping\030\322\001 \001(\0132\r.Bo",
-      "tAdminPingH\000\022#\n\013bot_dismiss\030\323\001 \001(\0132\013.Bot" +
-      "DismissH\000\022\037\n\010ga_leave\030\324\001 \001(\0132\n.LeaveGame" +
-      "H\000\022!\n\tga_delete\030\325\001 \001(\0132\013.DeleteGameH\000B\005\n" +
-      "\003msg\"\231\004\n\nFromClient\022\030\n\004vers\030\001 \001(\0132\010.Vers" +
-      "ionH\000\022 \n\010auth_req\030\002 \001(\0132\014.AuthRequestH\000\022" +
-      "\037\n\nim_a_robot\030\003 \001(\0132\t.ImARobotH\000\022\"\n\013serv" +
-      "er_ping\030\004 \001(\0132\013.ServerPingH\000\022\036\n\tleave_al" +
-      "l\030\005 \001(\0132\t.LeaveAllH\000\022.\n\014game_message\030\017 \001" +
-      "(\0132\026.GameMessageFromClientH\000\022\037\n\007ch_join\030" +
-      "d \001(\0132\014.JoinChannelH\000\022\037\n\007ch_text\030e \001(\0132\014",
-      ".ChannelTextH\000\022!\n\010ch_leave\030f \001(\0132\r.Leave" +
-      "ChannelH\000\022\033\n\006ga_new\030\310\001 \001(\0132\010.NewGameH\000\022\035" +
-      "\n\007ga_join\030\311\001 \001(\0132\t.JoinGameH\000\022\035\n\010sit_dow" +
-      "n\030\312\001 \001(\0132\010.SitDownH\000\022&\n\rset_seat_lock\030\313\001" +
-      " \001(\0132\014.SetSeatLockH\000\022*\n\016ga_player_text\030\314" +
-      "\001 \001(\0132\017.GamePlayerTextH\000\022\037\n\010ga_leave\030\315\001 " +
-      "\001(\0132\n.LeaveGameH\000B\005\n\003msgB\r\n\tsoc.protoH\001P" +
-      "\000P\001b\006proto3"
+      "4\n\014LeaveChannel\022\017\n\007ch_name\030\001 \001(\t\022\023\n\013memb" +
+      "er_name\030\002 \001(\t\" \n\rDeleteChannel\022\017\n\007ch_nam" +
+      "e\030\001 \001(\t\"E\n\020_GameWithOptions\022\017\n\007ga_name\030\001" +
+      " \001(\t\022\014\n\004opts\030\002 \001(\t\022\022\n\nunjoinable\030\003 \001(\010\"(" +
+      "\n\005Games\022\037\n\004game\030\001 \003(\0132\021._GameWithOptions" +
+      "\"?\n\007NewGame\022\037\n\004game\030\001 \001(\0132\021._GameWithOpt" +
+      "ions\022\023\n\013min_version\030\002 \001(\r\"J\n\022BotJoinGame",
+      "Request\022\037\n\004game\030\001 \001(\0132\021._GameWithOptions" +
+      "\022\023\n\013seat_number\030\002 \001(\r\"0\n\010JoinGame\022\017\n\007ga_" +
+      "name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\"/\n\013GameM" +
+      "embers\022\017\n\007ga_name\030\001 \001(\t\022\017\n\007members\030\002 \003(\t" +
+      "\"R\n\007SitDown\022\017\n\007ga_name\030\001 \001(\t\022\017\n\007pl_name\030" +
+      "\002 \001(\t\022\023\n\013seat_number\030\003 \001(\r\022\020\n\010is_robot\030\004" +
+      " \001(\010\"R\n\013SetSeatLock\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013" +
+      "seat_number\030\002 \001(\r\022\035\n\005state\030\003 \001(\0162\016.SeatL" +
+      "ockState\"/\n\016GameServerText\022\017\n\007ga_name\030\001 " +
+      "\001(\t\022\014\n\004text\030\002 \001(\t\"A\n\016GamePlayerText\022\017\n\007g",
+      "a_name\030\001 \001(\t\022\020\n\010nickname\030\002 \001(\t\022\014\n\004text\030\003" +
+      " \001(\t\" \n\rBotTimingPing\022\017\n\007ga_name\030\001 \001(\t\"\037" +
+      "\n\014BotAdminPing\022\017\n\007ga_name\030\001 \001(\t\"\035\n\nBotDi" +
+      "smiss\022\017\n\007ga_name\030\001 \001(\t\"1\n\tLeaveGame\022\017\n\007g" +
+      "a_name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\"\035\n\nDel" +
+      "eteGame\022\017\n\007ga_name\030\001 \001(\t\"\317\010\n\nFromServer\022" +
+      "\030\n\004vers\030\001 \001(\0132\010.VersionH\000\022.\n\021reject_conn" +
+      "ection\030\002 \001(\0132\021.RejectConnectionH\000\022(\n\013sta" +
+      "tus_text\030\003 \001(\0132\021.ServerStatusTextH\000\022(\n\016b" +
+      "roadcast_text\030\004 \001(\0132\016.BroadcastTextH\000\022\"\n",
+      "\013server_ping\030\005 \001(\0132\013.ServerPingH\000\022.\n\014gam" +
+      "e_message\030\017 \001(\0132\026.GameMessageFromServerH" +
+      "\000\022-\n\021bot_update_params\030\024 \001(\0132\020.BotUpdate" +
+      "ParamsH\000\022)\n\017bot_admin_reset\030\025 \001(\0132\016.BotA" +
+      "dminResetH\000\022\035\n\010channels\030d \001(\0132\t.Channels" +
+      "H\000\022\035\n\006ch_new\030e \001(\0132\013.NewChannelH\000\022\037\n\007ch_" +
+      "join\030f \001(\0132\014.JoinChannelH\000\022%\n\nch_members" +
+      "\030g \001(\0132\017.ChannelMembersH\000\022\037\n\007ch_text\030h \001" +
+      "(\0132\014.ChannelTextH\000\022!\n\010ch_leave\030i \001(\0132\r.L" +
+      "eaveChannelH\000\022#\n\tch_delete\030j \001(\0132\016.Delet",
+      "eChannelH\000\022\030\n\005games\030\310\001 \001(\0132\006.GamesH\000\022\033\n\006" +
+      "ga_new\030\311\001 \001(\0132\010.NewGameH\000\022\035\n\007ga_join\030\312\001 " +
+      "\001(\0132\t.JoinGameH\000\022,\n\014bot_join_req\030\313\001 \001(\0132" +
+      "\023.BotJoinGameRequestH\000\022#\n\nga_members\030\314\001 " +
+      "\001(\0132\014.GameMembersH\000\022\035\n\010sit_down\030\315\001 \001(\0132\010" +
+      ".SitDownH\000\022&\n\rset_seat_lock\030\316\001 \001(\0132\014.Set" +
+      "SeatLockH\000\022\'\n\013server_text\030\317\001 \001(\0132\017.GameS" +
+      "erverTextH\000\022\'\n\013player_text\030\320\001 \001(\0132\017.Game" +
+      "PlayerTextH\000\022*\n\017bot_timing_ping\030\321\001 \001(\0132\016" +
+      ".BotTimingPingH\000\022(\n\016bot_admin_ping\030\322\001 \001(",
+      "\0132\r.BotAdminPingH\000\022#\n\013bot_dismiss\030\323\001 \001(\013" +
+      "2\013.BotDismissH\000\022\037\n\010ga_leave\030\324\001 \001(\0132\n.Lea" +
+      "veGameH\000\022!\n\tga_delete\030\325\001 \001(\0132\013.DeleteGam" +
+      "eH\000B\005\n\003msg\"\231\004\n\nFromClient\022\030\n\004vers\030\001 \001(\0132" +
+      "\010.VersionH\000\022 \n\010auth_req\030\002 \001(\0132\014.AuthRequ" +
+      "estH\000\022\037\n\nim_a_robot\030\003 \001(\0132\t.ImARobotH\000\022\"" +
+      "\n\013server_ping\030\004 \001(\0132\013.ServerPingH\000\022\036\n\tle" +
+      "ave_all\030\005 \001(\0132\t.LeaveAllH\000\022.\n\014game_messa" +
+      "ge\030\017 \001(\0132\026.GameMessageFromClientH\000\022\037\n\007ch" +
+      "_join\030d \001(\0132\014.JoinChannelH\000\022\037\n\007ch_text\030e",
+      " \001(\0132\014.ChannelTextH\000\022!\n\010ch_leave\030f \001(\0132\r" +
+      ".LeaveChannelH\000\022\033\n\006ga_new\030\310\001 \001(\0132\010.NewGa" +
+      "meH\000\022\035\n\007ga_join\030\311\001 \001(\0132\t.JoinGameH\000\022\035\n\010s" +
+      "it_down\030\312\001 \001(\0132\010.SitDownH\000\022&\n\rset_seat_l" +
+      "ock\030\313\001 \001(\0132\014.SetSeatLockH\000\022*\n\016ga_player_" +
+      "text\030\314\001 \001(\0132\017.GamePlayerTextH\000\022\037\n\010ga_lea" +
+      "ve\030\315\001 \001(\0132\n.LeaveGameH\000B\005\n\003msgB\r\n\tsoc.pr" +
+      "otoH\001P\000P\001b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -34997,7 +34997,7 @@ public final class Message {
     internal_static_LeaveChannel_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_LeaveChannel_descriptor,
-        new java.lang.String[] { "ChName", "Nickname", });
+        new java.lang.String[] { "ChName", "MemberName", });
     internal_static_DeleteChannel_descriptor =
       getDescriptor().getMessageTypes().get(16);
     internal_static_DeleteChannel_fieldAccessorTable = new
@@ -35087,7 +35087,7 @@ public final class Message {
     internal_static_LeaveGame_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_LeaveGame_descriptor,
-        new java.lang.String[] { "GaName", "Nickname", });
+        new java.lang.String[] { "GaName", "MemberName", });
     internal_static_DeleteGame_descriptor =
       getDescriptor().getMessageTypes().get(31);
     internal_static_DeleteGame_fieldAccessorTable = new
