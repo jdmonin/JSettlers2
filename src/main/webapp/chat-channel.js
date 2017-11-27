@@ -10,7 +10,7 @@
  Open-source license: TBD
  */
 
-// Message handlers; see bottom of file for inChannels[] entries //
+// Message handlers; see bottom of file for ChatChannel object and inChannels[] entries //
 
 function handleChannelJoin(mData)
 {
@@ -45,7 +45,9 @@ function handleLeaveChannel(mData)
 function ChatChannel(chName)
 {
     this.chName = chName;
+    this.chMembers = new Set();
     // newChannelWindow sets this.chWindow, and sets chWindow.document.soc_chat_obj to this
+    // handleMembers sets this.membersJQ: jquery obj for member list div
     this.cliJoined = false;  // obj & new window must be created from dblclick handler, not server's chJoin
     this.sentLeaveMsg = false;  // flag for closeChannelWindow
     this.handleJoin = function(memberName)
@@ -59,10 +61,16 @@ function ChatChannel(chName)
 	    var chBody = this.chWindow.document.body;
 	    chBody.innerHTML = 'Chat Channel: ' + chName + '<HR noshade><div id="ch">Joined</div>';
 	    // TODO try further DOM adjustment? maybe set up msgs area & channel members area
+	    // handleMembers sets up membersJQ
 	    this.cliJoined = true;
 	}
-	if (! this.cliJoined)
+	if (! (this.cliJoined && this.membersJQ))
 	    return;
+	if (! this.chMembers.has(memberName))
+	{
+	    this.chMembers.add(memberName);
+	    listAddJq(this.membersJQ, memberName, 100);
+	}
     };
     this.handleMembers = function(memberNames)
     {
@@ -71,10 +79,28 @@ function ChatChannel(chName)
 	if (chDiv != null)
 	{
 	    chDiv.appendChild(doc.createElement("br"));
-	    chDiv.appendChild(doc.createTextNode("Members: " + memberNames.toString()));
+	    var membersDiv = doc.createElement("div");
+	    this.membersJQ = $(membersDiv);
+	    chDiv.appendChild(membersDiv);
+	    membersDiv.appendChild(doc.createTextNode("Members:"));
+	    membersDiv.appendChild(doc.createElement("br"));
+	}
+	for (var mName of memberNames)
+	    if (! this.chMembers.has(mName))
+	    {
+		this.chMembers.add(mName);
+		listAddJq(this.membersJQ, mName, 20);
+	    }
+    };
+    this.handleLeave = function(memberName)
+    {
+	if (this.chMembers.has(memberName))
+	{
+	    this.chMembers.delete(memberName);
+	    if (this.membersJQ)
+		listRemoveJq(this.membersJQ, memberName, 100);
 	}
     };
-    this.handleLeave = function(memberName) { };  // TODO
     this.handleText = function(memberName, text) { };  // TODO
 }
 
@@ -96,6 +122,9 @@ function newChannelWindow(chName)
 	chWin.addEventListener("beforeunload", unloadChannelDocEvent);
 	chWin.document.write('Chat Channel: ' + chName + '<HR noshade>Joining...');
 	chWin.document.close();
+	var cLink = chWin.document.createElement("link");
+	cLink.rel="stylesheet"; cLink.href="chat-channel.css"; cLink.type="text/css";
+	chWin.document.head.appendChild(cLink);
 	chWin.document.soc_chat_obj = chObj;
 	inChannels[chName] = chObj;
     } else {

@@ -1,0 +1,23 @@
+/*
+ css for chat-channel.js window
+
+ This file is part of the Java Settlers Web App.
+
+ This file Copyright (C) 2017 Jeremy D Monin (jeremy@nand.net)
+
+ Open-source license: TBD
+ */
+
+body {
+    font-family: Verdana, Geneva, sans-serif;
+}
+
+// list of active members
+ul.actives {
+  list-style: none;  list-style-type: none;
+  background: #9999ff;  margin: 0;  padding: 0;
+}
+ul.actives li {
+  background: #3333ff;  color: #ffffff;  margin: 3px;  padding: 4px;
+  min-width: 90px;  border-radius: 3px;
+}

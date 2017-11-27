@@ -251,32 +251,49 @@ function listPopulate(listId, itemNames)
     $('#' + listId).append(newUL);
 }
 
-// add itemName to chat_channel_list or game_list alphabetically
+// add itemName to chat_channel_list or game_list div alphabetically
 function listAdd(listId, itemName)
 {
+    var div = $('#' + listId);
+    if (! div.length)
+	return;
+    listAddJq(div, itemName, 700);
+}
+
+// add itemName to any div
+function listAddJq(divJqueryObj, itemName, fadeMS)
+{
     var newLI = $('<li />').text(itemName);
-    var UL = $('#' + listId + ' ul');
+    var UL = divJqueryObj.find('ul');
     if (UL.length)
     {
 	newLI.hide();
-	$('li', '#' + listId + ' ul').add(newLI.fadeIn(700)).sort(alphaCompareElems).appendTo(UL);
+	$('li', UL).add(newLI.fadeIn(fadeMS)).sort(alphaCompareElems).appendTo(UL);
     } else {
 	// is first channel or game: no list yet
         var newUL = $('<ul />', {'class': 'actives', 'style': "padding-left: 0;" });
-	newLI.fadeIn(700).appendTo(newUL);
-	$('#' + listId).append(newUL);
+	newLI.fadeIn(fadeMS).appendTo(newUL);
+	divJqueryObj.append(newUL);
     }
 }
 
 function listRemove(listId, itemName)
 {
-    var ul = $('#' + listId + ' ul');
+    var div = $('#' + listId);
+    if (! div.length)
+	return;
+    listRemoveJq(div, itemName, 700);
+}
+
+function listRemoveJq(divJqueryObj, itemName, fadeMS)
+{
+    var ul = divJqueryObj.find('ul');
     if (! ul.length)
 	return;
     var li = ul.find(':contains(' + itemName + ')');
     if (! li.length)
 	return;
-    li.fadeOut(700, function(){ $(this).remove(); });
+    li.fadeOut(fadeMS, function(){ $(this).remove(); });
 }
 
 
