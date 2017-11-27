@@ -12,6 +12,7 @@
 
 dispatchTo =
 {
+    // The ordering within this declaration roughly follows that of message.proto message FromServer
     statusText: function(mData)
     {
 	if (authSent && ! authOK)
@@ -55,15 +56,6 @@ dispatchTo =
 	if (mData.names)
 	    listPopulate('chat_channel_list', mData.names);
     },
-    games: function(mData)
-    {
-	if (mData.game)
-	{
-	    var gaNames = [];
-	    mData.game.forEach(function(gaObj, i) { gaNames[i] = gaObj.gaName; } );
-	    listPopulate('game_list', gaNames);
-	}
-    },
     chNew: function(mData)
     {
 	listAdd('chat_channel_list', mData.chName);
@@ -73,6 +65,16 @@ dispatchTo =
 	listRemove('chat_channel_list', mData.chName);
 	if (typeof closeChannelWindow === "function")  // loads late
 	    closeChannelWindow(mData.chName, false);
+    },
+    // for chJoin chLeave etc, see chat-channel.js
+    games: function(mData)
+    {
+	if (mData.game)
+	{
+	    var gaNames = [];
+	    mData.game.forEach(function(gaObj, i) { gaNames[i] = gaObj.gaName; } );
+	    listPopulate('game_list', gaNames);
+	}
     },
     gaNew: function(mData)
     {
