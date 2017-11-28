@@ -40,6 +40,28 @@ function handleLeaveChannel(mData)
 	chObj.handleLeave(mData.memberName);
 }
 
+function sendLine(chDoc)
+{
+    if (! chDoc)
+	return;
+    if (wsConn == null)
+    {
+	alert("Not connected.");
+	return;
+    }
+
+    var chatObj = chDoc.soc_chat_obj;
+    if (! chatObj)
+	return;
+    var txfield = chDoc.forms.send.txt;
+    var txt = txfield.value.trim();
+    if (0 == txt.length)
+	return;
+
+    txfield.value = "";
+    wsConn.send(JSON.stringify({chText:{chName: chatObj.chName, text: txt}}));
+}
+
 // Top-level UI and ChatChannel object //
 
 function ChatChannel(chName)
@@ -67,8 +89,8 @@ function ChatChannel(chName)
 		+ 'Chat Channel: ' + chName + '<HR noshade></div>'
 		+ '<div id="messages" style="flex: 1 1 auto; overflow: auto;"></div>'
 		+ '<div id="send" style="flex: 0 1 auto; margin: 3px;">'
-		+ '<form name="send" action="javascript:sendLine()">'
-		+ '<input name="txt" size=80 /> &nbsp; <button type="submit">Send</button>'
+		+ '<form name="send" action="javascript:window.opener.sendLine(window.document);void(0);" autocomplete="off">'
+		+ '<input name="txt" size=80 autocomplete="off" /> &nbsp; <button type="submit">Send</button>'
 		+ '</form></div>'
 		+ '</div>'
 	    // handleMembers sets up membersJQ, messagesJQ
@@ -137,7 +159,14 @@ function ChatChannel(chName)
 	    }
 	}
     };
-    this.handleText = function(memberName, text) { };  // TODO
+    this.handleText = function(memberName, txt) {
+	var mJQ = this.messagesJQ;
+	if (! mJQ)
+	    return;
+	mJQ.append($("<br />"));
+	mJQ.append(document.createTextNode(memberName + ": " + txt));
+	mJQ.scrollTop(mJQ[0].scrollHeight);
+    };
 }
 
 function unloadChannelDocEvent(evt)
