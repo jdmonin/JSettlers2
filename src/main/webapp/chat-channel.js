@@ -47,7 +47,7 @@ function ChatChannel(chName)
     this.chName = chName;
     this.chMembers = new Set();
     // newChannelWindow sets this.chWindow, and sets chWindow.document.soc_chat_obj to this
-    // handleMembers sets this.membersJQ: jquery obj for member list div
+    // handleMembers sets this.membersJQ and .messagesJQ: jquery objs for member list, chat message divs
     this.cliJoined = false;  // obj & new window must be created from dblclick handler, not server's chJoin
     this.sentLeaveMsg = false;  // flag for closeChannelWindow
     this.handleJoin = function(memberName)
@@ -59,9 +59,19 @@ function ChatChannel(chName)
 	if ((memberName == nickname) && ! this.cliJoined)
 	{
 	    var chBody = this.chWindow.document.body;
-	    chBody.innerHTML = 'Chat Channel: ' + chName + '<HR noshade><div id="ch">Joined</div>';
-	    // TODO try further DOM adjustment? maybe set up msgs area & channel members area
-	    // handleMembers sets up membersJQ
+	    // inline styles because separate css for js newDiv.className was being ignored
+	    chBody.style.height = '100%'; chBody.style.margin = '3px';
+	    chBody.innerHTML = '<div style="float:right; min-width: 130px; padding: 3px;"><div id="members" style="position: fixed; margin: 3px; width: max-content;"></div></div>'
+		+ '<div style="display: flex; flex-flow: column; height: 100%;">'
+		+ '<div id="header" style="flex: 0 1 auto;">' // = flex-grow:0,flex-shrink:1,flex-basis:auto
+		+ 'Chat Channel: ' + chName + '<HR noshade></div>'
+		+ '<div id="messages" style="flex: 1 1 auto; overflow: auto;"></div>'
+		+ '<div id="send" style="flex: 0 1 auto; margin: 3px;">'
+		+ '<form name="send" action="javascript:sendLine()">'
+		+ '<input name="txt" size=80 /> &nbsp; <button type="submit">Send</button>'
+		+ '</form></div>'
+		+ '</div>'
+	    // handleMembers sets up membersJQ, messagesJQ
 	    this.cliJoined = true;
 	}
 	if (! (this.cliJoined && this.membersJQ))
@@ -69,36 +79,62 @@ function ChatChannel(chName)
 	if (! this.chMembers.has(memberName))
 	{
 	    this.chMembers.add(memberName);
-	    listAddJq(this.membersJQ, memberName, 100);
+	    var mJQ = this.membersJQ;
+	    listAddJq(mJQ, memberName, 100);
+	    setTimeout(function(){
+		var par = mJQ.parent();
+		if (mJQ.outerWidth() > par.width())
+		    par.width(mJQ.outerWidth());
+	      }, 110);
 	}
     };
     this.handleMembers = function(memberNames)
     {
 	var doc = this.chWindow.document;
-	var chDiv = doc.getElementById("ch");
-	if (chDiv != null)
+	var membersDiv = doc.getElementById("members");
+	this.membersJQ = $(membersDiv);
+	membersDiv.appendChild(doc.createTextNode("Members:"));
+	membersDiv.appendChild(doc.createElement("br"));
+	var messagesDiv = doc.getElementById("messages");
+	this.messagesJQ = $(messagesDiv);
+	// some temporary sample content
+	for (var i = 0; i < 100; ++i)
 	{
-	    chDiv.appendChild(doc.createElement("br"));
-	    var membersDiv = doc.createElement("div");
-	    this.membersJQ = $(membersDiv);
-	    chDiv.appendChild(membersDiv);
-	    membersDiv.appendChild(doc.createTextNode("Members:"));
-	    membersDiv.appendChild(doc.createElement("br"));
+		messagesDiv.appendChild(doc.createTextNode("message line# " + i));
+		if ((i > 20) || (i % 10 == 0))
+		    messagesDiv.appendChild(doc.createElement("br"));
+		else
+		    for (var j = 0; j < 20; ++j)
+			messagesDiv.appendChild(doc.createTextNode(" a long long line "));
 	}
+	var mJQ = this.membersJQ;
 	for (var mName of memberNames)
 	    if (! this.chMembers.has(mName))
 	    {
 		this.chMembers.add(mName);
-		listAddJq(this.membersJQ, mName, 20);
+		listAddJq(mJQ, mName, 1);
 	    }
+	setTimeout(function(){
+	    var par = mJQ.parent();
+	    if (mJQ.outerWidth() > par.width())
+		par.width(mJQ.outerWidth());
+	  }, 100);  // wait until fade-ins
     };
     this.handleLeave = function(memberName)
     {
 	if (this.chMembers.has(memberName))
 	{
 	    this.chMembers.delete(memberName);
-	    if (this.membersJQ)
-		listRemoveJq(this.membersJQ, memberName, 100);
+	    var mJQ = this.membersJQ;
+	    if (mJQ)
+	    {
+		listRemoveJq(mJQ, memberName, 100);
+		setTimeout(function(){
+		    var par = mJQ.parent();
+		    if (mJQ.outerWidth() < par.width())
+			par.width(mJQ.outerWidth());
+		}, 110);
+	    }
 	}
     };
     this.handleText = function(memberName, text) { };  // TODO
