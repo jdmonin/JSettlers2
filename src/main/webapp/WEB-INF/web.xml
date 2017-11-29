@@ -19,20 +19,8 @@
     </description>
 
     <!--
-     Placeholder for any servlet context if needed; may remove later.
-    -->
-    <listener><listener-class>socweb.misc.Main</listener-class></listener>
-
-    <!--
-    <servlet>
-        <servlet-name>PlayServlet</servlet-name>
-        <servlet-class>soc.webserver.example.Play</servlet-class>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>PlayServlet</servlet-name>
-        <url-pattern>/play</url-pattern>
-    </servlet-mapping>
-    -->
+	No servlets here, only the html5 /socweb demo app; is packaged
+	as socweb.war for deployment convenience alongside socserver.war
+     -->
 
 </web-app>
