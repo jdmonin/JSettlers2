@@ -154,7 +154,7 @@ public class SOCChannelTextMsg extends SOCMessage
     {
         Message.ChannelText.Builder b = Message.ChannelText.newBuilder()
             .setChName(channel)
-            .setNickname(nickname)
+            .setMemberName(nickname)
             .setText(text);
         return Message.FromServer.newBuilder()
             .setChText(b).build();

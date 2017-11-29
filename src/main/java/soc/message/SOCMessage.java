@@ -1194,7 +1194,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case Message.FromClient.CH_TEXT_FIELD_NUMBER:
                 {
                     Message.ChannelText m = msg.getChText();
-                    return new SOCChannelTextMsg(m.getChName(), m.getNickname(), m.getText());
+                    return new SOCChannelTextMsg(m.getChName(), m.getMemberName(), m.getText());
                 }
 
             case Message.FromClient.CH_LEAVE_FIELD_NUMBER:
