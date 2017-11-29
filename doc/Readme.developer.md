@@ -25,9 +25,10 @@
 
 ### Project layout
 
-This project uses gradle or ant (or IDEs) to build. For developer familiarity, the project
-uses the directory structure/layout of a maven/gradle project. v2.0.00 and newer versions
-will use gradle to build. The 1.x.xx versions 1.x.xx used ant; 2.0.00 is transitional.
+This project uses gradle or ant (or IDEs) to build. For developer familiarity,
+the project uses the directory structure/layout of a maven/gradle project. v2
+and newer versions use gradle to build. The 1.x.xx versions used ant.
+
 
 Also see the "Build Setup and Results" section.
 
