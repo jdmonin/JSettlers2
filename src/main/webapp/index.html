@@ -207,7 +207,7 @@ function sendToServer(jsonObj)
 /* chat channel list, game list */
 
 $('#game_list').on('dblclick', 'li', function() {
-    alert( 'game: ' + $(this).text() );
+    alert("This demo client can't join games.");
 });
 
 $('#chat_channel_list').on('dblclick', 'li', function() {
@@ -237,7 +237,7 @@ function alphaCompareElems(a, b)
 }
 
 // populate alphabetical chat_channel_list or game_list from itemNames string array
-function listPopulate(listId, itemNames)
+function listPopulate(listId, itemNames, tooltip)
 {
     if (! itemNames)
 	return;  // empty, undefined, null
@@ -247,23 +247,27 @@ function listPopulate(listId, itemNames)
     $.each(itemNames, function(i)
     {
 	var li = $('<li />').text(itemNames[i]).appendTo(newUL);
+	if (tooltip)
+	    li.prop('title', tooltip);
     });
     $('#' + listId).append(newUL);
 }
 
 // add itemName to chat_channel_list or game_list div alphabetically
-function listAdd(listId, itemName)
+function listAdd(listId, itemName, tooltip)
 {
     var div = $('#' + listId);
     if (! div.length)
 	return;
-    listAddJq(div, itemName, 700);
+    listAddJq(div, itemName, 700, tooltip);
 }
 
 // add itemName to any div
-function listAddJq(divJqueryObj, itemName, fadeMS)
+function listAddJq(divJqueryObj, itemName, fadeMS, tooltip)
 {
     var newLI = $('<li />').text(itemName);
+    if (tooltip)
+	newLI.prop('title', tooltip);
     var UL = divJqueryObj.find('ul');
     if (UL.length)
     {

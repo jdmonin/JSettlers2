@@ -19,7 +19,7 @@
     </description>
 
     <!--
-	No servlets here, only the html5 /socweb demo app; is packaged
+	No servlets here, only the html5 /socweb demo web app; is packaged
 	as socweb.war for deployment convenience alongside socserver.war
      -->
 

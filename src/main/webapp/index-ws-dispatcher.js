@@ -54,11 +54,11 @@ dispatchTo =
     channels: function(mData)
     {
 	if (mData.names)
-	    listPopulate('chat_channel_list', mData.names);
+	    listPopulate('chat_channel_list', mData.names, 'Double-click to join this chat channel');
     },
     chNew: function(mData)
     {
-	listAdd('chat_channel_list', mData.chName);
+	listAdd('chat_channel_list', mData.chName, 'Double-click to join this chat channel');
     },
     chDelete: function(mData)
     {
