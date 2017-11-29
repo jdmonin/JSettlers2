@@ -949,15 +949,15 @@ public class SOCServerMessageHandler
      */
     void handleCHANNELTEXTMSG(final Connection c, final SOCChannelTextMsg mes)
     {
-        final String chName = mes.getChannel();
+        final String chName = mes.getChannel(), mName = c.getData(), txt = mes.getText();
 
-        if (srv.isDebugUserEnabled() && c.getData().equals("debug"))
+        if (srv.isDebugUserEnabled() && mName.equals("debug"))
         {
-            if (mes.getText().startsWith("*KILLCHANNEL*"))
+            if (txt.startsWith("*KILLCHANNEL*"))
             {
                 srv.messageToChannel(chName, new SOCChannelTextMsg
                     (chName, SOCServer.SERVERNAME,
-                     "********** " + c.getData() + " KILLED THE CHANNEL **********"));
+                     "********** " + mName + " KILLED THE CHANNEL **********"));
 
                 channelList.takeMonitor();
                 try
@@ -981,9 +981,10 @@ public class SOCServerMessageHandler
 
         /**
          * Send the message to the members of the channel
+         * (don't send all message fields received from client)
          */
         if (srv.channelList.isMember(c, chName))
-            srv.messageToChannel(chName, mes);
+            srv.messageToChannel(chName, new SOCChannelTextMsg(chName, mName, txt));
     }
 
     /**
