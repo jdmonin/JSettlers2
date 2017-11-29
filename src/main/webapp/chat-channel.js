@@ -119,16 +119,6 @@ function ChatChannel(chName)
 	membersDiv.appendChild(doc.createElement("br"));
 	var messagesDiv = doc.getElementById("messages");
 	this.messagesJQ = $(messagesDiv);
-	// some temporary sample content
-	for (var i = 0; i < 100; ++i)
-	{
-		messagesDiv.appendChild(doc.createTextNode("message line# " + i));
-		if ((i > 20) || (i % 10 == 0))
-		    messagesDiv.appendChild(doc.createElement("br"));
-		else
-		    for (var j = 0; j < 20; ++j)
-			messagesDiv.appendChild(doc.createTextNode(" a long long line "));
-	}
 	var mJQ = this.membersJQ;
 	for (var mName of memberNames)
 	    if (! this.chMembers.has(mName))
@@ -141,6 +131,7 @@ function ChatChannel(chName)
 	    if (mJQ.outerWidth() > par.width())
 		par.width(mJQ.outerWidth());
 	  }, 100);  // wait until fade-ins
+	doc.forms.send.txt.focus();
     };
     this.handleLeave = function(memberName)
     {
