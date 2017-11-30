@@ -107,7 +107,16 @@ public class SOCPlayerTracker
     /** The robot brain using this tracker */
     protected final SOCRobotBrain brain;
 
-    /** The player being tracked */
+    /**
+     * The game where {@link #player} is being tracked
+     * @since 2.0.00
+     */
+    private final SOCGame game;
+
+    /**
+     * The player being tracked
+     * @see #game
+     */
     private final SOCPlayer player;
 
     /** Seat number of the player being tracked; {@link #player}{@link SOCPlayer#getPlayerNumber() .getPlayerNumber()} */
@@ -173,6 +182,7 @@ public class SOCPlayerTracker
         brain = br;
         player = pl;
         playerNumber = pl.getPlayerNumber();
+        game = pl.getGame();
         possibleRoads = new TreeMap<Integer, SOCPossibleRoad>();
         possibleSettlements = new TreeMap<Integer, SOCPossibleSettlement>();
         possibleCities = new TreeMap<Integer, SOCPossibleCity>();
@@ -196,6 +206,7 @@ public class SOCPlayerTracker
         brain = pt.getBrain();
         player = pt.getPlayer();
         playerNumber = player.getPlayerNumber();
+        game = pt.game;
         possibleRoads = new TreeMap<Integer, SOCPossibleRoad>();
         possibleSettlements = new TreeMap<Integer, SOCPossibleSettlement>();
         possibleCities = new TreeMap<Integer, SOCPossibleCity>();
@@ -648,7 +659,6 @@ public class SOCPlayerTracker
         //
         // check adjacent nodes to road for potential settlements
         //
-        final SOCGame game = player.getGame();
         final SOCBoard board = game.getBoard();
         Collection<Integer> adjNodeEnum = board.getAdjacentNodesToEdge(road.getCoordinates());
 
@@ -853,7 +863,6 @@ public class SOCPlayerTracker
          HashMap<Integer, SOCPlayerTracker> trackers, final int level)
     {
         //D.ebugPrintln("$$$ expandRoad at "+Integer.toHexString(targetRoad.getCoordinates())+" level="+level);
-        SOCGame game = player.getGame();
         SOCBoard board = game.getBoard();
         final int tgtRoadEdge = targetRoad.getCoordinates();
         SOCRoad dummyRoad;
@@ -1287,7 +1296,7 @@ public class SOCPlayerTracker
         if (closest == null)
             return null;  // <--- Early return: no ships ---
         final Vector<Integer> closestAdjacs =
-            ((SOCBoardLarge) player.getGame().getBoard()).getAdjacentEdgesToEdge(closest.getCoordinates());
+            ((SOCBoardLarge) game.getBoard()).getAdjacentEdgesToEdge(closest.getCoordinates());
 
         SOCPossibleShip nextShip = null;
         int nextR = -1, nextC = -1;
@@ -1328,7 +1337,7 @@ public class SOCPlayerTracker
          * look at all adjacent nodes and update possible settlements on nodes
          */
         Iterator<SOCPlayerTracker> trackersIter = trackers.values().iterator();
-        SOCBoard board = player.getGame().getBoard();
+        SOCBoard board = game.getBoard();
 
         while (trackersIter.hasNext())
         {
@@ -1447,7 +1456,7 @@ public class SOCPlayerTracker
     {
         //D.ebugPrintln();
         D.ebugPrintln("$$$ addOurNewSettlement : " + settlement);
-        SOCBoard board = player.getGame().getBoard();
+        SOCBoard board = game.getBoard();
 
         final Integer settlementCoords = new Integer(settlement.getCoordinates());
 
@@ -1692,7 +1701,7 @@ public class SOCPlayerTracker
             }
 
             if ((possibleNewIslandRoads != null)
-                && ! player.getGame().isInitialPlacement())
+                && ! game.isInitialPlacement())
             {
                 // only add new possible roads if we're on a new island
                 // (that is, the newly placed settlement has no adjacent roads already).
@@ -1754,7 +1763,7 @@ public class SOCPlayerTracker
 
         Vector<SOCPossibleRoad> prTrash = new Vector<SOCPossibleRoad>();
         Vector<SOCPossibleRoad> nrTrash = new Vector<SOCPossibleRoad>();
-        Vector<Integer> adjEdges = player.getGame().getBoard().getAdjacentEdgesToNode(settlement.getCoordinates());
+        Vector<Integer> adjEdges = game.getBoard().getAdjacentEdgesToNode(settlement.getCoordinates());
         Enumeration<Integer> edge1Enum = adjEdges.elements();
 
         while (edge1Enum.hasMoreElements())
@@ -2090,7 +2099,7 @@ public class SOCPlayerTracker
         /**
          * check roads that need updating and don't have necessary roads
          */
-        SOCBoard board = player.getGame().getBoard();
+        SOCBoard board = game.getBoard();
         Iterator<SOCPossibleRoad> posRoadsIter = possibleRoads.values().iterator();
 
         while (posRoadsIter.hasNext())
@@ -2471,7 +2480,7 @@ public class SOCPlayerTracker
         longestRoadETA = 500;
 
         int longestRoadLength;
-        SOCPlayer lrPlayer = player.getGame().getPlayerWithLongestRoad();
+        SOCPlayer lrPlayer = game.getPlayerWithLongestRoad();
 
         if ((lrPlayer != null) && (lrPlayer.getPlayerNumber() == playerNumber))
         {
@@ -2482,7 +2491,7 @@ public class SOCPlayerTracker
             longestRoadETA = 0;
             roadsToGo = 0;
         }
-        else if (! player.getGame().isGameOptionSet(SOCGameOption.K_SC_0RVP))
+        else if (! game.isGameOptionSet(SOCGameOption.K_SC_0RVP))
         {
             if (lrPlayer == null)
             {
@@ -2545,7 +2554,7 @@ public class SOCPlayerTracker
     public void recalcLargestArmyETA()
     {
         int laSize = 0;
-        SOCPlayer laPlayer = player.getGame().getPlayerWithLargestArmy();
+        SOCPlayer laPlayer = game.getPlayerWithLargestArmy();
 
         if (laPlayer == null)
         {
@@ -2578,7 +2587,7 @@ public class SOCPlayerTracker
             knightsToBuy = laSize - (player.getNumKnights() + player.getInventory().getAmount(SOCInventory.OLD, SOCDevCardConstants.KNIGHT));
         }
 
-        if (player.getGame().getNumDevCards() >= knightsToBuy)
+        if (game.getNumDevCards() >= knightsToBuy)
         {
             ///
             /// figure out how long it takes to buy this many knights
@@ -2685,7 +2694,7 @@ public class SOCPlayerTracker
         // or if there are no more roads to place from this one.
         // then calc potential LR value
         //
-        SOCBoard board = player.getGame().getBoard();
+        SOCBoard board = game.getBoard();
         boolean noMoreExpansion;
 
         if (level <= 0)
@@ -2863,10 +2872,10 @@ public class SOCPlayerTracker
             int tempLargestArmyETA = largestArmyETA;
             int tempLongestRoadETA = longestRoadETA;
 
-            SOCPlayer laPlayer = player.getGame().getPlayerWithLargestArmy();
-            SOCPlayer lrPlayer = player.getGame().getPlayerWithLongestRoad();
+            SOCPlayer laPlayer = game.getPlayerWithLargestArmy();
+            SOCPlayer lrPlayer = game.getPlayerWithLongestRoad();
 
-            final SOCBoard board = player.getGame().getBoard();
+            final SOCBoard board = game.getBoard();
 
             if (D.ebugOn)
             {
@@ -2909,7 +2918,7 @@ public class SOCPlayerTracker
 
             Queue<Pair<Integer, Vector<SOCPossibleRoad>>> necRoadQueue = new Queue<Pair<Integer, Vector<SOCPossibleRoad>>>();
 
-            final int vp_winner = player.getGame().vp_winner;
+            final int vp_winner = game.vp_winner;
             while (points < vp_winner)
             {
                 D.ebugPrintln("WWW points = " + points);
@@ -3724,7 +3733,7 @@ public class SOCPlayerTracker
                         ///
                         /// figure out how long it takes to buy this many knights
                         ///
-                        if (player.getGame().getNumDevCards() >= knightsToBuy)
+                        if (game.getNumDevCards() >= knightsToBuy)
                         {
                             tempLargestArmyETA = (cardETA + 1) * knightsToBuy;
                         }
