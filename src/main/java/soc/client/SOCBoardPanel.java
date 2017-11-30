@@ -1373,8 +1373,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * After construction, call {@link #getMinimumSize()} to read it.
      *
      * @param pi  the player interface that spawned us
+     * @throws IllegalStateException if {@code pi}'s game {@link SOCBoard#getBoardEncodingFormat()} !=
+     *     {@link SOCBoard#BOARD_ENCODING_LARGE}
      */
     public SOCBoardPanel(SOCPlayerInterface pi)
+        throws IllegalStateException
     {
         super();
 
@@ -1386,17 +1389,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         isScaled = false;
         scaledMissedImage = false;
         final int bef = board.getBoardEncodingFormat();
-        if (bef == SOCBoard.BOARD_ENCODING_LARGE)
-        {
-            is6player = false;
-            isLargeBoard = true;
-            isRotated = isScaledOrRotated = false;
-        } else {
-            is6player = (bef == SOCBoard.BOARD_ENCODING_6PLAYER)
-                || (game.maxPlayers > 4);
-            isLargeBoard = false;
-            isRotated = isScaledOrRotated = is6player;
-        }
+        if (bef != SOCBoard.BOARD_ENCODING_LARGE)
+            throw new IllegalStateException("unknown board format: " + bef);
+        is6player = (game.maxPlayers > 4);
+        final boolean isSeaBoard = game.isGameOptionSet("SBL");
+        isLargeBoard = true;  // TODO always true: clean up later
+        isRotated = isScaledOrRotated = is6player && ! isSeaBoard;
+
         if (isRotated)
         {
             // scaledPanelX, scaledPanelY are on-screen minimum size.
@@ -1412,7 +1411,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             panelMinBW = scaledPanelY;
             panelMinBH = scaledPanelX;
         } else {
-            if (isLargeBoard)
+            if (isSeaBoard)
             {
                 // TODO isLargeBoard: what if we need a scrollbar?
                 int bh = board.getBoardHeight(), bw = board.getBoardWidth();

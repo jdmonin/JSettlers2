@@ -864,10 +864,7 @@ public class SOCGame implements Serializable, Cloneable
     public final int maxPlayers;
 
     /**
-     * Is this game played on the {@link SOCBoardLarge} large board / sea board?
-     * If true, our board's {@link SOCBoard#getBoardEncodingFormat()}
-     * must be {@link SOCBoard#BOARD_ENCODING_LARGE}.
-     * When {@code hasSeaBoard}, {@link #getBoard()} can always be cast to {@link SOCBoardLarge}.
+     * Does this game have the large board / sea board option {@code "SBL"} set?
      *<P>
      * The 6-player extensions ({@link #maxPlayers} == 6) are orthogonal to {@code hasSeaBoard}
      * or other board types/expansions; one doesn't imply or exclude the other.
@@ -1238,7 +1235,7 @@ public class SOCGame implements Serializable, Cloneable
 
         if (boardFactory == null)
             boardFactory = new SOCBoard.DefaultBoardFactory();
-        board = boardFactory.createBoard(op, hasSeaBoard, maxPlayers);
+        board = boardFactory.createBoard(op, maxPlayers);
             // At server, createBoard might add "_BHW" to op if SOCBoardLarge with non-default size.
             // If so, op won't be null because SOCBoardLarge requires game opt "SBL".
 
@@ -1900,8 +1897,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Get the game board.
-     * When {@link #hasSeaBoard}, {@code getBoard()} can always be cast to {@link SOCBoardLarge}.
+     * Get the game board; can always be cast to {@link SOCBoardLarge}.
      * @return the game board
      */
     public SOCBoard getBoard()
@@ -3908,22 +3904,17 @@ public class SOCGame implements Serializable, Cloneable
         startGame_setupDevCards();
 
         board.makeNewBoard(opts);
-        if (hasSeaBoard)
-        {
-            /**
-             * Set each player's legal and potential settlements and roads
-             * to reflect the new board layout.
-             *
-             * Only necessary when hasSeaBoard (v3 board encoding):
-             * In the v1 and v2 board encodings, the legal coordinates never change, so
-             * SOCPlayer knows them already.
-             */
-            setPlayersLandHexCoordinates();
-            HashSet<Integer> psList = ((SOCBoardLarge) board).getLegalAndPotentialSettlements();
-            final HashSet<Integer>[] las = ((SOCBoardLarge) board).getLandAreasLegalNodes();
-            for (int i = 0; i < maxPlayers; ++i)
-                players[i].setPotentialAndLegalSettlements(psList, true, las);
-        }
+
+        /**
+         * Set each player's legal and potential settlements and roads
+         * to reflect the new board layout.
+         */
+        setPlayersLandHexCoordinates();
+        HashSet<Integer> psList = ((SOCBoardLarge) board).getLegalAndPotentialSettlements();
+        final HashSet<Integer>[] las = ((SOCBoardLarge) board).getLandAreasLegalNodes();
+        for (int i = 0; i < maxPlayers; ++i)
+            players[i].setPotentialAndLegalSettlements(psList, true, las);
+
         updateAtBoardLayout();
 
         // make sure game doesn't look idle, in case first player is a robot

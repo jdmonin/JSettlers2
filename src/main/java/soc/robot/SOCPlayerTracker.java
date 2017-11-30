@@ -1607,7 +1607,7 @@ public class SOCPlayerTracker
          * because each road/ship placement adds possibles past the new far end of the route
          * in addOurNewRoadOrShip.
          */
-        if (board instanceof SOCBoardLarge)
+        if (player.getGame().hasSeaBoard)
         {
             Vector<SOCPossibleRoad> roadsToExpand = null;
 

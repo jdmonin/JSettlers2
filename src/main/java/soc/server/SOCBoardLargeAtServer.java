@@ -133,7 +133,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
     /**
      * Create a new Settlers of Catan Board, with the v3 encoding.
-     * Called by {@link SOCBoardLargeAtServer.BoardFactoryAtServer#createBoard(Map, boolean, int)}
+     * Called by {@link SOCBoardLargeAtServer.BoardFactoryAtServer#createBoard(Map, int)}
      * to get the right board size and layout based on game options and optional {@link SOCScenario}.
      * The board will be empty (all hexes are water, no dice numbers on any hex).
      * The layout contents are set up later by calling {@link #makeNewBoard(Map)} when the game is about to begin,
@@ -206,6 +206,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * and the legal/potential node sets ({@link SOCBoardLarge#getLegalAndPotentialSettlements()}).
      * Sets up any Added Layout Parts such as {@code "PP", "CE", "VE", "N1"}, etc.
      *<P>
+     * If {@code opts} is {@code null} or doesn't have {@code "SBL"} set, will create
+     * a classic 4-player or 6-player layout instead of a Sea Board layout.
+     *<P>
      * This is called at server, but not at client;
      * client instead calls methods such as {@link #setLandHexLayout(int[])}
      * and {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])},
@@ -219,14 +222,15 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     @Override
     public void makeNewBoard(final Map<String, SOCGameOption> opts)
     {
+        final boolean isSea = SOCGame.isGameOptionSet(opts, "SBL");  // if false ,is classic 4- or 6-player board
         final SOCGameOption opt_breakClumps = (opts != null ? opts.get("BC") : null);
 
-        SOCGameOption opt = (opts != null ? opts.get(SOCGameOption.K_SC_FOG) : null);
+        SOCGameOption opt = (isSea && (opts != null)) ? opts.get(SOCGameOption.K_SC_FOG) : null;
         final boolean hasScenarioFog = (opt != null) && opt.getBoolValue();
 
         final String scen;  // scenario key, such as SOCScenario.K_SC_4ISL, or empty string
         {
-            final SOCGameOption optSC = (opts != null ? opts.get("SC") : null);
+            final SOCGameOption optSC = (isSea && (opts != null)) ? opts.get("SC") : null;
             if (optSC != null)
             {
                 final String ostr = optSC.getStringValue();
@@ -257,7 +261,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
         // Players must start on Land Area 1 (mainland, or for SC_FOG the two large islands),
         // unless hasScenario4ISL. Set that field now, in case a board-setup method wants it.
-        if (! hasScenario4ISL)
+        if (isSea && ! hasScenario4ISL)
             startingLandArea = 1;
 
         // shuffle and place the land hexes, numbers, and robber:
@@ -580,32 +584,51 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
         } else {
 
-            // This is the fallback layout, the large sea board used when no scenario is chosen.
-            // Size is BOARDHEIGHT_LARGE by BOARDWIDTH_LARGE for 4 players.
-            // For 6 players, there's an extra row of hexes: BOARDHEIGHT_LARGE + 3.
+            // No scenario: Classic or Sea Board Fallback layout
+            if (isSea)
+            {
+                // This is the fallback layout, the large sea board used when no scenario is chosen.
+                // Size is BOARDHEIGHT_LARGE by BOARDWIDTH_LARGE for 4 players.
+                // For 6 players, there's an extra row of hexes: BOARDHEIGHT_LARGE + 3.
 
-            landAreasLegalNodes = new HashSet[5];  // hardcoded max number of land areas
+                landAreasLegalNodes = new HashSet[5];  // hardcoded max number of land areas
 
-            // - Mainland:
-            makeNewBoard_placeHexes
-                ((maxPl > 4) ? SOCBoard6p.makeNewBoard_landHexTypes_v2 : SOCBoard4p.makeNewBoard_landHexTypes_v1,
-                 (maxPl > 4) ? LANDHEX_DICEPATH_MAINLAND_6PL : LANDHEX_DICEPATH_MAINLAND_4PL,
-                 (maxPl > 4) ? SOCBoard6p.makeNewBoard_diceNums_v2 : SOCBoard4p.makeNewBoard_diceNums_v1,
-                 false, true, 1, false, maxPl, opt_breakClumps, scen);
+                // - Mainland:
+                makeNewBoard_placeHexes
+                    ((maxPl > 4) ? SOCBoard6p.makeNewBoard_landHexTypes_v2 : SOCBoard4p.makeNewBoard_landHexTypes_v1,
+                     (maxPl > 4) ? LANDHEX_DICEPATH_MAINLAND_6PL : LANDHEX_DICEPATH_MAINLAND_4PL,
+                     (maxPl > 4) ? SOCBoard6p.makeNewBoard_diceNums_v2 : SOCBoard4p.makeNewBoard_diceNums_v1,
+                     false, true, 1, false, maxPl, opt_breakClumps, scen);
 
-            // - Outlying islands:
-            makeNewBoard_placeHexes
-                ((maxPl > 4) ? LANDHEX_TYPE_ISLANDS_6PL : LANDHEX_TYPE_ISLANDS_4PL,
-                 (maxPl > 4) ? LANDHEX_COORD_ISLANDS_ALL_6PL : LANDHEX_COORD_ISLANDS_ALL_4PL,
-                 (maxPl > 4) ? LANDHEX_DICENUM_ISLANDS_6PL : LANDHEX_DICENUM_ISLANDS_4PL,
-                 true, true,
-                 (maxPl > 4) ? LANDHEX_LANDAREA_RANGES_ISLANDS_6PL : LANDHEX_LANDAREA_RANGES_ISLANDS_4PL,
-                 false, maxPl, null, scen);
+                // - Outlying islands:
+                makeNewBoard_placeHexes
+                    ((maxPl > 4) ? LANDHEX_TYPE_ISLANDS_6PL : LANDHEX_TYPE_ISLANDS_4PL,
+                     (maxPl > 4) ? LANDHEX_COORD_ISLANDS_ALL_6PL : LANDHEX_COORD_ISLANDS_ALL_4PL,
+                     (maxPl > 4) ? LANDHEX_DICENUM_ISLANDS_6PL : LANDHEX_DICENUM_ISLANDS_4PL,
+                     true, true,
+                     (maxPl > 4) ? LANDHEX_LANDAREA_RANGES_ISLANDS_6PL : LANDHEX_LANDAREA_RANGES_ISLANDS_4PL,
+                     false, maxPl, null, scen);
+
+                PORT_LOC_FACING_ISLANDS = (maxPl > 4) ? PORT_EDGE_FACING_ISLANDS_6PL : PORT_EDGE_FACING_ISLANDS_4PL;
+                PORTS_TYPES_ISLANDS = (maxPl > 4) ? PORT_TYPE_ISLANDS_6PL : PORT_TYPE_ISLANDS_4PL;
+            } else {
+                // Classic 4-player or 6-player board
+
+                landAreasLegalNodes = null;
+
+                // - Mainland same as above
+                makeNewBoard_placeHexes
+                    ((maxPl > 4) ? SOCBoard6p.makeNewBoard_landHexTypes_v2 : SOCBoard4p.makeNewBoard_landHexTypes_v1,
+                     (maxPl > 4) ? LANDHEX_DICEPATH_MAINLAND_6PL : LANDHEX_DICEPATH_MAINLAND_4PL,
+                     (maxPl > 4) ? SOCBoard6p.makeNewBoard_diceNums_v2 : SOCBoard4p.makeNewBoard_diceNums_v1,
+                     false, true, 0, false, maxPl, opt_breakClumps, scen);
+
+                PORT_LOC_FACING_ISLANDS = null;
+                PORTS_TYPES_ISLANDS = null;
+            }
 
             PORTS_TYPES_MAINLAND = (maxPl > 4) ? SOCBoard6p.PORTS_TYPE_V2 : SOCBoard4p.PORTS_TYPE_V1;
-            PORTS_TYPES_ISLANDS = (maxPl > 4) ? PORT_TYPE_ISLANDS_6PL : PORT_TYPE_ISLANDS_4PL;
             PORT_LOC_FACING_MAINLAND = (maxPl > 4) ? PORT_EDGE_FACING_MAINLAND_6PL : PORT_EDGE_FACING_MAINLAND_4PL;
-            PORT_LOC_FACING_ISLANDS = (maxPl > 4) ? PORT_EDGE_FACING_ISLANDS_6PL : PORT_EDGE_FACING_ISLANDS_4PL;
         }
 
         // Set up legalRoadEdges:
@@ -2330,7 +2353,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
     /**
      * Get the board size for
-     * {@link BoardFactoryAtServer#createBoard(Map, boolean, int) BoardFactoryAtServer.createBoard}:
+     * {@link BoardFactoryAtServer#createBoard(Map, int) BoardFactoryAtServer.createBoard}:
      * The default size {@link SOCBoardLarge#BOARDHEIGHT_LARGE BOARDHEIGHT_LARGE} by
      * {@link SOCBoardLarge#BOARDWIDTH_LARGE BOARDWIDTH_LARGE},
      * unless <tt>gameOpts</tt> contains a scenario (<tt>"SC"</tt>) whose layout has a custom height/width.
@@ -2343,10 +2366,11 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      */
     private static int getBoardSize(final Map<String, SOCGameOption> gameOpts, final int maxPlayers)
     {
+        final boolean isSea = SOCGame.isGameOptionSet(gameOpts, "SBL");
         int heightWidth = 0;
 
         SOCGameOption scOpt = null;
-        if (gameOpts != null)
+        if (isSea && (gameOpts != null))
             scOpt = gameOpts.get("SC");
 
         if (scOpt != null)
@@ -2403,12 +2427,21 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
         if (heightWidth == 0)
         {
-            // No recognized scenario, so use the fallback board.
-            // For 6 players, this has an extra row of hexes.
-            if (maxPlayers == 6)
-                heightWidth = ((BOARDHEIGHT_LARGE + 3) << 8) | BOARDWIDTH_LARGE;
-            else
-                heightWidth = (BOARDHEIGHT_LARGE << 8) | BOARDWIDTH_LARGE;
+            final int h, w;
+
+            if (isSea)
+            {
+                // No recognized scenario, so use the fallback board.
+                // For 6 players, this has an extra row of hexes.
+                h = (maxPlayers == 6) ? (BOARDHEIGHT_LARGE + 3) : BOARDHEIGHT_LARGE;
+                w = BOARDWIDTH_LARGE;
+            } else {
+                // classic 4-player or 6-player board
+                h = (maxPlayers == 6) ? SOCBoard6p.BOARDHEIGHT_6PL : SOCBoard4p.BOARDHEIGHT_4PL;
+                w = (maxPlayers == 6) ? SOCBoard6p.BOARDWIDTH_6PL : SOCBoard4p.BOARDWIDTH_4PL;
+            }
+
+            heightWidth = (h << 8) | w;
         }
 
         return heightWidth;
@@ -4678,49 +4711,43 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
          *                  If <tt>largeBoard</tt>, and
          *                  {@link SOCBoardLargeAtServer#getBoardSize(Map, int) getBoardSize(Map, int)}
          *                  gives a non-default size, <tt>"_BHW"</tt> will be added to <tt>gameOpts</tt>.
-         * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding)
          * @param maxPlayers Maximum players; must be 4 or 6.
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
          *                  or (unlikely internal error) game option "_BHW" isn't known in SOCGameOption.getOption.
          */
         public SOCBoard createBoard
-            (final Map<String,SOCGameOption> gameOpts, final boolean largeBoard, final int maxPlayers)
+            (final Map<String,SOCGameOption> gameOpts, final int maxPlayers)
             throws IllegalArgumentException
         {
-            if (! largeBoard)
+            // Check board size, set _BHW if not default.
+            final int boardHeightWidth = getBoardSize(gameOpts, maxPlayers);
+            final int bH = boardHeightWidth >> 8, bW = boardHeightWidth & 0xFF;
+
+            if (gameOpts != null)
             {
-                return DefaultBoardFactory.staticCreateBoard(gameOpts, false, maxPlayers);
-            } else {
-                // Check board size, set _BHW if not default.
-                final int boardHeightWidth = getBoardSize(gameOpts, maxPlayers);
-                final int bH = boardHeightWidth >> 8, bW = boardHeightWidth & 0xFF;
+                // gameOpts should never be null if seaBoard: seaBoard requires opt "SBL".
+                int bhw = 0;
+                SOCGameOption bhwOpt = gameOpts.get("_BHW");
+                if (bhwOpt != null)
+                    bhw = bhwOpt.getIntValue();
 
-                if (gameOpts != null)
+                if (((bH != SOCBoardLarge.BOARDHEIGHT_LARGE) || (bW != SOCBoardLarge.BOARDWIDTH_LARGE))
+                    && (bhw != boardHeightWidth))
                 {
-                    // gameOpts should never be null if largeBoard: largeBoard requires opt "SBL".
-                    int bhw = 0;
-                    SOCGameOption bhwOpt = gameOpts.get("_BHW");
+                    if (bhwOpt == null)
+                        bhwOpt = SOCGameOption.getOption("_BHW", true);
                     if (bhwOpt != null)
-                        bhw = bhwOpt.getIntValue();
-
-                    if (((bH != SOCBoardLarge.BOARDHEIGHT_LARGE) || (bW != SOCBoardLarge.BOARDWIDTH_LARGE))
-                        && (bhw != boardHeightWidth))
                     {
-                        if (bhwOpt == null)
-                            bhwOpt = SOCGameOption.getOption("_BHW", true);
-                        if (bhwOpt != null)
-                        {
-                            bhwOpt.setIntValue(boardHeightWidth);
-                            gameOpts.put("_BHW", bhwOpt);
-                        } else {
-                            throw new IllegalArgumentException("Internal error: Game opt _BHW not known");
-                        }
+                        bhwOpt.setIntValue(boardHeightWidth);
+                        gameOpts.put("_BHW", bhwOpt);
+                    } else {
+                        throw new IllegalArgumentException("Internal error: Game opt _BHW not known");
                     }
                 }
-
-                return new SOCBoardLargeAtServer
-                    (gameOpts, maxPlayers, new IntPair(bH, bW));
             }
+
+            return new SOCBoardLargeAtServer
+                (gameOpts, maxPlayers, new IntPair(bH, bW));
         }
 
     }  // nested class BoardFactoryAtServer

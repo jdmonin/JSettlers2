@@ -768,27 +768,18 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         roadNodeGraph = new Hashtable<Integer, int[]>();
 
         /**
-         * init legal and potential arrays.
-         * no settlements yet, so no potential roads or cities.
-         * If game.hasSeaBoard, these are initialized later, after board.makeNewBoard
-         * and game.startGame, because the layout varies from game to game.
+         * Empty legal and potential arrays for now:
+         * These are initialized later, after board.makeNewBoard and game.startGame,
+         * in case it's using sea board layout which varies from game to game.
          */
         potentialRoads = new HashSet<Integer>();
         potentialCities = new HashSet<Integer>();
         potentialShips = new HashSet<Integer>();
 
-        if (! game.hasSeaBoard)
-        {
-            legalRoads = board.initPlayerLegalRoads();
-            legalSettlements = board.initPlayerLegalAndPotentialSettlements();
-            legalShips = new HashSet<Integer>();  // will remain empty
-            potentialSettlements = new HashSet<Integer>(legalSettlements);
-        } else {
-            legalRoads = new HashSet<Integer>();
-            legalSettlements = new HashSet<Integer>();
-            legalShips = new HashSet<Integer>();
-            potentialSettlements = new HashSet<Integer>();
-        }
+        legalRoads = new HashSet<Integer>();
+        legalSettlements = new HashSet<Integer>();
+        legalShips = new HashSet<Integer>();
+        potentialSettlements = new HashSet<Integer>();
 
         currentOffer = null;
     }
@@ -3858,14 +3849,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Set which nodes are potential settlements.
-     * Called at client when joining/creating a game
+     * Called at client when joining or starting a game
      * when game's Potential Settlements message is received.
-     * At server, unless {@link SOCGame#hasSeaBoard},
-     * the potentials list is instead copied at start
-     * of game from legalSettlements.
+     * Called at server just after makeNewBoard in {@link SOCGame#startGame()}.
      *<P>
-     * If our game uses the large sea board ({@link SOCGame#hasSeaBoard}),
-     * and <tt>setLegalsToo</tt>, and <tt>psList</tt> is not empty,
+     * If <tt>setLegalsToo</tt>, and <tt>psList</tt> is not empty,
      * then also update the player's legal settlements
      * and legal road sets, since they aren't constant
      * on that type of board; don't call this method before calling
@@ -3875,16 +3863,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Call this method before, not after, calling {@link #setRestrictedLegalShips(int[])}.
      * However, if the player already has a restricted legal ship edge list, this method won't clear it.
      *<P>
-     * This method is called at the server only when <tt>game.hasSeaBoard</tt>,
-     * just after makeNewBoard in {@link SOCGame#startGame()}.
-     *<P>
      * Before v2.0.00, this method was called <tt>setPotentialSettlements</tt>.
      *
      * @param psList  the list of potential settlements,
      *     a {@link Vector} or {@link HashSet} of
      *     {@link Integer} node coordinates
-     * @param setLegalsToo  If true, also update legal settlements/roads/ships
-     *     if we're using the large board layout.  [Parameter added in v2.0.00]
+     * @param setLegalsToo  If true, also update legal settlements/roads/ships.
+     *     [Parameter added in v2.0.00 for use with {@link SOCBoardLarge}]
      *     <P>
      *     In scenario {@code _SC_PIRI}, for efficiency, the legal ships list will remain
      *     empty until {@link #setRestrictedLegalShips(int[])} is called.
@@ -3899,7 +3884,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         clearPotentialSettlements();
         potentialSettlements.addAll(psList);
 
-        if (setLegalsToo && game.hasSeaBoard
+        if (setLegalsToo
             && ((! psList.isEmpty()) || (legalLandAreaNodes != null)) )
         {
             legalSettlements.clear();

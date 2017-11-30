@@ -38,7 +38,7 @@ import java.util.Vector;
  *<P>
  * Because some game variants may need different board layouts or features,
  * you will need a subclass of SOCBoard: Use
- * {@link SOCBoard.BoardFactory#createBoard(Map, boolean, int)}
+ * {@link SOCBoard.BoardFactory#createBoard(Map, int)}
  * whenever you need to construct a new SOCBoard.
  *<P>
  * A {@link SOCGame} uses this board; the board is not given a reference to the game, to enforce layering
@@ -141,29 +141,14 @@ import java.util.Vector;
  * to show a tooltip with current board coordinates at the mouse pointer.
  * To turn this off, type {@code =*= hidecoords}.
  *<P>
- * Current coordinate encodings: v1 ({@link #BOARD_ENCODING_ORIGINAL}),
- *   v2 ({@link #BOARD_ENCODING_6PLAYER}), v3 ({@link #BOARD_ENCODING_LARGE}).
+ * Current coordinate encoding: In v3.0.00 and newer all boards use the same
+ * v3 coordinate encoding ({@link SOCBoard#BOARD_ENCODING_LARGE}). At the client,
+ * the 6-player board is rotated 90 degrees clockwise from the 4-player board.
+ * Since v1 and v2 clients can't connect to v3 via Protobuf or JSON,
+ * old encodings v1 ({@link #BOARD_ENCODING_ORIGINAL}) and v2 ({@link #BOARD_ENCODING_6PLAYER})
+ * are no longer needed.
  *<P>
- * <b>On the 4-player board:</b> See <tt>src/docs/hexcoord.gif</tt><br>
- * Coordinates start with hex (1,1) on the far west, and go to (D,D) on the east.
- * The ring of water hexes surrounding land, is within these coordinates. (Land
- * hexes in that row are (3,3) to (B,B).
- * The first axis runs northwest to southeast; the second runs southwest to northeast.
- * Having six sides, hexes run in a straight line west to east, separated by vertical edges;
- * both coordinates increase along a west-to-east line.
- *<P>
- * All coordinates are encoded as two-digit hex integers, one digit per axis (thus 00 to FF).
- * The center hex is encoded as 77; see the dissertation PDF's appendix for diagrams.
- * Unfortunately this format means the board can't be expanded without changing its
- * encoding, which is used across the network.
- *<P>
- * <b>On the 6-player board:</b> See <tt>src/docs/hexcoord-6player.gif</tt><br>
- * The 6-player board is rotated 90 degrees clockwise from the 4-player board,
- * so coordinates start with hex (1,1) as the northernmost land hex, and
- * hex (B,B) is the southernmost land hex.  The ring of water hexes are outside
- * this coordinate grid.
- *<P>
- * For the large sea board (encoding v3: {@link #BOARD_ENCODING_LARGE}), see subclass {@link SOCBoardLarge}.
+ * For the large sea board (game option {@code "SBL"}), see subclass {@link SOCBoardLarge}.
  * Remember that ship pieces extend the {@link SOCRoad} class.
  * Most methods of {@link SOCBoard}, {@link SOCGame} and {@link SOCPlayer} differentiate them
  * ({@link SOCPlayer#hasPotentialRoad()} vs {@link SOCPlayer#hasPotentialShip()}),
@@ -180,7 +165,7 @@ import java.util.Vector;
  */
 public abstract class SOCBoard implements Serializable, Cloneable
 {
-    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
+    private static final long serialVersionUID = 3000L;  // last structural change v2.0.00
 
     //
     // Hex types
@@ -700,7 +685,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * Most likely you should also call {@link #setBoardBounds(int, int)}.
      *
      * @param boardEncodingFmt  A format constant in the currently valid range:
-     *         Must be >= {@link #BOARD_ENCODING_ORIGINAL} and &lt;= {@link #MAX_BOARD_ENCODING}.
+     *         Must be >= {@link #BOARD_ENCODING_LARGE} and &lt;= {@link #MAX_BOARD_ENCODING}.
      * @param maxRobberHextype  Maximum land hextype value, or maximum hex type
      *         the robber can be placed at.  Same value range as {@link #max_robber_hextype}
      *         and as your subclass's {@link #getHexTypeFromCoord(int)} method.
@@ -710,7 +695,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
     protected SOCBoard(final int boardEncodingFmt, final int maxRobberHextype)
         throws IllegalArgumentException
     {
-        if ((boardEncodingFmt < 1) || (boardEncodingFmt > MAX_BOARD_ENCODING))
+        if ((boardEncodingFmt < BOARD_ENCODING_LARGE) || (boardEncodingFmt > MAX_BOARD_ENCODING))
             throw new IllegalArgumentException(Integer.toString(boardEncodingFmt));
 
         boardEncodingFormat = boardEncodingFmt;
@@ -733,9 +718,9 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6. (Added in 1.1.08)
      * @param boardEncodingFmt  A format constant in the currently valid range:
-     *         Must be >= {@link #BOARD_ENCODING_ORIGINAL} and &lt;= {@link #MAX_BOARD_ENCODING}.
-     * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
-     * @see BoardFactory#createBoard(Map, boolean, int)
+     *         Must be >= {@link #BOARD_ENCODING_LARGE} and &lt;= {@link #MAX_BOARD_ENCODING}.
+     * @throws IllegalArgumentException if {@code maxPlayers} is not 4 or 6, or {@code boardEncodingFmt} is out of range
+     * @see BoardFactory#createBoard(Map, int)
      */
     protected SOCBoard(Map<String, SOCGameOption> gameOpts, final int maxPlayers, final int boardEncodingFmt)
         throws IllegalArgumentException
@@ -2067,7 +2052,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *       Activated with {@link SOCGameOption} <tt>"SBL"</tt>.
      *</UL>
      * @return board coordinate-encoding format, from the list above
-     * @see SOCBoard.BoardFactory#createBoard(Map, boolean, int)
+     * @see SOCBoard.BoardFactory#createBoard(Map, int)
      * @since 1.1.06
      */
     public int getBoardEncodingFormat()
@@ -3212,14 +3197,11 @@ public abstract class SOCBoard implements Serializable, Cloneable
         /**
          * Create a new Settlers of Catan Board based on <tt>gameOpts</tt>; this is a factory method.
          * @param gameOpts  game's options if any, otherwise null
-         * @param largeBoard  true if a Sea Board should be created: {@link SOCBoardLarge} with
-         *     v3 encoding {@link SOCBoard#BOARD_ENCODING_LARGE BOARD_ENCODING_LARGE}, game rules for
-         *     ships, etc. If true, assumes {@code gameOpts != null} and {@code gameOpts} contains {@code "SBL"}.
          * @param maxPlayers Maximum players; must be 4 or 6.
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
          */
         SOCBoard createBoard
-            (final Map<String,SOCGameOption> gameOpts, final boolean largeBoard, final int maxPlayers)
+            (final Map<String,SOCGameOption> gameOpts, final int maxPlayers)
             throws IllegalArgumentException;
 
     }  // nested class BoardFactory
@@ -3237,23 +3219,14 @@ public abstract class SOCBoard implements Serializable, Cloneable
          * Static for fallback access from other factory implementations.
          *
          * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
-         * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding)
          * @param maxPlayers Maximum players; must be 4 or 6.
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
          */
         public static SOCBoard staticCreateBoard
-            (final Map<String,SOCGameOption> gameOpts, final boolean largeBoard, final int maxPlayers)
+            (final Map<String,SOCGameOption> gameOpts, final int maxPlayers)
             throws IllegalArgumentException
         {
-            if (! largeBoard)
-            {
-                if (maxPlayers == 6)
-                    return new SOCBoard6p(gameOpts);
-                else
-                    return new SOCBoard4p(gameOpts);
-            } else {
-                return new SOCBoardLarge(gameOpts, maxPlayers);
-            }
+            return new SOCBoardLarge(gameOpts, maxPlayers);
         }
 
         /**
@@ -3262,15 +3235,14 @@ public abstract class SOCBoard implements Serializable, Cloneable
          * From v1.1.11 through all 1.x.xx, this was SOCBoard.createBoard.  Moved to new factory class in 2.0.00.
          *
          * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
-         * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding)
          * @param maxPlayers Maximum players; must be 4 or 6.
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
          */
         public SOCBoard createBoard
-            (final Map<String,SOCGameOption> gameOpts, final boolean largeBoard, final int maxPlayers)
+            (final Map<String,SOCGameOption> gameOpts, final int maxPlayers)
             throws IllegalArgumentException
         {
-            return staticCreateBoard(gameOpts, largeBoard, maxPlayers);
+            return staticCreateBoard(gameOpts, maxPlayers);
         }
 
     }  // nested class DefaultBoardFactory

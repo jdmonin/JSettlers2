@@ -26,12 +26,19 @@ import java.util.Map;
 
 /**
  * A standard 4p board with 19 land hexes and 18 sea hexes layed out in a
- * concentric way
+ * concentric way. In v3.0.00 and newer all boards use the same v3 coordinate encoding
+ * ({@link SOCBoard#BOARD_ENCODING_LARGE}).
  * @since 2.0.00
  */
-public class SOCBoard4p extends SOCBoard
+public abstract class SOCBoard4p extends SOCBoard
 {
-    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
+    private static final long serialVersionUID = 3000L;  // last structural change v2.0.00
+
+    /**
+     * Board size for constructors at server.
+     * @since 3.0.00
+     */
+    public static final int BOARDHEIGHT_4PL = 0x0e, BOARDWIDTH_4PL = 0x0d;
 
     /**
      * Land-hex coordinates in standard board ({@link #BOARD_ENCODING_ORIGINAL}).
@@ -184,9 +191,12 @@ public class SOCBoard4p extends SOCBoard
         }
     };
 
-    public SOCBoard4p(final Map<String, SOCGameOption> gameOpts)
+    /**
+     * unused default constructor: everything is SOCBoardLarge in v3
+     */
+    private SOCBoard4p()
     {
-        super(gameOpts, 4, BOARD_ENCODING_ORIGINAL);
+        super(null, 4, BOARD_ENCODING_ORIGINAL);
 
         minEdge = MINEDGE_V1;
         maxEdge = MAXEDGE_V1;

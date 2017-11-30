@@ -25,12 +25,21 @@ package soc.game;
 import java.util.Map;
 
 /**
- * The standard (non-sea) board layout for the 6-player extension.
+ * The standard (non-sea) board layout for the 6-player extension,
+ * rotated 90 degrees clockwise at the client.
+ * In v3.0.00 and newer all boards use the same v3 coordinate encoding
+ * ({@link SOCBoard#BOARD_ENCODING_LARGE}).
  * @since 2.0.00
  */
-public class SOCBoard6p extends SOCBoard
+public abstract class SOCBoard6p extends SOCBoard
 {
-    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
+    private static final long serialVersionUID = 3000L;  // last structural change v2.0.00
+
+    /**
+     * Board size for constructors at server.
+     * @since 3.0.00
+     */
+    public static final int BOARDHEIGHT_6PL = 0x13, BOARDWIDTH_6PL = 0x11;
 
     /**
      * Land-hex coordinates in 6-player board ({@link #BOARD_ENCODING_6PLAYER}).
@@ -182,10 +191,13 @@ public class SOCBoard6p extends SOCBoard
         }
     };
 
-    public SOCBoard6p(final Map<String, SOCGameOption> gameOpts)
+    /**
+     * unused default constructor: everything is {@link SOCBoardLarge} in v3
+     */
+    private SOCBoard6p()
         throws IllegalArgumentException
     {
-        super(gameOpts, 6, BOARD_ENCODING_6PLAYER);
+        super(null, 6, BOARD_ENCODING_6PLAYER);
 
         minEdge = MINEDGE_V2;
         maxEdge = MAXEDGE_V2;
