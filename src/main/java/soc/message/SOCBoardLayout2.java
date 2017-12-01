@@ -33,65 +33,34 @@ import soc.game.SOCScenario;    // for javadocs
 /**
  * This message contains the board's encoding version and layout information
  * in a flexible format to allow for expansions and 6-player extensions.
- * The layout is represented as a series of named integer arrays and
- * named integer parameters.  These contain the hex layout, the
+ * The layout is represented as a series of named "Layout Parts":
+ * Integer arrays and integer parameters.  These contain the hex layout, the
  * number layout, where the robber is, and possibly the port layout.
  * This message does not contain information about where the
  * player's pieces are on the board.
  *<P>
- * <B>Typical parts of the board layout:</B> (Not all layouts include all these parts)
+ * <H4>Typical parts of the board layout:</H4>
+ *
+ * Not all layouts or {@link #getBoardEncodingFormat()}s include all these parts.
+ * See the list at {@link SOCBoardLarge#getAddedLayoutPart(String)} for each part's details.
+ *
  *<UL>
- *<LI> HL: The hexes, from {@link SOCBoard#getHexLayout()}.<br>
- *         Not sent if <tt>LH</tt> is sent.  See note below on value mapping.
- *<LI> NL: The dice numbers, from {@link SOCBoard#getNumberLayout()}
- *<LI> RH: The robber hex, from {@link SOCBoard#getRobberHex()}, if &gt; 0
- *<LI> PL: The ports, from {@link SOCBoard#getPortsLayout()}
- *<LI> PH: The pirate hex, from {@link SOCBoardLarge#getPirateHex()}, if &gt; 0
- *<LI> LH: The land hexes (v3 board encoding), from {@link SOCBoardLarge#getLandHexLayout()}.<br>
- *         The v3 board's land hexes may be logically grouped into several
- *         "land areas" (groups of islands, or subsets of islands).  Those
- *         areas are sent to the client via {@link SOCPotentialSettlements}.
- *<LI> PX: Players are excluded from settling these land area numbers (usually none)
- *<LI> RX: Robber is excluded from these land area numbers (usually none)
+ *<LI> HL: The land hex layout; not sent if <tt>LH</tt> is sent. See note below on value mapping.
+ *<LI> NL: The dice numbers
+ *<LI> RH: The robber hex, if &gt; 0
+ *<LI> PL: The ports layout
+ *<LI> PH: The pirate hex, if &gt; 0
+ *<LI> LH: The land hexes (v3 board encoding).<br>
+ *         If grouped into "land areas", those areas are sent to the client via {@link SOCPotentialSettlements}.
+ *<LI> PX: Players excluded from settling these land areas (usually none)
+ *<LI> RX: Robber excluded from these land areas (usually none)
  *</UL>
  *
- * <H4>Other Layout Parts:</H4>
- *
- * A few game scenarios in jsettlers v2.0.00 may add other parts; see {@link #getAddedParts()}.
- *<UL>
- *<LI> AL: Added List numbers of nodes or edges, originally for {@code _SC_WOND}: After Initial Placement,
- *         the lists referred here are added to all players' legal nodes / legal edges.
- *         <UL>
- *         <LI> Negative numbers (not implemented yet) in {@code AL} refer to layout parts {@code E1} through {@code E9}
- *              for edges to add.
- *         <LI> Positive numbers refer to parts {@code N1} through {@code N9} for nodes to add.
- *              A positive number is always followed in {@code AL} by a Land Area Number, or 0, to add the nodes to.
- *              For each added node, its edges to adjacent legal nodes will also be added if not already there.
- *              If a layout part's set of nodes is used only during initial placement, and its contents should be
- *              emptied after that, the Land Area Number will be negative here.
- *         </UL>
- *<LI> CV: Cloth Village layout, for {@code _SC_CLVI}, from {@link SOCBoardLarge#getVillageAndClothLayout()};
- *         at the client, call {@link SOCBoardLarge#setVillageAndClothLayout(int[])} if this layout part is sent.
- *<LI> CE: dev Card Edge, for {@code _SC_FTRI}; edge coordinates where ship placement gives a free development card.
- *         As these are each claimed during game play, 0 replaces their coordinate in the layout part element.
- *<LI> VE: Victory point Edge, for {@code _SC_FTRI}; edge coordinates where ship placement gives a special victory point.
- *         As these are each claimed during game play, 0 replaces their coordinate in the layout part element.
- *<LI> LS: Each player's lone additional Legal Settlement location, for {@code _SC_PIRI}: Node coordinates,
- *         one per player number, for the player's lone build location on the way to the pirate fortress.
- *<LI> PP: Pirate fleet Path, for {@code _SC_PIRI}; hex coordinates for {@link SOCBoardLarge#movePirateHexAlongPath(int)}
- *<LI> E1 through E9: Reserved but not implemented: Special edge lists.  Can be used for any purpose by the
- *         scenario, and/or for additional legal edges (see layout part {@code "AL"}).
- *<LI> N1 through N9: Special node lists, originally for {@code _SC_WOND}.  Can be used for any purpose by a
- *         scenario, and/or for additional legal nodes (see layout part {@code "AL"}).
- *</UL>
- * The "CE" and "VE" layout parts are lists of Special Edges on the board.  During game play, these
- * edges may change.  The server announces each change with a
- * {@link SOCSimpleAction}({@link SOCSimpleAction#BOARD_EDGE_SET_SPECIAL BOARD_EDGE_SET_SPECIAL}) message.
- * If you add a layout part which is a Special Edge type, be sure to update
- * {@link SOCBoardLarge#SPECIAL_EDGE_LAYOUT_PARTS} and {@link SOCBoardLarge#SPECIAL_EDGE_TYPES .SPECIAL_EDGE_TYPES}
- * so players joining during the game will get updated Special Edge data.
+ *<H4>Other Layout Parts:</H4>
+ * A few game scenarios in jsettlers v2.0.00 and newer may add other parts; call {@link #getAddedParts()} for them
+ * at the client. See {@link SOCBoardLarge#getAddedLayoutPart(String)} for the list of <B>all Layout Parts</B>.
  *<P>
- * <H4>Board layout parts by board encoding version:</H4>
+ * <H4>Board Layout Parts by board encoding version:</H4>
  *<UL>
  *<LI> v1: HL, NL, RH
  *<LI> v2: HL, NL, RH, maybe PL
@@ -342,6 +311,9 @@ public class SOCBoardLayout2 extends SOCMessage
     }
 
     /**
+     * Get all the generic Added Layout Parts, which won't each need special method calls to
+     * add them to a {@link SOCBoardLarge}.
+     *<P>
      * Some game scenarios may add other layout part keys and int[] values.
      * For example, scenario {@link SOCScenario#K_SC_PIRI SC_PIRI} adds
      * <tt>"PP" = { 0x..., 0x... }</tt> for the fixed Pirate Path.
@@ -351,8 +323,8 @@ public class SOCBoardLayout2 extends SOCMessage
      * The returned keys of those parts will be none of the ones in the "typical parts of the board layout"
      * listed in this class javadoc, unlike {@link SOCBoardLarge#getAddedLayoutParts()} which includes any key
      * added by the options or scenario.  The difference is that the client calls
-     * {@link SOCBoardLarge#setAddedLayoutParts(HashMap)} once for all the parts returned here.  For the keys
-     * listed in the class javadoc, such as {@code "CV"}, the client calls part-specific methods such as
+     * {@link SOCBoardLarge#setAddedLayoutParts(HashMap)} once for all the parts returned here.  For the other keys
+     * listed in the class javadoc, such as {@code "CV"}, the client instead calls part-specific methods such as
      * {@link SOCBoardLarge#setVillageAndClothLayout(int[])} to set up the board when the server sends its layout.
      * @return  Other added parts' keys and values, or null if none
      * @since 2.0.00

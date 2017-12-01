@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -68,12 +68,17 @@ import soc.util.IntPair;
  * Ship pieces extend the {@link SOCRoad} class; road-related getters/setters will work on them,
  * but check {@link SOCRoad#isRoadNotShip()} to differentiate.
  * You cannot place both a road and a ship on the same coastal edge coordinate.
+ *
+ *<H4> Layout Parts: </H4>
+ * Some parts of the layout are stored and sent as int parameters or lists of ints.
+ * Each part has a key name like {@code "LH"} or {@code "RH"}. See
+ * {@link #getAddedLayoutParts()} for more explanation.
  *<P>
  * Some scenarios may add other "layout parts" related to their scenario board layout.
  * For example, scenario {@code _SC_PIRI} adds {@code "PP"} for the path the pirate fleet follows.
- * See {@link #getAddedLayoutPart(String)}, {@link #setAddedLayoutPart(String, int[])}.
- * The layout part keys are documented at {@link soc.message.SOCBoardLayout2}.
- *<P>
+ * Call {@link #getAddedLayoutPart(String)} to get one of these Added Layout Parts when needed.
+ * That method's javadoc also documents the list of <B>all known Layout Parts</B>.
+ *
  * <h4> Geometry/Navigation methods: </h4>
  *<br><table border=1>
  *<TR><td>&nbsp;</td><td colspan=3>Adjacent to a:</td></TR>
@@ -770,8 +775,7 @@ public class SOCBoardLarge extends SOCBoard
      * For scenarios, if Added Layout Part {@code "AL"} is present, checks it for
      * references to node lists (Parts {@code "N1", "N2"}, etc) and if found, adds their
      * edges now so that initial settlements' roads can be built towards those nodes.
-     * For more info see the "Other layout parts" section of the javadoc for message
-     * {@link soc.message.SOCBoardLayout2}.
+     * For more info see the "Added Layout Parts" section of {@link #getAddedLayoutPart(String)}'s javadoc.
      *<P>
      * Called at server and at client. At server, call this only after the very last call to
      * {@code SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int, boolean)}.
@@ -1116,7 +1120,7 @@ public class SOCBoardLarge extends SOCBoard
      * A few such as {@code "PP"}, {@code "LS"}, and {@code "N1"}-{@code "N3"} just call {@link #getAddedLayoutPart(String)}.
      *<P>
      * Please treat the returned value as read-only.
-     * The layout part keys are documented at {@link soc.message.SOCBoardLayout2}.
+     * The layout parts and their keynames are documented at {@link #getAddedLayoutPart(String)}.
      *<P>
      * Added during {@code SOCBoardLargeAtServer.makeNewBoard}
      * or {@code SOCBoardLargeAtServer.startGame_putInitPieces}.
@@ -1135,10 +1139,73 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Get one "added layout part" by its key name.
-     * For more info, see class javadoc or {@link #getAddedLayoutParts()}.
-     * The layout part keys are documented at {@link soc.message.SOCBoardLayout2}.
+     * For more explanation, see {@link #getAddedLayoutParts()}.
+     *
+     *<H3>All Layout Parts:</H3>
+     *
+     * All known Layout Parts and their keynames are documented here.
+     *
+     *<H4>Typical parts of the board layout:</H4>
+     *
+     * Not all layouts or {@link #getBoardEncodingFormat()}s include all these parts.
+     *
+     *<UL>
+     *<LI> HL (board encoding v1 & v2 only): The hexes, from {@link SOCBoard#getHexLayout()}.<br>
+     *         Not sent if <tt>LH</tt> is sent.  See note below on value mapping.
+     *<LI> NL (encoding v1 & v2 only): The dice numbers, from {@link SOCBoard#getNumberLayout()}
+     *<LI> RH: The robber hex, from {@link SOCBoard#getRobberHex()}, if &gt; 0
+     *<LI> PL: The ports, from {@link SOCBoard#getPortsLayout()}
+     *<LI> PH: The pirate hex, from {@link #getPirateHex()}, if &gt; 0
+     *<LI> LH: The land hexes (encoding v3 only), from {@link #getLandHexLayout()}.<br>
+     *         These land hexes also may be logically grouped into several
+     *         "land areas" (groups of islands, or subsets of islands).  Those areas
+     *         are sent to the client using a {@code SOCPotentialSettlements} message.
+     *<LI> PX: Players are excluded from settling these land area numbers (usually none)
+     *<LI> RX: Robber is excluded from these land area numbers (usually none)
+     *</UL>
+     * These typical Layout Parts each use specific board methods to get or set them,
+     * instead of being returned from {@code getAddedLayoutPart(..)}.
+     *
+     *<H4>Added Layout Parts:</H4>
+     *
+     * A few game scenarios in jsettlers v2.0.00 and newer may add other parts,
+     * which use this method to get them by their keynames:
+     *<UL>
+     *<LI> AL: Added List numbers of nodes or edges, originally for {@code _SC_WOND}: After Initial Placement,
+     *         the lists referred here are added to all players' legal nodes / legal edges.
+     *         <UL>
+     *         <LI> Negative numbers (not implemented yet) in {@code AL} refer to layout parts
+     *              {@code E1} through {@code E9} for edges to add.
+     *         <LI> Positive numbers refer to parts {@code N1} through {@code N9} for nodes to add.
+     *              A positive number is always followed in {@code AL} by a Land Area Number, or 0, to add the nodes to.
+     *              For each added node, its edges to adjacent legal nodes will also be added if not already there.
+     *              If a layout part's set of nodes is used only during initial placement, and its contents should be
+     *              emptied after that, the Land Area Number will be negative here.
+     *         </UL>
+     *<LI> CV: Cloth Village layout, for {@code _SC_CLVI}, from {@link #getVillageAndClothLayout()};
+     *         at the client, call {@link #setVillageAndClothLayout(int[])} if this layout part is sent.
+     *<LI> CE: dev Card Edge, for {@code _SC_FTRI}; edge coordinates where ship placement gives a free development card.
+     *         As these are each claimed during game play, 0 replaces their coordinate in the layout part element.
+     *<LI> VE: Victory point Edge, for {@code _SC_FTRI}; edge coordinates where ship placement gives a special victory point.
+     *         As these are each claimed during game play, 0 replaces their coordinate in the layout part element.
+     *<LI> LS: Each player's lone additional Legal Settlement location, for {@code _SC_PIRI}: Node coordinates,
+     *         one per player number, for the player's lone build location on the way to the pirate fortress.
+     *<LI> PP: Pirate fleet Path, for {@code _SC_PIRI}; hex coordinates for {@link #movePirateHexAlongPath(int)}
+     *<LI> E1 through E9: Reserved but not implemented: Special edge lists.  Can be used for any purpose by the
+     *         scenario, and/or for additional legal edges (see layout part {@code "AL"}).
+     *<LI> N1 through N9: Special node lists, originally for {@code _SC_WOND}.  Can be used for any purpose by a
+     *         scenario, and/or for additional legal nodes (see layout part {@code "AL"}).
+     *</UL>
+     * The "CE" and "VE" layout parts are lists of Special Edges on the board.  During game play, these
+     * edges may change.  The server announces each change with a
+     * {@code SOCSimpleAction(BOARD_EDGE_SET_SPECIAL)} message.
+     * If you add a layout part which is a Special Edge type, be sure to update
+     * {@link #SPECIAL_EDGE_LAYOUT_PARTS} and {@link #SPECIAL_EDGE_TYPES}
+     * so players joining during the game will get updated Special Edge data.
+     *
      * @param key  Key name (short and uppercase)
      * @return  The added layout part, or null if none with that key
+     * @see #setAddedLayoutPart(String, int[])
      */
     public int[] getAddedLayoutPart(final String key)
     {
@@ -1184,7 +1251,7 @@ public class SOCBoardLarge extends SOCBoard
      * Set one "added layout part" by its key name.
      * Should be set only during {@code SOCBoardLargeAtServer.makeNewBoard}
      * or {@code SOCBoardLargeAtServer.startGame_putInitPieces}, not changed afterwards.
-     * Document the new {@code key} at {@link soc.message.SOCBoardLayout2}.
+     * Document the new {@code key} at {@link #getAddedLayoutPart(String)}.
      *<P>
      * If the layout part {@code key} is recognized here as a Special Edge Type
      * for {@link #getSpecialEdgeType(int)}, this method also adds them to the
@@ -2237,7 +2304,7 @@ public class SOCBoardLarge extends SOCBoard
      * placement. If any nodes have been removed from {@code lan[sla]} due to scenario rules, but will be valid
      * after initial placement, those nodes must be referenced in Added Layout Part {@code "AL"} for that to
      * automatically happen and for their adjacent edges to be part of the legal roads calculated here. For details
-     * see the "Other layout parts" section of the javadoc for message {@link soc.message.SOCBoardLayout2}.
+     * see {@code "AL"} in the "Added Layout Parts" section of {@link #getAddedLayoutPart(String)}'s javadoc.
      *<P>
      * Call this only after {@link #setLandHexLayout(int[])}.
      * After calling this method, you can get the new legal road set

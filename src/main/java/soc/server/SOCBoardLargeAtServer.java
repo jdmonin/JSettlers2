@@ -101,8 +101,7 @@ import soc.util.IntTriple;
  *<P>
  * Some scenarios may add other "layout parts" related to their scenario board layout.
  * For example, scenario {@code _SC_PIRI} adds {@code "PP"} for the path followed by the pirate fleet.
- * See {@link SOCBoardLarge#getAddedLayoutPart(String)}, {@link SOCBoardLarge#setAddedLayoutPart(String, int[])},
- * and the list of added parts documented at the {@link soc.message.SOCBoardLayout2} class javadoc.
+ * See the list of Added Layout Parts documented at {@link SOCBoardLarge#getAddedLayoutPart(String)}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -2252,8 +2251,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      *     Adds this node list number to Added Layout Part {@code "AL"} and calls
      *     {@link #setAddedLayoutPart(String, int[]) setAddedLayoutPart("N" + addNodeListNumber, nodeCoords)}
      *     to add a Layout Part such as {@code "N1"}, {@code "N2"}, etc.
-     *     For details see "AL" in the "Other layout parts" section of the
-     *     {@link soc.message.SOCBoardLayout2} message javadoc.
+     *     For details see "AL" in the "Added Layout Parts" section of
+     *     {@link SOCBoardLarge#getAddedLayoutPart(String)}'s javadoc.
      * @param emptyPartAfterInitPlace  If true, the Added Layout Part ({@code "N1"}, {@code "N2"}, etc) is used only
      *     during initial placement, and its contents should be emptied after that
      * @throws IllegalArgumentException if {@code landAreaNumber} &lt;= 0 or {@code addNodeListNumber} &lt; 0
