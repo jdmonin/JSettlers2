@@ -64,7 +64,7 @@ import soc.game.SOCScenario;    // for javadocs
  *<UL>
  *<LI> v1: HL, NL, RH
  *<LI> v2: HL, NL, RH, maybe PL
- *<LI> v3: LH, maybe PL, maybe RH, maybe PH, never HL or NL. <BR>
+ *<LI> v3: LH, maybe PL, maybe RH, maybe PH, maybe VS, never HL or NL. <BR>
  *         Sometimes (for game scenarios) one or more of: PX, RX, CE, CV, LS, PP, VE, AL, N1, N2, N3. <BR>
  *         LH is null before makeNewBoard is called.
  *</UL>

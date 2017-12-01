@@ -134,9 +134,13 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * Create a new Settlers of Catan Board, with the v3 encoding.
      * Called by {@link SOCBoardLargeAtServer.BoardFactoryAtServer#createBoard(Map, boolean, int)}
      * to get the right board size and layout based on game options and optional {@link SOCScenario}.
+     *<P>
      * The board will be empty (all hexes are water, no dice numbers on any hex).
      * The layout contents are set up later by calling {@link #makeNewBoard(Map)} when the game is about to begin,
      * see {@link SOCBoardLarge} class javadoc for how the layout is sent to clients.
+     *<P>
+     * If the board should have a Visual Shift at the client, this constructor does set Added Layout Part "VS";
+     * see {@link #getAddedLayoutPart(String)} javadoc for details on "VS".
      *
      * @param gameOpts  Game's options if any, otherwise null
      * @param maxPlayers Maximum players; must be 4 or 6
@@ -149,7 +153,10 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         throws IllegalArgumentException
     {
         super(gameOpts, maxPlayers, boardHeightWidth);
-        // Nothing special for now at server
+
+        int[] boardVS = getBoardShift(gameOpts);
+        if (boardVS != null)
+            setAddedLayoutPart("VS", boardVS);
     }
 
     // javadoc inherited from SOCBoardLarge.
@@ -240,6 +247,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
         // For scenario boards, use 3-player or 4-player or 6-player layout?
         // Always test maxPl for ==6 or < 4 ; actual value may be 6, 4, 3, or 2.
+        // Same maxPl initialization as in getBoardShift(opts).
         final int maxPl;
         if (maxPlayers == 6)
         {
@@ -274,6 +282,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         if (hasScenario4ISL)
         {
             // Four Islands (SC_4ISL)
+
             if (maxPl < 4)
             {
                 landAreasLegalNodes = new HashSet[5];
@@ -303,6 +312,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                 PORT_LOC_FACING_MAINLAND = FOUR_ISL_PORT_EDGE_FACING_6PL;
                 pirateHex = FOUR_ISL_PIRATE_HEX[2];
             }
+
             PORT_LOC_FACING_ISLANDS = null;
             PORTS_TYPES_ISLANDS = null;
         }
@@ -2414,6 +2424,80 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     }
 
     /**
+     * Given max players and scenario from {@code gameOpts},
+     * get this board's Visual Shift amount if any (layout part "VS").
+     * see {@link #getAddedLayoutPart(String)} javadoc for details on "VS".
+     * @param gameOpts  Game options, or null.
+     *     Looks for {@code "PL"} for max players and {@code "SC"} for scenario name key.
+     * @return array with vsDown, vsRight, or {@code null}
+     */
+    private static int[] getBoardShift
+        (final Map<String, SOCGameOption> gameOpts)
+    {
+        SOCGameOption opt;
+
+        // Use 3-player or 4-player or 6-player layout?
+        // Always test maxPl for ==6 or < 4 ; actual value may be 6, 4, 3, or 2.
+        // Same maxPl initialization as in makeNewBoard(opts).
+        final int maxPl;
+        opt = (gameOpts != null ? gameOpts.get("PL") : null);
+        if (opt == null)
+            maxPl = 4;
+        else if (opt.getIntValue() > 4)
+            maxPl = 6;
+        else
+            maxPl = opt.getIntValue();
+
+        final String scen;  // scenario key, such as SOCScenario.K_SC_4ISL, or empty string
+        opt = (gameOpts != null ? gameOpts.get("SC") : null);
+        if (opt != null)
+        {
+            final String ostr = opt.getStringValue();
+            scen = (ostr != null) ? ostr : "";
+        } else {
+            scen = "";
+        }
+
+        // when 1 choice (same VS for all player count): return it directly.
+        // otherwise set boardVS and choose below based on maxPl.
+
+        int[][] boardVS = null;
+
+        if (scen.length() == 0)
+            boardVS = FALLBACK_VIS_SHIFT;
+        else if (scen.equals(SOCScenario.K_SC_NSHO))
+            boardVS = NSHO_VIS_SHIFT;
+        else if (scen.equals(SOCScenario.K_SC_4ISL))
+            return FOUR_ISL_VIS_SHIFT;
+        else if (scen.equals(SOCScenario.K_SC_PIRI))
+            return PIR_ISL_VIS_SHIFT;
+        else if (scen.equals(SOCScenario.K_SC_TTD))
+            boardVS = TTDESERT_VIS_SHIFT;
+        else if (scen.equals(SOCScenario.K_SC_FTRI))
+            return FOR_TRI_VIS_SHIFT;
+        else if (scen.equals(SOCScenario.K_SC_CLVI))
+            return CLVI_VIS_SHIFT;
+        else if (scen.equals(SOCScenario.K_SC_WOND))
+            boardVS = WOND_VIS_SHIFT;
+        else if (gameOpts != null)
+        {
+            opt = gameOpts.get(SOCGameOption.K_SC_FOG);
+            if ((opt != null) && opt.getBoolValue())
+                boardVS = FOG_ISL_VIS_SHIFT;
+        }
+
+        if (boardVS == null)
+            return null;
+
+        final int idx =
+            (boardVS.length == 2)
+            ? ((maxPl > 4) ? 1 : 0)  // 6-player or 4-player board layout
+            : ((maxPl > 4) ? 2 : (maxPl > 3) ? 1 : 0);  // 6-player, 4, or 3-player board layout
+
+        return boardVS[idx];
+    }
+
+    /**
      * For scenario game option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
      * get the list of Legal Sea Edges arranged for the players not vacant.
      * Arranged in same player order as the Lone Settlement locations in Added Layout Part {@code "LS"}.
@@ -2539,6 +2623,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     // Sample Layout
     //
 
+
+    /** Fallback sea board layout: Visual Shift ("VS") */
+    private static final int FALLBACK_VIS_SHIFT[][] = { {3,0}, {3,3} };
 
     /**
      * Fallback board layout for 4 players: Main island's ports, clockwise from its northwest.
@@ -2800,6 +2887,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      */
     private static final int NSHO_BOARDSIZE[] = { 0x0E0E, 0x0E10, 0x0E14 };
 
+    /** New Shores: Visual Shift ("VS") */
+    private static final int NSHO_VIS_SHIFT[][] = { {0,3}, {0,3}, {2,0} };
+
     /**
      * New Shores: Starting pirate water hex coordinate for 3, 4, 6 players.
      * The 6-player layout starts with the pirate off the board.
@@ -2964,6 +3054,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     //   Has 3-player, 4-player, 6-player versions;
     //   FOG_ISL_LANDHEX_TYPE_FOG[] is shared between 3p and 4p.
     //
+
+    /** Fog Island: Visual Shift ("VS") */
+    private static final int FOG_ISL_VIS_SHIFT[][] = { {0,2}, {2,0}, {-2,0} };
 
     /**
      * Fog Island: Pirate ship's starting hex coordinate for 3,4,6 players.
@@ -3318,6 +3411,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     //   Has 3-player, 4-player, 6-player versions
     //
 
+    /** Four Islands: Visual Shift ("VS"), same for all player counts */
+    private static final int FOUR_ISL_VIS_SHIFT[] = {2, 0};
+
     /** Four Islands: Pirate ship's starting hex coordinate for 3,4,6 players */
     private static final int FOUR_ISL_PIRATE_HEX[] =
     {
@@ -3606,6 +3702,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     //   at a coordinate within PIR_ISL_INIT_PIECES.
     //
 
+    /** Pirate Islands: Visual Shift ("VS"), same for all player counts */
+    private static final int PIR_ISL_VIS_SHIFT[] = {2, 0};
+
     /**
      * Pirate Islands: Board size:
      * 4 players max row 0x10, max col 0x12.
@@ -3839,6 +3938,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * Through The Desert: Board size for 3, 4, 6 players: Each is 0xrrcc (max row, max col).
      */
     private static final int TTDESERT_BOARDSIZE[] = { 0x1010, 0x1012, 0x1016 };
+
+    /** Through The Desert: Visual Shift ("VS") */
+    private static final int TTDESERT_VIS_SHIFT[][] = { {0,6}, {0,3}, null };
 
     /**
      * Through The Desert: Starting pirate water hex coordinate for 3, 4, 6 players.
@@ -4125,6 +4227,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      */
     private static final int FOR_TRI_BOARDSIZE[] = { 0x0E11, 0x0E15 };
 
+    /** Forgotten Tribe: Visual Shift ("VS"), same for all player counts */
+    private static final int FOR_TRI_VIS_SHIFT[] = {2, -3};
+
     /**
      * Forgotten Tribe: Starting pirate water hex coordinate for 4, 6 players.
      */
@@ -4305,6 +4410,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      */
     private static final int CLVI_BOARDSIZE[] = { 0x0E10, 0x0E14 };
 
+    /** Cloth Villages: Visual Shift ("VS"), same for all player counts */
+    private static final int CLVI_VIS_SHIFT[] = {2, 0};
+
     /**
      * Cloth Villages: Starting pirate water hex coordinate for 4, 6 players.
      */
@@ -4473,6 +4581,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * 6 players max row 0x10, max col 0x14 (incl ports' hexes).
      */
     private static final int WOND_BOARDSIZE[] = { 0x0E12, 0x1014 };
+
+    /** Wonders: Visual Shift ("VS") */
+    private static final int WOND_VIS_SHIFT[][] = { {3,-1}, {-2,-1} };
 
     /**
      * Wonders: Land hex types for the main island, excluding the desert. Shuffled.
