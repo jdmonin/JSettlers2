@@ -139,7 +139,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * The layout contents are set up later by calling {@link #makeNewBoard(Map)} when the game is about to begin,
      * see {@link SOCBoardLarge} class javadoc for how the layout is sent to clients.
      *<P>
-     * If the board should have a Visual Shift at the client, this constructor does set Added Layout Part "VS";
+     * If the board should have a Visual Shift at the client, this constructor sets Added Layout Part "VS";
      * see {@link #getAddedLayoutPart(String)} javadoc for details on "VS".
      *
      * @param gameOpts  Game's options if any, otherwise null
@@ -2494,7 +2494,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             ? ((maxPl > 4) ? 1 : 0)  // 6-player or 4-player board layout
             : ((maxPl > 4) ? 2 : (maxPl > 3) ? 1 : 0);  // 6-player, 4, or 3-player board layout
 
-        return boardVS[idx];
+        return boardVS[idx];  // may return null
     }
 
     /**
@@ -2625,7 +2625,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
 
     /** Fallback sea board layout: Visual Shift ("VS") */
-    private static final int FALLBACK_VIS_SHIFT[][] = { {3,0}, {3,3} };
+    private static final int FALLBACK_VIS_SHIFT[][] = { {3,0}, {2,3} };
 
     /**
      * Fallback board layout for 4 players: Main island's ports, clockwise from its northwest.
@@ -2888,7 +2888,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     private static final int NSHO_BOARDSIZE[] = { 0x0E0E, 0x0E10, 0x0E14 };
 
     /** New Shores: Visual Shift ("VS") */
-    private static final int NSHO_VIS_SHIFT[][] = { {0,3}, {0,3}, {2,0} };
+    private static final int NSHO_VIS_SHIFT[][] = { {-1,3}, {-1,3}, {2,0} };
 
     /**
      * New Shores: Starting pirate water hex coordinate for 3, 4, 6 players.
@@ -3056,7 +3056,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     //
 
     /** Fog Island: Visual Shift ("VS") */
-    private static final int FOG_ISL_VIS_SHIFT[][] = { {0,2}, {2,0}, {-2,0} };
+    private static final int FOG_ISL_VIS_SHIFT[][] = { {0,2}, {2,1}, {-2,1} };
 
     /**
      * Fog Island: Pirate ship's starting hex coordinate for 3,4,6 players.
@@ -3940,7 +3940,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     private static final int TTDESERT_BOARDSIZE[] = { 0x1010, 0x1012, 0x1016 };
 
     /** Through The Desert: Visual Shift ("VS") */
-    private static final int TTDESERT_VIS_SHIFT[][] = { {0,6}, {0,3}, null };
+    private static final int TTDESERT_VIS_SHIFT[][] = { {0,6}, {0,3}, {0,1} };
 
     /**
      * Through The Desert: Starting pirate water hex coordinate for 3, 4, 6 players.
@@ -4228,7 +4228,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     private static final int FOR_TRI_BOARDSIZE[] = { 0x0E11, 0x0E15 };
 
     /** Forgotten Tribe: Visual Shift ("VS"), same for all player counts */
-    private static final int FOR_TRI_VIS_SHIFT[] = {2, -3};
+    private static final int FOR_TRI_VIS_SHIFT[] = {2, -2};
 
     /**
      * Forgotten Tribe: Starting pirate water hex coordinate for 4, 6 players.
@@ -4583,7 +4583,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     private static final int WOND_BOARDSIZE[] = { 0x0E12, 0x1014 };
 
     /** Wonders: Visual Shift ("VS") */
-    private static final int WOND_VIS_SHIFT[][] = { {3,-1}, {-2,-1} };
+    private static final int WOND_VIS_SHIFT[][] = { {4,-1}, {-2,-1} };
 
     /**
      * Wonders: Land hex types for the main island, excluding the desert. Shuffled.
