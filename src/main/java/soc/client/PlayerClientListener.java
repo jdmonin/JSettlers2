@@ -259,7 +259,15 @@ public interface PlayerClientListener
      * @param names  Game member names; to see if each is a player, call {@link SOCGame#getPlayer(String)}.
      */
     void membersListed(List<String> names);
+
+    /** An entire board layout has been received from the server. */
     void boardLayoutUpdated();
+
+    /**
+     * Part of the board contents have been updated.
+     * For example, a fog hex was revealed, or a trade port
+     * was removed from or added to the board.
+     */
     void boardUpdated();
 
     /**
