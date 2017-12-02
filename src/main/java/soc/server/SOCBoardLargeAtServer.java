@@ -2413,11 +2413,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         if (heightWidth == 0)
         {
             // No recognized scenario, so use the fallback board.
-            // For 6 players, this has an extra row of hexes.
-            if (maxPlayers == 6)
-                heightWidth = ((BOARDHEIGHT_LARGE + 3) << 8) | BOARDWIDTH_LARGE;
-            else
-                heightWidth = (BOARDHEIGHT_LARGE << 8) | BOARDWIDTH_LARGE;
+            heightWidth = FALLBACK_BOARDSIZE[(maxPlayers == 6) ? 1 : 0];
         }
 
         return heightWidth;
@@ -2476,7 +2472,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         else if (scen.equals(SOCScenario.K_SC_FTRI))
             return FOR_TRI_VIS_SHIFT;
         else if (scen.equals(SOCScenario.K_SC_CLVI))
-            return CLVI_VIS_SHIFT;
+            boardVS = CLVI_VIS_SHIFT;
         else if (scen.equals(SOCScenario.K_SC_WOND))
             boardVS = WOND_VIS_SHIFT;
         else if (gameOpts != null)
@@ -2623,9 +2619,16 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     // Sample Layout
     //
 
+    /**
+     * Fallback sea board layout board size:
+     * 4 players max 0x11, 0x13.
+     * 6 players max 0x13, 0x13.
+     */
+    private static final int FALLBACK_BOARDSIZE[] = { 0x1113, 0x1313 };
+
 
     /** Fallback sea board layout: Visual Shift ("VS") */
-    private static final int FALLBACK_VIS_SHIFT[][] = { {3,0}, {2,3} };
+    private static final int FALLBACK_VIS_SHIFT[][] = { {3,1}, {2,3} };
 
     /**
      * Fallback board layout for 4 players: Main island's ports, clockwise from its northwest.
@@ -2888,7 +2891,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     private static final int NSHO_BOARDSIZE[] = { 0x0E0E, 0x0E10, 0x0E14 };
 
     /** New Shores: Visual Shift ("VS") */
-    private static final int NSHO_VIS_SHIFT[][] = { {-1,3}, {-1,3}, {2,0} };
+    private static final int NSHO_VIS_SHIFT[][] = { {-1,3}, {-1,2}, {2,0} };
 
     /**
      * New Shores: Starting pirate water hex coordinate for 3, 4, 6 players.
@@ -3056,7 +3059,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     //
 
     /** Fog Island: Visual Shift ("VS") */
-    private static final int FOG_ISL_VIS_SHIFT[][] = { {0,2}, {2,1}, {-2,1} };
+    private static final int FOG_ISL_VIS_SHIFT[][] = { {0,2}, {2,1}, {-2,2} };
 
     /**
      * Fog Island: Pirate ship's starting hex coordinate for 3,4,6 players.
@@ -3274,8 +3277,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     // 6-player
     //
 
-    /** Fog Island: Board size for 6 players: Max row 0x10, max col 0x14. */
-    private static final int FOG_ISL_BOARDSIZE_6PL = 0x1014;
+    /** Fog Island: Board size for 6 players: Max row 0x10, max col 0x15. */
+    private static final int FOG_ISL_BOARDSIZE_6PL = 0x1015;
 
     /**
      * Fog Island: Land hex types for the northern main island.
@@ -4406,12 +4409,12 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     /**
      * Cloth Villages: Board size:
      * 4 players max row 0x0E, max col 0x10.
-     * 6 players max row 0x0E, max col 0x14.
+     * 6 players max row 0x0E, max col 0x15.
      */
-    private static final int CLVI_BOARDSIZE[] = { 0x0E10, 0x0E14 };
+    private static final int CLVI_BOARDSIZE[] = { 0x0E10, 0x0E15 };
 
-    /** Cloth Villages: Visual Shift ("VS"), same for all player counts */
-    private static final int CLVI_VIS_SHIFT[] = {2, 0};
+    /** Cloth Villages: Visual Shift ("VS") */
+    private static final int CLVI_VIS_SHIFT[][] = {{2,-1}, {2,0}};
 
     /**
      * Cloth Villages: Starting pirate water hex coordinate for 4, 6 players.
