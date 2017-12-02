@@ -677,7 +677,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         };
 
     /**
-     * Minimum required width and height, as determined by options and {@link #isRotated}.
+     * Minimum required unscaled width and height, as determined by options and {@link #isRotated}.
      * Set in constructor based on board's {@link SOCBoardLarge#getBoardWidth()} and height
      * plus any positive Visual Shift margin ({@link #panelShiftBX}, {@link #panelShiftBY}),
      * or {@link #PANELX} and {@link #PANELY}.
@@ -761,17 +761,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * actual size on-screen, not internal-pixels size
      * ({@link #panelMinBW}, {@link #panelMinBH}).
-     * ?? TODO ?? does it incl panelMarginX ?? Includes any positive {@link #panelMarginX}/{@link #panelMarginY}
-     * from {@link #panelShiftBX}, {@link #panelShiftBY}.
+     * Includes any positive {@link #panelMarginX}/{@link #panelMarginY}
+     * from {@link #panelShiftBX}, {@link #panelShiftBY}. Updated in {@link #rescaleBoard(int, int, boolean)}
+     * when called with {@code changedMargins == true} from {@link #flushBoardLayoutAndRepaint()}.
      */
     protected int scaledPanelX, scaledPanelY;
 
     /**
      * <tt>panelMinBW</tt> and <tt>panelMinBH</tt> are the minimum width and height,
-     * in board-internal coordinates (not rotated or scaled). Based on board's
+     * in board-internal pixel coordinates (not rotated or scaled). Based on board's
      * {@link SOCBoard#getBoardWidth()} and {@link SOCBoard#getBoardHeight()}
      * plus any top or left margin from the Visual Shift layout part "VS":
-     * {@link #panelShiftBX}, {@link #panelShiftBY}.
+     * {@link #panelShiftBX}, {@link #panelShiftBY}. Updated in {@link #rescaleBoard(int, int, boolean)}
+     * when called with {@code changedMargins == true} from {@link #flushBoardLayoutAndRepaint()}.
      *<P>
      * Differs from static {@link #PANELX}, {@link #PANELY} for {@link #is6player 6-player board}
      * and the {@link #isLargeBoard large board}.
@@ -779,6 +781,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Differs from {@link #minSize} because minSize takes {@link #isRotated} into account,
      * so minSize isn't suitable for use in rescaling formulas.
      * @since 1.1.08
+     * @see #scaledPanelX
      */
     protected int panelMinBW, panelMinBH;
 
@@ -786,7 +789,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Margin size, in board-internal pixels (not rotated or scaled),
      * for the Visual Shift layout part ("VS") if any.
      * For actual-pixels size see {@link #panelMarginX}, {@link #panelMarginY}.
-     * The Visual Shift isn't known at panel construction, not until a few messages later when
+     * The board's Visual Shift is unknown at panel construction, but is learned a few messages later when
      * {@link #flushBoardLayoutAndRepaint()} is called because server has sent the Board Layout.
      * For more info on "VS" see the "Added Layout Parts" section of
      * {@link SOCBoardLarge#getAddedLayoutPart(String) BL.getAddedLayoutPart("VS")}'s javadoc.
@@ -2175,12 +2178,21 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Clear the board layout (as rendered in the empty-board buffer) and trigger a repaint.
-     * If needed, update margins and visual shift from Added Layout Part "VS".
+     *<P>
+     * If needed, update margins and visual shift from Added Layout Part {@code "VS"}.
+     * Doing so will call {@link #rescaleBoard(int, int, boolean)} and may change
+     * the board panel's minimum size and/or current size. Returns true if current size changes
+     * here: If so, caller must re-do layout of this panel within its container.
+     *
+     * @return  Null unless current {@link #getSize()} has changed from Visual Shift ({@code "VS"}).
+     *     If not null, the delta change (new - old) in this panel's width and height
      * @since 1.1.08
      * @see SOCPlayerInterface#updateAtNewBoard()
      */
-    public void flushBoardLayoutAndRepaint()
+    public Dimension flushBoardLayoutAndRepaint()
     {
+        Dimension ret = null;
+
         if (board instanceof SOCBoardLarge)
         {
             final int prevSBX = panelShiftBX, prevSBY = panelShiftBY;
@@ -2216,9 +2228,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             }
 
             if (changed)
-                rescaleBoard(scaledPanelX, scaledPanelY, true);
-                   // updates scaledPanelY, minSize, panelMarginX, etc
-                   // but TODO: rescaleBoard currently assumes minSize, panelMinBW can't change
+            {
+                final int w = scaledPanelX, h = scaledPanelY;
+                rescaleBoard(w, h, true);
+                   // Updates scaledPanelY, minSize, panelMarginX, etc.
+                   // If margins increased, also may have updated minSize, panelMinBW, scaledPanelY, etc.
+                if ((w != scaledPanelX) || (h != scaledPanelY))
+                {
+                    ret = new Dimension(scaledPanelX - w, scaledPanelY - h);
+                    super.setSize(scaledPanelX, scaledPanelY);
+                }
+            }
         }
 
         if (emptyBoardBuffer != null)
@@ -2231,7 +2251,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             scaledAt = System.currentTimeMillis();  // reset the image-scaling timeout
             scaledMissedImage = false;
         }
+
         repaint();
+
+        return ret;
     }
 
     /**
@@ -2268,12 +2291,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @param newW New width in pixels, no less than {@link #PANELX} (or if rotated, {@link #PANELY})
      * @param newH New height in pixels, no less than {@link #PANELY} (or if rotated, {@link #PANELX})
      * @param changedMargins  True if the server has sent a board layout which updated our values
-     *   for Visual Shift ("VS"): {@link #panelShiftBX}, {@link #panelShiftBY})
-     * @throws IllegalArgumentException if newW or newH is too small but not 0.
+     *   for Visual Shift ("VS"): {@link #panelShiftBX}, {@link #panelShiftBY}).
+     *   When true, caller should update those 2 fields and also {@link #panelMinBW} and {@link #panelMinBH},
+     *   but <B>not</B> update {@link #minSize} which will be updated here from {@code panelMin*}.
+     *   Caller should check {@link #scaledPanelX} and {@link #scaledPanelY} before and after
+     *   to see if the current size fields had to be changed. If so, caller must call
+     *   {@code super.setSize(scaledPanelX, scaledPanelY)} and otherwise ensure our container's layout stays consistent.
+     * @throws IllegalArgumentException if newW or newH is below {@link #minSize} but not 0.
      *   During initial layout, the layoutmanager may cause calls to rescaleBoard(0,0);
      *   such a call is ignored, no rescaling of graphics is done.
      */
-    private void rescaleBoard(final int newW, final int newH, final boolean changedMargins)
+    private void rescaleBoard(int newW, int newH, final boolean changedMargins)
         throws IllegalArgumentException
     {
         if ((newW == 0) || (newH == 0))
@@ -2281,7 +2309,31 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if ((newW < minSize.width) || (newH < minSize.height))
             throw new IllegalArgumentException("Below minimum size");
 
-        // TODO chk changedMargins vs minSize, scaledPanelX, scaledPanelY, from panelShiftBX, panelShiftBY
+        if (changedMargins)
+        {
+            int w = panelMinBW, h = panelMinBH;
+            if (isRotated)
+            {
+                int swap = w;
+                w = h;
+                h = swap;
+            }
+            if ((w != minSize.width) || (h != minSize.height))
+            {
+                minSize.width = w;
+                minSize.height = h;
+
+                // Change requested new size if required by larger changed margin.
+                // From javadoc the caller knows this might happen and will check for it.
+                if (newW < w)
+                    newW = w;
+                if (newH < h)
+                    newH = h;
+
+                // Other fields will be updated below as needed by calling scaleToActualX and scaleToActualY,
+                // which will use the new scaledPanelX/panelMinBW and scaledPanelY/panelMinBH ratios
+            }
+        }
 
         /**
          * Set vars
@@ -4328,7 +4380,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             // (r,c) are board coordinates.
             // (x,y) are pixel coordinates.
 
-            // Top border ("row -2"): Needed only when panelMarginY is 2 or more units
+            // Top border ("row -2"): Needed only when panelMarginY is 2 or more "VS" units (2/6 or more of row height)
             if (panelMarginY > (halfdeltaY / 2))
                 for (int x = -(deltaX * ((panelMarginX + deltaX - 1) / deltaX)) - halfdeltaX;
                      x < (scaledPanelX - panelMarginX);
