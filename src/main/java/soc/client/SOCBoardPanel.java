@@ -4328,6 +4328,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             // (r,c) are board coordinates.
             // (x,y) are pixel coordinates.
 
+            // Top border ("row -2"): Needed only when panelMarginY is 2 or more units
+            if (panelMarginY > (halfdeltaY / 2))
+                for (int x = -(deltaX * ((panelMarginX + deltaX - 1) / deltaX)) - halfdeltaX;
+                     x < (scaledPanelX - panelMarginX);
+                     x += deltaX)
+               {
+                   drawHex(g, x, -deltaY, SOCBoard.WATER_HEX, -1, -1);
+               }
+
             // Top border ("row -1"): Easier to draw it separately than deal with row coord -1 in main loop.
             // The initial x-coord formula aligns just enough water hexes to cover -panelMarginX.
             for (int x = -(deltaX * ((panelMarginX + deltaX - 1) / deltaX));
@@ -4379,7 +4388,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
 
                 // If board is narrower than panel, fill in with water
-                while (x < (panelMinBW - PANELPAD_LBOARD_RT))
+                int xmax = panelMinBW - PANELPAD_LBOARD_RT;
+                if (panelMarginX < 0)
+                    xmax -= panelMarginX;
+                while (x < xmax)
                 {
                     final int hexCoord = rshift | c;
                     drawHex(g, x, y, SOCBoard.WATER_HEX, -1, hexCoord);
