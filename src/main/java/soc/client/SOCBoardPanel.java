@@ -2191,6 +2191,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Doing so will call {@link #rescaleBoard(int, int, boolean)} and may change
      * the board panel's minimum size and/or current size. Returns true if current size changes
      * here: If so, caller must re-do layout of this panel within its container.
+     *<P>
+     * "VS" is part of the initial board layout from the server and its value won't change at
+     * start of the game. This method and {@code rescaleBoard} check for zero or changed margins because
+     * the board layout and margins are unknown (0) at SOCBoardPanel construction time.
      *
      * @return  Null unless current {@link #getSize()} has changed from Visual Shift ({@code "VS"}).
      *     If not null, the delta change (new - old) in this panel's width and height
@@ -2298,11 +2302,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *
      * @param newW New width in pixels, no less than {@link #PANELX} (or if rotated, {@link #PANELY})
      * @param newH New height in pixels, no less than {@link #PANELY} (or if rotated, {@link #PANELX})
-     * @param changedMargins  True if the server has sent a board layout which updated our values
-     *   for Visual Shift ("VS"): {@link #panelShiftBX}, {@link #panelShiftBY}).
-     *   When true, caller should update those 2 fields and also {@link #panelMinBW} and {@link #panelMinBH},
-     *   but <B>not</B> update {@link #minSize} which will be updated here from {@code panelMin*}.
-     *   Caller should check {@link #scaledPanelX} and {@link #scaledPanelY} before and after
+     * @param changedMargins  True if the server has sent a board layout which includes values
+     *   for Visual Shift ("VS"). When true, caller should update the {@link #panelShiftBX}, {@link #panelShiftBY},
+     *   {@link #panelMinBW}, and {@link #panelMinBH} fields before calling, but <B>not</B> update {@link #minSize}
+     *   which will be updated here from {@code panelMinBW}, {@code panelMinBH}.
+     *   <P>
+     *   Before and after calling, caller should check {@link #scaledPanelX} and {@link #scaledPanelY}
      *   to see if the current size fields had to be changed. If so, caller must call
      *   {@code super.setSize(scaledPanelX, scaledPanelY)} and otherwise ensure our container's layout stays consistent.
      * @throws IllegalArgumentException if newW or newH is below {@link #minSize} but not 0.
