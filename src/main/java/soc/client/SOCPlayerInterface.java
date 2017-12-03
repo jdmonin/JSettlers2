@@ -3024,6 +3024,7 @@ public class SOCPlayerInterface extends Frame
                 bh = boardPanel.getHeight();
                 hw = (dim.width - bw - 16) / 2;
                 tah = dim.height - bh - buildph - tfh - 16;
+                boardPanel.setLocation(i.left + hw + 8, i.top + tfh + tah + 8);
             }
         }
         boardIsScaled = canScaleBoard;  // set field, now that we know if it works
