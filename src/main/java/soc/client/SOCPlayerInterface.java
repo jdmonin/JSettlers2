@@ -3866,7 +3866,7 @@ public class SOCPlayerInterface extends Frame
                 break;
 
             case SOCSimpleAction.BOARD_EDGE_SET_SPECIAL:
-                boardLayoutUpdated();
+                boardUpdated();
                 break;
 
             case SOCSimpleAction.TRADE_PORT_REMOVED:
