@@ -178,12 +178,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private static final int BOARDHEIGHT_VISUAL_MIN = 17;
 
-    /**
-     * When {@link #isLargeBoard}, padding on right-hand side, in internal coordinates (like {@link #panelMinBW}).
-     * @since 2.0.00
-     */
-    private static final int PANELPAD_LBOARD_RT = 3;
-
     /** How many pixels to drop for each row of hexes. @see #HEXHEIGHT */
     private static final int deltaY = 46;
 
@@ -652,6 +646,20 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final int HALF_HEXHEIGHT = 32;
 
     /**
+     * When {@link #isLargeBoard}, padding on right-hand side so pieces there are visible,
+     * in internal coordinates (like {@link #panelMinBW}).
+     * @since 2.0.00
+     */
+    private static final int PANELPAD_LBOARD_RT = HALF_HEXHEIGHT;
+
+    /**
+     * When {@link #isLargeBoard}, padding on bottom side so pieces there are visible,
+     * in internal coordinates (like {@link #panelMinBH}).
+     * @since 2.0.00
+     */
+    private static final int PANELPAD_LBOARD_BTM = HEXWIDTH / 4;
+
+    /**
      * Diameter and font size (unscaled internal-pixels) for dice number circles on hexes.
      * @since 1.1.08
      */
@@ -877,7 +885,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *<UL>
      *<LI> 0: Legal roads - yellow parallel lines
      *<LI> 1: Legal settlements - yellow squares
-     *<LI> 2: N/A - Legal cities; no set for that
+     *<LI> 2: Board boundaries - yellow rectangle (Legal cities has no set)
      *<LI> 3: Legal ships - yellow diamonds
      *<LI> 4: Potential roads - green parallel lines
      *<LI> 5: Potential settlements - green squares
@@ -1460,7 +1468,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (bw < BOARDWIDTH_VISUAL_MIN)
                     bw = BOARDWIDTH_VISUAL_MIN;
                 scaledPanelX = halfdeltaX * bw + PANELPAD_LBOARD_RT;
-                scaledPanelY = halfdeltaY * bh + 18;
+                scaledPanelY = halfdeltaY * bh + PANELPAD_LBOARD_BTM + HEXY_OFF_SLOPE_HEIGHT;
                 // Any panelShiftBX, panelShiftBY won't be known until later when the
                 // layout is generated and sent to us, so keep them 0 for now and
                 // check later in flushBoardLayoutAndRepaint().
@@ -4733,6 +4741,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     drawBoardEmpty_drawDebugShowPotentialRoad
                         (g, x, y, r, c, edgeIsVert, Color.GREEN, 6);
             }
+        }
+
+        if (debugShowPotentials[2])
+        {
+            int bh = board.getBoardHeight();
+            int w = halfdeltaX * bw,
+                h = halfdeltaY * bh + HEXY_OFF_SLOPE_HEIGHT;
+            g.setColor(Color.YELLOW);
+            g.drawRect(0, halfdeltaY, w, h);
+            g.drawRect(1, halfdeltaY + 1, w - 2, h - 2);
         }
     }
 
