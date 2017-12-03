@@ -1196,9 +1196,9 @@ public class SOCBoardLarge extends SOCBoard
      *<LI> N1 through N9: Special node lists, originally for {@code _SC_WOND}.  Can be used for any purpose by a
      *         scenario, and/or for additional legal nodes (see layout part {@code "AL"}).
      *<LI> VS: Visual Shift rightwards and/or downwards to use when rendering the board at the client.
-     *         Right and Down are positive, Up and Left are negative. Unit is 1/6 of hex size. For example,
+     *         Right and Down are positive, Up and Left are negative. Unit is 1/4 of hex size. For example,
      *         a Visual Shift of {Down 2, Right 3} would have {@code SOCBoardPanel} render a "margin" of
-     *         water of size 2/6 of a hex above, and 3/6 of a hex to the left of, the board's in-game boundary.
+     *         water of size 2/4 of a hex above, and 3/4 of a hex to the left of, the board's in-game boundary.
      *         The client should show the board's entire {@link #getBoardHeight()} and {@link #getBoardWidth()}
      *         plus this margin.
      *</UL>

@@ -2371,10 +2371,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             }
             else if (sc.equals(SOCScenario.K_SC_FOG))
             {
-                if (maxPlayers == 6)
-                    heightWidth = FOG_ISL_BOARDSIZE_6PL;
-                else
-                    heightWidth = FOG_ISL_BOARDSIZE_4PL;
+                heightWidth = FOG_ISL_BOARDSIZE[(maxPlayers == 6) ? 1 : 0];  // 3, 4-player boards have same board size
             }
             else if (sc.equals(SOCScenario.K_SC_TTD))
             {
@@ -2387,10 +2384,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             }
             else if (sc.equals(SOCScenario.K_SC_PIRI))
             {
-                if (maxPlayers == 6)
-                    heightWidth = PIR_ISL_BOARDSIZE[1];
-                else
-                    heightWidth = PIR_ISL_BOARDSIZE[0];
+                heightWidth = PIR_ISL_BOARDSIZE[(maxPlayers == 6) ? 1 : 0];
             }
             else if (sc.equals(SOCScenario.K_SC_FTRI))
             {
@@ -2422,7 +2416,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     /**
      * Given max players and scenario from {@code gameOpts},
      * get this board's Visual Shift amount if any (layout part "VS").
-     * see {@link #getAddedLayoutPart(String)} javadoc for details on "VS".
+     * See {@link #getAddedLayoutPart(String)} javadoc for details on "VS".
      * @param gameOpts  Game options, or null.
      *     Looks for {@code "PL"} for max players and {@code "SC"} for scenario name key.
      * @return array with vsDown, vsRight, or {@code null}
@@ -2470,7 +2464,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         else if (scen.equals(SOCScenario.K_SC_TTD))
             boardVS = TTDESERT_VIS_SHIFT;
         else if (scen.equals(SOCScenario.K_SC_FTRI))
-            return FOR_TRI_VIS_SHIFT;
+            boardVS = FOR_TRI_VIS_SHIFT;
         else if (scen.equals(SOCScenario.K_SC_CLVI))
             boardVS = CLVI_VIS_SHIFT;
         else if (scen.equals(SOCScenario.K_SC_WOND))
@@ -2628,7 +2622,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
 
     /** Fallback sea board layout: Visual Shift ("VS") */
-    private static final int FALLBACK_VIS_SHIFT[][] = { {3,1}, {2,3} };
+    private static final int FALLBACK_VIS_SHIFT[][] = { {2,1}, {2,2} };
 
     /**
      * Fallback board layout for 4 players: Main island's ports, clockwise from its northwest.
@@ -2891,7 +2885,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     private static final int NSHO_BOARDSIZE[] = { 0x0E0E, 0x0E10, 0x0E14 };
 
     /** New Shores: Visual Shift ("VS") */
-    private static final int NSHO_VIS_SHIFT[][] = { {-1,3}, {-1,2}, {2,0} };
+    private static final int NSHO_VIS_SHIFT[][] = { {0,3}, {0,1}, {3,0} };
 
     /**
      * New Shores: Starting pirate water hex coordinate for 3, 4, 6 players.
@@ -3058,8 +3052,15 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     //   FOG_ISL_LANDHEX_TYPE_FOG[] is shared between 3p and 4p.
     //
 
+    /**
+     * Fog Island: Board size:
+     * 3 or 4 players max row 0x10, max col 0x11.
+     * 6 players max row 0x10, max col 0x14.
+     */
+    private static final int FOG_ISL_BOARDSIZE[] = { 0x1011, 0x1014 };
+
     /** Fog Island: Visual Shift ("VS") */
-    private static final int FOG_ISL_VIS_SHIFT[][] = { {0,2}, {2,1}, {-2,2} };
+    private static final int FOG_ISL_VIS_SHIFT[][] = { {0,2}, {2,1}, {-1,0} };
 
     /**
      * Fog Island: Pirate ship's starting hex coordinate for 3,4,6 players.
@@ -3180,9 +3181,6 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     // 4-player
     //
 
-    /** Fog Island: Board size for 4 players: Max row 0x10, max col 0x11. */
-    private static final int FOG_ISL_BOARDSIZE_4PL = 0x1011;
-
     /**
      * Fog Island: Land hex types for the large southwest and northeast islands.
      */
@@ -3276,9 +3274,6 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     //
     // 6-player
     //
-
-    /** Fog Island: Board size for 6 players: Max row 0x10, max col 0x15. */
-    private static final int FOG_ISL_BOARDSIZE_6PL = 0x1015;
 
     /**
      * Fog Island: Land hex types for the northern main island.
@@ -3706,7 +3701,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     //
 
     /** Pirate Islands: Visual Shift ("VS"), same for all player counts */
-    private static final int PIR_ISL_VIS_SHIFT[] = {2, 0};
+    private static final int PIR_ISL_VIS_SHIFT[] = {3, -1};
 
     /**
      * Pirate Islands: Board size:
@@ -3943,7 +3938,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     private static final int TTDESERT_BOARDSIZE[] = { 0x1010, 0x1012, 0x1016 };
 
     /** Through The Desert: Visual Shift ("VS") */
-    private static final int TTDESERT_VIS_SHIFT[][] = { {0,6}, {0,3}, {0,1} };
+    private static final int TTDESERT_VIS_SHIFT[][] = { {0,5}, {0,2}, {0,1} };
 
     /**
      * Through The Desert: Starting pirate water hex coordinate for 3, 4, 6 players.
@@ -4230,8 +4225,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      */
     private static final int FOR_TRI_BOARDSIZE[] = { 0x0E11, 0x0E15 };
 
-    /** Forgotten Tribe: Visual Shift ("VS"), same for all player counts */
-    private static final int FOR_TRI_VIS_SHIFT[] = {2, -2};
+    /** Forgotten Tribe: Visual Shift ("VS") */
+    private static final int FOR_TRI_VIS_SHIFT[][] = { {2,-2}, {2,-1} };
 
     /**
      * Forgotten Tribe: Starting pirate water hex coordinate for 4, 6 players.
@@ -4586,7 +4581,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     private static final int WOND_BOARDSIZE[] = { 0x0E12, 0x1014 };
 
     /** Wonders: Visual Shift ("VS") */
-    private static final int WOND_VIS_SHIFT[][] = { {4,-1}, {-2,-1} };
+    private static final int WOND_VIS_SHIFT[][] = { {4,-1}, {-1,-1} };
 
     /**
      * Wonders: Land hex types for the main island, excluding the desert. Shuffled.
