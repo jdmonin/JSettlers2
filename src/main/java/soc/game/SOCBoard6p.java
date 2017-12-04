@@ -39,7 +39,13 @@ public abstract class SOCBoard6p extends SOCBoard
      * Board size for constructors at server.
      * @since 3.0.00
      */
-    public static final int BOARDHEIGHT_6PL = 0x13, BOARDWIDTH_6PL = 0x11;
+    public static final int BOARDHEIGHT_6PL = 0x10, BOARDWIDTH_6PL = 0x0e;
+
+    /**
+     * Layout's Visual Shift (Added Layout Part "VS") for constructors at server.
+     * @since 3.0.00
+     */
+    public static final int CLASSIC_VIS_SHIFT_6PL[] = {4, 3};
 
     /**
      * Land-hex coordinates in 6-player board ({@link #BOARD_ENCODING_6PLAYER}).

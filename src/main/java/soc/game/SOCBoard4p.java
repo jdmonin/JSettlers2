@@ -38,7 +38,13 @@ public abstract class SOCBoard4p extends SOCBoard
      * Board size for constructors at server.
      * @since 3.0.00
      */
-    public static final int BOARDHEIGHT_4PL = 0x0e, BOARDWIDTH_4PL = 0x0d;
+    public static final int BOARDHEIGHT_4PL = 0x0c, BOARDWIDTH_4PL = 0x0d;
+
+    /**
+     * Layout's Visual Shift (Added Layout Part "VS") for constructors at server.
+     * @since 3.0.00
+     */
+    public static final int CLASSIC_VIS_SHIFT_4PL[] = {3, 0};
 
     /**
      * Land-hex coordinates in standard board ({@link #BOARD_ENCODING_ORIGINAL}).

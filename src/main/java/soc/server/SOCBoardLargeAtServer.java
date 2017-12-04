@@ -2487,7 +2487,12 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         int[][] boardVS = null;
 
         if (scen.length() == 0)
-            boardVS = FALLBACK_VIS_SHIFT;
+        {
+            if (SOCGame.isGameOptionSet(gameOpts, "SBL"))
+                boardVS = FALLBACK_VIS_SHIFT;
+            else
+                return (maxPl > 4) ? SOCBoard6p.CLASSIC_VIS_SHIFT_6PL : SOCBoard4p.CLASSIC_VIS_SHIFT_4PL;
+        }
         else if (scen.equals(SOCScenario.K_SC_NSHO))
             boardVS = NSHO_VIS_SHIFT;
         else if (scen.equals(SOCScenario.K_SC_4ISL))
