@@ -2357,15 +2357,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         isScaledOrRotated = (isScaled || isRotated);
         if (isRotated)
         {
-            panelMarginX = 0;
+            panelMarginX = - scaleToActualX(panelShiftBY);
+            panelMarginY = scaleToActualY(panelShiftBX);
         } else {
             final int hexesWidth = halfdeltaX * board.getBoardWidth();
             panelMarginX = scaleToActualX(panelMinBW - hexesWidth) / 2;  // take half, to center
             if (panelMarginX < (halfdeltaX / 2))  // also if negative (larger than panelMinBW)
                 panelMarginX = 0;
+            panelMarginX += scaleToActualX(panelShiftBX);
+            panelMarginY = scaleToActualY(panelShiftBY);
         }
-        panelMarginX += scaleToActualX(panelShiftBX);
-        panelMarginY = scaleToActualY(panelShiftBY);
 
         /**
          * Off-screen buffer is now the wrong size.
@@ -4757,6 +4758,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             int bh = board.getBoardHeight();
             int w = scaleToActualX(halfdeltaX * bw),
                 h = scaleToActualY(halfdeltaY * bh + HEXY_OFF_SLOPE_HEIGHT);
+            if (isRotated)
+            {
+                int tmpSwap = w;
+                w = h;
+                h = tmpSwap;
+            }
             g.setColor(Color.YELLOW);
             g.drawRect(0, halfdeltaY, w, h);
             g.drawRect(1, halfdeltaY + 1, w - 2, h - 2);
