@@ -43,7 +43,9 @@ import java.awt.event.WindowListener;
 /**
  * This class is a panel that shows how much it costs
  * to build things, and it allows the player to build.
- * Sits within a game's {@link SOCPlayerInterface} frame.
+ * Sits within a game's {@link SOCPlayerInterface} frame,
+ * which also sets the building panel's size based on
+ * the frame's width and this panel's {@link #MINHEIGHT}.
  * @see NewGameOptionsFrame
  * @see GameStatisticsFrame
  */

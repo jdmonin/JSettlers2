@@ -190,6 +190,7 @@ These debug commands are used at the client to help show the board's status:
   red shows "on land". To show only some piece types' legals and potentials, 
   instead of 'all' use an index number from the
   `SOCBoardPanel.debugShowPotentials` javadoc.
+  The board boundary is shown for index 2.
 
 If you want the robots to play a few games without any humans, set this
 property on the command line when starting the server:

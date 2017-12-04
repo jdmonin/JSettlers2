@@ -856,6 +856,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * maxPlayers is 4 for the standard game,
      * or 6 if this game is on the 6-player board, with corresponding rules.
+     * The value of game option {@code "PL"} may be 2, 3, 4, 5, or 6, but
+     * the {@code maxPlayers} field will be 4 or 6.
      *<P>
      * The 6-player extensions are orthogonal to other board type/expansion flags such as {@link #hasSeaBoard};
      * one doesn't imply or exclude the other.

@@ -161,17 +161,19 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Minimum frame width calculated in constructor from this game's player count and board,
-     * based on {@link #WIDTH_MIN_4PL}.
+     * based on {@link #WIDTH_MIN_4PL}. Updated only in {@link #updateAtNewBoard()} if board layout part
+     * Visual Shift ("VS") increases {@link #boardPanel}'s size.
      * @since 1.2.00
      */
-    private final int width_base;
+    private int width_base;
 
     /**
      * Minimum frame height calculated in constructor from this game's player count and board,
-     * based on {@link #HEIGHT_MIN_4PL}.
+     * based on {@link #HEIGHT_MIN_4PL}. Updated only in {@link #updateAtNewBoard()} if board layout part
+     * Visual Shift ("VS") increases {@link #boardPanel}'s size.
      * @since 1.2.00
      */
-    private final int height_base;
+    private int height_base;
 
     /**
      * the board display
@@ -2335,16 +2337,25 @@ public class SOCPlayerInterface extends Frame
     /**
      * Update interface after the server sends us a new board layout.
      * Call after setting game data and board data.
-     * Calls {@link SOCBoardPanel#flushBoardLayoutAndRepaint()}.
+     * Calls {@link SOCBoardPanel#flushBoardLayoutAndRepaint()}, which
+     * may change its minimum size if board has Layout Part "VS".
      * Updates display of board-related counters, such as {@link soc.game.SOCBoardLarge#getCloth()}.
      * Not needed if calling {@link #resetBoard(SOCGame, int, int)}.
      * @since 2.0.00
      */
     public void updateAtNewBoard()
     {
-        boardPanel.flushBoardLayoutAndRepaint();
+        Dimension sizeChange = boardPanel.flushBoardLayoutAndRepaint();
         if (game.isGameOptionSet(SOCGameOption.K_SC_CLVI))
             buildingPanel.updateClothCount();
+        if (sizeChange != null)
+        {
+            final int dw = sizeChange.width, dh = sizeChange.height;
+            width_base += dw;
+            height_base += dh;
+            invalidate();
+            setSize(getWidth() + dw, getHeight() + dh);
+        }
     }
 
     /**
@@ -3013,6 +3024,7 @@ public class SOCPlayerInterface extends Frame
                 bh = boardPanel.getHeight();
                 hw = (dim.width - bw - 16) / 2;
                 tah = dim.height - bh - buildph - tfh - 16;
+                boardPanel.setLocation(i.left + hw + 8, i.top + tfh + tah + 8);
             }
         }
         boardIsScaled = canScaleBoard;  // set field, now that we know if it works
@@ -3854,7 +3866,7 @@ public class SOCPlayerInterface extends Frame
                 break;
 
             case SOCSimpleAction.BOARD_EDGE_SET_SPECIAL:
-                boardLayoutUpdated();
+                boardUpdated();
                 break;
 
             case SOCSimpleAction.TRADE_PORT_REMOVED:

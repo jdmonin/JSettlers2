@@ -77,8 +77,10 @@ import java.util.Timer;
 /**
  * This is a component that can display a Settlers of Catan Board.
  * It can be used in an applet or an application.
- * It loads gifs from a directory named "images" in the same
- * directory as this class.
+ *
+ *<H3>Graphics:</H3>
+ * This panel loads its hex texture images and dice result numbers from a directory named {@code images}
+ * in the same directory as this class. Everything else is drawn as lines, circles, polygons, and text.
  *<P>
  * The main drawing methods are {@link #drawBoardEmpty(Graphics)} for hexes and ports,
  * and {@link #drawBoard(Graphics)} for placed pieces like settlements and the robber.
@@ -86,7 +88,8 @@ import java.util.Timer;
  * Since all areas outside the board boundaries are filled with
  * water hex tiles, this color is only a fallback; it's briefly visible
  * at window creation while the hexes are loading and rendering.
- *<P>
+ *
+ *<H3>Interaction:</H3>
  * When the mouse is over the game board, a tooltip shows information
  * such as a hex's resource, a piece's owner, a port's ratio, or the
  * number under the robber. See {@link #hoverTip}.
@@ -102,13 +105,16 @@ import java.util.Timer;
  *<P>
  * During game play, you can show a short 1-line message text in the
  * top-center part of the panel by calling {@link #setSuperimposedTopText(String)}.
- *<P>
+ *
+ *<H3>Scaling and rotation:</H3>
  * This panel's minimum width and height in pixels is {@link #getMinimumSize()}.
  * To set its size, call {@link #setSize(int, int)} or {@link #setBounds(int, int, int, int)};
  * these methods will set a flag to rescale board graphics if needed.
  * If the game has 6 players but not {@link SOCGame#hasSeaBoard}, the board is also
- * rotated 90 degrees clockwise.  Pixel coordinates can be transformed between
- * actual (scaled/rotated) and unscaled/un-rotated "internal" coordinates with
+ * rotated 90 degrees clockwise.
+ *<P>
+ * Pixel coordinates can be transformed between actual (scaled/rotated) and
+ * unscaled/un-rotated "internal" pixel coordinates with
  * {@link #scaleFromActualX(int)}, {@link #scaleFromActualY(int)},
  * {@link #scaleToActualX(int)}, {@link #scaleToActualY(int)}.
  *<P>
@@ -118,9 +124,10 @@ import java.util.Timer;
  *<H3>Sequence for loading, rendering, and drawing images:</H3>
  *<UL>
  *  <LI> Constructor calls {@link #loadImages(Component, boolean)} and {@link #rescaleCoordinateArrays()}
- *  <LI> Layout manager calls {@code setSize(..)} which calls {@link #rescaleBoard(int, int)}
- *  <LI> {@link #rescaleBoard(int, int)} scales hex images, calls
+ *  <LI> Layout manager calls {@code setSize(..)} which calls {@link #rescaleBoard(int, int, boolean)}.
+ *  <LI> {@link #rescaleBoard(int, int, boolean) rescaleBoard(..)} scales hex images, calls
  *       {@link #renderBorderedHex(Image, Image, Color)} and {@link #renderPortImages()}
+ *       into image buffers to use for redrawing the board
  *  <LI> {@link #paint(Graphics)} calls {@link #drawBoard(Graphics)}
  *  <LI> First call to {@code drawBoard(..)} calls {@link #drawBoardEmpty(Graphics)} which renders into a buffer image
  *  <LI> {@code drawBoard(..)} draws the placed pieces over the buffered board image from {@code drawBoardEmpty(..)}
@@ -171,12 +178,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private static final int BOARDHEIGHT_VISUAL_MIN = 17;
 
-    /**
-     * When {@link #isLargeBoard}, padding on right-hand side, in internal coordinates (like {@link #panelMinBW}).
-     * @since 2.0.00
-     */
-    private static final int PANELPAD_LBOARD_RT = 3;
-
     /** How many pixels to drop for each row of hexes. @see #HEXHEIGHT */
     private static final int deltaY = 46;
 
@@ -224,9 +225,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     };
 
     /**
-     * hex coordinates for drawing the standard board.
+     * hex coordinates for drawing the classic 4-player board.
      * Upper-left corner of each hex, left-to-right in each row.
-     * These were called hexX, hexY before 1.1.08.
+     * These were called {@link #hexX}, {@link #hexY} before 1.1.08.
      * @see #hexX_6pl
      */
     private static final int[] hexX_st =
@@ -467,7 +468,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Border colors for hex rendering.
      * Same indexes as {@link #hexes}.
-     * Used in {@link #rescaleBoard(int, int)} with mask {@code hexBorder.gif}.
+     * Used in {@link #rescaleBoard(int, int, boolean)} with mask {@code hexBorder.gif}.
      * @see #ROTAT_HEX_BORDER_COLORS
      * @since 1.1.20
      */
@@ -482,7 +483,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Border colors for hex rendering when {@link #isRotated}.
      * Same indexes as {@link #rotatHexes}.
-     * Used in {@link #rescaleBoard(int, int)} with mask {@code hexBorder.gif}.
+     * Used in {@link #rescaleBoard(int, int, boolean)} with mask {@code hexBorder.gif}.
      * @see #HEX_BORDER_COLORS
      * @since 1.1.20
      */
@@ -645,6 +646,20 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final int HALF_HEXHEIGHT = 32;
 
     /**
+     * When {@link #isLargeBoard}, padding on right-hand side so pieces there are visible,
+     * in internal coordinates (like {@link #panelMinBW}).
+     * @since 2.0.00
+     */
+    private static final int PANELPAD_LBOARD_RT = HALF_HEXHEIGHT;
+
+    /**
+     * When {@link #isLargeBoard}, padding on bottom side so pieces there are visible,
+     * in internal coordinates (like {@link #panelMinBH}).
+     * @since 2.0.00
+     */
+    private static final int PANELPAD_LBOARD_BTM = HEXWIDTH / 4;
+
+    /**
      * Diameter and font size (unscaled internal-pixels) for dice number circles on hexes.
      * @since 1.1.08
      */
@@ -670,11 +685,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         };
 
     /**
-     * Minimum required width and height, as determined by options and {@link #isRotated}.
-     * Set in constructor based on {@link #PANELX}, {@link #PANELY}.
+     * Minimum required unscaled width and height, as determined by options and {@link #isRotated}.
+     * Set in constructor based on board's {@link SOCBoardLarge#getBoardWidth()} and height
+     * plus any positive Visual Shift margin ({@link #panelShiftBX}, {@link #panelShiftBY}),
+     * or {@link #PANELX} and {@link #PANELY}.
      * Used by {@link #getMinimumSize()}.
      * @since 1.1.08
      * @see #panelMinBW
+     * @see #rescaleBoard(int, int, boolean)
      */
     private Dimension minSize;
 
@@ -685,7 +703,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private boolean hasCalledSetSize;
 
     /**
-     * The board is configured for 6-player layout (and is {@link #isRotated});
+     * The board is configured for classic 6-player layout (and is {@link #isRotated});
      * set in constructor by checking {@link SOCBoard#getBoardEncodingFormat()}
      * &lt;= {@link SOCBoard#BOARD_ENCODING_6PLAYER} and {@link SOCGame#maxPlayers} &gt; 4.
      *<P>
@@ -702,7 +720,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     protected boolean is6player;
 
     /**
-     * The board is configured Large-Board Format (up to 127x127, oriented like 4-player not 6-player);
+     * The board is configured Large-Board Format (up to 127x127, oriented like classic 4-player);
      * set in constructor by checking {@link SOCBoard#getBoardEncodingFormat()}.
      * The coordinate system is an arbitrary land/water mixture.
      *<P>
@@ -715,17 +733,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     protected final boolean isLargeBoard;
 
     /**
-     * The board is visually rotated 90 degrees clockwise (6-player: game opt PL > 4)
-     * compared to the internal coordinates.
+     * The board is visually rotated 90 degrees clockwise (classic 6-player: game opt PL > 4)
+     * compared to its internal pixel coordinates.
      *<P>
      * Use this for rotation:
      *<UL>
-     *<LI> From internal to screen (cw):  P'=({@link #panelMinBH}-y, x)
-     *<LI> From screen to internal (ccw): P'=(y, {@link #panelMinBW}-x)
+     * <LI> From internal to screen (cw):  R(x, y) = ({@link #panelMinBH} - y, x)
+     * <LI> From screen to internal (ccw): R(x, y) = (y, {@link #panelMinBW} - x)
      *</UL>
      * When the board is also {@link #isScaled scaled}, go in this order:
-     * Rotate clockwise, then scale up; Scale down, then rotate counterclockwise.
-     *<P>
+     *<UL>
+     * <LI> Rotate clockwise, scale up, then add ({@link #panelMarginX}, {@link #panelMarginY}).
+     * <LI> Subtract ({@link #panelMarginX}, {@link #panelMarginY}), scale down, then rotate counterclockwise.
+     *</UL>
      * When calculating position at which to draw an image or polygon,
      * remember that rotation changes which corner is considered (0,0),
      * and the image is offset from that corner.  (For example, {@link #drawHex(Graphics, int)}
@@ -740,42 +760,69 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Convenience flag - The board is {@link #isRotated rotated} and/or {@link #isScaled scaled up}.
-     * Check both of those flags when transforming between screen coordinates
-     * and internal coordinates.  Go in this order:
-     * Rotate clockwise, then scale up; Scale down, then rotate counterclockwise.
+     * Check both of those flags when transforming between screen coordinates and internal pixel coordinates.
+     * See {@link #isRotated} for order of rotation/scaling/margin translation.
      * @since 1.1.08
      */
     protected boolean isScaledOrRotated;
 
     /**
      * actual size on-screen, not internal-pixels size
-     * ({@link #panelMinBW}, {@link #panelMinBH})
+     * ({@link #panelMinBW}, {@link #panelMinBH}).
+     * Includes any positive {@link #panelMarginX}/{@link #panelMarginY}
+     * from {@link #panelShiftBX}, {@link #panelShiftBY}. Updated in {@link #rescaleBoard(int, int, boolean)}
+     * when called with {@code changedMargins == true} from {@link #flushBoardLayoutAndRepaint()}.
      */
     protected int scaledPanelX, scaledPanelY;
 
     /**
      * <tt>panelMinBW</tt> and <tt>panelMinBH</tt> are the minimum width and height,
-     * in board-internal coordinates (not rotated or scaled).
+     * in board-internal pixel coordinates (not rotated or scaled). Based on board's
+     * {@link SOCBoard#getBoardWidth()} and {@link SOCBoard#getBoardHeight()}
+     * plus any top or left margin from the Visual Shift layout part "VS":
+     * {@link #panelShiftBX}, {@link #panelShiftBY}. Updated in {@link #rescaleBoard(int, int, boolean)}
+     * when called with {@code changedMargins == true} from {@link #flushBoardLayoutAndRepaint()}.
+     *<P>
      * Differs from static {@link #PANELX}, {@link #PANELY} for {@link #is6player 6-player board}
      * and the {@link #isLargeBoard large board}.
+     *<P>
      * Differs from {@link #minSize} because minSize takes {@link #isRotated} into account,
      * so minSize isn't suitable for use in rescaling formulas.
      * @since 1.1.08
+     * @see #scaledPanelX
      */
-    protected final int panelMinBW, panelMinBH;
+    protected int panelMinBW, panelMinBH;
 
     /**
-     * Scaled (actual pixels) panel x-margin on left, for narrow boards, if board's unscaled
-     * width is less than {@link #panelMinBW}.
-     *<P>
-     * Used only when {@link #isLargeBoard} and not {@link #isRotated}, otherwise 0.
-     * Never less than 0. Updated in {@link #rescaleBoard(int, int)}.
+     * Margin size, in board-internal pixels (not rotated or scaled),
+     * for the Visual Shift layout part ("VS") if any.
+     * For actual-pixels size see {@link #panelMarginX}, {@link #panelMarginY}.
+     * The board's Visual Shift is unknown at panel construction, but is learned a few messages later when
+     * {@link #flushBoardLayoutAndRepaint()} is called because server has sent the Board Layout.
+     * For more info on "VS" see the "Added Layout Parts" section of
+     * {@link SOCBoardLarge#getAddedLayoutPart(String) BL.getAddedLayoutPart("VS")}'s javadoc.
      * @since 2.0.00
      */
-    protected int panelMarginX;
+    protected int panelShiftBX, panelShiftBY;
 
     /**
-     * The board is currently scaled larger than
+     * Scaled (actual pixels) panel x-margin on left and y-margin on top, for narrow boards
+     * if board's unscaled width is less than {@link #panelMinBW}. Includes any Visual Shift
+     * (Added Layout Part "VS") from {@link #panelShiftBX}, {@link #panelShiftBY}.
+     *<P>
+     * Methods like {@link #drawBoard(Graphics)} and {@link #drawBoardEmpty(Graphics)} will
+     * translate by {@code panelMarginX} before calling playing-piece methods like
+     * {@link #drawSettlement(Graphics, int, int, boolean, boolean)}, so those
+     * pieces' methods can ignore the {@code panelMarginX} value.
+     *<P>
+     * Used only when {@link #isLargeBoard} and not {@link #isRotated}, otherwise 0.
+     * Updated in {@link #rescaleBoard(int, int, boolean)}.
+     * @since 2.0.00
+     */
+    protected int panelMarginX, panelMarginY;
+
+    /**
+     * The board is currently scaled up, larger than
      * {@link #panelMinBW} x {@link #panelMinBH} pixels.
      * Use {@link #scaleToActualX(int)}, {@link #scaleFromActualX(int)},
      * etc to convert between internal and actual screen pixel coordinates.
@@ -787,7 +834,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *
      * @see #isScaledOrRotated
      * @see #scaledAt
-     * @see #rescaleBoard(int, int)
+     * @see #rescaleBoard(int, int, boolean)
      */
     protected boolean isScaled;
 
@@ -838,7 +885,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *<UL>
      *<LI> 0: Legal roads - yellow parallel lines
      *<LI> 1: Legal settlements - yellow squares
-     *<LI> 2: N/A - Legal cities; no set for that
+     *<LI> 2: Board boundaries - yellow rectangle (Legal cities has no set)
      *<LI> 3: Legal ships - yellow diamonds
      *<LI> 4: Potential roads - green parallel lines
      *<LI> 5: Potential settlements - green squares
@@ -1420,7 +1467,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (bw < BOARDWIDTH_VISUAL_MIN)
                     bw = BOARDWIDTH_VISUAL_MIN;
                 scaledPanelX = halfdeltaX * bw + PANELPAD_LBOARD_RT;
-                scaledPanelY = halfdeltaY * bh + 18;
+                scaledPanelY = halfdeltaY * bh + PANELPAD_LBOARD_BTM + HEXY_OFF_SLOPE_HEIGHT;
+                // Any panelShiftBX, panelShiftBY won't be known until later when the
+                // layout is generated and sent to us, so keep them 0 for now and
+                // check later in flushBoardLayoutAndRepaint().
             } else {
                 scaledPanelX = PANELX;
                 scaledPanelY = PANELY;
@@ -2034,7 +2084,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         // If below min-size, rescaleBoard throws
         // IllegalArgumentException. Pass to our caller.
-        rescaleBoard(newW, newH);
+        rescaleBoard(newW, newH, false);
 
         // Resize
         super.setSize(newW, newH);
@@ -2075,7 +2125,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         if ((w != scaledPanelX) || (h != scaledPanelY))
         {
-            rescaleBoard(w, h);
+            rescaleBoard(w, h, false);
         }
         super.setBounds(x, y, w, h);
     }
@@ -2134,13 +2184,74 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * Clear the board layout (as rendered in the
-     * empty-board buffer) and trigger a repaint.
+     * Clear the board layout (as rendered in the empty-board buffer) and trigger a repaint.
+     *<P>
+     * If needed, update margins and visual shift from Added Layout Part {@code "VS"}.
+     * Doing so will call {@link #rescaleBoard(int, int, boolean)} and may change
+     * the board panel's minimum size and/or current size. Returns true if current size changes
+     * here: If so, caller must re-do layout of this panel within its container.
+     *<P>
+     * "VS" is part of the initial board layout from the server and its value won't change at
+     * start of the game. This method and {@code rescaleBoard} check for zero or changed margins because
+     * the board layout and margins are unknown (0) at SOCBoardPanel construction time.
+     *
+     * @return  Null unless current {@link #getSize()} has changed from Visual Shift ({@code "VS"}).
+     *     If not null, the delta change (new - old) in this panel's width and height
      * @since 1.1.08
      * @see SOCPlayerInterface#updateAtNewBoard()
      */
-    public void flushBoardLayoutAndRepaint()
+    public Dimension flushBoardLayoutAndRepaint()
     {
+        Dimension ret = null;
+
+        if (board instanceof SOCBoardLarge)
+        {
+            final int prevSBX = panelShiftBX, prevSBY = panelShiftBY;
+            final int sBX, sBY;
+            boolean changed = false;
+            int[] boardVS = ((SOCBoardLarge) board).getAddedLayoutPart("VS");
+            if (boardVS != null)
+            {
+                sBY = (boardVS[0] * halfdeltaY) / 2;
+                sBX = (boardVS[1] * halfdeltaX) / 2;
+            } else {
+                sBY = 0;
+                sBX = 0;
+            }
+
+            if (sBX != prevSBX)
+            {
+                if (prevSBX > 0)
+                    panelMinBW -= prevSBX;
+                panelShiftBX = sBX;
+                changed = true;
+                if (sBX > 0)
+                    panelMinBW += sBX;
+            }
+            if (sBY != prevSBY)
+            {
+                if (prevSBY > 0)
+                    panelMinBH -= prevSBY;
+                panelShiftBY = sBY;
+                changed = true;
+                if (sBY > 0)
+                    panelMinBH += sBY;
+            }
+
+            if (changed)
+            {
+                final int w = scaledPanelX, h = scaledPanelY;
+                rescaleBoard(w, h, true);
+                   // Updates scaledPanelY, minSize, panelMarginX, etc.
+                   // If margins increased, also may have updated minSize, panelMinBW, scaledPanelY, etc.
+                if ((w != scaledPanelX) || (h != scaledPanelY))
+                {
+                    ret = new Dimension(scaledPanelX - w, scaledPanelY - h);
+                    super.setSize(scaledPanelX, scaledPanelY);
+                }
+            }
+        }
+
         if (emptyBoardBuffer != null)
         {
             emptyBoardBuffer.flush();
@@ -2151,7 +2262,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             scaledAt = System.currentTimeMillis();  // reset the image-scaling timeout
             scaledMissedImage = false;
         }
+
         repaint();
+
+        return ret;
     }
 
     /**
@@ -2180,24 +2294,58 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * Set the board fields to a new size, rescale graphics if needed.
+     * Set the board fields to a new size, and rescale graphics if needed.
      * Does not call repaint.  Does not call setSize.
      * Updates {@link #isScaledOrRotated}, {@link #scaledPanelX}, {@link #panelMarginX}, and other fields.
      * Calls {@link #renderBorderedHex(Image, Image, Color)} and {@link #renderPortImages()}.
      *
      * @param newW New width in pixels, no less than {@link #PANELX} (or if rotated, {@link #PANELY})
      * @param newH New height in pixels, no less than {@link #PANELY} (or if rotated, {@link #PANELX})
-     * @throws IllegalArgumentException if newW or newH is too small but not 0.
+     * @param changedMargins  True if the server has sent a board layout which includes values
+     *   for Visual Shift ("VS"). When true, caller should update the {@link #panelShiftBX}, {@link #panelShiftBY},
+     *   {@link #panelMinBW}, and {@link #panelMinBH} fields before calling, but <B>not</B> update {@link #minSize}
+     *   which will be updated here from {@code panelMinBW}, {@code panelMinBH}.
+     *   <P>
+     *   Before and after calling, caller should check {@link #scaledPanelX} and {@link #scaledPanelY}
+     *   to see if the current size fields had to be changed. If so, caller must call
+     *   {@code super.setSize(scaledPanelX, scaledPanelY)} and otherwise ensure our container's layout stays consistent.
+     * @throws IllegalArgumentException if newW or newH is below {@link #minSize} but not 0.
      *   During initial layout, the layoutmanager may cause calls to rescaleBoard(0,0);
      *   such a call is ignored, no rescaling of graphics is done.
      */
-    private void rescaleBoard(final int newW, final int newH)
+    private void rescaleBoard(int newW, int newH, final boolean changedMargins)
         throws IllegalArgumentException
     {
         if ((newW == 0) || (newH == 0))
             return;
         if ((newW < minSize.width) || (newH < minSize.height))
             throw new IllegalArgumentException("Below minimum size");
+
+        if (changedMargins)
+        {
+            int w = panelMinBW, h = panelMinBH;
+            if (isRotated)
+            {
+                int swap = w;
+                w = h;
+                h = swap;
+            }
+            if ((w != minSize.width) || (h != minSize.height))
+            {
+                minSize.width = w;
+                minSize.height = h;
+
+                // Change requested new size if required by larger changed margin.
+                // From javadoc the caller knows this might happen and will check for it.
+                if (newW < w)
+                    newW = w;
+                if (newH < h)
+                    newH = h;
+
+                // Other fields will be updated below as needed by calling scaleToActualX and scaleToActualY,
+                // which will use the new scaledPanelX/panelMinBW and scaledPanelY/panelMinBH ratios
+            }
+        }
 
         /**
          * Set vars
@@ -2216,6 +2364,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if (panelMarginX < (halfdeltaX / 2))  // also if negative (larger than panelMinBW)
                 panelMarginX = 0;
         }
+        panelMarginX += scaleToActualX(panelShiftBX);
+        panelMarginY = scaleToActualY(panelShiftBY);
 
         /**
          * Off-screen buffer is now the wrong size.
@@ -2448,7 +2598,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Scale coordinate arrays for drawing pieces
      * (from internal coordinates to actual on-screen pixels),
      * or (if not isScaled) point to static arrays.
-     * Called from constructor and {@link #rescaleBoard(int, int)}.
+     * Called from constructor and {@link #rescaleBoard(int, int, boolean)}.
      */
     private void rescaleCoordinateArrays()
     {
@@ -3573,11 +3723,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @param pnum Current player number.
      *             Player positions are clockwise from top-left:
      *           <BR>
-     *             For the standard 4-player board:<BR>
+     *             For the classic 4-player board:<BR>
      *             0 for top-left, 1 for top-right,
      *             2 for bottom-right, 3 for bottom-left
      *           <BR>
-     *             For the 6-player board:<BR>
+     *             For the classic 6-player board:<BR>
      *             0 for top-left, 1 for top-right, 2 for middle-right,
      *             3 for bottom-right, 4 for bottom-left, 5 for middle-left.
      * @param diceResult Roll result to show, if rolled.
@@ -3718,7 +3868,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * for the 6-player board (if {@link #is6player}), draw the ring of surrounding water/ports.
      * This is outside the coordinate system, and doesn't have hex numbers,
-     * and so can't be drawn in the standard drawHex loop.
+     * and so can't be drawn in the classic 4-player drawHex loop.
      * @since 1.1.08
      * @see #drawPorts_LargeBoard(Graphics)
      */
@@ -3889,8 +4039,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (g instanceof Graphics2D)
             ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        if (panelMarginX != 0)
-            g.translate(panelMarginX, 0);
+        final boolean xlat = (panelMarginX != 0) || (panelMarginY != 0);
+        if (xlat)
+            g.translate(panelMarginX, panelMarginY);
 
         final int gameState = game.getGameState();
 
@@ -3968,8 +4119,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             drawCity(g, c.getCoordinates(), c.getPlayerNumber(), false);
         }
 
-        if (panelMarginX != 0)
-            g.translate(-panelMarginX, 0);
+        if (xlat)
+            g.translate(-panelMarginX, -panelMarginY);
 
         /**
          * draw the current-player arrow after ("above") pieces,
@@ -3984,8 +4135,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         if (player != null)
         {
-        if (panelMarginX != 0)
-            g.translate(panelMarginX, 0);
+        if (xlat)
+            g.translate(panelMarginX, panelMarginY);
 
         /**
          * Draw the hilight when in interactive mode;
@@ -4084,8 +4235,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         }  // switch
 
-        if (panelMarginX != 0)
-            g.translate(-panelMarginX, 0);
+        if (xlat)
+            g.translate(-panelMarginX, -panelMarginY);
 
         }  // if (player != null)
 
@@ -4171,8 +4322,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * For scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI},
      * <tt>drawBoardEmpty</tt> draws the board's {@link SOCVillage}s.
      *<P>
-     * If {@link #panelMarginX} != 0, do not translate {@code g} before calling.
-     * This method will internally translate.
+     * If {@link #panelMarginX} or {@link #panelMarginY} != 0, do not translate {@code g}
+     * before calling. This method will internally translate.
      *
      * @param g Graphics, typically from {@link #emptyBoardBuffer}
      * @since 1.1.08
@@ -4213,8 +4364,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             boolean isRowOffset = isRotated;
             for (int hy = -deltaY; hy < panelMinBH; hy += deltaY, isRowOffset = ! isRowOffset)
             {
-                // TODO When scaled, any other offset around edges? See convert/unscale methods
-
                 int hx = 0;
                 if (isRowOffset)
                     hx -= halfdeltaX;
@@ -4235,18 +4384,33 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         } else {
 
-            if (panelMarginX != 0)
-                g.translate(panelMarginX, 0);
+            final boolean xlat = (panelMarginX != 0) || (panelMarginY != 0);
+            if (xlat)
+                g.translate(panelMarginX, panelMarginY);
 
             // Large Board has a rectangular array of hexes.
             // (r,c) are board coordinates.
-            // (x,y) are pixel coordinates.
+            // (x,y) are unscaled pixel coordinates.
+
+            // Top border rows:
+
+            final int bMarginX = scaleFromActualX(panelMarginX),
+                      marginNumHex = (bMarginX + deltaX - 1) / deltaX;
+
+            // Top border ("row -2"): Needed only when panelMarginY is +1 or more "VS" units (1/4 or more of row height)
+            if (panelMarginY >= (halfdeltaY / 2))
+            {
+                final int y = -halfdeltaY - deltaY,
+                          xmin = -(deltaX * marginNumHex) - halfdeltaX;
+                for (int x = xmin; x < panelMinBW; x += deltaX)
+                {
+                    drawHex(g, x, y, SOCBoard.WATER_HEX, -1, -1);
+                }
+            }
 
             // Top border ("row -1"): Easier to draw it separately than deal with row coord -1 in main loop.
             // The initial x-coord formula aligns just enough water hexes to cover -panelMarginX.
-            for (int x = -(deltaX * ((panelMarginX + deltaX - 1) / deltaX));
-                 x < (scaledPanelX - panelMarginX);
-                 x += deltaX)
+            for (int x = -(deltaX * marginNumHex); x < panelMinBW; x += deltaX)
             {
                 drawHex(g, x, -halfdeltaY, SOCBoard.WATER_HEX, -1, -1);
             }
@@ -4293,7 +4457,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
 
                 // If board is narrower than panel, fill in with water
-                while (x < (panelMinBW - PANELPAD_LBOARD_RT))
+                int xmax = panelMinBW - 1;
+                if (panelMarginX < 0)
+                    xmax -= panelMarginX;
+                while (x < xmax)
                 {
                     final int hexCoord = rshift | c;
                     drawHex(g, x, y, SOCBoard.WATER_HEX, -1, hexCoord);
@@ -4350,8 +4517,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             // check debugShowPotentials[0 - 9]
             drawBoardEmpty_drawDebugShowPotentials(g);
 
-            if (panelMarginX != 0)
-                g.translate(-panelMarginX, 0);
+            if (xlat)
+                g.translate(-panelMarginX, -panelMarginY);
         }
 
         if (scaledMissedImage)
@@ -4584,6 +4751,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         (g, x, y, r, c, edgeIsVert, Color.GREEN, 6);
             }
         }
+
+        if (debugShowPotentials[2])
+        {
+            int bh = board.getBoardHeight();
+            int w = scaleToActualX(halfdeltaX * bw),
+                h = scaleToActualY(halfdeltaY * bh + HEXY_OFF_SLOPE_HEIGHT);
+            g.setColor(Color.YELLOW);
+            g.drawRect(0, halfdeltaY, w, h);
+            g.drawRect(1, halfdeltaY + 1, w - 2, h - 2);
+        }
     }
 
     /**
@@ -4593,7 +4770,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *<P>
      * For large board only for now (TODO).
      * Will scale as needed, but assumes {@code g} is already
-     * translated by {@link #panelMarginX} pixels.
+     * translated by ({@link #panelMarginX}, {@link #panelMarginY}) pixels.
      *
      * @param g  Graphics
      * @param x  Unscaled internal x-coordinate of center of this edge
@@ -4878,7 +5055,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Scale x-array from internal to actual screen-pixel coordinates.
      * If not isScaled, do nothing.
      *<P>
-     * This method only scales; does <em>not</em> translate to right by {@link #panelMarginX}.
+     * This method only scales; does <em>not</em> rotate if {@link #isRotated()}
+     * or translate to right by {@link #panelMarginX}.
      *
      * @param xa Int array to be scaled; each member is an x-coordinate.
      *
@@ -4896,6 +5074,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Scale y-array from internal to actual screen-pixel coordinates.
      * If not isScaled, do nothing.
+     *<P>
+     * This method only scales; does <em>not</em> rotate if {@link #isRotated()}
+     * or translate down by {@link #panelMarginY}.
      *
      * @param ya Int array to be scaled; each member is an y-coordinate.
      *
@@ -4914,7 +5095,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Scale x-coordinate from internal to actual screen-pixel coordinates.
      * If not isScaled, return input.
      *<P>
-     * This method only scales; does <em>not</em> translate to right by {@link #panelMarginX}.
+     * This method only scales; does <em>not</em> rotate if {@link #isRotated()}
+     * or translate to right by {@link #panelMarginX}.
      *
      * @param x x-coordinate to be scaled
      * @see #scaleToActualY(int)
@@ -4931,6 +5113,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Scale y-coordinate from internal to actual screen-pixel coordinates.
      * If not isScaled, return input.
+     *<P>
+     * This method only scales; does <em>not</em> rotate if {@link #isRotated()}
+     * or translate down by {@link #panelMarginY}.
      *
      * @param y y-coordinate to be scaled
      * @see #scaleToActualX(int)
@@ -4948,9 +5133,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Convert an x-coordinate from actual-scaled to internal-scaled coordinates.
      * If not isScaled, return input.
      *<P>
-     * This method only scales; does <em>not</em> translate to left by {@link #panelMarginX}.
+     * This method only scales; does <em>not</em> rotate if {@link #isRotated()}
+     * or translate to left by {@link #panelMarginX}.
      *
-     * @param x x-coordinate to be scaled
+     * @param x x-coordinate to be scaled. Subtract {@link #panelMarginX} before calling.
+     * @see #scaleToActualX(int)
      */
     public final int scaleFromActualX(int x)
     {
@@ -4963,8 +5150,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Convert a y-coordinate from actual-scaled to internal-scaled coordinates.
      * If not isScaled, return input.
+     *<P>
+     * This method only scales; does <em>not</em> rotate if {@link #isRotated()}
+     * or translate up by {@link #panelMarginY}.
      *
-     * @param y y-coordinate to be scaled
+     * @param y y-coordinate to be scaled. Subtract {@link #panelMarginY} before calling.
+     * @see #scaleToActualY(int)
      */
     public final int scaleFromActualY(int y)
     {
@@ -4975,10 +5166,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * Is the board currently scaled larger than
+     * Is the board currently scaled up, larger than
      * {@link #PANELX} x {@link #PANELY} pixels?
      * If so, use {@link #scaleToActualX(int)}, {@link #scaleFromActualY(int)},
      * etc to convert between internal and actual screen pixel coordinates.
+     *<P>
+     * When the board is also {@link #isRotated()}, see {@link #isRotated()} javadoc
+     * for order of rotation/scaling/margin translation.
      *
      * @return Is the board scaled larger than default size?
      * @see #isRotated()
@@ -4989,8 +5183,21 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * Is the board currently rotated 90 degrees clockwise?
+     * Is the board currently visually rotated 90 degrees clockwise
+     * compared to its internal pixel coordinates?
      * If so, the minimum size swaps {@link #PANELX} and {@link #PANELY}.
+     *<P>
+     * Use this for rotation:
+     *<UL>
+     * <LI> From internal to screen (clockwise): R(x, y) = ({@code internalHeight} - y, x)
+     * <LI> From screen to internal (counterclockwise): R(x, y) = (y, {@code internalWidth} - x)
+     *</UL>
+     *
+     * When the board is also {@link #isScaled()}, go in this order:
+     *<UL>
+     * <LI> Rotate clockwise, scale up, then add any margin.
+     * <LI> Subtract any margin, scale down, then rotate counterclockwise.
+     *</UL>
      *
      * @return Is the board rotated?
      * @see #isScaled()
@@ -5391,15 +5598,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             int x = e.getX();
             int y = e.getY();
             int xb, yb;
+
+            // get (xb, yb) internal board-pixel coordinates from (x, y):
             if (isScaled)
             {
                 xb = scaleFromActualX(x - panelMarginX);
-                yb = scaleFromActualY(y);
+                yb = scaleFromActualY(y - panelMarginY);
             }
             else
             {
                 xb = x - panelMarginX;
-                yb = y;
+                yb = y - panelMarginY;
             }
             if (isRotated)
             {
@@ -6427,7 +6636,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * given a pixel on the board, find the edge that contains it
+     * Find the edge coordinate, if any, of an (x, y) location from unscaled board pixels.
      *<P>
      * <b>Note:</b> For the 6-player board, edge 0x00 is a valid edge that
      * can be built on.  It is found here as -1, since a value of 0 marks an
@@ -6437,7 +6646,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * is returned as the negative value of its edge coordinate, if {@code checkCoastal} is set.
      *
      * @param x  x coordinate, in unscaled board, not actual pixels;
-     *           use {@link #scaleFromActualX(int)} to convert
+     *           use {@link #scaleFromActualX(int)} to convert before calling
      * @param y  y coordinate, in unscaled board, not actual pixels
      * @param checkCoastal  If true, check for coastal edges for ship placement:
      *           Mouse could be over the land half or the sea half of the edge's graphical area.
@@ -6558,10 +6767,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * given a pixel on the board, find the node that contains it
+     * Find the node coordinate, if any, of an (x, y) location from unscaled board pixels.
      *
      * @param x  x coordinate, in unscaled board, not actual pixels;
-     *           use {@link #scaleFromActualX(int)} to convert
+     *           use {@link #scaleFromActualX(int)} to convert before calling
      * @param y  y coordinate, in unscaled board, not actual pixels
      * @return the coordinates of the node, or 0 if none
      */
@@ -6603,10 +6812,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * given a pixel on the board, find the hex that contains it
+     * Find the hex coordinate, if any, of an (x, y) location from unscaled board pixels.
      *
      * @param x  x coordinate, in unscaled board, not actual pixels;
-     *           use {@link #scaleFromActualX(int)} to convert
+     *           use {@link #scaleFromActualX(int)} to convert before calling
      * @param y  y coordinate, in unscaled board, not actual pixels
      * @return the coordinates of the hex, or 0 if none
      */
@@ -7180,8 +7389,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             if (playerNumber != -1)
             {
-                if (panelMarginX != 0)
-                    g.translate(panelMarginX, 0);
+                final boolean xlat = (panelMarginX != 0) || (panelMarginY != 0);
+                if (xlat)
+                    g.translate(panelMarginX, panelMarginY);
 
                 if (hoverRoadID != 0)
                 {
@@ -7203,8 +7413,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     drawCity(g, hoverCityID, playerNumber, true);
                 }
 
-                if (panelMarginX != 0)
-                    g.translate(-panelMarginX, 0);
+                if (xlat)
+                    g.translate(-panelMarginX, -panelMarginY);
             }
 
             String ht = hoverText;  // cache against last-minute change in another thread
@@ -7274,7 +7484,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 setHoverText_modeChangedOrMouseMoved = true;
             }
 
-            int xb = x - panelMarginX, yb = y;  // internal board coordinates
+            // get (xb, yb) internal board-pixel coordinates from (x, y):
+            int xb = x - panelMarginX, yb = y - panelMarginY;
             if (isScaledOrRotated)
             {
                 if (isScaled)
