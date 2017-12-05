@@ -751,7 +751,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * and the image is offset from that corner.  (For example, {@link #drawHex(Graphics, int)}
      * subtracts HEXHEIGHT from x, after rotation but before scaling.)
      *<P>
-     * When {@link #isLargeBoard}, <tt>isRotated</tt> is false even if the game has 5 or 6 players.
+     * In Sea Board layouts (game option <tt>"SBL"</tt>),
+     * <tt>isRotated</tt> is false even if the game has 5 or 6 players.
      *
      * @see #isScaledOrRotated
      * @since 1.1.08
@@ -4395,11 +4396,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             // Top border rows:
 
-            final int bMarginX = scaleFromActualX(panelMarginX),
+            int m = (isRotated) ? panelMarginY : panelMarginX;
+            final int bMarginX = scaleFromActualX(m),
                       marginNumHex = (bMarginX + deltaX - 1) / deltaX;
 
             // Top border ("row -2"): Needed only when panelMarginY is +1 or more "VS" units (1/4 or more of row height)
-            if (panelMarginY >= (halfdeltaY / 2))
+            // or isRotated and panelMarginX leaves a similar gap on the right-hand side
+            // (check against rotated and scaled from board_pixel_y = -halfdeltaY - HEXY_OFF_SLOPE_HEIGHT)
+            if (isRotated
+                ? (scaleToActualX(panelMinBH + halfdeltaY - HEXY_OFF_SLOPE_HEIGHT) < (scaledPanelX - panelMarginX))
+                : (panelMarginY >= (halfdeltaY / 2)))
             {
                 final int y = -halfdeltaY - deltaY,
                           xmin = -(deltaX * marginNumHex) - halfdeltaX;
@@ -4433,11 +4439,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     x = halfdeltaX;
                 }
 
-                if ((panelMarginX != 0) || (x != 0))
+                m = (isRotated) ? panelMarginY : panelMarginX;
+                if ((m != 0) || (x != 0))
                 {
                     // If board is narrow or row doesn't start at left side of panel, fill border with water.
                     // xleft drawn at >= 0 after g.translate for panelMarginX
-                    for (int xleft = x; xleft > -(panelMarginX + deltaX); xleft -= deltaX)
+                    for (int xleft = x; xleft > -(m + deltaX); xleft -= deltaX)
                         drawHex(g, xleft, y, SOCBoard.WATER_HEX, -1, -1);
                 }
 
