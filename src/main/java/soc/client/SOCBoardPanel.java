@@ -4661,6 +4661,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         final SOCPlayer pl = game.getPlayer(0);
         final int bw = board.getBoardWidth();
 
+        if (debugShowPotentials[2])
+        {
+            final int bh = board.getBoardHeight();
+            int w = scaleToActualX(halfdeltaX * bw),
+                h = scaleToActualY(halfdeltaY * bh + HEXY_OFF_SLOPE_HEIGHT);
+            g.setColor(Color.YELLOW);
+            g.drawRect(0, halfdeltaY, w, h);
+            g.drawRect(1, halfdeltaY + 1, w - 2, h - 2);
+        }
+
         // Iterate over all nodes for:
         // 1,5: settlements: squares (Legal yellow, potential green)
         // 2,6: cities: larger squares (potential green; there is no legal set)
@@ -4751,16 +4761,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     drawBoardEmpty_drawDebugShowPotentialRoad
                         (g, x, y, r, c, edgeIsVert, Color.GREEN, 6);
             }
-        }
-
-        if (debugShowPotentials[2])
-        {
-            int bh = board.getBoardHeight();
-            int w = scaleToActualX(halfdeltaX * bw),
-                h = scaleToActualY(halfdeltaY * bh + HEXY_OFF_SLOPE_HEIGHT);
-            g.setColor(Color.YELLOW);
-            g.drawRect(0, halfdeltaY, w, h);
-            g.drawRect(1, halfdeltaY + 1, w - 2, h - 2);
         }
     }
 
