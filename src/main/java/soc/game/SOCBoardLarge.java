@@ -45,7 +45,7 @@ import soc.util.IntPair;
  * and keep the board logic simple.  Game rules should be enforced at the game, not the board.
  * Calling board methods won't change the game state.
  *<P>
- * To create a new board, use subclass <tt>soc.server.SOCBoardLargeAtServer</tt>.
+ * To generate a new game's board layout, use subclass <tt>soc.server.SOCBoardLargeAtServer</tt>.
  * Game boards are initially all water.  The layout contents are set up later by calling
  * {@code SOCBoardLargeAtServer.makeNewBoard(Map)} when the game is about to begin,
  * then sent to the clients over the network.  The client calls methods such as {@link #setLandHexLayout(int[])},
