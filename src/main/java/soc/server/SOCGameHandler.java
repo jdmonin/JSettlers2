@@ -781,7 +781,7 @@ public class SOCGameHandler extends GameHandler
 
     /**
      * Client has been approved to join game; send JOINGAMEAUTH and the entire state of the game to client.
-     * Unless <tt>isTakingOver</tt>, send client join event to other players.
+     * Unless <tt>isTakingOver</tt>, announce {@link SOCJoinGame} client join event to other players.
      *<P>
      * Does not add the client to the game's or server's list of players,
      * that should be done before calling this method.
@@ -817,6 +817,8 @@ public class SOCGameHandler extends GameHandler
     {
         boolean hasRobot = false;  // If game's already started, true if any bot is seated (can be taken over)
         String gameName = gameData.getName();
+        final String cliName = c.getData();
+
         if (! isReset)
         {
             // First, send updated scenario info or localized strings if needed
@@ -1272,7 +1274,7 @@ public class SOCGameHandler extends GameHandler
          */
         if (isTakingOver)
         {
-            SOCPlayer cliPl = gameData.getPlayer(c.getData());
+            SOCPlayer cliPl = gameData.getPlayer(cliName);
             if (cliPl != null)
             {
                 int pn = cliPl.getPlayerNumber();
@@ -1311,7 +1313,7 @@ public class SOCGameHandler extends GameHandler
         // between membersCommand and GAMESTATE.
         c.put(new SOCGameState(gameName, gameData.getGameState()));
         if (D.ebugOn)
-            D.ebugPrintln("*** " + c.getData() + " joined the game " + gameName + " at "
+            D.ebugPrintln("*** " + cliName + " joined the game " + gameName + " at "
                 + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
 
         //messageToGame(gameName, new SOCGameServerText(gameName, SERVERNAME, n+" joined the game"));
@@ -1322,7 +1324,7 @@ public class SOCGameHandler extends GameHandler
         {
             return;
         }
-        srv.messageToGame(gameName, new SOCJoinGame(c.getData(), "", "dummyhost", gameName));
+        srv.messageToGame(gameName, new SOCJoinGame(cliName, "", "dummyhost", gameName));
 
         if ((! isReset) && gameData.getGameState() >= SOCGame.START2A)
         {

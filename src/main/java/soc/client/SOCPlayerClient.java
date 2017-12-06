@@ -4705,6 +4705,9 @@ public class SOCPlayerClient
      *<P>
      *      Our client can ignore this case, because the server also sends a text
      *      message that the human player is capable of reading and acting on.
+     *      For convenience, during initial placement
+     *      {@link PlayerClientListener#buildRequestCanceled(SOCPlayer)}
+     *      is called to reset things like {@link SOCBoardPanel} hovering pieces.
      *
      * @param mes  the message
      * @since 1.1.00
@@ -4716,7 +4719,8 @@ public class SOCPlayerClient
             return;
 
         final int ptype = mes.getPieceType();
-        final SOCPlayer pl;
+        final SOCPlayer pl = ga.getPlayer(ga.getCurrentPlayerNumber());
+
         if (ptype >= SOCPlayingPiece.SETTLEMENT)
         {
             final int sta = ga.getGameState();
@@ -4726,15 +4730,14 @@ public class SOCPlayerClient
                 // about the bad piece placement.  So, we can ignore this message type.
                 return;
             }
-            if (ptype != SOCPlayingPiece.SETTLEMENT)
-                return;
 
-            pl = ga.getPlayer(ga.getCurrentPlayerNumber());
-            SOCSettlement pp = new SOCSettlement(pl, pl.getLastSettlementCoord(), null);
-            ga.undoPutInitSettlement(pp);
+            if (ptype == SOCPlayingPiece.SETTLEMENT)
+            {
+                SOCSettlement pp = new SOCSettlement(pl, pl.getLastSettlementCoord(), null);
+                ga.undoPutInitSettlement(pp);
+            }
         } else {
             // ptype is -3 (SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL)
-            pl = ga.getPlayer(ga.getCurrentPlayerNumber());
         }
 
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
