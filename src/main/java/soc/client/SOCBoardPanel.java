@@ -4666,9 +4666,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             final int bh = board.getBoardHeight();
             int w = scaleToActualX(halfdeltaX * bw),
                 h = scaleToActualY(halfdeltaY * bh + HEXY_OFF_SLOPE_HEIGHT);
+            int y = scaleToActualY(halfdeltaY);
             g.setColor(Color.YELLOW);
-            g.drawRect(0, halfdeltaY, w, h);
-            g.drawRect(1, halfdeltaY + 1, w - 2, h - 2);
+            g.drawRect(0, y, w, h);
+            g.drawRect(1, y + 1, w - 2, h - 2);
         }
 
         // Iterate over all nodes for:
