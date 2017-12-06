@@ -1449,7 +1449,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (bef != SOCBoard.BOARD_ENCODING_LARGE)
             throw new IllegalStateException("unknown board format: " + bef);
         is6player = (game.maxPlayers > 4);
-        isSeaBoard = game.isGameOptionSet("SBL");
+        isSeaBoard = game.hasSeaBoard;
         isLargeBoard = true;  // TODO always true: clean up later
         isRotated = isScaledOrRotated = is6player && ! isSeaBoard;
 
@@ -5647,7 +5647,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
                 // (ccw): P'=(y, panelMinBW-x)
                 int xb1 = yb;
-                yb = panelMinBW - xb - deltaY;  // -deltaY for similar reasons as -HEXHEIGHT in drawHex
+                yb = panelMinBW - xb;
+                if (! isLargeBoard)
+                    yb -= deltaY;  // -deltaY for similar reasons as -HEXHEIGHT in drawHex
                 xb = xb1;
             }
 
