@@ -4655,7 +4655,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * (<tt>debugShowPotentials[8]</tt> is drawn in the per-hex loop
      *  of {@link #drawBoardEmpty(Graphics)}).
      *<P>
-     * <b>Note:</b> Currently implemented only for {@link #isLargeBoard} only for now (TODO).
+     * <b>Note:</b> If {@link #isRotated}, draws only the board boundary.
      * @since 2.0.00
      * @throws IllegalStateException if ! isLargeBoard; temporary restriction
      */
@@ -4673,16 +4673,25 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             final int bh = board.getBoardHeight();
             int w = scaleToActualX(halfdeltaX * bw),
                 h = scaleToActualY(halfdeltaY * bh + HEXY_OFF_SLOPE_HEIGHT);
+            int x, y;
             if (isRotated)
             {
-                int tmpSwap = w;
+                int swapW = w;
                 w = h;
-                h = tmpSwap;
+                h = swapW;
+                x = scaleToActualX(panelMinBH - halfdeltaY) - w;
+                y = 0;
+            } else {
+                x = 0;
+                y = scaleToActualX(halfdeltaY);
             }
             g.setColor(Color.YELLOW);
-            g.drawRect(0, halfdeltaY, w, h);
-            g.drawRect(1, halfdeltaY + 1, w - 2, h - 2);
+            g.drawRect(x, y, w, h);
+            g.drawRect(x + 1, y + 1, w - 2, h - 2);
         }
+
+        if (isRotated)
+            return;  // <--- Early return: No render when rotated ---
 
         // Iterate over all nodes for:
         // 1,5: settlements: squares (Legal yellow, potential green)
