@@ -2930,6 +2930,7 @@ public class SOCGame implements Serializable, Cloneable
      * The edge must return {@link SOCPlayer#isPotentialShip(int)}
      * and must not be adjacent to {@link SOCBoardLarge#getPirateHex()}.
      * Does not check game state, resources, or pieces remaining.
+     * False if ! {@link #hasSeaBoard}.
      * @param pl  Player
      * @param shipEdge  Edge to place a ship
      * @return true if this player's ship could be placed there
@@ -2939,7 +2940,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean canPlaceShip(SOCPlayer pl, final int shipEdge)
     {
-        if (! pl.isPotentialShip(shipEdge))
+        if (! (hasSeaBoard && pl.isPotentialShip(shipEdge)))
             return false;
 
         // check shipEdge vs. pirate hex

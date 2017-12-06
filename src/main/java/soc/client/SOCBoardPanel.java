@@ -726,11 +726,20 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *<P>
      * When <tt>isLargeBoard</tt>, {@link #isRotated()} is false even if the game has 5 or 6 players.
      *
+     * @see #isSeaBoard
      * @see #is6player
      * @see #portHexCoords
      * @since 2.0.00
      */
     protected final boolean isLargeBoard;
+
+    /**
+     * If true, this board is for a game with {@link SOCGame#hasSeaBoard} ("SBL") with rules for ships,
+     * and our {@link #board} can always be cast to {@link SOCBoardLarge}.
+     * @see #isLargeBoard
+     * @since 3.0.00
+     */
+    private final boolean isSeaBoard;
 
     /**
      * The board is visually rotated 90 degrees clockwise (classic 6-player: game opt PL > 4)
@@ -1440,7 +1449,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (bef != SOCBoard.BOARD_ENCODING_LARGE)
             throw new IllegalStateException("unknown board format: " + bef);
         is6player = (game.maxPlayers > 4);
-        final boolean isSeaBoard = game.isGameOptionSet("SBL");
+        isSeaBoard = game.isGameOptionSet("SBL");
         isLargeBoard = true;  // TODO always true: clean up later
         isRotated = isScaledOrRotated = is6player && ! isSeaBoard;
 
@@ -3325,8 +3334,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *             that black ship will be drawn with a white outline for visibility against the
      *             sometimes-dark sometimes-busy port graphics.
      * @param isHilight  Is this the hilight for showing a potential placement?
-     * @param isRoadNotShip  True to draw a road; false to draw a ship if {@link #isLargeBoard}
-     * @param isWarship   True to draw a war ship (not normal ship) if {@link #isLargeBoard}, for scenario _SC_PIRI
+     * @param isRoadNotShip  True to draw a road; false to draw a ship if {@link #isSeaBoard}
+     * @param isWarship   True to draw a war ship (not normal ship) if {@link #isSeaBoard}, for scenario _SC_PIRI
      */
     private final void drawRoadOrShip
         (Graphics g, int edgeNum, final int pn, final boolean isHilight,
@@ -4056,7 +4065,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             drawRobber(g, board.getPreviousRobberHex(), (gameState != SOCGame.PLACING_ROBBER), false);
         }
 
-        if (isLargeBoard)
+        if (isSeaBoard)
         {
             int hex = ((SOCBoardLarge) board).getPirateHex();
             if (hex > 0)
@@ -4483,6 +4492,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             // For scenario _SC_PIRI, check for the Pirate Path and Lone Settlement locations.
             // Draw path only if the pirate fleet is still on the board
             // Draw our player's permitted sea edges for ships, if restricted
+            if (isSeaBoard)
             {
                 final int[] ppath = ((SOCBoardLarge) board).getAddedLayoutPart("PP");
                 if ((ppath != null) && (0 != ((SOCBoardLarge) board).getPirateHex()))
@@ -5288,7 +5298,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 case SOCGame.PLACING_FREE_ROAD1:
                 case SOCGame.PLACING_FREE_ROAD2:
-                    if (isLargeBoard)
+                    if (isSeaBoard)
                         mode = PLACE_FREE_ROAD_OR_SHIP;
                     else
                         mode = PLACE_ROAD;
@@ -5906,7 +5916,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         // Not a hex, or can't move to this hex (water, etc)
                         if (hexNum != 0)
                         {
-                            if ((board instanceof SOCBoardLarge)
+                            if (isSeaBoard
                                 && ((SOCBoardLarge) board).isHexInLandAreas
                                     (hexNum, ((SOCBoardLarge) board).getRobberExcludedLandAreas()))
                             {
@@ -6674,7 +6684,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @param checkCoastal  If true, check for coastal edges for ship placement:
      *           Mouse could be over the land half or the sea half of the edge's graphical area.
      *           Return positive edge coordinate for land, negative edge for sea.
-     *           Ignored unless {@link #isLargeBoard}.
+     *           Ignored unless {@link #isSeaBoard}.
      *           Returns positive edge for non-coastal sea edges.
      * @return the coordinates of the edge, or 0 if none; -1 for the 6-player
      *     board's valid edge 0x00; -edge for the sea side of a coastal edge on the large board
@@ -6700,7 +6710,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 // TODO consider local fields for width,height
 
             int edge = (secY << 8) | secX;
-            if (! (checkCoastal
+            if (! (checkCoastal && isSeaBoard
                    && ((SOCBoardLarge) board).isEdgeCoastline(edge)))
                 return edge;
 
@@ -7854,7 +7864,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         // Have findEdge determine if we're on the land or sea side.
                         final boolean canPlaceShip = game.canPlaceShip(player, id);
                         boolean isShip = false;
-                        if (isLargeBoard)
+                        if (isSeaBoard)
                         {
                             if (player.isPotentialRoad(id)
                                 && ((SOCBoardLarge) board).isEdgeCoastline(id))
@@ -7877,7 +7887,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         {
                             hoverRoadID = id;
                         }
-                        else if (canPlaceShip  // checks isPotentialShip, pirate ship
+                        else if (canPlaceShip  // checks isPotentialShip, pirate ship, isSeaBoard
                             && (player.getNumPieces(SOCPlayingPiece.SHIP) > 0)
                             && (debugPP || player.getResources().contains(SOCShip.COST)))
                         {
@@ -7887,7 +7897,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
 
                 // If nothing else at this edge, look for a Special Edge (usually none)
-                if ((! hoverTextSet) && isLargeBoard && (hoverRoadID == 0) && (hoverShipID == 0))
+                if ((! hoverTextSet) && isSeaBoard && (hoverRoadID == 0) && (hoverShipID == 0))
                 {
                     final String hoverTextKey;
                     switch (((SOCBoardLarge) board).getSpecialEdgeType(id))
@@ -7932,7 +7942,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 } else {
                     String portText = strings.get(portDescAtNode(nodePortCoord), nodePortType);
 
-                    if (isLargeBoard && game.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+                    if (isSeaBoard && game.isGameOptionSet(SOCGameOption.K_SC_FTRI))
                     {
                         // Scenario _SC_FTRI: If this port can be reached and moved
                         // ("gift from the forgotten tribe"), mention that in portText.
@@ -8055,7 +8065,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         showDice = (dicenum > 0);
                         addinfo = "game.hex.addinfo.past.robber";
                     }
-                    else if (isLargeBoard)
+                    else if (isSeaBoard)
                     {
                         final SOCBoardLarge bl = (SOCBoardLarge) board;
                         if (bl.getPirateHex() == id)
