@@ -625,10 +625,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
                 landAreasLegalNodes = null;
 
-                // - Mainland same as above
                 makeNewBoard_placeHexes
                     ((maxPl > 4) ? SOCBoard6p.makeNewBoard_landHexTypes_v2 : SOCBoard4p.makeNewBoard_landHexTypes_v1,
-                     (maxPl > 4) ? LANDHEX_DICEPATH_MAINLAND_6PL : LANDHEX_DICEPATH_MAINLAND_4PL,
+                     (maxPl > 4) ? LANDHEX_DICEPATH_CLASSIC_6PL : LANDHEX_DICEPATH_MAINLAND_4PL,
                      (maxPl > 4) ? SOCBoard6p.makeNewBoard_diceNums_v2 : SOCBoard4p.makeNewBoard_diceNums_v1,
                      false, true, 0, false, maxPl, opt_breakClumps, scen);
 
@@ -637,7 +636,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             }
 
             PORTS_TYPES_MAINLAND = (maxPl > 4) ? SOCBoard6p.PORTS_TYPE_V2 : SOCBoard4p.PORTS_TYPE_V1;
-            PORT_LOC_FACING_MAINLAND = (maxPl > 4) ? PORT_EDGE_FACING_MAINLAND_6PL : PORT_EDGE_FACING_MAINLAND_4PL;
+            PORT_LOC_FACING_MAINLAND = (maxPl > 4)
+                ? ((isSea) ? PORT_EDGE_FACING_MAINLAND_6PL : PORT_EDGE_FACING_CLASSIC_6PL)
+                : PORT_EDGE_FACING_MAINLAND_4PL;
         }
 
         // Set up legalRoadEdges:
@@ -2798,38 +2799,76 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     };
 
     /**
-     * Fallback board layout for 6 players: Dice-number path (hex coordinates)
-     * on the main island, spiraling inward from the shore.
-     * The outlying islands have no dice path.
-     * For the mainland's dice numbers, see {@link SOCBoard6p#makeNewBoard_diceNums_v2}.
+     * Classic 6-player board layout: Land hex coordinates and dice-number path, spiraling inward from
+     * the shore. For dice numbers see {@link SOCBoard6p#makeNewBoard_diceNums_v2}.
+     * @since 3.0.00
      */
-    private static final int LANDHEX_DICEPATH_MAINLAND_6PL[] =
+    private static final int LANDHEX_DICEPATH_CLASSIC_6PL[] =
     {
         // clockwise inward from western corner
-        0x0701, 0x0502, 0x0303, 0x0104, 0x0106, 0x0108, 0x0309, 0x050A,
-        0x070B, 0x090A, 0x0B09, 0x0D08, 0x0D06, 0x0D04, 0x0B03, 0x0902,  // end of outside of spiral
-        0x0703, 0x0504, 0x0305, 0x0307, 0x0508,
-        0x0709, 0x0908, 0x0B07, 0x0B05, 0x0904,  // end of middle layer of spiral
-        0x0705, 0x0506, 0x0707, 0x0906
+        0x0902, 0x0703, 0x0504, 0x0305, 0x0307, 0x0309, 0x050A, 0x070B,
+        0x090C, 0x0B0B, 0x0D0A, 0x0F09, 0x0F07, 0x0F05, 0x0D04, 0x0B03,  // end of outside of spiral
+        0x0904, 0x0705, 0x0506, 0x0508, 0x0709,
+        0x090A, 0x0B09, 0x0D08, 0x0D06, 0x0B05,  // end of middle layer of spiral
+        0x0906, 0x0707, 0x0908, 0x0B07
     };
 
     /**
-     * Fallback board layout for 6 players: Main island's ports, clockwise from its western corner (like dice path).
+     * Fallback sea board layout for 6 players: Dice-number path (hex coordinates)
+     * on the main island, spiraling inward from the shore.
+     * The outlying islands have no dice path.
+     * Calculated from {@lik #LANDHEX_DICEPATH_CLASSIC_6PL} shifted up 2 rows left 1 column.
+     * For the mainland's dice numbers, see {@link SOCBoard6p#makeNewBoard_diceNums_v2}.
+     */
+    private static final int LANDHEX_DICEPATH_MAINLAND_6PL[];
+    static
+    {
+        final int L = LANDHEX_DICEPATH_CLASSIC_6PL.length;
+        int[] lh = new int[L];
+        for (int i = 0; i < L; ++i)
+            lh[i] = LANDHEX_DICEPATH_CLASSIC_6PL[i] - 0x0201;
+        LANDHEX_DICEPATH_MAINLAND_6PL = lh;
+    };
+
+    /**
+     * Classic 6-player board layout: Ports, clockwise from western corner (like dice path).
      * Each port has 2 consecutive elements.
      * First: Port edge coordinate, in hex: 0xRRCC.
      * Second: Port Facing direction: {@link SOCBoard#FACING_E FACING_E}, etc.
      *<P>
      * Port Facing is the direction from the port edge, to the land hex touching it
      * which will have 2 nodes where a port settlement/city can be built.
+     * @since 3.0.00
      */
-    private static final int PORT_EDGE_FACING_MAINLAND_6PL[] =
+    private static final int PORT_EDGE_FACING_CLASSIC_6PL[] =
     {
-        0x0501, FACING_E,   0x0202, FACING_SE,
-        0x0005, FACING_SE,  0x0008, FACING_SW,
-        0x040A, FACING_SW,  0x070C, FACING_W,
-        0x0A0A, FACING_NW,  0x0E08, FACING_NW,
-        0x0E05, FACING_NE,  0x0C02, FACING_NE,
-        0x0901, FACING_E
+        0x0702, FACING_E,   0x0403, FACING_SE,
+        0x0206, FACING_SE,  0x0209, FACING_SW,
+        0x060B, FACING_SW,  0x090D, FACING_W,
+        0x0C0B, FACING_NW,  0x1009, FACING_NW,
+        0x1006, FACING_NE,  0x0E03, FACING_NE,
+        0x0B02, FACING_E
+    };
+
+    /**
+     * Fallback sea board layout for 6 players: Main island's ports, clockwise from its western corner (like dice path).
+     * Each port has 2 consecutive elements.
+     * First: Port edge coordinate, in hex: 0xRRCC.
+     * Second: Port Facing direction: {@link SOCBoard#FACING_E FACING_E}, etc.
+     *<P>
+     * Port Facing is the direction from the port edge, to the land hex touching it
+     * which will have 2 nodes where a port settlement/city can be built.
+     *<P>
+     * Calculated from {@lik #PORT_EDGE_FACING_CLASSIC_6PL} shifted up 2 rows left 1 column.
+     */
+    private static final int PORT_EDGE_FACING_MAINLAND_6PL[];
+    static
+    {
+        final int L = PORT_EDGE_FACING_CLASSIC_6PL.length;
+        int[] lh = new int[L];
+        for (int i = 0; i < L; ++i)
+            lh[i] = PORT_EDGE_FACING_CLASSIC_6PL[i] - 0x0201;
+        PORT_EDGE_FACING_MAINLAND_6PL = lh;
     };
 
     /**

@@ -1453,25 +1453,20 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         isLargeBoard = true;  // TODO always true: clean up later
         isRotated = isScaledOrRotated = is6player && ! isSeaBoard;
 
+        int bh = board.getBoardHeight(), bw = board.getBoardWidth();
         if (isRotated)
         {
             // scaledPanelX, scaledPanelY are on-screen minimum size.
             // panelMinBW, panelMinBH are board-coordinates, so not rotated.
             // Thus, x <-> y between these two pairs of variables.
-            scaledPanelX = PANELY;
-            scaledPanelY = PANELX;
-            if (is6player)
-            {
-                scaledPanelX += (2 * deltaY);
-                scaledPanelY += deltaX;
-            }
+            scaledPanelX = halfdeltaY * bh + HEXY_OFF_SLOPE_HEIGHT;
+            scaledPanelY = halfdeltaX * bw;
             panelMinBW = scaledPanelY;
             panelMinBH = scaledPanelX;
         } else {
             if (isSeaBoard)
             {
                 // TODO isLargeBoard: what if we need a scrollbar?
-                int bh = board.getBoardHeight(), bw = board.getBoardWidth();
                 if (bh < BOARDHEIGHT_VISUAL_MIN)
                     bh = BOARDHEIGHT_VISUAL_MIN;
                 if (bw < BOARDWIDTH_VISUAL_MIN)
