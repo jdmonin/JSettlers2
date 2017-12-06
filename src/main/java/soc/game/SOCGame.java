@@ -874,6 +874,7 @@ public class SOCGame implements Serializable, Cloneable
      * In most scenarios the sea board has a pirate ship that can be moved instead of
      * the robber.  See game states {@link #WAITING_FOR_ROBBER_OR_PIRATE} and {@link #PLACING_PIRATE}.
      * @since 2.0.00
+     * @see SOCBoardLarge#isSeaBoard
      */
     public final boolean hasSeaBoard;
 

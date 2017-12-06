@@ -37,7 +37,8 @@ import soc.util.IntPair;
  * Sea board layout: A representation of a larger (up to 127 x 127 hexes) JSettlers board,
  * with an arbitrary mix of land and water tiles.
  * Implements {@link SOCBoard#BOARD_ENCODING_LARGE}.
- * Activated with {@link SOCGameOption} {@code "SBL"}.
+ * Used for Sea Board scenarios activated with {@link SOCGameOption} {@code "SBL"}
+ * ({@link #isSeaBoard} field here), and classic 4- and 6-player layouts without {@code isSeaBoard}.
  * For the board layout geometry, see the "Coordinate System" section here.
  *<P>
  * A {@link SOCGame} uses this board; the board is not given a reference to the game, to enforce layering
@@ -436,6 +437,18 @@ public class SOCBoardLarge extends SOCBoard
     // TODO hexLayoutLg, numberLayoutLg: Will only need half the rows, half the columns
 
     /**
+     * Does this board's game set the boolean Sea Board {@link SOCGameOption} {@code "SBL"}?
+     * If so: Apply rules for ships, coastlines, and the pirate ship.
+     * If not, this board is a classic 4-player or 6-player layout.
+     *<P>
+     * Before v3.0.00 this would have always been true for this {@link SOCBoard} subclass,
+     * because other subclasses were used instead for the classic 4-player and 6-player layouts.
+     * @see SOCGame#hasSeaBoard
+     * @since 3.0.00
+     */
+    public final boolean isSeaBoard;
+
+    /**
      * Hex layout: water/land resource types.
      * One element per hex.
      * Order: [row][column].
@@ -534,7 +547,8 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * The legal set of water/coastline edge coordinates to build ships,
-     * based on {@link #hexLayoutLg}.
+     * based on {@link #hexLayoutLg}. Empty for classic 4-player and 6-player (non-"SBL") layouts,
+     * where {@link #isSeaBoard} is false.
      * Calculated in {@link #initLegalShipEdges()}, after {@link #hexLayoutLg} is filled by
      * {@code SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int, boolean)}.
      *<P>
@@ -651,6 +665,7 @@ public class SOCBoardLarge extends SOCBoard
      * Board height and width will be the default, {@link #BOARDHEIGHT_LARGE} by {@link #BOARDWIDTH_LARGE}.
      *<P>
      * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
+     *     Used for {@link #isSeaBoard} from "SBL", and board size based on scenario options.
      * @param maxPlayers Maximum players; must be 4 or 6
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
      */
@@ -665,6 +680,7 @@ public class SOCBoardLarge extends SOCBoard
      * The board will be empty (all hexes are water, no dice numbers on any hex), see class javadoc
      * for how the board is filled when the game begins.
      * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
+     *     Used for {@link #isSeaBoard} from "SBL", and board size based on scenario options.
      * @param maxPlayers Maximum players; must be 4 or 6
      * @param boardHeightWidth  Board's height and width.
      *        The constants for default size are {@link #BOARDHEIGHT_LARGE}, {@link #BOARDWIDTH_LARGE}.
@@ -682,6 +698,7 @@ public class SOCBoardLarge extends SOCBoard
             throw new IllegalArgumentException("boardHeightWidth null");
 
         this.maxPlayers = maxPlayers;
+        isSeaBoard = SOCGame.isGameOptionSet(gameOpts, "SBL");
 
         final int bH = boardHeightWidth.a, bW = boardHeightWidth.b;
         setBoardBounds(bH, bW);
@@ -914,6 +931,7 @@ public class SOCBoardLarge extends SOCBoard
      * are established from land hexes, fill {@link #legalShipEdges}.
      * Contains all 6 edges of each water hex.
      * Contains all coastal edges of each land hex at the edges of the board.
+     * Empty if ! {@link #isSeaBoard}.
      *<P>
      * Not iterative; clears all previous legal ship edges.
      * Call this only after the very last call to
@@ -931,6 +949,9 @@ public class SOCBoardLarge extends SOCBoard
         // (Needed because there's no water hex next to it)
 
         legalShipEdges.clear();
+
+        if (! isSeaBoard)
+            return;
 
         for (int r = 1; r < boardHeight; r += 2)
         {
@@ -1614,13 +1635,17 @@ public class SOCBoardLarge extends SOCBoard
      * {@link #FOG_HEX} is considered land here.
      * @param edge  Edge coordinate, not checked for validity
      * @return  true if this edge's hexes are land and water,
-     *           or a land hex at the edge of the board
+     *           or a land hex at the edge of the board.
+     *           Always false if ! {@link #isSeaBoard}.
      * @see #isHexCoastline(int)
      * @see #isNodeCoastline(int)
      * @see #getAdjacentEdgesToNode_coastal(int)
      */
     public final boolean isEdgeCoastline(final int edge)
     {
+        if (! isSeaBoard)
+            return false;
+
         boolean hasLand = false, hasWater = false;
         final int[] hexes = getAdjacentHexesToEdge_arr(edge);
 
@@ -2011,7 +2036,8 @@ public class SOCBoardLarge extends SOCBoard
      * Off the edge of the board is considered water.
      * {@link #FOG_HEX} is considered land here.
      * @param hexCoord  Hex coordinate, within the board's bounds
-     * @return  true if this hex is adjacent to water, or at the edge of the board
+     * @return  true if this hex is adjacent to water, or at the edge of the board.
+     *     Always false if ! {@link #isSeaBoard}.
      * @see #isEdgeCoastline(int)
      * @see #isNodeCoastline(int)
      * @throws IllegalArgumentException  if hexCoord is water or not a valid hex coordinate
@@ -2019,6 +2045,9 @@ public class SOCBoardLarge extends SOCBoard
     public boolean isHexCoastline(final int hexCoord)
         throws IllegalArgumentException
     {
+        if (! isSeaBoard)
+            return false;
+
         final int htype = getHexTypeFromCoord(hexCoord);
         if ((htype <= WATER_HEX) || (htype > MAX_LAND_HEX_LG))
             throw new IllegalArgumentException("Not land (" + htype + "): 0x" + Integer.toHexString(hexCoord));
@@ -2139,13 +2168,17 @@ public class SOCBoardLarge extends SOCBoard
      * {@link #FOG_HEX} is considered land here.
      * @param node  Node coordinate, not checked for validity
      * @return  true if this node's adjacent hexes are land and water,
-     *           or if any adjacent hex would be off the edge of the board
+     *           or if any adjacent hex would be off the edge of the board.
+     *           Always false if ! {@link #isSeaBoard}.
      * @see #isEdgeCoastline(int)
      * @see #isHexCoastline(int)
      * @see #getAdjacentEdgesToNode_coastal(int)
      */
     public final boolean isNodeCoastline(final int node)
     {
+        if (! isSeaBoard)
+            return false;
+
         final List<Integer> hexes = getAdjacentHexesToNode(node);
 
         boolean hasLand = false, hasWater = (hexes.size() < 3);  // check size because we treat off-board as water
@@ -3234,12 +3267,16 @@ public class SOCBoardLarge extends SOCBoard
      * @param node  Node coordinate; not validated.  Should be a coastal node, with adjacent
      *          water and land hexes, although you can pass inland or at-sea nodes to this method.
      * @return  Coastal edges adjacent to {@code node}, or an empty list if none
+     *          or if ! {@link #isSeaBoard}.
      * @see #isEdgeCoastline(int)
      * @see #isNodeCoastline(int)
      */
     public final List<Integer> getAdjacentEdgesToNode_coastal(final int node)
     {
         ArrayList<Integer> coastEdges = new ArrayList<Integer>(3);
+
+        if (! isSeaBoard)
+            return coastEdges;  // empty
 
         for (int edge : getAdjacentEdgesToNode_arr(node))
         {
