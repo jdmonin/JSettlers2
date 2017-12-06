@@ -533,7 +533,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *<P>
      * If a mode is added, please also update {@link #clearModeAndHilight(int)}.
      * If a piece or item hovers in this mode with the mouse cursor, update
-     * {@link SOCBoardPanel.BoardToolTip#handleHover(int, int)}.
+     * {@link SOCBoardPanel.BoardToolTip#handleHover(int, int, int, int)}.
      * If the player clicks to place or interact in the new mode, update {@link #mouseClicked(MouseEvent)}.
      * See {@link #hilight} and {@link SOCBoardPanel.BoardToolTip}.
      */
@@ -5780,7 +5780,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         hilight = nodeNum;
                         hilightIsShip = false;
                         if ((mode == PLACE_INIT_SETTLEMENT) && ! debugShowCoordsTooltip)
-                            hoverTip.handleHover(x,y);
+                            hoverTip.handleHover(x, y, xb, yb);
                         else if (debugShowCoordsTooltip)
                             hoverTip.setHoverText
                                 (((nodeNum != 0) ? "" : null), nodeNum, x, y);
@@ -5792,7 +5792,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         if (debugShowCoordsTooltip && (nodeNum != 0))
                             hoverTip.setHoverText("", nodeNum, x, y);
                         else
-                            hoverTip.handleHover(x,y);  // Will call repaint() if needed
+                            hoverTip.handleHover(x, y, xb, yb);  // Will call repaint() if needed
                     }
                 }
 
@@ -5903,12 +5903,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     {
                         hilight = hexNum;
                         hilightIsShip = false;
-                        hoverTip.handleHover(x,y);
+                        hoverTip.handleHover(x, y, xb, yb);
                         repaint();
                     }
                     else
                     {
-                        hoverTip.positionToMouse(x,y); // calls repaint
+                        hoverTip.positionToMouse(x, y); // calls repaint
                     }
                 }
 
@@ -6043,7 +6043,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 {
                     ptrOldX = x;
                     ptrOldY = y;
-                    hoverTip.handleHover(x,y);
+                    hoverTip.handleHover(x, y, xb, yb);
                 }
                 break;
 
@@ -6073,7 +6073,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
                 popupMenuSystime = evt.getWhen();
                 evt.consume();
-                doBoardMenuPopup(x,y);
+                doBoardMenuPopup(x, y);
                 return;  // <--- Pop up menu, nothing else to do ---
             }
 
@@ -6100,26 +6100,30 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         hilightIsShip = false;
                         mode = PLACE_SETTLEMENT;
                         tempChangedMode = true;
-                    } else if (hoverTip.hoverCityID != 0)
+                    }
+                    else if (hoverTip.hoverCityID != 0)
                     {
                         hilight = hoverTip.hoverCityID;
                         hilightIsShip = false;
                         mode = PLACE_CITY;
                         tempChangedMode = true;
-                    } else if (hoverTip.hoverRoadID != 0)
+                    }
+                    else if (hoverTip.hoverRoadID != 0)
                     {
                         hilight = hoverTip.hoverRoadID;
                         hilightIsShip = false;
                         mode = PLACE_ROAD;
                         tempChangedMode = true;
-                    } else if (hoverTip.hoverShipID != 0)
+                    }
+                    else if (hoverTip.hoverShipID != 0)
                     {
                         hilight = hoverTip.hoverShipID;
                         hilightIsShip = true;
                         mode = PLACE_SHIP;
                         tempChangedMode = true;
                     }
-                } else if (((evt.getModifiers() & InputEvent.BUTTON1_MASK) == InputEvent.BUTTON1_MASK)
+                }
+                else if (((evt.getModifiers() & InputEvent.BUTTON1_MASK) == InputEvent.BUTTON1_MASK)
                     && (player != null) && (game.getCurrentPlayerNumber() == playerNumber)
                     && (player.getPublicVP() == 2) && (hintShownCount_RightClickToBuild < 2))
                 {
@@ -7135,7 +7139,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /** Uses board mode constants: Will be {@link SOCBoardPanel#NONE NONE},
          *  {@link SOCBoardPanel#PLACE_ROAD PLACE_ROAD}, PLACE_SHIP, PLACE_SETTLEMENT,
          *  PLACE_ROBBER for hex, or PLACE_INIT_SETTLEMENT for port.
-         *  Updated in {@link #handleHover(int, int)}.
+         *  Updated in {@link #handleHover(int, int, int, int)}.
          */
         private int hoverMode;
 
@@ -7369,7 +7373,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Clear hover text, and cancel any hovering roads/settlements/cities.
          * Repaint the board.
-         * The next call to {@link #handleHover(int, int)} will set up the
+         * The next call to {@link #handleHover(int, int, int, int)} will set up the
          * hovering pieces/text for the current mode.
          */
         public void hideHoverAndPieces()
@@ -7476,32 +7480,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          *
          * @param x Cursor x, from upper-left of board: actual coordinates, not board-internal coordinates
          * @param y Cursor y, from upper-left of board: actual coordinates, not board-internal coordinates
+         * @param xb  Internal board-pixel position calculated from x
+         * @param yb  Internal board-pixel position calculated from y
          */
-        private void handleHover(final int x, int y)
+        private void handleHover(final int x, int y, final int xb, final int yb)
         {
             if ((x != mouseX) || (y != mouseY))
             {
                 mouseX = x;
                 mouseY = y;
                 setHoverText_modeChangedOrMouseMoved = true;
-            }
-
-            // get (xb, yb) internal board-pixel coordinates from (x, y):
-            int xb = x - panelMarginX, yb = y - panelMarginY;
-            if (isScaledOrRotated)
-            {
-                if (isScaled)
-                {
-                    xb = scaleFromActualX(xb);
-                    yb = scaleFromActualY(yb);
-                }
-                if (isRotated)
-                {
-                    // (ccw): P'=(y, panelMinBW-x)
-                    int xb1 = yb;
-                    yb = panelMinBW - xb - deltaY;  // -deltaY for similar reasons as -HEXHEIGHT in drawHex
-                    xb = xb1;
-                }
             }
 
             // Variables set in previous call to handleHover:
@@ -7543,13 +7531,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
 
             // Look first for settlements/cities or ports
-            id = findNode(xb,yb);
+            id = findNode(xb, yb);
             if (id > 0)
             {
                 // Are we already looking at it?
                 if ((hoverMode == PLACE_SETTLEMENT) && (hoverID == id))
                 {
-                    positionToMouse(x,y);
+                    positionToMouse(x, y);
                     return;  // <--- Early ret: No work needed ---
                 }
 
@@ -7773,7 +7761,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 // Are we already looking at it?
                 if ((hoverID == id) && ((hoverMode == PLACE_ROAD) || (hoverMode == PLACE_SHIP)))
                 {
-                    positionToMouse(x,y);
+                    positionToMouse(x, y);
                     return;  // <--- Early ret: No work needed ---
                 }
 
@@ -7907,7 +7895,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if ((hoverMode == PLACE_INIT_SETTLEMENT) && (hoverID == nodePortCoord) && hoverIsPort)
                 {
                     // Already looking at a port at this coordinate.
-                    positionToMouse(x,y);
+                    positionToMouse(x, y);
                 } else {
                     String portText = strings.get(portDescAtNode(nodePortCoord), nodePortType);
 
@@ -7934,13 +7922,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             // If nothing found yet, look for a hex
             //  - reminder: socboard.getHexTypeFromCoord, getNumberOnHexFromCoord, socgame.getPlayersOnHex
-            id = findHex(xb,yb);
+            id = findHex(xb, yb);
             if ((id > 0) && ! (debugShowCoordsTooltip && (hoverRoadID != 0 || hoverShipID != 0) ))
             {
                 // Are we already looking at it?
                 if (((hoverMode == PLACE_ROBBER) || (hoverMode == PLACE_PIRATE)) && (hoverID == id))
                 {
-                    positionToMouse(x,y);
+                    positionToMouse(x, y);
                     return;  // <--- Early ret: No work needed ---
                 }
 
@@ -8069,7 +8057,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             }
 
             } catch (ConcurrentModificationException e) {
-                handleHover(x, y);  // try again now
+                handleHover(x, y, xb, yb);  // try again now
                 return;
             }
 
