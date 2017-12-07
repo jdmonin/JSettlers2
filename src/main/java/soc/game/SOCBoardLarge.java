@@ -503,7 +503,7 @@ public class SOCBoardLarge extends SOCBoard
     protected HashSet<Integer>[] landAreasLegalNodes;
 
     /**
-     * Maximum players (4 or 6).
+     * Maximum players (default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB").
      * Some scenarios are laid out differently for 6 players.
      * Some are laid out differently for 3 players, so also check SOCGameOption "PL".
      */
@@ -651,7 +651,7 @@ public class SOCBoardLarge extends SOCBoard
      * Board height and width will be the default, {@link #BOARDHEIGHT_LARGE} by {@link #BOARDWIDTH_LARGE}.
      *<P>
      * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
-     * @param maxPlayers Maximum players; must be 4 or 6
+     * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
      */
     public SOCBoardLarge(final Map<String,SOCGameOption> gameOpts, int maxPlayers)
@@ -665,7 +665,7 @@ public class SOCBoardLarge extends SOCBoard
      * The board will be empty (all hexes are water, no dice numbers on any hex), see class javadoc
      * for how the board is filled when the game begins.
      * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
-     * @param maxPlayers Maximum players; must be 4 or 6
+     * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
      * @param boardHeightWidth  Board's height and width.
      *        The constants for default size are {@link #BOARDHEIGHT_LARGE}, {@link #BOARDWIDTH_LARGE}.
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6, or <tt>boardHeightWidth</tt> is null
@@ -721,7 +721,7 @@ public class SOCBoardLarge extends SOCBoard
      * Default size {@link #BOARDHEIGHT_LARGE} by {@link #BOARDWIDTH_LARGE},
      * unless <tt>gameOpts</tt> contains <tt>"_BHW"</tt> Board Height and Width.
      * @param gameOpts  Game options, or null
-     * @param maxPlayers  Maximum players; must be 4 or 6
+     * @param maxPlayers  Maximum players; must be default 4, or 6 from game option "PL" &gt; 4 or "PLB".
      * @return a new IntPair(height, width)
      * @see soc.server.SOCBoardLargeAtServer#getBoardSize(Map, int)
      */

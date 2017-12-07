@@ -143,7 +143,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * see {@link #getAddedLayoutPart(String)} javadoc for details on "VS".
      *
      * @param gameOpts  Game's options if any, otherwise null
-     * @param maxPlayers Maximum players; must be 4 or 6
+     * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
      * @param boardHeightWidth  Board's height and width.
      *        The constants for default size are {@link #BOARDHEIGHT_LARGE}, {@link #BOARDWIDTH_LARGE}.
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6, or <tt>boardHeightWidth</tt> is null
@@ -247,7 +247,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
         // For scenario boards, use 3-player or 4-player or 6-player layout?
         // Always test maxPl for ==6 or < 4 ; actual value may be 6, 4, 3, or 2.
-        // Same maxPl initialization as in getBoardShift(opts).
+        // Same maxPl initialization as in getBoardShift(opts) and getBoardSize(..).
         final int maxPl;
         if (maxPlayers == 6)
         {
@@ -2346,13 +2346,26 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * The fallback 6-player layout size is taller,
      * {@link SOCBoardLarge#BOARDHEIGHT_LARGE BOARDHEIGHT_LARGE} + 3 by {@link SOCBoardLarge#BOARDWIDTH_LARGE BOARDWIDTH_LARGE}.
      * @param gameOpts  Game options, or null
-     * @param maxPlayers  Maximum players; must be 4 or 6
+     * @param maxPlayers  Maximum players; must be 4 or 6 (from game option {@code "PL"} &gt; 4 or {@code "PLB"}).
+     *     If {@code maxPlayers} == 4 and {@code gameOpts} contains {@code "PL"},
+     *     that overrides {@code maxPlayers} using the same logic as in {@link #makeNewBoard(Map)}.
      * @return encoded size (0xRRCC), the same format as game option {@code "_BHW"}
      * @see SOCBoardLarge#getBoardSize(Map, int)
      */
     private static int getBoardSize(final Map<String, SOCGameOption> gameOpts, final int maxPlayers)
     {
         int heightWidth = 0;
+
+        // Always test maxPl for ==6 or < 4 ; actual value may be 6, 4, 3, or 2.
+        // Same maxPl initialization as in getBoardShift(opts) and makeNewBoard(..).
+        final int maxPl;
+        SOCGameOption opt = (gameOpts != null ? gameOpts.get("PL") : null);
+        if ((opt == null) || (maxPlayers == 6))
+            maxPl = maxPlayers;
+        else if (opt.getIntValue() > 4)
+            maxPl = 6;
+        else
+            maxPl = opt.getIntValue();
 
         SOCGameOption scOpt = null;
         if (gameOpts != null)
@@ -2364,50 +2377,45 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             final String sc = scOpt.getStringValue();
             if (sc.equals(SOCScenario.K_SC_4ISL))
             {
-                if (maxPlayers == 6)
+                if (maxPl == 6)
                     heightWidth = FOUR_ISL_BOARDSIZE_6PL;
                 else
                     heightWidth = FOUR_ISL_BOARDSIZE_4PL;
             }
             else if (sc.equals(SOCScenario.K_SC_FOG))
             {
-                heightWidth = FOG_ISL_BOARDSIZE[(maxPlayers == 6) ? 1 : 0];  // 3, 4-player boards have same board size
+                heightWidth = FOG_ISL_BOARDSIZE[(maxPl == 6) ? 1 : 0];  // 3, 4-player boards have same board size
             }
             else if (sc.equals(SOCScenario.K_SC_TTD))
             {
-                if (maxPlayers == 6)
-                    heightWidth = TTDESERT_BOARDSIZE[2];
-                else if (maxPlayers >= 4)
-                    heightWidth = TTDESERT_BOARDSIZE[1];
-                else
-                    heightWidth = TTDESERT_BOARDSIZE[0];
+                heightWidth = TTDESERT_BOARDSIZE[(maxPl == 6) ? 2 : (maxPl == 4) ? 1 : 0];
             }
             else if (sc.equals(SOCScenario.K_SC_PIRI))
             {
-                heightWidth = PIR_ISL_BOARDSIZE[(maxPlayers == 6) ? 1 : 0];
+                heightWidth = PIR_ISL_BOARDSIZE[(maxPl == 6) ? 1 : 0];
             }
             else if (sc.equals(SOCScenario.K_SC_FTRI))
             {
-                heightWidth = FOR_TRI_BOARDSIZE[(maxPlayers == 6) ? 1 : 0];
+                heightWidth = FOR_TRI_BOARDSIZE[(maxPl == 6) ? 1 : 0];
             }
             else if (sc.equals(SOCScenario.K_SC_CLVI))
             {
-                heightWidth = CLVI_BOARDSIZE[(maxPlayers == 6) ? 1 : 0];
+                heightWidth = CLVI_BOARDSIZE[(maxPl == 6) ? 1 : 0];
             }
             else if (sc.equals(SOCScenario.K_SC_WOND))
             {
-                heightWidth = WOND_BOARDSIZE[(maxPlayers == 6) ? 1 : 0];
+                heightWidth = WOND_BOARDSIZE[(maxPl == 6) ? 1 : 0];
             }
             else if (sc.equals(SOCScenario.K_SC_NSHO))
             {
-                heightWidth = NSHO_BOARDSIZE[(maxPlayers == 6) ? 2 : (maxPlayers == 4) ? 1 : 0];
+                heightWidth = NSHO_BOARDSIZE[(maxPl == 6) ? 2 : (maxPl == 4) ? 1 : 0];
             }
         }
 
         if (heightWidth == 0)
         {
             // No recognized scenario, so use the fallback board.
-            heightWidth = FALLBACK_BOARDSIZE[(maxPlayers == 6) ? 1 : 0];
+            heightWidth = FALLBACK_BOARDSIZE[(maxPl == 6) ? 1 : 0];
         }
 
         return heightWidth;
@@ -2430,13 +2438,19 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         // Always test maxPl for ==6 or < 4 ; actual value may be 6, 4, 3, or 2.
         // Same maxPl initialization as in makeNewBoard(opts).
         final int maxPl;
-        opt = (gameOpts != null ? gameOpts.get("PL") : null);
-        if (opt == null)
-            maxPl = 4;
-        else if (opt.getIntValue() > 4)
+        opt = (gameOpts != null ? gameOpts.get("PLB") : null);
+        if ((opt != null) && opt.getBoolValue())
+        {
             maxPl = 6;
-        else
-            maxPl = opt.getIntValue();
+        } else {
+            opt = (gameOpts != null ? gameOpts.get("PL") : null);
+            if (opt == null)
+                maxPl = 4;
+            else if (opt.getIntValue() > 4)
+                maxPl = 6;
+            else
+                maxPl = opt.getIntValue();
+        }
 
         final String scen;  // scenario key, such as SOCScenario.K_SC_4ISL, or empty string
         opt = (gameOpts != null ? gameOpts.get("SC") : null);
@@ -4787,7 +4801,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
          *                  {@link SOCBoardLargeAtServer#getBoardSize(Map, int) getBoardSize(Map, int)}
          *                  gives a non-default size, <tt>"_BHW"</tt> will be added to <tt>gameOpts</tt>.
          * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding)
-         * @param maxPlayers Maximum players; must be 4 or 6.
+         * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
          *                  or (unlikely internal error) game option "_BHW" isn't known in SOCGameOption.getOption.
          */

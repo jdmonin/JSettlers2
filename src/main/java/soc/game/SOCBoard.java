@@ -3215,7 +3215,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
          * @param largeBoard  true if a Sea Board should be created: {@link SOCBoardLarge} with
          *     v3 encoding {@link SOCBoard#BOARD_ENCODING_LARGE BOARD_ENCODING_LARGE}, game rules for
          *     ships, etc. If true, assumes {@code gameOpts != null} and {@code gameOpts} contains {@code "SBL"}.
-         * @param maxPlayers Maximum players; must be 4 or 6.
+         * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
          */
         SOCBoard createBoard
@@ -3238,7 +3238,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
          *
          * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
          * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding)
-         * @param maxPlayers Maximum players; must be 4 or 6.
+         * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
          */
         public static SOCBoard staticCreateBoard
@@ -3263,7 +3263,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
          *
          * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
          * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding)
-         * @param maxPlayers Maximum players; must be 4 or 6.
+         * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
          */
         public SOCBoard createBoard
