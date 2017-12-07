@@ -3949,10 +3949,10 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     /**
      * Through The Desert: Board size for 3, 4, 6 players: Each is 0xrrcc (max row, max col).
      */
-    private static final int TTDESERT_BOARDSIZE[] = { 0x1010, 0x1012, 0x1016 };
+    private static final int TTDESERT_BOARDSIZE[] = { 0x100E, 0x1011, 0x1016 };
 
     /** Through The Desert: Visual Shift ("VS") */
-    private static final int TTDESERT_VIS_SHIFT[][] = { {0,5}, {0,2}, {0,1} };
+    private static final int TTDESERT_VIS_SHIFT[][] = { {0,2}, {0,2}, {0,1} };
 
     /**
      * Through The Desert: Starting pirate water hex coordinate for 3, 4, 6 players.
