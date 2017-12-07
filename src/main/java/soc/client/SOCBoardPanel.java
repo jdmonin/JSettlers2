@@ -50,6 +50,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.MediaTracker;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
@@ -2845,6 +2846,31 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         scaledMissedImage = true;  // force redraw of the empty board
         repaint();  // to call drawBoard, drawBoardEmpty
+
+        if (setOn && ((pieceType == 2) || (pieceType == -1)))
+        {
+            int[] vs = (board instanceof SOCBoardLarge)
+                ? ((SOCBoardLarge) board).getAddedLayoutPart("VS") : null;
+            if (vs == null)
+                vs = new int[]{0, 0};
+            System.err.println
+                ("debugShowPotentials: Board size (height, width) = 0x"
+                 + Integer.toHexString(board.getBoardWidth()) + ",0x" + Integer.toHexString(board.getBoardHeight())
+                 + ", VS (down, right) = " + vs[0] + "," + vs[1]);
+            System.err.println
+                ("  Panel size (width, height): unscaled = "
+                 + panelMinBW + "," + panelMinBH + ((isRotated) ? ", rotated" : "")
+                 + ", current = " + scaledPanelX + "," + scaledPanelY
+                 + ", margin (left, top) = " + panelMarginX + "," + panelMarginY
+                 + ", unscaled shift (right, down) = " + panelShiftBX + "," + panelShiftBY);
+            int w = playerInterface.getWidth(), h = playerInterface.getHeight();
+            Insets ins = playerInterface.getInsets();
+            System.err.println
+                ("  PI window size (width, height) = " + w + "," + h
+                 + ", inner = " + (w - ins.left - ins.right) + "," + (h - ins.top - ins.bottom)
+                 + ", insets (left, right, top, bottom) = "
+                 + ins.left + "," + ins.right + "," + ins.top + "," + ins.bottom);
+        }
     }
 
     /**
