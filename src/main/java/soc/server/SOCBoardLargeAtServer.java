@@ -2374,13 +2374,11 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         if (scOpt != null)
         {
             // Check scenario name; not all scenarios have a custom board size.
+
             final String sc = scOpt.getStringValue();
             if (sc.equals(SOCScenario.K_SC_4ISL))
             {
-                if (maxPl == 6)
-                    heightWidth = FOUR_ISL_BOARDSIZE_6PL;
-                else
-                    heightWidth = FOUR_ISL_BOARDSIZE_4PL;
+                heightWidth = FOUR_ISL_BOARDSIZE[(maxPl == 6) ? 1 : 0];  // 3, 4-player boards have same board size
             }
             else if (sc.equals(SOCScenario.K_SC_FOG))
             {
@@ -2476,7 +2474,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         else if (scen.equals(SOCScenario.K_SC_PIRI))
             return PIR_ISL_VIS_SHIFT;
         else if (scen.equals(SOCScenario.K_SC_TTD))
-            boardVS = TTDESERT_VIS_SHIFT;
+            return TTDESERT_VIS_SHIFT;
         else if (scen.equals(SOCScenario.K_SC_FTRI))
             boardVS = FOR_TRI_VIS_SHIFT;
         else if (scen.equals(SOCScenario.K_SC_CLVI))
@@ -2899,7 +2897,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     private static final int NSHO_BOARDSIZE[] = { 0x0E0E, 0x0E10, 0x0E14 };
 
     /** New Shores: Visual Shift ("VS") */
-    private static final int NSHO_VIS_SHIFT[][] = { {0,3}, {0,1}, {3,0} };
+    private static final int NSHO_VIS_SHIFT[][] = { {0,1}, {0,1}, {3,0} };
 
     /**
      * New Shores: Starting pirate water hex coordinate for 3, 4, 6 players.
@@ -3423,8 +3421,15 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     //   Has 3-player, 4-player, 6-player versions
     //
 
+    /**
+     * Four Islands: Board size:
+     * 3 or 4 players max row 0x0f, max col 0x0e.
+     * 6 players max row 0x10, max col 0x14.
+     */
+    private static final int FOUR_ISL_BOARDSIZE[] = { 0x0f0e, 0x1014 };
+
     /** Four Islands: Visual Shift ("VS"), same for all player counts */
-    private static final int FOUR_ISL_VIS_SHIFT[] = {2, 0};
+    private static final int FOUR_ISL_VIS_SHIFT[] = {3, 0};
 
     /** Four Islands: Pirate ship's starting hex coordinate for 3,4,6 players */
     private static final int FOUR_ISL_PIRATE_HEX[] =
@@ -3522,9 +3527,6 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     // 4-player
     //
 
-    /** Four Islands: Board size for 4 players: Max row 0x10, max col 0x0e. */
-    private static final int FOUR_ISL_BOARDSIZE_4PL = 0x100e;
-
     /**
      * Four Islands: Land hex types for all 4 islands.
      */
@@ -3606,9 +3608,6 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     //
     // 6-player
     //
-
-    /** Four Islands: Board size for 6 players: Max row 0x10, max col 0x14. */
-    private static final int FOUR_ISL_BOARDSIZE_6PL = 0x1014;
 
     /**
      * Six Islands: Land hex types for all 6 islands.
@@ -3951,8 +3950,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      */
     private static final int TTDESERT_BOARDSIZE[] = { 0x100E, 0x1011, 0x1016 };
 
-    /** Through The Desert: Visual Shift ("VS") */
-    private static final int TTDESERT_VIS_SHIFT[][] = { {0,2}, {0,2}, {0,1} };
+    /** Through The Desert: Visual Shift ("VS"), same for all player counts */
+    private static final int TTDESERT_VIS_SHIFT[] = {0, 1};
 
     /**
      * Through The Desert: Starting pirate water hex coordinate for 3, 4, 6 players.
@@ -4240,7 +4239,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     private static final int FOR_TRI_BOARDSIZE[] = { 0x0E11, 0x0E15 };
 
     /** Forgotten Tribe: Visual Shift ("VS") */
-    private static final int FOR_TRI_VIS_SHIFT[][] = { {2,-2}, {2,-1} };
+    private static final int FOR_TRI_VIS_SHIFT[][] = { {3,-2}, {2,-1} };
 
     /**
      * Forgotten Tribe: Starting pirate water hex coordinate for 4, 6 players.
