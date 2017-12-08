@@ -3197,7 +3197,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
         /**
          * Create a new Settlers of Catan Board based on <tt>gameOpts</tt>; this is a factory method.
          * @param gameOpts  game's options if any, otherwise null
-         * @param maxPlayers Maximum players; must be 4 or 6.
+         * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
          */
         SOCBoard createBoard
@@ -3219,7 +3219,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
          * Static for fallback access from other factory implementations.
          *
          * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
-         * @param maxPlayers Maximum players; must be 4 or 6.
+         * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
          */
         public static SOCBoard staticCreateBoard
@@ -3235,7 +3235,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
          * From v1.1.11 through all 1.x.xx, this was SOCBoard.createBoard.  Moved to new factory class in 2.0.00.
          *
          * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
-         * @param maxPlayers Maximum players; must be 4 or 6.
+         * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
          */
         public SOCBoard createBoard

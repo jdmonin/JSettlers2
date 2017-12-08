@@ -24,6 +24,7 @@ and backport minor new features until `2.0.00` is ready.
 - Game Scenario and special-rules support
 - Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard's dialog)
 - Game expire time increased: Now 2 hours, was 90 minutes; also warns 5 or 6 minutes earlier
+- Game windows: Render board with antialiasing; player name labels sans-serif for cleaner look
 - More efficient game-setup messages over network
 - I18N framework in place, started by Luis A. Ramirez; thank you Luis. Jeremy wrote more I18N utilities (package net.nand.util.i18n).
 - Client sends server its locale, to support i18n localization

@@ -611,7 +611,7 @@ public class SOCHandPanel extends Panel
         add(faceImg);
 
         pname = new Label();
-        pname.setFont(new Font("Serif", Font.PLAIN, 14));
+        pname.setFont(new Font("SansSerif", Font.PLAIN, 14));
         add(pname);
         pnameActiveBG = null;  // Will be calculated at first turn
 
