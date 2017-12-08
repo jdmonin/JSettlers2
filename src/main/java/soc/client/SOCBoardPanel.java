@@ -693,6 +693,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Used by {@link #getMinimumSize()}.
      * @since 1.1.08
      * @see #panelMinBW
+     * @see #unscaledPanelW
      * @see #rescaleBoard(int, int, boolean)
      */
     private Dimension minSize;
@@ -830,12 +831,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Unscaled (internal pixel, but rotated if needed) panel width for
      * {@link #scaleToActual(int)} and {@link #scaleFromActual(int)}.
      * See {@link #scaledPanelX} for scaled (actual screen pixel) width.
-     * Same axis as {@code scaledPanelX}, even if {@link #isRotated}.
-     * @see #panelMinBW
+     * Unlike {@link #panelMinBW}, is same axis as {@code scaledPanelX} when {@link #isRotated}.
      * @see #isScaled
+     * @see #minSize
      * @since 2.0.00
      */
-    private final int unscaledPanelW;
+    private int unscaledPanelW;
 
     /**
      * The board is currently scaled up, larger than
@@ -2316,7 +2317,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @param changedMargins  True if the server has sent a board layout which includes values
      *   for Visual Shift ("VS"). When true, caller should update the {@link #panelShiftBX}, {@link #panelShiftBY},
      *   {@link #panelMinBW}, and {@link #panelMinBH} fields before calling, but <B>not</B> update {@link #minSize}
-     *   which will be updated here from {@code panelMinBW}, {@code panelMinBH}.
+     *   or {@link #unscaledPanelW} which will be updated here from {@code panelMinBW}, {@code panelMinBH}.
      *   <P>
      *   Before and after calling, caller should check {@link #scaledPanelX} and {@link #scaledPanelY}
      *   to see if the current size fields had to be changed. If so, caller must call
@@ -2346,6 +2347,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
                 minSize.width = w;
                 minSize.height = h;
+                unscaledPanelW = w;
 
                 // Change requested new size if required by larger changed margin.
                 // From javadoc the caller knows this might happen and will check for it.
@@ -3524,6 +3526,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 g.setColor(Color.black);
         }
         g.drawPolygon(roadX, roadY, roadX.length);
+
         g.translate(-hx, -hy);
     }
 
@@ -3559,29 +3562,31 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         // System.out.println("NODEID = "+Integer.toHexString(nodeNum)+" | HEXNUM = "+hexNum);
 
+        g.translate(hx, hy);
+
         if (isCity)
         {
-            g.translate(hx, hy);
             if (isHilight)
             {
                 g.setColor(playerInterface.getPlayerColor(pn, true));
                 g.drawPolygon(scaledCityX, scaledCityY, 8);
+
                 // Draw again, slightly offset, for "ghost", since we can't fill and
                 // cover up the underlying settlement.
                 g.translate(1,1);
                 g.drawPolygon(scaledCityX, scaledCityY, 8);
                 g.translate(-(hx+1), -(hy+1));
-                return;
+
+                return;  // <--- Early return: hilight outline only ---
             }
 
             g.setColor(playerInterface.getPlayerColor(pn));
             g.fillPolygon(scaledCityX, scaledCityY, 8);
             g.setColor(Color.black);
             g.drawPolygon(scaledCityX, scaledCityY, 8);
-            g.translate(-hx, -hy);
         } else {
             // settlement
-            g.translate(hx, hy);
+
             if (! outlineOnly)
             {
                 if (isHilight)
@@ -3595,8 +3600,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             else
                 g.setColor(Color.black);
             g.drawPolygon(scaledSettlementX, scaledSettlementY, 7);
-            g.translate(-hx, -hy);
         }
+
+        g.translate(-hx, -hy);
     }
 
     /**
@@ -3675,7 +3681,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             g.setColor(playerInterface.getPlayerColor(pn, true));
         else
             g.setColor(playerInterface.getPlayerColor(pn));
+
         g.translate(nodexy[0], nodexy[1]);
+
         g.fillPolygon(scaledFortressX, scaledFortressY, scaledFortressY.length);
         if (isHilight)
             g.setColor(playerInterface.getPlayerColor(pn, false));
@@ -3723,6 +3731,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private final void drawMarker(Graphics g, final int x, final int y, final Color color, final int val)
     {
         g.translate(x, y);
+
         g.setColor(color);
         g.fillPolygon(scaledVillageX, scaledVillageY, 4);
         g.setColor(Color.black);
@@ -3855,7 +3864,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             scArrowX = scaledArrowXL;
         else
             scArrowX = scaledArrowXR;
+
         g.translate(arrowX, arrowY);
+
         if (! (game.isSpecialBuilding() || (gameState == SOCGame.OVER)))
             g.setColor(ARROW_COLOR);
         else
@@ -3863,6 +3874,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         g.fillPolygon(scArrowX, scaledArrowY, scArrowX.length);
         g.setColor(Color.BLACK);
         g.drawPolygon(scArrowX, scaledArrowY, scArrowX.length);
+
         g.translate(-arrowX, -arrowY);
 
         /**
