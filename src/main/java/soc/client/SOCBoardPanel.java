@@ -4356,6 +4356,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private void drawBoardEmpty(Graphics g)
     {
+        // ask for antialiasing if available
+        if (g instanceof Graphics2D)
+            ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
         Set<Integer> landHexShow;
         final int SC_6;
         if (debugShowPotentials[8] && isLargeBoard)
