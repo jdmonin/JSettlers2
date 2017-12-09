@@ -1221,18 +1221,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
             HashMap<String, int[]> others = mes.getAddedParts();
             if (others != null)
                 ((SOCBoardLarge) bd).setAddedLayoutParts(others);
-        }
-        else if (bef <= SOCBoard.BOARD_ENCODING_6PLAYER)
-        {
-            // v1 or v2
-            bd.setHexLayout(mes.getIntArrayPart("HL"));
-            bd.setNumberLayout(mes.getIntArrayPart("NL"));
-            bd.setRobberHex(mes.getIntPart("RH"), false);
-            int[] portLayout = mes.getIntArrayPart("PL");
-            if (portLayout != null)
-                bd.setPortsLayout(portLayout);
         } else {
-            // Should not occur: Server has sent an unrecognized format
+            // Should not occur: Server has sent an unrecognized format.
+            // v3.0 doesn't use the classic board encodings ("v1", "v2")
             System.err.println
                 ("Cannot recognize game encoding v" + bef + " for game " + ga.getName());
             return false;

@@ -105,48 +105,6 @@ public abstract class SOCBoard6p extends SOCBoard
     };
 
     /**
-     * Possible number paths for 6-player board.
-     * {@link #makeNewBoard(Map)} randomly chooses one path (one 1-dimensional array)
-     * to be used as <tt>numPath[]</tt> in
-     * {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
-     */
-    final static int[][] makeNewBoard_numPaths_v2 =
-    {
-        // Numbers are indexes within hexLayout (also in numberLayout) for each land hex.
-        // See the hexLayout javadoc for how the indexes are arranged on the board layout,
-        // and remember that the 6-player board is visually rotated clockwise 90 degrees;
-        // visual "North" used here is West internally in the board layout.
-
-        // clockwise from north
-        {
-            15, 9, 4, 0, 1, 2, 7, 13, 20, 26, 31, 35, 34, 33, 28, 22,  // outermost hexes
-            16, 10, 5, 6, 12, 19, 25, 30, 29, 23,  // middle ring of hexes
-            17, 11, 18, 24                         // center hexes
-        },
-
-        // counterclockwise from north
-        {
-            15, 22, 28, 33, 34, 35, 31, 26, 20, 13, 7, 2, 1, 0, 4, 9,
-            16, 23, 29, 30, 25, 19, 12, 6, 5, 10,
-            17, 24, 18, 11
-        },
-
-        // clockwise from south
-        {
-            20, 26, 31, 35, 34, 33, 28, 22, 15, 9, 4, 0, 1, 2, 7, 13,
-            19, 25, 30, 29, 23, 16, 10, 5, 6, 12,
-            18, 24, 17, 11
-        },
-
-        // counterclockwise from south
-        {
-            20, 13, 7, 2, 1, 0, 4, 9, 15, 22, 28, 33, 34, 35, 31, 26,
-            19, 12, 6, 5, 10, 16, 23, 29, 30, 25,
-            18, 11, 17, 24
-        }
-    };
-
-    /**
      * unused default constructor: everything is {@link SOCBoardLarge} in v3
      */
     private SOCBoard6p()

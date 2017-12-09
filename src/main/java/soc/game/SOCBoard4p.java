@@ -109,54 +109,6 @@ public abstract class SOCBoard4p extends SOCBoard
     };
 
     /**
-     * Possible number paths for 4-player original board.
-     * {@link #makeNewBoard(Map)} randomly chooses one path (one 1-dimensional array)
-     * to be used as <tt>numPath[]</tt> in
-     * {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
-     */
-    final static int[][] makeNewBoard_numPaths_v1 =
-    {
-        // Numbers are indexes within hexLayout (also in numberLayout) for each land hex.
-        // See the hexLayout javadoc for how the indexes are arranged on the board layout.
-
-        // counterclockwise from southwest
-        {
-            29, 30, 31, 26, 20, 13, 7, 6, 5, 10, 16, 23,  // outermost hexes
-            24, 25, 19, 12, 11, 17,    18  // middle ring, center hex
-        },
-
-        // clockwise from southwest
-        {
-            29, 23, 16, 10, 5, 6, 7, 13, 20, 26, 31, 30,
-            24, 17, 11, 12, 19, 25,    18
-        },
-
-        // counterclockwise from east corner
-        {
-            20, 13, 7, 6, 5, 10, 16, 23, 29, 30, 31, 26,
-            19, 12, 11, 17, 24, 25,    18
-        },
-
-        // clockwise from east corner
-        {
-            20, 26, 31, 30, 29, 23, 16, 10, 5, 6, 7, 13,
-            19, 25, 24, 17, 11, 12,    18
-        },
-
-        // counterclockwise from northwest
-        {
-            5, 10, 16, 23, 29, 30, 31, 26, 20, 13, 7, 6,
-            11, 17, 24, 25, 19, 12,    18
-        },
-
-        // clockwise from northwest
-        {
-            5, 6, 7, 13, 20, 26, 31, 30, 29, 23, 16, 10,
-            11, 12, 19, 25, 24, 17,    18
-        }
-    };
-
-    /**
      * unused default constructor: everything is SOCBoardLarge in v3
      */
     private SOCBoard4p()

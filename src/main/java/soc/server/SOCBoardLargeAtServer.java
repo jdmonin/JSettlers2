@@ -2729,8 +2729,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
     /**
      * Dice numbers in the classic 4- and 6-player board layouts, in order along {@code numPath}
-     * ({@link #makeNewBoard_numPaths_v1}).
-     * For more information see {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
+     * ({@link #CLASSIC_LANDHEX_COORD}). For more information see
+     * {@link #makeNewBoard_placeHexes(int[], int[], int[], boolean, boolean, int, boolean, int, SOCGameOption, String)}.
      *<P>
      * In v2.x.xx these were {@code makeNewBoard_diceNums_v1, makeNewBoard_diceNums_v2}.
      */

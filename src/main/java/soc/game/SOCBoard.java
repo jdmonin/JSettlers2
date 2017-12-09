@@ -502,15 +502,6 @@ public abstract class SOCBoard implements Serializable, Cloneable
      */
     protected int[] portsLayout;
 
-    /*
-       private int numberLayout[] = { -1, -1, -1, -1,
-       -1, 8, 9, 6, -1,
-       -1, 2, 4, 3, 7, -1,
-       -1, -1, 1, 8, 2, 5, -1,
-       -1, 5, 7, 6, 1, -1,
-       -1, 3, 0, 4, -1,
-       -1, -1, -1, -1 };
-     */
     /** Dice number from hex numbers.
      *  For coord mapping, see {@link #numToHexID}
      *<P>
@@ -850,88 +841,6 @@ public abstract class SOCBoard implements Serializable, Cloneable
     {
         throw new UnsupportedOperationException("Use SOCBoardLargeAtServer instead");
     }
-
-    /**
-     * For {@link #makeNewBoard(Map)}, place the land hexes, number, and robber,
-     * after shuffling landHex[].
-     * Sets robberHex, contents of hexLayout[] and numberLayout[].
-     * Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
-     * (for land hex resource types).
-     * Called from {@link #makeNewBoard(Map)} at server only; client has its board layout sent from the server.
-     *<P>
-     * This method does not clear out {@link #hexLayout} or {@link #numberLayout}
-     * before it starts placement.  Since hexLayout's land hex coordinates are hardcoded within
-     * {@link #numToHexID}, it can only be called once per board layout.
-     *
-     * @param landHex  Resource type to place into {@link #hexLayout} for each land hex; will be shuffled.
-     *                    Values are {@link #CLAY_HEX}, {@link #DESERT_HEX}, etc.
-     * @param numPath  Indexes within {@link #hexLayout} (also within {@link #numberLayout}) for each land hex;
-     *                    same array length as <tt>landHex[]</tt>
-     * @param number   Numbers to place into {@link #numberLayout} for each land hex;
-     *                    array length is <tt>landHex[].length</tt> minus 1 for each desert in <tt>landHex[]</tt>
-     * @param optBC    Game option "BC" from the options for this board, or <tt>null</tt>.
-     * @throws IllegalArgumentException if {@link #makeNewBoard_checkLandHexResourceClumps(Vector, int)}
-     *                 finds an invalid or uninitialized hex coordinate (hex type -1)
-     */
-    private void makeNewBoard_placeHexes
-        (int[] landHex, final int[] numPath, final int[] number, SOCGameOption optBC)
-        throws IllegalArgumentException
-    {
-        final boolean checkClumps = (optBC != null) && optBC.getBoolValue();
-        final int clumpSize = checkClumps ? optBC.getIntValue() : 0;
-        boolean clumpsNotOK = checkClumps;
-
-        do   // will re-do placement until clumpsNotOK is false
-        {
-            // shuffle the land hexes 10x
-            for (int j = 0; j < 10; j++)
-            {
-                int idx, tmp;
-                for (int i = 0; i < landHex.length; i++)
-                {
-                    // Swap a random card below the ith card with the ith card
-                    idx = Math.abs(rand.nextInt() % (landHex.length - i));
-                    if (idx == i)
-                        continue;
-                    tmp = landHex[idx];
-                    landHex[idx] = landHex[i];
-                    landHex[i] = tmp;
-                }
-            }
-
-            int cnt = 0;
-            for (int i = 0; i < landHex.length; i++)
-            {
-                // place the land hexes
-                hexLayout[numPath[i]] = landHex[i];
-
-                // place the robber on the desert
-                if (landHex[i] == DESERT_HEX)
-                {
-                    robberHex = numToHexID[numPath[i]];
-                    numberLayout[numPath[i]] = -1;
-                }
-                else
-                {
-                    // place the numbers
-                    numberLayout[numPath[i]] = number[cnt];
-                    cnt++;
-                }
-            }  // for(i in landHex)
-
-            if (checkClumps)
-            {
-                Vector<Integer> unvisited = new Vector<Integer>();  // contains each land hex's coordinate
-                for (int i = 0; i < landHex.length; ++i)
-                {
-                    unvisited.addElement(new Integer(numToHexID[numPath[i]]));
-                }
-                clumpsNotOK = makeNewBoard_checkLandHexResourceClumps(unvisited, clumpSize);
-            }  // if (checkClumps)
-
-        } while (clumpsNotOK);
-
-    }  // makeNewBoard_placeHexes
 
     /**
      * Depth-first search to check land hexes for resource clumps.
@@ -1566,28 +1475,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * @see #getPortsLayout()
      * @since 1.1.08
      */
-    public void setPortsLayout(int[] portTypes)
-    {
-        portsLayout = portTypes;
-
-        // Clear any previous port layout info
-        if (nodeIDtoPortType == null)
-            nodeIDtoPortType = new HashMap<Integer,Integer>();
-        else
-            nodeIDtoPortType.clear();
-        for (int i = 0; i < ports.length; ++i)
-            ports[i].removeAllElements();
-
-        // Place the new ports
-        for (int i = 0; i < SOCBoard6p.PORTS_FACING_V2.length; ++i)
-        {
-            final int ptype = portTypes[i];
-            final int[] nodes = getAdjacentNodesToEdge_arr(SOCBoard6p.PORTS_EDGE_V2[i]);
-            placePort(ptype, -1, SOCBoard6p.PORTS_FACING_V2[i], nodes[0], nodes[1]);
-        }
-
-        // The v3 layout overrides this method in SOCBoardLarge.
-    }
+    public abstract void setPortsLayout(int[] portTypes);
 
     /**
      * Given a hex type, return the port type.
