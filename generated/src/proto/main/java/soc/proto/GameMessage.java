@@ -14,6 +14,2449 @@ public final class GameMessage {
     registerAllExtensions(
         (com.google.protobuf.ExtensionRegistryLite) registry);
   }
+  public interface BoardLayoutOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:BoardLayout)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * Board layout encoding version, from {&#64;link SOCBoard#getBoardEncodingFormat()}
+     * </pre>
+     *
+     * <code>uint32 encoding_format = 1;</code>
+     */
+    int getEncodingFormat();
+
+    /**
+     * <pre>
+     * Layout Parts; some are optional depending on game options and scenario
+     * </pre>
+     *
+     * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
+     */
+    int getPartsCount();
+    /**
+     * <pre>
+     * Layout Parts; some are optional depending on game options and scenario
+     * </pre>
+     *
+     * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
+     */
+    boolean containsParts(
+        java.lang.String key);
+    /**
+     * Use {@link #getPartsMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart>
+    getParts();
+    /**
+     * <pre>
+     * Layout Parts; some are optional depending on game options and scenario
+     * </pre>
+     *
+     * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
+     */
+    java.util.Map<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart>
+    getPartsMap();
+    /**
+     * <pre>
+     * Layout Parts; some are optional depending on game options and scenario
+     * </pre>
+     *
+     * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
+     */
+
+    soc.proto.GameMessage.BoardLayout._BoardLayoutPart getPartsOrDefault(
+        java.lang.String key,
+        soc.proto.GameMessage.BoardLayout._BoardLayoutPart defaultValue);
+    /**
+     * <pre>
+     * Layout Parts; some are optional depending on game options and scenario
+     * </pre>
+     *
+     * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
+     */
+
+    soc.proto.GameMessage.BoardLayout._BoardLayoutPart getPartsOrThrow(
+        java.lang.String key);
+  }
+  /**
+   * <pre>
+   * Board layout contents.
+   * Sent when game starts or client joins a game in progress.
+   * TODO: Further docs on encoding_format, ref to list of part keynames, etc
+   * </pre>
+   *
+   * Protobuf type {@code BoardLayout}
+   */
+  public  static final class BoardLayout extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:BoardLayout)
+      BoardLayoutOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use BoardLayout.newBuilder() to construct.
+    private BoardLayout(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private BoardLayout() {
+      encodingFormat_ = 0;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private BoardLayout(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+
+              encodingFormat_ = input.readUInt32();
+              break;
+            }
+            case 18: {
+              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+                parts_ = com.google.protobuf.MapField.newMapField(
+                    PartsDefaultEntryHolder.defaultEntry);
+                mutable_bitField0_ |= 0x00000002;
+              }
+              com.google.protobuf.MapEntry<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart>
+              parts__ = input.readMessage(
+                  PartsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+              parts_.getMutableMap().put(
+                  parts__.getKey(), parts__.getValue());
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_BoardLayout_descriptor;
+    }
+
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMapField(
+        int number) {
+      switch (number) {
+        case 2:
+          return internalGetParts();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_BoardLayout_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.BoardLayout.class, soc.proto.GameMessage.BoardLayout.Builder.class);
+    }
+
+    public interface _BoardLayoutPartOrBuilder extends
+        // @@protoc_insertion_point(interface_extends:BoardLayout._BoardLayoutPart)
+        com.google.protobuf.MessageOrBuilder {
+
+      /**
+       * <pre>
+       * signed integer value
+       * </pre>
+       *
+       * <code>int32 i_val = 1;</code>
+       */
+      int getIVal();
+
+      /**
+       * <pre>
+       * string value
+       * </pre>
+       *
+       * <code>string s_val = 2;</code>
+       */
+      java.lang.String getSVal();
+      /**
+       * <pre>
+       * string value
+       * </pre>
+       *
+       * <code>string s_val = 2;</code>
+       */
+      com.google.protobuf.ByteString
+          getSValBytes();
+
+      /**
+       * <pre>
+       * signed integer array
+       * </pre>
+       *
+       * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+       */
+      boolean hasIArr();
+      /**
+       * <pre>
+       * signed integer array
+       * </pre>
+       *
+       * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+       */
+      soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray getIArr();
+      /**
+       * <pre>
+       * signed integer array
+       * </pre>
+       *
+       * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+       */
+      soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArrayOrBuilder getIArrOrBuilder();
+
+      public soc.proto.GameMessage.BoardLayout._BoardLayoutPart.ValCase getValCase();
+    }
+    /**
+     * Protobuf type {@code BoardLayout._BoardLayoutPart}
+     */
+    public  static final class _BoardLayoutPart extends
+        com.google.protobuf.GeneratedMessageV3 implements
+        // @@protoc_insertion_point(message_implements:BoardLayout._BoardLayoutPart)
+        _BoardLayoutPartOrBuilder {
+    private static final long serialVersionUID = 0L;
+      // Use _BoardLayoutPart.newBuilder() to construct.
+      private _BoardLayoutPart(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+        super(builder);
+      }
+      private _BoardLayoutPart() {
+      }
+
+      @java.lang.Override
+      public final com.google.protobuf.UnknownFieldSet
+      getUnknownFields() {
+        return this.unknownFields;
+      }
+      private _BoardLayoutPart(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        this();
+        int mutable_bitField0_ = 0;
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+            com.google.protobuf.UnknownFieldSet.newBuilder();
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              default: {
+                if (!parseUnknownFieldProto3(
+                    input, unknownFields, extensionRegistry, tag)) {
+                  done = true;
+                }
+                break;
+              }
+              case 8: {
+                valCase_ = 1;
+                val_ = input.readInt32();
+                break;
+              }
+              case 18: {
+                java.lang.String s = input.readStringRequireUtf8();
+                valCase_ = 2;
+                val_ = s;
+                break;
+              }
+              case 26: {
+                soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.Builder subBuilder = null;
+                if (valCase_ == 3) {
+                  subBuilder = ((soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) val_).toBuilder();
+                }
+                val_ =
+                    input.readMessage(soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.parser(), extensionRegistry);
+                if (subBuilder != null) {
+                  subBuilder.mergeFrom((soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) val_);
+                  val_ = subBuilder.buildPartial();
+                }
+                valCase_ = 3;
+                break;
+              }
+            }
+          }
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(this);
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(
+              e).setUnfinishedMessage(this);
+        } finally {
+          this.unknownFields = unknownFields.build();
+          makeExtensionsImmutable();
+        }
+      }
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_BoardLayout__BoardLayoutPart_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_BoardLayout__BoardLayoutPart_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.BoardLayout._BoardLayoutPart.class, soc.proto.GameMessage.BoardLayout._BoardLayoutPart.Builder.class);
+      }
+
+      public interface IntArrayOrBuilder extends
+          // @@protoc_insertion_point(interface_extends:BoardLayout._BoardLayoutPart.IntArray)
+          com.google.protobuf.MessageOrBuilder {
+
+        /**
+         * <code>repeated int32 arr = 1;</code>
+         */
+        java.util.List<java.lang.Integer> getArrList();
+        /**
+         * <code>repeated int32 arr = 1;</code>
+         */
+        int getArrCount();
+        /**
+         * <code>repeated int32 arr = 1;</code>
+         */
+        int getArr(int index);
+      }
+      /**
+       * Protobuf type {@code BoardLayout._BoardLayoutPart.IntArray}
+       */
+      public  static final class IntArray extends
+          com.google.protobuf.GeneratedMessageV3 implements
+          // @@protoc_insertion_point(message_implements:BoardLayout._BoardLayoutPart.IntArray)
+          IntArrayOrBuilder {
+      private static final long serialVersionUID = 0L;
+        // Use IntArray.newBuilder() to construct.
+        private IntArray(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+          super(builder);
+        }
+        private IntArray() {
+          arr_ = java.util.Collections.emptyList();
+        }
+
+        @java.lang.Override
+        public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+          return this.unknownFields;
+        }
+        private IntArray(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          this();
+          int mutable_bitField0_ = 0;
+          com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+              com.google.protobuf.UnknownFieldSet.newBuilder();
+          try {
+            boolean done = false;
+            while (!done) {
+              int tag = input.readTag();
+              switch (tag) {
+                case 0:
+                  done = true;
+                  break;
+                default: {
+                  if (!parseUnknownFieldProto3(
+                      input, unknownFields, extensionRegistry, tag)) {
+                    done = true;
+                  }
+                  break;
+                }
+                case 8: {
+                  if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                    arr_ = new java.util.ArrayList<java.lang.Integer>();
+                    mutable_bitField0_ |= 0x00000001;
+                  }
+                  arr_.add(input.readInt32());
+                  break;
+                }
+                case 10: {
+                  int length = input.readRawVarint32();
+                  int limit = input.pushLimit(length);
+                  if (!((mutable_bitField0_ & 0x00000001) == 0x00000001) && input.getBytesUntilLimit() > 0) {
+                    arr_ = new java.util.ArrayList<java.lang.Integer>();
+                    mutable_bitField0_ |= 0x00000001;
+                  }
+                  while (input.getBytesUntilLimit() > 0) {
+                    arr_.add(input.readInt32());
+                  }
+                  input.popLimit(limit);
+                  break;
+                }
+              }
+            }
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.setUnfinishedMessage(this);
+          } catch (java.io.IOException e) {
+            throw new com.google.protobuf.InvalidProtocolBufferException(
+                e).setUnfinishedMessage(this);
+          } finally {
+            if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+              arr_ = java.util.Collections.unmodifiableList(arr_);
+            }
+            this.unknownFields = unknownFields.build();
+            makeExtensionsImmutable();
+          }
+        }
+        public static final com.google.protobuf.Descriptors.Descriptor
+            getDescriptor() {
+          return soc.proto.GameMessage.internal_static_BoardLayout__BoardLayoutPart_IntArray_descriptor;
+        }
+
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internalGetFieldAccessorTable() {
+          return soc.proto.GameMessage.internal_static_BoardLayout__BoardLayoutPart_IntArray_fieldAccessorTable
+              .ensureFieldAccessorsInitialized(
+                  soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.class, soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.Builder.class);
+        }
+
+        public static final int ARR_FIELD_NUMBER = 1;
+        private java.util.List<java.lang.Integer> arr_;
+        /**
+         * <code>repeated int32 arr = 1;</code>
+         */
+        public java.util.List<java.lang.Integer>
+            getArrList() {
+          return arr_;
+        }
+        /**
+         * <code>repeated int32 arr = 1;</code>
+         */
+        public int getArrCount() {
+          return arr_.size();
+        }
+        /**
+         * <code>repeated int32 arr = 1;</code>
+         */
+        public int getArr(int index) {
+          return arr_.get(index);
+        }
+        private int arrMemoizedSerializedSize = -1;
+
+        private byte memoizedIsInitialized = -1;
+        public final boolean isInitialized() {
+          byte isInitialized = memoizedIsInitialized;
+          if (isInitialized == 1) return true;
+          if (isInitialized == 0) return false;
+
+          memoizedIsInitialized = 1;
+          return true;
+        }
+
+        public void writeTo(com.google.protobuf.CodedOutputStream output)
+                            throws java.io.IOException {
+          getSerializedSize();
+          if (getArrList().size() > 0) {
+            output.writeUInt32NoTag(10);
+            output.writeUInt32NoTag(arrMemoizedSerializedSize);
+          }
+          for (int i = 0; i < arr_.size(); i++) {
+            output.writeInt32NoTag(arr_.get(i));
+          }
+          unknownFields.writeTo(output);
+        }
+
+        public int getSerializedSize() {
+          int size = memoizedSize;
+          if (size != -1) return size;
+
+          size = 0;
+          {
+            int dataSize = 0;
+            for (int i = 0; i < arr_.size(); i++) {
+              dataSize += com.google.protobuf.CodedOutputStream
+                .computeInt32SizeNoTag(arr_.get(i));
+            }
+            size += dataSize;
+            if (!getArrList().isEmpty()) {
+              size += 1;
+              size += com.google.protobuf.CodedOutputStream
+                  .computeInt32SizeNoTag(dataSize);
+            }
+            arrMemoizedSerializedSize = dataSize;
+          }
+          size += unknownFields.getSerializedSize();
+          memoizedSize = size;
+          return size;
+        }
+
+        @java.lang.Override
+        public boolean equals(final java.lang.Object obj) {
+          if (obj == this) {
+           return true;
+          }
+          if (!(obj instanceof soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray)) {
+            return super.equals(obj);
+          }
+          soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray other = (soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) obj;
+
+          boolean result = true;
+          result = result && getArrList()
+              .equals(other.getArrList());
+          result = result && unknownFields.equals(other.unknownFields);
+          return result;
+        }
+
+        @java.lang.Override
+        public int hashCode() {
+          if (memoizedHashCode != 0) {
+            return memoizedHashCode;
+          }
+          int hash = 41;
+          hash = (19 * hash) + getDescriptor().hashCode();
+          if (getArrCount() > 0) {
+            hash = (37 * hash) + ARR_FIELD_NUMBER;
+            hash = (53 * hash) + getArrList().hashCode();
+          }
+          hash = (29 * hash) + unknownFields.hashCode();
+          memoizedHashCode = hash;
+          return hash;
+        }
+
+        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseFrom(
+            java.nio.ByteBuffer data)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          return PARSER.parseFrom(data);
+        }
+        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseFrom(
+            java.nio.ByteBuffer data,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          return PARSER.parseFrom(data, extensionRegistry);
+        }
+        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseFrom(
+            com.google.protobuf.ByteString data)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          return PARSER.parseFrom(data);
+        }
+        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseFrom(
+            com.google.protobuf.ByteString data,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          return PARSER.parseFrom(data, extensionRegistry);
+        }
+        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseFrom(byte[] data)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          return PARSER.parseFrom(data);
+        }
+        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseFrom(
+            byte[] data,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          return PARSER.parseFrom(data, extensionRegistry);
+        }
+        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseFrom(java.io.InputStream input)
+            throws java.io.IOException {
+          return com.google.protobuf.GeneratedMessageV3
+              .parseWithIOException(PARSER, input);
+        }
+        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseFrom(
+            java.io.InputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+          return com.google.protobuf.GeneratedMessageV3
+              .parseWithIOException(PARSER, input, extensionRegistry);
+        }
+        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseDelimitedFrom(java.io.InputStream input)
+            throws java.io.IOException {
+          return com.google.protobuf.GeneratedMessageV3
+              .parseDelimitedWithIOException(PARSER, input);
+        }
+        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseDelimitedFrom(
+            java.io.InputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+          return com.google.protobuf.GeneratedMessageV3
+              .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+        }
+        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseFrom(
+            com.google.protobuf.CodedInputStream input)
+            throws java.io.IOException {
+          return com.google.protobuf.GeneratedMessageV3
+              .parseWithIOException(PARSER, input);
+        }
+        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+          return com.google.protobuf.GeneratedMessageV3
+              .parseWithIOException(PARSER, input, extensionRegistry);
+        }
+
+        public Builder newBuilderForType() { return newBuilder(); }
+        public static Builder newBuilder() {
+          return DEFAULT_INSTANCE.toBuilder();
+        }
+        public static Builder newBuilder(soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray prototype) {
+          return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+        }
+        public Builder toBuilder() {
+          return this == DEFAULT_INSTANCE
+              ? new Builder() : new Builder().mergeFrom(this);
+        }
+
+        @java.lang.Override
+        protected Builder newBuilderForType(
+            com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+          Builder builder = new Builder(parent);
+          return builder;
+        }
+        /**
+         * Protobuf type {@code BoardLayout._BoardLayoutPart.IntArray}
+         */
+        public static final class Builder extends
+            com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+            // @@protoc_insertion_point(builder_implements:BoardLayout._BoardLayoutPart.IntArray)
+            soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArrayOrBuilder {
+          public static final com.google.protobuf.Descriptors.Descriptor
+              getDescriptor() {
+            return soc.proto.GameMessage.internal_static_BoardLayout__BoardLayoutPart_IntArray_descriptor;
+          }
+
+          protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+              internalGetFieldAccessorTable() {
+            return soc.proto.GameMessage.internal_static_BoardLayout__BoardLayoutPart_IntArray_fieldAccessorTable
+                .ensureFieldAccessorsInitialized(
+                    soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.class, soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.Builder.class);
+          }
+
+          // Construct using soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.newBuilder()
+          private Builder() {
+            maybeForceBuilderInitialization();
+          }
+
+          private Builder(
+              com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+            super(parent);
+            maybeForceBuilderInitialization();
+          }
+          private void maybeForceBuilderInitialization() {
+            if (com.google.protobuf.GeneratedMessageV3
+                    .alwaysUseFieldBuilders) {
+            }
+          }
+          public Builder clear() {
+            super.clear();
+            arr_ = java.util.Collections.emptyList();
+            bitField0_ = (bitField0_ & ~0x00000001);
+            return this;
+          }
+
+          public com.google.protobuf.Descriptors.Descriptor
+              getDescriptorForType() {
+            return soc.proto.GameMessage.internal_static_BoardLayout__BoardLayoutPart_IntArray_descriptor;
+          }
+
+          public soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray getDefaultInstanceForType() {
+            return soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.getDefaultInstance();
+          }
+
+          public soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray build() {
+            soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray result = buildPartial();
+            if (!result.isInitialized()) {
+              throw newUninitializedMessageException(result);
+            }
+            return result;
+          }
+
+          public soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray buildPartial() {
+            soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray result = new soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray(this);
+            int from_bitField0_ = bitField0_;
+            if (((bitField0_ & 0x00000001) == 0x00000001)) {
+              arr_ = java.util.Collections.unmodifiableList(arr_);
+              bitField0_ = (bitField0_ & ~0x00000001);
+            }
+            result.arr_ = arr_;
+            onBuilt();
+            return result;
+          }
+
+          public Builder clone() {
+            return (Builder) super.clone();
+          }
+          public Builder setField(
+              com.google.protobuf.Descriptors.FieldDescriptor field,
+              java.lang.Object value) {
+            return (Builder) super.setField(field, value);
+          }
+          public Builder clearField(
+              com.google.protobuf.Descriptors.FieldDescriptor field) {
+            return (Builder) super.clearField(field);
+          }
+          public Builder clearOneof(
+              com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+            return (Builder) super.clearOneof(oneof);
+          }
+          public Builder setRepeatedField(
+              com.google.protobuf.Descriptors.FieldDescriptor field,
+              int index, java.lang.Object value) {
+            return (Builder) super.setRepeatedField(field, index, value);
+          }
+          public Builder addRepeatedField(
+              com.google.protobuf.Descriptors.FieldDescriptor field,
+              java.lang.Object value) {
+            return (Builder) super.addRepeatedField(field, value);
+          }
+          public Builder mergeFrom(com.google.protobuf.Message other) {
+            if (other instanceof soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) {
+              return mergeFrom((soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray)other);
+            } else {
+              super.mergeFrom(other);
+              return this;
+            }
+          }
+
+          public Builder mergeFrom(soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray other) {
+            if (other == soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.getDefaultInstance()) return this;
+            if (!other.arr_.isEmpty()) {
+              if (arr_.isEmpty()) {
+                arr_ = other.arr_;
+                bitField0_ = (bitField0_ & ~0x00000001);
+              } else {
+                ensureArrIsMutable();
+                arr_.addAll(other.arr_);
+              }
+              onChanged();
+            }
+            this.mergeUnknownFields(other.unknownFields);
+            onChanged();
+            return this;
+          }
+
+          public final boolean isInitialized() {
+            return true;
+          }
+
+          public Builder mergeFrom(
+              com.google.protobuf.CodedInputStream input,
+              com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+              throws java.io.IOException {
+            soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parsedMessage = null;
+            try {
+              parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+            } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+              parsedMessage = (soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) e.getUnfinishedMessage();
+              throw e.unwrapIOException();
+            } finally {
+              if (parsedMessage != null) {
+                mergeFrom(parsedMessage);
+              }
+            }
+            return this;
+          }
+          private int bitField0_;
+
+          private java.util.List<java.lang.Integer> arr_ = java.util.Collections.emptyList();
+          private void ensureArrIsMutable() {
+            if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+              arr_ = new java.util.ArrayList<java.lang.Integer>(arr_);
+              bitField0_ |= 0x00000001;
+             }
+          }
+          /**
+           * <code>repeated int32 arr = 1;</code>
+           */
+          public java.util.List<java.lang.Integer>
+              getArrList() {
+            return java.util.Collections.unmodifiableList(arr_);
+          }
+          /**
+           * <code>repeated int32 arr = 1;</code>
+           */
+          public int getArrCount() {
+            return arr_.size();
+          }
+          /**
+           * <code>repeated int32 arr = 1;</code>
+           */
+          public int getArr(int index) {
+            return arr_.get(index);
+          }
+          /**
+           * <code>repeated int32 arr = 1;</code>
+           */
+          public Builder setArr(
+              int index, int value) {
+            ensureArrIsMutable();
+            arr_.set(index, value);
+            onChanged();
+            return this;
+          }
+          /**
+           * <code>repeated int32 arr = 1;</code>
+           */
+          public Builder addArr(int value) {
+            ensureArrIsMutable();
+            arr_.add(value);
+            onChanged();
+            return this;
+          }
+          /**
+           * <code>repeated int32 arr = 1;</code>
+           */
+          public Builder addAllArr(
+              java.lang.Iterable<? extends java.lang.Integer> values) {
+            ensureArrIsMutable();
+            com.google.protobuf.AbstractMessageLite.Builder.addAll(
+                values, arr_);
+            onChanged();
+            return this;
+          }
+          /**
+           * <code>repeated int32 arr = 1;</code>
+           */
+          public Builder clearArr() {
+            arr_ = java.util.Collections.emptyList();
+            bitField0_ = (bitField0_ & ~0x00000001);
+            onChanged();
+            return this;
+          }
+          public final Builder setUnknownFields(
+              final com.google.protobuf.UnknownFieldSet unknownFields) {
+            return super.setUnknownFieldsProto3(unknownFields);
+          }
+
+          public final Builder mergeUnknownFields(
+              final com.google.protobuf.UnknownFieldSet unknownFields) {
+            return super.mergeUnknownFields(unknownFields);
+          }
+
+
+          // @@protoc_insertion_point(builder_scope:BoardLayout._BoardLayoutPart.IntArray)
+        }
+
+        // @@protoc_insertion_point(class_scope:BoardLayout._BoardLayoutPart.IntArray)
+        private static final soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray DEFAULT_INSTANCE;
+        static {
+          DEFAULT_INSTANCE = new soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray();
+        }
+
+        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray getDefaultInstance() {
+          return DEFAULT_INSTANCE;
+        }
+
+        private static final com.google.protobuf.Parser<IntArray>
+            PARSER = new com.google.protobuf.AbstractParser<IntArray>() {
+          public IntArray parsePartialFrom(
+              com.google.protobuf.CodedInputStream input,
+              com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+              throws com.google.protobuf.InvalidProtocolBufferException {
+              return new IntArray(input, extensionRegistry);
+          }
+        };
+
+        public static com.google.protobuf.Parser<IntArray> parser() {
+          return PARSER;
+        }
+
+        @java.lang.Override
+        public com.google.protobuf.Parser<IntArray> getParserForType() {
+          return PARSER;
+        }
+
+        public soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray getDefaultInstanceForType() {
+          return DEFAULT_INSTANCE;
+        }
+
+      }
+
+      private int valCase_ = 0;
+      private java.lang.Object val_;
+      public enum ValCase
+          implements com.google.protobuf.Internal.EnumLite {
+        I_VAL(1),
+        S_VAL(2),
+        I_ARR(3),
+        VAL_NOT_SET(0);
+        private final int value;
+        private ValCase(int value) {
+          this.value = value;
+        }
+        /**
+         * @deprecated Use {@link #forNumber(int)} instead.
+         */
+        @java.lang.Deprecated
+        public static ValCase valueOf(int value) {
+          return forNumber(value);
+        }
+
+        public static ValCase forNumber(int value) {
+          switch (value) {
+            case 1: return I_VAL;
+            case 2: return S_VAL;
+            case 3: return I_ARR;
+            case 0: return VAL_NOT_SET;
+            default: return null;
+          }
+        }
+        public int getNumber() {
+          return this.value;
+        }
+      };
+
+      public ValCase
+      getValCase() {
+        return ValCase.forNumber(
+            valCase_);
+      }
+
+      public static final int I_VAL_FIELD_NUMBER = 1;
+      /**
+       * <pre>
+       * signed integer value
+       * </pre>
+       *
+       * <code>int32 i_val = 1;</code>
+       */
+      public int getIVal() {
+        if (valCase_ == 1) {
+          return (java.lang.Integer) val_;
+        }
+        return 0;
+      }
+
+      public static final int S_VAL_FIELD_NUMBER = 2;
+      /**
+       * <pre>
+       * string value
+       * </pre>
+       *
+       * <code>string s_val = 2;</code>
+       */
+      public java.lang.String getSVal() {
+        java.lang.Object ref = "";
+        if (valCase_ == 2) {
+          ref = val_;
+        }
+        if (ref instanceof java.lang.String) {
+          return (java.lang.String) ref;
+        } else {
+          com.google.protobuf.ByteString bs = 
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (valCase_ == 2) {
+            val_ = s;
+          }
+          return s;
+        }
+      }
+      /**
+       * <pre>
+       * string value
+       * </pre>
+       *
+       * <code>string s_val = 2;</code>
+       */
+      public com.google.protobuf.ByteString
+          getSValBytes() {
+        java.lang.Object ref = "";
+        if (valCase_ == 2) {
+          ref = val_;
+        }
+        if (ref instanceof java.lang.String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          if (valCase_ == 2) {
+            val_ = b;
+          }
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+
+      public static final int I_ARR_FIELD_NUMBER = 3;
+      /**
+       * <pre>
+       * signed integer array
+       * </pre>
+       *
+       * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+       */
+      public boolean hasIArr() {
+        return valCase_ == 3;
+      }
+      /**
+       * <pre>
+       * signed integer array
+       * </pre>
+       *
+       * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+       */
+      public soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray getIArr() {
+        if (valCase_ == 3) {
+           return (soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) val_;
+        }
+        return soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.getDefaultInstance();
+      }
+      /**
+       * <pre>
+       * signed integer array
+       * </pre>
+       *
+       * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+       */
+      public soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArrayOrBuilder getIArrOrBuilder() {
+        if (valCase_ == 3) {
+           return (soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) val_;
+        }
+        return soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.getDefaultInstance();
+      }
+
+      private byte memoizedIsInitialized = -1;
+      public final boolean isInitialized() {
+        byte isInitialized = memoizedIsInitialized;
+        if (isInitialized == 1) return true;
+        if (isInitialized == 0) return false;
+
+        memoizedIsInitialized = 1;
+        return true;
+      }
+
+      public void writeTo(com.google.protobuf.CodedOutputStream output)
+                          throws java.io.IOException {
+        if (valCase_ == 1) {
+          output.writeInt32(
+              1, (int)((java.lang.Integer) val_));
+        }
+        if (valCase_ == 2) {
+          com.google.protobuf.GeneratedMessageV3.writeString(output, 2, val_);
+        }
+        if (valCase_ == 3) {
+          output.writeMessage(3, (soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) val_);
+        }
+        unknownFields.writeTo(output);
+      }
+
+      public int getSerializedSize() {
+        int size = memoizedSize;
+        if (size != -1) return size;
+
+        size = 0;
+        if (valCase_ == 1) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeInt32Size(
+                1, (int)((java.lang.Integer) val_));
+        }
+        if (valCase_ == 2) {
+          size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, val_);
+        }
+        if (valCase_ == 3) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(3, (soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) val_);
+        }
+        size += unknownFields.getSerializedSize();
+        memoizedSize = size;
+        return size;
+      }
+
+      @java.lang.Override
+      public boolean equals(final java.lang.Object obj) {
+        if (obj == this) {
+         return true;
+        }
+        if (!(obj instanceof soc.proto.GameMessage.BoardLayout._BoardLayoutPart)) {
+          return super.equals(obj);
+        }
+        soc.proto.GameMessage.BoardLayout._BoardLayoutPart other = (soc.proto.GameMessage.BoardLayout._BoardLayoutPart) obj;
+
+        boolean result = true;
+        result = result && getValCase().equals(
+            other.getValCase());
+        if (!result) return false;
+        switch (valCase_) {
+          case 1:
+            result = result && (getIVal()
+                == other.getIVal());
+            break;
+          case 2:
+            result = result && getSVal()
+                .equals(other.getSVal());
+            break;
+          case 3:
+            result = result && getIArr()
+                .equals(other.getIArr());
+            break;
+          case 0:
+          default:
+        }
+        result = result && unknownFields.equals(other.unknownFields);
+        return result;
+      }
+
+      @java.lang.Override
+      public int hashCode() {
+        if (memoizedHashCode != 0) {
+          return memoizedHashCode;
+        }
+        int hash = 41;
+        hash = (19 * hash) + getDescriptor().hashCode();
+        switch (valCase_) {
+          case 1:
+            hash = (37 * hash) + I_VAL_FIELD_NUMBER;
+            hash = (53 * hash) + getIVal();
+            break;
+          case 2:
+            hash = (37 * hash) + S_VAL_FIELD_NUMBER;
+            hash = (53 * hash) + getSVal().hashCode();
+            break;
+          case 3:
+            hash = (37 * hash) + I_ARR_FIELD_NUMBER;
+            hash = (53 * hash) + getIArr().hashCode();
+            break;
+          case 0:
+          default:
+        }
+        hash = (29 * hash) + unknownFields.hashCode();
+        memoizedHashCode = hash;
+        return hash;
+      }
+
+      public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart parseFrom(
+          java.nio.ByteBuffer data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart parseFrom(
+          java.nio.ByteBuffer data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart parseFrom(
+          com.google.protobuf.ByteString data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart parseFrom(
+          com.google.protobuf.ByteString data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart parseFrom(byte[] data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart parseFrom(
+          byte[] data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart parseFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart parseFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart parseDelimitedFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input);
+      }
+      public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart parseDelimitedFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart parseFrom(
+          com.google.protobuf.CodedInputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart parseFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+
+      public Builder newBuilderForType() { return newBuilder(); }
+      public static Builder newBuilder() {
+        return DEFAULT_INSTANCE.toBuilder();
+      }
+      public static Builder newBuilder(soc.proto.GameMessage.BoardLayout._BoardLayoutPart prototype) {
+        return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      }
+      public Builder toBuilder() {
+        return this == DEFAULT_INSTANCE
+            ? new Builder() : new Builder().mergeFrom(this);
+      }
+
+      @java.lang.Override
+      protected Builder newBuilderForType(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        Builder builder = new Builder(parent);
+        return builder;
+      }
+      /**
+       * Protobuf type {@code BoardLayout._BoardLayoutPart}
+       */
+      public static final class Builder extends
+          com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+          // @@protoc_insertion_point(builder_implements:BoardLayout._BoardLayoutPart)
+          soc.proto.GameMessage.BoardLayout._BoardLayoutPartOrBuilder {
+        public static final com.google.protobuf.Descriptors.Descriptor
+            getDescriptor() {
+          return soc.proto.GameMessage.internal_static_BoardLayout__BoardLayoutPart_descriptor;
+        }
+
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internalGetFieldAccessorTable() {
+          return soc.proto.GameMessage.internal_static_BoardLayout__BoardLayoutPart_fieldAccessorTable
+              .ensureFieldAccessorsInitialized(
+                  soc.proto.GameMessage.BoardLayout._BoardLayoutPart.class, soc.proto.GameMessage.BoardLayout._BoardLayoutPart.Builder.class);
+        }
+
+        // Construct using soc.proto.GameMessage.BoardLayout._BoardLayoutPart.newBuilder()
+        private Builder() {
+          maybeForceBuilderInitialization();
+        }
+
+        private Builder(
+            com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+          super(parent);
+          maybeForceBuilderInitialization();
+        }
+        private void maybeForceBuilderInitialization() {
+          if (com.google.protobuf.GeneratedMessageV3
+                  .alwaysUseFieldBuilders) {
+          }
+        }
+        public Builder clear() {
+          super.clear();
+          valCase_ = 0;
+          val_ = null;
+          return this;
+        }
+
+        public com.google.protobuf.Descriptors.Descriptor
+            getDescriptorForType() {
+          return soc.proto.GameMessage.internal_static_BoardLayout__BoardLayoutPart_descriptor;
+        }
+
+        public soc.proto.GameMessage.BoardLayout._BoardLayoutPart getDefaultInstanceForType() {
+          return soc.proto.GameMessage.BoardLayout._BoardLayoutPart.getDefaultInstance();
+        }
+
+        public soc.proto.GameMessage.BoardLayout._BoardLayoutPart build() {
+          soc.proto.GameMessage.BoardLayout._BoardLayoutPart result = buildPartial();
+          if (!result.isInitialized()) {
+            throw newUninitializedMessageException(result);
+          }
+          return result;
+        }
+
+        public soc.proto.GameMessage.BoardLayout._BoardLayoutPart buildPartial() {
+          soc.proto.GameMessage.BoardLayout._BoardLayoutPart result = new soc.proto.GameMessage.BoardLayout._BoardLayoutPart(this);
+          if (valCase_ == 1) {
+            result.val_ = val_;
+          }
+          if (valCase_ == 2) {
+            result.val_ = val_;
+          }
+          if (valCase_ == 3) {
+            if (iArrBuilder_ == null) {
+              result.val_ = val_;
+            } else {
+              result.val_ = iArrBuilder_.build();
+            }
+          }
+          result.valCase_ = valCase_;
+          onBuilt();
+          return result;
+        }
+
+        public Builder clone() {
+          return (Builder) super.clone();
+        }
+        public Builder setField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return (Builder) super.setField(field, value);
+        }
+        public Builder clearField(
+            com.google.protobuf.Descriptors.FieldDescriptor field) {
+          return (Builder) super.clearField(field);
+        }
+        public Builder clearOneof(
+            com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+          return (Builder) super.clearOneof(oneof);
+        }
+        public Builder setRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            int index, java.lang.Object value) {
+          return (Builder) super.setRepeatedField(field, index, value);
+        }
+        public Builder addRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return (Builder) super.addRepeatedField(field, value);
+        }
+        public Builder mergeFrom(com.google.protobuf.Message other) {
+          if (other instanceof soc.proto.GameMessage.BoardLayout._BoardLayoutPart) {
+            return mergeFrom((soc.proto.GameMessage.BoardLayout._BoardLayoutPart)other);
+          } else {
+            super.mergeFrom(other);
+            return this;
+          }
+        }
+
+        public Builder mergeFrom(soc.proto.GameMessage.BoardLayout._BoardLayoutPart other) {
+          if (other == soc.proto.GameMessage.BoardLayout._BoardLayoutPart.getDefaultInstance()) return this;
+          switch (other.getValCase()) {
+            case I_VAL: {
+              setIVal(other.getIVal());
+              break;
+            }
+            case S_VAL: {
+              valCase_ = 2;
+              val_ = other.val_;
+              onChanged();
+              break;
+            }
+            case I_ARR: {
+              mergeIArr(other.getIArr());
+              break;
+            }
+            case VAL_NOT_SET: {
+              break;
+            }
+          }
+          this.mergeUnknownFields(other.unknownFields);
+          onChanged();
+          return this;
+        }
+
+        public final boolean isInitialized() {
+          return true;
+        }
+
+        public Builder mergeFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+          soc.proto.GameMessage.BoardLayout._BoardLayoutPart parsedMessage = null;
+          try {
+            parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            parsedMessage = (soc.proto.GameMessage.BoardLayout._BoardLayoutPart) e.getUnfinishedMessage();
+            throw e.unwrapIOException();
+          } finally {
+            if (parsedMessage != null) {
+              mergeFrom(parsedMessage);
+            }
+          }
+          return this;
+        }
+        private int valCase_ = 0;
+        private java.lang.Object val_;
+        public ValCase
+            getValCase() {
+          return ValCase.forNumber(
+              valCase_);
+        }
+
+        public Builder clearVal() {
+          valCase_ = 0;
+          val_ = null;
+          onChanged();
+          return this;
+        }
+
+
+        /**
+         * <pre>
+         * signed integer value
+         * </pre>
+         *
+         * <code>int32 i_val = 1;</code>
+         */
+        public int getIVal() {
+          if (valCase_ == 1) {
+            return (java.lang.Integer) val_;
+          }
+          return 0;
+        }
+        /**
+         * <pre>
+         * signed integer value
+         * </pre>
+         *
+         * <code>int32 i_val = 1;</code>
+         */
+        public Builder setIVal(int value) {
+          valCase_ = 1;
+          val_ = value;
+          onChanged();
+          return this;
+        }
+        /**
+         * <pre>
+         * signed integer value
+         * </pre>
+         *
+         * <code>int32 i_val = 1;</code>
+         */
+        public Builder clearIVal() {
+          if (valCase_ == 1) {
+            valCase_ = 0;
+            val_ = null;
+            onChanged();
+          }
+          return this;
+        }
+
+        /**
+         * <pre>
+         * string value
+         * </pre>
+         *
+         * <code>string s_val = 2;</code>
+         */
+        public java.lang.String getSVal() {
+          java.lang.Object ref = "";
+          if (valCase_ == 2) {
+            ref = val_;
+          }
+          if (!(ref instanceof java.lang.String)) {
+            com.google.protobuf.ByteString bs =
+                (com.google.protobuf.ByteString) ref;
+            java.lang.String s = bs.toStringUtf8();
+            if (valCase_ == 2) {
+              val_ = s;
+            }
+            return s;
+          } else {
+            return (java.lang.String) ref;
+          }
+        }
+        /**
+         * <pre>
+         * string value
+         * </pre>
+         *
+         * <code>string s_val = 2;</code>
+         */
+        public com.google.protobuf.ByteString
+            getSValBytes() {
+          java.lang.Object ref = "";
+          if (valCase_ == 2) {
+            ref = val_;
+          }
+          if (ref instanceof String) {
+            com.google.protobuf.ByteString b = 
+                com.google.protobuf.ByteString.copyFromUtf8(
+                    (java.lang.String) ref);
+            if (valCase_ == 2) {
+              val_ = b;
+            }
+            return b;
+          } else {
+            return (com.google.protobuf.ByteString) ref;
+          }
+        }
+        /**
+         * <pre>
+         * string value
+         * </pre>
+         *
+         * <code>string s_val = 2;</code>
+         */
+        public Builder setSVal(
+            java.lang.String value) {
+          if (value == null) {
+    throw new NullPointerException();
+  }
+  valCase_ = 2;
+          val_ = value;
+          onChanged();
+          return this;
+        }
+        /**
+         * <pre>
+         * string value
+         * </pre>
+         *
+         * <code>string s_val = 2;</code>
+         */
+        public Builder clearSVal() {
+          if (valCase_ == 2) {
+            valCase_ = 0;
+            val_ = null;
+            onChanged();
+          }
+          return this;
+        }
+        /**
+         * <pre>
+         * string value
+         * </pre>
+         *
+         * <code>string s_val = 2;</code>
+         */
+        public Builder setSValBytes(
+            com.google.protobuf.ByteString value) {
+          if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+          valCase_ = 2;
+          val_ = value;
+          onChanged();
+          return this;
+        }
+
+        private com.google.protobuf.SingleFieldBuilderV3<
+            soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray, soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.Builder, soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArrayOrBuilder> iArrBuilder_;
+        /**
+         * <pre>
+         * signed integer array
+         * </pre>
+         *
+         * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+         */
+        public boolean hasIArr() {
+          return valCase_ == 3;
+        }
+        /**
+         * <pre>
+         * signed integer array
+         * </pre>
+         *
+         * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+         */
+        public soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray getIArr() {
+          if (iArrBuilder_ == null) {
+            if (valCase_ == 3) {
+              return (soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) val_;
+            }
+            return soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.getDefaultInstance();
+          } else {
+            if (valCase_ == 3) {
+              return iArrBuilder_.getMessage();
+            }
+            return soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.getDefaultInstance();
+          }
+        }
+        /**
+         * <pre>
+         * signed integer array
+         * </pre>
+         *
+         * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+         */
+        public Builder setIArr(soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray value) {
+          if (iArrBuilder_ == null) {
+            if (value == null) {
+              throw new NullPointerException();
+            }
+            val_ = value;
+            onChanged();
+          } else {
+            iArrBuilder_.setMessage(value);
+          }
+          valCase_ = 3;
+          return this;
+        }
+        /**
+         * <pre>
+         * signed integer array
+         * </pre>
+         *
+         * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+         */
+        public Builder setIArr(
+            soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.Builder builderForValue) {
+          if (iArrBuilder_ == null) {
+            val_ = builderForValue.build();
+            onChanged();
+          } else {
+            iArrBuilder_.setMessage(builderForValue.build());
+          }
+          valCase_ = 3;
+          return this;
+        }
+        /**
+         * <pre>
+         * signed integer array
+         * </pre>
+         *
+         * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+         */
+        public Builder mergeIArr(soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray value) {
+          if (iArrBuilder_ == null) {
+            if (valCase_ == 3 &&
+                val_ != soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.getDefaultInstance()) {
+              val_ = soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.newBuilder((soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) val_)
+                  .mergeFrom(value).buildPartial();
+            } else {
+              val_ = value;
+            }
+            onChanged();
+          } else {
+            if (valCase_ == 3) {
+              iArrBuilder_.mergeFrom(value);
+            }
+            iArrBuilder_.setMessage(value);
+          }
+          valCase_ = 3;
+          return this;
+        }
+        /**
+         * <pre>
+         * signed integer array
+         * </pre>
+         *
+         * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+         */
+        public Builder clearIArr() {
+          if (iArrBuilder_ == null) {
+            if (valCase_ == 3) {
+              valCase_ = 0;
+              val_ = null;
+              onChanged();
+            }
+          } else {
+            if (valCase_ == 3) {
+              valCase_ = 0;
+              val_ = null;
+            }
+            iArrBuilder_.clear();
+          }
+          return this;
+        }
+        /**
+         * <pre>
+         * signed integer array
+         * </pre>
+         *
+         * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+         */
+        public soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.Builder getIArrBuilder() {
+          return getIArrFieldBuilder().getBuilder();
+        }
+        /**
+         * <pre>
+         * signed integer array
+         * </pre>
+         *
+         * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+         */
+        public soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArrayOrBuilder getIArrOrBuilder() {
+          if ((valCase_ == 3) && (iArrBuilder_ != null)) {
+            return iArrBuilder_.getMessageOrBuilder();
+          } else {
+            if (valCase_ == 3) {
+              return (soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) val_;
+            }
+            return soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.getDefaultInstance();
+          }
+        }
+        /**
+         * <pre>
+         * signed integer array
+         * </pre>
+         *
+         * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+         */
+        private com.google.protobuf.SingleFieldBuilderV3<
+            soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray, soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.Builder, soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArrayOrBuilder> 
+            getIArrFieldBuilder() {
+          if (iArrBuilder_ == null) {
+            if (!(valCase_ == 3)) {
+              val_ = soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.getDefaultInstance();
+            }
+            iArrBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+                soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray, soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.Builder, soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArrayOrBuilder>(
+                    (soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) val_,
+                    getParentForChildren(),
+                    isClean());
+            val_ = null;
+          }
+          valCase_ = 3;
+          onChanged();;
+          return iArrBuilder_;
+        }
+        public final Builder setUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.setUnknownFieldsProto3(unknownFields);
+        }
+
+        public final Builder mergeUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.mergeUnknownFields(unknownFields);
+        }
+
+
+        // @@protoc_insertion_point(builder_scope:BoardLayout._BoardLayoutPart)
+      }
+
+      // @@protoc_insertion_point(class_scope:BoardLayout._BoardLayoutPart)
+      private static final soc.proto.GameMessage.BoardLayout._BoardLayoutPart DEFAULT_INSTANCE;
+      static {
+        DEFAULT_INSTANCE = new soc.proto.GameMessage.BoardLayout._BoardLayoutPart();
+      }
+
+      public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart getDefaultInstance() {
+        return DEFAULT_INSTANCE;
+      }
+
+      private static final com.google.protobuf.Parser<_BoardLayoutPart>
+          PARSER = new com.google.protobuf.AbstractParser<_BoardLayoutPart>() {
+        public _BoardLayoutPart parsePartialFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+            return new _BoardLayoutPart(input, extensionRegistry);
+        }
+      };
+
+      public static com.google.protobuf.Parser<_BoardLayoutPart> parser() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Parser<_BoardLayoutPart> getParserForType() {
+        return PARSER;
+      }
+
+      public soc.proto.GameMessage.BoardLayout._BoardLayoutPart getDefaultInstanceForType() {
+        return DEFAULT_INSTANCE;
+      }
+
+    }
+
+    private int bitField0_;
+    public static final int ENCODING_FORMAT_FIELD_NUMBER = 1;
+    private int encodingFormat_;
+    /**
+     * <pre>
+     * Board layout encoding version, from {&#64;link SOCBoard#getBoardEncodingFormat()}
+     * </pre>
+     *
+     * <code>uint32 encoding_format = 1;</code>
+     */
+    public int getEncodingFormat() {
+      return encodingFormat_;
+    }
+
+    public static final int PARTS_FIELD_NUMBER = 2;
+    private static final class PartsDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart>newDefaultInstance(
+                  soc.proto.GameMessage.internal_static_BoardLayout_PartsEntry_descriptor, 
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "",
+                  com.google.protobuf.WireFormat.FieldType.MESSAGE,
+                  soc.proto.GameMessage.BoardLayout._BoardLayoutPart.getDefaultInstance());
+    }
+    private com.google.protobuf.MapField<
+        java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart> parts_;
+    private com.google.protobuf.MapField<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart>
+    internalGetParts() {
+      if (parts_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            PartsDefaultEntryHolder.defaultEntry);
+      }
+      return parts_;
+    }
+
+    public int getPartsCount() {
+      return internalGetParts().getMap().size();
+    }
+    /**
+     * <pre>
+     * Layout Parts; some are optional depending on game options and scenario
+     * </pre>
+     *
+     * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
+     */
+
+    public boolean containsParts(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      return internalGetParts().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getPartsMap()} instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart> getParts() {
+      return getPartsMap();
+    }
+    /**
+     * <pre>
+     * Layout Parts; some are optional depending on game options and scenario
+     * </pre>
+     *
+     * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
+     */
+
+    public java.util.Map<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart> getPartsMap() {
+      return internalGetParts().getMap();
+    }
+    /**
+     * <pre>
+     * Layout Parts; some are optional depending on game options and scenario
+     * </pre>
+     *
+     * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
+     */
+
+    public soc.proto.GameMessage.BoardLayout._BoardLayoutPart getPartsOrDefault(
+        java.lang.String key,
+        soc.proto.GameMessage.BoardLayout._BoardLayoutPart defaultValue) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart> map =
+          internalGetParts().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <pre>
+     * Layout Parts; some are optional depending on game options and scenario
+     * </pre>
+     *
+     * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
+     */
+
+    public soc.proto.GameMessage.BoardLayout._BoardLayoutPart getPartsOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart> map =
+          internalGetParts().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (encodingFormat_ != 0) {
+        output.writeUInt32(1, encodingFormat_);
+      }
+      com.google.protobuf.GeneratedMessageV3
+        .serializeStringMapTo(
+          output,
+          internalGetParts(),
+          PartsDefaultEntryHolder.defaultEntry,
+          2);
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (encodingFormat_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(1, encodingFormat_);
+      }
+      for (java.util.Map.Entry<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart> entry
+           : internalGetParts().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart>
+        parts__ = PartsDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .build();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(2, parts__);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.BoardLayout)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.BoardLayout other = (soc.proto.GameMessage.BoardLayout) obj;
+
+      boolean result = true;
+      result = result && (getEncodingFormat()
+          == other.getEncodingFormat());
+      result = result && internalGetParts().equals(
+          other.internalGetParts());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + ENCODING_FORMAT_FIELD_NUMBER;
+      hash = (53 * hash) + getEncodingFormat();
+      if (!internalGetParts().getMap().isEmpty()) {
+        hash = (37 * hash) + PARTS_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetParts().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.BoardLayout parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.BoardLayout parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.BoardLayout parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.BoardLayout parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.BoardLayout parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.BoardLayout parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.BoardLayout parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.BoardLayout parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.BoardLayout parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.BoardLayout parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.BoardLayout parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.BoardLayout parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.BoardLayout prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * Board layout contents.
+     * Sent when game starts or client joins a game in progress.
+     * TODO: Further docs on encoding_format, ref to list of part keynames, etc
+     * </pre>
+     *
+     * Protobuf type {@code BoardLayout}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:BoardLayout)
+        soc.proto.GameMessage.BoardLayoutOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_BoardLayout_descriptor;
+      }
+
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapField internalGetMapField(
+          int number) {
+        switch (number) {
+          case 2:
+            return internalGetParts();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapField internalGetMutableMapField(
+          int number) {
+        switch (number) {
+          case 2:
+            return internalGetMutableParts();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_BoardLayout_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.BoardLayout.class, soc.proto.GameMessage.BoardLayout.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.BoardLayout.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        encodingFormat_ = 0;
+
+        internalGetMutableParts().clear();
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_BoardLayout_descriptor;
+      }
+
+      public soc.proto.GameMessage.BoardLayout getDefaultInstanceForType() {
+        return soc.proto.GameMessage.BoardLayout.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.BoardLayout build() {
+        soc.proto.GameMessage.BoardLayout result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.BoardLayout buildPartial() {
+        soc.proto.GameMessage.BoardLayout result = new soc.proto.GameMessage.BoardLayout(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        result.encodingFormat_ = encodingFormat_;
+        result.parts_ = internalGetParts();
+        result.parts_.makeImmutable();
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.BoardLayout) {
+          return mergeFrom((soc.proto.GameMessage.BoardLayout)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.BoardLayout other) {
+        if (other == soc.proto.GameMessage.BoardLayout.getDefaultInstance()) return this;
+        if (other.getEncodingFormat() != 0) {
+          setEncodingFormat(other.getEncodingFormat());
+        }
+        internalGetMutableParts().mergeFrom(
+            other.internalGetParts());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.BoardLayout parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.BoardLayout) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private int encodingFormat_ ;
+      /**
+       * <pre>
+       * Board layout encoding version, from {&#64;link SOCBoard#getBoardEncodingFormat()}
+       * </pre>
+       *
+       * <code>uint32 encoding_format = 1;</code>
+       */
+      public int getEncodingFormat() {
+        return encodingFormat_;
+      }
+      /**
+       * <pre>
+       * Board layout encoding version, from {&#64;link SOCBoard#getBoardEncodingFormat()}
+       * </pre>
+       *
+       * <code>uint32 encoding_format = 1;</code>
+       */
+      public Builder setEncodingFormat(int value) {
+        
+        encodingFormat_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Board layout encoding version, from {&#64;link SOCBoard#getBoardEncodingFormat()}
+       * </pre>
+       *
+       * <code>uint32 encoding_format = 1;</code>
+       */
+      public Builder clearEncodingFormat() {
+        
+        encodingFormat_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.MapField<
+          java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart> parts_;
+      private com.google.protobuf.MapField<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart>
+      internalGetParts() {
+        if (parts_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              PartsDefaultEntryHolder.defaultEntry);
+        }
+        return parts_;
+      }
+      private com.google.protobuf.MapField<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart>
+      internalGetMutableParts() {
+        onChanged();;
+        if (parts_ == null) {
+          parts_ = com.google.protobuf.MapField.newMapField(
+              PartsDefaultEntryHolder.defaultEntry);
+        }
+        if (!parts_.isMutable()) {
+          parts_ = parts_.copy();
+        }
+        return parts_;
+      }
+
+      public int getPartsCount() {
+        return internalGetParts().getMap().size();
+      }
+      /**
+       * <pre>
+       * Layout Parts; some are optional depending on game options and scenario
+       * </pre>
+       *
+       * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
+       */
+
+      public boolean containsParts(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        return internalGetParts().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getPartsMap()} instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart> getParts() {
+        return getPartsMap();
+      }
+      /**
+       * <pre>
+       * Layout Parts; some are optional depending on game options and scenario
+       * </pre>
+       *
+       * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
+       */
+
+      public java.util.Map<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart> getPartsMap() {
+        return internalGetParts().getMap();
+      }
+      /**
+       * <pre>
+       * Layout Parts; some are optional depending on game options and scenario
+       * </pre>
+       *
+       * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
+       */
+
+      public soc.proto.GameMessage.BoardLayout._BoardLayoutPart getPartsOrDefault(
+          java.lang.String key,
+          soc.proto.GameMessage.BoardLayout._BoardLayoutPart defaultValue) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        java.util.Map<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart> map =
+            internalGetParts().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <pre>
+       * Layout Parts; some are optional depending on game options and scenario
+       * </pre>
+       *
+       * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
+       */
+
+      public soc.proto.GameMessage.BoardLayout._BoardLayoutPart getPartsOrThrow(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        java.util.Map<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart> map =
+            internalGetParts().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+
+      public Builder clearParts() {
+        internalGetMutableParts().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <pre>
+       * Layout Parts; some are optional depending on game options and scenario
+       * </pre>
+       *
+       * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
+       */
+
+      public Builder removeParts(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        internalGetMutableParts().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart>
+      getMutableParts() {
+        return internalGetMutableParts().getMutableMap();
+      }
+      /**
+       * <pre>
+       * Layout Parts; some are optional depending on game options and scenario
+       * </pre>
+       *
+       * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
+       */
+      public Builder putParts(
+          java.lang.String key,
+          soc.proto.GameMessage.BoardLayout._BoardLayoutPart value) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        if (value == null) { throw new java.lang.NullPointerException(); }
+        internalGetMutableParts().getMutableMap()
+            .put(key, value);
+        return this;
+      }
+      /**
+       * <pre>
+       * Layout Parts; some are optional depending on game options and scenario
+       * </pre>
+       *
+       * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
+       */
+
+      public Builder putAllParts(
+          java.util.Map<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart> values) {
+        internalGetMutableParts().getMutableMap()
+            .putAll(values);
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:BoardLayout)
+    }
+
+    // @@protoc_insertion_point(class_scope:BoardLayout)
+    private static final soc.proto.GameMessage.BoardLayout DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.BoardLayout();
+    }
+
+    public static soc.proto.GameMessage.BoardLayout getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<BoardLayout>
+        PARSER = new com.google.protobuf.AbstractParser<BoardLayout>() {
+      public BoardLayout parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new BoardLayout(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<BoardLayout> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<BoardLayout> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.BoardLayout getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface StateOrBuilder extends
       // @@protoc_insertion_point(interface_extends:State)
       com.google.protobuf.MessageOrBuilder {
@@ -2125,6 +4568,31 @@ public final class GameMessage {
 
     /**
      * <pre>
+     * board layout and contents
+     * </pre>
+     *
+     * <code>.BoardLayout board_layout = 30;</code>
+     */
+    boolean hasBoardLayout();
+    /**
+     * <pre>
+     * board layout and contents
+     * </pre>
+     *
+     * <code>.BoardLayout board_layout = 30;</code>
+     */
+    soc.proto.GameMessage.BoardLayout getBoardLayout();
+    /**
+     * <pre>
+     * board layout and contents
+     * </pre>
+     *
+     * <code>.BoardLayout board_layout = 30;</code>
+     */
+    soc.proto.GameMessage.BoardLayoutOrBuilder getBoardLayoutOrBuilder();
+
+    /**
+     * <pre>
      * turn
      * </pre>
      *
@@ -2227,6 +4695,20 @@ public final class GameMessage {
               msgCase_ = 2;
               break;
             }
+            case 242: {
+              soc.proto.GameMessage.BoardLayout.Builder subBuilder = null;
+              if (msgCase_ == 30) {
+                subBuilder = ((soc.proto.GameMessage.BoardLayout) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.BoardLayout.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.BoardLayout) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 30;
+              break;
+            }
             case 802: {
               soc.proto.GameMessage.StartGame.Builder subBuilder = null;
               if (msgCase_ == 100) {
@@ -2284,6 +4766,7 @@ public final class GameMessage {
     public enum MsgCase
         implements com.google.protobuf.Internal.EnumLite {
       GAME_STATE(2),
+      BOARD_LAYOUT(30),
       START_GAME(100),
       TURN(101),
       MSG_NOT_SET(0);
@@ -2302,6 +4785,7 @@ public final class GameMessage {
       public static MsgCase forNumber(int value) {
         switch (value) {
           case 2: return GAME_STATE;
+          case 30: return BOARD_LAYOUT;
           case 100: return START_GAME;
           case 101: return TURN;
           case 0: return MSG_NOT_SET;
@@ -2399,6 +4883,44 @@ public final class GameMessage {
       return soc.proto.GameMessage.State.getDefaultInstance();
     }
 
+    public static final int BOARD_LAYOUT_FIELD_NUMBER = 30;
+    /**
+     * <pre>
+     * board layout and contents
+     * </pre>
+     *
+     * <code>.BoardLayout board_layout = 30;</code>
+     */
+    public boolean hasBoardLayout() {
+      return msgCase_ == 30;
+    }
+    /**
+     * <pre>
+     * board layout and contents
+     * </pre>
+     *
+     * <code>.BoardLayout board_layout = 30;</code>
+     */
+    public soc.proto.GameMessage.BoardLayout getBoardLayout() {
+      if (msgCase_ == 30) {
+         return (soc.proto.GameMessage.BoardLayout) msg_;
+      }
+      return soc.proto.GameMessage.BoardLayout.getDefaultInstance();
+    }
+    /**
+     * <pre>
+     * board layout and contents
+     * </pre>
+     *
+     * <code>.BoardLayout board_layout = 30;</code>
+     */
+    public soc.proto.GameMessage.BoardLayoutOrBuilder getBoardLayoutOrBuilder() {
+      if (msgCase_ == 30) {
+         return (soc.proto.GameMessage.BoardLayout) msg_;
+      }
+      return soc.proto.GameMessage.BoardLayout.getDefaultInstance();
+    }
+
     public static final int START_GAME_FIELD_NUMBER = 100;
     /**
      * <pre>
@@ -2481,6 +5003,9 @@ public final class GameMessage {
       if (msgCase_ == 2) {
         output.writeMessage(2, (soc.proto.GameMessage.State) msg_);
       }
+      if (msgCase_ == 30) {
+        output.writeMessage(30, (soc.proto.GameMessage.BoardLayout) msg_);
+      }
       if (msgCase_ == 100) {
         output.writeMessage(100, (soc.proto.GameMessage.StartGame) msg_);
       }
@@ -2501,6 +5026,10 @@ public final class GameMessage {
       if (msgCase_ == 2) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(2, (soc.proto.GameMessage.State) msg_);
+      }
+      if (msgCase_ == 30) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(30, (soc.proto.GameMessage.BoardLayout) msg_);
       }
       if (msgCase_ == 100) {
         size += com.google.protobuf.CodedOutputStream
@@ -2536,6 +5065,10 @@ public final class GameMessage {
           result = result && getGameState()
               .equals(other.getGameState());
           break;
+        case 30:
+          result = result && getBoardLayout()
+              .equals(other.getBoardLayout());
+          break;
         case 100:
           result = result && getStartGame()
               .equals(other.getStartGame());
@@ -2564,6 +5097,10 @@ public final class GameMessage {
         case 2:
           hash = (37 * hash) + GAME_STATE_FIELD_NUMBER;
           hash = (53 * hash) + getGameState().hashCode();
+          break;
+        case 30:
+          hash = (37 * hash) + BOARD_LAYOUT_FIELD_NUMBER;
+          hash = (53 * hash) + getBoardLayout().hashCode();
           break;
         case 100:
           hash = (37 * hash) + START_GAME_FIELD_NUMBER;
@@ -2739,6 +5276,13 @@ public final class GameMessage {
             result.msg_ = gameStateBuilder_.build();
           }
         }
+        if (msgCase_ == 30) {
+          if (boardLayoutBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = boardLayoutBuilder_.build();
+          }
+        }
         if (msgCase_ == 100) {
           if (startGameBuilder_ == null) {
             result.msg_ = msg_;
@@ -2802,6 +5346,10 @@ public final class GameMessage {
         switch (other.getMsgCase()) {
           case GAME_STATE: {
             mergeGameState(other.getGameState());
+            break;
+          }
+          case BOARD_LAYOUT: {
+            mergeBoardLayout(other.getBoardLayout());
             break;
           }
           case START_GAME: {
@@ -3117,6 +5665,178 @@ public final class GameMessage {
         msgCase_ = 2;
         onChanged();;
         return gameStateBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.BoardLayout, soc.proto.GameMessage.BoardLayout.Builder, soc.proto.GameMessage.BoardLayoutOrBuilder> boardLayoutBuilder_;
+      /**
+       * <pre>
+       * board layout and contents
+       * </pre>
+       *
+       * <code>.BoardLayout board_layout = 30;</code>
+       */
+      public boolean hasBoardLayout() {
+        return msgCase_ == 30;
+      }
+      /**
+       * <pre>
+       * board layout and contents
+       * </pre>
+       *
+       * <code>.BoardLayout board_layout = 30;</code>
+       */
+      public soc.proto.GameMessage.BoardLayout getBoardLayout() {
+        if (boardLayoutBuilder_ == null) {
+          if (msgCase_ == 30) {
+            return (soc.proto.GameMessage.BoardLayout) msg_;
+          }
+          return soc.proto.GameMessage.BoardLayout.getDefaultInstance();
+        } else {
+          if (msgCase_ == 30) {
+            return boardLayoutBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.BoardLayout.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * board layout and contents
+       * </pre>
+       *
+       * <code>.BoardLayout board_layout = 30;</code>
+       */
+      public Builder setBoardLayout(soc.proto.GameMessage.BoardLayout value) {
+        if (boardLayoutBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          boardLayoutBuilder_.setMessage(value);
+        }
+        msgCase_ = 30;
+        return this;
+      }
+      /**
+       * <pre>
+       * board layout and contents
+       * </pre>
+       *
+       * <code>.BoardLayout board_layout = 30;</code>
+       */
+      public Builder setBoardLayout(
+          soc.proto.GameMessage.BoardLayout.Builder builderForValue) {
+        if (boardLayoutBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          boardLayoutBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 30;
+        return this;
+      }
+      /**
+       * <pre>
+       * board layout and contents
+       * </pre>
+       *
+       * <code>.BoardLayout board_layout = 30;</code>
+       */
+      public Builder mergeBoardLayout(soc.proto.GameMessage.BoardLayout value) {
+        if (boardLayoutBuilder_ == null) {
+          if (msgCase_ == 30 &&
+              msg_ != soc.proto.GameMessage.BoardLayout.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.BoardLayout.newBuilder((soc.proto.GameMessage.BoardLayout) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 30) {
+            boardLayoutBuilder_.mergeFrom(value);
+          }
+          boardLayoutBuilder_.setMessage(value);
+        }
+        msgCase_ = 30;
+        return this;
+      }
+      /**
+       * <pre>
+       * board layout and contents
+       * </pre>
+       *
+       * <code>.BoardLayout board_layout = 30;</code>
+       */
+      public Builder clearBoardLayout() {
+        if (boardLayoutBuilder_ == null) {
+          if (msgCase_ == 30) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 30) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          boardLayoutBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * board layout and contents
+       * </pre>
+       *
+       * <code>.BoardLayout board_layout = 30;</code>
+       */
+      public soc.proto.GameMessage.BoardLayout.Builder getBoardLayoutBuilder() {
+        return getBoardLayoutFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * board layout and contents
+       * </pre>
+       *
+       * <code>.BoardLayout board_layout = 30;</code>
+       */
+      public soc.proto.GameMessage.BoardLayoutOrBuilder getBoardLayoutOrBuilder() {
+        if ((msgCase_ == 30) && (boardLayoutBuilder_ != null)) {
+          return boardLayoutBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 30) {
+            return (soc.proto.GameMessage.BoardLayout) msg_;
+          }
+          return soc.proto.GameMessage.BoardLayout.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * board layout and contents
+       * </pre>
+       *
+       * <code>.BoardLayout board_layout = 30;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.BoardLayout, soc.proto.GameMessage.BoardLayout.Builder, soc.proto.GameMessage.BoardLayoutOrBuilder> 
+          getBoardLayoutFieldBuilder() {
+        if (boardLayoutBuilder_ == null) {
+          if (!(msgCase_ == 30)) {
+            msg_ = soc.proto.GameMessage.BoardLayout.getDefaultInstance();
+          }
+          boardLayoutBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.BoardLayout, soc.proto.GameMessage.BoardLayout.Builder, soc.proto.GameMessage.BoardLayoutOrBuilder>(
+                  (soc.proto.GameMessage.BoardLayout) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 30;
+        onChanged();;
+        return boardLayoutBuilder_;
       }
 
       private com.google.protobuf.SingleFieldBuilderV3<
@@ -4598,6 +7318,26 @@ public final class GameMessage {
   }
 
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_BoardLayout_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_BoardLayout_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_BoardLayout__BoardLayoutPart_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_BoardLayout__BoardLayoutPart_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_BoardLayout__BoardLayoutPart_IntArray_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_BoardLayout__BoardLayoutPart_IntArray_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_BoardLayout_PartsEntry_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_BoardLayout_PartsEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_State_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -4636,18 +7376,26 @@ public final class GameMessage {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\022game_message.proto\032\ndata.proto\"\"\n\005Stat" +
-      "e\022\031\n\005state\030\001 \001(\0162\n.GameState\"&\n\tStartGam" +
-      "e\022\031\n\005state\030\001 \001(\0162\n.GameState\"8\n\004Turn\022\025\n\r" +
-      "player_number\030\001 \001(\r\022\031\n\005state\030\002 \001(\0162\n.Gam" +
-      "eState\"\t\n\007EndTurn\"\206\001\n\025GameMessageFromSer" +
-      "ver\022\017\n\007ga_name\030\001 \001(\t\022\034\n\ngame_state\030\002 \001(\013" +
-      "2\006.StateH\000\022 \n\nstart_game\030d \001(\0132\n.StartGa" +
-      "meH\000\022\025\n\004turn\030e \001(\0132\005.TurnH\000B\005\n\003msg\"o\n\025Ga" +
-      "meMessageFromClient\022\017\n\007ga_name\030\001 \001(\t\022 \n\n" +
-      "start_game\030d \001(\0132\n.StartGameH\000\022\034\n\010end_tu",
-      "rn\030e \001(\0132\010.EndTurnH\000B\005\n\003msgB\r\n\tsoc.proto" +
-      "H\001P\000b\006proto3"
+      "\n\022game_message.proto\032\ndata.proto\"\253\002\n\013Boa" +
+      "rdLayout\022\027\n\017encoding_format\030\001 \001(\r\022&\n\005par" +
+      "ts\030\002 \003(\0132\027.BoardLayout.PartsEntry\032\215\001\n\020_B" +
+      "oardLayoutPart\022\017\n\005i_val\030\001 \001(\005H\000\022\017\n\005s_val" +
+      "\030\002 \001(\tH\000\0227\n\005i_arr\030\003 \001(\0132&.BoardLayout._B" +
+      "oardLayoutPart.IntArrayH\000\032\027\n\010IntArray\022\013\n" +
+      "\003arr\030\001 \003(\005B\005\n\003val\032K\n\nPartsEntry\022\013\n\003key\030\001" +
+      " \001(\t\022,\n\005value\030\002 \001(\0132\035.BoardLayout._Board" +
+      "LayoutPart:\0028\001\"\"\n\005State\022\031\n\005state\030\001 \001(\0162\n" +
+      ".GameState\"&\n\tStartGame\022\031\n\005state\030\001 \001(\0162\n",
+      ".GameState\"8\n\004Turn\022\025\n\rplayer_number\030\001 \001(" +
+      "\r\022\031\n\005state\030\002 \001(\0162\n.GameState\"\t\n\007EndTurn\"" +
+      "\254\001\n\025GameMessageFromServer\022\017\n\007ga_name\030\001 \001" +
+      "(\t\022\034\n\ngame_state\030\002 \001(\0132\006.StateH\000\022$\n\014boar" +
+      "d_layout\030\036 \001(\0132\014.BoardLayoutH\000\022 \n\nstart_" +
+      "game\030d \001(\0132\n.StartGameH\000\022\025\n\004turn\030e \001(\0132\005" +
+      ".TurnH\000B\005\n\003msg\"o\n\025GameMessageFromClient\022" +
+      "\017\n\007ga_name\030\001 \001(\t\022 \n\nstart_game\030d \001(\0132\n.S" +
+      "tartGameH\000\022\034\n\010end_turn\030e \001(\0132\010.EndTurnH\000" +
+      "B\005\n\003msgB\r\n\tsoc.protoH\001P\000b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -4662,38 +7410,62 @@ public final class GameMessage {
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           soc.proto.Data.getDescriptor(),
         }, assigner);
-    internal_static_State_descriptor =
+    internal_static_BoardLayout_descriptor =
       getDescriptor().getMessageTypes().get(0);
+    internal_static_BoardLayout_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_BoardLayout_descriptor,
+        new java.lang.String[] { "EncodingFormat", "Parts", });
+    internal_static_BoardLayout__BoardLayoutPart_descriptor =
+      internal_static_BoardLayout_descriptor.getNestedTypes().get(0);
+    internal_static_BoardLayout__BoardLayoutPart_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_BoardLayout__BoardLayoutPart_descriptor,
+        new java.lang.String[] { "IVal", "SVal", "IArr", "Val", });
+    internal_static_BoardLayout__BoardLayoutPart_IntArray_descriptor =
+      internal_static_BoardLayout__BoardLayoutPart_descriptor.getNestedTypes().get(0);
+    internal_static_BoardLayout__BoardLayoutPart_IntArray_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_BoardLayout__BoardLayoutPart_IntArray_descriptor,
+        new java.lang.String[] { "Arr", });
+    internal_static_BoardLayout_PartsEntry_descriptor =
+      internal_static_BoardLayout_descriptor.getNestedTypes().get(1);
+    internal_static_BoardLayout_PartsEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_BoardLayout_PartsEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_State_descriptor =
+      getDescriptor().getMessageTypes().get(1);
     internal_static_State_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_State_descriptor,
         new java.lang.String[] { "State", });
     internal_static_StartGame_descriptor =
-      getDescriptor().getMessageTypes().get(1);
+      getDescriptor().getMessageTypes().get(2);
     internal_static_StartGame_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_StartGame_descriptor,
         new java.lang.String[] { "State", });
     internal_static_Turn_descriptor =
-      getDescriptor().getMessageTypes().get(2);
+      getDescriptor().getMessageTypes().get(3);
     internal_static_Turn_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Turn_descriptor,
         new java.lang.String[] { "PlayerNumber", "State", });
     internal_static_EndTurn_descriptor =
-      getDescriptor().getMessageTypes().get(3);
+      getDescriptor().getMessageTypes().get(4);
     internal_static_EndTurn_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_EndTurn_descriptor,
         new java.lang.String[] { });
     internal_static_GameMessageFromServer_descriptor =
-      getDescriptor().getMessageTypes().get(4);
+      getDescriptor().getMessageTypes().get(5);
     internal_static_GameMessageFromServer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_GameMessageFromServer_descriptor,
-        new java.lang.String[] { "GaName", "GameState", "StartGame", "Turn", "Msg", });
+        new java.lang.String[] { "GaName", "GameState", "BoardLayout", "StartGame", "Turn", "Msg", });
     internal_static_GameMessageFromClient_descriptor =
-      getDescriptor().getMessageTypes().get(5);
+      getDescriptor().getMessageTypes().get(6);
     internal_static_GameMessageFromClient_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_GameMessageFromClient_descriptor,

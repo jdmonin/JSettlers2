@@ -19,6 +19,7 @@
  **/
 package soc.message;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -26,6 +27,8 @@ import java.util.StringTokenizer;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;  // for javadocs
 import soc.game.SOCScenario;    // for javadocs
+import soc.proto.GameMessage;
+import soc.proto.Message;
 
 
 /**
@@ -456,6 +459,53 @@ public class SOCBoardLayout2 extends SOCMessage
         }
 
         return new SOCBoardLayout2(ga, bef, parts);
+    }
+
+    /**
+     * Contents of this message in Protobuf format, as a OneOf field of {@link Message.FromServer}.
+     * This proto message and its List<Integer> map values are expensive to build, but
+     * {@link #makeProto(boolean)} will cache it after the first call.
+     * @since 3.0.00
+     */
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.BoardLayout.Builder b
+            = GameMessage.BoardLayout.newBuilder();
+        b.setEncodingFormat(boardEncodingFormat);
+
+        GameMessage.BoardLayout._BoardLayoutPart.Builder pb
+            = GameMessage.BoardLayout._BoardLayoutPart.newBuilder();
+        for (String okey : layoutParts.keySet())
+        {
+            Object ov = layoutParts.get(okey);
+            if (ov instanceof Integer)
+                pb.setIVal(((Integer) ov).intValue());
+            else if (ov instanceof int[])
+            {
+                final int[] iarr = (int[]) ov;
+                final int L = iarr.length;
+                ArrayList<Integer> ilist = new ArrayList<Integer>(L);
+                for (int i = 0; i < L; ++i)
+                    ilist.add(Integer.valueOf(iarr[i]));
+
+                GameMessage.BoardLayout._BoardLayoutPart.IntArray.Builder ib
+                    = GameMessage.BoardLayout._BoardLayoutPart.IntArray.newBuilder();
+                ib.addAllArr(ilist);
+                pb.setIArr(ib);
+            }
+            else if (ov instanceof String)
+                pb.setSVal((String) ov);
+            else
+                pb.setSVal(ov.toString());
+
+            b.putParts(okey, pb.build());
+        }
+
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGaName(game).setBoardLayout(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
     /**

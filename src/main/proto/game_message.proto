@@ -36,6 +36,31 @@ import public "data.proto";
 
 
 //
+// Board Layout and Contents
+//
+
+/* Board layout contents.
+ * Sent when game starts or client joins a game in progress.
+ * TODO: Further docs on encoding_format, ref to list of part keynames, etc
+ */
+message BoardLayout
+{
+    message _BoardLayoutPart {
+        message IntArray { repeated int32 arr = 1; }  // since oneof can't directly contain a repeated field (array)
+
+        oneof val {
+            int32 i_val = 1;    // signed integer value
+            string s_val = 2;   // string value
+            IntArray i_arr = 3;  // signed integer array
+        }
+    }
+
+    uint32 encoding_format = 1;  // Board layout encoding version, from {@link SOCBoard#getBoardEncodingFormat()}
+    map<string, _BoardLayoutPart> parts = 2;  // Layout Parts; some are optional depending on game options and scenario
+}
+
+
+//
 // Game State
 //
 
@@ -60,6 +85,7 @@ import public "data.proto";
 message State {
     GameState state = 1;
 }
+
 
 //
 // Current Turn
@@ -110,6 +136,9 @@ message GameMessageFromServer {
     oneof msg {
         // state
         State game_state = 2;
+
+        // board layout and contents
+        BoardLayout board_layout = 30;
 
         // turn
         StartGame start_game = 100;

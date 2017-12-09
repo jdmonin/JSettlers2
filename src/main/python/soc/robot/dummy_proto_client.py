@@ -143,8 +143,30 @@ class DummyProtoClient(object):
 
     # within a game
 
+    def _treat_ga_board_layout(self, ga_name, msg):
+        print("  BoardLayout(encoding=" + str(msg.board_layout.encoding_format) + ", parts=" + repr(msg.board_layout.parts) + ")")
+
+    # The ordering within this declaration follows that of game_message.proto message GameMessageFromServer.
+    _game_msg_treaters = {
+        # board layout and contents
+        'board_layout': _treat_ga_board_layout,
+    }
+    
     def _treat_game_message(self, msg):
-        print("  GameMessage -- not implemented at this bot")
+        """
+        Treat an incoming game-specific message from the server; called from treat.
+        In this dummy/demo client, most messages are ignored.
+        """
+        if msg is None or msg.game_message is None:
+            return
+        gmsg = msg.game_message
+        typ = gmsg.WhichOneof("msg")
+        if typ is None:
+            return
+        if typ in self._game_msg_treaters:
+            self._game_msg_treaters[typ](self, gmsg.ga_name, gmsg)
+        else:
+            print("  treat_game_message(): No handler for message type " + str(typ));
 
     # Static FromServer message-type handler switch dict for treat(), initialized once.
     # The ordering within this declaration follows that of message.proto message FromServer.

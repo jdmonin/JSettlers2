@@ -21,12 +21,164 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='game_message.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x12game_message.proto\x1a\ndata.proto\"\"\n\x05State\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"&\n\tStartGame\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"8\n\x04Turn\x12\x15\n\rplayer_number\x18\x01 \x01(\r\x12\x19\n\x05state\x18\x02 \x01(\x0e\x32\n.GameState\"\t\n\x07\x45ndTurn\"\x86\x01\n\x15GameMessageFromServer\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x1c\n\ngame_state\x18\x02 \x01(\x0b\x32\x06.StateH\x00\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12\x15\n\x04turn\x18\x65 \x01(\x0b\x32\x05.TurnH\x00\x42\x05\n\x03msg\"o\n\x15GameMessageFromClient\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12\x1c\n\x08\x65nd_turn\x18\x65 \x01(\x0b\x32\x08.EndTurnH\x00\x42\x05\n\x03msgB\r\n\tsoc.protoH\x01P\x00\x62\x06proto3')
+  serialized_pb=_b('\n\x12game_message.proto\x1a\ndata.proto\"\xab\x02\n\x0b\x42oardLayout\x12\x17\n\x0f\x65ncoding_format\x18\x01 \x01(\r\x12&\n\x05parts\x18\x02 \x03(\x0b\x32\x17.BoardLayout.PartsEntry\x1a\x8d\x01\n\x10_BoardLayoutPart\x12\x0f\n\x05i_val\x18\x01 \x01(\x05H\x00\x12\x0f\n\x05s_val\x18\x02 \x01(\tH\x00\x12\x37\n\x05i_arr\x18\x03 \x01(\x0b\x32&.BoardLayout._BoardLayoutPart.IntArrayH\x00\x1a\x17\n\x08IntArray\x12\x0b\n\x03\x61rr\x18\x01 \x03(\x05\x42\x05\n\x03val\x1aK\n\nPartsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12,\n\x05value\x18\x02 \x01(\x0b\x32\x1d.BoardLayout._BoardLayoutPart:\x02\x38\x01\"\"\n\x05State\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"&\n\tStartGame\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"8\n\x04Turn\x12\x15\n\rplayer_number\x18\x01 \x01(\r\x12\x19\n\x05state\x18\x02 \x01(\x0e\x32\n.GameState\"\t\n\x07\x45ndTurn\"\xac\x01\n\x15GameMessageFromServer\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x1c\n\ngame_state\x18\x02 \x01(\x0b\x32\x06.StateH\x00\x12$\n\x0c\x62oard_layout\x18\x1e \x01(\x0b\x32\x0c.BoardLayoutH\x00\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12\x15\n\x04turn\x18\x65 \x01(\x0b\x32\x05.TurnH\x00\x42\x05\n\x03msg\"o\n\x15GameMessageFromClient\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12\x1c\n\x08\x65nd_turn\x18\x65 \x01(\x0b\x32\x08.EndTurnH\x00\x42\x05\n\x03msgB\r\n\tsoc.protoH\x01P\x00\x62\x06proto3')
   ,
   dependencies=[data__pb2.DESCRIPTOR,],
   public_dependencies=[data__pb2.DESCRIPTOR,])
 
 
+
+
+_BOARDLAYOUT__BOARDLAYOUTPART_INTARRAY = _descriptor.Descriptor(
+  name='IntArray',
+  full_name='BoardLayout._BoardLayoutPart.IntArray',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='arr', full_name='BoardLayout._BoardLayoutPart.IntArray.arr', index=0,
+      number=1, type=5, cpp_type=1, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=227,
+  serialized_end=250,
+)
+
+_BOARDLAYOUT__BOARDLAYOUTPART = _descriptor.Descriptor(
+  name='_BoardLayoutPart',
+  full_name='BoardLayout._BoardLayoutPart',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='i_val', full_name='BoardLayout._BoardLayoutPart.i_val', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='s_val', full_name='BoardLayout._BoardLayoutPart.s_val', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='i_arr', full_name='BoardLayout._BoardLayoutPart.i_arr', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_BOARDLAYOUT__BOARDLAYOUTPART_INTARRAY, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='val', full_name='BoardLayout._BoardLayoutPart.val',
+      index=0, containing_type=None, fields=[]),
+  ],
+  serialized_start=116,
+  serialized_end=257,
+)
+
+_BOARDLAYOUT_PARTSENTRY = _descriptor.Descriptor(
+  name='PartsEntry',
+  full_name='BoardLayout.PartsEntry',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='key', full_name='BoardLayout.PartsEntry.key', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='BoardLayout.PartsEntry.value', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=_descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001')),
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=259,
+  serialized_end=334,
+)
+
+_BOARDLAYOUT = _descriptor.Descriptor(
+  name='BoardLayout',
+  full_name='BoardLayout',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='encoding_format', full_name='BoardLayout.encoding_format', index=0,
+      number=1, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='parts', full_name='BoardLayout.parts', index=1,
+      number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_BOARDLAYOUT__BOARDLAYOUTPART, _BOARDLAYOUT_PARTSENTRY, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=35,
+  serialized_end=334,
+)
 
 
 _STATE = _descriptor.Descriptor(
@@ -55,8 +207,8 @@ _STATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=34,
-  serialized_end=68,
+  serialized_start=336,
+  serialized_end=370,
 )
 
 
@@ -86,8 +238,8 @@ _STARTGAME = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=70,
-  serialized_end=108,
+  serialized_start=372,
+  serialized_end=410,
 )
 
 
@@ -124,8 +276,8 @@ _TURN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=110,
-  serialized_end=166,
+  serialized_start=412,
+  serialized_end=468,
 )
 
 
@@ -148,8 +300,8 @@ _ENDTURN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=168,
-  serialized_end=177,
+  serialized_start=470,
+  serialized_end=479,
 )
 
 
@@ -175,14 +327,21 @@ _GAMEMESSAGEFROMSERVER = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='start_game', full_name='GameMessageFromServer.start_game', index=2,
+      name='board_layout', full_name='GameMessageFromServer.board_layout', index=2,
+      number=30, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='start_game', full_name='GameMessageFromServer.start_game', index=3,
       number=100, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='turn', full_name='GameMessageFromServer.turn', index=3,
+      name='turn', full_name='GameMessageFromServer.turn', index=4,
       number=101, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -203,8 +362,8 @@ _GAMEMESSAGEFROMSERVER = _descriptor.Descriptor(
       name='msg', full_name='GameMessageFromServer.msg',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=180,
-  serialized_end=314,
+  serialized_start=482,
+  serialized_end=654,
 )
 
 
@@ -251,19 +410,38 @@ _GAMEMESSAGEFROMCLIENT = _descriptor.Descriptor(
       name='msg', full_name='GameMessageFromClient.msg',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=316,
-  serialized_end=427,
+  serialized_start=656,
+  serialized_end=767,
 )
 
+_BOARDLAYOUT__BOARDLAYOUTPART_INTARRAY.containing_type = _BOARDLAYOUT__BOARDLAYOUTPART
+_BOARDLAYOUT__BOARDLAYOUTPART.fields_by_name['i_arr'].message_type = _BOARDLAYOUT__BOARDLAYOUTPART_INTARRAY
+_BOARDLAYOUT__BOARDLAYOUTPART.containing_type = _BOARDLAYOUT
+_BOARDLAYOUT__BOARDLAYOUTPART.oneofs_by_name['val'].fields.append(
+  _BOARDLAYOUT__BOARDLAYOUTPART.fields_by_name['i_val'])
+_BOARDLAYOUT__BOARDLAYOUTPART.fields_by_name['i_val'].containing_oneof = _BOARDLAYOUT__BOARDLAYOUTPART.oneofs_by_name['val']
+_BOARDLAYOUT__BOARDLAYOUTPART.oneofs_by_name['val'].fields.append(
+  _BOARDLAYOUT__BOARDLAYOUTPART.fields_by_name['s_val'])
+_BOARDLAYOUT__BOARDLAYOUTPART.fields_by_name['s_val'].containing_oneof = _BOARDLAYOUT__BOARDLAYOUTPART.oneofs_by_name['val']
+_BOARDLAYOUT__BOARDLAYOUTPART.oneofs_by_name['val'].fields.append(
+  _BOARDLAYOUT__BOARDLAYOUTPART.fields_by_name['i_arr'])
+_BOARDLAYOUT__BOARDLAYOUTPART.fields_by_name['i_arr'].containing_oneof = _BOARDLAYOUT__BOARDLAYOUTPART.oneofs_by_name['val']
+_BOARDLAYOUT_PARTSENTRY.fields_by_name['value'].message_type = _BOARDLAYOUT__BOARDLAYOUTPART
+_BOARDLAYOUT_PARTSENTRY.containing_type = _BOARDLAYOUT
+_BOARDLAYOUT.fields_by_name['parts'].message_type = _BOARDLAYOUT_PARTSENTRY
 _STATE.fields_by_name['state'].enum_type = data__pb2._GAMESTATE
 _STARTGAME.fields_by_name['state'].enum_type = data__pb2._GAMESTATE
 _TURN.fields_by_name['state'].enum_type = data__pb2._GAMESTATE
 _GAMEMESSAGEFROMSERVER.fields_by_name['game_state'].message_type = _STATE
+_GAMEMESSAGEFROMSERVER.fields_by_name['board_layout'].message_type = _BOARDLAYOUT
 _GAMEMESSAGEFROMSERVER.fields_by_name['start_game'].message_type = _STARTGAME
 _GAMEMESSAGEFROMSERVER.fields_by_name['turn'].message_type = _TURN
 _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
   _GAMEMESSAGEFROMSERVER.fields_by_name['game_state'])
 _GAMEMESSAGEFROMSERVER.fields_by_name['game_state'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
+_GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
+  _GAMEMESSAGEFROMSERVER.fields_by_name['board_layout'])
+_GAMEMESSAGEFROMSERVER.fields_by_name['board_layout'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
 _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
   _GAMEMESSAGEFROMSERVER.fields_by_name['start_game'])
 _GAMEMESSAGEFROMSERVER.fields_by_name['start_game'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
@@ -278,6 +456,7 @@ _GAMEMESSAGEFROMCLIENT.fields_by_name['start_game'].containing_oneof = _GAMEMESS
 _GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg'].fields.append(
   _GAMEMESSAGEFROMCLIENT.fields_by_name['end_turn'])
 _GAMEMESSAGEFROMCLIENT.fields_by_name['end_turn'].containing_oneof = _GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg']
+DESCRIPTOR.message_types_by_name['BoardLayout'] = _BOARDLAYOUT
 DESCRIPTOR.message_types_by_name['State'] = _STATE
 DESCRIPTOR.message_types_by_name['StartGame'] = _STARTGAME
 DESCRIPTOR.message_types_by_name['Turn'] = _TURN
@@ -285,6 +464,37 @@ DESCRIPTOR.message_types_by_name['EndTurn'] = _ENDTURN
 DESCRIPTOR.message_types_by_name['GameMessageFromServer'] = _GAMEMESSAGEFROMSERVER
 DESCRIPTOR.message_types_by_name['GameMessageFromClient'] = _GAMEMESSAGEFROMCLIENT
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
+
+BoardLayout = _reflection.GeneratedProtocolMessageType('BoardLayout', (_message.Message,), dict(
+
+  _BoardLayoutPart = _reflection.GeneratedProtocolMessageType('_BoardLayoutPart', (_message.Message,), dict(
+
+    IntArray = _reflection.GeneratedProtocolMessageType('IntArray', (_message.Message,), dict(
+      DESCRIPTOR = _BOARDLAYOUT__BOARDLAYOUTPART_INTARRAY,
+      __module__ = 'game_message_pb2'
+      # @@protoc_insertion_point(class_scope:BoardLayout._BoardLayoutPart.IntArray)
+      ))
+    ,
+    DESCRIPTOR = _BOARDLAYOUT__BOARDLAYOUTPART,
+    __module__ = 'game_message_pb2'
+    # @@protoc_insertion_point(class_scope:BoardLayout._BoardLayoutPart)
+    ))
+  ,
+
+  PartsEntry = _reflection.GeneratedProtocolMessageType('PartsEntry', (_message.Message,), dict(
+    DESCRIPTOR = _BOARDLAYOUT_PARTSENTRY,
+    __module__ = 'game_message_pb2'
+    # @@protoc_insertion_point(class_scope:BoardLayout.PartsEntry)
+    ))
+  ,
+  DESCRIPTOR = _BOARDLAYOUT,
+  __module__ = 'game_message_pb2'
+  # @@protoc_insertion_point(class_scope:BoardLayout)
+  ))
+_sym_db.RegisterMessage(BoardLayout)
+_sym_db.RegisterMessage(BoardLayout._BoardLayoutPart)
+_sym_db.RegisterMessage(BoardLayout._BoardLayoutPart.IntArray)
+_sym_db.RegisterMessage(BoardLayout.PartsEntry)
 
 State = _reflection.GeneratedProtocolMessageType('State', (_message.Message,), dict(
   DESCRIPTOR = _STATE,
@@ -331,4 +541,6 @@ _sym_db.RegisterMessage(GameMessageFromClient)
 
 DESCRIPTOR.has_options = True
 DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\tsoc.protoH\001'))
+_BOARDLAYOUT_PARTSENTRY.has_options = True
+_BOARDLAYOUT_PARTSENTRY._options = _descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001'))
 # @@protoc_insertion_point(module_scope)
