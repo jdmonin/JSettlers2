@@ -503,6 +503,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * maximum number of players in a standard game
+     * without the 6-player extension.
      * @see #MAXPLAYERS
      * @see #maxPlayers
      * @since 1.1.08
@@ -536,7 +537,8 @@ public class SOCGame implements Serializable, Cloneable
     private static final int NUM_DEVCARDS_VP = 5;
 
     /**
-     * Number of development cards (25) in the standard rules.
+     * Number of development cards (25) in the standard rules,
+     * without the 6-player extension.
      * @see #NUM_DEVCARDS_6PLAYER
      * @since 1.1.08
      */
@@ -574,7 +576,7 @@ public class SOCGame implements Serializable, Cloneable
      * The {@link SOCBoard.BoardFactory} for creating new boards in the SOCGame constructors.
      * Differs at client and at server.
      * If null, SOCGame constructor sets to {@link SOCBoard.DefaultBoardFactory}.
-     * @see soc.server.SOCBoardLargeAtServer.BoardFactoryAtServer
+     * @see soc.server.SOCBoardAtServer.BoardFactoryAtServer
      * @since 2.0.00
      */
     public static SOCBoard.BoardFactory boardFactory;
@@ -854,7 +856,7 @@ public class SOCGame implements Serializable, Cloneable
     private int lastPlayerNumber;
 
     /**
-     * maxPlayers is 4 for the standard game,
+     * The standard {@code maxPlayers} is 4 for the original classic game,
      * or 6 if this game is on the 6-player board, with corresponding rules.
      * The value of game option {@code "PL"} may be 2, 3, 4, 5, or 6, but
      * the {@code maxPlayers} field will be 4 or 6.
@@ -3012,7 +3014,7 @@ public class SOCGame implements Serializable, Cloneable
      * and set the player's {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA} flag.
      *<P>
      * Some scenarios use extra initial pieces in fixed locations, placed in
-     * <tt>SOCBoardLargeAtServer.startGame_putInitPieces</tt>.  To prevent the state or current player from
+     * {@code SOCBoardAtServer.startGame_putInitPieces}.  To prevent the state or current player from
      * advancing, temporarily set game state {@link #READY} before calling putPiece for these.
      *<P>
      * During {@link #isDebugFreePlacement()}, the gamestate is not changed,
@@ -3895,7 +3897,7 @@ public class SOCGame implements Serializable, Cloneable
      *<UL>
      * <LI> This method {@code startGame()}
      * <LI> If appropriate, each player's {@link SOCPlayer#setRestrictedLegalShips(int[])}
-     * <LI> If appropriate, {@code SOCBoardLargeAtServer.startGame_putInitPieces(SOCGame)}
+     * <LI> If appropriate, {@code SOCBoardAtServer.startGame_putInitPieces(SOCGame)}
      *</UL>
      */
     public void startGame()
@@ -4004,6 +4006,8 @@ public class SOCGame implements Serializable, Cloneable
 
         if (maxPlayers > 4)
         {
+            // 6-player extension
+
             for (i = 25; i < 31; i++)
             {
                 devCardDeck[i] = SOCDevCardConstants.KNIGHT;

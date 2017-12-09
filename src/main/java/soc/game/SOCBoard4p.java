@@ -25,8 +25,9 @@ package soc.game;
 import java.util.Map;
 
 /**
- * A standard 4p board with 19 land hexes and 18 sea hexes layed out in a
- * concentric way. In v3.0.00 and newer all boards use the same v3 coordinate encoding
+ * The classic 4-player board with 19 land hexes, surrounded by a ring of
+ * 18 sea hexes/ports. Implements {@link SOCBoard#BOARD_ENCODING_ORIGINAL}.
+ * In v3.0.00 and newer all boards use the same v3 coordinate encoding
  * ({@link SOCBoard#BOARD_ENCODING_LARGE}).
  * @since 2.0.00
  */
@@ -35,7 +36,7 @@ public abstract class SOCBoard4p extends SOCBoard
     private static final long serialVersionUID = 3000L;  // last structural change v2.0.00
 
     /**
-     * Land-hex coordinates in standard board ({@link #BOARD_ENCODING_ORIGINAL}).
+     * Land-hex coordinates in original classic board ({@link #BOARD_ENCODING_ORIGINAL}).
      * @since 1.1.08
      */
     public final static int[] HEXCOORDS_LAND_V1 =
@@ -69,7 +70,7 @@ public abstract class SOCBoard4p extends SOCBoard
     protected static final int MINNODE_V1 = 0x23;
 
     /**
-     * Each port's hex number within {@link #hexLayout} on standard board.
+     * Each port's hex number within {@link #hexLayout} on classic board.
      * Same order as {@link #PORTS_FACING_V1}:
      * Clockwise from upper-left (hex coordinate 0x17).
      * @since 1.1.08
@@ -77,7 +78,7 @@ public abstract class SOCBoard4p extends SOCBoard
     final static int[] PORTS_HEXNUM_V1 = { 0, 2, 8, 21, 32, 35, 33, 22, 9 };
 
     /**
-     * Each port's <em>facing</em> towards land, on the standard board.
+     * Each port's <em>facing</em> towards land, on the classic board.
      * Ordered clockwise from upper-left (hex coordinate 0x17).
      * Port Facing is the direction from the port hex/edge, to the land hex touching it
      * which will have 2 nodes where a port settlement/city can be built.
@@ -90,7 +91,7 @@ public abstract class SOCBoard4p extends SOCBoard
     };
 
     /**
-     * Each port's 2 node coordinates on standard board.
+     * Each port's 2 node coordinates on classic board.
      * Same order as {@link #PORTS_FACING_V1}:
      * Clockwise from upper-left (hex coordinate 0x17).
      * @since 1.1.08

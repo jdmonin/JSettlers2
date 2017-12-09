@@ -45,14 +45,14 @@ import soc.util.IntPair;
  * and keep the board logic simple.  Game rules should be enforced at the game, not the board.
  * Calling board methods won't change the game state.
  *<P>
- * To generate a new game's board layout, use subclass <tt>soc.server.SOCBoardLargeAtServer</tt>.
+ * To generate a new game's board layout, use subclass {@code soc.server.SOCBoardAtServer}.
  * Game boards are initially all water.  The layout contents are set up later by calling
- * {@code SOCBoardLargeAtServer.makeNewBoard(Map)} when the game is about to begin,
+ * {@code SOCBoardAtServer.makeNewBoard(Map)} when the game is about to begin,
  * then sent to the clients over the network.  The client calls methods such as {@link #setLandHexLayout(int[])},
  * {@link #setPortsLayout(int[])}, {@link SOCGame#putPiece(SOCPlayingPiece)}, and
  * {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])} with data from the server.
  *<P>
- * See {@code SOCBoardLargeAtServer}'s class javadoc, and its {@code makeNewBoard(Map)} javadoc, for more details on layout creation.
+ * See {@code SOCBoardAtServer}'s class javadoc, and its {@code makeNewBoard(Map)} javadoc, for more details on layout creation.
  *<P>
  * On this large sea board, there can optionally be multiple "land areas"
  * (groups of islands, or subsets of islands), if {@link #getLandAreasLegalNodes()} != null.
@@ -539,7 +539,7 @@ public class SOCBoardLarge extends SOCBoard
      * The legal set of land edge coordinates to build roads,
      * based on {@link #nodesOnLand}.
      * Calculated in {@link #initLegalRoadsFromLandNodes()}, after {@link #nodesOnLand} is filled by
-     * {@code SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int, boolean)}.
+     * {@code SOCBoardAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int, boolean)}.
      * Used by {@link #initPlayerLegalRoads()}.
      * @see #legalShipEdges
      */
@@ -550,13 +550,13 @@ public class SOCBoardLarge extends SOCBoard
      * based on {@link #hexLayoutLg}. Empty for classic 4-player and 6-player (non-"SBL") layouts,
      * where {@link #isSeaBoard} is false.
      * Calculated in {@link #initLegalShipEdges()}, after {@link #hexLayoutLg} is filled by
-     * {@code SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int, boolean)}.
+     * {@code SOCBoardAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int, boolean)}.
      *<P>
      * Used by {@link #initPlayerLegalShips()}.
      * Updated in {@link #revealFogHiddenHex(int, int, int)} for {@link SOCBoard#WATER_HEX WATER_HEX}.
      *<P>
      * With scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, the legal edges vary per player
-     * and are based on {@code SOCBoardLargeAtServer.PIR_ISL_SEA_EDGES}, so {@code legalShipEdges}
+     * and are based on {@code SOCBoardAtServer.PIR_ISL_SEA_EDGES}, so {@code legalShipEdges}
      * is empty.
      *
      * @see #legalRoadEdges
@@ -581,7 +581,7 @@ public class SOCBoardLarge extends SOCBoard
      * For example, scenario {@link SOCScenario#K_SC_PIRI SC_PIRI} adds
      * <tt>"PP" = { 0x..., 0x... }</tt> for the fixed Pirate Path, and
      * {@link SOCScenario#K_SC_CLVI SC_CLVI} adds {@code "CV"} for the cloth village locations.
-     * Null for most scenarios.  Initialized in <tt>SOCBoardLargeAtServer.makeNewBoard</tt>.
+     * Null for most scenarios. Initialized in {@code SOCBoardAtServer.makeNewBoard}.
      */
     private HashMap<String, int[]> addedLayoutParts;
 
@@ -606,7 +606,7 @@ public class SOCBoardLarge extends SOCBoard
      * Key is the hex coordinate; value is
      * <tt>({@link #hexLayoutLg}[coord] &lt;&lt; 8) | ({@link #numberLayoutLg}[coord] & 0xFF)</tt>.
      *<P>
-     * Filled at server only (SOCBoardLargeAtServer.makeNewBoard_hideHexesInFog);
+     * Filled at server only (SOCBoardAtServer.makeNewBoard_hideHexesInFog);
      * the client doesn't know what's under the fog until hexes are revealed.
      * @see #revealFogHiddenHexPrep(int)
      * @see #revealFogHiddenHex(int, int, int)
@@ -740,7 +740,7 @@ public class SOCBoardLarge extends SOCBoard
      * @param gameOpts  Game options, or null
      * @param maxPlayers  Maximum players; must be default 4, or 6 from game option "PL" &gt; 4 or "PLB".
      * @return a new IntPair(height, width)
-     * @see soc.server.SOCBoardLargeAtServer#getBoardSize(Map, int)
+     * @see soc.server.SOCBoardAtServer#getBoardSize(Map, int)
      */
     private static IntPair getBoardSize(final Map<String, SOCGameOption> gameOpts, int maxPlayers)
     {
@@ -765,7 +765,9 @@ public class SOCBoardLarge extends SOCBoard
 
     ////////////////////////////////////////////
     //
-    // Make New Board
+    // Make New Board: These methods are called at
+    // the client when it receives a layout, and at
+    // the server from SOCBoardAtServer.makeNewBoard
     //
 
 
@@ -780,7 +782,7 @@ public class SOCBoardLarge extends SOCBoard
      * For more info see the "Added Layout Parts" section of {@link #getAddedLayoutPart(String)}'s javadoc.
      *<P>
      * Called at server and at client. At server, call this only after the very last call to
-     * {@code SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int, boolean)}.
+     * {@code SOCBoardAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int, boolean)}.
      * At client, called from {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])}.
      *
      * @throws IllegalStateException if Part {@code "AL"} is present but badly formed (node list number 0, or a
@@ -920,7 +922,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * Not iterative; clears all previous legal ship edges.
      * Call this only after the very last call to
-     * {@code SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int, boolean)}
+     * {@code SOCBoardAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int, boolean)}
      * so that all land hexes are already placed.
      *<P>
      * Called at server and at client.
@@ -1128,8 +1130,8 @@ public class SOCBoardLarge extends SOCBoard
      * Please treat the returned value as read-only.
      * The layout parts and their keynames are documented at {@link #getAddedLayoutPart(String)}.
      *<P>
-     * Added during {@code SOCBoardLargeAtServer.makeNewBoard}
-     * or {@code SOCBoardLargeAtServer.startGame_putInitPieces}.
+     * Added during {@code SOCBoardAtServer.makeNewBoard}
+     * or {@code SOCBoardAtServer.startGame_putInitPieces}.
      *
      * @return  The added layout parts, or null if none
      * @see #getAddedLayoutPart(String)
@@ -1261,8 +1263,8 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Set one "added layout part" by its key name.
-     * Should be set only during {@code SOCBoardLargeAtServer.makeNewBoard}
-     * or {@code SOCBoardLargeAtServer.startGame_putInitPieces}, not changed afterwards.
+     * Should be set only during {@code SOCBoardAtServer.makeNewBoard}
+     * or {@code SOCBoardAtServer.startGame_putInitPieces}, not changed afterwards.
      * Document the new {@code key} at {@link #getAddedLayoutPart(String)}.
      *<P>
      * If the layout part {@code key} is recognized here as a Special Edge Type
@@ -1292,7 +1294,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * This is called at server, but not at client; client instead receives messages from the server
      * when the player claims such an item.  It's declared here in SOCBoardLarge instead of
-     * {@code SOCBoardLargeAtServer} so that game methods can call it without importing the server-side class.
+     * {@code SOCBoardAtServer} so that game methods can call it without importing the server-side class.
      *<P>
      * In {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, each item is a {@link SOCDevCardConstants} card type.
      *
@@ -1302,7 +1304,7 @@ public class SOCBoardLarge extends SOCBoard
     public Integer drawItemFromStack()
         throws UnsupportedOperationException
     {
-        throw new UnsupportedOperationException("Use SOCBoardLargeAtServer instead");
+        throw new UnsupportedOperationException("Use SOCBoardAtServer instead");
     }
 
     /**
@@ -1369,7 +1371,7 @@ public class SOCBoardLarge extends SOCBoard
      * move the pirate fleet's position along its path.
      *<P>
      * This is called at server, but not at client; client instead calls {@link #setPirateHex(int, boolean)}.
-     * Call <tt>SOCBoardLargeAtServer.movePirateHexAlongPath</tt> instead of this stub super method.
+     * Call {@code SOCBoardAtServer.movePirateHexAlongPath} instead of this stub super method.
      * @param numSteps  Number of steps to move along the path
      * @return  new pirate hex coordinate
      * @throws UnsupportedOperationException if called at client
@@ -1378,7 +1380,7 @@ public class SOCBoardLarge extends SOCBoard
     public int movePirateHexAlongPath(final int numSteps)
         throws UnsupportedOperationException, IllegalStateException
     {
-        throw new UnsupportedOperationException("Use SOCBoardLargeAtServer instead");
+        throw new UnsupportedOperationException("Use SOCBoardAtServer instead");
     }
 
     /**
@@ -2339,9 +2341,9 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * In some scenarios ({@code _SC_PIRI}), not all sea edges are legal for ships.
      * See {@link SOCPlayer#setRestrictedLegalShips(int[])}
-     * and {@code SOCBoardLargeAtServer.getLegalSeaEdges(SOCGame, int)}.
+     * and {@code SOCBoardAtServer.getLegalSeaEdges(SOCGame, int)}.
      *<P>
-     * Server doesn't need to call this method, because {@code SOCBoardLargeAtServer.makeNewBoard(Map)}
+     * Server doesn't need to call this method, because {@code SOCBoardAtServer.makeNewBoard(Map)}
      * sets the contents of the same data structures.
      *
      * @param psNodes  The set of potential settlement node coordinates as {@link Integer}s;
@@ -3763,7 +3765,7 @@ public class SOCBoardLarge extends SOCBoard
     final int getPortFacingFromEdge(final int edge, final boolean skipCoastalCheck)
         throws IllegalArgumentException
     {
-        // similar to code in SOCBoardLargeAtServer.makeNewBoard_checkPortLocationsConsistent
+        // similar to code in SOCBoardAtServer.makeNewBoard_checkPortLocationsConsistent
 
         final int r = (edge >> 8), c = (edge & 0xFF);
         final int facing;

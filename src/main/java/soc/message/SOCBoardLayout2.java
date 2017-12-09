@@ -19,9 +19,7 @@
  **/
 package soc.message;
 
-import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Map;
 import java.util.StringTokenizer;
 
@@ -73,8 +71,10 @@ import soc.game.SOCScenario;    // for javadocs
  *<P>
  * For backwards compatibility, the <tt>HL</tt> values for {@link SOCBoard#WATER_HEX} and
  * {@link SOCBoard#DESERT_HEX} are changed to their pre-v2.0 values in the
- * constructor before sending over the network, and changed back in
- * {@link #getIntArrayPart(String) getIntArrayPart("HL")}.
+ * constructor before sending over the network, and changed back at the
+ * client via {@link #getIntArrayPart(String) getIntArrayPart("HL")}.
+ * Value mapping is not needed for <tt>LH</tt> introduced in v2.0.00
+ * for {@link SOCBoard#BOARD_ENCODING_LARGE} ("v3").
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  * @see SOCBoardLayout
@@ -101,7 +101,7 @@ public class SOCBoardLayout2 extends SOCMessage
     public static final int VERSION_FOR_BOARDLAYOUT2 = 1108;
 
     /**
-     * Hex land type numbers sent over the network.
+     * These hex land type numbers mapped when sent over the network in layout part <tt>HL</tt>.
      * Compare to {@link SOCBoard#WATER_HEX}, {@link SOCBoard#DESERT_HEX}.
      * @since 2.0.00
      */
@@ -122,9 +122,9 @@ public class SOCBoardLayout2 extends SOCMessage
      * Some are optional depending on game options and scenario;
      * see class javadoc, {@link #getAddedParts()}, {@link #KNOWN_KEYS},
      * {@link SOCBoardLarge#getAddedLayoutParts()},
-     * and {@code soc.server.SOCBoardLargeAtServer.setAddedLayoutPart(String, int[])}.
+     * and {@link soc.server.SOCBoardAtServer#setAddedLayoutPart(String, int[])}.
      */
-    private Hashtable<String, Object> layoutParts;
+    private Map<String, Object> layoutParts;
 
     /**
      * Create a SOCBoardLayout2 message; see class javadoc for parts' meanings.
@@ -132,10 +132,10 @@ public class SOCBoardLayout2 extends SOCMessage
      * @param ga   the name of the game
      * @param bef  the board encoding format number, from {@link SOCBoard#getBoardEncodingFormat()}
      * @param parts  the parts of the layout: int[] arrays or Strings or Integers.
-     *               contents are not validated here, but improper contents
+     *               contents are not validated here, but contents not matching their keys' documented type
      *               may cause a ClassCastException later.
      */
-    public SOCBoardLayout2(String ga, int bef, Hashtable<String, Object> parts)
+    public SOCBoardLayout2(String ga, int bef, Map<String, Object> parts)
     {
         messageType = BOARDLAYOUT2;
         game = ga;
@@ -161,7 +161,7 @@ public class SOCBoardLayout2 extends SOCMessage
         messageType = BOARDLAYOUT2;
         game = ga;
         boardEncodingFormat = bef;
-        layoutParts = new Hashtable<String, Object>();
+        layoutParts = new HashMap<String, Object>();
 
         // Map the hex layout
         int[] hexLayout = new int[hl.length];
@@ -210,7 +210,7 @@ public class SOCBoardLayout2 extends SOCMessage
         messageType = BOARDLAYOUT2;
         game = ga;
         boardEncodingFormat = bef;
-        layoutParts = new Hashtable<String, Object>();
+        layoutParts = new HashMap<String, Object>();
         if (lh != null)
             layoutParts.put("LH", lh);
         if (pl != null)
@@ -332,10 +332,9 @@ public class SOCBoardLayout2 extends SOCMessage
     public HashMap<String, int[]> getAddedParts()
     {
         HashMap<String, int[]> added = null;
-        Enumeration<String> ke = layoutParts.keys();
-        while (ke.hasMoreElements())
+
+        for (String key : layoutParts.keySet())
         {
-            final String key = ke.nextElement();
             boolean known = false;
             for (String knk : KNOWN_KEYS)
             {
@@ -381,7 +380,7 @@ public class SOCBoardLayout2 extends SOCMessage
      *
      * @return the command string
      */
-    public static String toCmd(String ga, int bef, Hashtable<String, Object> parts)
+    public static String toCmd(final String ga, final int bef, final Map<String, Object> parts)
     {
         StringBuffer cmd = new StringBuffer();
         cmd.append(BOARDLAYOUT2);
@@ -426,7 +425,7 @@ public class SOCBoardLayout2 extends SOCMessage
     {
         String ga; // game name
         final int bef;   // board encoding format
-        Hashtable<String, Object> parts = new Hashtable<String, Object>();
+        HashMap<String, Object> parts = new HashMap<String, Object>();
         StringTokenizer st = new StringTokenizer(s, sep2);
 
         try

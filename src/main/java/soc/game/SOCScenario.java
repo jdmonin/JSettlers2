@@ -119,7 +119,7 @@ public class SOCScenario
      *   Put a short description in the javadoc there and in {@link #getAllKnownScenarios()} javadoc's scenario list.
      *<LI> Create the scenario by calling {@code allSc.put} here in initAllScenarios.
      *   Use the current version for the "last modified" field.
-     *<LI> Create the board layout; see {@link soc.server.SOCBoardLargeAtServer} javadoc.
+     *<LI> Create the board layout; see {@link soc.server.SOCBoardAtServer} javadoc.
      *<LI> Within {@link SOCGame}, don't change any code based on the scenario name;
      *   game behavior changes are based only on the {@link SOCGameOption}s implementing the scenario.
      *</UL>
@@ -239,7 +239,7 @@ public class SOCScenario
 
     /**
      * Scenario key {@code SC_NSHO} for New Shores.
-     * Board layout is the standard 4- or 6-player board, or a smaller 3-player main island, plus small
+     * Board layout is based on the classic 4- or 6-player board, or a smaller 3-player main island, plus small
      * outlying islands. No main option or special rules, only the board layout and 2 SVP for reaching each island.
      */
     public static final String K_SC_NSHO = "SC_NSHO";

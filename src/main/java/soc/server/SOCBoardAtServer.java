@@ -48,9 +48,9 @@ import soc.util.IntPair;
 import soc.util.IntTriple;
 
 /**
- * A subclass of {@link SOCBoardLarge} for the server, to isolate
- * {@link #makeNewBoard(Map)} and simplify that parent class.
- * See SOCBoardLarge for more details.
+ * A subclass of {@link SOCBoardLarge} for the server to hold server-only
+ * per-game board state, isolate {@link #makeNewBoard(Map)}, and simplify
+ * that parent class. See SOCBoardLarge for more details.
  * For the board layout geometry, see that class javadoc's "Coordinate System" section.
  *<P>
  * Sea board layout: A representation of a larger (up to 127 x 127 hexes) JSettlers board,
@@ -107,7 +107,7 @@ import soc.util.IntTriple;
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */
-public class SOCBoardLargeAtServer extends SOCBoardLarge
+public class SOCBoardAtServer extends SOCBoardLarge
 {
     private static final long serialVersionUID = 2000L;
 
@@ -133,7 +133,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
     /**
      * Create a new Settlers of Catan Board, with the v3 encoding.
-     * Called by {@link SOCBoardLargeAtServer.BoardFactoryAtServer#createBoard(Map, int)}
+     * Called by {@link SOCBoardAtServer.BoardFactoryAtServer#createBoard(Map, int)}
      * to get the right board size and layout based on game options and optional {@link SOCScenario}.
      *<P>
      * The board will be empty (all hexes are water, no dice numbers on any hex).
@@ -149,7 +149,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      *        The constants for default size are {@link #BOARDHEIGHT_LARGE}, {@link #BOARDWIDTH_LARGE}.
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6, or <tt>boardHeightWidth</tt> is null
      */
-    public SOCBoardLargeAtServer
+    public SOCBoardAtServer
         (final Map<String,SOCGameOption> gameOpts, final int maxPlayers, final IntPair boardHeightWidth)
         throws IllegalArgumentException
     {
@@ -2792,7 +2792,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
     ////////////////////////////////////////////
     //
-    // Sample Layout (sea fallback)
+    // Sample Layout: Sea Board fallback,
+    // for game opt "SBL" if no scenario chosen
     //
 
     /**
@@ -2801,7 +2802,6 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * 6 players max 0x13, 0x13.
      */
     private static final int FALLBACK_BOARDSIZE[] = { 0x1113, 0x1313 };
-
 
     /** Fallback sea board layout: Visual Shift ("VS") */
     private static final int FALLBACK_VIS_SHIFT[][] = { {2,1}, {2,2} };
@@ -2861,7 +2861,6 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * The outlying islands have no dice path.
      * Calculated from {@link #CLASSIC_LANDHEX_COORDS}[0] shifted up 2 rows right 1 column.
      * For the mainland's dice numbers, see {@link #CLASSIC_DICENUM}[0].
-     * @see #LANDHEX_COORD_MAINLAND
      */
    private static final int LANDHEX_DICEPATH_MAINLAND_4PL[];
    static
@@ -2873,20 +2872,6 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
            lh[i] = DP[i] - 0x0200 + 0x01;
        LANDHEX_DICEPATH_MAINLAND_4PL = lh;
    };
-
-    /**
-     * Fallback board layout for 4 players: Main island's land hex coordinates, each row west to east.
-     * @see #LANDHEX_DICEPATH_MAINLAND_4PL
-     */
-    @SuppressWarnings("unused")  // TODO is this field useful to keep for reference?
-    private static final int LANDHEX_COORD_MAINLAND[] =
-    {
-        0x0104, 0x0106, 0x0108,
-        0x0303, 0x0305, 0x0307, 0x0309,
-        0x0502, 0x0504, 0x0506, 0x0508, 0x050A,
-        0x0703, 0x0705, 0x0707, 0x0709,
-        0x0904, 0x0906, 0x0908
-    };
 
     /**
      * Fallback board layout, 4 players: All the outlying islands' land hex coordinates.
@@ -4974,7 +4959,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
 
     /**
-     * Server-side implementation of {@link BoardFactory} to create {@link SOCBoardLargeAtServer}s.
+     * Server-side implementation of {@link BoardFactory} to create {@link SOCBoardAtServer}s.
      * Called by game constructor via <tt>static {@link SOCGame#boardFactory}</tt>.
      * @author Jeremy D Monin
      * @since 2.0.00
@@ -4989,7 +4974,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
          *
          * @param gameOpts  if game has options, its map of {@link SOCGameOption}; otherwise null.
          *                  If <tt>largeBoard</tt>, and
-         *                  {@link SOCBoardLargeAtServer#getBoardSize(Map, int) getBoardSize(Map, int)}
+         *                  {@link SOCBoardAtServer#getBoardSize(Map, int) getBoardSize(Map, int)}
          *                  gives a non-default size, <tt>"_BHW"</tt> will be added to <tt>gameOpts</tt>.
          * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
@@ -5026,7 +5011,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                 }
             }
 
-            return new SOCBoardLargeAtServer
+            return new SOCBoardAtServer
                 (gameOpts, maxPlayers, new IntPair(bH, bW));
         }
 

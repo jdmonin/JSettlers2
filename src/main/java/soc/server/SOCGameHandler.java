@@ -900,7 +900,7 @@ public class SOCGameHandler extends GameHandler
                 c.put(new SOCPotentialSettlements(gameName, -1, new Vector<Integer>(psList)));
             } else {
                 c.put(new SOCPotentialSettlements
-                    (gameName, -1, pan, lan, SOCBoardLargeAtServer.getLegalSeaEdges(gameData, -1)));
+                    (gameName, -1, pan, lan, SOCBoardAtServer.getLegalSeaEdges(gameData, -1)));
             }
 
             if (addedPsList)
@@ -1152,7 +1152,7 @@ public class SOCGameHandler extends GameHandler
                     c.put(new SOCPotentialSettlements(gameName, i, new Vector<Integer>(psList)));
                 } else {
                     c.put(new SOCPotentialSettlements
-                        (gameName, i, pan, lan, SOCBoardLargeAtServer.getLegalSeaEdges(gameData, i)));
+                        (gameName, i, pan, lan, SOCBoardAtServer.getLegalSeaEdges(gameData, i)));
                     lan[0] = null;  // Undo change to game's copy of landAreasLegalNodes
                 }
             }
@@ -2544,7 +2544,7 @@ public class SOCGameHandler extends GameHandler
         final int[][] legalSeaEdges;  // used on sea board; if null, all are legal
         if (ga.hasSeaBoard)
         {
-            legalSeaEdges = SOCBoardLargeAtServer.getLegalSeaEdges(ga, -1);
+            legalSeaEdges = SOCBoardAtServer.getLegalSeaEdges(ga, -1);
             if (legalSeaEdges != null)
                 for (int pn = 0; pn < ga.maxPlayers; ++pn)
                     ga.getPlayer(pn).setRestrictedLegalShips(legalSeaEdges[pn]);
@@ -2552,7 +2552,7 @@ public class SOCGameHandler extends GameHandler
             if (ga.isGameOptionSet(SOCGameOption.K_SC_FTRI) || ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
             {
                 // scenario has initial pieces
-                ((SOCBoardLargeAtServer) (ga.getBoard())).startGame_putInitPieces(ga);
+                ((SOCBoardAtServer) (ga.getBoard())).startGame_putInitPieces(ga);
             }
         } else {
             legalSeaEdges = null;

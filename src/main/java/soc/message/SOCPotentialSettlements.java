@@ -113,7 +113,7 @@ public class SOCPotentialSettlements extends SOCMessage
      * If {@link #playerNumber} != -1, {@code legalSeaEdges} contains 1 array, the legal sea edges for that player.
      * Otherwise, will contain 1 array for each player position (total 4 or 6 arrays).
      *<P>
-     * Each per-player array is the same format as in {@code SOCBoardLargeAtServer.PIR_ISL_SEA_EDGES}:
+     * Each per-player array is the same format as in {@code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
      * A list of individual sea edge coordinates and/or ranges.
      * Ranges are designated by a pair of positive,negative numbers:
      * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.

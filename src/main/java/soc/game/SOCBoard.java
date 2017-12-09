@@ -278,7 +278,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
     //   to look for other places you may need to check for the new constant
 
     /**
-     * 4-player original format (v1) used with {@link SOCBoard4p} for {@link #getBoardEncodingFormat()}:
+     * Classic 4-player original format (v1) used with {@link SOCBoard4p} for {@link #getBoardEncodingFormat()}:
      * Hexadecimal 0x00 to 0xFF along 2 diagonal axes.
      * Coordinate range on each axis is 0 to 15 decimal.<BR>
      * The two axes' ranges in hex:<pre>
@@ -292,9 +292,9 @@ public abstract class SOCBoard implements Serializable, Cloneable
     public static final int BOARD_ENCODING_ORIGINAL = 1;
 
     /**
-     * 6-player format (v2) used with {@link SOCBoard6p} for {@link #getBoardEncodingFormat()}:
+     * Classic 6-player format (v2) used with {@link SOCBoard6p} for {@link #getBoardEncodingFormat()}:
      * Land hexes are same encoding as {@link #BOARD_ENCODING_ORIGINAL}.
-     * Land starts 1 extra hex west of standard board,
+     * Land starts 1 extra hex west of classic 4-player board,
      * and has an extra row of land at north and south end.
      *<P>
      * Ports are not part of {@link #hexLayout} because their
@@ -314,6 +314,8 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * For other port information, use the same methods as in {@link #BOARD_ENCODING_6PLAYER}.
      *<P>
      * Activated with {@link SOCGameOption} {@code "SBL"}.
+     *<P>
+     * Although this is encoding "v3", it was added to JSettlers in v2.0.00.
      * @since 2.0.00
      */
     public static final int BOARD_ENCODING_LARGE = 3;
@@ -764,7 +766,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
          * initialize the list of nodes on the land of the board;
          * nodes on outer edges of surrounding water/ports are not on the board.
          * See dissertation figure A.2.
-         * 6-player starts land 1 extra hex (2 nodes) west of standard board,
+         * Classic 6-player layout starts land 1 extra hex (2 nodes) west of 4-player board,
          * and has an extra row of land hexes at north and south end.
          * Same node coordinates are needed in initPlayerLegalAndPotentialSettlements.
          */
@@ -825,6 +827,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
     }
 
     /**
+     * Fill the board layout for a game being started:
      * Shuffle the hex tiles and layout a board.
      * This is called at server, but not at client;
      * client instead calls methods such as {@link #setHexLayout(int[])}
@@ -834,12 +837,12 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *          the same as passed to constructor, and thus give the same size and layout
      *          (same {@link #getBoardEncodingFormat()}).
      * @throws UnsupportedOperationException if this base-class stub is called (at client):
-     *     Server overrides with {@link soc.server.SOCBoardLargeAtServer#makeNewBoard(Map)}.
+     *     Server overrides with {@link soc.server.SOCBoardAtServer#makeNewBoard(Map)}.
      */
     public void makeNewBoard(final Map<String, SOCGameOption> opts)
         throws UnsupportedOperationException
     {
-        throw new UnsupportedOperationException("Use SOCBoardLargeAtServer instead");
+        throw new UnsupportedOperationException("Use SOCBoardAtServer instead");
     }
 
     /**
@@ -1183,7 +1186,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      */
     public HashSet<Integer> initPlayerLegalRoads()
     {
-        // 6-player starts land 1 extra hex (2 edges) west of standard board,
+        // Classic 6-player layout starts land 1 extra hex (2 nodes) west of 4-player board,
         // and has an extra row of land hexes at north and south end.
         final boolean is6player =
             (boardEncodingFormat == BOARD_ENCODING_6PLAYER);
@@ -1343,7 +1346,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
     /**
      * On the 6-player (v2 layout) board, each port's type, such as {@link #SHEEP_PORT}.
      * Same value range as in {@link #hexLayout}.
-     * (In the standard board (v1), these are part of {@link #hexLayout} instead.)
+     * (In the classic 4-player board (v1), these are part of {@link #hexLayout} instead.)
      * Same order as {@link #getPortsFacing()}: Clockwise from upper-left.
      * The number of ports is {@link #getPortsCount()}.
      *<P>
@@ -1464,7 +1467,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
 
     /**
      * On the 6-player (v2 layout) board, each port's type, such as {@link #SHEEP_PORT}.
-     * (In the standard board (v1), these are part of {@link #hexLayout} instead.)
+     * (In the classic 4-player board (v1), these are part of {@link #hexLayout} instead.)
      * Same order as {@link SOCBoard6p#PORTS_FACING_V2}: Clockwise from upper-left.
      *<P>
      * <b>Note:</b> The v3 layout ({@link #BOARD_ENCODING_LARGE}) stores more information
@@ -3037,7 +3040,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * Called by game constructor via <tt>static {@link SOCGame#boardFactory}</tt>.
      *<P>
      * The default factory is {@link SOCBoard.DefaultBoardFactory}.
-     * For a server-side board factory, see {@link soc.server.SOCBoardLargeAtServer.BoardFactoryAtServer}.
+     * For a server-side board factory, see {@link soc.server.SOCBoardAtServer.BoardFactoryAtServer}.
      * @author Jeremy D Monin
      * @since 2.0.00
      */

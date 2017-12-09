@@ -45,7 +45,7 @@ import soc.util.Version;
  * some methods moved to this new subclass, such as
  * {@link #createGame(String, String, String, Map, GameHandler) createGame}.
  *
- * @see SOCBoardLargeAtServer
+ * @see SOCBoardAtServer
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
  */
@@ -318,10 +318,10 @@ public class SOCGameListAtServer extends SOCGameList
         if (handler == null)
             throw new IllegalArgumentException("handler");
 
-        // Make sure server games have SOCBoardLargeAtServer, for makeNewBoard.
+        // Make sure server games have SOCBoardAtServer, for makeNewBoard.
         // Double-check class in case server is started at client after a client SOCGame.
-        if ((SOCGame.boardFactory == null) || ! (SOCGame.boardFactory instanceof SOCBoardLargeAtServer))
-            SOCGame.boardFactory = new SOCBoardLargeAtServer.BoardFactoryAtServer();
+        if ((SOCGame.boardFactory == null) || ! (SOCGame.boardFactory instanceof SOCBoardAtServer.BoardFactoryAtServer))
+            SOCGame.boardFactory = new SOCBoardAtServer.BoardFactoryAtServer();
 
         Vector<Connection> members = new Vector<Connection>();
         gameMembers.put(gaName, members);

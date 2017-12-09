@@ -27,6 +27,7 @@ import java.util.Map;
 /**
  * The standard (non-sea) board layout for the 6-player extension,
  * rotated 90 degrees clockwise at the client.
+ * Implements {@link SOCBoard#BOARD_ENCODING_6PLAYER}.
  * In v3.0.00 and newer all boards use the same v3 coordinate encoding
  * ({@link SOCBoard#BOARD_ENCODING_LARGE}).
  * @since 2.0.00

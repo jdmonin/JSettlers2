@@ -59,7 +59,7 @@ and backport minor new features until `2.0.00` is ready.
 	- If bot disconnects after server asks it to join a game that's starting,
 	  server looks for another bot so the game won't hang
 - Java 5 features, including parameterized types (thank you Paul Bilnoski)
-- SOCBoard refactoring thanks to Ruud Poutsma
+- SOCBoard layout refactoring to SOCBoard4p, SOCBoard6p thanks to Ruud Poutsma
 - Major client refactoring (separate UI from network interface) thanks to Paul Bilnoski;
     Paul's UI split preserves the spirit and flow of the code, with a more logical layered structure.
 - Server inbound message handling refactored in collaboration with Alessandro D'Ottavio,
