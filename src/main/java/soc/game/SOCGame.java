@@ -575,7 +575,7 @@ public class SOCGame implements Serializable, Cloneable
      * The {@link SOCBoard.BoardFactory} for creating new boards in the SOCGame constructors.
      * Differs at client and at server.
      * If null, SOCGame constructor sets to {@link SOCBoard.DefaultBoardFactory}.
-     * @see soc.server.SOCBoardLargeAtServer.BoardFactoryAtServer
+     * @see soc.server.SOCBoardAtServer.BoardFactoryAtServer
      * @since 2.0.00
      */
     public static SOCBoard.BoardFactory boardFactory;
@@ -3015,7 +3015,7 @@ public class SOCGame implements Serializable, Cloneable
      * and set the player's {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA} flag.
      *<P>
      * Some scenarios use extra initial pieces in fixed locations, placed in
-     * <tt>SOCBoardLargeAtServer.startGame_putInitPieces</tt>.  To prevent the state or current player from
+     * {@code SOCBoardAtServer.startGame_putInitPieces}.  To prevent the state or current player from
      * advancing, temporarily set game state {@link #READY} before calling putPiece for these.
      *<P>
      * During {@link #isDebugFreePlacement()}, the gamestate is not changed,
@@ -3898,7 +3898,7 @@ public class SOCGame implements Serializable, Cloneable
      *<UL>
      * <LI> This method {@code startGame()}
      * <LI> If appropriate, each player's {@link SOCPlayer#setRestrictedLegalShips(int[])}
-     * <LI> If appropriate, {@code SOCBoardLargeAtServer.startGame_putInitPieces(SOCGame)}
+     * <LI> If appropriate, {@code SOCBoardAtServer.startGame_putInitPieces(SOCGame)}
      *</UL>
      */
     public void startGame()

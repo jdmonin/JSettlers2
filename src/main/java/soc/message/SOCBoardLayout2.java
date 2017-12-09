@@ -122,7 +122,7 @@ public class SOCBoardLayout2 extends SOCMessage
      * Some are optional depending on game options and scenario;
      * see class javadoc, {@link #getAddedParts()}, {@link #KNOWN_KEYS},
      * {@link SOCBoardLarge#getAddedLayoutParts()},
-     * and {@code soc.server.SOCBoardLargeAtServer.setAddedLayoutPart(String, int[])}.
+     * and {@link soc.server.SOCBoardAtServer#setAddedLayoutPart(String, int[])}.
      */
     private Map<String, Object> layoutParts;
 

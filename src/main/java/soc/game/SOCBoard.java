@@ -3206,7 +3206,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * Called by game constructor via <tt>static {@link SOCGame#boardFactory}</tt>.
      *<P>
      * The default factory is {@link SOCBoard.DefaultBoardFactory}.
-     * For a server-side board factory, see {@link soc.server.SOCBoardLargeAtServer.BoardFactoryAtServer}.
+     * For a server-side board factory, see {@link soc.server.SOCBoardAtServer.BoardFactoryAtServer}.
      * @author Jeremy D Monin
      * @since 2.0.00
      */

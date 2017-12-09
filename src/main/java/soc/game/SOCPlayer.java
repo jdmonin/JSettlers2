@@ -4234,7 +4234,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * when the legal sea edges for ships are restricted
      * by the game's scenario ({@link SOCGameOption#K_SC_PIRI _SC_PIRI}).
      * @param edgeList  List of edges, same format as one player's array from
-     *   {@link soc.server.SOCBoardLargeAtServer#getLegalSeaEdges(SOCGame, int) SOCBoardLargeAtServer.getLegalSeaEdges(SOCGame, int)};
+     *   {@link soc.server.SOCBoardAtServer#getLegalSeaEdges(SOCGame, int) SOCBoardAtServer.getLegalSeaEdges(SOCGame, int)};
      *   or an empty array (length 0) for vacant players with no legal ship edges;
      *   or {@code null} for unrestricted ship placement.
      *   <P>

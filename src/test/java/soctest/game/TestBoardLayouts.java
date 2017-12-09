@@ -36,7 +36,7 @@ import soc.server.SOCGameListAtServer;
  * Tests for inconsistent board layouts: Classic 4- and 6-player games and
  * all {@link SOCScenario}s, for 2, 3, 4 and 6 players.
  * Layout problems are found at runtime by methods like
- * {@link soc.server.SOCBoardLargeAtServer#makeNewBoard_placeHexes}
+ * {@link soc.server.SOCBoardAtServer#makeNewBoard_placeHexes}
  * checking layout details like port facings versus land hex coordinates.
  *
  * @since 2.0.00
@@ -81,7 +81,7 @@ public class TestBoardLayouts
         try
         {
             ga.addPlayer("player", 1);
-            ga.startGame();  // SOCBoard/SOCBoardLargeAtServer.makeNewBoard is called here
+            ga.startGame();  // SOCBoard/SOCBoardAtServer.makeNewBoard is called here
             gl.deleteGame(gaName);
         }
         catch (Exception e)
@@ -97,7 +97,7 @@ public class TestBoardLayouts
     /**
      * Test board layouts for classic games and all {@link SOCScenario}s for 2, 3, 4 and 6 players.
      * @see soc.server.SOCGameListAtServer#createGame(String, String, String, Map, soc.server.GameHandler)
-     * @see soc.server.SOCBoardLargeAtServer#makeNewBoard(Map)
+     * @see soc.server.SOCBoardAtServer#makeNewBoard(Map)
      */
     @Test(timeout=20000)
     public void testLayouts()

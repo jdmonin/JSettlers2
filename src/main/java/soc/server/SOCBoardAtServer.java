@@ -50,9 +50,9 @@ import soc.util.IntPair;
 import soc.util.IntTriple;
 
 /**
- * A subclass of {@link SOCBoardLarge} for the server, to isolate
- * {@link #makeNewBoard(Map)} and simplify that parent class.
- * See SOCBoardLarge for more details.
+ * A subclass of {@link SOCBoardLarge} for the server to hold server-only
+ * per-game board state, isolate {@link #makeNewBoard(Map)}, and simplify
+ * that parent class. See SOCBoardLarge for more details.
  * For the board layout geometry, see that class javadoc's "Coordinate System" section.
  *<P>
  * Sea board layout: A representation of a larger (up to 127 x 127 hexes) JSettlers board,
@@ -106,7 +106,7 @@ import soc.util.IntTriple;
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */
-public class SOCBoardLargeAtServer extends SOCBoardLarge
+public class SOCBoardAtServer extends SOCBoardLarge
 {
     private static final long serialVersionUID = 2000L;
 
@@ -132,7 +132,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
     /**
      * Create a new Settlers of Catan Board, with the v3 encoding.
-     * Called by {@link SOCBoardLargeAtServer.BoardFactoryAtServer#createBoard(Map, boolean, int)}
+     * Called by {@link SOCBoardAtServer.BoardFactoryAtServer#createBoard(Map, boolean, int)}
      * to get the right board size and layout based on game options and optional {@link SOCScenario}.
      *<P>
      * The board will be empty (all hexes are water, no dice numbers on any hex).
@@ -148,7 +148,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      *        The constants for default size are {@link #BOARDHEIGHT_LARGE}, {@link #BOARDWIDTH_LARGE}.
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6, or <tt>boardHeightWidth</tt> is null
      */
-    public SOCBoardLargeAtServer
+    public SOCBoardAtServer
         (final Map<String,SOCGameOption> gameOpts, final int maxPlayers, final IntPair boardHeightWidth)
         throws IllegalArgumentException
     {
@@ -4767,7 +4767,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
 
     /**
-     * Server-side implementation of {@link BoardFactory} to create {@link SOCBoardLargeAtServer}s.
+     * Server-side implementation of {@link BoardFactory} to create {@link SOCBoardAtServer}s.
      * Called by game constructor via <tt>static {@link SOCGame#boardFactory}</tt>.
      * @author Jeremy D Monin
      * @since 2.0.00
@@ -4782,7 +4782,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
          *
          * @param gameOpts  if game has options, its map of {@link SOCGameOption}; otherwise null.
          *                  If <tt>largeBoard</tt>, and
-         *                  {@link SOCBoardLargeAtServer#getBoardSize(Map, int) getBoardSize(Map, int)}
+         *                  {@link SOCBoardAtServer#getBoardSize(Map, int) getBoardSize(Map, int)}
          *                  gives a non-default size, <tt>"_BHW"</tt> will be added to <tt>gameOpts</tt>.
          * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding)
          * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
@@ -4824,7 +4824,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                     }
                 }
 
-                return new SOCBoardLargeAtServer
+                return new SOCBoardAtServer
                     (gameOpts, maxPlayers, new IntPair(bH, bW));
             }
         }
