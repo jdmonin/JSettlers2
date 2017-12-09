@@ -394,7 +394,8 @@ ideas.
 - Control the speed of robots in practice games
   - Adjust `SOCRobotBrain.pause`, `ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS`, etc
 - Sound effects
-- Add more functional and unit tests, in `src/test/bin/` and `src/test/java/` directories and `build.xml`
+- Add more functional and unit tests, in `src/test/bin/` and `src/test/java/` directories,
+  `build.xml` and `build.gradle`
 - Possible: Auto-add robots when needed as server runs, with server active-game count
     - Only do so if `jsettlers.startrobots` property is set
 - refactor: `ga.getPlayer(ga.getCurrentPlayer())` or `getClient().getClientManager()`
@@ -407,10 +408,6 @@ ideas.
     - Currently in 2 places: `SOCResourceConstants.CLAY` vs `SOCPlayerElement.CLAY`
 - Refactor: combine the `cli/displayless/robot` endturn-like methods. For example,
   search for `ga.setCurrentDice(0)`, or `newToOld`, or `ga.resetVoteClear`
-- Machine-readable specs for each network message type's parameters (type,
-  required/optional, etc) which could potentially generate a client library
-  in other languages or validate the java message classes
-- Sample client code for the network protocol in python, js, or another language
 - Docker (dockerfile in git) or other containerization, including sqlite jdbc and
   a `jsserver.properties` using sqlite
     - Related bootstrapping issue: admin doc reminder to create admin account
@@ -601,6 +598,11 @@ for popular languages), looking for the message types they need to work with
 "Overall Structure" above and class javadocs of `SOCMessage`,
 `SOCDisplaylessPlayerClient`, `SOCRobotClient`,
 `soc.server.genericServer.Server`, and `SOCServer`.
+
+The experimental `v3` branch replaces the homegrown SOCMessage protocol with
+Protobuf, optionally encapsulated in JSON over HTTP. Proof-of-concept bots
+are included. To write bots or clients using those well-known protocols,
+check out that branch and read its `Readme.developer`.
 
 
 ## Coding Style
