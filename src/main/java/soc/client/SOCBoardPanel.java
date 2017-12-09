@@ -155,7 +155,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * For minimum acceptable size in on-screen pixels,
      * call {@link #getMinimumSize()} instead of using PANELX and PANELY directly.
      * For actual current size in screen pixels, see
-     * {@link #scaledPanelX} {@link #scaledPanelY};
+     * {@link #scaledPanelW} {@link #scaledPanelH};
      * If {@link #isRotated()}, the minimum size swaps {@link #PANELX} and {@link #PANELY}.
      * If 6-player board or Large/Sea Board, the minimum size is larger.
      *<P>
@@ -777,8 +777,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *<P>
      * Used for {@link #scaleToActual(int)} and {@link #scaleFromActual(int)}.
      * See {@link #unscaledPanelW} for unscaled (internal pixel) width.
+     *<P>
+     * Before v2.0.00 these fields were {@code scaledPanelX, scaledPanelY}.
      */
-    protected int scaledPanelX, scaledPanelY;
+    private int scaledPanelW, scaledPanelH;
 
     /**
      * <tt>panelMinBW</tt> and <tt>panelMinBH</tt> are the minimum width and height,
@@ -793,7 +795,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *<P>
      * Differs from {@link #minSize} because minSize takes {@link #isRotated} into account.
      *<P>
-     * Rescaling formulas use {@link #scaledPanelX} and {@link #unscaledPanelW} instead of these fields,
+     * Rescaling formulas use {@link #scaledPanelW} and {@link #unscaledPanelW} instead of these fields,
      * to avoid distortion from rotation or board size aspect ratio changes.
      * @since 1.1.08
      */
@@ -830,8 +832,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Unscaled (internal pixel, but rotated if needed) panel width for
      * {@link #scaleToActual(int)} and {@link #scaleFromActual(int)}.
-     * See {@link #scaledPanelX} for scaled (actual screen pixel) width.
-     * Unlike {@link #panelMinBW}, is same axis as {@code scaledPanelX} when {@link #isRotated}.
+     * See {@link #scaledPanelW} for scaled (actual screen pixel) width.
+     * Unlike {@link #panelMinBW}, is same axis as {@code scaledPanelW} when {@link #isRotated}.
      * @see #isScaled
      * @see #minSize
      * @since 2.0.00
@@ -1464,13 +1466,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         if (isRotated)
         {
-            // scaledPanelX, scaledPanelY are on-screen minimum size.
+            // scaledPanelW, scaledPanelH are on-screen minimum size.
             // panelMinBW, panelMinBH are board-coordinates, so not rotated.
             // Thus, x <-> y between these two pairs of variables.
-            scaledPanelX = PANELY + (2 * deltaY);  // wider, for is6player board's height
-            scaledPanelY = PANELX + halfdeltaY;
-            panelMinBW = scaledPanelY;
-            panelMinBH = scaledPanelX;
+            scaledPanelW = PANELY + (2 * deltaY);  // wider, for is6player board's height
+            scaledPanelH = PANELX + halfdeltaY;
+            panelMinBW = scaledPanelH;
+            panelMinBH = scaledPanelW;
         } else {
             if (isLargeBoard)
             {
@@ -1480,23 +1482,23 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     bh = BOARDHEIGHT_VISUAL_MIN;
                 if (bw < BOARDWIDTH_VISUAL_MIN)
                     bw = BOARDWIDTH_VISUAL_MIN;
-                scaledPanelX = halfdeltaX * bw + PANELPAD_LBOARD_RT;
-                scaledPanelY = halfdeltaY * bh + PANELPAD_LBOARD_BTM + HEXY_OFF_SLOPE_HEIGHT;
+                scaledPanelW = halfdeltaX * bw + PANELPAD_LBOARD_RT;
+                scaledPanelH = halfdeltaY * bh + PANELPAD_LBOARD_BTM + HEXY_OFF_SLOPE_HEIGHT;
                 // Any panelShiftBX, panelShiftBY won't be known until later when the
                 // layout is generated and sent to us, so keep them 0 for now and
                 // check later in flushBoardLayoutAndRepaint().
             } else {
-                scaledPanelX = PANELX;
-                scaledPanelY = PANELY;
+                scaledPanelW = PANELX;
+                scaledPanelH = PANELY;
                 panelShiftBX = -halfdeltaX / 2;  // center the classic 4-player board
                 panelMarginX = panelShiftBX;
             }
-            panelMinBW = scaledPanelX;
-            panelMinBH = scaledPanelY;
+            panelMinBW = scaledPanelW;
+            panelMinBH = scaledPanelH;
         }
 
-        minSize = new Dimension(scaledPanelX, scaledPanelY);
-        unscaledPanelW = scaledPanelX;
+        minSize = new Dimension(scaledPanelW, scaledPanelH);
+        unscaledPanelW = scaledPanelW;
         hasCalledSetSize = false;
         debugShowPotentials = new boolean[10];
 
@@ -2060,7 +2062,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     @Override
     public Dimension getPreferredSize()
     {
-        return new Dimension(scaledPanelX, scaledPanelY);
+        return new Dimension(scaledPanelW, scaledPanelH);
     }
 
     /**
@@ -2092,7 +2094,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     public void setSize(int newW, int newH)
         throws IllegalArgumentException
     {
-        if ((newW == scaledPanelX) && (newH == scaledPanelY) && hasCalledSetSize)
+        if ((newW == scaledPanelW) && (newH == scaledPanelH) && hasCalledSetSize)
             return;  // Already sized.
 
         // If below min-size, rescaleBoard throws
@@ -2136,7 +2138,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     public void setBounds(int x, int y, int w, int h)
         throws IllegalArgumentException
     {
-        if ((w != scaledPanelX) || (h != scaledPanelY))
+        if ((w != scaledPanelW) || (h != scaledPanelH))
         {
             rescaleBoard(w, h, false);
         }
@@ -2253,14 +2255,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             if (changed)
             {
-                final int w = scaledPanelX, h = scaledPanelY;
+                final int w = scaledPanelW, h = scaledPanelH;
                 rescaleBoard(w, h, true);
-                   // Updates scaledPanelY, minSize, panelMarginX, etc.
-                   // If margins increased, also may have updated minSize, panelMinBW, scaledPanelY, etc.
-                if ((w != scaledPanelX) || (h != scaledPanelY))
+                   // Updates scaledPanelH, minSize, panelMarginX, etc.
+                   // If margins increased, also may have updated minSize, panelMinBW, scaledPanelH, etc.
+                if ((w != scaledPanelW) || (h != scaledPanelH))
                 {
-                    ret = new Dimension(scaledPanelX - w, scaledPanelY - h);
-                    super.setSize(scaledPanelX, scaledPanelY);
+                    ret = new Dimension(scaledPanelW - w, scaledPanelH - h);
+                    super.setSize(scaledPanelW, scaledPanelH);
                 }
             }
         }
@@ -2309,7 +2311,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Set the board fields to a new size, and rescale graphics if needed.
      * Does not call repaint.  Does not call setSize.
-     * Updates {@link #isScaledOrRotated}, {@link #scaledPanelX}, {@link #panelMarginX}, and other fields.
+     * Updates {@link #isScaledOrRotated}, {@link #scaledPanelW}, {@link #panelMarginX}, and other fields.
      * Calls {@link #renderBorderedHex(Image, Image, Color)} and {@link #renderPortImages()}.
      *
      * @param newW New width in pixels, no less than {@link #PANELX} (or if rotated, {@link #PANELY})
@@ -2319,9 +2321,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *   {@link #panelMinBW}, and {@link #panelMinBH} fields before calling, but <B>not</B> update {@link #minSize}
      *   or {@link #unscaledPanelW} which will be updated here from {@code panelMinBW}, {@code panelMinBH}.
      *   <P>
-     *   Before and after calling, caller should check {@link #scaledPanelX} and {@link #scaledPanelY}
+     *   Before and after calling, caller should check {@link #scaledPanelW} and {@link #scaledPanelH}
      *   to see if the current size fields had to be changed. If so, caller must call
-     *   {@code super.setSize(scaledPanelX, scaledPanelY)} and otherwise ensure our container's layout stays consistent.
+     *   {@code super.setSize(scaledPanelW, scaledPanelH)} and otherwise ensure our container's layout stays consistent.
      * @throws IllegalArgumentException if newW or newH is below {@link #minSize} but not 0.
      *   During initial layout, the layoutmanager may cause calls to rescaleBoard(0,0);
      *   such a call is ignored, no rescaling of graphics is done.
@@ -2357,16 +2359,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     newH = h;
 
                 // Other fields will be updated below as needed by calling scaleToActual,
-                // which will use the new scaledPanelX:unscaledPanelW ratio
+                // which will use the new scaledPanelW:unscaledPanelW ratio
             }
         }
 
         /**
          * Set vars
          */
-        scaledPanelX = newW;
-        scaledPanelY = newH;
-        isScaled = ((scaledPanelX != minSize.width) || (scaledPanelY != minSize.height));
+        scaledPanelW = newW;
+        scaledPanelH = newH;
+        isScaled = ((scaledPanelW != minSize.width) || (scaledPanelH != minSize.height));
         scaledAt = System.currentTimeMillis();
         isScaledOrRotated = (isScaled || isRotated);
         if (isRotated)
@@ -2751,7 +2753,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         int[] xs = new int[orig.length];
         for (int i = orig.length - 1; i >= 0; --i)
-            xs[i] = (int) ((orig[i] * (long) scaledPanelX) / unscaledPanelW);
+            xs[i] = (int) ((orig[i] * (long) scaledPanelW) / unscaledPanelW);
         return xs;
     }
 
@@ -2771,7 +2773,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             xr[i] = width - yorig[i];
         if (rescale)
             for (int i = yorig.length - 1; i >= 0; --i)
-                xr[i] = (int) ((xr[i] * (long) scaledPanelX) / unscaledPanelW);
+                xr[i] = (int) ((xr[i] * (long) scaledPanelW) / unscaledPanelW);
 
         return xr;
     }
@@ -2862,7 +2864,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             System.err.println
                 ("  Panel size (width, height): unscaled = "
                  + panelMinBW + "," + panelMinBH + ((isRotated) ? ", rotated" : "")
-                 + ", current = " + scaledPanelX + "," + scaledPanelY
+                 + ", current = " + scaledPanelW + "," + scaledPanelH
                  + ", margin (left, top) = " + panelMarginX + "," + panelMarginY
                  + ", unscaled shift (right, down) = " + panelShiftBX + "," + panelShiftBY);
             int w = playerInterface.getWidth(), h = playerInterface.getHeight();
@@ -2892,7 +2894,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             if (ibuf == null)
             {
-                ibuf = this.createImage(scaledPanelX, scaledPanelY);
+                ibuf = this.createImage(scaledPanelW, scaledPanelH);
                 buffer = ibuf;
             }
 
@@ -3629,7 +3631,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             final float[] dash = { hexPartWidth * 0.15f, hexPartWidth * 0.12f };  // length of dash/break
             ((Graphics2D) g).setStroke
                 (new BasicStroke
-                    ((1.5f * scaledPanelX) / panelMinBW, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
+                    ((1.5f * scaledPanelW) / panelMinBW, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
                      1.5f, dash, hexPartWidth * 0.1f));
             if (co == null)
                 co = playerInterface.getPlayerColor(playerNumber);
@@ -4055,7 +4057,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             if (ebb == null)
             {
-                ebb = createImage(scaledPanelX, scaledPanelY);
+                ebb = createImage(scaledPanelW, scaledPanelH);
                 emptyBoardBuffer = ebb;
             }
 
@@ -4386,7 +4388,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         g.setPaintMode();
 
         g.setColor(getBackground());
-        g.fillRect(0, 0, scaledPanelX, scaledPanelY);
+        g.fillRect(0, 0, scaledPanelW, scaledPanelH);
 
         if (scaledPorts[0] == null)
         {
@@ -4458,7 +4460,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             // In-bounds board hexes and bottom border:
             final int bw = board.getBoardWidth(), bh = board.getBoardHeight();
             for (int r = 1, y = halfdeltaY;
-                 r < bh || y < (scaledPanelY + HEXY_OFF_SLOPE_HEIGHT);
+                 r < bh || y < (scaledPanelH + HEXY_OFF_SLOPE_HEIGHT);
                  r += 2, y += deltaY)
             {
                 final int rshift = (r << 8);
@@ -4909,8 +4911,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             superTextBox_w += 2 * SUPERTEXT_INSET + 2 * SUPERTEXT_PADDING_HORIZ;
             superTextBox_h += SUPERTEXT_INSET + 2 * fm.getDescent();
 
-            superTextBox_x = (scaledPanelX - superTextBox_w) / 2;
-            superTextBox_y = (scaledPanelY - superTextBox_h) / 2;
+            superTextBox_x = (scaledPanelW - superTextBox_w) / 2;
+            superTextBox_y = (scaledPanelH - superTextBox_h) / 2;
         }
 
         // adj from center
@@ -4922,7 +4924,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         g.setColor(Color.black);
 
         // draw text at center
-        int tx = (scaledPanelX - superText1_w) / 2;
+        int tx = (scaledPanelW - superText1_w) / 2;
         int ty = superTextBox_y + SUPERTEXT_INSET + superText_h - superText_des;
         if (superText1 == null)
             return;  // avoid NPE from multi-threading
@@ -4970,7 +4972,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             superTextTopBox_w += 2 * SUPERTEXT_INSET + 2 * SUPERTEXT_PADDING_HORIZ;
             superTextTopBox_h += SUPERTEXT_INSET + 2 * fm.getDescent();
 
-            superTextTopBox_x = (scaledPanelX - superTextTopBox_w) / 2;
+            superTextTopBox_x = (scaledPanelW - superTextTopBox_w) / 2;
         }
 
         // adj from center
@@ -4981,7 +4983,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
              superTextTopBox_w - 2 * SUPERTEXT_INSET, superTextTopBox_h - 2 * SUPERTEXT_INSET, SUPERTEXT_INSET, SUPERTEXT_INSET);
         g.setColor(Color.black);
         // draw text at center
-        int tx = (scaledPanelX - superTextTop_w) / 2;
+        int tx = (scaledPanelW - superTextTop_w) / 2;
         int ty = 2 * SUPERTEXT_INSET + superTextTop_h;
         g.setFont(bpf);
         if (superTextTop == null)
@@ -5111,7 +5113,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (! isScaled)
             return;
         for (int i = xa.length - 1; i >= 0; --i)
-            xa[i] = (int) ((xa[i] * (long) scaledPanelX) / unscaledPanelW);
+            xa[i] = (int) ((xa[i] * (long) scaledPanelW) / unscaledPanelW);
     }
 
     /**
@@ -5132,7 +5134,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (! isScaled)
             return x;
         else
-            return (int) ((x * (long) scaledPanelX) / unscaledPanelW);
+            return (int) ((x * (long) scaledPanelW) / unscaledPanelW);
     }
 
     /**
@@ -5141,6 +5143,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *<P>
      * This method only scales down; does <em>not</em> rotate if {@link #isRotated()}
      * or translate by {@link #panelMarginX} or {@link #panelMarginY}.
+     *<P>
+     * Before v2.0.00 this method was {@code scaleFromActualX(x)} and {@code scaleFromActualY(y)}.
      *
      * @param x x-coordinate or y-coordinate to be scaled. Subtract {@link #panelMarginX}
      *     or {@link #panelMarginY} before calling.
@@ -5151,7 +5155,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (! isScaled)
             return x;
         else
-            return (int) ((x * (long) unscaledPanelW) / scaledPanelX);
+            return (int) ((x * (long) unscaledPanelW) / scaledPanelW);
     }
 
     /**
