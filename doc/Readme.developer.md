@@ -3,7 +3,7 @@ Details TBD
 Quick notes:
 
 To build and run this web app and its server
-you will need Java 7, gradle, a Java servlet container
+you will need Java 7 or higher, gradle, a Java servlet container
 such as Jetty or Tomcat, and a checkout of both repositories:
 
 - `v3` branch of server repository https://github.com/jdmonin/JSettlers2/

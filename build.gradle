@@ -18,7 +18,8 @@
  limitations under the License.
  */
 
-// Requires socserver.jar available (TBD)
+// Deploying or running socweb requires socserver.war available,
+// but building this html5 app does not. See Readme.developer.md.
 
 apply plugin: 'war'
 
