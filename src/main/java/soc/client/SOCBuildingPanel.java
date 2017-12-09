@@ -410,7 +410,7 @@ public class SOCBuildingPanel extends Panel
                 // Large board: 1 line, no room for sbLab
                 sbBut = new Button(strings.get("build.special.build"));  // "Special Build"
             } else {
-                // Standard board: 2 lines, label and button
+                // Classic board: 2 lines, label and button
                 sbLab = new Label(strings.get("build.special.build.phase"), Label.CENTER);  // "Special Building Phase"
                 sbBut = new Button(strings.get("build.buybuild"));  // "Buy/Build"
             }
@@ -438,7 +438,7 @@ public class SOCBuildingPanel extends Panel
      * please update {@link #MINHEIGHT}.
      *<P>
      * For 6-player games, {@link #sbPanel} is 2 "layout lines" tall here
-     * on the standard board, 1 line tall on the large board,
+     * on the classic board, 1 line tall on the large board,
      * and has its own custom {@code doLayout()} based on whether its label
      * and button will fit on the same line or must be wrapped to 2 lines.
      */
@@ -536,7 +536,7 @@ public class SOCBuildingPanel extends Panel
                 sbPanel.setSize(dim.width - curX - (2 * (butW + margin)), rowSpaceH + lineH);
                 sbPanel.setLocation(curX, curY - (rowSpaceH / 2));
             } else {
-                // Standard board: 2 lines, label and button
+                // Classic board: 2 lines, label and button
                 sbPanel.setSize(dim.width - curX - margin, rowSpaceH + 2 * lineH);
                 // sbBut.setSize(dim.width - curX - margin - 2 * buttonMargin, lineH);
                 // (can't set size, FlowLayout will override it)

@@ -239,7 +239,7 @@ public class SOCScenario
 
     /**
      * Scenario key {@code SC_NSHO} for New Shores.
-     * Board layout is the standard 4- or 6-player board, or a smaller 3-player main island, plus small
+     * Board layout is based on the classic 4- or 6-player board, or a smaller 3-player main island, plus small
      * outlying islands. No main option or special rules, only the board layout and 2 SVP for reaching each island.
      */
     public static final String K_SC_NSHO = "SC_NSHO";

@@ -706,7 +706,7 @@ public class SOCGameOption
      * <LI> {@link #OTYPE_BOOL} Boolean
      * <LI> {@link #OTYPE_INT}  Integer, with min/max value
      * <LI> {@link #OTYPE_INTBOOL} Int plus bool (Ex. [x] no robber rolls in first _5_ turns)
-     * <LI> {@link #OTYPE_ENUM} Enumerated-choice (Ex. Standard vs Seafarers):
+     * <LI> {@link #OTYPE_ENUM} Enumerated-choice (Ex. Classic vs Seafarers):
      *        Stored like integer {@link #OTYPE_INT} in range 1-n, described to user with text strings.
      * <LI> {@link #OTYPE_ENUMBOOL} Enum plus bool; stored like {@link #OTYPE_INTBOOL}.
      * <LI> {@link #OTYPE_STR} short text string: max string length is {@link #maxIntValue}; default value is the empty string.

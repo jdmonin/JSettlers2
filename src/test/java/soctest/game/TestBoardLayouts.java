@@ -33,8 +33,8 @@ import soc.server.SOCGameHandler;
 import soc.server.SOCGameListAtServer;
 
 /**
- * Tests for inconsistent board layouts - Standard games and
- * all {@link SOCScenario}s for 2, 3, 4 and 6 players.
+ * Tests for inconsistent board layouts: Classic 4- and 6-player games and
+ * all {@link SOCScenario}s, for 2, 3, 4 and 6 players.
  * Layout problems are found at runtime by methods like
  * {@link soc.server.SOCBoardLargeAtServer#makeNewBoard_placeHexes}
  * checking layout details like port facings versus land hex coordinates.
@@ -59,7 +59,7 @@ public class TestBoardLayouts
 
     /**
      * Test one scenario's layout for a given number of players.
-     * @param sc  Scenario to test, or {@code null} for standard games
+     * @param sc  Scenario to test, or {@code null} for classic games
      * @param pl  Number of players (3, 4, 6, etc)
      * @return  True if OK, false if construction failed
      */
@@ -71,7 +71,7 @@ public class TestBoardLayouts
             assertNull("Unexpected problems with scenario options",
                 SOCGameOption.adjustOptionsToKnown(gaOpts, null, true));
 
-        final String gaName = ((sc != null) ? sc.key : "standard") + ":" + pl;
+        final String gaName = ((sc != null) ? sc.key : "classic") + ":" + pl;
         gl.createGame(gaName, "test", "en_US", gaOpts, sgh);
         final SOCGame ga = gl.getGameData(gaName);
         assertNotNull("Game not created", ga);
@@ -95,7 +95,7 @@ public class TestBoardLayouts
     }
 
     /**
-     * Test board layouts for standard games and all {@link SOCScenario}s for 2, 3, 4 and 6 players.
+     * Test board layouts for classic games and all {@link SOCScenario}s for 2, 3, 4 and 6 players.
      * @see soc.server.SOCGameListAtServer#createGame(String, String, String, Map, soc.server.GameHandler)
      * @see soc.server.SOCBoardLargeAtServer#makeNewBoard(Map)
      */
@@ -107,7 +107,7 @@ public class TestBoardLayouts
 
         for (int pl : PL)
             if (! testSingleLayout(null, pl))
-                badLayouts.add("standard:" + pl);
+                badLayouts.add("classic:" + pl);
 
         for (final SOCScenario sc : allScens.values())
             for (int pl : PL)
@@ -118,7 +118,7 @@ public class TestBoardLayouts
             System.out.println
                 ("Board layouts: Scenario:player combinations which fail layout: " + badLayouts);
 
-        assertTrue("Standard and scenario board layouts", badLayouts.isEmpty());
+        assertTrue("Classic and scenario board layouts", badLayouts.isEmpty());
     }
 
     public static void main(String[] args)

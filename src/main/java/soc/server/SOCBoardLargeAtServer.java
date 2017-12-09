@@ -2622,7 +2622,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
     ////////////////////////////////////////////
     //
-    // Sample Layout
+    // Sample Layout: Sea Board fallback,
+    // for game opt "SBL" if no scenario chosen
     //
 
     /**
@@ -2631,7 +2632,6 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * 6 players max 0x13, 0x13.
      */
     private static final int FALLBACK_BOARDSIZE[] = { 0x1113, 0x1313 };
-
 
     /** Fallback sea board layout: Visual Shift ("VS") */
     private static final int FALLBACK_VIS_SHIFT[][] = { {2,1}, {2,2} };
@@ -2681,7 +2681,6 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * on the main island, spiraling inward from the shore.
      * The outlying islands have no dice path.
      * For the mainland's dice numbers, see {@link SOCBoard4p#makeNewBoard_diceNums_v1}.
-     * @see #LANDHEX_COORD_MAINLAND
      */
     private static final int LANDHEX_DICEPATH_MAINLAND_4PL[] =
     {
@@ -2690,20 +2689,6 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         0x0709, 0x0908, 0x0906, 0x0904, 0x0703,
         0x0502, 0x0303, 0x0305, 0x0307, 0x0508,
         0x0707, 0x0705, 0x0504, 0x0506
-    };
-
-    /**
-     * Fallback board layout for 4 players: Main island's land hex coordinates, each row west to east.
-     * @see #LANDHEX_DICEPATH_MAINLAND_4PL
-     */
-    @SuppressWarnings("unused")  // TODO is this field useful to keep for reference?
-    private static final int LANDHEX_COORD_MAINLAND[] =
-    {
-        0x0104, 0x0106, 0x0108,
-        0x0303, 0x0305, 0x0307, 0x0309,
-        0x0502, 0x0504, 0x0506, 0x0508, 0x050A,
-        0x0703, 0x0705, 0x0707, 0x0709,
-        0x0904, 0x0906, 0x0908
     };
 
     /**

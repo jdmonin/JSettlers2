@@ -748,7 +748,9 @@ public class SOCBoardLarge extends SOCBoard
 
     ////////////////////////////////////////////
     //
-    // Make New Board
+    // Make New Board: These methods are called at
+    // the client when it receives a layout, and at
+    // the server from SOCBoardLargeAtServer.makeNewBoard
     //
 
 

@@ -25,7 +25,8 @@ package soc.game;
 import java.util.Map;
 
 /**
- * The standard (non-sea) board layout for the 6-player extension.
+ * The classic (non-sea) board layout for the 6-player extension.
+ * Implements {@link SOCBoard#BOARD_ENCODING_6PLAYER}.
  * @since 2.0.00
  */
 public class SOCBoard6p extends SOCBoard

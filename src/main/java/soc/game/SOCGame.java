@@ -502,6 +502,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * maximum number of players in a standard game
+     * without the 6-player extension.
      * @see #MAXPLAYERS
      * @see #maxPlayers
      * @since 1.1.08
@@ -535,7 +536,8 @@ public class SOCGame implements Serializable, Cloneable
     private static final int NUM_DEVCARDS_VP = 5;
 
     /**
-     * Number of development cards (25) in the standard rules.
+     * Number of development cards (25) in the standard rules,
+     * without the 6-player extension.
      * @see #NUM_DEVCARDS_6PLAYER
      * @since 1.1.08
      */
@@ -853,7 +855,7 @@ public class SOCGame implements Serializable, Cloneable
     private int lastPlayerNumber;
 
     /**
-     * maxPlayers is 4 for the standard game,
+     * The standard {@code maxPlayers} is 4 for the original classic game,
      * or 6 if this game is on the 6-player board, with corresponding rules.
      * The value of game option {@code "PL"} may be 2, 3, 4, 5, or 6, but
      * the {@code maxPlayers} field will be 4 or 6.
@@ -4010,6 +4012,8 @@ public class SOCGame implements Serializable, Cloneable
 
         if (maxPlayers > 4)
         {
+            // 6-player extension
+
             for (i = 25; i < 31; i++)
             {
                 devCardDeck[i] = SOCDevCardConstants.KNIGHT;
