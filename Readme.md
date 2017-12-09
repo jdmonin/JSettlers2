@@ -19,7 +19,7 @@ The server can optionally use a database to store player account
 information and game stats (details below).  A client java app to
 create user accounts is also provided.
 
-JSettlers-WebApp is an open-source project licensed under (TBD).
+JSettlers-WebApp is an open-source project licensed under Apache 2.0.
 The project is hosted at https://github.com/jdmonin/jsettlers-webapp/
 and at http://nand.net/jsettlers/devel/ .  Questions, bugs, patches,
 and pull requests can be posted at the github page. The server's
@@ -107,9 +107,9 @@ the same way as the server.
 
 ## Development and Building JSettlers-WebApp
 
-JSettlers-WebApp is an open-source project licensed under (TBD). The project
-source code is hosted at https://github.com/jdmonin/jsettlers-webapp/ and
-the project website is http://nand.net/jsettlers/devel/ . Questions,
+JSettlers-WebApp is an open-source project licensed under the Apache License, Version 2.0.
+The project source code is hosted at https://github.com/jdmonin/jsettlers-webapp/
+and the project website is http://nand.net/jsettlers/devel/ . Questions,
 bugs, patches, and pull requests can be posted at the github page.
 
 For more information on building or developing JSettlers-WebApp, see
@@ -117,10 +117,12 @@ For more information on building or developing JSettlers-WebApp, see
 information about translating jsettlers to other languages; see the
 "I18N" section.
 
-JSettlers-WebApp is licensed under (TBD full name).
+For the full Apache License 2.0 text, see the included LICENSE file or
+http://www.apache.org/licenses/LICENSE-2.0 .
+
 Each source file lists contributors by year. A copyright year range (for
 example, 2007-2011) means the file was contributed to by that person in
 each year of that range. See individual source files for the license
 heading and other details.
 
-Includes jQuery licensed under the MIT License.
+See NOTICE file for jQuery and other license notices.
