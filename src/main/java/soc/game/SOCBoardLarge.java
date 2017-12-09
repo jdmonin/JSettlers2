@@ -770,21 +770,6 @@ public class SOCBoardLarge extends SOCBoard
 
 
     /**
-     * Shuffle the hex tiles and layout a board.
-     * This is called at server, but not at client;
-     * client instead calls methods such as {@link #setLandHexLayout(int[])}
-     * and {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])}.
-     * Call soc.server.SOCBoardLargeAtServer.makeNewBoard instead of this stub super method.
-     * @throws UnsupportedOperationException if called at client
-     */
-    @Override
-    public void makeNewBoard(final Map<String, SOCGameOption> opts)
-        throws UnsupportedOperationException
-    {
-        throw new UnsupportedOperationException("Use SOCBoardLargeAtServer instead");
-    }
-
-    /**
      * Once the legal settlement/city nodes ({@link #nodesOnLand})
      * are established from land hexes, fill {@link #legalRoadEdges}.
      * Not iterative; clears all previous legal roads.

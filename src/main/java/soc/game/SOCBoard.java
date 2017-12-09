@@ -842,52 +842,13 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *          tile placement on board, or null.  <tt>opts</tt> must be
      *          the same as passed to constructor, and thus give the same size and layout
      *          (same {@link #getBoardEncodingFormat()}).
+     * @throws UnsupportedOperationException if this base-class stub is called (at client):
+     *     Server overrides with {@link soc.server.SOCBoardLargeAtServer#makeNewBoard(Map)}.
      */
     public void makeNewBoard(final Map<String, SOCGameOption> opts)
+        throws UnsupportedOperationException
     {
-        final boolean is6player = (boardEncodingFormat == BOARD_ENCODING_6PLAYER);
-
-        final SOCGameOption opt_breakClumps = (opts != null ? opts.get("BC") : null);
-
-        // shuffle and place the land hexes, numbers, and robber:
-        // sets robberHex, contents of hexLayout[] and numberLayout[].
-        // Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
-        {
-            final int[] landHex = is6player ? SOCBoard6p.makeNewBoard_landHexTypes_v2 : SOCBoard4p.makeNewBoard_landHexTypes_v1;
-            final int[][] numPaths = is6player ? SOCBoard6p.makeNewBoard_numPaths_v2 : SOCBoard4p.makeNewBoard_numPaths_v1;
-            final int[] numPath = numPaths[ Math.abs(rand.nextInt() % numPaths.length) ];
-            final int[] numbers = is6player ? SOCBoard6p.makeNewBoard_diceNums_v2 : SOCBoard4p.makeNewBoard_diceNums_v1;
-            makeNewBoard_placeHexes(landHex, numPath, numbers, opt_breakClumps);
-        }
-
-        // copy and shuffle the ports, and check vs game option BC
-        final int[] portTypes = (is6player) ? SOCBoard6p.PORTS_TYPE_V2 : SOCBoard4p.PORTS_TYPE_V1;
-        int[] portHex = new int[portTypes.length];
-        System.arraycopy(portTypes, 0, portHex, 0, portTypes.length);
-        makeNewBoard_shufflePorts(portHex, opt_breakClumps);
-        if (is6player)
-            portsLayout = portHex;  // No need to remember for 4-player standard layout
-
-        // place the ports (hex numbers and facing) within hexLayout and nodeIDtoPortType.
-        // fill out the ports[] vectors with node coordinates where a trade port can be placed.
-        nodeIDtoPortType = new HashMap<Integer,Integer>();
-        if (is6player)
-        {
-            for (int i = 0; i < SOCBoard6p.PORTS_FACING_V2.length; ++i)
-            {
-                final int ptype = portHex[i];
-                final int[] nodes = getAdjacentNodesToEdge_arr(SOCBoard6p.PORTS_EDGE_V2[i]);
-                placePort(ptype, -1, SOCBoard6p.PORTS_FACING_V2[i], nodes[0], nodes[1]);
-            }
-        } else {
-            for (int i = 0; i < SOCBoard4p.PORTS_FACING_V1.length; ++i)
-            {
-                final int ptype = portHex[i];
-                final int[] nodes = getAdjacentNodesToEdge_arr(SOCBoard4p.PORTS_EDGE_V1[i]);
-                placePort(ptype, SOCBoard4p.PORTS_HEXNUM_V1[i], SOCBoard4p.PORTS_FACING_V1[i], nodes[0], nodes[1]);
-            }
-        }
-
+        throw new UnsupportedOperationException("Use SOCBoardLargeAtServer instead");
     }
 
     /**

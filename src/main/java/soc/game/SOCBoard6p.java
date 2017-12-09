@@ -36,18 +36,6 @@ public abstract class SOCBoard6p extends SOCBoard
     private static final long serialVersionUID = 3000L;  // last structural change v2.0.00
 
     /**
-     * Board size for constructors at server.
-     * @since 3.0.00
-     */
-    public static final int BOARDHEIGHT_6PL = 0x12, BOARDWIDTH_6PL = 0x0f;
-
-    /**
-     * Layout's Visual Shift (Added Layout Part "VS") for constructors at server.
-     * @since 3.0.00
-     */
-    public static final int CLASSIC_VIS_SHIFT_6PL[] = {-2, 0};
-
-    /**
      * Land-hex coordinates in 6-player board ({@link #BOARD_ENCODING_6PLAYER}).
      * @since 1.1.08.
      */
@@ -60,37 +48,6 @@ public abstract class SOCBoard6p extends SOCBoard
         0x93, 0x95, 0x97, 0x99, 0x9B,
         0xB5, 0xB7, 0xB9, 0xBB       // Last diagonal row (NE from 0xB5)
     };
-
-    /**
-     * Land hex types on the 6-player board layout (v2).
-     * For more information see {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
-     * @since 2.0.00
-     */
-    public static final int[] makeNewBoard_landHexTypes_v2 =
-        {
-            DESERT_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
-            SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
-            WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
-            WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX,   // last line of v1's hexes
-            DESERT_HEX, CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, SHEEP_HEX, SHEEP_HEX,
-            WHEAT_HEX, WHEAT_HEX, WOOD_HEX, WOOD_HEX
-        };
-
-    /**
-     * Dice numbers in the 6-player board layout, in order along {@code numPath}
-     * ({@link #makeNewBoard_numPaths_v2}).
-     * For more information see {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
-     * @since 2.0.00
-     */
-    public static final int[] makeNewBoard_diceNums_v2 =
-        {
-            2,   5,  4,  6 , 3, // A-E
-            9,   8, 11, 11, 10, // F-J
-            6,   3,  8,  4,  8, // K-O
-            10, 11, 12, 10,  5, // P-T
-            4,   9,  5,  9, 12, // U-Y
-            3,   2,  6          // Za-Zc
-        };
 
     /**
      * largest coordinate value for an edge, in the v2 encoding
@@ -109,14 +66,6 @@ public abstract class SOCBoard6p extends SOCBoard
      * @since 1.1.08
      */
     protected static final int MINNODE_V2 = 0x01;
-
-    /**
-     * Each port's type, such as {@link #SHEEP_PORT}, on 6-player board.
-     * Same order as {@link #PORTS_FACING_V2}. {@link #MISC_PORT} is 0.
-     * @since 1.1.08
-     */
-    public final static int PORTS_TYPE_V2[] =
-        { 0, 0, 0, 0, CLAY_PORT, ORE_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT, MISC_PORT, SHEEP_PORT };
 
     /**
      * Each port's <em>facing,</em> on 6-player board.

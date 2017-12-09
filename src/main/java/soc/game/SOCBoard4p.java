@@ -35,18 +35,6 @@ public abstract class SOCBoard4p extends SOCBoard
     private static final long serialVersionUID = 3000L;  // last structural change v2.0.00
 
     /**
-     * Board size for constructors at server.
-     * @since 3.0.00
-     */
-    public static final int BOARDHEIGHT_4PL = 0x0e, BOARDWIDTH_4PL = 0x0c;
-
-    /**
-     * Layout's Visual Shift (Added Layout Part "VS") for constructors at server.
-     * @since 3.0.00
-     */
-    public static final int CLASSIC_VIS_SHIFT_4PL[] = {-2, 1};
-
-    /**
      * Land-hex coordinates in standard board ({@link #BOARD_ENCODING_ORIGINAL}).
      * @since 1.1.08
      */
@@ -55,27 +43,6 @@ public abstract class SOCBoard4p extends SOCBoard
         0x33, 0x35, 0x37, 0x53, 0x55, 0x57, 0x59, 0x73, 0x75, 0x77, 0x79, 0x7B,
         0x95, 0x97, 0x99, 0x9B, 0xB7, 0xB9, 0xBB
     };
-
-    /**
-     * Land hex types on the original 4-player board layout (v1).
-     * For more information see {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
-     * @since 2.0.00
-     */
-    public static final int[] makeNewBoard_landHexTypes_v1 =
-        { DESERT_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX,
-            ORE_HEX, ORE_HEX, ORE_HEX,
-            SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
-            WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
-            WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX };
-
-    /**
-     * Dice numbers in the original 4-player board layout, in order along {@code numPath}
-     * ({@link #makeNewBoard_numPaths_v1}).
-     * For more information see {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
-     * @since 2.0.00
-     */
-    public static final int[] makeNewBoard_diceNums_v1 =
-        { 5, 2, 6, 3, 8, 10, 9, 12, 11, 4, 8, 10, 9, 4, 5, 6, 3, 11 };
 
     /**
      * largest coordinate value for an edge, in the v1 encoding.
@@ -100,14 +67,6 @@ public abstract class SOCBoard4p extends SOCBoard
      * @since 1.1.11
      */
     protected static final int MINNODE_V1 = 0x23;
-
-    /**
-     * Each port's type, such as {@link #SHEEP_PORT}, on standard board.
-     * Same order as {@link #PORTS_FACING_V1}. {@link #MISC_PORT} is 0.
-     * @since 1.1.08
-     */
-    public final static int[] PORTS_TYPE_V1 =
-        { 0, 0, 0, 0, CLAY_PORT, ORE_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT };
 
     /**
      * Each port's hex number within {@link #hexLayout} on standard board.
