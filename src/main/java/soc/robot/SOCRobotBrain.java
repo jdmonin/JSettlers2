@@ -3607,82 +3607,73 @@ public class SOCRobotBrain extends Thread
     {
         final int pn = mes.getPlayerNumber();
         final SOCPlayer pl = (pn != -1) ? game.getPlayer(pn) : null;
+        final int action = mes.getAction(), amount = mes.getValue();
 
         switch (mes.getElementType())
         {
         case SOCPlayerElement.ROADS:
-
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                (mes, pl, SOCPlayingPiece.ROAD);
+                (pl, amount, SOCPlayingPiece.ROAD, amount);
             break;
 
         case SOCPlayerElement.SETTLEMENTS:
-
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                (mes, pl, SOCPlayingPiece.SETTLEMENT);
+                (pl, amount, SOCPlayingPiece.SETTLEMENT, amount);
             break;
 
         case SOCPlayerElement.CITIES:
-
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                (mes, pl, SOCPlayingPiece.CITY);
+                (pl, amount, SOCPlayingPiece.CITY, amount);
             break;
 
         case SOCPlayerElement.SHIPS:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                (mes, pl, SOCPlayingPiece.SHIP);
+                (pl, amount, SOCPlayingPiece.SHIP, amount);
             break;
 
         case SOCPlayerElement.NUMKNIGHTS:
-
             // PLAYERELEMENT(NUMKNIGHTS) is sent after a Soldier card is played.
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numKnights
-                (mes, pl, game);
+                (game, pl, action, amount);
             break;
 
         case SOCPlayerElement.CLAY:
-
             handlePLAYERELEMENT_numRsrc
-                (mes, pl, SOCResourceConstants.CLAY, "CLAY");
+                (pl, amount, SOCResourceConstants.CLAY, "CLAY", amount);
             break;
 
         case SOCPlayerElement.ORE:
-
             handlePLAYERELEMENT_numRsrc
-                (mes, pl, SOCResourceConstants.ORE, "ORE");
+                (pl, amount, SOCResourceConstants.ORE, "ORE", amount);
             break;
 
         case SOCPlayerElement.SHEEP:
-
             handlePLAYERELEMENT_numRsrc
-                (mes, pl, SOCResourceConstants.SHEEP, "SHEEP");
+                (pl, amount, SOCResourceConstants.SHEEP, "SHEEP", amount);
             break;
 
         case SOCPlayerElement.WHEAT:
-
             handlePLAYERELEMENT_numRsrc
-                (mes, pl, SOCResourceConstants.WHEAT, "WHEAT");
+                (pl, amount, SOCResourceConstants.WHEAT, "WHEAT", amount);
             break;
 
         case SOCPlayerElement.WOOD:
-
             handlePLAYERELEMENT_numRsrc
-                (mes, pl, SOCResourceConstants.WOOD, "WOOD");
+                (pl, amount, SOCResourceConstants.WOOD, "WOOD", amount);
             break;
 
         case SOCPlayerElement.UNKNOWN:
-
             /**
              * Note: if losing unknown resources, we first
              * convert player's known resources to unknown resources,
              * then remove mes's unknown resources from player.
              */
             handlePLAYERELEMENT_numRsrc
-                (mes, pl, SOCResourceConstants.UNKNOWN, "UNKNOWN");
+                (pl, amount, SOCResourceConstants.UNKNOWN, "UNKNOWN", amount);
             break;
 
         case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
-            if (expectPLACING_ROBBER && (mes.getAction() == SOCPlayerElement.GAIN))
+            if (expectPLACING_ROBBER && (action == SOCPlayerElement.GAIN))
             {
                 // warship card successfully played; clear the flag fields
                 expectPLACING_ROBBER = false;
@@ -3726,26 +3717,30 @@ public class SOCRobotBrain extends Thread
      * clear the plan if this is for the Special Building Phase (on the 6-player board).
      * In normal game play, we clear the building plan at the start of each turn.
      *<P>
+     * Before v2.0.00 this method directly took a {@link SOCPlayerElement} instead of that message's
+     * {@code action} and {@code amount} fields.
      *
-     * @param mes      Message with amount and action (SET/GAIN/LOSE)
      * @param pl       Player to update
+     * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
+     *     or {@link SOCPlayerElement#LOSE LOSE}
      * @param rtype    Type of resource, like {@link SOCResourceConstants#CLAY}
      * @param rtypeStr Resource type name, for debugging
+     * @param amount   The new value to set, or the delta to gain/lose
      */
     @SuppressWarnings("unused")  // unnecessary dead-code warning "if (D.ebugOn)"
     protected void handlePLAYERELEMENT_numRsrc
-        (SOCPlayerElement mes, SOCPlayer pl, int rtype, String rtypeStr)
+        (SOCPlayer pl, final int action, int rtype, String rtypeStr, final int amount)
     {
         /**
          * for SET, check the amount of unknown resources against
          * what we think we know about our player.
          */
-        if (D.ebugOn && (pl == ourPlayerData) && (mes.getAction() == SOCPlayerElement.SET))
+        if (D.ebugOn && (pl == ourPlayerData) && (action == SOCPlayerElement.SET))
         {
-            if (mes.getValue() != ourPlayerData.getResources().getAmount(rtype))
+            if (amount != ourPlayerData.getResources().getAmount(rtype))
             {
                 client.sendText(game, ">>> RSRC ERROR FOR " + rtypeStr
-                    + ": " + mes.getValue() + " != " + ourPlayerData.getResources().getAmount(rtype));
+                    + ": " + amount + " != " + ourPlayerData.getResources().getAmount(rtype));
             }
         }
 
@@ -3753,7 +3748,7 @@ public class SOCRobotBrain extends Thread
          * Update game data.
          */
         SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-            (mes, pl, rtype);
+            (pl, action, rtype, amount);
 
         /**
          * Clear building plan, if we just lost a resource we need.
@@ -3762,7 +3757,7 @@ public class SOCRobotBrain extends Thread
          * at the start of each turn.
          */
         if (waitingForSpecialBuild && (pl == ourPlayerData)
-            && (mes.getAction() != SOCPlayerElement.GAIN)
+            && (action != SOCPlayerElement.GAIN)
             && ! buildingPlan.isEmpty())
         {
             final SOCPossiblePiece targetPiece = buildingPlan.peek();

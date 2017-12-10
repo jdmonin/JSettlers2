@@ -4456,6 +4456,8 @@ public class SOCPlayerClient
         {
             final int pn = mes.getPlayerNumber();
             final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
+            final int action = mes.getAction(), amount = mes.getValue();
+
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
             PlayerClientListener.UpdateType utype = null;  // If not null, update this type's amount display
             final int etype = mes.getElementType();
@@ -4464,25 +4466,25 @@ public class SOCPlayerClient
             {
             case SOCPlayerElement.ROADS:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                    (mes, pl, SOCPlayingPiece.ROAD);
+                    (pl, action, SOCPlayingPiece.ROAD, amount);
                 utype = PlayerClientListener.UpdateType.Road;
                 break;
 
             case SOCPlayerElement.SETTLEMENTS:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                    (mes, pl, SOCPlayingPiece.SETTLEMENT);
+                    (pl, action, SOCPlayingPiece.SETTLEMENT, amount);
                 utype = PlayerClientListener.UpdateType.Settlement;
                 break;
 
             case SOCPlayerElement.CITIES:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                    (mes, pl, SOCPlayingPiece.CITY);
+                    (pl, action, SOCPlayingPiece.CITY, amount);
                 utype = PlayerClientListener.UpdateType.City;
                 break;
 
             case SOCPlayerElement.SHIPS:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                    (mes, pl, SOCPlayingPiece.SHIP);
+                    (pl, action, SOCPlayingPiece.SHIP, amount);
                 utype = PlayerClientListener.UpdateType.Ship;
                 break;
 
@@ -4491,7 +4493,7 @@ public class SOCPlayerClient
                 {
                     final SOCPlayer oldLargestArmyPlayer = ga.getPlayerWithLargestArmy();
                     SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numKnights
-                        (mes, pl, ga);
+                        (ga, pl, action, amount);
                     utype = PlayerClientListener.UpdateType.Knight;
 
                     // Check for change in largest-army player; update handpanels'
@@ -4504,31 +4506,31 @@ public class SOCPlayerClient
 
             case SOCPlayerElement.CLAY:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-                    (mes, pl, SOCResourceConstants.CLAY);
+                    (pl, action, SOCResourceConstants.CLAY, amount);
                 utype = PlayerClientListener.UpdateType.Clay;
                 break;
 
             case SOCPlayerElement.ORE:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-                    (mes, pl, SOCResourceConstants.ORE);
+                    (pl, action, SOCResourceConstants.ORE, amount);
                 utype = PlayerClientListener.UpdateType.Ore;
                 break;
 
             case SOCPlayerElement.SHEEP:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-                    (mes, pl, SOCResourceConstants.SHEEP);
+                    (pl, action, SOCResourceConstants.SHEEP, amount);
                 utype = PlayerClientListener.UpdateType.Sheep;
                 break;
 
             case SOCPlayerElement.WHEAT:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-                    (mes, pl, SOCResourceConstants.WHEAT);
+                    (pl, action, SOCResourceConstants.WHEAT, amount);
                 utype = PlayerClientListener.UpdateType.Wheat;
                 break;
 
             case SOCPlayerElement.WOOD:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-                    (mes, pl, SOCResourceConstants.WOOD);
+                    (pl, action, SOCResourceConstants.WOOD, amount);
                 utype = PlayerClientListener.UpdateType.Wood;
                 break;
 
@@ -4539,7 +4541,7 @@ public class SOCPlayerClient
                  * then remove mes's unknown resources from player.
                  */
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-                    (mes, pl, SOCResourceConstants.UNKNOWN);
+                    (pl, action, SOCResourceConstants.UNKNOWN, amount);
                 utype = PlayerClientListener.UpdateType.Unknown;
                 break;
 
@@ -4555,7 +4557,7 @@ public class SOCPlayerClient
                 break;
 
             case SOCPlayerElement.SCENARIO_SVP:
-                pl.setSpecialVP(mes.getValue());
+                pl.setSpecialVP(amount);
                 utype = PlayerClientListener.UpdateType.SpecialVictoryPoints;
                 break;
 
@@ -4568,9 +4570,9 @@ public class SOCPlayerClient
             case SOCPlayerElement.SCENARIO_CLOTH_COUNT:
                 if (pn != -1)
                 {
-                    pl.setCloth(mes.getValue());
+                    pl.setCloth(amount);
                 } else {
-                    ((SOCBoardLarge) (ga.getBoard())).setCloth(mes.getValue());
+                    ((SOCBoardLarge) (ga.getBoard())).setCloth(amount);
                 }
                 utype = PlayerClientListener.UpdateType.Cloth;
                 break;
@@ -4586,7 +4588,7 @@ public class SOCPlayerClient
             {
                 if (! mes.isNews())
                     pcl.playerElementUpdated(pl, utype, false, false);
-                else if (mes.getAction() == SOCPlayerElement.GAIN)
+                else if (action == SOCPlayerElement.GAIN)
                     pcl.playerElementUpdated(pl, utype, true, false);
                 else
                     pcl.playerElementUpdated(pl, utype, false, true);

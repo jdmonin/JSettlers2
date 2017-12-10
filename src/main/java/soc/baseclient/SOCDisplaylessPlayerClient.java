@@ -1314,67 +1314,58 @@ public class SOCDisplaylessPlayerClient implements Runnable
         {
             final int pn = mes.getPlayerNumber();
             final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
+            final int action = mes.getAction(), amount = mes.getValue();
 
             switch (mes.getElementType())
             {
             case SOCPlayerElement.ROADS:
-
-                handlePLAYERELEMENT_numPieces(mes, pl, SOCPlayingPiece.ROAD);
+                handlePLAYERELEMENT_numPieces(pl, action, SOCPlayingPiece.ROAD, amount);
                 break;
 
             case SOCPlayerElement.SETTLEMENTS:
-
-                handlePLAYERELEMENT_numPieces(mes, pl, SOCPlayingPiece.SETTLEMENT);
+                handlePLAYERELEMENT_numPieces(pl, action, SOCPlayingPiece.SETTLEMENT, amount);
                 break;
 
             case SOCPlayerElement.CITIES:
-
-                handlePLAYERELEMENT_numPieces(mes, pl, SOCPlayingPiece.CITY);
+                handlePLAYERELEMENT_numPieces(pl, action, SOCPlayingPiece.CITY, amount);
                 break;
 
             case SOCPlayerElement.SHIPS:
-                handlePLAYERELEMENT_numPieces(mes, pl, SOCPlayingPiece.SHIP);
+                handlePLAYERELEMENT_numPieces(pl, action, SOCPlayingPiece.SHIP, amount);
                 break;
 
             case SOCPlayerElement.NUMKNIGHTS:
-
                 // PLAYERELEMENT(NUMKNIGHTS) is sent after a Soldier card is played.
-                handlePLAYERELEMENT_numKnights(mes, pl, ga);
+                handlePLAYERELEMENT_numKnights(ga, pl, action, amount);
                 break;
 
             case SOCPlayerElement.CLAY:
-
-                handlePLAYERELEMENT_numRsrc(mes, pl, SOCResourceConstants.CLAY);
+                handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.CLAY, amount);
                 break;
 
             case SOCPlayerElement.ORE:
-
-                handlePLAYERELEMENT_numRsrc(mes, pl, SOCResourceConstants.ORE);
+                handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.ORE, amount);
                 break;
 
             case SOCPlayerElement.SHEEP:
-
-                handlePLAYERELEMENT_numRsrc(mes, pl, SOCResourceConstants.SHEEP);
+                handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.SHEEP, amount);
                 break;
 
             case SOCPlayerElement.WHEAT:
-
-                handlePLAYERELEMENT_numRsrc(mes, pl, SOCResourceConstants.WHEAT);
+                handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.WHEAT, amount);
                 break;
 
             case SOCPlayerElement.WOOD:
-
-                handlePLAYERELEMENT_numRsrc(mes, pl, SOCResourceConstants.WOOD);
+                handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.WOOD, amount);
                 break;
 
             case SOCPlayerElement.UNKNOWN:
-
                 /**
                  * Note: if losing unknown resources, we first
                  * convert player's known resources to unknown resources,
                  * then remove mes's unknown resources from player.
                  */
-                handlePLAYERELEMENT_numRsrc(mes, pl, SOCResourceConstants.UNKNOWN);
+                handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.UNKNOWN, amount);
                 break;
 
             default:
@@ -1466,29 +1457,32 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * To avoid code duplication, also called from
      * {@link SOCPlayerClient.MessageTreater#handlePLAYERELEMENT(SOCPlayerElement)}
      * and {@link soc.robot.SOCRobotBrain#run()}.
+     *<P>
+     * Before v2.0.00 this method directly took a {@link SOCPlayerElement} instead of that message's
+     * {@code action} and {@code amount} fields.
      *
-     * @param mes       Message with amount and action (SET/GAIN/LOSE)
      * @param pl        Player to update
-     * @param pieceType Playing piece type, as in {@link SOCPlayingPiece#ROAD}
+     * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
+     *     or {@link SOCPlayerElement#LOSE LOSE}
+     * @param pieceType Playing piece type, like {@link SOCPlayingPiece#ROAD}
+     * @param amount    The new value to set, or the delta to gain/lose
+     * @since 2.0.00
      */
     public static void handlePLAYERELEMENT_numPieces
-        (SOCPlayerElement mes, final SOCPlayer pl, int pieceType)
+        (final SOCPlayer pl, final int action, final int pieceType, final int amount)
     {
-        switch (mes.getAction())
+        switch (action)
         {
         case SOCPlayerElement.SET:
-            pl.setNumPieces(pieceType, mes.getValue());
-
+            pl.setNumPieces(pieceType, amount);
             break;
 
         case SOCPlayerElement.GAIN:
-            pl.setNumPieces(pieceType, pl.getNumPieces(pieceType) + mes.getValue());
-
+            pl.setNumPieces(pieceType, pl.getNumPieces(pieceType) + amount);
             break;
 
         case SOCPlayerElement.LOSE:
-            pl.setNumPieces(pieceType, pl.getNumPieces(pieceType) - mes.getValue());
-
+            pl.setNumPieces(pieceType, pl.getNumPieces(pieceType) - amount);
             break;
         }
     }
@@ -1496,32 +1490,35 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * Update a player's amount of knights, and game's largest army,
      * for {@link #handlePLAYERELEMENT(SOCPlayerElement)}.
+     * Calls {@link SOCGame#updateLargestArmy() ga.updateLargestArmy()}.
      * To avoid code duplication, also called from
      * {@link SOCPlayerClient.MessageTreater#handlePLAYERELEMENT(SOCPlayerElement)}
      * and {@link soc.robot.SOCRobotBrain#run()}.
+     *<P>
+     * Before v2.0.00 this method directly took a {@link SOCPlayerElement} instead of that message's
+     * {@code action} and {@code amount} fields.
      *
-     * @param mes  Message with amount and action (SET/GAIN/LOSE)
-     * @param pl   Player to update
      * @param ga   Game of player
+     * @param pl   Player to update
+     * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
+     *     or {@link SOCPlayerElement#LOSE LOSE}
+     * @param amount    The new value to set, or the delta to gain/lose
      */
     public static void handlePLAYERELEMENT_numKnights
-        (SOCPlayerElement mes, final SOCPlayer pl, final SOCGame ga)
+        (final SOCGame ga, final SOCPlayer pl, final int action, final int amount)
     {
-        switch (mes.getAction())
+        switch (action)
         {
         case SOCPlayerElement.SET:
-            pl.setNumKnights(mes.getValue());
-
+            pl.setNumKnights(amount);
             break;
 
         case SOCPlayerElement.GAIN:
-            pl.setNumKnights(pl.getNumKnights() + mes.getValue());
-
+            pl.setNumKnights(pl.getNumKnights() + amount);
             break;
 
         case SOCPlayerElement.LOSE:
-            pl.setNumKnights(pl.getNumKnights() - mes.getValue());
-
+            pl.setNumKnights(pl.getNumKnights() - amount);
             break;
         }
 
@@ -1542,30 +1539,30 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * To avoid code duplication, also called from
      * {@link SOCPlayerClient.MessageTreater#handlePLAYERELEMENT(SOCPlayerElement)}
      * and {@link soc.robot.SOCRobotBrain#run()}.
+     *<P>
+     * Before v2.0.00 this method directly took a {@link SOCPlayerElement} instead of that message's
+     * {@code action} and {@code amount} fields.
      *
-     * @param mes    Message with amount and action (SET/GAIN/LOSE)
      * @param pl     Player to update
+     * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
+     *     or {@link SOCPlayerElement#LOSE LOSE}
      * @param rtype  Type of resource, like {@link SOCResourceConstants#CLAY}
+     * @param amount    The new value to set, or the delta to gain/lose
      */
     public static void handlePLAYERELEMENT_numRsrc
-        (SOCPlayerElement mes, final SOCPlayer pl, int rtype)
+        (final SOCPlayer pl, final int action, final int rtype, final int amount)
     {
-        final int amount = mes.getValue();
-
-        switch (mes.getAction())
+        switch (action)
         {
         case SOCPlayerElement.SET:
             pl.getResources().setAmount(amount, rtype);
-
             break;
 
         case SOCPlayerElement.GAIN:
             pl.getResources().add(amount, rtype);
-
             break;
 
         case SOCPlayerElement.LOSE:
-
             if (rtype != SOCResourceConstants.UNKNOWN)
             {
                 int playerAmt = pl.getResources().getAmount(rtype);
@@ -1588,7 +1585,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
                  * then remove mes's unknown resources from player
                  */
                 rs.convertToUnknown();
-                pl.getResources().subtract(mes.getValue(), SOCResourceConstants.UNKNOWN);
+                pl.getResources().subtract(amount, SOCResourceConstants.UNKNOWN);
             }
 
             break;
