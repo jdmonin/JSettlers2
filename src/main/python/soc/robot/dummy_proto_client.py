@@ -96,7 +96,7 @@ class DummyProtoClient(object):
                 self.disconnect()
                 msg = None  # clear previous iteration
             except Exception as e:
-                print("Error receiving/parsing message: " + str(e), file=sys.stderr)
+                print("* Error receiving/parsing message: " + str(e), file=sys.stderr)
                 self.disconnect(False)
             if msg is not None:
                 try:
@@ -144,14 +144,15 @@ class DummyProtoClient(object):
     # within a game
 
     def _treat_ga_board_layout(self, ga_name, msg):
-        print("  BoardLayout(encoding=" + str(msg.board_layout.encoding_format) + ", parts=" + repr(msg.board_layout.parts) + ")")
+        print("  BoardLayout(game=" + repr(ga_name) + ", encoding=" + str(msg.board_layout.encoding_format)
+              + ", parts=" + repr(msg.board_layout.parts) + ")")
 
     # The ordering within this declaration follows that of game_message.proto message GameMessageFromServer.
     _game_msg_treaters = {
         # board layout and contents
         'board_layout': _treat_ga_board_layout,
     }
-    
+
     def _treat_game_message(self, msg):
         """
         Treat an incoming game-specific message from the server; called from treat.
@@ -234,11 +235,11 @@ class DummyProtoClient(object):
         buf = self._read_raw_varint32()
         if buf is None:
             return (b'', 0, 0)
-        rCount = len(buf)
-        (size, position) = decoder._DecodeVarint(buf, 0)  # may need byts(buf)
+        (size, position) = decoder._DecodeVarint(buf, 0)
 
-        while rCount < size + 1:
-            data = self.sock.recv(size + 1 - rCount)
+        rCount = 0
+        while rCount < size:
+            data = self.sock.recv(size - rCount)
             rCount += len(data)
             buf.extend(data)
 
