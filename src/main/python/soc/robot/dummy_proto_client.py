@@ -114,38 +114,38 @@ class DummyProtoClient(object):
     # auth/connect
 
     def _treat_vers(self, msg):
-        print("  Version(" + str(msg.vers.vers_num) + ", '"
-            + msg.vers.vers_str + "', '" + msg.vers.vers_build + "', "
-            + repr(msg.vers.srv_feats) + ")" )
+        print("  Version(" + str(msg.vers_num) + ", '"
+            + msg.vers_str + "', '" + msg.vers_build + "', "
+            + repr(msg.srv_feats) + ")" )
 
     def _treat_reject_connection(self, msg):
-        print("  RejectConnection(" + repr(msg.reject_connection.reason_text) + ")" )
+        print("  RejectConnection(" + repr(msg.reason_text) + ")" )
         print("  -- wait for server to close our connection")
         # let server disconnect us, to test its ability to cleanly do so
 
     def _treat_status_text(self, msg):
-        print("  ServerStatusText(" + str(msg.status_text.sv)
-            + ", " + repr(msg.status_text.text) + ")" )
+        print("  ServerStatusText(" + str(msg.sv)
+            + ", " + repr(msg.text) + ")" )
 
     # robots
 
     def _treat_bot_update_params(self, msg):
-        print("  BotUpdateParams(strat=" + str(msg.bot_update_params.strategy_type)
-            + ", tf=" + str(msg.bot_update_params.trade_flag) + ", ...)" )
+        print("  BotUpdateParams(strat=" + str(msg.strategy_type)
+            + ", tf=" + str(msg.trade_flag) + ", ...)" )
 
     # games
 
     def _treat_bot_join_req(self, msg):
-        print("  BotJoinGameRequest('" + msg.bot_join_req.game.ga_name + "', "
-            + str(msg.bot_join_req.seat_number) + ")" )
+        print("  BotJoinGameRequest(" + repr(msg.game.ga_name) + ", "
+            + str(msg.seat_number) + ")" )
         print("  -- DISCONNECTING, this bot can't join games");
         self.disconnect()
 
     # within a game
 
     def _treat_ga_board_layout(self, ga_name, msg):
-        print("  BoardLayout(game=" + repr(ga_name) + ", encoding=" + str(msg.board_layout.encoding_format)
-              + ", parts=" + repr(msg.board_layout.parts) + ")")
+        print("  BoardLayout(game=" + repr(ga_name) + ", encoding=" + str(msg.encoding_format)
+              + ", parts=" + repr(msg.parts) + ")")
 
     # The ordering within this declaration follows that of game_message.proto message GameMessageFromServer.
     _game_msg_treaters = {
@@ -165,7 +165,8 @@ class DummyProtoClient(object):
         if typ is None:
             return
         if typ in self._game_msg_treaters:
-            self._game_msg_treaters[typ](self, gmsg.ga_name, gmsg)
+            self._game_msg_treaters[typ](self, gmsg.ga_name, getattr(gmsg, typ, None))
+            	# for message typ board_layout, getattr returns gmsg.board_layout contents
         else:
             print("  treat_game_message(): No handler for message type " + str(typ));
 
@@ -200,7 +201,8 @@ class DummyProtoClient(object):
         if typ is None:
             return
         if typ in self._msg_from_server_treaters:
-            self._msg_from_server_treaters[typ](self, msg)
+            self._msg_from_server_treaters[typ](self, getattr(msg, typ, None))
+            	# for message typ bot_update_params, getattr returns msg.bot_update_params contents
         else:
             print("  treat(): No handler for server message type " + str(typ));
 
