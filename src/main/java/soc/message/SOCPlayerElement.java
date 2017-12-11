@@ -24,8 +24,8 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message conveys one part of the player's status, such as their number of
- * settlements remaining.
+ * This message from the server conveys one part of a player's status,
+ * such as their number of settlements remaining.
  *<P>
  * Unless otherwise mentioned, any {@link #getElementType()} can be sent with
  * any action ({@link #SET}, {@link #GAIN}, {@link #LOSE}).
@@ -46,6 +46,9 @@ import java.util.StringTokenizer;
  * or unexpected and bad (monopoly, robber, discards). v1.2.00 and newer have sound effects
  * to announce unexpected gains or losses; to help recognize this, this message type gets a
  * new flag field {@link #isNews()}. Versions older than v1.2.00 ignore the new field.
+ *<P>
+ * To use less overhead to send multiple similar element changes, use {@link SOCPlayerElements} instead;
+ * doing so requires client version 2.0.00 or newer.
  *
  * @author Robert S Thomas
  */

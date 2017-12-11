@@ -3381,7 +3381,14 @@ public class SOCPlayerClient
              */
             case SOCMessage.PLAYERELEMENT:
                 handlePLAYERELEMENT((SOCPlayerElement) mes);
+                break;
 
+            /**
+             * receive player information.
+             * Added 2017-12-10 for v2.0.00.
+             */
+            case SOCMessage.PLAYERELEMENTS:
+                handlePLAYERELEMENTS((SOCPlayerElements) mes);
                 break;
 
             /**
@@ -4445,13 +4452,36 @@ public class SOCPlayerClient
     }
 
     /**
-     * handle the "player information" message
+     * handle the "player information" message: Finds game and its {@link PlayerClientListener} by name
+     * and calls {@link #handlePLAYERELEMENT(PlayerClientListener, SOCGame, SOCPlayer, int, int, int, int, boolean)}.
+     * @param mes  the message
+     * @since 2.0.00
+     */
+    protected void handlePLAYERELEMENTS(SOCPlayerElements mes)
+    {
+        final SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
+
+        final PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        final int pn = mes.getPlayerNumber();
+        final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
+        final int action = mes.getAction();
+        final int[] etypes = mes.getElementTypes(), amounts = mes.getValues();
+
+        for (int i = 0; i < etypes.length; ++i)
+            handlePLAYERELEMENT
+                (pcl, ga, pl, pn, action, etypes[i], amounts[i], false);
+    }
+
+    /**
+     * handle the "player information" message: Finds game and its {@link PlayerClientListener} by name
+     * and calls {@link #handlePLAYERELEMENT(PlayerClientListener, SOCGame, SOCPlayer, int, int, int, int, boolean)}.
      * @param mes  the message
      */
     protected void handlePLAYERELEMENT(SOCPlayerElement mes)
     {
         final SOCGame ga = games.get(mes.getGame());
-
         if (ga == null)
             return;
 
@@ -4460,7 +4490,31 @@ public class SOCPlayerClient
         final int action = mes.getAction(), amount = mes.getValue();
         final int etype = mes.getElementType();
 
-        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        handlePLAYERELEMENT
+            (clientListeners.get(mes.getGame()), ga, pl, pn, action, etype, amount, mes.isNews());
+    }
+
+    /**
+     * Handle a player information update from a {@link SOCPlayerElement} or {@link SOCPlayerElements} message.
+     * @param pcl  PlayerClientListener for {@code ga}, to update display if not null
+     * @param ga   Game to update; does nothing if null
+     * @param pl   Player to update (sometimes null)
+     * @param pn   Player number from message (sometimes -1 for none or all)
+     * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
+     *     or {@link SOCPlayerElement#LOSE LOSE}
+     * @param etype  Element type, such as {@link SOCPlayerElement#SETTLEMENTS} or {@link SOCPlayerElement#NUMKNIGHTS}
+     * @param amount  The new value to set, or the delta to gain/lose
+     * @param isNews  True if message's isNews() flag is set; used when calling
+     *     {@link PlayerClientListener#playerElementUpdated(SOCPlayer, soc.client.PlayerClientListener.UpdateType, boolean, boolean)}
+     * @since 2.0.00
+     */
+    private void handlePLAYERELEMENT
+        (final PlayerClientListener pcl, final SOCGame ga, final SOCPlayer pl, final int pn,
+         final int action, final int etype, final int amount, final boolean isNews)
+    {
+        if (ga == null)
+            return;
+
         PlayerClientListener.UpdateType utype = null;  // If not null, update this type's amount display
 
         switch (etype)
@@ -4591,7 +4645,7 @@ public class SOCPlayerClient
 
         if ((pcl != null) && (utype != null))
         {
-            if (! mes.isNews())
+            if (! isNews)
                 pcl.playerElementUpdated(pl, utype, false, false);
             else if (action == SOCPlayerElement.GAIN)
                 pcl.playerElementUpdated(pl, utype, true, false);

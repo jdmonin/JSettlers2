@@ -673,6 +673,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.MOVEPIECE:   // move a previously placed ship; will update game data and player trackers
             case SOCMessage.MOVEROBBER:
             case SOCMessage.PLAYERELEMENT:
+            case SOCMessage.PLAYERELEMENTS:  // apply multiple PLAYERELEMENT updates; added 2017-12-10 for v2.0.00
             case SOCMessage.REJECTOFFER:
             case SOCMessage.RESOURCECOUNT:
             case SOCMessage.SETPLAYEDDEVCARD:

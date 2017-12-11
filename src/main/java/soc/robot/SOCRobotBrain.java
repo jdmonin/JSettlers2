@@ -60,6 +60,7 @@ import soc.message.SOCMessage;
 import soc.message.SOCMovePiece;
 import soc.message.SOCMoveRobber;
 import soc.message.SOCPlayerElement;
+import soc.message.SOCPlayerElements;
 import soc.message.SOCPutPiece;
 import soc.message.SOCRejectOffer;
 import soc.message.SOCResourceCount;
@@ -1275,16 +1276,20 @@ public class SOCRobotBrain extends Thread
                     switch (mesType)
                     {
                     case SOCMessage.PLAYERELEMENT:
-                        {
-                        handlePLAYERELEMENT((SOCPlayerElement) mes);
-
                         // If this during the ROLL_OR_CARD state, also updates the
                         // negotiator's is-selling flags.
-
                         // If our player is losing a resource needed for the buildingPlan,
                         // clear the plan if this is for the Special Building Phase (on the 6-player board).
                         // In normal game play, we clear the building plan at the start of each turn.
-                        }
+
+                        handlePLAYERELEMENT((SOCPlayerElement) mes);
+                        break;
+
+                    case SOCMessage.PLAYERELEMENTS:
+                        // Multiple PLAYERELEMENT updates;
+                        // see comment above for actions taken.
+
+                        handlePLAYERELEMENTS((SOCPlayerElements) mes);
                         break;
 
                     case SOCMessage.RESOURCECOUNT:
@@ -3589,7 +3594,38 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
+     * Handle a PLAYERELEMENTS for this game.
+     * See {@link #handlePLAYERELEMENT(SOCPlayer, int, int, int, int)} for actions taken.
+     * @since 2.0.00
+     */
+    private void handlePLAYERELEMENTS(SOCPlayerElements mes)
+    {
+        final int pn = mes.getPlayerNumber();
+        final SOCPlayer pl = (pn != -1) ? game.getPlayer(pn) : null;
+        final int action = mes.getAction();
+        final int[] etypes = mes.getElementTypes(), amounts = mes.getValues();
+
+        for (int i = 0; i < etypes.length; ++i)
+            handlePLAYERELEMENT(pl, pn, action, etypes[i], amounts[i]);
+    }
+
+    /**
      * Handle a PLAYERELEMENT for this game.
+     * See {@link #handlePLAYERELEMENT(SOCPlayer, int, int, int, int)} for actions taken.
+     * @since 1.1.08
+     */
+    private void handlePLAYERELEMENT(SOCPlayerElement mes)
+    {
+        final int pn = mes.getPlayerNumber();
+        final SOCPlayer pl = (pn != -1) ? game.getPlayer(pn) : null;
+        final int action = mes.getAction(), amount = mes.getValue();
+        final int etype = mes.getElementType();
+
+        handlePLAYERELEMENT(pl, pn, action, etype, amount);
+    }
+
+    /**
+     * Handle a player information update from a {@link SOCPlayerElement} or {@link SOCPlayerElements} message:
      * Update a player's amount of a resource or a building type.
      *<P>
      * If this during the {@link SOCGame#ROLL_OR_CARD} state, then update the
@@ -3601,15 +3637,17 @@ public class SOCRobotBrain extends Thread
      *<P>
      * Otherwise, only the game data is updated, nothing brain-specific.
      *
-     * @since 1.1.08
+     * @param pl   Player to update (sometimes null)
+     * @param pn   Player number from message (sometimes -1 for none or all)
+     * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
+     *     or {@link SOCPlayerElement#LOSE LOSE}
+     * @param etype  Element type, such as {@link SOCPlayerElement#SETTLEMENTS} or {@link SOCPlayerElement#NUMKNIGHTS}
+     * @param amount  The new value to set, or the delta to gain/lose
+     * @since 2.0.00
      */
-    private void handlePLAYERELEMENT(SOCPlayerElement mes)
+    private void handlePLAYERELEMENT
+        (final SOCPlayer pl, final int pn, final int action, final int etype, final int amount)
     {
-        final int pn = mes.getPlayerNumber();
-        final SOCPlayer pl = (pn != -1) ? game.getPlayer(pn) : null;
-        final int action = mes.getAction(), amount = mes.getValue();
-        final int etype = mes.getElementType();
-
         switch (etype)
         {
         case SOCPlayerElement.ROADS:

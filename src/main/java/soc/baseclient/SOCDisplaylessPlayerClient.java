@@ -601,6 +601,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
+             * receive player information.
+             * Added 2017-12-10 for v2.0.00.
+             */
+            case SOCMessage.PLAYERELEMENTS:
+                handlePLAYERELEMENTS((SOCPlayerElements) mes);
+                break;
+
+            /**
              * receive resource count
              */
             case SOCMessage.RESOURCECOUNT:
@@ -1303,7 +1311,29 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * handle the "player information" message
+     * Handle the PlayerElements message: Finds game by name, and loops calling
+     * {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, int, int)}.
+     * @param mes  the message
+     * @since 2.0.00
+     */
+    protected void handlePLAYERELEMENTS(final SOCPlayerElements mes)
+    {
+        final SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
+
+        final int pn = mes.getPlayerNumber();
+        final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
+        final int action = mes.getAction();
+        final int[] etypes = mes.getElementTypes(), amounts = mes.getValues();
+
+        for (int i = 0; i < etypes.length; ++i)
+            handlePLAYERELEMENT(ga, pl, pn, action, etypes[i], amounts[i]);
+    }
+
+    /**
+     * handle the "player information" message: Finds game by name and calls
+     * {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, int, int)}.
      * @param mes  the message
      */
     protected void handlePLAYERELEMENT(SOCPlayerElement mes)
@@ -1316,6 +1346,26 @@ public class SOCDisplaylessPlayerClient implements Runnable
         final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
         final int action = mes.getAction(), amount = mes.getValue();
         final int etype = mes.getElementType();
+
+        handlePLAYERELEMENT(ga, pl, pn, action, etype, amount);
+    }
+
+    /**
+     * Handle a player information update from a {@link SOCPlayerElement} or {@link SOCPlayerElements} message.
+     * @param ga   Game to update; does nothing if null
+     * @param pl   Player to update (sometimes null)
+     * @param pn   Player number from message (sometimes -1 for none or all)
+     * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
+     *     or {@link SOCPlayerElement#LOSE LOSE}
+     * @param etype  Element type, such as {@link SOCPlayerElement#SETTLEMENTS} or {@link SOCPlayerElement#NUMKNIGHTS}
+     * @param amount  The new value to set, or the delta to gain/lose
+     * @since 2.0.00
+     */
+    public static final void handlePLAYERELEMENT
+        (final SOCGame ga, final SOCPlayer pl, final int pn, final int action, final int etype, final int amount)
+    {
+        if (ga == null)
+            return;
 
         switch (etype)
         {
@@ -1377,7 +1427,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * Update game data for a simple player element or flag, for {@link #handlePLAYERELEMENT(SOCPlayerElement)}.
+     * Update game data for a simple player element or flag, for
+     * {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, int, int)}.
      * Handles ASK_SPECIAL_BUILD, NUM_PICK_GOLD_HEX_RESOURCES, SCENARIO_CLOTH_COUNT, etc.
      *<P>
      * To avoid code duplication, also called from
@@ -1457,7 +1508,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * Update a player's amount of a playing piece, for {@link #handlePLAYERELEMENT(SOCPlayerElement)}.
+     * Update a player's amount of a playing piece, for
+     * {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, int, int)}.
      * To avoid code duplication, also called from
      * {@link SOCPlayerClient.MessageTreater#handlePLAYERELEMENT(SOCPlayerElement)}
      * and {@link soc.robot.SOCRobotBrain#run()}.
@@ -1493,10 +1545,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * Update a player's amount of knights, and game's largest army,
-     * for {@link #handlePLAYERELEMENT(SOCPlayerElement)}.
+     * for {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, int, int)}.
      * Calls {@link SOCGame#updateLargestArmy() ga.updateLargestArmy()}.
      * To avoid code duplication, also called from
-     * {@link SOCPlayerClient.MessageTreater#handlePLAYERELEMENT(SOCPlayerElement)}
+     * {@link soc.client.SOCPlayerClient.MessageTreater#handlePLAYERELEMENT(SOCPlayerElement)}
      * and {@link soc.robot.SOCRobotBrain#run()}.
      *<P>
      * Before v2.0.00 this method directly took a {@link SOCPlayerElement} instead of that message's
@@ -1530,7 +1582,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * Update a player's amount of a resource, for {@link #handlePLAYERELEMENT(SOCPlayerElement)}.
+     * Update a player's amount of a resource, for {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, int, int)}.
      *<ul>
      *<LI> If this is a {@link SOCPlayerElement#LOSE} action, and the player does not have enough of that type,
      *     the rest are taken from the player's UNKNOWN amount.
