@@ -25,6 +25,8 @@ import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import soc.util.DataUtils;
+
 
 /**
  * This message lists all the chat channels on a server.
@@ -139,7 +141,7 @@ public class SOCChannels extends SOCMessage
     {
         StringBuffer sb = new StringBuffer("SOCChannels:channels=");
         if (channels != null)
-            enumIntoStringBuf(channels.elements(), sb);
+            DataUtils.enumIntoStringBuf(channels.elements(), sb);
         return sb.toString();
     }
 

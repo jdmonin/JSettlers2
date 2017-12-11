@@ -26,6 +26,7 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import soc.game.SOCGameOption;
+import soc.util.DataUtils;
 
 
 /**
@@ -268,7 +269,7 @@ public class SOCGameOptionGetInfos extends SOCMessage
         if (optkeys == null)
             sb.append("-");
         else
-            enumIntoStringBuf(optkeys.elements(), sb);
+            DataUtils.enumIntoStringBuf(optkeys.elements(), sb);
 
         if (hasTokenGetI18nDescs)
         {

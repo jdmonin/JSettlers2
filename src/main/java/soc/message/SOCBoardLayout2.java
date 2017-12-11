@@ -26,6 +26,7 @@ import java.util.StringTokenizer;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;  // for javadocs
 import soc.game.SOCScenario;    // for javadocs
+import soc.util.DataUtils;
 
 
 /**
@@ -479,7 +480,7 @@ public class SOCBoardLayout2 extends SOCMessage
             Object kv = layoutParts.get(okey);
             if (kv instanceof int[])
             {
-                arrayIntoStringBuf
+                DataUtils.arrayIntoStringBuf
                     ((int[]) kv, sb, ! (okey.equals("HL") || okey.equals("NL")));
             } else {
                 sb.append(kv.toString());

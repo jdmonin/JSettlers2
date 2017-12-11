@@ -22,7 +22,6 @@ package soc.message;
 import java.io.Serializable;
 
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
@@ -489,69 +488,6 @@ public abstract class SOCMessage implements Serializable, Cloneable
     /** Simple human-readable representation, used for debug purposes. */
     @Override
     public abstract String toString();
-
-    /**
-     * For use in toString: Append int array contents to stringbuffer,
-     * formatted as "{ 1 2 3 4 5 }".
-     * @param ia  int array to append. 0 length is allowed, null is not.
-     * @param sb  StringBuffer to which <tt>ia</tt> will be appended, as "{ 1 2 3 4 5 }"
-     * @param useHex  If true, append <tt>ia</tt> as hexidecimal strings.
-     *            Uses {@link Integer#toHexString(int)} after checking the sign bit.
-     *            (Added in 2.0.00)
-     * @throws NullPointerException if <tt>ia</tt> or <tt>sb</tt> is null
-     * @since 1.1.09
-     */
-    protected static void arrayIntoStringBuf(final int[] ia, StringBuffer sb, final boolean useHex)
-        throws NullPointerException
-    {
-        sb.append("{");
-        for (int i = 0; i < ia.length; ++i)
-        {
-            sb.append(' ');
-            if (! useHex)
-            {
-                sb.append(ia[i]);
-            } else {
-                final int iai = ia[i];
-                if (iai >= 0)
-                {
-                    sb.append(Integer.toHexString(iai));
-                } else {
-                    sb.append('-');
-                    sb.append(Integer.toHexString(-iai));
-                }
-            }
-        }
-        sb.append(" }");
-    }
-
-    /**
-     * For use in toString: Append string enum contents to stringbuffer,
-     * formatted as "a,b,c,d,e".
-     * @param se  Enum of String to append. 0 length is allowed, null is not allowed.
-     * @param sb  StringBuffer to which <tt>se</tt> will be appended, as "a,b,c,d,e"
-     * @throws ClassCastException if <tt>se.nextElement()</tt> returns non-String
-     * @throws NullPointerException if <tt>se</tt> or <tt>sb</tt> is null
-     * @since 1.1.09
-     */
-    protected static void enumIntoStringBuf(final Enumeration<String> se, StringBuffer sb)
-        throws ClassCastException, NullPointerException
-    {
-        if (! se.hasMoreElements())
-            return;
-        try
-        {
-            sb.append (se.nextElement());
-
-            while (se.hasMoreElements())
-            {
-                sb.append(',');
-                sb.append(se.nextElement());
-            }
-        }
-        catch (ClassCastException cce) { throw cce; }
-        catch (Exception e) {}
-    }
 
     /**
      * Utility, get the short simple name of the class: SOCResetBoardVote, not soc.message.SOCResetBoardVote
@@ -1024,4 +960,5 @@ public abstract class SOCMessage implements Serializable, Cloneable
             return null;
         }
     }
+
 }
