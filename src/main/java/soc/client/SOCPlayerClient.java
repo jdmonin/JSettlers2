@@ -4452,147 +4452,151 @@ public class SOCPlayerClient
     {
         final SOCGame ga = games.get(mes.getGame());
 
-        if (ga != null)
+        if (ga == null)
+            return;
+
+        final int pn = mes.getPlayerNumber();
+        final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
+        final int action = mes.getAction(), amount = mes.getValue();
+        final int etype = mes.getElementType();
+
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        PlayerClientListener.UpdateType utype = null;  // If not null, update this type's amount display
+
+        switch (etype)
         {
-            final int pn = mes.getPlayerNumber();
-            final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
-            final int action = mes.getAction(), amount = mes.getValue();
+        case SOCPlayerElement.ROADS:
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
+                (pl, action, SOCPlayingPiece.ROAD, amount);
+            utype = PlayerClientListener.UpdateType.Road;
+            break;
 
-            PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            PlayerClientListener.UpdateType utype = null;  // If not null, update this type's amount display
-            final int etype = mes.getElementType();
+        case SOCPlayerElement.SETTLEMENTS:
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
+                (pl, action, SOCPlayingPiece.SETTLEMENT, amount);
+            utype = PlayerClientListener.UpdateType.Settlement;
+            break;
 
-            switch (etype)
+        case SOCPlayerElement.CITIES:
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
+                (pl, action, SOCPlayingPiece.CITY, amount);
+            utype = PlayerClientListener.UpdateType.City;
+            break;
+
+        case SOCPlayerElement.SHIPS:
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
+                (pl, action, SOCPlayingPiece.SHIP, amount);
+            utype = PlayerClientListener.UpdateType.Ship;
+            break;
+
+        case SOCPlayerElement.NUMKNIGHTS:
+            // PLAYERELEMENT(NUMKNIGHTS) is sent after a Soldier card is played.
             {
-            case SOCPlayerElement.ROADS:
-                SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                    (pl, action, SOCPlayingPiece.ROAD, amount);
-                utype = PlayerClientListener.UpdateType.Road;
-                break;
+                final SOCPlayer oldLargestArmyPlayer = ga.getPlayerWithLargestArmy();
+                SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numKnights
+                    (ga, pl, action, amount);
+                utype = PlayerClientListener.UpdateType.Knight;
 
-            case SOCPlayerElement.SETTLEMENTS:
-                SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                    (pl, action, SOCPlayingPiece.SETTLEMENT, amount);
-                utype = PlayerClientListener.UpdateType.Settlement;
-                break;
-
-            case SOCPlayerElement.CITIES:
-                SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                    (pl, action, SOCPlayingPiece.CITY, amount);
-                utype = PlayerClientListener.UpdateType.City;
-                break;
-
-            case SOCPlayerElement.SHIPS:
-                SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                    (pl, action, SOCPlayingPiece.SHIP, amount);
-                utype = PlayerClientListener.UpdateType.Ship;
-                break;
-
-            case SOCPlayerElement.NUMKNIGHTS:
-                // PLAYERELEMENT(NUMKNIGHTS) is sent after a Soldier card is played.
-                {
-                    final SOCPlayer oldLargestArmyPlayer = ga.getPlayerWithLargestArmy();
-                    SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numKnights
-                        (ga, pl, action, amount);
-                    utype = PlayerClientListener.UpdateType.Knight;
-
-                    // Check for change in largest-army player; update handpanels'
-                    // LARGESTARMY and VICTORYPOINTS counters if so, and
-                    // announce with text message.
-                    pcl.largestArmyRefresh(oldLargestArmyPlayer, ga.getPlayerWithLargestArmy());
-                }
-
-                break;
-
-            case SOCPlayerElement.CLAY:
-                SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-                    (pl, action, SOCResourceConstants.CLAY, amount);
-                utype = PlayerClientListener.UpdateType.Clay;
-                break;
-
-            case SOCPlayerElement.ORE:
-                SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-                    (pl, action, SOCResourceConstants.ORE, amount);
-                utype = PlayerClientListener.UpdateType.Ore;
-                break;
-
-            case SOCPlayerElement.SHEEP:
-                SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-                    (pl, action, SOCResourceConstants.SHEEP, amount);
-                utype = PlayerClientListener.UpdateType.Sheep;
-                break;
-
-            case SOCPlayerElement.WHEAT:
-                SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-                    (pl, action, SOCResourceConstants.WHEAT, amount);
-                utype = PlayerClientListener.UpdateType.Wheat;
-                break;
-
-            case SOCPlayerElement.WOOD:
-                SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-                    (pl, action, SOCResourceConstants.WOOD, amount);
-                utype = PlayerClientListener.UpdateType.Wood;
-                break;
-
-            case SOCPlayerElement.UNKNOWN:
-                /**
-                 * Note: if losing unknown resources, we first
-                 * convert player's known resources to unknown resources,
-                 * then remove mes's unknown resources from player.
-                 */
-                SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-                    (pl, action, SOCResourceConstants.UNKNOWN, amount);
-                utype = PlayerClientListener.UpdateType.Unknown;
-                break;
-
-            case SOCPlayerElement.ASK_SPECIAL_BUILD:
-                SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple(mes, ga, pl, pn);
-                // This case is not really an element update, so route as a 'request'
-                pcl.requestedSpecialBuild(pl);
-                break;
-
-            case SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES:
-                SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple(mes, ga, pl, pn);
-                pcl.requestedGoldResourceCountUpdated(pl, 0);
-                break;
-
-            case SOCPlayerElement.SCENARIO_SVP:
-                pl.setSpecialVP(amount);
-                utype = PlayerClientListener.UpdateType.SpecialVictoryPoints;
-                break;
-
-            case SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK:
-            case SOCPlayerElement.SCENARIO_SVP_LANDAREAS_BITMASK:
-            case SOCPlayerElement.STARTING_LANDAREAS:
-                SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple(mes, ga, pl, pn);
-                break;
-
-            case SOCPlayerElement.SCENARIO_CLOTH_COUNT:
-                if (pn != -1)
-                {
-                    pl.setCloth(amount);
-                } else {
-                    ((SOCBoardLarge) (ga.getBoard())).setCloth(amount);
-                }
-                utype = PlayerClientListener.UpdateType.Cloth;
-                break;
-
-            case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
-                SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple(mes, ga, pl, pn);
-                utype = PlayerClientListener.UpdateType.Warship;
-                break;
-
+                // Check for change in largest-army player; update handpanels'
+                // LARGESTARMY and VICTORYPOINTS counters if so, and
+                // announce with text message.
+                pcl.largestArmyRefresh(oldLargestArmyPlayer, ga.getPlayerWithLargestArmy());
             }
 
-            if ((pcl != null) && (utype != null))
+            break;
+
+        case SOCPlayerElement.CLAY:
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
+                (pl, action, SOCResourceConstants.CLAY, amount);
+            utype = PlayerClientListener.UpdateType.Clay;
+            break;
+
+        case SOCPlayerElement.ORE:
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
+                (pl, action, SOCResourceConstants.ORE, amount);
+            utype = PlayerClientListener.UpdateType.Ore;
+            break;
+
+        case SOCPlayerElement.SHEEP:
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
+                (pl, action, SOCResourceConstants.SHEEP, amount);
+            utype = PlayerClientListener.UpdateType.Sheep;
+            break;
+
+        case SOCPlayerElement.WHEAT:
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
+                (pl, action, SOCResourceConstants.WHEAT, amount);
+            utype = PlayerClientListener.UpdateType.Wheat;
+            break;
+
+        case SOCPlayerElement.WOOD:
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
+                (pl, action, SOCResourceConstants.WOOD, amount);
+            utype = PlayerClientListener.UpdateType.Wood;
+            break;
+
+        case SOCPlayerElement.UNKNOWN:
+            /**
+             * Note: if losing unknown resources, we first
+             * convert player's known resources to unknown resources,
+             * then remove mes's unknown resources from player.
+             */
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
+                (pl, action, SOCResourceConstants.UNKNOWN, amount);
+            utype = PlayerClientListener.UpdateType.Unknown;
+            break;
+
+        case SOCPlayerElement.ASK_SPECIAL_BUILD:
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
+                (ga, pl, pn, action, etype, amount);
+            // This case is not really an element update, so route as a 'request'
+            pcl.requestedSpecialBuild(pl);
+            break;
+
+        case SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES:
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
+                (ga, pl, pn, action, etype, amount);
+            pcl.requestedGoldResourceCountUpdated(pl, 0);
+            break;
+
+        case SOCPlayerElement.SCENARIO_SVP:
+            pl.setSpecialVP(amount);
+            utype = PlayerClientListener.UpdateType.SpecialVictoryPoints;
+            break;
+
+        case SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK:
+        case SOCPlayerElement.SCENARIO_SVP_LANDAREAS_BITMASK:
+        case SOCPlayerElement.STARTING_LANDAREAS:
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
+                (ga, pl, pn, action, etype, amount);
+            break;
+
+        case SOCPlayerElement.SCENARIO_CLOTH_COUNT:
+            if (pn != -1)
             {
-                if (! mes.isNews())
-                    pcl.playerElementUpdated(pl, utype, false, false);
-                else if (action == SOCPlayerElement.GAIN)
-                    pcl.playerElementUpdated(pl, utype, true, false);
-                else
-                    pcl.playerElementUpdated(pl, utype, false, true);
+                pl.setCloth(amount);
+            } else {
+                ((SOCBoardLarge) (ga.getBoard())).setCloth(amount);
             }
+            utype = PlayerClientListener.UpdateType.Cloth;
+            break;
+
+        case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
+                (ga, pl, pn, action, etype, amount);
+            utype = PlayerClientListener.UpdateType.Warship;
+            break;
+
+        }
+
+        if ((pcl != null) && (utype != null))
+        {
+            if (! mes.isNews())
+                pcl.playerElementUpdated(pl, utype, false, false);
+            else if (action == SOCPlayerElement.GAIN)
+                pcl.playerElementUpdated(pl, utype, true, false);
+            else
+                pcl.playerElementUpdated(pl, utype, false, true);
         }
     }
 

@@ -1309,70 +1309,70 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handlePLAYERELEMENT(SOCPlayerElement mes)
     {
         final SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
+        final int pn = mes.getPlayerNumber();
+        final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
+        final int action = mes.getAction(), amount = mes.getValue();
+        final int etype = mes.getElementType();
+
+        switch (etype)
         {
-            final int pn = mes.getPlayerNumber();
-            final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
-            final int action = mes.getAction(), amount = mes.getValue();
+        case SOCPlayerElement.ROADS:
+            handlePLAYERELEMENT_numPieces(pl, action, SOCPlayingPiece.ROAD, amount);
+            break;
 
-            switch (mes.getElementType())
-            {
-            case SOCPlayerElement.ROADS:
-                handlePLAYERELEMENT_numPieces(pl, action, SOCPlayingPiece.ROAD, amount);
-                break;
+        case SOCPlayerElement.SETTLEMENTS:
+            handlePLAYERELEMENT_numPieces(pl, action, SOCPlayingPiece.SETTLEMENT, amount);
+            break;
 
-            case SOCPlayerElement.SETTLEMENTS:
-                handlePLAYERELEMENT_numPieces(pl, action, SOCPlayingPiece.SETTLEMENT, amount);
-                break;
+        case SOCPlayerElement.CITIES:
+            handlePLAYERELEMENT_numPieces(pl, action, SOCPlayingPiece.CITY, amount);
+            break;
 
-            case SOCPlayerElement.CITIES:
-                handlePLAYERELEMENT_numPieces(pl, action, SOCPlayingPiece.CITY, amount);
-                break;
+        case SOCPlayerElement.SHIPS:
+            handlePLAYERELEMENT_numPieces(pl, action, SOCPlayingPiece.SHIP, amount);
+            break;
 
-            case SOCPlayerElement.SHIPS:
-                handlePLAYERELEMENT_numPieces(pl, action, SOCPlayingPiece.SHIP, amount);
-                break;
+        case SOCPlayerElement.NUMKNIGHTS:
+            // PLAYERELEMENT(NUMKNIGHTS) is sent after a Soldier card is played.
+            handlePLAYERELEMENT_numKnights(ga, pl, action, amount);
+            break;
 
-            case SOCPlayerElement.NUMKNIGHTS:
-                // PLAYERELEMENT(NUMKNIGHTS) is sent after a Soldier card is played.
-                handlePLAYERELEMENT_numKnights(ga, pl, action, amount);
-                break;
+        case SOCPlayerElement.CLAY:
+            handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.CLAY, amount);
+            break;
 
-            case SOCPlayerElement.CLAY:
-                handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.CLAY, amount);
-                break;
+        case SOCPlayerElement.ORE:
+            handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.ORE, amount);
+            break;
 
-            case SOCPlayerElement.ORE:
-                handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.ORE, amount);
-                break;
+        case SOCPlayerElement.SHEEP:
+            handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.SHEEP, amount);
+            break;
 
-            case SOCPlayerElement.SHEEP:
-                handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.SHEEP, amount);
-                break;
+        case SOCPlayerElement.WHEAT:
+            handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.WHEAT, amount);
+            break;
 
-            case SOCPlayerElement.WHEAT:
-                handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.WHEAT, amount);
-                break;
+        case SOCPlayerElement.WOOD:
+            handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.WOOD, amount);
+            break;
 
-            case SOCPlayerElement.WOOD:
-                handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.WOOD, amount);
-                break;
+        case SOCPlayerElement.UNKNOWN:
+            /**
+             * Note: if losing unknown resources, we first
+             * convert player's known resources to unknown resources,
+             * then remove mes's unknown resources from player.
+             */
+            handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.UNKNOWN, amount);
+            break;
 
-            case SOCPlayerElement.UNKNOWN:
-                /**
-                 * Note: if losing unknown resources, we first
-                 * convert player's known resources to unknown resources,
-                 * then remove mes's unknown resources from player.
-                 */
-                handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.UNKNOWN, amount);
-                break;
+        default:
+            handlePLAYERELEMENT_simple(ga, pl, pn, action, etype, amount);
+            break;
 
-            default:
-                handlePLAYERELEMENT_simple(mes, ga, pl, pn);
-                break;
-
-            }
         }
     }
 
@@ -1383,19 +1383,23 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * To avoid code duplication, also called from
      * {@link SOCPlayerClient.MessageTreater#handlePLAYERELEMENT(SOCPlayerElement)}
      * and {@link soc.robot.SOCRobotBrain#run()}.
+     *<P>
+     * Before v2.0.00 this method directly took a {@link SOCPlayerElement} instead of that message's
+     * {@code action}, {@code etype}, and {@code val} fields.
      *
-     * @param mes  Message with amount and action (SET/GAIN/LOSE)
      * @param ga   Game to update
      * @param pl   Player to update
      * @param pn   Player number from message (sometimes -1 for none)
+     * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
+     *     or {@link SOCPlayerElement#LOSE LOSE}
+     * @param etype  Element type, such as {@link SOCPlayerElement#SETTLEMENTS} or {@link SOCPlayerElement#NUMKNIGHTS}
+     * @param val  The new value to set, or the delta to gain/lose
      * @since 2.0.00
      */
     public static void handlePLAYERELEMENT_simple
-        (SOCPlayerElement mes, SOCGame ga, SOCPlayer pl, final int pn)
+        (SOCGame ga, SOCPlayer pl, final int pn, final int action, final int etype, final int val)
     {
-        final int val = mes.getValue();
-
-        switch (mes.getElementType())
+        switch (etype)
         {
         case SOCPlayerElement.ASK_SPECIAL_BUILD:
             if (0 != val)
@@ -1437,7 +1441,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             break;
 
         case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
-            switch (mes.getAction())
+            switch (action)
             {
             case SOCPlayerElement.SET:
                 pl.setNumWarships(val);

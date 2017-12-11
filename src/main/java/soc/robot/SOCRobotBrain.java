@@ -3608,8 +3608,9 @@ public class SOCRobotBrain extends Thread
         final int pn = mes.getPlayerNumber();
         final SOCPlayer pl = (pn != -1) ? game.getPlayer(pn) : null;
         final int action = mes.getAction(), amount = mes.getValue();
+        final int etype = mes.getElementType();
 
-        switch (mes.getElementType())
+        switch (etype)
         {
         case SOCPlayerElement.ROADS:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
@@ -3685,7 +3686,8 @@ public class SOCRobotBrain extends Thread
             // handle ASK_SPECIAL_BUILD, NUM_PICK_GOLD_HEX_RESOURCES, SCENARIO_CLOTH_COUNT, etc;
             // those are all self-contained informational fields that don't need any reaction from a bot.
 
-            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple(mes, game, pl, pn);
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
+                (game, pl, pn, action, etype, amount);
             break;
 
         }
