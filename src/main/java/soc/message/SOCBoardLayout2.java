@@ -101,7 +101,7 @@ public class SOCBoardLayout2 extends SOCMessage
     public static final int VERSION_FOR_BOARDLAYOUT2 = 1108;
 
     /**
-     * These hex land type numbers mapped when sent over the network in layout part <tt>HL</tt>.
+     * These hex land type values are remapped when sent over the network in layout part <tt>HL</tt>.
      * Compare to {@link SOCBoard#WATER_HEX}, {@link SOCBoard#DESERT_HEX}.
      * @since 2.0.00
      */
