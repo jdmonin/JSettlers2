@@ -67,13 +67,20 @@ public class SOCPlayerElement extends SOCMessage
     public static final int SHEEP = 3;
     public static final int WHEAT = 4;
     public static final int WOOD = 5;
+
+    /**
+     * Amount of resources of unknown type; sent in messages about opponents' resources.
+     * For some loops which send resource types + unknown, this constant is assumed to be 6
+     * (5 known resource types + 1).
+     */
     public static final int UNKNOWN = 6;
+
     public static final int ROADS = 10;
     public static final int SETTLEMENTS = 11;
     public static final int CITIES = 12;
 
     /**
-     * Number of SHIP pieces; added in v2.0.00.
+     * Number of SHIP pieces available to place; added in v2.0.00.
      * @since 2.0.00
      */
     public static final int SHIPS = 13;

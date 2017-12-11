@@ -37,16 +37,8 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
 {
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
-    /** Introduced in version 1.1.09 */
-    public static final int VERSION = 1109;
-
-    /**
-     * The original 5 named resources, for convenience:
-     * {@link SOCPlayerElement#CLAY}, ORE, SHEEP, WHEAT, {@link SOCPlayerElement#WOOD}.
-     */
-    public static final int[] NAMED_RESOURCES =
-        {SOCPlayerElement.CLAY, SOCPlayerElement.ORE, SOCPlayerElement.SHEEP,
-         SOCPlayerElement.WHEAT, SOCPlayerElement.WOOD};
+    /** Minimum client version required: v2.0.00 */
+    public static final int VERSION = 2000;
 
     /**
      * Player number; some elements allow -1 to apply to all players
@@ -101,12 +93,12 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
     }
 
     /**
-     * Minimum version where this message type is used.
-     * PLAYERELEMENTS introduced in 1.1.09 for game-options feature
+     * Minimum version where this message type is used ({@link #VERSION}).
+     * PLAYERELEMENTS was introduced in 1.1.09 for the game-options feature
      * but unused until 2.0.00.
-     * @return Version number, 2000 for JSettlers 2.0.00.
+     * @return Version number, 2000 for JSettlers v2.0.00.
      */
-    public int getMinimumVersion() { return 2000; }
+    public int getMinimumVersion() { return VERSION; }
 
     /**
      * @return the player number; some elements allow -1 to apply to all players

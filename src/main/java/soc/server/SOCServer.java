@@ -2922,7 +2922,7 @@ public class SOCServer extends Server
     }
 
     /**
-     * Send a message to a player and record it
+     * Send a message to a player, and record it if that debugging type is enabled.
      *
      * @param c   the player connection
      * @param mes the message to send

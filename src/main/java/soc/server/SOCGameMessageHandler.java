@@ -581,8 +581,15 @@ public class SOCGameMessageHandler
 
                             // CLAY, ORE, SHEEP, WHEAT, WOOD
                             final SOCResourceSet resources = pp.getResources();
-                            for (int res = SOCPlayerElement.CLAY; res <= SOCPlayerElement.WOOD; ++res)
-                                srv.messageToPlayer(playerCon, new SOCPlayerElement(gn, pn, SOCPlayerElement.SET, res, resources.getAmount(res)));
+                            final int[] counts = resources.getAmounts(false);
+                            if (playerCon.getVersion() >= SOCPlayerElements.VERSION)
+                                srv.messageToPlayer(playerCon, new SOCPlayerElements
+                                    (gn, pn, SOCPlayerElement.SET, SOCGameHandler.ELEM_RESOURCES, counts));
+                            else
+                                for (int i = 0; i < counts.length; ++i)
+                                    srv.messageToPlayer(playerCon, new SOCPlayerElement
+                                        (gn, pn, SOCPlayerElement.SET, SOCGameHandler.ELEM_RESOURCES[i], counts[i]));
+
                             srv.messageToGame(gn, new SOCResourceCount(gn, pn, resources.getTotal()));
 
                             // we'll send gold picks text, PLAYERELEMENT, and SIMPLEREQUEST(PROMPT_PICK_RESOURCES)

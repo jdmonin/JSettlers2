@@ -74,6 +74,7 @@ import soc.message.SOCMovePieceRequest;
 import soc.message.SOCMoveRobber;
 import soc.message.SOCPieceValue;
 import soc.message.SOCPlayerElement;
+import soc.message.SOCPlayerElements;
 import soc.message.SOCPlayerStats;
 import soc.message.SOCPotentialSettlements;
 import soc.message.SOCPutPiece;
@@ -190,6 +191,63 @@ public class SOCGameHandler extends GameHandler
         "--- Scenario Debugging ---",  // see processDebugCommand_scenario(..)
         "For SC_FTRI: *scen* giveport #typenum #placeflag player",
         };
+
+    /**
+     * The 5 resource types, for sending {@link SOCPlayerElements}:
+     * {@link SOCPlayerElement#CLAY}, ORE, SHEEP, WHEAT, {@link SOCPlayerElement#WOOD}.
+     * @see #ELEM_RESOURCES_WITH_UNKNOWN
+     * @since 2.0.00
+     */
+    public static final int[] ELEM_RESOURCES =
+        {SOCPlayerElement.CLAY, SOCPlayerElement.ORE, SOCPlayerElement.SHEEP,
+         SOCPlayerElement.WHEAT, SOCPlayerElement.WOOD};
+
+    /**
+     * The 5 resource types plus Unknown, for sending {@link SOCPlayerElements}:
+     * {@link SOCPlayerElement#CLAY}, ORE, SHEEP, WHEAT, {@link SOCPlayerElement#WOOD},
+     * {@link SOCPlayerElement#UNKNOWN}.
+     * @see #ELEM_RESOURCES
+     * @since 2.0.00
+     */
+    public static final int[] ELEM_RESOURCES_WITH_UNKNOWN =
+        {SOCPlayerElement.CLAY, SOCPlayerElement.ORE, SOCPlayerElement.SHEEP,
+         SOCPlayerElement.WHEAT, SOCPlayerElement.WOOD, SOCPlayerElement.UNKNOWN};
+
+    /**
+     * Classic board piece type elements, for sending {@link SOCPlayerElements}:
+     * {@link #ELEM_PIECETYPES_SEA} without {@link SOCPlayerElement#SHIPS}.
+     * @since 2.0.00
+     */
+    private static final int[] ELEM_PIECETYPES_CLASSIC =
+        { SOCPlayerElement.ROADS, SOCPlayerElement.SETTLEMENTS, SOCPlayerElement.CITIES };
+
+    /**
+     * Sea board piece type elements, for sending {@link SOCPlayerElements}:
+     * {@link #ELEM_PIECETYPES_CLASSIC} plus {@link SOCPlayerElement#SHIPS}.
+     * @since 2.0.00
+     */
+    private static final int[] ELEM_PIECETYPES_SEA =
+        { SOCPlayerElement.ROADS, SOCPlayerElement.SETTLEMENTS, SOCPlayerElement.CITIES, SOCPlayerElement.SHIPS };
+
+    /**
+     * For {@link #joinGame}; element types for unknown resources, {@link SOCPlayerElement#NUMKNIGHTS},
+     * and classic piece types, for sending {@link SOCPlayerElements}:
+     * {@link #ELEM_JOINGAME_WITH_PIECETYPES_SEA} without {@link SOCPlayerElement#SHIPS}.
+     * @since 2.0.00
+     */
+    private static final int[] ELEM_JOINGAME_WITH_PIECETYPES_CLASSIC =
+        { SOCPlayerElement.UNKNOWN, SOCPlayerElement.NUMKNIGHTS,
+          SOCPlayerElement.ROADS, SOCPlayerElement.SETTLEMENTS, SOCPlayerElement.CITIES };
+
+    /**
+     * For {@link #joinGame}; element types for unknown resources, {@link SOCPlayerElement#NUMKNIGHTS},
+     * and classic piece types, for sending {@link SOCPlayerElements}:
+     * {@link #ELEM_JOINGAME_WITH_PIECETYPES_CLASSIC} plus {@link SOCPlayerElement#SHIPS}.
+     * @since 2.0.00
+     */
+    private static final int[] ELEM_JOINGAME_WITH_PIECETYPES_SEA =
+        { SOCPlayerElement.UNKNOWN, SOCPlayerElement.NUMKNIGHTS,
+          SOCPlayerElement.ROADS, SOCPlayerElement.SETTLEMENTS, SOCPlayerElement.CITIES, SOCPlayerElement.SHIPS };
 
     /**
      * Game message handler for {@link SOCGameHandler}, shared by all game instances of this type.
@@ -1166,17 +1224,24 @@ public class SOCGameHandler extends GameHandler
             c.put(SOCLastSettlement.toCmd(gameName, i, pl.getLastSettlementCoord()));
 
             /**
-             * send number of playing pieces in hand
+             * send resources, knight cards played, number of playing pieces in hand
              */
-            c.put(SOCPlayerElement.toCmd(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.ROADS, pl.getNumPieces(SOCPlayingPiece.ROAD)));
-            c.put(SOCPlayerElement.toCmd(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SETTLEMENTS, pl.getNumPieces(SOCPlayingPiece.SETTLEMENT)));
-            c.put(SOCPlayerElement.toCmd(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.CITIES, pl.getNumPieces(SOCPlayingPiece.CITY)));
+            final int[] counts = new int[(gameData.hasSeaBoard) ? 6 : 5];
+            counts[0] = pl.getResources().getTotal();  // will send with SOCPlayerElement.UNKNOWN
+            counts[1] = pl.getNumKnights();
+            counts[2] = pl.getNumPieces(SOCPlayingPiece.ROAD);
+            counts[3] = pl.getNumPieces(SOCPlayingPiece.SETTLEMENT);
+            counts[4] = pl.getNumPieces(SOCPlayingPiece.CITY);
             if (gameData.hasSeaBoard)
-                c.put(SOCPlayerElement.toCmd(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SHIPS, pl.getNumPieces(SOCPlayingPiece.SHIP)));
-
-            c.put(SOCPlayerElement.toCmd(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.UNKNOWN, pl.getResources().getTotal()));
-
-            c.put(SOCPlayerElement.toCmd(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.NUMKNIGHTS, pl.getNumKnights()));
+                counts[5] = pl.getNumPieces(SOCPlayingPiece.SHIP);
+            if (c.getVersion() >= SOCPlayerElements.VERSION)
+                c.put(new SOCPlayerElements
+                    (gameName, i, SOCPlayerElement.SET,
+                     (gameData.hasSeaBoard) ? ELEM_JOINGAME_WITH_PIECETYPES_SEA : ELEM_JOINGAME_WITH_PIECETYPES_CLASSIC,
+                     counts).toCmd());
+            else
+                for (int j = 0; j < counts.length; ++j)
+                    c.put(SOCPlayerElement.toCmd(gameName, i, SOCPlayerElement.SET, ELEM_PIECETYPES_SEA[j], counts[j]));
 
             final int numDevCards = pl.getInventory().getTotal();
             final int unknownType;
@@ -1426,8 +1491,14 @@ public class SOCGameHandler extends GameHandler
          */
         SOCResourceSet resources = pl.getResources();
         // CLAY, ORE, SHEEP, WHEAT, WOOD, UNKNOWN
-        for (int res = SOCPlayerElement.CLAY; res <= SOCPlayerElement.UNKNOWN; ++res)
-            srv.messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, res, resources.getAmount(res)));
+        final int[] counts = resources.getAmounts(true);
+        if (c.getVersion() >= SOCPlayerElements.VERSION)
+            srv.messageToPlayer(c, new SOCPlayerElements
+                (gaName, pn, SOCPlayerElement.SET, ELEM_RESOURCES_WITH_UNKNOWN, counts));
+        else
+            for (int i = 0; i < counts.length; ++i)
+                srv.messageToPlayer(c, new SOCPlayerElement
+                    (gaName, pn, SOCPlayerElement.SET, ELEM_RESOURCES_WITH_UNKNOWN[i], counts[i]));
 
         SOCInventory cardsInv = pl.getInventory();
 
@@ -2615,7 +2686,13 @@ public class SOCGameHandler extends GameHandler
         {
             if (! ga.isSeatVacant(i))
             {
-                SOCPlayer pl = ga.getPlayer(i);
+                final SOCPlayer pl = ga.getPlayer(i);
+
+                final int[] counts = new int[(ga.hasSeaBoard) ? 4 : 3];
+                counts[0] = pl.getNumPieces(SOCPlayingPiece.ROAD);
+                counts[1] = pl.getNumPieces(SOCPlayingPiece.SETTLEMENT);
+                counts[2] = pl.getNumPieces(SOCPlayingPiece.CITY);
+
                 if (ga.hasSeaBoard)
                 {
                     // Some scenarios like SC_PIRI may place initial pieces at fixed locations.
@@ -2642,11 +2719,18 @@ public class SOCGameHandler extends GameHandler
                                 (gaName, new SOCPutPiece(gaName, i, pp.getType(), pp.getCoordinates()));
                     }
 
-                    srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.SHIPS, pl.getNumPieces(SOCPlayingPiece.SHIP)));
+                    counts[3] = pl.getNumPieces(SOCPlayingPiece.SHIP);
                 }
-                srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.ROADS, pl.getNumPieces(SOCPlayingPiece.ROAD)));
-                srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.SETTLEMENTS, pl.getNumPieces(SOCPlayingPiece.SETTLEMENT)));
-                srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.CITIES, pl.getNumPieces(SOCPlayingPiece.CITY)));
+
+                if (ga.clientVersionLowest >= SOCPlayerElements.VERSION)
+                    srv.messageToGameWithMon(gaName, new SOCPlayerElements
+                        (gaName, i, SOCPlayerElement.SET,
+                         (ga.hasSeaBoard) ? ELEM_PIECETYPES_SEA : ELEM_PIECETYPES_CLASSIC, counts));
+                else
+                    for (int j = 0; j < counts.length; ++j)
+                        srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                            (gaName, i, SOCPlayerElement.SET, ELEM_PIECETYPES_SEA[j], counts[j]));
+
                 srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, i, false));
             }
         }
