@@ -622,6 +622,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
+             * receive player information.
+             * Added 2017-12-10 for v2.0.00.
+             */
+            case SOCMessage.PLAYERELEMENTS:
+                handlePLAYERELEMENTS((SOCPlayerElements) mes);
+                break;
+
+            /**
              * receive resource count
              */
             case SOCMessage.RESOURCECOUNT:
@@ -1315,108 +1323,146 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * handle the "player information" message
+     * Handle the PlayerElements message: Finds game by name, and loops calling
+     * {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, int, int)}.
+     * @param mes  the message
+     * @since 2.0.00
+     */
+    protected void handlePLAYERELEMENTS(final SOCPlayerElements mes)
+    {
+        final SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
+
+        final int pn = mes.getPlayerNumber();
+        final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
+        final int action = mes.getAction();
+        final int[] etypes = mes.getElementTypes(), amounts = mes.getValues();
+
+        for (int i = 0; i < etypes.length; ++i)
+            handlePLAYERELEMENT(ga, pl, pn, action, etypes[i], amounts[i]);
+    }
+
+    /**
+     * handle the "player information" message: Finds game by name and calls
+     * {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, int, int)}.
      * @param mes  the message
      */
     protected void handlePLAYERELEMENT(SOCPlayerElement mes)
     {
         final SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
+        final int pn = mes.getPlayerNumber();
+        final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
+        final int action = mes.getAction(), amount = mes.getValue();
+        final int etype = mes.getElementType();
+
+        handlePLAYERELEMENT(ga, pl, pn, action, etype, amount);
+    }
+
+    /**
+     * Handle a player information update from a {@link SOCPlayerElement} or {@link SOCPlayerElements} message.
+     * @param ga   Game to update; does nothing if null
+     * @param pl   Player to update (sometimes null)
+     * @param pn   Player number from message (sometimes -1 for none or all)
+     * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
+     *     or {@link SOCPlayerElement#LOSE LOSE}
+     * @param etype  Element type, such as {@link SOCPlayerElement#SETTLEMENTS} or {@link SOCPlayerElement#NUMKNIGHTS}
+     * @param amount  The new value to set, or the delta to gain/lose
+     * @since 2.0.00
+     */
+    public static final void handlePLAYERELEMENT
+        (final SOCGame ga, final SOCPlayer pl, final int pn, final int action, final int etype, final int amount)
+    {
+        if (ga == null)
+            return;
+
+        switch (etype)
         {
-            final int pn = mes.getPlayerNumber();
-            final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
+        case SOCPlayerElement.ROADS:
+            handlePLAYERELEMENT_numPieces(pl, action, SOCPlayingPiece.ROAD, amount);
+            break;
 
-            switch (mes.getElementType())
-            {
-            case SOCPlayerElement.ROADS:
+        case SOCPlayerElement.SETTLEMENTS:
+            handlePLAYERELEMENT_numPieces(pl, action, SOCPlayingPiece.SETTLEMENT, amount);
+            break;
 
-                handlePLAYERELEMENT_numPieces(mes, pl, SOCPlayingPiece.ROAD);
-                break;
+        case SOCPlayerElement.CITIES:
+            handlePLAYERELEMENT_numPieces(pl, action, SOCPlayingPiece.CITY, amount);
+            break;
 
-            case SOCPlayerElement.SETTLEMENTS:
+        case SOCPlayerElement.SHIPS:
+            handlePLAYERELEMENT_numPieces(pl, action, SOCPlayingPiece.SHIP, amount);
+            break;
 
-                handlePLAYERELEMENT_numPieces(mes, pl, SOCPlayingPiece.SETTLEMENT);
-                break;
+        case SOCPlayerElement.NUMKNIGHTS:
+            // PLAYERELEMENT(NUMKNIGHTS) is sent after a Soldier card is played.
+            handlePLAYERELEMENT_numKnights(ga, pl, action, amount);
+            break;
 
-            case SOCPlayerElement.CITIES:
+        case SOCPlayerElement.CLAY:
+            handlePLAYERELEMENT_numRsrc(pl, action, Data.ResourceType.CLAY_VALUE, amount);
+            break;
 
-                handlePLAYERELEMENT_numPieces(mes, pl, SOCPlayingPiece.CITY);
-                break;
+        case SOCPlayerElement.ORE:
+            handlePLAYERELEMENT_numRsrc(pl, action, Data.ResourceType.ORE_VALUE, amount);
+            break;
 
-            case SOCPlayerElement.SHIPS:
-                handlePLAYERELEMENT_numPieces(mes, pl, SOCPlayingPiece.SHIP);
-                break;
+        case SOCPlayerElement.SHEEP:
+            handlePLAYERELEMENT_numRsrc(pl, action, Data.ResourceType.SHEEP_VALUE, amount);
+            break;
 
-            case SOCPlayerElement.NUMKNIGHTS:
+        case SOCPlayerElement.WHEAT:
+            handlePLAYERELEMENT_numRsrc(pl, action, Data.ResourceType.WHEAT_VALUE, amount);
+            break;
 
-                // PLAYERELEMENT(NUMKNIGHTS) is sent after a Soldier card is played.
-                handlePLAYERELEMENT_numKnights(mes, pl, ga);
-                break;
+        case SOCPlayerElement.WOOD:
+            handlePLAYERELEMENT_numRsrc(pl, action, Data.ResourceType.WOOD_VALUE, amount);
+            break;
 
-            case SOCPlayerElement.CLAY:
+        case SOCPlayerElement.UNKNOWN:
+            /**
+             * Note: if losing unknown resources, we first
+             * convert player's known resources to unknown resources,
+             * then remove mes's unknown resources from player.
+             */
+            handlePLAYERELEMENT_numRsrc(pl, action, Data.ResourceType.UNKNOWN_VALUE, amount);
+            break;
 
-                handlePLAYERELEMENT_numRsrc(mes, pl, Data.ResourceType.CLAY_VALUE);
-                break;
+        default:
+            handlePLAYERELEMENT_simple(ga, pl, pn, action, etype, amount);
+            break;
 
-            case SOCPlayerElement.ORE:
-
-                handlePLAYERELEMENT_numRsrc(mes, pl, Data.ResourceType.ORE_VALUE);
-                break;
-
-            case SOCPlayerElement.SHEEP:
-
-                handlePLAYERELEMENT_numRsrc(mes, pl, Data.ResourceType.SHEEP_VALUE);
-                break;
-
-            case SOCPlayerElement.WHEAT:
-
-                handlePLAYERELEMENT_numRsrc(mes, pl, Data.ResourceType.WHEAT_VALUE);
-                break;
-
-            case SOCPlayerElement.WOOD:
-
-                handlePLAYERELEMENT_numRsrc(mes, pl, Data.ResourceType.WOOD_VALUE);
-                break;
-
-            case SOCPlayerElement.UNKNOWN:
-
-                /**
-                 * Note: if losing unknown resources, we first
-                 * convert player's known resources to unknown resources,
-                 * then remove mes's unknown resources from player.
-                 */
-                handlePLAYERELEMENT_numRsrc(mes, pl, Data.ResourceType.UNKNOWN_VALUE);
-                break;
-
-            default:
-                handlePLAYERELEMENT_simple(mes, ga, pl, pn);
-                break;
-
-            }
         }
     }
 
     /**
-     * Update game data for a simple player element or flag, for {@link #handlePLAYERELEMENT(SOCPlayerElement)}.
+     * Update game data for a simple player element or flag, for
+     * {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, int, int)}.
      * Handles ASK_SPECIAL_BUILD, NUM_PICK_GOLD_HEX_RESOURCES, SCENARIO_CLOTH_COUNT, etc.
      *<P>
      * To avoid code duplication, also called from
      * {@link SOCPlayerClient.MessageTreater#handlePLAYERELEMENT(SOCPlayerElement)}
      * and {@link soc.robot.SOCRobotBrain#run()}.
+     *<P>
+     * Before v2.0.00 this method directly took a {@link SOCPlayerElement} instead of that message's
+     * {@code action}, {@code etype}, and {@code val} fields.
      *
-     * @param mes  Message with amount and action (SET/GAIN/LOSE)
      * @param ga   Game to update
      * @param pl   Player to update
      * @param pn   Player number from message (sometimes -1 for none)
+     * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
+     *     or {@link SOCPlayerElement#LOSE LOSE}
+     * @param etype  Element type, such as {@link SOCPlayerElement#SETTLEMENTS} or {@link SOCPlayerElement#NUMKNIGHTS}
+     * @param val  The new value to set, or the delta to gain/lose
      * @since 2.0.00
      */
     public static void handlePLAYERELEMENT_simple
-        (SOCPlayerElement mes, SOCGame ga, SOCPlayer pl, final int pn)
+        (SOCGame ga, SOCPlayer pl, final int pn, final int action, final int etype, final int val)
     {
-        final int val = mes.getValue();
-
-        switch (mes.getElementType())
+        switch (etype)
         {
         case SOCPlayerElement.ASK_SPECIAL_BUILD:
             if (0 != val)
@@ -1458,7 +1504,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             break;
 
         case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
-            switch (mes.getAction())
+            switch (action)
             {
             case SOCPlayerElement.SET:
                 pl.setNumWarships(val);
@@ -1474,66 +1520,73 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * Update a player's amount of a playing piece, for {@link #handlePLAYERELEMENT(SOCPlayerElement)}.
+     * Update a player's amount of a playing piece, for
+     * {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, int, int)}.
      * To avoid code duplication, also called from
      * {@link SOCPlayerClient.MessageTreater#handlePLAYERELEMENT(SOCPlayerElement)}
      * and {@link soc.robot.SOCRobotBrain#run()}.
+     *<P>
+     * Before v2.0.00 this method directly took a {@link SOCPlayerElement} instead of that message's
+     * {@code action} and {@code amount} fields.
      *
-     * @param mes       Message with amount and action (SET/GAIN/LOSE)
      * @param pl        Player to update
-     * @param pieceType Playing piece type, as in {@link SOCPlayingPiece#ROAD}
+     * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
+     *     or {@link SOCPlayerElement#LOSE LOSE}
+     * @param pieceType Playing piece type, like {@link SOCPlayingPiece#ROAD}
+     * @param amount    The new value to set, or the delta to gain/lose
+     * @since 2.0.00
      */
     public static void handlePLAYERELEMENT_numPieces
-        (SOCPlayerElement mes, final SOCPlayer pl, int pieceType)
+        (final SOCPlayer pl, final int action, final int pieceType, final int amount)
     {
-        switch (mes.getAction())
+        switch (action)
         {
         case SOCPlayerElement.SET:
-            pl.setNumPieces(pieceType, mes.getValue());
-
+            pl.setNumPieces(pieceType, amount);
             break;
 
         case SOCPlayerElement.GAIN:
-            pl.setNumPieces(pieceType, pl.getNumPieces(pieceType) + mes.getValue());
-
+            pl.setNumPieces(pieceType, pl.getNumPieces(pieceType) + amount);
             break;
 
         case SOCPlayerElement.LOSE:
-            pl.setNumPieces(pieceType, pl.getNumPieces(pieceType) - mes.getValue());
-
+            pl.setNumPieces(pieceType, pl.getNumPieces(pieceType) - amount);
             break;
         }
     }
 
     /**
      * Update a player's amount of knights, and game's largest army,
-     * for {@link #handlePLAYERELEMENT(SOCPlayerElement)}.
+     * for {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, int, int)}.
+     * Calls {@link SOCGame#updateLargestArmy() ga.updateLargestArmy()}.
      * To avoid code duplication, also called from
-     * {@link SOCPlayerClient.MessageTreater#handlePLAYERELEMENT(SOCPlayerElement)}
+     * {@link soc.client.SOCPlayerClient.MessageTreater#handlePLAYERELEMENT(SOCPlayerElement)}
      * and {@link soc.robot.SOCRobotBrain#run()}.
+     *<P>
+     * Before v2.0.00 this method directly took a {@link SOCPlayerElement} instead of that message's
+     * {@code action} and {@code amount} fields.
      *
-     * @param mes  Message with amount and action (SET/GAIN/LOSE)
-     * @param pl   Player to update
      * @param ga   Game of player
+     * @param pl   Player to update
+     * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
+     *     or {@link SOCPlayerElement#LOSE LOSE}
+     * @param amount    The new value to set, or the delta to gain/lose
      */
     public static void handlePLAYERELEMENT_numKnights
-        (SOCPlayerElement mes, final SOCPlayer pl, final SOCGame ga)
+        (final SOCGame ga, final SOCPlayer pl, final int action, final int amount)
     {
-        switch (mes.getAction())
+        switch (action)
         {
         case SOCPlayerElement.SET:
-            pl.setNumKnights(mes.getValue());
-
+            pl.setNumKnights(amount);
             break;
 
         case SOCPlayerElement.GAIN:
-            pl.setNumKnights(pl.getNumKnights() + mes.getValue());
-
+            pl.setNumKnights(pl.getNumKnights() + amount);
             break;
 
         case SOCPlayerElement.LOSE:
-            pl.setNumKnights(pl.getNumKnights() - mes.getValue());
-
+            pl.setNumKnights(pl.getNumKnights() - amount);
             break;
         }
 
@@ -1541,7 +1594,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * Update a player's amount of a resource, for {@link #handlePLAYERELEMENT(SOCPlayerElement)}.
+     * Update a player's amount of a resource, for {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, int, int)}.
      *<ul>
      *<LI> If this is a {@link SOCPlayerElement#LOSE} action, and the player does not have enough of that type,
      *     the rest are taken from the player's UNKNOWN amount.
@@ -1554,30 +1607,30 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * To avoid code duplication, also called from
      * {@link SOCPlayerClient.MessageTreater#handlePLAYERELEMENT(SOCPlayerElement)}
      * and {@link soc.robot.SOCRobotBrain#run()}.
+     *<P>
+     * Before v2.0.00 this method directly took a {@link SOCPlayerElement} instead of that message's
+     * {@code action} and {@code amount} fields.
      *
-     * @param mes    Message with amount and action (SET/GAIN/LOSE)
      * @param pl     Player to update
+     * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
+     *     or {@link SOCPlayerElement#LOSE LOSE}
      * @param rtype  Type of resource, like {@link Data.ResourceType#CLAY_VALUE}
+     * @param amount    The new value to set, or the delta to gain/lose
      */
     public static void handlePLAYERELEMENT_numRsrc
-        (SOCPlayerElement mes, final SOCPlayer pl, int rtype)
+        (final SOCPlayer pl, final int action, final int rtype, final int amount)
     {
-        final int amount = mes.getValue();
-
-        switch (mes.getAction())
+        switch (action)
         {
         case SOCPlayerElement.SET:
             pl.getResources().setAmount(amount, rtype);
-
             break;
 
         case SOCPlayerElement.GAIN:
             pl.getResources().add(amount, rtype);
-
             break;
 
         case SOCPlayerElement.LOSE:
-
             if (rtype != SOCResourceConstants.UNKNOWN)
             {
                 int playerAmt = pl.getResources().getAmount(rtype);
@@ -1600,7 +1653,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
                  * then remove mes's unknown resources from player
                  */
                 rs.convertToUnknown();
-                pl.getResources().subtract(mes.getValue(), SOCResourceConstants.UNKNOWN);
+                pl.getResources().subtract(amount, SOCResourceConstants.UNKNOWN);
             }
 
             break;

@@ -26,6 +26,7 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import soc.proto.Message;
+import soc.util.DataUtils;
 
 
 /**
@@ -150,7 +151,7 @@ public class SOCChannels extends SOCMessage
     {
         StringBuffer sb = new StringBuffer("SOCChannels:channels=");
         if (channels != null)
-            enumIntoStringBuf(channels.elements(), sb);
+            DataUtils.enumIntoStringBuf(channels.elements(), sb);
         return sb.toString();
     }
 

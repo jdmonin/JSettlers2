@@ -143,6 +143,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * @return the number of a kind of resource
      * @see #contains(int)
      * @see #getTotal()
+     * @see #getAmounts(boolean)
      */
     public int getAmount(int resourceType)
     {
@@ -150,10 +151,32 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     }
 
     /**
+     * How many resources of each type are contained in the set?
+     * (<tt>{@link SOCResourceConstants#CLAY}, ORE, SHEEP, WHEAT, WOOD</tt>)
+     * @param withUnknown  If true, also include the amount of {@link SOCResourceConstants#UNKNOWN} resources
+     * @return the amounts of each known resource in the set,
+     *    starting with {@link SOCResourceConstants#CLAY} at index 0, up to {@link SOCResourceConstants#WOOD WOOD} at 4.
+     *    If {@code withUnknown}, index 5 is the amount of {@link SOCResourceConstants#UNKNOWN}.
+     * @see #getAmount(int)
+     * @since 2.0.00
+     */
+    public int[] getAmounts(final boolean withUnknown)
+    {
+        final int L =
+            (withUnknown) ? SOCResourceConstants.UNKNOWN : SOCResourceConstants.WOOD;  // 5 or 6, searchable for where-used
+        int[] amt = new int[L];
+        for (int i = 0, res = SOCResourceConstants.CLAY; i < L; ++i, ++res)
+            amt[i] = resources[res];
+
+        return amt;
+    }
+
+    /**
      * Get the total number of resources in this set, including unknown types.
      * @return the total number of resources
      * @see #getKnownTotal()
      * @see #getAmount(int)
+     * @see #getAmounts(boolean)
      * @see #getResourceTypeCount()
      */
     public int getTotal()

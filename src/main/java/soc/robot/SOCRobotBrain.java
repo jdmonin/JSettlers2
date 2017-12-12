@@ -60,6 +60,7 @@ import soc.message.SOCMessage;
 import soc.message.SOCMovePiece;
 import soc.message.SOCMoveRobber;
 import soc.message.SOCPlayerElement;
+import soc.message.SOCPlayerElements;
 import soc.message.SOCPutPiece;
 import soc.message.SOCRejectOffer;
 import soc.message.SOCResourceCount;
@@ -1293,16 +1294,20 @@ public class SOCRobotBrain extends Thread
                     switch (mesType)
                     {
                     case SOCMessage.PLAYERELEMENT:
-                        {
-                        handlePLAYERELEMENT((SOCPlayerElement) mes);
-
                         // If this during the ROLL_OR_CARD state, also updates the
                         // negotiator's is-selling flags.
-
                         // If our player is losing a resource needed for the buildingPlan,
                         // clear the plan if this is for the Special Building Phase (on the 6-player board).
                         // In normal game play, we clear the building plan at the start of each turn.
-                        }
+
+                        handlePLAYERELEMENT((SOCPlayerElement) mes);
+                        break;
+
+                    case SOCMessage.PLAYERELEMENTS:
+                        // Multiple PLAYERELEMENT updates;
+                        // see comment above for actions taken.
+
+                        handlePLAYERELEMENTS((SOCPlayerElements) mes);
                         break;
 
                     case SOCMessage.RESOURCECOUNT:
@@ -3607,7 +3612,38 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
+     * Handle a PLAYERELEMENTS for this game.
+     * See {@link #handlePLAYERELEMENT(SOCPlayer, int, int, int, int)} for actions taken.
+     * @since 2.0.00
+     */
+    private void handlePLAYERELEMENTS(SOCPlayerElements mes)
+    {
+        final int pn = mes.getPlayerNumber();
+        final SOCPlayer pl = (pn != -1) ? game.getPlayer(pn) : null;
+        final int action = mes.getAction();
+        final int[] etypes = mes.getElementTypes(), amounts = mes.getValues();
+
+        for (int i = 0; i < etypes.length; ++i)
+            handlePLAYERELEMENT(pl, pn, action, etypes[i], amounts[i]);
+    }
+
+    /**
      * Handle a PLAYERELEMENT for this game.
+     * See {@link #handlePLAYERELEMENT(SOCPlayer, int, int, int, int)} for actions taken.
+     * @since 1.1.08
+     */
+    private void handlePLAYERELEMENT(SOCPlayerElement mes)
+    {
+        final int pn = mes.getPlayerNumber();
+        final SOCPlayer pl = (pn != -1) ? game.getPlayer(pn) : null;
+        final int action = mes.getAction(), amount = mes.getValue();
+        final int etype = mes.getElementType();
+
+        handlePLAYERELEMENT(pl, pn, action, etype, amount);
+    }
+
+    /**
+     * Handle a player information update from a {@link SOCPlayerElement} or {@link SOCPlayerElements} message:
      * Update a player's amount of a resource or a building type.
      *<P>
      * If this during the {@link SOCGame#ROLL_OR_CARD} state, then update the
@@ -3619,88 +3655,82 @@ public class SOCRobotBrain extends Thread
      *<P>
      * Otherwise, only the game data is updated, nothing brain-specific.
      *
-     * @since 1.1.08
+     * @param pl   Player to update (sometimes null)
+     * @param pn   Player number from message (sometimes -1 for none or all)
+     * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
+     *     or {@link SOCPlayerElement#LOSE LOSE}
+     * @param etype  Element type, such as {@link SOCPlayerElement#SETTLEMENTS} or {@link SOCPlayerElement#NUMKNIGHTS}
+     * @param amount  The new value to set, or the delta to gain/lose
+     * @since 2.0.00
      */
-    private void handlePLAYERELEMENT(SOCPlayerElement mes)
+    private void handlePLAYERELEMENT
+        (final SOCPlayer pl, final int pn, final int action, final int etype, final int amount)
     {
-        final int pn = mes.getPlayerNumber();
-        final SOCPlayer pl = (pn != -1) ? game.getPlayer(pn) : null;
-
-        switch (mes.getElementType())
+        switch (etype)
         {
         case SOCPlayerElement.ROADS:
-
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                (mes, pl, SOCPlayingPiece.ROAD);
+                (pl, action, SOCPlayingPiece.ROAD, amount);
             break;
 
         case SOCPlayerElement.SETTLEMENTS:
-
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                (mes, pl, SOCPlayingPiece.SETTLEMENT);
+                (pl, action, SOCPlayingPiece.SETTLEMENT, amount);
             break;
 
         case SOCPlayerElement.CITIES:
-
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                (mes, pl, SOCPlayingPiece.CITY);
+                (pl, action, SOCPlayingPiece.CITY, amount);
             break;
 
         case SOCPlayerElement.SHIPS:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                (mes, pl, SOCPlayingPiece.SHIP);
+                (pl, action, SOCPlayingPiece.SHIP, amount);
             break;
 
         case SOCPlayerElement.NUMKNIGHTS:
-
             // PLAYERELEMENT(NUMKNIGHTS) is sent after a Soldier card is played.
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numKnights
-                (mes, pl, game);
+                (game, pl, action, amount);
             break;
 
         case SOCPlayerElement.CLAY:
-
             handlePLAYERELEMENT_numRsrc
-                (mes, pl, Data.ResourceType.CLAY_VALUE, "CLAY");
+                (pl, action, Data.ResourceType.CLAY_VALUE, "CLAY", amount);
             break;
 
         case SOCPlayerElement.ORE:
-
             handlePLAYERELEMENT_numRsrc
-                (mes, pl, Data.ResourceType.ORE_VALUE, "ORE");
+                (pl, action, Data.ResourceType.ORE_VALUE, "ORE", amount);
             break;
 
         case SOCPlayerElement.SHEEP:
-
             handlePLAYERELEMENT_numRsrc
-                (mes, pl, Data.ResourceType.SHEEP_VALUE, "SHEEP");
+                (pl, action, Data.ResourceType.SHEEP_VALUE, "SHEEP", amount);
             break;
 
         case SOCPlayerElement.WHEAT:
-
             handlePLAYERELEMENT_numRsrc
-                (mes, pl, Data.ResourceType.WHEAT_VALUE, "WHEAT");
+                (pl, action, Data.ResourceType.WHEAT_VALUE, "WHEAT", amount);
             break;
 
         case SOCPlayerElement.WOOD:
-
             handlePLAYERELEMENT_numRsrc
-                (mes, pl, Data.ResourceType.WOOD_VALUE, "WOOD");
+                (pl, action, Data.ResourceType.WOOD_VALUE, "WOOD", amount);
             break;
 
         case SOCPlayerElement.UNKNOWN:
-
             /**
              * Note: if losing unknown resources, we first
              * convert player's known resources to unknown resources,
              * then remove mes's unknown resources from player.
              */
             handlePLAYERELEMENT_numRsrc
-                (mes, pl, SOCResourceConstants.UNKNOWN, "UNKNOWN");
+                (pl, action, SOCResourceConstants.UNKNOWN, "UNKNOWN", amount);
             break;
 
         case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
-            if (expectPLACING_ROBBER && (mes.getAction() == SOCPlayerElement.GAIN))
+            if (expectPLACING_ROBBER && (action == SOCPlayerElement.GAIN))
             {
                 // warship card successfully played; clear the flag fields
                 expectPLACING_ROBBER = false;
@@ -3712,7 +3742,8 @@ public class SOCRobotBrain extends Thread
             // handle ASK_SPECIAL_BUILD, NUM_PICK_GOLD_HEX_RESOURCES, SCENARIO_CLOTH_COUNT, etc;
             // those are all self-contained informational fields that don't need any reaction from a bot.
 
-            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple(mes, game, pl, pn);
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
+                (game, pl, pn, action, etype, amount);
             break;
 
         }
@@ -3744,26 +3775,30 @@ public class SOCRobotBrain extends Thread
      * clear the plan if this is for the Special Building Phase (on the 6-player board).
      * In normal game play, we clear the building plan at the start of each turn.
      *<P>
+     * Before v2.0.00 this method directly took a {@link SOCPlayerElement} instead of that message's
+     * {@code action} and {@code amount} fields.
      *
-     * @param mes      Message with amount and action (SET/GAIN/LOSE)
      * @param pl       Player to update
+     * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
+     *     or {@link SOCPlayerElement#LOSE LOSE}
      * @param rtype    Type of resource, like {@link Data.ResourceType#CLAY_VALUE}
      * @param rtypeStr Resource type name, for debugging
+     * @param amount   The new value to set, or the delta to gain/lose
      */
     @SuppressWarnings("unused")  // unnecessary dead-code warning "if (D.ebugOn)"
     protected void handlePLAYERELEMENT_numRsrc
-        (SOCPlayerElement mes, SOCPlayer pl, int rtype, String rtypeStr)
+        (SOCPlayer pl, final int action, int rtype, String rtypeStr, final int amount)
     {
         /**
          * for SET, check the amount of unknown resources against
          * what we think we know about our player.
          */
-        if (D.ebugOn && (pl == ourPlayerData) && (mes.getAction() == SOCPlayerElement.SET))
+        if (D.ebugOn && (pl == ourPlayerData) && (action == SOCPlayerElement.SET))
         {
-            if (mes.getValue() != ourPlayerData.getResources().getAmount(rtype))
+            if (amount != ourPlayerData.getResources().getAmount(rtype))
             {
                 client.sendText(game, ">>> RSRC ERROR FOR " + rtypeStr
-                    + ": " + mes.getValue() + " != " + ourPlayerData.getResources().getAmount(rtype));
+                    + ": " + amount + " != " + ourPlayerData.getResources().getAmount(rtype));
             }
         }
 
@@ -3771,7 +3806,7 @@ public class SOCRobotBrain extends Thread
          * Update game data.
          */
         SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-            (mes, pl, rtype);
+            (pl, action, rtype, amount);
 
         /**
          * Clear building plan, if we just lost a resource we need.
@@ -3780,7 +3815,7 @@ public class SOCRobotBrain extends Thread
          * at the start of each turn.
          */
         if (waitingForSpecialBuild && (pl == ourPlayerData)
-            && (mes.getAction() != SOCPlayerElement.GAIN)
+            && (action != SOCPlayerElement.GAIN)
             && ! buildingPlan.isEmpty())
         {
             final SOCPossiblePiece targetPiece = buildingPlan.peek();

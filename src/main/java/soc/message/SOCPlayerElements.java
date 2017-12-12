@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2010,2014-2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2010,2014-2015,2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas
  *
  * This program is free software; you can redistribute it and/or
@@ -21,11 +21,14 @@ package soc.message;
 import java.util.List;
 
 /**
- * This message from the server holds information on some parts of the player's status,
+ * This message from the server holds information on some parts of a player's status,
  * such as resource type counts.  Same structure as {@link SOCPlayerElement} but with
- * less redundancy when sending multiple messages.
+ * less overhead to send multiple similar element changes.
+ *<P>
  * For a given player number and action type, contains multiple
  * pairs of (element type, value).
+ *<P>
+ * Defined in v1.1.09 but unused before v2.0.00, so {@link #getMinimumVersion()} returns 2000.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.09
@@ -34,17 +37,11 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
 {
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
-    /** Introduced in version 1.1.09 */
-    public static final int VERSION = 1109;
+    /** Minimum client version required: v2.0.00 */
+    public static final int VERSION = 2000;
 
     /**
-     * The original 5 named resources, for convenience:
-     * {@link SOCPlayerElement#CLAY}, ORE, SHEEP, WHEAT, {@link SOCPlayerElement#WOOD}.
-     */
-    public static final int[] NAMED_RESOURCES = {SOCPlayerElement.CLAY, SOCPlayerElement.ORE, SOCPlayerElement.SHEEP, SOCPlayerElement.WHEAT, SOCPlayerElement.WOOD};
-
-    /**
-     * Player number
+     * Player number; some elements allow -1 to apply to all players
      */
     private int playerNumber;
 
@@ -54,8 +51,8 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
     private int actionType;
 
     /**
-     * Element types, such as {@link SOCPlayerElement#CLAY}, matching
-     * up with each item of {@link #values}
+     * Element types from {@link SOCPlayerElement}, such as {@link SOCPlayerElement#CLAY},
+     * matching up with each item of {@link #values}
      */
     private int[] elementTypes;
 
@@ -96,14 +93,15 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
     }
 
     /**
-     * Minimum version where this message type is used.
-     * PLAYERELEMENTS introduced in 1.1.09 for game-options feature.
-     * @return Version number, 1109 for JSettlers 1.1.09.
+     * Minimum version where this message type is used ({@link #VERSION}).
+     * PLAYERELEMENTS was introduced in 1.1.09 for the game-options feature
+     * but unused until 2.0.00.
+     * @return Version number, 2000 for JSettlers v2.0.00.
      */
-    public int getMinimumVersion() { return 1109; }
+    public int getMinimumVersion() { return VERSION; }
 
     /**
-     * @return the player number
+     * @return the player number; some elements allow -1 to apply to all players
      */
     public int getPlayerNumber()
     {
@@ -119,8 +117,8 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
     }
 
     /**
-     * @return the element type array, such as {@link SOCPlayerElement#CLAY}, matching
-     * up with each item of {@link #getValues()}
+     * @return the element type arrays, with value constants from {@link SOCPlayerElement}
+     * such as {@link SOCPlayerElement#CLAY}, matching up with each item of {@link #getValues()}
      */
     public int[] getElementTypes()
     {
@@ -146,8 +144,8 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
      * pa[3] = elementType[0]
      * pa[4] = value[0]
      * pa[5] = elementType[1]
-     * pa[6] = value[1]</pre>
-     * (etc.)
+     * pa[6] = value[1]
+     * ...</pre>
      * @return    a SOCPlayerElements message, or null if parsing errors
      */
     public static SOCPlayerElements parseDataStr(List<String> pa)
@@ -177,6 +175,36 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
         } catch (Exception e) {
             return null;
         }
+    }
+
+    /**
+     * @return a human readable form of the message
+     * @since 2.0.00
+     */
+    public String toString()
+    {
+        final String act;
+        switch (actionType)
+        {
+        case SOCPlayerElement.SET:  act = "SET";  break;
+        case SOCPlayerElement.GAIN: act = "GAIN"; break;
+        case SOCPlayerElement.LOSE: act = "LOSE"; break;
+        default: act = Integer.toString(actionType);
+        }
+
+        StringBuilder sb = new StringBuilder
+            ("SOCPlayerElements:game=" + game + "|playerNum=" + playerNumber + "|actionType=" + act + '|');
+        for (int i = 2; i < pa.length;)
+        {
+            if (i > 2)
+                sb.append(',');
+            sb.append('e');
+            sb.append(pa[i]);  ++i;
+            sb.append('=');
+            sb.append(pa[i]);  ++i;
+        }
+
+        return sb.toString();
     }
 
 }

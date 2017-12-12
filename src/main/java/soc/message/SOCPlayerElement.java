@@ -26,8 +26,8 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message conveys one part of the player's status, such as their number of
- * settlements remaining.
+ * This message from the server conveys one part of a player's status,
+ * such as their number of settlements remaining.
  *<P>
  * Unless otherwise mentioned, any {@link #getElementType()} can be sent with
  * any action ({@link #SET}, {@link #GAIN}, {@link #LOSE}).
@@ -48,6 +48,9 @@ import java.util.StringTokenizer;
  * or unexpected and bad (monopoly, robber, discards). v1.2.00 and newer have sound effects
  * to announce unexpected gains or losses; to help recognize this, this message type gets a
  * new flag field {@link #isNews()}. Versions older than v1.2.00 ignore the new field.
+ *<P>
+ * To use less overhead to send multiple similar element changes, use {@link SOCPlayerElements} instead;
+ * doing so requires client version 2.0.00 or newer.
  *
  * @author Robert S Thomas
  */
@@ -66,13 +69,20 @@ public class SOCPlayerElement extends SOCMessage
     public static final int SHEEP = 3;
     public static final int WHEAT = 4;
     public static final int WOOD = 5;
+
+    /**
+     * Amount of resources of unknown type; sent in messages about opponents' resources.
+     * For some loops which send resource types + unknown, this constant is assumed to be 6
+     * (5 known resource types + 1).
+     */
     public static final int UNKNOWN = 6;
+
     public static final int ROADS = 10;
     public static final int SETTLEMENTS = 11;
     public static final int CITIES = 12;
 
     /**
-     * Number of SHIP pieces; added in v2.0.00.
+     * Number of SHIP pieces available to place; added in v2.0.00.
      * @since 2.0.00
      */
     public static final int SHIPS = 13;
@@ -446,7 +456,16 @@ public class SOCPlayerElement extends SOCMessage
      */
     public String toString()
     {
-        String s = "SOCPlayerElement:game=" + game + "|playerNum=" + playerNumber + "|actionType=" + actionType
+        final String act;
+        switch (actionType)
+        {
+        case SET:  act = "SET";  break;
+        case GAIN: act = "GAIN"; break;
+        case LOSE: act = "LOSE"; break;
+        default:   act = Integer.toString(actionType);
+        }
+
+        String s = "SOCPlayerElement:game=" + game + "|playerNum=" + playerNumber + "|actionType=" + act
             + "|elementType=" + elementType + "|value=" + value + ((news) ? "|news=Y" : "");
 
         return s;

@@ -23,6 +23,7 @@ package soc.message;
 import java.util.StringTokenizer;
 
 import soc.game.SOCBoard;
+import soc.util.DataUtils;
 
 
 /**
@@ -319,9 +320,9 @@ public class SOCBoardLayout extends SOCMessage
         StringBuffer sb = new StringBuffer("SOCBoardLayout:game=");
         sb.append(game);
         sb.append("|hexLayout=");
-        arrayIntoStringBuf(hexLayout, sb, false);
+        DataUtils.arrayIntoStringBuf(hexLayout, sb, false);
         sb.append("|numberLayout=");
-        arrayIntoStringBuf(numberLayout, sb, false);
+        DataUtils.arrayIntoStringBuf(numberLayout, sb, false);
         sb.append("|robberHex=0x");
         sb.append(Integer.toHexString(robberHex));
 

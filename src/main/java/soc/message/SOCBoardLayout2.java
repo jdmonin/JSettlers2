@@ -29,6 +29,7 @@ import soc.game.SOCBoardLarge;  // for javadocs
 import soc.game.SOCScenario;    // for javadocs
 import soc.proto.GameMessage;
 import soc.proto.Message;
+import soc.util.DataUtils;
 
 
 /**
@@ -104,7 +105,7 @@ public class SOCBoardLayout2 extends SOCMessage
     public static final int VERSION_FOR_BOARDLAYOUT2 = 1108;
 
     /**
-     * These hex land type numbers mapped when sent over the network in layout part <tt>HL</tt>.
+     * These hex land type values are remapped when sent over the network in layout part <tt>HL</tt>.
      * Compare to {@link SOCBoard#WATER_HEX}, {@link SOCBoard#DESERT_HEX}.
      * @since 2.0.00
      */
@@ -529,7 +530,7 @@ public class SOCBoardLayout2 extends SOCMessage
             Object kv = layoutParts.get(okey);
             if (kv instanceof int[])
             {
-                arrayIntoStringBuf
+                DataUtils.arrayIntoStringBuf
                     ((int[]) kv, sb, ! (okey.equals("HL") || okey.equals("NL")));
             } else {
                 sb.append(kv.toString());
