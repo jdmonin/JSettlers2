@@ -177,4 +177,34 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
         }
     }
 
+    /**
+     * @return a human readable form of the message
+     * @since 2.0.00
+     */
+    public String toString()
+    {
+        final String act;
+        switch (actionType)
+        {
+        case SOCPlayerElement.SET:  act = "SET";  break;
+        case SOCPlayerElement.GAIN: act = "GAIN"; break;
+        case SOCPlayerElement.LOSE: act = "LOSE"; break;
+        default: act = Integer.toString(actionType);
+        }
+
+        StringBuilder sb = new StringBuilder
+            ("SOCPlayerElements:game=" + game + "|playerNum=" + playerNumber + "|actionType=" + act + '|');
+        for (int i = 2; i < pa.length;)
+        {
+            if (i > 2)
+                sb.append(',');
+            sb.append('e');
+            sb.append(pa[i]);  ++i;
+            sb.append('=');
+            sb.append(pa[i]);  ++i;
+        }
+
+        return sb.toString();
+    }
+
 }

@@ -454,7 +454,16 @@ public class SOCPlayerElement extends SOCMessage
      */
     public String toString()
     {
-        String s = "SOCPlayerElement:game=" + game + "|playerNum=" + playerNumber + "|actionType=" + actionType
+        final String act;
+        switch (actionType)
+        {
+        case SET:  act = "SET";  break;
+        case GAIN: act = "GAIN"; break;
+        case LOSE: act = "LOSE"; break;
+        default:   act = Integer.toString(actionType);
+        }
+
+        String s = "SOCPlayerElement:game=" + game + "|playerNum=" + playerNumber + "|actionType=" + act
             + "|elementType=" + elementType + "|value=" + value + ((news) ? "|news=Y" : "");
 
         return s;
