@@ -1609,6 +1609,7 @@ public class SOCGameMessageHandler
                 final SOCPlayer player = ga.getPlayer(c.getData());
                 final int pn = player.getPlayerNumber();
                 final int gstate = ga.getGameState();
+                boolean noAction = false;  // If true, there was nothing cancelable: Don't call handler.sendGameState
 
                 switch (mes.getPieceType())
                 {
@@ -1625,11 +1626,11 @@ public class SOCGameMessageHandler
                             srv.messageToGameKeyed(ga, true, "action.card.roadbuilding.skip.r", player.getName());
                                 // "{0} skipped placing the second road."
                         }
-                        handler.sendGameState(ga);
                     }
                     else
                     {
                         srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a road."/*18N*/ );
+                        noAction = true;
                     }
 
                     break;
@@ -1645,7 +1646,6 @@ public class SOCGameMessageHandler
                         srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WHEAT, 1));
                         srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
                         srv.gameList.releaseMonitorForGame(gaName);
-                        handler.sendGameState(ga);
                     }
                     else if ((gstate == SOCGame.START1B) || (gstate == SOCGame.START2B) || (gstate == SOCGame.START3B))
                     {
@@ -1654,11 +1654,12 @@ public class SOCGameMessageHandler
                         srv.messageToGame(gaName, mes);  // Re-send to all clients to announce it
                             // (Safe since we've validated all message parameters)
                         srv.messageToGameKeyed(ga, true, "action.built.stlmt.cancel", player.getName());  //  "{0} cancelled this settlement placement."
-                        handler.sendGameState(ga);  // This send is redundant, if client reaction changes game state
+                        // The handler.sendGameState below is redundant if client reaction changes game state
                     }
                     else
                     {
                         srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a settlement."/*18N*/ );
+                        noAction = true;
                     }
 
                     break;
@@ -1670,11 +1671,11 @@ public class SOCGameMessageHandler
                         ga.cancelBuildCity(pn);
                         srv.messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.ORE, 3));
                         srv.messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WHEAT, 2));
-                        handler.sendGameState(ga);
                     }
                     else
                     {
                         srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a city."/*18N*/ );
+                        noAction = true;
                     }
 
                     break;
@@ -1692,11 +1693,11 @@ public class SOCGameMessageHandler
                             srv.messageToGameKeyed(ga, true, "action.card.roadbuilding.skip.s", player.getName());
                                 // "{0} skipped placing the second ship."
                         }
-                        handler.sendGameState(ga);
                     }
                     else
                     {
                         srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a ship."/*18N*/ );
+                        noAction = true;
                     }
 
                     break;
@@ -1715,15 +1716,25 @@ public class SOCGameMessageHandler
                     {
                         srv.messageToGameKeyed(ga, true, "reply.placeitem.cancel", player.getName());
                             // "{0} canceled placement of a special item."
-                        handler.sendGameState(ga);
                     } else {
                         srv.messageToPlayerKeyed(c, gaName, "reply.placeitem.cancel.cannot");
                             // "Cannot cancel item placement."
+                        noAction = true;
                     }
                     break;
 
                 default:
                     throw new IllegalArgumentException("Unknown piece type " + mes.getPieceType());
+                }
+
+                if (! noAction)
+                    handler.sendGameState(ga);
+                else
+                {
+                    // bot is waiting for a gamestate reply, not text
+                    final SOCClientData scd = (SOCClientData) c.getAppData();
+                    if ((scd != null) && scd.isRobot)
+                        c.put(SOCGameState.toCmd(gaName, gstate));
                 }
             }
             else
