@@ -3652,22 +3652,22 @@ public class SOCRobotBrain extends Thread
         {
         case SOCPlayerElement.ROADS:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                (pl, amount, SOCPlayingPiece.ROAD, amount);
+                (pl, action, SOCPlayingPiece.ROAD, amount);
             break;
 
         case SOCPlayerElement.SETTLEMENTS:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                (pl, amount, SOCPlayingPiece.SETTLEMENT, amount);
+                (pl, action, SOCPlayingPiece.SETTLEMENT, amount);
             break;
 
         case SOCPlayerElement.CITIES:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                (pl, amount, SOCPlayingPiece.CITY, amount);
+                (pl, action, SOCPlayingPiece.CITY, amount);
             break;
 
         case SOCPlayerElement.SHIPS:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                (pl, amount, SOCPlayingPiece.SHIP, amount);
+                (pl, action, SOCPlayingPiece.SHIP, amount);
             break;
 
         case SOCPlayerElement.NUMKNIGHTS:
@@ -3678,27 +3678,27 @@ public class SOCRobotBrain extends Thread
 
         case SOCPlayerElement.CLAY:
             handlePLAYERELEMENT_numRsrc
-                (pl, amount, SOCResourceConstants.CLAY, "CLAY", amount);
+                (pl, action, SOCResourceConstants.CLAY, "CLAY", amount);
             break;
 
         case SOCPlayerElement.ORE:
             handlePLAYERELEMENT_numRsrc
-                (pl, amount, SOCResourceConstants.ORE, "ORE", amount);
+                (pl, action, SOCResourceConstants.ORE, "ORE", amount);
             break;
 
         case SOCPlayerElement.SHEEP:
             handlePLAYERELEMENT_numRsrc
-                (pl, amount, SOCResourceConstants.SHEEP, "SHEEP", amount);
+                (pl, action, SOCResourceConstants.SHEEP, "SHEEP", amount);
             break;
 
         case SOCPlayerElement.WHEAT:
             handlePLAYERELEMENT_numRsrc
-                (pl, amount, SOCResourceConstants.WHEAT, "WHEAT", amount);
+                (pl, action, SOCResourceConstants.WHEAT, "WHEAT", amount);
             break;
 
         case SOCPlayerElement.WOOD:
             handlePLAYERELEMENT_numRsrc
-                (pl, amount, SOCResourceConstants.WOOD, "WOOD", amount);
+                (pl, action, SOCResourceConstants.WOOD, "WOOD", amount);
             break;
 
         case SOCPlayerElement.UNKNOWN:
@@ -3708,7 +3708,7 @@ public class SOCRobotBrain extends Thread
              * then remove mes's unknown resources from player.
              */
             handlePLAYERELEMENT_numRsrc
-                (pl, amount, SOCResourceConstants.UNKNOWN, "UNKNOWN", amount);
+                (pl, action, SOCResourceConstants.UNKNOWN, "UNKNOWN", amount);
             break;
 
         case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
