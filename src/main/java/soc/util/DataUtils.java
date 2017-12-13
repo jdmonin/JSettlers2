@@ -19,7 +19,9 @@
  **/
 package soc.util;
 
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 
 /**
  * Common helper functions for data and conversions.
@@ -94,6 +96,26 @@ public abstract class DataUtils
         }
         catch (ClassCastException cce) { throw cce; }
         catch (Exception e) {}
+    }
+
+    /**
+     * Make a {@link List} of boxed {@link Integer}s from a primitive int array.
+     * @param arr  Array to make into list, or {@code null}; length can be 0
+     * @return  List of {@link Integer}s from {@code arr}, or {@code null} if {@code arr} was {@code null};
+     *     length will be 0 if {@code arr} was empty
+     * @since 3.0.00
+     */
+    public static final List<Integer> toList(final int[] arr)
+    {
+        if (arr == null)
+            return null;
+
+        final int L = arr.length;
+        ArrayList<Integer> ilist = new ArrayList<Integer>(L);
+        for (int i = 0; i < L; ++i)
+            ilist.add(Integer.valueOf(arr[i]));
+
+        return ilist;
     }
 
 }

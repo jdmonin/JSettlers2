@@ -19,8 +19,8 @@
  **/
 package soc.message;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
@@ -484,15 +484,9 @@ public class SOCBoardLayout2 extends SOCMessage
                 pb.setIVal(((Integer) ov).intValue());
             else if (ov instanceof int[])
             {
-                final int[] iarr = (int[]) ov;
-                final int L = iarr.length;
-                ArrayList<Integer> ilist = new ArrayList<Integer>(L);
-                for (int i = 0; i < L; ++i)
-                    ilist.add(Integer.valueOf(iarr[i]));
-
                 GameMessage.BoardLayout._BoardLayoutPart.IntArray.Builder ib
                     = GameMessage.BoardLayout._BoardLayoutPart.IntArray.newBuilder();
-                ib.addAllArr(ilist);
+                ib.addAllArr(DataUtils.toList((int[]) ov));
                 pb.setIArr(ib);
             }
             else if (ov instanceof String)
@@ -506,6 +500,7 @@ public class SOCBoardLayout2 extends SOCMessage
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
         gb.setGaName(game).setBoardLayout(b);
+
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
