@@ -158,15 +158,14 @@ class DummyProtoClient(object):
         Treat an incoming game-specific message from the server; called from treat.
         In this dummy/demo client, most messages are ignored.
         """
-        if msg is None or msg.game_message is None:
+        if msg is None:
             return
-        gmsg = msg.game_message
-        typ = gmsg.WhichOneof("msg")
+        typ = msg.WhichOneof("msg")
         if typ is None:
             return
         if typ in self._game_msg_treaters:
-            self._game_msg_treaters[typ](self, gmsg.ga_name, getattr(gmsg, typ, None))
-            	# for message typ board_layout, getattr returns gmsg.board_layout contents
+            self._game_msg_treaters[typ](self, msg.ga_name, getattr(msg, typ, None))
+            	# for message typ board_layout, getattr returns msg.board_layout contents
         else:
             print("  treat_game_message(): No handler for message type " + str(typ));
 
