@@ -3,6 +3,7 @@
 
 import sys
 _b=sys.version_info[0]<3 and (lambda x:x) or (lambda x:x.encode('latin1'))
+from google.protobuf.internal import enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
@@ -21,11 +22,161 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='game_message.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x12game_message.proto\x1a\ndata.proto\"\xab\x02\n\x0b\x42oardLayout\x12\x17\n\x0f\x65ncoding_format\x18\x01 \x01(\r\x12&\n\x05parts\x18\x02 \x03(\x0b\x32\x17.BoardLayout.PartsEntry\x1a\x8d\x01\n\x10_BoardLayoutPart\x12\x0f\n\x05i_val\x18\x01 \x01(\x05H\x00\x12\x0f\n\x05s_val\x18\x02 \x01(\tH\x00\x12\x37\n\x05i_arr\x18\x03 \x01(\x0b\x32&.BoardLayout._BoardLayoutPart.IntArrayH\x00\x1a\x17\n\x08IntArray\x12\x0b\n\x03\x61rr\x18\x01 \x03(\x05\x42\x05\n\x03val\x1aK\n\nPartsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12,\n\x05value\x18\x02 \x01(\x0b\x32\x1d.BoardLayout._BoardLayoutPart:\x02\x38\x01\"\"\n\x05State\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"&\n\tStartGame\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"8\n\x04Turn\x12\x15\n\rplayer_number\x18\x01 \x01(\r\x12\x19\n\x05state\x18\x02 \x01(\x0e\x32\n.GameState\"\t\n\x07\x45ndTurn\"\xac\x01\n\x15GameMessageFromServer\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x1c\n\ngame_state\x18\x02 \x01(\x0b\x32\x06.StateH\x00\x12$\n\x0c\x62oard_layout\x18\x1e \x01(\x0b\x32\x0c.BoardLayoutH\x00\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12\x15\n\x04turn\x18\x65 \x01(\x0b\x32\x05.TurnH\x00\x42\x05\n\x03msg\"o\n\x15GameMessageFromClient\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12\x1c\n\x08\x65nd_turn\x18\x65 \x01(\x0b\x32\x08.EndTurnH\x00\x42\x05\n\x03msgB\r\n\tsoc.protoH\x01P\x00\x62\x06proto3')
+  serialized_pb=_b('\n\x12game_message.proto\x1a\ndata.proto\"\xab\x02\n\x0b\x42oardLayout\x12\x17\n\x0f\x65ncoding_format\x18\x01 \x01(\r\x12&\n\x05parts\x18\x02 \x03(\x0b\x32\x17.BoardLayout.PartsEntry\x1a\x8d\x01\n\x10_BoardLayoutPart\x12\x0f\n\x05i_val\x18\x01 \x01(\x05H\x00\x12\x0f\n\x05s_val\x18\x02 \x01(\tH\x00\x12\x37\n\x05i_arr\x18\x03 \x01(\x0b\x32&.BoardLayout._BoardLayoutPart.IntArrayH\x00\x1a\x17\n\x08IntArray\x12\x0b\n\x03\x61rr\x18\x01 \x03(\x05\x42\x05\n\x03val\x1aK\n\nPartsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12,\n\x05value\x18\x02 \x01(\x0b\x32\x1d.BoardLayout._BoardLayoutPart:\x02\x38\x01\"\"\n\x05State\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"\x96\x01\n\rPlayerElement\x12\x14\n\x0cplayerNumber\x18\x01 \x01(\x11\x12%\n\x06\x61\x63tion\x18\x02 \x01(\x0e\x32\x15._PlayerElementAction\x12(\n\x0b\x65lementType\x18\x03 \x01(\x0e\x32\x13._PlayerElementType\x12\x0e\n\x06\x61mount\x18\x04 \x01(\x11\x12\x0e\n\x06isNews\x18\x05 \x01(\x08\"\x89\x01\n\x0ePlayerElements\x12\x14\n\x0cplayerNumber\x18\x01 \x01(\x11\x12%\n\x06\x61\x63tion\x18\x02 \x01(\x0e\x32\x15._PlayerElementAction\x12)\n\x0c\x65lementTypes\x18\x03 \x03(\x0e\x32\x13._PlayerElementType\x12\x0f\n\x07\x61mounts\x18\x04 \x03(\x11\"&\n\tStartGame\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"8\n\x04Turn\x12\x15\n\rplayer_number\x18\x01 \x01(\r\x12\x19\n\x05state\x18\x02 \x01(\x0e\x32\n.GameState\"\t\n\x07\x45ndTurn\"\x82\x02\n\x15GameMessageFromServer\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x1c\n\ngame_state\x18\x02 \x01(\x0b\x32\x06.StateH\x00\x12(\n\x0eplayer_element\x18\x0f \x01(\x0b\x32\x0e.PlayerElementH\x00\x12*\n\x0fplayer_elements\x18\x19 \x01(\x0b\x32\x0f.PlayerElementsH\x00\x12$\n\x0c\x62oard_layout\x18\x1e \x01(\x0b\x32\x0c.BoardLayoutH\x00\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12\x15\n\x04turn\x18\x65 \x01(\x0b\x32\x05.TurnH\x00\x42\x05\n\x03msg\"o\n\x15GameMessageFromClient\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12\x1c\n\x08\x65nd_turn\x18\x65 \x01(\x0b\x32\x08.EndTurnH\x00\x42\x05\n\x03msg*O\n\x14_PlayerElementAction\x12\x1a\n\x16_UNSENT_DEFAULT_ACTION\x10\x00\x12\x07\n\x03SET\x10\x01\x12\x08\n\x04GAIN\x10\x02\x12\x08\n\x04LOSE\x10\x03*\xb7\x03\n\x12_PlayerElementType\x12\x18\n\x14_UNSENT_DEFAULT_ELEM\x10\x00\x12\r\n\tELEM_CLAY\x10\x01\x12\x0c\n\x08\x45LEM_ORE\x10\x02\x12\x0e\n\nELEM_SHEEP\x10\x03\x12\x0e\n\nELEM_WHEAT\x10\x04\x12\r\n\tELEM_WOOD\x10\x05\x12\x19\n\x15\x45LEM_UNKNOWN_RESOURCE\x10\x06\x12\t\n\x05ROADS\x10\n\x12\x0f\n\x0bSETTLEMENTS\x10\x0b\x12\n\n\x06\x43ITIES\x10\x0c\x12\t\n\x05SHIPS\x10\r\x12\x0e\n\nNUMKNIGHTS\x10\x0f\x12\x15\n\x11\x41SK_SPECIAL_BUILD\x10\x10\x12\x1f\n\x1bNUM_PICK_GOLD_HEX_RESOURCES\x10\x11\x12\x10\n\x0cSCENARIO_SVP\x10\x12\x12!\n\x1dSCENARIO_PLAYEREVENTS_BITMASK\x10\x13\x12\"\n\x1eSCENARIO_SVP_LANDAREAS_BITMASK\x10\x14\x12\x16\n\x12STARTING_LANDAREAS\x10\x15\x12\x18\n\x14SCENARIO_CLOTH_COUNT\x10\x16\x12\x1a\n\x16SCENARIO_WARSHIP_COUNT\x10\x17\x42\r\n\tsoc.protoH\x01P\x00\x62\x06proto3')
   ,
   dependencies=[data__pb2.DESCRIPTOR,],
   public_dependencies=[data__pb2.DESCRIPTOR,])
 
+__PLAYERELEMENTACTION = _descriptor.EnumDescriptor(
+  name='_PlayerElementAction',
+  full_name='_PlayerElementAction',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='_UNSENT_DEFAULT_ACTION', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='SET', index=1, number=1,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='GAIN', index=2, number=2,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='LOSE', index=3, number=3,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=1148,
+  serialized_end=1227,
+)
+_sym_db.RegisterEnumDescriptor(__PLAYERELEMENTACTION)
+
+_PlayerElementAction = enum_type_wrapper.EnumTypeWrapper(__PLAYERELEMENTACTION)
+__PLAYERELEMENTTYPE = _descriptor.EnumDescriptor(
+  name='_PlayerElementType',
+  full_name='_PlayerElementType',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='_UNSENT_DEFAULT_ELEM', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='ELEM_CLAY', index=1, number=1,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='ELEM_ORE', index=2, number=2,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='ELEM_SHEEP', index=3, number=3,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='ELEM_WHEAT', index=4, number=4,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='ELEM_WOOD', index=5, number=5,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='ELEM_UNKNOWN_RESOURCE', index=6, number=6,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='ROADS', index=7, number=10,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='SETTLEMENTS', index=8, number=11,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='CITIES', index=9, number=12,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='SHIPS', index=10, number=13,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='NUMKNIGHTS', index=11, number=15,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='ASK_SPECIAL_BUILD', index=12, number=16,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='NUM_PICK_GOLD_HEX_RESOURCES', index=13, number=17,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='SCENARIO_SVP', index=14, number=18,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='SCENARIO_PLAYEREVENTS_BITMASK', index=15, number=19,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='SCENARIO_SVP_LANDAREAS_BITMASK', index=16, number=20,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='STARTING_LANDAREAS', index=17, number=21,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='SCENARIO_CLOTH_COUNT', index=18, number=22,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='SCENARIO_WARSHIP_COUNT', index=19, number=23,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=1230,
+  serialized_end=1669,
+)
+_sym_db.RegisterEnumDescriptor(__PLAYERELEMENTTYPE)
+
+_PlayerElementType = enum_type_wrapper.EnumTypeWrapper(__PLAYERELEMENTTYPE)
+_UNSENT_DEFAULT_ACTION = 0
+SET = 1
+GAIN = 2
+LOSE = 3
+_UNSENT_DEFAULT_ELEM = 0
+ELEM_CLAY = 1
+ELEM_ORE = 2
+ELEM_SHEEP = 3
+ELEM_WHEAT = 4
+ELEM_WOOD = 5
+ELEM_UNKNOWN_RESOURCE = 6
+ROADS = 10
+SETTLEMENTS = 11
+CITIES = 12
+SHIPS = 13
+NUMKNIGHTS = 15
+ASK_SPECIAL_BUILD = 16
+NUM_PICK_GOLD_HEX_RESOURCES = 17
+SCENARIO_SVP = 18
+SCENARIO_PLAYEREVENTS_BITMASK = 19
+SCENARIO_SVP_LANDAREAS_BITMASK = 20
+STARTING_LANDAREAS = 21
+SCENARIO_CLOTH_COUNT = 22
+SCENARIO_WARSHIP_COUNT = 23
 
 
 
@@ -212,6 +363,117 @@ _STATE = _descriptor.Descriptor(
 )
 
 
+_PLAYERELEMENT = _descriptor.Descriptor(
+  name='PlayerElement',
+  full_name='PlayerElement',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='playerNumber', full_name='PlayerElement.playerNumber', index=0,
+      number=1, type=17, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='action', full_name='PlayerElement.action', index=1,
+      number=2, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='elementType', full_name='PlayerElement.elementType', index=2,
+      number=3, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='amount', full_name='PlayerElement.amount', index=3,
+      number=4, type=17, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='isNews', full_name='PlayerElement.isNews', index=4,
+      number=5, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=373,
+  serialized_end=523,
+)
+
+
+_PLAYERELEMENTS = _descriptor.Descriptor(
+  name='PlayerElements',
+  full_name='PlayerElements',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='playerNumber', full_name='PlayerElements.playerNumber', index=0,
+      number=1, type=17, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='action', full_name='PlayerElements.action', index=1,
+      number=2, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='elementTypes', full_name='PlayerElements.elementTypes', index=2,
+      number=3, type=14, cpp_type=8, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='amounts', full_name='PlayerElements.amounts', index=3,
+      number=4, type=17, cpp_type=1, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=526,
+  serialized_end=663,
+)
+
+
 _STARTGAME = _descriptor.Descriptor(
   name='StartGame',
   full_name='StartGame',
@@ -238,8 +500,8 @@ _STARTGAME = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=372,
-  serialized_end=410,
+  serialized_start=665,
+  serialized_end=703,
 )
 
 
@@ -276,8 +538,8 @@ _TURN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=412,
-  serialized_end=468,
+  serialized_start=705,
+  serialized_end=761,
 )
 
 
@@ -300,8 +562,8 @@ _ENDTURN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=470,
-  serialized_end=479,
+  serialized_start=763,
+  serialized_end=772,
 )
 
 
@@ -327,21 +589,35 @@ _GAMEMESSAGEFROMSERVER = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='board_layout', full_name='GameMessageFromServer.board_layout', index=2,
+      name='player_element', full_name='GameMessageFromServer.player_element', index=2,
+      number=15, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='player_elements', full_name='GameMessageFromServer.player_elements', index=3,
+      number=25, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='board_layout', full_name='GameMessageFromServer.board_layout', index=4,
       number=30, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='start_game', full_name='GameMessageFromServer.start_game', index=3,
+      name='start_game', full_name='GameMessageFromServer.start_game', index=5,
       number=100, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='turn', full_name='GameMessageFromServer.turn', index=4,
+      name='turn', full_name='GameMessageFromServer.turn', index=6,
       number=101, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -362,8 +638,8 @@ _GAMEMESSAGEFROMSERVER = _descriptor.Descriptor(
       name='msg', full_name='GameMessageFromServer.msg',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=482,
-  serialized_end=654,
+  serialized_start=775,
+  serialized_end=1033,
 )
 
 
@@ -410,8 +686,8 @@ _GAMEMESSAGEFROMCLIENT = _descriptor.Descriptor(
       name='msg', full_name='GameMessageFromClient.msg',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=656,
-  serialized_end=767,
+  serialized_start=1035,
+  serialized_end=1146,
 )
 
 _BOARDLAYOUT__BOARDLAYOUTPART_INTARRAY.containing_type = _BOARDLAYOUT__BOARDLAYOUTPART
@@ -430,15 +706,27 @@ _BOARDLAYOUT_PARTSENTRY.fields_by_name['value'].message_type = _BOARDLAYOUT__BOA
 _BOARDLAYOUT_PARTSENTRY.containing_type = _BOARDLAYOUT
 _BOARDLAYOUT.fields_by_name['parts'].message_type = _BOARDLAYOUT_PARTSENTRY
 _STATE.fields_by_name['state'].enum_type = data__pb2._GAMESTATE
+_PLAYERELEMENT.fields_by_name['action'].enum_type = __PLAYERELEMENTACTION
+_PLAYERELEMENT.fields_by_name['elementType'].enum_type = __PLAYERELEMENTTYPE
+_PLAYERELEMENTS.fields_by_name['action'].enum_type = __PLAYERELEMENTACTION
+_PLAYERELEMENTS.fields_by_name['elementTypes'].enum_type = __PLAYERELEMENTTYPE
 _STARTGAME.fields_by_name['state'].enum_type = data__pb2._GAMESTATE
 _TURN.fields_by_name['state'].enum_type = data__pb2._GAMESTATE
 _GAMEMESSAGEFROMSERVER.fields_by_name['game_state'].message_type = _STATE
+_GAMEMESSAGEFROMSERVER.fields_by_name['player_element'].message_type = _PLAYERELEMENT
+_GAMEMESSAGEFROMSERVER.fields_by_name['player_elements'].message_type = _PLAYERELEMENTS
 _GAMEMESSAGEFROMSERVER.fields_by_name['board_layout'].message_type = _BOARDLAYOUT
 _GAMEMESSAGEFROMSERVER.fields_by_name['start_game'].message_type = _STARTGAME
 _GAMEMESSAGEFROMSERVER.fields_by_name['turn'].message_type = _TURN
 _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
   _GAMEMESSAGEFROMSERVER.fields_by_name['game_state'])
 _GAMEMESSAGEFROMSERVER.fields_by_name['game_state'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
+_GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
+  _GAMEMESSAGEFROMSERVER.fields_by_name['player_element'])
+_GAMEMESSAGEFROMSERVER.fields_by_name['player_element'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
+_GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
+  _GAMEMESSAGEFROMSERVER.fields_by_name['player_elements'])
+_GAMEMESSAGEFROMSERVER.fields_by_name['player_elements'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
 _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
   _GAMEMESSAGEFROMSERVER.fields_by_name['board_layout'])
 _GAMEMESSAGEFROMSERVER.fields_by_name['board_layout'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
@@ -458,11 +746,15 @@ _GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg'].fields.append(
 _GAMEMESSAGEFROMCLIENT.fields_by_name['end_turn'].containing_oneof = _GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg']
 DESCRIPTOR.message_types_by_name['BoardLayout'] = _BOARDLAYOUT
 DESCRIPTOR.message_types_by_name['State'] = _STATE
+DESCRIPTOR.message_types_by_name['PlayerElement'] = _PLAYERELEMENT
+DESCRIPTOR.message_types_by_name['PlayerElements'] = _PLAYERELEMENTS
 DESCRIPTOR.message_types_by_name['StartGame'] = _STARTGAME
 DESCRIPTOR.message_types_by_name['Turn'] = _TURN
 DESCRIPTOR.message_types_by_name['EndTurn'] = _ENDTURN
 DESCRIPTOR.message_types_by_name['GameMessageFromServer'] = _GAMEMESSAGEFROMSERVER
 DESCRIPTOR.message_types_by_name['GameMessageFromClient'] = _GAMEMESSAGEFROMCLIENT
+DESCRIPTOR.enum_types_by_name['_PlayerElementAction'] = __PLAYERELEMENTACTION
+DESCRIPTOR.enum_types_by_name['_PlayerElementType'] = __PLAYERELEMENTTYPE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 BoardLayout = _reflection.GeneratedProtocolMessageType('BoardLayout', (_message.Message,), dict(
@@ -502,6 +794,20 @@ State = _reflection.GeneratedProtocolMessageType('State', (_message.Message,), d
   # @@protoc_insertion_point(class_scope:State)
   ))
 _sym_db.RegisterMessage(State)
+
+PlayerElement = _reflection.GeneratedProtocolMessageType('PlayerElement', (_message.Message,), dict(
+  DESCRIPTOR = _PLAYERELEMENT,
+  __module__ = 'game_message_pb2'
+  # @@protoc_insertion_point(class_scope:PlayerElement)
+  ))
+_sym_db.RegisterMessage(PlayerElement)
+
+PlayerElements = _reflection.GeneratedProtocolMessageType('PlayerElements', (_message.Message,), dict(
+  DESCRIPTOR = _PLAYERELEMENTS,
+  __module__ = 'game_message_pb2'
+  # @@protoc_insertion_point(class_scope:PlayerElements)
+  ))
+_sym_db.RegisterMessage(PlayerElements)
 
 StartGame = _reflection.GeneratedProtocolMessageType('StartGame', (_message.Message,), dict(
   DESCRIPTOR = _STARTGAME,

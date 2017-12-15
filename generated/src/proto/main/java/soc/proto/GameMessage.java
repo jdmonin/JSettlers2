@@ -14,6 +14,650 @@ public final class GameMessage {
     registerAllExtensions(
         (com.google.protobuf.ExtensionRegistryLite) registry);
   }
+  /**
+   * <pre>
+   * Action type for use in PlayerElement and PlayerElements; not sent as a standalone message type 
+   * </pre>
+   *
+   * Protobuf enum {@code _PlayerElementAction}
+   */
+  public enum _PlayerElementAction
+      implements com.google.protobuf.ProtocolMessageEnum {
+    /**
+     * <pre>
+     * Required for enum, but not sent: not a valid action type
+     * </pre>
+     *
+     * <code>_UNSENT_DEFAULT_ACTION = 0;</code>
+     */
+    _UNSENT_DEFAULT_ACTION(0),
+    /**
+     * <pre>
+     * Set element to value
+     * </pre>
+     *
+     * <code>SET = 1;</code>
+     */
+    SET(1),
+    /**
+     * <pre>
+     * Add value to element
+     * </pre>
+     *
+     * <code>GAIN = 2;</code>
+     */
+    GAIN(2),
+    /**
+     * <pre>
+     * Subtract value from element
+     * </pre>
+     *
+     * <code>LOSE = 3;</code>
+     */
+    LOSE(3),
+    UNRECOGNIZED(-1),
+    ;
+
+    /**
+     * <pre>
+     * Required for enum, but not sent: not a valid action type
+     * </pre>
+     *
+     * <code>_UNSENT_DEFAULT_ACTION = 0;</code>
+     */
+    public static final int _UNSENT_DEFAULT_ACTION_VALUE = 0;
+    /**
+     * <pre>
+     * Set element to value
+     * </pre>
+     *
+     * <code>SET = 1;</code>
+     */
+    public static final int SET_VALUE = 1;
+    /**
+     * <pre>
+     * Add value to element
+     * </pre>
+     *
+     * <code>GAIN = 2;</code>
+     */
+    public static final int GAIN_VALUE = 2;
+    /**
+     * <pre>
+     * Subtract value from element
+     * </pre>
+     *
+     * <code>LOSE = 3;</code>
+     */
+    public static final int LOSE_VALUE = 3;
+
+
+    public final int getNumber() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
+      return value;
+    }
+
+    /**
+     * @deprecated Use {@link #forNumber(int)} instead.
+     */
+    @java.lang.Deprecated
+    public static _PlayerElementAction valueOf(int value) {
+      return forNumber(value);
+    }
+
+    public static _PlayerElementAction forNumber(int value) {
+      switch (value) {
+        case 0: return _UNSENT_DEFAULT_ACTION;
+        case 1: return SET;
+        case 2: return GAIN;
+        case 3: return LOSE;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf.Internal.EnumLiteMap<_PlayerElementAction>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static final com.google.protobuf.Internal.EnumLiteMap<
+        _PlayerElementAction> internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<_PlayerElementAction>() {
+            public _PlayerElementAction findValueByNumber(int number) {
+              return _PlayerElementAction.forNumber(number);
+            }
+          };
+
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      return getDescriptor().getValues().get(ordinal());
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.getDescriptor().getEnumTypes().get(0);
+    }
+
+    private static final _PlayerElementAction[] VALUES = values();
+
+    public static _PlayerElementAction valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
+      return VALUES[desc.getIndex()];
+    }
+
+    private final int value;
+
+    private _PlayerElementAction(int value) {
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:_PlayerElementAction)
+  }
+
+  /**
+   * <pre>
+   * Player element type for use in PlayerElement and PlayerElements; not sent as a standalone message type 
+   * </pre>
+   *
+   * Protobuf enum {@code _PlayerElementType}
+   */
+  public enum _PlayerElementType
+      implements com.google.protobuf.ProtocolMessageEnum {
+    /**
+     * <pre>
+     * Required for enum, but not sent: not a valid player element 
+     * </pre>
+     *
+     * <code>_UNSENT_DEFAULT_ELEM = 0;</code>
+     */
+    _UNSENT_DEFAULT_ELEM(0),
+    /**
+     * <pre>
+     * player element types (1-5). CLAY has same value
+     * as {&#64;link Data.ResourceType#CLAY_VALUE};
+     * ORE, SHEEP, WHEAT and WOOD also match Data.ResourceType.
+     * and {&#64;code SOCResourceConstants}.
+     * </pre>
+     *
+     * <code>ELEM_CLAY = 1;</code>
+     */
+    ELEM_CLAY(1),
+    /**
+     * <code>ELEM_ORE = 2;</code>
+     */
+    ELEM_ORE(2),
+    /**
+     * <code>ELEM_SHEEP = 3;</code>
+     */
+    ELEM_SHEEP(3),
+    /**
+     * <code>ELEM_WHEAT = 4;</code>
+     */
+    ELEM_WHEAT(4),
+    /**
+     * <code>ELEM_WOOD = 5;</code>
+     */
+    ELEM_WOOD(5),
+    /**
+     * <pre>
+     * Amount of resources of unknown type; sent in messages about opponents' resources.
+     * For some loops which send resource types + unknown, this constant is assumed to be 6
+     * (5 known resource types + 1).
+     * </pre>
+     *
+     * <code>ELEM_UNKNOWN_RESOURCE = 6;</code>
+     */
+    ELEM_UNKNOWN_RESOURCE(6),
+    /**
+     * <pre>
+     * Number of Road pieces available to place. 
+     * </pre>
+     *
+     * <code>ROADS = 10;</code>
+     */
+    ROADS(10),
+    /**
+     * <pre>
+     * Number of Settlement pieces available to place. 
+     * </pre>
+     *
+     * <code>SETTLEMENTS = 11;</code>
+     */
+    SETTLEMENTS(11),
+    /**
+     * <pre>
+     * Number of City pieces available to place. 
+     * </pre>
+     *
+     * <code>CITIES = 12;</code>
+     */
+    CITIES(12),
+    /**
+     * <pre>
+     * Number of Ship pieces available to place.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>SHIPS = 13;</code>
+     */
+    SHIPS(13),
+    /**
+     * <pre>
+     * Number of knights in player's army; sent after a Soldier card is played.
+     * </pre>
+     *
+     * <code>NUMKNIGHTS = 15;</code>
+     */
+    NUMKNIGHTS(15),
+    /**
+     * <pre>
+     * For the 6-player board, player element type for asking to build
+     * during the {&#64;link soc.game.SOCGame#SPECIAL_BUILDING Special Building Phase}.
+     * This element is {&#64;code SET} to 1 or 0.
+     * &#64;since 1.1.08
+     * </pre>
+     *
+     * <code>ASK_SPECIAL_BUILD = 16;</code>
+     */
+    ASK_SPECIAL_BUILD(16),
+    /**
+     * <pre>
+     * For the {&#64;link soc.game.SOCBoardLarge large sea board},
+     * player element type for asking to choose
+     * resources from the gold hex after a dice roll,
+     * during the {&#64;link soc.game.SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE WAITING_FOR_PICK_GOLD_RESOURCE}
+     * game state.
+     * This element is {&#64;code SET} to 0 or to the number of resources to choose.
+     * Call {&#64;link soc.game.SOCPlayer#setNeedToPickGoldHexResources(int)}.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>NUM_PICK_GOLD_HEX_RESOURCES = 17;</code>
+     */
+    NUM_PICK_GOLD_HEX_RESOURCES(17),
+    /**
+     * <pre>
+     * For scenarios on the {&#64;link soc.game.SOCBoardLarge large sea board},
+     * the player's number of Special Victory Points (SVP).
+     * This element is {&#64;code SET} to 0 or to the player's
+     * {&#64;link soc.game.SOCPlayer#getSpecialVP()}.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>SCENARIO_SVP = 18;</code>
+     */
+    SCENARIO_SVP(18),
+    /**
+     * <pre>
+     * For scenarios on the {&#64;link soc.game.SOCBoardLarge large sea board},
+     * bitmask of flags related to scenario player events.
+     * This element is {&#64;code SET} to 0 or to the player's flags
+     * from {&#64;link soc.game.SOCPlayer#getScenarioPlayerEvents()}.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>SCENARIO_PLAYEREVENTS_BITMASK = 19;</code>
+     */
+    SCENARIO_PLAYEREVENTS_BITMASK(19),
+    /**
+     * <pre>
+     * For scenarios on the {&#64;link soc.game.SOCBoardLarge large sea board},
+     * bitmask of land areas for tracking Special Victory Points (SVP).
+     * This element is {&#64;code SET} to 0 or to the player's land areas
+     * from {&#64;link soc.game.SOCPlayer#getScenarioSVPLandAreas()}.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>SCENARIO_SVP_LANDAREAS_BITMASK = 20;</code>
+     */
+    SCENARIO_SVP_LANDAREAS_BITMASK(20),
+    /**
+     * <pre>
+     * Player's starting land area numbers.
+     * Sent only at reconnect, because these are also tracked during play at the client.
+     * Sent as &lt;tt&gt;(landArea2 &amp;lt;&amp;lt; 8) | landArea1&lt;/tt&gt;.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>STARTING_LANDAREAS = 21;</code>
+     */
+    STARTING_LANDAREAS(21),
+    /**
+     * <pre>
+     * For scenario &lt;tt&gt;_SC_CLVI&lt;/tt&gt; on the {&#64;link soc.game.SOCBoardLarge large sea board},
+     * the number of cloth held by this player.
+     * This element is {&#64;code SET} to 0 or to the player's cloth count
+     * from {&#64;link soc.game.SOCPlayer#getCloth()}.
+     * After giving cloth to a player, check their total VP; 2 cloth = 1 Victory Point.
+     *&lt;P&gt;
+     * The board's "general supply" is updated with this element type
+     * with {&#64;link #getPlayerNumber()} == -1.
+     * Each village's cloth count is updated with a {&#64;link SOCPieceValue PIECEVALUE} message.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>SCENARIO_CLOTH_COUNT = 22;</code>
+     */
+    SCENARIO_CLOTH_COUNT(22),
+    /**
+     * <pre>
+     * For scenario game option &lt;tt&gt;_SC_PIRI&lt;/tt&gt;,
+     * the player's total number of ships that have been converted to warships.
+     * See SOCPlayer.getNumWarships() for details.
+     * This element can be {&#64;code SET} or {&#64;code GAIN}ed.  For clarity, if the number of
+     * warships decreases, send {&#64;code SET}, never send {&#64;code LOSE}.
+     * {&#64;code GAIN} is sent only in response to a player's successful
+     * {&#64;link SOCPlayDevCardRequest} to convert a ship to a warship.
+     *&lt;P&gt;
+     * If a player is joining a game in progress, the &lt;tt&gt;PLAYERELEMENT(SCENARIO_WARSHIP_COUNT)&lt;/tt&gt;
+     * message is sent to their client only after sending their SOCShip piece positions.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>SCENARIO_WARSHIP_COUNT = 23;</code>
+     */
+    SCENARIO_WARSHIP_COUNT(23),
+    UNRECOGNIZED(-1),
+    ;
+
+    /**
+     * <pre>
+     * Required for enum, but not sent: not a valid player element 
+     * </pre>
+     *
+     * <code>_UNSENT_DEFAULT_ELEM = 0;</code>
+     */
+    public static final int _UNSENT_DEFAULT_ELEM_VALUE = 0;
+    /**
+     * <pre>
+     * player element types (1-5). CLAY has same value
+     * as {&#64;link Data.ResourceType#CLAY_VALUE};
+     * ORE, SHEEP, WHEAT and WOOD also match Data.ResourceType.
+     * and {&#64;code SOCResourceConstants}.
+     * </pre>
+     *
+     * <code>ELEM_CLAY = 1;</code>
+     */
+    public static final int ELEM_CLAY_VALUE = 1;
+    /**
+     * <code>ELEM_ORE = 2;</code>
+     */
+    public static final int ELEM_ORE_VALUE = 2;
+    /**
+     * <code>ELEM_SHEEP = 3;</code>
+     */
+    public static final int ELEM_SHEEP_VALUE = 3;
+    /**
+     * <code>ELEM_WHEAT = 4;</code>
+     */
+    public static final int ELEM_WHEAT_VALUE = 4;
+    /**
+     * <code>ELEM_WOOD = 5;</code>
+     */
+    public static final int ELEM_WOOD_VALUE = 5;
+    /**
+     * <pre>
+     * Amount of resources of unknown type; sent in messages about opponents' resources.
+     * For some loops which send resource types + unknown, this constant is assumed to be 6
+     * (5 known resource types + 1).
+     * </pre>
+     *
+     * <code>ELEM_UNKNOWN_RESOURCE = 6;</code>
+     */
+    public static final int ELEM_UNKNOWN_RESOURCE_VALUE = 6;
+    /**
+     * <pre>
+     * Number of Road pieces available to place. 
+     * </pre>
+     *
+     * <code>ROADS = 10;</code>
+     */
+    public static final int ROADS_VALUE = 10;
+    /**
+     * <pre>
+     * Number of Settlement pieces available to place. 
+     * </pre>
+     *
+     * <code>SETTLEMENTS = 11;</code>
+     */
+    public static final int SETTLEMENTS_VALUE = 11;
+    /**
+     * <pre>
+     * Number of City pieces available to place. 
+     * </pre>
+     *
+     * <code>CITIES = 12;</code>
+     */
+    public static final int CITIES_VALUE = 12;
+    /**
+     * <pre>
+     * Number of Ship pieces available to place.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>SHIPS = 13;</code>
+     */
+    public static final int SHIPS_VALUE = 13;
+    /**
+     * <pre>
+     * Number of knights in player's army; sent after a Soldier card is played.
+     * </pre>
+     *
+     * <code>NUMKNIGHTS = 15;</code>
+     */
+    public static final int NUMKNIGHTS_VALUE = 15;
+    /**
+     * <pre>
+     * For the 6-player board, player element type for asking to build
+     * during the {&#64;link soc.game.SOCGame#SPECIAL_BUILDING Special Building Phase}.
+     * This element is {&#64;code SET} to 1 or 0.
+     * &#64;since 1.1.08
+     * </pre>
+     *
+     * <code>ASK_SPECIAL_BUILD = 16;</code>
+     */
+    public static final int ASK_SPECIAL_BUILD_VALUE = 16;
+    /**
+     * <pre>
+     * For the {&#64;link soc.game.SOCBoardLarge large sea board},
+     * player element type for asking to choose
+     * resources from the gold hex after a dice roll,
+     * during the {&#64;link soc.game.SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE WAITING_FOR_PICK_GOLD_RESOURCE}
+     * game state.
+     * This element is {&#64;code SET} to 0 or to the number of resources to choose.
+     * Call {&#64;link soc.game.SOCPlayer#setNeedToPickGoldHexResources(int)}.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>NUM_PICK_GOLD_HEX_RESOURCES = 17;</code>
+     */
+    public static final int NUM_PICK_GOLD_HEX_RESOURCES_VALUE = 17;
+    /**
+     * <pre>
+     * For scenarios on the {&#64;link soc.game.SOCBoardLarge large sea board},
+     * the player's number of Special Victory Points (SVP).
+     * This element is {&#64;code SET} to 0 or to the player's
+     * {&#64;link soc.game.SOCPlayer#getSpecialVP()}.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>SCENARIO_SVP = 18;</code>
+     */
+    public static final int SCENARIO_SVP_VALUE = 18;
+    /**
+     * <pre>
+     * For scenarios on the {&#64;link soc.game.SOCBoardLarge large sea board},
+     * bitmask of flags related to scenario player events.
+     * This element is {&#64;code SET} to 0 or to the player's flags
+     * from {&#64;link soc.game.SOCPlayer#getScenarioPlayerEvents()}.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>SCENARIO_PLAYEREVENTS_BITMASK = 19;</code>
+     */
+    public static final int SCENARIO_PLAYEREVENTS_BITMASK_VALUE = 19;
+    /**
+     * <pre>
+     * For scenarios on the {&#64;link soc.game.SOCBoardLarge large sea board},
+     * bitmask of land areas for tracking Special Victory Points (SVP).
+     * This element is {&#64;code SET} to 0 or to the player's land areas
+     * from {&#64;link soc.game.SOCPlayer#getScenarioSVPLandAreas()}.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>SCENARIO_SVP_LANDAREAS_BITMASK = 20;</code>
+     */
+    public static final int SCENARIO_SVP_LANDAREAS_BITMASK_VALUE = 20;
+    /**
+     * <pre>
+     * Player's starting land area numbers.
+     * Sent only at reconnect, because these are also tracked during play at the client.
+     * Sent as &lt;tt&gt;(landArea2 &amp;lt;&amp;lt; 8) | landArea1&lt;/tt&gt;.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>STARTING_LANDAREAS = 21;</code>
+     */
+    public static final int STARTING_LANDAREAS_VALUE = 21;
+    /**
+     * <pre>
+     * For scenario &lt;tt&gt;_SC_CLVI&lt;/tt&gt; on the {&#64;link soc.game.SOCBoardLarge large sea board},
+     * the number of cloth held by this player.
+     * This element is {&#64;code SET} to 0 or to the player's cloth count
+     * from {&#64;link soc.game.SOCPlayer#getCloth()}.
+     * After giving cloth to a player, check their total VP; 2 cloth = 1 Victory Point.
+     *&lt;P&gt;
+     * The board's "general supply" is updated with this element type
+     * with {&#64;link #getPlayerNumber()} == -1.
+     * Each village's cloth count is updated with a {&#64;link SOCPieceValue PIECEVALUE} message.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>SCENARIO_CLOTH_COUNT = 22;</code>
+     */
+    public static final int SCENARIO_CLOTH_COUNT_VALUE = 22;
+    /**
+     * <pre>
+     * For scenario game option &lt;tt&gt;_SC_PIRI&lt;/tt&gt;,
+     * the player's total number of ships that have been converted to warships.
+     * See SOCPlayer.getNumWarships() for details.
+     * This element can be {&#64;code SET} or {&#64;code GAIN}ed.  For clarity, if the number of
+     * warships decreases, send {&#64;code SET}, never send {&#64;code LOSE}.
+     * {&#64;code GAIN} is sent only in response to a player's successful
+     * {&#64;link SOCPlayDevCardRequest} to convert a ship to a warship.
+     *&lt;P&gt;
+     * If a player is joining a game in progress, the &lt;tt&gt;PLAYERELEMENT(SCENARIO_WARSHIP_COUNT)&lt;/tt&gt;
+     * message is sent to their client only after sending their SOCShip piece positions.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>SCENARIO_WARSHIP_COUNT = 23;</code>
+     */
+    public static final int SCENARIO_WARSHIP_COUNT_VALUE = 23;
+
+
+    public final int getNumber() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
+      return value;
+    }
+
+    /**
+     * @deprecated Use {@link #forNumber(int)} instead.
+     */
+    @java.lang.Deprecated
+    public static _PlayerElementType valueOf(int value) {
+      return forNumber(value);
+    }
+
+    public static _PlayerElementType forNumber(int value) {
+      switch (value) {
+        case 0: return _UNSENT_DEFAULT_ELEM;
+        case 1: return ELEM_CLAY;
+        case 2: return ELEM_ORE;
+        case 3: return ELEM_SHEEP;
+        case 4: return ELEM_WHEAT;
+        case 5: return ELEM_WOOD;
+        case 6: return ELEM_UNKNOWN_RESOURCE;
+        case 10: return ROADS;
+        case 11: return SETTLEMENTS;
+        case 12: return CITIES;
+        case 13: return SHIPS;
+        case 15: return NUMKNIGHTS;
+        case 16: return ASK_SPECIAL_BUILD;
+        case 17: return NUM_PICK_GOLD_HEX_RESOURCES;
+        case 18: return SCENARIO_SVP;
+        case 19: return SCENARIO_PLAYEREVENTS_BITMASK;
+        case 20: return SCENARIO_SVP_LANDAREAS_BITMASK;
+        case 21: return STARTING_LANDAREAS;
+        case 22: return SCENARIO_CLOTH_COUNT;
+        case 23: return SCENARIO_WARSHIP_COUNT;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf.Internal.EnumLiteMap<_PlayerElementType>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static final com.google.protobuf.Internal.EnumLiteMap<
+        _PlayerElementType> internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<_PlayerElementType>() {
+            public _PlayerElementType findValueByNumber(int number) {
+              return _PlayerElementType.forNumber(number);
+            }
+          };
+
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      return getDescriptor().getValues().get(ordinal());
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.getDescriptor().getEnumTypes().get(1);
+    }
+
+    private static final _PlayerElementType[] VALUES = values();
+
+    public static _PlayerElementType valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
+      return VALUES[desc.getIndex()];
+    }
+
+    private final int value;
+
+    private _PlayerElementType(int value) {
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:_PlayerElementType)
+  }
+
   public interface BoardLayoutOrBuilder extends
       // @@protoc_insertion_point(interface_extends:BoardLayout)
       com.google.protobuf.MessageOrBuilder {
@@ -2974,6 +3618,1855 @@ public final class GameMessage {
 
   }
 
+  public interface PlayerElementOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:PlayerElement)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * Some element types can use -1 for all players, some others don't use this field.
+     * Remember that for playerNumber 0, protobuf won't send the field (== default).
+     * </pre>
+     *
+     * <code>sint32 playerNumber = 1;</code>
+     */
+    int getPlayerNumber();
+
+    /**
+     * <code>._PlayerElementAction action = 2;</code>
+     */
+    int getActionValue();
+    /**
+     * <code>._PlayerElementAction action = 2;</code>
+     */
+    soc.proto.GameMessage._PlayerElementAction getAction();
+
+    /**
+     * <code>._PlayerElementType elementType = 3;</code>
+     */
+    int getElementTypeValue();
+    /**
+     * <code>._PlayerElementType elementType = 3;</code>
+     */
+    soc.proto.GameMessage._PlayerElementType getElementType();
+
+    /**
+     * <code>sint32 amount = 4;</code>
+     */
+    int getAmount();
+
+    /**
+     * <code>bool isNews = 5;</code>
+     */
+    boolean getIsNews();
+  }
+  /**
+   * <pre>
+   * This message from the server conveys one part of a player's status,
+   * such as their number of settlements remaining.
+   *&lt;P&gt;
+   * Unless otherwise mentioned, any {&#64;code elementType} can be sent with
+   * any action ({&#64;link _PlayerElementAction#SET}, {&#64;link _PlayerElementAction#GAIN GAIN},
+   * {&#64;link _PlayerElementAction#LOSE LOSE}).
+   *&lt;H3&gt;Message Sequence:&lt;/H3&gt;
+   *&lt;UL&gt;
+   * &lt;LI&gt; For a bank trade (server response to player's {&#64;link BankTrade}),
+   *   all the {&#64;code LOSE} messages come before the {&#64;code GAIN}s.
+   * &lt;LI&gt; For trade between players ({&#64;link AcceptOffer}), the {&#64;code LOSE}s and {&#64;code GAIN}s
+   *   are interspersed to simplify server code.
+   * &lt;LI&gt; Most other situations send single PlayerElement messages or their sequence doesn't matter.
+   *&lt;/UL&gt;
+   *&lt;P&gt;
+   * Resource loss can be expected and good (buying pieces or trading with other players)
+   * or unexpected and bad (monopoly, robber, discards). v1.2.00 and newer have sound effects
+   * to announce unexpected gains or losses; to help recognize this, this message type has a
+   * {&#64;link #isNews()} flag field.
+   *&lt;P&gt;
+   * To use less overhead to send multiple similar element changes, use {&#64;link PlayerElements} instead.
+   * </pre>
+   *
+   * Protobuf type {@code PlayerElement}
+   */
+  public  static final class PlayerElement extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:PlayerElement)
+      PlayerElementOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use PlayerElement.newBuilder() to construct.
+    private PlayerElement(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private PlayerElement() {
+      playerNumber_ = 0;
+      action_ = 0;
+      elementType_ = 0;
+      amount_ = 0;
+      isNews_ = false;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private PlayerElement(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+
+              playerNumber_ = input.readSInt32();
+              break;
+            }
+            case 16: {
+              int rawValue = input.readEnum();
+
+              action_ = rawValue;
+              break;
+            }
+            case 24: {
+              int rawValue = input.readEnum();
+
+              elementType_ = rawValue;
+              break;
+            }
+            case 32: {
+
+              amount_ = input.readSInt32();
+              break;
+            }
+            case 40: {
+
+              isNews_ = input.readBool();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_PlayerElement_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_PlayerElement_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.PlayerElement.class, soc.proto.GameMessage.PlayerElement.Builder.class);
+    }
+
+    public static final int PLAYERNUMBER_FIELD_NUMBER = 1;
+    private int playerNumber_;
+    /**
+     * <pre>
+     * Some element types can use -1 for all players, some others don't use this field.
+     * Remember that for playerNumber 0, protobuf won't send the field (== default).
+     * </pre>
+     *
+     * <code>sint32 playerNumber = 1;</code>
+     */
+    public int getPlayerNumber() {
+      return playerNumber_;
+    }
+
+    public static final int ACTION_FIELD_NUMBER = 2;
+    private int action_;
+    /**
+     * <code>._PlayerElementAction action = 2;</code>
+     */
+    public int getActionValue() {
+      return action_;
+    }
+    /**
+     * <code>._PlayerElementAction action = 2;</code>
+     */
+    public soc.proto.GameMessage._PlayerElementAction getAction() {
+      soc.proto.GameMessage._PlayerElementAction result = soc.proto.GameMessage._PlayerElementAction.valueOf(action_);
+      return result == null ? soc.proto.GameMessage._PlayerElementAction.UNRECOGNIZED : result;
+    }
+
+    public static final int ELEMENTTYPE_FIELD_NUMBER = 3;
+    private int elementType_;
+    /**
+     * <code>._PlayerElementType elementType = 3;</code>
+     */
+    public int getElementTypeValue() {
+      return elementType_;
+    }
+    /**
+     * <code>._PlayerElementType elementType = 3;</code>
+     */
+    public soc.proto.GameMessage._PlayerElementType getElementType() {
+      soc.proto.GameMessage._PlayerElementType result = soc.proto.GameMessage._PlayerElementType.valueOf(elementType_);
+      return result == null ? soc.proto.GameMessage._PlayerElementType.UNRECOGNIZED : result;
+    }
+
+    public static final int AMOUNT_FIELD_NUMBER = 4;
+    private int amount_;
+    /**
+     * <code>sint32 amount = 4;</code>
+     */
+    public int getAmount() {
+      return amount_;
+    }
+
+    public static final int ISNEWS_FIELD_NUMBER = 5;
+    private boolean isNews_;
+    /**
+     * <code>bool isNews = 5;</code>
+     */
+    public boolean getIsNews() {
+      return isNews_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (playerNumber_ != 0) {
+        output.writeSInt32(1, playerNumber_);
+      }
+      if (action_ != soc.proto.GameMessage._PlayerElementAction._UNSENT_DEFAULT_ACTION.getNumber()) {
+        output.writeEnum(2, action_);
+      }
+      if (elementType_ != soc.proto.GameMessage._PlayerElementType._UNSENT_DEFAULT_ELEM.getNumber()) {
+        output.writeEnum(3, elementType_);
+      }
+      if (amount_ != 0) {
+        output.writeSInt32(4, amount_);
+      }
+      if (isNews_ != false) {
+        output.writeBool(5, isNews_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (playerNumber_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeSInt32Size(1, playerNumber_);
+      }
+      if (action_ != soc.proto.GameMessage._PlayerElementAction._UNSENT_DEFAULT_ACTION.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(2, action_);
+      }
+      if (elementType_ != soc.proto.GameMessage._PlayerElementType._UNSENT_DEFAULT_ELEM.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(3, elementType_);
+      }
+      if (amount_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeSInt32Size(4, amount_);
+      }
+      if (isNews_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(5, isNews_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.PlayerElement)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.PlayerElement other = (soc.proto.GameMessage.PlayerElement) obj;
+
+      boolean result = true;
+      result = result && (getPlayerNumber()
+          == other.getPlayerNumber());
+      result = result && action_ == other.action_;
+      result = result && elementType_ == other.elementType_;
+      result = result && (getAmount()
+          == other.getAmount());
+      result = result && (getIsNews()
+          == other.getIsNews());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + PLAYERNUMBER_FIELD_NUMBER;
+      hash = (53 * hash) + getPlayerNumber();
+      hash = (37 * hash) + ACTION_FIELD_NUMBER;
+      hash = (53 * hash) + action_;
+      hash = (37 * hash) + ELEMENTTYPE_FIELD_NUMBER;
+      hash = (53 * hash) + elementType_;
+      hash = (37 * hash) + AMOUNT_FIELD_NUMBER;
+      hash = (53 * hash) + getAmount();
+      hash = (37 * hash) + ISNEWS_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getIsNews());
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.PlayerElement parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.PlayerElement parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.PlayerElement parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.PlayerElement parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.PlayerElement parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.PlayerElement parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.PlayerElement parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.PlayerElement parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.PlayerElement parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.PlayerElement parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.PlayerElement parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.PlayerElement parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.PlayerElement prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * This message from the server conveys one part of a player's status,
+     * such as their number of settlements remaining.
+     *&lt;P&gt;
+     * Unless otherwise mentioned, any {&#64;code elementType} can be sent with
+     * any action ({&#64;link _PlayerElementAction#SET}, {&#64;link _PlayerElementAction#GAIN GAIN},
+     * {&#64;link _PlayerElementAction#LOSE LOSE}).
+     *&lt;H3&gt;Message Sequence:&lt;/H3&gt;
+     *&lt;UL&gt;
+     * &lt;LI&gt; For a bank trade (server response to player's {&#64;link BankTrade}),
+     *   all the {&#64;code LOSE} messages come before the {&#64;code GAIN}s.
+     * &lt;LI&gt; For trade between players ({&#64;link AcceptOffer}), the {&#64;code LOSE}s and {&#64;code GAIN}s
+     *   are interspersed to simplify server code.
+     * &lt;LI&gt; Most other situations send single PlayerElement messages or their sequence doesn't matter.
+     *&lt;/UL&gt;
+     *&lt;P&gt;
+     * Resource loss can be expected and good (buying pieces or trading with other players)
+     * or unexpected and bad (monopoly, robber, discards). v1.2.00 and newer have sound effects
+     * to announce unexpected gains or losses; to help recognize this, this message type has a
+     * {&#64;link #isNews()} flag field.
+     *&lt;P&gt;
+     * To use less overhead to send multiple similar element changes, use {&#64;link PlayerElements} instead.
+     * </pre>
+     *
+     * Protobuf type {@code PlayerElement}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:PlayerElement)
+        soc.proto.GameMessage.PlayerElementOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_PlayerElement_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_PlayerElement_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.PlayerElement.class, soc.proto.GameMessage.PlayerElement.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.PlayerElement.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        playerNumber_ = 0;
+
+        action_ = 0;
+
+        elementType_ = 0;
+
+        amount_ = 0;
+
+        isNews_ = false;
+
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_PlayerElement_descriptor;
+      }
+
+      public soc.proto.GameMessage.PlayerElement getDefaultInstanceForType() {
+        return soc.proto.GameMessage.PlayerElement.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.PlayerElement build() {
+        soc.proto.GameMessage.PlayerElement result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.PlayerElement buildPartial() {
+        soc.proto.GameMessage.PlayerElement result = new soc.proto.GameMessage.PlayerElement(this);
+        result.playerNumber_ = playerNumber_;
+        result.action_ = action_;
+        result.elementType_ = elementType_;
+        result.amount_ = amount_;
+        result.isNews_ = isNews_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.PlayerElement) {
+          return mergeFrom((soc.proto.GameMessage.PlayerElement)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.PlayerElement other) {
+        if (other == soc.proto.GameMessage.PlayerElement.getDefaultInstance()) return this;
+        if (other.getPlayerNumber() != 0) {
+          setPlayerNumber(other.getPlayerNumber());
+        }
+        if (other.action_ != 0) {
+          setActionValue(other.getActionValue());
+        }
+        if (other.elementType_ != 0) {
+          setElementTypeValue(other.getElementTypeValue());
+        }
+        if (other.getAmount() != 0) {
+          setAmount(other.getAmount());
+        }
+        if (other.getIsNews() != false) {
+          setIsNews(other.getIsNews());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.PlayerElement parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.PlayerElement) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private int playerNumber_ ;
+      /**
+       * <pre>
+       * Some element types can use -1 for all players, some others don't use this field.
+       * Remember that for playerNumber 0, protobuf won't send the field (== default).
+       * </pre>
+       *
+       * <code>sint32 playerNumber = 1;</code>
+       */
+      public int getPlayerNumber() {
+        return playerNumber_;
+      }
+      /**
+       * <pre>
+       * Some element types can use -1 for all players, some others don't use this field.
+       * Remember that for playerNumber 0, protobuf won't send the field (== default).
+       * </pre>
+       *
+       * <code>sint32 playerNumber = 1;</code>
+       */
+      public Builder setPlayerNumber(int value) {
+        
+        playerNumber_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Some element types can use -1 for all players, some others don't use this field.
+       * Remember that for playerNumber 0, protobuf won't send the field (== default).
+       * </pre>
+       *
+       * <code>sint32 playerNumber = 1;</code>
+       */
+      public Builder clearPlayerNumber() {
+        
+        playerNumber_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int action_ = 0;
+      /**
+       * <code>._PlayerElementAction action = 2;</code>
+       */
+      public int getActionValue() {
+        return action_;
+      }
+      /**
+       * <code>._PlayerElementAction action = 2;</code>
+       */
+      public Builder setActionValue(int value) {
+        action_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>._PlayerElementAction action = 2;</code>
+       */
+      public soc.proto.GameMessage._PlayerElementAction getAction() {
+        soc.proto.GameMessage._PlayerElementAction result = soc.proto.GameMessage._PlayerElementAction.valueOf(action_);
+        return result == null ? soc.proto.GameMessage._PlayerElementAction.UNRECOGNIZED : result;
+      }
+      /**
+       * <code>._PlayerElementAction action = 2;</code>
+       */
+      public Builder setAction(soc.proto.GameMessage._PlayerElementAction value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        
+        action_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>._PlayerElementAction action = 2;</code>
+       */
+      public Builder clearAction() {
+        
+        action_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int elementType_ = 0;
+      /**
+       * <code>._PlayerElementType elementType = 3;</code>
+       */
+      public int getElementTypeValue() {
+        return elementType_;
+      }
+      /**
+       * <code>._PlayerElementType elementType = 3;</code>
+       */
+      public Builder setElementTypeValue(int value) {
+        elementType_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>._PlayerElementType elementType = 3;</code>
+       */
+      public soc.proto.GameMessage._PlayerElementType getElementType() {
+        soc.proto.GameMessage._PlayerElementType result = soc.proto.GameMessage._PlayerElementType.valueOf(elementType_);
+        return result == null ? soc.proto.GameMessage._PlayerElementType.UNRECOGNIZED : result;
+      }
+      /**
+       * <code>._PlayerElementType elementType = 3;</code>
+       */
+      public Builder setElementType(soc.proto.GameMessage._PlayerElementType value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        
+        elementType_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>._PlayerElementType elementType = 3;</code>
+       */
+      public Builder clearElementType() {
+        
+        elementType_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int amount_ ;
+      /**
+       * <code>sint32 amount = 4;</code>
+       */
+      public int getAmount() {
+        return amount_;
+      }
+      /**
+       * <code>sint32 amount = 4;</code>
+       */
+      public Builder setAmount(int value) {
+        
+        amount_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>sint32 amount = 4;</code>
+       */
+      public Builder clearAmount() {
+        
+        amount_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private boolean isNews_ ;
+      /**
+       * <code>bool isNews = 5;</code>
+       */
+      public boolean getIsNews() {
+        return isNews_;
+      }
+      /**
+       * <code>bool isNews = 5;</code>
+       */
+      public Builder setIsNews(boolean value) {
+        
+        isNews_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bool isNews = 5;</code>
+       */
+      public Builder clearIsNews() {
+        
+        isNews_ = false;
+        onChanged();
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:PlayerElement)
+    }
+
+    // @@protoc_insertion_point(class_scope:PlayerElement)
+    private static final soc.proto.GameMessage.PlayerElement DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.PlayerElement();
+    }
+
+    public static soc.proto.GameMessage.PlayerElement getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<PlayerElement>
+        PARSER = new com.google.protobuf.AbstractParser<PlayerElement>() {
+      public PlayerElement parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new PlayerElement(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<PlayerElement> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<PlayerElement> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.PlayerElement getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface PlayerElementsOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:PlayerElements)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * Some element types can use -1 for all players, some others don't use this field.
+     * Remember that for playerNumber 0, protobuf won't send the field (== default).
+     * </pre>
+     *
+     * <code>sint32 playerNumber = 1;</code>
+     */
+    int getPlayerNumber();
+
+    /**
+     * <code>._PlayerElementAction action = 2;</code>
+     */
+    int getActionValue();
+    /**
+     * <code>._PlayerElementAction action = 2;</code>
+     */
+    soc.proto.GameMessage._PlayerElementAction getAction();
+
+    /**
+     * <code>repeated ._PlayerElementType elementTypes = 3;</code>
+     */
+    java.util.List<soc.proto.GameMessage._PlayerElementType> getElementTypesList();
+    /**
+     * <code>repeated ._PlayerElementType elementTypes = 3;</code>
+     */
+    int getElementTypesCount();
+    /**
+     * <code>repeated ._PlayerElementType elementTypes = 3;</code>
+     */
+    soc.proto.GameMessage._PlayerElementType getElementTypes(int index);
+    /**
+     * <code>repeated ._PlayerElementType elementTypes = 3;</code>
+     */
+    java.util.List<java.lang.Integer>
+    getElementTypesValueList();
+    /**
+     * <code>repeated ._PlayerElementType elementTypes = 3;</code>
+     */
+    int getElementTypesValue(int index);
+
+    /**
+     * <code>repeated sint32 amounts = 4;</code>
+     */
+    java.util.List<java.lang.Integer> getAmountsList();
+    /**
+     * <code>repeated sint32 amounts = 4;</code>
+     */
+    int getAmountsCount();
+    /**
+     * <code>repeated sint32 amounts = 4;</code>
+     */
+    int getAmounts(int index);
+  }
+  /**
+   * <pre>
+   * This message from the server holds information on some parts of a player's status,
+   * such as resource type counts.  Same structure as {&#64;link PlayerElement} but with
+   * less overhead to send multiple similar element changes.
+   *&lt;P&gt;
+   * For a given player number and action type, contains parallel lists for sending
+   * (element type, amount) pairs.
+   *&lt;P&gt;
+   * Defined in v1.1.09 but unused before v2.0.00.
+   * </pre>
+   *
+   * Protobuf type {@code PlayerElements}
+   */
+  public  static final class PlayerElements extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:PlayerElements)
+      PlayerElementsOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use PlayerElements.newBuilder() to construct.
+    private PlayerElements(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private PlayerElements() {
+      playerNumber_ = 0;
+      action_ = 0;
+      elementTypes_ = java.util.Collections.emptyList();
+      amounts_ = java.util.Collections.emptyList();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private PlayerElements(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+
+              playerNumber_ = input.readSInt32();
+              break;
+            }
+            case 16: {
+              int rawValue = input.readEnum();
+
+              action_ = rawValue;
+              break;
+            }
+            case 24: {
+              int rawValue = input.readEnum();
+              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+                elementTypes_ = new java.util.ArrayList<java.lang.Integer>();
+                mutable_bitField0_ |= 0x00000004;
+              }
+              elementTypes_.add(rawValue);
+              break;
+            }
+            case 26: {
+              int length = input.readRawVarint32();
+              int oldLimit = input.pushLimit(length);
+              while(input.getBytesUntilLimit() > 0) {
+                int rawValue = input.readEnum();
+                if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+                  elementTypes_ = new java.util.ArrayList<java.lang.Integer>();
+                  mutable_bitField0_ |= 0x00000004;
+                }
+                elementTypes_.add(rawValue);
+              }
+              input.popLimit(oldLimit);
+              break;
+            }
+            case 32: {
+              if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+                amounts_ = new java.util.ArrayList<java.lang.Integer>();
+                mutable_bitField0_ |= 0x00000008;
+              }
+              amounts_.add(input.readSInt32());
+              break;
+            }
+            case 34: {
+              int length = input.readRawVarint32();
+              int limit = input.pushLimit(length);
+              if (!((mutable_bitField0_ & 0x00000008) == 0x00000008) && input.getBytesUntilLimit() > 0) {
+                amounts_ = new java.util.ArrayList<java.lang.Integer>();
+                mutable_bitField0_ |= 0x00000008;
+              }
+              while (input.getBytesUntilLimit() > 0) {
+                amounts_.add(input.readSInt32());
+              }
+              input.popLimit(limit);
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+          elementTypes_ = java.util.Collections.unmodifiableList(elementTypes_);
+        }
+        if (((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+          amounts_ = java.util.Collections.unmodifiableList(amounts_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_PlayerElements_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_PlayerElements_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.PlayerElements.class, soc.proto.GameMessage.PlayerElements.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int PLAYERNUMBER_FIELD_NUMBER = 1;
+    private int playerNumber_;
+    /**
+     * <pre>
+     * Some element types can use -1 for all players, some others don't use this field.
+     * Remember that for playerNumber 0, protobuf won't send the field (== default).
+     * </pre>
+     *
+     * <code>sint32 playerNumber = 1;</code>
+     */
+    public int getPlayerNumber() {
+      return playerNumber_;
+    }
+
+    public static final int ACTION_FIELD_NUMBER = 2;
+    private int action_;
+    /**
+     * <code>._PlayerElementAction action = 2;</code>
+     */
+    public int getActionValue() {
+      return action_;
+    }
+    /**
+     * <code>._PlayerElementAction action = 2;</code>
+     */
+    public soc.proto.GameMessage._PlayerElementAction getAction() {
+      soc.proto.GameMessage._PlayerElementAction result = soc.proto.GameMessage._PlayerElementAction.valueOf(action_);
+      return result == null ? soc.proto.GameMessage._PlayerElementAction.UNRECOGNIZED : result;
+    }
+
+    public static final int ELEMENTTYPES_FIELD_NUMBER = 3;
+    private java.util.List<java.lang.Integer> elementTypes_;
+    private static final com.google.protobuf.Internal.ListAdapter.Converter<
+        java.lang.Integer, soc.proto.GameMessage._PlayerElementType> elementTypes_converter_ =
+            new com.google.protobuf.Internal.ListAdapter.Converter<
+                java.lang.Integer, soc.proto.GameMessage._PlayerElementType>() {
+              public soc.proto.GameMessage._PlayerElementType convert(java.lang.Integer from) {
+                soc.proto.GameMessage._PlayerElementType result = soc.proto.GameMessage._PlayerElementType.valueOf(from);
+                return result == null ? soc.proto.GameMessage._PlayerElementType.UNRECOGNIZED : result;
+              }
+            };
+    /**
+     * <code>repeated ._PlayerElementType elementTypes = 3;</code>
+     */
+    public java.util.List<soc.proto.GameMessage._PlayerElementType> getElementTypesList() {
+      return new com.google.protobuf.Internal.ListAdapter<
+          java.lang.Integer, soc.proto.GameMessage._PlayerElementType>(elementTypes_, elementTypes_converter_);
+    }
+    /**
+     * <code>repeated ._PlayerElementType elementTypes = 3;</code>
+     */
+    public int getElementTypesCount() {
+      return elementTypes_.size();
+    }
+    /**
+     * <code>repeated ._PlayerElementType elementTypes = 3;</code>
+     */
+    public soc.proto.GameMessage._PlayerElementType getElementTypes(int index) {
+      return elementTypes_converter_.convert(elementTypes_.get(index));
+    }
+    /**
+     * <code>repeated ._PlayerElementType elementTypes = 3;</code>
+     */
+    public java.util.List<java.lang.Integer>
+    getElementTypesValueList() {
+      return elementTypes_;
+    }
+    /**
+     * <code>repeated ._PlayerElementType elementTypes = 3;</code>
+     */
+    public int getElementTypesValue(int index) {
+      return elementTypes_.get(index);
+    }
+    private int elementTypesMemoizedSerializedSize;
+
+    public static final int AMOUNTS_FIELD_NUMBER = 4;
+    private java.util.List<java.lang.Integer> amounts_;
+    /**
+     * <code>repeated sint32 amounts = 4;</code>
+     */
+    public java.util.List<java.lang.Integer>
+        getAmountsList() {
+      return amounts_;
+    }
+    /**
+     * <code>repeated sint32 amounts = 4;</code>
+     */
+    public int getAmountsCount() {
+      return amounts_.size();
+    }
+    /**
+     * <code>repeated sint32 amounts = 4;</code>
+     */
+    public int getAmounts(int index) {
+      return amounts_.get(index);
+    }
+    private int amountsMemoizedSerializedSize = -1;
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (playerNumber_ != 0) {
+        output.writeSInt32(1, playerNumber_);
+      }
+      if (action_ != soc.proto.GameMessage._PlayerElementAction._UNSENT_DEFAULT_ACTION.getNumber()) {
+        output.writeEnum(2, action_);
+      }
+      if (getElementTypesList().size() > 0) {
+        output.writeUInt32NoTag(26);
+        output.writeUInt32NoTag(elementTypesMemoizedSerializedSize);
+      }
+      for (int i = 0; i < elementTypes_.size(); i++) {
+        output.writeEnumNoTag(elementTypes_.get(i));
+      }
+      if (getAmountsList().size() > 0) {
+        output.writeUInt32NoTag(34);
+        output.writeUInt32NoTag(amountsMemoizedSerializedSize);
+      }
+      for (int i = 0; i < amounts_.size(); i++) {
+        output.writeSInt32NoTag(amounts_.get(i));
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (playerNumber_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeSInt32Size(1, playerNumber_);
+      }
+      if (action_ != soc.proto.GameMessage._PlayerElementAction._UNSENT_DEFAULT_ACTION.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(2, action_);
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < elementTypes_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeEnumSizeNoTag(elementTypes_.get(i));
+        }
+        size += dataSize;
+        if (!getElementTypesList().isEmpty()) {  size += 1;
+          size += com.google.protobuf.CodedOutputStream
+            .computeUInt32SizeNoTag(dataSize);
+        }elementTypesMemoizedSerializedSize = dataSize;
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < amounts_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeSInt32SizeNoTag(amounts_.get(i));
+        }
+        size += dataSize;
+        if (!getAmountsList().isEmpty()) {
+          size += 1;
+          size += com.google.protobuf.CodedOutputStream
+              .computeInt32SizeNoTag(dataSize);
+        }
+        amountsMemoizedSerializedSize = dataSize;
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.PlayerElements)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.PlayerElements other = (soc.proto.GameMessage.PlayerElements) obj;
+
+      boolean result = true;
+      result = result && (getPlayerNumber()
+          == other.getPlayerNumber());
+      result = result && action_ == other.action_;
+      result = result && elementTypes_.equals(other.elementTypes_);
+      result = result && getAmountsList()
+          .equals(other.getAmountsList());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + PLAYERNUMBER_FIELD_NUMBER;
+      hash = (53 * hash) + getPlayerNumber();
+      hash = (37 * hash) + ACTION_FIELD_NUMBER;
+      hash = (53 * hash) + action_;
+      if (getElementTypesCount() > 0) {
+        hash = (37 * hash) + ELEMENTTYPES_FIELD_NUMBER;
+        hash = (53 * hash) + elementTypes_.hashCode();
+      }
+      if (getAmountsCount() > 0) {
+        hash = (37 * hash) + AMOUNTS_FIELD_NUMBER;
+        hash = (53 * hash) + getAmountsList().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.PlayerElements parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.PlayerElements parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.PlayerElements parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.PlayerElements parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.PlayerElements parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.PlayerElements parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.PlayerElements parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.PlayerElements parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.PlayerElements parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.PlayerElements parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.PlayerElements parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.PlayerElements parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.PlayerElements prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * This message from the server holds information on some parts of a player's status,
+     * such as resource type counts.  Same structure as {&#64;link PlayerElement} but with
+     * less overhead to send multiple similar element changes.
+     *&lt;P&gt;
+     * For a given player number and action type, contains parallel lists for sending
+     * (element type, amount) pairs.
+     *&lt;P&gt;
+     * Defined in v1.1.09 but unused before v2.0.00.
+     * </pre>
+     *
+     * Protobuf type {@code PlayerElements}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:PlayerElements)
+        soc.proto.GameMessage.PlayerElementsOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_PlayerElements_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_PlayerElements_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.PlayerElements.class, soc.proto.GameMessage.PlayerElements.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.PlayerElements.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        playerNumber_ = 0;
+
+        action_ = 0;
+
+        elementTypes_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        amounts_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_PlayerElements_descriptor;
+      }
+
+      public soc.proto.GameMessage.PlayerElements getDefaultInstanceForType() {
+        return soc.proto.GameMessage.PlayerElements.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.PlayerElements build() {
+        soc.proto.GameMessage.PlayerElements result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.PlayerElements buildPartial() {
+        soc.proto.GameMessage.PlayerElements result = new soc.proto.GameMessage.PlayerElements(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        result.playerNumber_ = playerNumber_;
+        result.action_ = action_;
+        if (((bitField0_ & 0x00000004) == 0x00000004)) {
+          elementTypes_ = java.util.Collections.unmodifiableList(elementTypes_);
+          bitField0_ = (bitField0_ & ~0x00000004);
+        }
+        result.elementTypes_ = elementTypes_;
+        if (((bitField0_ & 0x00000008) == 0x00000008)) {
+          amounts_ = java.util.Collections.unmodifiableList(amounts_);
+          bitField0_ = (bitField0_ & ~0x00000008);
+        }
+        result.amounts_ = amounts_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.PlayerElements) {
+          return mergeFrom((soc.proto.GameMessage.PlayerElements)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.PlayerElements other) {
+        if (other == soc.proto.GameMessage.PlayerElements.getDefaultInstance()) return this;
+        if (other.getPlayerNumber() != 0) {
+          setPlayerNumber(other.getPlayerNumber());
+        }
+        if (other.action_ != 0) {
+          setActionValue(other.getActionValue());
+        }
+        if (!other.elementTypes_.isEmpty()) {
+          if (elementTypes_.isEmpty()) {
+            elementTypes_ = other.elementTypes_;
+            bitField0_ = (bitField0_ & ~0x00000004);
+          } else {
+            ensureElementTypesIsMutable();
+            elementTypes_.addAll(other.elementTypes_);
+          }
+          onChanged();
+        }
+        if (!other.amounts_.isEmpty()) {
+          if (amounts_.isEmpty()) {
+            amounts_ = other.amounts_;
+            bitField0_ = (bitField0_ & ~0x00000008);
+          } else {
+            ensureAmountsIsMutable();
+            amounts_.addAll(other.amounts_);
+          }
+          onChanged();
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.PlayerElements parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.PlayerElements) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private int playerNumber_ ;
+      /**
+       * <pre>
+       * Some element types can use -1 for all players, some others don't use this field.
+       * Remember that for playerNumber 0, protobuf won't send the field (== default).
+       * </pre>
+       *
+       * <code>sint32 playerNumber = 1;</code>
+       */
+      public int getPlayerNumber() {
+        return playerNumber_;
+      }
+      /**
+       * <pre>
+       * Some element types can use -1 for all players, some others don't use this field.
+       * Remember that for playerNumber 0, protobuf won't send the field (== default).
+       * </pre>
+       *
+       * <code>sint32 playerNumber = 1;</code>
+       */
+      public Builder setPlayerNumber(int value) {
+        
+        playerNumber_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Some element types can use -1 for all players, some others don't use this field.
+       * Remember that for playerNumber 0, protobuf won't send the field (== default).
+       * </pre>
+       *
+       * <code>sint32 playerNumber = 1;</code>
+       */
+      public Builder clearPlayerNumber() {
+        
+        playerNumber_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int action_ = 0;
+      /**
+       * <code>._PlayerElementAction action = 2;</code>
+       */
+      public int getActionValue() {
+        return action_;
+      }
+      /**
+       * <code>._PlayerElementAction action = 2;</code>
+       */
+      public Builder setActionValue(int value) {
+        action_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>._PlayerElementAction action = 2;</code>
+       */
+      public soc.proto.GameMessage._PlayerElementAction getAction() {
+        soc.proto.GameMessage._PlayerElementAction result = soc.proto.GameMessage._PlayerElementAction.valueOf(action_);
+        return result == null ? soc.proto.GameMessage._PlayerElementAction.UNRECOGNIZED : result;
+      }
+      /**
+       * <code>._PlayerElementAction action = 2;</code>
+       */
+      public Builder setAction(soc.proto.GameMessage._PlayerElementAction value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        
+        action_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>._PlayerElementAction action = 2;</code>
+       */
+      public Builder clearAction() {
+        
+        action_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private java.util.List<java.lang.Integer> elementTypes_ =
+        java.util.Collections.emptyList();
+      private void ensureElementTypesIsMutable() {
+        if (!((bitField0_ & 0x00000004) == 0x00000004)) {
+          elementTypes_ = new java.util.ArrayList<java.lang.Integer>(elementTypes_);
+          bitField0_ |= 0x00000004;
+        }
+      }
+      /**
+       * <code>repeated ._PlayerElementType elementTypes = 3;</code>
+       */
+      public java.util.List<soc.proto.GameMessage._PlayerElementType> getElementTypesList() {
+        return new com.google.protobuf.Internal.ListAdapter<
+            java.lang.Integer, soc.proto.GameMessage._PlayerElementType>(elementTypes_, elementTypes_converter_);
+      }
+      /**
+       * <code>repeated ._PlayerElementType elementTypes = 3;</code>
+       */
+      public int getElementTypesCount() {
+        return elementTypes_.size();
+      }
+      /**
+       * <code>repeated ._PlayerElementType elementTypes = 3;</code>
+       */
+      public soc.proto.GameMessage._PlayerElementType getElementTypes(int index) {
+        return elementTypes_converter_.convert(elementTypes_.get(index));
+      }
+      /**
+       * <code>repeated ._PlayerElementType elementTypes = 3;</code>
+       */
+      public Builder setElementTypes(
+          int index, soc.proto.GameMessage._PlayerElementType value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureElementTypesIsMutable();
+        elementTypes_.set(index, value.getNumber());
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated ._PlayerElementType elementTypes = 3;</code>
+       */
+      public Builder addElementTypes(soc.proto.GameMessage._PlayerElementType value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureElementTypesIsMutable();
+        elementTypes_.add(value.getNumber());
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated ._PlayerElementType elementTypes = 3;</code>
+       */
+      public Builder addAllElementTypes(
+          java.lang.Iterable<? extends soc.proto.GameMessage._PlayerElementType> values) {
+        ensureElementTypesIsMutable();
+        for (soc.proto.GameMessage._PlayerElementType value : values) {
+          elementTypes_.add(value.getNumber());
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated ._PlayerElementType elementTypes = 3;</code>
+       */
+      public Builder clearElementTypes() {
+        elementTypes_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated ._PlayerElementType elementTypes = 3;</code>
+       */
+      public java.util.List<java.lang.Integer>
+      getElementTypesValueList() {
+        return java.util.Collections.unmodifiableList(elementTypes_);
+      }
+      /**
+       * <code>repeated ._PlayerElementType elementTypes = 3;</code>
+       */
+      public int getElementTypesValue(int index) {
+        return elementTypes_.get(index);
+      }
+      /**
+       * <code>repeated ._PlayerElementType elementTypes = 3;</code>
+       */
+      public Builder setElementTypesValue(
+          int index, int value) {
+        ensureElementTypesIsMutable();
+        elementTypes_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated ._PlayerElementType elementTypes = 3;</code>
+       */
+      public Builder addElementTypesValue(int value) {
+        ensureElementTypesIsMutable();
+        elementTypes_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated ._PlayerElementType elementTypes = 3;</code>
+       */
+      public Builder addAllElementTypesValue(
+          java.lang.Iterable<java.lang.Integer> values) {
+        ensureElementTypesIsMutable();
+        for (int value : values) {
+          elementTypes_.add(value);
+        }
+        onChanged();
+        return this;
+      }
+
+      private java.util.List<java.lang.Integer> amounts_ = java.util.Collections.emptyList();
+      private void ensureAmountsIsMutable() {
+        if (!((bitField0_ & 0x00000008) == 0x00000008)) {
+          amounts_ = new java.util.ArrayList<java.lang.Integer>(amounts_);
+          bitField0_ |= 0x00000008;
+         }
+      }
+      /**
+       * <code>repeated sint32 amounts = 4;</code>
+       */
+      public java.util.List<java.lang.Integer>
+          getAmountsList() {
+        return java.util.Collections.unmodifiableList(amounts_);
+      }
+      /**
+       * <code>repeated sint32 amounts = 4;</code>
+       */
+      public int getAmountsCount() {
+        return amounts_.size();
+      }
+      /**
+       * <code>repeated sint32 amounts = 4;</code>
+       */
+      public int getAmounts(int index) {
+        return amounts_.get(index);
+      }
+      /**
+       * <code>repeated sint32 amounts = 4;</code>
+       */
+      public Builder setAmounts(
+          int index, int value) {
+        ensureAmountsIsMutable();
+        amounts_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated sint32 amounts = 4;</code>
+       */
+      public Builder addAmounts(int value) {
+        ensureAmountsIsMutable();
+        amounts_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated sint32 amounts = 4;</code>
+       */
+      public Builder addAllAmounts(
+          java.lang.Iterable<? extends java.lang.Integer> values) {
+        ensureAmountsIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, amounts_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated sint32 amounts = 4;</code>
+       */
+      public Builder clearAmounts() {
+        amounts_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:PlayerElements)
+    }
+
+    // @@protoc_insertion_point(class_scope:PlayerElements)
+    private static final soc.proto.GameMessage.PlayerElements DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.PlayerElements();
+    }
+
+    public static soc.proto.GameMessage.PlayerElements getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<PlayerElements>
+        PARSER = new com.google.protobuf.AbstractParser<PlayerElements>() {
+      public PlayerElements parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new PlayerElements(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<PlayerElements> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<PlayerElements> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.PlayerElements getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface StartGameOrBuilder extends
       // @@protoc_insertion_point(interface_extends:StartGame)
       com.google.protobuf.MessageOrBuilder {
@@ -4543,7 +7036,7 @@ public final class GameMessage {
 
     /**
      * <pre>
-     * state
+     * game and player state
      * </pre>
      *
      * <code>.State game_state = 2;</code>
@@ -4551,7 +7044,7 @@ public final class GameMessage {
     boolean hasGameState();
     /**
      * <pre>
-     * state
+     * game and player state
      * </pre>
      *
      * <code>.State game_state = 2;</code>
@@ -4559,12 +7052,50 @@ public final class GameMessage {
     soc.proto.GameMessage.State getGameState();
     /**
      * <pre>
-     * state
+     * game and player state
      * </pre>
      *
      * <code>.State game_state = 2;</code>
      */
     soc.proto.GameMessage.StateOrBuilder getGameStateOrBuilder();
+
+    /**
+     * <code>.PlayerElement player_element = 15;</code>
+     */
+    boolean hasPlayerElement();
+    /**
+     * <code>.PlayerElement player_element = 15;</code>
+     */
+    soc.proto.GameMessage.PlayerElement getPlayerElement();
+    /**
+     * <code>.PlayerElement player_element = 15;</code>
+     */
+    soc.proto.GameMessage.PlayerElementOrBuilder getPlayerElementOrBuilder();
+
+    /**
+     * <pre>
+     * above #15; is efficient enough (sets multiple elements) without that saved byte
+     * </pre>
+     *
+     * <code>.PlayerElements player_elements = 25;</code>
+     */
+    boolean hasPlayerElements();
+    /**
+     * <pre>
+     * above #15; is efficient enough (sets multiple elements) without that saved byte
+     * </pre>
+     *
+     * <code>.PlayerElements player_elements = 25;</code>
+     */
+    soc.proto.GameMessage.PlayerElements getPlayerElements();
+    /**
+     * <pre>
+     * above #15; is efficient enough (sets multiple elements) without that saved byte
+     * </pre>
+     *
+     * <code>.PlayerElements player_elements = 25;</code>
+     */
+    soc.proto.GameMessage.PlayerElementsOrBuilder getPlayerElementsOrBuilder();
 
     /**
      * <pre>
@@ -4695,6 +7226,34 @@ public final class GameMessage {
               msgCase_ = 2;
               break;
             }
+            case 122: {
+              soc.proto.GameMessage.PlayerElement.Builder subBuilder = null;
+              if (msgCase_ == 15) {
+                subBuilder = ((soc.proto.GameMessage.PlayerElement) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.PlayerElement.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.PlayerElement) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 15;
+              break;
+            }
+            case 202: {
+              soc.proto.GameMessage.PlayerElements.Builder subBuilder = null;
+              if (msgCase_ == 25) {
+                subBuilder = ((soc.proto.GameMessage.PlayerElements) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.PlayerElements.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.PlayerElements) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 25;
+              break;
+            }
             case 242: {
               soc.proto.GameMessage.BoardLayout.Builder subBuilder = null;
               if (msgCase_ == 30) {
@@ -4766,6 +7325,8 @@ public final class GameMessage {
     public enum MsgCase
         implements com.google.protobuf.Internal.EnumLite {
       GAME_STATE(2),
+      PLAYER_ELEMENT(15),
+      PLAYER_ELEMENTS(25),
       BOARD_LAYOUT(30),
       START_GAME(100),
       TURN(101),
@@ -4785,6 +7346,8 @@ public final class GameMessage {
       public static MsgCase forNumber(int value) {
         switch (value) {
           case 2: return GAME_STATE;
+          case 15: return PLAYER_ELEMENT;
+          case 25: return PLAYER_ELEMENTS;
           case 30: return BOARD_LAYOUT;
           case 100: return START_GAME;
           case 101: return TURN;
@@ -4848,7 +7411,7 @@ public final class GameMessage {
     public static final int GAME_STATE_FIELD_NUMBER = 2;
     /**
      * <pre>
-     * state
+     * game and player state
      * </pre>
      *
      * <code>.State game_state = 2;</code>
@@ -4858,7 +7421,7 @@ public final class GameMessage {
     }
     /**
      * <pre>
-     * state
+     * game and player state
      * </pre>
      *
      * <code>.State game_state = 2;</code>
@@ -4871,7 +7434,7 @@ public final class GameMessage {
     }
     /**
      * <pre>
-     * state
+     * game and player state
      * </pre>
      *
      * <code>.State game_state = 2;</code>
@@ -4881,6 +7444,70 @@ public final class GameMessage {
          return (soc.proto.GameMessage.State) msg_;
       }
       return soc.proto.GameMessage.State.getDefaultInstance();
+    }
+
+    public static final int PLAYER_ELEMENT_FIELD_NUMBER = 15;
+    /**
+     * <code>.PlayerElement player_element = 15;</code>
+     */
+    public boolean hasPlayerElement() {
+      return msgCase_ == 15;
+    }
+    /**
+     * <code>.PlayerElement player_element = 15;</code>
+     */
+    public soc.proto.GameMessage.PlayerElement getPlayerElement() {
+      if (msgCase_ == 15) {
+         return (soc.proto.GameMessage.PlayerElement) msg_;
+      }
+      return soc.proto.GameMessage.PlayerElement.getDefaultInstance();
+    }
+    /**
+     * <code>.PlayerElement player_element = 15;</code>
+     */
+    public soc.proto.GameMessage.PlayerElementOrBuilder getPlayerElementOrBuilder() {
+      if (msgCase_ == 15) {
+         return (soc.proto.GameMessage.PlayerElement) msg_;
+      }
+      return soc.proto.GameMessage.PlayerElement.getDefaultInstance();
+    }
+
+    public static final int PLAYER_ELEMENTS_FIELD_NUMBER = 25;
+    /**
+     * <pre>
+     * above #15; is efficient enough (sets multiple elements) without that saved byte
+     * </pre>
+     *
+     * <code>.PlayerElements player_elements = 25;</code>
+     */
+    public boolean hasPlayerElements() {
+      return msgCase_ == 25;
+    }
+    /**
+     * <pre>
+     * above #15; is efficient enough (sets multiple elements) without that saved byte
+     * </pre>
+     *
+     * <code>.PlayerElements player_elements = 25;</code>
+     */
+    public soc.proto.GameMessage.PlayerElements getPlayerElements() {
+      if (msgCase_ == 25) {
+         return (soc.proto.GameMessage.PlayerElements) msg_;
+      }
+      return soc.proto.GameMessage.PlayerElements.getDefaultInstance();
+    }
+    /**
+     * <pre>
+     * above #15; is efficient enough (sets multiple elements) without that saved byte
+     * </pre>
+     *
+     * <code>.PlayerElements player_elements = 25;</code>
+     */
+    public soc.proto.GameMessage.PlayerElementsOrBuilder getPlayerElementsOrBuilder() {
+      if (msgCase_ == 25) {
+         return (soc.proto.GameMessage.PlayerElements) msg_;
+      }
+      return soc.proto.GameMessage.PlayerElements.getDefaultInstance();
     }
 
     public static final int BOARD_LAYOUT_FIELD_NUMBER = 30;
@@ -5003,6 +7630,12 @@ public final class GameMessage {
       if (msgCase_ == 2) {
         output.writeMessage(2, (soc.proto.GameMessage.State) msg_);
       }
+      if (msgCase_ == 15) {
+        output.writeMessage(15, (soc.proto.GameMessage.PlayerElement) msg_);
+      }
+      if (msgCase_ == 25) {
+        output.writeMessage(25, (soc.proto.GameMessage.PlayerElements) msg_);
+      }
       if (msgCase_ == 30) {
         output.writeMessage(30, (soc.proto.GameMessage.BoardLayout) msg_);
       }
@@ -5026,6 +7659,14 @@ public final class GameMessage {
       if (msgCase_ == 2) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(2, (soc.proto.GameMessage.State) msg_);
+      }
+      if (msgCase_ == 15) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(15, (soc.proto.GameMessage.PlayerElement) msg_);
+      }
+      if (msgCase_ == 25) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(25, (soc.proto.GameMessage.PlayerElements) msg_);
       }
       if (msgCase_ == 30) {
         size += com.google.protobuf.CodedOutputStream
@@ -5065,6 +7706,14 @@ public final class GameMessage {
           result = result && getGameState()
               .equals(other.getGameState());
           break;
+        case 15:
+          result = result && getPlayerElement()
+              .equals(other.getPlayerElement());
+          break;
+        case 25:
+          result = result && getPlayerElements()
+              .equals(other.getPlayerElements());
+          break;
         case 30:
           result = result && getBoardLayout()
               .equals(other.getBoardLayout());
@@ -5097,6 +7746,14 @@ public final class GameMessage {
         case 2:
           hash = (37 * hash) + GAME_STATE_FIELD_NUMBER;
           hash = (53 * hash) + getGameState().hashCode();
+          break;
+        case 15:
+          hash = (37 * hash) + PLAYER_ELEMENT_FIELD_NUMBER;
+          hash = (53 * hash) + getPlayerElement().hashCode();
+          break;
+        case 25:
+          hash = (37 * hash) + PLAYER_ELEMENTS_FIELD_NUMBER;
+          hash = (53 * hash) + getPlayerElements().hashCode();
           break;
         case 30:
           hash = (37 * hash) + BOARD_LAYOUT_FIELD_NUMBER;
@@ -5276,6 +7933,20 @@ public final class GameMessage {
             result.msg_ = gameStateBuilder_.build();
           }
         }
+        if (msgCase_ == 15) {
+          if (playerElementBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = playerElementBuilder_.build();
+          }
+        }
+        if (msgCase_ == 25) {
+          if (playerElementsBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = playerElementsBuilder_.build();
+          }
+        }
         if (msgCase_ == 30) {
           if (boardLayoutBuilder_ == null) {
             result.msg_ = msg_;
@@ -5346,6 +8017,14 @@ public final class GameMessage {
         switch (other.getMsgCase()) {
           case GAME_STATE: {
             mergeGameState(other.getGameState());
+            break;
+          }
+          case PLAYER_ELEMENT: {
+            mergePlayerElement(other.getPlayerElement());
+            break;
+          }
+          case PLAYER_ELEMENTS: {
+            mergePlayerElements(other.getPlayerElements());
             break;
           }
           case BOARD_LAYOUT: {
@@ -5499,7 +8178,7 @@ public final class GameMessage {
           soc.proto.GameMessage.State, soc.proto.GameMessage.State.Builder, soc.proto.GameMessage.StateOrBuilder> gameStateBuilder_;
       /**
        * <pre>
-       * state
+       * game and player state
        * </pre>
        *
        * <code>.State game_state = 2;</code>
@@ -5509,7 +8188,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * state
+       * game and player state
        * </pre>
        *
        * <code>.State game_state = 2;</code>
@@ -5529,7 +8208,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * state
+       * game and player state
        * </pre>
        *
        * <code>.State game_state = 2;</code>
@@ -5549,7 +8228,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * state
+       * game and player state
        * </pre>
        *
        * <code>.State game_state = 2;</code>
@@ -5567,7 +8246,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * state
+       * game and player state
        * </pre>
        *
        * <code>.State game_state = 2;</code>
@@ -5593,7 +8272,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * state
+       * game and player state
        * </pre>
        *
        * <code>.State game_state = 2;</code>
@@ -5616,7 +8295,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * state
+       * game and player state
        * </pre>
        *
        * <code>.State game_state = 2;</code>
@@ -5626,7 +8305,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * state
+       * game and player state
        * </pre>
        *
        * <code>.State game_state = 2;</code>
@@ -5643,7 +8322,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * state
+       * game and player state
        * </pre>
        *
        * <code>.State game_state = 2;</code>
@@ -5665,6 +8344,314 @@ public final class GameMessage {
         msgCase_ = 2;
         onChanged();;
         return gameStateBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.PlayerElement, soc.proto.GameMessage.PlayerElement.Builder, soc.proto.GameMessage.PlayerElementOrBuilder> playerElementBuilder_;
+      /**
+       * <code>.PlayerElement player_element = 15;</code>
+       */
+      public boolean hasPlayerElement() {
+        return msgCase_ == 15;
+      }
+      /**
+       * <code>.PlayerElement player_element = 15;</code>
+       */
+      public soc.proto.GameMessage.PlayerElement getPlayerElement() {
+        if (playerElementBuilder_ == null) {
+          if (msgCase_ == 15) {
+            return (soc.proto.GameMessage.PlayerElement) msg_;
+          }
+          return soc.proto.GameMessage.PlayerElement.getDefaultInstance();
+        } else {
+          if (msgCase_ == 15) {
+            return playerElementBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.PlayerElement.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.PlayerElement player_element = 15;</code>
+       */
+      public Builder setPlayerElement(soc.proto.GameMessage.PlayerElement value) {
+        if (playerElementBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          playerElementBuilder_.setMessage(value);
+        }
+        msgCase_ = 15;
+        return this;
+      }
+      /**
+       * <code>.PlayerElement player_element = 15;</code>
+       */
+      public Builder setPlayerElement(
+          soc.proto.GameMessage.PlayerElement.Builder builderForValue) {
+        if (playerElementBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          playerElementBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 15;
+        return this;
+      }
+      /**
+       * <code>.PlayerElement player_element = 15;</code>
+       */
+      public Builder mergePlayerElement(soc.proto.GameMessage.PlayerElement value) {
+        if (playerElementBuilder_ == null) {
+          if (msgCase_ == 15 &&
+              msg_ != soc.proto.GameMessage.PlayerElement.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.PlayerElement.newBuilder((soc.proto.GameMessage.PlayerElement) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 15) {
+            playerElementBuilder_.mergeFrom(value);
+          }
+          playerElementBuilder_.setMessage(value);
+        }
+        msgCase_ = 15;
+        return this;
+      }
+      /**
+       * <code>.PlayerElement player_element = 15;</code>
+       */
+      public Builder clearPlayerElement() {
+        if (playerElementBuilder_ == null) {
+          if (msgCase_ == 15) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 15) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          playerElementBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.PlayerElement player_element = 15;</code>
+       */
+      public soc.proto.GameMessage.PlayerElement.Builder getPlayerElementBuilder() {
+        return getPlayerElementFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.PlayerElement player_element = 15;</code>
+       */
+      public soc.proto.GameMessage.PlayerElementOrBuilder getPlayerElementOrBuilder() {
+        if ((msgCase_ == 15) && (playerElementBuilder_ != null)) {
+          return playerElementBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 15) {
+            return (soc.proto.GameMessage.PlayerElement) msg_;
+          }
+          return soc.proto.GameMessage.PlayerElement.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.PlayerElement player_element = 15;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.PlayerElement, soc.proto.GameMessage.PlayerElement.Builder, soc.proto.GameMessage.PlayerElementOrBuilder> 
+          getPlayerElementFieldBuilder() {
+        if (playerElementBuilder_ == null) {
+          if (!(msgCase_ == 15)) {
+            msg_ = soc.proto.GameMessage.PlayerElement.getDefaultInstance();
+          }
+          playerElementBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.PlayerElement, soc.proto.GameMessage.PlayerElement.Builder, soc.proto.GameMessage.PlayerElementOrBuilder>(
+                  (soc.proto.GameMessage.PlayerElement) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 15;
+        onChanged();;
+        return playerElementBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.PlayerElements, soc.proto.GameMessage.PlayerElements.Builder, soc.proto.GameMessage.PlayerElementsOrBuilder> playerElementsBuilder_;
+      /**
+       * <pre>
+       * above #15; is efficient enough (sets multiple elements) without that saved byte
+       * </pre>
+       *
+       * <code>.PlayerElements player_elements = 25;</code>
+       */
+      public boolean hasPlayerElements() {
+        return msgCase_ == 25;
+      }
+      /**
+       * <pre>
+       * above #15; is efficient enough (sets multiple elements) without that saved byte
+       * </pre>
+       *
+       * <code>.PlayerElements player_elements = 25;</code>
+       */
+      public soc.proto.GameMessage.PlayerElements getPlayerElements() {
+        if (playerElementsBuilder_ == null) {
+          if (msgCase_ == 25) {
+            return (soc.proto.GameMessage.PlayerElements) msg_;
+          }
+          return soc.proto.GameMessage.PlayerElements.getDefaultInstance();
+        } else {
+          if (msgCase_ == 25) {
+            return playerElementsBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.PlayerElements.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * above #15; is efficient enough (sets multiple elements) without that saved byte
+       * </pre>
+       *
+       * <code>.PlayerElements player_elements = 25;</code>
+       */
+      public Builder setPlayerElements(soc.proto.GameMessage.PlayerElements value) {
+        if (playerElementsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          playerElementsBuilder_.setMessage(value);
+        }
+        msgCase_ = 25;
+        return this;
+      }
+      /**
+       * <pre>
+       * above #15; is efficient enough (sets multiple elements) without that saved byte
+       * </pre>
+       *
+       * <code>.PlayerElements player_elements = 25;</code>
+       */
+      public Builder setPlayerElements(
+          soc.proto.GameMessage.PlayerElements.Builder builderForValue) {
+        if (playerElementsBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          playerElementsBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 25;
+        return this;
+      }
+      /**
+       * <pre>
+       * above #15; is efficient enough (sets multiple elements) without that saved byte
+       * </pre>
+       *
+       * <code>.PlayerElements player_elements = 25;</code>
+       */
+      public Builder mergePlayerElements(soc.proto.GameMessage.PlayerElements value) {
+        if (playerElementsBuilder_ == null) {
+          if (msgCase_ == 25 &&
+              msg_ != soc.proto.GameMessage.PlayerElements.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.PlayerElements.newBuilder((soc.proto.GameMessage.PlayerElements) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 25) {
+            playerElementsBuilder_.mergeFrom(value);
+          }
+          playerElementsBuilder_.setMessage(value);
+        }
+        msgCase_ = 25;
+        return this;
+      }
+      /**
+       * <pre>
+       * above #15; is efficient enough (sets multiple elements) without that saved byte
+       * </pre>
+       *
+       * <code>.PlayerElements player_elements = 25;</code>
+       */
+      public Builder clearPlayerElements() {
+        if (playerElementsBuilder_ == null) {
+          if (msgCase_ == 25) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 25) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          playerElementsBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * above #15; is efficient enough (sets multiple elements) without that saved byte
+       * </pre>
+       *
+       * <code>.PlayerElements player_elements = 25;</code>
+       */
+      public soc.proto.GameMessage.PlayerElements.Builder getPlayerElementsBuilder() {
+        return getPlayerElementsFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * above #15; is efficient enough (sets multiple elements) without that saved byte
+       * </pre>
+       *
+       * <code>.PlayerElements player_elements = 25;</code>
+       */
+      public soc.proto.GameMessage.PlayerElementsOrBuilder getPlayerElementsOrBuilder() {
+        if ((msgCase_ == 25) && (playerElementsBuilder_ != null)) {
+          return playerElementsBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 25) {
+            return (soc.proto.GameMessage.PlayerElements) msg_;
+          }
+          return soc.proto.GameMessage.PlayerElements.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * above #15; is efficient enough (sets multiple elements) without that saved byte
+       * </pre>
+       *
+       * <code>.PlayerElements player_elements = 25;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.PlayerElements, soc.proto.GameMessage.PlayerElements.Builder, soc.proto.GameMessage.PlayerElementsOrBuilder> 
+          getPlayerElementsFieldBuilder() {
+        if (playerElementsBuilder_ == null) {
+          if (!(msgCase_ == 25)) {
+            msg_ = soc.proto.GameMessage.PlayerElements.getDefaultInstance();
+          }
+          playerElementsBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.PlayerElements, soc.proto.GameMessage.PlayerElements.Builder, soc.proto.GameMessage.PlayerElementsOrBuilder>(
+                  (soc.proto.GameMessage.PlayerElements) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 25;
+        onChanged();;
+        return playerElementsBuilder_;
       }
 
       private com.google.protobuf.SingleFieldBuilderV3<
@@ -7343,6 +10330,16 @@ public final class GameMessage {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_State_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_PlayerElement_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_PlayerElement_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_PlayerElements_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_PlayerElements_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_StartGame_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -7385,17 +10382,40 @@ public final class GameMessage {
       "\003arr\030\001 \003(\005B\005\n\003val\032K\n\nPartsEntry\022\013\n\003key\030\001" +
       " \001(\t\022,\n\005value\030\002 \001(\0132\035.BoardLayout._Board" +
       "LayoutPart:\0028\001\"\"\n\005State\022\031\n\005state\030\001 \001(\0162\n" +
-      ".GameState\"&\n\tStartGame\022\031\n\005state\030\001 \001(\0162\n",
-      ".GameState\"8\n\004Turn\022\025\n\rplayer_number\030\001 \001(" +
-      "\r\022\031\n\005state\030\002 \001(\0162\n.GameState\"\t\n\007EndTurn\"" +
-      "\254\001\n\025GameMessageFromServer\022\017\n\007ga_name\030\001 \001" +
-      "(\t\022\034\n\ngame_state\030\002 \001(\0132\006.StateH\000\022$\n\014boar" +
-      "d_layout\030\036 \001(\0132\014.BoardLayoutH\000\022 \n\nstart_" +
-      "game\030d \001(\0132\n.StartGameH\000\022\025\n\004turn\030e \001(\0132\005" +
-      ".TurnH\000B\005\n\003msg\"o\n\025GameMessageFromClient\022" +
-      "\017\n\007ga_name\030\001 \001(\t\022 \n\nstart_game\030d \001(\0132\n.S" +
-      "tartGameH\000\022\034\n\010end_turn\030e \001(\0132\010.EndTurnH\000" +
-      "B\005\n\003msgB\r\n\tsoc.protoH\001P\000b\006proto3"
+      ".GameState\"\226\001\n\rPlayerElement\022\024\n\014playerNu",
+      "mber\030\001 \001(\021\022%\n\006action\030\002 \001(\0162\025._PlayerElem" +
+      "entAction\022(\n\013elementType\030\003 \001(\0162\023._Player" +
+      "ElementType\022\016\n\006amount\030\004 \001(\021\022\016\n\006isNews\030\005 " +
+      "\001(\010\"\211\001\n\016PlayerElements\022\024\n\014playerNumber\030\001" +
+      " \001(\021\022%\n\006action\030\002 \001(\0162\025._PlayerElementAct" +
+      "ion\022)\n\014elementTypes\030\003 \003(\0162\023._PlayerEleme" +
+      "ntType\022\017\n\007amounts\030\004 \003(\021\"&\n\tStartGame\022\031\n\005" +
+      "state\030\001 \001(\0162\n.GameState\"8\n\004Turn\022\025\n\rplaye" +
+      "r_number\030\001 \001(\r\022\031\n\005state\030\002 \001(\0162\n.GameStat" +
+      "e\"\t\n\007EndTurn\"\202\002\n\025GameMessageFromServer\022\017",
+      "\n\007ga_name\030\001 \001(\t\022\034\n\ngame_state\030\002 \001(\0132\006.St" +
+      "ateH\000\022(\n\016player_element\030\017 \001(\0132\016.PlayerEl" +
+      "ementH\000\022*\n\017player_elements\030\031 \001(\0132\017.Playe" +
+      "rElementsH\000\022$\n\014board_layout\030\036 \001(\0132\014.Boar" +
+      "dLayoutH\000\022 \n\nstart_game\030d \001(\0132\n.StartGam" +
+      "eH\000\022\025\n\004turn\030e \001(\0132\005.TurnH\000B\005\n\003msg\"o\n\025Gam" +
+      "eMessageFromClient\022\017\n\007ga_name\030\001 \001(\t\022 \n\ns" +
+      "tart_game\030d \001(\0132\n.StartGameH\000\022\034\n\010end_tur" +
+      "n\030e \001(\0132\010.EndTurnH\000B\005\n\003msg*O\n\024_PlayerEle" +
+      "mentAction\022\032\n\026_UNSENT_DEFAULT_ACTION\020\000\022\007",
+      "\n\003SET\020\001\022\010\n\004GAIN\020\002\022\010\n\004LOSE\020\003*\267\003\n\022_PlayerE" +
+      "lementType\022\030\n\024_UNSENT_DEFAULT_ELEM\020\000\022\r\n\t" +
+      "ELEM_CLAY\020\001\022\014\n\010ELEM_ORE\020\002\022\016\n\nELEM_SHEEP\020" +
+      "\003\022\016\n\nELEM_WHEAT\020\004\022\r\n\tELEM_WOOD\020\005\022\031\n\025ELEM" +
+      "_UNKNOWN_RESOURCE\020\006\022\t\n\005ROADS\020\n\022\017\n\013SETTLE" +
+      "MENTS\020\013\022\n\n\006CITIES\020\014\022\t\n\005SHIPS\020\r\022\016\n\nNUMKNI" +
+      "GHTS\020\017\022\025\n\021ASK_SPECIAL_BUILD\020\020\022\037\n\033NUM_PIC" +
+      "K_GOLD_HEX_RESOURCES\020\021\022\020\n\014SCENARIO_SVP\020\022" +
+      "\022!\n\035SCENARIO_PLAYEREVENTS_BITMASK\020\023\022\"\n\036S" +
+      "CENARIO_SVP_LANDAREAS_BITMASK\020\024\022\026\n\022START",
+      "ING_LANDAREAS\020\025\022\030\n\024SCENARIO_CLOTH_COUNT\020" +
+      "\026\022\032\n\026SCENARIO_WARSHIP_COUNT\020\027B\r\n\tsoc.pro" +
+      "toH\001P\000b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -7440,32 +10460,44 @@ public final class GameMessage {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_State_descriptor,
         new java.lang.String[] { "State", });
-    internal_static_StartGame_descriptor =
+    internal_static_PlayerElement_descriptor =
       getDescriptor().getMessageTypes().get(2);
+    internal_static_PlayerElement_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_PlayerElement_descriptor,
+        new java.lang.String[] { "PlayerNumber", "Action", "ElementType", "Amount", "IsNews", });
+    internal_static_PlayerElements_descriptor =
+      getDescriptor().getMessageTypes().get(3);
+    internal_static_PlayerElements_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_PlayerElements_descriptor,
+        new java.lang.String[] { "PlayerNumber", "Action", "ElementTypes", "Amounts", });
+    internal_static_StartGame_descriptor =
+      getDescriptor().getMessageTypes().get(4);
     internal_static_StartGame_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_StartGame_descriptor,
         new java.lang.String[] { "State", });
     internal_static_Turn_descriptor =
-      getDescriptor().getMessageTypes().get(3);
+      getDescriptor().getMessageTypes().get(5);
     internal_static_Turn_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Turn_descriptor,
         new java.lang.String[] { "PlayerNumber", "State", });
     internal_static_EndTurn_descriptor =
-      getDescriptor().getMessageTypes().get(4);
+      getDescriptor().getMessageTypes().get(6);
     internal_static_EndTurn_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_EndTurn_descriptor,
         new java.lang.String[] { });
     internal_static_GameMessageFromServer_descriptor =
-      getDescriptor().getMessageTypes().get(5);
+      getDescriptor().getMessageTypes().get(7);
     internal_static_GameMessageFromServer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_GameMessageFromServer_descriptor,
-        new java.lang.String[] { "GaName", "GameState", "BoardLayout", "StartGame", "Turn", "Msg", });
+        new java.lang.String[] { "GaName", "GameState", "PlayerElement", "PlayerElements", "BoardLayout", "StartGame", "Turn", "Msg", });
     internal_static_GameMessageFromClient_descriptor =
-      getDescriptor().getMessageTypes().get(6);
+      getDescriptor().getMessageTypes().get(8);
     internal_static_GameMessageFromClient_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_GameMessageFromClient_descriptor,

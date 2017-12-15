@@ -61,7 +61,7 @@ message BoardLayout
 
 
 //
-// Game State
+// Game and Player State
 //
 
 /* The current state of the game, sent when it changes.
@@ -84,6 +84,198 @@ message BoardLayout
  */
 message State {
     GameState state = 1;
+}
+
+/* Action type for use in PlayerElement and PlayerElements; not sent as a standalone message type */
+enum _PlayerElementAction {
+    _UNSENT_DEFAULT_ACTION = 0;  // Required for enum, but not sent: not a valid action type
+    SET  = 1;  // Set element to value
+    GAIN = 2;  // Add value to element
+    LOSE = 3;  // Subtract value from element
+}
+
+/* Player element type for use in PlayerElement and PlayerElements; not sent as a standalone message type */
+enum _PlayerElementType {
+    /* Required for enum, but not sent: not a valid player element */
+    _UNSENT_DEFAULT_ELEM = 0;
+
+    /*
+     * player element types (1-5). CLAY has same value
+     * as {@link Data.ResourceType#CLAY_VALUE};
+     * ORE, SHEEP, WHEAT and WOOD also match Data.ResourceType.
+     * and {@code SOCResourceConstants}.
+     */
+    ELEM_CLAY = 1;
+    ELEM_ORE = 2;
+    ELEM_SHEEP = 3;
+    ELEM_WHEAT = 4;
+    ELEM_WOOD = 5;
+
+    /*
+     * Amount of resources of unknown type; sent in messages about opponents' resources.
+     * For some loops which send resource types + unknown, this constant is assumed to be 6
+     * (5 known resource types + 1).
+     */
+    ELEM_UNKNOWN_RESOURCE = 6;
+
+    /* Number of Road pieces available to place. */
+    ROADS = 10;
+
+    /* Number of Settlement pieces available to place. */
+    SETTLEMENTS = 11;
+
+    /* Number of City pieces available to place. */
+    CITIES = 12;
+
+    /*
+     * Number of Ship pieces available to place.
+     * @since 2.0.00
+     */
+    SHIPS = 13;
+
+    /*
+     * Number of knights in player's army; sent after a Soldier card is played.
+     */
+    NUMKNIGHTS = 15;
+
+    /*
+     * For the 6-player board, player element type for asking to build
+     * during the {@link soc.game.SOCGame#SPECIAL_BUILDING Special Building Phase}.
+     * This element is {@code SET} to 1 or 0.
+     * @since 1.1.08
+     */
+    ASK_SPECIAL_BUILD = 16;
+
+    /*
+     * For the {@link soc.game.SOCBoardLarge large sea board},
+     * player element type for asking to choose
+     * resources from the gold hex after a dice roll,
+     * during the {@link soc.game.SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE WAITING_FOR_PICK_GOLD_RESOURCE}
+     * game state.
+     * This element is {@code SET} to 0 or to the number of resources to choose.
+     * Call {@link soc.game.SOCPlayer#setNeedToPickGoldHexResources(int)}.
+     * @since 2.0.00
+     */
+    NUM_PICK_GOLD_HEX_RESOURCES = 17;
+
+    /*
+     * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
+     * the player's number of Special Victory Points (SVP).
+     * This element is {@code SET} to 0 or to the player's
+     * {@link soc.game.SOCPlayer#getSpecialVP()}.
+     * @since 2.0.00
+     */
+    SCENARIO_SVP = 18;
+
+    /*
+     * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
+     * bitmask of flags related to scenario player events.
+     * This element is {@code SET} to 0 or to the player's flags
+     * from {@link soc.game.SOCPlayer#getScenarioPlayerEvents()}.
+     * @since 2.0.00
+     */
+    SCENARIO_PLAYEREVENTS_BITMASK = 19;
+
+    /*
+     * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
+     * bitmask of land areas for tracking Special Victory Points (SVP).
+     * This element is {@code SET} to 0 or to the player's land areas
+     * from {@link soc.game.SOCPlayer#getScenarioSVPLandAreas()}.
+     * @since 2.0.00
+     */
+    SCENARIO_SVP_LANDAREAS_BITMASK = 20;
+
+    /*
+     * Player's starting land area numbers.
+     * Sent only at reconnect, because these are also tracked during play at the client.
+     * Sent as <tt>(landArea2 &lt;&lt; 8) | landArea1</tt>.
+     * @since 2.0.00
+     */
+    STARTING_LANDAREAS = 21;
+
+    /*
+     * For scenario <tt>_SC_CLVI</tt> on the {@link soc.game.SOCBoardLarge large sea board},
+     * the number of cloth held by this player.
+     * This element is {@code SET} to 0 or to the player's cloth count
+     * from {@link soc.game.SOCPlayer#getCloth()}.
+     * After giving cloth to a player, check their total VP; 2 cloth = 1 Victory Point.
+     *<P>
+     * The board's "general supply" is updated with this element type
+     * with {@link #getPlayerNumber()} == -1.
+     * Each village's cloth count is updated with a {@link SOCPieceValue PIECEVALUE} message.
+     * @since 2.0.00
+     */
+    SCENARIO_CLOTH_COUNT = 22;
+
+    /*
+     * For scenario game option <tt>_SC_PIRI</tt>,
+     * the player's total number of ships that have been converted to warships.
+     * See SOCPlayer.getNumWarships() for details.
+     * This element can be {@code SET} or {@code GAIN}ed.  For clarity, if the number of
+     * warships decreases, send {@code SET}, never send {@code LOSE}.
+     * {@code GAIN} is sent only in response to a player's successful
+     * {@link SOCPlayDevCardRequest} to convert a ship to a warship.
+     *<P>
+     * If a player is joining a game in progress, the <tt>PLAYERELEMENT(SCENARIO_WARSHIP_COUNT)</tt>
+     * message is sent to their client only after sending their SOCShip piece positions.
+     * @since 2.0.00
+     */
+    SCENARIO_WARSHIP_COUNT = 23;
+}
+
+/*
+ * This message from the server conveys one part of a player's status,
+ * such as their number of settlements remaining.
+ *<P>
+ * Unless otherwise mentioned, any {@code elementType} can be sent with
+ * any action ({@link _PlayerElementAction#SET}, {@link _PlayerElementAction#GAIN GAIN},
+ * {@link _PlayerElementAction#LOSE LOSE}).
+ *
+ *<H3>Message Sequence:</H3>
+ *<UL>
+ * <LI> For a bank trade (server response to player's {@link BankTrade}),
+ *   all the {@code LOSE} messages come before the {@code GAIN}s.
+ * <LI> For trade between players ({@link AcceptOffer}), the {@code LOSE}s and {@code GAIN}s
+ *   are interspersed to simplify server code.
+ * <LI> Most other situations send single PlayerElement messages or their sequence doesn't matter.
+ *</UL>
+ *<P>
+ * Resource loss can be expected and good (buying pieces or trading with other players)
+ * or unexpected and bad (monopoly, robber, discards). v1.2.00 and newer have sound effects
+ * to announce unexpected gains or losses; to help recognize this, this message type has a
+ * {@link #isNews()} flag field.
+ *<P>
+ * To use less overhead to send multiple similar element changes, use {@link PlayerElements} instead.
+ */
+message PlayerElement {
+    /* Some element types can use -1 for all players, some others don't use this field.
+     * Remember that for playerNumber 0, protobuf won't send the field (== default).
+     */
+    sint32 playerNumber = 1;
+    _PlayerElementAction action = 2;
+    _PlayerElementType elementType = 3;
+    sint32 amount = 4;
+    bool isNews = 5;
+}
+
+/*
+ * This message from the server holds information on some parts of a player's status,
+ * such as resource type counts.  Same structure as {@link PlayerElement} but with
+ * less overhead to send multiple similar element changes.
+ *<P>
+ * For a given player number and action type, contains parallel lists for sending
+ * (element type, amount) pairs.
+ *<P>
+ * Defined in v1.1.09 but unused before v2.0.00.
+ */
+message PlayerElements {
+    /* Some element types can use -1 for all players, some others don't use this field.
+     * Remember that for playerNumber 0, protobuf won't send the field (== default).
+     */
+    sint32 playerNumber = 1;
+    _PlayerElementAction action = 2;
+    repeated _PlayerElementType elementTypes = 3;
+    repeated sint32 amounts = 4;
 }
 
 
@@ -134,8 +326,11 @@ message EndTurn {
 message GameMessageFromServer {
     string ga_name = 1;      // Name of game
     oneof msg {
-        // state
+
+        // game and player state
         State game_state = 2;
+        PlayerElement player_element = 15;
+        PlayerElements player_elements = 25;  // above #15; is efficient enough (sets multiple elements) without that saved byte
 
         // board layout and contents
         BoardLayout board_layout = 30;

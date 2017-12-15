@@ -21,6 +21,8 @@
 package soc.message;
 
 import soc.proto.Data;
+import soc.proto.GameMessage;
+import soc.proto.Message;
 
 import java.util.StringTokenizer;
 
@@ -62,7 +64,8 @@ public class SOCPlayerElement extends SOCMessage
     /**
      * player element types.  CLAY has same value
      * as {@link Data.ResourceType#CLAY_VALUE};
-     * ORE, SHEEP, WHEAT and WOOD also match SOCResourceConstants.
+     * ORE, SHEEP, WHEAT and WOOD also match {@link Data.ResourceType}
+     * and {@code SOCResourceConstants}.
      */
     public static final int CLAY = 1;
     public static final int ORE = 2;
@@ -449,6 +452,19 @@ public class SOCPlayerElement extends SOCMessage
         }
 
         return new SOCPlayerElement(ga, pn, ac, et, va, isNews);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.PlayerElement.Builder b
+            = GameMessage.PlayerElement.newBuilder();
+        b.setPlayerNumber(playerNumber).setActionValue(actionType).setIsNews(news);
+        b.setElementTypeValue(elementType).setAmount(value);
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGaName(game).setPlayerElement(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
     /**

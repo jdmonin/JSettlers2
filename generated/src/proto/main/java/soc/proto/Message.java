@@ -2263,12 +2263,12 @@ public final class Message {
         implements com.google.protobuf.ProtocolMessageEnum {
       /**
        * <pre>
-       * Required for enum but not sent
+       * Required for enum but not sent: not a valid role
        * </pre>
        *
-       * <code>UNSENT_DEFAULT = 0;</code>
+       * <code>_UNSENT_DEFAULT = 0;</code>
        */
-      UNSENT_DEFAULT(0),
+      _UNSENT_DEFAULT(0),
       /**
        * <pre>
        * Play or watch games, join chat channels; "P" before v3.0.00
@@ -2290,12 +2290,12 @@ public final class Message {
 
       /**
        * <pre>
-       * Required for enum but not sent
+       * Required for enum but not sent: not a valid role
        * </pre>
        *
-       * <code>UNSENT_DEFAULT = 0;</code>
+       * <code>_UNSENT_DEFAULT = 0;</code>
        */
-      public static final int UNSENT_DEFAULT_VALUE = 0;
+      public static final int _UNSENT_DEFAULT_VALUE = 0;
       /**
        * <pre>
        * Play or watch games, join chat channels; "P" before v3.0.00
@@ -2332,7 +2332,7 @@ public final class Message {
 
       public static AuthRole forNumber(int value) {
         switch (value) {
-          case 0: return UNSENT_DEFAULT;
+          case 0: return _UNSENT_DEFAULT;
           case 1: return GAME_PLAYER;
           case 2: return USER_ADMIN;
           default: return null;
@@ -2394,12 +2394,12 @@ public final class Message {
         implements com.google.protobuf.ProtocolMessageEnum {
       /**
        * <pre>
-       * Required for enum but not sent
+       * Required for enum but not sent: not a valid scheme
        * </pre>
        *
-       * <code>UNUSED_DEFAULT = 0;</code>
+       * <code>_UNUSED_DEFAULT = 0;</code>
        */
-      UNUSED_DEFAULT(0),
+      _UNUSED_DEFAULT(0),
       /**
        * <pre>
        * For client to connect using a plaintext password
@@ -2413,12 +2413,12 @@ public final class Message {
 
       /**
        * <pre>
-       * Required for enum but not sent
+       * Required for enum but not sent: not a valid scheme
        * </pre>
        *
-       * <code>UNUSED_DEFAULT = 0;</code>
+       * <code>_UNUSED_DEFAULT = 0;</code>
        */
-      public static final int UNUSED_DEFAULT_VALUE = 0;
+      public static final int _UNUSED_DEFAULT_VALUE = 0;
       /**
        * <pre>
        * For client to connect using a plaintext password
@@ -2447,7 +2447,7 @@ public final class Message {
 
       public static AuthScheme forNumber(int value) {
         switch (value) {
-          case 0: return UNUSED_DEFAULT;
+          case 0: return _UNUSED_DEFAULT;
           case 1: return CLIENT_PLAINTEXT;
           default: return null;
         }
@@ -2613,7 +2613,7 @@ public final class Message {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (role_ != soc.proto.Message.AuthRequest.AuthRole.UNSENT_DEFAULT.getNumber()) {
+      if (role_ != soc.proto.Message.AuthRequest.AuthRole._UNSENT_DEFAULT.getNumber()) {
         output.writeEnum(1, role_);
       }
       if (!getNicknameBytes().isEmpty()) {
@@ -2622,7 +2622,7 @@ public final class Message {
       if (!getPasswordBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 3, password_);
       }
-      if (authScheme_ != soc.proto.Message.AuthRequest.AuthScheme.UNUSED_DEFAULT.getNumber()) {
+      if (authScheme_ != soc.proto.Message.AuthRequest.AuthScheme._UNUSED_DEFAULT.getNumber()) {
         output.writeEnum(4, authScheme_);
       }
       unknownFields.writeTo(output);
@@ -2633,7 +2633,7 @@ public final class Message {
       if (size != -1) return size;
 
       size = 0;
-      if (role_ != soc.proto.Message.AuthRequest.AuthRole.UNSENT_DEFAULT.getNumber()) {
+      if (role_ != soc.proto.Message.AuthRequest.AuthRole._UNSENT_DEFAULT.getNumber()) {
         size += com.google.protobuf.CodedOutputStream
           .computeEnumSize(1, role_);
       }
@@ -2643,7 +2643,7 @@ public final class Message {
       if (!getPasswordBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, password_);
       }
-      if (authScheme_ != soc.proto.Message.AuthRequest.AuthScheme.UNUSED_DEFAULT.getNumber()) {
+      if (authScheme_ != soc.proto.Message.AuthRequest.AuthScheme._UNUSED_DEFAULT.getNumber()) {
         size += com.google.protobuf.CodedOutputStream
           .computeEnumSize(4, authScheme_);
       }
@@ -34784,109 +34784,109 @@ public final class Message {
       "vers_str\030\002 \001(\t\022\022\n\nvers_build\030\003 \001(\t\022\022\n\ncl" +
       "i_locale\030\004 \001(\t\022\021\n\tsrv_feats\030\005 \001(\t\">\n\010ImA" +
       "Robot\022\020\n\010nickname\030\001 \001(\t\022\016\n\006cookie\030\002 \001(\t\022" +
-      "\020\n\010rb_class\030\003 \001(\t\"\375\001\n\013AuthRequest\022#\n\004rol" +
+      "\020\n\010rb_class\030\003 \001(\t\"\377\001\n\013AuthRequest\022#\n\004rol" +
       "e\030\001 \001(\0162\025.AuthRequest.AuthRole\022\020\n\010nickna" +
       "me\030\002 \001(\t\022\020\n\010password\030\003 \001(\t\022,\n\013auth_schem" +
-      "e\030\004 \001(\0162\027.AuthRequest.AuthScheme\"?\n\010Auth" +
-      "Role\022\022\n\016UNSENT_DEFAULT\020\000\022\017\n\013GAME_PLAYER\020",
-      "\001\022\016\n\nUSER_ADMIN\020\002\"6\n\nAuthScheme\022\022\n\016UNUSE" +
-      "D_DEFAULT\020\000\022\024\n\020CLIENT_PLAINTEXT\020\001\"\'\n\020Rej" +
-      "ectConnection\022\023\n\013reason_text\030\001 \001(\t\"\367\004\n\020S" +
-      "erverStatusText\022\014\n\004text\030\001 \001(\t\022)\n\002sv\030\002 \001(" +
-      "\0162\035.ServerStatusText.StatusValue\022\017\n\007deta" +
-      "ils\030\003 \003(\t\"\230\004\n\013StatusValue\022\006\n\002OK\020\000\022\022\n\016NOT" +
-      "_OK_GENERIC\020\001\022\022\n\016NAME_NOT_FOUND\020\002\022\014\n\010PW_" +
-      "WRONG\020\003\022\017\n\013NAME_IN_USE\020\004\022\032\n\026CANT_JOIN_GA" +
-      "ME_VERSION\020\005\022\023\n\017PROBLEM_WITH_DB\020\006\022\023\n\017ACC" +
-      "T_CREATED_OK\020\007\022\030\n\024ACCT_NOT_CREATED_ERR\020\010",
-      "\022\032\n\026NEWGAME_OPTION_UNKNOWN\020\t\022\037\n\033NEWGAME_" +
-      "OPTION_VALUE_TOONEW\020\n\022\032\n\026NEWGAME_ALREADY" +
-      "_EXISTS\020\013\022\031\n\025NEWGAME_NAME_REJECTED\020\014\022\031\n\025" +
-      "NEWGAME_NAME_TOO_LONG\020\r\022\034\n\030NEWGAME_TOO_M" +
-      "ANY_CREATED\020\016\022\037\n\033NEWCHANNEL_TOO_MANY_CRE" +
-      "ATED\020\017\022\017\n\013PW_REQUIRED\020\020\022\033\n\027ACCT_NOT_CREA" +
-      "TED_DENIED\020\021\022\035\n\031ACCT_CREATED_OK_FIRST_ON" +
-      "E\020\022\022\024\n\020NAME_NOT_ALLOWED\020\023\022\023\n\017OK_SET_NICK" +
-      "NAME\020\024\022\024\n\020OK_DEBUG_MODE_ON\020\025\"\035\n\rBroadcas" +
-      "tText\022\014\n\004text\030\001 \001(\t\"\n\n\010LeaveAll\" \n\nServe",
-      "rPing\022\022\n\nsleep_time\030\001 \001(\005\"\367\001\n\017BotUpdateP" +
-      "arams\022\027\n\017max_game_length\030\001 \001(\r\022\017\n\007max_et" +
-      "a\030\002 \001(\r\022\030\n\020eta_bonus_factor\030\003 \001(\002\022\032\n\022adv" +
-      "ersarial_factor\030\004 \001(\002\022!\n\031leader_adversar" +
-      "ial_factor\030\005 \001(\002\022\033\n\023dev_card_multiplier\030" +
-      "\006 \001(\002\022\031\n\021threat_multiplier\030\007 \001(\002\022\025\n\rstra" +
-      "tegy_type\030\010 \001(\r\022\022\n\ntrade_flag\030\t \001(\010\"\017\n\rB" +
-      "otAdminReset\"\031\n\010Channels\022\r\n\005names\030\001 \003(\t\"" +
-      "\035\n\nNewChannel\022\017\n\007ch_name\030\001 \001(\t\"3\n\013JoinCh" +
-      "annel\022\017\n\007ch_name\030\001 \001(\t\022\023\n\013member_name\030\002 ",
-      "\001(\t\"2\n\016ChannelMembers\022\017\n\007ch_name\030\001 \001(\t\022\017" +
-      "\n\007members\030\002 \003(\t\"A\n\013ChannelText\022\017\n\007ch_nam" +
-      "e\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\022\014\n\004text\030\003 \001" +
-      "(\t\"4\n\014LeaveChannel\022\017\n\007ch_name\030\001 \001(\t\022\023\n\013m" +
-      "ember_name\030\002 \001(\t\" \n\rDeleteChannel\022\017\n\007ch_" +
-      "name\030\001 \001(\t\"E\n\020_GameWithOptions\022\017\n\007ga_nam" +
-      "e\030\001 \001(\t\022\014\n\004opts\030\002 \001(\t\022\022\n\nunjoinable\030\003 \001(" +
-      "\010\"(\n\005Games\022\037\n\004game\030\001 \003(\0132\021._GameWithOpti" +
-      "ons\"?\n\007NewGame\022\037\n\004game\030\001 \001(\0132\021._GameWith" +
-      "Options\022\023\n\013min_version\030\002 \001(\r\"J\n\022BotJoinG",
-      "ameRequest\022\037\n\004game\030\001 \001(\0132\021._GameWithOpti" +
-      "ons\022\023\n\013seat_number\030\002 \001(\r\"0\n\010JoinGame\022\017\n\007" +
-      "ga_name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\"/\n\013Ga" +
-      "meMembers\022\017\n\007ga_name\030\001 \001(\t\022\017\n\007members\030\002 " +
-      "\003(\t\"R\n\007SitDown\022\017\n\007ga_name\030\001 \001(\t\022\017\n\007pl_na" +
-      "me\030\002 \001(\t\022\023\n\013seat_number\030\003 \001(\r\022\020\n\010is_robo" +
-      "t\030\004 \001(\010\"R\n\013SetSeatLock\022\017\n\007ga_name\030\001 \001(\t\022" +
-      "\023\n\013seat_number\030\002 \001(\r\022\035\n\005state\030\003 \001(\0162\016.Se" +
-      "atLockState\"/\n\016GameServerText\022\017\n\007ga_name" +
-      "\030\001 \001(\t\022\014\n\004text\030\002 \001(\t\"D\n\016GamePlayerText\022\017",
-      "\n\007ga_name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\022\014\n\004" +
-      "text\030\003 \001(\t\" \n\rBotTimingPing\022\017\n\007ga_name\030\001" +
-      " \001(\t\"\037\n\014BotAdminPing\022\017\n\007ga_name\030\001 \001(\t\"\035\n" +
-      "\nBotDismiss\022\017\n\007ga_name\030\001 \001(\t\"1\n\tLeaveGam" +
-      "e\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\"" +
-      "\035\n\nDeleteGame\022\017\n\007ga_name\030\001 \001(\t\"\322\010\n\nFromS" +
-      "erver\022\030\n\004vers\030\001 \001(\0132\010.VersionH\000\022.\n\021rejec" +
-      "t_connection\030\002 \001(\0132\021.RejectConnectionH\000\022" +
-      "(\n\013status_text\030\003 \001(\0132\021.ServerStatusTextH" +
-      "\000\022(\n\016broadcast_text\030\004 \001(\0132\016.BroadcastTex",
-      "tH\000\022\"\n\013server_ping\030\005 \001(\0132\013.ServerPingH\000\022" +
-      ".\n\014game_message\030\017 \001(\0132\026.GameMessageFromS" +
-      "erverH\000\022-\n\021bot_update_params\030\024 \001(\0132\020.Bot" +
-      "UpdateParamsH\000\022)\n\017bot_admin_reset\030\025 \001(\0132" +
-      "\016.BotAdminResetH\000\022\035\n\010channels\030d \001(\0132\t.Ch" +
-      "annelsH\000\022\035\n\006ch_new\030e \001(\0132\013.NewChannelH\000\022" +
-      "\037\n\007ch_join\030f \001(\0132\014.JoinChannelH\000\022%\n\nch_m" +
-      "embers\030g \001(\0132\017.ChannelMembersH\000\022\037\n\007ch_te" +
-      "xt\030h \001(\0132\014.ChannelTextH\000\022!\n\010ch_leave\030i \001" +
-      "(\0132\r.LeaveChannelH\000\022#\n\tch_delete\030j \001(\0132\016",
-      ".DeleteChannelH\000\022\030\n\005games\030\310\001 \001(\0132\006.Games" +
-      "H\000\022\033\n\006ga_new\030\311\001 \001(\0132\010.NewGameH\000\022\035\n\007ga_jo" +
-      "in\030\312\001 \001(\0132\t.JoinGameH\000\022,\n\014bot_join_req\030\313" +
-      "\001 \001(\0132\023.BotJoinGameRequestH\000\022#\n\nga_membe" +
-      "rs\030\314\001 \001(\0132\014.GameMembersH\000\022\035\n\010sit_down\030\315\001" +
-      " \001(\0132\010.SitDownH\000\022&\n\rset_seat_lock\030\316\001 \001(\013" +
-      "2\014.SetSeatLockH\000\022\'\n\013server_text\030\317\001 \001(\0132\017" +
-      ".GameServerTextH\000\022*\n\016ga_player_text\030\320\001 \001" +
-      "(\0132\017.GamePlayerTextH\000\022*\n\017bot_timing_ping" +
-      "\030\321\001 \001(\0132\016.BotTimingPingH\000\022(\n\016bot_admin_p",
-      "ing\030\322\001 \001(\0132\r.BotAdminPingH\000\022#\n\013bot_dismi" +
-      "ss\030\323\001 \001(\0132\013.BotDismissH\000\022\037\n\010ga_leave\030\324\001 " +
-      "\001(\0132\n.LeaveGameH\000\022!\n\tga_delete\030\325\001 \001(\0132\013." +
-      "DeleteGameH\000B\005\n\003msg\"\231\004\n\nFromClient\022\030\n\004ve" +
-      "rs\030\001 \001(\0132\010.VersionH\000\022 \n\010auth_req\030\002 \001(\0132\014" +
-      ".AuthRequestH\000\022\037\n\nim_a_robot\030\003 \001(\0132\t.ImA" +
-      "RobotH\000\022\"\n\013server_ping\030\004 \001(\0132\013.ServerPin" +
-      "gH\000\022\036\n\tleave_all\030\005 \001(\0132\t.LeaveAllH\000\022.\n\014g" +
-      "ame_message\030\017 \001(\0132\026.GameMessageFromClien" +
-      "tH\000\022\037\n\007ch_join\030d \001(\0132\014.JoinChannelH\000\022\037\n\007",
-      "ch_text\030e \001(\0132\014.ChannelTextH\000\022!\n\010ch_leav" +
-      "e\030f \001(\0132\r.LeaveChannelH\000\022\033\n\006ga_new\030\310\001 \001(" +
-      "\0132\010.NewGameH\000\022\035\n\007ga_join\030\311\001 \001(\0132\t.JoinGa" +
-      "meH\000\022\035\n\010sit_down\030\312\001 \001(\0132\010.SitDownH\000\022&\n\rs" +
-      "et_seat_lock\030\313\001 \001(\0132\014.SetSeatLockH\000\022*\n\016g" +
-      "a_player_text\030\314\001 \001(\0132\017.GamePlayerTextH\000\022" +
-      "\037\n\010ga_leave\030\315\001 \001(\0132\n.LeaveGameH\000B\005\n\003msgB" +
-      "\r\n\tsoc.protoH\001P\000P\001b\006proto3"
+      "e\030\004 \001(\0162\027.AuthRequest.AuthScheme\"@\n\010Auth" +
+      "Role\022\023\n\017_UNSENT_DEFAULT\020\000\022\017\n\013GAME_PLAYER",
+      "\020\001\022\016\n\nUSER_ADMIN\020\002\"7\n\nAuthScheme\022\023\n\017_UNU" +
+      "SED_DEFAULT\020\000\022\024\n\020CLIENT_PLAINTEXT\020\001\"\'\n\020R" +
+      "ejectConnection\022\023\n\013reason_text\030\001 \001(\t\"\367\004\n" +
+      "\020ServerStatusText\022\014\n\004text\030\001 \001(\t\022)\n\002sv\030\002 " +
+      "\001(\0162\035.ServerStatusText.StatusValue\022\017\n\007de" +
+      "tails\030\003 \003(\t\"\230\004\n\013StatusValue\022\006\n\002OK\020\000\022\022\n\016N" +
+      "OT_OK_GENERIC\020\001\022\022\n\016NAME_NOT_FOUND\020\002\022\014\n\010P" +
+      "W_WRONG\020\003\022\017\n\013NAME_IN_USE\020\004\022\032\n\026CANT_JOIN_" +
+      "GAME_VERSION\020\005\022\023\n\017PROBLEM_WITH_DB\020\006\022\023\n\017A" +
+      "CCT_CREATED_OK\020\007\022\030\n\024ACCT_NOT_CREATED_ERR",
+      "\020\010\022\032\n\026NEWGAME_OPTION_UNKNOWN\020\t\022\037\n\033NEWGAM" +
+      "E_OPTION_VALUE_TOONEW\020\n\022\032\n\026NEWGAME_ALREA" +
+      "DY_EXISTS\020\013\022\031\n\025NEWGAME_NAME_REJECTED\020\014\022\031" +
+      "\n\025NEWGAME_NAME_TOO_LONG\020\r\022\034\n\030NEWGAME_TOO" +
+      "_MANY_CREATED\020\016\022\037\n\033NEWCHANNEL_TOO_MANY_C" +
+      "REATED\020\017\022\017\n\013PW_REQUIRED\020\020\022\033\n\027ACCT_NOT_CR" +
+      "EATED_DENIED\020\021\022\035\n\031ACCT_CREATED_OK_FIRST_" +
+      "ONE\020\022\022\024\n\020NAME_NOT_ALLOWED\020\023\022\023\n\017OK_SET_NI" +
+      "CKNAME\020\024\022\024\n\020OK_DEBUG_MODE_ON\020\025\"\035\n\rBroadc" +
+      "astText\022\014\n\004text\030\001 \001(\t\"\n\n\010LeaveAll\" \n\nSer",
+      "verPing\022\022\n\nsleep_time\030\001 \001(\005\"\367\001\n\017BotUpdat" +
+      "eParams\022\027\n\017max_game_length\030\001 \001(\r\022\017\n\007max_" +
+      "eta\030\002 \001(\r\022\030\n\020eta_bonus_factor\030\003 \001(\002\022\032\n\022a" +
+      "dversarial_factor\030\004 \001(\002\022!\n\031leader_advers" +
+      "arial_factor\030\005 \001(\002\022\033\n\023dev_card_multiplie" +
+      "r\030\006 \001(\002\022\031\n\021threat_multiplier\030\007 \001(\002\022\025\n\rst" +
+      "rategy_type\030\010 \001(\r\022\022\n\ntrade_flag\030\t \001(\010\"\017\n" +
+      "\rBotAdminReset\"\031\n\010Channels\022\r\n\005names\030\001 \003(" +
+      "\t\"\035\n\nNewChannel\022\017\n\007ch_name\030\001 \001(\t\"3\n\013Join" +
+      "Channel\022\017\n\007ch_name\030\001 \001(\t\022\023\n\013member_name\030",
+      "\002 \001(\t\"2\n\016ChannelMembers\022\017\n\007ch_name\030\001 \001(\t" +
+      "\022\017\n\007members\030\002 \003(\t\"A\n\013ChannelText\022\017\n\007ch_n" +
+      "ame\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\022\014\n\004text\030\003" +
+      " \001(\t\"4\n\014LeaveChannel\022\017\n\007ch_name\030\001 \001(\t\022\023\n" +
+      "\013member_name\030\002 \001(\t\" \n\rDeleteChannel\022\017\n\007c" +
+      "h_name\030\001 \001(\t\"E\n\020_GameWithOptions\022\017\n\007ga_n" +
+      "ame\030\001 \001(\t\022\014\n\004opts\030\002 \001(\t\022\022\n\nunjoinable\030\003 " +
+      "\001(\010\"(\n\005Games\022\037\n\004game\030\001 \003(\0132\021._GameWithOp" +
+      "tions\"?\n\007NewGame\022\037\n\004game\030\001 \001(\0132\021._GameWi" +
+      "thOptions\022\023\n\013min_version\030\002 \001(\r\"J\n\022BotJoi",
+      "nGameRequest\022\037\n\004game\030\001 \001(\0132\021._GameWithOp" +
+      "tions\022\023\n\013seat_number\030\002 \001(\r\"0\n\010JoinGame\022\017" +
+      "\n\007ga_name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\"/\n\013" +
+      "GameMembers\022\017\n\007ga_name\030\001 \001(\t\022\017\n\007members\030" +
+      "\002 \003(\t\"R\n\007SitDown\022\017\n\007ga_name\030\001 \001(\t\022\017\n\007pl_" +
+      "name\030\002 \001(\t\022\023\n\013seat_number\030\003 \001(\r\022\020\n\010is_ro" +
+      "bot\030\004 \001(\010\"R\n\013SetSeatLock\022\017\n\007ga_name\030\001 \001(" +
+      "\t\022\023\n\013seat_number\030\002 \001(\r\022\035\n\005state\030\003 \001(\0162\016." +
+      "SeatLockState\"/\n\016GameServerText\022\017\n\007ga_na" +
+      "me\030\001 \001(\t\022\014\n\004text\030\002 \001(\t\"D\n\016GamePlayerText",
+      "\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\022\014" +
+      "\n\004text\030\003 \001(\t\" \n\rBotTimingPing\022\017\n\007ga_name" +
+      "\030\001 \001(\t\"\037\n\014BotAdminPing\022\017\n\007ga_name\030\001 \001(\t\"" +
+      "\035\n\nBotDismiss\022\017\n\007ga_name\030\001 \001(\t\"1\n\tLeaveG" +
+      "ame\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(" +
+      "\t\"\035\n\nDeleteGame\022\017\n\007ga_name\030\001 \001(\t\"\322\010\n\nFro" +
+      "mServer\022\030\n\004vers\030\001 \001(\0132\010.VersionH\000\022.\n\021rej" +
+      "ect_connection\030\002 \001(\0132\021.RejectConnectionH" +
+      "\000\022(\n\013status_text\030\003 \001(\0132\021.ServerStatusTex" +
+      "tH\000\022(\n\016broadcast_text\030\004 \001(\0132\016.BroadcastT",
+      "extH\000\022\"\n\013server_ping\030\005 \001(\0132\013.ServerPingH" +
+      "\000\022.\n\014game_message\030\017 \001(\0132\026.GameMessageFro" +
+      "mServerH\000\022-\n\021bot_update_params\030\024 \001(\0132\020.B" +
+      "otUpdateParamsH\000\022)\n\017bot_admin_reset\030\025 \001(" +
+      "\0132\016.BotAdminResetH\000\022\035\n\010channels\030d \001(\0132\t." +
+      "ChannelsH\000\022\035\n\006ch_new\030e \001(\0132\013.NewChannelH" +
+      "\000\022\037\n\007ch_join\030f \001(\0132\014.JoinChannelH\000\022%\n\nch" +
+      "_members\030g \001(\0132\017.ChannelMembersH\000\022\037\n\007ch_" +
+      "text\030h \001(\0132\014.ChannelTextH\000\022!\n\010ch_leave\030i" +
+      " \001(\0132\r.LeaveChannelH\000\022#\n\tch_delete\030j \001(\013",
+      "2\016.DeleteChannelH\000\022\030\n\005games\030\310\001 \001(\0132\006.Gam" +
+      "esH\000\022\033\n\006ga_new\030\311\001 \001(\0132\010.NewGameH\000\022\035\n\007ga_" +
+      "join\030\312\001 \001(\0132\t.JoinGameH\000\022,\n\014bot_join_req" +
+      "\030\313\001 \001(\0132\023.BotJoinGameRequestH\000\022#\n\nga_mem" +
+      "bers\030\314\001 \001(\0132\014.GameMembersH\000\022\035\n\010sit_down\030" +
+      "\315\001 \001(\0132\010.SitDownH\000\022&\n\rset_seat_lock\030\316\001 \001" +
+      "(\0132\014.SetSeatLockH\000\022\'\n\013server_text\030\317\001 \001(\013" +
+      "2\017.GameServerTextH\000\022*\n\016ga_player_text\030\320\001" +
+      " \001(\0132\017.GamePlayerTextH\000\022*\n\017bot_timing_pi" +
+      "ng\030\321\001 \001(\0132\016.BotTimingPingH\000\022(\n\016bot_admin",
+      "_ping\030\322\001 \001(\0132\r.BotAdminPingH\000\022#\n\013bot_dis" +
+      "miss\030\323\001 \001(\0132\013.BotDismissH\000\022\037\n\010ga_leave\030\324" +
+      "\001 \001(\0132\n.LeaveGameH\000\022!\n\tga_delete\030\325\001 \001(\0132" +
+      "\013.DeleteGameH\000B\005\n\003msg\"\231\004\n\nFromClient\022\030\n\004" +
+      "vers\030\001 \001(\0132\010.VersionH\000\022 \n\010auth_req\030\002 \001(\013" +
+      "2\014.AuthRequestH\000\022\037\n\nim_a_robot\030\003 \001(\0132\t.I" +
+      "mARobotH\000\022\"\n\013server_ping\030\004 \001(\0132\013.ServerP" +
+      "ingH\000\022\036\n\tleave_all\030\005 \001(\0132\t.LeaveAllH\000\022.\n" +
+      "\014game_message\030\017 \001(\0132\026.GameMessageFromCli" +
+      "entH\000\022\037\n\007ch_join\030d \001(\0132\014.JoinChannelH\000\022\037",
+      "\n\007ch_text\030e \001(\0132\014.ChannelTextH\000\022!\n\010ch_le" +
+      "ave\030f \001(\0132\r.LeaveChannelH\000\022\033\n\006ga_new\030\310\001 " +
+      "\001(\0132\010.NewGameH\000\022\035\n\007ga_join\030\311\001 \001(\0132\t.Join" +
+      "GameH\000\022\035\n\010sit_down\030\312\001 \001(\0132\010.SitDownH\000\022&\n" +
+      "\rset_seat_lock\030\313\001 \001(\0132\014.SetSeatLockH\000\022*\n" +
+      "\016ga_player_text\030\314\001 \001(\0132\017.GamePlayerTextH" +
+      "\000\022\037\n\010ga_leave\030\315\001 \001(\0132\n.LeaveGameH\000B\005\n\003ms" +
+      "gB\r\n\tsoc.protoH\001P\000P\001b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

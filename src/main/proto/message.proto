@@ -88,12 +88,12 @@ message ImARobot {
  */
 message AuthRequest {
     enum AuthRole {
-        UNSENT_DEFAULT = 0;  // Required for enum but not sent
+        _UNSENT_DEFAULT = 0;  // Required for enum but not sent: not a valid role
         GAME_PLAYER = 1;  // Play or watch games, join chat channels; "P" before v3.0.00
         USER_ADMIN = 2;   // Create users; "UA" before v3.0.00
     }
     enum AuthScheme {
-        UNUSED_DEFAULT = 0;    // Required for enum but not sent
+        _UNUSED_DEFAULT = 0;    // Required for enum but not sent: not a valid scheme
         CLIENT_PLAINTEXT = 1;  // For client to connect using a plaintext password
     }
 

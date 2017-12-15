@@ -36,7 +36,7 @@ the same name as its OO counterparts. As in Java OO is central, I choose to suff
 enum ResourceType {
     // For now, we're still tied to the integer values. Therefore I want the values to be the same as we currently use
     // them until the integer dependencies are refactored out.
-    NOT_YET_USED = 0;
+    _NOT_YET_USED = 0;
     CLAY = 1;
     ORE = 2;
     SHEEP = 3;
@@ -51,8 +51,9 @@ enum ResourceType {
 //
 
 
-/* Game state constants for {@code SOCGame}.
+/* Game state constants for {@link soc.game.SOCGame}.
  * For general docs about game states see {@link soc.game.SOCGame#NEW}.
+ *<P>
  * Per-state docs may eventually be transferred here from SOCGame.
  */
 enum GameState {

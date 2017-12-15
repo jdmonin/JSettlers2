@@ -30,9 +30,9 @@ public final class Data {
      * them until the integer dependencies are refactored out.
      * </pre>
      *
-     * <code>NOT_YET_USED = 0;</code>
+     * <code>_NOT_YET_USED = 0;</code>
      */
-    NOT_YET_USED(0),
+    _NOT_YET_USED(0),
     /**
      * <code>CLAY = 1;</code>
      */
@@ -70,9 +70,9 @@ public final class Data {
      * them until the integer dependencies are refactored out.
      * </pre>
      *
-     * <code>NOT_YET_USED = 0;</code>
+     * <code>_NOT_YET_USED = 0;</code>
      */
-    public static final int NOT_YET_USED_VALUE = 0;
+    public static final int _NOT_YET_USED_VALUE = 0;
     /**
      * <code>CLAY = 1;</code>
      */
@@ -121,7 +121,7 @@ public final class Data {
 
     public static ResourceType forNumber(int value) {
       switch (value) {
-        case 0: return NOT_YET_USED;
+        case 0: return _NOT_YET_USED;
         case 1: return CLAY;
         case 2: return ORE;
         case 3: return SHEEP;
@@ -182,8 +182,9 @@ public final class Data {
 
   /**
    * <pre>
-   * Game state constants for {&#64;code SOCGame}.
+   * Game state constants for {&#64;link soc.game.SOCGame}.
    * For general docs about game states see {&#64;link soc.game.SOCGame#NEW}.
+   *&lt;P&gt;
    * Per-state docs may eventually be transferred here from SOCGame.
    * </pre>
    *
@@ -823,28 +824,28 @@ public final class Data {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\ndata.proto*`\n\014ResourceType\022\020\n\014NOT_YET_" +
-      "USED\020\000\022\010\n\004CLAY\020\001\022\007\n\003ORE\020\002\022\t\n\005SHEEP\020\003\022\t\n\005" +
-      "WHEAT\020\004\022\010\n\004WOOD\020\005\022\013\n\007UNKNOWN\020\006*\245\005\n\tGameS" +
-      "tate\022\007\n\003NEW\020\000\022\t\n\005READY\020\001\022\"\n\036READY_RESET_" +
-      "WAIT_ROBOT_DISMISS\020\004\022\013\n\007START1A\020\005\022\013\n\007STA" +
-      "RT1B\020\006\022\013\n\007START2A\020\n\022)\n%STARTS_WAITING_FO" +
-      "R_PICK_GOLD_RESOURCE\020\016\022\013\n\007START2B\020\013\022\013\n\007S" +
-      "TART3A\020\014\022\013\n\007START3B\020\r\022\020\n\014ROLL_OR_CARD\020\017\022" +
-      "\t\n\005PLAY1\020\024\022\020\n\014PLACING_ROAD\020\036\022\026\n\022PLACING_" +
-      "SETTLEMENT\020\037\022\020\n\014PLACING_CITY\020 \022\022\n\016PLACIN",
-      "G_ROBBER\020!\022\022\n\016PLACING_PIRATE\020\"\022\020\n\014PLACIN" +
-      "G_SHIP\020#\022\026\n\022PLACING_FREE_ROAD1\020(\022\026\n\022PLAC" +
-      "ING_FREE_ROAD2\020)\022\024\n\020PLACING_INV_ITEM\020*\022\030" +
-      "\n\024WAITING_FOR_DISCARDS\0202\022!\n\035WAITING_FOR_" +
-      "ROB_CHOOSE_PLAYER\0203\022\031\n\025WAITING_FOR_DISCO" +
-      "VERY\0204\022\030\n\024WAITING_FOR_MONOPOLY\0205\022 \n\034WAIT" +
-      "ING_FOR_ROBBER_OR_PIRATE\0206\022%\n!WAITING_FO" +
-      "R_ROB_CLOTH_OR_RESOURCE\0207\022\"\n\036WAITING_FOR" +
-      "_PICK_GOLD_RESOURCE\0208\022\024\n\020SPECIAL_BUILDIN" +
-      "G\020d\022\t\n\004OVER\020\350\007\022\016\n\tRESET_OLD\020\351\007*=\n\rSeatLo",
-      "ckState\022\014\n\010UNLOCKED\020\000\022\n\n\006LOCKED\020\001\022\022\n\016CLE" +
-      "AR_ON_RESET\020\002B\r\n\tsoc.protoH\001b\006proto3"
+      "\n\ndata.proto*a\n\014ResourceType\022\021\n\r_NOT_YET" +
+      "_USED\020\000\022\010\n\004CLAY\020\001\022\007\n\003ORE\020\002\022\t\n\005SHEEP\020\003\022\t\n" +
+      "\005WHEAT\020\004\022\010\n\004WOOD\020\005\022\013\n\007UNKNOWN\020\006*\245\005\n\tGame" +
+      "State\022\007\n\003NEW\020\000\022\t\n\005READY\020\001\022\"\n\036READY_RESET" +
+      "_WAIT_ROBOT_DISMISS\020\004\022\013\n\007START1A\020\005\022\013\n\007ST" +
+      "ART1B\020\006\022\013\n\007START2A\020\n\022)\n%STARTS_WAITING_F" +
+      "OR_PICK_GOLD_RESOURCE\020\016\022\013\n\007START2B\020\013\022\013\n\007" +
+      "START3A\020\014\022\013\n\007START3B\020\r\022\020\n\014ROLL_OR_CARD\020\017" +
+      "\022\t\n\005PLAY1\020\024\022\020\n\014PLACING_ROAD\020\036\022\026\n\022PLACING" +
+      "_SETTLEMENT\020\037\022\020\n\014PLACING_CITY\020 \022\022\n\016PLACI",
+      "NG_ROBBER\020!\022\022\n\016PLACING_PIRATE\020\"\022\020\n\014PLACI" +
+      "NG_SHIP\020#\022\026\n\022PLACING_FREE_ROAD1\020(\022\026\n\022PLA" +
+      "CING_FREE_ROAD2\020)\022\024\n\020PLACING_INV_ITEM\020*\022" +
+      "\030\n\024WAITING_FOR_DISCARDS\0202\022!\n\035WAITING_FOR" +
+      "_ROB_CHOOSE_PLAYER\0203\022\031\n\025WAITING_FOR_DISC" +
+      "OVERY\0204\022\030\n\024WAITING_FOR_MONOPOLY\0205\022 \n\034WAI" +
+      "TING_FOR_ROBBER_OR_PIRATE\0206\022%\n!WAITING_F" +
+      "OR_ROB_CLOTH_OR_RESOURCE\0207\022\"\n\036WAITING_FO" +
+      "R_PICK_GOLD_RESOURCE\0208\022\024\n\020SPECIAL_BUILDI" +
+      "NG\020d\022\t\n\004OVER\020\350\007\022\016\n\tRESET_OLD\020\351\007*=\n\rSeatL",
+      "ockState\022\014\n\010UNLOCKED\020\000\022\n\n\006LOCKED\020\001\022\022\n\016CL" +
+      "EAR_ON_RESET\020\002B\r\n\tsoc.protoH\001b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

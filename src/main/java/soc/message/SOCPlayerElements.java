@@ -18,7 +18,11 @@
  **/
 package soc.message;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import soc.proto.GameMessage;
+import soc.proto.Message;
 
 /**
  * This message from the server holds information on some parts of a player's status,
@@ -175,6 +179,29 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
         } catch (Exception e) {
             return null;
         }
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.PlayerElements.Builder b
+            = GameMessage.PlayerElements.newBuilder();
+        b.setPlayerNumber(playerNumber).setActionValue(actionType);
+
+        final int n = (pa.length - 1) / 2;
+        ArrayList<Integer> t = new ArrayList<>(n), a = new ArrayList<>(n);
+        for (int i = 2; i < pa.length; )
+        {
+            t.add(pa[i]);  ++i;
+            a.add(pa[i]);  ++i;
+        }
+        b.addAllElementTypesValue(t);
+        b.addAllAmounts(a);
+
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGaName(game).setPlayerElements(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
     /**
