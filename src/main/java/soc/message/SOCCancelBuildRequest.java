@@ -22,6 +22,9 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.proto.GameMessage;
+import soc.proto.Message;
+
 /**
  *  This message type has five possible meanings, depending on game state and direction sent:
  *
@@ -176,6 +179,21 @@ public class SOCCancelBuildRequest extends SOCMessage
         }
 
         return new SOCCancelBuildRequest(ga, pt);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.CancelBuild.Builder b
+            = GameMessage.CancelBuild.newBuilder();
+        if (pieceType >= 0)
+            b.setPieceTypeValue(pieceType);
+        else
+            b.setItemTypeValue(-pieceType);
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGaName(game).setCancelBuild(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
     /**

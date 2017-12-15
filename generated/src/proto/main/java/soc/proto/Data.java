@@ -182,6 +182,348 @@ public final class Data {
 
   /**
    * <pre>
+   * Piece Types for {&#64;link soc.game.SOCPlayingPiece}; same constant values as that class.
+   * Used in {&#64;link GameMessage.PutPiece}, {&#64;link GameMessage.CancelBuild}, etc.
+   * For the resources needed to build a piece type, see {&#64;link soc.game.SOCPlayingPiece#getResourcesToBuild(int)}.
+   * &#64;see OtherPlayableItem
+   * </pre>
+   *
+   * Protobuf enum {@code PieceType}
+   */
+  public enum PieceType
+      implements com.google.protobuf.ProtocolMessageEnum {
+    /**
+     * <pre>
+     * {&#64;link soc.game.SOCRoad} 
+     * </pre>
+     *
+     * <code>ROAD = 0;</code>
+     */
+    ROAD(0),
+    /**
+     * <pre>
+     * {&#64;link soc.game.SOCSettlement} 
+     * </pre>
+     *
+     * <code>SETTLEMENT = 1;</code>
+     */
+    SETTLEMENT(1),
+    /**
+     * <pre>
+     * {&#64;link soc.game.SOCCity} 
+     * </pre>
+     *
+     * <code>CITY = 2;</code>
+     */
+    CITY(2),
+    /**
+     * <pre>
+     * {&#64;link soc.game.SOCShip}; used only when {&#64;link soc.game.SOCGame#hasSeaBoard}.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>SHIP = 3;</code>
+     */
+    SHIP(3),
+    /**
+     * <pre>
+     * {&#64;link soc.game.SOCFortress}; used only when {&#64;link soc.game.SOCGame#hasSeaBoard}
+     * and scenario option {&#64;link soc.game.SOCGameOption#K_SC_PIRI _SC_PIRI} active.
+     * New fortresses cannot be built after the game starts.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>FORTRESS = 4;</code>
+     */
+    FORTRESS(4),
+    /**
+     * <pre>
+     * {&#64;link soc.game.SOCVillage}; used only when {&#64;link soc.game.SOCGame#hasSeaBoard}.
+     * Villages belong to the game board, not to any player,
+     * and new villages cannot be built after the game starts.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>VILLAGE = 5;</code>
+     */
+    VILLAGE(5),
+    UNRECOGNIZED(-1),
+    ;
+
+    /**
+     * <pre>
+     * {&#64;link soc.game.SOCRoad} 
+     * </pre>
+     *
+     * <code>ROAD = 0;</code>
+     */
+    public static final int ROAD_VALUE = 0;
+    /**
+     * <pre>
+     * {&#64;link soc.game.SOCSettlement} 
+     * </pre>
+     *
+     * <code>SETTLEMENT = 1;</code>
+     */
+    public static final int SETTLEMENT_VALUE = 1;
+    /**
+     * <pre>
+     * {&#64;link soc.game.SOCCity} 
+     * </pre>
+     *
+     * <code>CITY = 2;</code>
+     */
+    public static final int CITY_VALUE = 2;
+    /**
+     * <pre>
+     * {&#64;link soc.game.SOCShip}; used only when {&#64;link soc.game.SOCGame#hasSeaBoard}.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>SHIP = 3;</code>
+     */
+    public static final int SHIP_VALUE = 3;
+    /**
+     * <pre>
+     * {&#64;link soc.game.SOCFortress}; used only when {&#64;link soc.game.SOCGame#hasSeaBoard}
+     * and scenario option {&#64;link soc.game.SOCGameOption#K_SC_PIRI _SC_PIRI} active.
+     * New fortresses cannot be built after the game starts.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>FORTRESS = 4;</code>
+     */
+    public static final int FORTRESS_VALUE = 4;
+    /**
+     * <pre>
+     * {&#64;link soc.game.SOCVillage}; used only when {&#64;link soc.game.SOCGame#hasSeaBoard}.
+     * Villages belong to the game board, not to any player,
+     * and new villages cannot be built after the game starts.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>VILLAGE = 5;</code>
+     */
+    public static final int VILLAGE_VALUE = 5;
+
+
+    public final int getNumber() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
+      return value;
+    }
+
+    /**
+     * @deprecated Use {@link #forNumber(int)} instead.
+     */
+    @java.lang.Deprecated
+    public static PieceType valueOf(int value) {
+      return forNumber(value);
+    }
+
+    public static PieceType forNumber(int value) {
+      switch (value) {
+        case 0: return ROAD;
+        case 1: return SETTLEMENT;
+        case 2: return CITY;
+        case 3: return SHIP;
+        case 4: return FORTRESS;
+        case 5: return VILLAGE;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf.Internal.EnumLiteMap<PieceType>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static final com.google.protobuf.Internal.EnumLiteMap<
+        PieceType> internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<PieceType>() {
+            public PieceType findValueByNumber(int number) {
+              return PieceType.forNumber(number);
+            }
+          };
+
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      return getDescriptor().getValues().get(ordinal());
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return soc.proto.Data.getDescriptor().getEnumTypes().get(1);
+    }
+
+    private static final PieceType[] VALUES = values();
+
+    public static PieceType valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
+      return VALUES[desc.getIndex()];
+    }
+
+    private final int value;
+
+    private PieceType(int value) {
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:PieceType)
+  }
+
+  /**
+   * <pre>
+   * Other playable/cancelable player item types, used in {&#64;link GameMessage.CancelBuild}.
+   * TODO: Might also be useful later in robot move planning.
+   *&lt;P&gt;
+   * Before v3.0.00 these were negative numbers stored in the same fields as {&#64;code PieceType}.
+   * &#64;see PieceType
+   * </pre>
+   *
+   * Protobuf enum {@code OtherPlayableItem}
+   */
+  public enum OtherPlayableItem
+      implements com.google.protobuf.ProtocolMessageEnum {
+    /**
+     * <pre>
+     * Required for enum, but not sent: not a valid item type
+     * </pre>
+     *
+     * <code>_UNSENT_DEFAULT_ITEM = 0;</code>
+     */
+    _UNSENT_DEFAULT_ITEM(0),
+    /**
+     * <pre>
+     * Before v3.0.00, SOCBuildRequest used -1 here to request 6-player Special Building Phase
+     * </pre>
+     *
+     * <code>DEV_CARD = 2;</code>
+     */
+    DEV_CARD(2),
+    /**
+     * <pre>
+     * used from client to request canceling placement of a special SOCInventoryItem if possible
+     * </pre>
+     *
+     * <code>INV_ITEM = 3;</code>
+     */
+    INV_ITEM(3),
+    UNRECOGNIZED(-1),
+    ;
+
+    /**
+     * <pre>
+     * Required for enum, but not sent: not a valid item type
+     * </pre>
+     *
+     * <code>_UNSENT_DEFAULT_ITEM = 0;</code>
+     */
+    public static final int _UNSENT_DEFAULT_ITEM_VALUE = 0;
+    /**
+     * <pre>
+     * Before v3.0.00, SOCBuildRequest used -1 here to request 6-player Special Building Phase
+     * </pre>
+     *
+     * <code>DEV_CARD = 2;</code>
+     */
+    public static final int DEV_CARD_VALUE = 2;
+    /**
+     * <pre>
+     * used from client to request canceling placement of a special SOCInventoryItem if possible
+     * </pre>
+     *
+     * <code>INV_ITEM = 3;</code>
+     */
+    public static final int INV_ITEM_VALUE = 3;
+
+
+    public final int getNumber() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
+      return value;
+    }
+
+    /**
+     * @deprecated Use {@link #forNumber(int)} instead.
+     */
+    @java.lang.Deprecated
+    public static OtherPlayableItem valueOf(int value) {
+      return forNumber(value);
+    }
+
+    public static OtherPlayableItem forNumber(int value) {
+      switch (value) {
+        case 0: return _UNSENT_DEFAULT_ITEM;
+        case 2: return DEV_CARD;
+        case 3: return INV_ITEM;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf.Internal.EnumLiteMap<OtherPlayableItem>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static final com.google.protobuf.Internal.EnumLiteMap<
+        OtherPlayableItem> internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<OtherPlayableItem>() {
+            public OtherPlayableItem findValueByNumber(int number) {
+              return OtherPlayableItem.forNumber(number);
+            }
+          };
+
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      return getDescriptor().getValues().get(ordinal());
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return soc.proto.Data.getDescriptor().getEnumTypes().get(2);
+    }
+
+    private static final OtherPlayableItem[] VALUES = values();
+
+    public static OtherPlayableItem valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
+      return VALUES[desc.getIndex()];
+    }
+
+    private final int value;
+
+    private OtherPlayableItem(int value) {
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:OtherPlayableItem)
+  }
+
+  /**
+   * <pre>
    * Game state constants for {&#64;link soc.game.SOCGame}.
    * For general docs about game states see {&#64;link soc.game.SOCGame#NEW}.
    *&lt;P&gt;
@@ -632,7 +974,7 @@ public final class Data {
     }
     public static final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptor() {
-      return soc.proto.Data.getDescriptor().getEnumTypes().get(1);
+      return soc.proto.Data.getDescriptor().getEnumTypes().get(3);
     }
 
     private static final GameState[] VALUES = values();
@@ -789,7 +1131,7 @@ public final class Data {
     }
     public static final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptor() {
-      return soc.proto.Data.getDescriptor().getEnumTypes().get(2);
+      return soc.proto.Data.getDescriptor().getEnumTypes().get(4);
     }
 
     private static final SeatLockState[] VALUES = values();
@@ -826,26 +1168,30 @@ public final class Data {
     java.lang.String[] descriptorData = {
       "\n\ndata.proto*a\n\014ResourceType\022\021\n\r_NOT_YET" +
       "_USED\020\000\022\010\n\004CLAY\020\001\022\007\n\003ORE\020\002\022\t\n\005SHEEP\020\003\022\t\n" +
-      "\005WHEAT\020\004\022\010\n\004WOOD\020\005\022\013\n\007UNKNOWN\020\006*\245\005\n\tGame" +
-      "State\022\007\n\003NEW\020\000\022\t\n\005READY\020\001\022\"\n\036READY_RESET" +
-      "_WAIT_ROBOT_DISMISS\020\004\022\013\n\007START1A\020\005\022\013\n\007ST" +
-      "ART1B\020\006\022\013\n\007START2A\020\n\022)\n%STARTS_WAITING_F" +
-      "OR_PICK_GOLD_RESOURCE\020\016\022\013\n\007START2B\020\013\022\013\n\007" +
-      "START3A\020\014\022\013\n\007START3B\020\r\022\020\n\014ROLL_OR_CARD\020\017" +
-      "\022\t\n\005PLAY1\020\024\022\020\n\014PLACING_ROAD\020\036\022\026\n\022PLACING" +
-      "_SETTLEMENT\020\037\022\020\n\014PLACING_CITY\020 \022\022\n\016PLACI",
-      "NG_ROBBER\020!\022\022\n\016PLACING_PIRATE\020\"\022\020\n\014PLACI" +
-      "NG_SHIP\020#\022\026\n\022PLACING_FREE_ROAD1\020(\022\026\n\022PLA" +
-      "CING_FREE_ROAD2\020)\022\024\n\020PLACING_INV_ITEM\020*\022" +
-      "\030\n\024WAITING_FOR_DISCARDS\0202\022!\n\035WAITING_FOR" +
-      "_ROB_CHOOSE_PLAYER\0203\022\031\n\025WAITING_FOR_DISC" +
-      "OVERY\0204\022\030\n\024WAITING_FOR_MONOPOLY\0205\022 \n\034WAI" +
-      "TING_FOR_ROBBER_OR_PIRATE\0206\022%\n!WAITING_F" +
-      "OR_ROB_CLOTH_OR_RESOURCE\0207\022\"\n\036WAITING_FO" +
-      "R_PICK_GOLD_RESOURCE\0208\022\024\n\020SPECIAL_BUILDI" +
-      "NG\020d\022\t\n\004OVER\020\350\007\022\016\n\tRESET_OLD\020\351\007*=\n\rSeatL",
-      "ockState\022\014\n\010UNLOCKED\020\000\022\n\n\006LOCKED\020\001\022\022\n\016CL" +
-      "EAR_ON_RESET\020\002B\r\n\tsoc.protoH\001b\006proto3"
+      "\005WHEAT\020\004\022\010\n\004WOOD\020\005\022\013\n\007UNKNOWN\020\006*T\n\tPiece" +
+      "Type\022\010\n\004ROAD\020\000\022\016\n\nSETTLEMENT\020\001\022\010\n\004CITY\020\002" +
+      "\022\010\n\004SHIP\020\003\022\014\n\010FORTRESS\020\004\022\013\n\007VILLAGE\020\005*I\n" +
+      "\021OtherPlayableItem\022\030\n\024_UNSENT_DEFAULT_IT" +
+      "EM\020\000\022\014\n\010DEV_CARD\020\002\022\014\n\010INV_ITEM\020\003*\245\005\n\tGam" +
+      "eState\022\007\n\003NEW\020\000\022\t\n\005READY\020\001\022\"\n\036READY_RESE" +
+      "T_WAIT_ROBOT_DISMISS\020\004\022\013\n\007START1A\020\005\022\013\n\007S" +
+      "TART1B\020\006\022\013\n\007START2A\020\n\022)\n%STARTS_WAITING_",
+      "FOR_PICK_GOLD_RESOURCE\020\016\022\013\n\007START2B\020\013\022\013\n" +
+      "\007START3A\020\014\022\013\n\007START3B\020\r\022\020\n\014ROLL_OR_CARD\020" +
+      "\017\022\t\n\005PLAY1\020\024\022\020\n\014PLACING_ROAD\020\036\022\026\n\022PLACIN" +
+      "G_SETTLEMENT\020\037\022\020\n\014PLACING_CITY\020 \022\022\n\016PLAC" +
+      "ING_ROBBER\020!\022\022\n\016PLACING_PIRATE\020\"\022\020\n\014PLAC" +
+      "ING_SHIP\020#\022\026\n\022PLACING_FREE_ROAD1\020(\022\026\n\022PL" +
+      "ACING_FREE_ROAD2\020)\022\024\n\020PLACING_INV_ITEM\020*" +
+      "\022\030\n\024WAITING_FOR_DISCARDS\0202\022!\n\035WAITING_FO" +
+      "R_ROB_CHOOSE_PLAYER\0203\022\031\n\025WAITING_FOR_DIS" +
+      "COVERY\0204\022\030\n\024WAITING_FOR_MONOPOLY\0205\022 \n\034WA",
+      "ITING_FOR_ROBBER_OR_PIRATE\0206\022%\n!WAITING_" +
+      "FOR_ROB_CLOTH_OR_RESOURCE\0207\022\"\n\036WAITING_F" +
+      "OR_PICK_GOLD_RESOURCE\0208\022\024\n\020SPECIAL_BUILD" +
+      "ING\020d\022\t\n\004OVER\020\350\007\022\016\n\tRESET_OLD\020\351\007*=\n\rSeat" +
+      "LockState\022\014\n\010UNLOCKED\020\000\022\n\n\006LOCKED\020\001\022\022\n\016C" +
+      "LEAR_ON_RESET\020\002B\r\n\tsoc.protoH\001b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

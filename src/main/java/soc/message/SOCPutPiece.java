@@ -22,6 +22,9 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.proto.GameMessage;
+import soc.proto.Message;
+
 /**
  * This message means that a player is asking to place, or has placed, a piece on the board.
  * Also used when joining a new game or a game in progress, to send the game state so far.
@@ -170,6 +173,18 @@ public class SOCPutPiece extends SOCMessage
         }
 
         return new SOCPutPiece(na, pn, pt, co);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.PutPiece.Builder b
+            = GameMessage.PutPiece.newBuilder();
+        b.setPlayerNumber(playerNumber).setTypeValue(pieceType).setCoordinates(coordinates);
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGaName(game).setPutPiece(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
     /**

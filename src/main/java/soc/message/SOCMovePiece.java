@@ -21,6 +21,9 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.proto.GameMessage;
+import soc.proto.Message;
+
 /**
  * This server-broadcast message announces a player
  * is moving a piece that's already on the board, to a new location.
@@ -127,6 +130,18 @@ public class SOCMovePiece extends SOCMessageTemplate4i
         }
 
         return new SOCMovePiece(ga, pn, pc, fc, tc);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.MovePiece.Builder b
+            = GameMessage.MovePiece.newBuilder();
+        b.setPlayerNumber(p1).setTypeValue(p2).setFromCoord(p3).setToCoord(p4);
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGaName(game).setMovePiece(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
     /**

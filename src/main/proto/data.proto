@@ -45,6 +45,54 @@ enum ResourceType {
     UNKNOWN = 6; // TODO: shares a slot with GOLD in some instances
 }
 
+/* Piece Types for {@link soc.game.SOCPlayingPiece}; same constant values as that class.
+ * Used in {@link GameMessage.PutPiece}, {@link GameMessage.CancelBuild}, etc.
+ * For the resources needed to build a piece type, see {@link soc.game.SOCPlayingPiece#getResourcesToBuild(int)}.
+ * @see OtherPlayableItem
+ */
+enum PieceType {
+    /* {@link soc.game.SOCRoad} */
+    ROAD = 0;
+
+    /* {@link soc.game.SOCSettlement} */
+    SETTLEMENT = 1;
+
+    /* {@link soc.game.SOCCity} */
+    CITY = 2;
+
+    /* {@link soc.game.SOCShip}; used only when {@link soc.game.SOCGame#hasSeaBoard}.
+     * @since 2.0.00
+     */
+    SHIP = 3;
+
+    /* {@link soc.game.SOCFortress}; used only when {@link soc.game.SOCGame#hasSeaBoard}
+     * and scenario option {@link soc.game.SOCGameOption#K_SC_PIRI _SC_PIRI} active.
+     * New fortresses cannot be built after the game starts.
+     * @since 2.0.00
+     */
+    FORTRESS = 4;
+
+    /* {@link soc.game.SOCVillage}; used only when {@link soc.game.SOCGame#hasSeaBoard}.
+     * Villages belong to the game board, not to any player,
+     * and new villages cannot be built after the game starts.
+     * @since 2.0.00
+     */
+    VILLAGE = 5;
+}
+
+/* Other playable/cancelable player item types, used in {@link GameMessage.CancelBuild}.
+ * TODO: Might also be useful later in robot move planning.
+ *<P>
+ * Before v3.0.00 these were negative numbers stored in the same fields as {@code PieceType}.
+ * @see PieceType
+ */
+enum OtherPlayableItem {
+    _UNSENT_DEFAULT_ITEM = 0;  // Required for enum, but not sent: not a valid item type
+    // Before v3.0.00, SOCBuildRequest used -1 here to request 6-player Special Building Phase
+    DEV_CARD = 2;  // sent from server to reject request to buy a Development Card
+    INV_ITEM = 3;  // used from client to request canceling placement of a special SOCInventoryItem if possible
+}
+
 
 //
 // State and Conditions

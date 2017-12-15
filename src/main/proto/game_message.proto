@@ -59,6 +59,134 @@ message BoardLayout
     map<string, _BoardLayoutPart> parts = 2;  // Layout Parts; some are optional depending on game options and scenario
 }
 
+/* Client player is asking to place, or server is announcing placement of, a piece on the board.
+ * Also used when joining a new game or a game in progress, to send the game state so far.
+ *<P>
+ * Some game scenarios use {@link soc.game.SOCVillage villages} which aren't owned by any player;
+ * their {@code player_number} is -1 in this message.
+ *<P>
+ * See also {@link MovePiece}. The messages similar but opposite to this one
+ * are {@link CancelBuild} and the very-limited {@link RemovePiece}.
+ *<P>
+ * Some scenarios like {@link soc.game.SOCScenario#K_SC_PIRI SC_PIRI} include some pieces
+ * as part of the initial board layout while the game is starting. These will all be sent to
+ * the clients while game state is &lt; {@link soc.game.SOCGame#START1A START1A} and before
+ * sending them {@link StartGame}. Scenario {@link soc.game.SOCScenario#K_SC_CLVI SC_CLVI}
+ * sends its neutral villages before {@code START1A} but as part {@code "CV"} of the board layout
+ * message, not as {@code PutPiece}s.
+ */
+message PutPiece {
+    PieceType type = 1;
+    /* the player number of who played the piece, or -1 for non-player-owned
+     * ({@link soc.game.SOCPlayingPiece#VILLAGE}).
+     * Remember that for playerNumber 0, protobuf won't send the field (== default).
+     * Ignored if sent from client.
+     */
+    sint32 player_number = 2;
+    uint32 coordinates = 3;
+}
+
+/* This message from client to server says which piece type the current player wants to build.
+ *<P>
+ * During game state {@link soc.game.SOCGame#PLAY1 PLAY1}, this is a build request during the player's turn.
+ * When sent during other game states, and other players' turns, this is a request
+ * to start the 6-player {@link soc.game.SOCGame#SPECIAL_BUILDING Special Building Phase}.
+ * @see CancelBuild
+ * @see BuyItemRequest
+ */
+message BuildRequest {
+    /* Type of piece to build. When requesting Special Building Phase,
+     * this field is optional and its value is ignored.
+     */
+    PieceType piece_type = 1;
+}
+
+/* This message type has five possible meanings, depending on game state and direction sent:
+ *<UL>
+ *<H3>When sent from client to server:</H3>
+ *<LI> During piece placement (PLACING_ROAD, PLACING_SETTLEMENT, PLACING_CITY, PLACING_SHIP, PLACING_INV_ITEM): <BR>
+ *   CancelBuild means the player has changed their mind about spending resources to build a piece.
+ *   Server will reply by returning the player's resources and changing game state.
+ *   <P>
+ *   The special inventory items in PLACING_INV_ITEM each have a different placement message, but if item placement
+ *   can be canceled, use this common message type, with {@code item_type} == ({@link Data.OtherPlayableItem#INV_ITEM}).
+ *   If placement can't be canceled, server will reply with {@link GameServerText}.
+ *
+ *<LI> While placing the second free road or ship (PLACING_FREE_ROAD2), means
+ *   the player has decided to skip placing the second free road or ship,
+ *   to use just one road or ship piece.  Server will reply with new game state.
+ *   (This was added in v1.1.17)
+ *
+ *<LI> Not sent from client during other game states. Server will reply with {@link GameServerText}.
+ *
+ *<H3>When sent from server to a client player:</H3>
+ *
+ *<LI> During game startup (START1B, START2B or START3B): <BR>
+ *   Sent from server, CancelBuild means the current player
+ *   is undoing the placement of their initial settlement.
+ *
+ *<LI> During piece placement (PLACING_ROAD, PLACING_CITY, PLACING_SETTLEMENT,
+ *   PLACING_FREE_ROAD1 or PLACING_FREE_ROAD2): <BR>
+ *   Sent from server, CancelBuild means the player has sent
+ *   an illegal {@link PutPiece} (bad building location). Humans can probably
+ *   decide a better place to put their road, but robots must cancel
+ *   the build request and decide on a new plan.
+ *   <P>
+ *   This can also be the reply if the client sends an illegal {@link BuildRequest}
+ *   or {@link BuyItemRequest} (no resources, not the right game state, etc.)
+ *   or {@link MovePiece}.
+ *</UL>
+ * Before v3.0.00 this message was {@code SOCCancelBuildRequest}.
+ */
+message CancelBuild {
+    oneof cancel_type {
+        PieceType piece_type = 1;
+        OtherPlayableItem item_type = 2;
+    }
+}
+
+/* Client player is asking to move, or server is announcing a move of,
+ * a piece on the board to a new location.
+ *<H3>From Server:</H3>
+ * The client should also print a line of text such as "* Joe moved a ship."
+ *<H3>From Client:</H3>
+ * The server will reply to all players with {@link MovePiece} if piece can be moved,
+ * or reply to the requesting client with {@link CancelBuildRequest}.
+ *<P>
+ * Before v3.0.00 this message was {@code SOCMovePieceRequest} and {@code SOCMovePiece}.
+ * @since 2.0.00
+ */
+message MovePiece {
+    /* Type of playing piece; only {@code SHIP} so far */
+    PieceType type = 1;
+    /* the player number of who is moving the piece.
+     * Remember that for playerNumber 0, protobuf won't send the field (== default).
+     * Ignored if sent from client.
+     */
+    sint32 player_number = 2;
+    uint32 from_coord = 3;
+    uint32 to_coord = 4;
+}
+
+/* This message from server announces a {@link soc.game.SOCShip} removed from the board.
+ * Ships are removed when the player makes an attack on their Pirate Fortress and fails to win.
+ * Currently, no other piece types are removed in any scenario, but the message allows for other types
+ * in case that changes in a later version.
+ *<P>
+ * Introduced in v2.0.00 for the pirate islands scenario (_SC_PIRI).
+ *
+ * @since 2.0.00
+ */
+message RemovePiece {
+    /* Type of playing piece; only {@code SHIP} so far */
+    PieceType type = 1;
+    /* the player number who owns the piece.
+     * Remember that for playerNumber 0, protobuf won't send the field (== default).
+     */
+    sint32 player_number = 2;
+    uint32 coordinates = 3;
+}
+
 
 //
 // Game and Player State
@@ -334,6 +462,11 @@ message GameMessageFromServer {
 
         // board layout and contents
         BoardLayout board_layout = 30;
+        // 31 will be PotentialSettlements
+        PutPiece put_piece = 32;
+        CancelBuild cancel_build = 33;
+        MovePiece move_piece = 34;
+        RemovePiece remove_piece = 35;
 
         // turn
         StartGame start_game = 100;

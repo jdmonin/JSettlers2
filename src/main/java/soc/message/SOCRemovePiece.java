@@ -22,6 +22,8 @@ package soc.message;
 import java.util.StringTokenizer;
 
 import soc.game.SOCPlayingPiece;
+import soc.proto.GameMessage;
+import soc.proto.Message;
 
 /**
  * This message from server announces a SOCShip removed from the board.
@@ -95,6 +97,18 @@ public class SOCRemovePiece extends SOCMessageTemplate3i
         }
 
         return new SOCRemovePiece(ga, pn, pt, co);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.RemovePiece.Builder b
+            = GameMessage.RemovePiece.newBuilder();
+        b.setPlayerNumber(p1).setTypeValue(p2).setCoordinates(p3);
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGaName(game).setRemovePiece(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
     /**
