@@ -163,11 +163,12 @@ class DummyProtoClient(object):
         typ = msg.WhichOneof("msg")
         if typ is None:
             return
+        mdata = getattr(msg, typ, None)  # for message typ board_layout, getattr returns msg.board_layout contents
         if typ in self._game_msg_treaters:
-            self._game_msg_treaters[typ](self, msg.ga_name, getattr(msg, typ, None))
-            	# for message typ board_layout, getattr returns msg.board_layout contents
+            self._game_msg_treaters[typ](self, msg.ga_name, mdata)
         else:
-            print("  treat_game_message(): No handler for message type " + str(typ));
+            print("  treat_game_message(): No handler for message type " + str(typ)
+                + ": " + repr(mdata))
 
     # Static FromServer message-type handler switch dict for treat(), initialized once.
     # The ordering within this declaration follows that of message.proto message FromServer.
