@@ -22,6 +22,8 @@ package soc.message;
 
 import java.util.StringTokenizer;
 import soc.game.SOCGame;  // for javadoc's use
+import soc.proto.GameMessage;
+import soc.proto.Message;
 
 
 /**
@@ -134,6 +136,18 @@ public class SOCGameState extends SOCMessage
         }
 
         return new SOCGameState(ga, gs);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.State.Builder b
+            = GameMessage.State.newBuilder();
+        b.setStateValue(state);
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGaName(game).setGameState(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
     /**
