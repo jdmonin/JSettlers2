@@ -4386,7 +4386,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         Set<Integer> landHexShow;
         final int SC_6;
-        if (debugShowPotentials[8] && isLargeBoard)
+        if (debugShowPotentials[8] && isLargeBoard && ! isRotated)
         {
             landHexShow = ((SOCBoardLarge) board).getLandHexCoordsSet();
             SC_6 = scaleToActual(6);
@@ -5641,6 +5641,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 yb = panelMinBW - xb;
                 if (! isLargeBoard)
                     yb -= HEXY_OFF_SLOPE_HEIGHT;  // offset for similar reasons as -HEXHEIGHT in drawHex
+                else
+                    yb += halfdeltaY;
                 xb = xb1;
             }
 
