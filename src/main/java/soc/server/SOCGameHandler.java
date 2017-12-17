@@ -2630,62 +2630,69 @@ public class SOCGameHandler extends GameHandler
 
         srv.gameList.takeMonitorForGame(gaName);
 
-        /**
-         * send the board layout
-         */
         try
         {
-            srv.messageToGameWithMon(gaName, getBoardLayoutMessage(ga));
+
+            /**
+             * send the board layout
+             */
+            try
+            {
+                srv.messageToGameWithMon(gaName, getBoardLayoutMessage(ga));
+
                 // For scenario option _SC_CLVI, the board layout message
                 // includes villages and the general supply cloth count.
                 // For _SC_PIRI, it includes the Pirate Path (additional layout part "PP").
-        } catch (IllegalArgumentException e) {
-            srv.gameList.releaseMonitorForGame(gaName);
-            System.err.println("startGame: Cannot send board for " + gaName + ": " + e.getMessage());
-            return;
-        }
-        if (ga.hasSeaBoard)
-        {
-            // See also joinGame which has very similar code.
-
-            // Send the updated Potential/Legal Settlement node list
-            // Note: Assumes all players have same potential settlements
-            //    (sends with playerNumber -1 == all)
-            final HashSet<Integer> psList = ga.getPlayer(0).getPotentialSettlements();
-
-            // Some boards may have multiple land areas.
-            final HashSet<Integer>[] lan;
-            final int pan;
-            boolean addedPsList = false;
-
-            final SOCBoardLarge bl = (SOCBoardLarge) ga.getBoard();
-            lan = bl.getLandAreasLegalNodes();
-            pan = bl.getStartingLandArea();
-
-            if ((lan != null) && (pan != 0) && ! lan[pan].equals(psList))
+            } catch (IllegalArgumentException e) {
+                System.err.println("startGame: Cannot send board for " + gaName + ": " + e.getMessage());
+                // the enclosing try-finally will releaseMonitorForGame(gaName) before returning
+                return;
+            }
+            if (ga.hasSeaBoard)
             {
-                // If potentials != legals[startingLandArea], send as legals[0]
-                lan[0] = psList;
-                addedPsList = true;
+                // See also joinGame which has very similar code.
+
+                // Send the updated Potential/Legal Settlement node list
+                // Note: Assumes all players have same potential settlements
+                //    (sends with playerNumber -1 == all)
+                final HashSet<Integer> psList = ga.getPlayer(0).getPotentialSettlements();
+
+                // Some boards may have multiple land areas.
+                final HashSet<Integer>[] lan;
+                final int pan;
+                boolean addedPsList = false;
+
+                final SOCBoardLarge bl = (SOCBoardLarge) ga.getBoard();
+                lan = bl.getLandAreasLegalNodes();
+                pan = bl.getStartingLandArea();
+
+                if ((lan != null) && (pan != 0) && ! lan[pan].equals(psList))
+                {
+                    // If potentials != legals[startingLandArea], send as legals[0]
+                    lan[0] = psList;
+                    addedPsList = true;
+                }
+
+                if (lan == null)
+                    srv.messageToGameWithMon
+                        (gaName, new SOCPotentialSettlements(gaName, -1, new ArrayList<Integer>(psList)));
+                else
+                    srv.messageToGameWithMon
+                        (gaName, new SOCPotentialSettlements(gaName, -1, pan, lan, legalSeaEdges));
+
+                if (addedPsList)
+                    lan[0] = null;  // Undo change to game's copy of landAreasLegalNodes
             }
 
-            if (lan == null)
-                srv.messageToGameWithMon(gaName, new SOCPotentialSettlements(gaName, -1, new ArrayList<Integer>(psList)));
-            else
-                srv.messageToGameWithMon(gaName, new SOCPotentialSettlements(gaName, -1, pan, lan, legalSeaEdges));
-
-            if (addedPsList)
-                lan[0] = null;  // Undo change to game's copy of landAreasLegalNodes
-        }
-
-        /**
-         * send the player info
-         */
-        boolean sentInitPiecesState = false;
-        for (int i = 0; i < ga.maxPlayers; i++)
-        {
-            if (! ga.isSeatVacant(i))
+            /**
+             * send the player info
+             */
+            boolean sentInitPiecesState = false;
+            for (int i = 0; i < ga.maxPlayers; i++)
             {
+                if (ga.isSeatVacant(i))
+                    continue;
+
                 final SOCPlayer pl = ga.getPlayer(i);
 
                 final int[] counts = new int[(ga.hasSeaBoard) ? 4 : 3];
@@ -2733,19 +2740,21 @@ public class SOCGameHandler extends GameHandler
 
                 srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, i, false));
             }
+
+            /**
+             * send the number of dev cards
+             */
+            srv.messageToGameWithMon(gaName, new SOCDevCardCount(gaName, ga.getNumDevCards()));
+
+            /**
+             * ga.startGame() picks who goes first, but feedback is nice
+             */
+            srv.messageToGameKeyed
+                (ga, false, "start.picking.random.starting.player");  // "Randomly picking a starting player..."
+
+        } finally {
+            srv.gameList.releaseMonitorForGame(gaName);
         }
-
-        /**
-         * send the number of dev cards
-         */
-        srv.messageToGameWithMon(gaName, new SOCDevCardCount(gaName, ga.getNumDevCards()));
-
-        /**
-         * ga.startGame() picks who goes first, but feedback is nice
-         */
-        srv.messageToGameKeyed(ga, false, "start.picking.random.starting.player");  // "Randomly picking a starting player..."
-
-        srv.gameList.releaseMonitorForGame(gaName);
 
         /**
          * send the game state
