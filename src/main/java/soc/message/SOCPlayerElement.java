@@ -40,6 +40,7 @@ import java.util.StringTokenizer;
  *   for each resource type gained by each player from the roll. Newer clients are instead sent
  *   {@link SOCDiceResultResources}. Afterwards the current player (any client version) is sent their currently
  *   held amounts for each resource as a group of <tt>SOCPlayerElement(pn, {@link #SET}, ...)</tt> messages.
+ * <LI> Most other situations send single PlayerElement messages or their sequence doesn't matter.
  *</UL>
  *<P>
  * Resource loss can be expected and good (buying pieces or trading with other players)
@@ -75,12 +76,17 @@ public class SOCPlayerElement extends SOCMessage
      */
     public static final int UNKNOWN = 6;
 
+    /** Number of Road pieces available to place. */
     public static final int ROADS = 10;
+
+    /** Number of Settlement pieces available to place. */
     public static final int SETTLEMENTS = 11;
+
+    /** Number of City pieces available to place. */
     public static final int CITIES = 12;
 
     /**
-     * Number of SHIP pieces available to place; added in v2.0.00.
+     * Number of Ship pieces available to place.
      * @since 2.0.00
      */
     public static final int SHIPS = 13;
@@ -104,7 +110,7 @@ public class SOCPlayerElement extends SOCMessage
      * resources from the gold hex after a dice roll,
      * during the {@link soc.game.SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE WAITING_FOR_PICK_GOLD_RESOURCE}
      * game state.
-     * This element is {@link #SET} to 0, or to the number of resources to choose.
+     * This element is {@link #SET} to 0 or to the number of resources to choose.
      * Call {@link soc.game.SOCPlayer#setNeedToPickGoldHexResources(int)}.
      * @since 2.0.00
      */
@@ -113,7 +119,7 @@ public class SOCPlayerElement extends SOCMessage
     /**
      * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
      * the player's number of Special Victory Points (SVP).
-     * This element is {@link #SET} to 0, or to the player's
+     * This element is {@link #SET} to 0 or to the player's
      * {@link soc.game.SOCPlayer#getSpecialVP()}.
      * @since 2.0.00
      */
@@ -122,7 +128,7 @@ public class SOCPlayerElement extends SOCMessage
     /**
      * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
      * bitmask of flags related to scenario player events.
-     * This element is {@link #SET} to 0, or to the player's flags
+     * This element is {@link #SET} to 0 or to the player's flags
      * from {@link soc.game.SOCPlayer#getScenarioPlayerEvents()}.
      * @since 2.0.00
      */
@@ -131,7 +137,7 @@ public class SOCPlayerElement extends SOCMessage
     /**
      * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
      * bitmask of land areas for tracking Special Victory Points (SVP).
-     * This element is {@link #SET} to 0, or to the player's land areas
+     * This element is {@link #SET} to 0 or to the player's land areas
      * from {@link soc.game.SOCPlayer#getScenarioSVPLandAreas()}.
      * @since 2.0.00
      */
@@ -148,7 +154,7 @@ public class SOCPlayerElement extends SOCMessage
     /**
      * For scenario <tt>_SC_CLVI</tt> on the {@link soc.game.SOCBoardLarge large sea board},
      * the number of cloth held by this player.
-     * This element is {@link #SET} to 0, or to the player's cloth count
+     * This element is {@link #SET} to 0 or to the player's cloth count
      * from {@link soc.game.SOCPlayer#getCloth()}.
      * After giving cloth to a player, check their total VP; 2 cloth = 1 Victory Point.
      *<P>

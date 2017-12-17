@@ -1153,9 +1153,7 @@ public class SOCGameHandler extends GameHandler
                 SOCPlayingPiece piece = piecesEnum.nextElement();
 
                 if (piece.getType() == SOCPlayingPiece.CITY)
-                {
                     c.put(SOCPutPiece.toCmd(gameName, i, SOCPlayingPiece.SETTLEMENT, piece.getCoordinates()));
-                }
 
                 c.put(SOCPutPiece.toCmd(gameName, i, piece.getType(), piece.getCoordinates()));
             }
@@ -1866,10 +1864,11 @@ public class SOCGameHandler extends GameHandler
     }
 
     /**
-     * Send the current state of the game with a message.
+     * Send all game members the current state of the game with a message.
      * Assumes current player does not change during this state.
      * If we send a text message to prompt the new player to roll,
      * also sends a RollDicePrompt data message.
+     * May also send other messages to the current player.
      *<P>
      * For more details and references, see {@link #sendGameState(SOCGame, boolean)}.
      * Be sure that callers to {@code sendGameState} don't assume the game will still
@@ -1885,9 +1884,10 @@ public class SOCGameHandler extends GameHandler
     }
 
     /**
-     * send the current state of the game with a message.
+     * Send all game members the current state of the game with a message.
+     * May also send other messages to the current player.
      * Note that the current (or new) player number is not sent here.
-     * If game is now OVER, send appropriate messages.
+     * If game is now OVER, sends appropriate messages.
      *<P>
      * State {@link SOCGame#WAITING_FOR_DISCARDS}:
      * If a 7 is rolled, will also say who must discard (in a GAMETEXTMSG).

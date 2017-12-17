@@ -24,13 +24,15 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message, from client to server, says which piece type the current player wants to build.
+ * This message from client to server says which piece type the current player wants to build.
  *<P>
  * During game state {@link soc.game.SOCGame#PLAY1 PLAY1}, this is a build request during the player's turn.
  * When sent during other game states, and other players' turns, this is a request
  * to start the 6-player {@link soc.game.SOCGame#SPECIAL_BUILDING Special Building Phase}.
  *
  * @author Robert S. Thomas
+ * @see SOCCancelBuildRequest
+ * @see SOCBuyCardRequest
  */
 public class SOCBuildRequest extends SOCMessage
     implements SOCMessageForGame

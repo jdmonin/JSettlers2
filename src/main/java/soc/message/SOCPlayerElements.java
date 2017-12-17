@@ -194,7 +194,7 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
 
         StringBuilder sb = new StringBuilder
             ("SOCPlayerElements:game=" + game + "|playerNum=" + playerNumber + "|actionType=" + act + '|');
-        for (int i = 2; i < pa.length;)
+        for (int i = 2; i < pa.length; )
         {
             if (i > 2)
                 sb.append(',');

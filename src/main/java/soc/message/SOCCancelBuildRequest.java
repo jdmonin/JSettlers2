@@ -27,7 +27,7 @@ import java.util.StringTokenizer;
  *
  *<UL>
  *
- * <H3>When sent from client to server:</H3>
+ *<H3>When sent from client to server:</H3>
  *
  *<LI> During piece placement (PLACING_ROAD, PLACING_SETTLEMENT, PLACING_CITY, PLACING_SHIP, PLACING_INV_ITEM): <BR>
  *   CANCELBUILDREQUEST means the player has changed their mind about spending resources to build a piece.
@@ -38,34 +38,34 @@ import java.util.StringTokenizer;
  *   If placement can't be canceled, server will reply with {@link SOCGameServerText}.
  *
  *<LI> While placing the second free road or ship (PLACING_FREE_ROAD2), means
- *      the player has decided to skip placing the second free road or ship,
- *      to use just one road or ship piece.  Server will reply with new game state.
- *      (This was added in v1.1.17)
+ *   the player has decided to skip placing the second free road or ship,
+ *   to use just one road or ship piece.  Server will reply with new game state.
+ *   (This was added in v1.1.17)
  *
- *<LI> Not sent from client during other game states. Server will reply with {@link SOCGameServerText}.
+ *<LI> Not sent from client during other game states. Server will reply with {@link SOCGameServerText}
+ *   instead.
  *
- * <H3>When sent from server to client:</H3>
+ *<H3>When sent from server to a client player:</H3>
  *
  *<LI> During game startup (START1B, START2B or START3B): <BR>
- *       Sent from server, CANCELBUILDREQUEST means the current player
- *       is undoing the placement of their initial settlement.
+ *   The current player is undoing the placement of their initial settlement.
  *
  *<LI> During piece placement (PLACING_ROAD, PLACING_CITY, PLACING_SETTLEMENT,
- *                           PLACING_FREE_ROAD1 or PLACING_FREE_ROAD2): <BR>
- *      Sent from server, CANCELBUILDREQUEST means the player has sent
- *      an illegal {@link SOCPutPiece PUTPIECE} (bad building location). Humans can probably
- *      decide a better place to put their road, but robots must cancel
- *      the build request and decide on a new plan.
- *<P>
- *  This can also be the reply if the client sends an illegal {@link SOCBuildRequest BUILDREQUEST}
- *      (no resources, not the right game state, etc.).
- *      In that case it's sent only to robot clients, not to humans.
- *      (Humans get a textual error message, and can understand that instead.)
+ *   PLACING_FREE_ROAD1 or PLACING_FREE_ROAD2): <BR>
+ *   The requesting player has sent an illegal {@link SOCPutPiece PUTPIECE} (bad building location)
+ *   Humans can probably decide a better place to put their road, but robots must cancel
+ *   the build request and decide on a new plan.
+ *  <P>
+ *   This can also be the reply if the client sends an illegal {@link SOCBuildRequest BUILDREQUEST}
+ *   or {@link SOCBuyCardRequest BUYCARDREQUEST} (no resources, not the right game state, etc.)
+ *   or {@link SOCMovePiece MOVEPIECE}.
+ *   In some of those cases it's sent only to robot clients, not to humans.
+ *   (Humans get a textual error message, and can understand that instead.)
  *
  *<LI> Piece type -2 is sent only from server to robot client, as a way to tell robots
- *  they can't buy a development card (insufficient resources, or no cards left).
- *  (This was added in 1.1.09.)
- * -2 == soc.robot.SOCPossiblePiece.CARD.
+ *   they can't buy a development card (insufficient resources, or no cards left).
+ *   (This was added in 1.1.09.)
+ *   -2 == soc.robot.SOCPossiblePiece.CARD.
  *
  *</UL>
  *

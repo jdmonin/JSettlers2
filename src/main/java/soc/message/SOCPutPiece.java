@@ -22,14 +22,21 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.game.SOCPlayingPiece;  // for javadocs only
+
 /**
- * This message means that a player is asking to place, or has placed, a piece on the board.
+ * Client player is asking to place, or server is announcing placement of, a piece on the board.
  * Also used when joining a new game or a game in progress, to send the game state so far.
+ *<P>
+ * If message is for a {@link SOCPlayingPiece#CITY} while client is joining a game, must precede with
+ * a {@code SOCPutPiece} message with the {@link SOCPlayingPiece#SETTLEMENT} at the same coordinate
+ * which was upgraded to that city.
+ *<P>
  * Some game scenarios use {@link soc.game.SOCVillage villages} which aren't owned by any player;
  * their {@link #getPlayerNumber()} is -1 in this message.
  *<P>
- * The messages similar but opposite to this one are {@link SOCCancelBuildRequest}
- * and the very-limited {@link SOCRemovePiece}.
+ * See also {@link MovePiece}. The messages similar but opposite to this one
+ * are {@link SOCCancelBuildRequest} and the very-limited {@link SOCRemovePiece}.
  *<P>
  * Some scenarios like {@link soc.game.SOCScenario#K_SC_PIRI SC_PIRI} include some pieces
  * as part of the initial board layout while the game is starting. These will all be sent to
@@ -56,7 +63,7 @@ public class SOCPutPiece extends SOCMessage
     private int pieceType;
 
     /**
-     * the player number of who played the piece, or -1 for non-player-owned {@link soc.game.SOCPlayingPiece#VILLAGE}
+     * the player number who played the piece, or -1 for non-player-owned {@link soc.game.SOCPlayingPiece#VILLAGE}
      */
     private int playerNumber;
 

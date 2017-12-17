@@ -41,7 +41,7 @@ import java.util.StringTokenizer;
  * {@link SOCPlayerElement SOCPlayerElement(SET, resType, amount)} messages
  * for all their new resource counts.  Before v2.0.00, those were sent to each
  * player in the game after a roll, not just those who gained resources.
- * Afterwards the current player (any client version) is sent their currently
+ * Afterwards each gaining player (any client version) is sent their currently
  * held amounts for each resource as a group of <tt>SOCPlayerElement(pn, {@link #SET}, ...)</tt>
  * messages. Then, for each player who gained resources, their total {@link SOCResourceCount}
  * is sent to the game.
