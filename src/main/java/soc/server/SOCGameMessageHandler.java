@@ -1832,7 +1832,9 @@ public class SOCGameMessageHandler
                                 handler.sendGamePendingMessages(ga, false);
                             srv.gameList.releaseMonitorForGame(gaName);
 
-                            boolean toldRoll = handler.sendGameState(ga, false);
+                            // If needed, call sendTurn or send SOCRollDicePrompt
+                            handler.sendTurnStateAtInitialPlacement(ga, player, c, gameState);
+
                             int newState = ga.getGameState();
                             if ((newState == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
                                 || (newState == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE))
@@ -1840,9 +1842,6 @@ public class SOCGameMessageHandler
                                 // gold hex revealed from fog (scenario SC_FOG)
                                 handler.sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
                             }
-
-                            // If needed, call sendTurn or send SOCRollDicePrompt
-                            handler.sendTurnAtInitialPlacement(ga, player, c, gameState, toldRoll);
                         }
                         else
                         {
@@ -1883,17 +1882,16 @@ public class SOCGameMessageHandler
                                 handler.sendGamePendingMessages(ga, false);
                             srv.gameList.releaseMonitorForGame(gaName);
 
-                            // Check and send new game state
-                            handler.sendGameState(ga);
+                            // Check player and send new game state
+                            if (! handler.checkTurn(c, ga))
+                                handler.sendTurn(ga, false);  // Announce new state and new current player
+                            else
+                                handler.sendGameState(ga);
+
                             if (ga.hasSeaBoard && (ga.getGameState() == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE))
                             {
                                 // Prompt to pick from gold: send text and SOCSimpleRequest(PROMPT_PICK_RESOURCES)
                                 handler.sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
-                            }
-
-                            if (! handler.checkTurn(c, ga))
-                            {
-                                handler.sendTurn(ga, false);  // Announce new current player.
                             }
                         }
                         else
@@ -1946,12 +1944,12 @@ public class SOCGameMessageHandler
                                 srv.messageToGameKeyed(ga, false, "action.built.nextturn.7.houserule");
                                 // "Starting next turn, dice rolls of 7 may occur (house rule)."
                             srv.gameList.releaseMonitorForGame(gaName);
-                            handler.sendGameState(ga);
 
+                            // Check player and send new game state
                             if (! handler.checkTurn(c, ga))
-                            {
-                                handler.sendTurn(ga, false);  // announce new current player
-                            }
+                                handler.sendTurn(ga, false);  // Announce new state and new current player
+                            else
+                                handler.sendGameState(ga);
                         }
                         else
                         {
@@ -1994,7 +1992,9 @@ public class SOCGameMessageHandler
                                 handler.sendGamePendingMessages(ga, false);
                             srv.gameList.releaseMonitorForGame(gaName);
 
-                            boolean toldRoll = handler.sendGameState(ga, false);
+                            // If needed, call sendTurn or send SOCRollDicePrompt
+                            handler.sendTurnStateAtInitialPlacement(ga, player, c, gameState);
+
                             int newState = ga.getGameState();
                             if ((newState == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
                                 || (newState == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE))
@@ -2002,9 +2002,6 @@ public class SOCGameMessageHandler
                                 // gold hex revealed from fog (scenario SC_FOG)
                                 handler.sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
                             }
-
-                            // If needed, call sendTurn or send SOCRollDicePrompt
-                            handler.sendTurnAtInitialPlacement(ga, player, c, gameState, toldRoll);
                         }
                         else
                         {
@@ -2090,14 +2087,14 @@ public class SOCGameMessageHandler
                 {
                     // If ship placement reveals a gold hex in _SC_FOG,
                     // the player gets to pick a free resource.
-                    handler.sendGameState(ga, false);
+                    handler.sendGameState(ga, false, false);
                     handler.sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
                 }
                 else if (gstate != ga.getGameState())
                 {
                     // announce new state (such as PLACING_INV_ITEM in _SC_FTRI),
                     // or if state is now SOCGame.OVER, announce end of game
-                    handler.sendGameState(ga, false);
+                    handler.sendGameState(ga, false, false);
                 }
             }
         }
@@ -2188,7 +2185,7 @@ public class SOCGameMessageHandler
             {
                 // exit debug mode, announce end of game
                 handler.processDebugCommand_freePlace(c, gaName, "0");
-                handler.sendGameState(ga, false);
+                handler.sendGameState(ga, false, false);
             }
         } else {
             if (initialDeny)
@@ -2635,8 +2632,7 @@ public class SOCGameMessageHandler
                             case SOCGame.ROLL_OR_CARD:
                                 // Current player probably changed, announce new player if so
                                 // with sendTurn and/or SOCRollDicePrompt
-                                final boolean toldRoll = handler.sendGameState(ga, false);
-                                handler.sendTurnAtInitialPlacement(ga, player, c, prevState, toldRoll);
+                                handler.sendTurnStateAtInitialPlacement(ga, player, c, prevState);
                                 break;
                             }
                         }
@@ -2771,7 +2767,7 @@ public class SOCGameMessageHandler
      * Special inventory item action (play request) from a player.
      * Ignored unless {@link SOCInventoryItemAction#action mes.action} == {@link SOCInventoryItemAction#PLAY PLAY}.
      * Calls {@link SOCGame#canPlayInventoryItem(int, int)}, {@link SOCGame#playInventoryItem(int)}.
-     * If game state changes here, calls {@link #sendGameState(SOCGame)} just before returning.
+     * If game state changes here, calls {@link SOCGameHandler#sendGameState(SOCGame)} just before returning.
      *
      * @param ga  game with {@code c} as a client player
      * @param c  the connection sending the message

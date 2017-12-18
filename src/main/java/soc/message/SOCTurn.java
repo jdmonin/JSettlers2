@@ -21,16 +21,20 @@
 package soc.message;
 
 import java.util.StringTokenizer;
+import soc.game.SOCGame;  // for javadocs only
 
 
 /**
  * This message from server to client signals end of the current player's turn.
  * Client should end current turn, clear dice, set current player number, reset votes, etc.
  *<P>
- * This message is always preceded by a {@link SOCGameState} with the new turn's state.  There may
- * be a few minor messages like {@link SOCSetPlayedDevCard} sent between them.  Client should
- * set current game state based on that GAMESTATE message.  Then, when this TURN message changes the
- * player number, the game will have a known state to inform the new player's options and actions.
+ * In v2.0.00 and newer, this message optionally includes a {@link #getGameState()} field instead of
+ * a separate {@link SOCGameState} message, since the state and turn are part of the same transition.
+ *<P>
+ * Before v2.0.00 this message was always preceded by a {@link SOCGameState} with the new turn's state.
+ * There were a few minor messages like {@link SOCSetPlayedDevCard} sent between them.  Client would
+ * set current game state based on that GAMESTATE message.  Then, when this TURN message changed the
+ * player number, the game would have a known state to inform the new player's options and actions.
  *<P>
  * In v2.0.00 and newer, is also sent to robot players during initial placement when a round ends
  * and the direction of play changes, and bot has just placed a road or ship and should now place
@@ -48,7 +52,7 @@ import java.util.StringTokenizer;
 public class SOCTurn extends SOCMessage
     implements SOCMessageForGame
 {
-    private static final long serialVersionUID = 1111L;  // last structural change v1.1.11
+    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /**
      * Name of game
@@ -61,16 +65,26 @@ public class SOCTurn extends SOCMessage
     private int playerNumber;
 
     /**
+     * The optional {@link SOCGame} State field, or 0.
+     * See {@link #getGameState()} for details.
+     * @since 2.0.00
+     */
+    private final int gameState;
+
+    /**
      * Create a Turn message.
      *
      * @param ga  the name of the game
      * @param pn  the seat number
+     * @param gs  the new turn's optional Game State such as {@link SOCGame#ROLL_OR_CARD}, or 0.
+     *     Values &lt; 0 are out of range and ignored (treated as 0).
      */
-    public SOCTurn(String ga, int pn)
+    public SOCTurn(final String ga, final int pn, final int gs)
     {
         messageType = TURN;
         game = ga;
         playerNumber = pn;
+        gameState = (gs > 0) ? gs : 0;
     }
 
     /**
@@ -90,25 +104,37 @@ public class SOCTurn extends SOCMessage
     }
 
     /**
-     * TURN sep game sep2 playerNumber
+     * Get the the new turn's optional {@link SOCGame} State.
+     * Ignored by clients older than v2.0.00 ({@link SOCGameState#VERSION_FOR_GAME_STATE_AS_FIELD}).
+     * @return Game State, such as {@link SOCGame#ROLL_OR_CARD}, or 0
+     * @since 2.0.00
+     */
+    public int getGameState()
+    {
+        return gameState;
+    }
+
+    /**
+     * TURN sep game sep2 playerNumber [sep2 gameState]
      *
      * @return the command string
      */
     public String toCmd()
     {
-        return toCmd(game, playerNumber);
+        return toCmd(game, playerNumber, gameState);
     }
 
     /**
-     * TURN sep game sep2 playerNumber
+     * TURN sep game sep2 playerNumber [sep2 gameState]
      *
      * @param ga  the name of the game
      * @param pn  the seat number
+     * @param gs  the new turn's optional Game State such as {@link SOCGame#ROLL_OR_CARD}, or 0 to omit that field
      * @return the command string
      */
-    public static String toCmd(String ga, int pn)
+    public static String toCmd(final String ga, final int pn, final int gs)
     {
-        return TURN + sep + ga + sep2 + pn;
+        return TURN + sep + ga + sep2 + pn + ((gs > 0) ? sep2 + gs : "");
     }
 
     /**
@@ -119,22 +145,23 @@ public class SOCTurn extends SOCMessage
      */
     public static SOCTurn parseDataStr(String s)
     {
-        String ga; // the game name
-        int pn; // the seat number
-
-        StringTokenizer st = new StringTokenizer(s, sep2);
-
         try
         {
+            String ga;   // the game name
+            int pn;  // the seat number
+            int gs = 0;  // the game state
+
+            StringTokenizer st = new StringTokenizer(s, sep2);
+
             ga = st.nextToken();
             pn = Integer.parseInt(st.nextToken());
-        }
-        catch (Exception e)
-        {
+            if (st.hasMoreTokens())
+                gs = Integer.parseInt(st.nextToken());
+
+            return new SOCTurn(ga, pn, gs);
+        } catch (Exception e) {
             return null;
         }
-
-        return new SOCTurn(ga, pn);
     }
 
     /**
@@ -142,6 +169,8 @@ public class SOCTurn extends SOCMessage
      */
     public String toString()
     {
-        return "SOCTurn:game=" + game + "|playerNumber=" + playerNumber;
+        return "SOCTurn:game=" + game + "|playerNumber=" + playerNumber
+            + ((gameState != 0) ? "|gameState=" + gameState : "");
     }
+
 }

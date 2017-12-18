@@ -4800,7 +4800,7 @@ public class SOCServer extends Server
                 } catch (NumberFormatException e) {}
             }
 
-            srvMsgHandler.handleSTARTGAME(debugCli, new SOCStartGame(ga), maxBots);
+            srvMsgHandler.handleSTARTGAME(debugCli, new SOCStartGame(ga, 0), maxBots);
             return true;
         }
         else

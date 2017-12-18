@@ -40,6 +40,12 @@ import soc.game.SOCGame;  // for javadoc's use
  *<P>
  * When a new game is starting (leaving state {@code NEW}), the server
  * sends the new game state and then sends {@link SOCStartGame}.
+ *<P>
+ * In v2.0.00 and newer, some messages contain an optional Game State field to change state
+ * as part of that message's change, instead of sending a separate {@code SOCGameState}:
+ * {@link SOCStartGame}, {@link SOCTurn}. Games with clients older than v2.0.00 are
+ * sent {@code SOCGameState} instead of using that field. To find uses of such messages,
+ * do a where-used search for {@link #VERSION_FOR_GAME_STATE_AS_FIELD}.
  *
  * @author Robert S Thomas &lt;thomas@infolab.northwestern.edu&gt;
  * @see SOCGame#getGameState()
@@ -47,6 +53,12 @@ import soc.game.SOCGame;  // for javadoc's use
 public class SOCGameState extends SOCMessage
     implements SOCMessageForGame
 {
+    /**
+     * Minimum client version (v2.0.00) which can be sent message types with an optional Game State field.
+     * @since 2.0.00
+     */
+    public static final int VERSION_FOR_GAME_STATE_AS_FIELD = 2000;
+
     private static final long serialVersionUID = 1111L;  // last structural change v1.1.11
 
     /**

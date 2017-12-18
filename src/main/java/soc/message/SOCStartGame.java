@@ -20,11 +20,18 @@
  **/
 package soc.message;
 
+import java.util.StringTokenizer;
+
+import soc.game.SOCGame;
+
 
 /**
  * From client, this message means that a player wants to start the game;
  * from server, it means that a game has just started, leaving state {@code NEW}.
  * The server sends the game's new {@link SOCGameState} before sending {@code SOCStartGame}.
+ *<P>
+ * In v2.0.00 and newer, from server this message optionally includes a {@link #getGameState()} field
+ * instead of a separate {@link SOCGameState} message, since the state is part of the Start Game transition.
  *<P>
  * If a client joins a game in progress, it won't be sent a {@code SOCStartGame} message,
  * only the game's current {@code SOCGameState} and other parts of the game's and
@@ -35,7 +42,7 @@ package soc.message;
 public class SOCStartGame extends SOCMessage
     implements SOCMessageForGame
 {
-    private static final long serialVersionUID = 1111L;  // last structural change v1.1.11
+    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /**
      * Name of game
@@ -43,14 +50,25 @@ public class SOCStartGame extends SOCMessage
     private String game;
 
     /**
+     * The optional {@link SOCGame} State field, or 0.
+     * See {@link #getGameState()} for details.
+     * @since 2.0.00
+     */
+    private final int gameState;
+
+    /**
      * Create a StartGame message.
      *
      * @param ga  the name of the game
+     * @param gs  the new turn's optional Game State such as {@link SOCGame#ROLL_OR_CARD}, or 0.
+     *     Ignored from client. Values &lt; 0 are out of range and ignored (treated as 0).
+     *     Must not send {@code gs} to a client older than {@link SOCGameState#VERSION_FOR_GAME_STATE_AS_FIELD}.
      */
-    public SOCStartGame(String ga)
+    public SOCStartGame(final String ga, final int gs)
     {
         messageType = STARTGAME;
         game = ga;
+        gameState = (gs > 0) ? gs : 0;
     }
 
     /**
@@ -62,24 +80,38 @@ public class SOCStartGame extends SOCMessage
     }
 
     /**
-     * STARTGAME sep game
+     * From server, get the the new turn's optional {@link SOCGame} State.
+     * Ignored if sent from client. Must not be sent by server to clients older
+     * than v2.0.00 ({@link SOCGameState#VERSION_FOR_GAME_STATE_AS_FIELD}) because they
+     * won't parse it out and instead will treat state as part of the game name.
+     * @return Game State, such as {@link SOCGame#ROLL_OR_CARD}, or 0
+     * @since 2.0.00
+     */
+    public int getGameState()
+    {
+        return gameState;
+    }
+
+    /**
+     * STARTGAME sep game [sep2 gameState]
      *
      * @return the command string
      */
     public String toCmd()
     {
-        return toCmd(game);
+        return toCmd(game, gameState);
     }
 
     /**
-     * STARTGAME sep game
+     * STARTGAME sep game [sep2 gameState]
      *
      * @param ga  the name of the game
+     * @param gs  the new turn's optional Game State such as {@link SOCGame#ROLL_OR_CARD}, or 0 to omit that field
      * @return the command string
      */
-    public static String toCmd(String ga)
+    public static String toCmd(final String ga, final int gs)
     {
-        return STARTGAME + sep + ga;
+        return STARTGAME + sep + ga + ((gs > 0) ? sep2 + gs : "");
     }
 
     /**
@@ -90,7 +122,21 @@ public class SOCStartGame extends SOCMessage
      */
     public static SOCStartGame parseDataStr(String s)
     {
-        return new SOCStartGame(s);
+        try
+        {
+            String ga;   // the game name
+            int gs = 0;  // the game state
+
+            StringTokenizer st = new StringTokenizer(s, sep2);
+
+            ga = st.nextToken();
+            if (st.hasMoreTokens())
+                gs = Integer.parseInt(st.nextToken());
+
+            return new SOCStartGame(ga, gs);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**
@@ -98,6 +144,7 @@ public class SOCStartGame extends SOCMessage
      */
     public String toString()
     {
-        return "SOCStartGame:game=" + game;
+        return "SOCStartGame:game=" + game + ((gameState != 0) ? "|gameState=" + gameState : "");
     }
+
 }

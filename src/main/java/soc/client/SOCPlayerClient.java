@@ -4378,7 +4378,7 @@ public class SOCPlayerClient
     }
 
     /**
-     * handle the "game state" message
+     * Handle the "game state" message; calls {@link #handleGAMESTATE(SOCGame, int)}.
      * @param mes  the message
      */
     protected void handleGAMESTATE(SOCGameState mes)
@@ -4387,11 +4387,35 @@ public class SOCPlayerClient
         if (ga == null)
             return;
 
-        PlayerClientListener pcl = clientListeners.get(mes.getGame());
-        final int newState = mes.getState();
+        handleGAMESTATE(ga, mes.getState());
+    }
+
+    /**
+     * Handle game state message: Update {@link SOCGame} and {@link PlayerClientListener} if any.
+     * Call for any message type which contains a Game State field.
+     *<P>
+     * Checks current {@link SOCGame#getGameState()}; if current state is {@link SOCGame#NEW NEW}
+     * and {@code newState != NEW}, calls {@link PlayerClientListener#gameStarted()} before
+     * its usual {@link PlayerClientListener#gameStateChanged(int)} call.
+     *
+     * @param ga  Game to update state; not null
+     * @param newState  New state from message, like {@link SOCGame#ROLL_OR_CARD}, or 0. Does nothing if 0.
+     * @see #handleGAMESTATE(SOCGameState)
+     * @since 2.0.00
+     */
+    protected void handleGAMESTATE(final SOCGame ga, final int newState)
+    {
+        if (newState == 0)
+            return;
+
         final boolean gameStarted = (ga.getGameState() == SOCGame.NEW) && (newState != SOCGame.NEW);
 
         ga.setGameState(newState);
+
+        PlayerClientListener pcl = clientListeners.get(ga.getName());
+        if (pcl == null)
+            return;
+
         if (gameStarted)
         {
             // call here, not just in handleSTARTGAME, in case we joined a game in progress
@@ -4440,15 +4464,16 @@ public class SOCPlayerClient
     {
         final String gaName = mes.getGame();
         SOCGame ga = games.get(gaName);
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            final int pnum = mes.getPlayerNumber();
-            ga.setCurrentPlayerNumber(pnum);
-            ga.updateAtTurn();
-            PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            pcl.playerTurnSet(pnum);
-        }
+        handleGAMESTATE(ga, mes.getGameState());
+
+        final int pnum = mes.getPlayerNumber();
+        ga.setCurrentPlayerNumber(pnum);
+        ga.updateAtTurn();
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        pcl.playerTurnSet(pnum);
     }
 
     /**
@@ -6141,13 +6166,13 @@ public class SOCPlayerClient
     }
 
     /**
-     * the user is starting the game
+     * the user wants to start the game
      *
      * @param ga  the game
      */
     public void startGame(SOCGame ga)
     {
-        put(SOCStartGame.toCmd(ga.getName()), ga.isPractice);
+        put(SOCStartGame.toCmd(ga.getName(), 0), ga.isPractice);
     }
 
     /**

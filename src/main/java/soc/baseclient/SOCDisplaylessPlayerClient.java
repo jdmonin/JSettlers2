@@ -1240,6 +1240,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (ga == null)
             return;
 
+        handleGAMESTATE(ga, mes.getGameState());
+
         // Look for human players to determine isBotsOnly in game's local copy
         boolean isBotsOnly = true;
         for (int pn = 0; pn < ga.maxPlayers; ++pn)
@@ -1254,17 +1256,34 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * handle the "game state" message
+     * Handle the "game state" message; calls {@link #handleGAMESTATE(SOCGame, int)}.
      * @param mes  the message
      */
     protected void handleGAMESTATE(SOCGameState mes)
     {
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            ga.setGameState(mes.getState());
-        }
+        handleGAMESTATE(ga, mes.getState());
+    }
+
+    /**
+     * Handle game state message: Update {@link SOCGame}.
+     * Call for any message type which contains a Game State field.
+     * Although this method is simple, it's useful as a central place to update that state.
+     *
+     * @param ga  Game to update state; not null
+     * @param newState  New state from message, like {@link SOCGame#ROLL_OR_CARD}, or 0. Does nothing if 0.
+     * @see #handleGAMESTATE(SOCGameState)
+     * @since 2.0.00
+     */
+    public static void handleGAMESTATE(final SOCGame ga, final int newState)
+    {
+        if (newState == 0)
+            return;
+
+        ga.setGameState(newState);
     }
 
     /**
@@ -1302,12 +1321,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleTURN(SOCTurn mes)
     {
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            ga.setCurrentPlayerNumber(mes.getPlayerNumber());
-            ga.updateAtTurn();
-        }
+        handleGAMESTATE(ga, mes.getGameState());
+
+        ga.setCurrentPlayerNumber(mes.getPlayerNumber());
+        ga.updateAtTurn();
     }
 
     /**
@@ -2668,7 +2688,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void startGame(SOCGame ga)
     {
-        put(SOCStartGame.toCmd(ga.getName()));
+        put(SOCStartGame.toCmd(ga.getName(), 0));
     }
 
     /**

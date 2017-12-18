@@ -678,6 +678,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.RESOURCECOUNT:
             case SOCMessage.SETPLAYEDDEVCARD:
             case SOCMessage.SETTURN:
+            case SOCMessage.STARTGAME:  // added 2017-12-18 for v2.0.00 when gameState became a field of this message
             case SOCMessage.TIMINGPING:  // server's 1x/second timing ping
             case SOCMessage.TURN:
                 handlePutBrainQ((SOCMessageForGame) mes);
@@ -1320,7 +1321,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     }
 
     /**
-     * handle the "game state" message
+     * Handle the "game state" message; instead of immediately updating state,
+     * calls {@link #handlePutBrainQ(SOCMessageForGame)}.
      * @param mes  the message
      */
     @Override
