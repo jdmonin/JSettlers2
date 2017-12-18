@@ -70,7 +70,7 @@ import soc.message.SOCLastSettlement;
 import soc.message.SOCLeaveGame;
 import soc.message.SOCLongestRoad;
 import soc.message.SOCMessage;
-import soc.message.SOCMovePieceRequest;
+import soc.message.SOCMovePiece;
 import soc.message.SOCMoveRobber;
 import soc.message.SOCPieceValue;
 import soc.message.SOCPlayerElement;
@@ -3480,7 +3480,7 @@ public class SOCGameHandler extends GameHandler
         final boolean flagsChanged, final Object obj)
     {
         // Note: Some SOCGameHandler code assumes that player events are fired only during
-        // SOCGameMessageHandler.handlePUTPIECE and handleMOVEPIECEREQUEST.
+        // SOCGameMessageHandler.handlePUTPIECE and handleMOVEPIECE.
         // Most handle* methods don't check pendingMessagesOut before sending game state.
         // If a new player event breaks this assumption, adjust SOCGameHandler.playerEvent(...)
         // and related code; search where SOCGame.pendingMessagesOut is used.
@@ -3650,7 +3650,7 @@ public class SOCGameHandler extends GameHandler
      * Adds the message to {@link SOCGame#pendingMessagesOut}; note that
      * right now, that field is checked only in
      * {@link SOCGameMessageHandler#handlePUTPIECE(SOCGame, Connection, SOCPutPiece)}
-     * and {@link SOCGameMessageHandler#handleMOVEPIECEREQUEST(SOCGame, Connection, SOCMovePieceRequest)},
+     * and {@link SOCGameMessageHandler#handleMOVEPIECE(SOCGame, Connection, SOCMovePiece)},
      * because no other method currently awards SVP.
      * @param ga  Game
      * @param pl  Player

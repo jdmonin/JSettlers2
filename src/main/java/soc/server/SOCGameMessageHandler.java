@@ -335,8 +335,8 @@ public class SOCGameMessageHandler
          * Asking to move a previous piece (a ship) somewhere else on the board.
          * Added 2011-12-04 for v2.0.00.
          */
-        case SOCMessage.MOVEPIECEREQUEST:
-            handleMOVEPIECEREQUEST(game, connection, (SOCMovePieceRequest) message);
+        case SOCMessage.MOVEPIECE:
+            handleMOVEPIECE(game, connection, (SOCMovePiece) message);
             break;
 
         /**
@@ -2057,12 +2057,11 @@ public class SOCGameMessageHandler
      * Handle the client's "move piece request" message.
      * Currently, ships are the only pieces that can be moved.
      */
-    private void handleMOVEPIECEREQUEST(SOCGame ga, Connection c, final SOCMovePieceRequest mes)
+    private void handleMOVEPIECE(SOCGame ga, Connection c, final SOCMovePiece mes)
     {
         final String gaName = ga.getName();
 
         boolean denyRequest = false;
-        final int pn = mes.getPlayerNumber();
         final int fromEdge = mes.getFromCoord(),
                   toEdge   = mes.getToCoord();
         if ((mes.getPieceType() != SOCPlayingPiece.SHIP)
@@ -2070,8 +2069,8 @@ public class SOCGameMessageHandler
         {
             denyRequest = true;
         } else {
-            SOCShip moveShip = ga.canMoveShip
-                (pn, fromEdge, toEdge);
+            final int pn = ga.getCurrentPlayerNumber();
+            SOCShip moveShip = ga.canMoveShip(pn, fromEdge, toEdge);
             if (moveShip == null)
             {
                 denyRequest = true;
@@ -2106,7 +2105,7 @@ public class SOCGameMessageHandler
         if (denyRequest)
         {
             D.ebugPrintln("ILLEGAL MOVEPIECE: 0x" + Integer.toHexString(fromEdge) + " -> 0x" + Integer.toHexString(toEdge)
-                + ": player " + pn);
+                + ": player " + c.getData());
             srv.messageToPlayer(c, gaName, "You can't move that ship right now.");
             srv.messageToPlayer(c, new SOCCancelBuildRequest(gaName, SOCPlayingPiece.SHIP));
         }

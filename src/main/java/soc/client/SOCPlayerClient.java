@@ -6041,7 +6041,7 @@ public class SOCPlayerClient
     public void movePieceRequest
         (final SOCGame ga, final int pn, final int ptype, final int fromCoord, final int toCoord)
     {
-        put(SOCMovePieceRequest.toCmd(ga.getName(), pn, ptype, fromCoord, toCoord), ga.isPractice);
+        put(SOCMovePiece.toCmd(ga.getName(), pn, ptype, fromCoord, toCoord), ga.isPractice);
     }
 
     /**
