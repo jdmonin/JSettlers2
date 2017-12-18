@@ -50,19 +50,24 @@ public class SOCRemovePiece extends SOCMessageTemplate3i
      * @param ga  the name of the game
      * @param pn  player number owning the piece
      * @param ptype  type of playing piece, such as {@link soc.game.SOCPlayingPiece#SHIP}
-     * @param co  coordinates of the piece to remove
+     * @param co  coordinates of the piece to remove; must be >= 0
      */
     public SOCRemovePiece(final String ga, final int pn, final int ptype, final int co)
+        throws IllegalArgumentException
     {
         super(REMOVEPIECE, ga, pn, ptype, co);
+
+        if (co < 0)
+            throw new IllegalArgumentException("coord < 0");
     }
 
     /**
      * Create a SOCRemovePiece message for this piece.
      * @param ga  the name of the game
-     * @param pp  the playing piece to remove
+     * @param pp  the playing piece to remove; {@link SOCPlayingPiece#getCoordinates() pp.getCoordinates()} must be >= 0
      */
     public SOCRemovePiece(final String ga, final SOCPlayingPiece pp)
+        throws IllegalArgumentException
     {
         this(ga, pp.getPlayerNumber(), pp.getType(), pp.getCoordinates());
     }
@@ -73,11 +78,15 @@ public class SOCRemovePiece extends SOCMessageTemplate3i
      * @param ga  the name of the game
      * @param pn  player number owning the piece
      * @param ptype  type of playing piece, such as {@link soc.game.SOCPlayingPiece#SHIP}
-     * @param co  coordinates of the piece to remove
+     * @param co  coordinates of the piece to remove; must be >= 0
      * @return the command string
      */
     public static String toCmd(final String ga, final int pn, final int ptype, final int co)
+        throws IllegalArgumentException
     {
+        if (co < 0)
+            throw new IllegalArgumentException("coord < 0");
+
         return SOCMessageTemplate3i.toCmd(REMOVEPIECE, ga, pn, ptype, co);
     }
 
@@ -102,13 +111,13 @@ public class SOCRemovePiece extends SOCMessageTemplate3i
             pn = Integer.parseInt(st.nextToken());
             pt = Integer.parseInt(st.nextToken());
             co = Integer.parseInt(st.nextToken());
+
+            return new SOCRemovePiece(ga, pn, pt, co);
         }
         catch (Exception e)
         {
             return null;
         }
-
-        return new SOCRemovePiece(ga, pn, pt, co);
     }
 
     /**

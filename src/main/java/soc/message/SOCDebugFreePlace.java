@@ -63,7 +63,7 @@ public class SOCDebugFreePlace extends SOCMessage
     private int playerNumber;
 
     /**
-     * the coordinates of the piece
+     * the coordinates of the piece; is >= 0
      */
     private int coordinates;
 
@@ -71,12 +71,19 @@ public class SOCDebugFreePlace extends SOCMessage
      * create a DEBUGFREEPLACE message from the client.
      *
      * @param na  name of the game
-     * @param pt  type of playing piece, such as {@link soc.game.SOCPlayingPiece#CITY}
+     * @param pt  type of playing piece, such as {@link soc.game.SOCPlayingPiece#CITY}; must be >= 0
      * @param pn  player number
-     * @param co  coordinates
+     * @param co  coordinates; must be >= 0
+     * @throws IllegalArgumentException if {@code pt} &lt; 0 or {@code co} &lt; 0
      */
     public SOCDebugFreePlace(String na, int pn, int pt, int co)
+        throws IllegalArgumentException
     {
+        if (pt < 0)
+            throw new IllegalArgumentException("pt: " + pt);
+        if (co < 0)
+            throw new IllegalArgumentException("coord < 0");
+
         messageType = DEBUGFREEPLACE;
         game = na;
         pieceType = pt;
@@ -123,7 +130,7 @@ public class SOCDebugFreePlace extends SOCMessage
     }
 
     /**
-     * @return the coordinates
+     * @return the coordinates; is >= 0
      */
     public int getCoordinates()
     {
@@ -148,13 +155,20 @@ public class SOCDebugFreePlace extends SOCMessage
      * DEBUGFREEPLACE sep game sep2 playerNumber sep2 pieceType sep2 coordinates
      *
      * @param na  the name of the game
-     * @param pt  type of playing piece
+     * @param pt  type of playing piece, such as {@link soc.game.SOCPlayingPiece#CITY}; must be >= 0
      * @param pn  player number
-     * @param co  coordinates
+     * @param co  coordinates; must be >= 0
      * @return the command string
+     * @throws IllegalArgumentException if {@code pt} &lt; 0 or {@code co} &lt; 0
      */
     public static String toCmd(String na, int pn, int pt, int co)
+        throws IllegalArgumentException
     {
+        if (pt < 0)
+            throw new IllegalArgumentException("pt: " + pt);
+        if (co < 0)
+            throw new IllegalArgumentException("coord < 0");
+
         return DEBUGFREEPLACE + sep + na + sep2 + pn + sep2 + pt + sep2 + co;
     }
 
@@ -179,13 +193,13 @@ public class SOCDebugFreePlace extends SOCMessage
             pn = Integer.parseInt(st.nextToken());
             pt = Integer.parseInt(st.nextToken());
             co = Integer.parseInt(st.nextToken());
+
+            return new SOCDebugFreePlace(na, pn, pt, co);
         }
         catch (Exception e)
         {
             return null;
         }
-
-        return new SOCDebugFreePlace(na, pn, pt, co);
     }
 
     /**

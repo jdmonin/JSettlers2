@@ -2521,8 +2521,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param ga     the game
      * @param piece  the type of piece, from {@link soc.game.SOCPlayingPiece} constants,
      *               or -1 to request the Special Building Phase.
+     * @throws IllegalArgumentException if {@code piece} &lt; -1
      */
     public void buildRequest(SOCGame ga, int piece)
+        throws IllegalArgumentException
     {
         put(SOCBuildRequest.toCmd(ga.getName(), piece));
     }
@@ -2542,14 +2544,22 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * put a piece on the board
      *
      * @param ga  the game where the action is taking place
-     * @param pp  the piece being placed
+     * @param pp  the piece being placed; {@link SOCPlayingPiece#getCoordinates() pp.getCoordinates()}
+     *     and {@link SOCPlayingPiece#getType() pp.getType()} must be >= 0
+     * @throws IllegalArgumentException if {@code pp.getCoordinates()} &lt; 0
+     *     or {@code pp.getType()} &lt; 0
      */
     public void putPiece(SOCGame ga, SOCPlayingPiece pp)
+        throws IllegalArgumentException
     {
+        final int pt = pp.getType();
+        if (pt < 0)
+            throw new IllegalArgumentException("pt: " + pt);
+
         /**
          * send the command
          */
-        put(SOCPutPiece.toCmd(ga.getName(), pp.getPlayerNumber(), pp.getType(), pp.getCoordinates()));
+        put(SOCPutPiece.toCmd(ga.getName(), pp.getPlayerNumber(), pt, pp.getCoordinates()));
     }
 
     /**

@@ -49,13 +49,22 @@ public class SOCMovePiece extends SOCMessageTemplate4i
      *
      * @param ga  the name of the game
      * @param pn  the player number; ignored if sent from client
-     * @param ptype  piece type, such as {@link soc.game.SOCPlayingPiece#SHIP}
-     * @param fromCoord  move piece from this coordinate
-     * @param toCoord  move piece to this coordinate
+     * @param ptype  piece type, such as {@link soc.game.SOCPlayingPiece#SHIP}; must be >= 0
+     * @param fromCoord  move piece from this coordinate; must be >= 0
+     * @param toCoord  move piece to this coordinate; must be >= 0
+     * @throws IllegalArgumentException if {@code ptype} &lt; 0, {@code fromCoord} &lt; 0, or {@code toCoord} &lt; 0
      */
     public SOCMovePiece(String ga, final int pn, final int ptype, final int fromCoord, final int toCoord)
+        throws IllegalArgumentException
     {
         super(MOVEPIECE, ga, pn, ptype, fromCoord, toCoord);
+
+        if (ptype < 0)
+            throw new IllegalArgumentException("pt: " + ptype);
+        if (fromCoord < 0)
+            throw new IllegalArgumentException("fromCoord < 0");
+        if (toCoord < 0)
+            throw new IllegalArgumentException("toCoord < 0");
     }
 
     /**
@@ -75,7 +84,7 @@ public class SOCMovePiece extends SOCMessageTemplate4i
     }
 
     /**
-     * @return the coordinate to move the piece from
+     * @return the coordinate to move the piece from; is >= 0
      */
     public int getFromCoord()
     {
@@ -83,7 +92,7 @@ public class SOCMovePiece extends SOCMessageTemplate4i
     }
 
     /**
-     * @return the coordinate to move the piece to
+     * @return the coordinate to move the piece to; is >= 0
      */
     public int getToCoord()
     {
@@ -95,13 +104,22 @@ public class SOCMovePiece extends SOCMessageTemplate4i
      *
      * @param ga  the name of the game
      * @param pn  the player number; ignored if sent from client
-     * @param ptype  piece type, such as {@link soc.game.SOCPlayingPiece#SHIP}
-     * @param fromCoord  move piece from this coordinate
-     * @param toCoord  move piece to this coordinate
+     * @param ptype  piece type, such as {@link soc.game.SOCPlayingPiece#SHIP}; must be >= 0
+     * @param fromCoord  move piece from this coordinate; must be >= 0
+     * @param toCoord  move piece to this coordinate; must be >= 0
      * @return the command string
+     * @throws IllegalArgumentException if {@code ptype} &lt; 0, {@code fromCoord} &lt; 0, or {@code toCoord} &lt; 0
      */
     public static String toCmd(String ga, int pn, int ptype, int fromCoord, int toCoord)
+        throws IllegalArgumentException
     {
+        if (ptype < 0)
+            throw new IllegalArgumentException("pt: " + ptype);
+        if (fromCoord < 0)
+            throw new IllegalArgumentException("fromCoord < 0");
+        if (toCoord < 0)
+            throw new IllegalArgumentException("toCoord < 0");
+
         return MOVEPIECE + sep + ga + sep2 + pn + sep2
             + ptype + sep2 + fromCoord + sep2 + toCoord;
     }
@@ -129,13 +147,13 @@ public class SOCMovePiece extends SOCMessageTemplate4i
             pc = Integer.parseInt(st.nextToken());
             fc = Integer.parseInt(st.nextToken());
             tc = Integer.parseInt(st.nextToken());
+
+            return new SOCMovePiece(ga, pn, pc, fc, tc);
         }
         catch (Exception e)
         {
             return null;
         }
-
-        return new SOCMovePiece(ga, pn, pc, fc, tc);
     }
 
     /**

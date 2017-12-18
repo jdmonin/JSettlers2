@@ -5990,8 +5990,10 @@ public class SOCPlayerClient
      * @param ga     the game
      * @param piece  the type of piece, from {@link soc.game.SOCPlayingPiece} constants,
      *               or -1 to request the Special Building Phase.
+     * @throws IllegalArgumentException if {@code piece} &lt; -1
      */
     public void buildRequest(SOCGame ga, int piece)
+        throws IllegalArgumentException
     {
         put(SOCBuildRequest.toCmd(ga.getName(), piece), ga.isPractice);
     }
@@ -6013,15 +6015,19 @@ public class SOCPlayerClient
      * send the {@link SOCDebugFreePlace} message instead.
      *
      * @param ga  the game where the action is taking place
-     * @param pp  the piece being placed
+     * @param pp  the piece being placed; {@link SOCPlayingPiece#getCoordinates() pp.getCoordinates()}
+     *     and {@link SOCPlayingPiece#getType() pp.getType()} must be >= 0
+     * @throws IllegalArgumentException if {@code pp.getType()} &lt; 0 or {@code pp.getCoordinates()} &lt; 0
      */
     public void putPiece(SOCGame ga, SOCPlayingPiece pp)
+        throws IllegalArgumentException
     {
+        final int co = pp.getCoordinates();
         String ppm;
         if (ga.isDebugFreePlacement())
-            ppm = SOCDebugFreePlace.toCmd(ga.getName(), pp.getPlayerNumber(), pp.getType(), pp.getCoordinates());
+            ppm = SOCDebugFreePlace.toCmd(ga.getName(), pp.getPlayerNumber(), pp.getType(), co);
         else
-            ppm = SOCPutPiece.toCmd(ga.getName(), pp.getPlayerNumber(), pp.getType(), pp.getCoordinates());
+            ppm = SOCPutPiece.toCmd(ga.getName(), pp.getPlayerNumber(), pp.getType(), co);
 
         /**
          * send the command
@@ -6033,13 +6039,15 @@ public class SOCPlayerClient
      * Ask the server to move this piece to a different coordinate.
      * @param ga  the game where the action is taking place
      * @param pn  The piece's player number
-     * @param ptype    The piece type, such as {@link SOCPlayingPiece#SHIP}
-     * @param fromCoord  Move the piece from here
-     * @param toCoord    Move the piece to here
+     * @param ptype    The piece type, such as {@link SOCPlayingPiece#SHIP}; must be >= 0
+     * @param fromCoord  Move the piece from here; must be >= 0
+     * @param toCoord    Move the piece to here; must be >= 0
+     * @throws IllegalArgumentException if {@code ptype} &lt; 0, {@code fromCoord} &lt; 0, or {@code toCoord} &lt; 0
      * @since 2.0.00
      */
     public void movePieceRequest
         (final SOCGame ga, final int pn, final int ptype, final int fromCoord, final int toCoord)
+        throws IllegalArgumentException
     {
         put(SOCMovePiece.toCmd(ga.getName(), pn, ptype, fromCoord, toCoord), ga.isPractice);
     }

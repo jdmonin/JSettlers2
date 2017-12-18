@@ -56,9 +56,14 @@ public class SOCBuildRequest extends SOCMessage
      * @param ga  the name of the game
      * @param pt  the type of piece to build, from {@link soc.game.SOCPlayingPiece} constants,
      *               or -1 to request the Special Building Phase.
+     * @throws IllegalArgumentException if {@code pt} &lt; -1
      */
     public SOCBuildRequest(String ga, int pt)
+        throws IllegalArgumentException
     {
+        if (pt < -1)
+            throw new IllegalArgumentException("pt: " + pt);
+
         messageType = BUILDREQUEST;
         game = ga;
         pieceType = pt;
@@ -97,9 +102,14 @@ public class SOCBuildRequest extends SOCMessage
      * @param ga  the name of the game
      * @param pt  the type of piece to build, or -1 for Special Building Phase
      * @return the command string
+     * @throws IllegalArgumentException if {@code pt} &lt; -1
      */
     public static String toCmd(String ga, int pt)
+        throws IllegalArgumentException
     {
+        if (pt < -1)
+            throw new IllegalArgumentException("pt: " + pt);
+
         return BUILDREQUEST + sep + ga + sep2 + pt;
     }
 
@@ -120,13 +130,13 @@ public class SOCBuildRequest extends SOCMessage
         {
             ga = st.nextToken();
             pt = Integer.parseInt(st.nextToken());
+
+            return new SOCBuildRequest(ga, pt);
         }
         catch (Exception e)
         {
             return null;
         }
-
-        return new SOCBuildRequest(ga, pt);
     }
 
     /**
