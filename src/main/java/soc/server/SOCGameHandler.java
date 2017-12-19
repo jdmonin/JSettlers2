@@ -1235,7 +1235,8 @@ public class SOCGameHandler extends GameHandler
                      counts).toCmd());
             else
                 for (int j = 0; j < counts.length; ++j)
-                    c.put(SOCPlayerElement.toCmd(gameName, i, SOCPlayerElement.SET, ELEM_PIECETYPES_SEA[j], counts[j]));
+                    c.put(SOCPlayerElement.toCmd
+                        (gameName, i, SOCPlayerElement.SET, ELEM_JOINGAME_WITH_PIECETYPES_SEA[j], counts[j]));
 
             final int numDevCards = pl.getInventory().getTotal();
             final int unknownType;
