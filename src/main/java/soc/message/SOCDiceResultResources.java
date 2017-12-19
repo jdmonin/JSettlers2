@@ -27,6 +27,7 @@ import soc.proto.Data;
 
 /**
  * All resources gained by players from a dice roll.
+ * Sent to all game members after a {@link SOCDiceResult}.
  *<P>
  * Before v2.0.00, these were sent as {@link SOCPlayerElement SOCPlayerElement(GAIN)} and {@link SOCGameTextMsg}.
  * This single message is more efficient and also easier for i18n/localization.

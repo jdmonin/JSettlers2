@@ -22,17 +22,23 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.game.SOCPlayingPiece;  // for javadocs only
 import soc.proto.GameMessage;
 import soc.proto.Message;
 
 /**
- * This message means that a player is asking to place, or has placed, a piece on the board.
+ * Client player is asking to place, or server is announcing placement of, a piece on the board.
  * Also used when joining a new game or a game in progress, to send the game state so far.
+ *<P>
+ * If message is for a {@link SOCPlayingPiece#CITY} while client is joining a game, must precede with
+ * a {@code SOCPutPiece} message with the {@link SOCPlayingPiece#SETTLEMENT} at the same coordinate
+ * which was upgraded to that city.
+ *<P>
  * Some game scenarios use {@link soc.game.SOCVillage villages} which aren't owned by any player;
  * their {@link #getPlayerNumber()} is -1 in this message.
  *<P>
- * The messages similar but opposite to this one are {@link SOCCancelBuildRequest}
- * and the very-limited {@link SOCRemovePiece}.
+ * See also {@link SOCMovePiece}. The messages similar but opposite to this one
+ * are {@link SOCCancelBuildRequest} and the very-limited {@link SOCRemovePiece}.
  *<P>
  * Some scenarios like {@link soc.game.SOCScenario#K_SC_PIRI SC_PIRI} include some pieces
  * as part of the initial board layout while the game is starting. These will all be sent to
@@ -59,12 +65,12 @@ public class SOCPutPiece extends SOCMessage
     private int pieceType;
 
     /**
-     * the player number of who played the piece, or -1 for non-player-owned {@link soc.game.SOCPlayingPiece#VILLAGE}
+     * the player number who played the piece, or -1 for non-player-owned {@link soc.game.SOCPlayingPiece#VILLAGE}
      */
     private int playerNumber;
 
     /**
-     * the coordinates of the piece
+     * the coordinates of the piece; must be >= 0
      */
     private int coordinates;
 
@@ -72,12 +78,19 @@ public class SOCPutPiece extends SOCMessage
      * create a PutPiece message
      *
      * @param na  name of the game
-     * @param pt  type of playing piece, such as {@link soc.game.SOCPlayingPiece#CITY}
+     * @param pt  type of playing piece, such as {@link soc.game.SOCPlayingPiece#CITY}; must be >= 0
      * @param pn  player number, or -1 for non-player-owned {@link soc.game.SOCPlayingPiece#VILLAGE}
-     * @param co  coordinates
+     * @param co  coordinates; must be >= 0
+     * @throws IllegalArgumentException if {@code pt} &lt; 0 or {@code co} &lt; 0
      */
     public SOCPutPiece(String na, int pn, int pt, int co)
+        throws IllegalArgumentException
     {
+        if (pt < 0)
+            throw new IllegalArgumentException("pt: " + pt);
+        if (co < 0)
+            throw new IllegalArgumentException("coord < 0");
+
         messageType = PUTPIECE;
         game = na;
         pieceType = pt;
@@ -110,7 +123,7 @@ public class SOCPutPiece extends SOCMessage
     }
 
     /**
-     * @return the coordinates
+     * @return the coordinates; is >= 0
      */
     public int getCoordinates()
     {
@@ -136,12 +149,19 @@ public class SOCPutPiece extends SOCMessage
      *
      * @param ga  the name of the game
      * @param pn  player number, or -1 for non-player-owned {@link soc.game.SOCPlayingPiece#VILLAGE}
-     * @param pt  type of playing piece
-     * @param co  coordinates
+     * @param pt  type of playing piece, such as {@link soc.game.SOCPlayingPiece#CITY}; must be >= 0
+     * @param co  coordinates; must be >= 0
      * @return the command string
+     * @throws IllegalArgumentException if {@code pt} &lt; 0 or {@code co} &lt; 0
      */
     public static String toCmd(String ga, int pn, int pt, int co)
+        throws IllegalArgumentException
     {
+        if (pt < 0)
+            throw new IllegalArgumentException("pt: " + pt);
+        if (co < 0)
+            throw new IllegalArgumentException("coord < 0");
+
         return PUTPIECE + sep + ga + sep2 + pn + sep2 + pt + sep2 + co;
     }
 
@@ -166,13 +186,13 @@ public class SOCPutPiece extends SOCMessage
             pn = Integer.parseInt(st.nextToken());
             pt = Integer.parseInt(st.nextToken());
             co = Integer.parseInt(st.nextToken());
+
+            return new SOCPutPiece(na, pn, pt, co);
         }
         catch (Exception e)
         {
             return null;
         }
-
-        return new SOCPutPiece(na, pn, pt, co);
     }
 
     @Override

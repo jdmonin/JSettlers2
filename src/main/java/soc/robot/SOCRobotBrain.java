@@ -70,6 +70,7 @@ import soc.message.SOCSetTurn;
 import soc.message.SOCSimpleAction;
 import soc.message.SOCSimpleRequest;
 import soc.message.SOCSitDown;  // for javadoc
+import soc.message.SOCStartGame;
 import soc.message.SOCTimingPing;  // for javadoc
 import soc.message.SOCTurn;
 
@@ -1162,9 +1163,8 @@ public class SOCRobotBrain extends Thread
 
                     if (mesType == SOCMessage.GAMESTATE)
                     {
-                        waitingForGameState = false;
-                        oldGameState = game.getGameState();
-                        game.setGameState(((SOCGameState) mes).getState());
+                        handleGAMESTATE(((SOCGameState) mes).getState());
+                            // clears waitingForGameState, updates oldGameState, calls ga.setGameState
                     }
 
                     else if (mesType == SOCMessage.FIRSTPLAYER)
@@ -1177,11 +1177,20 @@ public class SOCRobotBrain extends Thread
                         game.setCurrentPlayerNumber(((SOCSetTurn) mes).getPlayerNumber());
                     }
 
+                    else if (mesType == SOCMessage.STARTGAME)
+                    {
+                        handleGAMESTATE(((SOCStartGame) mes).getGameState());
+                            // clears waitingForGameState, updates oldGameState, calls ga.setGameState
+                    }
+
                     else if (mesType == SOCMessage.TURN)
                     {
                         // Start of a new player's turn.
                         // Update game and reset most of our state fields.
                         // See also below: if ((mesType == SOCMessage.TURN) && ourTurn).
+
+                        handleGAMESTATE(((SOCTurn) mes).getGameState());
+                            // clears waitingForGameState, updates oldGameState, calls ga.setGameState
 
                         game.setCurrentPlayerNumber(((SOCTurn) mes).getPlayerNumber());
                         game.updateAtTurn();
@@ -2100,6 +2109,24 @@ public class SOCRobotBrain extends Thread
 
         pinger.stopPinger();
         pinger = null;
+    }
+
+    /**
+     * Handle a game state change from {@link SOCGameState} or another message
+     * which has a Game State field. Clears {@link #waitingForGameState} and
+     * updates {@link #oldGameState}, then calls
+     * {@link SOCDisplaylessPlayerClient#handleGAMESTATE(SOCGame, int)}.
+     * @param gs  New game state; if 0, does nothing
+     * @since 2.0.00
+     */
+    private void handleGAMESTATE(final int gs)
+    {
+        if (gs == 0)
+            return;
+
+        waitingForGameState = false;
+        oldGameState = game.getGameState();
+        SOCDisplaylessPlayerClient.handleGAMESTATE(game, gs);
     }
 
     /**
@@ -3621,7 +3648,7 @@ public class SOCRobotBrain extends Thread
         final int pn = mes.getPlayerNumber();
         final SOCPlayer pl = (pn != -1) ? game.getPlayer(pn) : null;
         final int action = mes.getAction();
-        final int[] etypes = mes.getElementTypes(), amounts = mes.getValues();
+        final int[] etypes = mes.getElementTypes(), amounts = mes.getAmounts();
 
         for (int i = 0; i < etypes.length; ++i)
             handlePLAYERELEMENT(pl, pn, action, etypes[i], amounts[i]);
@@ -3636,7 +3663,7 @@ public class SOCRobotBrain extends Thread
     {
         final int pn = mes.getPlayerNumber();
         final SOCPlayer pl = (pn != -1) ? game.getPlayer(pn) : null;
-        final int action = mes.getAction(), amount = mes.getValue();
+        final int action = mes.getAction(), amount = mes.getAmount();
         final int etype = mes.getElementType();
 
         handlePLAYERELEMENT(pl, pn, action, etype, amount);

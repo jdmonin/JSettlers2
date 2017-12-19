@@ -1252,6 +1252,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (ga == null)
             return;
 
+        handleGAMESTATE(ga, mes.getGameState());
+
         // Look for human players to determine isBotsOnly in game's local copy
         boolean isBotsOnly = true;
         for (int pn = 0; pn < ga.maxPlayers; ++pn)
@@ -1266,17 +1268,34 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * handle the "game state" message
+     * Handle the "game state" message; calls {@link #handleGAMESTATE(SOCGame, int)}.
      * @param mes  the message
      */
     protected void handleGAMESTATE(SOCGameState mes)
     {
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            ga.setGameState(mes.getState());
-        }
+        handleGAMESTATE(ga, mes.getState());
+    }
+
+    /**
+     * Handle game state message: Update {@link SOCGame}.
+     * Call for any message type which contains a Game State field.
+     * Although this method is simple, it's useful as a central place to update that state.
+     *
+     * @param ga  Game to update state; not null
+     * @param newState  New state from message, like {@link SOCGame#ROLL_OR_CARD}, or 0. Does nothing if 0.
+     * @see #handleGAMESTATE(SOCGameState)
+     * @since 2.0.00
+     */
+    public static void handleGAMESTATE(final SOCGame ga, final int newState)
+    {
+        if (newState == 0)
+            return;
+
+        ga.setGameState(newState);
     }
 
     /**
@@ -1314,12 +1333,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleTURN(SOCTurn mes)
     {
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            ga.setCurrentPlayerNumber(mes.getPlayerNumber());
-            ga.updateAtTurn();
-        }
+        handleGAMESTATE(ga, mes.getGameState());
+
+        ga.setCurrentPlayerNumber(mes.getPlayerNumber());
+        ga.updateAtTurn();
     }
 
     /**
@@ -1337,7 +1357,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         final int pn = mes.getPlayerNumber();
         final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
         final int action = mes.getAction();
-        final int[] etypes = mes.getElementTypes(), amounts = mes.getValues();
+        final int[] etypes = mes.getElementTypes(), amounts = mes.getAmounts();
 
         for (int i = 0; i < etypes.length; ++i)
             handlePLAYERELEMENT(ga, pl, pn, action, etypes[i], amounts[i]);
@@ -1356,7 +1376,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         final int pn = mes.getPlayerNumber();
         final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
-        final int action = mes.getAction(), amount = mes.getValue();
+        final int action = mes.getAction(), amount = mes.getAmount();
         final int etype = mes.getElementType();
 
         handlePLAYERELEMENT(ga, pl, pn, action, etype, amount);
@@ -2528,8 +2548,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param ga     the game
      * @param piece  the type of piece, from {@link soc.game.SOCPlayingPiece} constants,
      *               or -1 to request the Special Building Phase.
+     * @throws IllegalArgumentException if {@code piece} &lt; -1
      */
     public void buildRequest(SOCGame ga, int piece)
+        throws IllegalArgumentException
     {
         put(SOCBuildRequest.toCmd(ga.getName(), piece));
     }
@@ -2549,14 +2571,22 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * put a piece on the board
      *
      * @param ga  the game where the action is taking place
-     * @param pp  the piece being placed
+     * @param pp  the piece being placed; {@link SOCPlayingPiece#getCoordinates() pp.getCoordinates()}
+     *     and {@link SOCPlayingPiece#getType() pp.getType()} must be >= 0
+     * @throws IllegalArgumentException if {@code pp.getCoordinates()} &lt; 0
+     *     or {@code pp.getType()} &lt; 0
      */
     public void putPiece(SOCGame ga, SOCPlayingPiece pp)
+        throws IllegalArgumentException
     {
+        final int pt = pp.getType();
+        if (pt < 0)
+            throw new IllegalArgumentException("pt: " + pt);
+
         /**
          * send the command
          */
-        put(SOCPutPiece.toCmd(ga.getName(), pp.getPlayerNumber(), pp.getType(), pp.getCoordinates()));
+        put(SOCPutPiece.toCmd(ga.getName(), pp.getPlayerNumber(), pt, pp.getCoordinates()));
     }
 
     /**
@@ -2665,7 +2695,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void startGame(SOCGame ga)
     {
-        put(SOCStartGame.toCmd(ga.getName()));
+        put(SOCStartGame.toCmd(ga.getName(), 0));
     }
 
     /**

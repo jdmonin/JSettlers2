@@ -346,18 +346,15 @@ public abstract class SOCMessage implements Serializable, Cloneable
      */
     public static final int DICERESULTRESOURCES = 1092;  // dice roll result resources, 20130920; v2.0.00
 
-    /** Ask server to move a piece to another location.
-     *  Server replies with {@link #MOVEPIECE} if okay.
+    /** {@link SOCMovePiece} - Move a piece to another location.
      *  @since 2.0.00 */
-    public static final int MOVEPIECEREQUEST = 1093;  // move piece request, 20111203, v2.0.00
-
-    /** Move a piece to another location; server reply to {@link #MOVEPIECEREQUEST}.
-     *  @since 2.0.00 */
-    public static final int MOVEPIECE = 1094;  // move piece, 20111203, v2.0.00
+    public static final int MOVEPIECE = 1093;  // move piece, 20111203, v2.0.00
 
     /** {@link SOCRemovePiece} - Remove a piece from the board; currently used only with ships.
      *  @since 2.0.00 */
-    public static final int REMOVEPIECE = 1095;  // pirate islands scenario, 20130218, v2.0.00
+    public static final int REMOVEPIECE = 1094;  // pirate islands scenario, 20130218, v2.0.00
+
+    // 1095 is available, was used during v2.0.00 development but never in a released version
 
     /** Reveal a hidden hex on the board; server to all clients in game.
      *  @since 2.0.00 */
@@ -1005,9 +1002,6 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case DICERESULTRESOURCES:  // dice roll result resources, 20130920; v2.0.00
                 return SOCDiceResultResources.parseDataStr(multiData);
 
-            case MOVEPIECEREQUEST:  // move piece request, 20111203, v2.0.00
-                return SOCMovePieceRequest.parseDataStr(data);
-
             case MOVEPIECE:         // move piece announcement, 20111203, v2.0.00
                 return SOCMovePiece.parseDataStr(data);
 
@@ -1231,10 +1225,10 @@ public abstract class SOCMessage implements Serializable, Cloneable
             // turn and state
 
             case GameMessage.GameMessageFromClient.START_GAME_FIELD_NUMBER:
-                    return new SOCStartGame(gaName);
+                return new SOCStartGame(gaName, 0);
 
             case GameMessage.GameMessageFromClient.END_TURN_FIELD_NUMBER:
-                    return new SOCEndTurn(gaName);
+                return new SOCEndTurn(gaName);
 
             default:
                 System.err.println("Unhandled GameMessageFromClient type in SOCMessage.toMsg: " + typ);

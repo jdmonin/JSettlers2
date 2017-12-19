@@ -70,7 +70,7 @@ import soc.message.SOCLastSettlement;
 import soc.message.SOCLeaveGame;
 import soc.message.SOCLongestRoad;
 import soc.message.SOCMessage;
-import soc.message.SOCMovePieceRequest;
+import soc.message.SOCMovePiece;
 import soc.message.SOCMoveRobber;
 import soc.message.SOCPieceValue;
 import soc.message.SOCPlayerElement;
@@ -395,11 +395,12 @@ public class SOCGameHandler extends GameHandler
             srv.messageToPlayer(c, new SOCDebugFreePlace(gaName, ga.getCurrentPlayerNumber(), ppWanted));
             if (wasInitial && ! ppWanted)
             {
-                boolean toldRoll = sendGameState(ga, false);
-                if (!checkTurn(c, ga))
+                if (! checkTurn(c, ga))
                 {
                     // Player changed (or play started), announce new player.
-                    sendTurn(ga, toldRoll);
+                    sendTurn(ga, false);
+                } else {
+                    sendGameState(ga, false, false);
                 }
             }
         }
@@ -618,12 +619,6 @@ public class SOCGameHandler extends GameHandler
         }
 
         /**
-         * send new state number; if game is now OVER,
-         * also send end-of-game messages.
-         */
-        boolean wantsRollPrompt = sendGameState(ga, false);
-
-        /**
          * clear any trade offers
          */
         srv.gameList.takeMonitorForGame(gname);
@@ -637,9 +632,11 @@ public class SOCGameHandler extends GameHandler
         srv.gameList.releaseMonitorForGame(gname);
 
         /**
-         * send whose turn it is
+         * send new state number; if game is now OVER,
+         * also send end-of-game messages.
+         * Send whose turn it is.
          */
-        sendTurn(ga, wantsRollPrompt);
+        sendTurn(ga, false);
         if (ga.getGameState() == SOCGame.SPECIAL_BUILDING)
             srv.messageToGameKeyed
                 (ga, true, "action.sbp.turn.to.place", ga.getPlayer(ga.getCurrentPlayerNumber()).getName());
@@ -819,7 +816,6 @@ public class SOCGameHandler extends GameHandler
                 // will cause clients to recalculate lastPlayer too
                 srv.messageToGame(gaName, new SOCFirstPlayer(gaName, ga.getFirstPlayer()));
             }
-            sendGameState(ga, false);
             sendTurn(ga, false);
             return true;  // <--- Early return ---
         }
@@ -832,7 +828,7 @@ public class SOCGameHandler extends GameHandler
         if (ga.canEndTurn(cpn))
             endGameTurn(ga, null, true);  // could force gamestate to OVER, if a client leaves
         else
-            sendGameState(ga, false);
+            sendGameState(ga, false, false);
 
         return (ga.getGameState() != SOCGame.OVER);
     }
@@ -1150,9 +1146,7 @@ public class SOCGameHandler extends GameHandler
                 SOCPlayingPiece piece = piecesEnum.nextElement();
 
                 if (piece.getType() == SOCPlayingPiece.CITY)
-                {
                     c.put(new SOCPutPiece(gameName, i, SOCPlayingPiece.SETTLEMENT, piece.getCoordinates()));
-                }
 
                 c.put(new SOCPutPiece(gameName, i, piece.getType(), piece.getCoordinates()));
             }
@@ -1238,7 +1232,8 @@ public class SOCGameHandler extends GameHandler
                      counts));
             else
                 for (int j = 0; j < counts.length; ++j)
-                    c.put(new SOCPlayerElement(gameName, i, SOCPlayerElement.SET, ELEM_PIECETYPES_SEA[j], counts[j]));
+                    c.put(new SOCPlayerElement
+                        (gameName, i, SOCPlayerElement.SET, ELEM_JOINGAME_WITH_PIECETYPES_SEA[j], counts[j]));
 
             final int numDevCards = pl.getInventory().getTotal();
             final int unknownType;
@@ -1868,28 +1863,30 @@ public class SOCGameHandler extends GameHandler
     }
 
     /**
-     * Send the current state of the game with a message.
+     * Send all game members the current state of the game with a {@link SOCGameState} message.
      * Assumes current player does not change during this state.
      * If we send a text message to prompt the new player to roll,
      * also sends a RollDicePrompt data message.
+     * May also send other messages to the current player.
      *<P>
-     * For more details and references, see {@link #sendGameState(SOCGame, boolean)}.
+     * For more details and references, see {@link #sendGameState(SOCGame, boolean, boolean)}.
      * Be sure that callers to {@code sendGameState} don't assume the game will still
      * exist after calling this method, if the game state was {@link SOCGame#OVER OVER}.
      *<P>
-     * Equivalent to: {@link #sendGameState(SOCGame, boolean) sendGameState(ga, true)}.
+     * Equivalent to: {@link #sendGameState(SOCGame, boolean, boolean) sendGameState(ga, false, true)}.
      *
      * @param ga  the game
      */
     void sendGameState(SOCGame ga)
     {
-        sendGameState(ga, true);
+        sendGameState(ga, false, true);
     }
 
     /**
-     * send the current state of the game with a message.
+     * Send all game members the current state of the game with a message.
+     * May also send other messages to the current player.
      * Note that the current (or new) player number is not sent here.
-     * If game is now OVER, send appropriate messages.
+     * If game is now OVER, sends appropriate messages.
      *<P>
      * State {@link SOCGame#WAITING_FOR_DISCARDS}:
      * If a 7 is rolled, will also say who must discard (in a GAMETEXTMSG).
@@ -1922,6 +1919,9 @@ public class SOCGameHandler extends GameHandler
      * @see #sendGameStateOVER(SOCGame)
      *
      * @param ga  the game
+     * @param omitGameStateMessage  if true, don't send the {@link SOCGameState} message itself
+     *    but do send any other messages as described above. For use just after sending a message which
+     *    includes a Game State field.
      * @param sendRollPrompt  If true, and if we send a text message to prompt
      *    the player to roll, send a RollDicePrompt data message.
      *    If the client is too old (1.0.6), it will ignore the prompt.
@@ -1930,7 +1930,7 @@ public class SOCGameHandler extends GameHandler
      *    If so, sendTurn can also send a RollDicePrompt data message.
      * @since 1.1.00
      */
-    boolean sendGameState(SOCGame ga, boolean sendRollPrompt)
+    boolean sendGameState(SOCGame ga, final boolean omitGameStateMessage, final boolean sendRollPrompt)
     {
         if (ga == null)
             return false;
@@ -1948,7 +1948,8 @@ public class SOCGameHandler extends GameHandler
             srv.messageToGame(gname, new SOCSetTurn(gname, ga.getCurrentPlayerNumber()));
         }
 
-        srv.messageToGame(gname, new SOCGameState(gname, gaState));
+        if (! omitGameStateMessage)
+            srv.messageToGame(gname, new SOCGameState(gname, gaState));
 
         SOCPlayer player = null;
 
@@ -2631,60 +2632,67 @@ public class SOCGameHandler extends GameHandler
 
         srv.gameList.takeMonitorForGame(gaName);
 
-        /**
-         * send the board layout
-         */
         try
         {
-            srv.messageToGameWithMon(gaName, getBoardLayoutMessage(ga));
+
+            /**
+             * send the board layout
+             */
+            try
+            {
+                srv.messageToGameWithMon(gaName, getBoardLayoutMessage(ga));
+
                 // For scenario option _SC_CLVI, the board layout message
                 // includes villages and the general supply cloth count.
                 // For _SC_PIRI, it includes the Pirate Path (additional layout part "PP").
-        } catch (IllegalArgumentException e) {
-            srv.gameList.releaseMonitorForGame(gaName);
-            System.err.println("startGame: Cannot send board for " + gaName + ": " + e.getMessage());
-            return;
-        }
+            } catch (IllegalArgumentException e) {
+                System.err.println("startGame: Cannot send board for " + gaName + ": " + e.getMessage());
+                // the enclosing try-finally will releaseMonitorForGame(gaName) before returning
+                return;
+            }
 
-        // See also joinGame which has very similar code.
+            // See also joinGame which has very similar code.
 
-        // Send the updated Potential/Legal Settlement node list
-        // Note: Assumes all players have same potential settlements
-        //    (sends with playerNumber -1 == all)
-        final HashSet<Integer> psList = ga.getPlayer(0).getPotentialSettlements();
+            // Send the updated Potential/Legal Settlement node list
+            // Note: Assumes all players have same potential settlements
+            //    (sends with playerNumber -1 == all)
+            final HashSet<Integer> psList = ga.getPlayer(0).getPotentialSettlements();
 
-        // Some boards may have multiple land areas.
-        final HashSet<Integer>[] lan;
-        final int pan;
-        boolean addedPsList = false;
+            // Some boards may have multiple land areas.
+            final HashSet<Integer>[] lan;
+            final int pan;
+            boolean addedPsList = false;
 
-        final SOCBoardLarge bl = (SOCBoardLarge) ga.getBoard();
-        lan = bl.getLandAreasLegalNodes();
-        pan = bl.getStartingLandArea();
+            final SOCBoardLarge bl = (SOCBoardLarge) ga.getBoard();
+            lan = bl.getLandAreasLegalNodes();
+            pan = bl.getStartingLandArea();
 
-        if ((lan != null) && (pan != 0) && ! lan[pan].equals(psList))
-        {
-            // If potentials != legals[startingLandArea], send as legals[0]
-            lan[0] = psList;
-            addedPsList = true;
-        }
-
-        if (lan == null)
-            srv.messageToGameWithMon(gaName, new SOCPotentialSettlements(gaName, -1, new ArrayList<Integer>(psList)));
-        else
-            srv.messageToGameWithMon(gaName, new SOCPotentialSettlements(gaName, -1, pan, lan, legalSeaEdges));
-
-        if (addedPsList)
-            lan[0] = null;  // Undo change to game's copy of landAreasLegalNodes
-
-        /**
-         * send the player info
-         */
-        boolean sentInitPiecesState = false;
-        for (int i = 0; i < ga.maxPlayers; i++)
-        {
-            if (! ga.isSeatVacant(i))
+            if ((lan != null) && (pan != 0) && ! lan[pan].equals(psList))
             {
+                // If potentials != legals[startingLandArea], send as legals[0]
+                lan[0] = psList;
+                addedPsList = true;
+            }
+
+            if (lan == null)
+                srv.messageToGameWithMon
+                    (gaName, new SOCPotentialSettlements(gaName, -1, new ArrayList<Integer>(psList)));
+            else
+                srv.messageToGameWithMon
+                    (gaName, new SOCPotentialSettlements(gaName, -1, pan, lan, legalSeaEdges));
+
+            if (addedPsList)
+                lan[0] = null;  // Undo change to game's copy of landAreasLegalNodes
+
+            /**
+             * send the player info
+             */
+            boolean sentInitPiecesState = false;
+            for (int i = 0; i < ga.maxPlayers; i++)
+            {
+                if (ga.isSeatVacant(i))
+                    continue;
+
                 final SOCPlayer pl = ga.getPlayer(i);
 
                 final int[] counts = new int[(ga.hasSeaBoard) ? 4 : 3];
@@ -2732,39 +2740,43 @@ public class SOCGameHandler extends GameHandler
 
                 srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, i, false));
             }
+
+            /**
+             * send the number of dev cards
+             */
+            srv.messageToGameWithMon(gaName, new SOCDevCardCount(gaName, ga.getNumDevCards()));
+
+            /**
+             * ga.startGame() picks who goes first, but feedback is nice
+             */
+            srv.messageToGameKeyed
+                (ga, false, "start.picking.random.starting.player");  // "Randomly picking a starting player..."
+
+        } finally {
+            srv.gameList.releaseMonitorForGame(gaName);
         }
 
         /**
-         * send the number of dev cards
+         * send the game state and start the game.
+         * send game state and whose turn it is.
          */
-        srv.messageToGameWithMon(gaName, new SOCDevCardCount(gaName, ga.getNumDevCards()));
-
-        /**
-         * ga.startGame() picks who goes first, but feedback is nice
-         */
-        srv.messageToGameKeyed(ga, false, "start.picking.random.starting.player");  // "Randomly picking a starting player..."
-
-        srv.gameList.releaseMonitorForGame(gaName);
-
-        /**
-         * send the game state
-         */
-        sendGameState(ga, false);
-
-        /**
-         * start the game
-         */
-        srv.messageToGame(gaName, new SOCStartGame(gaName));
-
-        /**
-         * send whose turn it is
-         */
-        sendTurn(ga, false);
+        if (ga.clientVersionLowest >= SOCGameState.VERSION_FOR_GAME_STATE_AS_FIELD)
+        {
+            srv.messageToGame(gaName, new SOCStartGame(gaName, ga.getGameState()));
+            sendTurn(ga, false);
+        } else {
+            final int cpn = ga.getCurrentPlayerNumber();
+            final boolean sendRoll = sendGameState(ga, false, false);
+            srv.messageToGame(gaName, new SOCStartGame(gaName, 0));
+            srv.messageToGame(gaName, new SOCTurn(gaName, cpn, 0));
+            if (sendRoll)
+                srv.messageToGame(gaName, new SOCRollDicePrompt(gaName, cpn));
+        }
     }
 
     /**
-     * After a player action during initial placement: If current player changed,
-     * an initial-placement round ended ({@link SOCGame#isInitialPlacementRoundDone(int)}),
+     * After a player action during initial placement: Send new game state.
+     * If current player changed, an initial-placement round ended ({@link SOCGame#isInitialPlacementRoundDone(int)}),
      * or regular game play started, announce the new player with
      * {@link #sendTurn(SOCGame, boolean)} or send {@link SOCRollDicePrompt}
      * to trigger auto-roll for the new player's client.
@@ -2772,23 +2784,21 @@ public class SOCGameHandler extends GameHandler
      * Call after an initial road/ship placement's {@link soc.game.SOCGame#putPiece(SOCPlayingPiece)},
      * or after a player has chosen free resources from a gold hex with
      * {@link soc.game.SOCGame#pickGoldHexResources(int, SOCResourceSet)},
-     * and only after {@link #sendGameState(SOCGame, boolean)}.
+     * and only after {@link #sendGameState(SOCGame, boolean, boolean)}.
      *
      * @param ga  The game
      * @param pl  Player who did the gold pick or piece placement action
      * @param c   {@code pl}'s connection
      * @param prevGameState  {@link soc.game.SOCGame#getGameState()} before piece placement,
      *     or for gold pick action the pre-reveal game state returned from {@code ga.pickGoldHexResources(..)}
-     * @param toldRoll  True if {@link #sendGameState(SOCGame, boolean)} sent roll prompt text,
-     *     and so this method should send {@link SOCRollDicePrompt} if normal play is now starting
      * @since 2.0.00
      */
-    void sendTurnAtInitialPlacement
-        (SOCGame ga, SOCPlayer pl, Connection c, final int prevGameState, final boolean toldRoll)
+    void sendTurnStateAtInitialPlacement
+        (SOCGame ga, SOCPlayer pl, Connection c, final int prevGameState)
     {
         if (! checkTurn(c, ga))
         {
-            // Player changed (or normal play started), announce new player
+            // Player changed (or normal play started), announce new state and player
             sendTurn(ga, true);
         }
         else if (pl.isRobot() && ga.isInitialPlacementRoundDone(prevGameState))
@@ -2797,19 +2807,30 @@ public class SOCGameHandler extends GameHandler
             // place its next settlement or roll its first turn
             sendTurn(ga, false);
         }
-        else if (toldRoll)
+        else
         {
-            // When normal play starts, or after placing 2nd free road,
-            // announce even though player unchanged,
-            // to trigger auto-roll for the player client
-            final String gaName = ga.getName();
-            srv.messageToGame(gaName, new SOCRollDicePrompt (gaName, pl.getPlayerNumber()));
+            boolean toldRoll = sendGameState(ga, false, false);
+
+            if (toldRoll)
+            {
+                // When normal play starts, or after placing 2nd free road,
+                // announce even though player unchanged,
+                // to trigger auto-roll for the player client
+                final String gaName = ga.getName();
+                srv.messageToGame(gaName, new SOCRollDicePrompt(gaName, pl.getPlayerNumber()));
+            }
         }
     }
 
     /**
-     * send {@link SOCTurn whose turn it is}. Optionally also send a prompt to roll.
-     * If the client is too old (1.0.6), it will ignore the prompt.
+     * At start of a new turn, send new {@link SOCGame#getGameState()} and {@link SOCTurn} with whose turn it is.
+     * Optionally also send a prompt to roll. If the client is too old (1.0.6), it will ignore the prompt.
+     *<P>
+     * The {@link SOCTurn} sent will have a field for the Game State unless
+     * {@link SOCGame#clientVersionLowest} &lt; 2.0.00 ({@link SOCGameState#VERSION_FOR_GAME_STATE_AS_FIELD}),
+     * in which case a separate {@link SOCGameState} message will be sent first.
+     * Calls {@link #sendGameState(SOCGame, boolean, boolean)} in either case,
+     * to send any text prompts or other gamestate-related messages.
      *<P>
      * sendTurn should be called whenever the current player changes, including
      * during and after initial placement.
@@ -2817,22 +2838,27 @@ public class SOCGameHandler extends GameHandler
      * @param ga  the game
      * @param sendRollPrompt  whether to send a RollDicePrompt message afterwards
      */
-    void sendTurn(final SOCGame ga, final boolean sendRollPrompt)
+    void sendTurn(final SOCGame ga, boolean sendRollPrompt)
     {
         if (ga == null)
             return;
 
+        final boolean useGSField = (ga.clientVersionLowest >= SOCGameState.VERSION_FOR_GAME_STATE_AS_FIELD);
+
+        sendRollPrompt |= sendGameState(ga, useGSField, false);
+
         String gname = ga.getName();
-        int pn = ga.getCurrentPlayerNumber();
+        final int gs = ga.getGameState(),
+            cpn = ga.getCurrentPlayerNumber();
 
-        srv.messageToGame(gname, new SOCSetPlayedDevCard(gname, pn, false));
+        srv.messageToGame(gname, new SOCSetPlayedDevCard(gname, cpn, false));
 
-        SOCTurn turnMessage = new SOCTurn(gname, pn);
+        final SOCTurn turnMessage = new SOCTurn(gname, cpn, (useGSField) ? gs : 0);
         srv.messageToGame(gname, turnMessage);
         srv.recordGameEvent(gname, turnMessage);
 
         if (sendRollPrompt)
-            srv.messageToGame(gname, new SOCRollDicePrompt(gname, pn));
+            srv.messageToGame(gname, new SOCRollDicePrompt(gname, cpn));
     }
 
     /**
@@ -3305,7 +3331,7 @@ public class SOCGameHandler extends GameHandler
                     + ga.getName() + ", pn=" + plNumber + "  " + plName);
                 ga.takeMonitor();
                 forceGamePlayerDiscardOrGain(ga, cpn, plConn, plName, plNumber);
-                sendGameState(ga, false);  // WAITING_FOR_DISCARDS or MOVING_ROBBER for discard;
+                sendGameState(ga, false, false);  // WAITING_FOR_DISCARDS or MOVING_ROBBER for discard;
                     // PLAY1 or WAITING_FOR_PICK_GOLD_RESOURCE for gain
                 ga.releaseMonitor();
                 srv.gameList.takeMonitorForGame(gaName);
@@ -3470,7 +3496,7 @@ public class SOCGameHandler extends GameHandler
         final boolean flagsChanged, final Object obj)
     {
         // Note: Some SOCGameHandler code assumes that player events are fired only during
-        // SOCGameMessageHandler.handlePUTPIECE and handleMOVEPIECEREQUEST.
+        // SOCGameMessageHandler.handlePUTPIECE and handleMOVEPIECE.
         // Most handle* methods don't check pendingMessagesOut before sending game state.
         // If a new player event breaks this assumption, adjust SOCGameHandler.playerEvent(...)
         // and related code; search where SOCGame.pendingMessagesOut is used.
@@ -3640,7 +3666,7 @@ public class SOCGameHandler extends GameHandler
      * Adds the message to {@link SOCGame#pendingMessagesOut}; note that
      * right now, that field is checked only in
      * {@link SOCGameMessageHandler#handlePUTPIECE(SOCGame, Connection, SOCPutPiece)}
-     * and {@link SOCGameMessageHandler#handleMOVEPIECEREQUEST(SOCGame, Connection, SOCMovePieceRequest)},
+     * and {@link SOCGameMessageHandler#handleMOVEPIECE(SOCGame, Connection, SOCMovePiece)},
      * because no other method currently awards SVP.
      * @param ga  Game
      * @param pl  Player

@@ -44,6 +44,7 @@ import java.util.StringTokenizer;
  *   for each resource type gained by each player from the roll. Newer clients are instead sent
  *   {@link SOCDiceResultResources}. Afterwards the current player (any client version) is sent their currently
  *   held amounts for each resource as a group of <tt>SOCPlayerElement(pn, {@link #SET}, ...)</tt> messages.
+ * <LI> Most other situations send single PlayerElement messages or their sequence doesn't matter.
  *</UL>
  *<P>
  * Resource loss can be expected and good (buying pieces or trading with other players)
@@ -80,12 +81,17 @@ public class SOCPlayerElement extends SOCMessage
      */
     public static final int UNKNOWN = 6;
 
+    /** Number of Road pieces available to place. */
     public static final int ROADS = 10;
+
+    /** Number of Settlement pieces available to place. */
     public static final int SETTLEMENTS = 11;
+
+    /** Number of City pieces available to place. */
     public static final int CITIES = 12;
 
     /**
-     * Number of SHIP pieces available to place; added in v2.0.00.
+     * Number of Ship pieces available to place.
      * @since 2.0.00
      */
     public static final int SHIPS = 13;
@@ -109,7 +115,7 @@ public class SOCPlayerElement extends SOCMessage
      * resources from the gold hex after a dice roll,
      * during the {@link soc.game.SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE WAITING_FOR_PICK_GOLD_RESOURCE}
      * game state.
-     * This element is {@link #SET} to 0, or to the number of resources to choose.
+     * This element is {@link #SET} to 0 or to the number of resources to choose.
      * Call {@link soc.game.SOCPlayer#setNeedToPickGoldHexResources(int)}.
      * @since 2.0.00
      */
@@ -118,7 +124,7 @@ public class SOCPlayerElement extends SOCMessage
     /**
      * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
      * the player's number of Special Victory Points (SVP).
-     * This element is {@link #SET} to 0, or to the player's
+     * This element is {@link #SET} to 0 or to the player's
      * {@link soc.game.SOCPlayer#getSpecialVP()}.
      * @since 2.0.00
      */
@@ -127,7 +133,7 @@ public class SOCPlayerElement extends SOCMessage
     /**
      * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
      * bitmask of flags related to scenario player events.
-     * This element is {@link #SET} to 0, or to the player's flags
+     * This element is {@link #SET} to 0 or to the player's flags
      * from {@link soc.game.SOCPlayer#getScenarioPlayerEvents()}.
      * @since 2.0.00
      */
@@ -136,7 +142,7 @@ public class SOCPlayerElement extends SOCMessage
     /**
      * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
      * bitmask of land areas for tracking Special Victory Points (SVP).
-     * This element is {@link #SET} to 0, or to the player's land areas
+     * This element is {@link #SET} to 0 or to the player's land areas
      * from {@link soc.game.SOCPlayer#getScenarioSVPLandAreas()}.
      * @since 2.0.00
      */
@@ -153,7 +159,7 @@ public class SOCPlayerElement extends SOCMessage
     /**
      * For scenario <tt>_SC_CLVI</tt> on the {@link soc.game.SOCBoardLarge large sea board},
      * the number of cloth held by this player.
-     * This element is {@link #SET} to 0, or to the player's cloth count
+     * This element is {@link #SET} to 0 or to the player's cloth count
      * from {@link soc.game.SOCPlayer#getCloth()}.
      * After giving cloth to a player, check their total VP; 2 cloth = 1 Victory Point.
      *<P>
@@ -234,9 +240,11 @@ public class SOCPlayerElement extends SOCMessage
     private int actionType;
 
     /**
-     * Element value
+     * Set element value to, or change it by, this amount.
+     *<P>
+     * Before v2.0.00 this field was {@code value}.
      */
-    private int value;
+    private int amount;
 
     /**
      * Is this a notable/unexpected gain or loss? See {@link #isNews()} for details.
@@ -255,14 +263,14 @@ public class SOCPlayerElement extends SOCMessage
      *            Do not use {@link #GAIN_NEWS}, {@link #SET_NEWS}, or {@link #LOSE_NEWS} here, call
      *            {@link #SOCPlayerElement(String, int, int, int, int, boolean)} instead.
      * @param et  the type of element, such as {@link #SETTLEMENTS}
-     * @param va  the value of the element
+     * @param amt the amount to set or change the element
      * @throws IllegalArgumentException if {@code ac} is {@link #GAIN_NEWS}, {@link #SET_NEWS}, or {@link #LOSE_NEWS}
      * @see #SOCPlayerElement(String, int, int, int, int, boolean)
      */
-    public SOCPlayerElement(String ga, int pn, int ac, int et, int va)
+    public SOCPlayerElement(String ga, int pn, int ac, int et, int amt)
         throws IllegalArgumentException
     {
-        this(ga, pn, ac, et, va, false);
+        this(ga, pn, ac, et, amt, false);
     }
 
     /**
@@ -276,13 +284,13 @@ public class SOCPlayerElement extends SOCMessage
      *            Do not use {@link #GAIN_NEWS}, {@link #SET_NEWS}, or {@link #LOSE_NEWS} here,
      *            instead set {@code isNews} parameter.
      * @param et  the type of element, such as {@link #SETTLEMENTS}
-     * @param va  the value of the element
+     * @param amt the amount to set or change the element
      * @param isNews  Value to give the {@link #isNews()} flag
      * @see #SOCPlayerElement(String, int, int, int, int)
      * @throws IllegalArgumentException if {@code ac} is {@link #GAIN_NEWS}, {@link #SET_NEWS} or {@link #LOSE_NEWS}
      * @since 1.2.00
      */
-    public SOCPlayerElement(String ga, int pn, int ac, int et, int va, boolean isNews)
+    public SOCPlayerElement(String ga, int pn, int ac, int et, int amt, boolean isNews)
         throws IllegalArgumentException
     {
         if ((ac == GAIN_NEWS) || (ac == SET_NEWS) || (ac == LOSE_NEWS))
@@ -293,7 +301,7 @@ public class SOCPlayerElement extends SOCMessage
         playerNumber = pn;
         actionType = ac;
         elementType = et;
-        value = va;
+        amount = amt;
         news = isNews;
     }
 
@@ -336,12 +344,14 @@ public class SOCPlayerElement extends SOCMessage
     }
 
     /**
-     * Get the new value to set, or the delta to gain/lose.
+     * Get the new value to set, or the delta amount to gain/lose.
      * @return the amount to {@link #SET}, {@link #GAIN}, or {@link #LOSE}
+     *<P>
+     * Before v2.0.00 this method was {@code getValue()}.
      */
-    public int getValue()
+    public int getAmount()
     {
-        return value;
+        return amount;
     }
 
     /**
@@ -383,7 +393,7 @@ public class SOCPlayerElement extends SOCMessage
                 ac = SET_NEWS;  break;
             }
 
-        return toCmd(game, playerNumber, ac, elementType, value);
+        return toCmd(game, playerNumber, ac, elementType, amount);
     }
 
     /**
@@ -397,10 +407,10 @@ public class SOCPlayerElement extends SOCMessage
      * @param ac  the type of action: {@link #SET}, {@link #GAIN}, or {@link #LOSE}.
      *            Use {@link #GAIN_NEWS}, {@link #SET_NEWS} or {@link #LOSE_NEWS} to set message's {@link #isNews()} flag.
      * @param et  the type of element
-     * @param va  the value of the element
+     * @param amt the amount to set or change the element
      * @return    the command string
      */
-    public static String toCmd(String ga, int pn, int ac, int et, int va)
+    public static String toCmd(String ga, int pn, int ac, int et, int amt)
     {
         boolean isNews = false;
         switch (ac)
@@ -415,7 +425,7 @@ public class SOCPlayerElement extends SOCMessage
             // no ac change needed
         }
 
-        return PLAYERELEMENT + sep + ga + sep2 + pn + sep2 + ac + sep2 + et + sep2 + va
+        return PLAYERELEMENT + sep + ga + sep2 + pn + sep2 + ac + sep2 + et + sep2 + amt
             + ((isNews) ? (sep2 + 'Y') : "");
     }
 
@@ -460,7 +470,7 @@ public class SOCPlayerElement extends SOCMessage
         GameMessage.PlayerElement.Builder b
             = GameMessage.PlayerElement.newBuilder();
         b.setPlayerNumber(playerNumber).setActionValue(actionType).setIsNews(news);
-        b.setElementTypeValue(elementType).setAmount(value);
+        b.setElementTypeValue(elementType).setAmount(amount);
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
         gb.setGaName(game).setPlayerElement(b);
@@ -482,7 +492,7 @@ public class SOCPlayerElement extends SOCMessage
         }
 
         String s = "SOCPlayerElement:game=" + game + "|playerNum=" + playerNumber + "|actionType=" + act
-            + "|elementType=" + elementType + "|value=" + value + ((news) ? "|news=Y" : "");
+            + "|elementType=" + elementType + "|amount=" + amount + ((news) ? "|news=Y" : "");
 
         return s;
     }
