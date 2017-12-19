@@ -26,7 +26,7 @@ import java.util.List;
  * less overhead to send multiple similar element changes.
  *<P>
  * For a given player number and action type, contains multiple
- * pairs of (element type, value).
+ * pairs of (element type, amount).
  *<P>
  * Defined in v1.1.09 but unused before v2.0.00, so {@link #getMinimumVersion()} returns 2000.
  *
@@ -52,14 +52,16 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
 
     /**
      * Element types from {@link SOCPlayerElement}, such as {@link SOCPlayerElement#CLAY},
-     * matching up with each item of {@link #values}
+     * matching up with each item of {@link #amounts}
      */
     private int[] elementTypes;
 
     /**
-     * Element values, matching up with each item of {@link #elementTypes}
+     * Element amounts to set or change, matching up with each item of {@link #elementTypes}.
+     *<P>
+     * Before v2.0.00 this field was {@code values}.
      */
-    private int[] values;
+    private int[] amounts;
 
     /**
      * Constructor for server to tell client about player elements.
@@ -69,26 +71,26 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
      * @param ac  the type of action: {@link SOCPlayerElement#SET},
      *             {@link SOCPlayerElement#GAIN}, or {@link SOCPlayerElement#LOSE}
      * @param et  array of the types of element, such as {@link SOCPlayerElement#SETTLEMENTS}
-     * @param va  array of the values of each element, corresponding to <tt>et[]</tt>
+     * @param amt array of the amounts to set or change each element, corresponding to <tt>et[]</tt>
      * @throws NullPointerException if et null or va null
      */
-    public SOCPlayerElements(String ga, int pn, int ac, final int[] et, final int[] va)
+    public SOCPlayerElements(String ga, int pn, int ac, final int[] et, final int[] amt)
         throws NullPointerException
     {
         super(PLAYERELEMENTS, ga, new int[2 + (2 * et.length)]);
-        if (va == null)
+        if (amt == null)
             throw new NullPointerException();
 
         playerNumber = pn;
         actionType = ac;
         elementTypes = et;
-        values = va;
+        amounts = amt;
         pa[0] = pn;
         pa[1] = ac;
         for (int pai = 2, eti = 0; eti < et.length; ++eti)
         {
-            pa[pai] = et[eti];  ++pai;
-            pa[pai] = va[eti];  ++pai;
+            pa[pai] = et[eti];   ++pai;
+            pa[pai] = amt[eti];  ++pai;
         }
     }
 
@@ -117,8 +119,8 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
     }
 
     /**
-     * @return the element type arrays, with value constants from {@link SOCPlayerElement}
-     * such as {@link SOCPlayerElement#CLAY}, matching up with each item of {@link #getValues()}
+     * @return the element type arrays, with type constants from {@link SOCPlayerElement}
+     * such as {@link SOCPlayerElement#CLAY}, matching up with each item of {@link #getAmounts()}
      */
     public int[] getElementTypes()
     {
@@ -126,11 +128,13 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
     }
 
     /**
-     * @return the element value array, matching up with each item of {@link #getElementTypes()}
+     * @return the element amounts array, matching up with each item of {@link #getElementTypes()}
+     *<P>
+     * Before v2.0.00 this method was {@code getValues()}.
      */
-    public int[] getValues()
+    public int[] getAmounts()
     {
-        return values;
+        return amounts;
     }
 
     /**
@@ -142,9 +146,9 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
      * pa[1] = playerNum
      * pa[2] = actionType
      * pa[3] = elementType[0]
-     * pa[4] = value[0]
+     * pa[4] = amount[0]
      * pa[5] = elementType[1]
-     * pa[6] = value[1]
+     * pa[6] = amount[1]
      * ...</pre>
      * @return    a SOCPlayerElements message, or null if parsing errors
      */

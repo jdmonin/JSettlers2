@@ -4492,7 +4492,7 @@ public class SOCPlayerClient
         final int pn = mes.getPlayerNumber();
         final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
         final int action = mes.getAction();
-        final int[] etypes = mes.getElementTypes(), amounts = mes.getValues();
+        final int[] etypes = mes.getElementTypes(), amounts = mes.getAmounts();
 
         for (int i = 0; i < etypes.length; ++i)
             handlePLAYERELEMENT
@@ -4512,7 +4512,7 @@ public class SOCPlayerClient
 
         final int pn = mes.getPlayerNumber();
         final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
-        final int action = mes.getAction(), amount = mes.getValue();
+        final int action = mes.getAction(), amount = mes.getAmount();
         final int etype = mes.getElementType();
 
         handlePLAYERELEMENT

@@ -235,9 +235,11 @@ public class SOCPlayerElement extends SOCMessage
     private int actionType;
 
     /**
-     * Element value
+     * Set element value to, or change it by, this amount.
+     *<P>
+     * Before v2.0.00 this field was {@code value}.
      */
-    private int value;
+    private int amount;
 
     /**
      * Is this a notable/unexpected gain or loss? See {@link #isNews()} for details.
@@ -256,14 +258,14 @@ public class SOCPlayerElement extends SOCMessage
      *            Do not use {@link #GAIN_NEWS}, {@link #SET_NEWS}, or {@link #LOSE_NEWS} here, call
      *            {@link #SOCPlayerElement(String, int, int, int, int, boolean)} instead.
      * @param et  the type of element, such as {@link #SETTLEMENTS}
-     * @param va  the value of the element
+     * @param amt the amount to set or change the element
      * @throws IllegalArgumentException if {@code ac} is {@link #GAIN_NEWS}, {@link #SET_NEWS}, or {@link #LOSE_NEWS}
      * @see #SOCPlayerElement(String, int, int, int, int, boolean)
      */
-    public SOCPlayerElement(String ga, int pn, int ac, int et, int va)
+    public SOCPlayerElement(String ga, int pn, int ac, int et, int amt)
         throws IllegalArgumentException
     {
-        this(ga, pn, ac, et, va, false);
+        this(ga, pn, ac, et, amt, false);
     }
 
     /**
@@ -277,13 +279,13 @@ public class SOCPlayerElement extends SOCMessage
      *            Do not use {@link #GAIN_NEWS}, {@link #SET_NEWS}, or {@link #LOSE_NEWS} here,
      *            instead set {@code isNews} parameter.
      * @param et  the type of element, such as {@link #SETTLEMENTS}
-     * @param va  the value of the element
+     * @param amt the amount to set or change the element
      * @param isNews  Value to give the {@link #isNews()} flag
      * @see #SOCPlayerElement(String, int, int, int, int)
      * @throws IllegalArgumentException if {@code ac} is {@link #GAIN_NEWS}, {@link #SET_NEWS} or {@link #LOSE_NEWS}
      * @since 1.2.00
      */
-    public SOCPlayerElement(String ga, int pn, int ac, int et, int va, boolean isNews)
+    public SOCPlayerElement(String ga, int pn, int ac, int et, int amt, boolean isNews)
         throws IllegalArgumentException
     {
         if ((ac == GAIN_NEWS) || (ac == SET_NEWS) || (ac == LOSE_NEWS))
@@ -294,7 +296,7 @@ public class SOCPlayerElement extends SOCMessage
         playerNumber = pn;
         actionType = ac;
         elementType = et;
-        value = va;
+        amount = amt;
         news = isNews;
     }
 
@@ -337,12 +339,14 @@ public class SOCPlayerElement extends SOCMessage
     }
 
     /**
-     * Get the new value to set, or the delta to gain/lose.
+     * Get the new value to set, or the delta amount to gain/lose.
      * @return the amount to {@link #SET}, {@link #GAIN}, or {@link #LOSE}
+     *<P>
+     * Before v2.0.00 this method was {@code getValue()}.
      */
-    public int getValue()
+    public int getAmount()
     {
-        return value;
+        return amount;
     }
 
     /**
@@ -384,7 +388,7 @@ public class SOCPlayerElement extends SOCMessage
                 ac = SET_NEWS;  break;
             }
 
-        return toCmd(game, playerNumber, ac, elementType, value);
+        return toCmd(game, playerNumber, ac, elementType, amount);
     }
 
     /**
@@ -398,10 +402,10 @@ public class SOCPlayerElement extends SOCMessage
      * @param ac  the type of action: {@link #SET}, {@link #GAIN}, or {@link #LOSE}.
      *            Use {@link #GAIN_NEWS}, {@link #SET_NEWS} or {@link #LOSE_NEWS} to set message's {@link #isNews()} flag.
      * @param et  the type of element
-     * @param va  the value of the element
+     * @param amt the amount to set or change the element
      * @return    the command string
      */
-    public static String toCmd(String ga, int pn, int ac, int et, int va)
+    public static String toCmd(String ga, int pn, int ac, int et, int amt)
     {
         boolean isNews = false;
         switch (ac)
@@ -416,7 +420,7 @@ public class SOCPlayerElement extends SOCMessage
             // no ac change needed
         }
 
-        return PLAYERELEMENT + sep + ga + sep2 + pn + sep2 + ac + sep2 + et + sep2 + va
+        return PLAYERELEMENT + sep + ga + sep2 + pn + sep2 + ac + sep2 + et + sep2 + amt
             + ((isNews) ? (sep2 + 'Y') : "");
     }
 
@@ -470,7 +474,7 @@ public class SOCPlayerElement extends SOCMessage
         }
 
         String s = "SOCPlayerElement:game=" + game + "|playerNum=" + playerNumber + "|actionType=" + act
-            + "|elementType=" + elementType + "|value=" + value + ((news) ? "|news=Y" : "");
+            + "|elementType=" + elementType + "|amount=" + amount + ((news) ? "|news=Y" : "");
 
         return s;
     }
