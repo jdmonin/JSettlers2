@@ -2383,11 +2383,19 @@ public class SOCPlayerInterface extends Frame
             knowsGameState = true;
 
             // game state was 0 when PI and handpanels were created:
-            // update Sit Here buttons' status now
-            final boolean clientSatAlready = (clientHand != null);
-            for (int i = 0; i < game.maxPlayers; i++)
-                if (game.isSeatVacant(i))
-                    hands[i].addSitButton(clientSatAlready);
+            // update Sit Here buttons' status now if we haven't already sat down;
+            // show buttons only if game is still forming
+            if (clientHand == null)
+            {
+                for (int i = 0; i < game.maxPlayers; i++)
+                    if (game.isSeatVacant(i))
+                    {
+                        if (gs < SOCGame.START2A)
+                            hands[i].addSitButton(false);
+                        else
+                            hands[i].removeSitBut();
+                    }
+            }
         }
 
         getBoardPanel().updateMode();
