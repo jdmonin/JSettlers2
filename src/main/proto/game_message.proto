@@ -62,6 +62,10 @@ message BoardLayout
 /* Client player is asking to place, or server is announcing placement of, a piece on the board.
  * Also used when joining a new game or a game in progress, to send the game state so far.
  *<P>
+ * If message is for a {@link soc.game.SOCCity} while client is joining a game, must precede with
+ * a {@code PutPiece} message with the Settlement at the same coordinate
+ * which was upgraded to that city.
+ *<P>
  * Some game scenarios use {@link soc.game.SOCVillage villages} which aren't owned by any player;
  * their {@code player_number} is -1 in this message.
  *<P>
@@ -77,7 +81,7 @@ message BoardLayout
  */
 message PutPiece {
     PieceType type = 1;
-    /* the player number of who played the piece, or -1 for non-player-owned
+    /* the player number who played the piece, or -1 for non-player-owned
      * ({@link soc.game.SOCPlayingPiece#VILLAGE}).
      * Remember that for playerNumber 0, protobuf won't send the field (== default).
      * Ignored if sent from client.

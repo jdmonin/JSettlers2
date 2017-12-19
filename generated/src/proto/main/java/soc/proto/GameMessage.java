@@ -3116,7 +3116,7 @@ public final class GameMessage {
 
     /**
      * <pre>
-     * the player number of who played the piece, or -1 for non-player-owned
+     * the player number who played the piece, or -1 for non-player-owned
      * ({&#64;link soc.game.SOCPlayingPiece#VILLAGE}).
      * Remember that for playerNumber 0, protobuf won't send the field (== default).
      * Ignored if sent from client.
@@ -3135,6 +3135,10 @@ public final class GameMessage {
    * <pre>
    * Client player is asking to place, or server is announcing placement of, a piece on the board.
    * Also used when joining a new game or a game in progress, to send the game state so far.
+   *&lt;P&gt;
+   * If message is for a {&#64;link soc.game.SOCCity} while client is joining a game, must precede with
+   * a {&#64;code PutPiece} message with the Settlement at the same coordinate
+   * which was upgraded to that city.
    *&lt;P&gt;
    * Some game scenarios use {&#64;link soc.game.SOCVillage villages} which aren't owned by any player;
    * their {&#64;code player_number} is -1 in this message.
@@ -3255,7 +3259,7 @@ public final class GameMessage {
     private int playerNumber_;
     /**
      * <pre>
-     * the player number of who played the piece, or -1 for non-player-owned
+     * the player number who played the piece, or -1 for non-player-owned
      * ({&#64;link soc.game.SOCPlayingPiece#VILLAGE}).
      * Remember that for playerNumber 0, protobuf won't send the field (== default).
      * Ignored if sent from client.
@@ -3452,6 +3456,10 @@ public final class GameMessage {
      * <pre>
      * Client player is asking to place, or server is announcing placement of, a piece on the board.
      * Also used when joining a new game or a game in progress, to send the game state so far.
+     *&lt;P&gt;
+     * If message is for a {&#64;link soc.game.SOCCity} while client is joining a game, must precede with
+     * a {&#64;code PutPiece} message with the Settlement at the same coordinate
+     * which was upgraded to that city.
      *&lt;P&gt;
      * Some game scenarios use {&#64;link soc.game.SOCVillage villages} which aren't owned by any player;
      * their {&#64;code player_number} is -1 in this message.
@@ -3657,7 +3665,7 @@ public final class GameMessage {
       private int playerNumber_ ;
       /**
        * <pre>
-       * the player number of who played the piece, or -1 for non-player-owned
+       * the player number who played the piece, or -1 for non-player-owned
        * ({&#64;link soc.game.SOCPlayingPiece#VILLAGE}).
        * Remember that for playerNumber 0, protobuf won't send the field (== default).
        * Ignored if sent from client.
@@ -3670,7 +3678,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * the player number of who played the piece, or -1 for non-player-owned
+       * the player number who played the piece, or -1 for non-player-owned
        * ({&#64;link soc.game.SOCPlayingPiece#VILLAGE}).
        * Remember that for playerNumber 0, protobuf won't send the field (== default).
        * Ignored if sent from client.
@@ -3686,7 +3694,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * the player number of who played the piece, or -1 for non-player-owned
+       * the player number who played the piece, or -1 for non-player-owned
        * ({&#64;link soc.game.SOCPlayingPiece#VILLAGE}).
        * Remember that for playerNumber 0, protobuf won't send the field (== default).
        * Ignored if sent from client.
