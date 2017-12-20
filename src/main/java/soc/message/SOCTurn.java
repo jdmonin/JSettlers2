@@ -22,6 +22,8 @@ package soc.message;
 
 import java.util.StringTokenizer;
 import soc.game.SOCGame;  // for javadocs only
+import soc.proto.GameMessage;
+import soc.proto.Message;
 
 
 /**
@@ -162,6 +164,19 @@ public class SOCTurn extends SOCMessage
         } catch (Exception e) {
             return null;
         }
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.Turn.Builder b
+            = GameMessage.Turn.newBuilder().setPlayerNumber(playerNumber);
+        if (gameState > 0)
+            b.setStateValue(gameState);
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGaName(game).setTurn(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
     /**

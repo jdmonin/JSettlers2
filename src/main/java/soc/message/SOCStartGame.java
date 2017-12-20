@@ -23,6 +23,8 @@ package soc.message;
 import java.util.StringTokenizer;
 
 import soc.game.SOCGame;
+import soc.proto.GameMessage;
+import soc.proto.Message;
 
 
 /**
@@ -137,6 +139,19 @@ public class SOCStartGame extends SOCMessage
         } catch (Exception e) {
             return null;
         }
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.StartGame.Builder b
+            = GameMessage.StartGame.newBuilder();
+        if (gameState > 0)
+            b.setStateValue(gameState);
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGaName(game).setStartGame(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
     /**
