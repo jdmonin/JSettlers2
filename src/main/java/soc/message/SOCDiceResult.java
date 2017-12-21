@@ -22,6 +22,9 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.proto.GameMessage;
+import soc.proto.Message;
+
 
 /**
  * This message reports total of what was rolled on the dice.
@@ -110,6 +113,17 @@ public class SOCDiceResult extends SOCMessageTemplate1i
         }
 
         return new SOCDiceResult(ga, dr);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.DiceResult.Builder b
+            = GameMessage.DiceResult.newBuilder().setDiceTotal(p1);
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGaName(game).setDiceResult(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
 }

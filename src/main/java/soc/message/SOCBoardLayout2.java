@@ -20,13 +20,13 @@
 package soc.message;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;  // for javadocs
 import soc.game.SOCScenario;    // for javadocs
+import soc.proto.Data;
 import soc.proto.GameMessage;
 import soc.proto.Message;
 import soc.util.DataUtils;
@@ -484,8 +484,7 @@ public class SOCBoardLayout2 extends SOCMessage
                 pb.setIVal(((Integer) ov).intValue());
             else if (ov instanceof int[])
             {
-                GameMessage.BoardLayout._BoardLayoutPart.IntArray.Builder ib
-                    = GameMessage.BoardLayout._BoardLayoutPart.IntArray.newBuilder();
+                Data._IntArray.Builder ib = Data._IntArray.newBuilder();
                 ib.addAllArr(DataUtils.toList((int[]) ov));
                 pb.setIArr(ib);
             }

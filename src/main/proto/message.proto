@@ -582,9 +582,9 @@ message GameMembers {
  */
 message SitDown {
     string ga_name = 1;  // Name of game being sat at
-    string pl_name = 2;  // Nickname of the sitting player
+    string pl_name = 2;  // Nickname of the sitting player; ignored from client
     uint32 seat_number = 3;  // Where the player wants to sit (from client) / has sat (from server)
-    bool is_robot = 4;   // True if this player is a robot
+    bool is_robot = 4;   // True if this player is a robot; ignored from client
 }
 
 /* From client, request to lock or unlock a seat.

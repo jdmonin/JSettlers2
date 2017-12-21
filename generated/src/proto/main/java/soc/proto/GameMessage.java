@@ -861,28 +861,28 @@ public final class GameMessage {
 
       /**
        * <pre>
-       * signed integer array
+       * signed integer array; negative values allowed but not frequently used
        * </pre>
        *
-       * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+       * <code>._IntArray i_arr = 3;</code>
        */
       boolean hasIArr();
       /**
        * <pre>
-       * signed integer array
+       * signed integer array; negative values allowed but not frequently used
        * </pre>
        *
-       * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+       * <code>._IntArray i_arr = 3;</code>
        */
-      soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray getIArr();
+      soc.proto.Data._IntArray getIArr();
       /**
        * <pre>
-       * signed integer array
+       * signed integer array; negative values allowed but not frequently used
        * </pre>
        *
-       * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+       * <code>._IntArray i_arr = 3;</code>
        */
-      soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArrayOrBuilder getIArrOrBuilder();
+      soc.proto.Data._IntArrayOrBuilder getIArrOrBuilder();
 
       public soc.proto.GameMessage.BoardLayout._BoardLayoutPart.ValCase getValCase();
     }
@@ -941,14 +941,14 @@ public final class GameMessage {
                 break;
               }
               case 26: {
-                soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.Builder subBuilder = null;
+                soc.proto.Data._IntArray.Builder subBuilder = null;
                 if (valCase_ == 3) {
-                  subBuilder = ((soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) val_).toBuilder();
+                  subBuilder = ((soc.proto.Data._IntArray) val_).toBuilder();
                 }
                 val_ =
-                    input.readMessage(soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.parser(), extensionRegistry);
+                    input.readMessage(soc.proto.Data._IntArray.parser(), extensionRegistry);
                 if (subBuilder != null) {
-                  subBuilder.mergeFrom((soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) val_);
+                  subBuilder.mergeFrom((soc.proto.Data._IntArray) val_);
                   val_ = subBuilder.buildPartial();
                 }
                 valCase_ = 3;
@@ -976,565 +976,6 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_BoardLayout__BoardLayoutPart_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
                 soc.proto.GameMessage.BoardLayout._BoardLayoutPart.class, soc.proto.GameMessage.BoardLayout._BoardLayoutPart.Builder.class);
-      }
-
-      public interface IntArrayOrBuilder extends
-          // @@protoc_insertion_point(interface_extends:BoardLayout._BoardLayoutPart.IntArray)
-          com.google.protobuf.MessageOrBuilder {
-
-        /**
-         * <code>repeated int32 arr = 1;</code>
-         */
-        java.util.List<java.lang.Integer> getArrList();
-        /**
-         * <code>repeated int32 arr = 1;</code>
-         */
-        int getArrCount();
-        /**
-         * <code>repeated int32 arr = 1;</code>
-         */
-        int getArr(int index);
-      }
-      /**
-       * Protobuf type {@code BoardLayout._BoardLayoutPart.IntArray}
-       */
-      public  static final class IntArray extends
-          com.google.protobuf.GeneratedMessageV3 implements
-          // @@protoc_insertion_point(message_implements:BoardLayout._BoardLayoutPart.IntArray)
-          IntArrayOrBuilder {
-      private static final long serialVersionUID = 0L;
-        // Use IntArray.newBuilder() to construct.
-        private IntArray(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
-          super(builder);
-        }
-        private IntArray() {
-          arr_ = java.util.Collections.emptyList();
-        }
-
-        @java.lang.Override
-        public final com.google.protobuf.UnknownFieldSet
-        getUnknownFields() {
-          return this.unknownFields;
-        }
-        private IntArray(
-            com.google.protobuf.CodedInputStream input,
-            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-            throws com.google.protobuf.InvalidProtocolBufferException {
-          this();
-          int mutable_bitField0_ = 0;
-          com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-              com.google.protobuf.UnknownFieldSet.newBuilder();
-          try {
-            boolean done = false;
-            while (!done) {
-              int tag = input.readTag();
-              switch (tag) {
-                case 0:
-                  done = true;
-                  break;
-                default: {
-                  if (!parseUnknownFieldProto3(
-                      input, unknownFields, extensionRegistry, tag)) {
-                    done = true;
-                  }
-                  break;
-                }
-                case 8: {
-                  if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-                    arr_ = new java.util.ArrayList<java.lang.Integer>();
-                    mutable_bitField0_ |= 0x00000001;
-                  }
-                  arr_.add(input.readInt32());
-                  break;
-                }
-                case 10: {
-                  int length = input.readRawVarint32();
-                  int limit = input.pushLimit(length);
-                  if (!((mutable_bitField0_ & 0x00000001) == 0x00000001) && input.getBytesUntilLimit() > 0) {
-                    arr_ = new java.util.ArrayList<java.lang.Integer>();
-                    mutable_bitField0_ |= 0x00000001;
-                  }
-                  while (input.getBytesUntilLimit() > 0) {
-                    arr_.add(input.readInt32());
-                  }
-                  input.popLimit(limit);
-                  break;
-                }
-              }
-            }
-          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-            throw e.setUnfinishedMessage(this);
-          } catch (java.io.IOException e) {
-            throw new com.google.protobuf.InvalidProtocolBufferException(
-                e).setUnfinishedMessage(this);
-          } finally {
-            if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-              arr_ = java.util.Collections.unmodifiableList(arr_);
-            }
-            this.unknownFields = unknownFields.build();
-            makeExtensionsImmutable();
-          }
-        }
-        public static final com.google.protobuf.Descriptors.Descriptor
-            getDescriptor() {
-          return soc.proto.GameMessage.internal_static_BoardLayout__BoardLayoutPart_IntArray_descriptor;
-        }
-
-        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-            internalGetFieldAccessorTable() {
-          return soc.proto.GameMessage.internal_static_BoardLayout__BoardLayoutPart_IntArray_fieldAccessorTable
-              .ensureFieldAccessorsInitialized(
-                  soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.class, soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.Builder.class);
-        }
-
-        public static final int ARR_FIELD_NUMBER = 1;
-        private java.util.List<java.lang.Integer> arr_;
-        /**
-         * <code>repeated int32 arr = 1;</code>
-         */
-        public java.util.List<java.lang.Integer>
-            getArrList() {
-          return arr_;
-        }
-        /**
-         * <code>repeated int32 arr = 1;</code>
-         */
-        public int getArrCount() {
-          return arr_.size();
-        }
-        /**
-         * <code>repeated int32 arr = 1;</code>
-         */
-        public int getArr(int index) {
-          return arr_.get(index);
-        }
-        private int arrMemoizedSerializedSize = -1;
-
-        private byte memoizedIsInitialized = -1;
-        public final boolean isInitialized() {
-          byte isInitialized = memoizedIsInitialized;
-          if (isInitialized == 1) return true;
-          if (isInitialized == 0) return false;
-
-          memoizedIsInitialized = 1;
-          return true;
-        }
-
-        public void writeTo(com.google.protobuf.CodedOutputStream output)
-                            throws java.io.IOException {
-          getSerializedSize();
-          if (getArrList().size() > 0) {
-            output.writeUInt32NoTag(10);
-            output.writeUInt32NoTag(arrMemoizedSerializedSize);
-          }
-          for (int i = 0; i < arr_.size(); i++) {
-            output.writeInt32NoTag(arr_.get(i));
-          }
-          unknownFields.writeTo(output);
-        }
-
-        public int getSerializedSize() {
-          int size = memoizedSize;
-          if (size != -1) return size;
-
-          size = 0;
-          {
-            int dataSize = 0;
-            for (int i = 0; i < arr_.size(); i++) {
-              dataSize += com.google.protobuf.CodedOutputStream
-                .computeInt32SizeNoTag(arr_.get(i));
-            }
-            size += dataSize;
-            if (!getArrList().isEmpty()) {
-              size += 1;
-              size += com.google.protobuf.CodedOutputStream
-                  .computeInt32SizeNoTag(dataSize);
-            }
-            arrMemoizedSerializedSize = dataSize;
-          }
-          size += unknownFields.getSerializedSize();
-          memoizedSize = size;
-          return size;
-        }
-
-        @java.lang.Override
-        public boolean equals(final java.lang.Object obj) {
-          if (obj == this) {
-           return true;
-          }
-          if (!(obj instanceof soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray)) {
-            return super.equals(obj);
-          }
-          soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray other = (soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) obj;
-
-          boolean result = true;
-          result = result && getArrList()
-              .equals(other.getArrList());
-          result = result && unknownFields.equals(other.unknownFields);
-          return result;
-        }
-
-        @java.lang.Override
-        public int hashCode() {
-          if (memoizedHashCode != 0) {
-            return memoizedHashCode;
-          }
-          int hash = 41;
-          hash = (19 * hash) + getDescriptor().hashCode();
-          if (getArrCount() > 0) {
-            hash = (37 * hash) + ARR_FIELD_NUMBER;
-            hash = (53 * hash) + getArrList().hashCode();
-          }
-          hash = (29 * hash) + unknownFields.hashCode();
-          memoizedHashCode = hash;
-          return hash;
-        }
-
-        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseFrom(
-            java.nio.ByteBuffer data)
-            throws com.google.protobuf.InvalidProtocolBufferException {
-          return PARSER.parseFrom(data);
-        }
-        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseFrom(
-            java.nio.ByteBuffer data,
-            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-            throws com.google.protobuf.InvalidProtocolBufferException {
-          return PARSER.parseFrom(data, extensionRegistry);
-        }
-        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseFrom(
-            com.google.protobuf.ByteString data)
-            throws com.google.protobuf.InvalidProtocolBufferException {
-          return PARSER.parseFrom(data);
-        }
-        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseFrom(
-            com.google.protobuf.ByteString data,
-            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-            throws com.google.protobuf.InvalidProtocolBufferException {
-          return PARSER.parseFrom(data, extensionRegistry);
-        }
-        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseFrom(byte[] data)
-            throws com.google.protobuf.InvalidProtocolBufferException {
-          return PARSER.parseFrom(data);
-        }
-        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseFrom(
-            byte[] data,
-            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-            throws com.google.protobuf.InvalidProtocolBufferException {
-          return PARSER.parseFrom(data, extensionRegistry);
-        }
-        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseFrom(java.io.InputStream input)
-            throws java.io.IOException {
-          return com.google.protobuf.GeneratedMessageV3
-              .parseWithIOException(PARSER, input);
-        }
-        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseFrom(
-            java.io.InputStream input,
-            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-            throws java.io.IOException {
-          return com.google.protobuf.GeneratedMessageV3
-              .parseWithIOException(PARSER, input, extensionRegistry);
-        }
-        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseDelimitedFrom(java.io.InputStream input)
-            throws java.io.IOException {
-          return com.google.protobuf.GeneratedMessageV3
-              .parseDelimitedWithIOException(PARSER, input);
-        }
-        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseDelimitedFrom(
-            java.io.InputStream input,
-            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-            throws java.io.IOException {
-          return com.google.protobuf.GeneratedMessageV3
-              .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-        }
-        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseFrom(
-            com.google.protobuf.CodedInputStream input)
-            throws java.io.IOException {
-          return com.google.protobuf.GeneratedMessageV3
-              .parseWithIOException(PARSER, input);
-        }
-        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parseFrom(
-            com.google.protobuf.CodedInputStream input,
-            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-            throws java.io.IOException {
-          return com.google.protobuf.GeneratedMessageV3
-              .parseWithIOException(PARSER, input, extensionRegistry);
-        }
-
-        public Builder newBuilderForType() { return newBuilder(); }
-        public static Builder newBuilder() {
-          return DEFAULT_INSTANCE.toBuilder();
-        }
-        public static Builder newBuilder(soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray prototype) {
-          return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-        }
-        public Builder toBuilder() {
-          return this == DEFAULT_INSTANCE
-              ? new Builder() : new Builder().mergeFrom(this);
-        }
-
-        @java.lang.Override
-        protected Builder newBuilderForType(
-            com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-          Builder builder = new Builder(parent);
-          return builder;
-        }
-        /**
-         * Protobuf type {@code BoardLayout._BoardLayoutPart.IntArray}
-         */
-        public static final class Builder extends
-            com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-            // @@protoc_insertion_point(builder_implements:BoardLayout._BoardLayoutPart.IntArray)
-            soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArrayOrBuilder {
-          public static final com.google.protobuf.Descriptors.Descriptor
-              getDescriptor() {
-            return soc.proto.GameMessage.internal_static_BoardLayout__BoardLayoutPart_IntArray_descriptor;
-          }
-
-          protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-              internalGetFieldAccessorTable() {
-            return soc.proto.GameMessage.internal_static_BoardLayout__BoardLayoutPart_IntArray_fieldAccessorTable
-                .ensureFieldAccessorsInitialized(
-                    soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.class, soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.Builder.class);
-          }
-
-          // Construct using soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.newBuilder()
-          private Builder() {
-            maybeForceBuilderInitialization();
-          }
-
-          private Builder(
-              com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-            super(parent);
-            maybeForceBuilderInitialization();
-          }
-          private void maybeForceBuilderInitialization() {
-            if (com.google.protobuf.GeneratedMessageV3
-                    .alwaysUseFieldBuilders) {
-            }
-          }
-          public Builder clear() {
-            super.clear();
-            arr_ = java.util.Collections.emptyList();
-            bitField0_ = (bitField0_ & ~0x00000001);
-            return this;
-          }
-
-          public com.google.protobuf.Descriptors.Descriptor
-              getDescriptorForType() {
-            return soc.proto.GameMessage.internal_static_BoardLayout__BoardLayoutPart_IntArray_descriptor;
-          }
-
-          public soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray getDefaultInstanceForType() {
-            return soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.getDefaultInstance();
-          }
-
-          public soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray build() {
-            soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray result = buildPartial();
-            if (!result.isInitialized()) {
-              throw newUninitializedMessageException(result);
-            }
-            return result;
-          }
-
-          public soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray buildPartial() {
-            soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray result = new soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray(this);
-            int from_bitField0_ = bitField0_;
-            if (((bitField0_ & 0x00000001) == 0x00000001)) {
-              arr_ = java.util.Collections.unmodifiableList(arr_);
-              bitField0_ = (bitField0_ & ~0x00000001);
-            }
-            result.arr_ = arr_;
-            onBuilt();
-            return result;
-          }
-
-          public Builder clone() {
-            return (Builder) super.clone();
-          }
-          public Builder setField(
-              com.google.protobuf.Descriptors.FieldDescriptor field,
-              java.lang.Object value) {
-            return (Builder) super.setField(field, value);
-          }
-          public Builder clearField(
-              com.google.protobuf.Descriptors.FieldDescriptor field) {
-            return (Builder) super.clearField(field);
-          }
-          public Builder clearOneof(
-              com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-            return (Builder) super.clearOneof(oneof);
-          }
-          public Builder setRepeatedField(
-              com.google.protobuf.Descriptors.FieldDescriptor field,
-              int index, java.lang.Object value) {
-            return (Builder) super.setRepeatedField(field, index, value);
-          }
-          public Builder addRepeatedField(
-              com.google.protobuf.Descriptors.FieldDescriptor field,
-              java.lang.Object value) {
-            return (Builder) super.addRepeatedField(field, value);
-          }
-          public Builder mergeFrom(com.google.protobuf.Message other) {
-            if (other instanceof soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) {
-              return mergeFrom((soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray)other);
-            } else {
-              super.mergeFrom(other);
-              return this;
-            }
-          }
-
-          public Builder mergeFrom(soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray other) {
-            if (other == soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.getDefaultInstance()) return this;
-            if (!other.arr_.isEmpty()) {
-              if (arr_.isEmpty()) {
-                arr_ = other.arr_;
-                bitField0_ = (bitField0_ & ~0x00000001);
-              } else {
-                ensureArrIsMutable();
-                arr_.addAll(other.arr_);
-              }
-              onChanged();
-            }
-            this.mergeUnknownFields(other.unknownFields);
-            onChanged();
-            return this;
-          }
-
-          public final boolean isInitialized() {
-            return true;
-          }
-
-          public Builder mergeFrom(
-              com.google.protobuf.CodedInputStream input,
-              com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-              throws java.io.IOException {
-            soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray parsedMessage = null;
-            try {
-              parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
-            } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-              parsedMessage = (soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) e.getUnfinishedMessage();
-              throw e.unwrapIOException();
-            } finally {
-              if (parsedMessage != null) {
-                mergeFrom(parsedMessage);
-              }
-            }
-            return this;
-          }
-          private int bitField0_;
-
-          private java.util.List<java.lang.Integer> arr_ = java.util.Collections.emptyList();
-          private void ensureArrIsMutable() {
-            if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-              arr_ = new java.util.ArrayList<java.lang.Integer>(arr_);
-              bitField0_ |= 0x00000001;
-             }
-          }
-          /**
-           * <code>repeated int32 arr = 1;</code>
-           */
-          public java.util.List<java.lang.Integer>
-              getArrList() {
-            return java.util.Collections.unmodifiableList(arr_);
-          }
-          /**
-           * <code>repeated int32 arr = 1;</code>
-           */
-          public int getArrCount() {
-            return arr_.size();
-          }
-          /**
-           * <code>repeated int32 arr = 1;</code>
-           */
-          public int getArr(int index) {
-            return arr_.get(index);
-          }
-          /**
-           * <code>repeated int32 arr = 1;</code>
-           */
-          public Builder setArr(
-              int index, int value) {
-            ensureArrIsMutable();
-            arr_.set(index, value);
-            onChanged();
-            return this;
-          }
-          /**
-           * <code>repeated int32 arr = 1;</code>
-           */
-          public Builder addArr(int value) {
-            ensureArrIsMutable();
-            arr_.add(value);
-            onChanged();
-            return this;
-          }
-          /**
-           * <code>repeated int32 arr = 1;</code>
-           */
-          public Builder addAllArr(
-              java.lang.Iterable<? extends java.lang.Integer> values) {
-            ensureArrIsMutable();
-            com.google.protobuf.AbstractMessageLite.Builder.addAll(
-                values, arr_);
-            onChanged();
-            return this;
-          }
-          /**
-           * <code>repeated int32 arr = 1;</code>
-           */
-          public Builder clearArr() {
-            arr_ = java.util.Collections.emptyList();
-            bitField0_ = (bitField0_ & ~0x00000001);
-            onChanged();
-            return this;
-          }
-          public final Builder setUnknownFields(
-              final com.google.protobuf.UnknownFieldSet unknownFields) {
-            return super.setUnknownFieldsProto3(unknownFields);
-          }
-
-          public final Builder mergeUnknownFields(
-              final com.google.protobuf.UnknownFieldSet unknownFields) {
-            return super.mergeUnknownFields(unknownFields);
-          }
-
-
-          // @@protoc_insertion_point(builder_scope:BoardLayout._BoardLayoutPart.IntArray)
-        }
-
-        // @@protoc_insertion_point(class_scope:BoardLayout._BoardLayoutPart.IntArray)
-        private static final soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray DEFAULT_INSTANCE;
-        static {
-          DEFAULT_INSTANCE = new soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray();
-        }
-
-        public static soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray getDefaultInstance() {
-          return DEFAULT_INSTANCE;
-        }
-
-        private static final com.google.protobuf.Parser<IntArray>
-            PARSER = new com.google.protobuf.AbstractParser<IntArray>() {
-          public IntArray parsePartialFrom(
-              com.google.protobuf.CodedInputStream input,
-              com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-              throws com.google.protobuf.InvalidProtocolBufferException {
-              return new IntArray(input, extensionRegistry);
-          }
-        };
-
-        public static com.google.protobuf.Parser<IntArray> parser() {
-          return PARSER;
-        }
-
-        @java.lang.Override
-        public com.google.protobuf.Parser<IntArray> getParserForType() {
-          return PARSER;
-        }
-
-        public soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray getDefaultInstanceForType() {
-          return DEFAULT_INSTANCE;
-        }
-
       }
 
       private int valCase_ = 0;
@@ -1646,39 +1087,39 @@ public final class GameMessage {
       public static final int I_ARR_FIELD_NUMBER = 3;
       /**
        * <pre>
-       * signed integer array
+       * signed integer array; negative values allowed but not frequently used
        * </pre>
        *
-       * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+       * <code>._IntArray i_arr = 3;</code>
        */
       public boolean hasIArr() {
         return valCase_ == 3;
       }
       /**
        * <pre>
-       * signed integer array
+       * signed integer array; negative values allowed but not frequently used
        * </pre>
        *
-       * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+       * <code>._IntArray i_arr = 3;</code>
        */
-      public soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray getIArr() {
+      public soc.proto.Data._IntArray getIArr() {
         if (valCase_ == 3) {
-           return (soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) val_;
+           return (soc.proto.Data._IntArray) val_;
         }
-        return soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.getDefaultInstance();
+        return soc.proto.Data._IntArray.getDefaultInstance();
       }
       /**
        * <pre>
-       * signed integer array
+       * signed integer array; negative values allowed but not frequently used
        * </pre>
        *
-       * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+       * <code>._IntArray i_arr = 3;</code>
        */
-      public soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArrayOrBuilder getIArrOrBuilder() {
+      public soc.proto.Data._IntArrayOrBuilder getIArrOrBuilder() {
         if (valCase_ == 3) {
-           return (soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) val_;
+           return (soc.proto.Data._IntArray) val_;
         }
-        return soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.getDefaultInstance();
+        return soc.proto.Data._IntArray.getDefaultInstance();
       }
 
       private byte memoizedIsInitialized = -1;
@@ -1701,7 +1142,7 @@ public final class GameMessage {
           com.google.protobuf.GeneratedMessageV3.writeString(output, 2, val_);
         }
         if (valCase_ == 3) {
-          output.writeMessage(3, (soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) val_);
+          output.writeMessage(3, (soc.proto.Data._IntArray) val_);
         }
         unknownFields.writeTo(output);
       }
@@ -1721,7 +1162,7 @@ public final class GameMessage {
         }
         if (valCase_ == 3) {
           size += com.google.protobuf.CodedOutputStream
-            .computeMessageSize(3, (soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) val_);
+            .computeMessageSize(3, (soc.proto.Data._IntArray) val_);
         }
         size += unknownFields.getSerializedSize();
         memoizedSize = size;
@@ -2197,45 +1638,45 @@ public final class GameMessage {
         }
 
         private com.google.protobuf.SingleFieldBuilderV3<
-            soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray, soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.Builder, soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArrayOrBuilder> iArrBuilder_;
+            soc.proto.Data._IntArray, soc.proto.Data._IntArray.Builder, soc.proto.Data._IntArrayOrBuilder> iArrBuilder_;
         /**
          * <pre>
-         * signed integer array
+         * signed integer array; negative values allowed but not frequently used
          * </pre>
          *
-         * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+         * <code>._IntArray i_arr = 3;</code>
          */
         public boolean hasIArr() {
           return valCase_ == 3;
         }
         /**
          * <pre>
-         * signed integer array
+         * signed integer array; negative values allowed but not frequently used
          * </pre>
          *
-         * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+         * <code>._IntArray i_arr = 3;</code>
          */
-        public soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray getIArr() {
+        public soc.proto.Data._IntArray getIArr() {
           if (iArrBuilder_ == null) {
             if (valCase_ == 3) {
-              return (soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) val_;
+              return (soc.proto.Data._IntArray) val_;
             }
-            return soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.getDefaultInstance();
+            return soc.proto.Data._IntArray.getDefaultInstance();
           } else {
             if (valCase_ == 3) {
               return iArrBuilder_.getMessage();
             }
-            return soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.getDefaultInstance();
+            return soc.proto.Data._IntArray.getDefaultInstance();
           }
         }
         /**
          * <pre>
-         * signed integer array
+         * signed integer array; negative values allowed but not frequently used
          * </pre>
          *
-         * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+         * <code>._IntArray i_arr = 3;</code>
          */
-        public Builder setIArr(soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray value) {
+        public Builder setIArr(soc.proto.Data._IntArray value) {
           if (iArrBuilder_ == null) {
             if (value == null) {
               throw new NullPointerException();
@@ -2250,13 +1691,13 @@ public final class GameMessage {
         }
         /**
          * <pre>
-         * signed integer array
+         * signed integer array; negative values allowed but not frequently used
          * </pre>
          *
-         * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+         * <code>._IntArray i_arr = 3;</code>
          */
         public Builder setIArr(
-            soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.Builder builderForValue) {
+            soc.proto.Data._IntArray.Builder builderForValue) {
           if (iArrBuilder_ == null) {
             val_ = builderForValue.build();
             onChanged();
@@ -2268,16 +1709,16 @@ public final class GameMessage {
         }
         /**
          * <pre>
-         * signed integer array
+         * signed integer array; negative values allowed but not frequently used
          * </pre>
          *
-         * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+         * <code>._IntArray i_arr = 3;</code>
          */
-        public Builder mergeIArr(soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray value) {
+        public Builder mergeIArr(soc.proto.Data._IntArray value) {
           if (iArrBuilder_ == null) {
             if (valCase_ == 3 &&
-                val_ != soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.getDefaultInstance()) {
-              val_ = soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.newBuilder((soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) val_)
+                val_ != soc.proto.Data._IntArray.getDefaultInstance()) {
+              val_ = soc.proto.Data._IntArray.newBuilder((soc.proto.Data._IntArray) val_)
                   .mergeFrom(value).buildPartial();
             } else {
               val_ = value;
@@ -2294,10 +1735,10 @@ public final class GameMessage {
         }
         /**
          * <pre>
-         * signed integer array
+         * signed integer array; negative values allowed but not frequently used
          * </pre>
          *
-         * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+         * <code>._IntArray i_arr = 3;</code>
          */
         public Builder clearIArr() {
           if (iArrBuilder_ == null) {
@@ -2317,48 +1758,48 @@ public final class GameMessage {
         }
         /**
          * <pre>
-         * signed integer array
+         * signed integer array; negative values allowed but not frequently used
          * </pre>
          *
-         * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+         * <code>._IntArray i_arr = 3;</code>
          */
-        public soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.Builder getIArrBuilder() {
+        public soc.proto.Data._IntArray.Builder getIArrBuilder() {
           return getIArrFieldBuilder().getBuilder();
         }
         /**
          * <pre>
-         * signed integer array
+         * signed integer array; negative values allowed but not frequently used
          * </pre>
          *
-         * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+         * <code>._IntArray i_arr = 3;</code>
          */
-        public soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArrayOrBuilder getIArrOrBuilder() {
+        public soc.proto.Data._IntArrayOrBuilder getIArrOrBuilder() {
           if ((valCase_ == 3) && (iArrBuilder_ != null)) {
             return iArrBuilder_.getMessageOrBuilder();
           } else {
             if (valCase_ == 3) {
-              return (soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) val_;
+              return (soc.proto.Data._IntArray) val_;
             }
-            return soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.getDefaultInstance();
+            return soc.proto.Data._IntArray.getDefaultInstance();
           }
         }
         /**
          * <pre>
-         * signed integer array
+         * signed integer array; negative values allowed but not frequently used
          * </pre>
          *
-         * <code>.BoardLayout._BoardLayoutPart.IntArray i_arr = 3;</code>
+         * <code>._IntArray i_arr = 3;</code>
          */
         private com.google.protobuf.SingleFieldBuilderV3<
-            soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray, soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.Builder, soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArrayOrBuilder> 
+            soc.proto.Data._IntArray, soc.proto.Data._IntArray.Builder, soc.proto.Data._IntArrayOrBuilder> 
             getIArrFieldBuilder() {
           if (iArrBuilder_ == null) {
             if (!(valCase_ == 3)) {
-              val_ = soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.getDefaultInstance();
+              val_ = soc.proto.Data._IntArray.getDefaultInstance();
             }
             iArrBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-                soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray, soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray.Builder, soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArrayOrBuilder>(
-                    (soc.proto.GameMessage.BoardLayout._BoardLayoutPart.IntArray) val_,
+                soc.proto.Data._IntArray, soc.proto.Data._IntArray.Builder, soc.proto.Data._IntArrayOrBuilder>(
+                    (soc.proto.Data._IntArray) val_,
                     getParentForChildren(),
                     isClean());
             val_ = null;
@@ -3096,6 +2537,2054 @@ public final class GameMessage {
     }
 
     public soc.proto.GameMessage.BoardLayout getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface PotentialSettlementsOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:PotentialSettlements)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * Player Number this applies to; may be -1 for all players at start of game.
+     * -1 also indicates that the legal settlements should be set and the
+     * legal roads recalculated from this message's list of potential nodes.
+     * </pre>
+     *
+     * <code>sint32 player_number = 1;</code>
+     */
+    int getPlayerNumber();
+
+    /**
+     * <pre>
+     * Potential settlement node coordinates for {&#64;link #playerNumber} 
+     * </pre>
+     *
+     * <code>repeated int32 ps_nodes = 2;</code>
+     */
+    java.util.List<java.lang.Integer> getPsNodesList();
+    /**
+     * <pre>
+     * Potential settlement node coordinates for {&#64;link #playerNumber} 
+     * </pre>
+     *
+     * <code>repeated int32 ps_nodes = 2;</code>
+     */
+    int getPsNodesCount();
+    /**
+     * <pre>
+     * Potential settlement node coordinates for {&#64;link #playerNumber} 
+     * </pre>
+     *
+     * <code>repeated int32 ps_nodes = 2;</code>
+     */
+    int getPsNodes(int index);
+
+    /**
+     * <pre>
+     * How many Land Areas this board has; classic boards have 1 
+     * </pre>
+     *
+     * <code>uint32 area_count = 3;</code>
+     */
+    int getAreaCount();
+
+    /**
+     * <pre>
+     * Which land area number within {&#64;link #landAreasLegalNodes} contains {&#64;link #psNodes}?
+     * 0 if none because the game already started and {&#64;code psNodes} is unique to the player.
+     * 0 if none when game is starting now and players can place anywhere.
+     *&lt;P&gt;
+     * Not used if {&#64;link #areaCount} == 1.
+     * </pre>
+     *
+     * <code>uint32 starting_land_area = 4;</code>
+     */
+    int getStartingLandArea();
+
+    /**
+     * <pre>
+     * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
+     * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+     * </pre>
+     *
+     * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 5;</code>
+     */
+    int getLandAreasLegalNodesCount();
+    /**
+     * <pre>
+     * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
+     * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+     * </pre>
+     *
+     * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 5;</code>
+     */
+    boolean containsLandAreasLegalNodes(
+        int key);
+    /**
+     * Use {@link #getLandAreasLegalNodesMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.Integer, soc.proto.Data._IntArray>
+    getLandAreasLegalNodes();
+    /**
+     * <pre>
+     * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
+     * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+     * </pre>
+     *
+     * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 5;</code>
+     */
+    java.util.Map<java.lang.Integer, soc.proto.Data._IntArray>
+    getLandAreasLegalNodesMap();
+    /**
+     * <pre>
+     * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
+     * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+     * </pre>
+     *
+     * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 5;</code>
+     */
+
+    soc.proto.Data._IntArray getLandAreasLegalNodesOrDefault(
+        int key,
+        soc.proto.Data._IntArray defaultValue);
+    /**
+     * <pre>
+     * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
+     * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+     * </pre>
+     *
+     * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 5;</code>
+     */
+
+    soc.proto.Data._IntArray getLandAreasLegalNodesOrThrow(
+        int key);
+
+    /**
+     * <pre>
+     * legal sea edges per player for ships, if restricted.
+     * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+     *&lt;P&gt;
+     * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+     * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+     *&lt;P&gt;
+     * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+     * A list of individual sea edge coordinates and/or ranges.
+     * Ranges are designated by a pair of positive,negative numbers:
+     * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+     * </pre>
+     *
+     * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+     */
+    java.util.List<soc.proto.Data._SIntArray> 
+        getLegalSeaEdgesList();
+    /**
+     * <pre>
+     * legal sea edges per player for ships, if restricted.
+     * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+     *&lt;P&gt;
+     * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+     * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+     *&lt;P&gt;
+     * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+     * A list of individual sea edge coordinates and/or ranges.
+     * Ranges are designated by a pair of positive,negative numbers:
+     * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+     * </pre>
+     *
+     * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+     */
+    soc.proto.Data._SIntArray getLegalSeaEdges(int index);
+    /**
+     * <pre>
+     * legal sea edges per player for ships, if restricted.
+     * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+     *&lt;P&gt;
+     * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+     * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+     *&lt;P&gt;
+     * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+     * A list of individual sea edge coordinates and/or ranges.
+     * Ranges are designated by a pair of positive,negative numbers:
+     * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+     * </pre>
+     *
+     * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+     */
+    int getLegalSeaEdgesCount();
+    /**
+     * <pre>
+     * legal sea edges per player for ships, if restricted.
+     * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+     *&lt;P&gt;
+     * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+     * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+     *&lt;P&gt;
+     * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+     * A list of individual sea edge coordinates and/or ranges.
+     * Ranges are designated by a pair of positive,negative numbers:
+     * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+     * </pre>
+     *
+     * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+     */
+    java.util.List<? extends soc.proto.Data._SIntArrayOrBuilder> 
+        getLegalSeaEdgesOrBuilderList();
+    /**
+     * <pre>
+     * legal sea edges per player for ships, if restricted.
+     * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+     *&lt;P&gt;
+     * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+     * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+     *&lt;P&gt;
+     * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+     * A list of individual sea edge coordinates and/or ranges.
+     * Ranges are designated by a pair of positive,negative numbers:
+     * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+     * </pre>
+     *
+     * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+     */
+    soc.proto.Data._SIntArrayOrBuilder getLegalSeaEdgesOrBuilder(
+        int index);
+  }
+  /**
+   * <pre>
+   * A list of potential settlements, with optional related potential/legal position info.
+   * Sent from server when game starts or client joins a game in progress.
+   * </pre>
+   *
+   * Protobuf type {@code PotentialSettlements}
+   */
+  public  static final class PotentialSettlements extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:PotentialSettlements)
+      PotentialSettlementsOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use PotentialSettlements.newBuilder() to construct.
+    private PotentialSettlements(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private PotentialSettlements() {
+      playerNumber_ = 0;
+      psNodes_ = java.util.Collections.emptyList();
+      areaCount_ = 0;
+      startingLandArea_ = 0;
+      legalSeaEdges_ = java.util.Collections.emptyList();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private PotentialSettlements(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+
+              playerNumber_ = input.readSInt32();
+              break;
+            }
+            case 16: {
+              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+                psNodes_ = new java.util.ArrayList<java.lang.Integer>();
+                mutable_bitField0_ |= 0x00000002;
+              }
+              psNodes_.add(input.readInt32());
+              break;
+            }
+            case 18: {
+              int length = input.readRawVarint32();
+              int limit = input.pushLimit(length);
+              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002) && input.getBytesUntilLimit() > 0) {
+                psNodes_ = new java.util.ArrayList<java.lang.Integer>();
+                mutable_bitField0_ |= 0x00000002;
+              }
+              while (input.getBytesUntilLimit() > 0) {
+                psNodes_.add(input.readInt32());
+              }
+              input.popLimit(limit);
+              break;
+            }
+            case 24: {
+
+              areaCount_ = input.readUInt32();
+              break;
+            }
+            case 32: {
+
+              startingLandArea_ = input.readUInt32();
+              break;
+            }
+            case 42: {
+              if (!((mutable_bitField0_ & 0x00000010) == 0x00000010)) {
+                landAreasLegalNodes_ = com.google.protobuf.MapField.newMapField(
+                    LandAreasLegalNodesDefaultEntryHolder.defaultEntry);
+                mutable_bitField0_ |= 0x00000010;
+              }
+              com.google.protobuf.MapEntry<java.lang.Integer, soc.proto.Data._IntArray>
+              landAreasLegalNodes__ = input.readMessage(
+                  LandAreasLegalNodesDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+              landAreasLegalNodes_.getMutableMap().put(
+                  landAreasLegalNodes__.getKey(), landAreasLegalNodes__.getValue());
+              break;
+            }
+            case 50: {
+              if (!((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+                legalSeaEdges_ = new java.util.ArrayList<soc.proto.Data._SIntArray>();
+                mutable_bitField0_ |= 0x00000020;
+              }
+              legalSeaEdges_.add(
+                  input.readMessage(soc.proto.Data._SIntArray.parser(), extensionRegistry));
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+          psNodes_ = java.util.Collections.unmodifiableList(psNodes_);
+        }
+        if (((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+          legalSeaEdges_ = java.util.Collections.unmodifiableList(legalSeaEdges_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_PotentialSettlements_descriptor;
+    }
+
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMapField(
+        int number) {
+      switch (number) {
+        case 5:
+          return internalGetLandAreasLegalNodes();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_PotentialSettlements_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.PotentialSettlements.class, soc.proto.GameMessage.PotentialSettlements.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int PLAYER_NUMBER_FIELD_NUMBER = 1;
+    private int playerNumber_;
+    /**
+     * <pre>
+     * Player Number this applies to; may be -1 for all players at start of game.
+     * -1 also indicates that the legal settlements should be set and the
+     * legal roads recalculated from this message's list of potential nodes.
+     * </pre>
+     *
+     * <code>sint32 player_number = 1;</code>
+     */
+    public int getPlayerNumber() {
+      return playerNumber_;
+    }
+
+    public static final int PS_NODES_FIELD_NUMBER = 2;
+    private java.util.List<java.lang.Integer> psNodes_;
+    /**
+     * <pre>
+     * Potential settlement node coordinates for {&#64;link #playerNumber} 
+     * </pre>
+     *
+     * <code>repeated int32 ps_nodes = 2;</code>
+     */
+    public java.util.List<java.lang.Integer>
+        getPsNodesList() {
+      return psNodes_;
+    }
+    /**
+     * <pre>
+     * Potential settlement node coordinates for {&#64;link #playerNumber} 
+     * </pre>
+     *
+     * <code>repeated int32 ps_nodes = 2;</code>
+     */
+    public int getPsNodesCount() {
+      return psNodes_.size();
+    }
+    /**
+     * <pre>
+     * Potential settlement node coordinates for {&#64;link #playerNumber} 
+     * </pre>
+     *
+     * <code>repeated int32 ps_nodes = 2;</code>
+     */
+    public int getPsNodes(int index) {
+      return psNodes_.get(index);
+    }
+    private int psNodesMemoizedSerializedSize = -1;
+
+    public static final int AREA_COUNT_FIELD_NUMBER = 3;
+    private int areaCount_;
+    /**
+     * <pre>
+     * How many Land Areas this board has; classic boards have 1 
+     * </pre>
+     *
+     * <code>uint32 area_count = 3;</code>
+     */
+    public int getAreaCount() {
+      return areaCount_;
+    }
+
+    public static final int STARTING_LAND_AREA_FIELD_NUMBER = 4;
+    private int startingLandArea_;
+    /**
+     * <pre>
+     * Which land area number within {&#64;link #landAreasLegalNodes} contains {&#64;link #psNodes}?
+     * 0 if none because the game already started and {&#64;code psNodes} is unique to the player.
+     * 0 if none when game is starting now and players can place anywhere.
+     *&lt;P&gt;
+     * Not used if {&#64;link #areaCount} == 1.
+     * </pre>
+     *
+     * <code>uint32 starting_land_area = 4;</code>
+     */
+    public int getStartingLandArea() {
+      return startingLandArea_;
+    }
+
+    public static final int LAND_AREAS_LEGAL_NODES_FIELD_NUMBER = 5;
+    private static final class LandAreasLegalNodesDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.Integer, soc.proto.Data._IntArray> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.Integer, soc.proto.Data._IntArray>newDefaultInstance(
+                  soc.proto.GameMessage.internal_static_PotentialSettlements_LandAreasLegalNodesEntry_descriptor, 
+                  com.google.protobuf.WireFormat.FieldType.UINT32,
+                  0,
+                  com.google.protobuf.WireFormat.FieldType.MESSAGE,
+                  soc.proto.Data._IntArray.getDefaultInstance());
+    }
+    private com.google.protobuf.MapField<
+        java.lang.Integer, soc.proto.Data._IntArray> landAreasLegalNodes_;
+    private com.google.protobuf.MapField<java.lang.Integer, soc.proto.Data._IntArray>
+    internalGetLandAreasLegalNodes() {
+      if (landAreasLegalNodes_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            LandAreasLegalNodesDefaultEntryHolder.defaultEntry);
+      }
+      return landAreasLegalNodes_;
+    }
+
+    public int getLandAreasLegalNodesCount() {
+      return internalGetLandAreasLegalNodes().getMap().size();
+    }
+    /**
+     * <pre>
+     * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
+     * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+     * </pre>
+     *
+     * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 5;</code>
+     */
+
+    public boolean containsLandAreasLegalNodes(
+        int key) {
+      
+      return internalGetLandAreasLegalNodes().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getLandAreasLegalNodesMap()} instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.Integer, soc.proto.Data._IntArray> getLandAreasLegalNodes() {
+      return getLandAreasLegalNodesMap();
+    }
+    /**
+     * <pre>
+     * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
+     * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+     * </pre>
+     *
+     * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 5;</code>
+     */
+
+    public java.util.Map<java.lang.Integer, soc.proto.Data._IntArray> getLandAreasLegalNodesMap() {
+      return internalGetLandAreasLegalNodes().getMap();
+    }
+    /**
+     * <pre>
+     * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
+     * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+     * </pre>
+     *
+     * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 5;</code>
+     */
+
+    public soc.proto.Data._IntArray getLandAreasLegalNodesOrDefault(
+        int key,
+        soc.proto.Data._IntArray defaultValue) {
+      
+      java.util.Map<java.lang.Integer, soc.proto.Data._IntArray> map =
+          internalGetLandAreasLegalNodes().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <pre>
+     * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
+     * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+     * </pre>
+     *
+     * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 5;</code>
+     */
+
+    public soc.proto.Data._IntArray getLandAreasLegalNodesOrThrow(
+        int key) {
+      
+      java.util.Map<java.lang.Integer, soc.proto.Data._IntArray> map =
+          internalGetLandAreasLegalNodes().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    public static final int LEGAL_SEA_EDGES_FIELD_NUMBER = 6;
+    private java.util.List<soc.proto.Data._SIntArray> legalSeaEdges_;
+    /**
+     * <pre>
+     * legal sea edges per player for ships, if restricted.
+     * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+     *&lt;P&gt;
+     * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+     * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+     *&lt;P&gt;
+     * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+     * A list of individual sea edge coordinates and/or ranges.
+     * Ranges are designated by a pair of positive,negative numbers:
+     * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+     * </pre>
+     *
+     * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+     */
+    public java.util.List<soc.proto.Data._SIntArray> getLegalSeaEdgesList() {
+      return legalSeaEdges_;
+    }
+    /**
+     * <pre>
+     * legal sea edges per player for ships, if restricted.
+     * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+     *&lt;P&gt;
+     * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+     * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+     *&lt;P&gt;
+     * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+     * A list of individual sea edge coordinates and/or ranges.
+     * Ranges are designated by a pair of positive,negative numbers:
+     * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+     * </pre>
+     *
+     * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+     */
+    public java.util.List<? extends soc.proto.Data._SIntArrayOrBuilder> 
+        getLegalSeaEdgesOrBuilderList() {
+      return legalSeaEdges_;
+    }
+    /**
+     * <pre>
+     * legal sea edges per player for ships, if restricted.
+     * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+     *&lt;P&gt;
+     * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+     * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+     *&lt;P&gt;
+     * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+     * A list of individual sea edge coordinates and/or ranges.
+     * Ranges are designated by a pair of positive,negative numbers:
+     * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+     * </pre>
+     *
+     * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+     */
+    public int getLegalSeaEdgesCount() {
+      return legalSeaEdges_.size();
+    }
+    /**
+     * <pre>
+     * legal sea edges per player for ships, if restricted.
+     * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+     *&lt;P&gt;
+     * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+     * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+     *&lt;P&gt;
+     * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+     * A list of individual sea edge coordinates and/or ranges.
+     * Ranges are designated by a pair of positive,negative numbers:
+     * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+     * </pre>
+     *
+     * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+     */
+    public soc.proto.Data._SIntArray getLegalSeaEdges(int index) {
+      return legalSeaEdges_.get(index);
+    }
+    /**
+     * <pre>
+     * legal sea edges per player for ships, if restricted.
+     * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+     *&lt;P&gt;
+     * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+     * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+     *&lt;P&gt;
+     * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+     * A list of individual sea edge coordinates and/or ranges.
+     * Ranges are designated by a pair of positive,negative numbers:
+     * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+     * </pre>
+     *
+     * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+     */
+    public soc.proto.Data._SIntArrayOrBuilder getLegalSeaEdgesOrBuilder(
+        int index) {
+      return legalSeaEdges_.get(index);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (playerNumber_ != 0) {
+        output.writeSInt32(1, playerNumber_);
+      }
+      if (getPsNodesList().size() > 0) {
+        output.writeUInt32NoTag(18);
+        output.writeUInt32NoTag(psNodesMemoizedSerializedSize);
+      }
+      for (int i = 0; i < psNodes_.size(); i++) {
+        output.writeInt32NoTag(psNodes_.get(i));
+      }
+      if (areaCount_ != 0) {
+        output.writeUInt32(3, areaCount_);
+      }
+      if (startingLandArea_ != 0) {
+        output.writeUInt32(4, startingLandArea_);
+      }
+      com.google.protobuf.GeneratedMessageV3
+        .serializeIntegerMapTo(
+          output,
+          internalGetLandAreasLegalNodes(),
+          LandAreasLegalNodesDefaultEntryHolder.defaultEntry,
+          5);
+      for (int i = 0; i < legalSeaEdges_.size(); i++) {
+        output.writeMessage(6, legalSeaEdges_.get(i));
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (playerNumber_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeSInt32Size(1, playerNumber_);
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < psNodes_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeInt32SizeNoTag(psNodes_.get(i));
+        }
+        size += dataSize;
+        if (!getPsNodesList().isEmpty()) {
+          size += 1;
+          size += com.google.protobuf.CodedOutputStream
+              .computeInt32SizeNoTag(dataSize);
+        }
+        psNodesMemoizedSerializedSize = dataSize;
+      }
+      if (areaCount_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(3, areaCount_);
+      }
+      if (startingLandArea_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(4, startingLandArea_);
+      }
+      for (java.util.Map.Entry<java.lang.Integer, soc.proto.Data._IntArray> entry
+           : internalGetLandAreasLegalNodes().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.Integer, soc.proto.Data._IntArray>
+        landAreasLegalNodes__ = LandAreasLegalNodesDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .build();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(5, landAreasLegalNodes__);
+      }
+      for (int i = 0; i < legalSeaEdges_.size(); i++) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(6, legalSeaEdges_.get(i));
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.PotentialSettlements)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.PotentialSettlements other = (soc.proto.GameMessage.PotentialSettlements) obj;
+
+      boolean result = true;
+      result = result && (getPlayerNumber()
+          == other.getPlayerNumber());
+      result = result && getPsNodesList()
+          .equals(other.getPsNodesList());
+      result = result && (getAreaCount()
+          == other.getAreaCount());
+      result = result && (getStartingLandArea()
+          == other.getStartingLandArea());
+      result = result && internalGetLandAreasLegalNodes().equals(
+          other.internalGetLandAreasLegalNodes());
+      result = result && getLegalSeaEdgesList()
+          .equals(other.getLegalSeaEdgesList());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + PLAYER_NUMBER_FIELD_NUMBER;
+      hash = (53 * hash) + getPlayerNumber();
+      if (getPsNodesCount() > 0) {
+        hash = (37 * hash) + PS_NODES_FIELD_NUMBER;
+        hash = (53 * hash) + getPsNodesList().hashCode();
+      }
+      hash = (37 * hash) + AREA_COUNT_FIELD_NUMBER;
+      hash = (53 * hash) + getAreaCount();
+      hash = (37 * hash) + STARTING_LAND_AREA_FIELD_NUMBER;
+      hash = (53 * hash) + getStartingLandArea();
+      if (!internalGetLandAreasLegalNodes().getMap().isEmpty()) {
+        hash = (37 * hash) + LAND_AREAS_LEGAL_NODES_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetLandAreasLegalNodes().hashCode();
+      }
+      if (getLegalSeaEdgesCount() > 0) {
+        hash = (37 * hash) + LEGAL_SEA_EDGES_FIELD_NUMBER;
+        hash = (53 * hash) + getLegalSeaEdgesList().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.PotentialSettlements parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.PotentialSettlements parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.PotentialSettlements parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.PotentialSettlements parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.PotentialSettlements parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.PotentialSettlements parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.PotentialSettlements parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.PotentialSettlements parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.PotentialSettlements parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.PotentialSettlements parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.PotentialSettlements parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.PotentialSettlements parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.PotentialSettlements prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * A list of potential settlements, with optional related potential/legal position info.
+     * Sent from server when game starts or client joins a game in progress.
+     * </pre>
+     *
+     * Protobuf type {@code PotentialSettlements}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:PotentialSettlements)
+        soc.proto.GameMessage.PotentialSettlementsOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_PotentialSettlements_descriptor;
+      }
+
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapField internalGetMapField(
+          int number) {
+        switch (number) {
+          case 5:
+            return internalGetLandAreasLegalNodes();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapField internalGetMutableMapField(
+          int number) {
+        switch (number) {
+          case 5:
+            return internalGetMutableLandAreasLegalNodes();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_PotentialSettlements_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.PotentialSettlements.class, soc.proto.GameMessage.PotentialSettlements.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.PotentialSettlements.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+          getLegalSeaEdgesFieldBuilder();
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        playerNumber_ = 0;
+
+        psNodes_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        areaCount_ = 0;
+
+        startingLandArea_ = 0;
+
+        internalGetMutableLandAreasLegalNodes().clear();
+        if (legalSeaEdgesBuilder_ == null) {
+          legalSeaEdges_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000020);
+        } else {
+          legalSeaEdgesBuilder_.clear();
+        }
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_PotentialSettlements_descriptor;
+      }
+
+      public soc.proto.GameMessage.PotentialSettlements getDefaultInstanceForType() {
+        return soc.proto.GameMessage.PotentialSettlements.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.PotentialSettlements build() {
+        soc.proto.GameMessage.PotentialSettlements result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.PotentialSettlements buildPartial() {
+        soc.proto.GameMessage.PotentialSettlements result = new soc.proto.GameMessage.PotentialSettlements(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        result.playerNumber_ = playerNumber_;
+        if (((bitField0_ & 0x00000002) == 0x00000002)) {
+          psNodes_ = java.util.Collections.unmodifiableList(psNodes_);
+          bitField0_ = (bitField0_ & ~0x00000002);
+        }
+        result.psNodes_ = psNodes_;
+        result.areaCount_ = areaCount_;
+        result.startingLandArea_ = startingLandArea_;
+        result.landAreasLegalNodes_ = internalGetLandAreasLegalNodes();
+        result.landAreasLegalNodes_.makeImmutable();
+        if (legalSeaEdgesBuilder_ == null) {
+          if (((bitField0_ & 0x00000020) == 0x00000020)) {
+            legalSeaEdges_ = java.util.Collections.unmodifiableList(legalSeaEdges_);
+            bitField0_ = (bitField0_ & ~0x00000020);
+          }
+          result.legalSeaEdges_ = legalSeaEdges_;
+        } else {
+          result.legalSeaEdges_ = legalSeaEdgesBuilder_.build();
+        }
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.PotentialSettlements) {
+          return mergeFrom((soc.proto.GameMessage.PotentialSettlements)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.PotentialSettlements other) {
+        if (other == soc.proto.GameMessage.PotentialSettlements.getDefaultInstance()) return this;
+        if (other.getPlayerNumber() != 0) {
+          setPlayerNumber(other.getPlayerNumber());
+        }
+        if (!other.psNodes_.isEmpty()) {
+          if (psNodes_.isEmpty()) {
+            psNodes_ = other.psNodes_;
+            bitField0_ = (bitField0_ & ~0x00000002);
+          } else {
+            ensurePsNodesIsMutable();
+            psNodes_.addAll(other.psNodes_);
+          }
+          onChanged();
+        }
+        if (other.getAreaCount() != 0) {
+          setAreaCount(other.getAreaCount());
+        }
+        if (other.getStartingLandArea() != 0) {
+          setStartingLandArea(other.getStartingLandArea());
+        }
+        internalGetMutableLandAreasLegalNodes().mergeFrom(
+            other.internalGetLandAreasLegalNodes());
+        if (legalSeaEdgesBuilder_ == null) {
+          if (!other.legalSeaEdges_.isEmpty()) {
+            if (legalSeaEdges_.isEmpty()) {
+              legalSeaEdges_ = other.legalSeaEdges_;
+              bitField0_ = (bitField0_ & ~0x00000020);
+            } else {
+              ensureLegalSeaEdgesIsMutable();
+              legalSeaEdges_.addAll(other.legalSeaEdges_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.legalSeaEdges_.isEmpty()) {
+            if (legalSeaEdgesBuilder_.isEmpty()) {
+              legalSeaEdgesBuilder_.dispose();
+              legalSeaEdgesBuilder_ = null;
+              legalSeaEdges_ = other.legalSeaEdges_;
+              bitField0_ = (bitField0_ & ~0x00000020);
+              legalSeaEdgesBuilder_ = 
+                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                   getLegalSeaEdgesFieldBuilder() : null;
+            } else {
+              legalSeaEdgesBuilder_.addAllMessages(other.legalSeaEdges_);
+            }
+          }
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.PotentialSettlements parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.PotentialSettlements) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private int playerNumber_ ;
+      /**
+       * <pre>
+       * Player Number this applies to; may be -1 for all players at start of game.
+       * -1 also indicates that the legal settlements should be set and the
+       * legal roads recalculated from this message's list of potential nodes.
+       * </pre>
+       *
+       * <code>sint32 player_number = 1;</code>
+       */
+      public int getPlayerNumber() {
+        return playerNumber_;
+      }
+      /**
+       * <pre>
+       * Player Number this applies to; may be -1 for all players at start of game.
+       * -1 also indicates that the legal settlements should be set and the
+       * legal roads recalculated from this message's list of potential nodes.
+       * </pre>
+       *
+       * <code>sint32 player_number = 1;</code>
+       */
+      public Builder setPlayerNumber(int value) {
+        
+        playerNumber_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Player Number this applies to; may be -1 for all players at start of game.
+       * -1 also indicates that the legal settlements should be set and the
+       * legal roads recalculated from this message's list of potential nodes.
+       * </pre>
+       *
+       * <code>sint32 player_number = 1;</code>
+       */
+      public Builder clearPlayerNumber() {
+        
+        playerNumber_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private java.util.List<java.lang.Integer> psNodes_ = java.util.Collections.emptyList();
+      private void ensurePsNodesIsMutable() {
+        if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+          psNodes_ = new java.util.ArrayList<java.lang.Integer>(psNodes_);
+          bitField0_ |= 0x00000002;
+         }
+      }
+      /**
+       * <pre>
+       * Potential settlement node coordinates for {&#64;link #playerNumber} 
+       * </pre>
+       *
+       * <code>repeated int32 ps_nodes = 2;</code>
+       */
+      public java.util.List<java.lang.Integer>
+          getPsNodesList() {
+        return java.util.Collections.unmodifiableList(psNodes_);
+      }
+      /**
+       * <pre>
+       * Potential settlement node coordinates for {&#64;link #playerNumber} 
+       * </pre>
+       *
+       * <code>repeated int32 ps_nodes = 2;</code>
+       */
+      public int getPsNodesCount() {
+        return psNodes_.size();
+      }
+      /**
+       * <pre>
+       * Potential settlement node coordinates for {&#64;link #playerNumber} 
+       * </pre>
+       *
+       * <code>repeated int32 ps_nodes = 2;</code>
+       */
+      public int getPsNodes(int index) {
+        return psNodes_.get(index);
+      }
+      /**
+       * <pre>
+       * Potential settlement node coordinates for {&#64;link #playerNumber} 
+       * </pre>
+       *
+       * <code>repeated int32 ps_nodes = 2;</code>
+       */
+      public Builder setPsNodes(
+          int index, int value) {
+        ensurePsNodesIsMutable();
+        psNodes_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Potential settlement node coordinates for {&#64;link #playerNumber} 
+       * </pre>
+       *
+       * <code>repeated int32 ps_nodes = 2;</code>
+       */
+      public Builder addPsNodes(int value) {
+        ensurePsNodesIsMutable();
+        psNodes_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Potential settlement node coordinates for {&#64;link #playerNumber} 
+       * </pre>
+       *
+       * <code>repeated int32 ps_nodes = 2;</code>
+       */
+      public Builder addAllPsNodes(
+          java.lang.Iterable<? extends java.lang.Integer> values) {
+        ensurePsNodesIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, psNodes_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Potential settlement node coordinates for {&#64;link #playerNumber} 
+       * </pre>
+       *
+       * <code>repeated int32 ps_nodes = 2;</code>
+       */
+      public Builder clearPsNodes() {
+        psNodes_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+
+      private int areaCount_ ;
+      /**
+       * <pre>
+       * How many Land Areas this board has; classic boards have 1 
+       * </pre>
+       *
+       * <code>uint32 area_count = 3;</code>
+       */
+      public int getAreaCount() {
+        return areaCount_;
+      }
+      /**
+       * <pre>
+       * How many Land Areas this board has; classic boards have 1 
+       * </pre>
+       *
+       * <code>uint32 area_count = 3;</code>
+       */
+      public Builder setAreaCount(int value) {
+        
+        areaCount_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * How many Land Areas this board has; classic boards have 1 
+       * </pre>
+       *
+       * <code>uint32 area_count = 3;</code>
+       */
+      public Builder clearAreaCount() {
+        
+        areaCount_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int startingLandArea_ ;
+      /**
+       * <pre>
+       * Which land area number within {&#64;link #landAreasLegalNodes} contains {&#64;link #psNodes}?
+       * 0 if none because the game already started and {&#64;code psNodes} is unique to the player.
+       * 0 if none when game is starting now and players can place anywhere.
+       *&lt;P&gt;
+       * Not used if {&#64;link #areaCount} == 1.
+       * </pre>
+       *
+       * <code>uint32 starting_land_area = 4;</code>
+       */
+      public int getStartingLandArea() {
+        return startingLandArea_;
+      }
+      /**
+       * <pre>
+       * Which land area number within {&#64;link #landAreasLegalNodes} contains {&#64;link #psNodes}?
+       * 0 if none because the game already started and {&#64;code psNodes} is unique to the player.
+       * 0 if none when game is starting now and players can place anywhere.
+       *&lt;P&gt;
+       * Not used if {&#64;link #areaCount} == 1.
+       * </pre>
+       *
+       * <code>uint32 starting_land_area = 4;</code>
+       */
+      public Builder setStartingLandArea(int value) {
+        
+        startingLandArea_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Which land area number within {&#64;link #landAreasLegalNodes} contains {&#64;link #psNodes}?
+       * 0 if none because the game already started and {&#64;code psNodes} is unique to the player.
+       * 0 if none when game is starting now and players can place anywhere.
+       *&lt;P&gt;
+       * Not used if {&#64;link #areaCount} == 1.
+       * </pre>
+       *
+       * <code>uint32 starting_land_area = 4;</code>
+       */
+      public Builder clearStartingLandArea() {
+        
+        startingLandArea_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.MapField<
+          java.lang.Integer, soc.proto.Data._IntArray> landAreasLegalNodes_;
+      private com.google.protobuf.MapField<java.lang.Integer, soc.proto.Data._IntArray>
+      internalGetLandAreasLegalNodes() {
+        if (landAreasLegalNodes_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              LandAreasLegalNodesDefaultEntryHolder.defaultEntry);
+        }
+        return landAreasLegalNodes_;
+      }
+      private com.google.protobuf.MapField<java.lang.Integer, soc.proto.Data._IntArray>
+      internalGetMutableLandAreasLegalNodes() {
+        onChanged();;
+        if (landAreasLegalNodes_ == null) {
+          landAreasLegalNodes_ = com.google.protobuf.MapField.newMapField(
+              LandAreasLegalNodesDefaultEntryHolder.defaultEntry);
+        }
+        if (!landAreasLegalNodes_.isMutable()) {
+          landAreasLegalNodes_ = landAreasLegalNodes_.copy();
+        }
+        return landAreasLegalNodes_;
+      }
+
+      public int getLandAreasLegalNodesCount() {
+        return internalGetLandAreasLegalNodes().getMap().size();
+      }
+      /**
+       * <pre>
+       * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
+       * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+       * </pre>
+       *
+       * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 5;</code>
+       */
+
+      public boolean containsLandAreasLegalNodes(
+          int key) {
+        
+        return internalGetLandAreasLegalNodes().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getLandAreasLegalNodesMap()} instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.Integer, soc.proto.Data._IntArray> getLandAreasLegalNodes() {
+        return getLandAreasLegalNodesMap();
+      }
+      /**
+       * <pre>
+       * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
+       * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+       * </pre>
+       *
+       * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 5;</code>
+       */
+
+      public java.util.Map<java.lang.Integer, soc.proto.Data._IntArray> getLandAreasLegalNodesMap() {
+        return internalGetLandAreasLegalNodes().getMap();
+      }
+      /**
+       * <pre>
+       * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
+       * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+       * </pre>
+       *
+       * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 5;</code>
+       */
+
+      public soc.proto.Data._IntArray getLandAreasLegalNodesOrDefault(
+          int key,
+          soc.proto.Data._IntArray defaultValue) {
+        
+        java.util.Map<java.lang.Integer, soc.proto.Data._IntArray> map =
+            internalGetLandAreasLegalNodes().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <pre>
+       * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
+       * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+       * </pre>
+       *
+       * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 5;</code>
+       */
+
+      public soc.proto.Data._IntArray getLandAreasLegalNodesOrThrow(
+          int key) {
+        
+        java.util.Map<java.lang.Integer, soc.proto.Data._IntArray> map =
+            internalGetLandAreasLegalNodes().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+
+      public Builder clearLandAreasLegalNodes() {
+        internalGetMutableLandAreasLegalNodes().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <pre>
+       * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
+       * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+       * </pre>
+       *
+       * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 5;</code>
+       */
+
+      public Builder removeLandAreasLegalNodes(
+          int key) {
+        
+        internalGetMutableLandAreasLegalNodes().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.Integer, soc.proto.Data._IntArray>
+      getMutableLandAreasLegalNodes() {
+        return internalGetMutableLandAreasLegalNodes().getMutableMap();
+      }
+      /**
+       * <pre>
+       * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
+       * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+       * </pre>
+       *
+       * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 5;</code>
+       */
+      public Builder putLandAreasLegalNodes(
+          int key,
+          soc.proto.Data._IntArray value) {
+        
+        if (value == null) { throw new java.lang.NullPointerException(); }
+        internalGetMutableLandAreasLegalNodes().getMutableMap()
+            .put(key, value);
+        return this;
+      }
+      /**
+       * <pre>
+       * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
+       * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+       * </pre>
+       *
+       * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 5;</code>
+       */
+
+      public Builder putAllLandAreasLegalNodes(
+          java.util.Map<java.lang.Integer, soc.proto.Data._IntArray> values) {
+        internalGetMutableLandAreasLegalNodes().getMutableMap()
+            .putAll(values);
+        return this;
+      }
+
+      private java.util.List<soc.proto.Data._SIntArray> legalSeaEdges_ =
+        java.util.Collections.emptyList();
+      private void ensureLegalSeaEdgesIsMutable() {
+        if (!((bitField0_ & 0x00000020) == 0x00000020)) {
+          legalSeaEdges_ = new java.util.ArrayList<soc.proto.Data._SIntArray>(legalSeaEdges_);
+          bitField0_ |= 0x00000020;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          soc.proto.Data._SIntArray, soc.proto.Data._SIntArray.Builder, soc.proto.Data._SIntArrayOrBuilder> legalSeaEdgesBuilder_;
+
+      /**
+       * <pre>
+       * legal sea edges per player for ships, if restricted.
+       * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+       *&lt;P&gt;
+       * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+       * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+       *&lt;P&gt;
+       * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+       * A list of individual sea edge coordinates and/or ranges.
+       * Ranges are designated by a pair of positive,negative numbers:
+       * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * </pre>
+       *
+       * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+       */
+      public java.util.List<soc.proto.Data._SIntArray> getLegalSeaEdgesList() {
+        if (legalSeaEdgesBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(legalSeaEdges_);
+        } else {
+          return legalSeaEdgesBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <pre>
+       * legal sea edges per player for ships, if restricted.
+       * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+       *&lt;P&gt;
+       * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+       * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+       *&lt;P&gt;
+       * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+       * A list of individual sea edge coordinates and/or ranges.
+       * Ranges are designated by a pair of positive,negative numbers:
+       * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * </pre>
+       *
+       * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+       */
+      public int getLegalSeaEdgesCount() {
+        if (legalSeaEdgesBuilder_ == null) {
+          return legalSeaEdges_.size();
+        } else {
+          return legalSeaEdgesBuilder_.getCount();
+        }
+      }
+      /**
+       * <pre>
+       * legal sea edges per player for ships, if restricted.
+       * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+       *&lt;P&gt;
+       * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+       * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+       *&lt;P&gt;
+       * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+       * A list of individual sea edge coordinates and/or ranges.
+       * Ranges are designated by a pair of positive,negative numbers:
+       * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * </pre>
+       *
+       * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+       */
+      public soc.proto.Data._SIntArray getLegalSeaEdges(int index) {
+        if (legalSeaEdgesBuilder_ == null) {
+          return legalSeaEdges_.get(index);
+        } else {
+          return legalSeaEdgesBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <pre>
+       * legal sea edges per player for ships, if restricted.
+       * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+       *&lt;P&gt;
+       * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+       * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+       *&lt;P&gt;
+       * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+       * A list of individual sea edge coordinates and/or ranges.
+       * Ranges are designated by a pair of positive,negative numbers:
+       * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * </pre>
+       *
+       * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+       */
+      public Builder setLegalSeaEdges(
+          int index, soc.proto.Data._SIntArray value) {
+        if (legalSeaEdgesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureLegalSeaEdgesIsMutable();
+          legalSeaEdges_.set(index, value);
+          onChanged();
+        } else {
+          legalSeaEdgesBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * legal sea edges per player for ships, if restricted.
+       * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+       *&lt;P&gt;
+       * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+       * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+       *&lt;P&gt;
+       * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+       * A list of individual sea edge coordinates and/or ranges.
+       * Ranges are designated by a pair of positive,negative numbers:
+       * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * </pre>
+       *
+       * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+       */
+      public Builder setLegalSeaEdges(
+          int index, soc.proto.Data._SIntArray.Builder builderForValue) {
+        if (legalSeaEdgesBuilder_ == null) {
+          ensureLegalSeaEdgesIsMutable();
+          legalSeaEdges_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          legalSeaEdgesBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * legal sea edges per player for ships, if restricted.
+       * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+       *&lt;P&gt;
+       * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+       * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+       *&lt;P&gt;
+       * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+       * A list of individual sea edge coordinates and/or ranges.
+       * Ranges are designated by a pair of positive,negative numbers:
+       * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * </pre>
+       *
+       * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+       */
+      public Builder addLegalSeaEdges(soc.proto.Data._SIntArray value) {
+        if (legalSeaEdgesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureLegalSeaEdgesIsMutable();
+          legalSeaEdges_.add(value);
+          onChanged();
+        } else {
+          legalSeaEdgesBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * legal sea edges per player for ships, if restricted.
+       * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+       *&lt;P&gt;
+       * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+       * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+       *&lt;P&gt;
+       * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+       * A list of individual sea edge coordinates and/or ranges.
+       * Ranges are designated by a pair of positive,negative numbers:
+       * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * </pre>
+       *
+       * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+       */
+      public Builder addLegalSeaEdges(
+          int index, soc.proto.Data._SIntArray value) {
+        if (legalSeaEdgesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureLegalSeaEdgesIsMutable();
+          legalSeaEdges_.add(index, value);
+          onChanged();
+        } else {
+          legalSeaEdgesBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * legal sea edges per player for ships, if restricted.
+       * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+       *&lt;P&gt;
+       * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+       * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+       *&lt;P&gt;
+       * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+       * A list of individual sea edge coordinates and/or ranges.
+       * Ranges are designated by a pair of positive,negative numbers:
+       * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * </pre>
+       *
+       * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+       */
+      public Builder addLegalSeaEdges(
+          soc.proto.Data._SIntArray.Builder builderForValue) {
+        if (legalSeaEdgesBuilder_ == null) {
+          ensureLegalSeaEdgesIsMutable();
+          legalSeaEdges_.add(builderForValue.build());
+          onChanged();
+        } else {
+          legalSeaEdgesBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * legal sea edges per player for ships, if restricted.
+       * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+       *&lt;P&gt;
+       * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+       * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+       *&lt;P&gt;
+       * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+       * A list of individual sea edge coordinates and/or ranges.
+       * Ranges are designated by a pair of positive,negative numbers:
+       * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * </pre>
+       *
+       * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+       */
+      public Builder addLegalSeaEdges(
+          int index, soc.proto.Data._SIntArray.Builder builderForValue) {
+        if (legalSeaEdgesBuilder_ == null) {
+          ensureLegalSeaEdgesIsMutable();
+          legalSeaEdges_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          legalSeaEdgesBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * legal sea edges per player for ships, if restricted.
+       * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+       *&lt;P&gt;
+       * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+       * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+       *&lt;P&gt;
+       * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+       * A list of individual sea edge coordinates and/or ranges.
+       * Ranges are designated by a pair of positive,negative numbers:
+       * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * </pre>
+       *
+       * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+       */
+      public Builder addAllLegalSeaEdges(
+          java.lang.Iterable<? extends soc.proto.Data._SIntArray> values) {
+        if (legalSeaEdgesBuilder_ == null) {
+          ensureLegalSeaEdgesIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, legalSeaEdges_);
+          onChanged();
+        } else {
+          legalSeaEdgesBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * legal sea edges per player for ships, if restricted.
+       * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+       *&lt;P&gt;
+       * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+       * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+       *&lt;P&gt;
+       * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+       * A list of individual sea edge coordinates and/or ranges.
+       * Ranges are designated by a pair of positive,negative numbers:
+       * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * </pre>
+       *
+       * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+       */
+      public Builder clearLegalSeaEdges() {
+        if (legalSeaEdgesBuilder_ == null) {
+          legalSeaEdges_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000020);
+          onChanged();
+        } else {
+          legalSeaEdgesBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * legal sea edges per player for ships, if restricted.
+       * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+       *&lt;P&gt;
+       * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+       * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+       *&lt;P&gt;
+       * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+       * A list of individual sea edge coordinates and/or ranges.
+       * Ranges are designated by a pair of positive,negative numbers:
+       * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * </pre>
+       *
+       * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+       */
+      public Builder removeLegalSeaEdges(int index) {
+        if (legalSeaEdgesBuilder_ == null) {
+          ensureLegalSeaEdgesIsMutable();
+          legalSeaEdges_.remove(index);
+          onChanged();
+        } else {
+          legalSeaEdgesBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * legal sea edges per player for ships, if restricted.
+       * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+       *&lt;P&gt;
+       * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+       * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+       *&lt;P&gt;
+       * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+       * A list of individual sea edge coordinates and/or ranges.
+       * Ranges are designated by a pair of positive,negative numbers:
+       * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * </pre>
+       *
+       * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+       */
+      public soc.proto.Data._SIntArray.Builder getLegalSeaEdgesBuilder(
+          int index) {
+        return getLegalSeaEdgesFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <pre>
+       * legal sea edges per player for ships, if restricted.
+       * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+       *&lt;P&gt;
+       * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+       * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+       *&lt;P&gt;
+       * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+       * A list of individual sea edge coordinates and/or ranges.
+       * Ranges are designated by a pair of positive,negative numbers:
+       * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * </pre>
+       *
+       * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+       */
+      public soc.proto.Data._SIntArrayOrBuilder getLegalSeaEdgesOrBuilder(
+          int index) {
+        if (legalSeaEdgesBuilder_ == null) {
+          return legalSeaEdges_.get(index);  } else {
+          return legalSeaEdgesBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <pre>
+       * legal sea edges per player for ships, if restricted.
+       * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+       *&lt;P&gt;
+       * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+       * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+       *&lt;P&gt;
+       * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+       * A list of individual sea edge coordinates and/or ranges.
+       * Ranges are designated by a pair of positive,negative numbers:
+       * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * </pre>
+       *
+       * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+       */
+      public java.util.List<? extends soc.proto.Data._SIntArrayOrBuilder> 
+           getLegalSeaEdgesOrBuilderList() {
+        if (legalSeaEdgesBuilder_ != null) {
+          return legalSeaEdgesBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(legalSeaEdges_);
+        }
+      }
+      /**
+       * <pre>
+       * legal sea edges per player for ships, if restricted.
+       * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+       *&lt;P&gt;
+       * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+       * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+       *&lt;P&gt;
+       * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+       * A list of individual sea edge coordinates and/or ranges.
+       * Ranges are designated by a pair of positive,negative numbers:
+       * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * </pre>
+       *
+       * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+       */
+      public soc.proto.Data._SIntArray.Builder addLegalSeaEdgesBuilder() {
+        return getLegalSeaEdgesFieldBuilder().addBuilder(
+            soc.proto.Data._SIntArray.getDefaultInstance());
+      }
+      /**
+       * <pre>
+       * legal sea edges per player for ships, if restricted.
+       * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+       *&lt;P&gt;
+       * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+       * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+       *&lt;P&gt;
+       * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+       * A list of individual sea edge coordinates and/or ranges.
+       * Ranges are designated by a pair of positive,negative numbers:
+       * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * </pre>
+       *
+       * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+       */
+      public soc.proto.Data._SIntArray.Builder addLegalSeaEdgesBuilder(
+          int index) {
+        return getLegalSeaEdgesFieldBuilder().addBuilder(
+            index, soc.proto.Data._SIntArray.getDefaultInstance());
+      }
+      /**
+       * <pre>
+       * legal sea edges per player for ships, if restricted.
+       * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+       *&lt;P&gt;
+       * If {&#64;link #playerNumber} != -1, {&#64;code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+       * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+       *&lt;P&gt;
+       * Each per-player array is the same format as in {&#64;code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+       * A list of individual sea edge coordinates and/or ranges.
+       * Ranges are designated by a pair of positive,negative numbers:
+       * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * </pre>
+       *
+       * <code>repeated ._SIntArray legal_sea_edges = 6;</code>
+       */
+      public java.util.List<soc.proto.Data._SIntArray.Builder> 
+           getLegalSeaEdgesBuilderList() {
+        return getLegalSeaEdgesFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          soc.proto.Data._SIntArray, soc.proto.Data._SIntArray.Builder, soc.proto.Data._SIntArrayOrBuilder> 
+          getLegalSeaEdgesFieldBuilder() {
+        if (legalSeaEdgesBuilder_ == null) {
+          legalSeaEdgesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+              soc.proto.Data._SIntArray, soc.proto.Data._SIntArray.Builder, soc.proto.Data._SIntArrayOrBuilder>(
+                  legalSeaEdges_,
+                  ((bitField0_ & 0x00000020) == 0x00000020),
+                  getParentForChildren(),
+                  isClean());
+          legalSeaEdges_ = null;
+        }
+        return legalSeaEdgesBuilder_;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:PotentialSettlements)
+    }
+
+    // @@protoc_insertion_point(class_scope:PotentialSettlements)
+    private static final soc.proto.GameMessage.PotentialSettlements DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.PotentialSettlements();
+    }
+
+    public static soc.proto.GameMessage.PotentialSettlements getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<PotentialSettlements>
+        PARSER = new com.google.protobuf.AbstractParser<PotentialSettlements>() {
+      public PotentialSettlements parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new PotentialSettlements(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<PotentialSettlements> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<PotentialSettlements> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.PotentialSettlements getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -10037,6 +11526,2788 @@ public final class GameMessage {
 
   }
 
+  public interface SetTurnOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:SetTurn)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * new current player's seat number
+     * </pre>
+     *
+     * <code>uint32 player_number = 1;</code>
+     */
+    int getPlayerNumber();
+  }
+  /**
+   * <pre>
+   * This message from server to client says whose turn it is.
+   * Only the game's current player number should change; no other
+   * game state is updated.
+   * </pre>
+   *
+   * Protobuf type {@code SetTurn}
+   */
+  public  static final class SetTurn extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:SetTurn)
+      SetTurnOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use SetTurn.newBuilder() to construct.
+    private SetTurn(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private SetTurn() {
+      playerNumber_ = 0;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private SetTurn(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+
+              playerNumber_ = input.readUInt32();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_SetTurn_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_SetTurn_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.SetTurn.class, soc.proto.GameMessage.SetTurn.Builder.class);
+    }
+
+    public static final int PLAYER_NUMBER_FIELD_NUMBER = 1;
+    private int playerNumber_;
+    /**
+     * <pre>
+     * new current player's seat number
+     * </pre>
+     *
+     * <code>uint32 player_number = 1;</code>
+     */
+    public int getPlayerNumber() {
+      return playerNumber_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (playerNumber_ != 0) {
+        output.writeUInt32(1, playerNumber_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (playerNumber_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(1, playerNumber_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.SetTurn)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.SetTurn other = (soc.proto.GameMessage.SetTurn) obj;
+
+      boolean result = true;
+      result = result && (getPlayerNumber()
+          == other.getPlayerNumber());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + PLAYER_NUMBER_FIELD_NUMBER;
+      hash = (53 * hash) + getPlayerNumber();
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.SetTurn parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.SetTurn parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.SetTurn parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.SetTurn parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.SetTurn parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.SetTurn parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.SetTurn parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.SetTurn parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.SetTurn parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.SetTurn parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.SetTurn parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.SetTurn parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.SetTurn prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * This message from server to client says whose turn it is.
+     * Only the game's current player number should change; no other
+     * game state is updated.
+     * </pre>
+     *
+     * Protobuf type {@code SetTurn}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:SetTurn)
+        soc.proto.GameMessage.SetTurnOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_SetTurn_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_SetTurn_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.SetTurn.class, soc.proto.GameMessage.SetTurn.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.SetTurn.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        playerNumber_ = 0;
+
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_SetTurn_descriptor;
+      }
+
+      public soc.proto.GameMessage.SetTurn getDefaultInstanceForType() {
+        return soc.proto.GameMessage.SetTurn.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.SetTurn build() {
+        soc.proto.GameMessage.SetTurn result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.SetTurn buildPartial() {
+        soc.proto.GameMessage.SetTurn result = new soc.proto.GameMessage.SetTurn(this);
+        result.playerNumber_ = playerNumber_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.SetTurn) {
+          return mergeFrom((soc.proto.GameMessage.SetTurn)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.SetTurn other) {
+        if (other == soc.proto.GameMessage.SetTurn.getDefaultInstance()) return this;
+        if (other.getPlayerNumber() != 0) {
+          setPlayerNumber(other.getPlayerNumber());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.SetTurn parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.SetTurn) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private int playerNumber_ ;
+      /**
+       * <pre>
+       * new current player's seat number
+       * </pre>
+       *
+       * <code>uint32 player_number = 1;</code>
+       */
+      public int getPlayerNumber() {
+        return playerNumber_;
+      }
+      /**
+       * <pre>
+       * new current player's seat number
+       * </pre>
+       *
+       * <code>uint32 player_number = 1;</code>
+       */
+      public Builder setPlayerNumber(int value) {
+        
+        playerNumber_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * new current player's seat number
+       * </pre>
+       *
+       * <code>uint32 player_number = 1;</code>
+       */
+      public Builder clearPlayerNumber() {
+        
+        playerNumber_ = 0;
+        onChanged();
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:SetTurn)
+    }
+
+    // @@protoc_insertion_point(class_scope:SetTurn)
+    private static final soc.proto.GameMessage.SetTurn DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.SetTurn();
+    }
+
+    public static soc.proto.GameMessage.SetTurn getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<SetTurn>
+        PARSER = new com.google.protobuf.AbstractParser<SetTurn>() {
+      public SetTurn parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new SetTurn(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<SetTurn> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<SetTurn> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.SetTurn getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface DiceResultOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:DiceResult)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * total rolled on both dice
+     * </pre>
+     *
+     * <code>uint32 dice_total = 1;</code>
+     */
+    int getDiceTotal();
+  }
+  /**
+   * <pre>
+   * Reports the total of what was rolled on the dice this turn.
+   * The two individual dice amounts can be reported in a text message.
+   *&lt;P&gt;
+   * This is in response to a client player's {&#64;link RollDice} request.
+   * Will always be followed by {&#64;link State} (7 might lead to discards
+   * or moving the robber, etc.), and sometimes with further messages after that,
+   * depending on the roll results and scenario/rules in effect.
+   *&lt;P&gt;
+   * When players gain resources on the roll, game members will be sent {&#64;link DiceResultResources}.
+   *&lt;P&gt;
+   * Players who gain resources on the roll will be sent
+   * {&#64;link PlayerElement PlayerElement(SET, resType, amount)} messages
+   * for all their new resource counts.  Before v2.0.00, those were sent to each
+   * player in the game after a roll, not just those who gained resources.
+   * Afterwards each gaining player (any client version) is sent their currently
+   * held amounts for each resource as a group of &lt;tt&gt;PlayerElement(pn, {&#64;link #SET}, ...)&lt;/tt&gt;
+   * messages. Then, for each player who gained resources, their total {&#64;link ResourceCount}
+   * is sent to the game. 
+   * </pre>
+   *
+   * Protobuf type {@code DiceResult}
+   */
+  public  static final class DiceResult extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:DiceResult)
+      DiceResultOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use DiceResult.newBuilder() to construct.
+    private DiceResult(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private DiceResult() {
+      diceTotal_ = 0;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private DiceResult(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+
+              diceTotal_ = input.readUInt32();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_DiceResult_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_DiceResult_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.DiceResult.class, soc.proto.GameMessage.DiceResult.Builder.class);
+    }
+
+    public static final int DICE_TOTAL_FIELD_NUMBER = 1;
+    private int diceTotal_;
+    /**
+     * <pre>
+     * total rolled on both dice
+     * </pre>
+     *
+     * <code>uint32 dice_total = 1;</code>
+     */
+    public int getDiceTotal() {
+      return diceTotal_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (diceTotal_ != 0) {
+        output.writeUInt32(1, diceTotal_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (diceTotal_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(1, diceTotal_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.DiceResult)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.DiceResult other = (soc.proto.GameMessage.DiceResult) obj;
+
+      boolean result = true;
+      result = result && (getDiceTotal()
+          == other.getDiceTotal());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + DICE_TOTAL_FIELD_NUMBER;
+      hash = (53 * hash) + getDiceTotal();
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.DiceResult parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.DiceResult parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.DiceResult parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.DiceResult parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.DiceResult parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.DiceResult parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.DiceResult parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.DiceResult parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.DiceResult parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.DiceResult parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.DiceResult parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.DiceResult parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.DiceResult prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * Reports the total of what was rolled on the dice this turn.
+     * The two individual dice amounts can be reported in a text message.
+     *&lt;P&gt;
+     * This is in response to a client player's {&#64;link RollDice} request.
+     * Will always be followed by {&#64;link State} (7 might lead to discards
+     * or moving the robber, etc.), and sometimes with further messages after that,
+     * depending on the roll results and scenario/rules in effect.
+     *&lt;P&gt;
+     * When players gain resources on the roll, game members will be sent {&#64;link DiceResultResources}.
+     *&lt;P&gt;
+     * Players who gain resources on the roll will be sent
+     * {&#64;link PlayerElement PlayerElement(SET, resType, amount)} messages
+     * for all their new resource counts.  Before v2.0.00, those were sent to each
+     * player in the game after a roll, not just those who gained resources.
+     * Afterwards each gaining player (any client version) is sent their currently
+     * held amounts for each resource as a group of &lt;tt&gt;PlayerElement(pn, {&#64;link #SET}, ...)&lt;/tt&gt;
+     * messages. Then, for each player who gained resources, their total {&#64;link ResourceCount}
+     * is sent to the game. 
+     * </pre>
+     *
+     * Protobuf type {@code DiceResult}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:DiceResult)
+        soc.proto.GameMessage.DiceResultOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_DiceResult_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_DiceResult_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.DiceResult.class, soc.proto.GameMessage.DiceResult.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.DiceResult.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        diceTotal_ = 0;
+
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_DiceResult_descriptor;
+      }
+
+      public soc.proto.GameMessage.DiceResult getDefaultInstanceForType() {
+        return soc.proto.GameMessage.DiceResult.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.DiceResult build() {
+        soc.proto.GameMessage.DiceResult result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.DiceResult buildPartial() {
+        soc.proto.GameMessage.DiceResult result = new soc.proto.GameMessage.DiceResult(this);
+        result.diceTotal_ = diceTotal_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.DiceResult) {
+          return mergeFrom((soc.proto.GameMessage.DiceResult)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.DiceResult other) {
+        if (other == soc.proto.GameMessage.DiceResult.getDefaultInstance()) return this;
+        if (other.getDiceTotal() != 0) {
+          setDiceTotal(other.getDiceTotal());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.DiceResult parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.DiceResult) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private int diceTotal_ ;
+      /**
+       * <pre>
+       * total rolled on both dice
+       * </pre>
+       *
+       * <code>uint32 dice_total = 1;</code>
+       */
+      public int getDiceTotal() {
+        return diceTotal_;
+      }
+      /**
+       * <pre>
+       * total rolled on both dice
+       * </pre>
+       *
+       * <code>uint32 dice_total = 1;</code>
+       */
+      public Builder setDiceTotal(int value) {
+        
+        diceTotal_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * total rolled on both dice
+       * </pre>
+       *
+       * <code>uint32 dice_total = 1;</code>
+       */
+      public Builder clearDiceTotal() {
+        
+        diceTotal_ = 0;
+        onChanged();
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:DiceResult)
+    }
+
+    // @@protoc_insertion_point(class_scope:DiceResult)
+    private static final soc.proto.GameMessage.DiceResult DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.DiceResult();
+    }
+
+    public static soc.proto.GameMessage.DiceResult getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<DiceResult>
+        PARSER = new com.google.protobuf.AbstractParser<DiceResult>() {
+      public DiceResult parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new DiceResult(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<DiceResult> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<DiceResult> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.DiceResult getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface DiceResultResourcesOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:DiceResultResources)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+     */
+    java.util.List<soc.proto.GameMessage.DiceResultResources.PlayerResources> 
+        getPlayerResourcesList();
+    /**
+     * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+     */
+    soc.proto.GameMessage.DiceResultResources.PlayerResources getPlayerResources(int index);
+    /**
+     * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+     */
+    int getPlayerResourcesCount();
+    /**
+     * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+     */
+    java.util.List<? extends soc.proto.GameMessage.DiceResultResources.PlayerResourcesOrBuilder> 
+        getPlayerResourcesOrBuilderList();
+    /**
+     * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+     */
+    soc.proto.GameMessage.DiceResultResources.PlayerResourcesOrBuilder getPlayerResourcesOrBuilder(
+        int index);
+  }
+  /**
+   * <pre>
+   * All resources gained by players from a dice roll.
+   * Sent to all game members after a {&#64;link DiceResult}.
+   * </pre>
+   *
+   * Protobuf type {@code DiceResultResources}
+   */
+  public  static final class DiceResultResources extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:DiceResultResources)
+      DiceResultResourcesOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use DiceResultResources.newBuilder() to construct.
+    private DiceResultResources(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private DiceResultResources() {
+      playerResources_ = java.util.Collections.emptyList();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private DiceResultResources(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                playerResources_ = new java.util.ArrayList<soc.proto.GameMessage.DiceResultResources.PlayerResources>();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              playerResources_.add(
+                  input.readMessage(soc.proto.GameMessage.DiceResultResources.PlayerResources.parser(), extensionRegistry));
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+          playerResources_ = java.util.Collections.unmodifiableList(playerResources_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_DiceResultResources_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_DiceResultResources_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.DiceResultResources.class, soc.proto.GameMessage.DiceResultResources.Builder.class);
+    }
+
+    public interface PlayerResourcesOrBuilder extends
+        // @@protoc_insertion_point(interface_extends:DiceResultResources.PlayerResources)
+        com.google.protobuf.MessageOrBuilder {
+
+      /**
+       * <code>uint32 player_number = 1;</code>
+       */
+      int getPlayerNumber();
+
+      /**
+       * <pre>
+       * Type of each resource gained; same length as res_amount 
+       * </pre>
+       *
+       * <code>repeated .ResourceType res_type = 2;</code>
+       */
+      java.util.List<soc.proto.Data.ResourceType> getResTypeList();
+      /**
+       * <pre>
+       * Type of each resource gained; same length as res_amount 
+       * </pre>
+       *
+       * <code>repeated .ResourceType res_type = 2;</code>
+       */
+      int getResTypeCount();
+      /**
+       * <pre>
+       * Type of each resource gained; same length as res_amount 
+       * </pre>
+       *
+       * <code>repeated .ResourceType res_type = 2;</code>
+       */
+      soc.proto.Data.ResourceType getResType(int index);
+      /**
+       * <pre>
+       * Type of each resource gained; same length as res_amount 
+       * </pre>
+       *
+       * <code>repeated .ResourceType res_type = 2;</code>
+       */
+      java.util.List<java.lang.Integer>
+      getResTypeValueList();
+      /**
+       * <pre>
+       * Type of each resource gained; same length as res_amount 
+       * </pre>
+       *
+       * <code>repeated .ResourceType res_type = 2;</code>
+       */
+      int getResTypeValue(int index);
+
+      /**
+       * <pre>
+       * Amount of each resource type gained; same length as res_type 
+       * </pre>
+       *
+       * <code>repeated uint32 res_amount = 3;</code>
+       */
+      java.util.List<java.lang.Integer> getResAmountList();
+      /**
+       * <pre>
+       * Amount of each resource type gained; same length as res_type 
+       * </pre>
+       *
+       * <code>repeated uint32 res_amount = 3;</code>
+       */
+      int getResAmountCount();
+      /**
+       * <pre>
+       * Amount of each resource type gained; same length as res_type 
+       * </pre>
+       *
+       * <code>repeated uint32 res_amount = 3;</code>
+       */
+      int getResAmount(int index);
+    }
+    /**
+     * <pre>
+     * One player's gained resource types and amounts.
+     * Uses parallel lists to simplify nested message structure.
+     * </pre>
+     *
+     * Protobuf type {@code DiceResultResources.PlayerResources}
+     */
+    public  static final class PlayerResources extends
+        com.google.protobuf.GeneratedMessageV3 implements
+        // @@protoc_insertion_point(message_implements:DiceResultResources.PlayerResources)
+        PlayerResourcesOrBuilder {
+    private static final long serialVersionUID = 0L;
+      // Use PlayerResources.newBuilder() to construct.
+      private PlayerResources(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+        super(builder);
+      }
+      private PlayerResources() {
+        playerNumber_ = 0;
+        resType_ = java.util.Collections.emptyList();
+        resAmount_ = java.util.Collections.emptyList();
+      }
+
+      @java.lang.Override
+      public final com.google.protobuf.UnknownFieldSet
+      getUnknownFields() {
+        return this.unknownFields;
+      }
+      private PlayerResources(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        this();
+        int mutable_bitField0_ = 0;
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+            com.google.protobuf.UnknownFieldSet.newBuilder();
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              default: {
+                if (!parseUnknownFieldProto3(
+                    input, unknownFields, extensionRegistry, tag)) {
+                  done = true;
+                }
+                break;
+              }
+              case 8: {
+
+                playerNumber_ = input.readUInt32();
+                break;
+              }
+              case 16: {
+                int rawValue = input.readEnum();
+                if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+                  resType_ = new java.util.ArrayList<java.lang.Integer>();
+                  mutable_bitField0_ |= 0x00000002;
+                }
+                resType_.add(rawValue);
+                break;
+              }
+              case 18: {
+                int length = input.readRawVarint32();
+                int oldLimit = input.pushLimit(length);
+                while(input.getBytesUntilLimit() > 0) {
+                  int rawValue = input.readEnum();
+                  if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+                    resType_ = new java.util.ArrayList<java.lang.Integer>();
+                    mutable_bitField0_ |= 0x00000002;
+                  }
+                  resType_.add(rawValue);
+                }
+                input.popLimit(oldLimit);
+                break;
+              }
+              case 24: {
+                if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+                  resAmount_ = new java.util.ArrayList<java.lang.Integer>();
+                  mutable_bitField0_ |= 0x00000004;
+                }
+                resAmount_.add(input.readUInt32());
+                break;
+              }
+              case 26: {
+                int length = input.readRawVarint32();
+                int limit = input.pushLimit(length);
+                if (!((mutable_bitField0_ & 0x00000004) == 0x00000004) && input.getBytesUntilLimit() > 0) {
+                  resAmount_ = new java.util.ArrayList<java.lang.Integer>();
+                  mutable_bitField0_ |= 0x00000004;
+                }
+                while (input.getBytesUntilLimit() > 0) {
+                  resAmount_.add(input.readUInt32());
+                }
+                input.popLimit(limit);
+                break;
+              }
+            }
+          }
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(this);
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(
+              e).setUnfinishedMessage(this);
+        } finally {
+          if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+            resType_ = java.util.Collections.unmodifiableList(resType_);
+          }
+          if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+            resAmount_ = java.util.Collections.unmodifiableList(resAmount_);
+          }
+          this.unknownFields = unknownFields.build();
+          makeExtensionsImmutable();
+        }
+      }
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_DiceResultResources_PlayerResources_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_DiceResultResources_PlayerResources_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.DiceResultResources.PlayerResources.class, soc.proto.GameMessage.DiceResultResources.PlayerResources.Builder.class);
+      }
+
+      private int bitField0_;
+      public static final int PLAYER_NUMBER_FIELD_NUMBER = 1;
+      private int playerNumber_;
+      /**
+       * <code>uint32 player_number = 1;</code>
+       */
+      public int getPlayerNumber() {
+        return playerNumber_;
+      }
+
+      public static final int RES_TYPE_FIELD_NUMBER = 2;
+      private java.util.List<java.lang.Integer> resType_;
+      private static final com.google.protobuf.Internal.ListAdapter.Converter<
+          java.lang.Integer, soc.proto.Data.ResourceType> resType_converter_ =
+              new com.google.protobuf.Internal.ListAdapter.Converter<
+                  java.lang.Integer, soc.proto.Data.ResourceType>() {
+                public soc.proto.Data.ResourceType convert(java.lang.Integer from) {
+                  soc.proto.Data.ResourceType result = soc.proto.Data.ResourceType.valueOf(from);
+                  return result == null ? soc.proto.Data.ResourceType.UNRECOGNIZED : result;
+                }
+              };
+      /**
+       * <pre>
+       * Type of each resource gained; same length as res_amount 
+       * </pre>
+       *
+       * <code>repeated .ResourceType res_type = 2;</code>
+       */
+      public java.util.List<soc.proto.Data.ResourceType> getResTypeList() {
+        return new com.google.protobuf.Internal.ListAdapter<
+            java.lang.Integer, soc.proto.Data.ResourceType>(resType_, resType_converter_);
+      }
+      /**
+       * <pre>
+       * Type of each resource gained; same length as res_amount 
+       * </pre>
+       *
+       * <code>repeated .ResourceType res_type = 2;</code>
+       */
+      public int getResTypeCount() {
+        return resType_.size();
+      }
+      /**
+       * <pre>
+       * Type of each resource gained; same length as res_amount 
+       * </pre>
+       *
+       * <code>repeated .ResourceType res_type = 2;</code>
+       */
+      public soc.proto.Data.ResourceType getResType(int index) {
+        return resType_converter_.convert(resType_.get(index));
+      }
+      /**
+       * <pre>
+       * Type of each resource gained; same length as res_amount 
+       * </pre>
+       *
+       * <code>repeated .ResourceType res_type = 2;</code>
+       */
+      public java.util.List<java.lang.Integer>
+      getResTypeValueList() {
+        return resType_;
+      }
+      /**
+       * <pre>
+       * Type of each resource gained; same length as res_amount 
+       * </pre>
+       *
+       * <code>repeated .ResourceType res_type = 2;</code>
+       */
+      public int getResTypeValue(int index) {
+        return resType_.get(index);
+      }
+      private int resTypeMemoizedSerializedSize;
+
+      public static final int RES_AMOUNT_FIELD_NUMBER = 3;
+      private java.util.List<java.lang.Integer> resAmount_;
+      /**
+       * <pre>
+       * Amount of each resource type gained; same length as res_type 
+       * </pre>
+       *
+       * <code>repeated uint32 res_amount = 3;</code>
+       */
+      public java.util.List<java.lang.Integer>
+          getResAmountList() {
+        return resAmount_;
+      }
+      /**
+       * <pre>
+       * Amount of each resource type gained; same length as res_type 
+       * </pre>
+       *
+       * <code>repeated uint32 res_amount = 3;</code>
+       */
+      public int getResAmountCount() {
+        return resAmount_.size();
+      }
+      /**
+       * <pre>
+       * Amount of each resource type gained; same length as res_type 
+       * </pre>
+       *
+       * <code>repeated uint32 res_amount = 3;</code>
+       */
+      public int getResAmount(int index) {
+        return resAmount_.get(index);
+      }
+      private int resAmountMemoizedSerializedSize = -1;
+
+      private byte memoizedIsInitialized = -1;
+      public final boolean isInitialized() {
+        byte isInitialized = memoizedIsInitialized;
+        if (isInitialized == 1) return true;
+        if (isInitialized == 0) return false;
+
+        memoizedIsInitialized = 1;
+        return true;
+      }
+
+      public void writeTo(com.google.protobuf.CodedOutputStream output)
+                          throws java.io.IOException {
+        getSerializedSize();
+        if (playerNumber_ != 0) {
+          output.writeUInt32(1, playerNumber_);
+        }
+        if (getResTypeList().size() > 0) {
+          output.writeUInt32NoTag(18);
+          output.writeUInt32NoTag(resTypeMemoizedSerializedSize);
+        }
+        for (int i = 0; i < resType_.size(); i++) {
+          output.writeEnumNoTag(resType_.get(i));
+        }
+        if (getResAmountList().size() > 0) {
+          output.writeUInt32NoTag(26);
+          output.writeUInt32NoTag(resAmountMemoizedSerializedSize);
+        }
+        for (int i = 0; i < resAmount_.size(); i++) {
+          output.writeUInt32NoTag(resAmount_.get(i));
+        }
+        unknownFields.writeTo(output);
+      }
+
+      public int getSerializedSize() {
+        int size = memoizedSize;
+        if (size != -1) return size;
+
+        size = 0;
+        if (playerNumber_ != 0) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeUInt32Size(1, playerNumber_);
+        }
+        {
+          int dataSize = 0;
+          for (int i = 0; i < resType_.size(); i++) {
+            dataSize += com.google.protobuf.CodedOutputStream
+              .computeEnumSizeNoTag(resType_.get(i));
+          }
+          size += dataSize;
+          if (!getResTypeList().isEmpty()) {  size += 1;
+            size += com.google.protobuf.CodedOutputStream
+              .computeUInt32SizeNoTag(dataSize);
+          }resTypeMemoizedSerializedSize = dataSize;
+        }
+        {
+          int dataSize = 0;
+          for (int i = 0; i < resAmount_.size(); i++) {
+            dataSize += com.google.protobuf.CodedOutputStream
+              .computeUInt32SizeNoTag(resAmount_.get(i));
+          }
+          size += dataSize;
+          if (!getResAmountList().isEmpty()) {
+            size += 1;
+            size += com.google.protobuf.CodedOutputStream
+                .computeInt32SizeNoTag(dataSize);
+          }
+          resAmountMemoizedSerializedSize = dataSize;
+        }
+        size += unknownFields.getSerializedSize();
+        memoizedSize = size;
+        return size;
+      }
+
+      @java.lang.Override
+      public boolean equals(final java.lang.Object obj) {
+        if (obj == this) {
+         return true;
+        }
+        if (!(obj instanceof soc.proto.GameMessage.DiceResultResources.PlayerResources)) {
+          return super.equals(obj);
+        }
+        soc.proto.GameMessage.DiceResultResources.PlayerResources other = (soc.proto.GameMessage.DiceResultResources.PlayerResources) obj;
+
+        boolean result = true;
+        result = result && (getPlayerNumber()
+            == other.getPlayerNumber());
+        result = result && resType_.equals(other.resType_);
+        result = result && getResAmountList()
+            .equals(other.getResAmountList());
+        result = result && unknownFields.equals(other.unknownFields);
+        return result;
+      }
+
+      @java.lang.Override
+      public int hashCode() {
+        if (memoizedHashCode != 0) {
+          return memoizedHashCode;
+        }
+        int hash = 41;
+        hash = (19 * hash) + getDescriptor().hashCode();
+        hash = (37 * hash) + PLAYER_NUMBER_FIELD_NUMBER;
+        hash = (53 * hash) + getPlayerNumber();
+        if (getResTypeCount() > 0) {
+          hash = (37 * hash) + RES_TYPE_FIELD_NUMBER;
+          hash = (53 * hash) + resType_.hashCode();
+        }
+        if (getResAmountCount() > 0) {
+          hash = (37 * hash) + RES_AMOUNT_FIELD_NUMBER;
+          hash = (53 * hash) + getResAmountList().hashCode();
+        }
+        hash = (29 * hash) + unknownFields.hashCode();
+        memoizedHashCode = hash;
+        return hash;
+      }
+
+      public static soc.proto.GameMessage.DiceResultResources.PlayerResources parseFrom(
+          java.nio.ByteBuffer data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static soc.proto.GameMessage.DiceResultResources.PlayerResources parseFrom(
+          java.nio.ByteBuffer data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static soc.proto.GameMessage.DiceResultResources.PlayerResources parseFrom(
+          com.google.protobuf.ByteString data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static soc.proto.GameMessage.DiceResultResources.PlayerResources parseFrom(
+          com.google.protobuf.ByteString data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static soc.proto.GameMessage.DiceResultResources.PlayerResources parseFrom(byte[] data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static soc.proto.GameMessage.DiceResultResources.PlayerResources parseFrom(
+          byte[] data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static soc.proto.GameMessage.DiceResultResources.PlayerResources parseFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static soc.proto.GameMessage.DiceResultResources.PlayerResources parseFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static soc.proto.GameMessage.DiceResultResources.PlayerResources parseDelimitedFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input);
+      }
+      public static soc.proto.GameMessage.DiceResultResources.PlayerResources parseDelimitedFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static soc.proto.GameMessage.DiceResultResources.PlayerResources parseFrom(
+          com.google.protobuf.CodedInputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static soc.proto.GameMessage.DiceResultResources.PlayerResources parseFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+
+      public Builder newBuilderForType() { return newBuilder(); }
+      public static Builder newBuilder() {
+        return DEFAULT_INSTANCE.toBuilder();
+      }
+      public static Builder newBuilder(soc.proto.GameMessage.DiceResultResources.PlayerResources prototype) {
+        return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      }
+      public Builder toBuilder() {
+        return this == DEFAULT_INSTANCE
+            ? new Builder() : new Builder().mergeFrom(this);
+      }
+
+      @java.lang.Override
+      protected Builder newBuilderForType(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        Builder builder = new Builder(parent);
+        return builder;
+      }
+      /**
+       * <pre>
+       * One player's gained resource types and amounts.
+       * Uses parallel lists to simplify nested message structure.
+       * </pre>
+       *
+       * Protobuf type {@code DiceResultResources.PlayerResources}
+       */
+      public static final class Builder extends
+          com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+          // @@protoc_insertion_point(builder_implements:DiceResultResources.PlayerResources)
+          soc.proto.GameMessage.DiceResultResources.PlayerResourcesOrBuilder {
+        public static final com.google.protobuf.Descriptors.Descriptor
+            getDescriptor() {
+          return soc.proto.GameMessage.internal_static_DiceResultResources_PlayerResources_descriptor;
+        }
+
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internalGetFieldAccessorTable() {
+          return soc.proto.GameMessage.internal_static_DiceResultResources_PlayerResources_fieldAccessorTable
+              .ensureFieldAccessorsInitialized(
+                  soc.proto.GameMessage.DiceResultResources.PlayerResources.class, soc.proto.GameMessage.DiceResultResources.PlayerResources.Builder.class);
+        }
+
+        // Construct using soc.proto.GameMessage.DiceResultResources.PlayerResources.newBuilder()
+        private Builder() {
+          maybeForceBuilderInitialization();
+        }
+
+        private Builder(
+            com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+          super(parent);
+          maybeForceBuilderInitialization();
+        }
+        private void maybeForceBuilderInitialization() {
+          if (com.google.protobuf.GeneratedMessageV3
+                  .alwaysUseFieldBuilders) {
+          }
+        }
+        public Builder clear() {
+          super.clear();
+          playerNumber_ = 0;
+
+          resType_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000002);
+          resAmount_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000004);
+          return this;
+        }
+
+        public com.google.protobuf.Descriptors.Descriptor
+            getDescriptorForType() {
+          return soc.proto.GameMessage.internal_static_DiceResultResources_PlayerResources_descriptor;
+        }
+
+        public soc.proto.GameMessage.DiceResultResources.PlayerResources getDefaultInstanceForType() {
+          return soc.proto.GameMessage.DiceResultResources.PlayerResources.getDefaultInstance();
+        }
+
+        public soc.proto.GameMessage.DiceResultResources.PlayerResources build() {
+          soc.proto.GameMessage.DiceResultResources.PlayerResources result = buildPartial();
+          if (!result.isInitialized()) {
+            throw newUninitializedMessageException(result);
+          }
+          return result;
+        }
+
+        public soc.proto.GameMessage.DiceResultResources.PlayerResources buildPartial() {
+          soc.proto.GameMessage.DiceResultResources.PlayerResources result = new soc.proto.GameMessage.DiceResultResources.PlayerResources(this);
+          int from_bitField0_ = bitField0_;
+          int to_bitField0_ = 0;
+          result.playerNumber_ = playerNumber_;
+          if (((bitField0_ & 0x00000002) == 0x00000002)) {
+            resType_ = java.util.Collections.unmodifiableList(resType_);
+            bitField0_ = (bitField0_ & ~0x00000002);
+          }
+          result.resType_ = resType_;
+          if (((bitField0_ & 0x00000004) == 0x00000004)) {
+            resAmount_ = java.util.Collections.unmodifiableList(resAmount_);
+            bitField0_ = (bitField0_ & ~0x00000004);
+          }
+          result.resAmount_ = resAmount_;
+          result.bitField0_ = to_bitField0_;
+          onBuilt();
+          return result;
+        }
+
+        public Builder clone() {
+          return (Builder) super.clone();
+        }
+        public Builder setField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return (Builder) super.setField(field, value);
+        }
+        public Builder clearField(
+            com.google.protobuf.Descriptors.FieldDescriptor field) {
+          return (Builder) super.clearField(field);
+        }
+        public Builder clearOneof(
+            com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+          return (Builder) super.clearOneof(oneof);
+        }
+        public Builder setRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            int index, java.lang.Object value) {
+          return (Builder) super.setRepeatedField(field, index, value);
+        }
+        public Builder addRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return (Builder) super.addRepeatedField(field, value);
+        }
+        public Builder mergeFrom(com.google.protobuf.Message other) {
+          if (other instanceof soc.proto.GameMessage.DiceResultResources.PlayerResources) {
+            return mergeFrom((soc.proto.GameMessage.DiceResultResources.PlayerResources)other);
+          } else {
+            super.mergeFrom(other);
+            return this;
+          }
+        }
+
+        public Builder mergeFrom(soc.proto.GameMessage.DiceResultResources.PlayerResources other) {
+          if (other == soc.proto.GameMessage.DiceResultResources.PlayerResources.getDefaultInstance()) return this;
+          if (other.getPlayerNumber() != 0) {
+            setPlayerNumber(other.getPlayerNumber());
+          }
+          if (!other.resType_.isEmpty()) {
+            if (resType_.isEmpty()) {
+              resType_ = other.resType_;
+              bitField0_ = (bitField0_ & ~0x00000002);
+            } else {
+              ensureResTypeIsMutable();
+              resType_.addAll(other.resType_);
+            }
+            onChanged();
+          }
+          if (!other.resAmount_.isEmpty()) {
+            if (resAmount_.isEmpty()) {
+              resAmount_ = other.resAmount_;
+              bitField0_ = (bitField0_ & ~0x00000004);
+            } else {
+              ensureResAmountIsMutable();
+              resAmount_.addAll(other.resAmount_);
+            }
+            onChanged();
+          }
+          this.mergeUnknownFields(other.unknownFields);
+          onChanged();
+          return this;
+        }
+
+        public final boolean isInitialized() {
+          return true;
+        }
+
+        public Builder mergeFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+          soc.proto.GameMessage.DiceResultResources.PlayerResources parsedMessage = null;
+          try {
+            parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            parsedMessage = (soc.proto.GameMessage.DiceResultResources.PlayerResources) e.getUnfinishedMessage();
+            throw e.unwrapIOException();
+          } finally {
+            if (parsedMessage != null) {
+              mergeFrom(parsedMessage);
+            }
+          }
+          return this;
+        }
+        private int bitField0_;
+
+        private int playerNumber_ ;
+        /**
+         * <code>uint32 player_number = 1;</code>
+         */
+        public int getPlayerNumber() {
+          return playerNumber_;
+        }
+        /**
+         * <code>uint32 player_number = 1;</code>
+         */
+        public Builder setPlayerNumber(int value) {
+          
+          playerNumber_ = value;
+          onChanged();
+          return this;
+        }
+        /**
+         * <code>uint32 player_number = 1;</code>
+         */
+        public Builder clearPlayerNumber() {
+          
+          playerNumber_ = 0;
+          onChanged();
+          return this;
+        }
+
+        private java.util.List<java.lang.Integer> resType_ =
+          java.util.Collections.emptyList();
+        private void ensureResTypeIsMutable() {
+          if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+            resType_ = new java.util.ArrayList<java.lang.Integer>(resType_);
+            bitField0_ |= 0x00000002;
+          }
+        }
+        /**
+         * <pre>
+         * Type of each resource gained; same length as res_amount 
+         * </pre>
+         *
+         * <code>repeated .ResourceType res_type = 2;</code>
+         */
+        public java.util.List<soc.proto.Data.ResourceType> getResTypeList() {
+          return new com.google.protobuf.Internal.ListAdapter<
+              java.lang.Integer, soc.proto.Data.ResourceType>(resType_, resType_converter_);
+        }
+        /**
+         * <pre>
+         * Type of each resource gained; same length as res_amount 
+         * </pre>
+         *
+         * <code>repeated .ResourceType res_type = 2;</code>
+         */
+        public int getResTypeCount() {
+          return resType_.size();
+        }
+        /**
+         * <pre>
+         * Type of each resource gained; same length as res_amount 
+         * </pre>
+         *
+         * <code>repeated .ResourceType res_type = 2;</code>
+         */
+        public soc.proto.Data.ResourceType getResType(int index) {
+          return resType_converter_.convert(resType_.get(index));
+        }
+        /**
+         * <pre>
+         * Type of each resource gained; same length as res_amount 
+         * </pre>
+         *
+         * <code>repeated .ResourceType res_type = 2;</code>
+         */
+        public Builder setResType(
+            int index, soc.proto.Data.ResourceType value) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureResTypeIsMutable();
+          resType_.set(index, value.getNumber());
+          onChanged();
+          return this;
+        }
+        /**
+         * <pre>
+         * Type of each resource gained; same length as res_amount 
+         * </pre>
+         *
+         * <code>repeated .ResourceType res_type = 2;</code>
+         */
+        public Builder addResType(soc.proto.Data.ResourceType value) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureResTypeIsMutable();
+          resType_.add(value.getNumber());
+          onChanged();
+          return this;
+        }
+        /**
+         * <pre>
+         * Type of each resource gained; same length as res_amount 
+         * </pre>
+         *
+         * <code>repeated .ResourceType res_type = 2;</code>
+         */
+        public Builder addAllResType(
+            java.lang.Iterable<? extends soc.proto.Data.ResourceType> values) {
+          ensureResTypeIsMutable();
+          for (soc.proto.Data.ResourceType value : values) {
+            resType_.add(value.getNumber());
+          }
+          onChanged();
+          return this;
+        }
+        /**
+         * <pre>
+         * Type of each resource gained; same length as res_amount 
+         * </pre>
+         *
+         * <code>repeated .ResourceType res_type = 2;</code>
+         */
+        public Builder clearResType() {
+          resType_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000002);
+          onChanged();
+          return this;
+        }
+        /**
+         * <pre>
+         * Type of each resource gained; same length as res_amount 
+         * </pre>
+         *
+         * <code>repeated .ResourceType res_type = 2;</code>
+         */
+        public java.util.List<java.lang.Integer>
+        getResTypeValueList() {
+          return java.util.Collections.unmodifiableList(resType_);
+        }
+        /**
+         * <pre>
+         * Type of each resource gained; same length as res_amount 
+         * </pre>
+         *
+         * <code>repeated .ResourceType res_type = 2;</code>
+         */
+        public int getResTypeValue(int index) {
+          return resType_.get(index);
+        }
+        /**
+         * <pre>
+         * Type of each resource gained; same length as res_amount 
+         * </pre>
+         *
+         * <code>repeated .ResourceType res_type = 2;</code>
+         */
+        public Builder setResTypeValue(
+            int index, int value) {
+          ensureResTypeIsMutable();
+          resType_.set(index, value);
+          onChanged();
+          return this;
+        }
+        /**
+         * <pre>
+         * Type of each resource gained; same length as res_amount 
+         * </pre>
+         *
+         * <code>repeated .ResourceType res_type = 2;</code>
+         */
+        public Builder addResTypeValue(int value) {
+          ensureResTypeIsMutable();
+          resType_.add(value);
+          onChanged();
+          return this;
+        }
+        /**
+         * <pre>
+         * Type of each resource gained; same length as res_amount 
+         * </pre>
+         *
+         * <code>repeated .ResourceType res_type = 2;</code>
+         */
+        public Builder addAllResTypeValue(
+            java.lang.Iterable<java.lang.Integer> values) {
+          ensureResTypeIsMutable();
+          for (int value : values) {
+            resType_.add(value);
+          }
+          onChanged();
+          return this;
+        }
+
+        private java.util.List<java.lang.Integer> resAmount_ = java.util.Collections.emptyList();
+        private void ensureResAmountIsMutable() {
+          if (!((bitField0_ & 0x00000004) == 0x00000004)) {
+            resAmount_ = new java.util.ArrayList<java.lang.Integer>(resAmount_);
+            bitField0_ |= 0x00000004;
+           }
+        }
+        /**
+         * <pre>
+         * Amount of each resource type gained; same length as res_type 
+         * </pre>
+         *
+         * <code>repeated uint32 res_amount = 3;</code>
+         */
+        public java.util.List<java.lang.Integer>
+            getResAmountList() {
+          return java.util.Collections.unmodifiableList(resAmount_);
+        }
+        /**
+         * <pre>
+         * Amount of each resource type gained; same length as res_type 
+         * </pre>
+         *
+         * <code>repeated uint32 res_amount = 3;</code>
+         */
+        public int getResAmountCount() {
+          return resAmount_.size();
+        }
+        /**
+         * <pre>
+         * Amount of each resource type gained; same length as res_type 
+         * </pre>
+         *
+         * <code>repeated uint32 res_amount = 3;</code>
+         */
+        public int getResAmount(int index) {
+          return resAmount_.get(index);
+        }
+        /**
+         * <pre>
+         * Amount of each resource type gained; same length as res_type 
+         * </pre>
+         *
+         * <code>repeated uint32 res_amount = 3;</code>
+         */
+        public Builder setResAmount(
+            int index, int value) {
+          ensureResAmountIsMutable();
+          resAmount_.set(index, value);
+          onChanged();
+          return this;
+        }
+        /**
+         * <pre>
+         * Amount of each resource type gained; same length as res_type 
+         * </pre>
+         *
+         * <code>repeated uint32 res_amount = 3;</code>
+         */
+        public Builder addResAmount(int value) {
+          ensureResAmountIsMutable();
+          resAmount_.add(value);
+          onChanged();
+          return this;
+        }
+        /**
+         * <pre>
+         * Amount of each resource type gained; same length as res_type 
+         * </pre>
+         *
+         * <code>repeated uint32 res_amount = 3;</code>
+         */
+        public Builder addAllResAmount(
+            java.lang.Iterable<? extends java.lang.Integer> values) {
+          ensureResAmountIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, resAmount_);
+          onChanged();
+          return this;
+        }
+        /**
+         * <pre>
+         * Amount of each resource type gained; same length as res_type 
+         * </pre>
+         *
+         * <code>repeated uint32 res_amount = 3;</code>
+         */
+        public Builder clearResAmount() {
+          resAmount_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000004);
+          onChanged();
+          return this;
+        }
+        public final Builder setUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.setUnknownFieldsProto3(unknownFields);
+        }
+
+        public final Builder mergeUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.mergeUnknownFields(unknownFields);
+        }
+
+
+        // @@protoc_insertion_point(builder_scope:DiceResultResources.PlayerResources)
+      }
+
+      // @@protoc_insertion_point(class_scope:DiceResultResources.PlayerResources)
+      private static final soc.proto.GameMessage.DiceResultResources.PlayerResources DEFAULT_INSTANCE;
+      static {
+        DEFAULT_INSTANCE = new soc.proto.GameMessage.DiceResultResources.PlayerResources();
+      }
+
+      public static soc.proto.GameMessage.DiceResultResources.PlayerResources getDefaultInstance() {
+        return DEFAULT_INSTANCE;
+      }
+
+      private static final com.google.protobuf.Parser<PlayerResources>
+          PARSER = new com.google.protobuf.AbstractParser<PlayerResources>() {
+        public PlayerResources parsePartialFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+            return new PlayerResources(input, extensionRegistry);
+        }
+      };
+
+      public static com.google.protobuf.Parser<PlayerResources> parser() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Parser<PlayerResources> getParserForType() {
+        return PARSER;
+      }
+
+      public soc.proto.GameMessage.DiceResultResources.PlayerResources getDefaultInstanceForType() {
+        return DEFAULT_INSTANCE;
+      }
+
+    }
+
+    public static final int PLAYER_RESOURCES_FIELD_NUMBER = 1;
+    private java.util.List<soc.proto.GameMessage.DiceResultResources.PlayerResources> playerResources_;
+    /**
+     * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+     */
+    public java.util.List<soc.proto.GameMessage.DiceResultResources.PlayerResources> getPlayerResourcesList() {
+      return playerResources_;
+    }
+    /**
+     * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+     */
+    public java.util.List<? extends soc.proto.GameMessage.DiceResultResources.PlayerResourcesOrBuilder> 
+        getPlayerResourcesOrBuilderList() {
+      return playerResources_;
+    }
+    /**
+     * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+     */
+    public int getPlayerResourcesCount() {
+      return playerResources_.size();
+    }
+    /**
+     * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+     */
+    public soc.proto.GameMessage.DiceResultResources.PlayerResources getPlayerResources(int index) {
+      return playerResources_.get(index);
+    }
+    /**
+     * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+     */
+    public soc.proto.GameMessage.DiceResultResources.PlayerResourcesOrBuilder getPlayerResourcesOrBuilder(
+        int index) {
+      return playerResources_.get(index);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      for (int i = 0; i < playerResources_.size(); i++) {
+        output.writeMessage(1, playerResources_.get(i));
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      for (int i = 0; i < playerResources_.size(); i++) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, playerResources_.get(i));
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.DiceResultResources)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.DiceResultResources other = (soc.proto.GameMessage.DiceResultResources) obj;
+
+      boolean result = true;
+      result = result && getPlayerResourcesList()
+          .equals(other.getPlayerResourcesList());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (getPlayerResourcesCount() > 0) {
+        hash = (37 * hash) + PLAYER_RESOURCES_FIELD_NUMBER;
+        hash = (53 * hash) + getPlayerResourcesList().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.DiceResultResources parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.DiceResultResources parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.DiceResultResources parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.DiceResultResources parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.DiceResultResources parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.DiceResultResources parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.DiceResultResources parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.DiceResultResources parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.DiceResultResources parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.DiceResultResources parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.DiceResultResources parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.DiceResultResources parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.DiceResultResources prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * All resources gained by players from a dice roll.
+     * Sent to all game members after a {&#64;link DiceResult}.
+     * </pre>
+     *
+     * Protobuf type {@code DiceResultResources}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:DiceResultResources)
+        soc.proto.GameMessage.DiceResultResourcesOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_DiceResultResources_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_DiceResultResources_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.DiceResultResources.class, soc.proto.GameMessage.DiceResultResources.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.DiceResultResources.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+          getPlayerResourcesFieldBuilder();
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        if (playerResourcesBuilder_ == null) {
+          playerResources_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000001);
+        } else {
+          playerResourcesBuilder_.clear();
+        }
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_DiceResultResources_descriptor;
+      }
+
+      public soc.proto.GameMessage.DiceResultResources getDefaultInstanceForType() {
+        return soc.proto.GameMessage.DiceResultResources.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.DiceResultResources build() {
+        soc.proto.GameMessage.DiceResultResources result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.DiceResultResources buildPartial() {
+        soc.proto.GameMessage.DiceResultResources result = new soc.proto.GameMessage.DiceResultResources(this);
+        int from_bitField0_ = bitField0_;
+        if (playerResourcesBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) == 0x00000001)) {
+            playerResources_ = java.util.Collections.unmodifiableList(playerResources_);
+            bitField0_ = (bitField0_ & ~0x00000001);
+          }
+          result.playerResources_ = playerResources_;
+        } else {
+          result.playerResources_ = playerResourcesBuilder_.build();
+        }
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.DiceResultResources) {
+          return mergeFrom((soc.proto.GameMessage.DiceResultResources)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.DiceResultResources other) {
+        if (other == soc.proto.GameMessage.DiceResultResources.getDefaultInstance()) return this;
+        if (playerResourcesBuilder_ == null) {
+          if (!other.playerResources_.isEmpty()) {
+            if (playerResources_.isEmpty()) {
+              playerResources_ = other.playerResources_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+            } else {
+              ensurePlayerResourcesIsMutable();
+              playerResources_.addAll(other.playerResources_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.playerResources_.isEmpty()) {
+            if (playerResourcesBuilder_.isEmpty()) {
+              playerResourcesBuilder_.dispose();
+              playerResourcesBuilder_ = null;
+              playerResources_ = other.playerResources_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+              playerResourcesBuilder_ = 
+                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                   getPlayerResourcesFieldBuilder() : null;
+            } else {
+              playerResourcesBuilder_.addAllMessages(other.playerResources_);
+            }
+          }
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.DiceResultResources parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.DiceResultResources) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private java.util.List<soc.proto.GameMessage.DiceResultResources.PlayerResources> playerResources_ =
+        java.util.Collections.emptyList();
+      private void ensurePlayerResourcesIsMutable() {
+        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+          playerResources_ = new java.util.ArrayList<soc.proto.GameMessage.DiceResultResources.PlayerResources>(playerResources_);
+          bitField0_ |= 0x00000001;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          soc.proto.GameMessage.DiceResultResources.PlayerResources, soc.proto.GameMessage.DiceResultResources.PlayerResources.Builder, soc.proto.GameMessage.DiceResultResources.PlayerResourcesOrBuilder> playerResourcesBuilder_;
+
+      /**
+       * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+       */
+      public java.util.List<soc.proto.GameMessage.DiceResultResources.PlayerResources> getPlayerResourcesList() {
+        if (playerResourcesBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(playerResources_);
+        } else {
+          return playerResourcesBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+       */
+      public int getPlayerResourcesCount() {
+        if (playerResourcesBuilder_ == null) {
+          return playerResources_.size();
+        } else {
+          return playerResourcesBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+       */
+      public soc.proto.GameMessage.DiceResultResources.PlayerResources getPlayerResources(int index) {
+        if (playerResourcesBuilder_ == null) {
+          return playerResources_.get(index);
+        } else {
+          return playerResourcesBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+       */
+      public Builder setPlayerResources(
+          int index, soc.proto.GameMessage.DiceResultResources.PlayerResources value) {
+        if (playerResourcesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensurePlayerResourcesIsMutable();
+          playerResources_.set(index, value);
+          onChanged();
+        } else {
+          playerResourcesBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+       */
+      public Builder setPlayerResources(
+          int index, soc.proto.GameMessage.DiceResultResources.PlayerResources.Builder builderForValue) {
+        if (playerResourcesBuilder_ == null) {
+          ensurePlayerResourcesIsMutable();
+          playerResources_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          playerResourcesBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+       */
+      public Builder addPlayerResources(soc.proto.GameMessage.DiceResultResources.PlayerResources value) {
+        if (playerResourcesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensurePlayerResourcesIsMutable();
+          playerResources_.add(value);
+          onChanged();
+        } else {
+          playerResourcesBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+       */
+      public Builder addPlayerResources(
+          int index, soc.proto.GameMessage.DiceResultResources.PlayerResources value) {
+        if (playerResourcesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensurePlayerResourcesIsMutable();
+          playerResources_.add(index, value);
+          onChanged();
+        } else {
+          playerResourcesBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+       */
+      public Builder addPlayerResources(
+          soc.proto.GameMessage.DiceResultResources.PlayerResources.Builder builderForValue) {
+        if (playerResourcesBuilder_ == null) {
+          ensurePlayerResourcesIsMutable();
+          playerResources_.add(builderForValue.build());
+          onChanged();
+        } else {
+          playerResourcesBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+       */
+      public Builder addPlayerResources(
+          int index, soc.proto.GameMessage.DiceResultResources.PlayerResources.Builder builderForValue) {
+        if (playerResourcesBuilder_ == null) {
+          ensurePlayerResourcesIsMutable();
+          playerResources_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          playerResourcesBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+       */
+      public Builder addAllPlayerResources(
+          java.lang.Iterable<? extends soc.proto.GameMessage.DiceResultResources.PlayerResources> values) {
+        if (playerResourcesBuilder_ == null) {
+          ensurePlayerResourcesIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, playerResources_);
+          onChanged();
+        } else {
+          playerResourcesBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+       */
+      public Builder clearPlayerResources() {
+        if (playerResourcesBuilder_ == null) {
+          playerResources_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000001);
+          onChanged();
+        } else {
+          playerResourcesBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+       */
+      public Builder removePlayerResources(int index) {
+        if (playerResourcesBuilder_ == null) {
+          ensurePlayerResourcesIsMutable();
+          playerResources_.remove(index);
+          onChanged();
+        } else {
+          playerResourcesBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+       */
+      public soc.proto.GameMessage.DiceResultResources.PlayerResources.Builder getPlayerResourcesBuilder(
+          int index) {
+        return getPlayerResourcesFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+       */
+      public soc.proto.GameMessage.DiceResultResources.PlayerResourcesOrBuilder getPlayerResourcesOrBuilder(
+          int index) {
+        if (playerResourcesBuilder_ == null) {
+          return playerResources_.get(index);  } else {
+          return playerResourcesBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+       */
+      public java.util.List<? extends soc.proto.GameMessage.DiceResultResources.PlayerResourcesOrBuilder> 
+           getPlayerResourcesOrBuilderList() {
+        if (playerResourcesBuilder_ != null) {
+          return playerResourcesBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(playerResources_);
+        }
+      }
+      /**
+       * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+       */
+      public soc.proto.GameMessage.DiceResultResources.PlayerResources.Builder addPlayerResourcesBuilder() {
+        return getPlayerResourcesFieldBuilder().addBuilder(
+            soc.proto.GameMessage.DiceResultResources.PlayerResources.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+       */
+      public soc.proto.GameMessage.DiceResultResources.PlayerResources.Builder addPlayerResourcesBuilder(
+          int index) {
+        return getPlayerResourcesFieldBuilder().addBuilder(
+            index, soc.proto.GameMessage.DiceResultResources.PlayerResources.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
+       */
+      public java.util.List<soc.proto.GameMessage.DiceResultResources.PlayerResources.Builder> 
+           getPlayerResourcesBuilderList() {
+        return getPlayerResourcesFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          soc.proto.GameMessage.DiceResultResources.PlayerResources, soc.proto.GameMessage.DiceResultResources.PlayerResources.Builder, soc.proto.GameMessage.DiceResultResources.PlayerResourcesOrBuilder> 
+          getPlayerResourcesFieldBuilder() {
+        if (playerResourcesBuilder_ == null) {
+          playerResourcesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+              soc.proto.GameMessage.DiceResultResources.PlayerResources, soc.proto.GameMessage.DiceResultResources.PlayerResources.Builder, soc.proto.GameMessage.DiceResultResources.PlayerResourcesOrBuilder>(
+                  playerResources_,
+                  ((bitField0_ & 0x00000001) == 0x00000001),
+                  getParentForChildren(),
+                  isClean());
+          playerResources_ = null;
+        }
+        return playerResourcesBuilder_;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:DiceResultResources)
+    }
+
+    // @@protoc_insertion_point(class_scope:DiceResultResources)
+    private static final soc.proto.GameMessage.DiceResultResources DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.DiceResultResources();
+    }
+
+    public static soc.proto.GameMessage.DiceResultResources getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<DiceResultResources>
+        PARSER = new com.google.protobuf.AbstractParser<DiceResultResources>() {
+      public DiceResultResources parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new DiceResultResources(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<DiceResultResources> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<DiceResultResources> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.DiceResultResources getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface EndTurnOrBuilder extends
       // @@protoc_insertion_point(interface_extends:EndTurn)
       com.google.protobuf.MessageOrBuilder {
@@ -10540,26 +14811,27 @@ public final class GameMessage {
     soc.proto.GameMessage.BoardLayoutOrBuilder getBoardLayoutOrBuilder();
 
     /**
-     * <pre>
-     * 31 will be PotentialSettlements
-     * </pre>
-     *
+     * <code>.PotentialSettlements potential_settlements = 31;</code>
+     */
+    boolean hasPotentialSettlements();
+    /**
+     * <code>.PotentialSettlements potential_settlements = 31;</code>
+     */
+    soc.proto.GameMessage.PotentialSettlements getPotentialSettlements();
+    /**
+     * <code>.PotentialSettlements potential_settlements = 31;</code>
+     */
+    soc.proto.GameMessage.PotentialSettlementsOrBuilder getPotentialSettlementsOrBuilder();
+
+    /**
      * <code>.PutPiece put_piece = 32;</code>
      */
     boolean hasPutPiece();
     /**
-     * <pre>
-     * 31 will be PotentialSettlements
-     * </pre>
-     *
      * <code>.PutPiece put_piece = 32;</code>
      */
     soc.proto.GameMessage.PutPiece getPutPiece();
     /**
-     * <pre>
-     * 31 will be PotentialSettlements
-     * </pre>
-     *
      * <code>.PutPiece put_piece = 32;</code>
      */
     soc.proto.GameMessage.PutPieceOrBuilder getPutPieceOrBuilder();
@@ -10640,6 +14912,45 @@ public final class GameMessage {
      * <code>.Turn turn = 101;</code>
      */
     soc.proto.GameMessage.TurnOrBuilder getTurnOrBuilder();
+
+    /**
+     * <code>.SetTurn set_turn = 102;</code>
+     */
+    boolean hasSetTurn();
+    /**
+     * <code>.SetTurn set_turn = 102;</code>
+     */
+    soc.proto.GameMessage.SetTurn getSetTurn();
+    /**
+     * <code>.SetTurn set_turn = 102;</code>
+     */
+    soc.proto.GameMessage.SetTurnOrBuilder getSetTurnOrBuilder();
+
+    /**
+     * <code>.DiceResult dice_result = 103;</code>
+     */
+    boolean hasDiceResult();
+    /**
+     * <code>.DiceResult dice_result = 103;</code>
+     */
+    soc.proto.GameMessage.DiceResult getDiceResult();
+    /**
+     * <code>.DiceResult dice_result = 103;</code>
+     */
+    soc.proto.GameMessage.DiceResultOrBuilder getDiceResultOrBuilder();
+
+    /**
+     * <code>.DiceResultResources dice_result_resources = 104;</code>
+     */
+    boolean hasDiceResultResources();
+    /**
+     * <code>.DiceResultResources dice_result_resources = 104;</code>
+     */
+    soc.proto.GameMessage.DiceResultResources getDiceResultResources();
+    /**
+     * <code>.DiceResultResources dice_result_resources = 104;</code>
+     */
+    soc.proto.GameMessage.DiceResultResourcesOrBuilder getDiceResultResourcesOrBuilder();
 
     public soc.proto.GameMessage.GameMessageFromServer.MsgCase getMsgCase();
   }
@@ -10749,6 +15060,20 @@ public final class GameMessage {
               msgCase_ = 30;
               break;
             }
+            case 250: {
+              soc.proto.GameMessage.PotentialSettlements.Builder subBuilder = null;
+              if (msgCase_ == 31) {
+                subBuilder = ((soc.proto.GameMessage.PotentialSettlements) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.PotentialSettlements.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.PotentialSettlements) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 31;
+              break;
+            }
             case 258: {
               soc.proto.GameMessage.PutPiece.Builder subBuilder = null;
               if (msgCase_ == 32) {
@@ -10833,6 +15158,48 @@ public final class GameMessage {
               msgCase_ = 101;
               break;
             }
+            case 818: {
+              soc.proto.GameMessage.SetTurn.Builder subBuilder = null;
+              if (msgCase_ == 102) {
+                subBuilder = ((soc.proto.GameMessage.SetTurn) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.SetTurn.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.SetTurn) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 102;
+              break;
+            }
+            case 826: {
+              soc.proto.GameMessage.DiceResult.Builder subBuilder = null;
+              if (msgCase_ == 103) {
+                subBuilder = ((soc.proto.GameMessage.DiceResult) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.DiceResult.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.DiceResult) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 103;
+              break;
+            }
+            case 834: {
+              soc.proto.GameMessage.DiceResultResources.Builder subBuilder = null;
+              if (msgCase_ == 104) {
+                subBuilder = ((soc.proto.GameMessage.DiceResultResources) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.DiceResultResources.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.DiceResultResources) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 104;
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -10865,12 +15232,16 @@ public final class GameMessage {
       PLAYER_ELEMENT(15),
       PLAYER_ELEMENTS(25),
       BOARD_LAYOUT(30),
+      POTENTIAL_SETTLEMENTS(31),
       PUT_PIECE(32),
       CANCEL_BUILD(33),
       MOVE_PIECE(34),
       REMOVE_PIECE(35),
       START_GAME(100),
       TURN(101),
+      SET_TURN(102),
+      DICE_RESULT(103),
+      DICE_RESULT_RESOURCES(104),
       MSG_NOT_SET(0);
       private final int value;
       private MsgCase(int value) {
@@ -10890,12 +15261,16 @@ public final class GameMessage {
           case 15: return PLAYER_ELEMENT;
           case 25: return PLAYER_ELEMENTS;
           case 30: return BOARD_LAYOUT;
+          case 31: return POTENTIAL_SETTLEMENTS;
           case 32: return PUT_PIECE;
           case 33: return CANCEL_BUILD;
           case 34: return MOVE_PIECE;
           case 35: return REMOVE_PIECE;
           case 100: return START_GAME;
           case 101: return TURN;
+          case 102: return SET_TURN;
+          case 103: return DICE_RESULT;
+          case 104: return DICE_RESULT_RESOURCES;
           case 0: return MSG_NOT_SET;
           default: return null;
         }
@@ -11093,22 +15468,40 @@ public final class GameMessage {
       return soc.proto.GameMessage.BoardLayout.getDefaultInstance();
     }
 
+    public static final int POTENTIAL_SETTLEMENTS_FIELD_NUMBER = 31;
+    /**
+     * <code>.PotentialSettlements potential_settlements = 31;</code>
+     */
+    public boolean hasPotentialSettlements() {
+      return msgCase_ == 31;
+    }
+    /**
+     * <code>.PotentialSettlements potential_settlements = 31;</code>
+     */
+    public soc.proto.GameMessage.PotentialSettlements getPotentialSettlements() {
+      if (msgCase_ == 31) {
+         return (soc.proto.GameMessage.PotentialSettlements) msg_;
+      }
+      return soc.proto.GameMessage.PotentialSettlements.getDefaultInstance();
+    }
+    /**
+     * <code>.PotentialSettlements potential_settlements = 31;</code>
+     */
+    public soc.proto.GameMessage.PotentialSettlementsOrBuilder getPotentialSettlementsOrBuilder() {
+      if (msgCase_ == 31) {
+         return (soc.proto.GameMessage.PotentialSettlements) msg_;
+      }
+      return soc.proto.GameMessage.PotentialSettlements.getDefaultInstance();
+    }
+
     public static final int PUT_PIECE_FIELD_NUMBER = 32;
     /**
-     * <pre>
-     * 31 will be PotentialSettlements
-     * </pre>
-     *
      * <code>.PutPiece put_piece = 32;</code>
      */
     public boolean hasPutPiece() {
       return msgCase_ == 32;
     }
     /**
-     * <pre>
-     * 31 will be PotentialSettlements
-     * </pre>
-     *
      * <code>.PutPiece put_piece = 32;</code>
      */
     public soc.proto.GameMessage.PutPiece getPutPiece() {
@@ -11118,10 +15511,6 @@ public final class GameMessage {
       return soc.proto.GameMessage.PutPiece.getDefaultInstance();
     }
     /**
-     * <pre>
-     * 31 will be PotentialSettlements
-     * </pre>
-     *
      * <code>.PutPiece put_piece = 32;</code>
      */
     public soc.proto.GameMessage.PutPieceOrBuilder getPutPieceOrBuilder() {
@@ -11273,6 +15662,84 @@ public final class GameMessage {
       return soc.proto.GameMessage.Turn.getDefaultInstance();
     }
 
+    public static final int SET_TURN_FIELD_NUMBER = 102;
+    /**
+     * <code>.SetTurn set_turn = 102;</code>
+     */
+    public boolean hasSetTurn() {
+      return msgCase_ == 102;
+    }
+    /**
+     * <code>.SetTurn set_turn = 102;</code>
+     */
+    public soc.proto.GameMessage.SetTurn getSetTurn() {
+      if (msgCase_ == 102) {
+         return (soc.proto.GameMessage.SetTurn) msg_;
+      }
+      return soc.proto.GameMessage.SetTurn.getDefaultInstance();
+    }
+    /**
+     * <code>.SetTurn set_turn = 102;</code>
+     */
+    public soc.proto.GameMessage.SetTurnOrBuilder getSetTurnOrBuilder() {
+      if (msgCase_ == 102) {
+         return (soc.proto.GameMessage.SetTurn) msg_;
+      }
+      return soc.proto.GameMessage.SetTurn.getDefaultInstance();
+    }
+
+    public static final int DICE_RESULT_FIELD_NUMBER = 103;
+    /**
+     * <code>.DiceResult dice_result = 103;</code>
+     */
+    public boolean hasDiceResult() {
+      return msgCase_ == 103;
+    }
+    /**
+     * <code>.DiceResult dice_result = 103;</code>
+     */
+    public soc.proto.GameMessage.DiceResult getDiceResult() {
+      if (msgCase_ == 103) {
+         return (soc.proto.GameMessage.DiceResult) msg_;
+      }
+      return soc.proto.GameMessage.DiceResult.getDefaultInstance();
+    }
+    /**
+     * <code>.DiceResult dice_result = 103;</code>
+     */
+    public soc.proto.GameMessage.DiceResultOrBuilder getDiceResultOrBuilder() {
+      if (msgCase_ == 103) {
+         return (soc.proto.GameMessage.DiceResult) msg_;
+      }
+      return soc.proto.GameMessage.DiceResult.getDefaultInstance();
+    }
+
+    public static final int DICE_RESULT_RESOURCES_FIELD_NUMBER = 104;
+    /**
+     * <code>.DiceResultResources dice_result_resources = 104;</code>
+     */
+    public boolean hasDiceResultResources() {
+      return msgCase_ == 104;
+    }
+    /**
+     * <code>.DiceResultResources dice_result_resources = 104;</code>
+     */
+    public soc.proto.GameMessage.DiceResultResources getDiceResultResources() {
+      if (msgCase_ == 104) {
+         return (soc.proto.GameMessage.DiceResultResources) msg_;
+      }
+      return soc.proto.GameMessage.DiceResultResources.getDefaultInstance();
+    }
+    /**
+     * <code>.DiceResultResources dice_result_resources = 104;</code>
+     */
+    public soc.proto.GameMessage.DiceResultResourcesOrBuilder getDiceResultResourcesOrBuilder() {
+      if (msgCase_ == 104) {
+         return (soc.proto.GameMessage.DiceResultResources) msg_;
+      }
+      return soc.proto.GameMessage.DiceResultResources.getDefaultInstance();
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -11300,6 +15767,9 @@ public final class GameMessage {
       if (msgCase_ == 30) {
         output.writeMessage(30, (soc.proto.GameMessage.BoardLayout) msg_);
       }
+      if (msgCase_ == 31) {
+        output.writeMessage(31, (soc.proto.GameMessage.PotentialSettlements) msg_);
+      }
       if (msgCase_ == 32) {
         output.writeMessage(32, (soc.proto.GameMessage.PutPiece) msg_);
       }
@@ -11317,6 +15787,15 @@ public final class GameMessage {
       }
       if (msgCase_ == 101) {
         output.writeMessage(101, (soc.proto.GameMessage.Turn) msg_);
+      }
+      if (msgCase_ == 102) {
+        output.writeMessage(102, (soc.proto.GameMessage.SetTurn) msg_);
+      }
+      if (msgCase_ == 103) {
+        output.writeMessage(103, (soc.proto.GameMessage.DiceResult) msg_);
+      }
+      if (msgCase_ == 104) {
+        output.writeMessage(104, (soc.proto.GameMessage.DiceResultResources) msg_);
       }
       unknownFields.writeTo(output);
     }
@@ -11345,6 +15824,10 @@ public final class GameMessage {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(30, (soc.proto.GameMessage.BoardLayout) msg_);
       }
+      if (msgCase_ == 31) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(31, (soc.proto.GameMessage.PotentialSettlements) msg_);
+      }
       if (msgCase_ == 32) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(32, (soc.proto.GameMessage.PutPiece) msg_);
@@ -11368,6 +15851,18 @@ public final class GameMessage {
       if (msgCase_ == 101) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(101, (soc.proto.GameMessage.Turn) msg_);
+      }
+      if (msgCase_ == 102) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(102, (soc.proto.GameMessage.SetTurn) msg_);
+      }
+      if (msgCase_ == 103) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(103, (soc.proto.GameMessage.DiceResult) msg_);
+      }
+      if (msgCase_ == 104) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(104, (soc.proto.GameMessage.DiceResultResources) msg_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -11407,6 +15902,10 @@ public final class GameMessage {
           result = result && getBoardLayout()
               .equals(other.getBoardLayout());
           break;
+        case 31:
+          result = result && getPotentialSettlements()
+              .equals(other.getPotentialSettlements());
+          break;
         case 32:
           result = result && getPutPiece()
               .equals(other.getPutPiece());
@@ -11430,6 +15929,18 @@ public final class GameMessage {
         case 101:
           result = result && getTurn()
               .equals(other.getTurn());
+          break;
+        case 102:
+          result = result && getSetTurn()
+              .equals(other.getSetTurn());
+          break;
+        case 103:
+          result = result && getDiceResult()
+              .equals(other.getDiceResult());
+          break;
+        case 104:
+          result = result && getDiceResultResources()
+              .equals(other.getDiceResultResources());
           break;
         case 0:
         default:
@@ -11464,6 +15975,10 @@ public final class GameMessage {
           hash = (37 * hash) + BOARD_LAYOUT_FIELD_NUMBER;
           hash = (53 * hash) + getBoardLayout().hashCode();
           break;
+        case 31:
+          hash = (37 * hash) + POTENTIAL_SETTLEMENTS_FIELD_NUMBER;
+          hash = (53 * hash) + getPotentialSettlements().hashCode();
+          break;
         case 32:
           hash = (37 * hash) + PUT_PIECE_FIELD_NUMBER;
           hash = (53 * hash) + getPutPiece().hashCode();
@@ -11487,6 +16002,18 @@ public final class GameMessage {
         case 101:
           hash = (37 * hash) + TURN_FIELD_NUMBER;
           hash = (53 * hash) + getTurn().hashCode();
+          break;
+        case 102:
+          hash = (37 * hash) + SET_TURN_FIELD_NUMBER;
+          hash = (53 * hash) + getSetTurn().hashCode();
+          break;
+        case 103:
+          hash = (37 * hash) + DICE_RESULT_FIELD_NUMBER;
+          hash = (53 * hash) + getDiceResult().hashCode();
+          break;
+        case 104:
+          hash = (37 * hash) + DICE_RESULT_RESOURCES_FIELD_NUMBER;
+          hash = (53 * hash) + getDiceResultResources().hashCode();
           break;
         case 0:
         default:
@@ -11675,6 +16202,13 @@ public final class GameMessage {
             result.msg_ = boardLayoutBuilder_.build();
           }
         }
+        if (msgCase_ == 31) {
+          if (potentialSettlementsBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = potentialSettlementsBuilder_.build();
+          }
+        }
         if (msgCase_ == 32) {
           if (putPieceBuilder_ == null) {
             result.msg_ = msg_;
@@ -11715,6 +16249,27 @@ public final class GameMessage {
             result.msg_ = msg_;
           } else {
             result.msg_ = turnBuilder_.build();
+          }
+        }
+        if (msgCase_ == 102) {
+          if (setTurnBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = setTurnBuilder_.build();
+          }
+        }
+        if (msgCase_ == 103) {
+          if (diceResultBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = diceResultBuilder_.build();
+          }
+        }
+        if (msgCase_ == 104) {
+          if (diceResultResourcesBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = diceResultResourcesBuilder_.build();
           }
         }
         result.msgCase_ = msgCase_;
@@ -11780,6 +16335,10 @@ public final class GameMessage {
             mergeBoardLayout(other.getBoardLayout());
             break;
           }
+          case POTENTIAL_SETTLEMENTS: {
+            mergePotentialSettlements(other.getPotentialSettlements());
+            break;
+          }
           case PUT_PIECE: {
             mergePutPiece(other.getPutPiece());
             break;
@@ -11802,6 +16361,18 @@ public final class GameMessage {
           }
           case TURN: {
             mergeTurn(other.getTurn());
+            break;
+          }
+          case SET_TURN: {
+            mergeSetTurn(other.getSetTurn());
+            break;
+          }
+          case DICE_RESULT: {
+            mergeDiceResult(other.getDiceResult());
+            break;
+          }
+          case DICE_RESULT_RESOURCES: {
+            mergeDiceResultResources(other.getDiceResultResources());
             break;
           }
           case MSG_NOT_SET: {
@@ -12592,22 +17163,150 @@ public final class GameMessage {
       }
 
       private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.PotentialSettlements, soc.proto.GameMessage.PotentialSettlements.Builder, soc.proto.GameMessage.PotentialSettlementsOrBuilder> potentialSettlementsBuilder_;
+      /**
+       * <code>.PotentialSettlements potential_settlements = 31;</code>
+       */
+      public boolean hasPotentialSettlements() {
+        return msgCase_ == 31;
+      }
+      /**
+       * <code>.PotentialSettlements potential_settlements = 31;</code>
+       */
+      public soc.proto.GameMessage.PotentialSettlements getPotentialSettlements() {
+        if (potentialSettlementsBuilder_ == null) {
+          if (msgCase_ == 31) {
+            return (soc.proto.GameMessage.PotentialSettlements) msg_;
+          }
+          return soc.proto.GameMessage.PotentialSettlements.getDefaultInstance();
+        } else {
+          if (msgCase_ == 31) {
+            return potentialSettlementsBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.PotentialSettlements.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.PotentialSettlements potential_settlements = 31;</code>
+       */
+      public Builder setPotentialSettlements(soc.proto.GameMessage.PotentialSettlements value) {
+        if (potentialSettlementsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          potentialSettlementsBuilder_.setMessage(value);
+        }
+        msgCase_ = 31;
+        return this;
+      }
+      /**
+       * <code>.PotentialSettlements potential_settlements = 31;</code>
+       */
+      public Builder setPotentialSettlements(
+          soc.proto.GameMessage.PotentialSettlements.Builder builderForValue) {
+        if (potentialSettlementsBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          potentialSettlementsBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 31;
+        return this;
+      }
+      /**
+       * <code>.PotentialSettlements potential_settlements = 31;</code>
+       */
+      public Builder mergePotentialSettlements(soc.proto.GameMessage.PotentialSettlements value) {
+        if (potentialSettlementsBuilder_ == null) {
+          if (msgCase_ == 31 &&
+              msg_ != soc.proto.GameMessage.PotentialSettlements.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.PotentialSettlements.newBuilder((soc.proto.GameMessage.PotentialSettlements) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 31) {
+            potentialSettlementsBuilder_.mergeFrom(value);
+          }
+          potentialSettlementsBuilder_.setMessage(value);
+        }
+        msgCase_ = 31;
+        return this;
+      }
+      /**
+       * <code>.PotentialSettlements potential_settlements = 31;</code>
+       */
+      public Builder clearPotentialSettlements() {
+        if (potentialSettlementsBuilder_ == null) {
+          if (msgCase_ == 31) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 31) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          potentialSettlementsBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.PotentialSettlements potential_settlements = 31;</code>
+       */
+      public soc.proto.GameMessage.PotentialSettlements.Builder getPotentialSettlementsBuilder() {
+        return getPotentialSettlementsFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.PotentialSettlements potential_settlements = 31;</code>
+       */
+      public soc.proto.GameMessage.PotentialSettlementsOrBuilder getPotentialSettlementsOrBuilder() {
+        if ((msgCase_ == 31) && (potentialSettlementsBuilder_ != null)) {
+          return potentialSettlementsBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 31) {
+            return (soc.proto.GameMessage.PotentialSettlements) msg_;
+          }
+          return soc.proto.GameMessage.PotentialSettlements.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.PotentialSettlements potential_settlements = 31;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.PotentialSettlements, soc.proto.GameMessage.PotentialSettlements.Builder, soc.proto.GameMessage.PotentialSettlementsOrBuilder> 
+          getPotentialSettlementsFieldBuilder() {
+        if (potentialSettlementsBuilder_ == null) {
+          if (!(msgCase_ == 31)) {
+            msg_ = soc.proto.GameMessage.PotentialSettlements.getDefaultInstance();
+          }
+          potentialSettlementsBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.PotentialSettlements, soc.proto.GameMessage.PotentialSettlements.Builder, soc.proto.GameMessage.PotentialSettlementsOrBuilder>(
+                  (soc.proto.GameMessage.PotentialSettlements) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 31;
+        onChanged();;
+        return potentialSettlementsBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.GameMessage.PutPiece, soc.proto.GameMessage.PutPiece.Builder, soc.proto.GameMessage.PutPieceOrBuilder> putPieceBuilder_;
       /**
-       * <pre>
-       * 31 will be PotentialSettlements
-       * </pre>
-       *
        * <code>.PutPiece put_piece = 32;</code>
        */
       public boolean hasPutPiece() {
         return msgCase_ == 32;
       }
       /**
-       * <pre>
-       * 31 will be PotentialSettlements
-       * </pre>
-       *
        * <code>.PutPiece put_piece = 32;</code>
        */
       public soc.proto.GameMessage.PutPiece getPutPiece() {
@@ -12624,10 +17323,6 @@ public final class GameMessage {
         }
       }
       /**
-       * <pre>
-       * 31 will be PotentialSettlements
-       * </pre>
-       *
        * <code>.PutPiece put_piece = 32;</code>
        */
       public Builder setPutPiece(soc.proto.GameMessage.PutPiece value) {
@@ -12644,10 +17339,6 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <pre>
-       * 31 will be PotentialSettlements
-       * </pre>
-       *
        * <code>.PutPiece put_piece = 32;</code>
        */
       public Builder setPutPiece(
@@ -12662,10 +17353,6 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <pre>
-       * 31 will be PotentialSettlements
-       * </pre>
-       *
        * <code>.PutPiece put_piece = 32;</code>
        */
       public Builder mergePutPiece(soc.proto.GameMessage.PutPiece value) {
@@ -12688,10 +17375,6 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <pre>
-       * 31 will be PotentialSettlements
-       * </pre>
-       *
        * <code>.PutPiece put_piece = 32;</code>
        */
       public Builder clearPutPiece() {
@@ -12711,20 +17394,12 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <pre>
-       * 31 will be PotentialSettlements
-       * </pre>
-       *
        * <code>.PutPiece put_piece = 32;</code>
        */
       public soc.proto.GameMessage.PutPiece.Builder getPutPieceBuilder() {
         return getPutPieceFieldBuilder().getBuilder();
       }
       /**
-       * <pre>
-       * 31 will be PotentialSettlements
-       * </pre>
-       *
        * <code>.PutPiece put_piece = 32;</code>
        */
       public soc.proto.GameMessage.PutPieceOrBuilder getPutPieceOrBuilder() {
@@ -12738,10 +17413,6 @@ public final class GameMessage {
         }
       }
       /**
-       * <pre>
-       * 31 will be PotentialSettlements
-       * </pre>
-       *
        * <code>.PutPiece put_piece = 32;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
@@ -13477,6 +18148,414 @@ public final class GameMessage {
         msgCase_ = 101;
         onChanged();;
         return turnBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.SetTurn, soc.proto.GameMessage.SetTurn.Builder, soc.proto.GameMessage.SetTurnOrBuilder> setTurnBuilder_;
+      /**
+       * <code>.SetTurn set_turn = 102;</code>
+       */
+      public boolean hasSetTurn() {
+        return msgCase_ == 102;
+      }
+      /**
+       * <code>.SetTurn set_turn = 102;</code>
+       */
+      public soc.proto.GameMessage.SetTurn getSetTurn() {
+        if (setTurnBuilder_ == null) {
+          if (msgCase_ == 102) {
+            return (soc.proto.GameMessage.SetTurn) msg_;
+          }
+          return soc.proto.GameMessage.SetTurn.getDefaultInstance();
+        } else {
+          if (msgCase_ == 102) {
+            return setTurnBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.SetTurn.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.SetTurn set_turn = 102;</code>
+       */
+      public Builder setSetTurn(soc.proto.GameMessage.SetTurn value) {
+        if (setTurnBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          setTurnBuilder_.setMessage(value);
+        }
+        msgCase_ = 102;
+        return this;
+      }
+      /**
+       * <code>.SetTurn set_turn = 102;</code>
+       */
+      public Builder setSetTurn(
+          soc.proto.GameMessage.SetTurn.Builder builderForValue) {
+        if (setTurnBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          setTurnBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 102;
+        return this;
+      }
+      /**
+       * <code>.SetTurn set_turn = 102;</code>
+       */
+      public Builder mergeSetTurn(soc.proto.GameMessage.SetTurn value) {
+        if (setTurnBuilder_ == null) {
+          if (msgCase_ == 102 &&
+              msg_ != soc.proto.GameMessage.SetTurn.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.SetTurn.newBuilder((soc.proto.GameMessage.SetTurn) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 102) {
+            setTurnBuilder_.mergeFrom(value);
+          }
+          setTurnBuilder_.setMessage(value);
+        }
+        msgCase_ = 102;
+        return this;
+      }
+      /**
+       * <code>.SetTurn set_turn = 102;</code>
+       */
+      public Builder clearSetTurn() {
+        if (setTurnBuilder_ == null) {
+          if (msgCase_ == 102) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 102) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          setTurnBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.SetTurn set_turn = 102;</code>
+       */
+      public soc.proto.GameMessage.SetTurn.Builder getSetTurnBuilder() {
+        return getSetTurnFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.SetTurn set_turn = 102;</code>
+       */
+      public soc.proto.GameMessage.SetTurnOrBuilder getSetTurnOrBuilder() {
+        if ((msgCase_ == 102) && (setTurnBuilder_ != null)) {
+          return setTurnBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 102) {
+            return (soc.proto.GameMessage.SetTurn) msg_;
+          }
+          return soc.proto.GameMessage.SetTurn.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.SetTurn set_turn = 102;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.SetTurn, soc.proto.GameMessage.SetTurn.Builder, soc.proto.GameMessage.SetTurnOrBuilder> 
+          getSetTurnFieldBuilder() {
+        if (setTurnBuilder_ == null) {
+          if (!(msgCase_ == 102)) {
+            msg_ = soc.proto.GameMessage.SetTurn.getDefaultInstance();
+          }
+          setTurnBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.SetTurn, soc.proto.GameMessage.SetTurn.Builder, soc.proto.GameMessage.SetTurnOrBuilder>(
+                  (soc.proto.GameMessage.SetTurn) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 102;
+        onChanged();;
+        return setTurnBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.DiceResult, soc.proto.GameMessage.DiceResult.Builder, soc.proto.GameMessage.DiceResultOrBuilder> diceResultBuilder_;
+      /**
+       * <code>.DiceResult dice_result = 103;</code>
+       */
+      public boolean hasDiceResult() {
+        return msgCase_ == 103;
+      }
+      /**
+       * <code>.DiceResult dice_result = 103;</code>
+       */
+      public soc.proto.GameMessage.DiceResult getDiceResult() {
+        if (diceResultBuilder_ == null) {
+          if (msgCase_ == 103) {
+            return (soc.proto.GameMessage.DiceResult) msg_;
+          }
+          return soc.proto.GameMessage.DiceResult.getDefaultInstance();
+        } else {
+          if (msgCase_ == 103) {
+            return diceResultBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.DiceResult.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.DiceResult dice_result = 103;</code>
+       */
+      public Builder setDiceResult(soc.proto.GameMessage.DiceResult value) {
+        if (diceResultBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          diceResultBuilder_.setMessage(value);
+        }
+        msgCase_ = 103;
+        return this;
+      }
+      /**
+       * <code>.DiceResult dice_result = 103;</code>
+       */
+      public Builder setDiceResult(
+          soc.proto.GameMessage.DiceResult.Builder builderForValue) {
+        if (diceResultBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          diceResultBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 103;
+        return this;
+      }
+      /**
+       * <code>.DiceResult dice_result = 103;</code>
+       */
+      public Builder mergeDiceResult(soc.proto.GameMessage.DiceResult value) {
+        if (diceResultBuilder_ == null) {
+          if (msgCase_ == 103 &&
+              msg_ != soc.proto.GameMessage.DiceResult.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.DiceResult.newBuilder((soc.proto.GameMessage.DiceResult) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 103) {
+            diceResultBuilder_.mergeFrom(value);
+          }
+          diceResultBuilder_.setMessage(value);
+        }
+        msgCase_ = 103;
+        return this;
+      }
+      /**
+       * <code>.DiceResult dice_result = 103;</code>
+       */
+      public Builder clearDiceResult() {
+        if (diceResultBuilder_ == null) {
+          if (msgCase_ == 103) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 103) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          diceResultBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.DiceResult dice_result = 103;</code>
+       */
+      public soc.proto.GameMessage.DiceResult.Builder getDiceResultBuilder() {
+        return getDiceResultFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.DiceResult dice_result = 103;</code>
+       */
+      public soc.proto.GameMessage.DiceResultOrBuilder getDiceResultOrBuilder() {
+        if ((msgCase_ == 103) && (diceResultBuilder_ != null)) {
+          return diceResultBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 103) {
+            return (soc.proto.GameMessage.DiceResult) msg_;
+          }
+          return soc.proto.GameMessage.DiceResult.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.DiceResult dice_result = 103;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.DiceResult, soc.proto.GameMessage.DiceResult.Builder, soc.proto.GameMessage.DiceResultOrBuilder> 
+          getDiceResultFieldBuilder() {
+        if (diceResultBuilder_ == null) {
+          if (!(msgCase_ == 103)) {
+            msg_ = soc.proto.GameMessage.DiceResult.getDefaultInstance();
+          }
+          diceResultBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.DiceResult, soc.proto.GameMessage.DiceResult.Builder, soc.proto.GameMessage.DiceResultOrBuilder>(
+                  (soc.proto.GameMessage.DiceResult) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 103;
+        onChanged();;
+        return diceResultBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.DiceResultResources, soc.proto.GameMessage.DiceResultResources.Builder, soc.proto.GameMessage.DiceResultResourcesOrBuilder> diceResultResourcesBuilder_;
+      /**
+       * <code>.DiceResultResources dice_result_resources = 104;</code>
+       */
+      public boolean hasDiceResultResources() {
+        return msgCase_ == 104;
+      }
+      /**
+       * <code>.DiceResultResources dice_result_resources = 104;</code>
+       */
+      public soc.proto.GameMessage.DiceResultResources getDiceResultResources() {
+        if (diceResultResourcesBuilder_ == null) {
+          if (msgCase_ == 104) {
+            return (soc.proto.GameMessage.DiceResultResources) msg_;
+          }
+          return soc.proto.GameMessage.DiceResultResources.getDefaultInstance();
+        } else {
+          if (msgCase_ == 104) {
+            return diceResultResourcesBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.DiceResultResources.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.DiceResultResources dice_result_resources = 104;</code>
+       */
+      public Builder setDiceResultResources(soc.proto.GameMessage.DiceResultResources value) {
+        if (diceResultResourcesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          diceResultResourcesBuilder_.setMessage(value);
+        }
+        msgCase_ = 104;
+        return this;
+      }
+      /**
+       * <code>.DiceResultResources dice_result_resources = 104;</code>
+       */
+      public Builder setDiceResultResources(
+          soc.proto.GameMessage.DiceResultResources.Builder builderForValue) {
+        if (diceResultResourcesBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          diceResultResourcesBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 104;
+        return this;
+      }
+      /**
+       * <code>.DiceResultResources dice_result_resources = 104;</code>
+       */
+      public Builder mergeDiceResultResources(soc.proto.GameMessage.DiceResultResources value) {
+        if (diceResultResourcesBuilder_ == null) {
+          if (msgCase_ == 104 &&
+              msg_ != soc.proto.GameMessage.DiceResultResources.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.DiceResultResources.newBuilder((soc.proto.GameMessage.DiceResultResources) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 104) {
+            diceResultResourcesBuilder_.mergeFrom(value);
+          }
+          diceResultResourcesBuilder_.setMessage(value);
+        }
+        msgCase_ = 104;
+        return this;
+      }
+      /**
+       * <code>.DiceResultResources dice_result_resources = 104;</code>
+       */
+      public Builder clearDiceResultResources() {
+        if (diceResultResourcesBuilder_ == null) {
+          if (msgCase_ == 104) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 104) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          diceResultResourcesBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.DiceResultResources dice_result_resources = 104;</code>
+       */
+      public soc.proto.GameMessage.DiceResultResources.Builder getDiceResultResourcesBuilder() {
+        return getDiceResultResourcesFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.DiceResultResources dice_result_resources = 104;</code>
+       */
+      public soc.proto.GameMessage.DiceResultResourcesOrBuilder getDiceResultResourcesOrBuilder() {
+        if ((msgCase_ == 104) && (diceResultResourcesBuilder_ != null)) {
+          return diceResultResourcesBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 104) {
+            return (soc.proto.GameMessage.DiceResultResources) msg_;
+          }
+          return soc.proto.GameMessage.DiceResultResources.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.DiceResultResources dice_result_resources = 104;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.DiceResultResources, soc.proto.GameMessage.DiceResultResources.Builder, soc.proto.GameMessage.DiceResultResourcesOrBuilder> 
+          getDiceResultResourcesFieldBuilder() {
+        if (diceResultResourcesBuilder_ == null) {
+          if (!(msgCase_ == 104)) {
+            msg_ = soc.proto.GameMessage.DiceResultResources.getDefaultInstance();
+          }
+          diceResultResourcesBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.DiceResultResources, soc.proto.GameMessage.DiceResultResources.Builder, soc.proto.GameMessage.DiceResultResourcesOrBuilder>(
+                  (soc.proto.GameMessage.DiceResultResources) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 104;
+        onChanged();;
+        return diceResultResourcesBuilder_;
       }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
@@ -14660,15 +19739,20 @@ public final class GameMessage {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_BoardLayout__BoardLayoutPart_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_BoardLayout__BoardLayoutPart_IntArray_descriptor;
-  private static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_BoardLayout__BoardLayoutPart_IntArray_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_BoardLayout_PartsEntry_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_BoardLayout_PartsEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_PotentialSettlements_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_PotentialSettlements_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_PotentialSettlements_LandAreasLegalNodesEntry_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_PotentialSettlements_LandAreasLegalNodesEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_PutPiece_descriptor;
   private static final 
@@ -14720,6 +19804,26 @@ public final class GameMessage {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_Turn_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_SetTurn_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_SetTurn_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_DiceResult_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_DiceResult_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_DiceResultResources_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_DiceResultResources_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_DiceResultResources_PlayerResources_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_DiceResultResources_PlayerResources_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_EndTurn_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -14743,63 +19847,80 @@ public final class GameMessage {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\022game_message.proto\032\ndata.proto\"\253\002\n\013Boa" +
+      "\n\022game_message.proto\032\ndata.proto\"\365\001\n\013Boa" +
       "rdLayout\022\027\n\017encoding_format\030\001 \001(\r\022&\n\005par" +
-      "ts\030\002 \003(\0132\027.BoardLayout.PartsEntry\032\215\001\n\020_B" +
-      "oardLayoutPart\022\017\n\005i_val\030\001 \001(\005H\000\022\017\n\005s_val" +
-      "\030\002 \001(\tH\000\0227\n\005i_arr\030\003 \001(\0132&.BoardLayout._B" +
-      "oardLayoutPart.IntArrayH\000\032\027\n\010IntArray\022\013\n" +
-      "\003arr\030\001 \003(\005B\005\n\003val\032K\n\nPartsEntry\022\013\n\003key\030\001" +
-      " \001(\t\022,\n\005value\030\002 \001(\0132\035.BoardLayout._Board" +
-      "LayoutPart:\0028\001\"P\n\010PutPiece\022\030\n\004type\030\001 \001(\016" +
-      "2\n.PieceType\022\025\n\rplayer_number\030\002 \001(\021\022\023\n\013c",
-      "oordinates\030\003 \001(\r\".\n\014BuildRequest\022\036\n\npiec" +
-      "e_type\030\001 \001(\0162\n.PieceType\"g\n\013CancelBuild\022" +
-      " \n\npiece_type\030\001 \001(\0162\n.PieceTypeH\000\022\'\n\tite" +
-      "m_type\030\002 \001(\0162\022.OtherPlayableItemH\000B\r\n\013ca" +
-      "ncel_type\"b\n\tMovePiece\022\030\n\004type\030\001 \001(\0162\n.P" +
-      "ieceType\022\025\n\rplayer_number\030\002 \001(\021\022\022\n\nfrom_" +
-      "coord\030\003 \001(\r\022\020\n\010to_coord\030\004 \001(\r\"S\n\013RemoveP" +
-      "iece\022\030\n\004type\030\001 \001(\0162\n.PieceType\022\025\n\rplayer" +
-      "_number\030\002 \001(\021\022\023\n\013coordinates\030\003 \001(\r\"\"\n\005St" +
-      "ate\022\031\n\005state\030\001 \001(\0162\n.GameState\"\226\001\n\rPlaye",
-      "rElement\022\024\n\014playerNumber\030\001 \001(\021\022%\n\006action" +
-      "\030\002 \001(\0162\025._PlayerElementAction\022(\n\013element" +
-      "Type\030\003 \001(\0162\023._PlayerElementType\022\016\n\006amoun" +
-      "t\030\004 \001(\021\022\016\n\006isNews\030\005 \001(\010\"\211\001\n\016PlayerElemen" +
-      "ts\022\024\n\014playerNumber\030\001 \001(\021\022%\n\006action\030\002 \001(\016" +
-      "2\025._PlayerElementAction\022)\n\014elementTypes\030" +
-      "\003 \003(\0162\023._PlayerElementType\022\017\n\007amounts\030\004 " +
-      "\003(\021\"&\n\tStartGame\022\031\n\005state\030\001 \001(\0162\n.GameSt" +
-      "ate\"8\n\004Turn\022\025\n\rplayer_number\030\001 \001(\r\022\031\n\005st" +
-      "ate\030\002 \001(\0162\n.GameState\"\t\n\007EndTurn\"\220\003\n\025Gam",
-      "eMessageFromServer\022\017\n\007ga_name\030\001 \001(\t\022\034\n\ng" +
-      "ame_state\030\002 \001(\0132\006.StateH\000\022(\n\016player_elem" +
-      "ent\030\017 \001(\0132\016.PlayerElementH\000\022*\n\017player_el" +
-      "ements\030\031 \001(\0132\017.PlayerElementsH\000\022$\n\014board" +
-      "_layout\030\036 \001(\0132\014.BoardLayoutH\000\022\036\n\tput_pie" +
-      "ce\030  \001(\0132\t.PutPieceH\000\022$\n\014cancel_build\030! " +
-      "\001(\0132\014.CancelBuildH\000\022 \n\nmove_piece\030\" \001(\0132" +
-      "\n.MovePieceH\000\022$\n\014remove_piece\030# \001(\0132\014.Re" +
-      "movePieceH\000\022 \n\nstart_game\030d \001(\0132\n.StartG" +
-      "ameH\000\022\025\n\004turn\030e \001(\0132\005.TurnH\000B\005\n\003msg\"o\n\025G",
-      "ameMessageFromClient\022\017\n\007ga_name\030\001 \001(\t\022 \n" +
-      "\nstart_game\030d \001(\0132\n.StartGameH\000\022\034\n\010end_t" +
-      "urn\030e \001(\0132\010.EndTurnH\000B\005\n\003msg*O\n\024_PlayerE" +
-      "lementAction\022\032\n\026_UNSENT_DEFAULT_ACTION\020\000" +
-      "\022\007\n\003SET\020\001\022\010\n\004GAIN\020\002\022\010\n\004LOSE\020\003*\267\003\n\022_Playe" +
-      "rElementType\022\030\n\024_UNSENT_DEFAULT_ELEM\020\000\022\r" +
-      "\n\tELEM_CLAY\020\001\022\014\n\010ELEM_ORE\020\002\022\016\n\nELEM_SHEE" +
-      "P\020\003\022\016\n\nELEM_WHEAT\020\004\022\r\n\tELEM_WOOD\020\005\022\031\n\025EL" +
-      "EM_UNKNOWN_RESOURCE\020\006\022\t\n\005ROADS\020\n\022\017\n\013SETT" +
-      "LEMENTS\020\013\022\n\n\006CITIES\020\014\022\t\n\005SHIPS\020\r\022\016\n\nNUMK",
-      "NIGHTS\020\017\022\025\n\021ASK_SPECIAL_BUILD\020\020\022\037\n\033NUM_P" +
-      "ICK_GOLD_HEX_RESOURCES\020\021\022\020\n\014SCENARIO_SVP" +
-      "\020\022\022!\n\035SCENARIO_PLAYEREVENTS_BITMASK\020\023\022\"\n" +
-      "\036SCENARIO_SVP_LANDAREAS_BITMASK\020\024\022\026\n\022STA" +
-      "RTING_LANDAREAS\020\025\022\030\n\024SCENARIO_CLOTH_COUN" +
-      "T\020\026\022\032\n\026SCENARIO_WARSHIP_COUNT\020\027B\r\n\tsoc.p" +
-      "rotoH\001P\000b\006proto3"
+      "ts\030\002 \003(\0132\027.BoardLayout.PartsEntry\032X\n\020_Bo" +
+      "ardLayoutPart\022\017\n\005i_val\030\001 \001(\005H\000\022\017\n\005s_val\030" +
+      "\002 \001(\tH\000\022\033\n\005i_arr\030\003 \001(\0132\n._IntArrayH\000B\005\n\003" +
+      "val\032K\n\nPartsEntry\022\013\n\003key\030\001 \001(\t\022,\n\005value\030" +
+      "\002 \001(\0132\035.BoardLayout._BoardLayoutPart:\0028\001" +
+      "\"\255\002\n\024PotentialSettlements\022\025\n\rplayer_numb" +
+      "er\030\001 \001(\021\022\020\n\010ps_nodes\030\002 \003(\005\022\022\n\narea_count" +
+      "\030\003 \001(\r\022\032\n\022starting_land_area\030\004 \001(\r\022N\n\026la",
+      "nd_areas_legal_nodes\030\005 \003(\0132..PotentialSe" +
+      "ttlements.LandAreasLegalNodesEntry\022$\n\017le" +
+      "gal_sea_edges\030\006 \003(\0132\013._SIntArray\032F\n\030Land" +
+      "AreasLegalNodesEntry\022\013\n\003key\030\001 \001(\r\022\031\n\005val" +
+      "ue\030\002 \001(\0132\n._IntArray:\0028\001\"P\n\010PutPiece\022\030\n\004" +
+      "type\030\001 \001(\0162\n.PieceType\022\025\n\rplayer_number\030" +
+      "\002 \001(\021\022\023\n\013coordinates\030\003 \001(\r\".\n\014BuildReque" +
+      "st\022\036\n\npiece_type\030\001 \001(\0162\n.PieceType\"g\n\013Ca" +
+      "ncelBuild\022 \n\npiece_type\030\001 \001(\0162\n.PieceTyp" +
+      "eH\000\022\'\n\titem_type\030\002 \001(\0162\022.OtherPlayableIt",
+      "emH\000B\r\n\013cancel_type\"b\n\tMovePiece\022\030\n\004type" +
+      "\030\001 \001(\0162\n.PieceType\022\025\n\rplayer_number\030\002 \001(" +
+      "\021\022\022\n\nfrom_coord\030\003 \001(\r\022\020\n\010to_coord\030\004 \001(\r\"" +
+      "S\n\013RemovePiece\022\030\n\004type\030\001 \001(\0162\n.PieceType" +
+      "\022\025\n\rplayer_number\030\002 \001(\021\022\023\n\013coordinates\030\003" +
+      " \001(\r\"\"\n\005State\022\031\n\005state\030\001 \001(\0162\n.GameState" +
+      "\"\226\001\n\rPlayerElement\022\024\n\014playerNumber\030\001 \001(\021" +
+      "\022%\n\006action\030\002 \001(\0162\025._PlayerElementAction\022" +
+      "(\n\013elementType\030\003 \001(\0162\023._PlayerElementTyp" +
+      "e\022\016\n\006amount\030\004 \001(\021\022\016\n\006isNews\030\005 \001(\010\"\211\001\n\016Pl",
+      "ayerElements\022\024\n\014playerNumber\030\001 \001(\021\022%\n\006ac" +
+      "tion\030\002 \001(\0162\025._PlayerElementAction\022)\n\014ele" +
+      "mentTypes\030\003 \003(\0162\023._PlayerElementType\022\017\n\007" +
+      "amounts\030\004 \003(\021\"&\n\tStartGame\022\031\n\005state\030\001 \001(" +
+      "\0162\n.GameState\"8\n\004Turn\022\025\n\rplayer_number\030\001" +
+      " \001(\r\022\031\n\005state\030\002 \001(\0162\n.GameState\" \n\007SetTu" +
+      "rn\022\025\n\rplayer_number\030\001 \001(\r\" \n\nDiceResult\022" +
+      "\022\n\ndice_total\030\001 \001(\r\"\264\001\n\023DiceResultResour" +
+      "ces\022>\n\020player_resources\030\001 \003(\0132$.DiceResu" +
+      "ltResources.PlayerResources\032]\n\017PlayerRes",
+      "ources\022\025\n\rplayer_number\030\001 \001(\r\022\037\n\010res_typ" +
+      "e\030\002 \003(\0162\r.ResourceType\022\022\n\nres_amount\030\003 \003" +
+      "(\r\"\t\n\007EndTurn\"\301\004\n\025GameMessageFromServer\022" +
+      "\017\n\007ga_name\030\001 \001(\t\022\034\n\ngame_state\030\002 \001(\0132\006.S" +
+      "tateH\000\022(\n\016player_element\030\017 \001(\0132\016.PlayerE" +
+      "lementH\000\022*\n\017player_elements\030\031 \001(\0132\017.Play" +
+      "erElementsH\000\022$\n\014board_layout\030\036 \001(\0132\014.Boa" +
+      "rdLayoutH\000\0226\n\025potential_settlements\030\037 \001(" +
+      "\0132\025.PotentialSettlementsH\000\022\036\n\tput_piece\030" +
+      "  \001(\0132\t.PutPieceH\000\022$\n\014cancel_build\030! \001(\013",
+      "2\014.CancelBuildH\000\022 \n\nmove_piece\030\" \001(\0132\n.M" +
+      "ovePieceH\000\022$\n\014remove_piece\030# \001(\0132\014.Remov" +
+      "ePieceH\000\022 \n\nstart_game\030d \001(\0132\n.StartGame" +
+      "H\000\022\025\n\004turn\030e \001(\0132\005.TurnH\000\022\034\n\010set_turn\030f " +
+      "\001(\0132\010.SetTurnH\000\022\"\n\013dice_result\030g \001(\0132\013.D" +
+      "iceResultH\000\0225\n\025dice_result_resources\030h \001" +
+      "(\0132\024.DiceResultResourcesH\000B\005\n\003msg\"o\n\025Gam" +
+      "eMessageFromClient\022\017\n\007ga_name\030\001 \001(\t\022 \n\ns" +
+      "tart_game\030d \001(\0132\n.StartGameH\000\022\034\n\010end_tur" +
+      "n\030e \001(\0132\010.EndTurnH\000B\005\n\003msg*O\n\024_PlayerEle",
+      "mentAction\022\032\n\026_UNSENT_DEFAULT_ACTION\020\000\022\007" +
+      "\n\003SET\020\001\022\010\n\004GAIN\020\002\022\010\n\004LOSE\020\003*\267\003\n\022_PlayerE" +
+      "lementType\022\030\n\024_UNSENT_DEFAULT_ELEM\020\000\022\r\n\t" +
+      "ELEM_CLAY\020\001\022\014\n\010ELEM_ORE\020\002\022\016\n\nELEM_SHEEP\020" +
+      "\003\022\016\n\nELEM_WHEAT\020\004\022\r\n\tELEM_WOOD\020\005\022\031\n\025ELEM" +
+      "_UNKNOWN_RESOURCE\020\006\022\t\n\005ROADS\020\n\022\017\n\013SETTLE" +
+      "MENTS\020\013\022\n\n\006CITIES\020\014\022\t\n\005SHIPS\020\r\022\016\n\nNUMKNI" +
+      "GHTS\020\017\022\025\n\021ASK_SPECIAL_BUILD\020\020\022\037\n\033NUM_PIC" +
+      "K_GOLD_HEX_RESOURCES\020\021\022\020\n\014SCENARIO_SVP\020\022" +
+      "\022!\n\035SCENARIO_PLAYEREVENTS_BITMASK\020\023\022\"\n\036S",
+      "CENARIO_SVP_LANDAREAS_BITMASK\020\024\022\026\n\022START" +
+      "ING_LANDAREAS\020\025\022\030\n\024SCENARIO_CLOTH_COUNT\020" +
+      "\026\022\032\n\026SCENARIO_WARSHIP_COUNT\020\027B\r\n\tsoc.pro" +
+      "toH\001P\000b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -14826,92 +19947,122 @@ public final class GameMessage {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_BoardLayout__BoardLayoutPart_descriptor,
         new java.lang.String[] { "IVal", "SVal", "IArr", "Val", });
-    internal_static_BoardLayout__BoardLayoutPart_IntArray_descriptor =
-      internal_static_BoardLayout__BoardLayoutPart_descriptor.getNestedTypes().get(0);
-    internal_static_BoardLayout__BoardLayoutPart_IntArray_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_BoardLayout__BoardLayoutPart_IntArray_descriptor,
-        new java.lang.String[] { "Arr", });
     internal_static_BoardLayout_PartsEntry_descriptor =
       internal_static_BoardLayout_descriptor.getNestedTypes().get(1);
     internal_static_BoardLayout_PartsEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_BoardLayout_PartsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
-    internal_static_PutPiece_descriptor =
+    internal_static_PotentialSettlements_descriptor =
       getDescriptor().getMessageTypes().get(1);
+    internal_static_PotentialSettlements_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_PotentialSettlements_descriptor,
+        new java.lang.String[] { "PlayerNumber", "PsNodes", "AreaCount", "StartingLandArea", "LandAreasLegalNodes", "LegalSeaEdges", });
+    internal_static_PotentialSettlements_LandAreasLegalNodesEntry_descriptor =
+      internal_static_PotentialSettlements_descriptor.getNestedTypes().get(0);
+    internal_static_PotentialSettlements_LandAreasLegalNodesEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_PotentialSettlements_LandAreasLegalNodesEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_PutPiece_descriptor =
+      getDescriptor().getMessageTypes().get(2);
     internal_static_PutPiece_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_PutPiece_descriptor,
         new java.lang.String[] { "Type", "PlayerNumber", "Coordinates", });
     internal_static_BuildRequest_descriptor =
-      getDescriptor().getMessageTypes().get(2);
+      getDescriptor().getMessageTypes().get(3);
     internal_static_BuildRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_BuildRequest_descriptor,
         new java.lang.String[] { "PieceType", });
     internal_static_CancelBuild_descriptor =
-      getDescriptor().getMessageTypes().get(3);
+      getDescriptor().getMessageTypes().get(4);
     internal_static_CancelBuild_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_CancelBuild_descriptor,
         new java.lang.String[] { "PieceType", "ItemType", "CancelType", });
     internal_static_MovePiece_descriptor =
-      getDescriptor().getMessageTypes().get(4);
+      getDescriptor().getMessageTypes().get(5);
     internal_static_MovePiece_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_MovePiece_descriptor,
         new java.lang.String[] { "Type", "PlayerNumber", "FromCoord", "ToCoord", });
     internal_static_RemovePiece_descriptor =
-      getDescriptor().getMessageTypes().get(5);
+      getDescriptor().getMessageTypes().get(6);
     internal_static_RemovePiece_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_RemovePiece_descriptor,
         new java.lang.String[] { "Type", "PlayerNumber", "Coordinates", });
     internal_static_State_descriptor =
-      getDescriptor().getMessageTypes().get(6);
+      getDescriptor().getMessageTypes().get(7);
     internal_static_State_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_State_descriptor,
         new java.lang.String[] { "State", });
     internal_static_PlayerElement_descriptor =
-      getDescriptor().getMessageTypes().get(7);
+      getDescriptor().getMessageTypes().get(8);
     internal_static_PlayerElement_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_PlayerElement_descriptor,
         new java.lang.String[] { "PlayerNumber", "Action", "ElementType", "Amount", "IsNews", });
     internal_static_PlayerElements_descriptor =
-      getDescriptor().getMessageTypes().get(8);
+      getDescriptor().getMessageTypes().get(9);
     internal_static_PlayerElements_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_PlayerElements_descriptor,
         new java.lang.String[] { "PlayerNumber", "Action", "ElementTypes", "Amounts", });
     internal_static_StartGame_descriptor =
-      getDescriptor().getMessageTypes().get(9);
+      getDescriptor().getMessageTypes().get(10);
     internal_static_StartGame_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_StartGame_descriptor,
         new java.lang.String[] { "State", });
     internal_static_Turn_descriptor =
-      getDescriptor().getMessageTypes().get(10);
+      getDescriptor().getMessageTypes().get(11);
     internal_static_Turn_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Turn_descriptor,
         new java.lang.String[] { "PlayerNumber", "State", });
+    internal_static_SetTurn_descriptor =
+      getDescriptor().getMessageTypes().get(12);
+    internal_static_SetTurn_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_SetTurn_descriptor,
+        new java.lang.String[] { "PlayerNumber", });
+    internal_static_DiceResult_descriptor =
+      getDescriptor().getMessageTypes().get(13);
+    internal_static_DiceResult_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_DiceResult_descriptor,
+        new java.lang.String[] { "DiceTotal", });
+    internal_static_DiceResultResources_descriptor =
+      getDescriptor().getMessageTypes().get(14);
+    internal_static_DiceResultResources_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_DiceResultResources_descriptor,
+        new java.lang.String[] { "PlayerResources", });
+    internal_static_DiceResultResources_PlayerResources_descriptor =
+      internal_static_DiceResultResources_descriptor.getNestedTypes().get(0);
+    internal_static_DiceResultResources_PlayerResources_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_DiceResultResources_PlayerResources_descriptor,
+        new java.lang.String[] { "PlayerNumber", "ResType", "ResAmount", });
     internal_static_EndTurn_descriptor =
-      getDescriptor().getMessageTypes().get(11);
+      getDescriptor().getMessageTypes().get(15);
     internal_static_EndTurn_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_EndTurn_descriptor,
         new java.lang.String[] { });
     internal_static_GameMessageFromServer_descriptor =
-      getDescriptor().getMessageTypes().get(12);
+      getDescriptor().getMessageTypes().get(16);
     internal_static_GameMessageFromServer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_GameMessageFromServer_descriptor,
-        new java.lang.String[] { "GaName", "GameState", "PlayerElement", "PlayerElements", "BoardLayout", "PutPiece", "CancelBuild", "MovePiece", "RemovePiece", "StartGame", "Turn", "Msg", });
+        new java.lang.String[] { "GaName", "GameState", "PlayerElement", "PlayerElements", "BoardLayout", "PotentialSettlements", "PutPiece", "CancelBuild", "MovePiece", "RemovePiece", "StartGame", "Turn", "SetTurn", "DiceResult", "DiceResultResources", "Msg", });
     internal_static_GameMessageFromClient_descriptor =
-      getDescriptor().getMessageTypes().get(13);
+      getDescriptor().getMessageTypes().get(17);
     internal_static_GameMessageFromClient_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_GameMessageFromClient_descriptor,

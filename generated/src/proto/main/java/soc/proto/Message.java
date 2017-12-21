@@ -17547,7 +17547,7 @@ public final class Message {
 
     /**
      * <pre>
-     * Nickname of the sitting player
+     * Nickname of the sitting player; ignored from client
      * </pre>
      *
      * <code>string pl_name = 2;</code>
@@ -17555,7 +17555,7 @@ public final class Message {
     java.lang.String getPlName();
     /**
      * <pre>
-     * Nickname of the sitting player
+     * Nickname of the sitting player; ignored from client
      * </pre>
      *
      * <code>string pl_name = 2;</code>
@@ -17574,7 +17574,7 @@ public final class Message {
 
     /**
      * <pre>
-     * True if this player is a robot
+     * True if this player is a robot; ignored from client
      * </pre>
      *
      * <code>bool is_robot = 4;</code>
@@ -17727,7 +17727,7 @@ public final class Message {
     private volatile java.lang.Object plName_;
     /**
      * <pre>
-     * Nickname of the sitting player
+     * Nickname of the sitting player; ignored from client
      * </pre>
      *
      * <code>string pl_name = 2;</code>
@@ -17746,7 +17746,7 @@ public final class Message {
     }
     /**
      * <pre>
-     * Nickname of the sitting player
+     * Nickname of the sitting player; ignored from client
      * </pre>
      *
      * <code>string pl_name = 2;</code>
@@ -17782,7 +17782,7 @@ public final class Message {
     private boolean isRobot_;
     /**
      * <pre>
-     * True if this player is a robot
+     * True if this player is a robot; ignored from client
      * </pre>
      *
      * <code>bool is_robot = 4;</code>
@@ -18225,7 +18225,7 @@ public final class Message {
       private java.lang.Object plName_ = "";
       /**
        * <pre>
-       * Nickname of the sitting player
+       * Nickname of the sitting player; ignored from client
        * </pre>
        *
        * <code>string pl_name = 2;</code>
@@ -18244,7 +18244,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * Nickname of the sitting player
+       * Nickname of the sitting player; ignored from client
        * </pre>
        *
        * <code>string pl_name = 2;</code>
@@ -18264,7 +18264,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * Nickname of the sitting player
+       * Nickname of the sitting player; ignored from client
        * </pre>
        *
        * <code>string pl_name = 2;</code>
@@ -18281,7 +18281,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * Nickname of the sitting player
+       * Nickname of the sitting player; ignored from client
        * </pre>
        *
        * <code>string pl_name = 2;</code>
@@ -18294,7 +18294,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * Nickname of the sitting player
+       * Nickname of the sitting player; ignored from client
        * </pre>
        *
        * <code>string pl_name = 2;</code>
@@ -18352,7 +18352,7 @@ public final class Message {
       private boolean isRobot_ ;
       /**
        * <pre>
-       * True if this player is a robot
+       * True if this player is a robot; ignored from client
        * </pre>
        *
        * <code>bool is_robot = 4;</code>
@@ -18362,7 +18362,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * True if this player is a robot
+       * True if this player is a robot; ignored from client
        * </pre>
        *
        * <code>bool is_robot = 4;</code>
@@ -18375,7 +18375,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * True if this player is a robot
+       * True if this player is a robot; ignored from client
        * </pre>
        *
        * <code>bool is_robot = 4;</code>

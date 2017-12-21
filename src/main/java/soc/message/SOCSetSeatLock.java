@@ -23,6 +23,7 @@ package soc.message;
 import java.util.StringTokenizer;
 
 import soc.game.SOCGame.SeatLockState;
+import soc.proto.Message;
 
 
 /**
@@ -160,6 +161,15 @@ public class SOCSetSeatLock extends SOCMessage
         }
 
         return new SOCSetSeatLock(ga, pn, ls);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        Message.SetSeatLock.Builder b = Message.SetSeatLock.newBuilder();
+        b.setGaName(game).setSeatNumber(playerNumber)
+            .setState(ProtoMessageBuildHelper.toMsgSeatLockState(state));
+        return Message.FromServer.newBuilder().setSetSeatLock(b).build();
     }
 
     /**

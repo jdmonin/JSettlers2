@@ -22,6 +22,8 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.proto.Message;
+
 
 /**
  * This message means that a player wants to sit down to play.
@@ -155,6 +157,16 @@ public class SOCSitDown extends SOCMessage
         }
 
         return new SOCSitDown(ga, nk, pn, rf);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        Message.SitDown.Builder b = Message.SitDown.newBuilder();
+        b.setGaName(game).setSeatNumber(playerNumber).setIsRobot(robotFlag);
+        if ((nickname != null) && (nickname.length() > 0) && ! "-".equals(nickname))
+            b.setPlName(nickname);
+        return Message.FromServer.newBuilder().setSitDown(b).build();
     }
 
     /**

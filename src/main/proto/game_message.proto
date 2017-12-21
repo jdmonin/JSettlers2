@@ -46,17 +46,60 @@ import public "data.proto";
 message BoardLayout
 {
     message _BoardLayoutPart {
-        message IntArray { repeated int32 arr = 1; }  // since oneof can't directly contain a repeated field (array)
-
         oneof val {
             int32 i_val = 1;    // signed integer value
             string s_val = 2;   // string value
-            IntArray i_arr = 3;  // signed integer array
+            _IntArray i_arr = 3;  // signed integer array; negative values allowed but not frequently used
         }
     }
 
     uint32 encoding_format = 1;  // Board layout encoding version, from {@link SOCBoard#getBoardEncodingFormat()}
+
     map<string, _BoardLayoutPart> parts = 2;  // Layout Parts; some are optional depending on game options and scenario
+}
+
+/* A list of potential settlements, with optional related potential/legal position info.
+ * Sent from server when game starts or client joins a game in progress.
+ */
+message PotentialSettlements {
+    /* Player Number this applies to; may be -1 for all players at start of game.
+     * -1 also indicates that the legal settlements should be set and the
+     * legal roads recalculated from this message's list of potential nodes.
+     */
+    sint32 player_number = 1;
+
+    /* Potential settlement node coordinates for {@link #playerNumber} */
+    repeated int32 ps_nodes = 2;
+
+    /* How many Land Areas this board has; classic boards have 1 */
+    uint32 area_count = 3;
+
+    /* Which land area number within {@link #landAreasLegalNodes} contains {@link #psNodes}?
+     * 0 if none because the game already started and {@code psNodes} is unique to the player.
+     * 0 if none when game is starting now and players can place anywhere.
+     *<P>
+     * Not used if {@link #areaCount} == 1.
+     */
+    uint32 starting_land_area = 4;
+
+    /* Each land area's legal node coordinates; keys are 1 to {@link areaCount}.
+     * Areas 0 and {@link #startingLandArea} are unused. Not sent if {@code areaCount} == 1.
+     */
+    map<uint32, _IntArray> land_areas_legal_nodes = 5;
+
+    /* legal sea edges per player for ships, if restricted.
+     * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
+     *<P>
+     * If {@link #playerNumber} != -1, {@code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+     * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+     *<P>
+     * Each per-player array is the same format as in {@code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
+     * A list of individual sea edge coordinates and/or ranges.
+     * Ranges are designated by a pair of positive,negative numbers:
+     * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: <tt>{ 0 }</tt>.
+     */
+    repeated _SIntArray legal_sea_edges = 6;
 }
 
 /* Client player is asking to place, or server is announcing placement of, a piece on the board.
@@ -442,10 +485,67 @@ message Turn {
     GameState state = 2;  // new state, or empty/0 when joining game in progress
 }
 
+/* This message from server to client says whose turn it is.
+ * Only the game's current player number should change; no other
+ * game state is updated.
+ */
+message SetTurn {
+    uint32 player_number = 1;  // new current player's seat number
+}
+
+/* Reports the total of what was rolled on the dice this turn.
+ * The two individual dice amounts can be reported in a text message.
+ *<P>
+ * This is in response to a client player's {@link RollDice} request.
+ * Will always be followed by {@link State} (7 might lead to discards
+ * or moving the robber, etc.), and sometimes with further messages after that,
+ * depending on the roll results and scenario/rules in effect.
+ *<P>
+ * When players gain resources on the roll, game members will be sent {@link DiceResultResources}.
+ *<P>
+ * Players who gain resources on the roll will be sent
+ * {@link PlayerElement PlayerElement(SET, resType, amount)} messages
+ * for all their new resource counts.  Before v2.0.00, those were sent to each
+ * player in the game after a roll, not just those who gained resources.
+ * Afterwards each gaining player (any client version) is sent their currently
+ * held amounts for each resource as a group of <tt>PlayerElement(pn, {@link #SET}, ...)</tt>
+ * messages. Then, for each player who gained resources, their total {@link ResourceCount}
+ * is sent to the game. */
+message DiceResult {
+    uint32 dice_total = 1;  // total rolled on both dice
+}
+
+/* All resources gained by players from a dice roll.
+ * Sent to all game members after a {@link DiceResult}.
+ */
+message DiceResultResources {
+    /* One player's gained resource types and amounts.
+     * Uses parallel lists to simplify nested message structure.
+     */
+    message PlayerResources {
+        uint32 player_number = 1;
+        /* Type of each resource gained; same length as res_amount */
+        repeated ResourceType res_type = 2;
+        /* Amount of each resource type gained; same length as res_type */
+        repeated uint32 res_amount = 3;
+    }
+    repeated PlayerResources player_resources = 1;
+}
+
 /* Player wants to end their turn. */
 message EndTurn {
     // no detail fields are needed
 }
+
+
+//
+// Player Info
+//
+
+
+//
+// Player Actions
+//
 
 
 //
@@ -466,7 +566,7 @@ message GameMessageFromServer {
 
         // board layout and contents
         BoardLayout board_layout = 30;
-        // 31 will be PotentialSettlements
+        PotentialSettlements potential_settlements = 31;
         PutPiece put_piece = 32;
         CancelBuild cancel_build = 33;
         MovePiece move_piece = 34;
@@ -475,6 +575,13 @@ message GameMessageFromServer {
         // turn
         StartGame start_game = 100;
         Turn turn = 101;
+        SetTurn set_turn = 102;
+        DiceResult dice_result = 103;
+        DiceResultResources dice_result_resources = 104;
+
+        // player info
+
+        // player actions
     }
 }
 

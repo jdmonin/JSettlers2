@@ -26,6 +26,17 @@ option optimize_for = SPEED;  // json needs proto metadata, can't use smaller/cl
 
 // Protobuf Data structures. For messages see message.proto, game_message.proto
 
+
+/* Data type for array of int32, since oneof and map can't directly contain a repeated field.
+ * Negative values allowed but not frequently used (or efficiently encoded).
+ */
+message _IntArray { repeated int32 arr = 1; }
+
+/* Data type for array of sint32, since oneof and map can't directly contain a repeated field.
+ */
+message _SIntArray { repeated sint32 arr = 1; }
+
+
 //
 // Game and Board Data
 //
@@ -146,6 +157,7 @@ enum SeatLockState {
     /* Seat not locked.
      * If game is forming, if this seat is empty when the game starts, a bot can sit here.
      * If game is active, a newly-joining player can take over a bot in this seat.
+     * Since this value is 0, it may not appear in the message ("missing" field).
      */
     UNLOCKED = 0;
 

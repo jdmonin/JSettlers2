@@ -22,7 +22,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='game_message.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x12game_message.proto\x1a\ndata.proto\"\xab\x02\n\x0b\x42oardLayout\x12\x17\n\x0f\x65ncoding_format\x18\x01 \x01(\r\x12&\n\x05parts\x18\x02 \x03(\x0b\x32\x17.BoardLayout.PartsEntry\x1a\x8d\x01\n\x10_BoardLayoutPart\x12\x0f\n\x05i_val\x18\x01 \x01(\x05H\x00\x12\x0f\n\x05s_val\x18\x02 \x01(\tH\x00\x12\x37\n\x05i_arr\x18\x03 \x01(\x0b\x32&.BoardLayout._BoardLayoutPart.IntArrayH\x00\x1a\x17\n\x08IntArray\x12\x0b\n\x03\x61rr\x18\x01 \x03(\x05\x42\x05\n\x03val\x1aK\n\nPartsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12,\n\x05value\x18\x02 \x01(\x0b\x32\x1d.BoardLayout._BoardLayoutPart:\x02\x38\x01\"P\n\x08PutPiece\x12\x18\n\x04type\x18\x01 \x01(\x0e\x32\n.PieceType\x12\x15\n\rplayer_number\x18\x02 \x01(\x11\x12\x13\n\x0b\x63oordinates\x18\x03 \x01(\r\".\n\x0c\x42uildRequest\x12\x1e\n\npiece_type\x18\x01 \x01(\x0e\x32\n.PieceType\"g\n\x0b\x43\x61ncelBuild\x12 \n\npiece_type\x18\x01 \x01(\x0e\x32\n.PieceTypeH\x00\x12\'\n\titem_type\x18\x02 \x01(\x0e\x32\x12.OtherPlayableItemH\x00\x42\r\n\x0b\x63\x61ncel_type\"b\n\tMovePiece\x12\x18\n\x04type\x18\x01 \x01(\x0e\x32\n.PieceType\x12\x15\n\rplayer_number\x18\x02 \x01(\x11\x12\x12\n\nfrom_coord\x18\x03 \x01(\r\x12\x10\n\x08to_coord\x18\x04 \x01(\r\"S\n\x0bRemovePiece\x12\x18\n\x04type\x18\x01 \x01(\x0e\x32\n.PieceType\x12\x15\n\rplayer_number\x18\x02 \x01(\x11\x12\x13\n\x0b\x63oordinates\x18\x03 \x01(\r\"\"\n\x05State\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"\x96\x01\n\rPlayerElement\x12\x14\n\x0cplayerNumber\x18\x01 \x01(\x11\x12%\n\x06\x61\x63tion\x18\x02 \x01(\x0e\x32\x15._PlayerElementAction\x12(\n\x0b\x65lementType\x18\x03 \x01(\x0e\x32\x13._PlayerElementType\x12\x0e\n\x06\x61mount\x18\x04 \x01(\x11\x12\x0e\n\x06isNews\x18\x05 \x01(\x08\"\x89\x01\n\x0ePlayerElements\x12\x14\n\x0cplayerNumber\x18\x01 \x01(\x11\x12%\n\x06\x61\x63tion\x18\x02 \x01(\x0e\x32\x15._PlayerElementAction\x12)\n\x0c\x65lementTypes\x18\x03 \x03(\x0e\x32\x13._PlayerElementType\x12\x0f\n\x07\x61mounts\x18\x04 \x03(\x11\"&\n\tStartGame\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"8\n\x04Turn\x12\x15\n\rplayer_number\x18\x01 \x01(\r\x12\x19\n\x05state\x18\x02 \x01(\x0e\x32\n.GameState\"\t\n\x07\x45ndTurn\"\x90\x03\n\x15GameMessageFromServer\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x1c\n\ngame_state\x18\x02 \x01(\x0b\x32\x06.StateH\x00\x12(\n\x0eplayer_element\x18\x0f \x01(\x0b\x32\x0e.PlayerElementH\x00\x12*\n\x0fplayer_elements\x18\x19 \x01(\x0b\x32\x0f.PlayerElementsH\x00\x12$\n\x0c\x62oard_layout\x18\x1e \x01(\x0b\x32\x0c.BoardLayoutH\x00\x12\x1e\n\tput_piece\x18  \x01(\x0b\x32\t.PutPieceH\x00\x12$\n\x0c\x63\x61ncel_build\x18! \x01(\x0b\x32\x0c.CancelBuildH\x00\x12 \n\nmove_piece\x18\" \x01(\x0b\x32\n.MovePieceH\x00\x12$\n\x0cremove_piece\x18# \x01(\x0b\x32\x0c.RemovePieceH\x00\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12\x15\n\x04turn\x18\x65 \x01(\x0b\x32\x05.TurnH\x00\x42\x05\n\x03msg\"o\n\x15GameMessageFromClient\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12\x1c\n\x08\x65nd_turn\x18\x65 \x01(\x0b\x32\x08.EndTurnH\x00\x42\x05\n\x03msg*O\n\x14_PlayerElementAction\x12\x1a\n\x16_UNSENT_DEFAULT_ACTION\x10\x00\x12\x07\n\x03SET\x10\x01\x12\x08\n\x04GAIN\x10\x02\x12\x08\n\x04LOSE\x10\x03*\xb7\x03\n\x12_PlayerElementType\x12\x18\n\x14_UNSENT_DEFAULT_ELEM\x10\x00\x12\r\n\tELEM_CLAY\x10\x01\x12\x0c\n\x08\x45LEM_ORE\x10\x02\x12\x0e\n\nELEM_SHEEP\x10\x03\x12\x0e\n\nELEM_WHEAT\x10\x04\x12\r\n\tELEM_WOOD\x10\x05\x12\x19\n\x15\x45LEM_UNKNOWN_RESOURCE\x10\x06\x12\t\n\x05ROADS\x10\n\x12\x0f\n\x0bSETTLEMENTS\x10\x0b\x12\n\n\x06\x43ITIES\x10\x0c\x12\t\n\x05SHIPS\x10\r\x12\x0e\n\nNUMKNIGHTS\x10\x0f\x12\x15\n\x11\x41SK_SPECIAL_BUILD\x10\x10\x12\x1f\n\x1bNUM_PICK_GOLD_HEX_RESOURCES\x10\x11\x12\x10\n\x0cSCENARIO_SVP\x10\x12\x12!\n\x1dSCENARIO_PLAYEREVENTS_BITMASK\x10\x13\x12\"\n\x1eSCENARIO_SVP_LANDAREAS_BITMASK\x10\x14\x12\x16\n\x12STARTING_LANDAREAS\x10\x15\x12\x18\n\x14SCENARIO_CLOTH_COUNT\x10\x16\x12\x1a\n\x16SCENARIO_WARSHIP_COUNT\x10\x17\x42\r\n\tsoc.protoH\x01P\x00\x62\x06proto3')
+  serialized_pb=_b('\n\x12game_message.proto\x1a\ndata.proto\"\xf5\x01\n\x0b\x42oardLayout\x12\x17\n\x0f\x65ncoding_format\x18\x01 \x01(\r\x12&\n\x05parts\x18\x02 \x03(\x0b\x32\x17.BoardLayout.PartsEntry\x1aX\n\x10_BoardLayoutPart\x12\x0f\n\x05i_val\x18\x01 \x01(\x05H\x00\x12\x0f\n\x05s_val\x18\x02 \x01(\tH\x00\x12\x1b\n\x05i_arr\x18\x03 \x01(\x0b\x32\n._IntArrayH\x00\x42\x05\n\x03val\x1aK\n\nPartsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12,\n\x05value\x18\x02 \x01(\x0b\x32\x1d.BoardLayout._BoardLayoutPart:\x02\x38\x01\"\xad\x02\n\x14PotentialSettlements\x12\x15\n\rplayer_number\x18\x01 \x01(\x11\x12\x10\n\x08ps_nodes\x18\x02 \x03(\x05\x12\x12\n\narea_count\x18\x03 \x01(\r\x12\x1a\n\x12starting_land_area\x18\x04 \x01(\r\x12N\n\x16land_areas_legal_nodes\x18\x05 \x03(\x0b\x32..PotentialSettlements.LandAreasLegalNodesEntry\x12$\n\x0flegal_sea_edges\x18\x06 \x03(\x0b\x32\x0b._SIntArray\x1a\x46\n\x18LandAreasLegalNodesEntry\x12\x0b\n\x03key\x18\x01 \x01(\r\x12\x19\n\x05value\x18\x02 \x01(\x0b\x32\n._IntArray:\x02\x38\x01\"P\n\x08PutPiece\x12\x18\n\x04type\x18\x01 \x01(\x0e\x32\n.PieceType\x12\x15\n\rplayer_number\x18\x02 \x01(\x11\x12\x13\n\x0b\x63oordinates\x18\x03 \x01(\r\".\n\x0c\x42uildRequest\x12\x1e\n\npiece_type\x18\x01 \x01(\x0e\x32\n.PieceType\"g\n\x0b\x43\x61ncelBuild\x12 \n\npiece_type\x18\x01 \x01(\x0e\x32\n.PieceTypeH\x00\x12\'\n\titem_type\x18\x02 \x01(\x0e\x32\x12.OtherPlayableItemH\x00\x42\r\n\x0b\x63\x61ncel_type\"b\n\tMovePiece\x12\x18\n\x04type\x18\x01 \x01(\x0e\x32\n.PieceType\x12\x15\n\rplayer_number\x18\x02 \x01(\x11\x12\x12\n\nfrom_coord\x18\x03 \x01(\r\x12\x10\n\x08to_coord\x18\x04 \x01(\r\"S\n\x0bRemovePiece\x12\x18\n\x04type\x18\x01 \x01(\x0e\x32\n.PieceType\x12\x15\n\rplayer_number\x18\x02 \x01(\x11\x12\x13\n\x0b\x63oordinates\x18\x03 \x01(\r\"\"\n\x05State\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"\x96\x01\n\rPlayerElement\x12\x14\n\x0cplayerNumber\x18\x01 \x01(\x11\x12%\n\x06\x61\x63tion\x18\x02 \x01(\x0e\x32\x15._PlayerElementAction\x12(\n\x0b\x65lementType\x18\x03 \x01(\x0e\x32\x13._PlayerElementType\x12\x0e\n\x06\x61mount\x18\x04 \x01(\x11\x12\x0e\n\x06isNews\x18\x05 \x01(\x08\"\x89\x01\n\x0ePlayerElements\x12\x14\n\x0cplayerNumber\x18\x01 \x01(\x11\x12%\n\x06\x61\x63tion\x18\x02 \x01(\x0e\x32\x15._PlayerElementAction\x12)\n\x0c\x65lementTypes\x18\x03 \x03(\x0e\x32\x13._PlayerElementType\x12\x0f\n\x07\x61mounts\x18\x04 \x03(\x11\"&\n\tStartGame\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"8\n\x04Turn\x12\x15\n\rplayer_number\x18\x01 \x01(\r\x12\x19\n\x05state\x18\x02 \x01(\x0e\x32\n.GameState\" \n\x07SetTurn\x12\x15\n\rplayer_number\x18\x01 \x01(\r\" \n\nDiceResult\x12\x12\n\ndice_total\x18\x01 \x01(\r\"\xb4\x01\n\x13\x44iceResultResources\x12>\n\x10player_resources\x18\x01 \x03(\x0b\x32$.DiceResultResources.PlayerResources\x1a]\n\x0fPlayerResources\x12\x15\n\rplayer_number\x18\x01 \x01(\r\x12\x1f\n\x08res_type\x18\x02 \x03(\x0e\x32\r.ResourceType\x12\x12\n\nres_amount\x18\x03 \x03(\r\"\t\n\x07\x45ndTurn\"\xc1\x04\n\x15GameMessageFromServer\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x1c\n\ngame_state\x18\x02 \x01(\x0b\x32\x06.StateH\x00\x12(\n\x0eplayer_element\x18\x0f \x01(\x0b\x32\x0e.PlayerElementH\x00\x12*\n\x0fplayer_elements\x18\x19 \x01(\x0b\x32\x0f.PlayerElementsH\x00\x12$\n\x0c\x62oard_layout\x18\x1e \x01(\x0b\x32\x0c.BoardLayoutH\x00\x12\x36\n\x15potential_settlements\x18\x1f \x01(\x0b\x32\x15.PotentialSettlementsH\x00\x12\x1e\n\tput_piece\x18  \x01(\x0b\x32\t.PutPieceH\x00\x12$\n\x0c\x63\x61ncel_build\x18! \x01(\x0b\x32\x0c.CancelBuildH\x00\x12 \n\nmove_piece\x18\" \x01(\x0b\x32\n.MovePieceH\x00\x12$\n\x0cremove_piece\x18# \x01(\x0b\x32\x0c.RemovePieceH\x00\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12\x15\n\x04turn\x18\x65 \x01(\x0b\x32\x05.TurnH\x00\x12\x1c\n\x08set_turn\x18\x66 \x01(\x0b\x32\x08.SetTurnH\x00\x12\"\n\x0b\x64ice_result\x18g \x01(\x0b\x32\x0b.DiceResultH\x00\x12\x35\n\x15\x64ice_result_resources\x18h \x01(\x0b\x32\x14.DiceResultResourcesH\x00\x42\x05\n\x03msg\"o\n\x15GameMessageFromClient\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12\x1c\n\x08\x65nd_turn\x18\x65 \x01(\x0b\x32\x08.EndTurnH\x00\x42\x05\n\x03msg*O\n\x14_PlayerElementAction\x12\x1a\n\x16_UNSENT_DEFAULT_ACTION\x10\x00\x12\x07\n\x03SET\x10\x01\x12\x08\n\x04GAIN\x10\x02\x12\x08\n\x04LOSE\x10\x03*\xb7\x03\n\x12_PlayerElementType\x12\x18\n\x14_UNSENT_DEFAULT_ELEM\x10\x00\x12\r\n\tELEM_CLAY\x10\x01\x12\x0c\n\x08\x45LEM_ORE\x10\x02\x12\x0e\n\nELEM_SHEEP\x10\x03\x12\x0e\n\nELEM_WHEAT\x10\x04\x12\r\n\tELEM_WOOD\x10\x05\x12\x19\n\x15\x45LEM_UNKNOWN_RESOURCE\x10\x06\x12\t\n\x05ROADS\x10\n\x12\x0f\n\x0bSETTLEMENTS\x10\x0b\x12\n\n\x06\x43ITIES\x10\x0c\x12\t\n\x05SHIPS\x10\r\x12\x0e\n\nNUMKNIGHTS\x10\x0f\x12\x15\n\x11\x41SK_SPECIAL_BUILD\x10\x10\x12\x1f\n\x1bNUM_PICK_GOLD_HEX_RESOURCES\x10\x11\x12\x10\n\x0cSCENARIO_SVP\x10\x12\x12!\n\x1dSCENARIO_PLAYEREVENTS_BITMASK\x10\x13\x12\"\n\x1eSCENARIO_SVP_LANDAREAS_BITMASK\x10\x14\x12\x16\n\x12STARTING_LANDAREAS\x10\x15\x12\x18\n\x14SCENARIO_CLOTH_COUNT\x10\x16\x12\x1a\n\x16SCENARIO_WARSHIP_COUNT\x10\x17\x42\r\n\tsoc.protoH\x01P\x00\x62\x06proto3')
   ,
   dependencies=[data__pb2.DESCRIPTOR,],
   public_dependencies=[data__pb2.DESCRIPTOR,])
@@ -52,8 +52,8 @@ __PLAYERELEMENTACTION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1710,
-  serialized_end=1789,
+  serialized_start=2388,
+  serialized_end=2467,
 )
 _sym_db.RegisterEnumDescriptor(__PLAYERELEMENTACTION)
 
@@ -147,8 +147,8 @@ __PLAYERELEMENTTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1792,
-  serialized_end=2231,
+  serialized_start=2470,
+  serialized_end=2909,
 )
 _sym_db.RegisterEnumDescriptor(__PLAYERELEMENTTYPE)
 
@@ -179,36 +179,6 @@ SCENARIO_CLOTH_COUNT = 22
 SCENARIO_WARSHIP_COUNT = 23
 
 
-
-_BOARDLAYOUT__BOARDLAYOUTPART_INTARRAY = _descriptor.Descriptor(
-  name='IntArray',
-  full_name='BoardLayout._BoardLayoutPart.IntArray',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='arr', full_name='BoardLayout._BoardLayoutPart.IntArray.arr', index=0,
-      number=1, type=5, cpp_type=1, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=227,
-  serialized_end=250,
-)
 
 _BOARDLAYOUT__BOARDLAYOUTPART = _descriptor.Descriptor(
   name='_BoardLayoutPart',
@@ -241,7 +211,7 @@ _BOARDLAYOUT__BOARDLAYOUTPART = _descriptor.Descriptor(
   ],
   extensions=[
   ],
-  nested_types=[_BOARDLAYOUT__BOARDLAYOUTPART_INTARRAY, ],
+  nested_types=[],
   enum_types=[
   ],
   options=None,
@@ -253,8 +223,8 @@ _BOARDLAYOUT__BOARDLAYOUTPART = _descriptor.Descriptor(
       name='val', full_name='BoardLayout._BoardLayoutPart.val',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=116,
-  serialized_end=257,
+  serialized_start=115,
+  serialized_end=203,
 )
 
 _BOARDLAYOUT_PARTSENTRY = _descriptor.Descriptor(
@@ -290,8 +260,8 @@ _BOARDLAYOUT_PARTSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=259,
-  serialized_end=334,
+  serialized_start=205,
+  serialized_end=280,
 )
 
 _BOARDLAYOUT = _descriptor.Descriptor(
@@ -328,7 +298,110 @@ _BOARDLAYOUT = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=35,
-  serialized_end=334,
+  serialized_end=280,
+)
+
+
+_POTENTIALSETTLEMENTS_LANDAREASLEGALNODESENTRY = _descriptor.Descriptor(
+  name='LandAreasLegalNodesEntry',
+  full_name='PotentialSettlements.LandAreasLegalNodesEntry',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='key', full_name='PotentialSettlements.LandAreasLegalNodesEntry.key', index=0,
+      number=1, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='PotentialSettlements.LandAreasLegalNodesEntry.value', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=_descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001')),
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=514,
+  serialized_end=584,
+)
+
+_POTENTIALSETTLEMENTS = _descriptor.Descriptor(
+  name='PotentialSettlements',
+  full_name='PotentialSettlements',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='player_number', full_name='PotentialSettlements.player_number', index=0,
+      number=1, type=17, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='ps_nodes', full_name='PotentialSettlements.ps_nodes', index=1,
+      number=2, type=5, cpp_type=1, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='area_count', full_name='PotentialSettlements.area_count', index=2,
+      number=3, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='starting_land_area', full_name='PotentialSettlements.starting_land_area', index=3,
+      number=4, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='land_areas_legal_nodes', full_name='PotentialSettlements.land_areas_legal_nodes', index=4,
+      number=5, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='legal_sea_edges', full_name='PotentialSettlements.legal_sea_edges', index=5,
+      number=6, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_POTENTIALSETTLEMENTS_LANDAREASLEGALNODESENTRY, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=283,
+  serialized_end=584,
 )
 
 
@@ -372,8 +445,8 @@ _PUTPIECE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=336,
-  serialized_end=416,
+  serialized_start=586,
+  serialized_end=666,
 )
 
 
@@ -403,8 +476,8 @@ _BUILDREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=418,
-  serialized_end=464,
+  serialized_start=668,
+  serialized_end=714,
 )
 
 
@@ -444,8 +517,8 @@ _CANCELBUILD = _descriptor.Descriptor(
       name='cancel_type', full_name='CancelBuild.cancel_type',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=466,
-  serialized_end=569,
+  serialized_start=716,
+  serialized_end=819,
 )
 
 
@@ -496,8 +569,8 @@ _MOVEPIECE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=571,
-  serialized_end=669,
+  serialized_start=821,
+  serialized_end=919,
 )
 
 
@@ -541,8 +614,8 @@ _REMOVEPIECE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=671,
-  serialized_end=754,
+  serialized_start=921,
+  serialized_end=1004,
 )
 
 
@@ -572,8 +645,8 @@ _STATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=756,
-  serialized_end=790,
+  serialized_start=1006,
+  serialized_end=1040,
 )
 
 
@@ -631,8 +704,8 @@ _PLAYERELEMENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=793,
-  serialized_end=943,
+  serialized_start=1043,
+  serialized_end=1193,
 )
 
 
@@ -683,8 +756,8 @@ _PLAYERELEMENTS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=946,
-  serialized_end=1083,
+  serialized_start=1196,
+  serialized_end=1333,
 )
 
 
@@ -714,8 +787,8 @@ _STARTGAME = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1085,
-  serialized_end=1123,
+  serialized_start=1335,
+  serialized_end=1373,
 )
 
 
@@ -752,8 +825,145 @@ _TURN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1125,
-  serialized_end=1181,
+  serialized_start=1375,
+  serialized_end=1431,
+)
+
+
+_SETTURN = _descriptor.Descriptor(
+  name='SetTurn',
+  full_name='SetTurn',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='player_number', full_name='SetTurn.player_number', index=0,
+      number=1, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1433,
+  serialized_end=1465,
+)
+
+
+_DICERESULT = _descriptor.Descriptor(
+  name='DiceResult',
+  full_name='DiceResult',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='dice_total', full_name='DiceResult.dice_total', index=0,
+      number=1, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1467,
+  serialized_end=1499,
+)
+
+
+_DICERESULTRESOURCES_PLAYERRESOURCES = _descriptor.Descriptor(
+  name='PlayerResources',
+  full_name='DiceResultResources.PlayerResources',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='player_number', full_name='DiceResultResources.PlayerResources.player_number', index=0,
+      number=1, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='res_type', full_name='DiceResultResources.PlayerResources.res_type', index=1,
+      number=2, type=14, cpp_type=8, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='res_amount', full_name='DiceResultResources.PlayerResources.res_amount', index=2,
+      number=3, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1589,
+  serialized_end=1682,
+)
+
+_DICERESULTRESOURCES = _descriptor.Descriptor(
+  name='DiceResultResources',
+  full_name='DiceResultResources',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='player_resources', full_name='DiceResultResources.player_resources', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_DICERESULTRESOURCES_PLAYERRESOURCES, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1502,
+  serialized_end=1682,
 )
 
 
@@ -776,8 +986,8 @@ _ENDTURN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1183,
-  serialized_end=1192,
+  serialized_start=1684,
+  serialized_end=1693,
 )
 
 
@@ -824,43 +1034,71 @@ _GAMEMESSAGEFROMSERVER = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='put_piece', full_name='GameMessageFromServer.put_piece', index=5,
+      name='potential_settlements', full_name='GameMessageFromServer.potential_settlements', index=5,
+      number=31, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='put_piece', full_name='GameMessageFromServer.put_piece', index=6,
       number=32, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='cancel_build', full_name='GameMessageFromServer.cancel_build', index=6,
+      name='cancel_build', full_name='GameMessageFromServer.cancel_build', index=7,
       number=33, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='move_piece', full_name='GameMessageFromServer.move_piece', index=7,
+      name='move_piece', full_name='GameMessageFromServer.move_piece', index=8,
       number=34, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='remove_piece', full_name='GameMessageFromServer.remove_piece', index=8,
+      name='remove_piece', full_name='GameMessageFromServer.remove_piece', index=9,
       number=35, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='start_game', full_name='GameMessageFromServer.start_game', index=9,
+      name='start_game', full_name='GameMessageFromServer.start_game', index=10,
       number=100, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='turn', full_name='GameMessageFromServer.turn', index=10,
+      name='turn', full_name='GameMessageFromServer.turn', index=11,
       number=101, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='set_turn', full_name='GameMessageFromServer.set_turn', index=12,
+      number=102, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='dice_result', full_name='GameMessageFromServer.dice_result', index=13,
+      number=103, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='dice_result_resources', full_name='GameMessageFromServer.dice_result_resources', index=14,
+      number=104, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -880,8 +1118,8 @@ _GAMEMESSAGEFROMSERVER = _descriptor.Descriptor(
       name='msg', full_name='GameMessageFromServer.msg',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=1195,
-  serialized_end=1595,
+  serialized_start=1696,
+  serialized_end=2273,
 )
 
 
@@ -928,12 +1166,11 @@ _GAMEMESSAGEFROMCLIENT = _descriptor.Descriptor(
       name='msg', full_name='GameMessageFromClient.msg',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=1597,
-  serialized_end=1708,
+  serialized_start=2275,
+  serialized_end=2386,
 )
 
-_BOARDLAYOUT__BOARDLAYOUTPART_INTARRAY.containing_type = _BOARDLAYOUT__BOARDLAYOUTPART
-_BOARDLAYOUT__BOARDLAYOUTPART.fields_by_name['i_arr'].message_type = _BOARDLAYOUT__BOARDLAYOUTPART_INTARRAY
+_BOARDLAYOUT__BOARDLAYOUTPART.fields_by_name['i_arr'].message_type = data__pb2.__INTARRAY
 _BOARDLAYOUT__BOARDLAYOUTPART.containing_type = _BOARDLAYOUT
 _BOARDLAYOUT__BOARDLAYOUTPART.oneofs_by_name['val'].fields.append(
   _BOARDLAYOUT__BOARDLAYOUTPART.fields_by_name['i_val'])
@@ -947,6 +1184,10 @@ _BOARDLAYOUT__BOARDLAYOUTPART.fields_by_name['i_arr'].containing_oneof = _BOARDL
 _BOARDLAYOUT_PARTSENTRY.fields_by_name['value'].message_type = _BOARDLAYOUT__BOARDLAYOUTPART
 _BOARDLAYOUT_PARTSENTRY.containing_type = _BOARDLAYOUT
 _BOARDLAYOUT.fields_by_name['parts'].message_type = _BOARDLAYOUT_PARTSENTRY
+_POTENTIALSETTLEMENTS_LANDAREASLEGALNODESENTRY.fields_by_name['value'].message_type = data__pb2.__INTARRAY
+_POTENTIALSETTLEMENTS_LANDAREASLEGALNODESENTRY.containing_type = _POTENTIALSETTLEMENTS
+_POTENTIALSETTLEMENTS.fields_by_name['land_areas_legal_nodes'].message_type = _POTENTIALSETTLEMENTS_LANDAREASLEGALNODESENTRY
+_POTENTIALSETTLEMENTS.fields_by_name['legal_sea_edges'].message_type = data__pb2.__SINTARRAY
 _PUTPIECE.fields_by_name['type'].enum_type = data__pb2._PIECETYPE
 _BUILDREQUEST.fields_by_name['piece_type'].enum_type = data__pb2._PIECETYPE
 _CANCELBUILD.fields_by_name['piece_type'].enum_type = data__pb2._PIECETYPE
@@ -966,16 +1207,23 @@ _PLAYERELEMENTS.fields_by_name['action'].enum_type = __PLAYERELEMENTACTION
 _PLAYERELEMENTS.fields_by_name['elementTypes'].enum_type = __PLAYERELEMENTTYPE
 _STARTGAME.fields_by_name['state'].enum_type = data__pb2._GAMESTATE
 _TURN.fields_by_name['state'].enum_type = data__pb2._GAMESTATE
+_DICERESULTRESOURCES_PLAYERRESOURCES.fields_by_name['res_type'].enum_type = data__pb2._RESOURCETYPE
+_DICERESULTRESOURCES_PLAYERRESOURCES.containing_type = _DICERESULTRESOURCES
+_DICERESULTRESOURCES.fields_by_name['player_resources'].message_type = _DICERESULTRESOURCES_PLAYERRESOURCES
 _GAMEMESSAGEFROMSERVER.fields_by_name['game_state'].message_type = _STATE
 _GAMEMESSAGEFROMSERVER.fields_by_name['player_element'].message_type = _PLAYERELEMENT
 _GAMEMESSAGEFROMSERVER.fields_by_name['player_elements'].message_type = _PLAYERELEMENTS
 _GAMEMESSAGEFROMSERVER.fields_by_name['board_layout'].message_type = _BOARDLAYOUT
+_GAMEMESSAGEFROMSERVER.fields_by_name['potential_settlements'].message_type = _POTENTIALSETTLEMENTS
 _GAMEMESSAGEFROMSERVER.fields_by_name['put_piece'].message_type = _PUTPIECE
 _GAMEMESSAGEFROMSERVER.fields_by_name['cancel_build'].message_type = _CANCELBUILD
 _GAMEMESSAGEFROMSERVER.fields_by_name['move_piece'].message_type = _MOVEPIECE
 _GAMEMESSAGEFROMSERVER.fields_by_name['remove_piece'].message_type = _REMOVEPIECE
 _GAMEMESSAGEFROMSERVER.fields_by_name['start_game'].message_type = _STARTGAME
 _GAMEMESSAGEFROMSERVER.fields_by_name['turn'].message_type = _TURN
+_GAMEMESSAGEFROMSERVER.fields_by_name['set_turn'].message_type = _SETTURN
+_GAMEMESSAGEFROMSERVER.fields_by_name['dice_result'].message_type = _DICERESULT
+_GAMEMESSAGEFROMSERVER.fields_by_name['dice_result_resources'].message_type = _DICERESULTRESOURCES
 _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
   _GAMEMESSAGEFROMSERVER.fields_by_name['game_state'])
 _GAMEMESSAGEFROMSERVER.fields_by_name['game_state'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
@@ -988,6 +1236,9 @@ _GAMEMESSAGEFROMSERVER.fields_by_name['player_elements'].containing_oneof = _GAM
 _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
   _GAMEMESSAGEFROMSERVER.fields_by_name['board_layout'])
 _GAMEMESSAGEFROMSERVER.fields_by_name['board_layout'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
+_GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
+  _GAMEMESSAGEFROMSERVER.fields_by_name['potential_settlements'])
+_GAMEMESSAGEFROMSERVER.fields_by_name['potential_settlements'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
 _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
   _GAMEMESSAGEFROMSERVER.fields_by_name['put_piece'])
 _GAMEMESSAGEFROMSERVER.fields_by_name['put_piece'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
@@ -1006,6 +1257,15 @@ _GAMEMESSAGEFROMSERVER.fields_by_name['start_game'].containing_oneof = _GAMEMESS
 _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
   _GAMEMESSAGEFROMSERVER.fields_by_name['turn'])
 _GAMEMESSAGEFROMSERVER.fields_by_name['turn'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
+_GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
+  _GAMEMESSAGEFROMSERVER.fields_by_name['set_turn'])
+_GAMEMESSAGEFROMSERVER.fields_by_name['set_turn'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
+_GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
+  _GAMEMESSAGEFROMSERVER.fields_by_name['dice_result'])
+_GAMEMESSAGEFROMSERVER.fields_by_name['dice_result'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
+_GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
+  _GAMEMESSAGEFROMSERVER.fields_by_name['dice_result_resources'])
+_GAMEMESSAGEFROMSERVER.fields_by_name['dice_result_resources'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
 _GAMEMESSAGEFROMCLIENT.fields_by_name['start_game'].message_type = _STARTGAME
 _GAMEMESSAGEFROMCLIENT.fields_by_name['end_turn'].message_type = _ENDTURN
 _GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg'].fields.append(
@@ -1015,6 +1275,7 @@ _GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg'].fields.append(
   _GAMEMESSAGEFROMCLIENT.fields_by_name['end_turn'])
 _GAMEMESSAGEFROMCLIENT.fields_by_name['end_turn'].containing_oneof = _GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg']
 DESCRIPTOR.message_types_by_name['BoardLayout'] = _BOARDLAYOUT
+DESCRIPTOR.message_types_by_name['PotentialSettlements'] = _POTENTIALSETTLEMENTS
 DESCRIPTOR.message_types_by_name['PutPiece'] = _PUTPIECE
 DESCRIPTOR.message_types_by_name['BuildRequest'] = _BUILDREQUEST
 DESCRIPTOR.message_types_by_name['CancelBuild'] = _CANCELBUILD
@@ -1025,6 +1286,9 @@ DESCRIPTOR.message_types_by_name['PlayerElement'] = _PLAYERELEMENT
 DESCRIPTOR.message_types_by_name['PlayerElements'] = _PLAYERELEMENTS
 DESCRIPTOR.message_types_by_name['StartGame'] = _STARTGAME
 DESCRIPTOR.message_types_by_name['Turn'] = _TURN
+DESCRIPTOR.message_types_by_name['SetTurn'] = _SETTURN
+DESCRIPTOR.message_types_by_name['DiceResult'] = _DICERESULT
+DESCRIPTOR.message_types_by_name['DiceResultResources'] = _DICERESULTRESOURCES
 DESCRIPTOR.message_types_by_name['EndTurn'] = _ENDTURN
 DESCRIPTOR.message_types_by_name['GameMessageFromServer'] = _GAMEMESSAGEFROMSERVER
 DESCRIPTOR.message_types_by_name['GameMessageFromClient'] = _GAMEMESSAGEFROMCLIENT
@@ -1035,13 +1299,6 @@ _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 BoardLayout = _reflection.GeneratedProtocolMessageType('BoardLayout', (_message.Message,), dict(
 
   _BoardLayoutPart = _reflection.GeneratedProtocolMessageType('_BoardLayoutPart', (_message.Message,), dict(
-
-    IntArray = _reflection.GeneratedProtocolMessageType('IntArray', (_message.Message,), dict(
-      DESCRIPTOR = _BOARDLAYOUT__BOARDLAYOUTPART_INTARRAY,
-      __module__ = 'game_message_pb2'
-      # @@protoc_insertion_point(class_scope:BoardLayout._BoardLayoutPart.IntArray)
-      ))
-    ,
     DESCRIPTOR = _BOARDLAYOUT__BOARDLAYOUTPART,
     __module__ = 'game_message_pb2'
     # @@protoc_insertion_point(class_scope:BoardLayout._BoardLayoutPart)
@@ -1060,8 +1317,22 @@ BoardLayout = _reflection.GeneratedProtocolMessageType('BoardLayout', (_message.
   ))
 _sym_db.RegisterMessage(BoardLayout)
 _sym_db.RegisterMessage(BoardLayout._BoardLayoutPart)
-_sym_db.RegisterMessage(BoardLayout._BoardLayoutPart.IntArray)
 _sym_db.RegisterMessage(BoardLayout.PartsEntry)
+
+PotentialSettlements = _reflection.GeneratedProtocolMessageType('PotentialSettlements', (_message.Message,), dict(
+
+  LandAreasLegalNodesEntry = _reflection.GeneratedProtocolMessageType('LandAreasLegalNodesEntry', (_message.Message,), dict(
+    DESCRIPTOR = _POTENTIALSETTLEMENTS_LANDAREASLEGALNODESENTRY,
+    __module__ = 'game_message_pb2'
+    # @@protoc_insertion_point(class_scope:PotentialSettlements.LandAreasLegalNodesEntry)
+    ))
+  ,
+  DESCRIPTOR = _POTENTIALSETTLEMENTS,
+  __module__ = 'game_message_pb2'
+  # @@protoc_insertion_point(class_scope:PotentialSettlements)
+  ))
+_sym_db.RegisterMessage(PotentialSettlements)
+_sym_db.RegisterMessage(PotentialSettlements.LandAreasLegalNodesEntry)
 
 PutPiece = _reflection.GeneratedProtocolMessageType('PutPiece', (_message.Message,), dict(
   DESCRIPTOR = _PUTPIECE,
@@ -1133,6 +1404,35 @@ Turn = _reflection.GeneratedProtocolMessageType('Turn', (_message.Message,), dic
   ))
 _sym_db.RegisterMessage(Turn)
 
+SetTurn = _reflection.GeneratedProtocolMessageType('SetTurn', (_message.Message,), dict(
+  DESCRIPTOR = _SETTURN,
+  __module__ = 'game_message_pb2'
+  # @@protoc_insertion_point(class_scope:SetTurn)
+  ))
+_sym_db.RegisterMessage(SetTurn)
+
+DiceResult = _reflection.GeneratedProtocolMessageType('DiceResult', (_message.Message,), dict(
+  DESCRIPTOR = _DICERESULT,
+  __module__ = 'game_message_pb2'
+  # @@protoc_insertion_point(class_scope:DiceResult)
+  ))
+_sym_db.RegisterMessage(DiceResult)
+
+DiceResultResources = _reflection.GeneratedProtocolMessageType('DiceResultResources', (_message.Message,), dict(
+
+  PlayerResources = _reflection.GeneratedProtocolMessageType('PlayerResources', (_message.Message,), dict(
+    DESCRIPTOR = _DICERESULTRESOURCES_PLAYERRESOURCES,
+    __module__ = 'game_message_pb2'
+    # @@protoc_insertion_point(class_scope:DiceResultResources.PlayerResources)
+    ))
+  ,
+  DESCRIPTOR = _DICERESULTRESOURCES,
+  __module__ = 'game_message_pb2'
+  # @@protoc_insertion_point(class_scope:DiceResultResources)
+  ))
+_sym_db.RegisterMessage(DiceResultResources)
+_sym_db.RegisterMessage(DiceResultResources.PlayerResources)
+
 EndTurn = _reflection.GeneratedProtocolMessageType('EndTurn', (_message.Message,), dict(
   DESCRIPTOR = _ENDTURN,
   __module__ = 'game_message_pb2'
@@ -1159,4 +1459,6 @@ DESCRIPTOR.has_options = True
 DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\tsoc.protoH\001'))
 _BOARDLAYOUT_PARTSENTRY.has_options = True
 _BOARDLAYOUT_PARTSENTRY._options = _descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001'))
+_POTENTIALSETTLEMENTS_LANDAREASLEGALNODESENTRY.has_options = True
+_POTENTIALSETTLEMENTS_LANDAREASLEGALNODESENTRY._options = _descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001'))
 # @@protoc_insertion_point(module_scope)

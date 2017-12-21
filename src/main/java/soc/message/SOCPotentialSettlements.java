@@ -27,6 +27,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import soc.proto.Data;
+import soc.proto.GameMessage;
+import soc.proto.Message;
+import soc.util.DataUtils;
+
 /**
  * This message contains a list of potential settlements.
  *<P>
@@ -521,6 +526,64 @@ public class SOCPotentialSettlements extends SOCMessage
             return new SOCPotentialSettlements(ga, pn, ps);
         else
             return new SOCPotentialSettlements(ga, pn, pan, las, legalSeaEdges);
+    }
+
+    /**
+     * Contents of this message in Protobuf format, as a OneOf field of {@link Message.FromServer}.
+     * This proto message and its List<Integer> map values are expensive to build, but
+     * {@link #makeProto(boolean)} will cache it after the first call.
+     * @since 3.0.00
+     */
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.PotentialSettlements.Builder b
+            = GameMessage.PotentialSettlements.newBuilder();
+        b.setPlayerNumber(playerNumber);
+
+        if (landAreasLegalNodes == null)
+        {
+            b.addAllPsNodes(psList);
+        } else {
+            final int pan = startingLandArea;
+            final HashSet<Integer>[] lan = landAreasLegalNodes;
+            final int L = lan.length;
+
+            b.setAreaCount(L - 1);
+
+            if ((landAreasLegalNodes[pan] != null) && ! landAreasLegalNodes[pan].isEmpty())
+                b.addAllPsNodes(lan[pan]);
+
+            for (int i = 1; i < L; ++i)
+            {
+                if (i == pan)
+                    continue;  // don't re-send the potentials list
+
+                b.putLandAreasLegalNodes
+                    (i, Data._IntArray.newBuilder().addAllArr(lan[i]).build());
+            }
+
+            if (legalSeaEdges != null)
+            {
+                for (int i = 0; i < legalSeaEdges.length; ++i)
+                {
+                    Data._SIntArray.Builder sib = Data._SIntArray.newBuilder();
+                    final int[] lse_i = legalSeaEdges[i];
+                    if (lse_i.length == 0)
+                        sib.addArr(0);  // pad for nonzero length
+                    else
+                        sib.addAllArr(DataUtils.toList(lse_i));
+
+                    b.addLegalSeaEdges(sib);
+                }
+            }
+        }
+
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGaName(game).setPotentialSettlements(b);
+
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
     /**

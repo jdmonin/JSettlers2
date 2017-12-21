@@ -24,6 +24,8 @@ import java.util.List;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.proto.Data;
+import soc.proto.GameMessage;
+import soc.proto.Message;
 
 /**
  * All resources gained by players from a dice roll.
@@ -48,13 +50,11 @@ public class SOCDiceResultResources extends SOCMessageTemplateMi
 
     /**
      * {@code playerNum(i)} is the player number gaining the resources in {@link #playerRsrc playerRsrc(i)}.
-     * Used at client only, null at server.
      */
     public List<Integer> playerNum;
 
     /**
      * {@code playerRsrc(i)} is the resource set gained by player {@link #playerNum playerNum(i)}.
-     * Used at client only, null at server.
      */
     public List<SOCResourceSet> playerRsrc;
 
@@ -73,6 +73,9 @@ public class SOCDiceResultResources extends SOCMessageTemplateMi
         throws IllegalArgumentException, NullPointerException
     {
         super(DICERESULTRESOURCES, gaName, buildIntList(pn, rsrc));
+
+        playerNum = pn;
+        playerRsrc = rsrc;
     }
 
     /**
@@ -207,6 +210,37 @@ public class SOCDiceResultResources extends SOCMessageTemplateMi
         } catch (Exception e) {
             return null;
         }
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.DiceResultResources.Builder b
+            = GameMessage.DiceResultResources.newBuilder();
+
+        final int n = playerNum.size();
+        for (int i = 0; i < n; ++i)
+        {
+            GameMessage.DiceResultResources.PlayerResources.Builder prb
+                = GameMessage.DiceResultResources.PlayerResources.newBuilder();
+            prb.setPlayerNumber(playerNum.get(i));
+            final SOCResourceSet rs = playerRsrc.get(i);
+            for (int rtype = SOCResourceConstants.MIN; rtype <= Data.ResourceType.WOOD_VALUE; ++rtype)
+            {
+                final int amt = rs.getAmount(rtype);
+                if (amt == 0)
+                    continue;
+                prb.addResTypeValue(rtype);
+                prb.addResAmount(amt);
+            }
+
+            b.addPlayerResources(prb);
+        }
+
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGaName(game).setDiceResultResources(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
 }
