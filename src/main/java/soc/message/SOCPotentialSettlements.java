@@ -74,21 +74,23 @@ public class SOCPotentialSettlements extends SOCMessage
     private int playerNumber;
 
     /**
-     * List of potential settlements
+     * Potential settlement node coordinates for {@link #playerNumber}.
+     *<P>
+     * Before v2.0.00 this field was {@code psList}.
      */
-    private List<Integer> psList;
+    private List<Integer> psNodes;
 
     /**
-     * How many land areas are on this board?
-     * Always 1 before version 2.0.00.
+     * How many land areas are defined on this board.
+     * Always 1 in classic boards (before v2.0.00).
      * @since 2.0.00
      */
     public final int areaCount;
 
     /**
-     * Which land area number is {@link #psList} within {@link #landAreasLegalNodes}?
-     * 0 if none, because the game has started.
-     * 0 if none when game starting and players can place anywhere.
+     * Which land area number within {@link #landAreasLegalNodes} contains {@link #psNodes}?
+     * 0 if none because the game already started and {@code psNodes} is unique to the player.
+     * 0 if none when game is starting now and players can place anywhere.
      *<P>
      * Not used if {@link #areaCount} == 1.
      * @since 2.0.00
@@ -106,19 +108,17 @@ public class SOCPotentialSettlements extends SOCMessage
     public final HashSet<Integer>[] landAreasLegalNodes;
 
     /**
-     * Optional field, Legal sea edges per player for ships, if restricted.
-     * Usually {@code null} because all sea edges are legal.
-     * Legal sea edges are currently restricted only in scenario {@code _SC_PIRI}.
+     * Optional field for legal sea edges per player for ships, if restricted.
+     * Usually {@code null}, because all sea edges are legal except in scenario {@code _SC_PIRI}.
      *<P>
      * If {@link #playerNumber} != -1, {@code legalSeaEdges} contains 1 array, the legal sea edges for that player.
-     * Otherwise, will contain 1 array for each player position (total 4 or 6 arrays).
+     * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
      *<P>
      * Each per-player array is the same format as in {@code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
      * A list of individual sea edge coordinates and/or ranges.
      * Ranges are designated by a pair of positive,negative numbers:
      * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-     * If a player position is vacant, their subarray may be empty (length 0).
-     *
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: <tt>{ 0 }</tt>.
      * @since 2.0.00
      */
     public int[][] legalSeaEdges;
@@ -133,13 +133,14 @@ public class SOCPotentialSettlements extends SOCMessage
      *   and the client and server are at least
      *   version 2.0.00 ({@link #VERSION_FOR_PLAYERNUM_ALL}),
      *   <tt>ps</tt> also is the list of legal settlements.
+     * @see #SOCPotentialSettlements(String, int, int, HashSet[], int[][])
      */
     public SOCPotentialSettlements(String ga, int pn, List<Integer> ps)
     {
         messageType = POTENTIALSETTLEMENTS;
         game = ga;
         playerNumber = pn;
-        psList = ps;
+        psNodes = ps;
         areaCount = 1;
         landAreasLegalNodes = null;
         startingLandArea = 1;
@@ -153,29 +154,24 @@ public class SOCPotentialSettlements extends SOCMessage
      *
      * @param ga  name of the game
      * @param pn  the player number, or -1 for all players
-     * @param pan  Potential settlements' land area number, or 0 if the
-     *             game has started, so none of the land areas equals the
-     *             list of potential settlements.  In that case use <tt>lan[0]</tt>
-     *             to hold the potential settlements node list.
-     *             <P>
-     *             If the game is just starting and the player can start
-     *             anywhere (<tt>pan == 0</tt>),
-     *             then <tt>lan[0]</tt> should be <tt>null</tt>.
+     * @param pan  Potential settlements' land area number, or 0 if the game has started and so player's
+     *     unique list of potential settlements doesn't match any of the land area coordinate lists.
+     *     In that case use <tt>lan[0]</tt> to hold the potential settlements node list.
+     *     <P>
+     *     If the game is just starting and the player can start anywhere (<tt>pan == 0</tt>),
+     *     then <tt>lan[0]</tt> should be <tt>null</tt>.
      * @param lan  Each land area's legal node lists.
-     *             List number <tt>pan</tt> will be sent as the list of
-     *             potential settlements.
-     *            If none of the land areas equals the list of potential
-     *            settlements, because the game has started,
-     *            use index 0 for that potentials list.
-     *            Otherwise index 0 is unused (<tt>null</tt>).
-     *            <P>
-     *            If the game is just starting and the player can start anywhere
-     *            (<tt>pan == 0</tt>), then <tt>lan[0]</tt> should be <tt>null</tt>,
-     *            and the {@link #getPotentialSettlements()} list will be formed by
-     *            combining <tt>lan[1] .. lan[n-1]</tt>.
+     *     List at index number <tt>pan</tt> will be sent as the list of potential settlements.
+     *     If <tt>pan</tt> is 0 because game has started (see above), use index 0 for the player's
+     *     potentials list. Otherwise index 0 is unused (<tt>null</tt>).
+     *     <P>
+     *     If the game is just starting and the player can start anywhere (<tt>pan == 0</tt>),
+     *     then <tt>lan[0]</tt> should be <tt>null</tt> and the {@link #getPotentialSettlements()} list
+     *     will be formed by combining <tt>lan[1] .. lan[n-1]</tt>.
      * @param lse  Legal sea edges for ships if restricted, or {@code null}; see {@link #legalSeaEdges} field for format
      * @throws IllegalArgumentException  if <tt>ln[pan] == null</tt>,
      *            or if <tt>ln[<i>i</i>]</tt> == <tt>null</tt> for any <i>i</i> &gt; 0
+     * @see #SOCPotentialSettlements(String, int, List)
      */
     public SOCPotentialSettlements(String ga, int pn, final int pan, HashSet<Integer>[] lan, final int[][] lse)
         throws IllegalArgumentException
@@ -183,14 +179,14 @@ public class SOCPotentialSettlements extends SOCMessage
         messageType = POTENTIALSETTLEMENTS;
         game = ga;
         playerNumber = pn;
-        final boolean psListFromAll = (pan == 0) && ((lan[0] == null) || lan[0].isEmpty());
-        if (! psListFromAll)
+        final boolean psNodesFromAll = (pan == 0) && ((lan[0] == null) || lan[0].isEmpty());
+        if (! psNodesFromAll)
         {
             if (lan[pan] == null)
                 throw new IllegalArgumentException();
-            psList = new ArrayList<Integer>(lan[pan]);
+            psNodes = new ArrayList<Integer>(lan[pan]);
         } else {
-            psList = new ArrayList<Integer>();
+            psNodes = new ArrayList<Integer>();
         }
         areaCount = lan.length - 1;
         landAreasLegalNodes = lan;
@@ -198,16 +194,16 @@ public class SOCPotentialSettlements extends SOCMessage
         legalSeaEdges = lse;
 
         // consistency-check land areas
-        // and (only if psListFromAll)
-        // add all nodes to psList
+        // and (only if psNodesFromAll)
+        // add all nodes to psNodes
         for (int i = 1; i < lan.length; ++i)
         {
             if (lan[i] == null)
                 throw new IllegalArgumentException();
-            if (psListFromAll)
-                psList.addAll(lan[i]);
+            if (psNodesFromAll)
+                psNodes.addAll(lan[i]);
         }
-        if (psList == null)
+        if (psNodes == null)
             throw new IllegalArgumentException();
     }
 
@@ -232,7 +228,7 @@ public class SOCPotentialSettlements extends SOCMessage
      */
     public List<Integer> getPotentialSettlements()
     {
-        return psList;
+        return psNodes;
     }
 
     /**
@@ -246,7 +242,7 @@ public class SOCPotentialSettlements extends SOCMessage
     public String toCmd()
     {
         if (landAreasLegalNodes == null)
-            return toCmd(game, playerNumber, psList);
+            return toCmd(game, playerNumber, psNodes);
         else
             return toCmd(game, playerNumber, startingLandArea, landAreasLegalNodes, legalSeaEdges);
     }
@@ -254,12 +250,13 @@ public class SOCPotentialSettlements extends SOCMessage
     /**
      * <tt>toCmd</tt> for a SOCPotentialSettlements message with 1 land area.
      *<P><tt>
-     * POTENTIALSETTLEMENTS sep game sep2 playerNumber sep2 psList
+     * POTENTIALSETTLEMENTS sep game sep2 playerNumber sep2 psNodes
      *</tt>
      * @param ga  the game name
      * @param pn  the player number
      * @param ps  the list of potential settlements
      * @return    the command string
+     * @see #toCmd(String, int, int, HashSet[], int[][])
      */
     public static String toCmd(String ga, int pn, List<Integer> ps)
     {
@@ -278,7 +275,7 @@ public class SOCPotentialSettlements extends SOCMessage
      * each of which have a set of legal settlements, but only one of which
      * has potential settlements at this time.
      *<P><tt>
-     * POTENTIALSETTLEMENTS sep game sep2 playerNumber sep2 psList
+     * POTENTIALSETTLEMENTS sep game sep2 playerNumber sep2 psNodes
      *    sep2 NA sep2 <i>(number of areas)</i> sep2 PAN sep2 <i>(pan)</i>
      *    { sep2 LA<i>#</i> sep2 legalNodesList }+
      *    { sep2 SE { sep2 (legalSeaEdgesList | 0) } }*
@@ -288,19 +285,16 @@ public class SOCPotentialSettlements extends SOCMessage
      *
      * @param ga  name of the game
      * @param pn  the player number, or -1 for all players
-     * @param pan  Potential settlements' land area number, or 0 if the
-     *             game has started, so none of the land areas equals the
-     *             list of potential settlements.  In that case use <tt>lan[0]</tt>
-     *             to hold the potential settlements node list.
+     * @param pan  Potential settlements' land area number, or 0 if the game has started and so player's
+     *     unique list of potential settlements doesn't match any of the land area coordinate lists.
+     *     In that case use <tt>lan[0]</tt> to hold the potential settlements node list.
      * @param lan  Each land area's legal node lists.
-     *             List number <tt>pan</tt> will be sent as the list of
-     *             potential settlements.
-     *            If none of the land areas equals the list of potential
-     *            settlements, because the game has started,
-     *            use index 0 for that potentials list.
-     *            Otherwise index 0 is unused (<tt>null</tt>).
+     *     List at index number <tt>pan</tt> will be sent as the list of potential settlements.
+     *     If <tt>pan</tt> is 0 because game has started (see above), use index 0 for the player's
+     *     potentials list. Otherwise index 0 is unused (<tt>null</tt>).
      * @param lse  Legal sea edges for ships if restricted, or {@code null}; see {@link #legalSeaEdges} field for format
      * @return   the command string
+     * @see #toCmd(String, int, List)
      */
     public static String toCmd(String ga, int pn, final int pan, final HashSet<Integer>[] lan, final int[][] lse)
     {
@@ -441,7 +435,7 @@ public class SOCPotentialSettlements extends SOCMessage
                         return null;
                 }
 
-                // Loop for numAreas, starting with tok == "LA#"
+                // las[]: Loop for numAreas, starting with tok == "LA#"
                 while (st.hasMoreTokens())
                 {
                     if (! tok.startsWith("LA"))
@@ -463,10 +457,11 @@ public class SOCPotentialSettlements extends SOCMessage
                             break;
                         ls.add(new Integer(Integer.parseInt(tok)));
                     }
+
                     las[areaNum] = ls;
                 }
 
-                // Parse the optional "SE" edge lists
+                // legalSeaEdges[][]: Parse the optional "SE" edge lists (SC_PIRI)
                 if (st.hasMoreTokens() && tok.equals("SE"))
                 {
                     ArrayList<int[]> allLSE = new ArrayList<int[]>();
@@ -531,7 +526,7 @@ public class SOCPotentialSettlements extends SOCMessage
     {
         StringBuffer s = new StringBuffer
             ("SOCPotentialSettlements:game=" + game + "|playerNum=" + playerNumber + "|list=");
-        for (Integer number : psList)
+        for (Integer number : psNodes)
         {
             s.append(Integer.toHexString(number.intValue()));
             s.append(' ');
@@ -548,7 +543,7 @@ public class SOCPotentialSettlements extends SOCMessage
                 s.append('=');
                 if (i == startingLandArea)
                 {
-                    s.append("(psList)");
+                    s.append("(psNodes)");
                     continue;
                 }
 
