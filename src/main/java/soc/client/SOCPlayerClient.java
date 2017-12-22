@@ -3396,7 +3396,15 @@ public class SOCPlayerClient
              */
             case SOCMessage.RESOURCECOUNT:
                 handleRESOURCECOUNT((SOCResourceCount) mes);
+                break;
 
+            /**
+             * receive player's last settlement location.
+             * Added 2017-12-23 for v2.0.00.
+             */
+            case SOCMessage.LASTSETTLEMENT:
+                SOCDisplaylessPlayerClient.handleLASTSETTLEMENT
+                    ((SOCLastSettlement) mes, games.get(((SOCLastSettlement) mes).getGame()));
                 break;
 
             /**
@@ -4511,19 +4519,25 @@ public class SOCPlayerClient
             return;
 
         final int pn = mes.getPlayerNumber();
-        final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
         final int action = mes.getAction(), amount = mes.getAmount();
         final int etype = mes.getElementType();
 
         handlePLAYERELEMENT
-            (clientListeners.get(mes.getGame()), ga, pl, pn, action, etype, amount, mes.isNews());
+            (clientListeners.get(mes.getGame()), ga, null, pn, action, etype, amount, mes.isNews());
     }
 
     /**
      * Handle a player information update from a {@link SOCPlayerElement} or {@link SOCPlayerElements} message.
+     * Update game information, then update {@code pcl} display if appropriate.
+     *<P>
+     * To update game information, defaults to calling
+     * {@link SOCDisplaylessPlayerClient#handlePLAYERELEMENT_simple(SOCGame, SOCPlayer, int, int, int, int, String)}
+     * for elements that don't need special handling for this client class.
+     *
      * @param pcl  PlayerClientListener for {@code ga}, to update display if not null
      * @param ga   Game to update; does nothing if null
-     * @param pl   Player to update (sometimes null)
+     * @param pl   Player to update; some elements take null. If null and {@code pn != -1}, will find {@code pl}
+     *     using {@link SOCGame#getPlayer(int) ga.getPlayer(pn)}.
      * @param pn   Player number from message (sometimes -1 for none or all)
      * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
      *     or {@link SOCPlayerElement#LOSE LOSE}
@@ -4534,11 +4548,14 @@ public class SOCPlayerClient
      * @since 2.0.00
      */
     private void handlePLAYERELEMENT
-        (final PlayerClientListener pcl, final SOCGame ga, final SOCPlayer pl, final int pn,
+        (final PlayerClientListener pcl, final SOCGame ga, SOCPlayer pl, final int pn,
          final int action, final int etype, final int amount, final boolean isNews)
     {
         if (ga == null)
             return;
+
+        if ((pl == null) && (pn != -1))
+            pl = ga.getPlayer(pn);
 
         PlayerClientListener.UpdateType utype = null;  // If not null, update this type's amount display
 
@@ -4627,27 +4644,45 @@ public class SOCPlayerClient
 
         case SOCPlayerElement.ASK_SPECIAL_BUILD:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
-                (ga, pl, pn, action, etype, amount);
+                (ga, pl, pn, action, etype, amount, nickname);
             // This case is not really an element update, so route as a 'request'
             pcl.requestedSpecialBuild(pl);
             break;
 
+        case SOCPlayerElement.RESOURCE_COUNT:
+            if (amount != pl.getResources().getTotal())
+            {
+                SOCResourceSet rsrcs = pl.getResources();
+
+                if (D.ebugOn)
+                {
+                    //pi.print(">>> RESOURCE COUNT ERROR: "+mes.getCount()+ " != "+rsrcs.getTotal());
+                }
+
+                boolean isClientPlayer = pl.getName().equals(client.getNickname());
+
+                //
+                //  fix it
+                //
+
+                if (! isClientPlayer)
+                {
+                    rsrcs.clear();
+                    rsrcs.setAmount(amount, SOCResourceConstants.UNKNOWN);
+                    pcl.playerResourcesUpdated(pl);
+                }
+            }
+            break;
+
         case SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
-                (ga, pl, pn, action, etype, amount);
+                (ga, pl, pn, action, etype, amount, nickname);
             pcl.requestedGoldResourceCountUpdated(pl, 0);
             break;
 
         case SOCPlayerElement.SCENARIO_SVP:
             pl.setSpecialVP(amount);
             utype = PlayerClientListener.UpdateType.SpecialVictoryPoints;
-            break;
-
-        case SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK:
-        case SOCPlayerElement.SCENARIO_SVP_LANDAREAS_BITMASK:
-        case SOCPlayerElement.STARTING_LANDAREAS:
-            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
-                (ga, pl, pn, action, etype, amount);
             break;
 
         case SOCPlayerElement.SCENARIO_CLOTH_COUNT:
@@ -4662,10 +4697,13 @@ public class SOCPlayerClient
 
         case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
-                (ga, pl, pn, action, etype, amount);
+                (ga, pl, pn, action, etype, amount, nickname);
             utype = PlayerClientListener.UpdateType.Warship;
             break;
 
+        default:
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
+                (ga, pl, pn, action, etype, amount, nickname);
         }
 
         if ((pcl != null) && (utype != null))
@@ -4685,36 +4723,13 @@ public class SOCPlayerClient
      */
     protected void handleRESOURCECOUNT(SOCResourceCount mes)
     {
-        SOCGame ga = games.get(mes.getGame());
+        final SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            SOCPlayer pl = ga.getPlayer(mes.getPlayerNumber());
-            PlayerClientListener pcl = clientListeners.get(mes.getGame());
-
-            if (mes.getCount() != pl.getResources().getTotal())
-            {
-                SOCResourceSet rsrcs = pl.getResources();
-
-                if (D.ebugOn)
-                {
-                    //pi.print(">>> RESOURCE COUNT ERROR: "+mes.getCount()+ " != "+rsrcs.getTotal());
-                }
-
-                boolean isClientPlayer = pl.getName().equals(client.getNickname());
-
-                //
-                //  fix it
-                //
-
-                if (! isClientPlayer)
-                {
-                    rsrcs.clear();
-                    rsrcs.setAmount(mes.getCount(), SOCResourceConstants.UNKNOWN);
-                    pcl.playerResourcesUpdated(pl);
-                }
-            }
-        }
+        handlePLAYERELEMENT
+            (clientListeners.get(mes.getGame()), ga, null, mes.getPlayerNumber(),
+             SOCPlayerElement.SET, SOCPlayerElement.RESOURCE_COUNT, mes.getCount(), false);
     }
 
     /**
@@ -5064,10 +5079,9 @@ public class SOCPlayerClient
         SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
-        {
-            SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
-            player.setPlayedDevCard(mes.hasPlayedDevCard());
-        }
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
+                (ga, null, mes.getPlayerNumber(), SOCPlayerElement.SET,
+                 SOCPlayerElement.PLAYED_DEV_CARD_FLAG, mes.hasPlayedDevCard() ? 1 : 0, null);
     }
 
     /**

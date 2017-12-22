@@ -616,6 +616,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
+             * receive player's last settlement location.
+             * Added 2017-12-23 for v2.0.00.
+             */
+            case SOCMessage.LASTSETTLEMENT:
+                handleLASTSETTLEMENT((SOCLastSettlement) mes, games.get(((SOCLastSettlement) mes).getGame()));
+                break;
+
+            /**
              * the latest dice result
              */
             case SOCMessage.DICERESULT:
@@ -1348,7 +1356,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         final int[] etypes = mes.getElementTypes(), amounts = mes.getAmounts();
 
         for (int i = 0; i < etypes.length; ++i)
-            handlePLAYERELEMENT(ga, pl, pn, action, etypes[i], amounts[i]);
+            handlePLAYERELEMENT(ga, pl, pn, action, etypes[i], amounts[i], nickname);
     }
 
     /**
@@ -1363,29 +1371,34 @@ public class SOCDisplaylessPlayerClient implements Runnable
             return;
 
         final int pn = mes.getPlayerNumber();
-        final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
         final int action = mes.getAction(), amount = mes.getAmount();
         final int etype = mes.getElementType();
 
-        handlePLAYERELEMENT(ga, pl, pn, action, etype, amount);
+        handlePLAYERELEMENT(ga, null, pn, action, etype, amount, nickname);
     }
 
     /**
      * Handle a player information update from a {@link SOCPlayerElement} or {@link SOCPlayerElements} message.
      * @param ga   Game to update; does nothing if null
-     * @param pl   Player to update (sometimes null)
+     * @param pl   Player to update; some elements take null. If null and {@code pn != -1}, will find {@code pl}
+     *     using {@link SOCGame#getPlayer(int) ga.getPlayer(pn)}.
      * @param pn   Player number from message (sometimes -1 for none or all)
      * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
      *     or {@link SOCPlayerElement#LOSE LOSE}
      * @param etype  Element type, such as {@link SOCPlayerElement#SETTLEMENTS} or {@link SOCPlayerElement#NUMKNIGHTS}
      * @param amount  The new value to set, or the delta to gain/lose
+     * @param nickname  Our client player nickname/username, for a few elements where that matters.
+     *     Some callers use {@code null} for elements where this isn't needed.
      * @since 2.0.00
      */
     public static final void handlePLAYERELEMENT
-        (final SOCGame ga, final SOCPlayer pl, final int pn, final int action, final int etype, final int amount)
+        (final SOCGame ga, SOCPlayer pl, final int pn, final int action,
+         final int etype, final int amount, final String nickname)
     {
         if (ga == null)
             return;
+        if ((pl == null) && (pn != -1))
+            pl = ga.getPlayer(pn);
 
         switch (etype)
         {
@@ -1440,7 +1453,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             break;
 
         default:
-            handlePLAYERELEMENT_simple(ga, pl, pn, action, etype, amount);
+            handlePLAYERELEMENT_simple(ga, pl, pn, action, etype, amount, nickname);
             break;
 
         }
@@ -1459,16 +1472,18 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * {@code action}, {@code etype}, and {@code val} fields.
      *
      * @param ga   Game to update
-     * @param pl   Player to update
+     * @param pl   Player to update; can't be null unless {@code pn == -1}
      * @param pn   Player number from message (sometimes -1 for none)
      * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
      *     or {@link SOCPlayerElement#LOSE LOSE}
      * @param etype  Element type, such as {@link SOCPlayerElement#SETTLEMENTS} or {@link SOCPlayerElement#NUMKNIGHTS}
      * @param val  The new value to set, or the delta to gain/lose
+     * @param nickname  Our client player nickname/username, for a few elements where that matters
      * @since 2.0.00
      */
     public static void handlePLAYERELEMENT_simple
-        (SOCGame ga, SOCPlayer pl, final int pn, final int action, final int etype, final int val)
+        (SOCGame ga, SOCPlayer pl, final int pn, final int action,
+         final int etype, final int val, final String nickname)
     {
         switch (etype)
         {
@@ -1481,6 +1496,42 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 catch (RuntimeException e) {}
             } else {
                 pl.setAskedSpecialBuild(false);
+            }
+            break;
+
+        case SOCPlayerElement.RESOURCE_COUNT:
+            if (val != pl.getResources().getTotal())
+            {
+                SOCResourceSet rsrcs = pl.getResources();
+
+                if (D.ebugOn)
+                {
+                    //pi.print(">>> RESOURCE COUNT ERROR: "+mes.getCount()+ " != "+rsrcs.getTotal());
+                }
+
+                //
+                //  fix it
+                //
+                if (! pl.getName().equals(nickname))
+                {
+                    rsrcs.clear();
+                    rsrcs.setAmount(val, SOCResourceConstants.UNKNOWN);
+                }
+            }
+            break;
+
+        case SOCPlayerElement.LAST_SETTLEMENT_NODE:
+            pl.setLastSettlementCoord(val);
+            break;
+
+        case SOCPlayerElement.PLAYED_DEV_CARD_FLAG:
+            {
+                final boolean changeTo = (val != 0);
+                if (pn != -1)
+                    pl.setPlayedDevCard(changeTo);
+                else
+                    for (int p = 0; p < ga.maxPlayers; ++p)
+                        ga.getPlayer(p).setPlayedDevCard(changeTo);
             }
             break;
 
@@ -1675,30 +1726,30 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleRESOURCECOUNT(SOCResourceCount mes)
     {
         final SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            final SOCPlayer pl = ga.getPlayer(mes.getPlayerNumber());
+        handlePLAYERELEMENT_simple
+            (ga, null, mes.getPlayerNumber(), SOCPlayerElement.SET,
+             SOCPlayerElement.RESOURCE_COUNT, mes.getCount(), nickname);
+    }
 
-            if (mes.getCount() != pl.getResources().getTotal())
-            {
-                SOCResourceSet rsrcs = pl.getResources();
+    /**
+     * handle the "set last settlement" message.
+     *<P>
+     * This method is public static for access by other client classes.
+     * @param mes  the message
+     * @param ga  Message's game from {@link SOCLastSettlement#getGame()}; if {@code null}, message is ignored
+     * @since 2.0.00
+     */
+    public static final void handleLASTSETTLEMENT(SOCLastSettlement mes, final SOCGame ga)
+    {
+        if (ga == null)
+            return;
 
-                if (D.ebugOn)
-                {
-                    //pi.print(">>> RESOURCE COUNT ERROR: "+mes.getCount()+ " != "+rsrcs.getTotal());
-                }
-
-                //
-                //  fix it
-                //
-                if (!pl.getName().equals(nickname))
-                {
-                    rsrcs.clear();
-                    rsrcs.setAmount(mes.getCount(), SOCResourceConstants.UNKNOWN);
-                }
-            }
-        }
+        handlePLAYERELEMENT_simple
+            (ga, null, mes.getPlayerNumber(), SOCPlayerElement.SET,
+                SOCPlayerElement.LAST_SETTLEMENT_NODE, mes.getCoordinates(), null);
     }
 
     /**
@@ -1986,10 +2037,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
         SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
-        {
-            SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
-            player.setPlayedDevCard(mes.hasPlayedDevCard());
-        }
+            handlePLAYERELEMENT_simple
+                (ga, null, mes.getPlayerNumber(), SOCPlayerElement.SET,
+                 SOCPlayerElement.PLAYED_DEV_CARD_FLAG, mes.hasPlayedDevCard() ? 1 : 0, null);
     }
 
     /**

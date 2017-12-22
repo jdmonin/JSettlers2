@@ -590,7 +590,12 @@ public class SOCGameMessageHandler
                                     srv.messageToPlayer(playerCon, new SOCPlayerElement
                                         (gn, pn, SOCPlayerElement.SET, SOCGameHandler.ELEM_RESOURCES[i], counts[i]));
 
-                            srv.messageToGame(gn, new SOCResourceCount(gn, pn, resources.getTotal()));
+                            final int total = resources.getTotal();
+                            if (ga.clientVersionLowest < SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
+                                srv.messageToGame(gn, new SOCResourceCount(gn, pn, total));
+                            else
+                                srv.messageToGame(gn, new SOCPlayerElement
+                                    (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.RESOURCE_COUNT, total));
 
                             // we'll send gold picks text, PLAYERELEMENT, and SIMPLEREQUEST(PROMPT_PICK_RESOURCES)
                             // after the per-player loop
@@ -2390,7 +2395,11 @@ public class SOCGameMessageHandler
                                 (ga, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
                                  new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT), false);
                         }
-                        srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
+                        if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
+                            srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                                (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.PLAYED_DEV_CARD_FLAG, 1));
+                        else
+                            srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
                         srv.messageToGameWithMon
                             (gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, peType, 1));
                         srv.gameList.releaseMonitorForGame(gaName);
@@ -2414,7 +2423,11 @@ public class SOCGameMessageHandler
                         ga.playRoadBuilding();
                         srv.gameList.takeMonitorForGame(gaName);
                         srv.messageToGameWithMon(gaName, new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.ROADS));
-                        srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
+                        if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
+                            srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                                (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.PLAYED_DEV_CARD_FLAG, 1));
+                        else
+                            srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
                         srv.messageToGameKeyed(ga, false, "action.card.roadbuilding", player.getName());  // "played a Road Building card."
                         srv.gameList.releaseMonitorForGame(gaName);
                         handler.sendGameState(ga);
@@ -2445,7 +2458,11 @@ public class SOCGameMessageHandler
                         ga.playDiscovery();
                         srv.gameList.takeMonitorForGame(gaName);
                         srv.messageToGameWithMon(gaName, new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.DISC));
-                        srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
+                        if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
+                            srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                                (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.PLAYED_DEV_CARD_FLAG, 1));
+                        else
+                            srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
                         srv.messageToGameKeyed(ga, false, "action.card.discoveryplenty", player.getName());
                             // "played a Year of Plenty card."
                         srv.gameList.releaseMonitorForGame(gaName);
@@ -2465,7 +2482,11 @@ public class SOCGameMessageHandler
                         ga.playMonopoly();
                         srv.gameList.takeMonitorForGame(gaName);
                         srv.messageToGameWithMon(gaName, new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.MONO));
-                        srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
+                        if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
+                            srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                                (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.PLAYED_DEV_CARD_FLAG, 1));
+                        else
+                            srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
                         srv.messageToGameKeyed(ga, false, "action.card.mono", player.getName());  // "played a Monopoly card."
                         srv.gameList.releaseMonitorForGame(gaName);
                         handler.sendGameState(ga);

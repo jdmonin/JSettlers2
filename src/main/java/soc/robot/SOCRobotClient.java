@@ -676,7 +676,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.PLAYERELEMENTS:  // apply multiple PLAYERELEMENT updates; added 2017-12-10 for v2.0.00
             case SOCMessage.REJECTOFFER:
             case SOCMessage.RESOURCECOUNT:
-            case SOCMessage.SETPLAYEDDEVCARD:
             case SOCMessage.SETTURN:
             case SOCMessage.STARTGAME:  // added 2017-12-18 for v2.0.00 when gameState became a field of this message
             case SOCMessage.TIMINGPING:  // server's 1x/second timing ping

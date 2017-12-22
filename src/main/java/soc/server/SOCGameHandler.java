@@ -1215,7 +1215,12 @@ public class SOCGameHandler extends GameHandler
             /**
              * send coords of the last settlement
              */
-            c.put(SOCLastSettlement.toCmd(gameName, i, pl.getLastSettlementCoord()));
+            if (c.getVersion() >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
+                c.put(SOCPlayerElement.toCmd
+                    (gameName, i, SOCPlayerElement.SET,
+                     SOCPlayerElement.LAST_SETTLEMENT_NODE, pl.getLastSettlementCoord()));
+            else
+                c.put(SOCLastSettlement.toCmd(gameName, i, pl.getLastSettlementCoord()));
 
             /**
              * send resources, knight cards played, number of playing pieces in hand
@@ -2739,8 +2744,13 @@ public class SOCGameHandler extends GameHandler
                         srv.messageToGameWithMon(gaName, new SOCPlayerElement
                             (gaName, i, SOCPlayerElement.SET, ELEM_PIECETYPES_SEA[j], counts[j]));
 
-                srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, i, false));
+                if (ga.clientVersionLowest < SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
+                    srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, i, false));
             }
+
+            if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
+                srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                    (gaName, -1, SOCPlayerElement.SET, SOCPlayerElement.PLAYED_DEV_CARD_FLAG, 0));
 
             /**
              * send the number of dev cards
@@ -2852,7 +2862,11 @@ public class SOCGameHandler extends GameHandler
         final int gs = ga.getGameState(),
             cpn = ga.getCurrentPlayerNumber();
 
-        srv.messageToGame(gname, new SOCSetPlayedDevCard(gname, cpn, false));
+        if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
+            srv.messageToGame(gname, new SOCPlayerElement
+                (gname, cpn, SOCPlayerElement.SET, SOCPlayerElement.PLAYED_DEV_CARD_FLAG, 0));
+        else
+            srv.messageToGame(gname, new SOCSetPlayedDevCard(gname, cpn, false));
 
         final SOCTurn turnMessage = new SOCTurn(gname, cpn, (useGSField) ? gs : 0);
         srv.messageToGame(gname, turnMessage);

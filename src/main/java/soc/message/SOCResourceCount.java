@@ -24,7 +24,10 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message has the total resource count for a player
+ * This message has the total resource count for a player.
+ *<P>
+ * In games where all clients are v2.0.00 or newer, send {@link SOCPlayerElement#RESOURCE_COUNT} instead:
+ * Check clients' version against {@link SOCPlayerElement#VERSION_FOR_CARD_ELEMENTS}.
  *
  * @author Robert S. Thomas
  */

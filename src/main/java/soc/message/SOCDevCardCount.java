@@ -24,7 +24,9 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message says how many development cards are in the deck.
+ * This message says how many development cards are available in the deck to be bought and drawn.
+ * In games where all clients are v2.0.00 or newer, send {@link SOCGameElement#DEV_CARD_COUNT} instead:
+ * Check clients' version against {@link SOCGameElement#VERSION_FOR_GAME_ELEMENT}.
  *
  * @author Robert S. Thomas
  */

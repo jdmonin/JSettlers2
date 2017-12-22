@@ -64,7 +64,6 @@ import soc.message.SOCPlayerElements;
 import soc.message.SOCPutPiece;
 import soc.message.SOCRejectOffer;
 import soc.message.SOCResourceCount;
-import soc.message.SOCSetPlayedDevCard;
 import soc.message.SOCSetSpecialItem;
 import soc.message.SOCSetTurn;
 import soc.message.SOCSimpleAction;
@@ -211,6 +210,8 @@ public class SOCRobotBrain extends Thread
     /**
      * Our player data
      * Set in {@link #setOurPlayerData()}
+     * @see #ourPlayerNumber
+     * @see #ourPlayerName
      */
     protected SOCPlayer ourPlayerData;
 
@@ -219,6 +220,13 @@ public class SOCRobotBrain extends Thread
      * @since 2.0.00
      */
     private int ourPlayerNumber;
+
+    /**
+     * Our player nickname. Convenience field, set from
+     * {@link SOCDisplaylessPlayerClient#getNickname() client.getNickname()}.
+     * @since 2.0.00
+     */
+    protected final String ourPlayerName;
 
     /**
      * Dummy player for cancelling bad placements
@@ -680,6 +688,7 @@ public class SOCRobotBrain extends Thread
     public SOCRobotBrain(SOCRobotClient rc, SOCRobotParameters params, SOCGame ga, CappedQueue<SOCMessage> mq)
     {
         client = rc;
+        ourPlayerName = rc.getNickname();
         robotParameters = params.copyIfOptionChanged(ga.getGameOptions());
         game = ga;
         gameIs6Player = (ga.maxPlayers > 4);
@@ -1302,29 +1311,9 @@ public class SOCRobotBrain extends Thread
                         break;
 
                     case SOCMessage.RESOURCECOUNT:
-                        {
-                        SOCPlayer pl = game.getPlayer(((SOCResourceCount) mes).getPlayerNumber());
-
-                        if (((SOCResourceCount) mes).getCount() != pl.getResources().getTotal())
-                        {
-                            SOCResourceSet rsrcs = pl.getResources();
-
-                            if (D.ebugOn)
-                            {
-                                client.sendText(game, ">>> RESOURCE COUNT ERROR FOR PLAYER " + pl.getPlayerNumber()
-                                    + ": " + ((SOCResourceCount) mes).getCount() + " != " + rsrcs.getTotal());
-                            }
-
-                            //
-                            //  fix it
-                            //
-                            if (pl.getPlayerNumber() != ourPlayerNumber)
-                            {
-                                rsrcs.clear();
-                                rsrcs.setAmount(((SOCResourceCount) mes).getCount(), SOCResourceConstants.UNKNOWN);
-                            }
-                        }
-                        }
+                        handlePLAYERELEMENT
+                            (null, ((SOCResourceCount) mes).getPlayerNumber(), SOCPlayerElement.SET,
+                             SOCPlayerElement.RESOURCE_COUNT, ((SOCResourceCount) mes).getCount());
                         break;
 
                     case SOCMessage.DICERESULT:
@@ -1421,13 +1410,6 @@ public class SOCRobotBrain extends Thread
                                 expectWAITING_FOR_MONOPOLY = false;
                                 expectPLACING_ROBBER = false;
                             }
-                        }
-                        break;
-
-                    case SOCMessage.SETPLAYEDDEVCARD:
-                        {
-                        SOCPlayer player = game.getPlayer(((SOCSetPlayedDevCard) mes).getPlayerNumber());
-                        player.setPlayedDevCard(((SOCSetPlayedDevCard) mes).hasPlayedDevCard());
                         }
                         break;
 
@@ -3644,11 +3626,10 @@ public class SOCRobotBrain extends Thread
     private void handlePLAYERELEMENT(SOCPlayerElement mes)
     {
         final int pn = mes.getPlayerNumber();
-        final SOCPlayer pl = (pn != -1) ? game.getPlayer(pn) : null;
         final int action = mes.getAction(), amount = mes.getAmount();
         final int etype = mes.getElementType();
 
-        handlePLAYERELEMENT(pl, pn, action, etype, amount);
+        handlePLAYERELEMENT(null, pn, action, etype, amount);
     }
 
     /**
@@ -3664,7 +3645,8 @@ public class SOCRobotBrain extends Thread
      *<P>
      * Otherwise, only the game data is updated, nothing brain-specific.
      *
-     * @param pl   Player to update (sometimes null)
+     * @param pl   Player to update; some elements take null. If null and {@code pn != -1}, will find {@code pl}
+     *     using {@link SOCGame#getPlayer(int) game.getPlayer(pn)}.
      * @param pn   Player number from message (sometimes -1 for none or all)
      * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
      *     or {@link SOCPlayerElement#LOSE LOSE}
@@ -3673,8 +3655,11 @@ public class SOCRobotBrain extends Thread
      * @since 2.0.00
      */
     private void handlePLAYERELEMENT
-        (final SOCPlayer pl, final int pn, final int action, final int etype, final int amount)
+        (SOCPlayer pl, final int pn, final int action, final int etype, final int amount)
     {
+        if ((pl == null) && (pn != -1))
+            pl = game.getPlayer(pn);
+
         switch (etype)
         {
         case SOCPlayerElement.ROADS:
@@ -3738,6 +3723,28 @@ public class SOCRobotBrain extends Thread
                 (pl, action, SOCResourceConstants.UNKNOWN, "UNKNOWN", amount);
             break;
 
+        case SOCPlayerElement.RESOURCE_COUNT:
+            if (amount != pl.getResources().getTotal())
+            {
+                SOCResourceSet rsrcs = pl.getResources();
+
+                if (D.ebugOn)
+                {
+                    client.sendText(game, ">>> RESOURCE COUNT ERROR FOR PLAYER " + pl.getPlayerNumber()
+                        + ": " + amount + " != " + rsrcs.getTotal());
+                }
+
+                //
+                //  fix it
+                //
+                if (pl.getPlayerNumber() != ourPlayerNumber)
+                {
+                    rsrcs.clear();
+                    rsrcs.setAmount(amount, SOCResourceConstants.UNKNOWN);
+                }
+            }
+            break;
+
         case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
             if (expectPLACING_ROBBER && (action == SOCPlayerElement.GAIN))
             {
@@ -3752,7 +3759,7 @@ public class SOCRobotBrain extends Thread
             // those are all self-contained informational fields that don't need any reaction from a bot.
 
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
-                (game, pl, pn, action, etype, amount);
+                (game, pl, pn, action, etype, amount, ourPlayerName);
             break;
 
         }
