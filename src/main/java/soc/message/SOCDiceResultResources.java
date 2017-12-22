@@ -72,6 +72,7 @@ public class SOCDiceResultResources extends SOCMessageTemplateMi
         throws IllegalArgumentException, NullPointerException
     {
         super(DICERESULTRESOURCES, gaName, buildIntList(pn, rsrc));
+            // buildIntList checks pn, rsrc for null and lengths
     }
 
     /**
