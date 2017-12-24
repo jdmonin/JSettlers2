@@ -44,7 +44,8 @@ import soc.util.DataUtils;
  * See the list at {@link SOCBoardLarge#getAddedLayoutPart(String)} for each part's details.
  *
  *<UL>
- *<LI> HL: The land hex layout; not sent if <tt>LH</tt> is sent. See note below on value mapping.
+ *<LI> HL: The land hex layout (classic v1 or v2 board encoding; not sent if <tt>LH</tt> is sent).
+ *         See note below on value mapping.
  *<LI> NL: The dice numbers
  *<LI> RH: The robber hex, if &gt; 0
  *<LI> PL: The ports layout

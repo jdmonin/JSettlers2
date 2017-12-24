@@ -434,6 +434,7 @@ public class SOCBoardLarge extends SOCBoard
     };
 
     // TODO hexLayoutLg, numberLayoutLg: Will only need half the rows, half the columns
+    //    The unused elements are wasted space locally but aren't sent over the network.
 
     /**
      * Hex layout: water/land resource types.
@@ -553,10 +554,9 @@ public class SOCBoardLarge extends SOCBoard
      * Dice number from hex coordinate.
      * Order: [row][column].
      * For land hexes, <tt>numberLayoutLg</tt>[r][c] is the dice number on {@link #hexLayoutLg}[r][c].
-     * One element per water, land, or port hex; non-land hexes are 0.
-     * Desert and fog hexes are -1, although {@link #getNumberOnHexFromNumber(int)} returns 0 for them.
+     * One element per water, land, or port hex; desert, fog, and non-land hexes are 0.
      * Hex dice numbers obscured by {@link #FOG_HEX}, if any, are stored in {@link #fogHiddenHexes} (server only).
-     * Because of bit shifts there, <tt>numberLayoutLg</tt> values must stay within the range -1 to 254.
+     * Because of bit shifts there, <tt>numberLayoutLg</tt> values must stay within the range 0 to 255.
      *<P>
      * If {@link #villages} are used, each village's dice number is stored in the {@link SOCVillage}.
      */
@@ -1009,7 +1009,8 @@ public class SOCBoardLarge extends SOCBoard
      * @param hexCoord  Coordinate of the hex to reveal
      * @param hexType   Revealed hex type, same value as {@link #getHexTypeFromCoord(int)}
      * @param diceNum   Revealed hex dice number, same value as {@link #getNumberOnHexFromCoord(int)}, or 0
-     * @throws IllegalArgumentException if <tt>hexCoord</tt> isn't currently a {@link #FOG_HEX}
+     * @throws IllegalArgumentException if {@code hexCoord} isn't currently a {@link #FOG_HEX}
+     *     or if {@code diceNum} &lt; 0
      * @see #revealFogHiddenHexPrep(int)
      */
     void revealFogHiddenHex(final int hexCoord, final int hexType, int diceNum)
@@ -1019,9 +1020,8 @@ public class SOCBoardLarge extends SOCBoard
                   c = hexCoord & 0xFF;
         if (hexLayoutLg[r][c] != FOG_HEX)
             throw new IllegalArgumentException("Not fog: 0x" + Integer.toHexString(hexCoord));
-
-        if ((diceNum == 0) && (hexType == DESERT_HEX))
-            diceNum = -1;  // internally, desert and fog hex dice numbers are stored as -1 not 0
+        if (diceNum < 0)
+            throw new IllegalArgumentException("diceNum: " + diceNum);
 
         hexLayoutLg[r][c] = hexType;
         numberLayoutLg[r][c] = diceNum;
@@ -1491,7 +1491,9 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Given a hex coordinate / hex number, return the (dice-roll) number on that hex
+     * Given a hex coordinate / hex number, return the (dice-roll) number on that hex.
+     * Water, desert, and fog hexes have 0 for their dice numbers. So do land hexes without dice numbers,
+     * as seen in some scenario layouts like {@link SOCGameOption#K_SC_FTRI SC_FTRI}.
      *
      * @param hex  the coordinates for a hex, or -1 if invalid
      *
@@ -1508,11 +1510,7 @@ public class SOCBoardLarge extends SOCBoard
         if ((r < 0) || (c < 0) || (r >= boardHeight) || (c >= boardWidth))
             return 0;
 
-        int num = numberLayoutLg[r][c];
-        if (num < 0)
-            return 0;
-        else
-            return num;
+        return numberLayoutLg[r][c];
     }
 
     /**
@@ -2166,7 +2164,9 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Get the land hex layout, for sending from server to client.
      * Contains 3 int elements per land hex:
-     * Coordinate, Hex type (resource, as in {@link #SHEEP_HEX}), Dice Number (-1 for desert).
+     * Coordinate, Hex type (resource, as in {@link #SHEEP_HEX}), Dice Number (0 for desert, fog, water).
+     * 0 is also the Dice Number for land hexes without dice numbers, as seen in some scenario layouts
+     * like {@link SOCGameOption#K_SC_FTRI SC_FTRI}.
      * @return the layout, or null if no land hexes.
      * @see #setLandHexLayout(int[])
      */
