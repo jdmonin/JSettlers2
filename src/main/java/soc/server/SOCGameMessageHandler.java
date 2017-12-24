@@ -2238,8 +2238,13 @@ public class SOCGameMessageHandler
                     srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.ORE, 1));
                     srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.SHEEP, 1));
                     srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.WHEAT, 1));
-                    srv.messageToGameWithMon(gaName, new SOCDevCardCount(gaName, ga.getNumDevCards()));
+                    srv.messageToGameWithMon
+                        (gaName, (ga.clientVersionLowest >= SOCGameElements.MIN_VERSION)
+                            ? new SOCGameElements(gaName, SOCGameElements.DEV_CARD_COUNT, ga.getNumDevCards())
+                            : new SOCDevCardCount(gaName, ga.getNumDevCards())
+                         );
                     srv.gameList.releaseMonitorForGame(gaName);
+
                     if ((card == SOCDevCardConstants.KNIGHT) && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
                         card = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
                     srv.messageToPlayer(c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, card));

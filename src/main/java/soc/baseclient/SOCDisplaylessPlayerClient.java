@@ -609,6 +609,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
+             * update game element information.
+             * Added 2017-12-24 for v2.0.00.
+             */
+            case SOCMessage.GAMEELEMENTS:
+                handleGAMEELEMENTS((SOCGameElements) mes);
+                break;
+
+            /**
              * receive resource count
              */
             case SOCMessage.RESOURCECOUNT:
@@ -1270,10 +1278,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleGAMESTATE(SOCGameState mes)
     {
         SOCGame ga = games.get(mes.getGame());
-        if (ga == null)
-            return;
-
-        handleGAMESTATE(ga, mes.getState());
+        if (ga != null)
+            handleGAMESTATE(ga, mes.getState());
     }
 
     /**
@@ -1300,12 +1306,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleSETTURN(SOCSetTurn mes)
     {
-        SOCGame ga = games.get(mes.getGame());
-
-        if (ga != null)
-        {
-            ga.setCurrentPlayerNumber(mes.getPlayerNumber());
-        }
+        handleGAMEELEMENT(games.get(mes.getGame()), SOCGameElements.CURRENT_PLAYER, mes.getPlayerNumber());
     }
 
     /**
@@ -1314,12 +1315,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleFIRSTPLAYER(SOCFirstPlayer mes)
     {
-        SOCGame ga = games.get(mes.getGame());
-
-        if (ga != null)
-        {
-            ga.setFirstPlayer(mes.getPlayerNumber());
-        }
+        handleGAMEELEMENT(games.get(mes.getGame()), SOCGameElements.FIRST_PLAYER, mes.getPlayerNumber());
     }
 
     /**
@@ -1720,6 +1716,64 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
+     * Handle the GameElements message: Finds game by name, and loops calling
+     * {@link #handleGAMEELEMENT(SOCGame, int, int)}.
+     * @param mes  the message
+     * @since 2.0.00
+     */
+    protected void handleGAMEELEMENTS(final SOCGameElements mes)
+    {
+        final SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
+
+        final int[] etypes = mes.getElementTypes(), values = mes.getValues();
+        for (int i = 0; i < etypes.length; ++i)
+            handleGAMEELEMENT(ga, etypes[i], values[i]);
+    }
+
+    /**
+     * Update one game element field from a {@link SOCGameElements} message.
+     * @param ga   Game to update; does nothing if null
+     * @param etype  Element type, such as {@link SOCGameElements#ROUND_COUNT} or {@link SOCGameElements#DEV_CARD_COUNT}
+     * @param value  The new value to set
+     * @since 2.0.00
+     */
+    public static final void handleGAMEELEMENT
+        (final SOCGame ga, final int etype, final int value)
+    {
+        if (ga == null)
+            return;
+
+        switch (etype)
+        {
+        case SOCGameElements.ROUND_COUNT:
+            ga.setRoundCount(value);
+            break;
+
+        case SOCGameElements.DEV_CARD_COUNT:
+            ga.setNumDevCards(value);
+            break;
+
+        case SOCGameElements.FIRST_PLAYER:
+            ga.setFirstPlayer(value);
+            break;
+
+        case SOCGameElements.CURRENT_PLAYER:
+            ga.setCurrentPlayerNumber(value);
+            break;
+
+        case SOCGameElements.LARGEST_ARMY_PLAYER:
+            ga.setPlayerWithLargestArmy((value != -1) ? ga.getPlayer(value) : null);
+            break;
+
+        case SOCGameElements.LONGEST_ROAD_PLAYER:
+            ga.setPlayerWithLongestRoad((value != -1) ? ga.getPlayer(value) : null);
+            break;
+        }
+    }
+
+    /**
      * handle "resource count" message
      * @param mes  the message
      */
@@ -1972,12 +2026,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleDEVCARDCOUNT(SOCDevCardCount mes)
     {
-        SOCGame ga = games.get(mes.getGame());
-
-        if (ga != null)
-        {
-            ga.setNumDevCards(mes.getNumDevCards());
-        }
+        handleGAMEELEMENT(games.get(mes.getGame()), SOCGameElements.DEV_CARD_COUNT, mes.getNumDevCards());
     }
 
     /**
@@ -2188,19 +2237,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleLONGESTROAD(SOCLongestRoad mes)
     {
-        SOCGame ga = games.get(mes.getGame());
-
-        if (ga != null)
-        {
-            if (mes.getPlayerNumber() == -1)
-            {
-                ga.setPlayerWithLongestRoad((SOCPlayer) null);
-            }
-            else
-            {
-                ga.setPlayerWithLongestRoad(ga.getPlayer(mes.getPlayerNumber()));
-            }
-        }
+        handleGAMEELEMENT(games.get(mes.getGame()), SOCGameElements.LONGEST_ROAD_PLAYER, mes.getPlayerNumber());
     }
 
     /**
@@ -2209,19 +2246,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleLARGESTARMY(SOCLargestArmy mes)
     {
-        SOCGame ga = games.get(mes.getGame());
-
-        if (ga != null)
-        {
-            if (mes.getPlayerNumber() == -1)
-            {
-                ga.setPlayerWithLargestArmy((SOCPlayer) null);
-            }
-            else
-            {
-                ga.setPlayerWithLargestArmy(ga.getPlayer(mes.getPlayerNumber()));
-            }
-        }
+        handleGAMEELEMENT(games.get(mes.getGame()), SOCGameElements.LARGEST_ARMY_PLAYER, mes.getPlayerNumber());
     }
 
     /**

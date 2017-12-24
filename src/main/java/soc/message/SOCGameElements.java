@@ -215,7 +215,7 @@ public class SOCGameElements extends SOCMessageTemplateMi
     {
         StringBuilder sb = new StringBuilder
             ("SOCGameElements:game=" + game + '|');
-        for (int i = 1; i < pa.length; )
+        for (int i = 0; i < pa.length; )
         {
             if (i > 0)
                 sb.append(',');

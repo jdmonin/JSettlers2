@@ -3142,6 +3142,17 @@ public class SOCPlayerClient
 
         try
         {
+            final String gaName;
+            final SOCGame ga;
+            if (mes instanceof SOCMessageForGame)
+            {
+                gaName = ((SOCMessageForGame) mes).getGame();
+                ga = games.get(gaName);
+            } else {
+                gaName = null;
+                ga = null;
+            }
+
             switch (mes.getType())
             {
 
@@ -3341,7 +3352,6 @@ public class SOCPlayerClient
              */
             case SOCMessage.STARTGAME:
                 handleSTARTGAME((SOCStartGame) mes);
-
                 break;
 
             /**
@@ -3349,23 +3359,20 @@ public class SOCPlayerClient
              */
             case SOCMessage.GAMESTATE:
                 handleGAMESTATE((SOCGameState) mes);
-
                 break;
 
             /**
              * set the current turn
              */
             case SOCMessage.SETTURN:
-                handleSETTURN((SOCSetTurn) mes);
-
+                handleGAMEELEMENT(ga, SOCGameElements.CURRENT_PLAYER, ((SOCSetTurn) mes).getPlayerNumber());
                 break;
 
             /**
              * set who the first player is
              */
             case SOCMessage.FIRSTPLAYER:
-                handleFIRSTPLAYER((SOCFirstPlayer) mes);
-
+                handleGAMEELEMENT(ga, SOCGameElements.FIRST_PLAYER, ((SOCFirstPlayer) mes).getPlayerNumber());
                 break;
 
             /**
@@ -3373,7 +3380,6 @@ public class SOCPlayerClient
              */
             case SOCMessage.TURN:
                 handleTURN((SOCTurn) mes);
-
                 break;
 
             /**
@@ -3389,6 +3395,14 @@ public class SOCPlayerClient
              */
             case SOCMessage.PLAYERELEMENTS:
                 handlePLAYERELEMENTS((SOCPlayerElements) mes);
+                break;
+
+            /**
+             * update game element information.
+             * Added 2017-12-24 for v2.0.00.
+             */
+            case SOCMessage.GAMEELEMENTS:
+                handleGAMEELEMENTS((SOCGameElements) mes);
                 break;
 
             /**
@@ -3500,8 +3514,7 @@ public class SOCPlayerClient
              * the current number of development cards
              */
             case SOCMessage.DEVCARDCOUNT:
-                handleDEVCARDCOUNT((SOCDevCardCount) mes);
-
+                handleGAMEELEMENT(ga, SOCGameElements.DEV_CARD_COUNT, ((SOCDevCardCount) mes).getNumDevCards());
                 break;
 
             /**
@@ -3509,7 +3522,6 @@ public class SOCPlayerClient
              */
             case SOCMessage.DEVCARDACTION:
                 handleDEVCARDACTION(isPractice, (SOCDevCardAction) mes);
-
                 break;
 
             /**
@@ -3518,7 +3530,6 @@ public class SOCPlayerClient
              */
             case SOCMessage.SETPLAYEDDEVCARD:
                 handleSETPLAYEDDEVCARD((SOCSetPlayedDevCard) mes);
-
                 break;
 
             /**
@@ -3549,16 +3560,14 @@ public class SOCPlayerClient
              * handle the longest road message
              */
             case SOCMessage.LONGESTROAD:
-                handleLONGESTROAD((SOCLongestRoad) mes);
-
+                handleGAMEELEMENT(ga, SOCGameElements.LONGEST_ROAD_PLAYER, ((SOCLongestRoad) mes).getPlayerNumber());
                 break;
 
             /**
              * handle the largest army message
              */
             case SOCMessage.LARGESTARMY:
-                handleLARGESTARMY((SOCLargestArmy) mes);
-
+                handleGAMEELEMENT(ga, SOCGameElements.LARGEST_ARMY_PLAYER, ((SOCLargestArmy) mes).getPlayerNumber());
                 break;
 
             /**
@@ -4433,38 +4442,6 @@ public class SOCPlayerClient
     }
 
     /**
-     * handle the "set turn" message
-     * @param mes  the message
-     */
-    protected void handleSETTURN(SOCSetTurn mes)
-    {
-        final String gaName = mes.getGame();
-        SOCGame ga = games.get(gaName);
-        if (ga == null)
-            return;  // <--- Early return: not playing in that one ----
-
-        final int pn = mes.getPlayerNumber();
-        ga.setCurrentPlayerNumber(pn);
-
-        PlayerClientListener pcl = clientListeners.get(mes.getGame());
-        pcl.playerTurnSet(pn);
-    }
-
-    /**
-     * handle the "first player" message
-     * @param mes  the message
-     */
-    protected void handleFIRSTPLAYER(SOCFirstPlayer mes)
-    {
-        SOCGame ga = games.get(mes.getGame());
-
-        if (ga != null)
-        {
-            ga.setFirstPlayer(mes.getPlayerNumber());
-        }
-    }
-
-    /**
      * handle the "turn" message
      * @param mes  the message
      */
@@ -4714,6 +4691,94 @@ public class SOCPlayerClient
                 pcl.playerElementUpdated(pl, utype, true, false);
             else
                 pcl.playerElementUpdated(pl, utype, false, true);
+        }
+    }
+
+    /**
+     * Handle the GameElements message: Finds game by name, and loops calling
+     * {@link #handleGAMEELEMENT(SOCGame, int, int)}.
+     * @param mes  the message
+     * @since 2.0.00
+     */
+    protected void handleGAMEELEMENTS(final SOCGameElements mes)
+    {
+        final SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
+
+        final int[] etypes = mes.getElementTypes(), values = mes.getValues();
+        for (int i = 0; i < etypes.length; ++i)
+            handleGAMEELEMENT(ga, etypes[i], values[i]);
+    }
+
+    /**
+     * Update one game element field from a {@link SOCGameElements} message,
+     * then update game's {@link PlayerClientListener} display if appropriate.
+     *<P>
+     * To update game information, calls
+     * {@link SOCDisplaylessPlayerClient#handleGAMEELEMENT(SOCGame, int, int)}.
+     *
+     * @param ga   Game to update; does nothing if null
+     * @param etype  Element type, such as {@link SOCGameElements#ROUND_COUNT} or {@link SOCGameElements#DEV_CARD_COUNT}
+     * @param value  The new value to set
+     * @since 2.0.00
+     */
+    protected void handleGAMEELEMENT
+        (final SOCGame ga, final int etype, final int value)
+    {
+        if (ga == null)
+            return;
+
+        final PlayerClientListener pcl = clientListeners.get(ga.getName());
+
+        // A few etypes need to give PCL the old and new values.
+        // For those, update game state and PCL together and return.
+        if (pcl != null)
+        {
+            switch (etype)
+            {
+            // SOCGameElements.ROUND_COUNT:
+                // Doesn't need a case here because it's sent only during joingame;
+                // SOCBoardPanel will check ga.getRoundCount() as part of joingame
+
+            case SOCGameElements.LARGEST_ARMY_PLAYER:
+                {
+                    SOCPlayer oldLargestArmyPlayer = ga.getPlayerWithLargestArmy();
+                    SOCDisplaylessPlayerClient.handleGAMEELEMENT(ga, etype, value);
+                    SOCPlayer newLargestArmyPlayer = ga.getPlayerWithLargestArmy();
+
+                    // Update player victory points; check for and announce change in largest army
+                    pcl.largestArmyRefresh(oldLargestArmyPlayer, newLargestArmyPlayer);
+                }
+                return;
+
+            case SOCGameElements.LONGEST_ROAD_PLAYER:
+                {
+                    SOCPlayer oldLongestRoadPlayer = ga.getPlayerWithLongestRoad();
+                    SOCDisplaylessPlayerClient.handleGAMEELEMENT(ga, etype, value);
+                    SOCPlayer newLongestRoadPlayer = ga.getPlayerWithLongestRoad();
+
+                    // Update player victory points; check for and announce change in longest road
+                    pcl.longestRoadRefresh(oldLongestRoadPlayer, newLongestRoadPlayer);
+                }
+                return;
+            }
+        }
+
+        SOCDisplaylessPlayerClient.handleGAMEELEMENT(ga, etype, value);
+
+        if (pcl == null)
+            return;
+
+        switch (etype)
+        {
+        case SOCGameElements.DEV_CARD_COUNT:
+            pcl.devCardDeckUpdated();
+            break;
+
+        case SOCGameElements.CURRENT_PLAYER:
+            pcl.playerTurnSet(value);
+            break;
         }
     }
 
@@ -5000,23 +5065,6 @@ public class SOCPlayerClient
     }
 
     /**
-     * handle the "number of development cards" message
-     * @param mes  the message
-     */
-    protected void handleDEVCARDCOUNT(SOCDevCardCount mes)
-    {
-        SOCGame ga = games.get(mes.getGame());
-
-        if (ga != null)
-        {
-            ga.setNumDevCards(mes.getNumDevCards());
-            PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            if (pcl != null)
-                pcl.devCardDeckUpdated();
-        }
-    }
-
-    /**
      * handle the "development card action" message
      * @param mes  the message
      */
@@ -5130,62 +5178,6 @@ public class SOCPlayerClient
         net.disconnect();
 
         gameDisplay.showErrorPanel(mes.getText(), (net.ex_P == null));
-    }
-
-    /**
-     * handle the "longest road" message
-     * @param mes  the message
-     */
-    protected void handleLONGESTROAD(SOCLongestRoad mes)
-    {
-        SOCGame ga = games.get(mes.getGame());
-
-        if (ga != null)
-        {
-            SOCPlayer oldLongestRoadPlayer = ga.getPlayerWithLongestRoad();
-            SOCPlayer newLongestRoadPlayer;
-            if (mes.getPlayerNumber() == -1)
-            {
-                newLongestRoadPlayer = null;
-            }
-            else
-            {
-                newLongestRoadPlayer = ga.getPlayer(mes.getPlayerNumber());
-            }
-            ga.setPlayerWithLongestRoad(newLongestRoadPlayer);
-
-            PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            // Update player victory points; check for and announce change in longest road
-            pcl.longestRoadRefresh(oldLongestRoadPlayer, newLongestRoadPlayer);
-        }
-    }
-
-    /**
-     * handle the "largest army" message
-     * @param mes  the message
-     */
-    protected void handleLARGESTARMY(SOCLargestArmy mes)
-    {
-        SOCGame ga = games.get(mes.getGame());
-
-        if (ga != null)
-        {
-            SOCPlayer oldLargestArmyPlayer = ga.getPlayerWithLargestArmy();
-            SOCPlayer newLargestArmyPlayer;
-            if (mes.getPlayerNumber() == -1)
-            {
-                newLargestArmyPlayer = null;
-            }
-            else
-            {
-                newLargestArmyPlayer = ga.getPlayer(mes.getPlayerNumber());
-            }
-            ga.setPlayerWithLargestArmy(newLargestArmyPlayer);
-
-            PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            // Update player victory points; check for and announce change in largest army
-            pcl.largestArmyRefresh(oldLargestArmyPlayer, newLargestArmyPlayer);
-        }
     }
 
     /**

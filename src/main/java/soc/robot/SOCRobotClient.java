@@ -665,10 +665,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.CHOOSEPLAYERREQUEST:
             case SOCMessage.CLEAROFFER:
             case SOCMessage.DEVCARDACTION:  // either draw, play, or add to hand, or cannot play our requested dev card
-            case SOCMessage.DEVCARDCOUNT:
             case SOCMessage.DICERESULT:
             case SOCMessage.DISCARDREQUEST:
-            case SOCMessage.FIRSTPLAYER:
             case SOCMessage.MAKEOFFER:
             case SOCMessage.MOVEPIECE:   // move a previously placed ship; will update game data and player trackers
             case SOCMessage.MOVEROBBER:
@@ -676,7 +674,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.PLAYERELEMENTS:  // apply multiple PLAYERELEMENT updates; added 2017-12-10 for v2.0.00
             case SOCMessage.REJECTOFFER:
             case SOCMessage.RESOURCECOUNT:
-            case SOCMessage.SETTURN:
             case SOCMessage.STARTGAME:  // added 2017-12-18 for v2.0.00 when gameState became a field of this message
             case SOCMessage.TIMINGPING:  // server's 1x/second timing ping
             case SOCMessage.TURN:

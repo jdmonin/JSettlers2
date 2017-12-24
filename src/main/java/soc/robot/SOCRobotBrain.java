@@ -49,10 +49,8 @@ import soc.message.SOCChoosePlayer;
 import soc.message.SOCChoosePlayerRequest;
 import soc.message.SOCClearOffer;
 import soc.message.SOCDevCardAction;
-import soc.message.SOCDevCardCount;
 import soc.message.SOCDiceResult;
 import soc.message.SOCDiscardRequest;
-import soc.message.SOCFirstPlayer;
 import soc.message.SOCGameState;
 import soc.message.SOCInventoryItemAction;
 import soc.message.SOCMakeOffer;
@@ -65,7 +63,6 @@ import soc.message.SOCPutPiece;
 import soc.message.SOCRejectOffer;
 import soc.message.SOCResourceCount;
 import soc.message.SOCSetSpecialItem;
-import soc.message.SOCSetTurn;
 import soc.message.SOCSimpleAction;
 import soc.message.SOCSimpleRequest;
 import soc.message.SOCSitDown;  // for javadoc
@@ -1158,16 +1155,6 @@ public class SOCRobotBrain extends Thread
                             // clears waitingForGameState, updates oldGameState, calls ga.setGameState
                     }
 
-                    else if (mesType == SOCMessage.FIRSTPLAYER)
-                    {
-                        game.setFirstPlayer(((SOCFirstPlayer) mes).getPlayerNumber());
-                    }
-
-                    else if (mesType == SOCMessage.SETTURN)
-                    {
-                        game.setCurrentPlayerNumber(((SOCSetTurn) mes).getPlayerNumber());
-                    }
-
                     else if (mesType == SOCMessage.STARTGAME)
                     {
                         handleGAMESTATE(((SOCStartGame) mes).getGameState());
@@ -1389,10 +1376,6 @@ public class SOCRobotBrain extends Thread
                     case SOCMessage.REJECTOFFER:
                         if (robotParameters.getTradeFlag() == 1)
                             handleREJECTOFFER((SOCRejectOffer) mes);
-                        break;
-
-                    case SOCMessage.DEVCARDCOUNT:
-                        game.setNumDevCards(((SOCDevCardCount) mes).getNumDevCards());
                         break;
 
                     case SOCMessage.DEVCARDACTION:
@@ -1818,10 +1801,6 @@ public class SOCRobotBrain extends Thread
                      */
                     switch (mesType)
                     {
-                    case SOCMessage.SETTURN:
-                        game.setCurrentPlayerNumber(((SOCSetTurn) mes).getPlayerNumber());
-                        break;
-
                     case SOCMessage.PUTPIECE:
                         /**
                          * this is for player tracking

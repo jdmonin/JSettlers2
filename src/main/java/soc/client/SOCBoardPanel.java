@@ -5206,7 +5206,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Also calls {@link #updateHoverTipToMode()} and
      * (for 6-player board's Special Building Phase) updates top-center text.
      * For {@link soc.game.SOCGameOption#initAllOptions() Game Option "N7"},
-     * updates the top-center countdown of rounds.
+     * updates the top-center countdown of rounds from {@link SOCGame#getRoundCount()}.
      * For the {@link SOCGame#debugFreePlacement Free Placement debug mode},
      * indicates that in the top center.
      */

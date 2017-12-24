@@ -56,6 +56,7 @@ import soc.message.SOCDiceResult;
 import soc.message.SOCDiscard;
 import soc.message.SOCDiscardRequest;
 import soc.message.SOCFirstPlayer;
+import soc.message.SOCGameElements;
 import soc.message.SOCGameMembers;
 import soc.message.SOCGameServerText;
 import soc.message.SOCGameState;
@@ -248,6 +249,15 @@ public class SOCGameHandler extends GameHandler
     private static final int[] ELEM_JOINGAME_WITH_PIECETYPES_SEA =
         { SOCPlayerElement.UNKNOWN, SOCPlayerElement.NUMKNIGHTS,
           SOCPlayerElement.ROADS, SOCPlayerElement.SETTLEMENTS, SOCPlayerElement.CITIES, SOCPlayerElement.SHIPS };
+
+    /**
+     * For {@link #joinGame}; {@link SOCGameElements} types for number of development cards,
+     * number of rounds played, and player numbers for first player, longest road, largest army.
+     * @since 2.0.00
+     */
+    private static final int[] ELEM_JOINGAME_DEVCARDS_ROUNDS_PLNUMS_FIRST_LONGEST_LARGEST =
+        { SOCGameElements.DEV_CARD_COUNT, SOCGameElements.ROUND_COUNT, SOCGameElements.FIRST_PLAYER,
+          SOCGameElements.LONGEST_ROAD_PLAYER, SOCGameElements.LARGEST_ARMY_PLAYER };
 
     /**
      * Game message handler for {@link SOCGameHandler}, shared by all game instances of this type.
@@ -812,8 +822,14 @@ public class SOCGameHandler extends GameHandler
         {
             if (res.didUpdateFP() || res.didUpdateLP())
             {
+                final int fpn = ga.getFirstPlayer();
+                final SOCMessage msg =
+                    (ga.clientVersionLowest >= SOCGameElements.MIN_VERSION)
+                    ? new SOCGameElements(gaName, SOCGameElements.FIRST_PLAYER, fpn)
+                    : new SOCFirstPlayer(gaName, fpn);
+
                 // will cause clients to recalculate lastPlayer too
-                srv.messageToGame(gaName, new SOCFirstPlayer(gaName, ga.getFirstPlayer()));
+                srv.messageToGame(gaName, msg);
             }
             sendTurn(ga, false);
             return true;  // <--- Early return ---
@@ -1001,7 +1017,11 @@ public class SOCGameHandler extends GameHandler
          * just before SOCGameState and the "joined the game" text.
          * This earlier send has been tested against 1.1.07 (released 2009-10-31).
          */
-        c.put(SOCSetTurn.toCmd(gameName, gameData.getCurrentPlayerNumber()));
+        if (c.getVersion() >= SOCGameElements.MIN_VERSION)
+            c.put(new SOCGameElements
+                (gameName, SOCGameElements.CURRENT_PLAYER, gameData.getCurrentPlayerNumber()).toCmd());
+        else
+            c.put(SOCSetTurn.toCmd(gameName, gameData.getCurrentPlayerNumber()));
 
         /**
          * Send the game's Special Item info, if any, if game has started:
@@ -1289,9 +1309,12 @@ public class SOCGameHandler extends GameHandler
                 }
             }
 
-            if (i == 0)
+            if ((i == 0) && (c.getVersion() < SOCGameElements.MIN_VERSION))
             {
-                // per-game data, send once
+                // per-game data, send once; send here only if client is
+                // too old to send together with other game elements,
+                // otherwise send soon with longest road / largest army
+
                 c.put(SOCFirstPlayer.toCmd(gameName, gameData.getFirstPlayer()));
 
                 c.put(SOCDevCardCount.toCmd(gameName, gameData.getNumDevCards()));
@@ -1308,33 +1331,23 @@ public class SOCGameHandler extends GameHandler
         }
 
         ///
-        /// send who has longest road
+        /// send dev card count, rounds count, first player, who has longest road and largest army
         ///
-        SOCPlayer lrPlayer = gameData.getPlayerWithLongestRoad();
-        int lrPlayerNum = -1;
-
-        if (lrPlayer != null)
+        final SOCPlayer lrPlayer = gameData.getPlayerWithLongestRoad(),
+                        laPlayer = gameData.getPlayerWithLargestArmy();
+        final int lrPlayerNum = (lrPlayer != null) ? lrPlayer.getPlayerNumber() : -1,
+                  laPlayerNum = (laPlayer != null) ? laPlayer.getPlayerNumber() : -1;
+        if (c.getVersion() < SOCGameElements.MIN_VERSION)
         {
-            lrPlayerNum = lrPlayer.getPlayerNumber();
+            c.put(SOCLongestRoad.toCmd(gameName, lrPlayerNum));
+            c.put(SOCLargestArmy.toCmd(gameName, laPlayerNum));
+        } else {
+            c.put(new SOCGameElements
+                (gameName, ELEM_JOINGAME_DEVCARDS_ROUNDS_PLNUMS_FIRST_LONGEST_LARGEST,
+                 new int[]{ gameData.getNumDevCards(), gameData.getRoundCount(),
+                     gameData.getFirstPlayer(), lrPlayerNum, laPlayerNum }
+                 ).toCmd());
         }
-
-        c.put(SOCLongestRoad.toCmd(gameName, lrPlayerNum));
-
-        ///
-        /// send who has largest army
-        ///
-        final SOCPlayer laPlayer = gameData.getPlayerWithLargestArmy();
-        final int laPlayerNum;
-        if (laPlayer != null)
-        {
-            laPlayerNum = laPlayer.getPlayerNumber();
-        }
-        else
-        {
-            laPlayerNum = -1;
-        }
-
-        c.put(SOCLargestArmy.toCmd(gameName, laPlayerNum));
 
         /**
          * If we're rejoining and taking over a seat after a network problem,
@@ -1939,6 +1952,7 @@ public class SOCGameHandler extends GameHandler
             return false;
 
         final int gaState = ga.getGameState();
+        final int cpn = ga.getCurrentPlayerNumber();
         final String gname = ga.getName();
         boolean promptedRoll = false;
 
@@ -1948,7 +1962,9 @@ public class SOCGameHandler extends GameHandler
              * Before sending state "OVER", enforce current player number.
              * This helps the client's copy of game recognize winning condition.
              */
-            srv.messageToGame(gname, new SOCSetTurn(gname, ga.getCurrentPlayerNumber()));
+            srv.messageToGame(gname, (ga.clientVersionLowest >= SOCGameElements.MIN_VERSION)
+                ? new SOCGameElements(gname, SOCGameElements.CURRENT_PLAYER, cpn)
+                : new SOCSetTurn(gname, cpn));
         }
 
         if (! omitGameStateMessage)
@@ -1956,10 +1972,8 @@ public class SOCGameHandler extends GameHandler
 
         SOCPlayer player = null;
 
-        if (ga.getCurrentPlayerNumber() != -1)
-        {
-            player = ga.getPlayer(ga.getCurrentPlayerNumber());
-        }
+        if (cpn != -1)
+            player = ga.getPlayer(cpn);
 
         switch (gaState)
         {
@@ -2053,7 +2067,7 @@ public class SOCGameHandler extends GameHandler
             /**
              * ask the current player to choose a player to steal from
              */
-            Connection con = srv.getConnection(ga.getPlayer(ga.getCurrentPlayerNumber()).getName());
+            Connection con = srv.getConnection(ga.getPlayer(cpn).getName());
             if (con != null)
             {
                 con.put(SOCChoosePlayerRequest.toCmd(gname, choices));
@@ -2755,7 +2769,9 @@ public class SOCGameHandler extends GameHandler
             /**
              * send the number of dev cards
              */
-            srv.messageToGameWithMon(gaName, new SOCDevCardCount(gaName, ga.getNumDevCards()));
+            srv.messageToGameWithMon(gaName, (ga.clientVersionLowest >= SOCGameElements.MIN_VERSION)
+                ? new SOCGameElements(gaName, SOCGameElements.DEV_CARD_COUNT, ga.getNumDevCards())
+                : new SOCDevCardCount(gaName, ga.getNumDevCards()));
 
             /**
              * ga.startGame() picks who goes first, but feedback is nice
