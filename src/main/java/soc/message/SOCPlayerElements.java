@@ -21,7 +21,7 @@ package soc.message;
 import java.util.List;
 
 /**
- * This message from the server holds information on some parts of a player's status,
+ * This message from the server sends information on some parts of a player's status,
  * such as resource type counts.  Same structure as {@link SOCPlayerElement} but with
  * less overhead to send multiple similar element changes.
  *<P>
@@ -52,12 +52,12 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
 
     /**
      * Element types from {@link SOCPlayerElement}, such as {@link SOCPlayerElement#CLAY},
-     * matching up with each item of {@link #amounts}
+     * each matching up with the same-index item of parallel array {@link #amounts}.
      */
     private int[] elementTypes;
 
     /**
-     * Element amounts to set or change, matching up with each item of {@link #elementTypes}.
+     * Element amounts to set or change, matching up with each same-index item of {@link #elementTypes}.
      *<P>
      * Before v2.0.00 this field was {@code values}.
      */
@@ -72,7 +72,7 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
      *             {@link SOCPlayerElement#GAIN}, or {@link SOCPlayerElement#LOSE}
      * @param et  array of the types of element, such as {@link SOCPlayerElement#SETTLEMENTS}
      * @param amt array of the amounts to set or change each element, corresponding to <tt>et[]</tt>
-     * @throws NullPointerException if et null or va null
+     * @throws NullPointerException if {@code et} null or {@code amt} null
      */
     public SOCPlayerElements(String ga, int pn, int ac, final int[] et, final int[] amt)
         throws NullPointerException
@@ -96,10 +96,11 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
 
     /**
      * Minimum version where this message type is used ({@link #VERSION}).
-     * PLAYERELEMENTS was introduced in 1.1.09 for the game-options feature
+     * PLAYERELEMENTS was introduced in v1.1.09 for the game-options feature
      * but unused until 2.0.00.
-     * @return Version number, 2000 for JSettlers v2.0.00.
+     * @return Version number, 2000 for JSettlers 2.0.00.
      */
+    @Override
     public int getMinimumVersion() { return VERSION; }
 
     /**
@@ -111,7 +112,8 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
     }
 
     /**
-     * @return the action type
+     * @return the action type: {@link SOCPlayerElement#SET},
+     *     {@link SOCPlayerElement#GAIN}, or {@link SOCPlayerElement#LOSE}
      */
     public int getAction()
     {
@@ -119,8 +121,8 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
     }
 
     /**
-     * @return the element type arrays, with type constants from {@link SOCPlayerElement}
-     * such as {@link SOCPlayerElement#CLAY}, matching up with each item of {@link #getAmounts()}
+     * @return the element types from {@link SOCPlayerElement}, such as {@link SOCPlayerElement#CLAY},
+     *     each matching up with the same-index item of parallel array {@link #getAmounts()}.
      */
     public int[] getElementTypes()
     {
@@ -128,7 +130,8 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
     }
 
     /**
-     * @return the element amounts array, matching up with each item of {@link #getElementTypes()}
+     * @return the element amounts to set or change, matching up with
+     *     each same-index item of {@link #getElementTypes()}.
      *<P>
      * Before v2.0.00 this method was {@code getValues()}.
      */
@@ -168,14 +171,14 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
 
             final int n = (L - 3) / 2;
             int[] elementTypes = new int[n];
-            int[] values = new int[n];
+            int[] amounts = new int[n];
             for (int i = 0, pai = 3; i < n; ++i)
             {
                 elementTypes[i] = Integer.parseInt(pa.get(pai));  ++pai;
-                values[i]       = Integer.parseInt(pa.get(pai));  ++pai;
+                amounts[i]      = Integer.parseInt(pa.get(pai));  ++pai;
             }
 
-            return new SOCPlayerElements(gaName, playerNumber, actionType, elementTypes, values);
+            return new SOCPlayerElements(gaName, playerNumber, actionType, elementTypes, amounts);
         } catch (Exception e) {
             return null;
         }
