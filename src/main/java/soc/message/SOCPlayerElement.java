@@ -52,6 +52,7 @@ import java.util.StringTokenizer;
  * doing so requires client version 2.0.00 or newer.
  *
  * @author Robert S Thomas
+ * @see SOCGameElements
  */
 public class SOCPlayerElement extends SOCMessage
     implements SOCMessageForGame
@@ -65,6 +66,9 @@ public class SOCPlayerElement extends SOCMessage
     public static final int VERSION_FOR_CARD_ELEMENTS = 2000;
 
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
+
+    // -----------------------------------------------------------
+    // Player element type list:
 
     /**
      * player element types.  CLAY has same value
@@ -224,7 +228,7 @@ public class SOCPlayerElement extends SOCMessage
      */
     public static final int SCENARIO_WARSHIP_COUNT = 107;
 
-    // End of element declaration list.
+    // End of element type list.
     // -----------------------------------------------------------
 
     /**

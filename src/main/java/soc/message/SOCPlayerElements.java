@@ -32,6 +32,7 @@ import java.util.List;
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.09
+ * @see SOCGameElements
  */
 public class SOCPlayerElements extends SOCMessageTemplateMi
 {

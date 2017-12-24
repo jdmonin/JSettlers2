@@ -28,6 +28,9 @@ import java.util.StringTokenizer;
  * Sent from server during joinGame.
  * During normal gameplay, "largest army" indicator at client is updated
  * by examining game state, not by messages from server.
+ *<P>
+ * In games where all clients are v2.0.00 or newer, send {@link SOCGameElements#LARGEST_ARMY_PLAYER}
+ * instead: Check clients' version against {@link SOCGameElements#MIN_VERSION}.
  *
  * @author Robert S. Thomas
  */
