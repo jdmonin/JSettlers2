@@ -39,7 +39,7 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /** Minimum client version required: v2.0.00 */
-    public static final int VERSION = 2000;
+    public static final int MIN_VERSION = 2000;
 
     /**
      * Player number; some elements allow -1 to apply to all players
@@ -96,13 +96,13 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
     }
 
     /**
-     * Minimum version where this message type is used ({@link #VERSION}).
+     * Minimum version where this message type is used ({@link #MIN_VERSION}).
      * PLAYERELEMENTS was introduced in v1.1.09 for the game-options feature
      * but unused until 2.0.00.
      * @return Version number, 2000 for JSettlers 2.0.00.
      */
     @Override
-    public int getMinimumVersion() { return VERSION; }
+    public int getMinimumVersion() { return MIN_VERSION; }
 
     /**
      * @return the player number; some elements allow -1 to apply to all players

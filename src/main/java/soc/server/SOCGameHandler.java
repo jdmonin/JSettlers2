@@ -1253,7 +1253,7 @@ public class SOCGameHandler extends GameHandler
             counts[4] = pl.getNumPieces(SOCPlayingPiece.CITY);
             if (gameData.hasSeaBoard)
                 counts[5] = pl.getNumPieces(SOCPlayingPiece.SHIP);
-            if (c.getVersion() >= SOCPlayerElements.VERSION)
+            if (c.getVersion() >= SOCPlayerElements.MIN_VERSION)
                 c.put(new SOCPlayerElements
                     (gameName, i, SOCPlayerElement.SET,
                      (gameData.hasSeaBoard) ? ELEM_JOINGAME_WITH_PIECETYPES_SEA : ELEM_JOINGAME_WITH_PIECETYPES_CLASSIC,
@@ -1505,7 +1505,7 @@ public class SOCGameHandler extends GameHandler
         SOCResourceSet resources = pl.getResources();
         // CLAY, ORE, SHEEP, WHEAT, WOOD, UNKNOWN
         final int[] counts = resources.getAmounts(true);
-        if (c.getVersion() >= SOCPlayerElements.VERSION)
+        if (c.getVersion() >= SOCPlayerElements.MIN_VERSION)
             srv.messageToPlayer(c, new SOCPlayerElements
                 (gaName, pn, SOCPlayerElement.SET, ELEM_RESOURCES_WITH_UNKNOWN, counts));
         else
@@ -2749,7 +2749,7 @@ public class SOCGameHandler extends GameHandler
                     counts[3] = pl.getNumPieces(SOCPlayingPiece.SHIP);
                 }
 
-                if (ga.clientVersionLowest >= SOCPlayerElements.VERSION)
+                if (ga.clientVersionLowest >= SOCPlayerElements.MIN_VERSION)
                     srv.messageToGameWithMon(gaName, new SOCPlayerElements
                         (gaName, i, SOCPlayerElement.SET,
                          (ga.hasSeaBoard) ? ELEM_PIECETYPES_SEA : ELEM_PIECETYPES_CLASSIC, counts));

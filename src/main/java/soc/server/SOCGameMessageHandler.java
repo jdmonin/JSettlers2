@@ -582,7 +582,7 @@ public class SOCGameMessageHandler
                             // CLAY, ORE, SHEEP, WHEAT, WOOD
                             final SOCResourceSet resources = pp.getResources();
                             final int[] counts = resources.getAmounts(false);
-                            if (playerCon.getVersion() >= SOCPlayerElements.VERSION)
+                            if (playerCon.getVersion() >= SOCPlayerElements.MIN_VERSION)
                                 srv.messageToPlayer(playerCon, new SOCPlayerElements
                                     (gn, pn, SOCPlayerElement.SET, SOCGameHandler.ELEM_RESOURCES, counts));
                             else

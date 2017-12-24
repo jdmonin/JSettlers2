@@ -1468,7 +1468,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * {@code action}, {@code etype}, and {@code val} fields.
      *
      * @param ga   Game to update
-     * @param pl   Player to update; can't be null unless {@code pn == -1}
+     * @param pl   Player to update; some elements take null. If null and {@code pn != -1}, will find {@code pl}
+     *     using {@link SOCGame#getPlayer(int) ga.getPlayer(pn)}.
      * @param pn   Player number from message (sometimes -1 for none)
      * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
      *     or {@link SOCPlayerElement#LOSE LOSE}
@@ -1481,6 +1482,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
         (SOCGame ga, SOCPlayer pl, final int pn, final int action,
          final int etype, final int val, final String nickname)
     {
+        if ((pl == null) && (pn != -1))
+            pl = ga.getPlayer(pn);
+
         switch (etype)
         {
         case SOCPlayerElement.ASK_SPECIAL_BUILD:
