@@ -33,6 +33,7 @@ import soc.game.SOCGame;  // for javadocs only
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @see SOCPlayerElements
+ * @since 2.0.00
  */
 public class SOCGameElements extends SOCMessageTemplateMi
     implements SOCMessageForGame

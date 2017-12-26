@@ -231,23 +231,23 @@ public class SOCGameHandler extends GameHandler
         { SOCPlayerElement.ROADS, SOCPlayerElement.SETTLEMENTS, SOCPlayerElement.CITIES, SOCPlayerElement.SHIPS };
 
     /**
-     * For {@link #joinGame}; element types for unknown resources, {@link SOCPlayerElement#NUMKNIGHTS},
-     * and classic piece types, for sending {@link SOCPlayerElements}:
+     * For {@link #joinGame}; element types for last Settlement node, unknown resources,
+     * {@link SOCPlayerElement#NUMKNIGHTS}, and classic piece types, for sending {@link SOCPlayerElements}:
      * {@link #ELEM_JOINGAME_WITH_PIECETYPES_SEA} without {@link SOCPlayerElement#SHIPS}.
      * @since 2.0.00
      */
     private static final int[] ELEM_JOINGAME_WITH_PIECETYPES_CLASSIC =
-        { SOCPlayerElement.UNKNOWN, SOCPlayerElement.NUMKNIGHTS,
+        { SOCPlayerElement.LAST_SETTLEMENT_NODE, SOCPlayerElement.UNKNOWN, SOCPlayerElement.NUMKNIGHTS,
           SOCPlayerElement.ROADS, SOCPlayerElement.SETTLEMENTS, SOCPlayerElement.CITIES };
 
     /**
-     * For {@link #joinGame}; element types for unknown resources, {@link SOCPlayerElement#NUMKNIGHTS},
-     * and classic piece types, for sending {@link SOCPlayerElements}:
+     * For {@link #joinGame}; element types for last Settlement node, unknown resources,
+     * {@link SOCPlayerElement#NUMKNIGHTS}, and classic piece types, for sending {@link SOCPlayerElements}:
      * {@link #ELEM_JOINGAME_WITH_PIECETYPES_CLASSIC} plus {@link SOCPlayerElement#SHIPS}.
      * @since 2.0.00
      */
     private static final int[] ELEM_JOINGAME_WITH_PIECETYPES_SEA =
-        { SOCPlayerElement.UNKNOWN, SOCPlayerElement.NUMKNIGHTS,
+        { SOCPlayerElement.LAST_SETTLEMENT_NODE, SOCPlayerElement.UNKNOWN, SOCPlayerElement.NUMKNIGHTS,
           SOCPlayerElement.ROADS, SOCPlayerElement.SETTLEMENTS, SOCPlayerElement.CITIES, SOCPlayerElement.SHIPS };
 
     /**
@@ -1233,35 +1233,31 @@ public class SOCGameHandler extends GameHandler
             }
 
             /**
-             * send coords of the last settlement
+             * send node coord of the last settlement, resources,
+             * knight cards played, number of playing pieces in hand
              */
-            if (c.getVersion() >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
-                c.put(SOCPlayerElement.toCmd
-                    (gameName, i, SOCPlayerElement.SET,
-                     SOCPlayerElement.LAST_SETTLEMENT_NODE, pl.getLastSettlementCoord()));
-            else
-                c.put(SOCLastSettlement.toCmd(gameName, i, pl.getLastSettlementCoord()));
-
-            /**
-             * send resources, knight cards played, number of playing pieces in hand
-             */
-            final int[] counts = new int[(gameData.hasSeaBoard) ? 6 : 5];
-            counts[0] = pl.getResources().getTotal();  // will send with SOCPlayerElement.UNKNOWN
-            counts[1] = pl.getNumKnights();
-            counts[2] = pl.getNumPieces(SOCPlayingPiece.ROAD);
-            counts[3] = pl.getNumPieces(SOCPlayingPiece.SETTLEMENT);
-            counts[4] = pl.getNumPieces(SOCPlayingPiece.CITY);
+            final int[] counts = new int[(gameData.hasSeaBoard) ? 7 : 6];
+            counts[0] = pl.getLastSettlementCoord();
+            counts[1] = pl.getResources().getTotal();  // will send with SOCPlayerElement.UNKNOWN
+            counts[2] = pl.getNumKnights();
+            counts[3] = pl.getNumPieces(SOCPlayingPiece.ROAD);
+            counts[4] = pl.getNumPieces(SOCPlayingPiece.SETTLEMENT);
+            counts[5] = pl.getNumPieces(SOCPlayingPiece.CITY);
             if (gameData.hasSeaBoard)
-                counts[5] = pl.getNumPieces(SOCPlayingPiece.SHIP);
+                counts[6] = pl.getNumPieces(SOCPlayingPiece.SHIP);
             if (c.getVersion() >= SOCPlayerElements.MIN_VERSION)
+            {
                 c.put(new SOCPlayerElements
                     (gameName, i, SOCPlayerElement.SET,
                      (gameData.hasSeaBoard) ? ELEM_JOINGAME_WITH_PIECETYPES_SEA : ELEM_JOINGAME_WITH_PIECETYPES_CLASSIC,
                      counts).toCmd());
-            else
-                for (int j = 0; j < counts.length; ++j)
+            } else {
+                c.put(SOCLastSettlement.toCmd(gameName, i, counts[0]));
+                    // client too old for SOCPlayerElement.LAST_SETTLEMENT_NODE
+                for (int j = 1; j < counts.length; ++j)
                     c.put(SOCPlayerElement.toCmd
-                        (gameName, i, SOCPlayerElement.SET, ELEM_JOINGAME_WITH_PIECETYPES_SEA[j], counts[j]));
+                        (gameName, i, SOCPlayerElement.SET, ELEM_JOINGAME_WITH_PIECETYPES_CLASSIC[j], counts[j]));
+            }
 
             final int numDevCards = pl.getInventory().getTotal();
             final int unknownType;
