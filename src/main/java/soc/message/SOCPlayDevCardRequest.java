@@ -26,7 +26,8 @@ import java.util.StringTokenizer;
 /**
  * This message from client means that a player wants to play a development card.
  * If client player can play it, server will respond to all players with
- * {@link SOCDevCardAction}({@link SOCDevCardAction#PLAY PLAY}), {@link SOCSetPlayedDevCard},
+ * {@link SOCDevCardAction}({@link SOCDevCardAction#PLAY PLAY}), {@link SOCSetPlayedDevCard}
+ * or {@link SOCPlayerElement}({@link SOCPlayerElement#PLAYED_DEV_CARD_FLAG PLAYED_DEV_CARD_FLAG}),
  * and other messages.  Otherwise, server will send human players a {@link SOCGameServerText}
  * or send robots a {@link SOCDevCardAction}({@link SOCDevCardAction#CANNOT_PLAY CANNOT_PLAY}).
  *<P>

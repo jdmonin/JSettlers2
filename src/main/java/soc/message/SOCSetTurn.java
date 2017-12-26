@@ -30,6 +30,9 @@ import soc.proto.Message;
  * This message from server to client says whose turn it is.
  * Only the game's current player number should change; no other
  * game state is updated.
+ *<P>
+ * In games where all clients are v2.0.00 or newer, send {@link SOCGameElements#CURRENT_PLAYER}
+ * instead: Check clients' version against {@link SOCGameElements#MIN_VERSION}.
  *
  * @author Robert S. Thomas
  * @see SOCTurn

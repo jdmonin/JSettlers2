@@ -26,6 +26,9 @@ import java.util.StringTokenizer;
 /**
  * This message tells the client where the last settlement was placed.
  * Used for robots during initial placement at the start of a game.
+ *<P>
+ * In games where all clients are v2.0.00 or newer, send {@link SOCPlayerElement#LAST_SETTLEMENT_NODE} instead:
+ * Check clients' version against {@link SOCPlayerElement#VERSION_FOR_CARD_ELEMENTS}.
  *
  * @author Robert S Thomas
  */

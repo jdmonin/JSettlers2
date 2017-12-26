@@ -56,11 +56,23 @@ import java.util.StringTokenizer;
  * doing so requires client version 2.0.00 or newer.
  *
  * @author Robert S Thomas
+ * @see SOCGameElements
  */
 public class SOCPlayerElement extends SOCMessage
     implements SOCMessageForGame
 {
+    /**
+     * First version number (2.0.00) that has element types replacing single-purpose message types:
+     * {@link #RESOURCE_COUNT}, {@link #PLAYED_DEV_CARD_FLAG}, {@link #LAST_SETTLEMENT_NODE}.
+     * Send older clients {@link SOCSetPlayedDevCard} or other appropriate messages instead.
+     * @since 2.0.00
+     */
+    public static final int VERSION_FOR_CARD_ELEMENTS = 2000;
+
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
+
+    // -----------------------------------------------------------
+    // Player element type list:
 
     /**
      * player element types.  CLAY has same value
@@ -110,6 +122,42 @@ public class SOCPlayerElement extends SOCMessage
     public static final int ASK_SPECIAL_BUILD = 16;
 
     /**
+     * Total resources this player has available in hand to use.
+     * Sent only with {@link #SET}, not {@link #GAIN} or {@link #LOSE}.
+     *<P>
+     * Games with clients older than v2.0.00 use {@link SOCResourceCount} messages instead of this element:
+     * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.
+     * @since 2.0.00
+     */
+    public static final int RESOURCE_COUNT = 17;
+
+    /**
+     * Node coordinate location of this player's most recently placed settlement, or 0.
+     * Used for robots during initial placement at the start of a game.
+     * Sent only with {@link #SET}, not {@link #GAIN} or {@link #LOSE}.
+     *<P>
+     * Games with clients older than v2.0.00 use {@link SOCLastSettlement} messages instead of this element:
+     * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.
+     * @since 2.0.00
+     */
+    public static final int LAST_SETTLEMENT_NODE = 18;
+
+    /**
+     * Has this player played a development card already this turn?
+     * Applies to all players if {@link #getPlayerNumber()} == -1.
+     * This element is {@link #SET} to 1 or 0, never sent with {@link #GAIN} or {@link #LOSE}.
+     *<P>
+     * Games with clients older than v2.0.00 use {@link SOCSetPlayedDevCard} messages instead of this element:
+     * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.
+     * @since 2.0.00
+     */
+    public static final int PLAYED_DEV_CARD_FLAG = 19;
+
+    //
+    // Elements related to scenarios and sea boards:
+    //
+
+    /**
      * For the {@link soc.game.SOCBoardLarge large sea board},
      * player element type for asking to choose
      * resources from the gold hex after a dice roll,
@@ -119,7 +167,7 @@ public class SOCPlayerElement extends SOCMessage
      * Call {@link soc.game.SOCPlayer#setNeedToPickGoldHexResources(int)}.
      * @since 2.0.00
      */
-    public static final int NUM_PICK_GOLD_HEX_RESOURCES = 17;
+    public static final int NUM_PICK_GOLD_HEX_RESOURCES = 101;
 
     /**
      * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
@@ -128,7 +176,7 @@ public class SOCPlayerElement extends SOCMessage
      * {@link soc.game.SOCPlayer#getSpecialVP()}.
      * @since 2.0.00
      */
-    public static final int SCENARIO_SVP = 18;
+    public static final int SCENARIO_SVP = 102;
 
     /**
      * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
@@ -137,7 +185,7 @@ public class SOCPlayerElement extends SOCMessage
      * from {@link soc.game.SOCPlayer#getScenarioPlayerEvents()}.
      * @since 2.0.00
      */
-    public static final int SCENARIO_PLAYEREVENTS_BITMASK = 19;
+    public static final int SCENARIO_PLAYEREVENTS_BITMASK = 103;
 
     /**
      * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
@@ -146,7 +194,7 @@ public class SOCPlayerElement extends SOCMessage
      * from {@link soc.game.SOCPlayer#getScenarioSVPLandAreas()}.
      * @since 2.0.00
      */
-    public static final int SCENARIO_SVP_LANDAREAS_BITMASK = 20;
+    public static final int SCENARIO_SVP_LANDAREAS_BITMASK = 104;
 
     /**
      * Player's starting land area numbers.
@@ -154,7 +202,7 @@ public class SOCPlayerElement extends SOCMessage
      * Sent as <tt>(landArea2 &lt;&lt; 8) | landArea1</tt>.
      * @since 2.0.00
      */
-    public static final int STARTING_LANDAREAS = 21;
+    public static final int STARTING_LANDAREAS = 105;
 
     /**
      * For scenario <tt>_SC_CLVI</tt> on the {@link soc.game.SOCBoardLarge large sea board},
@@ -168,7 +216,7 @@ public class SOCPlayerElement extends SOCMessage
      * Each village's cloth count is updated with a {@link SOCPieceValue PIECEVALUE} message.
      * @since 2.0.00
      */
-    public static final int SCENARIO_CLOTH_COUNT = 22;
+    public static final int SCENARIO_CLOTH_COUNT = 106;
 
     /**
      * For scenario game option <tt>_SC_PIRI</tt>,
@@ -183,9 +231,9 @@ public class SOCPlayerElement extends SOCMessage
      * message is sent to their client only after sending their SOCShip piece positions.
      * @since 2.0.00
      */
-    public static final int SCENARIO_WARSHIP_COUNT = 23;
+    public static final int SCENARIO_WARSHIP_COUNT = 107;
 
-    // End of element declaration list.
+    // End of element type list.
     // -----------------------------------------------------------
 
     /**

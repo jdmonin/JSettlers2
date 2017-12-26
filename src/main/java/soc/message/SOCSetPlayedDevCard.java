@@ -24,8 +24,10 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message sets the flag which says if a player has
- * played a development card this turn
+ * This message sets the flag which says if a player has played a development card this turn.
+ *<P>
+ * In games where all clients are v2.0.00 or newer, send {@link SOCPlayerElement#PLAYED_DEV_CARD_FLAG} instead:
+ * Check clients' version against {@link SOCPlayerElement#VERSION_FOR_CARD_ELEMENTS}.
  *
  * @author Robert S. Thomas
  */

@@ -824,8 +824,9 @@ public class SOCBoardAtServer extends SOCBoardLarge
      *             {@link #landAreasLegalNodes}<tt>[landAreaNumber]</tt> != null
      *             because the land area has already been placed.
      *             To avoid this exception if the second placement is deliberate, call with {@code addToExistingLA} true.
-     * @throws IllegalArgumentException  if <tt>landHexType</tt> contains {@link #FOG_HEX},
-     *             or if <tt>landHexType.length != landPath.length</tt>.
+     * @throws IllegalArgumentException  if <tt>landHexType</tt> contains {@link #FOG_HEX}, <BR>
+     *             or if <tt>landHexType.length != landPath.length</tt>, <BR>
+     *             or if <tt>number</tt> contains a negative value
      * @see #makeNewBoard_placeHexes(int[], int[], int[], boolean, boolean, int[], boolean, int, SOCGameOption, String)
      */
     private final void makeNewBoard_placeHexes
@@ -914,6 +915,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      *             or if the total length of its land areas != <tt>landPath.length</tt>, <BR>
      *             or if <tt>landHexType.length != landPath.length</tt>, <BR>
      *             or if <tt>landHexType</tt> contains {@link #FOG_HEX}, <BR>
+     *             or if <tt>number</tt> contains a negative value, <BR>
      *             or if {@link SOCBoard#makeNewBoard_checkLandHexResourceClumps(Vector, int)}
      *                 finds an invalid or uninitialized hex coordinate (hex type -1)
      * @see #makeNewBoard_placeHexes(int[], int[], int[], boolean, boolean, int, boolean, int, SOCGameOption, String)
@@ -1023,7 +1025,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
                     {
                         if (hasRobber)
                             setRobberHex(landPath[i], false);
-                        numberLayoutLg[r][c] = -1;
+                        numberLayoutLg[r][c] = 0;
                         // TODO do we want to not set robberHex? or a specific point?
                     }
                     else if (landHexType[i] == WATER_HEX)
@@ -1038,6 +1040,9 @@ public class SOCBoardAtServer extends SOCBoardLarge
                     {
                         // place the numbers
                         final int diceNum = number[cnt];
+                        if (diceNum < 0)
+                            throw new IllegalArgumentException
+                                ("makeNewBoard_placeHexes: number[" + cnt + "] below 0: " + diceNum);
                         numberLayoutLg[r][c] = diceNum;
                         cnt++;
 
@@ -2336,7 +2341,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
     /**
      * For {@link #makeNewBoard(Map)}, hide these hexes under {@link #FOG_HEX} to be revealed later.
      * The hexes will be stored in {@link #fogHiddenHexes}; their {@link #hexLayoutLg} and {@link #numberLayoutLg}
-     * elements will be set to {@link #FOG_HEX} and -1.
+     * elements will be set to {@link #FOG_HEX} and 0.
      * Does not remove anything from {@link #nodesOnLand} or {@link #landAreasLegalNodes}.
      *<P>
      * To simplify the bot, client, and network, hexes can be hidden only during makeNewBoard,
@@ -2360,7 +2365,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
             fogHiddenHexes.put(new Integer(hexCoord), (hex << 8) | (numberLayoutLg[r][c] & 0xFF));
             hexLayoutLg[r][c] = FOG_HEX;
-            numberLayoutLg[r][c] = -1;
+            numberLayoutLg[r][c] = 0;
         }
     }
 

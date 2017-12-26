@@ -1973,10 +1973,23 @@ public class SOCGame implements Serializable, Cloneable
      *  This is 0 during initial piece placement, and 1 when the first player is about to
      *  roll dice for the first time.  It becomes 2 when that first player's turn begins again.
      *  @since 1.1.07
+     *  @see #setRoundCount(int)
      */
     public int getRoundCount()
     {
         return roundCount;
+    }
+
+    /**
+     * Set the number of rounds played, including this one.
+     * See {@link #getRoundCount()} for details.
+     * Used at client when joining a game in progress.
+     * @param count  Round count
+     * @since 2.0.00
+     */
+    public void setRoundCount(final int count)
+    {
+        roundCount = count;
     }
 
     /**

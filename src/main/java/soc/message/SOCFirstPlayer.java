@@ -24,7 +24,10 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message says who the first player is
+ * This message says who the first player number is.
+ *<P>
+ * In games where all clients are v2.0.00 or newer, send {@link SOCGameElements#FIRST_PLAYER}
+ * instead: Check clients' version against {@link SOCGameElements#MIN_VERSION}.
  *
  * @author Robert S. Thomas
  */

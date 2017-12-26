@@ -171,7 +171,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private HashMap<String, ArrayList<SOCSpecialItem>> spItems;
 
     /**
-     * The node coordinate of our most recent settlement.
+     * The node coordinate of our most recent settlement placement.
      * Useful during initial placement.
      */
     protected int lastSettlementCoord;
@@ -1878,7 +1878,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Get the location of this player's most recent
      * settlement.  Useful during initial placement.
      * @return the coordinates of the last settlement
-     * played by this player
+     *     played by this player, or 0 if none yet
      */
     public int getLastSettlementCoord()
     {
@@ -1930,6 +1930,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 D.ebugPrintln("restoring pd for player " + playerNumber + " :" + pd);
             lrPaths.addElement(pd);
         }
+    }
+
+    /**
+     * Set the node coordinate of this player's most recent Settlement placement.
+     * Used at client when joining a game in progress.
+     * @param node  Node coordinate, or 0 if none yet
+     * @since 2.0.00
+     */
+    public void setLastSettlementCoord(final int node)
+    {
+        lastSettlementCoord = node;
     }
 
     /**

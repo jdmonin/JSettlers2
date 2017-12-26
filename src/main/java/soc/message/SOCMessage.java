@@ -354,26 +354,28 @@ public abstract class SOCMessage implements Serializable, Cloneable
      *  @since 2.0.00 */
     public static final int REMOVEPIECE = 1094;  // pirate islands scenario, 20130218, v2.0.00
 
-    // 1095 is available, was used during v2.0.00 development but never in a released version
-
-    /** Reveal a hidden hex on the board; server to all clients in game.
+    /** {@link SOCPieceValue} - Update the value field(s) of a piece on the board.
      *  @since 2.0.00 */
-    public static final int REVEALFOGHEX = 1096;  // fog hexes, 20121108, v2.0.00
+    public static final int PIECEVALUE = 1095;  // cloth villages scenario, 20121115, v2.0.00
 
-    /** Update the value(s) of a piece on the board.
+    /** {@link SOCGameElements} - Update the value(s) of game status field(s).
      *  @since 2.0.00 */
-    public static final int PIECEVALUE = 1097;  // cloth villages scenario, 20121115, v2.0.00
+    public static final int GAMEELEMENTS = 1096;  // message sequence refactoring for v3 prep, 20171223, v2.0.00
 
-    /** Legal road or ship edges for the large sea board.
+    /** {@link SOCRevealFogHex} - Reveal a hidden hex on the board.
+     *  @since 2.0.00 */
+    public static final int REVEALFOGHEX = 1097;  // fog hexes, 20121108, v2.0.00
+
+    /** {@link SOCLegalEdges} - Legal road or ship edges for the large sea board.
      *  @since 2.0.00 */
     public static final int LEGALEDGES = 1098;  // large sea board, 20121216, v2.0.00
 
-    /** Text that a player has been awarded Special Victory Point(s).
+    /** {@link SOCSVPTextMessage} - Text that a player has been awarded Special Victory Point(s).
      *  The server will also send a {@link SOCPlayerElement} with the SVP total.
      *  @since 2.0.00 */
     public static final int SVPTEXTMSG = 1099;  // SVP text messages, 20121221, v2.0.00
 
-    /** {@link SOCInventoryItemAction} message: Add or remove a {@code SOCInventoryItem}
+    /** {@link SOCInventoryItemAction} - Add or remove a {@code SOCInventoryItem}
      *  (excluding {@code SOCDevCard}s) from a player's inventory.
      *  Used in some game scenarios.
      * @see #DEVCARDACTION
@@ -1008,11 +1010,14 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case REMOVEPIECE:       // pirate islands scenario, 20130218, v2.0.00
                 return SOCRemovePiece.parseDataStr(data);
 
-            case REVEALFOGHEX:      // fog hexes, 20121108, v2.0.00
-                return SOCRevealFogHex.parseDataStr(data);
-
             case PIECEVALUE:        // cloth villages scenario, 20121115, v2.0.00
                 return SOCPieceValue.parseDataStr(data);
+
+            case GAMEELEMENTS:      // game status fields, 20171223, v2.0.00
+                return SOCGameElements.parseDataStr(multiData);
+
+            case REVEALFOGHEX:      // fog hexes, 20121108, v2.0.00
+                return SOCRevealFogHex.parseDataStr(data);
 
             case LEGALEDGES:        // large sea board, 20121216, v2.0.00
                 return SOCLegalEdges.parseDataStr(data);
