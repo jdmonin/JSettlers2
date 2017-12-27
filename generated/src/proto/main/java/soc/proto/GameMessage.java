@@ -16,7 +16,7 @@ public final class GameMessage {
   }
   /**
    * <pre>
-   * Action type for use in PlayerElement and PlayerElements; not sent as a standalone message type 
+   * Action types for use in PlayerElement and PlayerElements; not sent as a standalone message type 
    * </pre>
    *
    * Protobuf enum {@code _PlayerElementAction}
@@ -168,7 +168,7 @@ public final class GameMessage {
 
   /**
    * <pre>
-   * Player element type for use in PlayerElement and PlayerElements; not sent as a standalone message type 
+   * Player element types for use in PlayerElement and PlayerElements; not sent as a standalone message type 
    * </pre>
    *
    * Protobuf enum {@code _PlayerElementType}
@@ -180,9 +180,9 @@ public final class GameMessage {
      * Required for enum, but not sent: not a valid player element 
      * </pre>
      *
-     * <code>_UNSENT_DEFAULT_ELEM = 0;</code>
+     * <code>_UNSENT_DEFAULT_PLAYER_ELEM = 0;</code>
      */
-    _UNSENT_DEFAULT_ELEM(0),
+    _UNSENT_DEFAULT_PLAYER_ELEM(0),
     /**
      * <pre>
      * player element types (1-5). CLAY has same value
@@ -274,6 +274,38 @@ public final class GameMessage {
     ASK_SPECIAL_BUILD(16),
     /**
      * <pre>
+     * Total resources this player has available in hand to use.
+     * Sent only with {&#64;code SET}, not {&#64;code GAIN} or {&#64;code #LOSE}.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>RESOURCE_COUNT = 17;</code>
+     */
+    RESOURCE_COUNT(17),
+    /**
+     * <pre>
+     * Node coordinate location of this player's most recently placed settlement, or 0.
+     * Used for robots during initial placement at the start of a game.
+     * Sent only with {&#64;code SET}, not {&#64;code GAIN} or {&#64;code #LOSE}.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>LAST_SETTLEMENT_NODE = 18;</code>
+     */
+    LAST_SETTLEMENT_NODE(18),
+    /**
+     * <pre>
+     * Has this player played a development card already this turn?
+     * Applies to all players if {&#64;code playerNumber} == -1.
+     * This element is {&#64;code SET} to 1 or 0, never sent with {&#64;code GAIN} or {&#64;code #LOSE}.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>PLAYED_DEV_CARD_FLAG = 19;</code>
+     */
+    PLAYED_DEV_CARD_FLAG(19),
+    /**
+     * <pre>
      * For the {&#64;link soc.game.SOCBoardLarge large sea board},
      * player element type for asking to choose
      * resources from the gold hex after a dice roll,
@@ -284,9 +316,9 @@ public final class GameMessage {
      * &#64;since 2.0.00
      * </pre>
      *
-     * <code>NUM_PICK_GOLD_HEX_RESOURCES = 17;</code>
+     * <code>NUM_PICK_GOLD_HEX_RESOURCES = 101;</code>
      */
-    NUM_PICK_GOLD_HEX_RESOURCES(17),
+    NUM_PICK_GOLD_HEX_RESOURCES(101),
     /**
      * <pre>
      * For scenarios on the {&#64;link soc.game.SOCBoardLarge large sea board},
@@ -296,9 +328,9 @@ public final class GameMessage {
      * &#64;since 2.0.00
      * </pre>
      *
-     * <code>SCENARIO_SVP = 18;</code>
+     * <code>SCENARIO_SVP = 102;</code>
      */
-    SCENARIO_SVP(18),
+    SCENARIO_SVP(102),
     /**
      * <pre>
      * For scenarios on the {&#64;link soc.game.SOCBoardLarge large sea board},
@@ -308,9 +340,9 @@ public final class GameMessage {
      * &#64;since 2.0.00
      * </pre>
      *
-     * <code>SCENARIO_PLAYEREVENTS_BITMASK = 19;</code>
+     * <code>SCENARIO_PLAYEREVENTS_BITMASK = 103;</code>
      */
-    SCENARIO_PLAYEREVENTS_BITMASK(19),
+    SCENARIO_PLAYEREVENTS_BITMASK(103),
     /**
      * <pre>
      * For scenarios on the {&#64;link soc.game.SOCBoardLarge large sea board},
@@ -320,9 +352,9 @@ public final class GameMessage {
      * &#64;since 2.0.00
      * </pre>
      *
-     * <code>SCENARIO_SVP_LANDAREAS_BITMASK = 20;</code>
+     * <code>SCENARIO_SVP_LANDAREAS_BITMASK = 104;</code>
      */
-    SCENARIO_SVP_LANDAREAS_BITMASK(20),
+    SCENARIO_SVP_LANDAREAS_BITMASK(104),
     /**
      * <pre>
      * Player's starting land area numbers.
@@ -331,9 +363,9 @@ public final class GameMessage {
      * &#64;since 2.0.00
      * </pre>
      *
-     * <code>STARTING_LANDAREAS = 21;</code>
+     * <code>STARTING_LANDAREAS = 105;</code>
      */
-    STARTING_LANDAREAS(21),
+    STARTING_LANDAREAS(105),
     /**
      * <pre>
      * For scenario &lt;tt&gt;_SC_CLVI&lt;/tt&gt; on the {&#64;link soc.game.SOCBoardLarge large sea board},
@@ -348,9 +380,9 @@ public final class GameMessage {
      * &#64;since 2.0.00
      * </pre>
      *
-     * <code>SCENARIO_CLOTH_COUNT = 22;</code>
+     * <code>SCENARIO_CLOTH_COUNT = 106;</code>
      */
-    SCENARIO_CLOTH_COUNT(22),
+    SCENARIO_CLOTH_COUNT(106),
     /**
      * <pre>
      * For scenario game option &lt;tt&gt;_SC_PIRI&lt;/tt&gt;,
@@ -366,9 +398,9 @@ public final class GameMessage {
      * &#64;since 2.0.00
      * </pre>
      *
-     * <code>SCENARIO_WARSHIP_COUNT = 23;</code>
+     * <code>SCENARIO_WARSHIP_COUNT = 107;</code>
      */
-    SCENARIO_WARSHIP_COUNT(23),
+    SCENARIO_WARSHIP_COUNT(107),
     UNRECOGNIZED(-1),
     ;
 
@@ -377,9 +409,9 @@ public final class GameMessage {
      * Required for enum, but not sent: not a valid player element 
      * </pre>
      *
-     * <code>_UNSENT_DEFAULT_ELEM = 0;</code>
+     * <code>_UNSENT_DEFAULT_PLAYER_ELEM = 0;</code>
      */
-    public static final int _UNSENT_DEFAULT_ELEM_VALUE = 0;
+    public static final int _UNSENT_DEFAULT_PLAYER_ELEM_VALUE = 0;
     /**
      * <pre>
      * player element types (1-5). CLAY has same value
@@ -471,6 +503,38 @@ public final class GameMessage {
     public static final int ASK_SPECIAL_BUILD_VALUE = 16;
     /**
      * <pre>
+     * Total resources this player has available in hand to use.
+     * Sent only with {&#64;code SET}, not {&#64;code GAIN} or {&#64;code #LOSE}.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>RESOURCE_COUNT = 17;</code>
+     */
+    public static final int RESOURCE_COUNT_VALUE = 17;
+    /**
+     * <pre>
+     * Node coordinate location of this player's most recently placed settlement, or 0.
+     * Used for robots during initial placement at the start of a game.
+     * Sent only with {&#64;code SET}, not {&#64;code GAIN} or {&#64;code #LOSE}.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>LAST_SETTLEMENT_NODE = 18;</code>
+     */
+    public static final int LAST_SETTLEMENT_NODE_VALUE = 18;
+    /**
+     * <pre>
+     * Has this player played a development card already this turn?
+     * Applies to all players if {&#64;code playerNumber} == -1.
+     * This element is {&#64;code SET} to 1 or 0, never sent with {&#64;code GAIN} or {&#64;code #LOSE}.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * <code>PLAYED_DEV_CARD_FLAG = 19;</code>
+     */
+    public static final int PLAYED_DEV_CARD_FLAG_VALUE = 19;
+    /**
+     * <pre>
      * For the {&#64;link soc.game.SOCBoardLarge large sea board},
      * player element type for asking to choose
      * resources from the gold hex after a dice roll,
@@ -481,9 +545,9 @@ public final class GameMessage {
      * &#64;since 2.0.00
      * </pre>
      *
-     * <code>NUM_PICK_GOLD_HEX_RESOURCES = 17;</code>
+     * <code>NUM_PICK_GOLD_HEX_RESOURCES = 101;</code>
      */
-    public static final int NUM_PICK_GOLD_HEX_RESOURCES_VALUE = 17;
+    public static final int NUM_PICK_GOLD_HEX_RESOURCES_VALUE = 101;
     /**
      * <pre>
      * For scenarios on the {&#64;link soc.game.SOCBoardLarge large sea board},
@@ -493,9 +557,9 @@ public final class GameMessage {
      * &#64;since 2.0.00
      * </pre>
      *
-     * <code>SCENARIO_SVP = 18;</code>
+     * <code>SCENARIO_SVP = 102;</code>
      */
-    public static final int SCENARIO_SVP_VALUE = 18;
+    public static final int SCENARIO_SVP_VALUE = 102;
     /**
      * <pre>
      * For scenarios on the {&#64;link soc.game.SOCBoardLarge large sea board},
@@ -505,9 +569,9 @@ public final class GameMessage {
      * &#64;since 2.0.00
      * </pre>
      *
-     * <code>SCENARIO_PLAYEREVENTS_BITMASK = 19;</code>
+     * <code>SCENARIO_PLAYEREVENTS_BITMASK = 103;</code>
      */
-    public static final int SCENARIO_PLAYEREVENTS_BITMASK_VALUE = 19;
+    public static final int SCENARIO_PLAYEREVENTS_BITMASK_VALUE = 103;
     /**
      * <pre>
      * For scenarios on the {&#64;link soc.game.SOCBoardLarge large sea board},
@@ -517,9 +581,9 @@ public final class GameMessage {
      * &#64;since 2.0.00
      * </pre>
      *
-     * <code>SCENARIO_SVP_LANDAREAS_BITMASK = 20;</code>
+     * <code>SCENARIO_SVP_LANDAREAS_BITMASK = 104;</code>
      */
-    public static final int SCENARIO_SVP_LANDAREAS_BITMASK_VALUE = 20;
+    public static final int SCENARIO_SVP_LANDAREAS_BITMASK_VALUE = 104;
     /**
      * <pre>
      * Player's starting land area numbers.
@@ -528,9 +592,9 @@ public final class GameMessage {
      * &#64;since 2.0.00
      * </pre>
      *
-     * <code>STARTING_LANDAREAS = 21;</code>
+     * <code>STARTING_LANDAREAS = 105;</code>
      */
-    public static final int STARTING_LANDAREAS_VALUE = 21;
+    public static final int STARTING_LANDAREAS_VALUE = 105;
     /**
      * <pre>
      * For scenario &lt;tt&gt;_SC_CLVI&lt;/tt&gt; on the {&#64;link soc.game.SOCBoardLarge large sea board},
@@ -545,9 +609,9 @@ public final class GameMessage {
      * &#64;since 2.0.00
      * </pre>
      *
-     * <code>SCENARIO_CLOTH_COUNT = 22;</code>
+     * <code>SCENARIO_CLOTH_COUNT = 106;</code>
      */
-    public static final int SCENARIO_CLOTH_COUNT_VALUE = 22;
+    public static final int SCENARIO_CLOTH_COUNT_VALUE = 106;
     /**
      * <pre>
      * For scenario game option &lt;tt&gt;_SC_PIRI&lt;/tt&gt;,
@@ -563,9 +627,9 @@ public final class GameMessage {
      * &#64;since 2.0.00
      * </pre>
      *
-     * <code>SCENARIO_WARSHIP_COUNT = 23;</code>
+     * <code>SCENARIO_WARSHIP_COUNT = 107;</code>
      */
-    public static final int SCENARIO_WARSHIP_COUNT_VALUE = 23;
+    public static final int SCENARIO_WARSHIP_COUNT_VALUE = 107;
 
 
     public final int getNumber() {
@@ -586,7 +650,7 @@ public final class GameMessage {
 
     public static _PlayerElementType forNumber(int value) {
       switch (value) {
-        case 0: return _UNSENT_DEFAULT_ELEM;
+        case 0: return _UNSENT_DEFAULT_PLAYER_ELEM;
         case 1: return ELEM_CLAY;
         case 2: return ELEM_ORE;
         case 3: return ELEM_SHEEP;
@@ -599,13 +663,16 @@ public final class GameMessage {
         case 13: return SHIPS;
         case 15: return NUMKNIGHTS;
         case 16: return ASK_SPECIAL_BUILD;
-        case 17: return NUM_PICK_GOLD_HEX_RESOURCES;
-        case 18: return SCENARIO_SVP;
-        case 19: return SCENARIO_PLAYEREVENTS_BITMASK;
-        case 20: return SCENARIO_SVP_LANDAREAS_BITMASK;
-        case 21: return STARTING_LANDAREAS;
-        case 22: return SCENARIO_CLOTH_COUNT;
-        case 23: return SCENARIO_WARSHIP_COUNT;
+        case 17: return RESOURCE_COUNT;
+        case 18: return LAST_SETTLEMENT_NODE;
+        case 19: return PLAYED_DEV_CARD_FLAG;
+        case 101: return NUM_PICK_GOLD_HEX_RESOURCES;
+        case 102: return SCENARIO_SVP;
+        case 103: return SCENARIO_PLAYEREVENTS_BITMASK;
+        case 104: return SCENARIO_SVP_LANDAREAS_BITMASK;
+        case 105: return STARTING_LANDAREAS;
+        case 106: return SCENARIO_CLOTH_COUNT;
+        case 107: return SCENARIO_WARSHIP_COUNT;
         default: return null;
       }
     }
@@ -8771,7 +8838,7 @@ public final class GameMessage {
       if (action_ != soc.proto.GameMessage._PlayerElementAction._UNSENT_DEFAULT_ACTION.getNumber()) {
         output.writeEnum(2, action_);
       }
-      if (elementType_ != soc.proto.GameMessage._PlayerElementType._UNSENT_DEFAULT_ELEM.getNumber()) {
+      if (elementType_ != soc.proto.GameMessage._PlayerElementType._UNSENT_DEFAULT_PLAYER_ELEM.getNumber()) {
         output.writeEnum(3, elementType_);
       }
       if (amount_ != 0) {
@@ -8796,7 +8863,7 @@ public final class GameMessage {
         size += com.google.protobuf.CodedOutputStream
           .computeEnumSize(2, action_);
       }
-      if (elementType_ != soc.proto.GameMessage._PlayerElementType._UNSENT_DEFAULT_ELEM.getNumber()) {
+      if (elementType_ != soc.proto.GameMessage._PlayerElementType._UNSENT_DEFAULT_PLAYER_ELEM.getNumber()) {
         size += com.google.protobuf.CodedOutputStream
           .computeEnumSize(3, elementType_);
       }
@@ -10368,6 +10435,1031 @@ public final class GameMessage {
     }
 
     public soc.proto.GameMessage.PlayerElements getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface GameElementsOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:GameElements)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>repeated .GameElements._ElementType elementTypes = 1;</code>
+     */
+    java.util.List<soc.proto.GameMessage.GameElements._ElementType> getElementTypesList();
+    /**
+     * <code>repeated .GameElements._ElementType elementTypes = 1;</code>
+     */
+    int getElementTypesCount();
+    /**
+     * <code>repeated .GameElements._ElementType elementTypes = 1;</code>
+     */
+    soc.proto.GameMessage.GameElements._ElementType getElementTypes(int index);
+    /**
+     * <code>repeated .GameElements._ElementType elementTypes = 1;</code>
+     */
+    java.util.List<java.lang.Integer>
+    getElementTypesValueList();
+    /**
+     * <code>repeated .GameElements._ElementType elementTypes = 1;</code>
+     */
+    int getElementTypesValue(int index);
+
+    /**
+     * <code>repeated sint32 values = 2;</code>
+     */
+    java.util.List<java.lang.Integer> getValuesList();
+    /**
+     * <code>repeated sint32 values = 2;</code>
+     */
+    int getValuesCount();
+    /**
+     * <code>repeated sint32 values = 2;</code>
+     */
+    int getValues(int index);
+  }
+  /**
+   * <pre>
+   * This message from the server sets or updates fields of a game's status,
+   * such as the number of rounds played or development cards available.
+   * &#64;since 2.0.00
+   * </pre>
+   *
+   * Protobuf type {@code GameElements}
+   */
+  public  static final class GameElements extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:GameElements)
+      GameElementsOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use GameElements.newBuilder() to construct.
+    private GameElements(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private GameElements() {
+      elementTypes_ = java.util.Collections.emptyList();
+      values_ = java.util.Collections.emptyList();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private GameElements(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              int rawValue = input.readEnum();
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                elementTypes_ = new java.util.ArrayList<java.lang.Integer>();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              elementTypes_.add(rawValue);
+              break;
+            }
+            case 10: {
+              int length = input.readRawVarint32();
+              int oldLimit = input.pushLimit(length);
+              while(input.getBytesUntilLimit() > 0) {
+                int rawValue = input.readEnum();
+                if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                  elementTypes_ = new java.util.ArrayList<java.lang.Integer>();
+                  mutable_bitField0_ |= 0x00000001;
+                }
+                elementTypes_.add(rawValue);
+              }
+              input.popLimit(oldLimit);
+              break;
+            }
+            case 16: {
+              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+                values_ = new java.util.ArrayList<java.lang.Integer>();
+                mutable_bitField0_ |= 0x00000002;
+              }
+              values_.add(input.readSInt32());
+              break;
+            }
+            case 18: {
+              int length = input.readRawVarint32();
+              int limit = input.pushLimit(length);
+              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002) && input.getBytesUntilLimit() > 0) {
+                values_ = new java.util.ArrayList<java.lang.Integer>();
+                mutable_bitField0_ |= 0x00000002;
+              }
+              while (input.getBytesUntilLimit() > 0) {
+                values_.add(input.readSInt32());
+              }
+              input.popLimit(limit);
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+          elementTypes_ = java.util.Collections.unmodifiableList(elementTypes_);
+        }
+        if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+          values_ = java.util.Collections.unmodifiableList(values_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_GameElements_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_GameElements_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.GameElements.class, soc.proto.GameMessage.GameElements.Builder.class);
+    }
+
+    /**
+     * Protobuf enum {@code GameElements._ElementType}
+     */
+    public enum _ElementType
+        implements com.google.protobuf.ProtocolMessageEnum {
+      /**
+       * <pre>
+       * Required for enum, but not sent: not a valid game element 
+       * </pre>
+       *
+       * <code>_UNSENT_DEFAULT_GAME_ELEM = 0;</code>
+       */
+      _UNSENT_DEFAULT_GAME_ELEM(0),
+      /**
+       * <pre>
+       * Current round of play, from {&#64;link soc.game.SOCGame#getRoundCount()}. 
+       * </pre>
+       *
+       * <code>ROUND_COUNT = 1;</code>
+       */
+      ROUND_COUNT(1),
+      /**
+       * <pre>
+       * Number of development cards remaining in the deck to be bought,
+       * from {&#64;link soc.game.SOCGame#getNumDevCards()}.
+       * </pre>
+       *
+       * <code>DEV_CARD_COUNT = 2;</code>
+       */
+      DEV_CARD_COUNT(2),
+      /**
+       * <pre>
+       * Player number of first player in this game, from {&#64;link soc.game.SOCGame#getFirstPlayer()}. 
+       * </pre>
+       *
+       * <code>FIRST_PLAYER = 3;</code>
+       */
+      FIRST_PLAYER(3),
+      /**
+       * <pre>
+       * Player number of current player, or -1, from {&#64;link soc.game.SOCGame#getCurrentPlayerNumber()}. 
+       * </pre>
+       *
+       * <code>CURRENT_PLAYER = 4;</code>
+       */
+      CURRENT_PLAYER(4),
+      /**
+       * <pre>
+       * Player number of player with largest army, or -1, from {&#64;link soc.game.SOCGame#getPlayerWithLargestArmy()}. 
+       * </pre>
+       *
+       * <code>LARGEST_ARMY_PLAYER = 5;</code>
+       */
+      LARGEST_ARMY_PLAYER(5),
+      /**
+       * <pre>
+       * Player number of player with longest road, or -1, from {&#64;link soc.game.SOCGame#getPlayerWithLongestRoad()}. 
+       * </pre>
+       *
+       * <code>LONGEST_ROAD_PLAYER = 6;</code>
+       */
+      LONGEST_ROAD_PLAYER(6),
+      UNRECOGNIZED(-1),
+      ;
+
+      /**
+       * <pre>
+       * Required for enum, but not sent: not a valid game element 
+       * </pre>
+       *
+       * <code>_UNSENT_DEFAULT_GAME_ELEM = 0;</code>
+       */
+      public static final int _UNSENT_DEFAULT_GAME_ELEM_VALUE = 0;
+      /**
+       * <pre>
+       * Current round of play, from {&#64;link soc.game.SOCGame#getRoundCount()}. 
+       * </pre>
+       *
+       * <code>ROUND_COUNT = 1;</code>
+       */
+      public static final int ROUND_COUNT_VALUE = 1;
+      /**
+       * <pre>
+       * Number of development cards remaining in the deck to be bought,
+       * from {&#64;link soc.game.SOCGame#getNumDevCards()}.
+       * </pre>
+       *
+       * <code>DEV_CARD_COUNT = 2;</code>
+       */
+      public static final int DEV_CARD_COUNT_VALUE = 2;
+      /**
+       * <pre>
+       * Player number of first player in this game, from {&#64;link soc.game.SOCGame#getFirstPlayer()}. 
+       * </pre>
+       *
+       * <code>FIRST_PLAYER = 3;</code>
+       */
+      public static final int FIRST_PLAYER_VALUE = 3;
+      /**
+       * <pre>
+       * Player number of current player, or -1, from {&#64;link soc.game.SOCGame#getCurrentPlayerNumber()}. 
+       * </pre>
+       *
+       * <code>CURRENT_PLAYER = 4;</code>
+       */
+      public static final int CURRENT_PLAYER_VALUE = 4;
+      /**
+       * <pre>
+       * Player number of player with largest army, or -1, from {&#64;link soc.game.SOCGame#getPlayerWithLargestArmy()}. 
+       * </pre>
+       *
+       * <code>LARGEST_ARMY_PLAYER = 5;</code>
+       */
+      public static final int LARGEST_ARMY_PLAYER_VALUE = 5;
+      /**
+       * <pre>
+       * Player number of player with longest road, or -1, from {&#64;link soc.game.SOCGame#getPlayerWithLongestRoad()}. 
+       * </pre>
+       *
+       * <code>LONGEST_ROAD_PLAYER = 6;</code>
+       */
+      public static final int LONGEST_ROAD_PLAYER_VALUE = 6;
+
+
+      public final int getNumber() {
+        if (this == UNRECOGNIZED) {
+          throw new java.lang.IllegalArgumentException(
+              "Can't get the number of an unknown enum value.");
+        }
+        return value;
+      }
+
+      /**
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static _ElementType valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static _ElementType forNumber(int value) {
+        switch (value) {
+          case 0: return _UNSENT_DEFAULT_GAME_ELEM;
+          case 1: return ROUND_COUNT;
+          case 2: return DEV_CARD_COUNT;
+          case 3: return FIRST_PLAYER;
+          case 4: return CURRENT_PLAYER;
+          case 5: return LARGEST_ARMY_PLAYER;
+          case 6: return LONGEST_ROAD_PLAYER;
+          default: return null;
+        }
+      }
+
+      public static com.google.protobuf.Internal.EnumLiteMap<_ElementType>
+          internalGetValueMap() {
+        return internalValueMap;
+      }
+      private static final com.google.protobuf.Internal.EnumLiteMap<
+          _ElementType> internalValueMap =
+            new com.google.protobuf.Internal.EnumLiteMap<_ElementType>() {
+              public _ElementType findValueByNumber(int number) {
+                return _ElementType.forNumber(number);
+              }
+            };
+
+      public final com.google.protobuf.Descriptors.EnumValueDescriptor
+          getValueDescriptor() {
+        return getDescriptor().getValues().get(ordinal());
+      }
+      public final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptorForType() {
+        return getDescriptor();
+      }
+      public static final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.GameElements.getDescriptor().getEnumTypes().get(0);
+      }
+
+      private static final _ElementType[] VALUES = values();
+
+      public static _ElementType valueOf(
+          com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        if (desc.getType() != getDescriptor()) {
+          throw new java.lang.IllegalArgumentException(
+            "EnumValueDescriptor is not for this type.");
+        }
+        if (desc.getIndex() == -1) {
+          return UNRECOGNIZED;
+        }
+        return VALUES[desc.getIndex()];
+      }
+
+      private final int value;
+
+      private _ElementType(int value) {
+        this.value = value;
+      }
+
+      // @@protoc_insertion_point(enum_scope:GameElements._ElementType)
+    }
+
+    public static final int ELEMENTTYPES_FIELD_NUMBER = 1;
+    private java.util.List<java.lang.Integer> elementTypes_;
+    private static final com.google.protobuf.Internal.ListAdapter.Converter<
+        java.lang.Integer, soc.proto.GameMessage.GameElements._ElementType> elementTypes_converter_ =
+            new com.google.protobuf.Internal.ListAdapter.Converter<
+                java.lang.Integer, soc.proto.GameMessage.GameElements._ElementType>() {
+              public soc.proto.GameMessage.GameElements._ElementType convert(java.lang.Integer from) {
+                soc.proto.GameMessage.GameElements._ElementType result = soc.proto.GameMessage.GameElements._ElementType.valueOf(from);
+                return result == null ? soc.proto.GameMessage.GameElements._ElementType.UNRECOGNIZED : result;
+              }
+            };
+    /**
+     * <code>repeated .GameElements._ElementType elementTypes = 1;</code>
+     */
+    public java.util.List<soc.proto.GameMessage.GameElements._ElementType> getElementTypesList() {
+      return new com.google.protobuf.Internal.ListAdapter<
+          java.lang.Integer, soc.proto.GameMessage.GameElements._ElementType>(elementTypes_, elementTypes_converter_);
+    }
+    /**
+     * <code>repeated .GameElements._ElementType elementTypes = 1;</code>
+     */
+    public int getElementTypesCount() {
+      return elementTypes_.size();
+    }
+    /**
+     * <code>repeated .GameElements._ElementType elementTypes = 1;</code>
+     */
+    public soc.proto.GameMessage.GameElements._ElementType getElementTypes(int index) {
+      return elementTypes_converter_.convert(elementTypes_.get(index));
+    }
+    /**
+     * <code>repeated .GameElements._ElementType elementTypes = 1;</code>
+     */
+    public java.util.List<java.lang.Integer>
+    getElementTypesValueList() {
+      return elementTypes_;
+    }
+    /**
+     * <code>repeated .GameElements._ElementType elementTypes = 1;</code>
+     */
+    public int getElementTypesValue(int index) {
+      return elementTypes_.get(index);
+    }
+    private int elementTypesMemoizedSerializedSize;
+
+    public static final int VALUES_FIELD_NUMBER = 2;
+    private java.util.List<java.lang.Integer> values_;
+    /**
+     * <code>repeated sint32 values = 2;</code>
+     */
+    public java.util.List<java.lang.Integer>
+        getValuesList() {
+      return values_;
+    }
+    /**
+     * <code>repeated sint32 values = 2;</code>
+     */
+    public int getValuesCount() {
+      return values_.size();
+    }
+    /**
+     * <code>repeated sint32 values = 2;</code>
+     */
+    public int getValues(int index) {
+      return values_.get(index);
+    }
+    private int valuesMemoizedSerializedSize = -1;
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (getElementTypesList().size() > 0) {
+        output.writeUInt32NoTag(10);
+        output.writeUInt32NoTag(elementTypesMemoizedSerializedSize);
+      }
+      for (int i = 0; i < elementTypes_.size(); i++) {
+        output.writeEnumNoTag(elementTypes_.get(i));
+      }
+      if (getValuesList().size() > 0) {
+        output.writeUInt32NoTag(18);
+        output.writeUInt32NoTag(valuesMemoizedSerializedSize);
+      }
+      for (int i = 0; i < values_.size(); i++) {
+        output.writeSInt32NoTag(values_.get(i));
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      {
+        int dataSize = 0;
+        for (int i = 0; i < elementTypes_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeEnumSizeNoTag(elementTypes_.get(i));
+        }
+        size += dataSize;
+        if (!getElementTypesList().isEmpty()) {  size += 1;
+          size += com.google.protobuf.CodedOutputStream
+            .computeUInt32SizeNoTag(dataSize);
+        }elementTypesMemoizedSerializedSize = dataSize;
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < values_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeSInt32SizeNoTag(values_.get(i));
+        }
+        size += dataSize;
+        if (!getValuesList().isEmpty()) {
+          size += 1;
+          size += com.google.protobuf.CodedOutputStream
+              .computeInt32SizeNoTag(dataSize);
+        }
+        valuesMemoizedSerializedSize = dataSize;
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.GameElements)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.GameElements other = (soc.proto.GameMessage.GameElements) obj;
+
+      boolean result = true;
+      result = result && elementTypes_.equals(other.elementTypes_);
+      result = result && getValuesList()
+          .equals(other.getValuesList());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (getElementTypesCount() > 0) {
+        hash = (37 * hash) + ELEMENTTYPES_FIELD_NUMBER;
+        hash = (53 * hash) + elementTypes_.hashCode();
+      }
+      if (getValuesCount() > 0) {
+        hash = (37 * hash) + VALUES_FIELD_NUMBER;
+        hash = (53 * hash) + getValuesList().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.GameElements parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.GameElements parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.GameElements parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.GameElements parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.GameElements parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.GameElements parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.GameElements parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.GameElements parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.GameElements parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.GameElements parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.GameElements parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.GameElements parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.GameElements prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * This message from the server sets or updates fields of a game's status,
+     * such as the number of rounds played or development cards available.
+     * &#64;since 2.0.00
+     * </pre>
+     *
+     * Protobuf type {@code GameElements}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:GameElements)
+        soc.proto.GameMessage.GameElementsOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_GameElements_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_GameElements_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.GameElements.class, soc.proto.GameMessage.GameElements.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.GameElements.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        elementTypes_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        values_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_GameElements_descriptor;
+      }
+
+      public soc.proto.GameMessage.GameElements getDefaultInstanceForType() {
+        return soc.proto.GameMessage.GameElements.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.GameElements build() {
+        soc.proto.GameMessage.GameElements result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.GameElements buildPartial() {
+        soc.proto.GameMessage.GameElements result = new soc.proto.GameMessage.GameElements(this);
+        int from_bitField0_ = bitField0_;
+        if (((bitField0_ & 0x00000001) == 0x00000001)) {
+          elementTypes_ = java.util.Collections.unmodifiableList(elementTypes_);
+          bitField0_ = (bitField0_ & ~0x00000001);
+        }
+        result.elementTypes_ = elementTypes_;
+        if (((bitField0_ & 0x00000002) == 0x00000002)) {
+          values_ = java.util.Collections.unmodifiableList(values_);
+          bitField0_ = (bitField0_ & ~0x00000002);
+        }
+        result.values_ = values_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.GameElements) {
+          return mergeFrom((soc.proto.GameMessage.GameElements)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.GameElements other) {
+        if (other == soc.proto.GameMessage.GameElements.getDefaultInstance()) return this;
+        if (!other.elementTypes_.isEmpty()) {
+          if (elementTypes_.isEmpty()) {
+            elementTypes_ = other.elementTypes_;
+            bitField0_ = (bitField0_ & ~0x00000001);
+          } else {
+            ensureElementTypesIsMutable();
+            elementTypes_.addAll(other.elementTypes_);
+          }
+          onChanged();
+        }
+        if (!other.values_.isEmpty()) {
+          if (values_.isEmpty()) {
+            values_ = other.values_;
+            bitField0_ = (bitField0_ & ~0x00000002);
+          } else {
+            ensureValuesIsMutable();
+            values_.addAll(other.values_);
+          }
+          onChanged();
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.GameElements parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.GameElements) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private java.util.List<java.lang.Integer> elementTypes_ =
+        java.util.Collections.emptyList();
+      private void ensureElementTypesIsMutable() {
+        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+          elementTypes_ = new java.util.ArrayList<java.lang.Integer>(elementTypes_);
+          bitField0_ |= 0x00000001;
+        }
+      }
+      /**
+       * <code>repeated .GameElements._ElementType elementTypes = 1;</code>
+       */
+      public java.util.List<soc.proto.GameMessage.GameElements._ElementType> getElementTypesList() {
+        return new com.google.protobuf.Internal.ListAdapter<
+            java.lang.Integer, soc.proto.GameMessage.GameElements._ElementType>(elementTypes_, elementTypes_converter_);
+      }
+      /**
+       * <code>repeated .GameElements._ElementType elementTypes = 1;</code>
+       */
+      public int getElementTypesCount() {
+        return elementTypes_.size();
+      }
+      /**
+       * <code>repeated .GameElements._ElementType elementTypes = 1;</code>
+       */
+      public soc.proto.GameMessage.GameElements._ElementType getElementTypes(int index) {
+        return elementTypes_converter_.convert(elementTypes_.get(index));
+      }
+      /**
+       * <code>repeated .GameElements._ElementType elementTypes = 1;</code>
+       */
+      public Builder setElementTypes(
+          int index, soc.proto.GameMessage.GameElements._ElementType value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureElementTypesIsMutable();
+        elementTypes_.set(index, value.getNumber());
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated .GameElements._ElementType elementTypes = 1;</code>
+       */
+      public Builder addElementTypes(soc.proto.GameMessage.GameElements._ElementType value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureElementTypesIsMutable();
+        elementTypes_.add(value.getNumber());
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated .GameElements._ElementType elementTypes = 1;</code>
+       */
+      public Builder addAllElementTypes(
+          java.lang.Iterable<? extends soc.proto.GameMessage.GameElements._ElementType> values) {
+        ensureElementTypesIsMutable();
+        for (soc.proto.GameMessage.GameElements._ElementType value : values) {
+          elementTypes_.add(value.getNumber());
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated .GameElements._ElementType elementTypes = 1;</code>
+       */
+      public Builder clearElementTypes() {
+        elementTypes_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated .GameElements._ElementType elementTypes = 1;</code>
+       */
+      public java.util.List<java.lang.Integer>
+      getElementTypesValueList() {
+        return java.util.Collections.unmodifiableList(elementTypes_);
+      }
+      /**
+       * <code>repeated .GameElements._ElementType elementTypes = 1;</code>
+       */
+      public int getElementTypesValue(int index) {
+        return elementTypes_.get(index);
+      }
+      /**
+       * <code>repeated .GameElements._ElementType elementTypes = 1;</code>
+       */
+      public Builder setElementTypesValue(
+          int index, int value) {
+        ensureElementTypesIsMutable();
+        elementTypes_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated .GameElements._ElementType elementTypes = 1;</code>
+       */
+      public Builder addElementTypesValue(int value) {
+        ensureElementTypesIsMutable();
+        elementTypes_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated .GameElements._ElementType elementTypes = 1;</code>
+       */
+      public Builder addAllElementTypesValue(
+          java.lang.Iterable<java.lang.Integer> values) {
+        ensureElementTypesIsMutable();
+        for (int value : values) {
+          elementTypes_.add(value);
+        }
+        onChanged();
+        return this;
+      }
+
+      private java.util.List<java.lang.Integer> values_ = java.util.Collections.emptyList();
+      private void ensureValuesIsMutable() {
+        if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+          values_ = new java.util.ArrayList<java.lang.Integer>(values_);
+          bitField0_ |= 0x00000002;
+         }
+      }
+      /**
+       * <code>repeated sint32 values = 2;</code>
+       */
+      public java.util.List<java.lang.Integer>
+          getValuesList() {
+        return java.util.Collections.unmodifiableList(values_);
+      }
+      /**
+       * <code>repeated sint32 values = 2;</code>
+       */
+      public int getValuesCount() {
+        return values_.size();
+      }
+      /**
+       * <code>repeated sint32 values = 2;</code>
+       */
+      public int getValues(int index) {
+        return values_.get(index);
+      }
+      /**
+       * <code>repeated sint32 values = 2;</code>
+       */
+      public Builder setValues(
+          int index, int value) {
+        ensureValuesIsMutable();
+        values_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated sint32 values = 2;</code>
+       */
+      public Builder addValues(int value) {
+        ensureValuesIsMutable();
+        values_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated sint32 values = 2;</code>
+       */
+      public Builder addAllValues(
+          java.lang.Iterable<? extends java.lang.Integer> values) {
+        ensureValuesIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, values_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated sint32 values = 2;</code>
+       */
+      public Builder clearValues() {
+        values_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:GameElements)
+    }
+
+    // @@protoc_insertion_point(class_scope:GameElements)
+    private static final soc.proto.GameMessage.GameElements DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.GameElements();
+    }
+
+    public static soc.proto.GameMessage.GameElements getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<GameElements>
+        PARSER = new com.google.protobuf.AbstractParser<GameElements>() {
+      public GameElements parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new GameElements(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<GameElements> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<GameElements> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.GameElements getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -14765,7 +15857,7 @@ public final class GameMessage {
      * above #15; is efficient enough (sets multiple elements) without that saved byte
      * </pre>
      *
-     * <code>.PlayerElements player_elements = 25;</code>
+     * <code>.PlayerElements player_elements = 16;</code>
      */
     boolean hasPlayerElements();
     /**
@@ -14773,7 +15865,7 @@ public final class GameMessage {
      * above #15; is efficient enough (sets multiple elements) without that saved byte
      * </pre>
      *
-     * <code>.PlayerElements player_elements = 25;</code>
+     * <code>.PlayerElements player_elements = 16;</code>
      */
     soc.proto.GameMessage.PlayerElements getPlayerElements();
     /**
@@ -14781,9 +15873,22 @@ public final class GameMessage {
      * above #15; is efficient enough (sets multiple elements) without that saved byte
      * </pre>
      *
-     * <code>.PlayerElements player_elements = 25;</code>
+     * <code>.PlayerElements player_elements = 16;</code>
      */
     soc.proto.GameMessage.PlayerElementsOrBuilder getPlayerElementsOrBuilder();
+
+    /**
+     * <code>.GameElements game_elements = 17;</code>
+     */
+    boolean hasGameElements();
+    /**
+     * <code>.GameElements game_elements = 17;</code>
+     */
+    soc.proto.GameMessage.GameElements getGameElements();
+    /**
+     * <code>.GameElements game_elements = 17;</code>
+     */
+    soc.proto.GameMessage.GameElementsOrBuilder getGameElementsOrBuilder();
 
     /**
      * <pre>
@@ -15032,9 +16137,9 @@ public final class GameMessage {
               msgCase_ = 15;
               break;
             }
-            case 202: {
+            case 130: {
               soc.proto.GameMessage.PlayerElements.Builder subBuilder = null;
-              if (msgCase_ == 25) {
+              if (msgCase_ == 16) {
                 subBuilder = ((soc.proto.GameMessage.PlayerElements) msg_).toBuilder();
               }
               msg_ =
@@ -15043,7 +16148,21 @@ public final class GameMessage {
                 subBuilder.mergeFrom((soc.proto.GameMessage.PlayerElements) msg_);
                 msg_ = subBuilder.buildPartial();
               }
-              msgCase_ = 25;
+              msgCase_ = 16;
+              break;
+            }
+            case 138: {
+              soc.proto.GameMessage.GameElements.Builder subBuilder = null;
+              if (msgCase_ == 17) {
+                subBuilder = ((soc.proto.GameMessage.GameElements) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.GameElements.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.GameElements) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 17;
               break;
             }
             case 242: {
@@ -15230,7 +16349,8 @@ public final class GameMessage {
         implements com.google.protobuf.Internal.EnumLite {
       GAME_STATE(2),
       PLAYER_ELEMENT(15),
-      PLAYER_ELEMENTS(25),
+      PLAYER_ELEMENTS(16),
+      GAME_ELEMENTS(17),
       BOARD_LAYOUT(30),
       POTENTIAL_SETTLEMENTS(31),
       PUT_PIECE(32),
@@ -15259,7 +16379,8 @@ public final class GameMessage {
         switch (value) {
           case 2: return GAME_STATE;
           case 15: return PLAYER_ELEMENT;
-          case 25: return PLAYER_ELEMENTS;
+          case 16: return PLAYER_ELEMENTS;
+          case 17: return GAME_ELEMENTS;
           case 30: return BOARD_LAYOUT;
           case 31: return POTENTIAL_SETTLEMENTS;
           case 32: return PUT_PIECE;
@@ -15392,26 +16513,26 @@ public final class GameMessage {
       return soc.proto.GameMessage.PlayerElement.getDefaultInstance();
     }
 
-    public static final int PLAYER_ELEMENTS_FIELD_NUMBER = 25;
+    public static final int PLAYER_ELEMENTS_FIELD_NUMBER = 16;
     /**
      * <pre>
      * above #15; is efficient enough (sets multiple elements) without that saved byte
      * </pre>
      *
-     * <code>.PlayerElements player_elements = 25;</code>
+     * <code>.PlayerElements player_elements = 16;</code>
      */
     public boolean hasPlayerElements() {
-      return msgCase_ == 25;
+      return msgCase_ == 16;
     }
     /**
      * <pre>
      * above #15; is efficient enough (sets multiple elements) without that saved byte
      * </pre>
      *
-     * <code>.PlayerElements player_elements = 25;</code>
+     * <code>.PlayerElements player_elements = 16;</code>
      */
     public soc.proto.GameMessage.PlayerElements getPlayerElements() {
-      if (msgCase_ == 25) {
+      if (msgCase_ == 16) {
          return (soc.proto.GameMessage.PlayerElements) msg_;
       }
       return soc.proto.GameMessage.PlayerElements.getDefaultInstance();
@@ -15421,13 +16542,39 @@ public final class GameMessage {
      * above #15; is efficient enough (sets multiple elements) without that saved byte
      * </pre>
      *
-     * <code>.PlayerElements player_elements = 25;</code>
+     * <code>.PlayerElements player_elements = 16;</code>
      */
     public soc.proto.GameMessage.PlayerElementsOrBuilder getPlayerElementsOrBuilder() {
-      if (msgCase_ == 25) {
+      if (msgCase_ == 16) {
          return (soc.proto.GameMessage.PlayerElements) msg_;
       }
       return soc.proto.GameMessage.PlayerElements.getDefaultInstance();
+    }
+
+    public static final int GAME_ELEMENTS_FIELD_NUMBER = 17;
+    /**
+     * <code>.GameElements game_elements = 17;</code>
+     */
+    public boolean hasGameElements() {
+      return msgCase_ == 17;
+    }
+    /**
+     * <code>.GameElements game_elements = 17;</code>
+     */
+    public soc.proto.GameMessage.GameElements getGameElements() {
+      if (msgCase_ == 17) {
+         return (soc.proto.GameMessage.GameElements) msg_;
+      }
+      return soc.proto.GameMessage.GameElements.getDefaultInstance();
+    }
+    /**
+     * <code>.GameElements game_elements = 17;</code>
+     */
+    public soc.proto.GameMessage.GameElementsOrBuilder getGameElementsOrBuilder() {
+      if (msgCase_ == 17) {
+         return (soc.proto.GameMessage.GameElements) msg_;
+      }
+      return soc.proto.GameMessage.GameElements.getDefaultInstance();
     }
 
     public static final int BOARD_LAYOUT_FIELD_NUMBER = 30;
@@ -15761,8 +16908,11 @@ public final class GameMessage {
       if (msgCase_ == 15) {
         output.writeMessage(15, (soc.proto.GameMessage.PlayerElement) msg_);
       }
-      if (msgCase_ == 25) {
-        output.writeMessage(25, (soc.proto.GameMessage.PlayerElements) msg_);
+      if (msgCase_ == 16) {
+        output.writeMessage(16, (soc.proto.GameMessage.PlayerElements) msg_);
+      }
+      if (msgCase_ == 17) {
+        output.writeMessage(17, (soc.proto.GameMessage.GameElements) msg_);
       }
       if (msgCase_ == 30) {
         output.writeMessage(30, (soc.proto.GameMessage.BoardLayout) msg_);
@@ -15816,9 +16966,13 @@ public final class GameMessage {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(15, (soc.proto.GameMessage.PlayerElement) msg_);
       }
-      if (msgCase_ == 25) {
+      if (msgCase_ == 16) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(25, (soc.proto.GameMessage.PlayerElements) msg_);
+          .computeMessageSize(16, (soc.proto.GameMessage.PlayerElements) msg_);
+      }
+      if (msgCase_ == 17) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(17, (soc.proto.GameMessage.GameElements) msg_);
       }
       if (msgCase_ == 30) {
         size += com.google.protobuf.CodedOutputStream
@@ -15894,9 +17048,13 @@ public final class GameMessage {
           result = result && getPlayerElement()
               .equals(other.getPlayerElement());
           break;
-        case 25:
+        case 16:
           result = result && getPlayerElements()
               .equals(other.getPlayerElements());
+          break;
+        case 17:
+          result = result && getGameElements()
+              .equals(other.getGameElements());
           break;
         case 30:
           result = result && getBoardLayout()
@@ -15967,9 +17125,13 @@ public final class GameMessage {
           hash = (37 * hash) + PLAYER_ELEMENT_FIELD_NUMBER;
           hash = (53 * hash) + getPlayerElement().hashCode();
           break;
-        case 25:
+        case 16:
           hash = (37 * hash) + PLAYER_ELEMENTS_FIELD_NUMBER;
           hash = (53 * hash) + getPlayerElements().hashCode();
+          break;
+        case 17:
+          hash = (37 * hash) + GAME_ELEMENTS_FIELD_NUMBER;
+          hash = (53 * hash) + getGameElements().hashCode();
           break;
         case 30:
           hash = (37 * hash) + BOARD_LAYOUT_FIELD_NUMBER;
@@ -16188,11 +17350,18 @@ public final class GameMessage {
             result.msg_ = playerElementBuilder_.build();
           }
         }
-        if (msgCase_ == 25) {
+        if (msgCase_ == 16) {
           if (playerElementsBuilder_ == null) {
             result.msg_ = msg_;
           } else {
             result.msg_ = playerElementsBuilder_.build();
+          }
+        }
+        if (msgCase_ == 17) {
+          if (gameElementsBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = gameElementsBuilder_.build();
           }
         }
         if (msgCase_ == 30) {
@@ -16329,6 +17498,10 @@ public final class GameMessage {
           }
           case PLAYER_ELEMENTS: {
             mergePlayerElements(other.getPlayerElements());
+            break;
+          }
+          case GAME_ELEMENTS: {
+            mergeGameElements(other.getGameElements());
             break;
           }
           case BOARD_LAYOUT: {
@@ -16825,26 +17998,26 @@ public final class GameMessage {
        * above #15; is efficient enough (sets multiple elements) without that saved byte
        * </pre>
        *
-       * <code>.PlayerElements player_elements = 25;</code>
+       * <code>.PlayerElements player_elements = 16;</code>
        */
       public boolean hasPlayerElements() {
-        return msgCase_ == 25;
+        return msgCase_ == 16;
       }
       /**
        * <pre>
        * above #15; is efficient enough (sets multiple elements) without that saved byte
        * </pre>
        *
-       * <code>.PlayerElements player_elements = 25;</code>
+       * <code>.PlayerElements player_elements = 16;</code>
        */
       public soc.proto.GameMessage.PlayerElements getPlayerElements() {
         if (playerElementsBuilder_ == null) {
-          if (msgCase_ == 25) {
+          if (msgCase_ == 16) {
             return (soc.proto.GameMessage.PlayerElements) msg_;
           }
           return soc.proto.GameMessage.PlayerElements.getDefaultInstance();
         } else {
-          if (msgCase_ == 25) {
+          if (msgCase_ == 16) {
             return playerElementsBuilder_.getMessage();
           }
           return soc.proto.GameMessage.PlayerElements.getDefaultInstance();
@@ -16855,7 +18028,7 @@ public final class GameMessage {
        * above #15; is efficient enough (sets multiple elements) without that saved byte
        * </pre>
        *
-       * <code>.PlayerElements player_elements = 25;</code>
+       * <code>.PlayerElements player_elements = 16;</code>
        */
       public Builder setPlayerElements(soc.proto.GameMessage.PlayerElements value) {
         if (playerElementsBuilder_ == null) {
@@ -16867,7 +18040,7 @@ public final class GameMessage {
         } else {
           playerElementsBuilder_.setMessage(value);
         }
-        msgCase_ = 25;
+        msgCase_ = 16;
         return this;
       }
       /**
@@ -16875,7 +18048,7 @@ public final class GameMessage {
        * above #15; is efficient enough (sets multiple elements) without that saved byte
        * </pre>
        *
-       * <code>.PlayerElements player_elements = 25;</code>
+       * <code>.PlayerElements player_elements = 16;</code>
        */
       public Builder setPlayerElements(
           soc.proto.GameMessage.PlayerElements.Builder builderForValue) {
@@ -16885,7 +18058,7 @@ public final class GameMessage {
         } else {
           playerElementsBuilder_.setMessage(builderForValue.build());
         }
-        msgCase_ = 25;
+        msgCase_ = 16;
         return this;
       }
       /**
@@ -16893,11 +18066,11 @@ public final class GameMessage {
        * above #15; is efficient enough (sets multiple elements) without that saved byte
        * </pre>
        *
-       * <code>.PlayerElements player_elements = 25;</code>
+       * <code>.PlayerElements player_elements = 16;</code>
        */
       public Builder mergePlayerElements(soc.proto.GameMessage.PlayerElements value) {
         if (playerElementsBuilder_ == null) {
-          if (msgCase_ == 25 &&
+          if (msgCase_ == 16 &&
               msg_ != soc.proto.GameMessage.PlayerElements.getDefaultInstance()) {
             msg_ = soc.proto.GameMessage.PlayerElements.newBuilder((soc.proto.GameMessage.PlayerElements) msg_)
                 .mergeFrom(value).buildPartial();
@@ -16906,12 +18079,12 @@ public final class GameMessage {
           }
           onChanged();
         } else {
-          if (msgCase_ == 25) {
+          if (msgCase_ == 16) {
             playerElementsBuilder_.mergeFrom(value);
           }
           playerElementsBuilder_.setMessage(value);
         }
-        msgCase_ = 25;
+        msgCase_ = 16;
         return this;
       }
       /**
@@ -16919,17 +18092,17 @@ public final class GameMessage {
        * above #15; is efficient enough (sets multiple elements) without that saved byte
        * </pre>
        *
-       * <code>.PlayerElements player_elements = 25;</code>
+       * <code>.PlayerElements player_elements = 16;</code>
        */
       public Builder clearPlayerElements() {
         if (playerElementsBuilder_ == null) {
-          if (msgCase_ == 25) {
+          if (msgCase_ == 16) {
             msgCase_ = 0;
             msg_ = null;
             onChanged();
           }
         } else {
-          if (msgCase_ == 25) {
+          if (msgCase_ == 16) {
             msgCase_ = 0;
             msg_ = null;
           }
@@ -16942,7 +18115,7 @@ public final class GameMessage {
        * above #15; is efficient enough (sets multiple elements) without that saved byte
        * </pre>
        *
-       * <code>.PlayerElements player_elements = 25;</code>
+       * <code>.PlayerElements player_elements = 16;</code>
        */
       public soc.proto.GameMessage.PlayerElements.Builder getPlayerElementsBuilder() {
         return getPlayerElementsFieldBuilder().getBuilder();
@@ -16952,13 +18125,13 @@ public final class GameMessage {
        * above #15; is efficient enough (sets multiple elements) without that saved byte
        * </pre>
        *
-       * <code>.PlayerElements player_elements = 25;</code>
+       * <code>.PlayerElements player_elements = 16;</code>
        */
       public soc.proto.GameMessage.PlayerElementsOrBuilder getPlayerElementsOrBuilder() {
-        if ((msgCase_ == 25) && (playerElementsBuilder_ != null)) {
+        if ((msgCase_ == 16) && (playerElementsBuilder_ != null)) {
           return playerElementsBuilder_.getMessageOrBuilder();
         } else {
-          if (msgCase_ == 25) {
+          if (msgCase_ == 16) {
             return (soc.proto.GameMessage.PlayerElements) msg_;
           }
           return soc.proto.GameMessage.PlayerElements.getDefaultInstance();
@@ -16969,13 +18142,13 @@ public final class GameMessage {
        * above #15; is efficient enough (sets multiple elements) without that saved byte
        * </pre>
        *
-       * <code>.PlayerElements player_elements = 25;</code>
+       * <code>.PlayerElements player_elements = 16;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.GameMessage.PlayerElements, soc.proto.GameMessage.PlayerElements.Builder, soc.proto.GameMessage.PlayerElementsOrBuilder> 
           getPlayerElementsFieldBuilder() {
         if (playerElementsBuilder_ == null) {
-          if (!(msgCase_ == 25)) {
+          if (!(msgCase_ == 16)) {
             msg_ = soc.proto.GameMessage.PlayerElements.getDefaultInstance();
           }
           playerElementsBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -16985,9 +18158,145 @@ public final class GameMessage {
                   isClean());
           msg_ = null;
         }
-        msgCase_ = 25;
+        msgCase_ = 16;
         onChanged();;
         return playerElementsBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.GameElements, soc.proto.GameMessage.GameElements.Builder, soc.proto.GameMessage.GameElementsOrBuilder> gameElementsBuilder_;
+      /**
+       * <code>.GameElements game_elements = 17;</code>
+       */
+      public boolean hasGameElements() {
+        return msgCase_ == 17;
+      }
+      /**
+       * <code>.GameElements game_elements = 17;</code>
+       */
+      public soc.proto.GameMessage.GameElements getGameElements() {
+        if (gameElementsBuilder_ == null) {
+          if (msgCase_ == 17) {
+            return (soc.proto.GameMessage.GameElements) msg_;
+          }
+          return soc.proto.GameMessage.GameElements.getDefaultInstance();
+        } else {
+          if (msgCase_ == 17) {
+            return gameElementsBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.GameElements.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.GameElements game_elements = 17;</code>
+       */
+      public Builder setGameElements(soc.proto.GameMessage.GameElements value) {
+        if (gameElementsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          gameElementsBuilder_.setMessage(value);
+        }
+        msgCase_ = 17;
+        return this;
+      }
+      /**
+       * <code>.GameElements game_elements = 17;</code>
+       */
+      public Builder setGameElements(
+          soc.proto.GameMessage.GameElements.Builder builderForValue) {
+        if (gameElementsBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          gameElementsBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 17;
+        return this;
+      }
+      /**
+       * <code>.GameElements game_elements = 17;</code>
+       */
+      public Builder mergeGameElements(soc.proto.GameMessage.GameElements value) {
+        if (gameElementsBuilder_ == null) {
+          if (msgCase_ == 17 &&
+              msg_ != soc.proto.GameMessage.GameElements.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.GameElements.newBuilder((soc.proto.GameMessage.GameElements) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 17) {
+            gameElementsBuilder_.mergeFrom(value);
+          }
+          gameElementsBuilder_.setMessage(value);
+        }
+        msgCase_ = 17;
+        return this;
+      }
+      /**
+       * <code>.GameElements game_elements = 17;</code>
+       */
+      public Builder clearGameElements() {
+        if (gameElementsBuilder_ == null) {
+          if (msgCase_ == 17) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 17) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          gameElementsBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.GameElements game_elements = 17;</code>
+       */
+      public soc.proto.GameMessage.GameElements.Builder getGameElementsBuilder() {
+        return getGameElementsFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.GameElements game_elements = 17;</code>
+       */
+      public soc.proto.GameMessage.GameElementsOrBuilder getGameElementsOrBuilder() {
+        if ((msgCase_ == 17) && (gameElementsBuilder_ != null)) {
+          return gameElementsBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 17) {
+            return (soc.proto.GameMessage.GameElements) msg_;
+          }
+          return soc.proto.GameMessage.GameElements.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.GameElements game_elements = 17;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.GameElements, soc.proto.GameMessage.GameElements.Builder, soc.proto.GameMessage.GameElementsOrBuilder> 
+          getGameElementsFieldBuilder() {
+        if (gameElementsBuilder_ == null) {
+          if (!(msgCase_ == 17)) {
+            msg_ = soc.proto.GameMessage.GameElements.getDefaultInstance();
+          }
+          gameElementsBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.GameElements, soc.proto.GameMessage.GameElements.Builder, soc.proto.GameMessage.GameElementsOrBuilder>(
+                  (soc.proto.GameMessage.GameElements) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 17;
+        onChanged();;
+        return gameElementsBuilder_;
       }
 
       private com.google.protobuf.SingleFieldBuilderV3<
@@ -19794,6 +21103,11 @@ public final class GameMessage {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_PlayerElements_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_GameElements_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_GameElements_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_StartGame_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -19880,47 +21194,56 @@ public final class GameMessage {
       "ayerElements\022\024\n\014playerNumber\030\001 \001(\021\022%\n\006ac" +
       "tion\030\002 \001(\0162\025._PlayerElementAction\022)\n\014ele" +
       "mentTypes\030\003 \003(\0162\023._PlayerElementType\022\017\n\007" +
-      "amounts\030\004 \003(\021\"&\n\tStartGame\022\031\n\005state\030\001 \001(" +
-      "\0162\n.GameState\"8\n\004Turn\022\025\n\rplayer_number\030\001" +
-      " \001(\r\022\031\n\005state\030\002 \001(\0162\n.GameState\" \n\007SetTu" +
-      "rn\022\025\n\rplayer_number\030\001 \001(\r\" \n\nDiceResult\022" +
-      "\022\n\ndice_total\030\001 \001(\r\"\264\001\n\023DiceResultResour" +
-      "ces\022>\n\020player_resources\030\001 \003(\0132$.DiceResu" +
-      "ltResources.PlayerResources\032]\n\017PlayerRes",
-      "ources\022\025\n\rplayer_number\030\001 \001(\r\022\037\n\010res_typ" +
-      "e\030\002 \003(\0162\r.ResourceType\022\022\n\nres_amount\030\003 \003" +
-      "(\r\"\t\n\007EndTurn\"\301\004\n\025GameMessageFromServer\022" +
-      "\017\n\007ga_name\030\001 \001(\t\022\034\n\ngame_state\030\002 \001(\0132\006.S" +
-      "tateH\000\022(\n\016player_element\030\017 \001(\0132\016.PlayerE" +
-      "lementH\000\022*\n\017player_elements\030\031 \001(\0132\017.Play" +
-      "erElementsH\000\022$\n\014board_layout\030\036 \001(\0132\014.Boa" +
-      "rdLayoutH\000\0226\n\025potential_settlements\030\037 \001(" +
-      "\0132\025.PotentialSettlementsH\000\022\036\n\tput_piece\030" +
-      "  \001(\0132\t.PutPieceH\000\022$\n\014cancel_build\030! \001(\013",
-      "2\014.CancelBuildH\000\022 \n\nmove_piece\030\" \001(\0132\n.M" +
-      "ovePieceH\000\022$\n\014remove_piece\030# \001(\0132\014.Remov" +
-      "ePieceH\000\022 \n\nstart_game\030d \001(\0132\n.StartGame" +
-      "H\000\022\025\n\004turn\030e \001(\0132\005.TurnH\000\022\034\n\010set_turn\030f " +
-      "\001(\0132\010.SetTurnH\000\022\"\n\013dice_result\030g \001(\0132\013.D" +
-      "iceResultH\000\0225\n\025dice_result_resources\030h \001" +
-      "(\0132\024.DiceResultResourcesH\000B\005\n\003msg\"o\n\025Gam" +
-      "eMessageFromClient\022\017\n\007ga_name\030\001 \001(\t\022 \n\ns" +
-      "tart_game\030d \001(\0132\n.StartGameH\000\022\034\n\010end_tur" +
-      "n\030e \001(\0132\010.EndTurnH\000B\005\n\003msg*O\n\024_PlayerEle",
-      "mentAction\022\032\n\026_UNSENT_DEFAULT_ACTION\020\000\022\007" +
-      "\n\003SET\020\001\022\010\n\004GAIN\020\002\022\010\n\004LOSE\020\003*\267\003\n\022_PlayerE" +
-      "lementType\022\030\n\024_UNSENT_DEFAULT_ELEM\020\000\022\r\n\t" +
-      "ELEM_CLAY\020\001\022\014\n\010ELEM_ORE\020\002\022\016\n\nELEM_SHEEP\020" +
-      "\003\022\016\n\nELEM_WHEAT\020\004\022\r\n\tELEM_WOOD\020\005\022\031\n\025ELEM" +
-      "_UNKNOWN_RESOURCE\020\006\022\t\n\005ROADS\020\n\022\017\n\013SETTLE" +
-      "MENTS\020\013\022\n\n\006CITIES\020\014\022\t\n\005SHIPS\020\r\022\016\n\nNUMKNI" +
-      "GHTS\020\017\022\025\n\021ASK_SPECIAL_BUILD\020\020\022\037\n\033NUM_PIC" +
-      "K_GOLD_HEX_RESOURCES\020\021\022\020\n\014SCENARIO_SVP\020\022" +
-      "\022!\n\035SCENARIO_PLAYEREVENTS_BITMASK\020\023\022\"\n\036S",
-      "CENARIO_SVP_LANDAREAS_BITMASK\020\024\022\026\n\022START" +
-      "ING_LANDAREAS\020\025\022\030\n\024SCENARIO_CLOTH_COUNT\020" +
-      "\026\022\032\n\026SCENARIO_WARSHIP_COUNT\020\027B\r\n\tsoc.pro" +
-      "toH\001P\000b\006proto3"
+      "amounts\030\004 \003(\021\"\375\001\n\014GameElements\0220\n\014elemen" +
+      "tTypes\030\001 \003(\0162\032.GameElements._ElementType" +
+      "\022\016\n\006values\030\002 \003(\021\"\252\001\n\014_ElementType\022\035\n\031_UN" +
+      "SENT_DEFAULT_GAME_ELEM\020\000\022\017\n\013ROUND_COUNT\020" +
+      "\001\022\022\n\016DEV_CARD_COUNT\020\002\022\020\n\014FIRST_PLAYER\020\003\022" +
+      "\022\n\016CURRENT_PLAYER\020\004\022\027\n\023LARGEST_ARMY_PLAY" +
+      "ER\020\005\022\027\n\023LONGEST_ROAD_PLAYER\020\006\"&\n\tStartGa",
+      "me\022\031\n\005state\030\001 \001(\0162\n.GameState\"8\n\004Turn\022\025\n" +
+      "\rplayer_number\030\001 \001(\r\022\031\n\005state\030\002 \001(\0162\n.Ga" +
+      "meState\" \n\007SetTurn\022\025\n\rplayer_number\030\001 \001(" +
+      "\r\" \n\nDiceResult\022\022\n\ndice_total\030\001 \001(\r\"\264\001\n\023" +
+      "DiceResultResources\022>\n\020player_resources\030" +
+      "\001 \003(\0132$.DiceResultResources.PlayerResour" +
+      "ces\032]\n\017PlayerResources\022\025\n\rplayer_number\030" +
+      "\001 \001(\r\022\037\n\010res_type\030\002 \003(\0162\r.ResourceType\022\022" +
+      "\n\nres_amount\030\003 \003(\r\"\t\n\007EndTurn\"\351\004\n\025GameMe" +
+      "ssageFromServer\022\017\n\007ga_name\030\001 \001(\t\022\034\n\ngame",
+      "_state\030\002 \001(\0132\006.StateH\000\022(\n\016player_element" +
+      "\030\017 \001(\0132\016.PlayerElementH\000\022*\n\017player_eleme" +
+      "nts\030\020 \001(\0132\017.PlayerElementsH\000\022&\n\rgame_ele" +
+      "ments\030\021 \001(\0132\r.GameElementsH\000\022$\n\014board_la" +
+      "yout\030\036 \001(\0132\014.BoardLayoutH\000\0226\n\025potential_" +
+      "settlements\030\037 \001(\0132\025.PotentialSettlements" +
+      "H\000\022\036\n\tput_piece\030  \001(\0132\t.PutPieceH\000\022$\n\014ca" +
+      "ncel_build\030! \001(\0132\014.CancelBuildH\000\022 \n\nmove" +
+      "_piece\030\" \001(\0132\n.MovePieceH\000\022$\n\014remove_pie" +
+      "ce\030# \001(\0132\014.RemovePieceH\000\022 \n\nstart_game\030d",
+      " \001(\0132\n.StartGameH\000\022\025\n\004turn\030e \001(\0132\005.TurnH" +
+      "\000\022\034\n\010set_turn\030f \001(\0132\010.SetTurnH\000\022\"\n\013dice_" +
+      "result\030g \001(\0132\013.DiceResultH\000\0225\n\025dice_resu" +
+      "lt_resources\030h \001(\0132\024.DiceResultResources" +
+      "H\000B\005\n\003msg\"o\n\025GameMessageFromClient\022\017\n\007ga" +
+      "_name\030\001 \001(\t\022 \n\nstart_game\030d \001(\0132\n.StartG" +
+      "ameH\000\022\034\n\010end_turn\030e \001(\0132\010.EndTurnH\000B\005\n\003m" +
+      "sg*O\n\024_PlayerElementAction\022\032\n\026_UNSENT_DE" +
+      "FAULT_ACTION\020\000\022\007\n\003SET\020\001\022\010\n\004GAIN\020\002\022\010\n\004LOS" +
+      "E\020\003*\206\004\n\022_PlayerElementType\022\037\n\033_UNSENT_DE",
+      "FAULT_PLAYER_ELEM\020\000\022\r\n\tELEM_CLAY\020\001\022\014\n\010EL" +
+      "EM_ORE\020\002\022\016\n\nELEM_SHEEP\020\003\022\016\n\nELEM_WHEAT\020\004" +
+      "\022\r\n\tELEM_WOOD\020\005\022\031\n\025ELEM_UNKNOWN_RESOURCE" +
+      "\020\006\022\t\n\005ROADS\020\n\022\017\n\013SETTLEMENTS\020\013\022\n\n\006CITIES" +
+      "\020\014\022\t\n\005SHIPS\020\r\022\016\n\nNUMKNIGHTS\020\017\022\025\n\021ASK_SPE" +
+      "CIAL_BUILD\020\020\022\022\n\016RESOURCE_COUNT\020\021\022\030\n\024LAST" +
+      "_SETTLEMENT_NODE\020\022\022\030\n\024PLAYED_DEV_CARD_FL" +
+      "AG\020\023\022\037\n\033NUM_PICK_GOLD_HEX_RESOURCES\020e\022\020\n" +
+      "\014SCENARIO_SVP\020f\022!\n\035SCENARIO_PLAYEREVENTS" +
+      "_BITMASK\020g\022\"\n\036SCENARIO_SVP_LANDAREAS_BIT",
+      "MASK\020h\022\026\n\022STARTING_LANDAREAS\020i\022\030\n\024SCENAR" +
+      "IO_CLOTH_COUNT\020j\022\032\n\026SCENARIO_WARSHIP_COU" +
+      "NT\020kB\r\n\tsoc.protoH\001P\000b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -20013,32 +21336,38 @@ public final class GameMessage {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_PlayerElements_descriptor,
         new java.lang.String[] { "PlayerNumber", "Action", "ElementTypes", "Amounts", });
-    internal_static_StartGame_descriptor =
+    internal_static_GameElements_descriptor =
       getDescriptor().getMessageTypes().get(10);
+    internal_static_GameElements_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_GameElements_descriptor,
+        new java.lang.String[] { "ElementTypes", "Values", });
+    internal_static_StartGame_descriptor =
+      getDescriptor().getMessageTypes().get(11);
     internal_static_StartGame_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_StartGame_descriptor,
         new java.lang.String[] { "State", });
     internal_static_Turn_descriptor =
-      getDescriptor().getMessageTypes().get(11);
+      getDescriptor().getMessageTypes().get(12);
     internal_static_Turn_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Turn_descriptor,
         new java.lang.String[] { "PlayerNumber", "State", });
     internal_static_SetTurn_descriptor =
-      getDescriptor().getMessageTypes().get(12);
+      getDescriptor().getMessageTypes().get(13);
     internal_static_SetTurn_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_SetTurn_descriptor,
         new java.lang.String[] { "PlayerNumber", });
     internal_static_DiceResult_descriptor =
-      getDescriptor().getMessageTypes().get(13);
+      getDescriptor().getMessageTypes().get(14);
     internal_static_DiceResult_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_DiceResult_descriptor,
         new java.lang.String[] { "DiceTotal", });
     internal_static_DiceResultResources_descriptor =
-      getDescriptor().getMessageTypes().get(14);
+      getDescriptor().getMessageTypes().get(15);
     internal_static_DiceResultResources_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_DiceResultResources_descriptor,
@@ -20050,19 +21379,19 @@ public final class GameMessage {
         internal_static_DiceResultResources_PlayerResources_descriptor,
         new java.lang.String[] { "PlayerNumber", "ResType", "ResAmount", });
     internal_static_EndTurn_descriptor =
-      getDescriptor().getMessageTypes().get(15);
+      getDescriptor().getMessageTypes().get(16);
     internal_static_EndTurn_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_EndTurn_descriptor,
         new java.lang.String[] { });
     internal_static_GameMessageFromServer_descriptor =
-      getDescriptor().getMessageTypes().get(16);
+      getDescriptor().getMessageTypes().get(17);
     internal_static_GameMessageFromServer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_GameMessageFromServer_descriptor,
-        new java.lang.String[] { "GaName", "GameState", "PlayerElement", "PlayerElements", "BoardLayout", "PotentialSettlements", "PutPiece", "CancelBuild", "MovePiece", "RemovePiece", "StartGame", "Turn", "SetTurn", "DiceResult", "DiceResultResources", "Msg", });
+        new java.lang.String[] { "GaName", "GameState", "PlayerElement", "PlayerElements", "GameElements", "BoardLayout", "PotentialSettlements", "PutPiece", "CancelBuild", "MovePiece", "RemovePiece", "StartGame", "Turn", "SetTurn", "DiceResult", "DiceResultResources", "Msg", });
     internal_static_GameMessageFromClient_descriptor =
-      getDescriptor().getMessageTypes().get(17);
+      getDescriptor().getMessageTypes().get(18);
     internal_static_GameMessageFromClient_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_GameMessageFromClient_descriptor,

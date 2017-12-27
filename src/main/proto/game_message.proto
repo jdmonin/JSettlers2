@@ -261,7 +261,7 @@ message State {
     GameState state = 1;
 }
 
-/* Action type for use in PlayerElement and PlayerElements; not sent as a standalone message type */
+/* Action types for use in PlayerElement and PlayerElements; not sent as a standalone message type */
 enum _PlayerElementAction {
     _UNSENT_DEFAULT_ACTION = 0;  // Required for enum, but not sent: not a valid action type
     SET  = 1;  // Set element to value
@@ -269,10 +269,10 @@ enum _PlayerElementAction {
     LOSE = 3;  // Subtract value from element
 }
 
-/* Player element type for use in PlayerElement and PlayerElements; not sent as a standalone message type */
+/* Player element types for use in PlayerElement and PlayerElements; not sent as a standalone message type */
 enum _PlayerElementType {
     /* Required for enum, but not sent: not a valid player element */
-    _UNSENT_DEFAULT_ELEM = 0;
+    _UNSENT_DEFAULT_PLAYER_ELEM = 0;
 
     /*
      * player element types (1-5). CLAY has same value
@@ -322,6 +322,33 @@ enum _PlayerElementType {
     ASK_SPECIAL_BUILD = 16;
 
     /*
+     * Total resources this player has available in hand to use.
+     * Sent only with {@code SET}, not {@code GAIN} or {@code #LOSE}.
+     * @since 2.0.00
+     */
+    RESOURCE_COUNT = 17;
+
+    /*
+     * Node coordinate location of this player's most recently placed settlement, or 0.
+     * Used for robots during initial placement at the start of a game.
+     * Sent only with {@code SET}, not {@code GAIN} or {@code #LOSE}.
+     * @since 2.0.00
+     */
+    LAST_SETTLEMENT_NODE = 18;
+
+    /*
+     * Has this player played a development card already this turn?
+     * Applies to all players if {@code playerNumber} == -1.
+     * This element is {@code SET} to 1 or 0, never sent with {@code GAIN} or {@code #LOSE}.
+     * @since 2.0.00
+     */
+    PLAYED_DEV_CARD_FLAG = 19;
+
+    //
+    // Elements related to scenarios and sea boards:
+    //
+
+    /*
      * For the {@link soc.game.SOCBoardLarge large sea board},
      * player element type for asking to choose
      * resources from the gold hex after a dice roll,
@@ -331,7 +358,7 @@ enum _PlayerElementType {
      * Call {@link soc.game.SOCPlayer#setNeedToPickGoldHexResources(int)}.
      * @since 2.0.00
      */
-    NUM_PICK_GOLD_HEX_RESOURCES = 17;
+    NUM_PICK_GOLD_HEX_RESOURCES = 101;
 
     /*
      * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
@@ -340,7 +367,7 @@ enum _PlayerElementType {
      * {@link soc.game.SOCPlayer#getSpecialVP()}.
      * @since 2.0.00
      */
-    SCENARIO_SVP = 18;
+    SCENARIO_SVP = 102;
 
     /*
      * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
@@ -349,7 +376,7 @@ enum _PlayerElementType {
      * from {@link soc.game.SOCPlayer#getScenarioPlayerEvents()}.
      * @since 2.0.00
      */
-    SCENARIO_PLAYEREVENTS_BITMASK = 19;
+    SCENARIO_PLAYEREVENTS_BITMASK = 103;
 
     /*
      * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
@@ -358,7 +385,7 @@ enum _PlayerElementType {
      * from {@link soc.game.SOCPlayer#getScenarioSVPLandAreas()}.
      * @since 2.0.00
      */
-    SCENARIO_SVP_LANDAREAS_BITMASK = 20;
+    SCENARIO_SVP_LANDAREAS_BITMASK = 104;
 
     /*
      * Player's starting land area numbers.
@@ -366,7 +393,7 @@ enum _PlayerElementType {
      * Sent as <tt>(landArea2 &lt;&lt; 8) | landArea1</tt>.
      * @since 2.0.00
      */
-    STARTING_LANDAREAS = 21;
+    STARTING_LANDAREAS = 105;
 
     /*
      * For scenario <tt>_SC_CLVI</tt> on the {@link soc.game.SOCBoardLarge large sea board},
@@ -380,7 +407,7 @@ enum _PlayerElementType {
      * Each village's cloth count is updated with a {@link SOCPieceValue PIECEVALUE} message.
      * @since 2.0.00
      */
-    SCENARIO_CLOTH_COUNT = 22;
+    SCENARIO_CLOTH_COUNT = 106;
 
     /*
      * For scenario game option <tt>_SC_PIRI</tt>,
@@ -395,7 +422,7 @@ enum _PlayerElementType {
      * message is sent to their client only after sending their SOCShip piece positions.
      * @since 2.0.00
      */
-    SCENARIO_WARSHIP_COUNT = 23;
+    SCENARIO_WARSHIP_COUNT = 107;
 }
 
 /*
@@ -451,6 +478,41 @@ message PlayerElements {
     _PlayerElementAction action = 2;
     repeated _PlayerElementType elementTypes = 3;
     repeated sint32 amounts = 4;
+}
+
+/* This message from the server sets or updates fields of a game's status,
+ * such as the number of rounds played or development cards available.
+ * @since 2.0.00
+ */
+message GameElements {
+
+    enum _ElementType {
+        /* Required for enum, but not sent: not a valid game element */
+        _UNSENT_DEFAULT_GAME_ELEM = 0;
+
+        /* Current round of play, from {@link soc.game.SOCGame#getRoundCount()}. */
+        ROUND_COUNT = 1;
+
+        /* Number of development cards remaining in the deck to be bought,
+         * from {@link soc.game.SOCGame#getNumDevCards()}.
+         */
+        DEV_CARD_COUNT = 2;
+
+        /* Player number of first player in this game, from {@link soc.game.SOCGame#getFirstPlayer()}. */
+        FIRST_PLAYER = 3;
+
+        /* Player number of current player, or -1, from {@link soc.game.SOCGame#getCurrentPlayerNumber()}. */
+        CURRENT_PLAYER = 4;
+
+        /* Player number of player with largest army, or -1, from {@link soc.game.SOCGame#getPlayerWithLargestArmy()}. */
+        LARGEST_ARMY_PLAYER = 5;
+
+        /* Player number of player with longest road, or -1, from {@link soc.game.SOCGame#getPlayerWithLongestRoad()}. */
+        LONGEST_ROAD_PLAYER = 6;
+    }
+
+    repeated _ElementType elementTypes = 1;
+    repeated sint32 values = 2;
 }
 
 
@@ -562,7 +624,8 @@ message GameMessageFromServer {
         // game and player state
         State game_state = 2;
         PlayerElement player_element = 15;
-        PlayerElements player_elements = 25;  // above #15; is efficient enough (sets multiple elements) without that saved byte
+        PlayerElements player_elements = 16;  // above #15; is efficient enough (sets multiple elements) without that saved byte
+        GameElements game_elements = 17;
 
         // board layout and contents
         BoardLayout board_layout = 30;

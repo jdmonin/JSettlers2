@@ -22,6 +22,9 @@ package soc.message;
 import java.util.List;
 
 import soc.game.SOCGame;  // for javadocs only
+import soc.proto.GameMessage;
+import soc.proto.Message;
+import soc.util.DataUtils;
 
 
 /**
@@ -206,6 +209,20 @@ public class SOCGameElements extends SOCMessageTemplateMi
         } catch (Exception e) {
             return null;
         }
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.GameElements.Builder b
+            = GameMessage.GameElements.newBuilder();
+        b.addAllElementTypesValue(DataUtils.toList(elementTypes))
+         .addAllValues(DataUtils.toList(values));
+
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGaName(game).setGameElements(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
     /**
