@@ -942,8 +942,10 @@ public class SOCGameHandler extends GameHandler
         /**
          * if game hasn't started yet, each player's potentialSettlements are
          * identical, so send that info once for all players.
+         * Otherwise send each player's unique potential settlement list,
+         * to populate legal sets before sending any of their PutPieces.
          */
-        if ((gameData.getGameState() == SOCGame.NEW)
+        if ((gameData.getGameState() < SOCGame.START1A)
             && (c.getVersion() >= SOCPotentialSettlements.VERSION_FOR_PLAYERNUM_ALL))
         {
             final HashSet<Integer> psList = gameData.getPlayer(0).getPotentialSettlements();
@@ -971,7 +973,7 @@ public class SOCGameHandler extends GameHandler
 
             if (lan == null)
             {
-                c.put(SOCPotentialSettlements.toCmd(gameName, -1, new Vector<Integer>(psList)));
+                c.put(SOCPotentialSettlements.toCmd(gameName, -1, new ArrayList<Integer>(psList)));
             } else {
                 c.put(SOCPotentialSettlements.toCmd
                     (gameName, -1, pan, lan, SOCBoardAtServer.getLegalSeaEdges(gameData, -1)));
@@ -984,6 +986,36 @@ public class SOCGameHandler extends GameHandler
                 c.put(SOCPlayerElement.toCmd
                     (gameName, -1, SOCPlayerElement.SET,
                      SOCPlayerElement.SCENARIO_CLOTH_COUNT, ((SOCBoardLarge) (gameData.getBoard())).getCloth()));
+        } else {
+            for (int pn = 0; pn < gameData.maxPlayers; ++pn)
+            {
+                final SOCPlayer pl = gameData.getPlayer(pn);
+                final HashSet<Integer> psList = pl.getPotentialSettlements();
+
+                // Some boards may have multiple land areas.
+                // See also above, and startGame which has very similar code.
+                final HashSet<Integer>[] lan;
+                if (gameData.hasSeaBoard && (pn == 0))
+                {
+                    // send this info once, not per-player:
+                    // Note: Assumes all players have same legal nodes.
+                    final SOCBoardLarge bl = (SOCBoardLarge) gameData.getBoard();
+                    lan = bl.getLandAreasLegalNodes();
+                    if (lan != null)
+                        lan[0] = psList;
+                } else {
+                    lan = null;
+                }
+
+                if (lan == null)
+                {
+                    c.put(SOCPotentialSettlements.toCmd(gameName, pn, new ArrayList<Integer>(psList)));
+                } else {
+                    c.put(SOCPotentialSettlements.toCmd
+                        (gameName, pn, 0, lan, SOCBoardAtServer.getLegalSeaEdges(gameData, pn)));
+                    lan[0] = null;  // Undo change to game's copy of landAreasLegalNodes
+                }
+            }
         }
 
         /**
@@ -1194,43 +1226,6 @@ public class SOCGameHandler extends GameHandler
             if (itm != 0)
                 srv.messageToPlayer(c, new SOCPlayerElement
                     (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_WARSHIP_COUNT, itm));
-
-            /**
-             * send each player's unique potential settlement list,
-             * if game has started
-             */
-            if ((gameData.getGameState() != SOCGame.NEW)
-                || (c.getVersion() < SOCPotentialSettlements.VERSION_FOR_PLAYERNUM_ALL))
-            {
-                final HashSet<Integer> psList = pl.getPotentialSettlements();
-
-                // Some boards may have multiple land areas.
-                // Note: Assumes all players have same legal nodes.
-                // See also above, and startGame which has very similar code.
-                final HashSet<Integer>[] lan;
-                final int pan;
-                if (gameData.hasSeaBoard && (i == 0))
-                {
-                    // send this info once, not per-player
-                    final SOCBoardLarge bl = (SOCBoardLarge) gameData.getBoard();
-                    lan = bl.getLandAreasLegalNodes();
-                    pan = bl.getStartingLandArea();
-                    if (lan != null)
-                        lan[0] = psList;
-                } else {
-                    lan = null;
-                    pan = 0;
-                }
-
-                if (lan == null)
-                {
-                    c.put(SOCPotentialSettlements.toCmd(gameName, i, new Vector<Integer>(psList)));
-                } else {
-                    c.put(SOCPotentialSettlements.toCmd
-                        (gameName, i, pan, lan, SOCBoardAtServer.getLegalSeaEdges(gameData, i)));
-                    lan[0] = null;  // Undo change to game's copy of landAreasLegalNodes
-                }
-            }
 
             /**
              * send node coord of the last settlement, resources,

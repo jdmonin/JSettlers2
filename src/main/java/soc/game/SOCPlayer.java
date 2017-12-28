@@ -3901,6 +3901,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param legalLandAreaNodes If non-null and <tt>setLegalsToo</tt>,
      *     all Land Areas' legal (but not currently potential) node coordinates.
      *     Index 0 is ignored; land area numbers start at 1.
+     *     If {@code setLegalsToo} but this is null, will use
+     *     {@link SOCBoardLarge#getLegalAndPotentialSettlements()} instead.
      * @see #addLegalSettlement(int, boolean)
      */
     public void setPotentialAndLegalSettlements
@@ -3909,22 +3911,27 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         clearPotentialSettlements();
         potentialSettlements.addAll(psList);
 
-        if (setLegalsToo && game.hasSeaBoard
-            && ((! psList.isEmpty()) || (legalLandAreaNodes != null)) )
+        if (setLegalsToo && game.hasSeaBoard)
         {
             legalSettlements.clear();
             legalSettlements.addAll(psList);
+
+            final SOCBoardLarge board = (SOCBoardLarge) game.getBoard();
+
             if (legalLandAreaNodes != null)
-            {
                 for (int i = 1; i < legalLandAreaNodes.length; ++i)
                     legalSettlements.addAll(legalLandAreaNodes[i]);
-            }
+            else
+                legalSettlements.addAll(board.getLegalAndPotentialSettlements());
 
             legalRoads = game.getBoard().initPlayerLegalRoads();
-            if (! game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
-                legalShips = ((SOCBoardLarge) game.getBoard()).initPlayerLegalShips();
-            else
-                legalShips.clear();  // caller must soon call setRestrictedLegalShips
+            if (! (board.getLandHexCoordsSet().isEmpty()))
+            {
+                if (! game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+                    legalShips = board.initPlayerLegalShips();
+                else
+                    legalShips.clear();  // SC_PIRI: caller must soon call setRestrictedLegalShips
+            }
         }
     }
 

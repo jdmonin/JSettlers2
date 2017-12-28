@@ -2179,7 +2179,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (ga.hasSeaBoard)
         {
             SOCBoardLarge bl = ((SOCBoardLarge) ga.getBoard());
-            if ((pn == -1) || bl.getLegalAndPotentialSettlements().isEmpty())
+            if ((pn == -1) || ((pn == 0) && bl.getLegalAndPotentialSettlements().isEmpty()))
                 bl.setLegalAndPotentialSettlements
                   (vset, mes.startingLandArea, las);  // throws IllegalStateException if board layout
                                                       // has malformed Added Layout Part "AL"
