@@ -4747,9 +4747,10 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
     /**
      * Wonders: Special Node locations.  Subarrays for each of 3 types:
-     * Great wall at desert; great bridge at strait; no-build nodes near strait.
+     * Great wall at desert wasteland; great bridge at strait; no-build nodes next to strait.
+     * See {@link SOCScenario#K_SC_WOND} for details.
      *<P>
-     * SOCBoardLarge additional parts {@code "N1", "N2", "N3"}.
+     * SOCBoardLarge additional Layout Parts {@code "N1", "N2", "N3"}.
      */
     private static final int WOND_SPECIAL_NODES[][][] =
     {{
