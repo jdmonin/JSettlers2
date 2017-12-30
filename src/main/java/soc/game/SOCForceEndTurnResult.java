@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008,2010,2012-2013,2015-2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008,2010,2012-2013,2015-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,15 +21,15 @@ package soc.game;
 
 
 /**
- * This class holds the results of a call to {@link SOCGame#forceEndTurn()}.
- * Specifically, the resulting action type, and possibly list of discarded
+ * The results of a call to {@link SOCGame#forceEndTurn()}:
+ * The resulting action type, and possibly list of discarded
  * or returned resources or dev card/inventory item.
  *<P>
- * <tt>forceEndTurn()</tt> may also set the game state to {@link SOCGame#OVER}.
+ * {@code forceEndTurn()} may also set the game state to {@link SOCGame#OVER}.
  * Check for that; it's not reported as part of this object.
  *<P>
- * The result object isn't intended to be conveyed over a network to clients; the server
- * should translate it into standard SOCMessages which change game state.
+ * This result object isn't intended to be conveyed over a network to clients; the server
+ * should translate it into {@code SOCMessage}s which change game state.
  */
 public class SOCForceEndTurnResult
 {

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014-2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,7 +26,7 @@ import soc.message.SOCMessage;  // strictly for isSingleLineAndSafe
 
 
 /**
- * A special item for Settlers scenarios or expansions.
+ * A special item in a game that uses Settlers scenarios or expansions.
  * During game play, players may be allowed to {@code PICK} (choose), {@code SET}, or {@code CLEAR} special items;
  * the meaning of these actions is scenario-specific.  See {@code typeKey} list below for usage and meaning.
  * See {@link #playerPickItem(String, SOCGame, SOCPlayer, int, int)} and
@@ -61,7 +61,7 @@ import soc.message.SOCMessage;  // strictly for isSingleLineAndSafe
  * requires synchronization, do so outside this class and document the details.  Some methods here
  * require locking as described in their javadocs.
  *<P>
- * Special items must be {@link Cloneable} for use in copy constructors, see {@link #clone()} for details.
+ * Special items must be {@link Cloneable} for use in copy constructors; see {@link #clone()} for details.
  *
  *<H5>Current scenarios and {@code typeKey}s:</H5>
  *

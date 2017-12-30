@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2013,2015-2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2013,2015-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,13 +26,13 @@ package soc.game;
  * Each event also has a {@link SOCGameOption} to indicate its scenario rules are active; see enum value javadocs.
  *<P>
  * Not all scenario-related rules changes have or need an event. For example, in
- * {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, the Knight/Soldier card is used only to
+ * {@link SOCGameOption#K_SC_PIRI _SC_PIRI} the Knight/Soldier card is used only to
  * convert ships to warships.  This happens every time the card is played, so there's
- * no event for it.  The game/server logic for playing dev cards checks for _SC_PIRI
+ * no event for it.  The game/server logic for playing dev cards checks for {@code _SC_PIRI}
  * right there, instead of code elsewhere in an event listener.  However, in
- * {@link SOCGameOption#K_SC_SANY _SC_SANY}, the player will <em>sometimes</em> get an
+ * {@link SOCGameOption#K_SC_SANY _SC_SANY} the player will <em>sometimes</em> get an
  * SVP for settling a new island; it doesn't happen each time the player builds a settlement.
- * So, a scenario event communicates the new SVP.
+ * So, a scenario event communicates the new SVP there.
  *
  * @see SOCScenarioGameEvent
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -40,7 +40,7 @@ package soc.game;
  */
 public enum SOCScenarioPlayerEvent
 {
-    // Note: Some SOCServer code assumes that player events are fired only during SOCGameMessageHandler.handlePUTPIECE.
+    // Note: Some server code assumes that player events are fired only during SOCGameMessageHandler.handlePUTPIECE.
     // If a new player event breaks this assumption, adjust SOCServer.playerEvent(...) and related code;
     // search where SOCGame.pendingMessagesOut is used.
 

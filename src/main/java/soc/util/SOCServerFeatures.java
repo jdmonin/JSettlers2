@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014-2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@ package soc.util;
 
 /**
  * Set of optional server features that are currently active.
- * Sent from server to client during connect via {@link soc.message.SOCVersion} fields.
+ * Sent from server to client during connect via {@link soc.message.SOCVersion} message fields.
  *<P>
  * Added in v1.1.19 ({@link #VERSION_FOR_SERVERFEATURES}); earlier clients assume the server is using the
  * features defined in 1.1.19. Use the {@link #SOCServerFeatures(boolean) SOCServerFeatures(true)} constructor
@@ -76,7 +76,7 @@ public class SOCServerFeatures
 
     /**
      * Separator character ';' between features in {@link #featureList}.
-     * Avoid separators defined in {@code SOCMessage}.
+     * Chosen to avoid the {@code sep_char} and {@code sep2_char} separators defined in {@code SOCMessage}.
      */
     private static char SEP_CHAR = ';';
 

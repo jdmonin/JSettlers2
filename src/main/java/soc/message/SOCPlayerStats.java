@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2010,2012,2014-2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2010,2012,2014-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,22 +23,22 @@ import soc.game.SOCPlayer;
 import soc.game.SOCResourceConstants;
 
 /**
- * Statistics of one type for one player.
- * Sent at end of game, or by player's request ("*STATS*" command).
+ * Statistics from server for one stats type for a player.
+ * Sent at end of game, or by player's request ({@code "*STATS*"} command).
  * Design allows multiple types of stats.
  * The first item in this message is the type number.
  * Content of further items depends on the stats type.
- *<P>
- * <B>Type 1:</B> Resource roll stats:
- * For item details see {@link #STYPE_RES_ROLL}. Introduced in 1.1.09;
- * check client version against {@link #VERSION_FOR_RES_ROLL}
- * before sending this type.
- *<P>
- * In 2.0.00 and newer, this type optionally includes an additional
- * item for the number of gold hex resource picks/gains.
- * Older clients would ignore the extra item, but wouldn't be compatible
- * anyway with any game scenario that features gold hexes.
- *<P>
+ *<UL>
+ * <LI><B>Type 1:</B> Resource roll stats:<BR>
+ *   For item details see {@link #STYPE_RES_ROLL}. Introduced in 1.1.09;
+ *   check client version against {@link #VERSION_FOR_RES_ROLL}
+ *   before sending this type.
+ *   <P>
+ *   In v2.0.00 and newer, this type optionally includes an additional
+ *   item for the number of gold hex resource picks/gains.
+ *   Older clients would ignore the extra item, but wouldn't be compatible
+ *   anyway with any game scenario that features gold hexes.
+ *</UL>
  * Robot clients don't need to know about or handle this message type,
  * because they don't care about their player stats.
  *
