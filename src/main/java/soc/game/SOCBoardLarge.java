@@ -49,7 +49,7 @@ import soc.util.IntPair;
  * {@code SOCBoardAtServer.makeNewBoard(Map)} when the game is about to begin,
  * then sent to the clients over the network.  The client calls methods such as {@link #setLandHexLayout(int[])},
  * {@link #setPortsLayout(int[])}, {@link SOCGame#putPiece(SOCPlayingPiece)}, and
- * {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])} with data from the server.
+ * {@link #setLegalSettlements(Collection, int, HashSet[])} with data from the server.
  *<P>
  * See {@code SOCBoardAtServer}'s class javadoc, and its {@code makeNewBoard(Map)} javadoc, for more details on layout creation.
  *<P>
@@ -476,12 +476,13 @@ public class SOCBoardLarge extends SOCBoard
      * layout changes, this field again becomes <tt>null</tt> until the
      * next call to {@link #getLandHexCoords()}.
      */
-    protected int[] cachedGetLandHexCoords;
+    protected volatile int[] cachedGetLandHexCoords;
 
     /**
      * The set of land hex coordinates within {@link #hexLayoutLg}.
      * Sent from server to client, along with the land hex types / dice numbers,
      * via {@link #getLandHexLayout()} / {@link #setLandHexLayout(int[])}.
+     * When changing contents, set {@link #cachedGetLandHexCoords} to {@code null}.
      */
     protected HashSet<Integer> landHexLayout;
 
@@ -758,8 +759,8 @@ public class SOCBoardLarge extends SOCBoard
      * Shuffle the hex tiles and layout a board.
      * This is called at server, but not at client;
      * client instead calls methods such as {@link #setLandHexLayout(int[])}
-     * and {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])}.
-     * Call soc.server.SOCBoardAtServer.makeNewBoard instead of this stub super method.
+     * and {@link #setLegalSettlements(Collection, int, HashSet[])}.
+     * Call {@code soc.server.SOCBoardAtServer.makeNewBoard(..)} instead of this stub super method.
      * @throws UnsupportedOperationException if called at client
      */
     @Override
@@ -781,7 +782,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * Called at server and at client. At server, call this only after the very last call to
      * {@code SOCBoardAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int, boolean)}.
-     * At client, called from {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])}.
+     * At client, called from {@link #setLegalSettlements(Collection, int, HashSet[])}.
      *
      * @throws IllegalStateException if Part {@code "AL"} is present but badly formed (node list number 0, or a
      *     node list number not followed by a land area number) or refers to a node list Part ({@code "N1", "N2"}, etc)
@@ -1643,8 +1644,9 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * The hex coordinates of all land hexes.  Please treat as read-only.
-     * @return land hex coordinates, as a set of {@link Integer}s
+     * @return land hex coordinates, as a set of {@link Integer}s; never null, may be empty
      * @since 2.0.00
+     * @see #getLandHexCoords()
      */
     public HashSet<Integer> getLandHexCoordsSet()
     {
@@ -1652,9 +1654,10 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * The hex coordinates of all land hexes.
+     * The hex coordinates of all land hexes; built from {@link #getLandHexCoordsSet()} and then cached
+     * until the layout changes.
      *<P>
-     * Before v2.0.00, this was <tt>getHexLandCoords()</tt>.
+     * Before v2.0.00 this was {@code getHexLandCoords()}.
      *
      * @return land hex coordinates, in no particular order, or null if none (all water).
      * @see #getLandHexCoordsSet()
@@ -2264,7 +2267,7 @@ public class SOCBoardLarge extends SOCBoard
      * If the players must start in a certain land area,
      * {@link #startingLandArea} != 0.
      *<P>
-     * See also {@link #getLegalAndPotentialSettlements()}
+     * See also {@link #getLegalSettlements()}
      * which returns the starting land area's nodes, or if no starting
      * land area, all nodes of all land areas.
      *<P>
@@ -2282,20 +2285,20 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Get the legal and potential settlements, after {@link #makeNewBoard(Map)}.
-     * For use mainly by SOCGame at server.
-     *<P>
-     * Returns the starting land area's nodes, or if no starting
-     * land area, all nodes of all land areas.
+     * Get the legal settlement nodes, after {@link #makeNewBoard(Map)}.
+     * For use mainly by SOCGame at server, and SOCPlayer at client when joining a game.
      *<P>
      * At the client, this returns an empty set if
-     * {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])}
-     * hasn't yet been called while the game is starting.
+     * {@link #setLegalSettlements(Collection, int, HashSet[])}
+     * hasn't yet been called while the game is starting or while joining a game in progress.
      *<P>
      * See also {@link #getLandAreasLegalNodes()} which returns
      * all the legal nodes when multiple "land areas" are used.
+     *
+     * @return  the starting land area's legal nodes, or if no starting land area, all nodes of all land areas
+     * @see SOCPlayer#setPotentialAndLegalSettlements(Collection, boolean, HashSet[])
      */
-    public HashSet<Integer> getLegalAndPotentialSettlements()
+    public HashSet<Integer> getLegalSettlements()
     {
         if ((landAreasLegalNodes == null) || (startingLandArea == 0))
             return nodesOnLand;
@@ -2304,7 +2307,7 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Set the legal and potential settlements, and calculate the Nodes On Land, legal roads and ship edges.
+     * Set the board's legal settlement nodes, and calculate the Nodes On Land, legal roads and ship edges.
      * Called at client only, when server sends potential settlements following the board layout message.
      *<P>
      * Nodes On Land will be the union of all {@code lan[]} nodes; legal roads are calculated from Nodes On Land.
@@ -2318,8 +2321,7 @@ public class SOCBoardLarge extends SOCBoard
      * After calling this method, you can get the new legal road set
      * with {@link #initPlayerLegalRoads()}.
      *<P>
-     * If this method hasn't yet been called, {@link #getLegalAndPotentialSettlements()}
-     * returns an empty set.
+     * If this method hasn't yet been called, {@link #getLegalSettlements()} returns an empty set.
      *<P>
      * In some scenarios ({@code _SC_PIRI}), not all sea edges are legal for ships.
      * See {@link SOCPlayer#setRestrictedLegalShips(int[])}
@@ -2338,8 +2340,9 @@ public class SOCBoardLarge extends SOCBoard
      * @throws IllegalStateException if Added Layout Part {@code "AL"} is present but badly formed (node list number 0,
      *     or a node list number not followed by a land area number). This Added Layout Part is rarely used,
      *     and this would be discovered quickly while testing the board layout that contained it.
+     * @see SOCPlayer#setPotentialAndLegalSettlements(Collection, boolean, HashSet[])
      */
-    public void setLegalAndPotentialSettlements
+    public void setLegalSettlements
         (final Collection<Integer> psNodes, final int sla, final HashSet<Integer>[] lan)
         throws IllegalStateException
     {
@@ -2375,8 +2378,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * Because the v3 board layout varies:
      * At the server, call this after {@link #makeNewBoard(Map)}.
-     * At the client, call this after
-     * {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])}.
+     * At the client, call this after {@link #setLegalSettlements(Collection, int, HashSet[])}.
      *
      * @return the set of legal edge coordinates for roads, as a new Set of {@link Integer}s
      * @since 1.1.12
@@ -2393,8 +2395,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * Because the v3 board layout varies:
      * At the server, call this after {@link #makeNewBoard(Map)}.
-     * At the client, call this after
-     * {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])}.
+     * At the client, call this after {@link #setLegalSettlements(Collection, int, HashSet[])}.
      *
      * @return the set of legal edge coordinates for ships, as a new Set of {@link Integer}s
      * @since 2.0.00

@@ -344,7 +344,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * then <tt>nodeCoord</tt> is a legal settlement.
      *<P>
      * If not {@link SOCGame#hasSeaBoard}, initialized in constructor
-     * from {@link SOCBoard#initPlayerLegalAndPotentialSettlements()}.
+     * from {@link SOCBoard#initPlayerLegalSettlements()}.
      *<P>
      * If {@link SOCGame#hasSeaBoard}: Empty at server until {@link SOCBoardLarge#makeNewBoard(Map)}
      * and {@link SOCGame#startGame()}, because the board layout and legal settlements vary
@@ -702,7 +702,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Unless {@link SOCGame#hasSeaBoard},
      * the player's possible placement locations will be
      * set from {@link SOCBoard#initPlayerLegalRoads()} and
-     * {@link SOCBoard#initPlayerLegalAndPotentialSettlements()}.
+     * {@link SOCBoard#initPlayerLegalSettlements()}.
      *<P>
      * Once the game board is set up, be sure to call
      * {@link #setPotentialAndLegalSettlements(Collection, boolean, HashSet[])}
@@ -779,7 +779,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         if (! game.hasSeaBoard)
         {
             legalRoads = board.initPlayerLegalRoads();
-            legalSettlements = board.initPlayerLegalAndPotentialSettlements();
+            legalSettlements = board.initPlayerLegalSettlements();
             legalShips = new HashSet<Integer>();  // will remain empty
             potentialSettlements = new HashSet<Integer>(legalSettlements);
         } else {
@@ -3879,7 +3879,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * then also update the player's legal settlements
      * and legal road sets, since they aren't constant
      * on that type of board; don't call this method before calling
-     * {@link SOCBoardLarge#setLegalAndPotentialSettlements(Collection, int, HashSet[])},
+     * {@link SOCBoardLarge#setLegalSettlements(Collection, int, HashSet[])},
      * or the road sets won't be complete.
      *<P>
      * Call this method before, not after, calling {@link #setRestrictedLegalShips(int[])}.
@@ -3902,7 +3902,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *     all Land Areas' legal (but not currently potential) node coordinates.
      *     Index 0 is ignored; land area numbers start at 1.
      *     If {@code setLegalsToo} but this is null, will use
-     *     {@link SOCBoardLarge#getLegalAndPotentialSettlements()} instead.
+     *     {@link SOCBoardLarge#getLegalSettlements()} instead.
      * @see #addLegalSettlement(int, boolean)
      */
     public void setPotentialAndLegalSettlements
@@ -3922,7 +3922,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 for (int i = 1; i < legalLandAreaNodes.length; ++i)
                     legalSettlements.addAll(legalLandAreaNodes[i]);
             else
-                legalSettlements.addAll(board.getLegalAndPotentialSettlements());
+                legalSettlements.addAll(board.getLegalSettlements());
 
             legalRoads = game.getBoard().initPlayerLegalRoads();
             if (! (board.getLandHexCoordsSet().isEmpty()))
