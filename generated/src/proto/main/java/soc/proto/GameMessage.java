@@ -2618,6 +2618,10 @@ public final class GameMessage {
      * Player Number this applies to; may be -1 for all players at start of game.
      * -1 also indicates that the legal settlements should be set and the
      * legal roads recalculated from this message's list of potential nodes.
+     *&lt;P&gt;
+     * If the game has already started, Land Area contents are sent when
+     * {&#64;code player_number} == 0 and board's legal roads should be
+     * calculated at that point.
      * </pre>
      *
      * <code>sint32 player_number = 1;</code>
@@ -2626,7 +2630,11 @@ public final class GameMessage {
 
     /**
      * <pre>
-     * Potential settlement node coordinates for {&#64;link #playerNumber} 
+     * Potential settlement node coordinates for {&#64;link #playerNumber}.
+     * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+     *   This player currently has no potential settlements.
+     * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+     *   legal nodes as the player's potential coordinates.
      * </pre>
      *
      * <code>repeated int32 ps_nodes = 2;</code>
@@ -2634,7 +2642,11 @@ public final class GameMessage {
     java.util.List<java.lang.Integer> getPsNodesList();
     /**
      * <pre>
-     * Potential settlement node coordinates for {&#64;link #playerNumber} 
+     * Potential settlement node coordinates for {&#64;link #playerNumber}.
+     * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+     *   This player currently has no potential settlements.
+     * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+     *   legal nodes as the player's potential coordinates.
      * </pre>
      *
      * <code>repeated int32 ps_nodes = 2;</code>
@@ -2642,7 +2654,11 @@ public final class GameMessage {
     int getPsNodesCount();
     /**
      * <pre>
-     * Potential settlement node coordinates for {&#64;link #playerNumber} 
+     * Potential settlement node coordinates for {&#64;link #playerNumber}.
+     * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+     *   This player currently has no potential settlements.
+     * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+     *   legal nodes as the player's potential coordinates.
      * </pre>
      *
      * <code>repeated int32 ps_nodes = 2;</code>
@@ -2984,6 +3000,10 @@ public final class GameMessage {
      * Player Number this applies to; may be -1 for all players at start of game.
      * -1 also indicates that the legal settlements should be set and the
      * legal roads recalculated from this message's list of potential nodes.
+     *&lt;P&gt;
+     * If the game has already started, Land Area contents are sent when
+     * {&#64;code player_number} == 0 and board's legal roads should be
+     * calculated at that point.
      * </pre>
      *
      * <code>sint32 player_number = 1;</code>
@@ -2996,7 +3016,11 @@ public final class GameMessage {
     private java.util.List<java.lang.Integer> psNodes_;
     /**
      * <pre>
-     * Potential settlement node coordinates for {&#64;link #playerNumber} 
+     * Potential settlement node coordinates for {&#64;link #playerNumber}.
+     * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+     *   This player currently has no potential settlements.
+     * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+     *   legal nodes as the player's potential coordinates.
      * </pre>
      *
      * <code>repeated int32 ps_nodes = 2;</code>
@@ -3007,7 +3031,11 @@ public final class GameMessage {
     }
     /**
      * <pre>
-     * Potential settlement node coordinates for {&#64;link #playerNumber} 
+     * Potential settlement node coordinates for {&#64;link #playerNumber}.
+     * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+     *   This player currently has no potential settlements.
+     * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+     *   legal nodes as the player's potential coordinates.
      * </pre>
      *
      * <code>repeated int32 ps_nodes = 2;</code>
@@ -3017,7 +3045,11 @@ public final class GameMessage {
     }
     /**
      * <pre>
-     * Potential settlement node coordinates for {&#64;link #playerNumber} 
+     * Potential settlement node coordinates for {&#64;link #playerNumber}.
+     * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+     *   This player currently has no potential settlements.
+     * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+     *   legal nodes as the player's potential coordinates.
      * </pre>
      *
      * <code>repeated int32 ps_nodes = 2;</code>
@@ -3739,6 +3771,10 @@ public final class GameMessage {
        * Player Number this applies to; may be -1 for all players at start of game.
        * -1 also indicates that the legal settlements should be set and the
        * legal roads recalculated from this message's list of potential nodes.
+       *&lt;P&gt;
+       * If the game has already started, Land Area contents are sent when
+       * {&#64;code player_number} == 0 and board's legal roads should be
+       * calculated at that point.
        * </pre>
        *
        * <code>sint32 player_number = 1;</code>
@@ -3751,6 +3787,10 @@ public final class GameMessage {
        * Player Number this applies to; may be -1 for all players at start of game.
        * -1 also indicates that the legal settlements should be set and the
        * legal roads recalculated from this message's list of potential nodes.
+       *&lt;P&gt;
+       * If the game has already started, Land Area contents are sent when
+       * {&#64;code player_number} == 0 and board's legal roads should be
+       * calculated at that point.
        * </pre>
        *
        * <code>sint32 player_number = 1;</code>
@@ -3766,6 +3806,10 @@ public final class GameMessage {
        * Player Number this applies to; may be -1 for all players at start of game.
        * -1 also indicates that the legal settlements should be set and the
        * legal roads recalculated from this message's list of potential nodes.
+       *&lt;P&gt;
+       * If the game has already started, Land Area contents are sent when
+       * {&#64;code player_number} == 0 and board's legal roads should be
+       * calculated at that point.
        * </pre>
        *
        * <code>sint32 player_number = 1;</code>
@@ -3786,7 +3830,11 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * Potential settlement node coordinates for {&#64;link #playerNumber} 
+       * Potential settlement node coordinates for {&#64;link #playerNumber}.
+       * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+       *   This player currently has no potential settlements.
+       * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+       *   legal nodes as the player's potential coordinates.
        * </pre>
        *
        * <code>repeated int32 ps_nodes = 2;</code>
@@ -3797,7 +3845,11 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * Potential settlement node coordinates for {&#64;link #playerNumber} 
+       * Potential settlement node coordinates for {&#64;link #playerNumber}.
+       * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+       *   This player currently has no potential settlements.
+       * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+       *   legal nodes as the player's potential coordinates.
        * </pre>
        *
        * <code>repeated int32 ps_nodes = 2;</code>
@@ -3807,7 +3859,11 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * Potential settlement node coordinates for {&#64;link #playerNumber} 
+       * Potential settlement node coordinates for {&#64;link #playerNumber}.
+       * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+       *   This player currently has no potential settlements.
+       * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+       *   legal nodes as the player's potential coordinates.
        * </pre>
        *
        * <code>repeated int32 ps_nodes = 2;</code>
@@ -3817,7 +3873,11 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * Potential settlement node coordinates for {&#64;link #playerNumber} 
+       * Potential settlement node coordinates for {&#64;link #playerNumber}.
+       * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+       *   This player currently has no potential settlements.
+       * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+       *   legal nodes as the player's potential coordinates.
        * </pre>
        *
        * <code>repeated int32 ps_nodes = 2;</code>
@@ -3831,7 +3891,11 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * Potential settlement node coordinates for {&#64;link #playerNumber} 
+       * Potential settlement node coordinates for {&#64;link #playerNumber}.
+       * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+       *   This player currently has no potential settlements.
+       * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+       *   legal nodes as the player's potential coordinates.
        * </pre>
        *
        * <code>repeated int32 ps_nodes = 2;</code>
@@ -3844,7 +3908,11 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * Potential settlement node coordinates for {&#64;link #playerNumber} 
+       * Potential settlement node coordinates for {&#64;link #playerNumber}.
+       * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+       *   This player currently has no potential settlements.
+       * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+       *   legal nodes as the player's potential coordinates.
        * </pre>
        *
        * <code>repeated int32 ps_nodes = 2;</code>
@@ -3859,7 +3927,11 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * Potential settlement node coordinates for {&#64;link #playerNumber} 
+       * Potential settlement node coordinates for {&#64;link #playerNumber}.
+       * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+       *   This player currently has no potential settlements.
+       * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+       *   legal nodes as the player's potential coordinates.
        * </pre>
        *
        * <code>repeated int32 ps_nodes = 2;</code>

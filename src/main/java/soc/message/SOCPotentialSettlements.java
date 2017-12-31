@@ -568,8 +568,13 @@ public class SOCPotentialSettlements extends SOCMessage
 
             b.setAreaCount(L - 1);
 
-            if ((landAreasLegalNodes[pan] != null) && ! landAreasLegalNodes[pan].isEmpty())
-                b.addAllPsNodes(lan[pan]);
+            if (landAreasLegalNodes[pan] != null)
+            {
+                if (! landAreasLegalNodes[pan].isEmpty())
+                    b.addAllPsNodes(lan[pan]);
+                else
+                    b.addPsNodes(0);
+            }
 
             for (int i = 1; i < L; ++i)
             {
