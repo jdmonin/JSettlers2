@@ -3929,7 +3929,7 @@ public class SOCGame implements Serializable, Cloneable
          * to reflect the new board layout.
          */
         setPlayersLandHexCoordinates();
-        HashSet<Integer> psList = ((SOCBoardLarge) board).getLegalAndPotentialSettlements();
+        HashSet<Integer> psList = ((SOCBoardLarge) board).getLegalSettlements();
         final HashSet<Integer>[] las = ((SOCBoardLarge) board).getLandAreasLegalNodes();
         for (int i = 0; i < maxPlayers; ++i)
             players[i].setPotentialAndLegalSettlements(psList, true, las);

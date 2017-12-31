@@ -210,7 +210,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
     /**
      * Shuffle the hex tiles and layout a board.
      * Sets up land hex types, water, ports, dice numbers, Land Areas' contents, starting Land Area if any,
-     * and the legal/potential node sets ({@link SOCBoardLarge#getLegalAndPotentialSettlements()}).
+     * and the legal/potential node sets ({@link SOCBoardLarge#getLegalSettlements()}).
      * Sets up any Added Layout Parts such as {@code "PP", "CE", "VE", "N1"}, etc.
      *<P>
      * If {@code opts} is {@code null} or doesn't have {@code "SBL"} set, will create
@@ -218,7 +218,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      *<P>
      * This is called at server, but not at client;
      * client instead calls methods such as {@link #setLandHexLayout(int[])}
-     * and {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])},
+     * and {@link #setLegalSettlements(Collection, int, HashSet[])},
      * see {@link SOCBoardLarge} class javadoc.
      * @param opts {@link SOCGameOption Game options}, which may affect
      *          tile placement on board, or null.  <tt>opts</tt> must be
@@ -964,8 +964,6 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
         // Shuffle, place, then check layout for clumps:
 
-        cachedGetLandHexCoords = null;  // invalidate the previous cached set
-
         do   // will re-do placement until clumpsNotOK is false
         {
             if (shuffleLandHexes)
@@ -1096,8 +1094,11 @@ public class SOCBoardAtServer extends SOCBoardLarge
         // vs size/contents of landAreasLegalNodes
         // from previously placed land areas.
 
+        cachedGetLandHexCoords = null;  // invalidate the previous cached set
+
         for (int i = 0; i < landHexType.length; i++)
             landHexLayout.add(new Integer(landPath[i]));
+
         for (int i = 0, hexIdx = 0; i < landAreaPathRanges.length; i += 2)
         {
             final int landAreaNumber = landAreaPathRanges[i],
@@ -2285,7 +2286,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * in lists referenced from Added Layout Part {@code "AL"} (see parameter {@code addNodeListNumber}).
      *
      * @param nodeCoords  Nodes to remove from {@link SOCBoardLarge#landAreasLegalNodes landAreasLegalNodes}
-     *     [{@code landAreaNumber}] and {@link SOCBoardLarge#getLegalAndPotentialSettlements()}
+     *     [{@code landAreaNumber}] and {@link SOCBoardLarge#getLegalSettlements()}
      * @param landAreaNumber  Land Area to remove nodes from.  If this is
      *     {@link SOCBoardLarge#startingLandArea startingLandArea},
      *     will also remove the nodes from potential initial settlement locations.
@@ -4939,9 +4940,10 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
     /**
      * Wonders: Special Node locations.  Subarrays for each of 3 types:
-     * Great wall at desert; great bridge at strait; no-build nodes near strait.
+     * Great wall at desert wasteland; great bridge at strait; no-build nodes next to strait.
+     * See {@link SOCScenario#K_SC_WOND} for details.
      *<P>
-     * SOCBoardLarge additional parts {@code "N1", "N2", "N3"}.
+     * SOCBoardLarge additional Layout Parts {@code "N1", "N2", "N3"}.
      */
     private static final int WOND_SPECIAL_NODES[][][] =
     {{

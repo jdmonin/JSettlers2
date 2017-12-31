@@ -65,6 +65,8 @@ public class SOCPlayerElement extends SOCMessage
      * First version number (2.0.00) that has element types replacing single-purpose message types:
      * {@link #RESOURCE_COUNT}, {@link #PLAYED_DEV_CARD_FLAG}, {@link #LAST_SETTLEMENT_NODE}.
      * Send older clients {@link SOCSetPlayedDevCard} or other appropriate messages instead.
+     *<P>
+     * Same version as {@link SOCPlayerElements#MIN_VERSION}.
      * @since 2.0.00
      */
     public static final int VERSION_FOR_CARD_ELEMENTS = 2000;

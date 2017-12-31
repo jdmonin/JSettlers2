@@ -42,7 +42,11 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
 {
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
-    /** Minimum client version required: v2.0.00 */
+    /**
+     * Minimum client version required: v2.0.00.
+     *<P>
+     * Same version as {@link SOCPlayerElement#VERSION_FOR_CARD_ELEMENTS}.
+     */
     public static final int MIN_VERSION = 2000;
 
     /**

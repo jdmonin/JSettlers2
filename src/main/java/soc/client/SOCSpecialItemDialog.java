@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014-2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -86,6 +86,7 @@ class SOCSpecialItemDialog
 
     /** Item pick buttons. */
     private JButton[] buttons;
+
     /** Button to close dialog without taking any action. */
     private JButton bClose;
 
@@ -168,6 +169,7 @@ class SOCSpecialItemDialog
         JLabel L;
 
         // blank row below prompt
+
         L = new JLabel(" ");
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(L, gbc);
@@ -334,6 +336,8 @@ class SOCSpecialItemDialog
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(bPan, gbc);
         cpane.add(bPan);
+
+        // Finish dialog setup
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         addWindowListener(new WindowAdapter()

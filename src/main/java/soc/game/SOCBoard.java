@@ -661,8 +661,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * nodes on outer edges of surrounding water/ports are not on the board.
      *<P>
      * See dissertation figure A.2.
-     * See also {@link #initPlayerLegalAndPotentialSettlements()}
-     * and {@link #getLandHexCoords()}.
+     * See also {@link #initPlayerLegalSettlements()} and {@link #getLandHexCoords()}.
      *<P>
      * On the large sea board, there can optionally be multiple "land areas"
      * (groups of islands), if {@link SOCBoardLarge#getLandAreasLegalNodes()} != null.
@@ -753,7 +752,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
     /**
      * As part of the constructor, check the {@link #boardEncodingFormat}
      * and initialize {@link #nodesOnLand} accordingly.
-     * @see #initPlayerLegalAndPotentialSettlements()
+     * @see #initPlayerLegalSettlements()
      * @since 2.0.00
      */
     private void initNodesOnLand()
@@ -768,7 +767,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
          * See dissertation figure A.2.
          * Classic 6-player layout starts land 1 extra hex (2 nodes) west of 4-player board,
          * and has an extra row of land hexes at north and south end.
-         * Same node coordinates are needed in initPlayerLegalAndPotentialSettlements.
+         * Same node coordinates are needed in initPlayerLegalSettlements.
          */
         final int westAdj = (is6player) ? 0x22 : 0x00;
 
@@ -1178,8 +1177,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * <b>Note:</b> If your board is board layout v3 ({@link SOCBoardLarge}):
      * Because the v3 board layout varies:
      * At the server, call this after {@link #makeNewBoard(Map)}.
-     * At the client, call this after
-     * {@link SOCBoardLarge#setLegalAndPotentialSettlements(java.util.Collection, int, HashSet[])}.
+     * At the client, call this after {@link SOCBoardLarge#setLegalSettlements(java.util.Collection, int, HashSet[])}.
      *
      * @return the set of legal edge coordinates for roads, as a new Set of {@link Integer}s
      * @since 1.1.12
@@ -1252,22 +1250,24 @@ public abstract class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Create and initialize a {@link SOCPlayer}'s set of legal settlements.
+     * Create and initialize a set of legal settlement nodes to give to a {@link SOCPlayer}.
      *<P>
      * For v1 and v2, you can clone the returned <tt>legalSettlements</tt>
-     * to <tt>potentialSettlements</tt>.
+     * to <tt>player.potentialSettlements</tt>.
      *<P>
      * For v3 ({@link SOCBoardLarge}), the potentials may be only a subset of
      * <tt>legalSettlements</tt>; after {@link #makeNewBoard(Map)}, call
-     * {@link SOCBoardLarge#getLegalAndPotentialSettlements()} instead of this method.
+     * {@link SOCBoardLarge#getLegalSettlements()} instead of this method.
      *<P>
      * Previously part of {@link SOCPlayer}, but moved here in version 1.1.12
      * to better encapsulate the board coordinate encoding.
      * In encoding v1 and v2, this is always the same coordinates as {@link #nodesOnLand}.
+     *<P>
+     * Before v2.0.00 this method was {@code initPlayerLegalAndPotentialSettlements}.
      * @since 1.1.12
      * @see #nodesOnLand
      */
-    public HashSet<Integer> initPlayerLegalAndPotentialSettlements()
+    public HashSet<Integer> initPlayerLegalSettlements()
     {
         HashSet<Integer> legalSettlements = new HashSet<Integer>(nodesOnLand);
         return legalSettlements;
@@ -1288,8 +1288,9 @@ public abstract class SOCBoard implements Serializable, Cloneable
 
     /**
      * The hex coordinates of all land hexes.
+     * May be constant or built at call time; see subclass javadocs for this method.
      *<P>
-     * Before v2.0.00, this was <tt>getHexLandCoords()</tt>.
+     * Before v2.0.00 this was {@code getHexLandCoords()}.
      *
      * @return land hex coordinates, in no particular order, or null if none (all water).
      * @since 1.1.08

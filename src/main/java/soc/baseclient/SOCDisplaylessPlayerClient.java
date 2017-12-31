@@ -2189,8 +2189,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         int pn = mes.getPlayerNumber();
         SOCBoardLarge bl = ((SOCBoardLarge) ga.getBoard());
-        if ((pn == -1) || bl.getLegalAndPotentialSettlements().isEmpty())
-            bl.setLegalAndPotentialSettlements
+        if ((pn == -1) || ((pn == 0) && bl.getLegalSettlements().isEmpty()))
+            bl.setLegalSettlements
               (vset, mes.startingLandArea, las);  // throws IllegalStateException if board layout
                                                   // has malformed Added Layout Part "AL"
         loneSettles = bl.getAddedLayoutPart("LS");  // usually null, except in _SC_PIRI
