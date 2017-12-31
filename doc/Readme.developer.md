@@ -365,7 +365,6 @@ jsettlers JAR from the command line, not running inside the IDE.
 - Network message system:
   - Scenario negotiation across versions, like SOCGameOption negotation
   - Consider a common handler/constant for EMPTYSTR token
-  - Send client legal/potential nodes/edges if joins or rejoins a game in progress
 - Server:
   - DB schema additions
 
