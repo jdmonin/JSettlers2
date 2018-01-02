@@ -100,6 +100,7 @@ import soc.util.IntPair;
  *<TR><td> Edge </td>
  *    <td><!-- Edge adjac to hex -->
  *      {@link #getAdjacentEdgesToHex(int)} <br>
+ *      {@link #getAdjacentEdgesToHex_arr(int)} <br>
  *      {@link #isEdgeAdjacentToHex(int, int)}
  *    </td>
  *    <td><!-- Edge adjac to edge -->
@@ -162,6 +163,7 @@ import soc.util.IntPair;
  *    <td><!-- edge -->
  *      {@link #isEdgeInBounds(int, int)} <br>
  *      {@link #isEdgeCoastline(int)} <br>
+ *      {@link #isEdgeLegalRoad(int)} <br>
  *      {@link #roadAtEdge(int)} <br>
  *      {@link #getPortsEdges()}
  *    </td>
@@ -503,6 +505,7 @@ public class SOCBoardLarge extends SOCBoard
      * is also the players' potential settlement nodes.
      *<P>
      * The set {@link SOCBoard#nodesOnLand} contains all nodes of all land areas.
+     * To get a specific node's land area, call {@link #getNodeLandArea(int)}.
      */
     protected HashSet<Integer>[] landAreasLegalNodes;
 
@@ -951,19 +954,16 @@ public class SOCBoardLarge extends SOCBoard
             {
                 if (hexLayoutLg[r][c] == WATER_HEX)
                 {
-                    final int[] sides = getAdjacentEdgesToHex(rshift | c);
-                    for (int i = 0; i < 6; ++i)
-                        legalShipEdges.add(new Integer(sides[i]));
+                    legalShipEdges.addAll(getAdjacentEdgesToHex(rshift | c));
                 } else {
                     // Land hex; check if it's at the
                     // edge of the board; this check is also isHexAtBoardMargin(hc)
                     if ((r == 1) || (r == (boardHeight-1))
                         || (c <= 2) || (c >= (boardWidth-2)))
                     {
-                        final int[] sides = getAdjacentEdgesToHex(rshift | c);
-                        for (int i = 0; i < 6; ++i)
-                            if (isEdgeCoastline(sides[i]))
-                                legalShipEdges.add(new Integer(sides[i]));
+                        for (final int side : getAdjacentEdgesToHex_arr(rshift | c))
+                            if (isEdgeCoastline(side))
+                                legalShipEdges.add(Integer.valueOf(side));
                     }
                 }
 
@@ -1008,15 +1008,24 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Reveal one land or water hex hidden by fog. Called at server and clients,
      * by {@link SOCGame#revealFogHiddenHex(int, int, int)}
-     * before updating player legal ship edges.
+     * before updating nearby legal nodes and edges.
+     *<P>
+     * If revealed to be a {@link #WATER_HEX} which is in {@link #landHexLayout},
+     * removes any non-coastal edges and corners from {@link #legalRoadEdges} and {@link #nodesOnLand}.
+     * Those had been added at the server during {@code SOCBoardAtServer.makeNewBoard}
+     * so the clients couldn't deduce that this fog-hidden hex was a water hex.
+     *
      * @param hexCoord  Coordinate of the hex to reveal
      * @param hexType   Revealed hex type, same value as {@link #getHexTypeFromCoord(int)}
      * @param diceNum   Revealed hex dice number, same value as {@link #getNumberOnHexFromCoord(int)}, or 0
      * @throws IllegalArgumentException if {@code hexCoord} isn't currently a {@link #FOG_HEX}
      *     or if {@code diceNum} &lt; 0
+     * @return true if the revealed {@code hexType} is {@link #WATER_HEX} and some of its surrounding edges or nodes
+     *     may have been removed from {@link #legalRoadEdges} or {@link #nodesOnLand}.
+     *     If true, caller should call each player's {@link SOCPlayer#updatePotentialsAndLegalsAroundRevealedHex(int)}.
      * @see #revealFogHiddenHexPrep(int)
      */
-    void revealFogHiddenHex(final int hexCoord, final int hexType, int diceNum)
+    boolean revealFogHiddenHex(final int hexCoord, final int hexType, int diceNum)
         throws IllegalArgumentException
     {
         final int r = hexCoord >> 8,
@@ -1026,6 +1035,8 @@ public class SOCBoardLarge extends SOCBoard
         if (diceNum < 0)
             throw new IllegalArgumentException("diceNum: " + diceNum);
 
+        boolean wasWaterRemovedLegals = false;
+
         hexLayoutLg[r][c] = hexType;
         numberLayoutLg[r][c] = diceNum;
         fogHiddenHexes.remove(Integer.valueOf(hexCoord));  // needed at client, redundant at server
@@ -1034,10 +1045,41 @@ public class SOCBoardLarge extends SOCBoard
         {
             // Previously not a legal ship edge, because
             // we didn't know if the fog hid land or water
-            final int[] sides = getAdjacentEdgesToHex(hexCoord);
-            for (int i = 0; i < 6; ++i)
-                legalShipEdges.add(new Integer(sides[i]));
+            legalShipEdges.addAll(getAdjacentEdgesToHex(hexCoord));
+
+            if (landHexLayout.contains(hexCoord))
+            {
+                // Remove any non-coastal edges/corners from legalRoadEdges, nodesOnLand, landAreaLegalNodes:
+                // Reverses the addition process done in SOCBoardAtServer.makeNewBoard_hideHexesInFog.
+
+                for (final Integer edgeObj : getAdjacentEdgesToHex(hexCoord))
+                    if (! isEdgeCoastline(edgeObj))
+                    {
+                        legalRoadEdges.remove(edgeObj);
+                        wasWaterRemovedLegals = true;
+                    }
+
+                for (final Integer nodeObj : getAdjacentNodesToHex(hexCoord))
+                {
+                    if (isNodeCoastline(nodeObj))
+                        continue;  // has adjacent land: don't remove from land node sets
+
+                    nodesOnLand.remove(nodeObj);
+                    if (landAreasLegalNodes != null)
+                    {
+                        for (int i = 1; i < landAreasLegalNodes.length; ++i)
+                        {
+                            HashSet<Integer> laln = landAreasLegalNodes[i];
+                            if (laln != null)
+                                laln.remove(nodeObj);
+                        }
+                    }
+                    wasWaterRemovedLegals = true;
+                }
+            }
         }
+
+        return wasWaterRemovedLegals;
     }
 
 
@@ -1643,6 +1685,17 @@ public class SOCBoardLarge extends SOCBoard
         }
 
         return (hasLand && hasWater);
+    }
+
+    /**
+     * Is this edge a legal road location?
+     * @param edge  Edge coordinate, not checked for validity
+     * @return  True if edge is a legal road coordinate, based on the set of all nodes on land
+     * @see #initPlayerLegalRoads()
+     */
+    public final boolean isEdgeLegalRoad(final int edge)
+    {
+        return legalRoadEdges.contains(edge);
     }
 
     /**
@@ -2405,6 +2458,7 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @return the set of legal edge coordinates for roads, as a new Set of {@link Integer}s
      * @since 1.1.12
+     * @see #isEdgeLegalRoad(int)
      */
     @Override
     public HashSet<Integer> initPlayerLegalRoads()
@@ -2511,20 +2565,42 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * The edge coordinates adjacent to this hex in all 6 directions.
+     * A list of the edge coordinates adjacent to this hex in all 6 directions.
      * (The 6 sides of this hex.)
      * Since all hexes have 6 edges, all edge coordinates are valid
      * if the hex coordinate is valid.
      *
      * @param hexCoord Coordinate of this hex; not checked for validity
-     * @return  The 6 edges adjacent to this hex
-     * @since 2.0.00
+     * @return  {@link ArrayList} with the 6 edges adjacent to this hex. Never returns {@code null} or empty.
+     * @see #getAdjacentEdgesToHex_arr(int)
+     * @see #isEdgeAdjacentToHex(int, int)
      */
-    public int[] getAdjacentEdgesToHex(final int hexCoord)
+    public List<Integer> getAdjacentEdgesToHex(final int hexCoord)
+    {
+        final ArrayList<Integer> edges = new ArrayList<Integer>(6);
+        for (int dir = 0; dir < 6; ++dir)
+            edges.add(Integer.valueOf(hexCoord + A_EDGE2HEX[dir][0] + A_EDGE2HEX[dir][1]));
+
+        return edges;
+    }
+
+    /**
+     * An array of the edge coordinates adjacent to this hex in all 6 directions.
+     * (The 6 sides of this hex.)
+     * Since all hexes have 6 edges, all edge coordinates are valid
+     * if the hex coordinate is valid.
+     *
+     * @param hexCoord Coordinate of this hex; not checked for validity
+     * @return  Array of the 6 edges adjacent to this hex. Never returns {@code null} or empty.
+     * @see #getAdjacentEdgesToHex(int)
+     * @see #isEdgeAdjacentToHex(int, int)
+     */
+    public int[] getAdjacentEdgesToHex_arr(final int hexCoord)
     {
         int[] edge = new int[6];
         for (int dir = 0; dir < 6; ++dir)
             edge[dir] = hexCoord + A_EDGE2HEX[dir][0] + A_EDGE2HEX[dir][1];
+
         return edge;
     }
 

@@ -1412,8 +1412,8 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * In encoding v1 and v2, this is always the same coordinates as {@link #nodesOnLand}.
      *<P>
      * Before v2.0.00 this method was {@code initPlayerLegalAndPotentialSettlements}.
+     * @see #isNodeOnLand(int)
      * @since 1.1.12
-     * @see #nodesOnLand
      */
     public HashSet<Integer> initPlayerLegalSettlements()
     {
@@ -3125,14 +3125,18 @@ public abstract class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * @return true if the node is on the land of the board (not water)
-     * @param node Node coordinate
+     * Is this node on a land hex, and thus a legal settlement location?
+     * @param node  Node coordinate, not checked for validity
+     * @return  True if node is on a land hex (including if coastal), not water,
+     *     and thus a legal settlement coordinate, based on the set of all nodes on land
+     * @see #initPlayerLegalSettlements()
      */
     public boolean isNodeOnLand(int node)
     {
         if (node < 0)
             return false;
-        return nodesOnLand.contains(new Integer(node));
+
+        return nodesOnLand.contains(Integer.valueOf(node));
     }
 
     /**

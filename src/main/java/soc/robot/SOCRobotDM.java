@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2003-2004  Robert S. Thomas
- * Portions of this file copyright (C) 2009-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -1479,7 +1479,7 @@ public class SOCRobotDM
             : 0;
         final int[] pirateEdges =
             (pirateHex != 0)
-            ? ((SOCBoardLarge) board).getAdjacentEdgesToHex(pirateHex)
+            ? ((SOCBoardLarge) board).getAdjacentEdgesToHex_arr(pirateHex)
             : null;
 
         Iterator<SOCPossibleRoad> posRoadsIter = ourPlayerTracker.getPossibleRoads().values().iterator();

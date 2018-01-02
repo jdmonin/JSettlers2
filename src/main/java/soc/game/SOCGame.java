@@ -2690,7 +2690,7 @@ public class SOCGame implements Serializable, Cloneable
         if (! hasSeaBoard)
             throw new IllegalStateException();
 
-        ((SOCBoardLarge) board).revealFogHiddenHex(hexCoord, hexType, diceNum);
+        final boolean wasWaterRemovedLegals = ((SOCBoardLarge) board).revealFogHiddenHex(hexCoord, hexType, diceNum);
             // throws IllegalArgumentException if any problem noted above
 
         if ((hexType == SOCBoard.WATER_HEX) || ((SOCBoardLarge) board).isHexAtBoardMargin(hexCoord))
@@ -2698,7 +2698,11 @@ public class SOCGame implements Serializable, Cloneable
             // Previously not a legal ship edge, because
             // we didn't know if the fog hid land or water
             for (SOCPlayer pl : players)
+            {
                 pl.updateLegalShipsAddHex(hexCoord);
+                if (wasWaterRemovedLegals)
+                    pl.updatePotentialsAndLegalsAroundRevealedHex(hexCoord);
+            }
         }
     }
 
@@ -6152,7 +6156,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         Vector<SOCPlayer> playerList = new Vector<SOCPlayer>(3);
 
-        final int[] edges = ((SOCBoardLarge) board).getAdjacentEdgesToHex(hex);
+        final int[] edges = ((SOCBoardLarge) board).getAdjacentEdgesToHex_arr(hex);
 
         for (int i = 0; i < maxPlayers; i++)
         {

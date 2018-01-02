@@ -3556,10 +3556,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
         // Previously not a legal ship edge, because
         // we didn't know if the fog hid land or water
-        final int[] sides = board.getAdjacentEdgesToHex(hexCoord);
-        for (int i = 0; i < 6; ++i)
+        for (final int edge : board.getAdjacentEdgesToHex_arr(hexCoord))
         {
-            final int edge = sides[i];
             if ((htype == SOCBoard.WATER_HEX) || board.isEdgeCoastline(edge))
             {
                 final Integer edgeInt = Integer.valueOf(edge);
@@ -3567,6 +3565,39 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     legalShips.add(edgeInt);
             }
         }
+    }
+
+    /**
+     * When a {@link SOCBoardLarge#FOG_HEX} is revealed to be water,
+     * update this player's sets of potential and legal nodes and edges
+     * around that hex.
+     *<P>
+     * The revealed hex's nodes and edges previously were part of the set,
+     * because we didn't know if the fog hid land or water and assumed land.
+     * <P>
+     * Called by {@link SOCGame#revealFogHiddenHex(int, int, int)} when hex type is {@link SOCBoard#WATER_HEX}
+     * and {@link SOCBoardLarge#revealFogHiddenHex(int, int, int)} has indicated some legal edges/nodes may
+     * have been removed from the board's sets. Call only if {@link SOCGame#hasSeaBoard}.
+     * @param hexCoord  Coordinate of revealed water hex
+     * @since 2.0.00
+     */
+    void updatePotentialsAndLegalsAroundRevealedHex(final int hexCoord)
+    {
+        final SOCBoardLarge board = (SOCBoardLarge) game.getBoard();
+
+        for (final Integer edgeObj : board.getAdjacentEdgesToHex(hexCoord))
+            if (legalRoads.contains(edgeObj) && ! board.isEdgeLegalRoad(edgeObj))
+            {
+                legalRoads.remove(edgeObj);
+                potentialRoads.remove(edgeObj);
+            }
+
+        for (final Integer nodeObj : board.getAdjacentNodesToHex(hexCoord))
+            if (legalSettlements.contains(nodeObj) && ! board.isNodeOnLand(nodeObj))
+            {
+                legalSettlements.remove(nodeObj);
+                potentialSettlements.remove(nodeObj);
+            }
     }
 
     /**
