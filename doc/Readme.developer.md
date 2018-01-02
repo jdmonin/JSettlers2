@@ -108,6 +108,10 @@ direction `IN -` (from server) or `OUT -` (from bot) + their name + ` - ` + mess
 When a bot client appears idle and isn't receiving messages for any particular active game,
 it won't print SOCServerPings.
 
+To force the board to contain fog hexes, start the server with vm argument
+`-Djsettlers.debug.board.fog=Y` which will hide 20% of land hexes behind fog
+when using the sea board.
+
 If you want to inspect the game object state at the server or robot:
 
 - Set a breakpoint at `SOCServer.processDebugCommand` or `SOCServerMessageHandler.handleGAMETEXTMSG`
@@ -826,6 +830,10 @@ When preparing to release a new version, testing should include:
         - Can win only on your own turn
     - Game reset voting, with: 1 human 2 bots, 2 humans 1 bot, 2 humans 0 bots:
       Humans can vote No to reject bots auto-vote Yes; test No and Yes
+    - Fog Hex reveal gives resources, during initial placement and normal game play:
+         - Start server with vm property: `-Djsettlers.debug.board.fog=Y`
+         - Start and test a game with the Use Sea Board option; place an initial settlement at a fog hex
+         - Start and test a game with the Fog Islands scenario
     - Version compatibility testing
         - Other versions to use: **1.1.06** before Game Options; **1.1.11** with 6-player board and client bugfixes;
           latest **1.x.xx**; latest **2.0.xx**
