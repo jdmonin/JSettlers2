@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -444,6 +444,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private HashSet<Integer> potentialShips;
 
     /**
+     * True if board has fog hexes, {@link #potentialSettlements} has some nodes on
+     * the fog hexes, and game hasn't completed {@link SOCGame#isInitialPlacement()} yet.
+     * @since 2.0.00
+     */
+    private boolean hasPotentialSettlesInitInFog;
+
+    /**
      * a boolean array stating wheather this player is touching a
      * particular kind of port.
      * Index == port type, in range {@link SOCBoard#MISC_PORT} to {@link SOCBoard#WOOD_PORT}
@@ -801,10 +808,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * {@link #putPiece(SOCPlayingPiece, boolean)} call will call
      * {@link #updatePotentials(SOCPlayingPiece)}, which
      * will set potentialSettlements at the road's new end node.
+     *<P>
+     * Also clears the {@link #hasPotentialSettlementsInitialInFog()} flag.
      */
     public void clearPotentialSettlements()
     {
         potentialSettlements.clear();
+        hasPotentialSettlesInitInFog = false;
     }
 
     /**
@@ -3835,6 +3845,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Please make no changes, treat the returned set as read-only.
      * @return the player's set of {@link Integer} potential-settlement node coordinates
      * @see #getPotentialSettlements_arr()
+     * @see #hasPotentialSettlement()
+     * @see #hasPotentialSettlementsInitialInFog()
      * @since 2.0.00
      */
     public HashSet<Integer> getPotentialSettlements()
@@ -3911,6 +3923,19 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         clearPotentialSettlements();
         potentialSettlements.addAll(psList);
 
+        hasPotentialSettlesInitInFog = false;
+        if (game.hasSeaBoard && (! psList.isEmpty()) && (game.getGameState() < SOCGame.ROLL_OR_CARD))
+        {
+            final SOCBoardLarge board = (SOCBoardLarge) game.getBoard();
+            final HashSet<Integer> fogNodes = new HashSet<Integer>();
+            for (int hex : board.getFogHiddenHexes().keySet())
+                fogNodes.addAll(board.getAdjacentNodesToHex(hex));
+
+            fogNodes.retainAll(psList);  // intersection of sets: fog nodes & potential settlements
+
+            hasPotentialSettlesInitInFog = ! fogNodes.isEmpty();
+        }
+
         if (setLegalsToo && game.hasSeaBoard)
         {
             legalSettlements.clear();
@@ -3933,6 +3958,18 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     legalShips.clear();  // SC_PIRI: caller must soon call setRestrictedLegalShips
             }
         }
+    }
+
+    /**
+     * During initial placement, are any of this player's {@link #getPotentialSettlements()}
+     * nodes on a {@link SOCBoardLarge#FOG_HEX}?
+     * @return true only if board has fog hexes, our potentialSettlements have some nodes on
+     *     the fog hexes, and game hasn't completed {@link SOCGame#isInitialPlacement()} yet
+     * @since 2.0.00
+     */
+    public boolean hasPotentialSettlementsInitialInFog()
+    {
+        return hasPotentialSettlesInitInFog;
     }
 
     /**
@@ -4316,6 +4353,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * @return true if there is at least one potential settlement
+     * @see #getPotentialSettlements()
      */
     public boolean hasPotentialSettlement()
     {

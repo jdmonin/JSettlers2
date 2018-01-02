@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1342,8 +1342,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
     /**
      * For {@link #makeNewBoard(Map)}, after placing
-     * land hexes and dice numbers into {@link SOCBoardLarge#hexLayoutLg hexLayoutLg}
-     * and {@link SOCBoardLarge#numberLayoutLg numberLayoutLg},
+     * land hexes and dice numbers into {@link #hexLayoutLg} and {@link #numberLayoutLg},
      * separate adjacent "red numbers" (6s, 8s)
      * and make sure gold hex dice aren't too frequent.
      * For algorithm details, see comments in this method and
@@ -2235,15 +2234,13 @@ public class SOCBoardAtServer extends SOCBoardLarge
             if (getHexTypeFromCoord(hex) == WATER_HEX)
                 continue;
 
-            final int[] nodes = getAdjacentNodesToHex(hex);
-            for (int j = 0; j < 6; ++j)
+            for (Integer ni : getAdjacentNodesToHex(hex))
             {
-                final Integer ni = new Integer(nodes[j]);
                 nodesOnLand.add(ni);
                 if (landAreaNumber != 0)
                     landAreasLegalNodes[landAreaNumber].add(ni);
+                        // it's ok to add ni even if set already contains an Integer equal to it
             }
-            // it's ok to add if this set already contains an Integer equal to nodes[j].
         }
 
     }
@@ -2337,7 +2334,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
             if (hex == FOG_HEX)
                 throw new IllegalStateException("Already fog: 0x" + Integer.toHexString(hexCoord));
 
-            fogHiddenHexes.put(new Integer(hexCoord), (hex << 8) | (numberLayoutLg[r][c] & 0xFF));
+            fogHiddenHexes.put(Integer.valueOf(hexCoord), (hex << 8) | (numberLayoutLg[r][c] & 0xFF));
             hexLayoutLg[r][c] = FOG_HEX;
             numberLayoutLg[r][c] = 0;
         }
