@@ -750,7 +750,7 @@ public class SOCGameHandler extends GameHandler
                     int card = itemCard.itype;
                     if ((card == SOCDevCardConstants.KNIGHT) && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
                         card = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
-                    srv.messageToPlayer(c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, card));
+                    srv.messageToPlayer(c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADD_OLD, card));
                 } else {
                     retItemActionMsg = new SOCInventoryItemAction
                         (gaName, cpn,
@@ -796,14 +796,17 @@ public class SOCGameHandler extends GameHandler
                 if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
                 {
                     srv.messageToGameExcept
-                        (gaName, c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, SOCDevCardConstants.UNKNOWN), true);
+                        (gaName, c, new SOCDevCardAction
+                            (gaName, cpn, SOCDevCardAction.ADD_OLD, SOCDevCardConstants.UNKNOWN), true);
                 } else {
                     srv.messageToGameForVersionsExcept
                         (ga, -1, SOCDevCardConstants.VERSION_FOR_NEW_TYPES - 1,
-                         c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X), true);
+                         c, new SOCDevCardAction
+                             (gaName, cpn, SOCDevCardAction.ADD_OLD, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X), true);
                     srv.messageToGameForVersionsExcept
                         (ga, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
-                         c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, SOCDevCardConstants.UNKNOWN), true);
+                         c, new SOCDevCardAction
+                             (gaName, cpn, SOCDevCardAction.ADD_OLD, SOCDevCardConstants.UNKNOWN), true);
                 }
 
                 srv.messageToGameKeyed(ga, true, "forceend.devcard.returned", plName);
@@ -1274,7 +1277,7 @@ public class SOCGameHandler extends GameHandler
                 unknownType = SOCDevCardConstants.UNKNOWN;
             else
                 unknownType = SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X;
-            final String cardUnknownCmd = SOCDevCardAction.toCmd(gameName, i, SOCDevCardAction.ADDOLD, unknownType);
+            final String cardUnknownCmd = SOCDevCardAction.toCmd(gameName, i, SOCDevCardAction.ADD_OLD, unknownType);
             for (int j = 0; j < numDevCards; j++)
             {
                 c.put(cardUnknownCmd);
@@ -1539,7 +1542,7 @@ public class SOCGameHandler extends GameHandler
         for (int dcState = SOCInventory.NEW; dcState <= SOCInventory.KEPT; ++dcState)
         {
             final int dcAge = (dcState == SOCInventory.NEW) ? SOCInventory.NEW : SOCInventory.OLD;
-            final int addCmd = (dcAge == SOCInventory.NEW) ? SOCDevCardAction.ADDNEW : SOCDevCardAction.ADDOLD;
+            final int addCmd = (dcAge == SOCInventory.NEW) ? SOCDevCardAction.ADD_NEW : SOCDevCardAction.ADD_OLD;
 
             for (final SOCInventoryItem card : cardsInv.getByState(dcState))
             {

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -3293,11 +3293,11 @@ public class SOCRobotBrain extends Thread
             cardsInv.removeDevCard(SOCInventory.OLD, cardType);
             break;
 
-        case SOCDevCardAction.ADDOLD:
+        case SOCDevCardAction.ADD_OLD:
             cardsInv.addDevCard(1, SOCInventory.OLD, cardType);
             break;
 
-        case SOCDevCardAction.ADDNEW:
+        case SOCDevCardAction.ADD_NEW:
             cardsInv.addDevCard(1, SOCInventory.NEW, cardType);
             break;
         }

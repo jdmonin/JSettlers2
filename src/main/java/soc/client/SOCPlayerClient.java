@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, nested class refactoring, parameterize types
  *
@@ -5091,7 +5091,6 @@ public class SOCPlayerClient
             {
             case SOCDevCardAction.DRAW:
                 player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
-
                 break;
 
             case SOCDevCardAction.PLAY:
@@ -5099,22 +5098,19 @@ public class SOCPlayerClient
                 // JM temp debug:
                 if (ctype != mes.getCardType())
                     System.out.println("L3947: play dev card type " + ctype + "; srv has " + mes.getCardType());
-
                 break;
 
-            case SOCDevCardAction.ADDOLD:
+            case SOCDevCardAction.ADD_OLD:
                 player.getInventory().addDevCard(1, SOCInventory.OLD, ctype);
-
                 break;
 
-            case SOCDevCardAction.ADDNEW:
+            case SOCDevCardAction.ADD_NEW:
                 player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
-
                 break;
             }
 
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            pcl.playerDevCardUpdated(player, (act == SOCDevCardAction.ADDOLD));
+            pcl.playerDevCardUpdated(player, (act == SOCDevCardAction.ADD_OLD));
         }
     }
 
