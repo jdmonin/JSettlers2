@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2017 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2013-2018 Jeremy D Monin <jeremy@nand.net>.
  * Contents were formerly part of SOCServer.java;
  * portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
@@ -986,6 +986,7 @@ public class SOCGameHandler extends GameHandler
                 c.put(SOCPlayerElement.toCmd
                     (gameName, -1, SOCPlayerElement.SET,
                      SOCPlayerElement.SCENARIO_CLOTH_COUNT, ((SOCBoardLarge) (gameData.getBoard())).getCloth()));
+                // individual villages' cloth counts are sent soon below
         } else {
             for (int pn = 0; pn < gameData.maxPlayers; ++pn)
             {
@@ -1019,11 +1020,25 @@ public class SOCGameHandler extends GameHandler
         }
 
         /**
-         * _SC_FTRI: If game has started, send any changed Special Edges.
+         * If normal game play has started:
+         * _SC_CLVI: Send updated Cloth counts for any changed villages.
+         * _SC_FTRI: Send any changed Special Edges.
          */
         if (gameData.hasSeaBoard && (gameData.getGameState() >= SOCGame.ROLL_OR_CARD))
         {
             final SOCBoardLarge bl = (SOCBoardLarge) gameData.getBoard();
+
+            // SC_CLVI:
+            final HashMap<Integer, SOCVillage> villages = bl.getVillages();
+            if (villages != null)
+                for (final SOCVillage vi : villages.values())
+                {
+                    final int cl = vi.getCloth();
+                    if (cl != SOCVillage.STARTING_CLOTH)
+                        srv.messageToGame(gameName, new SOCPieceValue(gameName, vi.getCoordinates(), cl, 0));
+                }
+
+            // SC_FTRI:
             boolean sendEdgeChanges = bl.hasSpecialEdges();
             if (! sendEdgeChanges)
             {
@@ -1038,7 +1053,6 @@ public class SOCGameHandler extends GameHandler
                     }
                 }
             }
-
             if (sendEdgeChanges)
                 joinGame_sendBoardSpecialEdgeChanges(gameData, bl, c);
         }
