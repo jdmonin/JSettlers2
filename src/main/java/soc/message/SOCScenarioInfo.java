@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2015,2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,6 +33,10 @@ import soc.game.SOCScenario;
  * or find out about scenarios which were introduced in versions newer than the client's version,
  * but which may be usable at their version or all versions; or ask an older server what it knows
  * about scenario(s) changed since the server's version.
+ *<P>
+ * This message is about the server or client scenarios and not about any particular game:
+ * It extends {@link SOCMessageTemplateMs} for convenient encoding and parsing,
+ * but {@link #getGame()} returns {@code null}.
  *
  * <H4>Timing:</H4>
  *

@@ -3147,7 +3147,10 @@ public class SOCPlayerClient
             if (mes instanceof SOCMessageForGame)
             {
                 gaName = ((SOCMessageForGame) mes).getGame();
-                ga = games.get(gaName);
+                ga = (gaName != null) ? games.get(gaName) : null;
+                    // Allows null gaName, for the few message types (like SOCScenarioInfo) which
+                    // for convenience use something like SOCTemplateMs which extends SOCMessageForGame
+                    // but aren't actually game-specific messages.
             } else {
                 gaName = null;
                 ga = null;
