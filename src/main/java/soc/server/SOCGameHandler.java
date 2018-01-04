@@ -870,8 +870,8 @@ public class SOCGameHandler extends GameHandler
      *<P>
      * *<B>I18N:</B> If the game has a {@link SOCScenario} and the client needs scenario info or localized strings
      * for the scenario name and description, {@link SOCScenarioInfo} or {@link SOCLocalizedStrings} is
-     * sent before JOINGAMEAUTH.  This covers i18n and scenarios added or changed between the client's
-     * and server's version.
+     * sent before JOINGAMEAUTH.  This handles i18n and scenarios added or changed between the client's
+     * and server's versions.
      *
      * @param gameData Game to join
      * @param c        The connection of joining client

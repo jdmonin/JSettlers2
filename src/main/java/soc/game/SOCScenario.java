@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,7 +29,7 @@ import soc.message.SOCMessage;
 
 /**
  * Scenarios for game rules and options on the {@link SOCBoardLarge large sea board}.
- * Chooseable at game creation.
+ * Optional and chooseable at game creation.
  * This class holds the known scenarios, at the client or server,
  * in a static dictionary of known scenarios; see {@link #getAllKnownScenarios()}
  * for the current list of all known scenarios.
@@ -228,6 +228,18 @@ public class SOCScenario
              + "more levels than any other player.",
              "_SC_WOND=t,SBL=t,VP=t10,_SC_SANY=t"));  // win condition: Complete Wonder, or 10 VP _and_ built the most levels
                 // The "all 4 levels" win condition is also stored in SOCSpecialItem.SC_WOND_WIN_LEVEL.
+
+        // Uncomment to test scenario sync/negotiation between server and client versions:
+        //    Assumes client and server are both 2.0.00 and for testing,
+        //    client or server version has been temporarily set to 2.0.01.
+        /*
+        allSc.put("SC_TSTNB", new SOCScenario
+            ("SC_TSTNB", 2000, 2001,
+            "New: v2001 back-compat", null, "PLB=t,VP=t11,NT=y"));
+        allSc.put("SC_TSTNO", new SOCScenario
+            ("SC_TSTNO", 2001, 2001,
+            "New: v2001 only", null, "PLB=t,VP=t15"));
+         */
 
         return allSc;
 

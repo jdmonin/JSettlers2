@@ -862,9 +862,31 @@ When preparing to release a new version, testing should include:
         - Start a 2.0.00 or newer server with `-Djsettlers.allow.debug=Y`
         - Start a 2.0.00 client with vm property `-Djsettlers.debug.traffic=Y`
         - That client's initial connection to the server should see at console: `SOCStatusMessage:sv=21`  
-          (which is SV_OK_DEBUG_MODE_ON added in 2.0.00)
+          (which is `SV_OK_DEBUG_MODE_ON` added in 2.0.00)
         - Start a 1.2.00 client with same vm property `-Djsettlers.debug.traffic=Y`
         - That client's initial connection should get sv == 0, should see at console: `SOCStatusMessage:status=Debugging is On`
+    - v2.0.00+: SOCScenario info sync/negotiation when server and client are different versions
+        - Test client newer than server:
+            - Build server JAR and start a server from it  
+              (or, turn off code hot-replace within IDE and start server there)
+            - In `SOCScenario.initAllScenarios()`, uncomment `SC_TSTNB` and `SC_TSTNO`
+            - In `version.info`, add 1 to versionnum and version (example: 2000 -> 2001, 2.0.00 -> 2.0.01)
+            - Launch client (at that "new" version)
+            - Click "Practice"; Dialog to make a game should see those 2 "new" scenarios
+            - Quit and re-launch client
+            - Connect to server, click "New Game"; the 2 new ones are unknown at server,
+              should not appear in the dialog's Scenario dropdown
+            - Quit client and server
+        - Then, test server newer than client:
+            - Build server JAR and start a server from it (at that "new" version)
+            - Reset `version.info` and `SOCScenario.initAllScenarios()` to their actual versions (2001 -> 2000, re-comment, etc)
+            - Launch client (at actual version)
+            - Connect to server, click "New Game"; should see `SC_TSTNB` but not `SC_TSTNO`
+              in the dialog's Scenario dropdown
+            - Start a game using the `SC_TSTNB` scenario, begin game play
+            - Launch a second client
+            - Connect to server, join that game
+            - Within that game, second client's "Game Info" dialog should show scenario info
     - Command line and jsserver.properties
         - Server and client: `-h` / `--help` / `-?`, `--version`
         - Server: Unknown args `-x -z` should print both, then not continue startup

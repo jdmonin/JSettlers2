@@ -2056,9 +2056,9 @@ public class SOCPlayerClient
                 }
 
                 // Else, server is newer than our client or same version.
-                //   Server is newer: Ask for any scenario changes since our version.
-                //   Same version: Ask for i18n localized scenarios strings if available.
-                //   In both cases that's requested by sending an empty 'changes' list and MARKER_ANY_CHANGED.
+                //   If server is newer: Ask for any scenario changes since our version.
+                //   If same version: Ask for i18n localized scenarios strings if available.
+                //   In both cases that request is sent as an empty 'changes' list and MARKER_ANY_CHANGED.
 
                 if ((cliVers != client.sVersion) || client.wantsI18nStrings(false))
                     client.gameManager.put(new SOCScenarioInfo(changes, true).toCmd(), false);
