@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -24,8 +24,10 @@ package soc.game;
 
 import java.io.Serializable;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
@@ -85,7 +87,8 @@ import java.util.Vector;
  *<TR><td> Node </td>
  *    <td><!-- Node adjac to hex -->
  *      {@link #getAdjacentNodeToHex(int, int)} <br>
- *      {@link #getAdjacentNodesToHex(int)}
+ *      {@link #getAdjacentNodesToHex(int)} <br>
+ *      {@link #getAdjacentNodesToHex_arr(int)}
  *    </td>
  *    <td><!-- Node adjac to edge -->
  *      {@link #getAdjacentNodesToEdge(int)} <br>
@@ -1264,8 +1267,8 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * In encoding v1 and v2, this is always the same coordinates as {@link #nodesOnLand}.
      *<P>
      * Before v2.0.00 this method was {@code initPlayerLegalAndPotentialSettlements}.
+     * @see #isNodeOnLand(int)
      * @since 1.1.12
-     * @see #nodesOnLand
      */
     public HashSet<Integer> initPlayerLegalSettlements()
     {
@@ -2753,22 +2756,49 @@ public abstract class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * The node coordinates adjacent to this hex in all 6 directions.
+     * A list of the node coordinates adjacent to this hex in all 6 directions.
      * Since all hexes have 6 nodes, all node coordinates are valid
      * if the hex coordinate is valid.
      *
      * @param hexCoord Coordinate of this hex
-     * @return Node coordinate in all 6 directions,
+     * @return {@link ArrayList} with the Node coordinate in all 6 directions,
      *           clockwise from top (northern point of hex):
      *           0 is north, 1 is northeast, etc, 5 is northwest.
+     *           Never returns {@code null} or empty.
      * @since 2.0.00
+     * @see #getAdjacentNodesToHex_arr(int)
      * @see #getAdjacentNodeToHex(int, int)
      */
-    public int[] getAdjacentNodesToHex(final int hexCoord)
+    public List<Integer> getAdjacentNodesToHex(final int hexCoord)
+    {
+        final int[] arr = getAdjacentNodesToHex_arr(hexCoord);
+        final ArrayList<Integer> li = new ArrayList<Integer>(6);
+        for (int dir = 0; dir < 6; ++dir)
+            li.add(Integer.valueOf(arr[dir]));
+
+        return li;
+    }
+
+    /**
+     * An array of the node coordinates adjacent to this hex in all 6 directions.
+     * Since all hexes have 6 nodes, all node coordinates are valid
+     * if the hex coordinate is valid.
+     *
+     * @param hexCoord Coordinate of this hex
+     * @return Array with the Node coordinate in all 6 directions,
+     *           clockwise from top (northern point of hex):
+     *           0 is north, 1 is northeast, etc, 5 is northwest.
+     *           Never returns {@code null} or empty.
+     * @since 2.0.00
+     * @see #getAdjacentNodesToHex(int)
+     * @see #getAdjacentNodeToHex(int, int)
+     */
+    public int[] getAdjacentNodesToHex_arr(final int hexCoord)
     {
         int[] node = new int[6];
         for (int dir = 0; dir < 6; ++dir)
             node[dir] = hexCoord + HEXNODES[dir];
+
         return node;
     }
 
@@ -2929,14 +2959,18 @@ public abstract class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * @return true if the node is on the land of the board (not water)
-     * @param node Node coordinate
+     * Is this node on a land hex, and thus a legal settlement location?
+     * @param node  Node coordinate, not checked for validity
+     * @return  True if node is on a land hex (including if coastal), not water,
+     *     and thus a legal settlement coordinate, based on the set of all nodes on land
+     * @see #initPlayerLegalSettlements()
      */
     public boolean isNodeOnLand(int node)
     {
         if (node < 0)
             return false;
-        return nodesOnLand.contains(new Integer(node));
+
+        return nodesOnLand.contains(Integer.valueOf(node));
     }
 
     /**

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -109,6 +109,13 @@ import soc.util.IntTriple;
  */
 public class SOCBoardAtServer extends SOCBoardLarge
 {
+    /**
+     * Flag property {@code jsettlers.debug.board.fog}: When present, about 20% of the board's
+     * land hexes will be randomly covered by fog during {@code makeNewBoard} generation.
+     * Ignored if {@link SOCGameOption#K_SC_FOG} is set.
+     */
+    public static final String PROP_JSETTLERS_DEBUG_BOARD_FOG = "jsettlers.debug.board.fog";
+
     private static final long serialVersionUID = 2000L;
 
     /**
@@ -663,6 +670,28 @@ public class SOCBoardAtServer extends SOCBoardLarge
                 ? FOG_ISL_LANDHEX_COORD_FOG_6PL
                 : ((maxPl < 4) ? FOG_ISL_LANDHEX_COORD_FOG_3PL : FOG_ISL_LANDHEX_COORD_FOG_4PL);
             makeNewBoard_hideHexesInFog(FOGHEXES);
+        } else if (null != System.getProperty(PROP_JSETTLERS_DEBUG_BOARD_FOG)) {
+            // Select n random hexes (20% of landHexLayout):
+            // Knuth, "The Art of Computer Programming" Vol 2 Seminumerical Algorithms, Algorithm 3.4.2 S
+
+            int d = landHexLayout.size();
+            int n = (int) (d * .20f);
+            if (n == 0)
+                n = 1;  // round up
+            final int[] hideCoord = new int[n];
+            for (int hexcoord : landHexLayout)
+            {
+                if (rand.nextFloat() <= (n / (float) d))
+                {
+                    hideCoord[hideCoord.length - n] = hexcoord;
+                    n -= 1;
+                    if (n == 0)
+                        break;
+                }
+                d -= 1;
+            }
+
+            makeNewBoard_hideHexesInFog(hideCoord);
         }
 
         if ((PORTS_TYPES_MAINLAND == null) && (PORTS_TYPES_ISLANDS == null))
@@ -1369,8 +1398,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
     /**
      * For {@link #makeNewBoard(Map)}, after placing
-     * land hexes and dice numbers into {@link SOCBoardLarge#hexLayoutLg hexLayoutLg}
-     * and {@link SOCBoardLarge#numberLayoutLg numberLayoutLg},
+     * land hexes and dice numbers into {@link #hexLayoutLg} and {@link #numberLayoutLg},
      * separate adjacent "red numbers" (6s, 8s)
      * and make sure gold hex dice aren't too frequent.
      * For algorithm details, see comments in this method and
@@ -2262,15 +2290,13 @@ public class SOCBoardAtServer extends SOCBoardLarge
             if (getHexTypeFromCoord(hex) == WATER_HEX)
                 continue;
 
-            final int[] nodes = getAdjacentNodesToHex(hex);
-            for (int j = 0; j < 6; ++j)
+            for (Integer ni : getAdjacentNodesToHex(hex))
             {
-                final Integer ni = new Integer(nodes[j]);
                 nodesOnLand.add(ni);
                 if (landAreaNumber != 0)
                     landAreasLegalNodes[landAreaNumber].add(ni);
+                        // it's ok to add ni even if set already contains an Integer equal to it
             }
-            // it's ok to add if this set already contains an Integer equal to nodes[j].
         }
 
     }
@@ -2343,12 +2369,18 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * For {@link #makeNewBoard(Map)}, hide these hexes under {@link #FOG_HEX} to be revealed later.
      * The hexes will be stored in {@link #fogHiddenHexes}; their {@link #hexLayoutLg} and {@link #numberLayoutLg}
      * elements will be set to {@link #FOG_HEX} and 0.
+     *<P>
      * Does not remove anything from {@link #nodesOnLand} or {@link #landAreasLegalNodes}.
+     * To prevent leaking information about the hex being hidden if it's a {@link #WATER_HEX} which is in
+     * {@link #landHexLayout}, adds all its non-coastal nodes and edges to {@code nodesOnLand},
+     * {@code landAreasLegalNodes}, and {@link #legalRoadEdges} as if it was a land hex.
+     * (Ignores Added Layout Part "AL".) When revealed later during game play, {@link #revealFogHiddenHex(int)}
+     * will remove those nodes/edges.
      *<P>
      * To simplify the bot, client, and network, hexes can be hidden only during makeNewBoard,
      * before the board layout is made and sent to the client.
      *
-     * @param hexCoords  Coordinates of each hex to hide in the fog
+     * @param hexCoords  Coordinates of each hex to hide in the fog. Any elements with value 0 are ignored.
      * @throws IllegalStateException  if any hexCoord is already {@link #FOG_HEX} within {@link #hexLayoutLg}
      * @see #revealFogHiddenHexPrep(int)
      */
@@ -2358,15 +2390,40 @@ public class SOCBoardAtServer extends SOCBoardLarge
         for (int i = 0; i < hexCoords.length; ++i)
         {
             final int hexCoord = hexCoords[i];
+            if (hexCoord == 0)
+                continue;
             final int r = hexCoord >> 8,
                       c = hexCoord & 0xFF;
             final int hex = hexLayoutLg[r][c];
             if (hex == FOG_HEX)
                 throw new IllegalStateException("Already fog: 0x" + Integer.toHexString(hexCoord));
 
-            fogHiddenHexes.put(new Integer(hexCoord), (hex << 8) | (numberLayoutLg[r][c] & 0xFF));
+            fogHiddenHexes.put(Integer.valueOf(hexCoord), (hex << 8) | (numberLayoutLg[r][c] & 0xFF));
             hexLayoutLg[r][c] = FOG_HEX;
             numberLayoutLg[r][c] = 0;
+
+            if ((hex == WATER_HEX) && landHexLayout.contains(hexCoord))
+            {
+                legalRoadEdges.addAll(getAdjacentEdgesToHex(hexCoord));
+
+                final List<Integer> cornerNodes = getAdjacentNodesToHex(hexCoord);
+                nodesOnLand.addAll(cornerNodes);
+                if (landAreasLegalNodes != null)
+                {
+                    // We don't store hexes' Land Area numbers, but one of its corners is
+                    // likely already part of an Area; use that Area number for the missing ones.
+
+                    int lan = 0;
+                    for (final int node : cornerNodes)
+                    {
+                        lan = getNodeLandArea(node);
+                        if (lan != 0)
+                            break;
+                    }
+                    if ((lan != 0) && (landAreasLegalNodes[lan] != null))
+                        landAreasLegalNodes[lan].addAll(cornerNodes);
+                }
+            }
         }
     }
 

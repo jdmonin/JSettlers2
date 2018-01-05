@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, nested class refactoring, parameterize types
  *
@@ -2058,9 +2058,9 @@ public class SOCPlayerClient
                 }
 
                 // Else, server is newer than our client or same version.
-                //   Server is newer: Ask for any scenario changes since our version.
-                //   Same version: Ask for i18n localized scenarios strings if available.
-                //   In both cases that's requested by sending an empty 'changes' list and MARKER_ANY_CHANGED.
+                //   If server is newer: Ask for any scenario changes since our version.
+                //   If same version: Ask for i18n localized scenarios strings if available.
+                //   In both cases that request is sent as an empty 'changes' list and MARKER_ANY_CHANGED.
 
                 if ((cliVers != client.sVersion) || client.wantsI18nStrings(false))
                     client.gameManager.put(new SOCScenarioInfo(changes, true).toCmd(), false);
@@ -3149,7 +3149,10 @@ public class SOCPlayerClient
             if (mes instanceof SOCMessageForGame)
             {
                 gaName = ((SOCMessageForGame) mes).getGame();
-                ga = games.get(gaName);
+                ga = (gaName != null) ? games.get(gaName) : null;
+                    // Allows null gaName, for the few message types (like SOCScenarioInfo) which
+                    // for convenience use something like SOCTemplateMs which extends SOCMessageForGame
+                    // but aren't actually game-specific messages.
             } else {
                 gaName = null;
                 ga = null;
@@ -5091,7 +5094,6 @@ public class SOCPlayerClient
             {
             case SOCDevCardAction.DRAW:
                 player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
-
                 break;
 
             case SOCDevCardAction.PLAY:
@@ -5099,22 +5101,19 @@ public class SOCPlayerClient
                 // JM temp debug:
                 if (ctype != mes.getCardType())
                     System.out.println("L3947: play dev card type " + ctype + "; srv has " + mes.getCardType());
-
                 break;
 
-            case SOCDevCardAction.ADDOLD:
+            case SOCDevCardAction.ADD_OLD:
                 player.getInventory().addDevCard(1, SOCInventory.OLD, ctype);
-
                 break;
 
-            case SOCDevCardAction.ADDNEW:
+            case SOCDevCardAction.ADD_NEW:
                 player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
-
                 break;
             }
 
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            pcl.playerDevCardUpdated(player, (act == SOCDevCardAction.ADDOLD));
+            pcl.playerDevCardUpdated(player, (act == SOCDevCardAction.ADD_OLD));
         }
     }
 

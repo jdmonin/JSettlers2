@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010-2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -49,6 +49,7 @@ import soc.util.DataUtils;
  *<LI> More than one "land area" (group of islands, or subset of islands)
  *   can be designated; can also require the player to start
  *   the game in a certain land area ({@link #startingLandArea}).
+ *   Each Land Area is sent as a list of that Area's nodes.
  *<LI> Players can build ships on any sea or coastal edge, except in
  *   scenario {@code _SC_PIRI} which restricts them to certain edges;
  *   see optional field {@link #legalSeaEdges}.

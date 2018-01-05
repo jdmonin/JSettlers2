@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2017 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2013-2018 Jeremy D Monin <jeremy@nand.net>.
  * Contents were formerly part of SOCServer.java;
  * portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
@@ -751,7 +751,7 @@ public class SOCGameHandler extends GameHandler
                     int card = itemCard.itype;
                     if ((card == SOCDevCardConstants.KNIGHT) && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
                         card = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
-                    srv.messageToPlayer(c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, card));
+                    srv.messageToPlayer(c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADD_OLD, card));
                 } else {
                     retItemActionMsg = new SOCInventoryItemAction
                         (gaName, cpn,
@@ -797,14 +797,17 @@ public class SOCGameHandler extends GameHandler
                 if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
                 {
                     srv.messageToGameExcept
-                        (gaName, c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, SOCDevCardConstants.UNKNOWN), true);
+                        (gaName, c, new SOCDevCardAction
+                            (gaName, cpn, SOCDevCardAction.ADD_OLD, SOCDevCardConstants.UNKNOWN), true);
                 } else {
                     srv.messageToGameForVersionsExcept
                         (ga, -1, SOCDevCardConstants.VERSION_FOR_NEW_TYPES - 1,
-                         c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X), true);
+                         c, new SOCDevCardAction
+                             (gaName, cpn, SOCDevCardAction.ADD_OLD, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X), true);
                     srv.messageToGameForVersionsExcept
                         (ga, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
-                         c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, SOCDevCardConstants.UNKNOWN), true);
+                         c, new SOCDevCardAction
+                             (gaName, cpn, SOCDevCardAction.ADD_OLD, SOCDevCardConstants.UNKNOWN), true);
                 }
 
                 srv.messageToGameKeyed(ga, true, "forceend.devcard.returned", plName);
@@ -868,8 +871,8 @@ public class SOCGameHandler extends GameHandler
      *<P>
      * *<B>I18N:</B> If the game has a {@link SOCScenario} and the client needs scenario info or localized strings
      * for the scenario name and description, {@link SOCScenarioInfo} or {@link SOCLocalizedStrings} is
-     * sent before JOINGAMEAUTH.  This covers i18n and scenarios added or changed between the client's
-     * and server's version.
+     * sent before JOINGAMEAUTH.  This handles i18n and scenarios added or changed between the client's
+     * and server's versions.
      *
      * @param gameData Game to join
      * @param c        The connection of joining client
@@ -982,6 +985,7 @@ public class SOCGameHandler extends GameHandler
                 c.put(new SOCPlayerElement
                     (gameName, -1, SOCPlayerElement.SET,
                      SOCPlayerElement.SCENARIO_CLOTH_COUNT, ((SOCBoardLarge) (gameData.getBoard())).getCloth()));
+                // individual villages' cloth counts are sent soon below
         } else {
             for (int pn = 0; pn < gameData.maxPlayers; ++pn)
             {
@@ -1015,11 +1019,25 @@ public class SOCGameHandler extends GameHandler
         }
 
         /**
-         * _SC_FTRI: If game has started, send any changed Special Edges.
+         * If normal game play has started:
+         * _SC_CLVI: Send updated Cloth counts for any changed villages.
+         * _SC_FTRI: Send any changed Special Edges.
          */
         if (gameData.hasSeaBoard && (gameData.getGameState() >= SOCGame.ROLL_OR_CARD))
         {
             final SOCBoardLarge bl = (SOCBoardLarge) gameData.getBoard();
+
+            // SC_CLVI:
+            final HashMap<Integer, SOCVillage> villages = bl.getVillages();
+            if (villages != null)
+                for (final SOCVillage vi : villages.values())
+                {
+                    final int cl = vi.getCloth();
+                    if (cl != SOCVillage.STARTING_CLOTH)
+                        srv.messageToGame(gameName, new SOCPieceValue(gameName, vi.getCoordinates(), cl, 0));
+                }
+
+            // SC_FTRI:
             boolean sendEdgeChanges = bl.hasSpecialEdges();
             if (! sendEdgeChanges)
             {
@@ -1034,7 +1052,6 @@ public class SOCGameHandler extends GameHandler
                     }
                 }
             }
-
             if (sendEdgeChanges)
                 joinGame_sendBoardSpecialEdgeChanges(gameData, bl, c);
         }
@@ -1257,7 +1274,7 @@ public class SOCGameHandler extends GameHandler
                 unknownType = SOCDevCardConstants.UNKNOWN;
             else
                 unknownType = SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X;
-            final SOCMessage cardUnknownMsg = new SOCDevCardAction(gameName, i, SOCDevCardAction.ADDOLD, unknownType);
+            final SOCMessage cardUnknownMsg = new SOCDevCardAction(gameName, i, SOCDevCardAction.ADD_OLD, unknownType);
             for (int j = 0; j < numDevCards; j++)
             {
                 c.put(cardUnknownMsg);
@@ -1527,7 +1544,7 @@ public class SOCGameHandler extends GameHandler
         for (int dcState = SOCInventory.NEW; dcState <= SOCInventory.KEPT; ++dcState)
         {
             final int dcAge = (dcState == SOCInventory.NEW) ? SOCInventory.NEW : SOCInventory.OLD;
-            final int addCmd = (dcAge == SOCInventory.NEW) ? SOCDevCardAction.ADDNEW : SOCDevCardAction.ADDOLD;
+            final int addCmd = (dcAge == SOCInventory.NEW) ? SOCDevCardAction.ADD_NEW : SOCDevCardAction.ADD_OLD;
 
             for (final SOCInventoryItem card : cardsInv.getByState(dcState))
             {

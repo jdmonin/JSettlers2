@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012-2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012-2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -44,12 +44,23 @@ public class SOCDevCardAction extends SOCMessage
 
     /** dev card action DRAW (Buy): Add as new to player's hand */
     public static final int DRAW = 0;
+
     /** dev card action PLAY: remove as old from player's hand */
     public static final int PLAY = 1;
-    /** dev card action ADDNEW: Add as new to player's hand */
-    public static final int ADDNEW = 2;
-    /** dev card action ADDOLD: Add as old to player's hand */
-    public static final int ADDOLD = 3;
+
+    /**
+     * dev card action ADD_NEW: Add as new to player's hand.
+     *<P>
+     * Before v2.0.00 this was {@code ADDNEW}.
+     */
+    public static final int ADD_NEW = 2;
+
+    /**
+     * dev card action ADD_OLD: Add as old to player's hand.
+     *<P>
+     * Before v2.0.00 this was {@code ADDOLD}.
+     */
+    public static final int ADD_OLD = 3;
 
     /**
      * dev card action CANNOT_PLAY: The bot can't play the requested card at this time.
@@ -186,8 +197,18 @@ public class SOCDevCardAction extends SOCMessage
      */
     public String toString()
     {
-        String s = "SOCDevCardAction:game=" + game + "|playerNum=" + playerNumber + "|actionType=" + actionType + "|cardType=" + cardType;
+        final String act;
+        switch (actionType)
+        {
+        case DRAW:    act = "DRAW";  break;
+        case PLAY:    act = "PLAY"; break;
+        case ADD_NEW: act = "ADD_NEW"; break;
+        case ADD_OLD: act = "ADD_OLD"; break;
+        case CANNOT_PLAY: act = "CANNOT_PLAY"; break;
+        default:      act = Integer.toString(actionType);
+        }
 
-        return s;
+        return "SOCDevCardAction:game=" + game + "|playerNum=" + playerNumber
+            + "|actionType=" + act + "|cardType=" + cardType;
     }
 }

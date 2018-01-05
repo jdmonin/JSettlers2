@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
@@ -2671,7 +2671,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Reveal one land or water hex hidden by {@link SOCBoardLarge#FOG_HEX fog}.
-     * Updates board.
+     * Called at server and clients. Updates board.
      * If a {@link SOCBoard#WATER_HEX} is revealed, updates players' legal ship edges.
      *
      * @param hexCoord  Coordinate of the hex to reveal
@@ -2688,7 +2688,7 @@ public class SOCGame implements Serializable, Cloneable
         if (! hasSeaBoard)
             throw new IllegalStateException();
 
-        ((SOCBoardLarge) board).revealFogHiddenHex(hexCoord, hexType, diceNum);
+        final boolean wasWaterRemovedLegals = ((SOCBoardLarge) board).revealFogHiddenHex(hexCoord, hexType, diceNum);
             // throws IllegalArgumentException if any problem noted above
 
         if ((hexType == SOCBoard.WATER_HEX) || ((SOCBoardLarge) board).isHexAtBoardMargin(hexCoord))
@@ -2696,7 +2696,11 @@ public class SOCGame implements Serializable, Cloneable
             // Previously not a legal ship edge, because
             // we didn't know if the fog hid land or water
             for (SOCPlayer pl : players)
+            {
                 pl.updateLegalShipsAddHex(hexCoord);
+                if (wasWaterRemovedLegals)
+                    pl.updatePotentialsAndLegalsAroundRevealedHex(hexCoord);
+            }
         }
     }
 
@@ -6088,7 +6092,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         Vector<SOCPlayer> playerList = new Vector<SOCPlayer>(3);
 
-        final int[] nodes = board.getAdjacentNodesToHex(hex);
+        final int[] nodes = board.getAdjacentNodesToHex_arr(hex);
 
         for (int i = 0; i < maxPlayers; i++)
         {
@@ -6146,7 +6150,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         Vector<SOCPlayer> playerList = new Vector<SOCPlayer>(3);
 
-        final int[] edges = ((SOCBoardLarge) board).getAdjacentEdgesToHex(hex);
+        final int[] edges = ((SOCBoardLarge) board).getAdjacentEdgesToHex_arr(hex);
 
         for (int i = 0; i < maxPlayers; i++)
         {
