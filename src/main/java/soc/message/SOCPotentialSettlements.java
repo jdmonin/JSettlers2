@@ -83,8 +83,19 @@ public class SOCPotentialSettlements extends SOCMessage
      *<P>
      * Before v2.0.00 this field was {@code psList}.
      * @see #landAreasLegalNodes
+     * @see #psNodesFromAll
      */
     private List<Integer> psNodes;
+
+    /**
+     * True if {@link #startingLandArea} == 0 and {@link #psNodes} is merely the
+     * union of all node sets in {@link #landAreasLegalNodes}.
+     *<P>
+     * False otherwise, or if not applicable because {@link #areaCount} == 1
+     * and {@link #landAreasLegalNodes} == null.
+     * @since 2.0.00
+     */
+    private final boolean psNodesFromAll;
 
     /**
      * How many land areas are defined on this board.
@@ -131,7 +142,7 @@ public class SOCPotentialSettlements extends SOCMessage
     public int[][] legalSeaEdges;
 
     /**
-     * Create a SOCPotentialSettlements message.
+     * Create a SOCPotentialSettlements message for a board layout without land areas.
      *
      * @param ga  name of the game
      * @param pn  the player number, or -1 for all players in v2.0.00
@@ -148,6 +159,7 @@ public class SOCPotentialSettlements extends SOCMessage
         game = ga;
         playerNumber = pn;
         psNodes = ps;
+        psNodesFromAll = false;
         areaCount = 1;
         landAreasLegalNodes = null;
         startingLandArea = 1;
@@ -155,7 +167,7 @@ public class SOCPotentialSettlements extends SOCMessage
     }
 
     /**
-     * Create a SOCPotentialSettlements message with multiple land areas,
+     * Create a SOCPotentialSettlements message for a board layout with multiple land areas,
      * each of which have a set of legal settlements, but only one of which
      * has potential settlements at this time.
      *
@@ -167,6 +179,8 @@ public class SOCPotentialSettlements extends SOCMessage
      *     <P>
      *     If the game is just starting and the player can start anywhere (<tt>pan == 0</tt>),
      *     then <tt>lan[0]</tt> should be <tt>null</tt>.
+     *     <P>
+     *     From {@link soc.game.SOCBoardLarge#getStartingLandArea()}.
      * @param lan  Each land area's legal node lists.
      *     List at index number <tt>pan</tt> will be sent as the list of potential settlements.
      *     If <tt>pan</tt> is 0 because game has started (see above), use index 0 for the player's
@@ -186,7 +200,7 @@ public class SOCPotentialSettlements extends SOCMessage
         messageType = POTENTIALSETTLEMENTS;
         game = ga;
         playerNumber = pn;
-        final boolean psNodesFromAll = (pan == 0) && (lan[0] == null);
+        psNodesFromAll = (pan == 0) && (lan[0] == null);
         if (! psNodesFromAll)
         {
             if (lan[pan] == null)
@@ -298,6 +312,8 @@ public class SOCPotentialSettlements extends SOCMessage
      *     unique list of potential settlements doesn't match any of the land area coordinate lists.
      *     In that case use <tt>lan[0]</tt> to hold the potential settlements node list,
      *     which may be empty.
+     *     <P>
+     *     From {@link soc.game.SOCBoardLarge#getStartingLandArea()}.
      * @param lan  Each land area's legal node lists.
      *     List at index number <tt>pan</tt> will be sent as the list of potential settlements.
      *     If <tt>pan</tt> is 0 because game has started (see above), use index 0 for the player's
@@ -551,6 +567,8 @@ public class SOCPotentialSettlements extends SOCMessage
             ("SOCPotentialSettlements:game=" + game + "|playerNum=" + playerNumber + "|list=");
         if (psNodes.isEmpty())
             s.append("(empty)");
+        else if (psNodesFromAll)
+            s.append("(fromAllLANodes)");
         else
             for (Integer number : psNodes)
             {

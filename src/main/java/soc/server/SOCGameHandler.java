@@ -963,7 +963,8 @@ public class SOCGameHandler extends GameHandler
                 final SOCBoardLarge bl = (SOCBoardLarge) gameData.getBoard();
                 lan = bl.getLandAreasLegalNodes();
                 pan = bl.getStartingLandArea();
-                if ((lan != null) && ! lan[pan].equals(psList))
+
+                if ((lan != null) && (pan != 0) && ! lan[pan].equals(psList))
                 {
                     // If potentials != legals[startingLandArea], send as legals[0]
                     lan[0] = psList;
