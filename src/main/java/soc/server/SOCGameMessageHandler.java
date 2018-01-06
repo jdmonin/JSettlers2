@@ -48,6 +48,7 @@ import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 import soc.message.*;
 import soc.server.genericServer.Connection;
+import soc.util.SOCStringManager;
 
 /**
  * Game message handler for {@link SOCGameHandler}: Dispatches all messages received from the
@@ -2726,13 +2727,35 @@ public class SOCGameMessageHandler
                     }
 
                     srv.gameList.takeMonitorForGame(gaName);
-                    srv.messageToGameKeyedSpecialExcept
-                        (ga, false, c, "action.mono.monopolized", monoPlayerName, monoTotal, rsrc);
-                        // "{0} monopolized {1,rsrcs}" -> "Joe monopolized 5 Sheep."
+
+                    final SOCSimpleAction actMsg = new SOCSimpleAction
+                        (gaName, ga.getCurrentPlayerNumber(),
+                         SOCSimpleAction.RSRC_TYPE_MONOPOLIZED, monoTotal, rsrc);
+                         // Client will print "You monopolized 5 sheep." or "Joe monopolized 5 Sheep."
+
+                    if (ga.clientVersionLowest >= SOCStringManager.VERSION_FOR_I18N)
+                    {
+                        srv.messageToGameWithMon(gaName, actMsg);
+                    } else {
+                        srv.messageToGameForVersions
+                            (ga, SOCStringManager.VERSION_FOR_I18N, Integer.MAX_VALUE, actMsg, false);
+
+                        // Only pre-2.0.00 clients need this game text message. Since they're older than
+                        // the i18n work: Always use english, send SOCGameTextMsg not SOCGameServerText.
+
+                        final String monoTxt = monoPlayerName + " monopolized " +
+                            SOCStringManager.getFallbackServerManagerForClient().getSOCResourceCount(rsrc, monoTotal);
+                            // "Joe monopolized 5 Sheep."
+                            // If acting player's client is old, they'll see that instead of "You monopolized 5 sheep";
+                            // that cosmetic change is OK.
+
+                        srv.messageToGameForVersions(ga, -1, SOCStringManager.VERSION_FOR_I18N - 1,
+                            new SOCGameTextMsg(gaName, SOCGameTextMsg.SERVERNAME, monoTxt), false);
+                    }
 
                     /**
-                     * just send all the player's resource counts for the monopolized resource;
-                     * set isBad flag for each victim player's count
+                     * send each player's resource counts for the monopolized resource;
+                     * set isNews flag for each victim player's count
                      */
                     for (int pn = 0; pn < ga.maxPlayers; ++pn)
                     {
@@ -2744,12 +2767,13 @@ public class SOCGameMessageHandler
                                 (gaName, pn, SOCPlayerElement.SET,
                                  rsrc, ga.getPlayer(pn).getResources().getAmount(rsrc), isVictim[pn]));
                     }
+
                     srv.gameList.releaseMonitorForGame(gaName);
 
                     /**
                      * now that monitor is released, notify the
-                     * victim(s) of resource amounts taken,
-                     * and tell the player how many they won.
+                     * victim(s) of resource amounts taken.
+                     * Skip robot victims, they ignore text messages.
                      */
                     for (int pn = 0; pn < ga.maxPlayers; ++pn)
                     {
@@ -2758,7 +2782,7 @@ public class SOCGameMessageHandler
                         int picked = monoPicks[pn];
                         String viName = ga.getPlayer(pn).getName();
                         Connection viCon = srv.getConnection(viName);
-                        if (viCon != null)
+                        if ((viCon != null) && ! ((SOCClientData) viCon.getAppData()).isRobot)
                             srv.messageToPlayerKeyedSpecial
                                 (viCon, ga,
                                  ((picked == 1) ? "action.mono.took.your.1" : "action.mono.took.your.n"),
@@ -2766,8 +2790,6 @@ public class SOCGameMessageHandler
                                 // "Joe's Monopoly took your 3 sheep."
                     }
 
-                    srv.messageToPlayerKeyedSpecial(c, ga, "action.mono.you.monopolized", monoTotal, rsrc);
-                        // "You monopolized 5 sheep."
                     handler.sendGameState(ga);
                 }
                 else

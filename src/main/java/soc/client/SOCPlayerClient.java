@@ -5568,6 +5568,8 @@ public class SOCPlayerClient
             // fall through so pcl.simpleAction updates displayed board
 
         case SOCSimpleAction.DEVCARD_BOUGHT:
+            // fall through
+        case SOCSimpleAction.RSRC_TYPE_MONOPOLIZED:
             pcl.simpleAction(mes.getPlayerNumber(), atype, mes.getValue1(), mes.getValue2());
             break;
 

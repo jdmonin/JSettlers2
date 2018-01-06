@@ -31,6 +31,9 @@ import soc.game.SOCResourceConstants;  // for javadocs only
  *<P>
  * Sent from client as a request.
  *<P>
+ * For a Monopoly card, the server responds by announcing {@link SOCSimpleAction}
+ * ({@link SOCSimpleAction#RSRC_TYPE_MONOPOLIZED RSRC_TYPE_MONOPOLIZED}).
+ *<P>
  * Before v2.0.00 this class was {@code SOCMonopolyPick}.
  *
  * @see SOCPickResources

@@ -502,7 +502,9 @@ public class SOCRobotBrain extends Thread
     protected boolean expectWAITING_FOR_DISCOVERY;
 
     /**
-     * true if we're expecting to pick a monopoly
+     * True if we're expecting to pick a monopoly.
+     * When game state {@link SOCGame#WAITING_FOR_MONOPOLY} arrives,
+     * will send a resource type and set {@link #expectPLAY1}.
      */
     protected boolean expectWAITING_FOR_MONOPOLY;
 
