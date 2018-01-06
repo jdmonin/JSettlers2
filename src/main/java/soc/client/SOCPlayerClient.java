@@ -6011,7 +6011,7 @@ public class SOCPlayerClient
      */
     public void buyDevCard(SOCGame ga)
     {
-        put(SOCBuyCardRequest.toCmd(ga.getName()), ga.isPractice);
+        put(SOCBuyDevCardRequest.toCmd(ga.getName()), ga.isPractice);
     }
 
     /**
@@ -6366,14 +6366,17 @@ public class SOCPlayerClient
     }
 
     /**
-     * the user picked a resource to monopolize
+     * the client player picked a resource type to monopolize.
+     *<P>
+     * Before v2.0.00 this method was {@code monopolyPick}.
      *
      * @param ga   the game
-     * @param res  the resource
+     * @param res  the resource type, such as
+     *     {@link SOCResourceConstants#CLAY} or {@link SOCResourceConstants#SHEEP}
      */
-    public void monopolyPick(SOCGame ga, int res)
+    public void pickResourceType(SOCGame ga, int res)
     {
-        put(SOCMonopolyPick.toCmd(ga.getName(), res), ga.isPractice);
+        put(SOCPickResourceType.toCmd(ga.getName(), res), ga.isPractice);
     }
 
     /**

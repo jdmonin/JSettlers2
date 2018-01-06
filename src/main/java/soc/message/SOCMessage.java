@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -236,7 +236,11 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int CLEARTRADEMSG = 1042;
     public static final int BUILDREQUEST = 1043;
     public static final int CANCELBUILDREQUEST = 1044;
-    public static final int BUYCARDREQUEST = 1045;
+    /**
+     * {@link SOCBuyDevCardRequest} message. Before v2.0.00
+     * this type was {@code BUYCARDREQUEST} (class {@code SOCBuyCardRequest}).
+     */
+    public static final int BUYDEVCARDREQUEST = 1045;
     /** {@link SOCDevCardAction} message; before v2.0.00, this type was {@code DEVCARD} (class name {@code SOCDevCard}). */
     public static final int DEVCARDACTION = 1046;
     public static final int DEVCARDCOUNT = 1047;
@@ -244,7 +248,11 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int PLAYDEVCARDREQUEST = 1049;
     /** {@link SOCPickResources} message; before v2.0.00, this was {@code DISCOVERYPICK} (class {@code SOCDiscoveryPick)}. */
     public static final int PICKRESOURCES = 1052;
-    public static final int MONOPOLYPICK = 1053;
+    /**
+     * {@link SOCPickResourceType} message. Before v2.0.00
+     * this type was {@code MONOPOLYPICK} (class {@code SOCMonopolyPick}).
+     */
+    public static final int PICKRESOURCETYPE = 1053;
     public static final int FIRSTPLAYER = 1054;
     public static final int SETTURN = 1055;
     public static final int ROBOTDISMISS = 1056;
@@ -769,8 +777,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case CANCELBUILDREQUEST:
                 return SOCCancelBuildRequest.parseDataStr(data);
 
-            case BUYCARDREQUEST:
-                return SOCBuyCardRequest.parseDataStr(data);
+            case BUYDEVCARDREQUEST:
+                return SOCBuyDevCardRequest.parseDataStr(data);
 
             case DEVCARDACTION:
                 return SOCDevCardAction.parseDataStr(data);
@@ -787,8 +795,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case PICKRESOURCES:  // Discovery/Year of Plenty, or v2.0.00 gold hex resources
                 return SOCPickResources.parseDataStr(data);
 
-            case MONOPOLYPICK:
-                return SOCMonopolyPick.parseDataStr(data);
+            case PICKRESOURCETYPE:  // Monopoly
+                return SOCPickResourceType.parseDataStr(data);
 
             case FIRSTPLAYER:
                 return SOCFirstPlayer.parseDataStr(data);

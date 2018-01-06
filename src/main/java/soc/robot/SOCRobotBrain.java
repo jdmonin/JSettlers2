@@ -1552,7 +1552,7 @@ public class SOCRobotBrain extends Thread
                                 waitingForGameState = true;
                                 expectPLAY1 = true;
                                 counter = 0;
-                                client.monopolyPick(game, monopolyStrategy.getMonopolyChoice());
+                                client.pickResourceType(game, monopolyStrategy.getMonopolyChoice());
                                 pause(1500);
                             }
                         }

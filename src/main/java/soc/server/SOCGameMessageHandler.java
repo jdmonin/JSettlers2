@@ -3,7 +3,7 @@
  * This file Copyright (C) 2016 Alessandro D'Ottavio
  * Some contents were formerly part of SOCServer.java and SOCGameHandler.java;
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -264,15 +264,15 @@ public class SOCGameMessageHandler
             //saveCurrentGameEventRecord(((SOCCancelBuildRequest)mes).getGame());
             break;
 
-        case SOCMessage.BUYCARDREQUEST:
+        case SOCMessage.BUYDEVCARDREQUEST:
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handleBUYCARDREQUEST(game, connection, (SOCBuyCardRequest) message);
+            handleBUYDEVCARDREQUEST(game, connection, (SOCBuyDevCardRequest) message);
 
-            //ga = (SOCGame)gamesData.get(((SOCBuyCardRequest)mes).getGame());
+            //ga = (SOCGame)gamesData.get(((SOCBuyDevCardRequest)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCBuyCardRequest)mes).getGame());
+            //saveCurrentGameEventRecord(((SOCBuyDevCardRequest)mes).getGame());
             break;
 
         case SOCMessage.PLAYDEVCARDREQUEST:
@@ -297,15 +297,15 @@ public class SOCGameMessageHandler
             //saveCurrentGameEventRecord(((SOCPickResources)mes).getGame());
             break;
 
-        case SOCMessage.MONOPOLYPICK:
+        case SOCMessage.PICKRESOURCETYPE:  // Resource Type / Monopoly pick
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handleMONOPOLYPICK(game, connection, (SOCMonopolyPick) message);
+            handlePICKRESOURCETYPE(game, connection, (SOCPickResourceType) message);
 
-            //ga = (SOCGame)gamesData.get(((SOCMonopolyPick)mes).getGame());
+            //ga = (SOCGame)gamesData.get(((SOCPickResourceType)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCMonopolyPick)mes).getGame());
+            //saveCurrentGameEventRecord(((SOCPickResourceType)mes).getGame());
             break;
 
         /**
@@ -2211,13 +2211,15 @@ public class SOCGameMessageHandler
 
 
     /**
-     * handle "buy card request" message.
+     * handle "buy dev card request" message.
+     *<P>
+     * Before v2.0.00 this method was {@code handleBUYCARDREQUEST}.
      *
      * @param c  the connection that sent the message
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleBUYCARDREQUEST(SOCGame ga, Connection c, final SOCBuyCardRequest mes)
+    private void handleBUYDEVCARDREQUEST(SOCGame ga, Connection c, final SOCBuyDevCardRequest mes)
     {
         ga.takeMonitor();
 
@@ -2689,13 +2691,15 @@ public class SOCGameMessageHandler
     }
 
     /**
-     * handle "monopoly pick" message.
+     * handle "pick resource type" (monopoly) message.
+     *<P>
+     * Before v2.0.00 this method was {@code handleMONOPOLYPICK}.
      *
      * @param c     the connection that sent the message
      * @param mes   the message
      * @since 1.0.0
      */
-    private void handleMONOPOLYPICK(SOCGame ga, Connection c, final SOCMonopolyPick mes)
+    private void handlePICKRESOURCETYPE(SOCGame ga, Connection c, final SOCPickResourceType mes)
     {
         ga.takeMonitor();
 
@@ -2706,7 +2710,7 @@ public class SOCGameMessageHandler
             {
                 if (ga.canDoMonopolyAction())
                 {
-                    final int rsrc = mes.getResource();
+                    final int rsrc = mes.getResourceType();
                     final int[] monoPicks = ga.doMonopolyAction(rsrc);
                     final boolean[] isVictim = new boolean[ga.maxPlayers];
                     final String monoPlayerName = c.getData();
