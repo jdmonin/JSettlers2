@@ -367,7 +367,7 @@ jsettlers JAR from the command line, not running inside the IDE.
   - Other expansions should be possible to add later within the framework
     released with 2.0.00
 - Network message system:
-  - Scenario negotiation across versions, like SOCGameOption negotation
+  - Finish corner cases for I18N SOCLocalizedStrings
   - Consider a common handler/constant for EMPTYSTR token
 - Server:
   - DB schema additions
