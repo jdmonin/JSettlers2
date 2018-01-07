@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -314,7 +314,7 @@ public class SOCSetSpecialItem extends SOCMessage
      * SETSPECIALITEM sep game sep2 operation sep2 typeKey sep2 gameItemIndex sep2 playerItemIndex
      *   sep2 playerNumber sep2 coord sep2 level sep2 sv
      *<P>
-     * If {@link #sv} is {@code null}, it's sent as {@link #EMPTYSTR}.
+     * If {@link #sv} is {@code null}, it's sent as {@link SOCMessage#EMPTYSTR}.
      *
      * @return the command string
      */

@@ -5430,7 +5430,7 @@ public class SOCPlayerClient
                 if (opt != null)
                 {
                     final String desc = str.get(i + 1);
-                    if (! desc.equals(SOCLocalizedStrings.EMPTY))
+                    if ((desc != null) && (desc.length() > 0))
                         opt.setDesc(desc);
                 }
             }
@@ -5882,9 +5882,9 @@ public class SOCPlayerClient
             ++i;
 
             SOCScenario sc = SOCScenario.getScenario(scKey);
-            if ((sc != null) && ! nm.equals(SOCLocalizedStrings.EMPTY))
+            if ((sc != null) && (nm.length() > 0))
             {
-                if ((desc != null) && desc.equals(SOCLocalizedStrings.EMPTY))
+                if ((desc != null) && (desc.length() == 0))
                     desc = null;
 
                 sc.setDesc(nm, desc);

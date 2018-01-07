@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2008-2012,2014-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2012,2014-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,6 +21,7 @@
 package soc.message;
 
 import java.util.List;
+import java.util.ListIterator;
 
 // import java.util.StringTokenizer;
 
@@ -34,20 +35,21 @@ import java.util.List;
  *<pre><code>
  *   // format of s: POTENTIALSETTLEMENTS sep game sep2 settlement {sep2 settlement}*...
  *   // Must have at least game + 1 settlement param.
- *   public static SOCPotentialSettlements parseDataStr(String[] s)
+ *   public static SOCDiceResultResources parseDataStr(List<String> s)
  *   {
- *       String ga; // the game name
- *       String[] sett; // the settlements
+ *       String gaName;  // the game name
+ *       String[] pa;    // the parameters
  *
- *       if ((s == null) || (s.length < 2))
- *           return null;  // must have at least game + 1 settlement param
+ *       if ((s == null) || (s.size() < 2))
+ *           return null;  // must have at least game name + 1 more param
  *
- *       ga = s[0];
- *       sett = new String[s.length - 1];
- *       for (int i = 1; i < s.length; ++i)
- *           sett[i-1] = s[i];
+ *       parseData_FindEmptyStrs(s);  // EMPTYSTR -> ""
+ *       gaName = s.get(0);
+ *       pa = new String[s.size() - 1];
+ *       for (int i = 0; i < pa.length; ++i)
+ *           pa[i] = s.get(i + 1);
  *
- *       return new SOCPotentialSettlements(ga, sett);
+ *       return new SOCDiceResultResources(gaName, pa);
  *   }
  *</code></pre>
  *<P>
@@ -71,8 +73,9 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
 
     /**
      * List of string parameters, or null if none.
-     * Blank field values must use {@link SOCMessage#EMPTYSTR}
-     * because empty {@code pa} elements can't be parsed.
+     * Blank field values must be sent over network as {@link SOCMessage#EMPTYSTR}
+     * because empty {@code pa} elements can't be parsed. This List itself should contain "" instead of
+     * an {@code EMPTYSTR} token; {@link #toCmd()} will translate "" and {@code null} to {@code EMPTYSTR}.
      *<P>
      * Before v2.0.00, this was an array of Strings.
      */
@@ -86,7 +89,11 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
      *     The server's message treater requires a non-null {@link #getGame()}
      *     for incoming messages from clients; see {@link SOCMessageForGame#getGame()} for details.
      * @param pal List of parameters, or null if none.
-     *     Blank or null field values must be {@link SOCMessage#EMPTYSTR} in this List.
+     *     Sets {@link #pa} field to {@code pal}: Afterwards method calls on {@code pa} or {@code pal}
+     *     will affect the same List object.
+     *     <P>
+     *     This constructor does not convert {@link SOCMessage#EMPTYSTR} field values to "";
+     *     see {@link #parseData_FindEmptyStrs(List)}.
      */
     protected SOCMessageTemplateMs(final int id, final String ga, final List<String> pal)
     {
@@ -130,7 +137,8 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
      * @param messageType The message type id
      * @param gaName  the game name, or null
      * @param pal  The parameter list, or null if no additional parameters.
-     *             Blank or null values must be {@link SOCMessage#EMPTYSTR} in this List.
+     *     Blank or null values in this list are automatically sent as the {@link SOCMessage#EMPTYSTR} token
+     *     and must be converted back on the receiving end: See {@link #parseData_FindEmptyStrs(List)}.
      * @return    the command string
      */
     protected static String toCmd(final int messageType, final String gaName, final List<String> pal)
@@ -148,8 +156,10 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
             for (final String p : pal)
             {
                 sb.append(sep);
-                if (p != null)
+                if ((p != null) && (p.length() > 0))
                     sb.append(p);
+                else
+                    sb.append(EMPTYSTR);
             }
         }
 
@@ -169,8 +179,9 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
         String[] pa;    // the parameters
 
         if ((s == null) || (s.size() < 2))
-            return null;  // must have at least game name + 1 further param
+            return null;  // must have at least game name + 1 more param
 
+        parseData_FindEmptyStrs(s);  // EMPTYSTR -> ""
         gaName = s.get(0);
         pa = new String[s.size() - 1];
         for (int i = 0; i < pa.length; ++i)
@@ -179,6 +190,28 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
         return new SOCDiceResultResources(gaName, pa);
     }
     */
+
+    /**
+     * Parse helper method: Iterate over the received parameter list
+     * and replace any {@link SOCMessage#EMPTYSTR} parameter with "" in place.
+     * Used in child classes' {@code parseDataStr(..)} methods.
+     * Ignores {@link #GAME_NONE}.
+     * @param slist  The String parameters received over the network, or {@code null} to do nothing
+     * @return {@code slist}, for convenience during constructor calls to {@code super(..)}
+     * @since 2.0.00
+     */
+    public static List<String> parseData_FindEmptyStrs(final List<String> slist)
+    {
+        if (slist == null)
+            return null;  // unlikely to occur
+
+        final ListIterator<String> li = slist.listIterator();
+        while (li.hasNext())
+            if (EMPTYSTR.equals(li.next()))
+                li.set("");
+
+        return slist;
+    }
 
     /**
      * @return a human readable form of the message

@@ -38,7 +38,7 @@ import soc.game.SOCScenario;
  * It extends {@link SOCMessageTemplateMs} for convenient encoding and parsing,
  * but {@link #getGame()} returns {@code null}.
  *
- * <H4>Timing:</H4>
+ *<H4>Timing:</H4>
  *
  * <B>When client connects,</B> it doesn't yet need any scenario information.
  * At that point the client will request any added, changed, or localized {@link SOCGameOption}s.
@@ -150,7 +150,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
     public static final String MARKER_NO_MORE_SCENS = "-";
 
     /**
-     * Marker to indicate the requested scenario key is unknown.
+     * Version marker to indicate the requested scenario key is unknown.
      * Sent from server as -2 in the reply's {@code lastModVersion} field.
      */
     public static final int MARKER_KEY_UNKNOWN = -2;  // skip -1 which is valid for sc.lastModVersion
@@ -159,13 +159,13 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
      * Parsed scenario from server ({@link #getScenario()}),
      * or {@code null} if {@link #isKeyUnknown} or {@link #noMoreScens}
      * or if this message is from client to server.
-     * @see #scKey
+     * When {@code null}, see field {@link #scKey} for scenario name.
      */
     private SOCScenario sc;
 
     /**
      * The scenario key in a reply from server.
-     * If {@link #isKeyUnknown}, use {@code scKey} because {@link #sc} is null.
+     * If {@link #isKeyUnknown}, use this field because {@link #sc} is null.
      */
     private final String scKey;
 
@@ -210,8 +210,6 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
             String opts = sc.scOpts;  // never null or "", per scOpts javadoc
             if (localDesc == null)
                 localDesc = sc.getDesc();
-            if ((localDesc == null) || (localDesc.length() == 0))
-                localDesc = EMPTYSTR;
 
             /* [0] */ pa.add(sc.key);
             /* [1] */ pa.add(Integer.toString(sc.minVersion));
@@ -313,7 +311,9 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
     private SOCScenarioInfo(List<String> pa)
         throws IllegalArgumentException, IndexOutOfBoundsException, NumberFormatException
     {
-	super(SCENARIOINFO, null, pa);
+        super(SCENARIOINFO, null, parseData_FindEmptyStrs(pa));
+            // Transforms EMPTYSTR -> "" for sanitation;
+            // won't find any EMPTYSTR unless data was malformed when passed to toCmd() at server
 
 	final int L = pa.size();
 	final boolean isFromClient = (pa.get(0).equals(SOCMessage.GAME_NONE));  // may throw IndexOutOfBoundsException
@@ -403,7 +403,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
      * and their first parameter is a scenario keyname instead. {@code GAME_NONE} is guaranteed to not be
      * a valid scenario keyname; it contains a character not valid for scenario keys.
      *
-     * @param pa  the String parameters
+     * @param pa  the String parameters; any {@link SOCMessage#EMPTYSTR} will be parsed as ""
      * @return  a SOCScenarioInfo message, or null if parsing errors
      */
     public static SOCScenarioInfo parseDataStr(List<String> pa)
@@ -413,7 +413,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
 
         try
         {
-            return new SOCScenarioInfo(pa);
+            return new SOCScenarioInfo(pa);  // calls parseData_FindEmptyStrs
         } catch (Throwable e) {
             return null;
         }
