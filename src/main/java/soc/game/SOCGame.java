@@ -1151,8 +1151,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * create a new, active game with options
-     * and optionally a scenario (game option {@code "SC"}).
+     * create a new, active game with options and optionally a scenario (game option {@code "SC"}).
      *
      * @param n  the name of the game.  For network message safety, must not contain
      *           control characters, {@link SOCMessage#sep_char}, or {@link SOCMessage#sep2_char}.
@@ -1163,6 +1162,11 @@ public class SOCGame implements Serializable, Cloneable
      *           with <tt>doServerPreadjust</tt> false,
      *           and set game's minimum version by calling
      *           {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
+     *           <P>
+     *           When creating a game at the server, {@code op} must already be validated by calling
+     *           {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
+     *           with <tt>doServerPreadjust</tt> true.
+     *           That call is also needed to add any game options from scenario ({@code "SC"}) if present.
      * @throws IllegalArgumentException if op contains unknown options, or any
      *             object class besides {@link SOCGameOption}
      * @since 1.1.07
@@ -1203,6 +1207,11 @@ public class SOCGame implements Serializable, Cloneable
      *           with <tt>doServerPreadjust</tt> false,
      *           and set game's minimum version by calling
      *           {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
+     *           <P>
+     *           When creating a game at the server, {@code op} must already be validated by calling
+     *           {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
+     *           with <tt>doServerPreadjust</tt> true.
+     *           That call is also needed to add any game options from scenario ({@code "SC"}) if present.
      * @throws IllegalArgumentException if op contains unknown options, or any
      *             object class besides {@link SOCGameOption}, or if game name
      *             fails {@link SOCMessage#isSingleLineAndSafe(String)}.

@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2005 Chadwick A McHenry <mchenryc@acm.org>
- * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1302,6 +1302,7 @@ public class SOCServer extends Server
 
         // Set game option defaults from any jsettlers.gameopt.* properties found.
         // If problems found, throws IllegalArgumentException with details.
+        // Does not apply scenario's game options, if any.
         // Ignores unknown scenario ("SC"), see init_checkScenarioOpts for that.
         init_propsSetGameopts(props);
 
@@ -1997,7 +1998,7 @@ public class SOCServer extends Server
      * @param gaName  the name of the game.  Not validated or trimmed, see
      *             {@link #createOrJoinGameIfUserOK(Connection, String, String, String, Map)} for that.
      * @param gaOpts  if creating a game with options, its {@link SOCGameOption}s; otherwise null.
-     *                Should already be validated, by calling
+     *                Must already be validated, by calling
      *                {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *                with <tt>doServerPreadjust</tt> true.
      *
@@ -2125,7 +2126,7 @@ public class SOCServer extends Server
      * @param gaName  the name of the game, no game should exist yet with this name. Not validated or trimmed, see
      *             {@link #createOrJoinGameIfUserOK(Connection, String, String, String, Map)} for that.
      * @param gaOpts  if creating a game with options, its {@link SOCGameOption}s; otherwise null.
-     *                Should already be validated, by calling
+     *                Must already be validated, by calling
      *                {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *                with <tt>doServerPreadjust</tt> true.
      * @param gVers  Game's minimum version, from
@@ -7737,14 +7738,16 @@ public class SOCServer extends Server
     }
 
     /**
-     * Set game option defaults from any {@code jsettlers.gameopt.*} server properties found.
+     * Set static game option defaults from any {@code jsettlers.gameopt.*} server properties found.
      * Option keynames are case-insensitive past that prefix.
      * See {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} for expected syntax.
      * Calls {@link #parseCmdline_GameOption(SOCGameOption, String, HashMap)} for each one found,
      * to set its current value in {@link SOCGameOptions}'s static set of known opts.
      *<P>
-     * Note that an unknown {@link SOCSscenario} name (value of game option {@code "SC"})
-     * is not an error here; {@link #init_checkScenarioOpts(Map, boolean, String, String, String)}
+     * If {@code pr} contains a {@link SOCScenario} keyname (value of game option {@code "SC"}),
+     * this method sets that as the default scenario but won't apply that scenario's game options
+     * to the default values. Note that an unknown scenario keyname is not an error here;
+     * {@link #init_checkScenarioOpts(Map, boolean, String, String, String)}
      * will check for that and its caller will halt startup if found.
      *
      * @param pr  Properties which may contain {@link #PROP_JSETTLERS_GAMEOPT_PREFIX}* entries.
