@@ -364,8 +364,9 @@ public class SOCScenario
     /**
      * Scenario's {@link SOCGameOption}s, as a formatted string
      * from {@link SOCGameOption#packOptionsToString(Map, boolean)}.
+     * Never {@code null} or empty; {@code "-"} if scenario has no game options.
      */
-    public String scOpts;
+    public final String scOpts;
 
     /**
      * Detailed text for the scenario description and special rules, or null.

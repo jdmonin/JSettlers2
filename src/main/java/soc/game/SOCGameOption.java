@@ -1530,16 +1530,19 @@ public class SOCGameOption
      * @param omap  Map of SOCGameOptions, or null
      * @param hideEmptyStringOpts omit string-valued options which are empty?
      *            Suitable only for sending defaults.
-     * @return string of name-value pairs, or "-" for an empty or null omap;
-     *         any gameoptions of {@link #OTYPE_UNKNOWN} will not be
-     *         part of the string. Format: k1=t,k2=f,k3=10,k4=t7,k5=f7.
-     * The format for each value depends on its type:
-     *<UL>
-     *<LI>OTYPE_BOOL: t or f
-     *<LI>OTYPE_ENUM: int in range 1-n
-     *<LI>OTYPE_INTBOOL: t or f followed immediately by int value, as in: t7 or f9
-     *<LI>All other optTypes: int value or string value, as appropriate
-     *</UL>
+     * @return string of name-value pairs, or "-" for an empty or null {@code omap};
+     *     any gameoptions of {@link #OTYPE_UNKNOWN} will not be part of the string.
+     *     <P>
+     *     Format: k1=t,k2=f,k3=10,k4=t7,k5=f7. <BR>
+     *     Pair separator is the ordinary comma character {@link SOCMessage#sep2_char}.
+     *     <P>
+     *     The format for each value depends on its type:
+     *     <UL>
+     *       <LI> OTYPE_BOOL: t or f
+     *       <LI> OTYPE_ENUM: int in range 1-n
+     *       <LI> OTYPE_INTBOOL: t or f followed immediately by int value, as in: t7 or f9
+     *       <LI> All other optTypes: int value or string value, as appropriate
+     *     </UL>
      *
      * @throws ClassCastException if {@code omap} contains anything other
      *         than {@code SOCGameOption}s
