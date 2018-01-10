@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -70,6 +70,7 @@ public class TestBoardLayouts
         if (gaOpts != null)
             assertNull("Unexpected problems with scenario options",
                 SOCGameOption.adjustOptionsToKnown(gaOpts, null, true));
+                    // this same pre-check is done by TestScenarioOpts.testAllScenarios()
 
         final String gaName = ((sc != null) ? sc.key : "classic") + ":" + pl;
         gl.createGame(gaName, "test", "en_US", gaOpts, sgh);

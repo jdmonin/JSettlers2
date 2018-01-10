@@ -1676,6 +1676,8 @@ public class SOCGameOption
 
     /**
      * Utility - build a map of keys to SOCGameOptions by parsing a list of option name-value pairs.
+     * For each pair in {@code ostr}, calls
+     * {@link #parseOptionNameValue(String, boolean) parseOptionNameValue(pair, false)}.
      *<P>
      * Before v2.0.00, this was {@code parseOptionsToHash}.
      *
@@ -1690,6 +1692,8 @@ public class SOCGameOption
      *         The returned known SGOs are clones from the set of all known options.
      * @see #parseOptionNameValue(String, boolean)
      * @see #parseOptionNameValue(String, String, boolean)
+     * @throws IllegalArgumentException if any game option keyname in {@code ostr} is unknown
+     *     and not a valid alphanumeric keyname by the rules listed at {@link #SOCGameOption(String)}
      */
     public static Map<String,SOCGameOption> parseOptionsToMap(final String ostr)
     {
@@ -1780,7 +1784,7 @@ public class SOCGameOption
         SOCGameOption copyOpt;
         if (knownOpt == null)
         {
-            copyOpt = new SOCGameOption(optkey);  // OTYPE_UNKNOWN
+            copyOpt = new SOCGameOption(optkey);  // OTYPE_UNKNOWN; may throw IllegalArgumentException
         }
         else
         {
