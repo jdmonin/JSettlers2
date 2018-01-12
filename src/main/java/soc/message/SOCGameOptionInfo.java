@@ -29,7 +29,7 @@ import soc.game.SOCVersionedItem;
 
 /**
  * Information on one available {@link SOCGameOption} game option.
- * Reply from server to a client's {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS} message.
+ * Is reply from server to a client's {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS} message:
  * Provides the option's information, including default value and current value at the
  * server for new games.  In v2.0.00+ the option description can be localized for the client;
  * see also {@link SOCLocalizedStrings}({@link SOCLocalizedStrings#TYPE_GAMEOPT TYPE_GAMEOPT}).
@@ -85,7 +85,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      */
     public SOCGameOptionInfo(final SOCGameOption op, final int cliVers, final String localDesc)
     {
-        super(GAMEOPTIONINFO, null, new ArrayList<String>());
+        super(GAMEOPTIONINFO, new ArrayList<String>());
 
         // OTYPE_*
         opt = op;
@@ -147,7 +147,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
     protected SOCGameOptionInfo(List<String> pal)
         throws IllegalArgumentException, NumberFormatException
     {
-	super(GAMEOPTIONINFO, null, pal);
+	super(GAMEOPTIONINFO, pal);
 	final int L = pal.size();
 	if (L < 11)
 	    throw new IllegalArgumentException("pal.size");

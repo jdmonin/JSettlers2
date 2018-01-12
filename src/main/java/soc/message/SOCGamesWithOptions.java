@@ -23,7 +23,6 @@ package soc.message;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
@@ -34,7 +33,7 @@ import soc.util.SOCGameList;
  * their {@link soc.game.SOCGameOption game options}.
  * It's constructed and sent for each connecting client
  * which can understand game options (1.1.07 and newer),
- * by calling {@link #toCmd(Vector, int)}.
+ * by calling {@link #toCmd(List, int)}.
  *<P>
  * Robot clients don't need to know about or handle this message type,
  * because they don't create games.
@@ -58,14 +57,14 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
      * objects; call {@link soc.game.SOCGameOption#parseOptionsToMap(String)} for that.
      *<P>
      * There is no server-side constructor, because the server
-     * instead calls {@link #toCmd(Vector, int)}.
+     * instead calls {@link #toCmd(List, int)}.
      *
      * @param gl  Game list; can be empty, but not null
      */
     protected SOCGamesWithOptions(List<String> gl)
     {
-        super(GAMESWITHOPTIONS, "-", parseData_FindEmptyStrs(gl));
-            // Transforms EMPTYSTR -> "" for sanitation;
+        super(GAMESWITHOPTIONS, parseData_FindEmptyStrs(gl));
+            // Transforms EMPTYSTR -> "" to sanitize;
             // won't find any EMPTYSTR unless data was malformed when passed to toCmd() at server
     }
 
@@ -124,7 +123,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
 
     /**
      * Build the command string from a set of games; used at server side.
-     * @param ga  the list of games, as a mixed-content vector of Strings and/or {@link SOCGame}s;
+     * @param ga  the list of games, as a mixed-content list of Strings and/or {@link SOCGame}s;
      *            if a client can't join a game, it should be a String prefixed with
      *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
      * @param cliVers  Client version; assumed >= {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
@@ -133,8 +132,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
      */
     public static String toCmd(List<?> ga, final int cliVers)
     {
-        // build by iteration
-        StringBuffer sb = new StringBuffer(Integer.toString(SOCMessage.GAMESWITHOPTIONS));
+        StringBuilder sb = new StringBuilder(Integer.toString(SOCMessage.GAMESWITHOPTIONS));
         for (int i = 0; i < ga.size(); ++i)
         {
             sb.append(sep);
@@ -145,11 +143,12 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
                 sb.append(sep);
                 sb.append(SOCGameOption.packOptionsToString(((SOCGame) ob).getGameOptions(), false, cliVers));
             } else {
-                sb.append((String) ob);
+                sb.append((String) ob);  // ob is most likely a String already
                 sb.append(sep);
                 sb.append("-");
             }
         }
+
         return sb.toString();
     }
 

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,6 +24,7 @@ package soc.message;
 /**
  * This message is a way for the admin to test
  * if a robot is connected and running
+ * in a game where the admin user is a member.
  *
  * @author Robert S Thomas
  * @see SOCServerPing
@@ -35,14 +36,14 @@ public class SOCAdminPing extends SOCMessage
     private static final long serialVersionUID = 1111L;  // last structural change v1.1.11
 
     /**
-     * Name of the new game.
+     * Name of the game.
      */
     private String game;
 
     /**
      * Create a AdminPing message.
      *
-     * @param ga  name of new game
+     * @param ga  name of game
      */
     public SOCAdminPing(String ga)
     {
@@ -51,7 +52,7 @@ public class SOCAdminPing extends SOCMessage
     }
 
     /**
-     * @return the name of the game
+     * @return the name of the game having the robot and the admin user as members
      */
     public String getGame()
     {
@@ -83,7 +84,7 @@ public class SOCAdminPing extends SOCMessage
      * Parse the command String into a AdminPing message
      *
      * @param s   the String to parse
-     * @return    a AdminPing message
+     * @return    an AdminPing message
      */
     public static SOCAdminPing parseDataStr(String s)
     {
@@ -97,4 +98,5 @@ public class SOCAdminPing extends SOCMessage
     {
         return "SOCAdminPing:game=" + game;
     }
+
 }

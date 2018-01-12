@@ -55,21 +55,16 @@ import java.util.ListIterator;
  *<P>
  * For notes on the section you must add to {@link SOCMessage#toMsg(String)},
  * see {@link SOCMessageMulti}.
+ *<P>
+ * Before v2.0.00 this template class also implemented {@link SOCMessageForGame} for use by future subclasses,
+ * but none of its actual subclasses were game-specific.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.00
  */
 public abstract class SOCMessageTemplateMs extends SOCMessageMulti
-    implements SOCMessageForGame
 {
     private static final long serialVersionUID = 2000L;
-
-    /**
-     * Name of the game, or null if none.
-     * The server's message treater requires a non-null {@link #getGame()} for incoming messages
-     * from clients; see {@link SOCMessageForGame#getGame()} for details.
-     */
-    protected String game;
 
     /**
      * List of string parameters, or null if none.
@@ -85,9 +80,6 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
      * Create a new multi-message with string parameters.
      *
      * @param id  Message type ID
-     * @param ga  Name of game this message is for, or null if none. See {@link #getGame()} for details.
-     *     The server's message treater requires a non-null {@link #getGame()}
-     *     for incoming messages from clients; see {@link SOCMessageForGame#getGame()} for details.
      * @param pal List of parameters, or null if none.
      *     Sets {@link #pa} field to {@code pal}: Afterwards method calls on {@code pa} or {@code pal}
      *     will affect the same List object.
@@ -95,22 +87,10 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
      *     This constructor does not convert {@link SOCMessage#EMPTYSTR} field values to "";
      *     see {@link #parseData_FindEmptyStrs(List)}.
      */
-    protected SOCMessageTemplateMs(final int id, final String ga, final List<String> pal)
+    protected SOCMessageTemplateMs(final int id, final List<String> pal)
     {
         messageType = id;
-        game = ga;
         pa = pal;
-    }
-
-    /**
-     * Get the game name; see {@link SOCMessageForGame#getGame()} for details.
-     * If not null, {@link #toCmd()} sends the game name before {@link #getParams()} contents, and
-     * at the receiver {@code parseDataStr(params)} will see that game name as the first parameter.
-     * @return the name of the game, or null if none
-     */
-    public String getGame()
-    {
-        return game;
     }
 
     /**
@@ -122,13 +102,13 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
     }
 
     /**
-     * MESSAGETYPE [sep game] sep param1 sep param2 sep ...
+     * MESSAGETYPE sep param1 sep param2 sep ...
      *
      * @return the command String
      */
     public String toCmd()
     {
-        return toCmd(messageType, game, pa);
+        return toCmd(messageType, pa);
     }
 
     /**
@@ -141,15 +121,9 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
      *     and must be converted back on the receiving end: See {@link #parseData_FindEmptyStrs(List)}.
      * @return    the command string
      */
-    protected static String toCmd(final int messageType, final String gaName, final List<String> pal)
+    protected static String toCmd(final int messageType, final List<String> pal)
     {
         StringBuilder sb = new StringBuilder(Integer.toString(messageType));
-
-        if (gaName != null)
-        {
-            sb.append(sep);
-            sb.append(gaName);
-        }
 
         if (pal != null)
         {
@@ -220,11 +194,6 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
     {
         StringBuilder sb = new StringBuilder(getClassNameShort());
 
-        if (game != null)
-        {
-            sb.append (":game=");
-            sb.append (game);
-        }
         if (pa != null)
         {
             for (final String p : pa)

@@ -65,8 +65,6 @@ import java.util.List;
  *   }
  * </code></pre>
  *<P>
- * Not a per-game message; {@link #getGame()} returns {@link SOCMessage#GAME_NONE}.
- *<P>
  * Robot clients don't need to know about or handle this message type,
  * because they don't have a locale.
  *<P>
@@ -154,7 +152,7 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
     /**
      * Server-side constructor.
      * The server usually uses static {@link #toCmd(String, int, List)} to send this message to clients,
-     * but the constructor is used with the Practice client's local server.
+     * but this constructor is used with the Practice client's local server.
      *
      * @param type  String type such as {@link #TYPE_SCENARIO};
      *     must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
@@ -180,8 +178,7 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
     public SOCLocalizedStrings(final String type, final int flags, final List<String> strs)
         throws IllegalArgumentException
     {
-        super(LOCALIZEDSTRINGS, SOCMessage.GAME_NONE,
-              ((strs != null) ? strs : new ArrayList<String>()));
+        super(LOCALIZEDSTRINGS, ((strs != null) ? strs : new ArrayList<String>()));
               // strs becomes pa field
         checkParams(type, strs);  // isSingleLineAndSafe(type), isSingleLineAndSafe(each non-empty str), etc
 
@@ -203,7 +200,7 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
     private SOCLocalizedStrings(final List<String> strs)
         throws NumberFormatException
     {
-        super(LOCALIZEDSTRINGS, SOCMessage.GAME_NONE, parseData_FindEmptyStrs(strs));
+        super(LOCALIZEDSTRINGS, parseData_FindEmptyStrs(strs));
 
         // flag field; parse error throws exception for parseDataStr to catch
         flags = Integer.parseInt(strs.get(1), 16);

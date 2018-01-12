@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2010,2013-2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2010,2013-2015,2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,7 +21,8 @@ package soc.message;
  * This indicates that a {@link SOCMessage} type is always about a particular game
  * named in the message, or never about that game.
  *<P>
- * Check that {@link #getGame()} is not null before adding to a per-game message queue.
+ * Before adding to a per-game message queue, check that {@link #getGame()} is
+ * not {@code null} or {@link SOCMessage#GAME_NONE}.
  *<P>
  * Most implementing types' constructors will always require a game; some abstract
  * subclasses such as {@link SOCMessageTemplateMi} may allow null, leaving the choice
@@ -30,7 +31,7 @@ package soc.message;
  *<P>
  * Template classes such as {@link SOCMessageTemplateMi} are convenient for quickly developing
  * a new message type, but they all implement {@code SOCMessageForGame}.  If the template classes
- * are used for non-game data from a server, the server will use {@link SOCMessage#GAME_NONE}
+ * are used for non-game data with a server, the server will use {@link SOCMessage#GAME_NONE}
  * as the "game name".
  *
  * @since 1.1.11
@@ -39,22 +40,22 @@ package soc.message;
 public interface SOCMessageForGame
 {
     /**
-     * Name of game this message is for.
-     * Must not be {@code null} if message is in per-game structures or code.
+     * Name of game this message is for, if any.
+     * Must not be {@code null} in a message sent to the server:
+     * If message is not about per-game structures or code, use {@link SOCMessage#GAME_NONE}.
      *<P>
      * At the server, the message treater dispatches incoming {@code SOCMessageForGame}s
      * based on their {@code getGame()}:
      *<UL>
      * <LI> {@code null}: Message is ignored
      * <LI> {@link SOCMessage#GAME_NONE}: Message is handled by {@code SOCServer} itself
+     *      or {@code SOCServerMessageHandler}
      * <LI> Any other game name: Looks for a game with that name, to dispatch to
      *      the {@code GameHandler} for that game's type. If no game with that name is found,
      *      the message is ignored.
      *</UL>
      *
-     * @return the name of the game, or (rarely) {@code null} if none.
-     *
-     * @see SOCMessage#GAME_NONE
+     * @return the name of the game, or {@link SOCMessage#GAME_NONE} or (rarely, at client) {@code null} if none.
      */
     public abstract String getGame();
 

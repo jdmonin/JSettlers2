@@ -962,7 +962,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
                 return SOCLocalizedStrings.parseDataStr(multiData);
 
             case SCENARIOINFO:         // Scenario info, 20150920, v2.0.00
-                return SOCScenarioInfo.parseDataStr(multiData);
+                return SOCScenarioInfo.parseDataStr(multiData, data);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);

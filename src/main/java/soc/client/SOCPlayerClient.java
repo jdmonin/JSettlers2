@@ -5418,18 +5418,18 @@ public class SOCPlayerClient
      */
     private void handleLOCALIZEDSTRINGS(final SOCLocalizedStrings mes, final boolean isPractice)
     {
-        final List<String> str = mes.getParams();
-        final String type = str.get(0);
+        final List<String> strs = mes.getParams();
+        final String type = strs.get(0);
 
         if (type.equals(SOCLocalizedStrings.TYPE_GAMEOPT))
         {
-            final int L = str.size();
+            final int L = strs.size();
             for (int i = 1; i < L; i += 2)
             {
-                SOCGameOption opt = SOCGameOption.getOption(str.get(i), false);
+                SOCGameOption opt = SOCGameOption.getOption(strs.get(i), false);
                 if (opt != null)
                 {
-                    final String desc = str.get(i + 1);
+                    final String desc = strs.get(i + 1);
                     if ((desc != null) && (desc.length() > 0))
                         opt.setDesc(desc);
                 }
@@ -5439,7 +5439,7 @@ public class SOCPlayerClient
         else if (type.equals(SOCLocalizedStrings.TYPE_SCENARIO))
         {
             localizeGameScenarios
-                (str, true, mes.isFlagSet(SOCLocalizedStrings.FLAG_SENT_ALL), isPractice);
+                (strs, true, mes.isFlagSet(SOCLocalizedStrings.FLAG_SENT_ALL), isPractice);
         }
         else
         {
