@@ -3762,10 +3762,10 @@ public class SOCPlayerClient
 
             }  // switch (mes.getType())
         }
-        catch (Exception e)
+        catch (Throwable th)
         {
-            System.out.println("SOCPlayerClient treat ERROR - " + e.getMessage());
-            e.printStackTrace();
+            System.out.println("SOCPlayerClient treat ERROR - " + th.getMessage());
+            th.printStackTrace();
             System.out.println("  For message: " + mes);
         }
 
