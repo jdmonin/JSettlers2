@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, type parameterization, GUI API updates, etc
  *
@@ -1873,7 +1873,7 @@ public class SOCPlayerInterface extends Frame
      * ("* " + {@link SOCStringManager#get(String, Object...) strings.get}({@code key, params})).
      * @param key  Key to use for string retrieval
      * @param params  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string by
-     *                calling {@code SOCStringManager.get(key, params...)}; the localized string should not
+     *                calling {@code SOCStringManager.get(key, params...)}. The localized string should not
      *                contain the leading <tt>"* "</tt> or the ending <tt>\n</tt>, those are added here.
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      * @since 2.0.00
@@ -1882,6 +1882,25 @@ public class SOCPlayerInterface extends Frame
         throws MissingResourceException
     {
         textDisplay.append("* " + strings.get(key, params) + "\n");  // TextArea will soft-wrap within the line
+    }
+
+    /**
+     * Get and print a localized string (with special SoC-specific parameters) in the text window,
+     * followed by a new line (<tt>'\n'</tt>). Equivalent to {@link #print(String) print}("* " +
+     * {@link SOCStringManager#getSpecial(String, String, Object...) strings.getSpecial}({@code game, key, params})).
+     * @param key  Key to use for string retrieval
+     * @param params  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string by
+     *                calling {@code SOCStringManager.getSpecial(game, key, params...)}. The localized string should not
+     *                contain the leading <tt>"* "</tt> or the ending <tt>\n</tt>, those are added here.
+     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
+     * @throws IllegalArgumentException if the localized pattern string has a parse error
+     *     (closing '}' brace without opening '{' brace, etc)
+     * @since 2.0.00
+     */
+    public void printKeyedSpecial(final String key, final Object ... params)
+        throws MissingResourceException, IllegalArgumentException
+    {
+        textDisplay.append("* " + strings.getSpecial(game, key, params) + "\n");  // TextArea will soft-wrap within line
     }
 
     /**
@@ -3875,6 +3894,17 @@ public class SOCPlayerInterface extends Frame
 
             case SOCSimpleAction.BOARD_EDGE_SET_SPECIAL:
                 boardUpdated();
+                break;
+
+            case SOCSimpleAction.RSRC_TYPE_MONOPOLIZED:
+                {
+                    if (pn == pi.clientHandPlayerNum)
+                        pi.printKeyedSpecial("game.action.mono.you.monopolized", value1, value2);
+                            // "You monopolized 5 sheep."
+                    else
+                        pi.printKeyedSpecial("game.action.mono.monopolized", plName, value1, value2);
+                            // "Joe monopolized 5 sheep."
+                }
                 break;
 
             case SOCSimpleAction.TRADE_PORT_REMOVED:

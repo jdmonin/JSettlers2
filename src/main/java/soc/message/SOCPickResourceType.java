@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,17 +22,27 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.game.SOCResourceConstants;  // for javadocs only
+
 
 /**
- * This message says what resource the current player wants to
- * monopolize
+ * This message says which resource type the current player wants to
+ * pick for a game action, such as using a Monopoly development card.
+ *<P>
+ * Sent from client as a request.
+ *<P>
+ * For a Monopoly card, the server responds by announcing {@link SOCSimpleAction}
+ * ({@link SOCSimpleAction#RSRC_TYPE_MONOPOLIZED RSRC_TYPE_MONOPOLIZED}).
+ *<P>
+ * Before v2.0.00 this class was {@code SOCMonopolyPick}.
  *
+ * @see SOCPickResources
  * @author Robert S. Thomas
  */
-public class SOCMonopolyPick extends SOCMessage
+public class SOCPickResourceType extends SOCMessage
     implements SOCMessageForGame
 {
-    private static final long serialVersionUID = 1111L;  // last structural change v1.1.11
+    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /**
      * Name of game
@@ -40,19 +50,21 @@ public class SOCMonopolyPick extends SOCMessage
     private String game;
 
     /**
-     * The chosen resource
+     * The chosen resource type,
+     * such as {@link SOCResourceConstants#CLAY} or {@link SOCResourceConstants#SHEEP}
      */
     private int resource;
 
     /**
-     * Create a MonopolyPick message.
+     * Create a SOCPickResourceType message.
      *
      * @param ga  the name of the game
-     * @param rs  the resource
+     * @param rs  the resource type,
+     *     such as {@link SOCResourceConstants#CLAY} or {@link SOCResourceConstants#SHEEP}
      */
-    public SOCMonopolyPick(String ga, int rs)
+    public SOCPickResourceType(String ga, int rs)
     {
-        messageType = MONOPOLYPICK;
+        messageType = PICKRESOURCETYPE;
         game = ga;
         resource = rs;
     }
@@ -66,15 +78,19 @@ public class SOCMonopolyPick extends SOCMessage
     }
 
     /**
-     * @return the chosen resource
+     * Get the player's chosen resource type.
+     *<P>
+     * Before v2.0.00 this method was {@code getResource()}.
+     * @return the chosen resource type,
+     *     such as {@link SOCResourceConstants#CLAY} or {@link SOCResourceConstants#SHEEP}
      */
-    public int getResource()
+    public int getResourceType()
     {
         return resource;
     }
 
     /**
-     * MONOPOLYPICK sep game sep2 resource
+     * PICKRESOURCETYPE sep game sep2 resourceType
      *
      * @return the command string
      */
@@ -84,24 +100,25 @@ public class SOCMonopolyPick extends SOCMessage
     }
 
     /**
-     * MONOPOLYPICK sep game sep2 resource
+     * PICKRESOURCETYPE sep game sep2 resourceType
      *
      * @param ga  the name of the game
-     * @param rs  the chosen resource
+     * @param rs  the chosen resource type,
+     *     such as {@link SOCResourceConstants#CLAY} or {@link SOCResourceConstants#SHEEP}
      * @return the command string
      */
     public static String toCmd(String ga, int rs)
     {
-        return MONOPOLYPICK + sep + ga + sep2 + rs;
+        return PICKRESOURCETYPE + sep + ga + sep2 + rs;
     }
 
     /**
-     * Parse the command String into a MONOPOLYPICK message.
+     * Parse the command String into a PICKRESOURCETYPE message.
      *
      * @param s   the String to parse
-     * @return    a MONOPOLYPICK message, or null if the data is garbled
+     * @return    a PickResourceType message, or null if the data is garbled
      */
-    public static SOCMonopolyPick parseDataStr(String s)
+    public static SOCPickResourceType parseDataStr(String s)
     {
         String ga; // the game name
         int rs; // the chosen resource
@@ -118,7 +135,7 @@ public class SOCMonopolyPick extends SOCMessage
             return null;
         }
 
-        return new SOCMonopolyPick(ga, rs);
+        return new SOCPickResourceType(ga, rs);
     }
 
     /**
@@ -126,6 +143,6 @@ public class SOCMonopolyPick extends SOCMessage
      */
     public String toString()
     {
-        return "SOCMonopolyPick:game=" + game + "|resource=" + resource;
+        return "SOCPickResourceType:game=" + game + "|resType=" + resource;
     }
 }

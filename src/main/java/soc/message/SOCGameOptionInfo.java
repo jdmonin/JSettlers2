@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009,2012-2013,2015,2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2012-2013,2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,7 +29,7 @@ import soc.game.SOCVersionedItem;
 
 /**
  * Information on one available {@link SOCGameOption} game option.
- * Reply from server to a client's {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS} message.
+ * Is reply from server to a client's {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS} message:
  * Provides the option's information, including default value and current value at the
  * server for new games.  In v2.0.00+ the option description can be localized for the client;
  * see also {@link SOCLocalizedStrings}({@link SOCLocalizedStrings#TYPE_GAMEOPT TYPE_GAMEOPT}).
@@ -85,7 +85,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      */
     public SOCGameOptionInfo(final SOCGameOption op, final int cliVers, final String localDesc)
     {
-        super(GAMEOPTIONINFO, null, new ArrayList<String>());
+        super(GAMEOPTIONINFO, new ArrayList<String>());
 
         // OTYPE_*
         opt = op;
@@ -100,10 +100,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
         /* [8] */ pa.add(op.getBoolValue() ? "t" : "f");
         if ((op.optType == SOCGameOption.OTYPE_STR) || (op.optType == SOCGameOption.OTYPE_STRHIDE))
         {
-            String sv = op.getStringValue();
-            if (sv.length() == 0)
-                sv = EMPTYSTR;  // can't parse a null or 0-length pa[9]
-            /* [9] */ pa.add(sv);
+            /* [9] */ pa.add(op.getStringValue());
         } else {
             /* [9] */ pa.add(Integer.toString(op.getIntValue()));
         }
@@ -135,11 +132,12 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      * <LI> pal[6] = minIntValue
      * <LI> pal[7] = maxIntValue
      * <LI> pal[8] = boolValue ('t' or 'f'; current, not default)
-     * <LI> pal[9] = intValue (current, not default) or stringvalue
+     * <LI> pal[9] = intValue (current, not default) or stringvalue; stringvalue of "" is stored as {@code null}
      * <LI> pal[10] = optFlags as integer -- before v2.0.00, only FLAG_DROP_IF_UNUSED ('t' or 'f')
      * <LI> pal[11] = desc (displayed text) if present; required for all types except {@code OTYPE_UNKNOWN}
      * <LI> pal[12] and beyond, if present = each enum choice's text
      *</UL>
+     * Any parameter which is {@link SOCMessage#EMPTYSTR} is changed to "" in place in {@code pal}.
      *
      * @throws IllegalArgumentException if pal's length &lt; 11, or type is not a valid {@link SOCGameOption#optType};
      *      if type isn't {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM} or ENUMBOOL,
@@ -149,11 +147,12 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
     protected SOCGameOptionInfo(List<String> pal)
         throws IllegalArgumentException, NumberFormatException
     {
-	super(GAMEOPTIONINFO, null, pal);
+	super(GAMEOPTIONINFO, pal);
 	final int L = pal.size();
 	if (L < 11)
 	    throw new IllegalArgumentException("pal.size");
 
+	parseData_FindEmptyStrs(pal);  // EMPTYSTR -> ""
 	final String[] pa = pal.toArray(new String[L]);
 
 	// OTYPE_*
@@ -174,7 +173,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
 	{
 	    ival_cur = 0;
 	    sval_cur = pa[9];
-	    if (sval_cur.equals(EMPTYSTR))
+	    if (sval_cur.length() == 0)
 	        sval_cur = null;
 	} else {
 	    ival_cur = Integer.parseInt(pa[9]);
@@ -299,9 +298,8 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
 
         try
         {
-            return new SOCGameOptionInfo(pa);
-        } catch (Throwable e)
-        {
+            return new SOCGameOptionInfo(pa);  // calls parseData_FindEmptyStrs
+        } catch (Throwable e) {
             return null;
         }
     }

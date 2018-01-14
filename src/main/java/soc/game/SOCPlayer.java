@@ -3866,7 +3866,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Afterwards it's mostly empty, and follows from the player's road locations.
      *<P>
      * Please make no changes, treat the returned set as read-only.
-     * @return the player's set of {@link Integer} potential-settlement node coordinates
+     * @return the player's set of {@link Integer} potential-settlement node coordinates.
+     *     Not {@code null} unless {@link #destroyPlayer()} has been called.
      * @see #getPotentialSettlements_arr()
      * @see #hasPotentialSettlement()
      * @see #hasPotentialSettlementsInitialInFog()

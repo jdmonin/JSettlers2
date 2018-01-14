@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
- * Portions of this file copyright (C) 2009,2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2012,2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,6 +26,10 @@ import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.proto.Data;
 
+/**
+ * Monopoly dev card strategy for a {@link SOCRobotBrain} in a game.
+ * See {@link #decidePlayMonopoly()} for details.
+ */
 public class MonopolyStrategy
 {
 
@@ -36,7 +40,7 @@ public class MonopolyStrategy
     private final SOCPlayer ourPlayerData;
 
     /**
-     * The resource we want to monopolize,
+     * The resource type we want to monopolize,
      * chosen by {@link #decidePlayMonopoly()},
      * such as {@link Data.ResourceType#CLAY_VALUE}
      * or {@link Data.ResourceType#SHEEP_VALUE}
@@ -72,36 +76,32 @@ public class MonopolyStrategy
     /**
      * Decide whether we should play a monopoly card,
      * and set {@link #getMonopolyChoice()} if so.
+     *<P>
+     * Decision and chosen resource type are based on which type our player
+     * could trade for the most resources (given our player's ports),
+     * not on the resources needed for we currently want to build.
      * @return True if we should play the card
      */
     public boolean decidePlayMonopoly()
     {
         int bestResourceCount = 0;
-        int bestResource = 0;
+        int bestResourceType = 0;
+        final int ourPN = ourPlayerData.getPlayerNumber();
+        final boolean threeForOne = ourPlayerData.getPortFlag(SOCBoard.MISC_PORT);
 
         for (int resource = Data.ResourceType.CLAY_VALUE;
              resource <= Data.ResourceType.WOOD_VALUE; resource++)
         {
             //log.debug("$$ resource="+resource);
             int freeResourceCount = 0;
-            boolean twoForOne = false;
-            boolean threeForOne = false;
-
-            if (ourPlayerData.getPortFlag(resource))
-            {
-                twoForOne = true;
-            }
-            else if (ourPlayerData.getPortFlag(SOCBoard.MISC_PORT))
-            {
-                threeForOne = true;
-            }
+            final boolean twoForOne = ourPlayerData.getPortFlag(resource);
 
             int resourceTotal = 0;
 
             for (int pn = 0; pn < game.maxPlayers; pn++)
             {
-                if (ourPlayerData.getPlayerNumber() == pn)
-                    continue;  // skip our resources
+                if (pn == ourPN)
+                    continue;  // skip our own resources
 
                 resourceTotal += game.getPlayer(pn).getResources().getAmount(resource);
 
@@ -125,13 +125,13 @@ public class MonopolyStrategy
             if (freeResourceCount > bestResourceCount)
             {
                 bestResourceCount = freeResourceCount;
-                bestResource = resource;
+                bestResourceType = resource;
             }
         }
 
         if (bestResourceCount > 2)
         {
-            monopolyChoice = bestResource;
+            monopolyChoice = bestResourceType;
 
             return true;
         }

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2015,2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -50,7 +50,7 @@ import java.util.List;
  * or {@link #TYPE_SCENARIO}.  This is followed by the integer flag field (hex string) which
  * is removed from the list at the receiving end's parser.
  * The rest of {@code getParams()} is organized according to the type; see type constant javadocs.
- * Since {@code getParams()} can't contain empty strings, check contents for {@link #EMPTY}.
+ * Receiving end automatically translates {@link SOCMessage#EMPTYSTR} elements to "".
  *<P>
  * <B>Max Length:</B> When sending a long list, watch for the 65535-character limit mentioned at
  * {@link soc.server.genericServer.Connection#MAX_MESSAGE_SIZE_UTF8}. Remember that limit is
@@ -65,8 +65,6 @@ import java.util.List;
  *   }
  * </code></pre>
  *<P>
- * Not a per-game message; {@link #getGame()} returns {@link SOCMessage#GAME_NONE}.
- *<P>
  * Robot clients don't need to know about or handle this message type,
  * because they don't have a locale.
  *<P>
@@ -78,15 +76,9 @@ import java.util.List;
 public class SOCLocalizedStrings extends SOCMessageTemplateMs
 {
     /**
-     * Symbol to represent a null or empty string value, because
-     * empty {@code pa[]} elements can't be parsed over the network.
-     */
-    public static final String EMPTY = "\t";
-
-    /**
      * Game Option localized names, for {@link soc.game.SOCGameOption}.
      * After the string type at element 0, {@link #getParams()} contents are pairs
-     * of strings, each of which is a game option keyname and localized name.
+     * of strings, each of which is a game option keyname and its localized name or "".
      */
     public static final String TYPE_GAMEOPT = "G";
 
@@ -100,9 +92,9 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      *
      * <H4>From Server:</H4>
      * After the string type at element 0, {@link #getParams()} contents are triples of strings, each of which
-     * is a game scenario keyname, localized name, and optional localized long description or {@link #EMPTY}.
-     * As with any string type, an unknown keyname is a pair of strings here (not a triple): keyname,
-     * {@link #MARKER_KEY_UNKNOWN}.
+     * is a game scenario keyname, localized name, and optional localized long description or "".
+     * As with any string type, an unknown keyname is a pair of strings here
+     * (not a triple): keyname, {@link #MARKER_KEY_UNKNOWN}.
      *<P>
      * If the client has requested specific scenario keynames for this type, the server replies with all known
      * localized strings for those items.  Items without localized strings will not be included in the reply.
@@ -111,8 +103,12 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      */
     public static final String TYPE_SCENARIO = "S";
 
-    /** First character of all MARKERs */
-    private static final String MARKER_PREFIX = "\026";  // 0x16 ^V (SYN)
+    /**
+     * First character of all {@code MARKER}s: {@code ^V (SYN)}: (char) 22.
+     *<P>
+     * Currently {@link #MARKER_KEY_UNKNOWN} is the only recognized marker.
+     */
+    private static final char MARKER_PREFIX = '\026';  // 0x16 ^V (SYN)
 
     /**
      * "Type is unknown" flag, for server's response when it doesn't recognize
@@ -156,7 +152,7 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
     /**
      * Server-side constructor.
      * The server usually uses static {@link #toCmd(String, int, List)} to send this message to clients,
-     * but the constructor is used with the Practice client's local server.
+     * but this constructor is used with the Practice client's local server.
      *
      * @param type  String type such as {@link #TYPE_SCENARIO};
      *     must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
@@ -168,11 +164,11 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      *     {@link SOCMessage#sep2} characters are allowed, but {@link SOCMessage#sep} are not.
      *    <P>
      *     The list may be empty or null.  Since this constructor builds an object and not a
-     *     network message command, will not replace empty or null elements with {@link #EMPTY} or "".
+     *     network message command, will not replace empty or null elements with {@link SOCMessage#EMPTYSTR}.
      *     The constructor will prepend {@code type} to the {@code strs} list, creating it if null.
      *    <P>
-     *     If any string starts with {@link #MARKER_PREFIX}, it must be a recognized marker:
-     *     ({@link #MARKER_KEY_UNKNOWN}) declared in this class.
+     *     If any string starts with {@link #MARKER_PREFIX}, it must be a recognized marker
+     *     (like {@link #MARKER_KEY_UNKNOWN}) declared in this class.
      *    <P>
      *     <B>Max Length:</B> See {@link SOCLocalizedStrings class javadoc} for combined max length of list's strings.
      *
@@ -182,10 +178,9 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
     public SOCLocalizedStrings(final String type, final int flags, final List<String> strs)
         throws IllegalArgumentException
     {
-        super(LOCALIZEDSTRINGS, SOCMessage.GAME_NONE,
-              ((strs != null) ? strs : new ArrayList<String>()));
+        super(LOCALIZEDSTRINGS, ((strs != null) ? strs : new ArrayList<String>()));
               // strs becomes pa field
-        checkParams(type, strs);  // isSingleLineAndSafe(type), isSingleLineAndSafe(each str), etc
+        checkParams(type, strs);  // isSingleLineAndSafe(type), isSingleLineAndSafe(each non-empty str), etc
 
         pa.add(0, type);  // client will expect first list element is the type
         this.flags = flags;
@@ -199,12 +194,13 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      * is parsed here and removed from the list of strings.
      *
      * @param strs  String list; assumes caller has validated length >= 2 (type, flags).
+     *     Will replace any {@link SOCMessage#EMPTYSTR} with "".
      * @throws NumberFormatException  if flags field isn't a valid hex number
      */
     private SOCLocalizedStrings(final List<String> strs)
         throws NumberFormatException
     {
-        super(LOCALIZEDSTRINGS, SOCMessage.GAME_NONE, strs);
+        super(LOCALIZEDSTRINGS, parseData_FindEmptyStrs(strs));
 
         // flag field; parse error throws exception for parseDataStr to catch
         flags = Integer.parseInt(strs.get(1), 16);
@@ -242,7 +238,7 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
 
         try
         {
-            return new SOCLocalizedStrings(strs);
+            return new SOCLocalizedStrings(strs);  // calls parseData_FindEmptyStrs
         } catch (Exception e) {
             // catch NumberFormatException and anything else from a malformed message
             return null;
@@ -260,11 +256,11 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      *     {@link SOCMessage#sep2} characters are allowed, but {@link SOCMessage#sep} are not.
      *    <P>
      *     The list may be empty or null.  Empty or null elements in {@code strs} are automatically replaced here
-     *     with {@link #EMPTY}, but {@link #getParams()} will not automatically replace {@link #EMPTY}
-     *     with "" at the receiver.
+     *     with {@link SOCMessage#EMPTYSTR}, and at the receiver {@link #parseDataStr(List)} will automatically
+     *     replace {@code EMPTYSTR} with "".
      *    <P>
-     *     If any string starts with {@link #MARKER_PREFIX}, it must be a recognized marker:
-     *     ({@link #MARKER_KEY_UNKNOWN}) declared in this class.
+     *     If any string starts with {@link #MARKER_PREFIX}, it must be a recognized marker
+     *     (like {@link #MARKER_KEY_UNKNOWN}) declared in this class.
      *    <P>
      *     <B>Max Length:</B> See {@link SOCLocalizedStrings class javadoc} for combined max length of list's strings.
      *
@@ -289,7 +285,7 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
         (final String type, final int flags, List<String> strs, final boolean skipFirstStr)
         throws IllegalArgumentException
     {
-        checkParams(type, strs);  // isSingleLineAndSafe(type), isSingleLineAndSafe(each str), etc
+        checkParams(type, strs);  // isSingleLineAndSafe(type), isSingleLineAndSafe(each non-empty str), etc
 
         StringBuilder sb = new StringBuilder(Integer.toString(SOCMessage.LOCALIZEDSTRINGS));
         sb.append(sep);
@@ -308,7 +304,7 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
 
                 String itm = strs.get(i);
                 if ((itm == null) || (itm.length() == 0))
-                    itm = EMPTY;
+                    itm = EMPTYSTR;
 
                 sb.append(itm);
             }
@@ -327,7 +323,7 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      *     {@link SOCMessage#isSingleLineAndSafe(String, boolean) isSingleLineAndSafe(String, true)}:
      *     {@link SOCMessage#sep2} characters are allowed, but {@link SOCMessage#sep} are not.
      *     If any string starts with {@link #MARKER_PREFIX}, it must be a recognized marker
-     *     ({@link #MARKER_KEY_UNKNOWN}) declared in this class.
+     *     (like {@link #MARKER_KEY_UNKNOWN}) declared in this class.
      * @return    the command string
      * @throws IllegalArgumentException  If {@code type} or {@code str} fails
      *     {@link SOCMessage#isSingleLineAndSafe(String)}.
@@ -376,7 +372,7 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
             final String itm = strs.get(i);
             if ((itm == null) || (itm.length() == 0))
                 continue;
-            else if (itm.startsWith(MARKER_PREFIX))
+            else if (itm.charAt(0) == MARKER_PREFIX)
                 if (! itm.equals(MARKER_KEY_UNKNOWN))
                     throw new IllegalArgumentException("item " + i + ": " + itm);
             else if ((itm.indexOf(SOCMessage.sep_char) != -1) || ! isSingleLineAndSafe(itm, true))

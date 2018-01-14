@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2014,2016-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -300,7 +300,7 @@ public class SOCGameListAtServer extends SOCGameList
      * @param gaOwner the game owner/creator's player name, or null (added in 1.1.10)
      * @param gaLocaleStr  the game creator's locale, to later set {@link SOCGame#hasMultiLocales} if needed (added in 2.0.00)
      * @param gaOpts  if game has options, its {@link SOCGameOption}s; otherwise null.
-     *                Should already be validated, by calling
+     *                Must already be validated, by calling
      *                {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *                with <tt>doServerPreadjust</tt> true.
      *                That call is also needed to add any {@code "SC"} options into {@code gaOpts}.

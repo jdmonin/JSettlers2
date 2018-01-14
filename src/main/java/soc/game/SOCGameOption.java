@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -529,7 +529,7 @@ public class SOCGameOption
         //       list of "current known options" in javadoc just above.
 
         // ChangeListeners for client convenience:
-        // Remember that the server can't update this code at the client.
+        // Remember that a new server version can't update this code at an older client:
         // If you create a ChangeListener, also update adjustOptionsToKnown for server-side code.
 
         // If PL goes over 4, set PLB.
@@ -591,8 +591,8 @@ public class SOCGameOption
 
         // If SC (scenario) is chosen, also set SBL (use sea board)
         // and VP (vp to win), unless already changed by user.
-        // This is for NGOF responsiveness during new-game option setup at the client;
-        // game creation at the server doesn't rely on these updates.
+        // This is for NGOF responsiveness during new-game option setup at the client:
+        // Game creation at the server doesn't rely on these updates.
         // For game creation with scenario options, see adjustOptionsToKnown(doServerPreadjust=true).
 
         sc.addChangeListener(new ChangeListener()
@@ -1530,16 +1530,19 @@ public class SOCGameOption
      * @param omap  Map of SOCGameOptions, or null
      * @param hideEmptyStringOpts omit string-valued options which are empty?
      *            Suitable only for sending defaults.
-     * @return string of name-value pairs, or "-" for an empty or null omap;
-     *         any gameoptions of {@link #OTYPE_UNKNOWN} will not be
-     *         part of the string. Format: k1=t,k2=f,k3=10,k4=t7,k5=f7.
-     * The format for each value depends on its type:
-     *<UL>
-     *<LI>OTYPE_BOOL: t or f
-     *<LI>OTYPE_ENUM: int in range 1-n
-     *<LI>OTYPE_INTBOOL: t or f followed immediately by int value, as in: t7 or f9
-     *<LI>All other optTypes: int value or string value, as appropriate
-     *</UL>
+     * @return string of name-value pairs, or "-" for an empty or null {@code omap};
+     *     any gameoptions of {@link #OTYPE_UNKNOWN} will not be part of the string.
+     *     <P>
+     *     Format: k1=t,k2=f,k3=10,k4=t7,k5=f7. <BR>
+     *     Pair separator is the ordinary comma character {@link SOCMessage#sep2_char}.
+     *     <P>
+     *     The format for each value depends on its type:
+     *     <UL>
+     *       <LI> OTYPE_BOOL: t or f
+     *       <LI> OTYPE_ENUM: int in range 1-n
+     *       <LI> OTYPE_INTBOOL: t or f followed immediately by int value, as in: t7 or f9
+     *       <LI> All other optTypes: int value or string value, as appropriate
+     *     </UL>
      *
      * @throws ClassCastException if {@code omap} contains anything other
      *         than {@code SOCGameOption}s
@@ -1676,6 +1679,8 @@ public class SOCGameOption
 
     /**
      * Utility - build a map of keys to SOCGameOptions by parsing a list of option name-value pairs.
+     * For each pair in {@code ostr}, calls
+     * {@link #parseOptionNameValue(String, boolean) parseOptionNameValue(pair, false)}.
      *<P>
      * Before v2.0.00, this was {@code parseOptionsToHash}.
      *
@@ -1690,6 +1695,8 @@ public class SOCGameOption
      *         The returned known SGOs are clones from the set of all known options.
      * @see #parseOptionNameValue(String, boolean)
      * @see #parseOptionNameValue(String, String, boolean)
+     * @throws IllegalArgumentException if any game option keyname in {@code ostr} is unknown
+     *     and not a valid alphanumeric keyname by the rules listed at {@link #SOCGameOption(String)}
      */
     public static Map<String,SOCGameOption> parseOptionsToMap(final String ostr)
     {
@@ -1780,7 +1787,7 @@ public class SOCGameOption
         SOCGameOption copyOpt;
         if (knownOpt == null)
         {
-            copyOpt = new SOCGameOption(optkey);  // OTYPE_UNKNOWN
+            copyOpt = new SOCGameOption(optkey);  // OTYPE_UNKNOWN; may throw IllegalArgumentException
         }
         else
         {
@@ -2049,8 +2056,10 @@ public class SOCGameOption
     }
 
     /**
-     * Compare a set of options with known-good values.
-     * If any are above/below maximum/minimum, clip to the max/min value in knownOpts.
+     * Compare a set of options with known-good values, and optionally apply options from
+     * the new game's scenario (game option <tt>"SC"</tt>) if present.
+     *<P>
+     * If any values are above/below maximum/minimum, clip to the max/min value in knownOpts.
      * If any are unknown, return a description. Will still check (and clip) the known ones.
      * If any options are default, and unset/blank, and
      * their {@link #FLAG_DROP_IF_UNUSED} flag is set, remove them from newOpts.

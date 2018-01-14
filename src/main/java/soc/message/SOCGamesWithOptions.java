@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009,2011,2013-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011,2013-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -63,7 +63,9 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
      */
     protected SOCGamesWithOptions(List<String> gl)
     {
-        super(GAMESWITHOPTIONS, "-", gl);
+        super(GAMESWITHOPTIONS, parseData_FindEmptyStrs(gl));
+            // Transforms EMPTYSTR -> "" to sanitize;
+            // won't find any EMPTYSTR unless data was malformed when passed to toCmd() at server
     }
 
     /**
@@ -71,7 +73,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
      *<P>
      * Before v3.0.00 this was a static {@code toCmd(..)} method.
      *
-     * @param ga  the list of games, as a mixed-content vector of Strings and/or {@link SOCGame}s;
+     * @param ga  the list of games, as a mixed-content list of Strings and/or {@link SOCGame}s;
      *            if a client can't join a game, it should be a String prefixed with
      *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
      * @param cliVers  Client version; assumed >= {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
@@ -81,10 +83,8 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
     public SOCGamesWithOptions(List<?> ga, final int cliVers)
     {
         this(null);
-        game = null;  // prevent toCmd() from adding unwanted "-" before game list
         pa = new ArrayList<String>();
 
-        // build by iteration
         for (int i = 0; i < ga.size(); ++i)
         {
             Object ob = ga.get(i);
@@ -93,7 +93,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
                 pa.add(((SOCGame) ob).getName());
                 pa.add(SOCGameOption.packOptionsToString(((SOCGame) ob).getGameOptions(), false, cliVers));
             } else {
-                pa.add((String) ob);
+                pa.add((String) ob);  // ob is most likely a String already
                 pa.add("-");
             }
         }

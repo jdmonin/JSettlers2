@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,6 +23,8 @@ import java.util.StringTokenizer;
 
 import soc.game.SOCBoardLarge;  // solely for javadocs
 import soc.game.SOCGameOption;  // solely for javadocs
+import soc.game.SOCResourceConstants;  // solely for javadocs
+import soc.util.SOCStringManager;  // solely for javadocs
 
 /**
  * This generic message from the server to clients handles a simple action or event in a game, usually about
@@ -64,6 +66,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
     /**
      * The current player has bought a development card.
      * For i18n in v2.x, this message is sent instead of a text message announcing the buy; bots can ignore it.
+     *<P>
      * {@code value1} is the number of cards remaining to be bought, {@code value2} is unused.
      * Follows a {@link SOCDevCardAction} which has the card's info, bots must process that message.
      * @since 1.1.19
@@ -79,17 +82,32 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
     public static final int TRADE_SUCCESSFUL = 2;
 
     /**
+     * The current player has monopolized a resource type.
+     * For i18n in v2.x, this message is sent instead of a text message announcing the monopoly.
+     * Clients older than {@link SOCStringManager#VERSION_FOR_I18N} are sent the text message.
+     *<P>
+     * {@code value1}: Total number of resources monopolized by {@code pn}; may be 0 <br>
+     * {@code value2}: The monopolized resource type,
+     *     such as {@link SOCResourceConstants#CLAY} or {@link SOCResourceConstants#SHEEP}
+     *<P>
+     * Will be followed by a {@link SOCPlayerElement} for each player to {@code SET} their new amount of
+     * that resource type, which for any victim also has the {@link SOCPlayerElement#isNews()} flag set.
+     * @since 2.0.00
+     */
+    public static final int RSRC_TYPE_MONOPOLIZED = 3;
+
+    /**
      * This edge coordinate on the game board has become a Special Edge, or is no longer a Special Edge.
      * Used in some game scenarios.  Applies only to games using {@link SOCBoardLarge}.
      * Client should call {@link SOCBoardLarge#setSpecialEdge(int, int)}.
      *<P>
-     * pn: Unused; -1 <br>
-     * Param 1: The edge coordinate <br>
-     * Param 2: Its new special edge type, such as {@link SOCBoardLarge#SPECIAL_EDGE_DEV_CARD},
+     * {@code pn}: Unused; -1 <br>
+     * {@code value1}: The edge coordinate <br>
+     * {@code value2}: Its new special edge type, such as {@link SOCBoardLarge#SPECIAL_EDGE_DEV_CARD},
      *     or 0 if no longer special
      * @since 2.0.00
      */
-    public static final int BOARD_EDGE_SET_SPECIAL = 3;
+    public static final int BOARD_EDGE_SET_SPECIAL = 4;
 
     /**
      * This message from server announces the results of the current player's pirate fortress attack attempt:
@@ -100,8 +118,8 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * This message is sent out <B>after</B> related messages with game data (see below), so that those
      * can be shown visually before any popup announcing the result.
      *<P>
-     * Param 1: The pirates' defense strength (random 1 - 6) <br>
-     * Param 2: The number of ships lost by the player: 0 if player wins, 1 if tie, 2 if pirates win
+     * {@code value1}: The pirates' defense strength (random 1 - 6) <br>
+     * {@code value2}: The number of ships lost by the player: 0 if player wins, 1 if tie, 2 if pirates win
      *<P>
      * These game data update messages are sent from server before {@code SC_PIRI_FORT_ATTACK_RESULT}, in this order:
      *<UL>

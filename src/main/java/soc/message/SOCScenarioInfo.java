@@ -27,18 +27,14 @@ import soc.game.SOCVersionedItem;
 import soc.game.SOCScenario;
 
 /**
- * A <B>client's request</B> for updated {@link SOCScenario} info,
+ * A <B>client's request</B> for updated info on {@link SOCScenario}s,
  * or <B>server's reply</B> with information on one available {@link SOCScenario}
- * (including localization). This is so clients can get localization;
+ * (including localization). This message type is for clients to: Ask for scenario localization;
  * or find out about scenarios which were introduced in versions newer than the client's version,
  * but which may be usable at their version or all versions; or ask an older server what it knows
  * about scenario(s) changed since the server's version.
- *<P>
- * This message is about the server or client scenarios and not about any particular game:
- * It extends {@link SOCMessageTemplateMs} for convenient encoding and parsing,
- * but {@link #getGame()} returns {@code null}.
  *
- * <H4>Timing:</H4>
+ *<H4>Timing:</H4>
  *
  * <B>When client connects,</B> it doesn't yet need any scenario information.
  * At that point the client will request any added, changed, or localized {@link SOCGameOption}s.
@@ -86,7 +82,7 @@ import soc.game.SOCScenario;
  * There are two message types which may send scenario info to the client:
  *<UL>
  * <LI> If the client is a different version than the server,
- *   a <B>sequence of {@code SOCScenarioInfo} messages</B> sends all info about new or changed scenarios,
+ *   a <B>sequence of {@code SOCScenarioInfo} messages</B> sends all info about each new or changed scenario,
  *   including those scenarios' localized text.
  *   The sequence ends with a message which has the {@link #noMoreScens} flag.
  *  <P>
@@ -145,27 +141,38 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
     public static final String MARKER_ANY_CHANGED = "?";
 
     /**
+     * Marker {@code "["} sent as first field when a scenario keyname list is sent from client:
+     * Indicates to parser that this message's contents are the client's list of requested
+     * {@link SOCScenario} key names, not the server's reply about a single scenario.
+     * Can omit if client is sending {@link #MARKER_ANY_CHANGED} as the sole field.
+     */
+    public static final String MARKER_SCEN_NAME_LIST = "[";
+
+    /**
      * {@link #scKey} marker {@code "-"} from server to indicate this is the end of the list of SCENARIOINFOs.
      */
     public static final String MARKER_NO_MORE_SCENS = "-";
 
     /**
-     * Marker to indicate the requested scenario key is unknown.
+     * Version marker to indicate the requested scenario key is unknown.
      * Sent from server as -2 in the reply's {@code lastModVersion} field.
      */
-    public static final int MARKER_KEY_UNKNOWN = -2;  // skip -1 which is valid for sc.lastModVersion
+    public static final int MARKER_KEY_UNKNOWN = -2;  // not -1, which is valid for sc.lastModVersion
+
+    /** True if this message is scenario info from server, not a request from client. */
+    public final boolean isFromServer;
 
     /**
      * Parsed scenario from server ({@link #getScenario()}),
      * or {@code null} if {@link #isKeyUnknown} or {@link #noMoreScens}
      * or if this message is from client to server.
-     * @see #scKey
+     * When {@code null}, see field {@link #scKey} for scenario name.
      */
     private SOCScenario sc;
 
     /**
      * The scenario key in a reply from server.
-     * If {@link #isKeyUnknown}, use {@code scKey} because {@link #sc} is null.
+     * If {@link #isKeyUnknown}, use this field because {@link #sc} is null.
      */
     private final String scKey;
 
@@ -198,8 +205,9 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
      */
     public SOCScenarioInfo(final SOCScenario sc, String localDesc, String localLongDesc)
     {
-        super(SCENARIOINFO, null, new ArrayList<String>());
+        super(SCENARIOINFO, new ArrayList<String>());
 
+        isFromServer = true;
         isKeyUnknown = false;
         noMoreScens = (sc != null);
 
@@ -207,11 +215,9 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
         if (sc != null)
         {
             scKey = sc.key;
-            String opts = sc.scOpts;  // never null or "", per scOpts javadoc
+            String opts = sc.scOpts;
             if (localDesc == null)
                 localDesc = sc.getDesc();
-            if ((localDesc == null) || (localDesc.length() == 0))
-                localDesc = EMPTYSTR;
 
             /* [0] */ pa.add(sc.key);
             /* [1] */ pa.add(Integer.toString(sc.minVersion));
@@ -226,8 +232,6 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
         } else {
             scKey = MARKER_NO_MORE_SCENS;
             /* [0] */ pa.add(MARKER_NO_MORE_SCENS);
-            for (int i = 0; i < 4; ++i)
-                /* [1]-[4] */ pa.add(EMPTYSTR);
         }
     }
 
@@ -244,14 +248,18 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
     public SOCScenarioInfo(final String scKey, final boolean isServerReply)
         throws IllegalArgumentException
     {
-        super(SCENARIOINFO, ((isServerReply) ? null : SOCMessage.GAME_NONE), new ArrayList<String>());
+        super(SCENARIOINFO, new ArrayList<String>());
 
         if (! isSingleLineAndSafe(scKey))
             throw new IllegalArgumentException("scKey: " + scKey);
 
+        isFromServer = isServerReply;
         noMoreScens = false;
         isKeyUnknown = isServerReply;
         this.scKey = scKey;
+
+        if (! isServerReply)
+            pa.add(MARKER_SCEN_NAME_LIST);
 
         /* [0] */ pa.add(scKey);
         if (! isServerReply)
@@ -259,8 +267,6 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
 
         /* [1] */ pa.add("0");  // minVersion
         /* [2] */ pa.add(Integer.toString(MARKER_KEY_UNKNOWN));  // lastModVersion
-        /* [3] */ pa.add(EMPTYSTR);  // opts
-        /* [4] */ pa.add(EMPTYSTR);  // desc
     }
 
     /**
@@ -278,8 +284,9 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
     public SOCScenarioInfo(final List<String> scKeys, final boolean addMarkerAnyChanged)
         throws IllegalArgumentException
     {
-        super(SCENARIOINFO, SOCMessage.GAME_NONE,
-              (scKeys != null) ? scKeys : new ArrayList<String>());
+        super(SCENARIOINFO, (scKeys != null) ? scKeys : new ArrayList<String>());
+
+        isFromServer = false;
 
         if ((scKeys == null) || scKeys.isEmpty())
         {
@@ -301,48 +308,53 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
 
     /**
      * Constructor to parse an incoming message; see {@link #parseDataStr(List)} for expected {@code pa} format.
-     * If message is from client, removes the {@link SOCMessage#GAME_NONE} first element.
+     * If message is from client, removes the {@link #MARKER_SCEN_NAME_LIST} first element if present.
      *
-     * @throws IllegalArgumentException if pa length &lt; 5 from server or &lt; 2 from client,
-     *    or if message is from server and any field fails the
+     * @throws IllegalArgumentException if message is from server and any field fails the
      *    {@link SOCScenario#SOCScenario(String, int, int, String, String, String)}
      *    constructor's requirements for it
-     * @throws IndexOutOfBoundsException if {@code pa} is empty or its only element is {@link SOCMessage#GAME_NONE}
+     * @throws IndexOutOfBoundsException if {@code pa} is empty or too short (missing expected fields)
      * @throws NumberFormatException    if any {@code pa} integer field's contents are incorrectly formatted.
      */
     private SOCScenarioInfo(List<String> pa)
         throws IllegalArgumentException, IndexOutOfBoundsException, NumberFormatException
     {
-	super(SCENARIOINFO, null, pa);
+        super(SCENARIOINFO, parseData_FindEmptyStrs(pa));
+            // Transforms EMPTYSTR -> "" to sanitize;
+            // won't find any EMPTYSTR unless data was malformed when passed to toCmd() at server
 
-	final int L = pa.size();
-	final boolean isFromClient = (pa.get(0).equals(SOCMessage.GAME_NONE));  // may throw IndexOutOfBoundsException
-	if (isFromClient)
+        final int L = pa.size();
+	final String s = pa.get(0);  // may throw IndexOutOfBoundsException if empty
+	final boolean startswithCliListMarker = s.equals(MARKER_SCEN_NAME_LIST);
+
+	isFromServer = ! (startswithCliListMarker || s.equals(MARKER_ANY_CHANGED));
+
+	if (! isFromServer)
 	{
-	    // remove GAME_NONE marker from param list, set game field to it:
-	    // non-null game required for server message handler
-	    game = pa.remove(0);
-	    if (pa.isEmpty())
-	        throw new IndexOutOfBoundsException();
+	    // remove MARKER_SCEN_NAME_LIST marker from param list
+	    if (startswithCliListMarker)
+	    {
+	        pa.remove(0);
+                if (pa.isEmpty())
+                    throw new IndexOutOfBoundsException();
+	    }
 
 	    scKey = null;
 	    isKeyUnknown = false;
 	    noMoreScens = false;
 	} else {
-	    if (L < 5)
-	        throw new IllegalArgumentException("pa.size");
-
-	    scKey = pa.get(0);
+	    scKey = s;
             noMoreScens = (scKey.equals(MARKER_NO_MORE_SCENS));
             if (! noMoreScens)
             {
                 final int minVers = Integer.parseInt(pa.get(1));
                 final int lastModVers = Integer.parseInt(pa.get(2));
-                final String longDesc = (L >= 6) ? pa.get(5) : null;
-
                 isKeyUnknown = (lastModVers == MARKER_KEY_UNKNOWN);
                 if (! isKeyUnknown)
+                {
+                    final String longDesc = (L >= 6) ? pa.get(5) : null;
                     sc = new SOCScenario(scKey, minVers, lastModVers, pa.get(4), longDesc, pa.get(3));
+                }
             } else {
                 isKeyUnknown = false;
             }
@@ -383,37 +395,46 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
      *
      *<H4>From Client:</H4>
      * {@code pa} is a list of scenario keynames the client is requesting info about.
-     * {@code pa[0]} is the marker {@link SOCMessage#GAME_NONE}.
-     * List might end with {@link #MARKER_ANY_CHANGED}.
+     * {@code pa[0]} is the marker {@link #MARKER_SCEN_NAME_LIST} unless list is empty.
+     * List can be followed with {@link #MARKER_ANY_CHANGED}.
      *
      *<H4>From Server:</H4>
      *<UL>
      * <LI> pa[0] = key (name of the scenario)
      * <LI> pa[1] = minimum version integer
-     * <LI> pa[2] = last-modified version integer
+     * <LI> pa[2] = last-modified version integer, or {@link #MARKER_KEY_UNKNOWN}
+     * <LI> If not {@code MARKER_KEY_UNKNOWN}, also contains these fields:
      * <LI> pa[3] = game options if any, or "-", from {@link SOCScenario#scOpts}
      * <LI> pa[4] = one-line description (displayed text), localized to client if localized text is available
      * <LI> pa[5] if present = long description (paragraph of displayed text) if any, localized to client if available
      *</UL>
      *<P>
-     * {@link SOCMessageTemplateMs} has an optional {@link #getGame()} field in the message,
-     * which if non-{@code null} appears here as the first parameter in the string list.
-     * To determine if we're parsing a message from the client or from the server, note that messages
-     * from the client have {@code getGame()} == {@link SOCMessage#GAME_NONE}, those from the server have {@code null}
-     * and their first parameter is a scenario keyname instead. {@code GAME_NONE} is guaranteed to not be
-     * a valid scenario keyname; it contains a character not valid for scenario keys.
+     * If we're parsing a message from the client (not the server),
+     * {@code pa[0]} will be {@link #MARKER_SCEN_NAME_LIST} or {@link #MARKER_ANY_CHANGED}.
      *
-     * @param pa  the String parameters
+     * @param pa  the String parameters; any {@link SOCMessage#EMPTYSTR} will be parsed as ""
+     * @param soleParam  The single String parameter from parser if list contains only 1 parameter;
+     *     ignored unless {@code pa} is {@code null}
      * @return  a SOCScenarioInfo message, or null if parsing errors
      */
-    public static SOCScenarioInfo parseDataStr(List<String> pa)
+    public static SOCScenarioInfo parseDataStr(List<String> pa, final String soleParam)
     {
-        if ((pa == null) || (pa.size() < 2))
+        if (pa == null)
+        {
+            if (soleParam == null)
+                return null;
+
+            pa = new ArrayList<String>();
+            pa.add(soleParam);
+        }
+        else if (pa.isEmpty())
+        {
             return null;
+        }
 
         try
         {
-            return new SOCScenarioInfo(pa);
+            return new SOCScenarioInfo(pa);  // calls parseData_FindEmptyStrs
         } catch (Throwable e) {
             return null;
         }

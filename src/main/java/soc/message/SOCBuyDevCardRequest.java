@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,28 +24,31 @@ import soc.game.SOCDevCardConstants;
 
 
 /**
- * This message means that the player wants to
- * buy a development card.
+ * This message from client means that the client player wants to buy a development card.
+ *<P>
  * During game state {@link soc.game.SOCGame#PLAY1 PLAY1}, this is a normal buy request.
  * When sent during other game states, and other players' turns, this is a request
  * to start the 6-player {@link soc.game.SOCGame#SPECIAL_BUILDING Special Building Phase}.
  *<P>
  * If the player can buy a card, the server replies to the client with
- * {@link SOCDevCardAction DEVCARDACTION}({@link SOCDevCardAction#DRAW}, {@link SOCDevCardConstants typeconstant}), and to all
- * other players with {@link SOCDevCardAction DEVCARDACTION}({@link SOCDevCardAction#DRAW}, {@link SOCDevCardConstants#UNKNOWN}).
+ * {@link SOCDevCardAction DEVCARDACTION}({@link SOCDevCardAction#DRAW}, {@link SOCDevCardConstants typeconstant}),
+ * and to all other players with {@link SOCDevCardAction DEVCARDACTION}({@link SOCDevCardAction#DRAW},
+ * {@link SOCDevCardConstants#UNKNOWN}).
  *<P>
- * If there are no cards remaining to buy, or the player otherwise can't
- * buy a card right now (not enough resources, for example), the server will
- * send them a text response denying the buy.  For the robots' benefit,
- * robot clients will be sent a {@link SOCCancelBuildRequest CANCELBUILDREQUEST(-2)} message.
- * (-2 == soc.robot.SOCPossiblePiece.CARD)
+ * If there are no cards remaining to buy, or player doesn't have enough resources,
+ * isn't currently their turn, or the player otherwise can't buy a card right now,
+ * the server will send them a text response denying the buy. Instead of that text,
+ * robot clients will be sent a {@link SOCCancelBuildRequest CANCELBUILDREQUEST(-2)} message
+ * (-2 == soc.robot.SOCPossiblePiece.CARD).
+ *<P>
+ * Before v2.0.00 this class was {@code SOCBuyCardRequest}.
  *
  * @author Robert S Thomas
  */
-public class SOCBuyCardRequest extends SOCMessage
+public class SOCBuyDevCardRequest extends SOCMessage
     implements SOCMessageForGame
 {
-    private static final long serialVersionUID = 1111L;  // last structural change v1.1.11
+    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /**
      * Name of game
@@ -53,13 +56,13 @@ public class SOCBuyCardRequest extends SOCMessage
     private String game;
 
     /**
-     * Create a BuyCardRequest message.
+     * Create a BuyDevCardRequest message.
      *
      * @param ga  name of game
      */
-    public SOCBuyCardRequest(String ga)
+    public SOCBuyDevCardRequest(String ga)
     {
-        messageType = BUYCARDREQUEST;
+        messageType = BUYDEVCARDREQUEST;
         game = ga;
     }
 
@@ -72,7 +75,7 @@ public class SOCBuyCardRequest extends SOCMessage
     }
 
     /**
-     * BUYCARDREQUEST sep game
+     * BUYDEVCARDREQUEST sep game
      *
      * @return the command String
      */
@@ -82,25 +85,25 @@ public class SOCBuyCardRequest extends SOCMessage
     }
 
     /**
-     * BUYCARDREQUEST sep game
+     * BUYDEVCARDREQUEST sep game
      *
      * @param ga  the game name
      * @return    the command string
      */
     public static String toCmd(String ga)
     {
-        return BUYCARDREQUEST + sep + ga;
+        return BUYDEVCARDREQUEST + sep + ga;
     }
 
     /**
-     * Parse the command String into a BuyCardRequest message
+     * Parse the command String into a BuyDevCardRequest message
      *
      * @param s   the String to parse
-     * @return    a BuyCardRequest message, or null if the data is garbled
+     * @return    a BuyDevCardRequest message, or null if the data is garbled
      */
-    public static SOCBuyCardRequest parseDataStr(String s)
+    public static SOCBuyDevCardRequest parseDataStr(String s)
     {
-        return new SOCBuyCardRequest(s);
+        return new SOCBuyDevCardRequest(s);
     }
 
     /**
@@ -108,7 +111,7 @@ public class SOCBuyCardRequest extends SOCMessage
      */
     public String toString()
     {
-        String s = "SOCBuyCardRequest:game=" + game;
+        String s = "SOCBuyDevCardRequest:game=" + game;
 
         return s;
     }

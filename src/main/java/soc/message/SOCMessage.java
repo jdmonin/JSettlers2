@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -123,6 +123,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * If using this token for a new message type's field(s), be sure
      * the token could never be a valid value for the field. To help
      * with this, the token value fails {@link #isSingleLineAndSafe(String)}.
+     *
+     * @see #GAME_NONE
      * @since 2.0.00
      */
     public static final String EMPTYSTR = "\t";
@@ -242,7 +244,11 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int CLEARTRADEMSG = 1042;
     public static final int BUILDREQUEST = 1043;
     public static final int CANCELBUILDREQUEST = 1044;
-    public static final int BUYCARDREQUEST = 1045;
+    /**
+     * {@link SOCBuyDevCardRequest} message. Before v2.0.00
+     * this type was {@code BUYCARDREQUEST} (class {@code SOCBuyCardRequest}).
+     */
+    public static final int BUYDEVCARDREQUEST = 1045;
     /** {@link SOCDevCardAction} message; before v2.0.00, this type was {@code DEVCARD} (class name {@code SOCDevCard}). */
     public static final int DEVCARDACTION = 1046;
     public static final int DEVCARDCOUNT = 1047;
@@ -250,7 +256,11 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int PLAYDEVCARDREQUEST = 1049;
     /** {@link SOCPickResources} message; before v2.0.00, this was {@code DISCOVERYPICK} (class {@code SOCDiscoveryPick)}. */
     public static final int PICKRESOURCES = 1052;
-    public static final int MONOPOLYPICK = 1053;
+    /**
+     * {@link SOCPickResourceType} message. Before v2.0.00
+     * this type was {@code MONOPOLYPICK} (class {@code SOCMonopolyPick}).
+     */
+    public static final int PICKRESOURCETYPE = 1053;
     public static final int FIRSTPLAYER = 1054;
     public static final int SETTURN = 1055;
     public static final int ROBOTDISMISS = 1056;
@@ -417,12 +427,19 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * Token separators. At most one SEP per message; multiple SEP2 are allowed after SEP.
      * For multi-messages, multiple SEP are allowed; see {@link SOCMessageMulti}.
      * SEP is "|".
+     * @see #sep_char
      */
     public static final String sep = "|";
-    /** secondary separator token SEP2, as string. SEP2 is ",". */
+
+    /**
+     * secondary separator token SEP2, as string. SEP2 is ",".
+     * @see #sep2_char
+     */
     public static final String sep2 = ",";
+
     /** main separator token {@link #sep}, as character. SEP is '|'. */
     public static final char sep_char = '|';
+
     /** secondary separator token {@link #sep2}, as character. SEP2 is ','. */
     public static final char sep2_char = ',';
 
@@ -432,9 +449,10 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * such as {@link SOCLocalizedStrings}.
      *<P>
      * No actual game, option, or scenario will ever have the same name as this marker, because the marker fails
-     * {@link #isSingleLineAndSafe(String, boolean) isSingleLineAndSafe(String, false)} by
-     * including a control character.
+     * {@link #isSingleLineAndSafe(String, boolean) isSingleLineAndSafe(String, false)}:
+     * Marker is control character {@code ^V (SYN)}: (char) 22.
      *
+     * @see #EMPTYSTR
      * @since 2.0.00
      */
     public static final String GAME_NONE = "\026";  // 0x16 ^V (SYN)
@@ -599,7 +617,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * no {@link Character#isSpaceChar(char) line separators or paragraph separators}.
      * Whitespace character type {@link Character#SPACE_SEPARATOR} is OK.
      * Must not contain {@link #sep_char} or {@link #sep2_char}.
-     * @param s   string to test; if null, returns false.
+     * @param s   string to test; if null or "", returns false.
      * @return true if all characters are OK, false otherwise.
      *            Null string or 0-length string returns false.
      * @see #isSingleLineAndSafe(String, boolean)
@@ -614,7 +632,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * Variant of {@link #isSingleLineAndSafe(String)} that can optionally
      * allow {@link #sep_char} or {@link #sep2_char}.
      * See that method for other conditions checked here.
-     * @param s  string to test; if null, returns false.
+     * @param s  string to test; if null or "", returns false.
      * @param allowSepChars  If true, string can contain {@link #sep_char} or {@link #sep2_char}
      * @return true if all characters are OK, false otherwise.
      *            Null string or 0-length string returns false.
@@ -860,8 +878,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case CANCELBUILDREQUEST:
                 return SOCCancelBuildRequest.parseDataStr(data);
 
-            case BUYCARDREQUEST:
-                return SOCBuyCardRequest.parseDataStr(data);
+            case BUYDEVCARDREQUEST:
+                return SOCBuyDevCardRequest.parseDataStr(data);
 
             case DEVCARDACTION:
                 return SOCDevCardAction.parseDataStr(data);
@@ -878,8 +896,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case PICKRESOURCES:  // Discovery/Year of Plenty, or v2.0.00 gold hex resources
                 return SOCPickResources.parseDataStr(data);
 
-            case MONOPOLYPICK:
-                return SOCMonopolyPick.parseDataStr(data);
+            case PICKRESOURCETYPE:  // Monopoly
+                return SOCPickResourceType.parseDataStr(data);
 
             case FIRSTPLAYER:
                 return SOCFirstPlayer.parseDataStr(data);
@@ -1035,7 +1053,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
                 return SOCLocalizedStrings.parseDataStr(multiData);
 
             case SCENARIOINFO:         // Scenario info, 20150920, v2.0.00
-                return SOCScenarioInfo.parseDataStr(multiData);
+                return SOCScenarioInfo.parseDataStr(multiData, data);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);

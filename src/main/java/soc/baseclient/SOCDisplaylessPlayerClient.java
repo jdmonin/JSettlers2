@@ -2385,11 +2385,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
         // Catch these before default case, so 'unknown type' won't be printed
 
         case SOCSimpleAction.DEVCARD_BOUGHT:
-            // fall through
+        case SOCSimpleAction.RSRC_TYPE_MONOPOLIZED:
         case SOCSimpleAction.TRADE_SUCCESSFUL:
-            // fall through
         case SOCSimpleAction.SC_PIRI_FORT_ATTACK_RESULT:
-            // attack result game data is sent in preceding messages, can ignore this one
+            // game data updates are sent in preceding or following messages, can ignore this one
             break;
 
         default:
@@ -2614,7 +2613,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void buyDevCard(SOCGame ga)
     {
-        put(SOCBuyCardRequest.toCmd(ga.getName()));
+        put(SOCBuyDevCardRequest.toCmd(ga.getName()));
     }
 
     /**
@@ -2914,14 +2913,17 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * the user picked a resource to monopolize
+     * the client player picked a resource type to monopolize.
+     *<P>
+     * Before v2.0.00 this method was {@code monopolyPick}.
      *
      * @param ga   the game
-     * @param res  the resource
+     * @param res  the resource type, such as
+     *     {@link SOCResourceConstants#CLAY} or {@link SOCResourceConstants#SHEEP}
      */
-    public void monopolyPick(SOCGame ga, int res)
+    public void pickResourceType(SOCGame ga, int res)
     {
-        put(SOCMonopolyPick.toCmd(ga.getName(), res));
+        put(SOCPickResourceType.toCmd(ga.getName(), res));
     }
 
     /**

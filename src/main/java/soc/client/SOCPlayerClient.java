@@ -5418,19 +5418,19 @@ public class SOCPlayerClient
      */
     private void handleLOCALIZEDSTRINGS(final SOCLocalizedStrings mes, final boolean isPractice)
     {
-        final List<String> str = mes.getParams();
-        final String type = str.get(0);
+        final List<String> strs = mes.getParams();
+        final String type = strs.get(0);
 
         if (type.equals(SOCLocalizedStrings.TYPE_GAMEOPT))
         {
-            final int L = str.size();
+            final int L = strs.size();
             for (int i = 1; i < L; i += 2)
             {
-                SOCGameOption opt = SOCGameOption.getOption(str.get(i), false);
+                SOCGameOption opt = SOCGameOption.getOption(strs.get(i), false);
                 if (opt != null)
                 {
-                    final String desc = str.get(i + 1);
-                    if (! desc.equals(SOCLocalizedStrings.EMPTY))
+                    final String desc = strs.get(i + 1);
+                    if ((desc != null) && (desc.length() > 0))
                         opt.setDesc(desc);
                 }
             }
@@ -5439,7 +5439,7 @@ public class SOCPlayerClient
         else if (type.equals(SOCLocalizedStrings.TYPE_SCENARIO))
         {
             localizeGameScenarios
-                (str, true, mes.isFlagSet(SOCLocalizedStrings.FLAG_SENT_ALL), isPractice);
+                (strs, true, mes.isFlagSet(SOCLocalizedStrings.FLAG_SENT_ALL), isPractice);
         }
         else
         {
@@ -5568,6 +5568,8 @@ public class SOCPlayerClient
             // fall through so pcl.simpleAction updates displayed board
 
         case SOCSimpleAction.DEVCARD_BOUGHT:
+            // fall through
+        case SOCSimpleAction.RSRC_TYPE_MONOPOLIZED:
             pcl.simpleAction(mes.getPlayerNumber(), atype, mes.getValue1(), mes.getValue2());
             break;
 
@@ -5880,9 +5882,9 @@ public class SOCPlayerClient
             ++i;
 
             SOCScenario sc = SOCScenario.getScenario(scKey);
-            if ((sc != null) && ! nm.equals(SOCLocalizedStrings.EMPTY))
+            if ((sc != null) && (nm.length() > 0))
             {
-                if ((desc != null) && desc.equals(SOCLocalizedStrings.EMPTY))
+                if ((desc != null) && (desc.length() == 0))
                     desc = null;
 
                 sc.setDesc(nm, desc);
@@ -6011,7 +6013,7 @@ public class SOCPlayerClient
      */
     public void buyDevCard(SOCGame ga)
     {
-        put(SOCBuyCardRequest.toCmd(ga.getName()), ga.isPractice);
+        put(SOCBuyDevCardRequest.toCmd(ga.getName()), ga.isPractice);
     }
 
     /**
@@ -6366,14 +6368,17 @@ public class SOCPlayerClient
     }
 
     /**
-     * the user picked a resource to monopolize
+     * the client player picked a resource type to monopolize.
+     *<P>
+     * Before v2.0.00 this method was {@code monopolyPick}.
      *
      * @param ga   the game
-     * @param res  the resource
+     * @param res  the resource type, such as
+     *     {@link SOCResourceConstants#CLAY} or {@link SOCResourceConstants#SHEEP}
      */
-    public void monopolyPick(SOCGame ga, int res)
+    public void pickResourceType(SOCGame ga, int res)
     {
-        put(SOCMonopolyPick.toCmd(ga.getName(), res), ga.isPractice);
+        put(SOCPickResourceType.toCmd(ga.getName(), res), ga.isPractice);
     }
 
     /**

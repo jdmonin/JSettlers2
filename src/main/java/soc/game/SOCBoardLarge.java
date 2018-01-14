@@ -2367,9 +2367,9 @@ public class SOCBoardLarge extends SOCBoard
      * See also {@link #getStartingLandArea()} to
      * see if the players must start the game in a certain land area.
      *
-     * @return the land areas' nodes, or <tt>null</tt> if only one land area (one group of islands).
+     * @return the land areas' nodes, or {@code null} if only one land area (one group of islands).
      *     Each index holds the nodes for that land area number.
-     *     Index 0 is unused.
+     *     Index 0 is unused ({@code null}).
      * @see #getNodeLandArea(int)
      * @see #getFogHiddenHexes()
      */
@@ -2389,7 +2389,8 @@ public class SOCBoardLarge extends SOCBoard
      * See also {@link #getLandAreasLegalNodes()} which returns
      * all the legal nodes when multiple "land areas" are used.
      *
-     * @return  the starting land area's legal nodes, or if no starting land area, all nodes of all land areas
+     * @return  the starting land area's legal nodes, or if no starting land area
+     *     ({@link #getStartingLandArea()} == 0), all nodes of all land areas
      * @see SOCPlayer#setPotentialAndLegalSettlements(Collection, boolean, HashSet[])
      */
     public HashSet<Integer> getLegalSettlements()
