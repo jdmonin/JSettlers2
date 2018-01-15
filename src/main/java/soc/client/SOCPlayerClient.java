@@ -3954,18 +3954,18 @@ public class SOCPlayerClient
                 try
                 {
                     String gameName = null;
-                    Vector<String> optNames = new Vector<String>();
+                    ArrayList<String> optNames = new ArrayList<String>();
                     errMsg = st.nextToken();
                     gameName = st.nextToken();
                     while (st.hasMoreTokens())
-                        optNames.addElement(st.nextToken());
+                        optNames.add(st.nextToken());
+
                     StringBuffer opts = new StringBuffer();
                     final Map<String, SOCGameOption> knowns =
                         isPractice ? practiceServGameOpts.optionSet : tcpServGameOpts.optionSet;
-                    for (int i = 0; i < optNames.size(); ++i)
+                    for (String oname : optNames)
                     {
                         opts.append('\n');
-                        String oname = optNames.elementAt(i);
                         SOCGameOption oinfo = null;
                         if (knowns != null)
                             oinfo = knowns.get(oname);

@@ -83,7 +83,6 @@ import java.util.MissingResourceException;
 import java.util.StringTokenizer;
 import java.util.Timer;  // SOCPlayerInterface also uses restartable javax.swing.Timer
 import java.util.TimerTask;
-import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -103,7 +102,7 @@ import javax.sound.sampled.LineUnavailableException;
  *<P>
  * When we join a game, the client will update visible game state by calling methods here like
  * {@link #addPlayer(String, int)}; when all this activity is complete, and the interface is
- * ready for interaction, the client calls {@link #began(Vector)}.
+ * ready for interaction, the client calls {@link #began(List)}.
  *<P>
  * <B>Local preferences:</B>
  * For optional per-game preferences like {@link #PREF_SOUND_MUTE}, see {@code localPrefs} parameter in
@@ -203,7 +202,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * To avoid sound-effect spam while receiving board layout info
      * when starting a game or joining a game in progress, track whether
-     * {@link #began(Vector)} has been called.
+     * {@link #began(List)} has been called.
      *<P>
      * Reminder: When starting a new game, some PUTPIECE messages
      * may be sent after {@code began(..)}, but these will all be sent
@@ -1983,7 +1982,7 @@ public class SOCPlayerInterface extends Frame
      *
      * @param members Game member names from {@link soc.message.SOCGameMembers#getMembers()} (added in 1.1.12)
      */
-    public void began(List<String> members)
+    public void began(final List<String> members)
     {
         textInput.setEditable(true);
         textInput.setText("");

@@ -3605,7 +3605,7 @@ public class SOCServer extends Server
     }
 
     /**
-     * Send a server text message to all the connections in a game excluding one.
+     * Send a server text message to all the connections in a game, excluding one.
      * Equivalent to: messageToGameExcept(gn, new SOCGameTextMsg(gn, {@link #SERVERNAME}, txt), takeMon);
      *<P>
      * Do not pass SOCSomeMessage.toCmd() into this method; the message type number
@@ -3633,17 +3633,17 @@ public class SOCServer extends Server
     }
 
     /**
-     * Send a message to all the connections in a game
-     * excluding some.
+     * Send a message to all the connections in a game, excluding some.
      *
      * @param gn  the name of the game
-     * @param ex  the list of exceptions
+     * @param ex  the list of excluded connections; not {@code null}
      * @param mes the message
      * @param takeMon Should this method take and release
      *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
      * @see #messageToGameExcept(String, Connection, SOCMessage, boolean)
      */
-    public void messageToGameExcept(String gn, Vector<Connection> ex, SOCMessage mes, boolean takeMon)
+    public void messageToGameExcept
+        (final String gn, final List<Connection> ex, final SOCMessage mes, final boolean takeMon)
     {
         if (takeMon)
             gameList.takeMonitorForGame(gn);
@@ -3662,7 +3662,7 @@ public class SOCServer extends Server
                 {
                     Connection con = menum.nextElement();
 
-                    if ((con != null) && (!ex.contains(con)))
+                    if ((con != null) && ! ex.contains(con))
                     {
                         //currentGameEventRecord.addMessageOut(new SOCMessageRecord(mes, "SERVER", con.getData()));
                         con.put(mesCmd);
@@ -3680,8 +3680,7 @@ public class SOCServer extends Server
     }
 
     /**
-     * Send a message to all the connections in a game
-     * excluding one.
+     * Send a message to all the connections in a game, excluding one.
      *
      * @param gn  the name of the game
      * @param ex  the excluded connection, or null
@@ -3689,7 +3688,7 @@ public class SOCServer extends Server
      * @param takeMon Should this method take and release
      *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
      * @see #messageToGameExcept(String, Connection, String, boolean)
-     * @see #messageToGameExcept(String, Vector, SOCMessage, boolean)
+     * @see #messageToGameExcept(String, List, SOCMessage, boolean)
      * @see #messageToGameForVersionsExcept(SOCGame, int, int, Connection, SOCMessage, boolean)
      */
     public void messageToGameExcept(String gn, Connection ex, SOCMessage mes, boolean takeMon)

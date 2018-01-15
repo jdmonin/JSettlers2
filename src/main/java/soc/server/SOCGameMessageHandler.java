@@ -25,7 +25,7 @@ package soc.server;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Vector;
+import java.util.List;
 
 import soc.debug.D;
 import soc.game.SOCBoardLarge;
@@ -836,6 +836,7 @@ public class SOCGameMessageHandler
             if (canDo)
             {
                 SOCMoveRobberResult result;
+
                 SOCMoveRobber moveMsg;
                 if (isPirate)
                 {
@@ -847,7 +848,7 @@ public class SOCGameMessageHandler
                 }
                 srv.messageToGame(gaName, moveMsg);
 
-                Vector<SOCPlayer> victims = result.getVictims();
+                final List<SOCPlayer> victims = result.getVictims();
 
                 /** only one possible victim */
                 if ((victims.size() == 1) && (ga.getGameState() != SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE))
@@ -855,7 +856,7 @@ public class SOCGameMessageHandler
                     /**
                      * report what was stolen
                      */
-                    SOCPlayer victim = victims.firstElement();
+                    SOCPlayer victim = victims.get(0);
                     handler.reportRobbery(ga, player, victim, result.getLoot());
                 }
 
@@ -900,7 +901,7 @@ public class SOCGameMessageHandler
                     // victims there, just send the prompt from here:
                 if (ga.getGameState() == SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE)
                 {
-                    final int vpn = victims.firstElement().getPlayerNumber();
+                    final int vpn = victims.get(0).getPlayerNumber();
                     srv.messageToPlayer(c, new SOCChoosePlayer(gaName, vpn));
                 }
             }
