@@ -150,9 +150,7 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
     private int flags;
 
     /**
-     * Server-side constructor.
-     * The server usually uses static {@link #toCmd(String, int, List)} to send this message to clients,
-     * but this constructor is used with the Practice client's local server.
+     * Server-side constructor, to send this message to clients.
      *
      * @param type  String type such as {@link #TYPE_SCENARIO};
      *     must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
