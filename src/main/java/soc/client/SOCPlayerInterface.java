@@ -562,6 +562,13 @@ public class SOCPlayerInterface extends Frame
      */
     static byte[] SOUND_RSRC_GAINED_FREE;
 
+    /**
+     * Sound prompt when trade is offered to client player.
+     * Generated at first call to constructor.
+     * @since 2.0.00
+     */
+    static byte[] SOUND_OFFERED_TRADE;
+
     private final ClientBridge clientListener;
 
     /**
@@ -815,6 +822,11 @@ public class SOCPlayerInterface extends Frame
                     i = Sounds.genChime(Sounds.NOTE_C4_HZ, 120, .9, buf, 0, false);
                     Sounds.genChime(Sounds.NOTE_E4_HZ, 90, .9, buf, i, false);
                     SOUND_RSRC_GAINED_FREE = buf;
+
+                    buf = new byte[Sounds.bufferLen(120 + 120)];
+                    i = Sounds.genChime(Sounds.NOTE_B5_HZ, 120, .4, buf, 0, false);
+                    Sounds.genChime(Sounds.NOTE_B5_HZ, 120, .4, buf, i, false);
+                    SOUND_OFFERED_TRADE = buf;
                 }
             });
 
@@ -2226,7 +2238,7 @@ public class SOCPlayerInterface extends Frame
             if (i == clientHandPlayerNum)
                 continue;
 
-            hands[i].updateCurrentOffer(true);
+            hands[i].updateCurrentOffer(false, true);
         }
     }
 
@@ -4093,16 +4105,16 @@ public class SOCPlayerInterface extends Frame
 
         public void requestedTrade(SOCPlayer offerer)
         {
-            pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(false);
+            pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(true, false);
         }
 
         public void requestedTradeClear(SOCPlayer offerer)
         {
             if (offerer != null)
-                pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(false);
+                pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(false, false);
             else
                 for (int i = 0; i < pi.game.maxPlayers; ++i)
-                    pi.getPlayerHandPanel(i).updateCurrentOffer(false);
+                    pi.getPlayerHandPanel(i).updateCurrentOffer(false, false);
         }
 
         public void requestedTradeRejection(SOCPlayer rejecter)

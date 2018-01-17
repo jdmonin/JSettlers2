@@ -19,6 +19,7 @@ and backport minor new features until `2.0.00` is ready.
 - Large board (sea board) support
 - Game Scenario and special-rules support
 - Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard's dialog)
+- Sound prompt when client player is offered a trade
 - Game expire time increased: Now 2 hours, was 90 minutes; also warns 5 or 6 minutes earlier
 - Game windows: Render board with antialiasing; player name labels sans-serif for cleaner look
 - More efficient game-setup messages over network
