@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -841,37 +841,48 @@ public class SOCPlayerTracker
 
     /**
      * Expand a possible road or ship, to see what placements it makes possible.
-     * Adds to or updates {@link #possibleSettlements} at <tt>targetRoad</tt>'s nodes, if potential.
-     * If <tt>level</tt> &gt; 0, calls itself recursively to go more levels out from the current pieces,
-     * adding/updating {@link #possibleRoads} and {@link #possibleSettlements}.
+     *<UL>
+     *<LI> Creates {@code dummyRoad}: A copy of {@code targetRoad} owned by {@code dummy}
+     *<LI> Calls {@link SOCPlayer#putPiece(SOCPlayingPiece, boolean) dummy.putPiece(dummyRoad, true)}
+     *<LI> Adds to or updates {@link #possibleSettlements} at <tt>targetRoad</tt>'s nodes, if potential
+     *<LI> If {@code level > 0}: Calls itself recursively to go more levels out from the current pieces,
+     *   adding/updating {@link #possibleRoads} and {@link #possibleSettlements}
+     *<LI> Calls {@link SOCPlayer#removePiece(SOCPlayingPiece, SOCPlayingPiece) dummy.removePiece(dummyRoad, null)}
+     *</UL>
      *<P>
      * <b>Scenario {@code _SC_PIRI}</b>: Ships in this scenario never expand east (never away from the
-     * pirate fortress). Scenario rules require the route to be as short as possible.  Even if a human
-     * player might want to do so, it couldn't interfere with the bot's own route, so we don't track
+     * pirate fortress). Scenario rules require the route to be as short as possible. Even if another (human)
+     * player might want to do so, they couldn't interfere with the bot's own route, so we don't track
      * that possibility.
      *
      * @param targetRoad   the possible road
      * @param player    the player who owns the original road
-     * @param dummy     the dummy player used to see what's legal
+     * @param dummy     the dummy player used to see what's legal; created by caller copying {@code player}
      * @param trackers  player trackers
      * @param level     how many levels (additional pieces) to expand;
      *                  0 to only check <tt>targetRoad</tt> for potential settlements
-     *                  and not expand past it for new roads, ships, or further settlements
+     *                  and not expand past it for new roads, ships, or further settlements.
+     *                  If {@code level > 0} but {@code dummy} has no more roads or ships
+     *                  (depending on {@link SOCPossibleRoad#isRoadNotShip() targetRoad.isRoadNotShip()}),
+     *                  acts as if {@code level == 0}.
      */
     public void expandRoadOrShip
-        (SOCPossibleRoad targetRoad, SOCPlayer player, SOCPlayer dummy,
+        (final SOCPossibleRoad targetRoad, final SOCPlayer player, final SOCPlayer dummy,
          HashMap<Integer, SOCPlayerTracker> trackers, final int level)
     {
         //D.ebugPrintln("$$$ expandRoad at "+Integer.toHexString(targetRoad.getCoordinates())+" level="+level);
-        SOCBoard board = game.getBoard();
+
+        final SOCBoard board = game.getBoard();
         final int tgtRoadEdge = targetRoad.getCoordinates();
-        SOCRoad dummyRoad;
-        if ((targetRoad.isRoadNotShip()
-            || ((targetRoad instanceof SOCPossibleShip) && ((SOCPossibleShip) targetRoad).isCoastalRoadAndShip)))
+        final boolean isRoadNotShip = targetRoad.isRoadNotShip();
+        final SOCRoad dummyRoad;
+        if (isRoadNotShip
+            || ((targetRoad instanceof SOCPossibleShip) && ((SOCPossibleShip) targetRoad).isCoastalRoadAndShip))
             dummyRoad = new SOCRoad(dummy, tgtRoadEdge, board);
             // TODO better handling for coastal roads/ships
         else
             dummyRoad = new SOCShip(dummy, tgtRoadEdge, board);
+
         dummy.putPiece(dummyRoad, true);
 
         //
@@ -932,16 +943,17 @@ public class SOCPlayerTracker
             }
         }
 
-        if (level > 0)
+        if ((level > 0) && (0 < dummy.getNumPieces(isRoadNotShip ? SOCPlayingPiece.ROAD : SOCPlayingPiece.SHIP)))
         {
             //
-            // check for new possible roads or ships
+            // check for new possible roads or ships.
+            // The above getNumPieces check ignores any possible ship <-> road transition at a coastal settlement.
             //
             Vector<SOCPossibleRoad> newPossibleRoads = new Vector<SOCPossibleRoad>();
             Vector<SOCPossibleRoad> roadsToExpand = new Vector<SOCPossibleRoad>();
 
             // ships in _SC_PIRI never expand east
-            final boolean isShipInSC_PIRI = game.isGameOptionSet(SOCGameOption.K_SC_PIRI) && ! targetRoad.isRoadNotShip();
+            final boolean isShipInSC_PIRI = (! isRoadNotShip) && game.isGameOptionSet(SOCGameOption.K_SC_PIRI);
 
             //D.ebugPrintln("$$$ checking roads adjacent to "+Integer.toHexString(targetRoad.getCoordinates()));
             //
@@ -970,7 +982,7 @@ public class SOCPlayerTracker
                 // or ship to continue this route
                 //
                 boolean edgeIsPotentialRoute =
-                    (targetRoad.isRoadNotShip())
+                    (isRoadNotShip)
                     ? dummy.isPotentialRoad(edge)
                     : dummy.isPotentialShip(edge);
 
@@ -989,7 +1001,7 @@ public class SOCPlayerTracker
                     if (dummy.canPlaceSettlement(nodeBetween))
                     {
                         // check opposite type at transition
-                        edgeIsPotentialRoute = (targetRoad.isRoadNotShip())
+                        edgeIsPotentialRoute = (isRoadNotShip)
                             ? dummy.isPotentialShip(edge)
                             : dummy.isPotentialRoad(edge);
 
@@ -1016,7 +1028,7 @@ public class SOCPlayerTracker
                         // if so, it must be the same type for now (TODO).
                         //   For now, can't differ along a coastal route.
                         if (edgeRequiresCoastalSettlement
-                            && (targetRoad.isRoadNotShip() != pr.isRoadNotShip()))
+                            && (isRoadNotShip != pr.isRoadNotShip()))
                         {
                             continue;  // <--- road vs ship mismatch ---
                         }
@@ -1061,7 +1073,7 @@ public class SOCPlayerTracker
                         neededRoads.addElement(targetRoad);
 
                         SOCPossibleRoad newPR;
-                        boolean isRoad = targetRoad.isRoadNotShip();
+                        boolean isRoad = isRoadNotShip;
                         if (edgeRequiresCoastalSettlement)
                             isRoad = ! isRoad;
 
