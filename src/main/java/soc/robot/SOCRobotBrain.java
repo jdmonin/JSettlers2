@@ -290,7 +290,7 @@ public class SOCRobotBrain extends Thread
      * {@link SOCRobotDM#buildingPlan} is the same Stack.
      * @see #whatWeWantToBuild
      */
-    protected Stack<SOCPossiblePiece> buildingPlan;
+    protected final Stack<SOCPossiblePiece> buildingPlan;
 
     /**
      * This is what we tried building this turn,

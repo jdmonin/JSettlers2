@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,8 +22,6 @@ package soc.robot;
 import soc.game.SOCPlayer;
 import soc.game.SOCResourceSet;
 import soc.message.SOCSetSpecialItem;  // strictly for javadocs
-
-import java.util.Vector;
 
 
 /**
@@ -67,8 +65,6 @@ public class SOCPossiblePickSpecialItem extends SOCPossiblePiece
         this.pi = pi;
         this.cost = cost;
         this.eta = eta;
-        threats = new Vector<SOCPossiblePiece>();
-        biggestThreats = new Vector<SOCPossiblePiece>();
         threatUpdatedFlag = false;
         hasBeenExpanded = false;
     }

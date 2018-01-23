@@ -24,7 +24,8 @@ package soc.robot;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -35,8 +36,8 @@ import java.util.Vector;
  */
 public class SOCPossibleRoad extends SOCPossiblePiece
 {
-    protected Vector<SOCPossibleRoad> necessaryRoads;
-    protected Vector<SOCPossiblePiece> newPossibilities;
+    protected final List<SOCPossibleRoad> necessaryRoads;
+    protected final List<SOCPossiblePiece> newPossibilities;
     protected int longestRoadValue;
     protected int longestRoadPotential;
     protected int numberOfNecessaryRoads;
@@ -45,20 +46,18 @@ public class SOCPossibleRoad extends SOCPossiblePiece
      * constructor
      *
      * @param pl  the owner
-     * @param co  coordinates
-     * @param nr  necessaryRoads, or {@code null} to create a new empty Vector here
+     * @param co  coordinates; not validated
+     * @param nr  necessaryRoads list reference to use (not to copy!), or {@code null} to create a new empty list here
      */
-    public SOCPossibleRoad(SOCPlayer pl, int co, Vector<SOCPossibleRoad> nr)
+    public SOCPossibleRoad(SOCPlayer pl, int co, List<SOCPossibleRoad> nr)
     {
         super(SOCPossiblePiece.ROAD, pl, co);
 
         if (nr == null)
-            nr = new Vector<SOCPossibleRoad>();
+            nr = new ArrayList<SOCPossibleRoad>();
         necessaryRoads = nr;
         eta = 0;
-        threats = new Vector<SOCPossiblePiece>();
-        biggestThreats = new Vector<SOCPossiblePiece>();
-        newPossibilities = new Vector<SOCPossiblePiece>();
+        newPossibilities = new ArrayList<SOCPossiblePiece>();
         longestRoadValue = 0;
         longestRoadPotential = 0;
         threatUpdatedFlag = false;
@@ -67,9 +66,9 @@ public class SOCPossibleRoad extends SOCPossiblePiece
     }
 
     /**
-     * copy constructor
+     * copy constructor.
      *
-     * Note: This will not copy the vectors, just make empty ones
+     * Note: This will not copy {@code pr}'s lists, only make empty ones.
      *
      * @param pr  the possible road to copy
      */
@@ -78,11 +77,9 @@ public class SOCPossibleRoad extends SOCPossiblePiece
         //D.ebugPrintln(">>>> Copying possible road: "+pr);
         super(SOCPossiblePiece.ROAD, pr.getPlayer(), pr.getCoordinates());
 
-        necessaryRoads = new Vector<SOCPossibleRoad>(pr.getNecessaryRoads().size());
+        necessaryRoads = new ArrayList<SOCPossibleRoad>(pr.getNecessaryRoads().size());
         eta = pr.getETA();
-        threats = new Vector<SOCPossiblePiece>();
-        biggestThreats = new Vector<SOCPossiblePiece>();
-        newPossibilities = new Vector<SOCPossiblePiece>(pr.getNewPossibilities().size());
+        newPossibilities = new ArrayList<SOCPossiblePiece>(pr.getNewPossibilities().size());
         longestRoadValue = pr.getLRValue();
         longestRoadPotential = pr.getLRPotential();
         threatUpdatedFlag = false;
@@ -95,7 +92,7 @@ public class SOCPossibleRoad extends SOCPossiblePiece
      * constructor and/or {@link #addNecessaryRoad(SOCPossibleRoad)}.
      * @return the list of necessary roads or ships
      */
-    public Vector<SOCPossibleRoad> getNecessaryRoads()
+    public List<SOCPossibleRoad> getNecessaryRoads()
     {
         return necessaryRoads;
     }
@@ -132,7 +129,7 @@ public class SOCPossibleRoad extends SOCPossiblePiece
      * Get the list of any possibilities added by {@link #addNewPossibility(SOCPossiblePiece)}.
      * @return the list of new possibilities
      */
-    public Vector<SOCPossiblePiece> getNewPossibilities()
+    public List<SOCPossiblePiece> getNewPossibilities()
     {
         return newPossibilities;
     }
@@ -160,7 +157,7 @@ public class SOCPossibleRoad extends SOCPossiblePiece
      */
     public void addNecessaryRoad(SOCPossibleRoad rd)
     {
-        necessaryRoads.addElement(rd);
+        necessaryRoads.add(rd);
     }
 
     /**
@@ -170,7 +167,7 @@ public class SOCPossibleRoad extends SOCPossiblePiece
      */
     public void addNewPossibility(SOCPossiblePiece piece)
     {
-        newPossibilities.addElement(piece);
+        newPossibilities.add(piece);
     }
 
     /**

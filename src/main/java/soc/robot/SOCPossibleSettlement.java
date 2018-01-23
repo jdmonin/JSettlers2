@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2009,2012-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2012-2015,2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -23,8 +23,9 @@ package soc.robot;
 
 import soc.game.SOCPlayer;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
-import java.util.Vector;
 
 
 /**
@@ -35,8 +36,8 @@ import java.util.Vector;
  */
 public class SOCPossibleSettlement extends SOCPossiblePiece
 {
-    protected Vector<SOCPossibleRoad> necessaryRoads;
-    protected Vector<SOCPossibleSettlement> conflicts;
+    protected List<SOCPossibleRoad> necessaryRoads;
+    protected List<SOCPossibleSettlement> conflicts;
 
     /**
      * Speedup per building type.  Indexed from {@link SOCBuildingSpeedEstimate#MIN}
@@ -51,20 +52,19 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
      * constructor
      *
      * @param pl  the owner
-     * @param co  coordinates;
-     * @param nr  necessaryRoads, or {@code null} to create a new empty Vector here
+     * @param co  coordinates; not validated
+     * @param nr  necessaryRoads list reference to use (not to copy!),
+     *     or {@code null} to create a new empty list here
      */
-    public SOCPossibleSettlement(SOCPlayer pl, int co, Vector<SOCPossibleRoad> nr)
+    public SOCPossibleSettlement(SOCPlayer pl, int co, List<SOCPossibleRoad> nr)
     {
         super(SOCPossiblePiece.SETTLEMENT, pl, co);
 
         if (nr == null)
-            nr = new Vector<SOCPossibleRoad>();
+            nr = new ArrayList<SOCPossibleRoad>();
         necessaryRoads = nr;
         eta = 0;
-        threats = new Vector<SOCPossiblePiece>();
-        biggestThreats = new Vector<SOCPossiblePiece>();
-        conflicts = new Vector<SOCPossibleSettlement>();
+        conflicts = new ArrayList<SOCPossibleSettlement>();
         threatUpdatedFlag = false;
         hasBeenExpanded = false;
         numberOfNecessaryRoads = -1;
@@ -74,23 +74,21 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
     }
 
     /**
-     * copy constructor
+     * copy constructor.
      *
-     * Note: This will not copy vectors, only make empty ones
+     * Note: This will not copy lists of threats, necessaryRoads, and conflicts, only make empty ones.
      *
      * @param ps  the possible settlement to copy
      */
     @SuppressWarnings("unchecked")
-    public SOCPossibleSettlement(SOCPossibleSettlement ps)
+    public SOCPossibleSettlement(final SOCPossibleSettlement ps)
     {
         //D.ebugPrintln(">>>> Copying possible settlement: "+ps);
         super(SOCPossiblePiece.SETTLEMENT, ps.getPlayer(), ps.getCoordinates());
 
-        necessaryRoads = new Vector<SOCPossibleRoad>(ps.getNecessaryRoads().size());
+        necessaryRoads = new ArrayList<SOCPossibleRoad>(ps.getNecessaryRoads().size());
         eta = ps.getETA();
-        threats = new Vector<SOCPossiblePiece>();
-        biggestThreats = new Vector<SOCPossiblePiece>();
-        conflicts = new Vector<SOCPossibleSettlement>(ps.getConflicts().size());
+        conflicts = new ArrayList<SOCPossibleSettlement>(ps.getConflicts().size());
         threatUpdatedFlag = false;
         hasBeenExpanded = false;
 
@@ -138,14 +136,16 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
      * Get this possible settlement's list of necessary roads, from
      * constructor and/or {@link #addNecessaryRoad(SOCPossibleRoad)}.
      * @return the list of necessary roads
+     * @see #getNumberOfNecessaryRoads()
      */
-    public Vector<SOCPossibleRoad> getNecessaryRoads()
+    public List<SOCPossibleRoad> getNecessaryRoads()
     {
         return necessaryRoads;
     }
 
     /**
-     * @return the minimum number of necessary roads
+     * @return the minimum number of necessary roads,
+     *     which may not necessarily be the length of {@link #getNecessaryRoads()}
      */
     public int getNumberOfNecessaryRoads()
     {
@@ -216,7 +216,7 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
     /**
      * @return the list of conflicting settlements
      */
-    public Vector<SOCPossibleSettlement> getConflicts()
+    public List<SOCPossibleSettlement> getConflicts()
     {
         return conflicts;
     }
@@ -228,7 +228,7 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
      */
     public void addNecessaryRoad(SOCPossibleRoad rd)
     {
-        necessaryRoads.addElement(rd);
+        necessaryRoads.add(rd);
     }
 
     /**
@@ -238,7 +238,7 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
      */
     public void addConflict(SOCPossibleSettlement s)
     {
-        conflicts.addElement(s);
+        conflicts.add(s);
     }
 
     /**
@@ -248,7 +248,7 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
      */
     public void removeConflict(SOCPossibleSettlement s)
     {
-        conflicts.removeElement(s);
+        conflicts.remove(s);
     }
 
     /**

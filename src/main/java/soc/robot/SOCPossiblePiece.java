@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2011-2015,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2011-2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -25,7 +25,8 @@ package soc.robot;
 import soc.game.*;
 import soc.message.SOCSetSpecialItem;  // strictly for javadocs
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -121,12 +122,12 @@ public abstract class SOCPossiblePiece
     /**
      * this is the piece that we need to beat to build this one
      */
-    protected Vector<SOCPossiblePiece> biggestThreats;
+    protected final ArrayList<SOCPossiblePiece> biggestThreats = new ArrayList<SOCPossiblePiece>();
 
     /**
      * pieces that threaten this piece
      */
-    protected Vector<SOCPossiblePiece> threats;
+    protected final ArrayList<SOCPossiblePiece> threats = new ArrayList<SOCPossiblePiece>();
 
     /**
      * this flag is used for threat updating
@@ -143,7 +144,7 @@ public abstract class SOCPossiblePiece
      * @param pt  Piece type: {@link #ROAD}, {@link #CARD}, etc.
      *     The type constants are the same as in {@link SOCPlayingPiece#getResourcesToBuild(int)}.
      * @param pl  The owner of this piece
-     * @param coord  The coordinates for this piece, if any.
+     * @param coord  The coordinates for this piece, if any. Not validated.
      *     Some piece types such as {@link #CARD} do not use this field, they call with {@code coord} == 0.
      * @since 2.0.00
      */
@@ -177,6 +178,7 @@ public abstract class SOCPossiblePiece
      * Get this piece's coordinates on the board, if any.
      * Some piece types such as {@link #CARD} do not use this field.
      * @return the coordinates for this piece, or 0 if unused.
+     *      Not validated against board geometry.
      *      In some board layouts 0 is a valid coordinate;
      *      check the piece type to determine if unused.
      */
@@ -262,7 +264,7 @@ public abstract class SOCPossiblePiece
      */
     public void clearBiggestThreats()
     {
-        biggestThreats.removeAllElements();
+        biggestThreats.clear();
     }
 
     /**
@@ -272,13 +274,13 @@ public abstract class SOCPossiblePiece
      */
     public void addBiggestThreat(SOCPossiblePiece bt)
     {
-        biggestThreats.addElement(bt);
+        biggestThreats.add(bt);
     }
 
     /**
      * @return the biggest threat
      */
-    public Vector<SOCPossiblePiece> getBiggestThreats()
+    public List<SOCPossiblePiece> getBiggestThreats()
     {
         return biggestThreats;
     }
@@ -287,7 +289,7 @@ public abstract class SOCPossiblePiece
      * Get the list of opponents' possible pieces that threaten this possible piece.
      * @return the list of threats
      */
-    public Vector<SOCPossiblePiece> getThreats()
+    public List<SOCPossiblePiece> getThreats()
     {
         return threats;
     }
@@ -299,9 +301,9 @@ public abstract class SOCPossiblePiece
      */
     public void addThreat(SOCPossiblePiece piece)
     {
-        if (!threats.contains(piece))
+        if (! threats.contains(piece))
         {
-            threats.addElement(piece);
+            threats.add(piece);
         }
     }
 
@@ -320,7 +322,7 @@ public abstract class SOCPossiblePiece
     {
         if (threatUpdatedFlag)
         {
-            threats.removeAllElements();
+            threats.clear();
             threatUpdatedFlag = false;
         }
     }

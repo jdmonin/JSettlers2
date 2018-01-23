@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2011-2013,2015,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2011-2013,2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -30,7 +30,6 @@ import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Stack;
@@ -1064,9 +1063,7 @@ public class SOCRobotNegotiator
 
             if ((receiverTargetPiece.getType() == SOCPossiblePiece.SETTLEMENT) || (receiverTargetPiece.getType() == SOCPossiblePiece.ROAD))
             {
-                Collection<SOCPossiblePiece> threatsEnum = receiverTargetPiece.getThreats();
-
-                for (SOCPossiblePiece threat : threatsEnum)
+                for (SOCPossiblePiece threat : receiverTargetPiece.getThreats())
                 {
                     if ((threat.getType() == senderTargetPiece.getType()) && (threat.getCoordinates() == senderTargetPiece.getCoordinates()))
                     {
@@ -1082,11 +1079,10 @@ public class SOCRobotNegotiator
                 }
                 else if (receiverTargetPiece.getType() == SOCPossiblePiece.SETTLEMENT)
                 {
-                    Collection<SOCPossibleSettlement> conflictsEnum = ((SOCPossibleSettlement) receiverTargetPiece).getConflicts();
-
-                    for (SOCPossibleSettlement conflict : conflictsEnum)
+                    for (SOCPossibleSettlement conflict : ((SOCPossibleSettlement) receiverTargetPiece).getConflicts())
                     {
-                        if ((senderTargetPiece.getType() == SOCPossiblePiece.SETTLEMENT) && (conflict.getCoordinates() == senderTargetPiece.getCoordinates()))
+                        if ((senderTargetPiece.getType() == SOCPossiblePiece.SETTLEMENT)
+                            && (conflict.getCoordinates() == senderTargetPiece.getCoordinates()))
                         {
                             inARace = true;
 
@@ -1101,7 +1097,7 @@ public class SOCRobotNegotiator
                 }
             }
 
-            if (!inARace)
+            if (! inARace)
             {
                 ///
                 /// see if this is good for the receiver
