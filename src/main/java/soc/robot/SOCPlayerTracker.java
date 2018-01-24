@@ -2911,12 +2911,11 @@ public class SOCPlayerTracker
                                 necRoadQueue.put(new Pair<Integer, List<SOCPossibleRoad>>
                                     (Integer.valueOf(0), chosenSet.getNecessaryRoads()));
 
-                                while (! necRoadQueue.empty())
+                                for (int tries = 50; tries > 0 && ! necRoadQueue.empty(); --tries)
                                 {
                                     Pair<Integer, List<SOCPossibleRoad>> necRoadPair = necRoadQueue.get();
-                                    Integer number = necRoadPair.getA();
+                                    totalNecRoads = necRoadPair.getA();
                                     List<SOCPossibleRoad> necRoads = necRoadPair.getB();
-                                    totalNecRoads = number.intValue();
 
                                     if (necRoads.isEmpty())
                                     {
@@ -2924,20 +2923,30 @@ public class SOCPlayerTracker
                                     }
                                     else
                                     {
-                                        for (SOCPossibleRoad nr : necRoads)
-                                            necRoadQueue.put(new Pair<Integer, List<SOCPossibleRoad>>
-                                                (Integer.valueOf(totalNecRoads + 1), nr.getNecessaryRoads()));
-
-                                        if (necRoadQueue.size() > 100)
+                                        if (necRoads.size() + necRoadQueue.size() > 40)
                                         {
                                             // Too many necessary, or dupes led to loop. Bug in necessary road construction?
                                             System.err.println
                                                 ("PT.recalcWinGameETA L2997: Necessary Road Path too long for settle at 0x"
                                                  + Integer.toHexString(chosenSet.getCoordinates()));
-                                            totalNecRoads = 100;
+                                            totalNecRoads = 40;
+                                            necRoadQueue.clear();
                                             break;
                                         }
+
+                                        for (SOCPossibleRoad nr : necRoads)
+                                            necRoadQueue.put(new Pair<Integer, List<SOCPossibleRoad>>
+                                                (Integer.valueOf(totalNecRoads + 1), nr.getNecessaryRoads()));
                                     }
+                                }
+
+                                if (! necRoadQueue.empty())
+                                {
+                                    // Dupes in various dependent roads? Bug in necessary road construction?
+                                    System.err.println
+                                        ("PT.recalcWinGameETA L2998: Necessary Road Path unresolved for settle at 0x"
+                                         + Integer.toHexString(chosenSet.getCoordinates()));
+                                    totalNecRoads = 40;
                                 }
                             }
 
@@ -3235,12 +3244,11 @@ public class SOCPlayerTracker
                                     necRoadQueue.put(new Pair<Integer, List<SOCPossibleRoad>>
                                         (Integer.valueOf(0), chosenSet[i].getNecessaryRoads()));
 
-                                    while (! necRoadQueue.empty())
+                                    for (int tries = 50; tries > 0 && ! necRoadQueue.empty(); --tries)
                                     {
                                         Pair<Integer, List<SOCPossibleRoad>> necRoadPair = necRoadQueue.get();
-                                        Integer number = necRoadPair.getA();
+                                        totalNecRoads = necRoadPair.getA();
                                         List<SOCPossibleRoad> necRoads = necRoadPair.getB();
-                                        totalNecRoads = number.intValue();
 
                                         if (necRoads.isEmpty())
                                         {
@@ -3248,20 +3256,30 @@ public class SOCPlayerTracker
                                         }
                                         else
                                         {
-                                            for (SOCPossibleRoad nr : necRoads)
-                                                necRoadQueue.put(new Pair<Integer, List<SOCPossibleRoad>>
-                                                    (Integer.valueOf(totalNecRoads + 1), nr.getNecessaryRoads()));
-
-                                            if (necRoadQueue.size() > 100)
+                                            if (necRoads.size() + necRoadQueue.size() > 40)
                                             {
                                                 // Too many necessary, or dupes led to loop. Bug in necessary road construction?
                                                 System.err.println
                                                     ("PT.recalcWinGameETA L3326: Necessary Road Path too long for settle at 0x"
                                                      + Integer.toHexString(chosenSet[i].getCoordinates()));
-                                                totalNecRoads = 100;
+                                                totalNecRoads = 40;
+                                                necRoadQueue.clear();
                                                 break;
                                             }
+
+                                            for (SOCPossibleRoad nr : necRoads)
+                                                necRoadQueue.put(new Pair<Integer, List<SOCPossibleRoad>>
+                                                    (Integer.valueOf(totalNecRoads + 1), nr.getNecessaryRoads()));
                                         }
+                                    }
+
+                                    if (! necRoadQueue.empty())
+                                    {
+                                        // Dupes in various dependent roads? Bug in necessary road construction?
+                                        System.err.println
+                                            ("PT.recalcWinGameETA L3328: Necessary Road Path unresolved for settle at 0x"
+                                             + Integer.toHexString(chosenSet[i].getCoordinates()));
+                                        totalNecRoads = 40;
                                     }
                                 }
 
@@ -3529,12 +3547,11 @@ public class SOCPlayerTracker
                             necRoadQueue.put(new Pair<Integer, List<SOCPossibleRoad>>
                                 (Integer.valueOf(0), chosenSet[0].getNecessaryRoads()));
 
-                            while (! necRoadQueue.empty())
+                            for (int tries = 50; tries > 0 && ! necRoadQueue.empty(); --tries)
                             {
                                 Pair<Integer, List<SOCPossibleRoad>> necRoadPair = necRoadQueue.get();
-                                Integer number = necRoadPair.getA();
+                                totalNecRoads = necRoadPair.getA();
                                 List<SOCPossibleRoad> necRoads = necRoadPair.getB();
-                                totalNecRoads = number.intValue();
 
                                 if (necRoads.isEmpty())
                                 {
@@ -3542,20 +3559,30 @@ public class SOCPlayerTracker
                                 }
                                 else
                                 {
-                                    for (SOCPossibleRoad nr : necRoads)
-                                        necRoadQueue.put(new Pair<Integer, List<SOCPossibleRoad>>
-                                            (Integer.valueOf(totalNecRoads + 1), nr.getNecessaryRoads()));
-
-                                    if (necRoadQueue.size() > 100)
+                                    if (necRoads.size() + necRoadQueue.size() > 40)
                                     {
                                         // Too many necessary. Bug in necessary road construction?
                                         System.err.println
                                             ("PT.recalcWinGameETA L3631: Necessary Road Path too long for settle at 0x"
                                              + Integer.toHexString(chosenSet[0].getCoordinates()));
-                                        totalNecRoads = 100;
+                                        totalNecRoads = 40;
+                                        necRoadQueue.clear();
                                         break;
                                     }
+
+                                    for (SOCPossibleRoad nr : necRoads)
+                                        necRoadQueue.put(new Pair<Integer, List<SOCPossibleRoad>>
+                                            (Integer.valueOf(totalNecRoads + 1), nr.getNecessaryRoads()));
                                 }
+                            }
+
+                            if (! necRoadQueue.empty())
+                            {
+                                // Dupes in various dependent roads? Bug in necessary road construction?
+                                System.err.println
+                                    ("PT.recalcWinGameETA L3633: Necessary Road Path unresolved for settle at 0x"
+                                     + Integer.toHexString(chosenSet[0].getCoordinates()));
+                                totalNecRoads = 40;
                             }
                         }
 
