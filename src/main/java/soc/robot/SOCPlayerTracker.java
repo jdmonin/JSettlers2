@@ -3834,8 +3834,8 @@ public class SOCPlayerTracker
     }
 
     /**
-     * Calculate the total number of necessary roads before a {@link SOCPossibleSettlement} can be built,
-     * by following its chain of {@link SOCPossibleSettlement#getNecessaryRoads() getNecessaryRoads()}.
+     * Calculate the total number of necessary roads before this {@link SOCPossibleSettlement} can be built:
+     * Do a BFS of its chain of {@link SOCPossibleSettlement#getNecessaryRoads() getNecessaryRoads()}.
      * Iterates through a queue made from {@code ps}'s necessary roads, tracking each one's "distance"
      * (in needed roads) from {@code ps} and adding that road's own {@link SOCPossibleRoad#getNecessaryRoads()} to
      * the end of the queue, until a road is found which has no necessary roads. That road's "distance" is returned.
@@ -3862,17 +3862,17 @@ public class SOCPlayerTracker
         necRoadQueue.put(new Pair<Integer, List<SOCPossibleRoad>>
             (Integer.valueOf(0), ps.getNecessaryRoads()));
 
-        for (int moreRoads = 50; moreRoads > 0 && ! necRoadQueue.empty(); --moreRoads)
+        for (int maxIter = 50; maxIter > 0 && ! necRoadQueue.empty(); --maxIter)
         {
             Pair<Integer, List<SOCPossibleRoad>> necRoadPair = necRoadQueue.get();
             totalNecRoads = necRoadPair.getA();
-            List<SOCPossibleRoad> necRoads = necRoadPair.getB();
+            List<SOCPossibleRoad> necRoadsToCurrent = necRoadPair.getB();
 
-            if (necRoads.isEmpty())
+            if (necRoadsToCurrent.isEmpty())
             {
                 necRoadQueue.clear();
             } else {
-                if (necRoads.size() + necRoadQueue.size() > 40)
+                if (necRoadQueue.size() + necRoadsToCurrent.size() > 40)
                 {
                     // Too many necessary, or dupes led to loop. Bug in necessary road construction?
                     System.err.println
@@ -3883,7 +3883,7 @@ public class SOCPlayerTracker
                     break;
                 }
 
-                for (SOCPossibleRoad nr : necRoads)
+                for (SOCPossibleRoad nr : necRoadsToCurrent)
                     necRoadQueue.put(new Pair<Integer, List<SOCPossibleRoad>>
                         (Integer.valueOf(totalNecRoads + 1), nr.getNecessaryRoads()));
             }

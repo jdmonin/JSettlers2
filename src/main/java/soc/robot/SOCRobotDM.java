@@ -881,7 +881,7 @@ public class SOCRobotDM
           // Do a BFS of the necessary road paths looking for the shortest one.
           //
           boolean pathTooLong = false;
-          while (! queue.empty())
+          for (int maxIter = 50; maxIter > 0 && ! queue.empty(); --maxIter)
           {
               Pair<SOCPossibleRoad, List<SOCPossibleRoad>> dataPair = queue.get();
               SOCPossibleRoad curRoad = dataPair.getA();
@@ -916,24 +916,30 @@ public class SOCRobotDM
                       : new ArrayList<SOCPossibleRoad>();
                   possRoadsAndCur.add(curRoad);
 
-                  for (SOCPossibleRoad necRoad2 : necRoads)
-                  {
-                      if (D.ebugOn)
-                          D.ebugPrintln("-- queuing necessary road at " + game.getBoard().edgeCoordToString(necRoad2.getCoordinates()));
-                      queue.put(new Pair<SOCPossibleRoad, List<SOCPossibleRoad>>(necRoad2, possRoadsAndCur));
-                  }
-
-                  if (queue.size() > 100)
+                  if (queue.size() + necRoads.size() > 40)
                   {
                       // Too many necessary, or dupes led to loop. Bug in necessary road construction?
                       System.err.println("rDM.scoreSettlementsForDumb: Necessary Road Path too long for road/ship 0x"
                           + Integer.toHexString(curRoad.getCoordinates()) + " for settle 0x"
                           + Integer.toHexString(posSet.getCoordinates()));
                       pathTooLong = true;
+                      queue.clear();
                       break;
                   }
 
+                  for (SOCPossibleRoad necRoad2 : necRoads)
+                  {
+                      if (D.ebugOn)
+                          D.ebugPrintln("-- queuing necessary road at " + game.getBoard().edgeCoordToString(necRoad2.getCoordinates()));
+                      queue.put(new Pair<SOCPossibleRoad, List<SOCPossibleRoad>>(necRoad2, possRoadsAndCur));
+                  }
               }
+          }
+          if (! queue.empty())
+          {
+              System.err.println("rDM.scoreSettlementsForDumb: Necessary Road Path length unresolved for settle 0x"
+                  + Integer.toHexString(posSet.getCoordinates()));
+              pathTooLong = true;
           }
           D.ebugPrintln("Done searching for path.");
 
