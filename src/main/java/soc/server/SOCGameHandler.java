@@ -2089,6 +2089,35 @@ public class SOCGameHandler extends GameHandler
     }
 
     /**
+     * If any player needs to discard, prompt them to discard half (round down);
+     * call in game state {@link SOCGame#WAITING_FOR_DISCARDS} after calling {@link #sendGameState(SOCGame)}.
+     * This method sends only {@link SOCDiscardRequest}s, not the prompt text "Joe and Lily must discard"
+     * sent by {@code sendGameState}.
+     *<P>
+     * Checks each player's {@link SOCGame#isSeatVacant(int)} and {@link SOCPlayer#getNeedToDiscard()} flags.
+     * Number of resources to discard is calculated here:
+     * <tt>{@link SOCPlayer#getResources()}.{@link SOCResourceSet#getTotal() getTotal()} / 2</tt>.
+     *
+     * @param ga  Game to prompt
+     * @param gaName  Game name for convenience; not {@code null}
+     * @since 2.0.00
+     */
+    final void sendGameState_sendDiscardRequests(SOCGame ga, final String gaName)
+    {
+        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+        {
+            final SOCPlayer pl = ga.getPlayer(pn);
+            if (( ! ga.isSeatVacant(pn)) && pl.getNeedToDiscard())
+            {
+                // Request to discard half (round down)
+                Connection con = srv.getConnection(pl.getName());
+                if (con != null)
+                    con.put(SOCDiscardRequest.toCmd(gaName, pl.getResources().getTotal() / 2));
+            }
+        }
+    }
+
+    /**
      * Send a game text message "x, y, and z need to pick resources from the gold hex."
      * and, for each picking player, a {@link SOCPlayerElement}({@link SOCPlayerElement#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES}).
      * To prompt the specific players to choose a resource, also sends their clients a

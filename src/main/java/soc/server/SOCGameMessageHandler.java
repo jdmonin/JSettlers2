@@ -681,17 +681,7 @@ public class SOCGameMessageHandler
                      */
                     if (ga.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
                     {
-                        for (int pn = 0; pn < ga.maxPlayers; ++pn)
-                        {
-                            final SOCPlayer pp = ga.getPlayer(pn);
-                            if (( ! ga.isSeatVacant(pn)) && pp.getNeedToDiscard())
-                            {
-                                // Request to discard half (round down)
-                                Connection con = srv.getConnection(pp.getName());
-                                if (con != null)
-                                    con.put(SOCDiscardRequest.toCmd(gn, pp.getResources().getTotal() / 2));
-                            }
-                        }
+                        handler.sendGameState_sendDiscardRequests(ga, gn);
                     }
                     else if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
                     {
@@ -2611,7 +2601,8 @@ public class SOCGameMessageHandler
                     final boolean fromInitPlace = ga.isInitialPlacement();
                     final boolean fromPirateFleet = ga.isPickResourceIncludingPirateFleet(pn);
 
-                    int prevState = ga.pickGoldHexResources(pn, rsrcs);
+                    final int prevState = ga.pickGoldHexResources(pn, rsrcs);
+                    final int newState = ga.getGameState();
 
                     /**
                      * tell everyone what the player gained
@@ -2622,32 +2613,23 @@ public class SOCGameMessageHandler
                      * send the new state, or end turn if was marked earlier as forced
                      * -- for gold during initial placement, current player might also change.
                      */
-                    if ((gstate != SOCGame.PLAY1) || ! ga.isForcingEndTurn())
+                    if ((gstate != SOCGame.PLAY1) || (newState == SOCGame.WAITING_FOR_DISCARDS)
+                        || ! ga.isForcingEndTurn())
                     {
                         if (! fromInitPlace)
                         {
                             handler.sendGameState(ga);
 
-                            if (gstate == SOCGame.WAITING_FOR_DISCARDS)
+                            if (newState == SOCGame.WAITING_FOR_DISCARDS)
                             {
                                 // happens only in scenario _SC_PIRI, when 7 is rolled, player wins against pirate fleet
                                 // and has picked their won resource, and then someone must discard
-                                for (int i = 0; i < ga.maxPlayers; ++i)
-                                {
-                                    SOCPlayer pl = ga.getPlayer(i);
-                                    if (( ! ga.isSeatVacant(i) ) && pl.getNeedToDiscard())
-                                    {
-                                        // Request to discard half (round down)
-                                        Connection con = srv.getConnection(pl.getName());
-                                        if (con != null)
-                                            con.put(SOCDiscardRequest.toCmd(gaName, pl.getResources().getTotal() / 2));
-                                    }
-                                }
+                                handler.sendGameState_sendDiscardRequests(ga, gaName);
                             }
                         } else {
                             // send state, and current player if changed
 
-                            switch (ga.getGameState())
+                            switch (newState)
                             {
                             case SOCGame.START1B:
                             case SOCGame.START2B:

@@ -933,6 +933,8 @@ public class SOCGame implements Serializable, Cloneable
      *        oldGameState holds the <B>next</B> state to go to when all players are done picking resources.
      *        After picking gold from a dice roll, this will usually be {@link #PLAY1}.
      *        Sometimes will be {@link #PLACING_FREE_ROAD2} or {@link #SPECIAL_BUILDING}.
+     *        Can be {@link #ROLL_OR_CARD} in scenario {@link SOCGameOption#K_SC_PIRI SC_PIRI}:
+     *        See {@link #pickGoldHexResources(int, SOCResourceSet)} and {@link #rollDice_update7gameState()}.
      *</UL>
      * Also used if the game board was reset: {@link #getResetOldGameState()} holds the state before the reset.
      */
