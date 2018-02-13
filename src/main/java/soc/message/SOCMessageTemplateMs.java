@@ -29,27 +29,23 @@ import java.util.ListIterator;
 /**
  * Template for message types with variable number of string parameters.
  * You will have to write parseDataStr, because of its subclass return
- * type and because it's static.
+ * type and because it's static. Each parameter (separated by SEP) is
+ * passed to parseDataStr as a string in the list.
  *<P>
  * Sample implementation:
  *<pre><code>
- *   // format of s: POTENTIALSETTLEMENTS sep game sep2 settlement {sep2 settlement}*...
- *   // Must have at least game + 1 settlement param.
- *   public static SOCDiceResultResources parseDataStr(List<String> s)
+ *   // Format of s: GAMESWITHOPTIONS { SEP gameName SEP gameOptStr }*
+ *   // A game with empty options has "-" as its gameOptStr.
+ *   public static SOCGamesWithOptions parseDataStr(List<String> s)
  *   {
- *       String gaName;  // the game name
- *       String[] pa;    // the parameters
+ *       if (s == null)
+ *           s = new ArrayList<String>();
+ *       else if ((s.size() % 2) != 0)
+ *           return null;  // must have an even # of strings
  *
- *       if ((s == null) || (s.size() < 2))
- *           return null;  // must have at least game name + 1 more param
+ *       // parseData_FindEmptyStrs(s);  // EMPTYSTR -> "" -- not needed for this type
  *
- *       parseData_FindEmptyStrs(s);  // EMPTYSTR -> ""
- *       gaName = s.get(0);
- *       pa = new String[s.size() - 1];
- *       for (int i = 0; i < pa.length; ++i)
- *           pa[i] = s.get(i + 1);
- *
- *       return new SOCDiceResultResources(gaName, pa);
+ *       return new SOCGamesWithOptions(s);
  *   }
  *</code></pre>
  *<P>
