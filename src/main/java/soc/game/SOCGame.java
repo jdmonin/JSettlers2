@@ -932,6 +932,8 @@ public class SOCGame implements Serializable, Cloneable
      *        oldGameState holds the <B>next</B> state to go to when all players are done picking resources.
      *        After picking gold from a dice roll, this will usually be {@link #PLAY1}.
      *        Sometimes will be {@link #PLACING_FREE_ROAD2} or {@link #SPECIAL_BUILDING}.
+     *        Can be {@link #ROLL_OR_CARD} in scenario {@link SOCGameOption#K_SC_PIRI SC_PIRI}:
+     *        See {@link #pickGoldHexResources(int, SOCResourceSet)} and {@link #rollDice_update7gameState()}.
      *</UL>
      * Also used if the game board was reset: {@link #getResetOldGameState()} holds the state before the reset.
      */
@@ -4995,10 +4997,10 @@ public class SOCGame implements Serializable, Cloneable
             else
                 robberResult.victims = null;
 
-            final Vector<SOCPlayer> victims = robberResult.victims;
+            final List<SOCPlayer> victims = robberResult.victims;
             if ((victims != null) && (victims.size() == 1))
             {
-                currentRoll.sc_piri_fleetAttackVictim = victims.firstElement();
+                currentRoll.sc_piri_fleetAttackVictim = victims.get(0);
 
                 currentRoll.sc_piri_fleetAttackRsrcs = robberResult.sc_piri_loot;
                 if (currentRoll.sc_piri_fleetAttackRsrcs.contains(SOCResourceConstants.GOLD_LOCAL))
@@ -5331,6 +5333,7 @@ public class SOCGame implements Serializable, Cloneable
         {
             oldGameState = PLAY1;
             placingRobberForKnightCard = false;  // known because knight card doesn't trigger discard
+
             if (! forcingEndTurn)
             {
                 if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
@@ -5619,7 +5622,7 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * do the robbing thing
          */
-        Vector<SOCPlayer> victims = getPossibleVictims();
+        final List<SOCPlayer> victims = getPossibleVictims();
 
         if (victims.isEmpty())
         {
@@ -5627,7 +5630,7 @@ public class SOCGame implements Serializable, Cloneable
         }
         else if (victims.size() == 1)
         {
-            SOCPlayer victim = victims.firstElement();
+            final SOCPlayer victim = victims.get(0);
             final int loot = stealFromPlayer(victim.getPlayerNumber(), false);
             robberResult.setLoot(loot);
         }
@@ -5768,7 +5771,7 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * do the robbing thing
          */
-        Vector<SOCPlayer> victims = getPossibleVictims();
+        final List<SOCPlayer> victims = getPossibleVictims();
 
         if (victims.isEmpty())
         {
@@ -5776,18 +5779,20 @@ public class SOCGame implements Serializable, Cloneable
         }
         else if (victims.size() == 1)
         {
-            SOCPlayer victim = victims.firstElement();
+            final SOCPlayer victim = victims.get(0);
+            final int vpn = victim.getPlayerNumber();
+
             if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
             {
                 // Call is from rollDice():
                 // If player has warships, might tie or be stronger, otherwise steal multiple items
                 // Set sc_piri_loot; don't change gameState
-                stealFromPlayerPirateFleet(victim.getPlayerNumber(), pirFleetStrength);
+                stealFromPlayerPirateFleet(vpn, pirFleetStrength);
             }
-            else if (! canChooseRobClothOrResource(victim.getPlayerNumber()))
+            else if (! canChooseRobClothOrResource(vpn))
             {
                 // steal item, also sets gameState
-                final int loot = stealFromPlayer(victim.getPlayerNumber(), false);
+                final int loot = stealFromPlayer(vpn, false);
                 robberResult.setLoot(loot);
             } else {
                 /**
@@ -6230,7 +6235,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Given the robber or pirate's current position on the board,
      * and {@link #getRobberyPirateFlag()},
-     * get the list of victims with adjacent settlements/cities or ships.
+     * the list of victims with adjacent settlements/cities or ships (if any).
      * Victims are players with resources; for scenario option
      * {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, also players with cloth
      * when robbing with the pirate.
@@ -6242,11 +6247,11 @@ public class SOCGame implements Serializable, Cloneable
      * port settlement/city adjacent to the pirate ship's hex is attacked,
      * unless there are multiple adjacent players (nothing happens).
      *
-     * @return a list of possible players to rob, or an empty Vector
+     * @return a list of possible players to rob, or an empty list
      * @see #canChoosePlayer(int)
      * @see #choosePlayerForRobbery(int)
      */
-    public Vector<SOCPlayer> getPossibleVictims()
+    public List<SOCPlayer> getPossibleVictims()
     {
         if ((currentRoll.sc_robPossibleVictims != null)
             && (gameState == WAITING_FOR_ROB_CHOOSE_PLAYER))
@@ -6258,8 +6263,7 @@ public class SOCGame implements Serializable, Cloneable
         // victims wil be a subset of candidates:
         // has resources, ! isSeatVacant, ! currentPlayer.
 
-        Vector<SOCPlayer> victims = new Vector<SOCPlayer>();
-        Vector<SOCPlayer> candidates;
+        List<SOCPlayer> candidates;
 
         if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
         {
@@ -6276,14 +6280,15 @@ public class SOCGame implements Serializable, Cloneable
                     if (candidates.size() > 1)
                         candidates.clear();
                 } else {
-                    candidates = new Vector<SOCPlayer>();
+                    candidates = new ArrayList<SOCPlayer>();
                 }
+
                 return candidates;  // <--- Early return: Special for scenario ---
 
             } else {
                 // Robber (7 rolled): all non-current players with resources.
                 // For-loop below will check candidate resources.
-                candidates = new Vector<SOCPlayer>();
+                candidates = new ArrayList<SOCPlayer>();
                 for (int pn = 0; pn < maxPlayers; ++pn)
                     if ((pn != currentPlayerNumber) && ! isSeatVacant(pn))
                         candidates.add(players[pn]);
@@ -6296,14 +6301,15 @@ public class SOCGame implements Serializable, Cloneable
             candidates = getPlayersOnHex(board.getRobberHex());
         }
 
+        List<SOCPlayer> victims = new ArrayList<SOCPlayer>();
         for (SOCPlayer pl : candidates)
         {
-            int pn = pl.getPlayerNumber();
+            final int pn = pl.getPlayerNumber();
 
             if ((pn != currentPlayerNumber)
                 && ( (pl.getResources().getTotal() > 0) || (robberyWithPirateNotRobber && (pl.getCloth() > 0)) ))
             {
-                victims.addElement(pl);
+                victims.add(pl);
             }
         }
 
@@ -8464,6 +8470,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Dice roll result, for reporting from {@link SOCGame#rollDice()}.
      * Each game has 1 instance of this object, which is updated each turn.
+     * @see SOCMoveRobberResult
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 2.0.00
      */
@@ -8493,7 +8500,7 @@ public class SOCGame implements Serializable, Cloneable
          *
          * @see SOCGame#getPossibleVictims()
          */
-        public Vector<SOCPlayer> sc_robPossibleVictims;
+        public List<SOCPlayer> sc_robPossibleVictims;
 
         /**
          * When the pirate fleet moves in game scenario {@link SOCGameOption#K_SC_PIRI},
@@ -8517,7 +8524,7 @@ public class SOCGame implements Serializable, Cloneable
          */
         public SOCResourceSet sc_piri_fleetAttackRsrcs;
 
-        /** Convenience: Set diceA and dice, clear {@link #cloth}. */
+        /** Convenience: Set diceA and dice, null out {@link #cloth} and {@link #sc_robPossibleVictims}. */
         public void update (final int dA, int dB)
         {
             diceA = dA;

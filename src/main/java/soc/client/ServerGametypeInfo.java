@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>:
  *     - parameterize types
  * This file's contents were formerly part of SOCPlayerClient.java:
@@ -192,7 +192,7 @@ class ServerGametypeInfo
      * @param servOpts The allowable {@link SOCGameOption} received from the server.
      *                 Assumes has been parsed already against the locally known opts,
      *                 so ones that we don't know are {@link SOCGameOption#OTYPE_UNKNOWN}.
-     * @return null if all are known, or a Vector of key names for unknown options.
+     * @return null if all are known, or a list of key names for unknown options.
      */
     public List<String> receiveDefaults(final Map<String,SOCGameOption> servOpts)
     {

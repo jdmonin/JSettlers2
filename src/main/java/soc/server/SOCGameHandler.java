@@ -2067,13 +2067,8 @@ public class SOCGameHandler extends GameHandler
             if (canStealNone)
                 choices[ga.maxPlayers] = true;
 
-            Enumeration<SOCPlayer> plEnum = ga.getPossibleVictims().elements();
-
-            while (plEnum.hasMoreElements())
-            {
-                SOCPlayer pl = plEnum.nextElement();
+            for (SOCPlayer pl : ga.getPossibleVictims())
                 choices[pl.getPlayerNumber()] = true;
-            }
 
             /**
              * ask the current player to choose a player to steal from
@@ -2093,6 +2088,35 @@ public class SOCGameHandler extends GameHandler
         }  // switch ga.getGameState
 
         return promptedRoll;
+    }
+
+    /**
+     * If any player needs to discard, prompt them to discard half (round down);
+     * call in game state {@link SOCGame#WAITING_FOR_DISCARDS} after calling {@link #sendGameState(SOCGame)}.
+     * This method sends only {@link SOCDiscardRequest}s, not the prompt text "Joe and Lily must discard"
+     * sent by {@code sendGameState}.
+     *<P>
+     * Checks each player's {@link SOCGame#isSeatVacant(int)} and {@link SOCPlayer#getNeedToDiscard()} flags.
+     * Number of resources to discard is calculated here:
+     * <tt>{@link SOCPlayer#getResources()}.{@link SOCResourceSet#getTotal() getTotal()} / 2</tt>.
+     *
+     * @param ga  Game to prompt
+     * @param gaName  Game name for convenience; not {@code null}
+     * @since 2.0.00
+     */
+    final void sendGameState_sendDiscardRequests(SOCGame ga, final String gaName)
+    {
+        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+        {
+            final SOCPlayer pl = ga.getPlayer(pn);
+            if (( ! ga.isSeatVacant(pn)) && pl.getNeedToDiscard())
+            {
+                // Request to discard half (round down)
+                Connection con = srv.getConnection(pl.getName());
+                if (con != null)
+                    con.put(new SOCDiscardRequest(gaName, pl.getResources().getTotal() / 2));
+            }
+        }
     }
 
     /**
@@ -2389,6 +2413,7 @@ public class SOCGameHandler extends GameHandler
         final String viName = vi.getName();
         final int pePN = pe.getPlayerNumber();
         final int viPN = vi.getPlayerNumber();
+
         if (rsrc == SOCResourceConstants.CLOTH_STOLEN_LOCAL)
         {
             // Send players' cloth counts and text.
@@ -2425,13 +2450,13 @@ public class SOCGameHandler extends GameHandler
         srv.messageToPlayer(viCon, gainRsrc);
         srv.messageToPlayer(viCon, loseRsrc);
         // Don't send generic message to pe or vi
-        Vector<Connection> exceptions = new Vector<Connection>(2);
-        exceptions.addElement(peCon);
-        exceptions.addElement(viCon);
+        List<Connection> sendNotTo = new ArrayList<Connection>(2);
+        sendNotTo.add(peCon);
+        sendNotTo.add(viCon);
         gainUnknown = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, SOCPlayerElement.UNKNOWN, 1);
         loseUnknown = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, 1);
-        srv.messageToGameExcept(gaName, exceptions, gainUnknown, true);
-        srv.messageToGameExcept(gaName, exceptions, loseUnknown, true);
+        srv.messageToGameExcept(gaName, sendNotTo, gainUnknown, true);
+        srv.messageToGameExcept(gaName, sendNotTo, loseUnknown, true);
 
         /**
          * send the text messages:
@@ -2441,7 +2466,7 @@ public class SOCGameHandler extends GameHandler
          */
         srv.messageToPlayerKeyedSpecial(peCon, ga, "robber.you.stole.resource.from", -1, rsrc, viName);  // "You stole {0,rsrcs} from {2}."
         srv.messageToPlayerKeyedSpecial(viCon, ga, "robber.stole.resource.from.you", peName, -1, rsrc);  // "{0} stole {1,rsrcs} from you."
-        srv.messageToGameKeyedSpecialExcept(ga, true, exceptions, "robber.stole.resource.from", peName, viName);  // "{0} stole a resource from {1}."
+        srv.messageToGameKeyedSpecialExcept(ga, true, sendNotTo, "robber.stole.resource.from", peName, viName);  // "{0} stole a resource from {1}."
     }
 
     /**

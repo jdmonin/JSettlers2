@@ -83,7 +83,6 @@ import java.util.MissingResourceException;
 import java.util.StringTokenizer;
 import java.util.Timer;  // SOCPlayerInterface also uses restartable javax.swing.Timer
 import java.util.TimerTask;
-import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -103,7 +102,7 @@ import javax.sound.sampled.LineUnavailableException;
  *<P>
  * When we join a game, the client will update visible game state by calling methods here like
  * {@link #addPlayer(String, int)}; when all this activity is complete, and the interface is
- * ready for interaction, the client calls {@link #began(Vector)}.
+ * ready for interaction, the client calls {@link #began(List)}.
  *<P>
  * <B>Local preferences:</B>
  * For optional per-game preferences like {@link #PREF_SOUND_MUTE}, see {@code localPrefs} parameter in
@@ -203,7 +202,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * To avoid sound-effect spam while receiving board layout info
      * when starting a game or joining a game in progress, track whether
-     * {@link #began(Vector)} has been called.
+     * {@link #began(List)} has been called.
      *<P>
      * Reminder: When starting a new game, some PUTPIECE messages
      * may be sent after {@code began(..)}, but these will all be sent
@@ -563,6 +562,13 @@ public class SOCPlayerInterface extends Frame
      */
     static byte[] SOUND_RSRC_GAINED_FREE;
 
+    /**
+     * Sound prompt when trade is offered to client player.
+     * Generated at first call to constructor.
+     * @since 2.0.00
+     */
+    static byte[] SOUND_OFFERED_TRADE;
+
     private final ClientBridge clientListener;
 
     /**
@@ -816,6 +822,11 @@ public class SOCPlayerInterface extends Frame
                     i = Sounds.genChime(Sounds.NOTE_C4_HZ, 120, .9, buf, 0, false);
                     Sounds.genChime(Sounds.NOTE_E4_HZ, 90, .9, buf, i, false);
                     SOUND_RSRC_GAINED_FREE = buf;
+
+                    buf = new byte[Sounds.bufferLen(120 + 120)];
+                    i = Sounds.genChime(Sounds.NOTE_B5_HZ, 120, .4, buf, 0, false);
+                    Sounds.genChime(Sounds.NOTE_B5_HZ, 120, .4, buf, i, false);
+                    SOUND_OFFERED_TRADE = buf;
                 }
             });
 
@@ -1983,7 +1994,7 @@ public class SOCPlayerInterface extends Frame
      *
      * @param members Game member names from {@link soc.message.SOCGameMembers#getMembers()} (added in 1.1.12)
      */
-    public void began(List<String> members)
+    public void began(final List<String> members)
     {
         textInput.setEditable(true);
         textInput.setText("");
@@ -2227,7 +2238,7 @@ public class SOCPlayerInterface extends Frame
             if (i == clientHandPlayerNum)
                 continue;
 
-            hands[i].updateCurrentOffer(true);
+            hands[i].updateCurrentOffer(false, true);
         }
     }
 
@@ -4094,16 +4105,16 @@ public class SOCPlayerInterface extends Frame
 
         public void requestedTrade(SOCPlayer offerer)
         {
-            pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(false);
+            pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(true, false);
         }
 
         public void requestedTradeClear(SOCPlayer offerer)
         {
             if (offerer != null)
-                pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(false);
+                pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(false, false);
             else
                 for (int i = 0; i < pi.game.maxPlayers; ++i)
-                    pi.getPlayerHandPanel(i).updateCurrentOffer(false);
+                    pi.getPlayerHandPanel(i).updateCurrentOffer(false, false);
         }
 
         public void requestedTradeRejection(SOCPlayer rejecter)

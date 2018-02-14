@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011,2013-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011,2013-2014,2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -23,7 +23,7 @@ package soc.robot;
 
 import soc.game.SOCPlayer;
 
-import java.util.Vector;
+import java.util.List;
 
 
 /**
@@ -42,11 +42,11 @@ public class SOCPossibleShip extends SOCPossibleRoad
      * constructor
      *
      * @param pl  the owner
-     * @param co  coordinates
+     * @param co  coordinates; not validated
      * @param isCoastal  Is this also a possible coastal road ({@link #isCoastalRoadAndShip})?
-     * @param nr  necessaryRoads, or {@code null} to create a new empty Vector here
+     * @param nr  necessaryRoads list reference to use (not to copy!), or {@code null} to create a new empty list here
      */
-    public SOCPossibleShip(SOCPlayer pl, int co, final boolean isCoastal, Vector<SOCPossibleRoad> nr)
+    public SOCPossibleShip(SOCPlayer pl, int co, final boolean isCoastal, List<SOCPossibleRoad> nr)
     {
         super(pl, co, nr);
         pieceType = SOCPossiblePiece.SHIP;
@@ -54,9 +54,9 @@ public class SOCPossibleShip extends SOCPossibleRoad
     }
 
     /**
-     * copy constructor
+     * copy constructor.
      *
-     * Note: This will not copy the vectors, just make empty ones
+     * Note: This will not copy {@code pr}'s lists, just make empty ones.
      *
      * @param pr  the possible road to copy
      */

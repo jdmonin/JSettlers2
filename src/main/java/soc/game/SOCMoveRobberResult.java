@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2011,2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2011,2012,2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -21,7 +21,7 @@
  **/
 package soc.game;
 
-import java.util.Vector;
+import java.util.List;
 
 
 /**
@@ -30,11 +30,13 @@ import java.util.Vector;
  * what was stolen.
  * Call {@link SOCGame#getRobberyPirateFlag()} to see which one was moved.
  * Each game has 1 instance of this object, which is updated each time the robber or pirate is moved.
+ *
+ * @see SOCGame.RollResult
  */
 public class SOCMoveRobberResult
 {
-    /** Victim, or possible victims, or empty or null; content type {@link SOCPlayer} */
-    Vector<SOCPlayer> victims;
+    /** Victim, or possible victims, or empty or null */
+    List<SOCPlayer> victims;
 
     /** Resource type of loot stolen, as in {@link SOCResourceConstants}, or -1 */
     int loot;
@@ -72,9 +74,9 @@ public class SOCMoveRobberResult
     /**
      * Set the victim (if any) or possible victims
      *
-     * @param v Victim or possible victims, may be empty or null; Vector of {@link SOCPlayer}
+     * @param v Victim or possible victims, may be empty or null
      */
-    public void setVictims(Vector<SOCPlayer> v)
+    public void setVictims(List<SOCPlayer> v)
     {
         victims = v;
     }
@@ -82,9 +84,9 @@ public class SOCMoveRobberResult
     /**
      * Get the victim (if any) or possible victims
      *
-     * @return Victim or possible victims, may be empty or null; Vector of {@link SOCPlayer}
+     * @return Victim or possible victims, may be empty or null
      */
-    public Vector<SOCPlayer> getVictims()
+    public List<SOCPlayer> getVictims()
     {
         return victims;
     }

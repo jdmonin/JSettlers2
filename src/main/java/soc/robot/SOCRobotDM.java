@@ -125,20 +125,20 @@ public class SOCRobotDM
    * Filled each turn by {@link #planStuff(int)}.
    * Emptied by {@link SOCRobotBrain}.
    */
-  protected Stack<SOCPossiblePiece> buildingPlan;
+  protected final Stack<SOCPossiblePiece> buildingPlan;
 
   /** The game we're playing in */
   protected final SOCGame game;
 
   /** Roads threatened by other players; currently unused. */
-  protected Vector<SOCPossibleRoad> threatenedRoads;
+  protected final ArrayList<SOCPossibleRoad> threatenedRoads;
 
   /**
    * A road or ship ({@link SOCPossibleRoad} and/or subclass {@link SOCPossibleShip})
    * we could build this turn; its {@link SOCPossibleRoad#getNecessaryRoads()} is empty.
    * Built in {@link #smartGameStrategy(int[])}.
    */
-  protected Vector<SOCPossibleRoad> goodRoads;
+  protected final ArrayList<SOCPossibleRoad> goodRoads;
 
   /**
    * A road or ship we could build this turn, chosen
@@ -149,10 +149,10 @@ public class SOCRobotDM
   protected SOCPossibleRoad favoriteRoad;
 
   /** Threatened settlements, as calculated by {@link #scorePossibleSettlements(int, int)} */
-  protected Vector<SOCPossibleSettlement> threatenedSettlements;
+  protected final ArrayList<SOCPossibleSettlement> threatenedSettlements;
 
   /** Good settlements, as calculated by {@link #scorePossibleSettlements(int, int)} */
-  protected Vector<SOCPossibleSettlement> goodSettlements;
+  protected final ArrayList<SOCPossibleSettlement> goodSettlements;
 
   /**
    * A settlement to build, chosen from {@link #goodSettlements} or {@link #threatenedSettlements}.
@@ -179,10 +179,10 @@ public class SOCRobotDM
     buildingPlan = brain.getBuildingPlan();
     game = brain.getGame();
 
-    threatenedRoads = new Vector<SOCPossibleRoad>();
-    goodRoads = new Vector<SOCPossibleRoad>();
-    threatenedSettlements = new Vector<SOCPossibleSettlement>();
-    goodSettlements = new Vector<SOCPossibleSettlement>();
+    threatenedRoads = new ArrayList<SOCPossibleRoad>();
+    goodRoads = new ArrayList<SOCPossibleRoad>();
+    threatenedSettlements = new ArrayList<SOCPossibleSettlement>();
+    goodSettlements = new ArrayList<SOCPossibleSettlement>();
     SOCRobotParameters params = brain.getRobotParameters();
     maxGameLength = params.getMaxGameLength();
     maxETA = params.getMaxETA();
@@ -225,10 +225,10 @@ public class SOCRobotDM
     devCardMultiplier = params.getDevCardMultiplier();
     threatMultiplier = params.getThreatMultiplier();
 
-    threatenedRoads = new Vector<SOCPossibleRoad>();
-    goodRoads = new Vector<SOCPossibleRoad>();
-    threatenedSettlements = new Vector<SOCPossibleSettlement>();
-    goodSettlements = new Vector<SOCPossibleSettlement>();
+    threatenedRoads = new ArrayList<SOCPossibleRoad>();
+    goodRoads = new ArrayList<SOCPossibleRoad>();
+    threatenedSettlements = new ArrayList<SOCPossibleSettlement>();
+    goodSettlements = new ArrayList<SOCPossibleSettlement>();
   }
 
 
@@ -300,10 +300,10 @@ public class SOCRobotDM
     int currentBuildingETAs[] = currentBSE.getEstimatesFromNowFast
         (ourPlayerData.getResources(), ourPlayerData.getPortFlags());
 
-    threatenedSettlements.removeAllElements();
-    goodSettlements.removeAllElements();
-    threatenedRoads.removeAllElements();
-    goodRoads.removeAllElements();
+    threatenedSettlements.clear();
+    goodSettlements.clear();
+    threatenedRoads.clear();
+    goodRoads.clear();
 
     favoriteRoad = null;
     favoriteSettlement = null;
@@ -863,17 +863,15 @@ public class SOCRobotDM
       ///
       /// find the shortest path to this settlement
       ///
-      Vector<SOCPossibleRoad> necRoadVec = posSet.getNecessaryRoads();
-      if (! necRoadVec.isEmpty())
+      final List<SOCPossibleRoad> necRoadList = posSet.getNecessaryRoads();
+      if (! necRoadList.isEmpty())
       {
           queue.clear();  // will use for BFS if needed:
               // Pair members are <SOCPossibleRoad, null or list of SOCPossibleRoad needed to build that road>.
               // Lists have most-distant necessary road at beginning (item 0), and most-immediate at end of list (n-1).
 
-          Iterator<SOCPossibleRoad> necRoadsIter = necRoadVec.iterator();
-          while (necRoadsIter.hasNext())
+          for (SOCPossibleRoad necRoad : necRoadList)
           {
-              SOCPossibleRoad necRoad = necRoadsIter.next();
               if (D.ebugOn)
                   D.ebugPrintln("-- queuing necessary road at " + game.getBoard().edgeCoordToString(necRoad.getCoordinates()));
               queue.put(new Pair<SOCPossibleRoad, List<SOCPossibleRoad>>(necRoad, null));
@@ -883,7 +881,7 @@ public class SOCRobotDM
           // Do a BFS of the necessary road paths looking for the shortest one.
           //
           boolean pathTooLong = false;
-          while (! queue.empty())
+          for (int maxIter = 50; maxIter > 0 && ! queue.empty(); --maxIter)
           {
               Pair<SOCPossibleRoad, List<SOCPossibleRoad>> dataPair = queue.get();
               SOCPossibleRoad curRoad = dataPair.getA();
@@ -891,7 +889,7 @@ public class SOCRobotDM
               if (D.ebugOn)
                   D.ebugPrintln("-- current road at " + game.getBoard().edgeCoordToString(curRoad.getCoordinates()));
 
-              Vector<SOCPossibleRoad> necRoads = curRoad.getNecessaryRoads();
+              final List<SOCPossibleRoad> necRoads = curRoad.getNecessaryRoads();
               if (necRoads.isEmpty())
               {
                   //
@@ -918,26 +916,30 @@ public class SOCRobotDM
                       : new ArrayList<SOCPossibleRoad>();
                   possRoadsAndCur.add(curRoad);
 
-                  necRoadsIter = necRoads.iterator();
-                  while (necRoadsIter.hasNext())
-                  {
-                      SOCPossibleRoad necRoad2 = necRoadsIter.next();
-                      if (D.ebugOn)
-                          D.ebugPrintln("-- queuing necessary road at " + game.getBoard().edgeCoordToString(necRoad2.getCoordinates()));
-                      queue.put(new Pair<SOCPossibleRoad, List<SOCPossibleRoad>>(necRoad2, possRoadsAndCur));
-                  }
-
-                  if (queue.size() > 100)
+                  if (queue.size() + necRoads.size() > 40)
                   {
                       // Too many necessary, or dupes led to loop. Bug in necessary road construction?
                       System.err.println("rDM.scoreSettlementsForDumb: Necessary Road Path too long for road/ship 0x"
                           + Integer.toHexString(curRoad.getCoordinates()) + " for settle 0x"
                           + Integer.toHexString(posSet.getCoordinates()));
                       pathTooLong = true;
+                      queue.clear();
                       break;
                   }
 
+                  for (SOCPossibleRoad necRoad2 : necRoads)
+                  {
+                      if (D.ebugOn)
+                          D.ebugPrintln("-- queuing necessary road at " + game.getBoard().edgeCoordToString(necRoad2.getCoordinates()));
+                      queue.put(new Pair<SOCPossibleRoad, List<SOCPossibleRoad>>(necRoad2, possRoadsAndCur));
+                  }
               }
+          }
+          if (! queue.empty())
+          {
+              System.err.println("rDM.scoreSettlementsForDumb: Necessary Road Path length unresolved for settle 0x"
+                  + Integer.toHexString(posSet.getCoordinates()));
+              pathTooLong = true;
           }
           D.ebugPrintln("Done searching for path.");
 
@@ -992,8 +994,6 @@ public class SOCRobotDM
   private final void planRoadBuildingTwoRoads()
   {
       SOCPossibleRoad secondFavoriteRoad = null;
-      Enumeration<SOCPossibleRoad> threatenedRoadEnum;
-      Enumeration<SOCPossibleRoad> goodRoadEnum;
       D.ebugPrintln("*** making a plan for road building");
 
       ///
@@ -1033,10 +1033,8 @@ public class SOCRobotDM
           }
         }
 
-        Enumeration<SOCPossiblePiece> newPosEnum = favoriteRoad.getNewPossibilities().elements();
-        while (newPosEnum.hasMoreElements())
+        for (SOCPossiblePiece newPos : favoriteRoad.getNewPossibilities())
         {
-          SOCPossiblePiece newPos = newPosEnum.nextElement();
           if (newPos instanceof SOCPossibleRoad)
           {
             newPos.resetScore();
@@ -1059,10 +1057,8 @@ public class SOCRobotDM
           }
         }
 
-        threatenedRoadEnum = threatenedRoads.elements();
-        while (threatenedRoadEnum.hasMoreElements())
+        for (SOCPossibleRoad threatenedRoad : threatenedRoads)
         {
-          SOCPossibleRoad threatenedRoad = threatenedRoadEnum.nextElement();
           D.ebugPrintln("$$$ threatened road at "+Integer.toHexString(threatenedRoad.getCoordinates()));
 
           //
@@ -1086,10 +1082,8 @@ public class SOCRobotDM
           }
         }
 
-        goodRoadEnum = goodRoads.elements();
-        while (goodRoadEnum.hasMoreElements())
+        for (SOCPossibleRoad goodRoad : goodRoads)
         {
-          SOCPossibleRoad goodRoad = goodRoadEnum.nextElement();
           D.ebugPrintln("$$$ good road at "+Integer.toHexString(goodRoad.getCoordinates()));
           //
           // see how building this piece impacts our winETA
@@ -1461,7 +1455,7 @@ public class SOCRobotDM
 	    (! threatenedRoads.contains(posRoad)) &&
 	    (! goodRoads.contains(posRoad)))
 	{
-	  goodRoads.addElement(posRoad);
+	  goodRoads.add(posRoad);
 	}
       }
     }
@@ -1508,7 +1502,7 @@ public class SOCRobotDM
                 }
 
                 if (edgeOK)
-                    goodRoads.addElement(posRoad);
+                    goodRoads.add(posRoad);
             }
         }
     }
@@ -1570,10 +1564,8 @@ public class SOCRobotDM
     ///
     if (ourPlayerData.getNumPieces(SOCPlayingPiece.SETTLEMENT) > 0)
     {
-      Iterator<SOCPossibleSettlement> threatenedSetIter = threatenedSettlements.iterator();
-      while (threatenedSetIter.hasNext())
+      for (SOCPossibleSettlement threatenedSet : threatenedSettlements)
       {
-	SOCPossibleSettlement threatenedSet = threatenedSetIter.next();
 	if (threatenedSet.getNecessaryRoads().isEmpty()) {
 	  D.ebugPrintln("$$$$$ threatened settlement at "+Integer.toHexString(threatenedSet.getCoordinates())+" has a score of "+threatenedSet.getScore());
 
@@ -1584,10 +1576,8 @@ public class SOCRobotDM
 	}
       }
 
-      Iterator<SOCPossibleSettlement> goodSetIter = goodSettlements.iterator();
-      while (goodSetIter.hasNext())
+      for (SOCPossibleSettlement goodSet : goodSettlements)
       {
-	SOCPossibleSettlement goodSet = goodSetIter.next();
 	if (goodSet.getNecessaryRoads().isEmpty()) {
 	  D.ebugPrintln("$$$$$ good settlement at "+Integer.toHexString(goodSet.getCoordinates())+" has a score of "+goodSet.getScore());
 
@@ -1612,9 +1602,8 @@ public class SOCRobotDM
     ///
     if (ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) > 0)
     {
-      Iterator<SOCPossibleRoad> threatenedRoadIter = threatenedRoads.iterator();
-      while (threatenedRoadIter.hasNext()) {
-	SOCPossibleRoad threatenedRoad = threatenedRoadIter.next();
+      for (SOCPossibleRoad threatenedRoad : threatenedRoads)
+      {
 	D.ebugPrintln("$$$$$ threatened road at "+Integer.toHexString(threatenedRoad.getCoordinates()));
 
 	if ((brain != null) && (brain.getDRecorder().isOn())) {
@@ -1643,10 +1632,9 @@ public class SOCRobotDM
 	  }
 	}
       }
-      Iterator<SOCPossibleRoad> goodRoadIter = goodRoads.iterator();
-      while (goodRoadIter.hasNext())
+
+      for (SOCPossibleRoad goodRoad : goodRoads)
       {
-	SOCPossibleRoad goodRoad = goodRoadIter.next();
 	D.ebugPrintln("$$$$$ good road at "+Integer.toHexString(goodRoad.getCoordinates()));
 
 	if ((brain != null) && (brain.getDRecorder().isOn())) {
@@ -2392,16 +2380,15 @@ public class SOCRobotDM
       SOCPossibleSettlement posSet = posSetsIter.next();
       D.ebugPrintln("*** scoring possible settlement at "+Integer.toHexString(posSet.getCoordinates()));
       if (! threatenedSettlements.contains(posSet)) {
-          threatenedSettlements.addElement(posSet);
+          threatenedSettlements.add(posSet);
       } else if (! goodSettlements.contains(posSet)) {
-          goodSettlements.addElement(posSet);
+          goodSettlements.add(posSet);
       }
 
       //
       // only consider settlements we can build now
       //
-      Vector<SOCPossibleRoad> necRoadVec = posSet.getNecessaryRoads();
-      if (necRoadVec.isEmpty())
+      if (posSet.getNecessaryRoads().isEmpty())
       {
 	D.ebugPrintln("*** no roads needed");
 	//
