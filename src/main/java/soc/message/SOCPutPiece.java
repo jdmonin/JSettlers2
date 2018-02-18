@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012-2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012-2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,8 +28,8 @@ import soc.game.SOCPlayingPiece;  // for javadocs only
  * Client player is asking to place, or server is announcing placement of, a piece on the board.
  * Also used when joining a new game or a game in progress, to send the game state so far.
  *<P>
- * If message is for a {@link SOCPlayingPiece#CITY} while client is joining a game, must precede with
- * a {@code SOCPutPiece} message with the {@link SOCPlayingPiece#SETTLEMENT} at the same coordinate
+ * If message is from server for a {@link SOCPlayingPiece#CITY} while client is joining a game, must precede by sending
+ * that client a {@code SOCPutPiece} message with the {@link SOCPlayingPiece#SETTLEMENT} at the same coordinate
  * which was upgraded to that city.
  *<P>
  * Some game scenarios use {@link soc.game.SOCVillage villages} which aren't owned by any player;
@@ -44,6 +44,20 @@ import soc.game.SOCPlayingPiece;  // for javadocs only
  * sending them {@link SOCStartGame}. Scenario {@link soc.game.SOCScenario#K_SC_CLVI SC_CLVI}
  * sends its neutral villages before {@code START1A} but as part {@code "CV"} of the board layout
  * message, not as {@code SOCPutPiece}s.
+ *<P>
+ * If this is a placement request from a client player: If successful, server announces {@link SOCPutPiece}
+ * to the game along with the new {@link SOCGameState}. Otherwise server responds with an explanatory
+ * {@link SOCGameServerText} and, if the gamestate allowed placement but resources or requested coordinates
+ * disallowed it, the current {@link SOCGameState} and then a {@link SOCCancelBuildRequest}.
+ *<P>
+ * In v2.0.00 and newer: On their own turn, player clients can optionally request PutPiece in gamestate
+ * {@link soc.game.SOCGame#PLAY1 PLAY1} or {@link soc.game.SOCGame#SPECIAL_BUILDING SPECIAL_BUILDING}
+ * which implies a {@link SOCBuildRequest} for that piece type, without needing to first send that
+ * {@code SOCBuildRequest} and wait for a gamestate response. If request is allowed, the server
+ * announces {@link SOCPlayerElement} messages for the resources spent, and then its usual
+ * response to a successful {@code SOCPutPiece}. Otherwise the rejection response is sent as
+ * described above, and after rejection the gamestate may be a placement state such as
+ * {@link soc.game.SOCGame#PLACING_ROAD PLACING_ROAD}.
  *
  * @author Robert S Thomas
  */

@@ -26,9 +26,23 @@ import java.util.StringTokenizer;
 /**
  * This message from client to server says which piece type the current player wants to build.
  *<P>
- * During game state {@link soc.game.SOCGame#PLAY1 PLAY1}, this is a build request during the player's turn.
+ * During game state {@link soc.game.SOCGame#PLAY1 PLAY1}, this is a build request during the client player's turn:
+ * If building is possible, server responds by announcing the placement {@link SOCGameState}
+ * and {@link SOCPlayerElement} messages for the resources spent.
+ *<P>
  * When sent during other game states, and other players' turns, this is a request
  * to start the 6-player {@link soc.game.SOCGame#SPECIAL_BUILDING Special Building Phase}.
+ * If that request is currently allowed, server announces a {@link SOCPlayerElement}
+ * ({@code pn, SET,} {@link SOCPlayerElement#ASK_SPECIAL_BUILD}, 1).
+ *<P>
+ * If the build request or Special Building request is not possible,
+ * server responds to humans with a {@link SOCGameServerText} or to bots with a {@link SOCCancelBuildRequest}.
+ *<P>
+ * In v2.0.00 and newer: Optionally this request message can be skipped if both client and server are v2.0.00
+ * or newer, and game state is {@link soc.game.SOCGame#PLAY1 PLAY1} or
+ * {@link soc.game.SOCGame#SPECIAL_BUILDING SPECIAL_BUILDING}:
+ * Client instead sends {@link SOCPutPiece} with the requested piece type and location,
+ * which implies the request to buy the piece before placement.
  *
  * @author Robert S. Thomas
  * @see SOCCancelBuildRequest

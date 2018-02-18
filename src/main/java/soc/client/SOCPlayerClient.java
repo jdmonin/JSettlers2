@@ -6601,9 +6601,14 @@ public class SOCPlayerClient
     /**
      * Server version, for checking feature availability.
      * Returns -1 if unknown.
+     *<P>
+     * Instead of calling this method, some client code checks a game's version like:<BR>
+     * {@code (game.isPractice || (client.sVersion >= VERSION_FOR_AUTHREQUEST))}
+     *
      * @param  game  Game being played on a practice or tcp server.
-     * @return Server version, format like {@link soc.util.Version#versionNumber()},
+     * @return Server version, in same format as {@link soc.util.Version#versionNumber()},
      *         or 0 or -1.
+     * @since 1.1.00
      */
     public int getServerVersion(SOCGame game)
     {

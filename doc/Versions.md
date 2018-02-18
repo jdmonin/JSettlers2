@@ -22,12 +22,14 @@ and backport minor new features until `2.0.00` is ready.
 - Sound prompt when client player is offered a trade
 - Game expire time increased: Now 2 hours, was 90 minutes; also warns 5 or 6 minutes earlier
 - Game windows: Render board with antialiasing; player name labels sans-serif for cleaner look
-- More efficient game-setup messages over network
-- When joining game in progress, server sends current round to update client's "*n* rounds left for No 7s" display
 - I18N framework in place, started by Luis A. Ramirez; thank you Luis. Jeremy wrote more I18N utilities (package net.nand.util.i18n).
 - Client sends server its locale, to support i18n localization
 - Client: On OSX, set app name to JSettlers in menu bar
 - Applet class is now `soc.client.SOCApplet`
+- Message traffic:
+	- When joining game in progress, server sends current round to update client's "*n* rounds left for No 7s" display
+	- More efficient game-setup messages over network
+	- SOCBuildRequest now optional before client's SOCPutPiece request
 - Server Config Validation mode: Test the current config and exit, with new startup option:
 	`-t` or `--test-config`
 - Game option key names can now be longer (8 characters)
