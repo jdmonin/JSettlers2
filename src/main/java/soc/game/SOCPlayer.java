@@ -598,6 +598,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     {
         int i;
         game = player.game;
+        name = player.name;  // useful for SOCPlayerTracker dummy players in debug prints
         playerNumber = player.playerNumber;
         numPieces = player.numPieces.clone();
         pieces = new Vector<SOCPlayingPiece>(player.pieces);
