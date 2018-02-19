@@ -2076,8 +2076,8 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Handle a game state change from {@link SOCGameState} or another message
-     * which has a Game State field. Clears {@link #waitingForGameState} and
-     * updates {@link #oldGameState}, then calls
+     * which has a Game State field. Clears {@link #waitingForGameState},
+     * updates {@link #oldGameState} if state value is actually changing, then calls
      * {@link SOCDisplaylessPlayerClient#handleGAMESTATE(SOCGame, int)}.
      * @param gs  New game state; if 0, does nothing
      * @since 2.0.00
@@ -2088,7 +2088,9 @@ public class SOCRobotBrain extends Thread
             return;
 
         waitingForGameState = false;
-        oldGameState = game.getGameState();
+        int currGS = game.getGameState();
+        if (currGS != gs)
+            oldGameState = currGS;  // if no actual change, don't overwrite previously known oldGameState
         SOCDisplaylessPlayerClient.handleGAMESTATE(game, gs);
     }
 

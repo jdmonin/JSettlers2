@@ -8621,7 +8621,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
        * when server says it's OK to build, using value of {@link #hoverSettlementID}, {@link #hoverShipID}, etc
        * when {@code tryBuild} is called.
        *<P>
-       * Assumes player is current, and player is non-null, when called.
+       * Assumes player is current, and non-null, when called.
        *
        * @param ptype Piece type, like {@link SOCPlayingPiece#ROAD}
        */
@@ -8635,12 +8635,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           boolean canBuild;  // resources, rules
           String btarget;    // button name on buildpanel
 
-          // If we're in initial placement, or cancel/build during game,
-          // or debugPP, or free-road placement, then send putpiece right now.
-          // Otherwise, multi-phase send.
+          // If possible, send putpiece request right now.
+          // Otherwise, multi-phase send (build request, receive gamestate, putpiece request).
           final int gstate = game.getGameState();
           final boolean sendNow = isInitialPlacement || wantsCancel || debugPP
-              || (gstate == SOCGame.PLACING_FREE_ROAD1) || (gstate == SOCGame.PLACING_FREE_ROAD2);
+              || (gstate == SOCGame.PLACING_FREE_ROAD1) || (gstate == SOCGame.PLACING_FREE_ROAD2)
+              || (((gstate == SOCGame.PLAY1) || (gstate == SOCGame.SPECIAL_BUILDING))
+                  && (game.isPractice || playerInterface.client.sVersion >= 2000));
 
           // Note that if we're in gameplay have clicked the "buy road" button
           // and trying to place it, game.couldBuildRoad will be false because
@@ -8898,10 +8899,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Used for the delay between sending a build-request message,
      * and receiving a game-state message.
-     *
+     *<P>
      * This timer will probably not be called, unless there's a large lag
      * between the server and client.  It's here just in case.
      * Ideally the server responds right away, and the client responds to that.
+     *<P>
+     * Not used if server and client are both v2.0.00 or newer.
      *
      * @see SOCHandPanel#autoRollSetupTimer()
      * @since 1.1.00
