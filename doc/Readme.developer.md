@@ -396,7 +396,7 @@ ideas.
 - Kick robots if inactive but current player in game, assume they're buggy (use forceEndTurn)
 - Control the speed of robots in practice games
   - Adjust `SOCRobotBrain.pause`, `ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS`, etc
-- Sound effects
+- Add more sound effects
 - Add more functional and unit tests, in `src/test/bin/` and `src/test/java/` directories,
   `build.xml` and `build.gradle`
 - Possible: Auto-add robots when needed as server runs, with server active-game count
@@ -409,6 +409,22 @@ ideas.
 - Refactor: name of dev-cards consolidate
 - Refactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
     - Currently in 2 places: `SOCResourceConstants.CLAY` vs `SOCPlayerElement.CLAY`
+- Track a limited supply of resource cards
+    - Currently unlimited
+    - Official game rules have a supply limit. Paraphrasing 5th edition rules:
+        - During resource production (dice roll), check the remaining supply
+          for each resource type (brick, ore, ...) versus needed production (settlements and cities)
+        - If supply shortage affects 1 player, that player gets all the remaining supply
+        - If affects more than 1 player, no player receives that resource type
+        - Other resource types are supplied as usual if they aren't short
+    - Original 4-player game supplies 19 resources of each type;
+      6-player adds 5 more of each; Seafarers does not add more supply
+    - If a shortage occurs or supply is very low after production,
+      announce that to the game with a `SOCGameServerText`
+    - Show remaining supply in Statistics popup and `*STATS*` debug command
+    - Game window is probably too cluttered already to always show remaining supply;
+      any way to cleanly do so would be a bonus
+    - Add house rule `SOCGameOption` for unlimited resources
 - Refactor: combine the `cli/displayless/robot` endturn-like methods. For example,
   search for `ga.setCurrentDice(0)`, or `newToOld`, or `ga.resetVoteClear`
 - Docker (dockerfile in git) or other containerization, including sqlite jdbc and
