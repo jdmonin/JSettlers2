@@ -1468,16 +1468,18 @@ public class SOCGameMessageHandler
                     try
                     {
                         ga.askSpecialBuild(pn, true);
-                        srv.messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
+                        srv.messageToGame
+                            (gaName, new SOCPlayerElement
+                                (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
                         handler.endGameTurn(ga, player, true);  // triggers start of SBP
                     } catch (IllegalStateException e) {
-                        srv.messageToPlayer(c, gaName, "You can't ask to build now.");
+                        srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.ask");  // "You can't ask to build now."
                         sendDenyReply = true;
                     }
                 }
                 else
                 {
-                    srv.messageToPlayer(c, gaName, "You can't build now.");
+                    srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now");  // "You can't build now."
                     sendDenyReply = true;
                 }
             }
@@ -1485,7 +1487,7 @@ public class SOCGameMessageHandler
             {
                 if (ga.maxPlayers <= 4)
                 {
-                    srv.messageToPlayer(c, gaName, "It's not your turn.");
+                    srv.messageToPlayerKeyed(c, gaName, "reply.not.your.turn");  // "It's not your turn."
                     sendDenyReply = true;
                 } else {
                     // 6-player board: Special Building Phase
@@ -1493,9 +1495,11 @@ public class SOCGameMessageHandler
                     try
                     {
                         ga.askSpecialBuild(pn, true);  // will validate that they can build now
-                        srv.messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
+                        srv.messageToGame
+                            (gaName, new SOCPlayerElement
+                                (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
                     } catch (IllegalStateException e) {
-                        srv.messageToPlayer(c, gaName, "You can't ask to build now.");
+                        srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.ask");  // "You can't ask to build now."
                         sendDenyReply = true;
                     }
                 }
@@ -1563,7 +1567,7 @@ public class SOCGameMessageHandler
             }
             else
             {
-                srv.messageToPlayer(c, gaName, "You can't build a road.");
+                srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.road");  // "You can't build a road now."
                 sendDenyReply = true;
             }
 
@@ -1585,7 +1589,7 @@ public class SOCGameMessageHandler
             }
             else
             {
-                srv.messageToPlayer(c, gaName, "You can't build a settlement.");
+                srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.stlmt");  // "You can't build a settlement now."
                 sendDenyReply = true;
             }
 
@@ -1603,7 +1607,7 @@ public class SOCGameMessageHandler
             }
             else
             {
-                srv.messageToPlayer(c, gaName, "You can't build a city.");
+                srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.city");  // "You can't build a city now."
                 sendDenyReply = true;
             }
 
@@ -1621,14 +1625,14 @@ public class SOCGameMessageHandler
             }
             else
             {
-                srv.messageToPlayer(c, gaName, "You can't build a ship.");
+                srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.ship");  // "You can't build a ship now."
                 sendDenyReply = true;
             }
 
             break;
 
         default:
-            srv.messageToPlayer(c, gaName, "Unknown piece type.");
+            srv.messageToPlayerKeyed(c, gaName, "reply.piece.type.unknown");  // "Unknown piece type."
             sendDenyReply = true;
         }
 
@@ -1915,13 +1919,15 @@ public class SOCGameMessageHandler
                                 D.ebugPrintln(" - roadAtEdge: " + ((pp != null) ? pp : "none"));
                             }
 
-                            srv.messageToPlayer(c, gaName, "You can't build a road there.");
+                            srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.there.road");
+                                // "You can't build a road there."
                             sendDenyReply = true;
                         }
                     }
                     else
                     {
-                        srv.messageToPlayer(c, gaName, "You can't build a road right now.");
+                        srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.road");
+                            // "You can't build a road now."
                     }
 
                     break;
@@ -1967,13 +1973,15 @@ public class SOCGameMessageHandler
                                 D.ebugPrintln(" - settlementAtNode: " + ((pp != null) ? pp : "none"));
                             }
 
-                            srv.messageToPlayer(c, gaName, "You can't build a settlement there.");
+                            srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.there.stlmt");
+                                // "You can't build a settlement there."
                             sendDenyReply = true;
                         }
                     }
                     else
                     {
-                        srv.messageToPlayer(c, gaName, "You can't build a settlement right now.");
+                        srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.stlmt");
+                            // "You can't build a settlement now."
                     }
 
                     break;
@@ -2023,13 +2031,15 @@ public class SOCGameMessageHandler
                                 D.ebugPrintln(" - city/settlementAtNode: " + ((pp != null) ? pp : "none"));
                             }
 
-                            srv.messageToPlayer(c, gaName, "You can't build a city there.");
+                            srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.there.city");
+                                // "You can't build a city there."
                             sendDenyReply = true;
                         }
                     }
                     else
                     {
-                        srv.messageToPlayer(c, gaName, "You can't build a city right now.");
+                        srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.city");
+                            // "You can't build a city now."
                     }
 
                     break;
@@ -2075,13 +2085,15 @@ public class SOCGameMessageHandler
                                 D.ebugPrintln(" - ship/roadAtEdge: " + ((pp != null) ? pp : "none"));
                             }
 
-                            srv.messageToPlayer(c, gaName, "You can't build a ship there.");
+                            srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.there.ship");
+                                // "You can't build a ship there."
                             sendDenyReply = true;
                         }
                     }
                     else
                     {
-                        srv.messageToPlayer(c, gaName, "You can't build a ship right now.");
+                        srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.ship");
+                            // "You can't build a ship now."
                     }
 
                     break;
@@ -2102,7 +2114,7 @@ public class SOCGameMessageHandler
             }
             else
             {
-                srv.messageToPlayer(c, gaName, "It's not your turn.");
+                srv.messageToPlayerKeyed(c, gaName, "reply.not.your.turn");  // "It's not your turn."
             }
         }
         catch (Exception e)
@@ -2168,7 +2180,7 @@ public class SOCGameMessageHandler
         {
             D.ebugPrintln("ILLEGAL MOVEPIECE: 0x" + Integer.toHexString(fromEdge) + " -> 0x" + Integer.toHexString(toEdge)
                 + ": player " + c.getData());
-            srv.messageToPlayer(c, gaName, "You can't move that ship right now.");
+            srv.messageToPlayerKeyed(c, gaName, "reply.movepiece.cannot.now.ship");  // "You can't move that ship now."
             srv.messageToPlayer(c, new SOCCancelBuildRequest(gaName, SOCPlayingPiece.SHIP));
         }
     }
