@@ -4761,11 +4761,11 @@ public final class GameMessage {
   }
   /**
    * <pre>
-   * Client player is asking to place, or server is announcing placement of, a piece on the board.
+   * Client player is asking to buy and place, or server is announcing placement of, a piece on the board.
    * Also used when joining a new game or a game in progress, to send the game state so far.
    *&lt;P&gt;
-   * If message is for a {&#64;link soc.game.SOCCity} while client is joining a game, must precede with
-   * a {&#64;code PutPiece} message with the Settlement at the same coordinate
+   * If message is from server for a {&#64;link soc.game.SOCCity} while client is joining a game, must precede
+   * by sending that client a {&#64;code PutPiece} message with the Settlement at the same coordinate
    * which was upgraded to that city.
    *&lt;P&gt;
    * Some game scenarios use {&#64;link soc.game.SOCVillage villages} which aren't owned by any player;
@@ -4780,6 +4780,15 @@ public final class GameMessage {
    * sending them {&#64;link StartGame}. Scenario {&#64;link soc.game.SOCScenario#K_SC_CLVI SC_CLVI}
    * sends its neutral villages before {&#64;code START1A} but as part {&#64;code "CV"} of the board layout
    * message, not as {&#64;code PutPiece}s.
+   *&lt;P&gt;
+   * If this is a placement request from a client player: If successful, server announces
+   * {&#64;link SOCPlayerElement} messages to the game for the resources spent, {&#64;code PutPiece},
+   * and the new {&#64;link State}. Otherwise server responds with an explanatory {&#64;link GameServerText} and,
+   * if the gamestate allowed placement but resources or requested coordinates
+   * disallowed it, the current {&#64;link State} and then a {&#64;link CancelBuild}.
+   * After rejection the gamestate may be a placement state such as {&#64;code PLACING_ROAD}.
+   * &#64;see CancelBuild
+   * &#64;see BuyInventoryItemRequest
    * </pre>
    *
    * Protobuf type {@code PutPiece}
@@ -5082,11 +5091,11 @@ public final class GameMessage {
     }
     /**
      * <pre>
-     * Client player is asking to place, or server is announcing placement of, a piece on the board.
+     * Client player is asking to buy and place, or server is announcing placement of, a piece on the board.
      * Also used when joining a new game or a game in progress, to send the game state so far.
      *&lt;P&gt;
-     * If message is for a {&#64;link soc.game.SOCCity} while client is joining a game, must precede with
-     * a {&#64;code PutPiece} message with the Settlement at the same coordinate
+     * If message is from server for a {&#64;link soc.game.SOCCity} while client is joining a game, must precede
+     * by sending that client a {&#64;code PutPiece} message with the Settlement at the same coordinate
      * which was upgraded to that city.
      *&lt;P&gt;
      * Some game scenarios use {&#64;link soc.game.SOCVillage villages} which aren't owned by any player;
@@ -5101,6 +5110,15 @@ public final class GameMessage {
      * sending them {&#64;link StartGame}. Scenario {&#64;link soc.game.SOCScenario#K_SC_CLVI SC_CLVI}
      * sends its neutral villages before {&#64;code START1A} but as part {&#64;code "CV"} of the board layout
      * message, not as {&#64;code PutPiece}s.
+     *&lt;P&gt;
+     * If this is a placement request from a client player: If successful, server announces
+     * {&#64;link SOCPlayerElement} messages to the game for the resources spent, {&#64;code PutPiece},
+     * and the new {&#64;link State}. Otherwise server responds with an explanatory {&#64;link GameServerText} and,
+     * if the gamestate allowed placement but resources or requested coordinates
+     * disallowed it, the current {&#64;link State} and then a {&#64;link CancelBuild}.
+     * After rejection the gamestate may be a placement state such as {&#64;code PLACING_ROAD}.
+     * &#64;see CancelBuild
+     * &#64;see BuyInventoryItemRequest
      * </pre>
      *
      * Protobuf type {@code PutPiece}
@@ -5411,53 +5429,54 @@ public final class GameMessage {
 
   }
 
-  public interface BuildRequestOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:BuildRequest)
+  public interface BuyInventoryItemRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:BuyInventoryItemRequest)
       com.google.protobuf.MessageOrBuilder {
 
     /**
      * <pre>
-     * Type of piece to build. When requesting Special Building Phase,
-     * this field is optional and its value is ignored.
+     * omit if Dev Card; the type of generic inventory item, from {&#64;link SOCInventoryItem#itype}
      * </pre>
      *
-     * <code>.PieceType piece_type = 1;</code>
+     * <code>int32 other_inv_item_type = 1;</code>
      */
-    int getPieceTypeValue();
-    /**
-     * <pre>
-     * Type of piece to build. When requesting Special Building Phase,
-     * this field is optional and its value is ignored.
-     * </pre>
-     *
-     * <code>.PieceType piece_type = 1;</code>
-     */
-    soc.proto.Data.PieceType getPieceType();
+    int getOtherInvItemType();
   }
   /**
    * <pre>
-   * This message from client to server says which piece type the current player wants to build.
+   * This message from client means that the client player wants to buy a development card.
    *&lt;P&gt;
-   * During game state {&#64;link soc.game.SOCGame#PLAY1 PLAY1}, this is a build request during the player's turn.
+   * During game state {&#64;code PLAY1}, this is a normal buy request.
    * When sent during other game states, and other players' turns, this is a request
-   * to start the 6-player {&#64;link soc.game.SOCGame#SPECIAL_BUILDING Special Building Phase}.
+   * to start the 6-player Special Building Phase.
+   *&lt;P&gt;
+   * If the player can buy a card, the server replies to the client with
+   * {&#64;link SOCDevCardAction DEVCARDACTION}({&#64;link SOCDevCardAction#DRAW}, {&#64;link SOCDevCardConstants typeconstant}),
+   * and to all other players with {&#64;link SOCDevCardAction DEVCARDACTION}({&#64;link SOCDevCardAction#DRAW},
+   * {&#64;link SOCDevCardConstants#UNKNOWN}).
+   *&lt;P&gt;
+   * If there are no cards remaining to buy, or player doesn't have enough resources,
+   * isn't currently their turn, or the player otherwise can't buy a card right now,
+   * the server will send them a text response denying the buy. Instead of that text,
+   * robot clients will be sent a {&#64;link CancelBuildRequest} message.
+   *&lt;P&gt;
+   * Before v3.0.00 this message was {&#64;code SOCBuyDevCardRequest}.
    * &#64;see CancelBuild
-   * &#64;see BuyItemRequest
    * </pre>
    *
-   * Protobuf type {@code BuildRequest}
+   * Protobuf type {@code BuyInventoryItemRequest}
    */
-  public  static final class BuildRequest extends
+  public  static final class BuyInventoryItemRequest extends
       com.google.protobuf.GeneratedMessageV3 implements
-      // @@protoc_insertion_point(message_implements:BuildRequest)
-      BuildRequestOrBuilder {
+      // @@protoc_insertion_point(message_implements:BuyInventoryItemRequest)
+      BuyInventoryItemRequestOrBuilder {
   private static final long serialVersionUID = 0L;
-    // Use BuildRequest.newBuilder() to construct.
-    private BuildRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+    // Use BuyInventoryItemRequest.newBuilder() to construct.
+    private BuyInventoryItemRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
     }
-    private BuildRequest() {
-      pieceType_ = 0;
+    private BuyInventoryItemRequest() {
+      otherInvItemType_ = 0;
     }
 
     @java.lang.Override
@@ -5465,7 +5484,7 @@ public final class GameMessage {
     getUnknownFields() {
       return this.unknownFields;
     }
-    private BuildRequest(
+    private BuyInventoryItemRequest(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -5489,9 +5508,8 @@ public final class GameMessage {
               break;
             }
             case 8: {
-              int rawValue = input.readEnum();
 
-              pieceType_ = rawValue;
+              otherInvItemType_ = input.readInt32();
               break;
             }
           }
@@ -5508,40 +5526,27 @@ public final class GameMessage {
     }
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return soc.proto.GameMessage.internal_static_BuildRequest_descriptor;
+      return soc.proto.GameMessage.internal_static_BuyInventoryItemRequest_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return soc.proto.GameMessage.internal_static_BuildRequest_fieldAccessorTable
+      return soc.proto.GameMessage.internal_static_BuyInventoryItemRequest_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              soc.proto.GameMessage.BuildRequest.class, soc.proto.GameMessage.BuildRequest.Builder.class);
+              soc.proto.GameMessage.BuyInventoryItemRequest.class, soc.proto.GameMessage.BuyInventoryItemRequest.Builder.class);
     }
 
-    public static final int PIECE_TYPE_FIELD_NUMBER = 1;
-    private int pieceType_;
+    public static final int OTHER_INV_ITEM_TYPE_FIELD_NUMBER = 1;
+    private int otherInvItemType_;
     /**
      * <pre>
-     * Type of piece to build. When requesting Special Building Phase,
-     * this field is optional and its value is ignored.
+     * omit if Dev Card; the type of generic inventory item, from {&#64;link SOCInventoryItem#itype}
      * </pre>
      *
-     * <code>.PieceType piece_type = 1;</code>
+     * <code>int32 other_inv_item_type = 1;</code>
      */
-    public int getPieceTypeValue() {
-      return pieceType_;
-    }
-    /**
-     * <pre>
-     * Type of piece to build. When requesting Special Building Phase,
-     * this field is optional and its value is ignored.
-     * </pre>
-     *
-     * <code>.PieceType piece_type = 1;</code>
-     */
-    public soc.proto.Data.PieceType getPieceType() {
-      soc.proto.Data.PieceType result = soc.proto.Data.PieceType.valueOf(pieceType_);
-      return result == null ? soc.proto.Data.PieceType.UNRECOGNIZED : result;
+    public int getOtherInvItemType() {
+      return otherInvItemType_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -5556,8 +5561,8 @@ public final class GameMessage {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (pieceType_ != soc.proto.Data.PieceType.ROAD.getNumber()) {
-        output.writeEnum(1, pieceType_);
+      if (otherInvItemType_ != 0) {
+        output.writeInt32(1, otherInvItemType_);
       }
       unknownFields.writeTo(output);
     }
@@ -5567,9 +5572,9 @@ public final class GameMessage {
       if (size != -1) return size;
 
       size = 0;
-      if (pieceType_ != soc.proto.Data.PieceType.ROAD.getNumber()) {
+      if (otherInvItemType_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(1, pieceType_);
+          .computeInt32Size(1, otherInvItemType_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -5581,13 +5586,14 @@ public final class GameMessage {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof soc.proto.GameMessage.BuildRequest)) {
+      if (!(obj instanceof soc.proto.GameMessage.BuyInventoryItemRequest)) {
         return super.equals(obj);
       }
-      soc.proto.GameMessage.BuildRequest other = (soc.proto.GameMessage.BuildRequest) obj;
+      soc.proto.GameMessage.BuyInventoryItemRequest other = (soc.proto.GameMessage.BuyInventoryItemRequest) obj;
 
       boolean result = true;
-      result = result && pieceType_ == other.pieceType_;
+      result = result && (getOtherInvItemType()
+          == other.getOtherInvItemType());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -5599,76 +5605,76 @@ public final class GameMessage {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + PIECE_TYPE_FIELD_NUMBER;
-      hash = (53 * hash) + pieceType_;
+      hash = (37 * hash) + OTHER_INV_ITEM_TYPE_FIELD_NUMBER;
+      hash = (53 * hash) + getOtherInvItemType();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
     }
 
-    public static soc.proto.GameMessage.BuildRequest parseFrom(
+    public static soc.proto.GameMessage.BuyInventoryItemRequest parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static soc.proto.GameMessage.BuildRequest parseFrom(
+    public static soc.proto.GameMessage.BuyInventoryItemRequest parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static soc.proto.GameMessage.BuildRequest parseFrom(
+    public static soc.proto.GameMessage.BuyInventoryItemRequest parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static soc.proto.GameMessage.BuildRequest parseFrom(
+    public static soc.proto.GameMessage.BuyInventoryItemRequest parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static soc.proto.GameMessage.BuildRequest parseFrom(byte[] data)
+    public static soc.proto.GameMessage.BuyInventoryItemRequest parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static soc.proto.GameMessage.BuildRequest parseFrom(
+    public static soc.proto.GameMessage.BuyInventoryItemRequest parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static soc.proto.GameMessage.BuildRequest parseFrom(java.io.InputStream input)
+    public static soc.proto.GameMessage.BuyInventoryItemRequest parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static soc.proto.GameMessage.BuildRequest parseFrom(
+    public static soc.proto.GameMessage.BuyInventoryItemRequest parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
-    public static soc.proto.GameMessage.BuildRequest parseDelimitedFrom(java.io.InputStream input)
+    public static soc.proto.GameMessage.BuyInventoryItemRequest parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input);
     }
-    public static soc.proto.GameMessage.BuildRequest parseDelimitedFrom(
+    public static soc.proto.GameMessage.BuyInventoryItemRequest parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static soc.proto.GameMessage.BuildRequest parseFrom(
+    public static soc.proto.GameMessage.BuyInventoryItemRequest parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static soc.proto.GameMessage.BuildRequest parseFrom(
+    public static soc.proto.GameMessage.BuyInventoryItemRequest parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -5680,7 +5686,7 @@ public final class GameMessage {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(soc.proto.GameMessage.BuildRequest prototype) {
+    public static Builder newBuilder(soc.proto.GameMessage.BuyInventoryItemRequest prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     public Builder toBuilder() {
@@ -5696,34 +5702,45 @@ public final class GameMessage {
     }
     /**
      * <pre>
-     * This message from client to server says which piece type the current player wants to build.
+     * This message from client means that the client player wants to buy a development card.
      *&lt;P&gt;
-     * During game state {&#64;link soc.game.SOCGame#PLAY1 PLAY1}, this is a build request during the player's turn.
+     * During game state {&#64;code PLAY1}, this is a normal buy request.
      * When sent during other game states, and other players' turns, this is a request
-     * to start the 6-player {&#64;link soc.game.SOCGame#SPECIAL_BUILDING Special Building Phase}.
+     * to start the 6-player Special Building Phase.
+     *&lt;P&gt;
+     * If the player can buy a card, the server replies to the client with
+     * {&#64;link SOCDevCardAction DEVCARDACTION}({&#64;link SOCDevCardAction#DRAW}, {&#64;link SOCDevCardConstants typeconstant}),
+     * and to all other players with {&#64;link SOCDevCardAction DEVCARDACTION}({&#64;link SOCDevCardAction#DRAW},
+     * {&#64;link SOCDevCardConstants#UNKNOWN}).
+     *&lt;P&gt;
+     * If there are no cards remaining to buy, or player doesn't have enough resources,
+     * isn't currently their turn, or the player otherwise can't buy a card right now,
+     * the server will send them a text response denying the buy. Instead of that text,
+     * robot clients will be sent a {&#64;link CancelBuildRequest} message.
+     *&lt;P&gt;
+     * Before v3.0.00 this message was {&#64;code SOCBuyDevCardRequest}.
      * &#64;see CancelBuild
-     * &#64;see BuyItemRequest
      * </pre>
      *
-     * Protobuf type {@code BuildRequest}
+     * Protobuf type {@code BuyInventoryItemRequest}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:BuildRequest)
-        soc.proto.GameMessage.BuildRequestOrBuilder {
+        // @@protoc_insertion_point(builder_implements:BuyInventoryItemRequest)
+        soc.proto.GameMessage.BuyInventoryItemRequestOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return soc.proto.GameMessage.internal_static_BuildRequest_descriptor;
+        return soc.proto.GameMessage.internal_static_BuyInventoryItemRequest_descriptor;
       }
 
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return soc.proto.GameMessage.internal_static_BuildRequest_fieldAccessorTable
+        return soc.proto.GameMessage.internal_static_BuyInventoryItemRequest_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                soc.proto.GameMessage.BuildRequest.class, soc.proto.GameMessage.BuildRequest.Builder.class);
+                soc.proto.GameMessage.BuyInventoryItemRequest.class, soc.proto.GameMessage.BuyInventoryItemRequest.Builder.class);
       }
 
-      // Construct using soc.proto.GameMessage.BuildRequest.newBuilder()
+      // Construct using soc.proto.GameMessage.BuyInventoryItemRequest.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
@@ -5740,31 +5757,31 @@ public final class GameMessage {
       }
       public Builder clear() {
         super.clear();
-        pieceType_ = 0;
+        otherInvItemType_ = 0;
 
         return this;
       }
 
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return soc.proto.GameMessage.internal_static_BuildRequest_descriptor;
+        return soc.proto.GameMessage.internal_static_BuyInventoryItemRequest_descriptor;
       }
 
-      public soc.proto.GameMessage.BuildRequest getDefaultInstanceForType() {
-        return soc.proto.GameMessage.BuildRequest.getDefaultInstance();
+      public soc.proto.GameMessage.BuyInventoryItemRequest getDefaultInstanceForType() {
+        return soc.proto.GameMessage.BuyInventoryItemRequest.getDefaultInstance();
       }
 
-      public soc.proto.GameMessage.BuildRequest build() {
-        soc.proto.GameMessage.BuildRequest result = buildPartial();
+      public soc.proto.GameMessage.BuyInventoryItemRequest build() {
+        soc.proto.GameMessage.BuyInventoryItemRequest result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
         return result;
       }
 
-      public soc.proto.GameMessage.BuildRequest buildPartial() {
-        soc.proto.GameMessage.BuildRequest result = new soc.proto.GameMessage.BuildRequest(this);
-        result.pieceType_ = pieceType_;
+      public soc.proto.GameMessage.BuyInventoryItemRequest buildPartial() {
+        soc.proto.GameMessage.BuyInventoryItemRequest result = new soc.proto.GameMessage.BuyInventoryItemRequest(this);
+        result.otherInvItemType_ = otherInvItemType_;
         onBuilt();
         return result;
       }
@@ -5796,18 +5813,18 @@ public final class GameMessage {
         return (Builder) super.addRepeatedField(field, value);
       }
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof soc.proto.GameMessage.BuildRequest) {
-          return mergeFrom((soc.proto.GameMessage.BuildRequest)other);
+        if (other instanceof soc.proto.GameMessage.BuyInventoryItemRequest) {
+          return mergeFrom((soc.proto.GameMessage.BuyInventoryItemRequest)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(soc.proto.GameMessage.BuildRequest other) {
-        if (other == soc.proto.GameMessage.BuildRequest.getDefaultInstance()) return this;
-        if (other.pieceType_ != 0) {
-          setPieceTypeValue(other.getPieceTypeValue());
+      public Builder mergeFrom(soc.proto.GameMessage.BuyInventoryItemRequest other) {
+        if (other == soc.proto.GameMessage.BuyInventoryItemRequest.getDefaultInstance()) return this;
+        if (other.getOtherInvItemType() != 0) {
+          setOtherInvItemType(other.getOtherInvItemType());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -5822,11 +5839,11 @@ public final class GameMessage {
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        soc.proto.GameMessage.BuildRequest parsedMessage = null;
+        soc.proto.GameMessage.BuyInventoryItemRequest parsedMessage = null;
         try {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (soc.proto.GameMessage.BuildRequest) e.getUnfinishedMessage();
+          parsedMessage = (soc.proto.GameMessage.BuyInventoryItemRequest) e.getUnfinishedMessage();
           throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
@@ -5836,71 +5853,40 @@ public final class GameMessage {
         return this;
       }
 
-      private int pieceType_ = 0;
+      private int otherInvItemType_ ;
       /**
        * <pre>
-       * Type of piece to build. When requesting Special Building Phase,
-       * this field is optional and its value is ignored.
+       * omit if Dev Card; the type of generic inventory item, from {&#64;link SOCInventoryItem#itype}
        * </pre>
        *
-       * <code>.PieceType piece_type = 1;</code>
+       * <code>int32 other_inv_item_type = 1;</code>
        */
-      public int getPieceTypeValue() {
-        return pieceType_;
+      public int getOtherInvItemType() {
+        return otherInvItemType_;
       }
       /**
        * <pre>
-       * Type of piece to build. When requesting Special Building Phase,
-       * this field is optional and its value is ignored.
+       * omit if Dev Card; the type of generic inventory item, from {&#64;link SOCInventoryItem#itype}
        * </pre>
        *
-       * <code>.PieceType piece_type = 1;</code>
+       * <code>int32 other_inv_item_type = 1;</code>
        */
-      public Builder setPieceTypeValue(int value) {
-        pieceType_ = value;
+      public Builder setOtherInvItemType(int value) {
+        
+        otherInvItemType_ = value;
         onChanged();
         return this;
       }
       /**
        * <pre>
-       * Type of piece to build. When requesting Special Building Phase,
-       * this field is optional and its value is ignored.
+       * omit if Dev Card; the type of generic inventory item, from {&#64;link SOCInventoryItem#itype}
        * </pre>
        *
-       * <code>.PieceType piece_type = 1;</code>
+       * <code>int32 other_inv_item_type = 1;</code>
        */
-      public soc.proto.Data.PieceType getPieceType() {
-        soc.proto.Data.PieceType result = soc.proto.Data.PieceType.valueOf(pieceType_);
-        return result == null ? soc.proto.Data.PieceType.UNRECOGNIZED : result;
-      }
-      /**
-       * <pre>
-       * Type of piece to build. When requesting Special Building Phase,
-       * this field is optional and its value is ignored.
-       * </pre>
-       *
-       * <code>.PieceType piece_type = 1;</code>
-       */
-      public Builder setPieceType(soc.proto.Data.PieceType value) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
+      public Builder clearOtherInvItemType() {
         
-        pieceType_ = value.getNumber();
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Type of piece to build. When requesting Special Building Phase,
-       * this field is optional and its value is ignored.
-       * </pre>
-       *
-       * <code>.PieceType piece_type = 1;</code>
-       */
-      public Builder clearPieceType() {
-        
-        pieceType_ = 0;
+        otherInvItemType_ = 0;
         onChanged();
         return this;
       }
@@ -5915,39 +5901,1623 @@ public final class GameMessage {
       }
 
 
-      // @@protoc_insertion_point(builder_scope:BuildRequest)
+      // @@protoc_insertion_point(builder_scope:BuyInventoryItemRequest)
     }
 
-    // @@protoc_insertion_point(class_scope:BuildRequest)
-    private static final soc.proto.GameMessage.BuildRequest DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:BuyInventoryItemRequest)
+    private static final soc.proto.GameMessage.BuyInventoryItemRequest DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new soc.proto.GameMessage.BuildRequest();
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.BuyInventoryItemRequest();
     }
 
-    public static soc.proto.GameMessage.BuildRequest getDefaultInstance() {
+    public static soc.proto.GameMessage.BuyInventoryItemRequest getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static final com.google.protobuf.Parser<BuildRequest>
-        PARSER = new com.google.protobuf.AbstractParser<BuildRequest>() {
-      public BuildRequest parsePartialFrom(
+    private static final com.google.protobuf.Parser<BuyInventoryItemRequest>
+        PARSER = new com.google.protobuf.AbstractParser<BuyInventoryItemRequest>() {
+      public BuyInventoryItemRequest parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new BuildRequest(input, extensionRegistry);
+          return new BuyInventoryItemRequest(input, extensionRegistry);
       }
     };
 
-    public static com.google.protobuf.Parser<BuildRequest> parser() {
+    public static com.google.protobuf.Parser<BuyInventoryItemRequest> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<BuildRequest> getParserForType() {
+    public com.google.protobuf.Parser<BuyInventoryItemRequest> getParserForType() {
       return PARSER;
     }
 
-    public soc.proto.GameMessage.BuildRequest getDefaultInstanceForType() {
+    public soc.proto.GameMessage.BuyInventoryItemRequest getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface InventoryItemActionOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:InventoryItemAction)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>.InventoryItemAction._ActionType action_type = 1;</code>
+     */
+    int getActionTypeValue();
+    /**
+     * <code>.InventoryItemAction._ActionType action_type = 1;</code>
+     */
+    soc.proto.GameMessage.InventoryItemAction._ActionType getActionType();
+
+    /**
+     * <pre>
+     * Player number for this action, or -1 for action type {&#64;code CANNOT_PLAY}.
+     * Remember that for playerNumber 0, protobuf won't send the field (== default).
+     * Ignored if sent from client.
+     * </pre>
+     *
+     * <code>sint32 player_number = 2;</code>
+     */
+    int getPlayerNumber();
+
+    /**
+     * <pre>
+     * type of dev card, like {&#64;link DevCardValue#ROADS}
+     * </pre>
+     *
+     * <code>.DevCardValue dev_card_value = 3;</code>
+     */
+    int getDevCardValueValue();
+    /**
+     * <pre>
+     * type of dev card, like {&#64;link DevCardValue#ROADS}
+     * </pre>
+     *
+     * <code>.DevCardValue dev_card_value = 3;</code>
+     */
+    soc.proto.Data.DevCardValue getDevCardValue();
+
+    /**
+     * <pre>
+     * type of generic inventory item, from {&#64;link SOCInventoryItem#itype}
+     * </pre>
+     *
+     * <code>int32 other_inv_item_type = 4;</code>
+     */
+    int getOtherInvItemType();
+
+    /**
+     * <pre>
+     * Optional reason codes for the CANNOT_PLAY action, corresponding
+     * to {&#64;link SOCGame#canPlayInventoryItem(int, int)} return codes, or 0.
+     * </pre>
+     *
+     * <code>sint32 reason_code = 21;</code>
+     */
+    int getReasonCode();
+
+    /**
+     * <pre>
+     * If true, this item being added can be played or activated.
+     * Never sent for action_types PLAY or CANNOT_PLAY.
+     * </pre>
+     *
+     * <code>bool is_playable = 22;</code>
+     */
+    boolean getIsPlayable();
+
+    /**
+     * <pre>
+     * If true, this item being added is kept in inventory until end of game.
+     * Never sent for action_types PLAY or CANNOT_PLAY.
+     * </pre>
+     *
+     * <code>bool is_kept = 23;</code>
+     */
+    boolean getIsKept();
+
+    /**
+     * <pre>
+     * If true, this item being added is worth victory points.
+     * Never sent for action_types PLAY or CANNOT_PLAY.
+     * </pre>
+     *
+     * <code>bool is_VP = 24;</code>
+     */
+    boolean getIsVP();
+
+    /**
+     * <pre>
+     * If true, this item is being added and its later play or placement can be canceled:
+     * See {&#64;link SOCInventoryItem#canCancelPlay}.
+     * Never sent for action_types PLAY or CANNOT_PLAY.
+     * </pre>
+     *
+     * <code>bool can_cancel_play = 25;</code>
+     */
+    boolean getCanCancelPlay();
+
+    public soc.proto.GameMessage.InventoryItemAction.ItemValueCase getItemValueCase();
+  }
+  /**
+   * <pre>
+   * Client player request, or server response or announcement, about
+   * Development Cards or other {&#64;link SOCInventoryItem}s in a player's inventory.
+   *&lt;P&gt;
+   * Detailed message documentation location is TBD; for now see javadoc
+   * of {&#64;code soc.message.SOCDevCardAction} and {&#64;code SOCInventoryItemAction}.
+   *&lt;P&gt;
+   * Before v3.0.00 this message was {&#64;code SOCDevCardAction} and {&#64;code SOCInventoryItemAction}.
+   * </pre>
+   *
+   * Protobuf type {@code InventoryItemAction}
+   */
+  public  static final class InventoryItemAction extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:InventoryItemAction)
+      InventoryItemActionOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use InventoryItemAction.newBuilder() to construct.
+    private InventoryItemAction(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private InventoryItemAction() {
+      actionType_ = 0;
+      playerNumber_ = 0;
+      reasonCode_ = 0;
+      isPlayable_ = false;
+      isKept_ = false;
+      isVP_ = false;
+      canCancelPlay_ = false;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private InventoryItemAction(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              int rawValue = input.readEnum();
+
+              actionType_ = rawValue;
+              break;
+            }
+            case 16: {
+
+              playerNumber_ = input.readSInt32();
+              break;
+            }
+            case 24: {
+              int rawValue = input.readEnum();
+              itemValueCase_ = 3;
+              itemValue_ = rawValue;
+              break;
+            }
+            case 32: {
+              itemValueCase_ = 4;
+              itemValue_ = input.readInt32();
+              break;
+            }
+            case 168: {
+
+              reasonCode_ = input.readSInt32();
+              break;
+            }
+            case 176: {
+
+              isPlayable_ = input.readBool();
+              break;
+            }
+            case 184: {
+
+              isKept_ = input.readBool();
+              break;
+            }
+            case 192: {
+
+              isVP_ = input.readBool();
+              break;
+            }
+            case 200: {
+
+              canCancelPlay_ = input.readBool();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_InventoryItemAction_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_InventoryItemAction_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.InventoryItemAction.class, soc.proto.GameMessage.InventoryItemAction.Builder.class);
+    }
+
+    /**
+     * <pre>
+     * Types of action to take. Most of these are sent only from server, not as a request from client. 
+     * </pre>
+     *
+     * Protobuf enum {@code InventoryItemAction._ActionType}
+     */
+    public enum _ActionType
+        implements com.google.protobuf.ProtocolMessageEnum {
+      /**
+       * <pre>
+       * Draw/Buy: Add a Dev Card as new to player's inventory (like ADD_NEW) from the deck.
+       * Acts as a hint in case the client animates Dev Card draws from the deck.
+       * Otherwise equivalent to ADD_NEW.
+       * </pre>
+       *
+       * <code>DRAW = 0;</code>
+       */
+      DRAW(0),
+      /**
+       * <pre>
+       * remove as old from player's inventory (action from server or request from client).
+       *&lt;P&gt;
+       * If this is from server for a non-Dev Card item:
+       * Check the {&#64;link #isKept} flag to see if the item should be removed from inventory, or remain with state KEPT.
+       * Call {&#64;link SOCInventoryItem#isPlayForPlacement(SOCGame, int)}: If true, playing this item requires placement;
+       * client receiving the message should call {&#64;link SOCGame#setPlacingItem(SOCInventoryItem)}.
+       * </pre>
+       *
+       * <code>PLAY = 1;</code>
+       */
+      PLAY(1),
+      /**
+       * <pre>
+       * Draw/Buy: Add as new to player's inventory; not playable this turn.
+       * Same as DRAW but without implying the item has just came from the Dev Card deck;
+       * can be used when client player sits down to take over a robot, and is sent its
+       * inventory details.
+       * </pre>
+       *
+       * <code>ADD_NEW = 2;</code>
+       */
+      ADD_NEW(2),
+      /**
+       * <pre>
+       * Add as old to player's inventory; can be played/activated this turn if is_playable flag is set 
+       * </pre>
+       *
+       * <code>ADD_OLD = 3;</code>
+       */
+      ADD_OLD(3),
+      /**
+       * <pre>
+       * The bot can't play the requested card at this time.
+       * This is sent only to the requesting robot, so playerNumber is always -1 in this message.
+       * </pre>
+       *
+       * <code>CANNOT_PLAY = 4;</code>
+       */
+      CANNOT_PLAY(4),
+      /**
+       * <pre>
+       * If some other game action or event causes an item to need placement on the board,
+       * but it was never in the player's inventory, server sends {&#64;code PLACING_EXTRA}
+       * to give the item details such as {&#64;link #itemType} and {&#64;link #canCancelPlay}.
+       * May be sent to entire game or just to the placing current player.
+       *&lt;P&gt;
+       * Play/placement rules are specific to each kind of inventory action, and the
+       * {&#64;code PLACING_EXTRA} message may be sent before a game state change or other
+       * messages necessary for placement. The client handling {&#64;code PLACING_EXTRA}
+       * should call {&#64;link SOCGame#setPlacingItem(SOCInventoryItem)} and wait
+       * for those other messages. When they arrive, client can call
+       * {&#64;link SOCGame#getPlacingItem()} to retrieve the item details.
+       * </pre>
+       *
+       * <code>PLACING_EXTRA = 5;</code>
+       */
+      PLACING_EXTRA(5),
+      UNRECOGNIZED(-1),
+      ;
+
+      /**
+       * <pre>
+       * Draw/Buy: Add a Dev Card as new to player's inventory (like ADD_NEW) from the deck.
+       * Acts as a hint in case the client animates Dev Card draws from the deck.
+       * Otherwise equivalent to ADD_NEW.
+       * </pre>
+       *
+       * <code>DRAW = 0;</code>
+       */
+      public static final int DRAW_VALUE = 0;
+      /**
+       * <pre>
+       * remove as old from player's inventory (action from server or request from client).
+       *&lt;P&gt;
+       * If this is from server for a non-Dev Card item:
+       * Check the {&#64;link #isKept} flag to see if the item should be removed from inventory, or remain with state KEPT.
+       * Call {&#64;link SOCInventoryItem#isPlayForPlacement(SOCGame, int)}: If true, playing this item requires placement;
+       * client receiving the message should call {&#64;link SOCGame#setPlacingItem(SOCInventoryItem)}.
+       * </pre>
+       *
+       * <code>PLAY = 1;</code>
+       */
+      public static final int PLAY_VALUE = 1;
+      /**
+       * <pre>
+       * Draw/Buy: Add as new to player's inventory; not playable this turn.
+       * Same as DRAW but without implying the item has just came from the Dev Card deck;
+       * can be used when client player sits down to take over a robot, and is sent its
+       * inventory details.
+       * </pre>
+       *
+       * <code>ADD_NEW = 2;</code>
+       */
+      public static final int ADD_NEW_VALUE = 2;
+      /**
+       * <pre>
+       * Add as old to player's inventory; can be played/activated this turn if is_playable flag is set 
+       * </pre>
+       *
+       * <code>ADD_OLD = 3;</code>
+       */
+      public static final int ADD_OLD_VALUE = 3;
+      /**
+       * <pre>
+       * The bot can't play the requested card at this time.
+       * This is sent only to the requesting robot, so playerNumber is always -1 in this message.
+       * </pre>
+       *
+       * <code>CANNOT_PLAY = 4;</code>
+       */
+      public static final int CANNOT_PLAY_VALUE = 4;
+      /**
+       * <pre>
+       * If some other game action or event causes an item to need placement on the board,
+       * but it was never in the player's inventory, server sends {&#64;code PLACING_EXTRA}
+       * to give the item details such as {&#64;link #itemType} and {&#64;link #canCancelPlay}.
+       * May be sent to entire game or just to the placing current player.
+       *&lt;P&gt;
+       * Play/placement rules are specific to each kind of inventory action, and the
+       * {&#64;code PLACING_EXTRA} message may be sent before a game state change or other
+       * messages necessary for placement. The client handling {&#64;code PLACING_EXTRA}
+       * should call {&#64;link SOCGame#setPlacingItem(SOCInventoryItem)} and wait
+       * for those other messages. When they arrive, client can call
+       * {&#64;link SOCGame#getPlacingItem()} to retrieve the item details.
+       * </pre>
+       *
+       * <code>PLACING_EXTRA = 5;</code>
+       */
+      public static final int PLACING_EXTRA_VALUE = 5;
+
+
+      public final int getNumber() {
+        if (this == UNRECOGNIZED) {
+          throw new java.lang.IllegalArgumentException(
+              "Can't get the number of an unknown enum value.");
+        }
+        return value;
+      }
+
+      /**
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static _ActionType valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static _ActionType forNumber(int value) {
+        switch (value) {
+          case 0: return DRAW;
+          case 1: return PLAY;
+          case 2: return ADD_NEW;
+          case 3: return ADD_OLD;
+          case 4: return CANNOT_PLAY;
+          case 5: return PLACING_EXTRA;
+          default: return null;
+        }
+      }
+
+      public static com.google.protobuf.Internal.EnumLiteMap<_ActionType>
+          internalGetValueMap() {
+        return internalValueMap;
+      }
+      private static final com.google.protobuf.Internal.EnumLiteMap<
+          _ActionType> internalValueMap =
+            new com.google.protobuf.Internal.EnumLiteMap<_ActionType>() {
+              public _ActionType findValueByNumber(int number) {
+                return _ActionType.forNumber(number);
+              }
+            };
+
+      public final com.google.protobuf.Descriptors.EnumValueDescriptor
+          getValueDescriptor() {
+        return getDescriptor().getValues().get(ordinal());
+      }
+      public final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptorForType() {
+        return getDescriptor();
+      }
+      public static final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.InventoryItemAction.getDescriptor().getEnumTypes().get(0);
+      }
+
+      private static final _ActionType[] VALUES = values();
+
+      public static _ActionType valueOf(
+          com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        if (desc.getType() != getDescriptor()) {
+          throw new java.lang.IllegalArgumentException(
+            "EnumValueDescriptor is not for this type.");
+        }
+        if (desc.getIndex() == -1) {
+          return UNRECOGNIZED;
+        }
+        return VALUES[desc.getIndex()];
+      }
+
+      private final int value;
+
+      private _ActionType(int value) {
+        this.value = value;
+      }
+
+      // @@protoc_insertion_point(enum_scope:InventoryItemAction._ActionType)
+    }
+
+    private int itemValueCase_ = 0;
+    private java.lang.Object itemValue_;
+    public enum ItemValueCase
+        implements com.google.protobuf.Internal.EnumLite {
+      DEV_CARD_VALUE(3),
+      OTHER_INV_ITEM_TYPE(4),
+      ITEMVALUE_NOT_SET(0);
+      private final int value;
+      private ItemValueCase(int value) {
+        this.value = value;
+      }
+      /**
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static ItemValueCase valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static ItemValueCase forNumber(int value) {
+        switch (value) {
+          case 3: return DEV_CARD_VALUE;
+          case 4: return OTHER_INV_ITEM_TYPE;
+          case 0: return ITEMVALUE_NOT_SET;
+          default: return null;
+        }
+      }
+      public int getNumber() {
+        return this.value;
+      }
+    };
+
+    public ItemValueCase
+    getItemValueCase() {
+      return ItemValueCase.forNumber(
+          itemValueCase_);
+    }
+
+    public static final int ACTION_TYPE_FIELD_NUMBER = 1;
+    private int actionType_;
+    /**
+     * <code>.InventoryItemAction._ActionType action_type = 1;</code>
+     */
+    public int getActionTypeValue() {
+      return actionType_;
+    }
+    /**
+     * <code>.InventoryItemAction._ActionType action_type = 1;</code>
+     */
+    public soc.proto.GameMessage.InventoryItemAction._ActionType getActionType() {
+      soc.proto.GameMessage.InventoryItemAction._ActionType result = soc.proto.GameMessage.InventoryItemAction._ActionType.valueOf(actionType_);
+      return result == null ? soc.proto.GameMessage.InventoryItemAction._ActionType.UNRECOGNIZED : result;
+    }
+
+    public static final int PLAYER_NUMBER_FIELD_NUMBER = 2;
+    private int playerNumber_;
+    /**
+     * <pre>
+     * Player number for this action, or -1 for action type {&#64;code CANNOT_PLAY}.
+     * Remember that for playerNumber 0, protobuf won't send the field (== default).
+     * Ignored if sent from client.
+     * </pre>
+     *
+     * <code>sint32 player_number = 2;</code>
+     */
+    public int getPlayerNumber() {
+      return playerNumber_;
+    }
+
+    public static final int DEV_CARD_VALUE_FIELD_NUMBER = 3;
+    /**
+     * <pre>
+     * type of dev card, like {&#64;link DevCardValue#ROADS}
+     * </pre>
+     *
+     * <code>.DevCardValue dev_card_value = 3;</code>
+     */
+    public int getDevCardValueValue() {
+      if (itemValueCase_ == 3) {
+        return (java.lang.Integer) itemValue_;
+      }
+      return 0;
+    }
+    /**
+     * <pre>
+     * type of dev card, like {&#64;link DevCardValue#ROADS}
+     * </pre>
+     *
+     * <code>.DevCardValue dev_card_value = 3;</code>
+     */
+    public soc.proto.Data.DevCardValue getDevCardValue() {
+      if (itemValueCase_ == 3) {
+        soc.proto.Data.DevCardValue result = soc.proto.Data.DevCardValue.valueOf(
+            (java.lang.Integer) itemValue_);
+        return result == null ? soc.proto.Data.DevCardValue.UNRECOGNIZED : result;
+      }
+      return soc.proto.Data.DevCardValue._UNSENT_DEFAULT_DEVCARDVALUE;
+    }
+
+    public static final int OTHER_INV_ITEM_TYPE_FIELD_NUMBER = 4;
+    /**
+     * <pre>
+     * type of generic inventory item, from {&#64;link SOCInventoryItem#itype}
+     * </pre>
+     *
+     * <code>int32 other_inv_item_type = 4;</code>
+     */
+    public int getOtherInvItemType() {
+      if (itemValueCase_ == 4) {
+        return (java.lang.Integer) itemValue_;
+      }
+      return 0;
+    }
+
+    public static final int REASON_CODE_FIELD_NUMBER = 21;
+    private int reasonCode_;
+    /**
+     * <pre>
+     * Optional reason codes for the CANNOT_PLAY action, corresponding
+     * to {&#64;link SOCGame#canPlayInventoryItem(int, int)} return codes, or 0.
+     * </pre>
+     *
+     * <code>sint32 reason_code = 21;</code>
+     */
+    public int getReasonCode() {
+      return reasonCode_;
+    }
+
+    public static final int IS_PLAYABLE_FIELD_NUMBER = 22;
+    private boolean isPlayable_;
+    /**
+     * <pre>
+     * If true, this item being added can be played or activated.
+     * Never sent for action_types PLAY or CANNOT_PLAY.
+     * </pre>
+     *
+     * <code>bool is_playable = 22;</code>
+     */
+    public boolean getIsPlayable() {
+      return isPlayable_;
+    }
+
+    public static final int IS_KEPT_FIELD_NUMBER = 23;
+    private boolean isKept_;
+    /**
+     * <pre>
+     * If true, this item being added is kept in inventory until end of game.
+     * Never sent for action_types PLAY or CANNOT_PLAY.
+     * </pre>
+     *
+     * <code>bool is_kept = 23;</code>
+     */
+    public boolean getIsKept() {
+      return isKept_;
+    }
+
+    public static final int IS_VP_FIELD_NUMBER = 24;
+    private boolean isVP_;
+    /**
+     * <pre>
+     * If true, this item being added is worth victory points.
+     * Never sent for action_types PLAY or CANNOT_PLAY.
+     * </pre>
+     *
+     * <code>bool is_VP = 24;</code>
+     */
+    public boolean getIsVP() {
+      return isVP_;
+    }
+
+    public static final int CAN_CANCEL_PLAY_FIELD_NUMBER = 25;
+    private boolean canCancelPlay_;
+    /**
+     * <pre>
+     * If true, this item is being added and its later play or placement can be canceled:
+     * See {&#64;link SOCInventoryItem#canCancelPlay}.
+     * Never sent for action_types PLAY or CANNOT_PLAY.
+     * </pre>
+     *
+     * <code>bool can_cancel_play = 25;</code>
+     */
+    public boolean getCanCancelPlay() {
+      return canCancelPlay_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (actionType_ != soc.proto.GameMessage.InventoryItemAction._ActionType.DRAW.getNumber()) {
+        output.writeEnum(1, actionType_);
+      }
+      if (playerNumber_ != 0) {
+        output.writeSInt32(2, playerNumber_);
+      }
+      if (itemValueCase_ == 3) {
+        output.writeEnum(3, ((java.lang.Integer) itemValue_));
+      }
+      if (itemValueCase_ == 4) {
+        output.writeInt32(
+            4, (int)((java.lang.Integer) itemValue_));
+      }
+      if (reasonCode_ != 0) {
+        output.writeSInt32(21, reasonCode_);
+      }
+      if (isPlayable_ != false) {
+        output.writeBool(22, isPlayable_);
+      }
+      if (isKept_ != false) {
+        output.writeBool(23, isKept_);
+      }
+      if (isVP_ != false) {
+        output.writeBool(24, isVP_);
+      }
+      if (canCancelPlay_ != false) {
+        output.writeBool(25, canCancelPlay_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (actionType_ != soc.proto.GameMessage.InventoryItemAction._ActionType.DRAW.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(1, actionType_);
+      }
+      if (playerNumber_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeSInt32Size(2, playerNumber_);
+      }
+      if (itemValueCase_ == 3) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(3, ((java.lang.Integer) itemValue_));
+      }
+      if (itemValueCase_ == 4) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(
+              4, (int)((java.lang.Integer) itemValue_));
+      }
+      if (reasonCode_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeSInt32Size(21, reasonCode_);
+      }
+      if (isPlayable_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(22, isPlayable_);
+      }
+      if (isKept_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(23, isKept_);
+      }
+      if (isVP_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(24, isVP_);
+      }
+      if (canCancelPlay_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(25, canCancelPlay_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.InventoryItemAction)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.InventoryItemAction other = (soc.proto.GameMessage.InventoryItemAction) obj;
+
+      boolean result = true;
+      result = result && actionType_ == other.actionType_;
+      result = result && (getPlayerNumber()
+          == other.getPlayerNumber());
+      result = result && (getReasonCode()
+          == other.getReasonCode());
+      result = result && (getIsPlayable()
+          == other.getIsPlayable());
+      result = result && (getIsKept()
+          == other.getIsKept());
+      result = result && (getIsVP()
+          == other.getIsVP());
+      result = result && (getCanCancelPlay()
+          == other.getCanCancelPlay());
+      result = result && getItemValueCase().equals(
+          other.getItemValueCase());
+      if (!result) return false;
+      switch (itemValueCase_) {
+        case 3:
+          result = result && getDevCardValueValue()
+              == other.getDevCardValueValue();
+          break;
+        case 4:
+          result = result && (getOtherInvItemType()
+              == other.getOtherInvItemType());
+          break;
+        case 0:
+        default:
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + ACTION_TYPE_FIELD_NUMBER;
+      hash = (53 * hash) + actionType_;
+      hash = (37 * hash) + PLAYER_NUMBER_FIELD_NUMBER;
+      hash = (53 * hash) + getPlayerNumber();
+      hash = (37 * hash) + REASON_CODE_FIELD_NUMBER;
+      hash = (53 * hash) + getReasonCode();
+      hash = (37 * hash) + IS_PLAYABLE_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getIsPlayable());
+      hash = (37 * hash) + IS_KEPT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getIsKept());
+      hash = (37 * hash) + IS_VP_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getIsVP());
+      hash = (37 * hash) + CAN_CANCEL_PLAY_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getCanCancelPlay());
+      switch (itemValueCase_) {
+        case 3:
+          hash = (37 * hash) + DEV_CARD_VALUE_FIELD_NUMBER;
+          hash = (53 * hash) + getDevCardValueValue();
+          break;
+        case 4:
+          hash = (37 * hash) + OTHER_INV_ITEM_TYPE_FIELD_NUMBER;
+          hash = (53 * hash) + getOtherInvItemType();
+          break;
+        case 0:
+        default:
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.InventoryItemAction parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.InventoryItemAction parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.InventoryItemAction parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.InventoryItemAction parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.InventoryItemAction parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.InventoryItemAction parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.InventoryItemAction parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.InventoryItemAction parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.InventoryItemAction parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.InventoryItemAction parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.InventoryItemAction parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.InventoryItemAction parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.InventoryItemAction prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * Client player request, or server response or announcement, about
+     * Development Cards or other {&#64;link SOCInventoryItem}s in a player's inventory.
+     *&lt;P&gt;
+     * Detailed message documentation location is TBD; for now see javadoc
+     * of {&#64;code soc.message.SOCDevCardAction} and {&#64;code SOCInventoryItemAction}.
+     *&lt;P&gt;
+     * Before v3.0.00 this message was {&#64;code SOCDevCardAction} and {&#64;code SOCInventoryItemAction}.
+     * </pre>
+     *
+     * Protobuf type {@code InventoryItemAction}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:InventoryItemAction)
+        soc.proto.GameMessage.InventoryItemActionOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_InventoryItemAction_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_InventoryItemAction_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.InventoryItemAction.class, soc.proto.GameMessage.InventoryItemAction.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.InventoryItemAction.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        actionType_ = 0;
+
+        playerNumber_ = 0;
+
+        reasonCode_ = 0;
+
+        isPlayable_ = false;
+
+        isKept_ = false;
+
+        isVP_ = false;
+
+        canCancelPlay_ = false;
+
+        itemValueCase_ = 0;
+        itemValue_ = null;
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_InventoryItemAction_descriptor;
+      }
+
+      public soc.proto.GameMessage.InventoryItemAction getDefaultInstanceForType() {
+        return soc.proto.GameMessage.InventoryItemAction.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.InventoryItemAction build() {
+        soc.proto.GameMessage.InventoryItemAction result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.InventoryItemAction buildPartial() {
+        soc.proto.GameMessage.InventoryItemAction result = new soc.proto.GameMessage.InventoryItemAction(this);
+        result.actionType_ = actionType_;
+        result.playerNumber_ = playerNumber_;
+        if (itemValueCase_ == 3) {
+          result.itemValue_ = itemValue_;
+        }
+        if (itemValueCase_ == 4) {
+          result.itemValue_ = itemValue_;
+        }
+        result.reasonCode_ = reasonCode_;
+        result.isPlayable_ = isPlayable_;
+        result.isKept_ = isKept_;
+        result.isVP_ = isVP_;
+        result.canCancelPlay_ = canCancelPlay_;
+        result.itemValueCase_ = itemValueCase_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.InventoryItemAction) {
+          return mergeFrom((soc.proto.GameMessage.InventoryItemAction)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.InventoryItemAction other) {
+        if (other == soc.proto.GameMessage.InventoryItemAction.getDefaultInstance()) return this;
+        if (other.actionType_ != 0) {
+          setActionTypeValue(other.getActionTypeValue());
+        }
+        if (other.getPlayerNumber() != 0) {
+          setPlayerNumber(other.getPlayerNumber());
+        }
+        if (other.getReasonCode() != 0) {
+          setReasonCode(other.getReasonCode());
+        }
+        if (other.getIsPlayable() != false) {
+          setIsPlayable(other.getIsPlayable());
+        }
+        if (other.getIsKept() != false) {
+          setIsKept(other.getIsKept());
+        }
+        if (other.getIsVP() != false) {
+          setIsVP(other.getIsVP());
+        }
+        if (other.getCanCancelPlay() != false) {
+          setCanCancelPlay(other.getCanCancelPlay());
+        }
+        switch (other.getItemValueCase()) {
+          case DEV_CARD_VALUE: {
+            setDevCardValueValue(other.getDevCardValueValue());
+            break;
+          }
+          case OTHER_INV_ITEM_TYPE: {
+            setOtherInvItemType(other.getOtherInvItemType());
+            break;
+          }
+          case ITEMVALUE_NOT_SET: {
+            break;
+          }
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.InventoryItemAction parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.InventoryItemAction) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int itemValueCase_ = 0;
+      private java.lang.Object itemValue_;
+      public ItemValueCase
+          getItemValueCase() {
+        return ItemValueCase.forNumber(
+            itemValueCase_);
+      }
+
+      public Builder clearItemValue() {
+        itemValueCase_ = 0;
+        itemValue_ = null;
+        onChanged();
+        return this;
+      }
+
+
+      private int actionType_ = 0;
+      /**
+       * <code>.InventoryItemAction._ActionType action_type = 1;</code>
+       */
+      public int getActionTypeValue() {
+        return actionType_;
+      }
+      /**
+       * <code>.InventoryItemAction._ActionType action_type = 1;</code>
+       */
+      public Builder setActionTypeValue(int value) {
+        actionType_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.InventoryItemAction._ActionType action_type = 1;</code>
+       */
+      public soc.proto.GameMessage.InventoryItemAction._ActionType getActionType() {
+        soc.proto.GameMessage.InventoryItemAction._ActionType result = soc.proto.GameMessage.InventoryItemAction._ActionType.valueOf(actionType_);
+        return result == null ? soc.proto.GameMessage.InventoryItemAction._ActionType.UNRECOGNIZED : result;
+      }
+      /**
+       * <code>.InventoryItemAction._ActionType action_type = 1;</code>
+       */
+      public Builder setActionType(soc.proto.GameMessage.InventoryItemAction._ActionType value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        
+        actionType_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.InventoryItemAction._ActionType action_type = 1;</code>
+       */
+      public Builder clearActionType() {
+        
+        actionType_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int playerNumber_ ;
+      /**
+       * <pre>
+       * Player number for this action, or -1 for action type {&#64;code CANNOT_PLAY}.
+       * Remember that for playerNumber 0, protobuf won't send the field (== default).
+       * Ignored if sent from client.
+       * </pre>
+       *
+       * <code>sint32 player_number = 2;</code>
+       */
+      public int getPlayerNumber() {
+        return playerNumber_;
+      }
+      /**
+       * <pre>
+       * Player number for this action, or -1 for action type {&#64;code CANNOT_PLAY}.
+       * Remember that for playerNumber 0, protobuf won't send the field (== default).
+       * Ignored if sent from client.
+       * </pre>
+       *
+       * <code>sint32 player_number = 2;</code>
+       */
+      public Builder setPlayerNumber(int value) {
+        
+        playerNumber_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Player number for this action, or -1 for action type {&#64;code CANNOT_PLAY}.
+       * Remember that for playerNumber 0, protobuf won't send the field (== default).
+       * Ignored if sent from client.
+       * </pre>
+       *
+       * <code>sint32 player_number = 2;</code>
+       */
+      public Builder clearPlayerNumber() {
+        
+        playerNumber_ = 0;
+        onChanged();
+        return this;
+      }
+
+      /**
+       * <pre>
+       * type of dev card, like {&#64;link DevCardValue#ROADS}
+       * </pre>
+       *
+       * <code>.DevCardValue dev_card_value = 3;</code>
+       */
+      public int getDevCardValueValue() {
+        if (itemValueCase_ == 3) {
+          return ((java.lang.Integer) itemValue_).intValue();
+        }
+        return 0;
+      }
+      /**
+       * <pre>
+       * type of dev card, like {&#64;link DevCardValue#ROADS}
+       * </pre>
+       *
+       * <code>.DevCardValue dev_card_value = 3;</code>
+       */
+      public Builder setDevCardValueValue(int value) {
+        itemValueCase_ = 3;
+        itemValue_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * type of dev card, like {&#64;link DevCardValue#ROADS}
+       * </pre>
+       *
+       * <code>.DevCardValue dev_card_value = 3;</code>
+       */
+      public soc.proto.Data.DevCardValue getDevCardValue() {
+        if (itemValueCase_ == 3) {
+          soc.proto.Data.DevCardValue result = soc.proto.Data.DevCardValue.valueOf(
+              (java.lang.Integer) itemValue_);
+          return result == null ? soc.proto.Data.DevCardValue.UNRECOGNIZED : result;
+        }
+        return soc.proto.Data.DevCardValue._UNSENT_DEFAULT_DEVCARDVALUE;
+      }
+      /**
+       * <pre>
+       * type of dev card, like {&#64;link DevCardValue#ROADS}
+       * </pre>
+       *
+       * <code>.DevCardValue dev_card_value = 3;</code>
+       */
+      public Builder setDevCardValue(soc.proto.Data.DevCardValue value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        itemValueCase_ = 3;
+        itemValue_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * type of dev card, like {&#64;link DevCardValue#ROADS}
+       * </pre>
+       *
+       * <code>.DevCardValue dev_card_value = 3;</code>
+       */
+      public Builder clearDevCardValue() {
+        if (itemValueCase_ == 3) {
+          itemValueCase_ = 0;
+          itemValue_ = null;
+          onChanged();
+        }
+        return this;
+      }
+
+      /**
+       * <pre>
+       * type of generic inventory item, from {&#64;link SOCInventoryItem#itype}
+       * </pre>
+       *
+       * <code>int32 other_inv_item_type = 4;</code>
+       */
+      public int getOtherInvItemType() {
+        if (itemValueCase_ == 4) {
+          return (java.lang.Integer) itemValue_;
+        }
+        return 0;
+      }
+      /**
+       * <pre>
+       * type of generic inventory item, from {&#64;link SOCInventoryItem#itype}
+       * </pre>
+       *
+       * <code>int32 other_inv_item_type = 4;</code>
+       */
+      public Builder setOtherInvItemType(int value) {
+        itemValueCase_ = 4;
+        itemValue_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * type of generic inventory item, from {&#64;link SOCInventoryItem#itype}
+       * </pre>
+       *
+       * <code>int32 other_inv_item_type = 4;</code>
+       */
+      public Builder clearOtherInvItemType() {
+        if (itemValueCase_ == 4) {
+          itemValueCase_ = 0;
+          itemValue_ = null;
+          onChanged();
+        }
+        return this;
+      }
+
+      private int reasonCode_ ;
+      /**
+       * <pre>
+       * Optional reason codes for the CANNOT_PLAY action, corresponding
+       * to {&#64;link SOCGame#canPlayInventoryItem(int, int)} return codes, or 0.
+       * </pre>
+       *
+       * <code>sint32 reason_code = 21;</code>
+       */
+      public int getReasonCode() {
+        return reasonCode_;
+      }
+      /**
+       * <pre>
+       * Optional reason codes for the CANNOT_PLAY action, corresponding
+       * to {&#64;link SOCGame#canPlayInventoryItem(int, int)} return codes, or 0.
+       * </pre>
+       *
+       * <code>sint32 reason_code = 21;</code>
+       */
+      public Builder setReasonCode(int value) {
+        
+        reasonCode_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Optional reason codes for the CANNOT_PLAY action, corresponding
+       * to {&#64;link SOCGame#canPlayInventoryItem(int, int)} return codes, or 0.
+       * </pre>
+       *
+       * <code>sint32 reason_code = 21;</code>
+       */
+      public Builder clearReasonCode() {
+        
+        reasonCode_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private boolean isPlayable_ ;
+      /**
+       * <pre>
+       * If true, this item being added can be played or activated.
+       * Never sent for action_types PLAY or CANNOT_PLAY.
+       * </pre>
+       *
+       * <code>bool is_playable = 22;</code>
+       */
+      public boolean getIsPlayable() {
+        return isPlayable_;
+      }
+      /**
+       * <pre>
+       * If true, this item being added can be played or activated.
+       * Never sent for action_types PLAY or CANNOT_PLAY.
+       * </pre>
+       *
+       * <code>bool is_playable = 22;</code>
+       */
+      public Builder setIsPlayable(boolean value) {
+        
+        isPlayable_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * If true, this item being added can be played or activated.
+       * Never sent for action_types PLAY or CANNOT_PLAY.
+       * </pre>
+       *
+       * <code>bool is_playable = 22;</code>
+       */
+      public Builder clearIsPlayable() {
+        
+        isPlayable_ = false;
+        onChanged();
+        return this;
+      }
+
+      private boolean isKept_ ;
+      /**
+       * <pre>
+       * If true, this item being added is kept in inventory until end of game.
+       * Never sent for action_types PLAY or CANNOT_PLAY.
+       * </pre>
+       *
+       * <code>bool is_kept = 23;</code>
+       */
+      public boolean getIsKept() {
+        return isKept_;
+      }
+      /**
+       * <pre>
+       * If true, this item being added is kept in inventory until end of game.
+       * Never sent for action_types PLAY or CANNOT_PLAY.
+       * </pre>
+       *
+       * <code>bool is_kept = 23;</code>
+       */
+      public Builder setIsKept(boolean value) {
+        
+        isKept_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * If true, this item being added is kept in inventory until end of game.
+       * Never sent for action_types PLAY or CANNOT_PLAY.
+       * </pre>
+       *
+       * <code>bool is_kept = 23;</code>
+       */
+      public Builder clearIsKept() {
+        
+        isKept_ = false;
+        onChanged();
+        return this;
+      }
+
+      private boolean isVP_ ;
+      /**
+       * <pre>
+       * If true, this item being added is worth victory points.
+       * Never sent for action_types PLAY or CANNOT_PLAY.
+       * </pre>
+       *
+       * <code>bool is_VP = 24;</code>
+       */
+      public boolean getIsVP() {
+        return isVP_;
+      }
+      /**
+       * <pre>
+       * If true, this item being added is worth victory points.
+       * Never sent for action_types PLAY or CANNOT_PLAY.
+       * </pre>
+       *
+       * <code>bool is_VP = 24;</code>
+       */
+      public Builder setIsVP(boolean value) {
+        
+        isVP_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * If true, this item being added is worth victory points.
+       * Never sent for action_types PLAY or CANNOT_PLAY.
+       * </pre>
+       *
+       * <code>bool is_VP = 24;</code>
+       */
+      public Builder clearIsVP() {
+        
+        isVP_ = false;
+        onChanged();
+        return this;
+      }
+
+      private boolean canCancelPlay_ ;
+      /**
+       * <pre>
+       * If true, this item is being added and its later play or placement can be canceled:
+       * See {&#64;link SOCInventoryItem#canCancelPlay}.
+       * Never sent for action_types PLAY or CANNOT_PLAY.
+       * </pre>
+       *
+       * <code>bool can_cancel_play = 25;</code>
+       */
+      public boolean getCanCancelPlay() {
+        return canCancelPlay_;
+      }
+      /**
+       * <pre>
+       * If true, this item is being added and its later play or placement can be canceled:
+       * See {&#64;link SOCInventoryItem#canCancelPlay}.
+       * Never sent for action_types PLAY or CANNOT_PLAY.
+       * </pre>
+       *
+       * <code>bool can_cancel_play = 25;</code>
+       */
+      public Builder setCanCancelPlay(boolean value) {
+        
+        canCancelPlay_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * If true, this item is being added and its later play or placement can be canceled:
+       * See {&#64;link SOCInventoryItem#canCancelPlay}.
+       * Never sent for action_types PLAY or CANNOT_PLAY.
+       * </pre>
+       *
+       * <code>bool can_cancel_play = 25;</code>
+       */
+      public Builder clearCanCancelPlay() {
+        
+        canCancelPlay_ = false;
+        onChanged();
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:InventoryItemAction)
+    }
+
+    // @@protoc_insertion_point(class_scope:InventoryItemAction)
+    private static final soc.proto.GameMessage.InventoryItemAction DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.InventoryItemAction();
+    }
+
+    public static soc.proto.GameMessage.InventoryItemAction getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<InventoryItemAction>
+        PARSER = new com.google.protobuf.AbstractParser<InventoryItemAction>() {
+      public InventoryItemAction parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new InventoryItemAction(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<InventoryItemAction> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<InventoryItemAction> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.InventoryItemAction getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -6005,8 +7575,8 @@ public final class GameMessage {
    *   decide a better place to put their road, but robots must cancel
    *   the build request and decide on a new plan.
    *   &lt;P&gt;
-   *   This can also be the reply if the client sends an illegal {&#64;link BuildRequest}
-   *   or {&#64;link BuyItemRequest} (no resources, not the right game state, etc.)
+   *   This can also be the reply if the client sends an illegal {&#64;link PutPiece}
+   *   or {&#64;link BuyInventoryItemRequest} (no resources, not the right game state, etc.)
    *   or {&#64;link MovePiece}.
    *&lt;/UL&gt;
    * Before v3.0.00 this message was {&#64;code SOCCancelBuildRequest}.
@@ -6381,8 +7951,8 @@ public final class GameMessage {
      *   decide a better place to put their road, but robots must cancel
      *   the build request and decide on a new plan.
      *   &lt;P&gt;
-     *   This can also be the reply if the client sends an illegal {&#64;link BuildRequest}
-     *   or {&#64;link BuyItemRequest} (no resources, not the right game state, etc.)
+     *   This can also be the reply if the client sends an illegal {&#64;link PutPiece}
+     *   or {&#64;link BuyInventoryItemRequest} (no resources, not the right game state, etc.)
      *   or {&#64;link MovePiece}.
      *&lt;/UL&gt;
      * Before v3.0.00 this message was {&#64;code SOCCancelBuildRequest}.
@@ -15864,6 +17434,3703 @@ public final class GameMessage {
 
   }
 
+  public interface TradeWithBankOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:TradeWithBank)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>.ResourceSet give = 1;</code>
+     */
+    boolean hasGive();
+    /**
+     * <code>.ResourceSet give = 1;</code>
+     */
+    soc.proto.Data.ResourceSet getGive();
+    /**
+     * <code>.ResourceSet give = 1;</code>
+     */
+    soc.proto.Data.ResourceSetOrBuilder getGiveOrBuilder();
+
+    /**
+     * <code>.ResourceSet get = 2;</code>
+     */
+    boolean hasGet();
+    /**
+     * <code>.ResourceSet get = 2;</code>
+     */
+    soc.proto.Data.ResourceSet getGet();
+    /**
+     * <code>.ResourceSet get = 2;</code>
+     */
+    soc.proto.Data.ResourceSetOrBuilder getGetOrBuilder();
+
+    /**
+     * <pre>
+     * ignored from client
+     * </pre>
+     *
+     * <code>int32 from_player_number = 3;</code>
+     */
+    int getFromPlayerNumber();
+  }
+  /**
+   * <pre>
+   * Client is making, or server is announcing, a bank trade or port trade.
+   * Also used to undo player's previous trade (swap previous give/get resource sets).
+   *&lt;P&gt;
+   * Before v3.0.00 this message was SOCBankTrade.
+   * &#64;see TradeMakeOffer
+   * </pre>
+   *
+   * Protobuf type {@code TradeWithBank}
+   */
+  public  static final class TradeWithBank extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:TradeWithBank)
+      TradeWithBankOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use TradeWithBank.newBuilder() to construct.
+    private TradeWithBank(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private TradeWithBank() {
+      fromPlayerNumber_ = 0;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private TradeWithBank(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              soc.proto.Data.ResourceSet.Builder subBuilder = null;
+              if (give_ != null) {
+                subBuilder = give_.toBuilder();
+              }
+              give_ = input.readMessage(soc.proto.Data.ResourceSet.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(give_);
+                give_ = subBuilder.buildPartial();
+              }
+
+              break;
+            }
+            case 18: {
+              soc.proto.Data.ResourceSet.Builder subBuilder = null;
+              if (get_ != null) {
+                subBuilder = get_.toBuilder();
+              }
+              get_ = input.readMessage(soc.proto.Data.ResourceSet.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(get_);
+                get_ = subBuilder.buildPartial();
+              }
+
+              break;
+            }
+            case 24: {
+
+              fromPlayerNumber_ = input.readInt32();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_TradeWithBank_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_TradeWithBank_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.TradeWithBank.class, soc.proto.GameMessage.TradeWithBank.Builder.class);
+    }
+
+    public static final int GIVE_FIELD_NUMBER = 1;
+    private soc.proto.Data.ResourceSet give_;
+    /**
+     * <code>.ResourceSet give = 1;</code>
+     */
+    public boolean hasGive() {
+      return give_ != null;
+    }
+    /**
+     * <code>.ResourceSet give = 1;</code>
+     */
+    public soc.proto.Data.ResourceSet getGive() {
+      return give_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : give_;
+    }
+    /**
+     * <code>.ResourceSet give = 1;</code>
+     */
+    public soc.proto.Data.ResourceSetOrBuilder getGiveOrBuilder() {
+      return getGive();
+    }
+
+    public static final int GET_FIELD_NUMBER = 2;
+    private soc.proto.Data.ResourceSet get_;
+    /**
+     * <code>.ResourceSet get = 2;</code>
+     */
+    public boolean hasGet() {
+      return get_ != null;
+    }
+    /**
+     * <code>.ResourceSet get = 2;</code>
+     */
+    public soc.proto.Data.ResourceSet getGet() {
+      return get_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : get_;
+    }
+    /**
+     * <code>.ResourceSet get = 2;</code>
+     */
+    public soc.proto.Data.ResourceSetOrBuilder getGetOrBuilder() {
+      return getGet();
+    }
+
+    public static final int FROM_PLAYER_NUMBER_FIELD_NUMBER = 3;
+    private int fromPlayerNumber_;
+    /**
+     * <pre>
+     * ignored from client
+     * </pre>
+     *
+     * <code>int32 from_player_number = 3;</code>
+     */
+    public int getFromPlayerNumber() {
+      return fromPlayerNumber_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (give_ != null) {
+        output.writeMessage(1, getGive());
+      }
+      if (get_ != null) {
+        output.writeMessage(2, getGet());
+      }
+      if (fromPlayerNumber_ != 0) {
+        output.writeInt32(3, fromPlayerNumber_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (give_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, getGive());
+      }
+      if (get_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, getGet());
+      }
+      if (fromPlayerNumber_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(3, fromPlayerNumber_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.TradeWithBank)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.TradeWithBank other = (soc.proto.GameMessage.TradeWithBank) obj;
+
+      boolean result = true;
+      result = result && (hasGive() == other.hasGive());
+      if (hasGive()) {
+        result = result && getGive()
+            .equals(other.getGive());
+      }
+      result = result && (hasGet() == other.hasGet());
+      if (hasGet()) {
+        result = result && getGet()
+            .equals(other.getGet());
+      }
+      result = result && (getFromPlayerNumber()
+          == other.getFromPlayerNumber());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasGive()) {
+        hash = (37 * hash) + GIVE_FIELD_NUMBER;
+        hash = (53 * hash) + getGive().hashCode();
+      }
+      if (hasGet()) {
+        hash = (37 * hash) + GET_FIELD_NUMBER;
+        hash = (53 * hash) + getGet().hashCode();
+      }
+      hash = (37 * hash) + FROM_PLAYER_NUMBER_FIELD_NUMBER;
+      hash = (53 * hash) + getFromPlayerNumber();
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.TradeWithBank parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.TradeWithBank parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeWithBank parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.TradeWithBank parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeWithBank parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.TradeWithBank parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeWithBank parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.TradeWithBank parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeWithBank parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.TradeWithBank parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeWithBank parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.TradeWithBank parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.TradeWithBank prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * Client is making, or server is announcing, a bank trade or port trade.
+     * Also used to undo player's previous trade (swap previous give/get resource sets).
+     *&lt;P&gt;
+     * Before v3.0.00 this message was SOCBankTrade.
+     * &#64;see TradeMakeOffer
+     * </pre>
+     *
+     * Protobuf type {@code TradeWithBank}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:TradeWithBank)
+        soc.proto.GameMessage.TradeWithBankOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_TradeWithBank_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_TradeWithBank_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.TradeWithBank.class, soc.proto.GameMessage.TradeWithBank.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.TradeWithBank.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        if (giveBuilder_ == null) {
+          give_ = null;
+        } else {
+          give_ = null;
+          giveBuilder_ = null;
+        }
+        if (getBuilder_ == null) {
+          get_ = null;
+        } else {
+          get_ = null;
+          getBuilder_ = null;
+        }
+        fromPlayerNumber_ = 0;
+
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_TradeWithBank_descriptor;
+      }
+
+      public soc.proto.GameMessage.TradeWithBank getDefaultInstanceForType() {
+        return soc.proto.GameMessage.TradeWithBank.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.TradeWithBank build() {
+        soc.proto.GameMessage.TradeWithBank result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.TradeWithBank buildPartial() {
+        soc.proto.GameMessage.TradeWithBank result = new soc.proto.GameMessage.TradeWithBank(this);
+        if (giveBuilder_ == null) {
+          result.give_ = give_;
+        } else {
+          result.give_ = giveBuilder_.build();
+        }
+        if (getBuilder_ == null) {
+          result.get_ = get_;
+        } else {
+          result.get_ = getBuilder_.build();
+        }
+        result.fromPlayerNumber_ = fromPlayerNumber_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.TradeWithBank) {
+          return mergeFrom((soc.proto.GameMessage.TradeWithBank)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.TradeWithBank other) {
+        if (other == soc.proto.GameMessage.TradeWithBank.getDefaultInstance()) return this;
+        if (other.hasGive()) {
+          mergeGive(other.getGive());
+        }
+        if (other.hasGet()) {
+          mergeGet(other.getGet());
+        }
+        if (other.getFromPlayerNumber() != 0) {
+          setFromPlayerNumber(other.getFromPlayerNumber());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.TradeWithBank parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.TradeWithBank) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private soc.proto.Data.ResourceSet give_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> giveBuilder_;
+      /**
+       * <code>.ResourceSet give = 1;</code>
+       */
+      public boolean hasGive() {
+        return giveBuilder_ != null || give_ != null;
+      }
+      /**
+       * <code>.ResourceSet give = 1;</code>
+       */
+      public soc.proto.Data.ResourceSet getGive() {
+        if (giveBuilder_ == null) {
+          return give_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : give_;
+        } else {
+          return giveBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.ResourceSet give = 1;</code>
+       */
+      public Builder setGive(soc.proto.Data.ResourceSet value) {
+        if (giveBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          give_ = value;
+          onChanged();
+        } else {
+          giveBuilder_.setMessage(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>.ResourceSet give = 1;</code>
+       */
+      public Builder setGive(
+          soc.proto.Data.ResourceSet.Builder builderForValue) {
+        if (giveBuilder_ == null) {
+          give_ = builderForValue.build();
+          onChanged();
+        } else {
+          giveBuilder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <code>.ResourceSet give = 1;</code>
+       */
+      public Builder mergeGive(soc.proto.Data.ResourceSet value) {
+        if (giveBuilder_ == null) {
+          if (give_ != null) {
+            give_ =
+              soc.proto.Data.ResourceSet.newBuilder(give_).mergeFrom(value).buildPartial();
+          } else {
+            give_ = value;
+          }
+          onChanged();
+        } else {
+          giveBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>.ResourceSet give = 1;</code>
+       */
+      public Builder clearGive() {
+        if (giveBuilder_ == null) {
+          give_ = null;
+          onChanged();
+        } else {
+          give_ = null;
+          giveBuilder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <code>.ResourceSet give = 1;</code>
+       */
+      public soc.proto.Data.ResourceSet.Builder getGiveBuilder() {
+        
+        onChanged();
+        return getGiveFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.ResourceSet give = 1;</code>
+       */
+      public soc.proto.Data.ResourceSetOrBuilder getGiveOrBuilder() {
+        if (giveBuilder_ != null) {
+          return giveBuilder_.getMessageOrBuilder();
+        } else {
+          return give_ == null ?
+              soc.proto.Data.ResourceSet.getDefaultInstance() : give_;
+        }
+      }
+      /**
+       * <code>.ResourceSet give = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> 
+          getGiveFieldBuilder() {
+        if (giveBuilder_ == null) {
+          giveBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder>(
+                  getGive(),
+                  getParentForChildren(),
+                  isClean());
+          give_ = null;
+        }
+        return giveBuilder_;
+      }
+
+      private soc.proto.Data.ResourceSet get_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> getBuilder_;
+      /**
+       * <code>.ResourceSet get = 2;</code>
+       */
+      public boolean hasGet() {
+        return getBuilder_ != null || get_ != null;
+      }
+      /**
+       * <code>.ResourceSet get = 2;</code>
+       */
+      public soc.proto.Data.ResourceSet getGet() {
+        if (getBuilder_ == null) {
+          return get_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : get_;
+        } else {
+          return getBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.ResourceSet get = 2;</code>
+       */
+      public Builder setGet(soc.proto.Data.ResourceSet value) {
+        if (getBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          get_ = value;
+          onChanged();
+        } else {
+          getBuilder_.setMessage(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>.ResourceSet get = 2;</code>
+       */
+      public Builder setGet(
+          soc.proto.Data.ResourceSet.Builder builderForValue) {
+        if (getBuilder_ == null) {
+          get_ = builderForValue.build();
+          onChanged();
+        } else {
+          getBuilder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <code>.ResourceSet get = 2;</code>
+       */
+      public Builder mergeGet(soc.proto.Data.ResourceSet value) {
+        if (getBuilder_ == null) {
+          if (get_ != null) {
+            get_ =
+              soc.proto.Data.ResourceSet.newBuilder(get_).mergeFrom(value).buildPartial();
+          } else {
+            get_ = value;
+          }
+          onChanged();
+        } else {
+          getBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>.ResourceSet get = 2;</code>
+       */
+      public Builder clearGet() {
+        if (getBuilder_ == null) {
+          get_ = null;
+          onChanged();
+        } else {
+          get_ = null;
+          getBuilder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <code>.ResourceSet get = 2;</code>
+       */
+      public soc.proto.Data.ResourceSet.Builder getGetBuilder() {
+        
+        onChanged();
+        return getGetFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.ResourceSet get = 2;</code>
+       */
+      public soc.proto.Data.ResourceSetOrBuilder getGetOrBuilder() {
+        if (getBuilder_ != null) {
+          return getBuilder_.getMessageOrBuilder();
+        } else {
+          return get_ == null ?
+              soc.proto.Data.ResourceSet.getDefaultInstance() : get_;
+        }
+      }
+      /**
+       * <code>.ResourceSet get = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> 
+          getGetFieldBuilder() {
+        if (getBuilder_ == null) {
+          getBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder>(
+                  getGet(),
+                  getParentForChildren(),
+                  isClean());
+          get_ = null;
+        }
+        return getBuilder_;
+      }
+
+      private int fromPlayerNumber_ ;
+      /**
+       * <pre>
+       * ignored from client
+       * </pre>
+       *
+       * <code>int32 from_player_number = 3;</code>
+       */
+      public int getFromPlayerNumber() {
+        return fromPlayerNumber_;
+      }
+      /**
+       * <pre>
+       * ignored from client
+       * </pre>
+       *
+       * <code>int32 from_player_number = 3;</code>
+       */
+      public Builder setFromPlayerNumber(int value) {
+        
+        fromPlayerNumber_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * ignored from client
+       * </pre>
+       *
+       * <code>int32 from_player_number = 3;</code>
+       */
+      public Builder clearFromPlayerNumber() {
+        
+        fromPlayerNumber_ = 0;
+        onChanged();
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:TradeWithBank)
+    }
+
+    // @@protoc_insertion_point(class_scope:TradeWithBank)
+    private static final soc.proto.GameMessage.TradeWithBank DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.TradeWithBank();
+    }
+
+    public static soc.proto.GameMessage.TradeWithBank getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<TradeWithBank>
+        PARSER = new com.google.protobuf.AbstractParser<TradeWithBank>() {
+      public TradeWithBank parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new TradeWithBank(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<TradeWithBank> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<TradeWithBank> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.TradeWithBank getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface TradeMakeOfferOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:TradeMakeOffer)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>.ResourceSet give = 1;</code>
+     */
+    boolean hasGive();
+    /**
+     * <code>.ResourceSet give = 1;</code>
+     */
+    soc.proto.Data.ResourceSet getGive();
+    /**
+     * <code>.ResourceSet give = 1;</code>
+     */
+    soc.proto.Data.ResourceSetOrBuilder getGiveOrBuilder();
+
+    /**
+     * <code>.ResourceSet get = 2;</code>
+     */
+    boolean hasGet();
+    /**
+     * <code>.ResourceSet get = 2;</code>
+     */
+    soc.proto.Data.ResourceSet getGet();
+    /**
+     * <code>.ResourceSet get = 2;</code>
+     */
+    soc.proto.Data.ResourceSetOrBuilder getGetOrBuilder();
+
+    /**
+     * <pre>
+     * ignored from client
+     * </pre>
+     *
+     * <code>int32 from_player_number = 3;</code>
+     */
+    int getFromPlayerNumber();
+
+    /**
+     * <pre>
+     * only needed if offer is not to all other players
+     * </pre>
+     *
+     * <code>._IntArray to_players = 4;</code>
+     */
+    boolean hasToPlayers();
+    /**
+     * <pre>
+     * only needed if offer is not to all other players
+     * </pre>
+     *
+     * <code>._IntArray to_players = 4;</code>
+     */
+    soc.proto.Data._IntArray getToPlayers();
+    /**
+     * <pre>
+     * only needed if offer is not to all other players
+     * </pre>
+     *
+     * <code>._IntArray to_players = 4;</code>
+     */
+    soc.proto.Data._IntArrayOrBuilder getToPlayersOrBuilder();
+
+    /**
+     * <pre>
+     * optional offer number assigned by server, or 0 if server has not done so; ignored from client
+     * </pre>
+     *
+     * <code>int32 offer_serial = 5;</code>
+     */
+    int getOfferSerial();
+  }
+  /**
+   * <pre>
+   * Client is making, or server is announcing, a trade offer.
+   * Other player clients may respond with TradeRejectOffer or TradeAcceptOffer.
+   *&lt;P&gt;
+   * Before v3.0.00 this message was SOCMakeOffer.
+   * &#64;see TradeWithBank
+   * &#64;see TradeClearOffer
+   * </pre>
+   *
+   * Protobuf type {@code TradeMakeOffer}
+   */
+  public  static final class TradeMakeOffer extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:TradeMakeOffer)
+      TradeMakeOfferOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use TradeMakeOffer.newBuilder() to construct.
+    private TradeMakeOffer(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private TradeMakeOffer() {
+      fromPlayerNumber_ = 0;
+      offerSerial_ = 0;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private TradeMakeOffer(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              soc.proto.Data.ResourceSet.Builder subBuilder = null;
+              if (give_ != null) {
+                subBuilder = give_.toBuilder();
+              }
+              give_ = input.readMessage(soc.proto.Data.ResourceSet.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(give_);
+                give_ = subBuilder.buildPartial();
+              }
+
+              break;
+            }
+            case 18: {
+              soc.proto.Data.ResourceSet.Builder subBuilder = null;
+              if (get_ != null) {
+                subBuilder = get_.toBuilder();
+              }
+              get_ = input.readMessage(soc.proto.Data.ResourceSet.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(get_);
+                get_ = subBuilder.buildPartial();
+              }
+
+              break;
+            }
+            case 24: {
+
+              fromPlayerNumber_ = input.readInt32();
+              break;
+            }
+            case 34: {
+              soc.proto.Data._IntArray.Builder subBuilder = null;
+              if (toPlayers_ != null) {
+                subBuilder = toPlayers_.toBuilder();
+              }
+              toPlayers_ = input.readMessage(soc.proto.Data._IntArray.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(toPlayers_);
+                toPlayers_ = subBuilder.buildPartial();
+              }
+
+              break;
+            }
+            case 40: {
+
+              offerSerial_ = input.readInt32();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_TradeMakeOffer_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_TradeMakeOffer_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.TradeMakeOffer.class, soc.proto.GameMessage.TradeMakeOffer.Builder.class);
+    }
+
+    public static final int GIVE_FIELD_NUMBER = 1;
+    private soc.proto.Data.ResourceSet give_;
+    /**
+     * <code>.ResourceSet give = 1;</code>
+     */
+    public boolean hasGive() {
+      return give_ != null;
+    }
+    /**
+     * <code>.ResourceSet give = 1;</code>
+     */
+    public soc.proto.Data.ResourceSet getGive() {
+      return give_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : give_;
+    }
+    /**
+     * <code>.ResourceSet give = 1;</code>
+     */
+    public soc.proto.Data.ResourceSetOrBuilder getGiveOrBuilder() {
+      return getGive();
+    }
+
+    public static final int GET_FIELD_NUMBER = 2;
+    private soc.proto.Data.ResourceSet get_;
+    /**
+     * <code>.ResourceSet get = 2;</code>
+     */
+    public boolean hasGet() {
+      return get_ != null;
+    }
+    /**
+     * <code>.ResourceSet get = 2;</code>
+     */
+    public soc.proto.Data.ResourceSet getGet() {
+      return get_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : get_;
+    }
+    /**
+     * <code>.ResourceSet get = 2;</code>
+     */
+    public soc.proto.Data.ResourceSetOrBuilder getGetOrBuilder() {
+      return getGet();
+    }
+
+    public static final int FROM_PLAYER_NUMBER_FIELD_NUMBER = 3;
+    private int fromPlayerNumber_;
+    /**
+     * <pre>
+     * ignored from client
+     * </pre>
+     *
+     * <code>int32 from_player_number = 3;</code>
+     */
+    public int getFromPlayerNumber() {
+      return fromPlayerNumber_;
+    }
+
+    public static final int TO_PLAYERS_FIELD_NUMBER = 4;
+    private soc.proto.Data._IntArray toPlayers_;
+    /**
+     * <pre>
+     * only needed if offer is not to all other players
+     * </pre>
+     *
+     * <code>._IntArray to_players = 4;</code>
+     */
+    public boolean hasToPlayers() {
+      return toPlayers_ != null;
+    }
+    /**
+     * <pre>
+     * only needed if offer is not to all other players
+     * </pre>
+     *
+     * <code>._IntArray to_players = 4;</code>
+     */
+    public soc.proto.Data._IntArray getToPlayers() {
+      return toPlayers_ == null ? soc.proto.Data._IntArray.getDefaultInstance() : toPlayers_;
+    }
+    /**
+     * <pre>
+     * only needed if offer is not to all other players
+     * </pre>
+     *
+     * <code>._IntArray to_players = 4;</code>
+     */
+    public soc.proto.Data._IntArrayOrBuilder getToPlayersOrBuilder() {
+      return getToPlayers();
+    }
+
+    public static final int OFFER_SERIAL_FIELD_NUMBER = 5;
+    private int offerSerial_;
+    /**
+     * <pre>
+     * optional offer number assigned by server, or 0 if server has not done so; ignored from client
+     * </pre>
+     *
+     * <code>int32 offer_serial = 5;</code>
+     */
+    public int getOfferSerial() {
+      return offerSerial_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (give_ != null) {
+        output.writeMessage(1, getGive());
+      }
+      if (get_ != null) {
+        output.writeMessage(2, getGet());
+      }
+      if (fromPlayerNumber_ != 0) {
+        output.writeInt32(3, fromPlayerNumber_);
+      }
+      if (toPlayers_ != null) {
+        output.writeMessage(4, getToPlayers());
+      }
+      if (offerSerial_ != 0) {
+        output.writeInt32(5, offerSerial_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (give_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, getGive());
+      }
+      if (get_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, getGet());
+      }
+      if (fromPlayerNumber_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(3, fromPlayerNumber_);
+      }
+      if (toPlayers_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(4, getToPlayers());
+      }
+      if (offerSerial_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(5, offerSerial_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.TradeMakeOffer)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.TradeMakeOffer other = (soc.proto.GameMessage.TradeMakeOffer) obj;
+
+      boolean result = true;
+      result = result && (hasGive() == other.hasGive());
+      if (hasGive()) {
+        result = result && getGive()
+            .equals(other.getGive());
+      }
+      result = result && (hasGet() == other.hasGet());
+      if (hasGet()) {
+        result = result && getGet()
+            .equals(other.getGet());
+      }
+      result = result && (getFromPlayerNumber()
+          == other.getFromPlayerNumber());
+      result = result && (hasToPlayers() == other.hasToPlayers());
+      if (hasToPlayers()) {
+        result = result && getToPlayers()
+            .equals(other.getToPlayers());
+      }
+      result = result && (getOfferSerial()
+          == other.getOfferSerial());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasGive()) {
+        hash = (37 * hash) + GIVE_FIELD_NUMBER;
+        hash = (53 * hash) + getGive().hashCode();
+      }
+      if (hasGet()) {
+        hash = (37 * hash) + GET_FIELD_NUMBER;
+        hash = (53 * hash) + getGet().hashCode();
+      }
+      hash = (37 * hash) + FROM_PLAYER_NUMBER_FIELD_NUMBER;
+      hash = (53 * hash) + getFromPlayerNumber();
+      if (hasToPlayers()) {
+        hash = (37 * hash) + TO_PLAYERS_FIELD_NUMBER;
+        hash = (53 * hash) + getToPlayers().hashCode();
+      }
+      hash = (37 * hash) + OFFER_SERIAL_FIELD_NUMBER;
+      hash = (53 * hash) + getOfferSerial();
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.TradeMakeOffer parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.TradeMakeOffer parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeMakeOffer parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.TradeMakeOffer parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeMakeOffer parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.TradeMakeOffer parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeMakeOffer parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.TradeMakeOffer parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeMakeOffer parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.TradeMakeOffer parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeMakeOffer parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.TradeMakeOffer parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.TradeMakeOffer prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * Client is making, or server is announcing, a trade offer.
+     * Other player clients may respond with TradeRejectOffer or TradeAcceptOffer.
+     *&lt;P&gt;
+     * Before v3.0.00 this message was SOCMakeOffer.
+     * &#64;see TradeWithBank
+     * &#64;see TradeClearOffer
+     * </pre>
+     *
+     * Protobuf type {@code TradeMakeOffer}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:TradeMakeOffer)
+        soc.proto.GameMessage.TradeMakeOfferOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_TradeMakeOffer_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_TradeMakeOffer_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.TradeMakeOffer.class, soc.proto.GameMessage.TradeMakeOffer.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.TradeMakeOffer.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        if (giveBuilder_ == null) {
+          give_ = null;
+        } else {
+          give_ = null;
+          giveBuilder_ = null;
+        }
+        if (getBuilder_ == null) {
+          get_ = null;
+        } else {
+          get_ = null;
+          getBuilder_ = null;
+        }
+        fromPlayerNumber_ = 0;
+
+        if (toPlayersBuilder_ == null) {
+          toPlayers_ = null;
+        } else {
+          toPlayers_ = null;
+          toPlayersBuilder_ = null;
+        }
+        offerSerial_ = 0;
+
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_TradeMakeOffer_descriptor;
+      }
+
+      public soc.proto.GameMessage.TradeMakeOffer getDefaultInstanceForType() {
+        return soc.proto.GameMessage.TradeMakeOffer.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.TradeMakeOffer build() {
+        soc.proto.GameMessage.TradeMakeOffer result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.TradeMakeOffer buildPartial() {
+        soc.proto.GameMessage.TradeMakeOffer result = new soc.proto.GameMessage.TradeMakeOffer(this);
+        if (giveBuilder_ == null) {
+          result.give_ = give_;
+        } else {
+          result.give_ = giveBuilder_.build();
+        }
+        if (getBuilder_ == null) {
+          result.get_ = get_;
+        } else {
+          result.get_ = getBuilder_.build();
+        }
+        result.fromPlayerNumber_ = fromPlayerNumber_;
+        if (toPlayersBuilder_ == null) {
+          result.toPlayers_ = toPlayers_;
+        } else {
+          result.toPlayers_ = toPlayersBuilder_.build();
+        }
+        result.offerSerial_ = offerSerial_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.TradeMakeOffer) {
+          return mergeFrom((soc.proto.GameMessage.TradeMakeOffer)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.TradeMakeOffer other) {
+        if (other == soc.proto.GameMessage.TradeMakeOffer.getDefaultInstance()) return this;
+        if (other.hasGive()) {
+          mergeGive(other.getGive());
+        }
+        if (other.hasGet()) {
+          mergeGet(other.getGet());
+        }
+        if (other.getFromPlayerNumber() != 0) {
+          setFromPlayerNumber(other.getFromPlayerNumber());
+        }
+        if (other.hasToPlayers()) {
+          mergeToPlayers(other.getToPlayers());
+        }
+        if (other.getOfferSerial() != 0) {
+          setOfferSerial(other.getOfferSerial());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.TradeMakeOffer parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.TradeMakeOffer) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private soc.proto.Data.ResourceSet give_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> giveBuilder_;
+      /**
+       * <code>.ResourceSet give = 1;</code>
+       */
+      public boolean hasGive() {
+        return giveBuilder_ != null || give_ != null;
+      }
+      /**
+       * <code>.ResourceSet give = 1;</code>
+       */
+      public soc.proto.Data.ResourceSet getGive() {
+        if (giveBuilder_ == null) {
+          return give_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : give_;
+        } else {
+          return giveBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.ResourceSet give = 1;</code>
+       */
+      public Builder setGive(soc.proto.Data.ResourceSet value) {
+        if (giveBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          give_ = value;
+          onChanged();
+        } else {
+          giveBuilder_.setMessage(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>.ResourceSet give = 1;</code>
+       */
+      public Builder setGive(
+          soc.proto.Data.ResourceSet.Builder builderForValue) {
+        if (giveBuilder_ == null) {
+          give_ = builderForValue.build();
+          onChanged();
+        } else {
+          giveBuilder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <code>.ResourceSet give = 1;</code>
+       */
+      public Builder mergeGive(soc.proto.Data.ResourceSet value) {
+        if (giveBuilder_ == null) {
+          if (give_ != null) {
+            give_ =
+              soc.proto.Data.ResourceSet.newBuilder(give_).mergeFrom(value).buildPartial();
+          } else {
+            give_ = value;
+          }
+          onChanged();
+        } else {
+          giveBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>.ResourceSet give = 1;</code>
+       */
+      public Builder clearGive() {
+        if (giveBuilder_ == null) {
+          give_ = null;
+          onChanged();
+        } else {
+          give_ = null;
+          giveBuilder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <code>.ResourceSet give = 1;</code>
+       */
+      public soc.proto.Data.ResourceSet.Builder getGiveBuilder() {
+        
+        onChanged();
+        return getGiveFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.ResourceSet give = 1;</code>
+       */
+      public soc.proto.Data.ResourceSetOrBuilder getGiveOrBuilder() {
+        if (giveBuilder_ != null) {
+          return giveBuilder_.getMessageOrBuilder();
+        } else {
+          return give_ == null ?
+              soc.proto.Data.ResourceSet.getDefaultInstance() : give_;
+        }
+      }
+      /**
+       * <code>.ResourceSet give = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> 
+          getGiveFieldBuilder() {
+        if (giveBuilder_ == null) {
+          giveBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder>(
+                  getGive(),
+                  getParentForChildren(),
+                  isClean());
+          give_ = null;
+        }
+        return giveBuilder_;
+      }
+
+      private soc.proto.Data.ResourceSet get_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> getBuilder_;
+      /**
+       * <code>.ResourceSet get = 2;</code>
+       */
+      public boolean hasGet() {
+        return getBuilder_ != null || get_ != null;
+      }
+      /**
+       * <code>.ResourceSet get = 2;</code>
+       */
+      public soc.proto.Data.ResourceSet getGet() {
+        if (getBuilder_ == null) {
+          return get_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : get_;
+        } else {
+          return getBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.ResourceSet get = 2;</code>
+       */
+      public Builder setGet(soc.proto.Data.ResourceSet value) {
+        if (getBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          get_ = value;
+          onChanged();
+        } else {
+          getBuilder_.setMessage(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>.ResourceSet get = 2;</code>
+       */
+      public Builder setGet(
+          soc.proto.Data.ResourceSet.Builder builderForValue) {
+        if (getBuilder_ == null) {
+          get_ = builderForValue.build();
+          onChanged();
+        } else {
+          getBuilder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <code>.ResourceSet get = 2;</code>
+       */
+      public Builder mergeGet(soc.proto.Data.ResourceSet value) {
+        if (getBuilder_ == null) {
+          if (get_ != null) {
+            get_ =
+              soc.proto.Data.ResourceSet.newBuilder(get_).mergeFrom(value).buildPartial();
+          } else {
+            get_ = value;
+          }
+          onChanged();
+        } else {
+          getBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>.ResourceSet get = 2;</code>
+       */
+      public Builder clearGet() {
+        if (getBuilder_ == null) {
+          get_ = null;
+          onChanged();
+        } else {
+          get_ = null;
+          getBuilder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <code>.ResourceSet get = 2;</code>
+       */
+      public soc.proto.Data.ResourceSet.Builder getGetBuilder() {
+        
+        onChanged();
+        return getGetFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.ResourceSet get = 2;</code>
+       */
+      public soc.proto.Data.ResourceSetOrBuilder getGetOrBuilder() {
+        if (getBuilder_ != null) {
+          return getBuilder_.getMessageOrBuilder();
+        } else {
+          return get_ == null ?
+              soc.proto.Data.ResourceSet.getDefaultInstance() : get_;
+        }
+      }
+      /**
+       * <code>.ResourceSet get = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> 
+          getGetFieldBuilder() {
+        if (getBuilder_ == null) {
+          getBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder>(
+                  getGet(),
+                  getParentForChildren(),
+                  isClean());
+          get_ = null;
+        }
+        return getBuilder_;
+      }
+
+      private int fromPlayerNumber_ ;
+      /**
+       * <pre>
+       * ignored from client
+       * </pre>
+       *
+       * <code>int32 from_player_number = 3;</code>
+       */
+      public int getFromPlayerNumber() {
+        return fromPlayerNumber_;
+      }
+      /**
+       * <pre>
+       * ignored from client
+       * </pre>
+       *
+       * <code>int32 from_player_number = 3;</code>
+       */
+      public Builder setFromPlayerNumber(int value) {
+        
+        fromPlayerNumber_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * ignored from client
+       * </pre>
+       *
+       * <code>int32 from_player_number = 3;</code>
+       */
+      public Builder clearFromPlayerNumber() {
+        
+        fromPlayerNumber_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private soc.proto.Data._IntArray toPlayers_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data._IntArray, soc.proto.Data._IntArray.Builder, soc.proto.Data._IntArrayOrBuilder> toPlayersBuilder_;
+      /**
+       * <pre>
+       * only needed if offer is not to all other players
+       * </pre>
+       *
+       * <code>._IntArray to_players = 4;</code>
+       */
+      public boolean hasToPlayers() {
+        return toPlayersBuilder_ != null || toPlayers_ != null;
+      }
+      /**
+       * <pre>
+       * only needed if offer is not to all other players
+       * </pre>
+       *
+       * <code>._IntArray to_players = 4;</code>
+       */
+      public soc.proto.Data._IntArray getToPlayers() {
+        if (toPlayersBuilder_ == null) {
+          return toPlayers_ == null ? soc.proto.Data._IntArray.getDefaultInstance() : toPlayers_;
+        } else {
+          return toPlayersBuilder_.getMessage();
+        }
+      }
+      /**
+       * <pre>
+       * only needed if offer is not to all other players
+       * </pre>
+       *
+       * <code>._IntArray to_players = 4;</code>
+       */
+      public Builder setToPlayers(soc.proto.Data._IntArray value) {
+        if (toPlayersBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          toPlayers_ = value;
+          onChanged();
+        } else {
+          toPlayersBuilder_.setMessage(value);
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * only needed if offer is not to all other players
+       * </pre>
+       *
+       * <code>._IntArray to_players = 4;</code>
+       */
+      public Builder setToPlayers(
+          soc.proto.Data._IntArray.Builder builderForValue) {
+        if (toPlayersBuilder_ == null) {
+          toPlayers_ = builderForValue.build();
+          onChanged();
+        } else {
+          toPlayersBuilder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * only needed if offer is not to all other players
+       * </pre>
+       *
+       * <code>._IntArray to_players = 4;</code>
+       */
+      public Builder mergeToPlayers(soc.proto.Data._IntArray value) {
+        if (toPlayersBuilder_ == null) {
+          if (toPlayers_ != null) {
+            toPlayers_ =
+              soc.proto.Data._IntArray.newBuilder(toPlayers_).mergeFrom(value).buildPartial();
+          } else {
+            toPlayers_ = value;
+          }
+          onChanged();
+        } else {
+          toPlayersBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * only needed if offer is not to all other players
+       * </pre>
+       *
+       * <code>._IntArray to_players = 4;</code>
+       */
+      public Builder clearToPlayers() {
+        if (toPlayersBuilder_ == null) {
+          toPlayers_ = null;
+          onChanged();
+        } else {
+          toPlayers_ = null;
+          toPlayersBuilder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * only needed if offer is not to all other players
+       * </pre>
+       *
+       * <code>._IntArray to_players = 4;</code>
+       */
+      public soc.proto.Data._IntArray.Builder getToPlayersBuilder() {
+        
+        onChanged();
+        return getToPlayersFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * only needed if offer is not to all other players
+       * </pre>
+       *
+       * <code>._IntArray to_players = 4;</code>
+       */
+      public soc.proto.Data._IntArrayOrBuilder getToPlayersOrBuilder() {
+        if (toPlayersBuilder_ != null) {
+          return toPlayersBuilder_.getMessageOrBuilder();
+        } else {
+          return toPlayers_ == null ?
+              soc.proto.Data._IntArray.getDefaultInstance() : toPlayers_;
+        }
+      }
+      /**
+       * <pre>
+       * only needed if offer is not to all other players
+       * </pre>
+       *
+       * <code>._IntArray to_players = 4;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data._IntArray, soc.proto.Data._IntArray.Builder, soc.proto.Data._IntArrayOrBuilder> 
+          getToPlayersFieldBuilder() {
+        if (toPlayersBuilder_ == null) {
+          toPlayersBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.Data._IntArray, soc.proto.Data._IntArray.Builder, soc.proto.Data._IntArrayOrBuilder>(
+                  getToPlayers(),
+                  getParentForChildren(),
+                  isClean());
+          toPlayers_ = null;
+        }
+        return toPlayersBuilder_;
+      }
+
+      private int offerSerial_ ;
+      /**
+       * <pre>
+       * optional offer number assigned by server, or 0 if server has not done so; ignored from client
+       * </pre>
+       *
+       * <code>int32 offer_serial = 5;</code>
+       */
+      public int getOfferSerial() {
+        return offerSerial_;
+      }
+      /**
+       * <pre>
+       * optional offer number assigned by server, or 0 if server has not done so; ignored from client
+       * </pre>
+       *
+       * <code>int32 offer_serial = 5;</code>
+       */
+      public Builder setOfferSerial(int value) {
+        
+        offerSerial_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * optional offer number assigned by server, or 0 if server has not done so; ignored from client
+       * </pre>
+       *
+       * <code>int32 offer_serial = 5;</code>
+       */
+      public Builder clearOfferSerial() {
+        
+        offerSerial_ = 0;
+        onChanged();
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:TradeMakeOffer)
+    }
+
+    // @@protoc_insertion_point(class_scope:TradeMakeOffer)
+    private static final soc.proto.GameMessage.TradeMakeOffer DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.TradeMakeOffer();
+    }
+
+    public static soc.proto.GameMessage.TradeMakeOffer getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<TradeMakeOffer>
+        PARSER = new com.google.protobuf.AbstractParser<TradeMakeOffer>() {
+      public TradeMakeOffer parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new TradeMakeOffer(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<TradeMakeOffer> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<TradeMakeOffer> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.TradeMakeOffer getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface TradeClearOfferOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:TradeClearOffer)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * Player number, or -1 for clear all; ignored from client
+     * </pre>
+     *
+     * <code>sint32 player_number = 1;</code>
+     */
+    int getPlayerNumber();
+  }
+  /**
+   * <pre>
+   * A the player is retracting an offer.
+   * Or, all players are clearing all offers (usually at end of turn).
+   * &#64;see TradeMakeOffer
+   * </pre>
+   *
+   * Protobuf type {@code TradeClearOffer}
+   */
+  public  static final class TradeClearOffer extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:TradeClearOffer)
+      TradeClearOfferOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use TradeClearOffer.newBuilder() to construct.
+    private TradeClearOffer(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private TradeClearOffer() {
+      playerNumber_ = 0;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private TradeClearOffer(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+
+              playerNumber_ = input.readSInt32();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_TradeClearOffer_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_TradeClearOffer_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.TradeClearOffer.class, soc.proto.GameMessage.TradeClearOffer.Builder.class);
+    }
+
+    public static final int PLAYER_NUMBER_FIELD_NUMBER = 1;
+    private int playerNumber_;
+    /**
+     * <pre>
+     * Player number, or -1 for clear all; ignored from client
+     * </pre>
+     *
+     * <code>sint32 player_number = 1;</code>
+     */
+    public int getPlayerNumber() {
+      return playerNumber_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (playerNumber_ != 0) {
+        output.writeSInt32(1, playerNumber_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (playerNumber_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeSInt32Size(1, playerNumber_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.TradeClearOffer)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.TradeClearOffer other = (soc.proto.GameMessage.TradeClearOffer) obj;
+
+      boolean result = true;
+      result = result && (getPlayerNumber()
+          == other.getPlayerNumber());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + PLAYER_NUMBER_FIELD_NUMBER;
+      hash = (53 * hash) + getPlayerNumber();
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.TradeClearOffer parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.TradeClearOffer parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeClearOffer parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.TradeClearOffer parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeClearOffer parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.TradeClearOffer parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeClearOffer parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.TradeClearOffer parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeClearOffer parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.TradeClearOffer parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeClearOffer parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.TradeClearOffer parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.TradeClearOffer prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * A the player is retracting an offer.
+     * Or, all players are clearing all offers (usually at end of turn).
+     * &#64;see TradeMakeOffer
+     * </pre>
+     *
+     * Protobuf type {@code TradeClearOffer}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:TradeClearOffer)
+        soc.proto.GameMessage.TradeClearOfferOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_TradeClearOffer_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_TradeClearOffer_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.TradeClearOffer.class, soc.proto.GameMessage.TradeClearOffer.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.TradeClearOffer.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        playerNumber_ = 0;
+
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_TradeClearOffer_descriptor;
+      }
+
+      public soc.proto.GameMessage.TradeClearOffer getDefaultInstanceForType() {
+        return soc.proto.GameMessage.TradeClearOffer.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.TradeClearOffer build() {
+        soc.proto.GameMessage.TradeClearOffer result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.TradeClearOffer buildPartial() {
+        soc.proto.GameMessage.TradeClearOffer result = new soc.proto.GameMessage.TradeClearOffer(this);
+        result.playerNumber_ = playerNumber_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.TradeClearOffer) {
+          return mergeFrom((soc.proto.GameMessage.TradeClearOffer)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.TradeClearOffer other) {
+        if (other == soc.proto.GameMessage.TradeClearOffer.getDefaultInstance()) return this;
+        if (other.getPlayerNumber() != 0) {
+          setPlayerNumber(other.getPlayerNumber());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.TradeClearOffer parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.TradeClearOffer) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private int playerNumber_ ;
+      /**
+       * <pre>
+       * Player number, or -1 for clear all; ignored from client
+       * </pre>
+       *
+       * <code>sint32 player_number = 1;</code>
+       */
+      public int getPlayerNumber() {
+        return playerNumber_;
+      }
+      /**
+       * <pre>
+       * Player number, or -1 for clear all; ignored from client
+       * </pre>
+       *
+       * <code>sint32 player_number = 1;</code>
+       */
+      public Builder setPlayerNumber(int value) {
+        
+        playerNumber_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Player number, or -1 for clear all; ignored from client
+       * </pre>
+       *
+       * <code>sint32 player_number = 1;</code>
+       */
+      public Builder clearPlayerNumber() {
+        
+        playerNumber_ = 0;
+        onChanged();
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:TradeClearOffer)
+    }
+
+    // @@protoc_insertion_point(class_scope:TradeClearOffer)
+    private static final soc.proto.GameMessage.TradeClearOffer DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.TradeClearOffer();
+    }
+
+    public static soc.proto.GameMessage.TradeClearOffer getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<TradeClearOffer>
+        PARSER = new com.google.protobuf.AbstractParser<TradeClearOffer>() {
+      public TradeClearOffer parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new TradeClearOffer(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<TradeClearOffer> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<TradeClearOffer> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.TradeClearOffer getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface TradeRejectOfferOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:TradeRejectOffer)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * Player number who sent this rejection; ignored from client
+     * </pre>
+     *
+     * <code>int32 rejecting_player_number = 1;</code>
+     */
+    int getRejectingPlayerNumber();
+  }
+  /**
+   * <pre>
+   * A player is rejecting any and all trade offers currently made to them.
+   * &#64;see TradeMakeOffer
+   * &#64;see TradeAcceptOffer
+   * </pre>
+   *
+   * Protobuf type {@code TradeRejectOffer}
+   */
+  public  static final class TradeRejectOffer extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:TradeRejectOffer)
+      TradeRejectOfferOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use TradeRejectOffer.newBuilder() to construct.
+    private TradeRejectOffer(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private TradeRejectOffer() {
+      rejectingPlayerNumber_ = 0;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private TradeRejectOffer(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+
+              rejectingPlayerNumber_ = input.readInt32();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_TradeRejectOffer_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_TradeRejectOffer_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.TradeRejectOffer.class, soc.proto.GameMessage.TradeRejectOffer.Builder.class);
+    }
+
+    public static final int REJECTING_PLAYER_NUMBER_FIELD_NUMBER = 1;
+    private int rejectingPlayerNumber_;
+    /**
+     * <pre>
+     * Player number who sent this rejection; ignored from client
+     * </pre>
+     *
+     * <code>int32 rejecting_player_number = 1;</code>
+     */
+    public int getRejectingPlayerNumber() {
+      return rejectingPlayerNumber_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (rejectingPlayerNumber_ != 0) {
+        output.writeInt32(1, rejectingPlayerNumber_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (rejectingPlayerNumber_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(1, rejectingPlayerNumber_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.TradeRejectOffer)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.TradeRejectOffer other = (soc.proto.GameMessage.TradeRejectOffer) obj;
+
+      boolean result = true;
+      result = result && (getRejectingPlayerNumber()
+          == other.getRejectingPlayerNumber());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + REJECTING_PLAYER_NUMBER_FIELD_NUMBER;
+      hash = (53 * hash) + getRejectingPlayerNumber();
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.TradeRejectOffer parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.TradeRejectOffer parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeRejectOffer parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.TradeRejectOffer parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeRejectOffer parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.TradeRejectOffer parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeRejectOffer parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.TradeRejectOffer parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeRejectOffer parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.TradeRejectOffer parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeRejectOffer parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.TradeRejectOffer parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.TradeRejectOffer prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * A player is rejecting any and all trade offers currently made to them.
+     * &#64;see TradeMakeOffer
+     * &#64;see TradeAcceptOffer
+     * </pre>
+     *
+     * Protobuf type {@code TradeRejectOffer}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:TradeRejectOffer)
+        soc.proto.GameMessage.TradeRejectOfferOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_TradeRejectOffer_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_TradeRejectOffer_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.TradeRejectOffer.class, soc.proto.GameMessage.TradeRejectOffer.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.TradeRejectOffer.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        rejectingPlayerNumber_ = 0;
+
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_TradeRejectOffer_descriptor;
+      }
+
+      public soc.proto.GameMessage.TradeRejectOffer getDefaultInstanceForType() {
+        return soc.proto.GameMessage.TradeRejectOffer.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.TradeRejectOffer build() {
+        soc.proto.GameMessage.TradeRejectOffer result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.TradeRejectOffer buildPartial() {
+        soc.proto.GameMessage.TradeRejectOffer result = new soc.proto.GameMessage.TradeRejectOffer(this);
+        result.rejectingPlayerNumber_ = rejectingPlayerNumber_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.TradeRejectOffer) {
+          return mergeFrom((soc.proto.GameMessage.TradeRejectOffer)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.TradeRejectOffer other) {
+        if (other == soc.proto.GameMessage.TradeRejectOffer.getDefaultInstance()) return this;
+        if (other.getRejectingPlayerNumber() != 0) {
+          setRejectingPlayerNumber(other.getRejectingPlayerNumber());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.TradeRejectOffer parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.TradeRejectOffer) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private int rejectingPlayerNumber_ ;
+      /**
+       * <pre>
+       * Player number who sent this rejection; ignored from client
+       * </pre>
+       *
+       * <code>int32 rejecting_player_number = 1;</code>
+       */
+      public int getRejectingPlayerNumber() {
+        return rejectingPlayerNumber_;
+      }
+      /**
+       * <pre>
+       * Player number who sent this rejection; ignored from client
+       * </pre>
+       *
+       * <code>int32 rejecting_player_number = 1;</code>
+       */
+      public Builder setRejectingPlayerNumber(int value) {
+        
+        rejectingPlayerNumber_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Player number who sent this rejection; ignored from client
+       * </pre>
+       *
+       * <code>int32 rejecting_player_number = 1;</code>
+       */
+      public Builder clearRejectingPlayerNumber() {
+        
+        rejectingPlayerNumber_ = 0;
+        onChanged();
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:TradeRejectOffer)
+    }
+
+    // @@protoc_insertion_point(class_scope:TradeRejectOffer)
+    private static final soc.proto.GameMessage.TradeRejectOffer DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.TradeRejectOffer();
+    }
+
+    public static soc.proto.GameMessage.TradeRejectOffer getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<TradeRejectOffer>
+        PARSER = new com.google.protobuf.AbstractParser<TradeRejectOffer>() {
+      public TradeRejectOffer parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new TradeRejectOffer(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<TradeRejectOffer> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<TradeRejectOffer> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.TradeRejectOffer getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface TradeAcceptOfferOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:TradeAcceptOffer)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * player number offering the trade
+     * </pre>
+     *
+     * <code>int32 offering_player_number = 1;</code>
+     */
+    int getOfferingPlayerNumber();
+
+    /**
+     * <pre>
+     * player number accepting the trade; ignored from client
+     * </pre>
+     *
+     * <code>int32 accepting_player_number = 2;</code>
+     */
+    int getAcceptingPlayerNumber();
+
+    /**
+     * <pre>
+     * offer number from TradeMakeOffer, if not 0, in case of unexpected last-minute new offers
+     * </pre>
+     *
+     * <code>int32 offer_serial = 3;</code>
+     */
+    int getOfferSerial();
+  }
+  /**
+   * <pre>
+   * A player is accepting a trade offer currently made to them.
+   * If sent from client and trade is allowed, server responds with
+   * {&#64;link PlayerElement}s, {&#64;link GameServerText}, {&#64;link TradeClearOffer}s,
+   * then (for robots' benefit) the received TradeAcceptOffer is re-sent to
+   * all clients in the game.
+   * &#64;see TradeMakeOffer
+   * &#64;see TradeRejectOffer
+   * </pre>
+   *
+   * Protobuf type {@code TradeAcceptOffer}
+   */
+  public  static final class TradeAcceptOffer extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:TradeAcceptOffer)
+      TradeAcceptOfferOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use TradeAcceptOffer.newBuilder() to construct.
+    private TradeAcceptOffer(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private TradeAcceptOffer() {
+      offeringPlayerNumber_ = 0;
+      acceptingPlayerNumber_ = 0;
+      offerSerial_ = 0;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private TradeAcceptOffer(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+
+              offeringPlayerNumber_ = input.readInt32();
+              break;
+            }
+            case 16: {
+
+              acceptingPlayerNumber_ = input.readInt32();
+              break;
+            }
+            case 24: {
+
+              offerSerial_ = input.readInt32();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_TradeAcceptOffer_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_TradeAcceptOffer_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.TradeAcceptOffer.class, soc.proto.GameMessage.TradeAcceptOffer.Builder.class);
+    }
+
+    public static final int OFFERING_PLAYER_NUMBER_FIELD_NUMBER = 1;
+    private int offeringPlayerNumber_;
+    /**
+     * <pre>
+     * player number offering the trade
+     * </pre>
+     *
+     * <code>int32 offering_player_number = 1;</code>
+     */
+    public int getOfferingPlayerNumber() {
+      return offeringPlayerNumber_;
+    }
+
+    public static final int ACCEPTING_PLAYER_NUMBER_FIELD_NUMBER = 2;
+    private int acceptingPlayerNumber_;
+    /**
+     * <pre>
+     * player number accepting the trade; ignored from client
+     * </pre>
+     *
+     * <code>int32 accepting_player_number = 2;</code>
+     */
+    public int getAcceptingPlayerNumber() {
+      return acceptingPlayerNumber_;
+    }
+
+    public static final int OFFER_SERIAL_FIELD_NUMBER = 3;
+    private int offerSerial_;
+    /**
+     * <pre>
+     * offer number from TradeMakeOffer, if not 0, in case of unexpected last-minute new offers
+     * </pre>
+     *
+     * <code>int32 offer_serial = 3;</code>
+     */
+    public int getOfferSerial() {
+      return offerSerial_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (offeringPlayerNumber_ != 0) {
+        output.writeInt32(1, offeringPlayerNumber_);
+      }
+      if (acceptingPlayerNumber_ != 0) {
+        output.writeInt32(2, acceptingPlayerNumber_);
+      }
+      if (offerSerial_ != 0) {
+        output.writeInt32(3, offerSerial_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (offeringPlayerNumber_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(1, offeringPlayerNumber_);
+      }
+      if (acceptingPlayerNumber_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(2, acceptingPlayerNumber_);
+      }
+      if (offerSerial_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(3, offerSerial_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.TradeAcceptOffer)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.TradeAcceptOffer other = (soc.proto.GameMessage.TradeAcceptOffer) obj;
+
+      boolean result = true;
+      result = result && (getOfferingPlayerNumber()
+          == other.getOfferingPlayerNumber());
+      result = result && (getAcceptingPlayerNumber()
+          == other.getAcceptingPlayerNumber());
+      result = result && (getOfferSerial()
+          == other.getOfferSerial());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + OFFERING_PLAYER_NUMBER_FIELD_NUMBER;
+      hash = (53 * hash) + getOfferingPlayerNumber();
+      hash = (37 * hash) + ACCEPTING_PLAYER_NUMBER_FIELD_NUMBER;
+      hash = (53 * hash) + getAcceptingPlayerNumber();
+      hash = (37 * hash) + OFFER_SERIAL_FIELD_NUMBER;
+      hash = (53 * hash) + getOfferSerial();
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.TradeAcceptOffer parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.TradeAcceptOffer parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeAcceptOffer parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.TradeAcceptOffer parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeAcceptOffer parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.TradeAcceptOffer parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeAcceptOffer parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.TradeAcceptOffer parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeAcceptOffer parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.TradeAcceptOffer parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.TradeAcceptOffer parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.TradeAcceptOffer parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.TradeAcceptOffer prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * A player is accepting a trade offer currently made to them.
+     * If sent from client and trade is allowed, server responds with
+     * {&#64;link PlayerElement}s, {&#64;link GameServerText}, {&#64;link TradeClearOffer}s,
+     * then (for robots' benefit) the received TradeAcceptOffer is re-sent to
+     * all clients in the game.
+     * &#64;see TradeMakeOffer
+     * &#64;see TradeRejectOffer
+     * </pre>
+     *
+     * Protobuf type {@code TradeAcceptOffer}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:TradeAcceptOffer)
+        soc.proto.GameMessage.TradeAcceptOfferOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_TradeAcceptOffer_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_TradeAcceptOffer_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.TradeAcceptOffer.class, soc.proto.GameMessage.TradeAcceptOffer.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.TradeAcceptOffer.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        offeringPlayerNumber_ = 0;
+
+        acceptingPlayerNumber_ = 0;
+
+        offerSerial_ = 0;
+
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_TradeAcceptOffer_descriptor;
+      }
+
+      public soc.proto.GameMessage.TradeAcceptOffer getDefaultInstanceForType() {
+        return soc.proto.GameMessage.TradeAcceptOffer.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.TradeAcceptOffer build() {
+        soc.proto.GameMessage.TradeAcceptOffer result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.TradeAcceptOffer buildPartial() {
+        soc.proto.GameMessage.TradeAcceptOffer result = new soc.proto.GameMessage.TradeAcceptOffer(this);
+        result.offeringPlayerNumber_ = offeringPlayerNumber_;
+        result.acceptingPlayerNumber_ = acceptingPlayerNumber_;
+        result.offerSerial_ = offerSerial_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.TradeAcceptOffer) {
+          return mergeFrom((soc.proto.GameMessage.TradeAcceptOffer)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.TradeAcceptOffer other) {
+        if (other == soc.proto.GameMessage.TradeAcceptOffer.getDefaultInstance()) return this;
+        if (other.getOfferingPlayerNumber() != 0) {
+          setOfferingPlayerNumber(other.getOfferingPlayerNumber());
+        }
+        if (other.getAcceptingPlayerNumber() != 0) {
+          setAcceptingPlayerNumber(other.getAcceptingPlayerNumber());
+        }
+        if (other.getOfferSerial() != 0) {
+          setOfferSerial(other.getOfferSerial());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.TradeAcceptOffer parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.TradeAcceptOffer) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private int offeringPlayerNumber_ ;
+      /**
+       * <pre>
+       * player number offering the trade
+       * </pre>
+       *
+       * <code>int32 offering_player_number = 1;</code>
+       */
+      public int getOfferingPlayerNumber() {
+        return offeringPlayerNumber_;
+      }
+      /**
+       * <pre>
+       * player number offering the trade
+       * </pre>
+       *
+       * <code>int32 offering_player_number = 1;</code>
+       */
+      public Builder setOfferingPlayerNumber(int value) {
+        
+        offeringPlayerNumber_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * player number offering the trade
+       * </pre>
+       *
+       * <code>int32 offering_player_number = 1;</code>
+       */
+      public Builder clearOfferingPlayerNumber() {
+        
+        offeringPlayerNumber_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int acceptingPlayerNumber_ ;
+      /**
+       * <pre>
+       * player number accepting the trade; ignored from client
+       * </pre>
+       *
+       * <code>int32 accepting_player_number = 2;</code>
+       */
+      public int getAcceptingPlayerNumber() {
+        return acceptingPlayerNumber_;
+      }
+      /**
+       * <pre>
+       * player number accepting the trade; ignored from client
+       * </pre>
+       *
+       * <code>int32 accepting_player_number = 2;</code>
+       */
+      public Builder setAcceptingPlayerNumber(int value) {
+        
+        acceptingPlayerNumber_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * player number accepting the trade; ignored from client
+       * </pre>
+       *
+       * <code>int32 accepting_player_number = 2;</code>
+       */
+      public Builder clearAcceptingPlayerNumber() {
+        
+        acceptingPlayerNumber_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int offerSerial_ ;
+      /**
+       * <pre>
+       * offer number from TradeMakeOffer, if not 0, in case of unexpected last-minute new offers
+       * </pre>
+       *
+       * <code>int32 offer_serial = 3;</code>
+       */
+      public int getOfferSerial() {
+        return offerSerial_;
+      }
+      /**
+       * <pre>
+       * offer number from TradeMakeOffer, if not 0, in case of unexpected last-minute new offers
+       * </pre>
+       *
+       * <code>int32 offer_serial = 3;</code>
+       */
+      public Builder setOfferSerial(int value) {
+        
+        offerSerial_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * offer number from TradeMakeOffer, if not 0, in case of unexpected last-minute new offers
+       * </pre>
+       *
+       * <code>int32 offer_serial = 3;</code>
+       */
+      public Builder clearOfferSerial() {
+        
+        offerSerial_ = 0;
+        onChanged();
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:TradeAcceptOffer)
+    }
+
+    // @@protoc_insertion_point(class_scope:TradeAcceptOffer)
+    private static final soc.proto.GameMessage.TradeAcceptOffer DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.TradeAcceptOffer();
+    }
+
+    public static soc.proto.GameMessage.TradeAcceptOffer getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<TradeAcceptOffer>
+        PARSER = new com.google.protobuf.AbstractParser<TradeAcceptOffer>() {
+      public TradeAcceptOffer parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new TradeAcceptOffer(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<TradeAcceptOffer> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<TradeAcceptOffer> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.TradeAcceptOffer getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface GameMessageFromServerOrBuilder extends
       // @@protoc_insertion_point(interface_extends:GameMessageFromServer)
       com.google.protobuf.MessageOrBuilder {
@@ -16129,6 +21396,114 @@ public final class GameMessage {
      */
     soc.proto.GameMessage.DiceResultResourcesOrBuilder getDiceResultResourcesOrBuilder();
 
+    /**
+     * <pre>
+     * player actions
+     * (simplerequest = 300)
+     * (simpleaction = 301)
+     * </pre>
+     *
+     * <code>.InventoryItemAction inv_item_action = 302;</code>
+     */
+    boolean hasInvItemAction();
+    /**
+     * <pre>
+     * player actions
+     * (simplerequest = 300)
+     * (simpleaction = 301)
+     * </pre>
+     *
+     * <code>.InventoryItemAction inv_item_action = 302;</code>
+     */
+    soc.proto.GameMessage.InventoryItemAction getInvItemAction();
+    /**
+     * <pre>
+     * player actions
+     * (simplerequest = 300)
+     * (simpleaction = 301)
+     * </pre>
+     *
+     * <code>.InventoryItemAction inv_item_action = 302;</code>
+     */
+    soc.proto.GameMessage.InventoryItemActionOrBuilder getInvItemActionOrBuilder();
+
+    /**
+     * <pre>
+     * player actions: trade
+     * </pre>
+     *
+     * <code>.TradeWithBank trade_with_bank = 400;</code>
+     */
+    boolean hasTradeWithBank();
+    /**
+     * <pre>
+     * player actions: trade
+     * </pre>
+     *
+     * <code>.TradeWithBank trade_with_bank = 400;</code>
+     */
+    soc.proto.GameMessage.TradeWithBank getTradeWithBank();
+    /**
+     * <pre>
+     * player actions: trade
+     * </pre>
+     *
+     * <code>.TradeWithBank trade_with_bank = 400;</code>
+     */
+    soc.proto.GameMessage.TradeWithBankOrBuilder getTradeWithBankOrBuilder();
+
+    /**
+     * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+     */
+    boolean hasTradeMakeOffer();
+    /**
+     * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+     */
+    soc.proto.GameMessage.TradeMakeOffer getTradeMakeOffer();
+    /**
+     * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+     */
+    soc.proto.GameMessage.TradeMakeOfferOrBuilder getTradeMakeOfferOrBuilder();
+
+    /**
+     * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+     */
+    boolean hasTradeClearOffer();
+    /**
+     * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+     */
+    soc.proto.GameMessage.TradeClearOffer getTradeClearOffer();
+    /**
+     * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+     */
+    soc.proto.GameMessage.TradeClearOfferOrBuilder getTradeClearOfferOrBuilder();
+
+    /**
+     * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+     */
+    boolean hasTradeRejectOffer();
+    /**
+     * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+     */
+    soc.proto.GameMessage.TradeRejectOffer getTradeRejectOffer();
+    /**
+     * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+     */
+    soc.proto.GameMessage.TradeRejectOfferOrBuilder getTradeRejectOfferOrBuilder();
+
+    /**
+     * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+     */
+    boolean hasTradeAcceptOffer();
+    /**
+     * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+     */
+    soc.proto.GameMessage.TradeAcceptOffer getTradeAcceptOffer();
+    /**
+     * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+     */
+    soc.proto.GameMessage.TradeAcceptOfferOrBuilder getTradeAcceptOfferOrBuilder();
+
     public soc.proto.GameMessage.GameMessageFromServer.MsgCase getMsgCase();
   }
   /**
@@ -16391,6 +21766,90 @@ public final class GameMessage {
               msgCase_ = 104;
               break;
             }
+            case 2418: {
+              soc.proto.GameMessage.InventoryItemAction.Builder subBuilder = null;
+              if (msgCase_ == 302) {
+                subBuilder = ((soc.proto.GameMessage.InventoryItemAction) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.InventoryItemAction.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.InventoryItemAction) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 302;
+              break;
+            }
+            case 3202: {
+              soc.proto.GameMessage.TradeWithBank.Builder subBuilder = null;
+              if (msgCase_ == 400) {
+                subBuilder = ((soc.proto.GameMessage.TradeWithBank) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.TradeWithBank.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.TradeWithBank) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 400;
+              break;
+            }
+            case 3210: {
+              soc.proto.GameMessage.TradeMakeOffer.Builder subBuilder = null;
+              if (msgCase_ == 401) {
+                subBuilder = ((soc.proto.GameMessage.TradeMakeOffer) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.TradeMakeOffer.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.TradeMakeOffer) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 401;
+              break;
+            }
+            case 3218: {
+              soc.proto.GameMessage.TradeClearOffer.Builder subBuilder = null;
+              if (msgCase_ == 402) {
+                subBuilder = ((soc.proto.GameMessage.TradeClearOffer) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.TradeClearOffer.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.TradeClearOffer) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 402;
+              break;
+            }
+            case 3226: {
+              soc.proto.GameMessage.TradeRejectOffer.Builder subBuilder = null;
+              if (msgCase_ == 403) {
+                subBuilder = ((soc.proto.GameMessage.TradeRejectOffer) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.TradeRejectOffer.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.TradeRejectOffer) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 403;
+              break;
+            }
+            case 3234: {
+              soc.proto.GameMessage.TradeAcceptOffer.Builder subBuilder = null;
+              if (msgCase_ == 404) {
+                subBuilder = ((soc.proto.GameMessage.TradeAcceptOffer) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.TradeAcceptOffer.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.TradeAcceptOffer) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 404;
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -16434,6 +21893,12 @@ public final class GameMessage {
       SET_TURN(102),
       DICE_RESULT(103),
       DICE_RESULT_RESOURCES(104),
+      INV_ITEM_ACTION(302),
+      TRADE_WITH_BANK(400),
+      TRADE_MAKE_OFFER(401),
+      TRADE_CLEAR_OFFER(402),
+      TRADE_REJECT_OFFER(403),
+      TRADE_ACCEPT_OFFER(404),
       MSG_NOT_SET(0);
       private final int value;
       private MsgCase(int value) {
@@ -16464,6 +21929,12 @@ public final class GameMessage {
           case 102: return SET_TURN;
           case 103: return DICE_RESULT;
           case 104: return DICE_RESULT_RESOURCES;
+          case 302: return INV_ITEM_ACTION;
+          case 400: return TRADE_WITH_BANK;
+          case 401: return TRADE_MAKE_OFFER;
+          case 402: return TRADE_CLEAR_OFFER;
+          case 403: return TRADE_REJECT_OFFER;
+          case 404: return TRADE_ACCEPT_OFFER;
           case 0: return MSG_NOT_SET;
           default: return null;
         }
@@ -16959,6 +22430,192 @@ public final class GameMessage {
       return soc.proto.GameMessage.DiceResultResources.getDefaultInstance();
     }
 
+    public static final int INV_ITEM_ACTION_FIELD_NUMBER = 302;
+    /**
+     * <pre>
+     * player actions
+     * (simplerequest = 300)
+     * (simpleaction = 301)
+     * </pre>
+     *
+     * <code>.InventoryItemAction inv_item_action = 302;</code>
+     */
+    public boolean hasInvItemAction() {
+      return msgCase_ == 302;
+    }
+    /**
+     * <pre>
+     * player actions
+     * (simplerequest = 300)
+     * (simpleaction = 301)
+     * </pre>
+     *
+     * <code>.InventoryItemAction inv_item_action = 302;</code>
+     */
+    public soc.proto.GameMessage.InventoryItemAction getInvItemAction() {
+      if (msgCase_ == 302) {
+         return (soc.proto.GameMessage.InventoryItemAction) msg_;
+      }
+      return soc.proto.GameMessage.InventoryItemAction.getDefaultInstance();
+    }
+    /**
+     * <pre>
+     * player actions
+     * (simplerequest = 300)
+     * (simpleaction = 301)
+     * </pre>
+     *
+     * <code>.InventoryItemAction inv_item_action = 302;</code>
+     */
+    public soc.proto.GameMessage.InventoryItemActionOrBuilder getInvItemActionOrBuilder() {
+      if (msgCase_ == 302) {
+         return (soc.proto.GameMessage.InventoryItemAction) msg_;
+      }
+      return soc.proto.GameMessage.InventoryItemAction.getDefaultInstance();
+    }
+
+    public static final int TRADE_WITH_BANK_FIELD_NUMBER = 400;
+    /**
+     * <pre>
+     * player actions: trade
+     * </pre>
+     *
+     * <code>.TradeWithBank trade_with_bank = 400;</code>
+     */
+    public boolean hasTradeWithBank() {
+      return msgCase_ == 400;
+    }
+    /**
+     * <pre>
+     * player actions: trade
+     * </pre>
+     *
+     * <code>.TradeWithBank trade_with_bank = 400;</code>
+     */
+    public soc.proto.GameMessage.TradeWithBank getTradeWithBank() {
+      if (msgCase_ == 400) {
+         return (soc.proto.GameMessage.TradeWithBank) msg_;
+      }
+      return soc.proto.GameMessage.TradeWithBank.getDefaultInstance();
+    }
+    /**
+     * <pre>
+     * player actions: trade
+     * </pre>
+     *
+     * <code>.TradeWithBank trade_with_bank = 400;</code>
+     */
+    public soc.proto.GameMessage.TradeWithBankOrBuilder getTradeWithBankOrBuilder() {
+      if (msgCase_ == 400) {
+         return (soc.proto.GameMessage.TradeWithBank) msg_;
+      }
+      return soc.proto.GameMessage.TradeWithBank.getDefaultInstance();
+    }
+
+    public static final int TRADE_MAKE_OFFER_FIELD_NUMBER = 401;
+    /**
+     * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+     */
+    public boolean hasTradeMakeOffer() {
+      return msgCase_ == 401;
+    }
+    /**
+     * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+     */
+    public soc.proto.GameMessage.TradeMakeOffer getTradeMakeOffer() {
+      if (msgCase_ == 401) {
+         return (soc.proto.GameMessage.TradeMakeOffer) msg_;
+      }
+      return soc.proto.GameMessage.TradeMakeOffer.getDefaultInstance();
+    }
+    /**
+     * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+     */
+    public soc.proto.GameMessage.TradeMakeOfferOrBuilder getTradeMakeOfferOrBuilder() {
+      if (msgCase_ == 401) {
+         return (soc.proto.GameMessage.TradeMakeOffer) msg_;
+      }
+      return soc.proto.GameMessage.TradeMakeOffer.getDefaultInstance();
+    }
+
+    public static final int TRADE_CLEAR_OFFER_FIELD_NUMBER = 402;
+    /**
+     * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+     */
+    public boolean hasTradeClearOffer() {
+      return msgCase_ == 402;
+    }
+    /**
+     * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+     */
+    public soc.proto.GameMessage.TradeClearOffer getTradeClearOffer() {
+      if (msgCase_ == 402) {
+         return (soc.proto.GameMessage.TradeClearOffer) msg_;
+      }
+      return soc.proto.GameMessage.TradeClearOffer.getDefaultInstance();
+    }
+    /**
+     * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+     */
+    public soc.proto.GameMessage.TradeClearOfferOrBuilder getTradeClearOfferOrBuilder() {
+      if (msgCase_ == 402) {
+         return (soc.proto.GameMessage.TradeClearOffer) msg_;
+      }
+      return soc.proto.GameMessage.TradeClearOffer.getDefaultInstance();
+    }
+
+    public static final int TRADE_REJECT_OFFER_FIELD_NUMBER = 403;
+    /**
+     * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+     */
+    public boolean hasTradeRejectOffer() {
+      return msgCase_ == 403;
+    }
+    /**
+     * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+     */
+    public soc.proto.GameMessage.TradeRejectOffer getTradeRejectOffer() {
+      if (msgCase_ == 403) {
+         return (soc.proto.GameMessage.TradeRejectOffer) msg_;
+      }
+      return soc.proto.GameMessage.TradeRejectOffer.getDefaultInstance();
+    }
+    /**
+     * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+     */
+    public soc.proto.GameMessage.TradeRejectOfferOrBuilder getTradeRejectOfferOrBuilder() {
+      if (msgCase_ == 403) {
+         return (soc.proto.GameMessage.TradeRejectOffer) msg_;
+      }
+      return soc.proto.GameMessage.TradeRejectOffer.getDefaultInstance();
+    }
+
+    public static final int TRADE_ACCEPT_OFFER_FIELD_NUMBER = 404;
+    /**
+     * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+     */
+    public boolean hasTradeAcceptOffer() {
+      return msgCase_ == 404;
+    }
+    /**
+     * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+     */
+    public soc.proto.GameMessage.TradeAcceptOffer getTradeAcceptOffer() {
+      if (msgCase_ == 404) {
+         return (soc.proto.GameMessage.TradeAcceptOffer) msg_;
+      }
+      return soc.proto.GameMessage.TradeAcceptOffer.getDefaultInstance();
+    }
+    /**
+     * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+     */
+    public soc.proto.GameMessage.TradeAcceptOfferOrBuilder getTradeAcceptOfferOrBuilder() {
+      if (msgCase_ == 404) {
+         return (soc.proto.GameMessage.TradeAcceptOffer) msg_;
+      }
+      return soc.proto.GameMessage.TradeAcceptOffer.getDefaultInstance();
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -17018,6 +22675,24 @@ public final class GameMessage {
       }
       if (msgCase_ == 104) {
         output.writeMessage(104, (soc.proto.GameMessage.DiceResultResources) msg_);
+      }
+      if (msgCase_ == 302) {
+        output.writeMessage(302, (soc.proto.GameMessage.InventoryItemAction) msg_);
+      }
+      if (msgCase_ == 400) {
+        output.writeMessage(400, (soc.proto.GameMessage.TradeWithBank) msg_);
+      }
+      if (msgCase_ == 401) {
+        output.writeMessage(401, (soc.proto.GameMessage.TradeMakeOffer) msg_);
+      }
+      if (msgCase_ == 402) {
+        output.writeMessage(402, (soc.proto.GameMessage.TradeClearOffer) msg_);
+      }
+      if (msgCase_ == 403) {
+        output.writeMessage(403, (soc.proto.GameMessage.TradeRejectOffer) msg_);
+      }
+      if (msgCase_ == 404) {
+        output.writeMessage(404, (soc.proto.GameMessage.TradeAcceptOffer) msg_);
       }
       unknownFields.writeTo(output);
     }
@@ -17089,6 +22764,30 @@ public final class GameMessage {
       if (msgCase_ == 104) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(104, (soc.proto.GameMessage.DiceResultResources) msg_);
+      }
+      if (msgCase_ == 302) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(302, (soc.proto.GameMessage.InventoryItemAction) msg_);
+      }
+      if (msgCase_ == 400) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(400, (soc.proto.GameMessage.TradeWithBank) msg_);
+      }
+      if (msgCase_ == 401) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(401, (soc.proto.GameMessage.TradeMakeOffer) msg_);
+      }
+      if (msgCase_ == 402) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(402, (soc.proto.GameMessage.TradeClearOffer) msg_);
+      }
+      if (msgCase_ == 403) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(403, (soc.proto.GameMessage.TradeRejectOffer) msg_);
+      }
+      if (msgCase_ == 404) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(404, (soc.proto.GameMessage.TradeAcceptOffer) msg_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -17172,6 +22871,30 @@ public final class GameMessage {
           result = result && getDiceResultResources()
               .equals(other.getDiceResultResources());
           break;
+        case 302:
+          result = result && getInvItemAction()
+              .equals(other.getInvItemAction());
+          break;
+        case 400:
+          result = result && getTradeWithBank()
+              .equals(other.getTradeWithBank());
+          break;
+        case 401:
+          result = result && getTradeMakeOffer()
+              .equals(other.getTradeMakeOffer());
+          break;
+        case 402:
+          result = result && getTradeClearOffer()
+              .equals(other.getTradeClearOffer());
+          break;
+        case 403:
+          result = result && getTradeRejectOffer()
+              .equals(other.getTradeRejectOffer());
+          break;
+        case 404:
+          result = result && getTradeAcceptOffer()
+              .equals(other.getTradeAcceptOffer());
+          break;
         case 0:
         default:
       }
@@ -17248,6 +22971,30 @@ public final class GameMessage {
         case 104:
           hash = (37 * hash) + DICE_RESULT_RESOURCES_FIELD_NUMBER;
           hash = (53 * hash) + getDiceResultResources().hashCode();
+          break;
+        case 302:
+          hash = (37 * hash) + INV_ITEM_ACTION_FIELD_NUMBER;
+          hash = (53 * hash) + getInvItemAction().hashCode();
+          break;
+        case 400:
+          hash = (37 * hash) + TRADE_WITH_BANK_FIELD_NUMBER;
+          hash = (53 * hash) + getTradeWithBank().hashCode();
+          break;
+        case 401:
+          hash = (37 * hash) + TRADE_MAKE_OFFER_FIELD_NUMBER;
+          hash = (53 * hash) + getTradeMakeOffer().hashCode();
+          break;
+        case 402:
+          hash = (37 * hash) + TRADE_CLEAR_OFFER_FIELD_NUMBER;
+          hash = (53 * hash) + getTradeClearOffer().hashCode();
+          break;
+        case 403:
+          hash = (37 * hash) + TRADE_REJECT_OFFER_FIELD_NUMBER;
+          hash = (53 * hash) + getTradeRejectOffer().hashCode();
+          break;
+        case 404:
+          hash = (37 * hash) + TRADE_ACCEPT_OFFER_FIELD_NUMBER;
+          hash = (53 * hash) + getTradeAcceptOffer().hashCode();
           break;
         case 0:
         default:
@@ -17513,6 +23260,48 @@ public final class GameMessage {
             result.msg_ = diceResultResourcesBuilder_.build();
           }
         }
+        if (msgCase_ == 302) {
+          if (invItemActionBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = invItemActionBuilder_.build();
+          }
+        }
+        if (msgCase_ == 400) {
+          if (tradeWithBankBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = tradeWithBankBuilder_.build();
+          }
+        }
+        if (msgCase_ == 401) {
+          if (tradeMakeOfferBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = tradeMakeOfferBuilder_.build();
+          }
+        }
+        if (msgCase_ == 402) {
+          if (tradeClearOfferBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = tradeClearOfferBuilder_.build();
+          }
+        }
+        if (msgCase_ == 403) {
+          if (tradeRejectOfferBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = tradeRejectOfferBuilder_.build();
+          }
+        }
+        if (msgCase_ == 404) {
+          if (tradeAcceptOfferBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = tradeAcceptOfferBuilder_.build();
+          }
+        }
         result.msgCase_ = msgCase_;
         onBuilt();
         return result;
@@ -17618,6 +23407,30 @@ public final class GameMessage {
           }
           case DICE_RESULT_RESOURCES: {
             mergeDiceResultResources(other.getDiceResultResources());
+            break;
+          }
+          case INV_ITEM_ACTION: {
+            mergeInvItemAction(other.getInvItemAction());
+            break;
+          }
+          case TRADE_WITH_BANK: {
+            mergeTradeWithBank(other.getTradeWithBank());
+            break;
+          }
+          case TRADE_MAKE_OFFER: {
+            mergeTradeMakeOffer(other.getTradeMakeOffer());
+            break;
+          }
+          case TRADE_CLEAR_OFFER: {
+            mergeTradeClearOffer(other.getTradeClearOffer());
+            break;
+          }
+          case TRADE_REJECT_OFFER: {
+            mergeTradeRejectOffer(other.getTradeRejectOffer());
+            break;
+          }
+          case TRADE_ACCEPT_OFFER: {
+            mergeTradeAcceptOffer(other.getTradeAcceptOffer());
             break;
           }
           case MSG_NOT_SET: {
@@ -19938,6 +25751,912 @@ public final class GameMessage {
         onChanged();;
         return diceResultResourcesBuilder_;
       }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.InventoryItemAction, soc.proto.GameMessage.InventoryItemAction.Builder, soc.proto.GameMessage.InventoryItemActionOrBuilder> invItemActionBuilder_;
+      /**
+       * <pre>
+       * player actions
+       * (simplerequest = 300)
+       * (simpleaction = 301)
+       * </pre>
+       *
+       * <code>.InventoryItemAction inv_item_action = 302;</code>
+       */
+      public boolean hasInvItemAction() {
+        return msgCase_ == 302;
+      }
+      /**
+       * <pre>
+       * player actions
+       * (simplerequest = 300)
+       * (simpleaction = 301)
+       * </pre>
+       *
+       * <code>.InventoryItemAction inv_item_action = 302;</code>
+       */
+      public soc.proto.GameMessage.InventoryItemAction getInvItemAction() {
+        if (invItemActionBuilder_ == null) {
+          if (msgCase_ == 302) {
+            return (soc.proto.GameMessage.InventoryItemAction) msg_;
+          }
+          return soc.proto.GameMessage.InventoryItemAction.getDefaultInstance();
+        } else {
+          if (msgCase_ == 302) {
+            return invItemActionBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.InventoryItemAction.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * player actions
+       * (simplerequest = 300)
+       * (simpleaction = 301)
+       * </pre>
+       *
+       * <code>.InventoryItemAction inv_item_action = 302;</code>
+       */
+      public Builder setInvItemAction(soc.proto.GameMessage.InventoryItemAction value) {
+        if (invItemActionBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          invItemActionBuilder_.setMessage(value);
+        }
+        msgCase_ = 302;
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions
+       * (simplerequest = 300)
+       * (simpleaction = 301)
+       * </pre>
+       *
+       * <code>.InventoryItemAction inv_item_action = 302;</code>
+       */
+      public Builder setInvItemAction(
+          soc.proto.GameMessage.InventoryItemAction.Builder builderForValue) {
+        if (invItemActionBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          invItemActionBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 302;
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions
+       * (simplerequest = 300)
+       * (simpleaction = 301)
+       * </pre>
+       *
+       * <code>.InventoryItemAction inv_item_action = 302;</code>
+       */
+      public Builder mergeInvItemAction(soc.proto.GameMessage.InventoryItemAction value) {
+        if (invItemActionBuilder_ == null) {
+          if (msgCase_ == 302 &&
+              msg_ != soc.proto.GameMessage.InventoryItemAction.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.InventoryItemAction.newBuilder((soc.proto.GameMessage.InventoryItemAction) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 302) {
+            invItemActionBuilder_.mergeFrom(value);
+          }
+          invItemActionBuilder_.setMessage(value);
+        }
+        msgCase_ = 302;
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions
+       * (simplerequest = 300)
+       * (simpleaction = 301)
+       * </pre>
+       *
+       * <code>.InventoryItemAction inv_item_action = 302;</code>
+       */
+      public Builder clearInvItemAction() {
+        if (invItemActionBuilder_ == null) {
+          if (msgCase_ == 302) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 302) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          invItemActionBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions
+       * (simplerequest = 300)
+       * (simpleaction = 301)
+       * </pre>
+       *
+       * <code>.InventoryItemAction inv_item_action = 302;</code>
+       */
+      public soc.proto.GameMessage.InventoryItemAction.Builder getInvItemActionBuilder() {
+        return getInvItemActionFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * player actions
+       * (simplerequest = 300)
+       * (simpleaction = 301)
+       * </pre>
+       *
+       * <code>.InventoryItemAction inv_item_action = 302;</code>
+       */
+      public soc.proto.GameMessage.InventoryItemActionOrBuilder getInvItemActionOrBuilder() {
+        if ((msgCase_ == 302) && (invItemActionBuilder_ != null)) {
+          return invItemActionBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 302) {
+            return (soc.proto.GameMessage.InventoryItemAction) msg_;
+          }
+          return soc.proto.GameMessage.InventoryItemAction.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * player actions
+       * (simplerequest = 300)
+       * (simpleaction = 301)
+       * </pre>
+       *
+       * <code>.InventoryItemAction inv_item_action = 302;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.InventoryItemAction, soc.proto.GameMessage.InventoryItemAction.Builder, soc.proto.GameMessage.InventoryItemActionOrBuilder> 
+          getInvItemActionFieldBuilder() {
+        if (invItemActionBuilder_ == null) {
+          if (!(msgCase_ == 302)) {
+            msg_ = soc.proto.GameMessage.InventoryItemAction.getDefaultInstance();
+          }
+          invItemActionBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.InventoryItemAction, soc.proto.GameMessage.InventoryItemAction.Builder, soc.proto.GameMessage.InventoryItemActionOrBuilder>(
+                  (soc.proto.GameMessage.InventoryItemAction) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 302;
+        onChanged();;
+        return invItemActionBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.TradeWithBank, soc.proto.GameMessage.TradeWithBank.Builder, soc.proto.GameMessage.TradeWithBankOrBuilder> tradeWithBankBuilder_;
+      /**
+       * <pre>
+       * player actions: trade
+       * </pre>
+       *
+       * <code>.TradeWithBank trade_with_bank = 400;</code>
+       */
+      public boolean hasTradeWithBank() {
+        return msgCase_ == 400;
+      }
+      /**
+       * <pre>
+       * player actions: trade
+       * </pre>
+       *
+       * <code>.TradeWithBank trade_with_bank = 400;</code>
+       */
+      public soc.proto.GameMessage.TradeWithBank getTradeWithBank() {
+        if (tradeWithBankBuilder_ == null) {
+          if (msgCase_ == 400) {
+            return (soc.proto.GameMessage.TradeWithBank) msg_;
+          }
+          return soc.proto.GameMessage.TradeWithBank.getDefaultInstance();
+        } else {
+          if (msgCase_ == 400) {
+            return tradeWithBankBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.TradeWithBank.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * player actions: trade
+       * </pre>
+       *
+       * <code>.TradeWithBank trade_with_bank = 400;</code>
+       */
+      public Builder setTradeWithBank(soc.proto.GameMessage.TradeWithBank value) {
+        if (tradeWithBankBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          tradeWithBankBuilder_.setMessage(value);
+        }
+        msgCase_ = 400;
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions: trade
+       * </pre>
+       *
+       * <code>.TradeWithBank trade_with_bank = 400;</code>
+       */
+      public Builder setTradeWithBank(
+          soc.proto.GameMessage.TradeWithBank.Builder builderForValue) {
+        if (tradeWithBankBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          tradeWithBankBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 400;
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions: trade
+       * </pre>
+       *
+       * <code>.TradeWithBank trade_with_bank = 400;</code>
+       */
+      public Builder mergeTradeWithBank(soc.proto.GameMessage.TradeWithBank value) {
+        if (tradeWithBankBuilder_ == null) {
+          if (msgCase_ == 400 &&
+              msg_ != soc.proto.GameMessage.TradeWithBank.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.TradeWithBank.newBuilder((soc.proto.GameMessage.TradeWithBank) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 400) {
+            tradeWithBankBuilder_.mergeFrom(value);
+          }
+          tradeWithBankBuilder_.setMessage(value);
+        }
+        msgCase_ = 400;
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions: trade
+       * </pre>
+       *
+       * <code>.TradeWithBank trade_with_bank = 400;</code>
+       */
+      public Builder clearTradeWithBank() {
+        if (tradeWithBankBuilder_ == null) {
+          if (msgCase_ == 400) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 400) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          tradeWithBankBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions: trade
+       * </pre>
+       *
+       * <code>.TradeWithBank trade_with_bank = 400;</code>
+       */
+      public soc.proto.GameMessage.TradeWithBank.Builder getTradeWithBankBuilder() {
+        return getTradeWithBankFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * player actions: trade
+       * </pre>
+       *
+       * <code>.TradeWithBank trade_with_bank = 400;</code>
+       */
+      public soc.proto.GameMessage.TradeWithBankOrBuilder getTradeWithBankOrBuilder() {
+        if ((msgCase_ == 400) && (tradeWithBankBuilder_ != null)) {
+          return tradeWithBankBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 400) {
+            return (soc.proto.GameMessage.TradeWithBank) msg_;
+          }
+          return soc.proto.GameMessage.TradeWithBank.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * player actions: trade
+       * </pre>
+       *
+       * <code>.TradeWithBank trade_with_bank = 400;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.TradeWithBank, soc.proto.GameMessage.TradeWithBank.Builder, soc.proto.GameMessage.TradeWithBankOrBuilder> 
+          getTradeWithBankFieldBuilder() {
+        if (tradeWithBankBuilder_ == null) {
+          if (!(msgCase_ == 400)) {
+            msg_ = soc.proto.GameMessage.TradeWithBank.getDefaultInstance();
+          }
+          tradeWithBankBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.TradeWithBank, soc.proto.GameMessage.TradeWithBank.Builder, soc.proto.GameMessage.TradeWithBankOrBuilder>(
+                  (soc.proto.GameMessage.TradeWithBank) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 400;
+        onChanged();;
+        return tradeWithBankBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.TradeMakeOffer, soc.proto.GameMessage.TradeMakeOffer.Builder, soc.proto.GameMessage.TradeMakeOfferOrBuilder> tradeMakeOfferBuilder_;
+      /**
+       * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+       */
+      public boolean hasTradeMakeOffer() {
+        return msgCase_ == 401;
+      }
+      /**
+       * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+       */
+      public soc.proto.GameMessage.TradeMakeOffer getTradeMakeOffer() {
+        if (tradeMakeOfferBuilder_ == null) {
+          if (msgCase_ == 401) {
+            return (soc.proto.GameMessage.TradeMakeOffer) msg_;
+          }
+          return soc.proto.GameMessage.TradeMakeOffer.getDefaultInstance();
+        } else {
+          if (msgCase_ == 401) {
+            return tradeMakeOfferBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.TradeMakeOffer.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+       */
+      public Builder setTradeMakeOffer(soc.proto.GameMessage.TradeMakeOffer value) {
+        if (tradeMakeOfferBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          tradeMakeOfferBuilder_.setMessage(value);
+        }
+        msgCase_ = 401;
+        return this;
+      }
+      /**
+       * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+       */
+      public Builder setTradeMakeOffer(
+          soc.proto.GameMessage.TradeMakeOffer.Builder builderForValue) {
+        if (tradeMakeOfferBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          tradeMakeOfferBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 401;
+        return this;
+      }
+      /**
+       * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+       */
+      public Builder mergeTradeMakeOffer(soc.proto.GameMessage.TradeMakeOffer value) {
+        if (tradeMakeOfferBuilder_ == null) {
+          if (msgCase_ == 401 &&
+              msg_ != soc.proto.GameMessage.TradeMakeOffer.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.TradeMakeOffer.newBuilder((soc.proto.GameMessage.TradeMakeOffer) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 401) {
+            tradeMakeOfferBuilder_.mergeFrom(value);
+          }
+          tradeMakeOfferBuilder_.setMessage(value);
+        }
+        msgCase_ = 401;
+        return this;
+      }
+      /**
+       * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+       */
+      public Builder clearTradeMakeOffer() {
+        if (tradeMakeOfferBuilder_ == null) {
+          if (msgCase_ == 401) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 401) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          tradeMakeOfferBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+       */
+      public soc.proto.GameMessage.TradeMakeOffer.Builder getTradeMakeOfferBuilder() {
+        return getTradeMakeOfferFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+       */
+      public soc.proto.GameMessage.TradeMakeOfferOrBuilder getTradeMakeOfferOrBuilder() {
+        if ((msgCase_ == 401) && (tradeMakeOfferBuilder_ != null)) {
+          return tradeMakeOfferBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 401) {
+            return (soc.proto.GameMessage.TradeMakeOffer) msg_;
+          }
+          return soc.proto.GameMessage.TradeMakeOffer.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.TradeMakeOffer, soc.proto.GameMessage.TradeMakeOffer.Builder, soc.proto.GameMessage.TradeMakeOfferOrBuilder> 
+          getTradeMakeOfferFieldBuilder() {
+        if (tradeMakeOfferBuilder_ == null) {
+          if (!(msgCase_ == 401)) {
+            msg_ = soc.proto.GameMessage.TradeMakeOffer.getDefaultInstance();
+          }
+          tradeMakeOfferBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.TradeMakeOffer, soc.proto.GameMessage.TradeMakeOffer.Builder, soc.proto.GameMessage.TradeMakeOfferOrBuilder>(
+                  (soc.proto.GameMessage.TradeMakeOffer) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 401;
+        onChanged();;
+        return tradeMakeOfferBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.TradeClearOffer, soc.proto.GameMessage.TradeClearOffer.Builder, soc.proto.GameMessage.TradeClearOfferOrBuilder> tradeClearOfferBuilder_;
+      /**
+       * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+       */
+      public boolean hasTradeClearOffer() {
+        return msgCase_ == 402;
+      }
+      /**
+       * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+       */
+      public soc.proto.GameMessage.TradeClearOffer getTradeClearOffer() {
+        if (tradeClearOfferBuilder_ == null) {
+          if (msgCase_ == 402) {
+            return (soc.proto.GameMessage.TradeClearOffer) msg_;
+          }
+          return soc.proto.GameMessage.TradeClearOffer.getDefaultInstance();
+        } else {
+          if (msgCase_ == 402) {
+            return tradeClearOfferBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.TradeClearOffer.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+       */
+      public Builder setTradeClearOffer(soc.proto.GameMessage.TradeClearOffer value) {
+        if (tradeClearOfferBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          tradeClearOfferBuilder_.setMessage(value);
+        }
+        msgCase_ = 402;
+        return this;
+      }
+      /**
+       * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+       */
+      public Builder setTradeClearOffer(
+          soc.proto.GameMessage.TradeClearOffer.Builder builderForValue) {
+        if (tradeClearOfferBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          tradeClearOfferBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 402;
+        return this;
+      }
+      /**
+       * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+       */
+      public Builder mergeTradeClearOffer(soc.proto.GameMessage.TradeClearOffer value) {
+        if (tradeClearOfferBuilder_ == null) {
+          if (msgCase_ == 402 &&
+              msg_ != soc.proto.GameMessage.TradeClearOffer.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.TradeClearOffer.newBuilder((soc.proto.GameMessage.TradeClearOffer) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 402) {
+            tradeClearOfferBuilder_.mergeFrom(value);
+          }
+          tradeClearOfferBuilder_.setMessage(value);
+        }
+        msgCase_ = 402;
+        return this;
+      }
+      /**
+       * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+       */
+      public Builder clearTradeClearOffer() {
+        if (tradeClearOfferBuilder_ == null) {
+          if (msgCase_ == 402) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 402) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          tradeClearOfferBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+       */
+      public soc.proto.GameMessage.TradeClearOffer.Builder getTradeClearOfferBuilder() {
+        return getTradeClearOfferFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+       */
+      public soc.proto.GameMessage.TradeClearOfferOrBuilder getTradeClearOfferOrBuilder() {
+        if ((msgCase_ == 402) && (tradeClearOfferBuilder_ != null)) {
+          return tradeClearOfferBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 402) {
+            return (soc.proto.GameMessage.TradeClearOffer) msg_;
+          }
+          return soc.proto.GameMessage.TradeClearOffer.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.TradeClearOffer, soc.proto.GameMessage.TradeClearOffer.Builder, soc.proto.GameMessage.TradeClearOfferOrBuilder> 
+          getTradeClearOfferFieldBuilder() {
+        if (tradeClearOfferBuilder_ == null) {
+          if (!(msgCase_ == 402)) {
+            msg_ = soc.proto.GameMessage.TradeClearOffer.getDefaultInstance();
+          }
+          tradeClearOfferBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.TradeClearOffer, soc.proto.GameMessage.TradeClearOffer.Builder, soc.proto.GameMessage.TradeClearOfferOrBuilder>(
+                  (soc.proto.GameMessage.TradeClearOffer) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 402;
+        onChanged();;
+        return tradeClearOfferBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.TradeRejectOffer, soc.proto.GameMessage.TradeRejectOffer.Builder, soc.proto.GameMessage.TradeRejectOfferOrBuilder> tradeRejectOfferBuilder_;
+      /**
+       * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+       */
+      public boolean hasTradeRejectOffer() {
+        return msgCase_ == 403;
+      }
+      /**
+       * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+       */
+      public soc.proto.GameMessage.TradeRejectOffer getTradeRejectOffer() {
+        if (tradeRejectOfferBuilder_ == null) {
+          if (msgCase_ == 403) {
+            return (soc.proto.GameMessage.TradeRejectOffer) msg_;
+          }
+          return soc.proto.GameMessage.TradeRejectOffer.getDefaultInstance();
+        } else {
+          if (msgCase_ == 403) {
+            return tradeRejectOfferBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.TradeRejectOffer.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+       */
+      public Builder setTradeRejectOffer(soc.proto.GameMessage.TradeRejectOffer value) {
+        if (tradeRejectOfferBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          tradeRejectOfferBuilder_.setMessage(value);
+        }
+        msgCase_ = 403;
+        return this;
+      }
+      /**
+       * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+       */
+      public Builder setTradeRejectOffer(
+          soc.proto.GameMessage.TradeRejectOffer.Builder builderForValue) {
+        if (tradeRejectOfferBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          tradeRejectOfferBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 403;
+        return this;
+      }
+      /**
+       * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+       */
+      public Builder mergeTradeRejectOffer(soc.proto.GameMessage.TradeRejectOffer value) {
+        if (tradeRejectOfferBuilder_ == null) {
+          if (msgCase_ == 403 &&
+              msg_ != soc.proto.GameMessage.TradeRejectOffer.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.TradeRejectOffer.newBuilder((soc.proto.GameMessage.TradeRejectOffer) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 403) {
+            tradeRejectOfferBuilder_.mergeFrom(value);
+          }
+          tradeRejectOfferBuilder_.setMessage(value);
+        }
+        msgCase_ = 403;
+        return this;
+      }
+      /**
+       * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+       */
+      public Builder clearTradeRejectOffer() {
+        if (tradeRejectOfferBuilder_ == null) {
+          if (msgCase_ == 403) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 403) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          tradeRejectOfferBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+       */
+      public soc.proto.GameMessage.TradeRejectOffer.Builder getTradeRejectOfferBuilder() {
+        return getTradeRejectOfferFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+       */
+      public soc.proto.GameMessage.TradeRejectOfferOrBuilder getTradeRejectOfferOrBuilder() {
+        if ((msgCase_ == 403) && (tradeRejectOfferBuilder_ != null)) {
+          return tradeRejectOfferBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 403) {
+            return (soc.proto.GameMessage.TradeRejectOffer) msg_;
+          }
+          return soc.proto.GameMessage.TradeRejectOffer.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.TradeRejectOffer, soc.proto.GameMessage.TradeRejectOffer.Builder, soc.proto.GameMessage.TradeRejectOfferOrBuilder> 
+          getTradeRejectOfferFieldBuilder() {
+        if (tradeRejectOfferBuilder_ == null) {
+          if (!(msgCase_ == 403)) {
+            msg_ = soc.proto.GameMessage.TradeRejectOffer.getDefaultInstance();
+          }
+          tradeRejectOfferBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.TradeRejectOffer, soc.proto.GameMessage.TradeRejectOffer.Builder, soc.proto.GameMessage.TradeRejectOfferOrBuilder>(
+                  (soc.proto.GameMessage.TradeRejectOffer) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 403;
+        onChanged();;
+        return tradeRejectOfferBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.TradeAcceptOffer, soc.proto.GameMessage.TradeAcceptOffer.Builder, soc.proto.GameMessage.TradeAcceptOfferOrBuilder> tradeAcceptOfferBuilder_;
+      /**
+       * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+       */
+      public boolean hasTradeAcceptOffer() {
+        return msgCase_ == 404;
+      }
+      /**
+       * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+       */
+      public soc.proto.GameMessage.TradeAcceptOffer getTradeAcceptOffer() {
+        if (tradeAcceptOfferBuilder_ == null) {
+          if (msgCase_ == 404) {
+            return (soc.proto.GameMessage.TradeAcceptOffer) msg_;
+          }
+          return soc.proto.GameMessage.TradeAcceptOffer.getDefaultInstance();
+        } else {
+          if (msgCase_ == 404) {
+            return tradeAcceptOfferBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.TradeAcceptOffer.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+       */
+      public Builder setTradeAcceptOffer(soc.proto.GameMessage.TradeAcceptOffer value) {
+        if (tradeAcceptOfferBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          tradeAcceptOfferBuilder_.setMessage(value);
+        }
+        msgCase_ = 404;
+        return this;
+      }
+      /**
+       * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+       */
+      public Builder setTradeAcceptOffer(
+          soc.proto.GameMessage.TradeAcceptOffer.Builder builderForValue) {
+        if (tradeAcceptOfferBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          tradeAcceptOfferBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 404;
+        return this;
+      }
+      /**
+       * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+       */
+      public Builder mergeTradeAcceptOffer(soc.proto.GameMessage.TradeAcceptOffer value) {
+        if (tradeAcceptOfferBuilder_ == null) {
+          if (msgCase_ == 404 &&
+              msg_ != soc.proto.GameMessage.TradeAcceptOffer.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.TradeAcceptOffer.newBuilder((soc.proto.GameMessage.TradeAcceptOffer) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 404) {
+            tradeAcceptOfferBuilder_.mergeFrom(value);
+          }
+          tradeAcceptOfferBuilder_.setMessage(value);
+        }
+        msgCase_ = 404;
+        return this;
+      }
+      /**
+       * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+       */
+      public Builder clearTradeAcceptOffer() {
+        if (tradeAcceptOfferBuilder_ == null) {
+          if (msgCase_ == 404) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 404) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          tradeAcceptOfferBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+       */
+      public soc.proto.GameMessage.TradeAcceptOffer.Builder getTradeAcceptOfferBuilder() {
+        return getTradeAcceptOfferFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+       */
+      public soc.proto.GameMessage.TradeAcceptOfferOrBuilder getTradeAcceptOfferOrBuilder() {
+        if ((msgCase_ == 404) && (tradeAcceptOfferBuilder_ != null)) {
+          return tradeAcceptOfferBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 404) {
+            return (soc.proto.GameMessage.TradeAcceptOffer) msg_;
+          }
+          return soc.proto.GameMessage.TradeAcceptOffer.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.TradeAcceptOffer, soc.proto.GameMessage.TradeAcceptOffer.Builder, soc.proto.GameMessage.TradeAcceptOfferOrBuilder> 
+          getTradeAcceptOfferFieldBuilder() {
+        if (tradeAcceptOfferBuilder_ == null) {
+          if (!(msgCase_ == 404)) {
+            msg_ = soc.proto.GameMessage.TradeAcceptOffer.getDefaultInstance();
+          }
+          tradeAcceptOfferBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.TradeAcceptOffer, soc.proto.GameMessage.TradeAcceptOffer.Builder, soc.proto.GameMessage.TradeAcceptOfferOrBuilder>(
+                  (soc.proto.GameMessage.TradeAcceptOffer) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 404;
+        onChanged();;
+        return tradeAcceptOfferBuilder_;
+      }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFieldsProto3(unknownFields);
@@ -20047,6 +26766,160 @@ public final class GameMessage {
      */
     soc.proto.GameMessage.EndTurnOrBuilder getEndTurnOrBuilder();
 
+    /**
+     * <pre>
+     * player actions: buy/build/play pieces and items
+     * </pre>
+     *
+     * <code>.PutPiece put_piece = 200;</code>
+     */
+    boolean hasPutPiece();
+    /**
+     * <pre>
+     * player actions: buy/build/play pieces and items
+     * </pre>
+     *
+     * <code>.PutPiece put_piece = 200;</code>
+     */
+    soc.proto.GameMessage.PutPiece getPutPiece();
+    /**
+     * <pre>
+     * player actions: buy/build/play pieces and items
+     * </pre>
+     *
+     * <code>.PutPiece put_piece = 200;</code>
+     */
+    soc.proto.GameMessage.PutPieceOrBuilder getPutPieceOrBuilder();
+
+    /**
+     * <code>.CancelBuild cancel_build = 201;</code>
+     */
+    boolean hasCancelBuild();
+    /**
+     * <code>.CancelBuild cancel_build = 201;</code>
+     */
+    soc.proto.GameMessage.CancelBuild getCancelBuild();
+    /**
+     * <code>.CancelBuild cancel_build = 201;</code>
+     */
+    soc.proto.GameMessage.CancelBuildOrBuilder getCancelBuildOrBuilder();
+
+    /**
+     * <code>.MovePiece move_piece = 202;</code>
+     */
+    boolean hasMovePiece();
+    /**
+     * <code>.MovePiece move_piece = 202;</code>
+     */
+    soc.proto.GameMessage.MovePiece getMovePiece();
+    /**
+     * <code>.MovePiece move_piece = 202;</code>
+     */
+    soc.proto.GameMessage.MovePieceOrBuilder getMovePieceOrBuilder();
+
+    /**
+     * <code>.BuyInventoryItemRequest buy_inv_item = 203;</code>
+     */
+    boolean hasBuyInvItem();
+    /**
+     * <code>.BuyInventoryItemRequest buy_inv_item = 203;</code>
+     */
+    soc.proto.GameMessage.BuyInventoryItemRequest getBuyInvItem();
+    /**
+     * <code>.BuyInventoryItemRequest buy_inv_item = 203;</code>
+     */
+    soc.proto.GameMessage.BuyInventoryItemRequestOrBuilder getBuyInvItemOrBuilder();
+
+    /**
+     * <code>.InventoryItemAction inv_item_action = 204;</code>
+     */
+    boolean hasInvItemAction();
+    /**
+     * <code>.InventoryItemAction inv_item_action = 204;</code>
+     */
+    soc.proto.GameMessage.InventoryItemAction getInvItemAction();
+    /**
+     * <code>.InventoryItemAction inv_item_action = 204;</code>
+     */
+    soc.proto.GameMessage.InventoryItemActionOrBuilder getInvItemActionOrBuilder();
+
+    /**
+     * <pre>
+     * player actions: trade
+     * </pre>
+     *
+     * <code>.TradeWithBank trade_with_bank = 400;</code>
+     */
+    boolean hasTradeWithBank();
+    /**
+     * <pre>
+     * player actions: trade
+     * </pre>
+     *
+     * <code>.TradeWithBank trade_with_bank = 400;</code>
+     */
+    soc.proto.GameMessage.TradeWithBank getTradeWithBank();
+    /**
+     * <pre>
+     * player actions: trade
+     * </pre>
+     *
+     * <code>.TradeWithBank trade_with_bank = 400;</code>
+     */
+    soc.proto.GameMessage.TradeWithBankOrBuilder getTradeWithBankOrBuilder();
+
+    /**
+     * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+     */
+    boolean hasTradeMakeOffer();
+    /**
+     * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+     */
+    soc.proto.GameMessage.TradeMakeOffer getTradeMakeOffer();
+    /**
+     * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+     */
+    soc.proto.GameMessage.TradeMakeOfferOrBuilder getTradeMakeOfferOrBuilder();
+
+    /**
+     * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+     */
+    boolean hasTradeClearOffer();
+    /**
+     * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+     */
+    soc.proto.GameMessage.TradeClearOffer getTradeClearOffer();
+    /**
+     * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+     */
+    soc.proto.GameMessage.TradeClearOfferOrBuilder getTradeClearOfferOrBuilder();
+
+    /**
+     * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+     */
+    boolean hasTradeRejectOffer();
+    /**
+     * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+     */
+    soc.proto.GameMessage.TradeRejectOffer getTradeRejectOffer();
+    /**
+     * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+     */
+    soc.proto.GameMessage.TradeRejectOfferOrBuilder getTradeRejectOfferOrBuilder();
+
+    /**
+     * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+     */
+    boolean hasTradeAcceptOffer();
+    /**
+     * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+     */
+    soc.proto.GameMessage.TradeAcceptOffer getTradeAcceptOffer();
+    /**
+     * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+     */
+    soc.proto.GameMessage.TradeAcceptOfferOrBuilder getTradeAcceptOfferOrBuilder();
+
     public soc.proto.GameMessage.GameMessageFromClient.MsgCase getMsgCase();
   }
   /**
@@ -20127,6 +27000,146 @@ public final class GameMessage {
               msgCase_ = 101;
               break;
             }
+            case 1602: {
+              soc.proto.GameMessage.PutPiece.Builder subBuilder = null;
+              if (msgCase_ == 200) {
+                subBuilder = ((soc.proto.GameMessage.PutPiece) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.PutPiece.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.PutPiece) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 200;
+              break;
+            }
+            case 1610: {
+              soc.proto.GameMessage.CancelBuild.Builder subBuilder = null;
+              if (msgCase_ == 201) {
+                subBuilder = ((soc.proto.GameMessage.CancelBuild) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.CancelBuild.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.CancelBuild) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 201;
+              break;
+            }
+            case 1618: {
+              soc.proto.GameMessage.MovePiece.Builder subBuilder = null;
+              if (msgCase_ == 202) {
+                subBuilder = ((soc.proto.GameMessage.MovePiece) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.MovePiece.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.MovePiece) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 202;
+              break;
+            }
+            case 1626: {
+              soc.proto.GameMessage.BuyInventoryItemRequest.Builder subBuilder = null;
+              if (msgCase_ == 203) {
+                subBuilder = ((soc.proto.GameMessage.BuyInventoryItemRequest) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.BuyInventoryItemRequest.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.BuyInventoryItemRequest) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 203;
+              break;
+            }
+            case 1634: {
+              soc.proto.GameMessage.InventoryItemAction.Builder subBuilder = null;
+              if (msgCase_ == 204) {
+                subBuilder = ((soc.proto.GameMessage.InventoryItemAction) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.InventoryItemAction.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.InventoryItemAction) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 204;
+              break;
+            }
+            case 3202: {
+              soc.proto.GameMessage.TradeWithBank.Builder subBuilder = null;
+              if (msgCase_ == 400) {
+                subBuilder = ((soc.proto.GameMessage.TradeWithBank) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.TradeWithBank.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.TradeWithBank) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 400;
+              break;
+            }
+            case 3210: {
+              soc.proto.GameMessage.TradeMakeOffer.Builder subBuilder = null;
+              if (msgCase_ == 401) {
+                subBuilder = ((soc.proto.GameMessage.TradeMakeOffer) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.TradeMakeOffer.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.TradeMakeOffer) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 401;
+              break;
+            }
+            case 3218: {
+              soc.proto.GameMessage.TradeClearOffer.Builder subBuilder = null;
+              if (msgCase_ == 402) {
+                subBuilder = ((soc.proto.GameMessage.TradeClearOffer) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.TradeClearOffer.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.TradeClearOffer) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 402;
+              break;
+            }
+            case 3226: {
+              soc.proto.GameMessage.TradeRejectOffer.Builder subBuilder = null;
+              if (msgCase_ == 403) {
+                subBuilder = ((soc.proto.GameMessage.TradeRejectOffer) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.TradeRejectOffer.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.TradeRejectOffer) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 403;
+              break;
+            }
+            case 3234: {
+              soc.proto.GameMessage.TradeAcceptOffer.Builder subBuilder = null;
+              if (msgCase_ == 404) {
+                subBuilder = ((soc.proto.GameMessage.TradeAcceptOffer) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.TradeAcceptOffer.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.TradeAcceptOffer) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 404;
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -20157,6 +27170,16 @@ public final class GameMessage {
         implements com.google.protobuf.Internal.EnumLite {
       START_GAME(100),
       END_TURN(101),
+      PUT_PIECE(200),
+      CANCEL_BUILD(201),
+      MOVE_PIECE(202),
+      BUY_INV_ITEM(203),
+      INV_ITEM_ACTION(204),
+      TRADE_WITH_BANK(400),
+      TRADE_MAKE_OFFER(401),
+      TRADE_CLEAR_OFFER(402),
+      TRADE_REJECT_OFFER(403),
+      TRADE_ACCEPT_OFFER(404),
       MSG_NOT_SET(0);
       private final int value;
       private MsgCase(int value) {
@@ -20174,6 +27197,16 @@ public final class GameMessage {
         switch (value) {
           case 100: return START_GAME;
           case 101: return END_TURN;
+          case 200: return PUT_PIECE;
+          case 201: return CANCEL_BUILD;
+          case 202: return MOVE_PIECE;
+          case 203: return BUY_INV_ITEM;
+          case 204: return INV_ITEM_ACTION;
+          case 400: return TRADE_WITH_BANK;
+          case 401: return TRADE_MAKE_OFFER;
+          case 402: return TRADE_CLEAR_OFFER;
+          case 403: return TRADE_REJECT_OFFER;
+          case 404: return TRADE_ACCEPT_OFFER;
           case 0: return MSG_NOT_SET;
           default: return null;
         }
@@ -20295,6 +27328,290 @@ public final class GameMessage {
       return soc.proto.GameMessage.EndTurn.getDefaultInstance();
     }
 
+    public static final int PUT_PIECE_FIELD_NUMBER = 200;
+    /**
+     * <pre>
+     * player actions: buy/build/play pieces and items
+     * </pre>
+     *
+     * <code>.PutPiece put_piece = 200;</code>
+     */
+    public boolean hasPutPiece() {
+      return msgCase_ == 200;
+    }
+    /**
+     * <pre>
+     * player actions: buy/build/play pieces and items
+     * </pre>
+     *
+     * <code>.PutPiece put_piece = 200;</code>
+     */
+    public soc.proto.GameMessage.PutPiece getPutPiece() {
+      if (msgCase_ == 200) {
+         return (soc.proto.GameMessage.PutPiece) msg_;
+      }
+      return soc.proto.GameMessage.PutPiece.getDefaultInstance();
+    }
+    /**
+     * <pre>
+     * player actions: buy/build/play pieces and items
+     * </pre>
+     *
+     * <code>.PutPiece put_piece = 200;</code>
+     */
+    public soc.proto.GameMessage.PutPieceOrBuilder getPutPieceOrBuilder() {
+      if (msgCase_ == 200) {
+         return (soc.proto.GameMessage.PutPiece) msg_;
+      }
+      return soc.proto.GameMessage.PutPiece.getDefaultInstance();
+    }
+
+    public static final int CANCEL_BUILD_FIELD_NUMBER = 201;
+    /**
+     * <code>.CancelBuild cancel_build = 201;</code>
+     */
+    public boolean hasCancelBuild() {
+      return msgCase_ == 201;
+    }
+    /**
+     * <code>.CancelBuild cancel_build = 201;</code>
+     */
+    public soc.proto.GameMessage.CancelBuild getCancelBuild() {
+      if (msgCase_ == 201) {
+         return (soc.proto.GameMessage.CancelBuild) msg_;
+      }
+      return soc.proto.GameMessage.CancelBuild.getDefaultInstance();
+    }
+    /**
+     * <code>.CancelBuild cancel_build = 201;</code>
+     */
+    public soc.proto.GameMessage.CancelBuildOrBuilder getCancelBuildOrBuilder() {
+      if (msgCase_ == 201) {
+         return (soc.proto.GameMessage.CancelBuild) msg_;
+      }
+      return soc.proto.GameMessage.CancelBuild.getDefaultInstance();
+    }
+
+    public static final int MOVE_PIECE_FIELD_NUMBER = 202;
+    /**
+     * <code>.MovePiece move_piece = 202;</code>
+     */
+    public boolean hasMovePiece() {
+      return msgCase_ == 202;
+    }
+    /**
+     * <code>.MovePiece move_piece = 202;</code>
+     */
+    public soc.proto.GameMessage.MovePiece getMovePiece() {
+      if (msgCase_ == 202) {
+         return (soc.proto.GameMessage.MovePiece) msg_;
+      }
+      return soc.proto.GameMessage.MovePiece.getDefaultInstance();
+    }
+    /**
+     * <code>.MovePiece move_piece = 202;</code>
+     */
+    public soc.proto.GameMessage.MovePieceOrBuilder getMovePieceOrBuilder() {
+      if (msgCase_ == 202) {
+         return (soc.proto.GameMessage.MovePiece) msg_;
+      }
+      return soc.proto.GameMessage.MovePiece.getDefaultInstance();
+    }
+
+    public static final int BUY_INV_ITEM_FIELD_NUMBER = 203;
+    /**
+     * <code>.BuyInventoryItemRequest buy_inv_item = 203;</code>
+     */
+    public boolean hasBuyInvItem() {
+      return msgCase_ == 203;
+    }
+    /**
+     * <code>.BuyInventoryItemRequest buy_inv_item = 203;</code>
+     */
+    public soc.proto.GameMessage.BuyInventoryItemRequest getBuyInvItem() {
+      if (msgCase_ == 203) {
+         return (soc.proto.GameMessage.BuyInventoryItemRequest) msg_;
+      }
+      return soc.proto.GameMessage.BuyInventoryItemRequest.getDefaultInstance();
+    }
+    /**
+     * <code>.BuyInventoryItemRequest buy_inv_item = 203;</code>
+     */
+    public soc.proto.GameMessage.BuyInventoryItemRequestOrBuilder getBuyInvItemOrBuilder() {
+      if (msgCase_ == 203) {
+         return (soc.proto.GameMessage.BuyInventoryItemRequest) msg_;
+      }
+      return soc.proto.GameMessage.BuyInventoryItemRequest.getDefaultInstance();
+    }
+
+    public static final int INV_ITEM_ACTION_FIELD_NUMBER = 204;
+    /**
+     * <code>.InventoryItemAction inv_item_action = 204;</code>
+     */
+    public boolean hasInvItemAction() {
+      return msgCase_ == 204;
+    }
+    /**
+     * <code>.InventoryItemAction inv_item_action = 204;</code>
+     */
+    public soc.proto.GameMessage.InventoryItemAction getInvItemAction() {
+      if (msgCase_ == 204) {
+         return (soc.proto.GameMessage.InventoryItemAction) msg_;
+      }
+      return soc.proto.GameMessage.InventoryItemAction.getDefaultInstance();
+    }
+    /**
+     * <code>.InventoryItemAction inv_item_action = 204;</code>
+     */
+    public soc.proto.GameMessage.InventoryItemActionOrBuilder getInvItemActionOrBuilder() {
+      if (msgCase_ == 204) {
+         return (soc.proto.GameMessage.InventoryItemAction) msg_;
+      }
+      return soc.proto.GameMessage.InventoryItemAction.getDefaultInstance();
+    }
+
+    public static final int TRADE_WITH_BANK_FIELD_NUMBER = 400;
+    /**
+     * <pre>
+     * player actions: trade
+     * </pre>
+     *
+     * <code>.TradeWithBank trade_with_bank = 400;</code>
+     */
+    public boolean hasTradeWithBank() {
+      return msgCase_ == 400;
+    }
+    /**
+     * <pre>
+     * player actions: trade
+     * </pre>
+     *
+     * <code>.TradeWithBank trade_with_bank = 400;</code>
+     */
+    public soc.proto.GameMessage.TradeWithBank getTradeWithBank() {
+      if (msgCase_ == 400) {
+         return (soc.proto.GameMessage.TradeWithBank) msg_;
+      }
+      return soc.proto.GameMessage.TradeWithBank.getDefaultInstance();
+    }
+    /**
+     * <pre>
+     * player actions: trade
+     * </pre>
+     *
+     * <code>.TradeWithBank trade_with_bank = 400;</code>
+     */
+    public soc.proto.GameMessage.TradeWithBankOrBuilder getTradeWithBankOrBuilder() {
+      if (msgCase_ == 400) {
+         return (soc.proto.GameMessage.TradeWithBank) msg_;
+      }
+      return soc.proto.GameMessage.TradeWithBank.getDefaultInstance();
+    }
+
+    public static final int TRADE_MAKE_OFFER_FIELD_NUMBER = 401;
+    /**
+     * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+     */
+    public boolean hasTradeMakeOffer() {
+      return msgCase_ == 401;
+    }
+    /**
+     * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+     */
+    public soc.proto.GameMessage.TradeMakeOffer getTradeMakeOffer() {
+      if (msgCase_ == 401) {
+         return (soc.proto.GameMessage.TradeMakeOffer) msg_;
+      }
+      return soc.proto.GameMessage.TradeMakeOffer.getDefaultInstance();
+    }
+    /**
+     * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+     */
+    public soc.proto.GameMessage.TradeMakeOfferOrBuilder getTradeMakeOfferOrBuilder() {
+      if (msgCase_ == 401) {
+         return (soc.proto.GameMessage.TradeMakeOffer) msg_;
+      }
+      return soc.proto.GameMessage.TradeMakeOffer.getDefaultInstance();
+    }
+
+    public static final int TRADE_CLEAR_OFFER_FIELD_NUMBER = 402;
+    /**
+     * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+     */
+    public boolean hasTradeClearOffer() {
+      return msgCase_ == 402;
+    }
+    /**
+     * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+     */
+    public soc.proto.GameMessage.TradeClearOffer getTradeClearOffer() {
+      if (msgCase_ == 402) {
+         return (soc.proto.GameMessage.TradeClearOffer) msg_;
+      }
+      return soc.proto.GameMessage.TradeClearOffer.getDefaultInstance();
+    }
+    /**
+     * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+     */
+    public soc.proto.GameMessage.TradeClearOfferOrBuilder getTradeClearOfferOrBuilder() {
+      if (msgCase_ == 402) {
+         return (soc.proto.GameMessage.TradeClearOffer) msg_;
+      }
+      return soc.proto.GameMessage.TradeClearOffer.getDefaultInstance();
+    }
+
+    public static final int TRADE_REJECT_OFFER_FIELD_NUMBER = 403;
+    /**
+     * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+     */
+    public boolean hasTradeRejectOffer() {
+      return msgCase_ == 403;
+    }
+    /**
+     * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+     */
+    public soc.proto.GameMessage.TradeRejectOffer getTradeRejectOffer() {
+      if (msgCase_ == 403) {
+         return (soc.proto.GameMessage.TradeRejectOffer) msg_;
+      }
+      return soc.proto.GameMessage.TradeRejectOffer.getDefaultInstance();
+    }
+    /**
+     * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+     */
+    public soc.proto.GameMessage.TradeRejectOfferOrBuilder getTradeRejectOfferOrBuilder() {
+      if (msgCase_ == 403) {
+         return (soc.proto.GameMessage.TradeRejectOffer) msg_;
+      }
+      return soc.proto.GameMessage.TradeRejectOffer.getDefaultInstance();
+    }
+
+    public static final int TRADE_ACCEPT_OFFER_FIELD_NUMBER = 404;
+    /**
+     * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+     */
+    public boolean hasTradeAcceptOffer() {
+      return msgCase_ == 404;
+    }
+    /**
+     * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+     */
+    public soc.proto.GameMessage.TradeAcceptOffer getTradeAcceptOffer() {
+      if (msgCase_ == 404) {
+         return (soc.proto.GameMessage.TradeAcceptOffer) msg_;
+      }
+      return soc.proto.GameMessage.TradeAcceptOffer.getDefaultInstance();
+    }
+    /**
+     * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+     */
+    public soc.proto.GameMessage.TradeAcceptOfferOrBuilder getTradeAcceptOfferOrBuilder() {
+      if (msgCase_ == 404) {
+         return (soc.proto.GameMessage.TradeAcceptOffer) msg_;
+      }
+      return soc.proto.GameMessage.TradeAcceptOffer.getDefaultInstance();
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -20316,6 +27633,36 @@ public final class GameMessage {
       if (msgCase_ == 101) {
         output.writeMessage(101, (soc.proto.GameMessage.EndTurn) msg_);
       }
+      if (msgCase_ == 200) {
+        output.writeMessage(200, (soc.proto.GameMessage.PutPiece) msg_);
+      }
+      if (msgCase_ == 201) {
+        output.writeMessage(201, (soc.proto.GameMessage.CancelBuild) msg_);
+      }
+      if (msgCase_ == 202) {
+        output.writeMessage(202, (soc.proto.GameMessage.MovePiece) msg_);
+      }
+      if (msgCase_ == 203) {
+        output.writeMessage(203, (soc.proto.GameMessage.BuyInventoryItemRequest) msg_);
+      }
+      if (msgCase_ == 204) {
+        output.writeMessage(204, (soc.proto.GameMessage.InventoryItemAction) msg_);
+      }
+      if (msgCase_ == 400) {
+        output.writeMessage(400, (soc.proto.GameMessage.TradeWithBank) msg_);
+      }
+      if (msgCase_ == 401) {
+        output.writeMessage(401, (soc.proto.GameMessage.TradeMakeOffer) msg_);
+      }
+      if (msgCase_ == 402) {
+        output.writeMessage(402, (soc.proto.GameMessage.TradeClearOffer) msg_);
+      }
+      if (msgCase_ == 403) {
+        output.writeMessage(403, (soc.proto.GameMessage.TradeRejectOffer) msg_);
+      }
+      if (msgCase_ == 404) {
+        output.writeMessage(404, (soc.proto.GameMessage.TradeAcceptOffer) msg_);
+      }
       unknownFields.writeTo(output);
     }
 
@@ -20334,6 +27681,46 @@ public final class GameMessage {
       if (msgCase_ == 101) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(101, (soc.proto.GameMessage.EndTurn) msg_);
+      }
+      if (msgCase_ == 200) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(200, (soc.proto.GameMessage.PutPiece) msg_);
+      }
+      if (msgCase_ == 201) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(201, (soc.proto.GameMessage.CancelBuild) msg_);
+      }
+      if (msgCase_ == 202) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(202, (soc.proto.GameMessage.MovePiece) msg_);
+      }
+      if (msgCase_ == 203) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(203, (soc.proto.GameMessage.BuyInventoryItemRequest) msg_);
+      }
+      if (msgCase_ == 204) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(204, (soc.proto.GameMessage.InventoryItemAction) msg_);
+      }
+      if (msgCase_ == 400) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(400, (soc.proto.GameMessage.TradeWithBank) msg_);
+      }
+      if (msgCase_ == 401) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(401, (soc.proto.GameMessage.TradeMakeOffer) msg_);
+      }
+      if (msgCase_ == 402) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(402, (soc.proto.GameMessage.TradeClearOffer) msg_);
+      }
+      if (msgCase_ == 403) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(403, (soc.proto.GameMessage.TradeRejectOffer) msg_);
+      }
+      if (msgCase_ == 404) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(404, (soc.proto.GameMessage.TradeAcceptOffer) msg_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -20365,6 +27752,46 @@ public final class GameMessage {
           result = result && getEndTurn()
               .equals(other.getEndTurn());
           break;
+        case 200:
+          result = result && getPutPiece()
+              .equals(other.getPutPiece());
+          break;
+        case 201:
+          result = result && getCancelBuild()
+              .equals(other.getCancelBuild());
+          break;
+        case 202:
+          result = result && getMovePiece()
+              .equals(other.getMovePiece());
+          break;
+        case 203:
+          result = result && getBuyInvItem()
+              .equals(other.getBuyInvItem());
+          break;
+        case 204:
+          result = result && getInvItemAction()
+              .equals(other.getInvItemAction());
+          break;
+        case 400:
+          result = result && getTradeWithBank()
+              .equals(other.getTradeWithBank());
+          break;
+        case 401:
+          result = result && getTradeMakeOffer()
+              .equals(other.getTradeMakeOffer());
+          break;
+        case 402:
+          result = result && getTradeClearOffer()
+              .equals(other.getTradeClearOffer());
+          break;
+        case 403:
+          result = result && getTradeRejectOffer()
+              .equals(other.getTradeRejectOffer());
+          break;
+        case 404:
+          result = result && getTradeAcceptOffer()
+              .equals(other.getTradeAcceptOffer());
+          break;
         case 0:
         default:
       }
@@ -20389,6 +27816,46 @@ public final class GameMessage {
         case 101:
           hash = (37 * hash) + END_TURN_FIELD_NUMBER;
           hash = (53 * hash) + getEndTurn().hashCode();
+          break;
+        case 200:
+          hash = (37 * hash) + PUT_PIECE_FIELD_NUMBER;
+          hash = (53 * hash) + getPutPiece().hashCode();
+          break;
+        case 201:
+          hash = (37 * hash) + CANCEL_BUILD_FIELD_NUMBER;
+          hash = (53 * hash) + getCancelBuild().hashCode();
+          break;
+        case 202:
+          hash = (37 * hash) + MOVE_PIECE_FIELD_NUMBER;
+          hash = (53 * hash) + getMovePiece().hashCode();
+          break;
+        case 203:
+          hash = (37 * hash) + BUY_INV_ITEM_FIELD_NUMBER;
+          hash = (53 * hash) + getBuyInvItem().hashCode();
+          break;
+        case 204:
+          hash = (37 * hash) + INV_ITEM_ACTION_FIELD_NUMBER;
+          hash = (53 * hash) + getInvItemAction().hashCode();
+          break;
+        case 400:
+          hash = (37 * hash) + TRADE_WITH_BANK_FIELD_NUMBER;
+          hash = (53 * hash) + getTradeWithBank().hashCode();
+          break;
+        case 401:
+          hash = (37 * hash) + TRADE_MAKE_OFFER_FIELD_NUMBER;
+          hash = (53 * hash) + getTradeMakeOffer().hashCode();
+          break;
+        case 402:
+          hash = (37 * hash) + TRADE_CLEAR_OFFER_FIELD_NUMBER;
+          hash = (53 * hash) + getTradeClearOffer().hashCode();
+          break;
+        case 403:
+          hash = (37 * hash) + TRADE_REJECT_OFFER_FIELD_NUMBER;
+          hash = (53 * hash) + getTradeRejectOffer().hashCode();
+          break;
+        case 404:
+          hash = (37 * hash) + TRADE_ACCEPT_OFFER_FIELD_NUMBER;
+          hash = (53 * hash) + getTradeAcceptOffer().hashCode();
           break;
         case 0:
         default:
@@ -20563,6 +28030,76 @@ public final class GameMessage {
             result.msg_ = endTurnBuilder_.build();
           }
         }
+        if (msgCase_ == 200) {
+          if (putPieceBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = putPieceBuilder_.build();
+          }
+        }
+        if (msgCase_ == 201) {
+          if (cancelBuildBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = cancelBuildBuilder_.build();
+          }
+        }
+        if (msgCase_ == 202) {
+          if (movePieceBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = movePieceBuilder_.build();
+          }
+        }
+        if (msgCase_ == 203) {
+          if (buyInvItemBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = buyInvItemBuilder_.build();
+          }
+        }
+        if (msgCase_ == 204) {
+          if (invItemActionBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = invItemActionBuilder_.build();
+          }
+        }
+        if (msgCase_ == 400) {
+          if (tradeWithBankBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = tradeWithBankBuilder_.build();
+          }
+        }
+        if (msgCase_ == 401) {
+          if (tradeMakeOfferBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = tradeMakeOfferBuilder_.build();
+          }
+        }
+        if (msgCase_ == 402) {
+          if (tradeClearOfferBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = tradeClearOfferBuilder_.build();
+          }
+        }
+        if (msgCase_ == 403) {
+          if (tradeRejectOfferBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = tradeRejectOfferBuilder_.build();
+          }
+        }
+        if (msgCase_ == 404) {
+          if (tradeAcceptOfferBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = tradeAcceptOfferBuilder_.build();
+          }
+        }
         result.msgCase_ = msgCase_;
         onBuilt();
         return result;
@@ -20616,6 +28153,46 @@ public final class GameMessage {
           }
           case END_TURN: {
             mergeEndTurn(other.getEndTurn());
+            break;
+          }
+          case PUT_PIECE: {
+            mergePutPiece(other.getPutPiece());
+            break;
+          }
+          case CANCEL_BUILD: {
+            mergeCancelBuild(other.getCancelBuild());
+            break;
+          }
+          case MOVE_PIECE: {
+            mergeMovePiece(other.getMovePiece());
+            break;
+          }
+          case BUY_INV_ITEM: {
+            mergeBuyInvItem(other.getBuyInvItem());
+            break;
+          }
+          case INV_ITEM_ACTION: {
+            mergeInvItemAction(other.getInvItemAction());
+            break;
+          }
+          case TRADE_WITH_BANK: {
+            mergeTradeWithBank(other.getTradeWithBank());
+            break;
+          }
+          case TRADE_MAKE_OFFER: {
+            mergeTradeMakeOffer(other.getTradeMakeOffer());
+            break;
+          }
+          case TRADE_CLEAR_OFFER: {
+            mergeTradeClearOffer(other.getTradeClearOffer());
+            break;
+          }
+          case TRADE_REJECT_OFFER: {
+            mergeTradeRejectOffer(other.getTradeRejectOffer());
+            break;
+          }
+          case TRADE_ACCEPT_OFFER: {
+            mergeTradeAcceptOffer(other.getTradeAcceptOffer());
             break;
           }
           case MSG_NOT_SET: {
@@ -21060,6 +28637,1438 @@ public final class GameMessage {
         onChanged();;
         return endTurnBuilder_;
       }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.PutPiece, soc.proto.GameMessage.PutPiece.Builder, soc.proto.GameMessage.PutPieceOrBuilder> putPieceBuilder_;
+      /**
+       * <pre>
+       * player actions: buy/build/play pieces and items
+       * </pre>
+       *
+       * <code>.PutPiece put_piece = 200;</code>
+       */
+      public boolean hasPutPiece() {
+        return msgCase_ == 200;
+      }
+      /**
+       * <pre>
+       * player actions: buy/build/play pieces and items
+       * </pre>
+       *
+       * <code>.PutPiece put_piece = 200;</code>
+       */
+      public soc.proto.GameMessage.PutPiece getPutPiece() {
+        if (putPieceBuilder_ == null) {
+          if (msgCase_ == 200) {
+            return (soc.proto.GameMessage.PutPiece) msg_;
+          }
+          return soc.proto.GameMessage.PutPiece.getDefaultInstance();
+        } else {
+          if (msgCase_ == 200) {
+            return putPieceBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.PutPiece.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * player actions: buy/build/play pieces and items
+       * </pre>
+       *
+       * <code>.PutPiece put_piece = 200;</code>
+       */
+      public Builder setPutPiece(soc.proto.GameMessage.PutPiece value) {
+        if (putPieceBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          putPieceBuilder_.setMessage(value);
+        }
+        msgCase_ = 200;
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions: buy/build/play pieces and items
+       * </pre>
+       *
+       * <code>.PutPiece put_piece = 200;</code>
+       */
+      public Builder setPutPiece(
+          soc.proto.GameMessage.PutPiece.Builder builderForValue) {
+        if (putPieceBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          putPieceBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 200;
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions: buy/build/play pieces and items
+       * </pre>
+       *
+       * <code>.PutPiece put_piece = 200;</code>
+       */
+      public Builder mergePutPiece(soc.proto.GameMessage.PutPiece value) {
+        if (putPieceBuilder_ == null) {
+          if (msgCase_ == 200 &&
+              msg_ != soc.proto.GameMessage.PutPiece.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.PutPiece.newBuilder((soc.proto.GameMessage.PutPiece) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 200) {
+            putPieceBuilder_.mergeFrom(value);
+          }
+          putPieceBuilder_.setMessage(value);
+        }
+        msgCase_ = 200;
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions: buy/build/play pieces and items
+       * </pre>
+       *
+       * <code>.PutPiece put_piece = 200;</code>
+       */
+      public Builder clearPutPiece() {
+        if (putPieceBuilder_ == null) {
+          if (msgCase_ == 200) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 200) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          putPieceBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions: buy/build/play pieces and items
+       * </pre>
+       *
+       * <code>.PutPiece put_piece = 200;</code>
+       */
+      public soc.proto.GameMessage.PutPiece.Builder getPutPieceBuilder() {
+        return getPutPieceFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * player actions: buy/build/play pieces and items
+       * </pre>
+       *
+       * <code>.PutPiece put_piece = 200;</code>
+       */
+      public soc.proto.GameMessage.PutPieceOrBuilder getPutPieceOrBuilder() {
+        if ((msgCase_ == 200) && (putPieceBuilder_ != null)) {
+          return putPieceBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 200) {
+            return (soc.proto.GameMessage.PutPiece) msg_;
+          }
+          return soc.proto.GameMessage.PutPiece.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * player actions: buy/build/play pieces and items
+       * </pre>
+       *
+       * <code>.PutPiece put_piece = 200;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.PutPiece, soc.proto.GameMessage.PutPiece.Builder, soc.proto.GameMessage.PutPieceOrBuilder> 
+          getPutPieceFieldBuilder() {
+        if (putPieceBuilder_ == null) {
+          if (!(msgCase_ == 200)) {
+            msg_ = soc.proto.GameMessage.PutPiece.getDefaultInstance();
+          }
+          putPieceBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.PutPiece, soc.proto.GameMessage.PutPiece.Builder, soc.proto.GameMessage.PutPieceOrBuilder>(
+                  (soc.proto.GameMessage.PutPiece) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 200;
+        onChanged();;
+        return putPieceBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.CancelBuild, soc.proto.GameMessage.CancelBuild.Builder, soc.proto.GameMessage.CancelBuildOrBuilder> cancelBuildBuilder_;
+      /**
+       * <code>.CancelBuild cancel_build = 201;</code>
+       */
+      public boolean hasCancelBuild() {
+        return msgCase_ == 201;
+      }
+      /**
+       * <code>.CancelBuild cancel_build = 201;</code>
+       */
+      public soc.proto.GameMessage.CancelBuild getCancelBuild() {
+        if (cancelBuildBuilder_ == null) {
+          if (msgCase_ == 201) {
+            return (soc.proto.GameMessage.CancelBuild) msg_;
+          }
+          return soc.proto.GameMessage.CancelBuild.getDefaultInstance();
+        } else {
+          if (msgCase_ == 201) {
+            return cancelBuildBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.CancelBuild.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.CancelBuild cancel_build = 201;</code>
+       */
+      public Builder setCancelBuild(soc.proto.GameMessage.CancelBuild value) {
+        if (cancelBuildBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          cancelBuildBuilder_.setMessage(value);
+        }
+        msgCase_ = 201;
+        return this;
+      }
+      /**
+       * <code>.CancelBuild cancel_build = 201;</code>
+       */
+      public Builder setCancelBuild(
+          soc.proto.GameMessage.CancelBuild.Builder builderForValue) {
+        if (cancelBuildBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          cancelBuildBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 201;
+        return this;
+      }
+      /**
+       * <code>.CancelBuild cancel_build = 201;</code>
+       */
+      public Builder mergeCancelBuild(soc.proto.GameMessage.CancelBuild value) {
+        if (cancelBuildBuilder_ == null) {
+          if (msgCase_ == 201 &&
+              msg_ != soc.proto.GameMessage.CancelBuild.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.CancelBuild.newBuilder((soc.proto.GameMessage.CancelBuild) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 201) {
+            cancelBuildBuilder_.mergeFrom(value);
+          }
+          cancelBuildBuilder_.setMessage(value);
+        }
+        msgCase_ = 201;
+        return this;
+      }
+      /**
+       * <code>.CancelBuild cancel_build = 201;</code>
+       */
+      public Builder clearCancelBuild() {
+        if (cancelBuildBuilder_ == null) {
+          if (msgCase_ == 201) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 201) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          cancelBuildBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.CancelBuild cancel_build = 201;</code>
+       */
+      public soc.proto.GameMessage.CancelBuild.Builder getCancelBuildBuilder() {
+        return getCancelBuildFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.CancelBuild cancel_build = 201;</code>
+       */
+      public soc.proto.GameMessage.CancelBuildOrBuilder getCancelBuildOrBuilder() {
+        if ((msgCase_ == 201) && (cancelBuildBuilder_ != null)) {
+          return cancelBuildBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 201) {
+            return (soc.proto.GameMessage.CancelBuild) msg_;
+          }
+          return soc.proto.GameMessage.CancelBuild.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.CancelBuild cancel_build = 201;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.CancelBuild, soc.proto.GameMessage.CancelBuild.Builder, soc.proto.GameMessage.CancelBuildOrBuilder> 
+          getCancelBuildFieldBuilder() {
+        if (cancelBuildBuilder_ == null) {
+          if (!(msgCase_ == 201)) {
+            msg_ = soc.proto.GameMessage.CancelBuild.getDefaultInstance();
+          }
+          cancelBuildBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.CancelBuild, soc.proto.GameMessage.CancelBuild.Builder, soc.proto.GameMessage.CancelBuildOrBuilder>(
+                  (soc.proto.GameMessage.CancelBuild) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 201;
+        onChanged();;
+        return cancelBuildBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.MovePiece, soc.proto.GameMessage.MovePiece.Builder, soc.proto.GameMessage.MovePieceOrBuilder> movePieceBuilder_;
+      /**
+       * <code>.MovePiece move_piece = 202;</code>
+       */
+      public boolean hasMovePiece() {
+        return msgCase_ == 202;
+      }
+      /**
+       * <code>.MovePiece move_piece = 202;</code>
+       */
+      public soc.proto.GameMessage.MovePiece getMovePiece() {
+        if (movePieceBuilder_ == null) {
+          if (msgCase_ == 202) {
+            return (soc.proto.GameMessage.MovePiece) msg_;
+          }
+          return soc.proto.GameMessage.MovePiece.getDefaultInstance();
+        } else {
+          if (msgCase_ == 202) {
+            return movePieceBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.MovePiece.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.MovePiece move_piece = 202;</code>
+       */
+      public Builder setMovePiece(soc.proto.GameMessage.MovePiece value) {
+        if (movePieceBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          movePieceBuilder_.setMessage(value);
+        }
+        msgCase_ = 202;
+        return this;
+      }
+      /**
+       * <code>.MovePiece move_piece = 202;</code>
+       */
+      public Builder setMovePiece(
+          soc.proto.GameMessage.MovePiece.Builder builderForValue) {
+        if (movePieceBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          movePieceBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 202;
+        return this;
+      }
+      /**
+       * <code>.MovePiece move_piece = 202;</code>
+       */
+      public Builder mergeMovePiece(soc.proto.GameMessage.MovePiece value) {
+        if (movePieceBuilder_ == null) {
+          if (msgCase_ == 202 &&
+              msg_ != soc.proto.GameMessage.MovePiece.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.MovePiece.newBuilder((soc.proto.GameMessage.MovePiece) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 202) {
+            movePieceBuilder_.mergeFrom(value);
+          }
+          movePieceBuilder_.setMessage(value);
+        }
+        msgCase_ = 202;
+        return this;
+      }
+      /**
+       * <code>.MovePiece move_piece = 202;</code>
+       */
+      public Builder clearMovePiece() {
+        if (movePieceBuilder_ == null) {
+          if (msgCase_ == 202) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 202) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          movePieceBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.MovePiece move_piece = 202;</code>
+       */
+      public soc.proto.GameMessage.MovePiece.Builder getMovePieceBuilder() {
+        return getMovePieceFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.MovePiece move_piece = 202;</code>
+       */
+      public soc.proto.GameMessage.MovePieceOrBuilder getMovePieceOrBuilder() {
+        if ((msgCase_ == 202) && (movePieceBuilder_ != null)) {
+          return movePieceBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 202) {
+            return (soc.proto.GameMessage.MovePiece) msg_;
+          }
+          return soc.proto.GameMessage.MovePiece.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.MovePiece move_piece = 202;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.MovePiece, soc.proto.GameMessage.MovePiece.Builder, soc.proto.GameMessage.MovePieceOrBuilder> 
+          getMovePieceFieldBuilder() {
+        if (movePieceBuilder_ == null) {
+          if (!(msgCase_ == 202)) {
+            msg_ = soc.proto.GameMessage.MovePiece.getDefaultInstance();
+          }
+          movePieceBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.MovePiece, soc.proto.GameMessage.MovePiece.Builder, soc.proto.GameMessage.MovePieceOrBuilder>(
+                  (soc.proto.GameMessage.MovePiece) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 202;
+        onChanged();;
+        return movePieceBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.BuyInventoryItemRequest, soc.proto.GameMessage.BuyInventoryItemRequest.Builder, soc.proto.GameMessage.BuyInventoryItemRequestOrBuilder> buyInvItemBuilder_;
+      /**
+       * <code>.BuyInventoryItemRequest buy_inv_item = 203;</code>
+       */
+      public boolean hasBuyInvItem() {
+        return msgCase_ == 203;
+      }
+      /**
+       * <code>.BuyInventoryItemRequest buy_inv_item = 203;</code>
+       */
+      public soc.proto.GameMessage.BuyInventoryItemRequest getBuyInvItem() {
+        if (buyInvItemBuilder_ == null) {
+          if (msgCase_ == 203) {
+            return (soc.proto.GameMessage.BuyInventoryItemRequest) msg_;
+          }
+          return soc.proto.GameMessage.BuyInventoryItemRequest.getDefaultInstance();
+        } else {
+          if (msgCase_ == 203) {
+            return buyInvItemBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.BuyInventoryItemRequest.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.BuyInventoryItemRequest buy_inv_item = 203;</code>
+       */
+      public Builder setBuyInvItem(soc.proto.GameMessage.BuyInventoryItemRequest value) {
+        if (buyInvItemBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          buyInvItemBuilder_.setMessage(value);
+        }
+        msgCase_ = 203;
+        return this;
+      }
+      /**
+       * <code>.BuyInventoryItemRequest buy_inv_item = 203;</code>
+       */
+      public Builder setBuyInvItem(
+          soc.proto.GameMessage.BuyInventoryItemRequest.Builder builderForValue) {
+        if (buyInvItemBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          buyInvItemBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 203;
+        return this;
+      }
+      /**
+       * <code>.BuyInventoryItemRequest buy_inv_item = 203;</code>
+       */
+      public Builder mergeBuyInvItem(soc.proto.GameMessage.BuyInventoryItemRequest value) {
+        if (buyInvItemBuilder_ == null) {
+          if (msgCase_ == 203 &&
+              msg_ != soc.proto.GameMessage.BuyInventoryItemRequest.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.BuyInventoryItemRequest.newBuilder((soc.proto.GameMessage.BuyInventoryItemRequest) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 203) {
+            buyInvItemBuilder_.mergeFrom(value);
+          }
+          buyInvItemBuilder_.setMessage(value);
+        }
+        msgCase_ = 203;
+        return this;
+      }
+      /**
+       * <code>.BuyInventoryItemRequest buy_inv_item = 203;</code>
+       */
+      public Builder clearBuyInvItem() {
+        if (buyInvItemBuilder_ == null) {
+          if (msgCase_ == 203) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 203) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          buyInvItemBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.BuyInventoryItemRequest buy_inv_item = 203;</code>
+       */
+      public soc.proto.GameMessage.BuyInventoryItemRequest.Builder getBuyInvItemBuilder() {
+        return getBuyInvItemFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.BuyInventoryItemRequest buy_inv_item = 203;</code>
+       */
+      public soc.proto.GameMessage.BuyInventoryItemRequestOrBuilder getBuyInvItemOrBuilder() {
+        if ((msgCase_ == 203) && (buyInvItemBuilder_ != null)) {
+          return buyInvItemBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 203) {
+            return (soc.proto.GameMessage.BuyInventoryItemRequest) msg_;
+          }
+          return soc.proto.GameMessage.BuyInventoryItemRequest.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.BuyInventoryItemRequest buy_inv_item = 203;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.BuyInventoryItemRequest, soc.proto.GameMessage.BuyInventoryItemRequest.Builder, soc.proto.GameMessage.BuyInventoryItemRequestOrBuilder> 
+          getBuyInvItemFieldBuilder() {
+        if (buyInvItemBuilder_ == null) {
+          if (!(msgCase_ == 203)) {
+            msg_ = soc.proto.GameMessage.BuyInventoryItemRequest.getDefaultInstance();
+          }
+          buyInvItemBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.BuyInventoryItemRequest, soc.proto.GameMessage.BuyInventoryItemRequest.Builder, soc.proto.GameMessage.BuyInventoryItemRequestOrBuilder>(
+                  (soc.proto.GameMessage.BuyInventoryItemRequest) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 203;
+        onChanged();;
+        return buyInvItemBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.InventoryItemAction, soc.proto.GameMessage.InventoryItemAction.Builder, soc.proto.GameMessage.InventoryItemActionOrBuilder> invItemActionBuilder_;
+      /**
+       * <code>.InventoryItemAction inv_item_action = 204;</code>
+       */
+      public boolean hasInvItemAction() {
+        return msgCase_ == 204;
+      }
+      /**
+       * <code>.InventoryItemAction inv_item_action = 204;</code>
+       */
+      public soc.proto.GameMessage.InventoryItemAction getInvItemAction() {
+        if (invItemActionBuilder_ == null) {
+          if (msgCase_ == 204) {
+            return (soc.proto.GameMessage.InventoryItemAction) msg_;
+          }
+          return soc.proto.GameMessage.InventoryItemAction.getDefaultInstance();
+        } else {
+          if (msgCase_ == 204) {
+            return invItemActionBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.InventoryItemAction.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.InventoryItemAction inv_item_action = 204;</code>
+       */
+      public Builder setInvItemAction(soc.proto.GameMessage.InventoryItemAction value) {
+        if (invItemActionBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          invItemActionBuilder_.setMessage(value);
+        }
+        msgCase_ = 204;
+        return this;
+      }
+      /**
+       * <code>.InventoryItemAction inv_item_action = 204;</code>
+       */
+      public Builder setInvItemAction(
+          soc.proto.GameMessage.InventoryItemAction.Builder builderForValue) {
+        if (invItemActionBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          invItemActionBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 204;
+        return this;
+      }
+      /**
+       * <code>.InventoryItemAction inv_item_action = 204;</code>
+       */
+      public Builder mergeInvItemAction(soc.proto.GameMessage.InventoryItemAction value) {
+        if (invItemActionBuilder_ == null) {
+          if (msgCase_ == 204 &&
+              msg_ != soc.proto.GameMessage.InventoryItemAction.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.InventoryItemAction.newBuilder((soc.proto.GameMessage.InventoryItemAction) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 204) {
+            invItemActionBuilder_.mergeFrom(value);
+          }
+          invItemActionBuilder_.setMessage(value);
+        }
+        msgCase_ = 204;
+        return this;
+      }
+      /**
+       * <code>.InventoryItemAction inv_item_action = 204;</code>
+       */
+      public Builder clearInvItemAction() {
+        if (invItemActionBuilder_ == null) {
+          if (msgCase_ == 204) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 204) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          invItemActionBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.InventoryItemAction inv_item_action = 204;</code>
+       */
+      public soc.proto.GameMessage.InventoryItemAction.Builder getInvItemActionBuilder() {
+        return getInvItemActionFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.InventoryItemAction inv_item_action = 204;</code>
+       */
+      public soc.proto.GameMessage.InventoryItemActionOrBuilder getInvItemActionOrBuilder() {
+        if ((msgCase_ == 204) && (invItemActionBuilder_ != null)) {
+          return invItemActionBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 204) {
+            return (soc.proto.GameMessage.InventoryItemAction) msg_;
+          }
+          return soc.proto.GameMessage.InventoryItemAction.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.InventoryItemAction inv_item_action = 204;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.InventoryItemAction, soc.proto.GameMessage.InventoryItemAction.Builder, soc.proto.GameMessage.InventoryItemActionOrBuilder> 
+          getInvItemActionFieldBuilder() {
+        if (invItemActionBuilder_ == null) {
+          if (!(msgCase_ == 204)) {
+            msg_ = soc.proto.GameMessage.InventoryItemAction.getDefaultInstance();
+          }
+          invItemActionBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.InventoryItemAction, soc.proto.GameMessage.InventoryItemAction.Builder, soc.proto.GameMessage.InventoryItemActionOrBuilder>(
+                  (soc.proto.GameMessage.InventoryItemAction) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 204;
+        onChanged();;
+        return invItemActionBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.TradeWithBank, soc.proto.GameMessage.TradeWithBank.Builder, soc.proto.GameMessage.TradeWithBankOrBuilder> tradeWithBankBuilder_;
+      /**
+       * <pre>
+       * player actions: trade
+       * </pre>
+       *
+       * <code>.TradeWithBank trade_with_bank = 400;</code>
+       */
+      public boolean hasTradeWithBank() {
+        return msgCase_ == 400;
+      }
+      /**
+       * <pre>
+       * player actions: trade
+       * </pre>
+       *
+       * <code>.TradeWithBank trade_with_bank = 400;</code>
+       */
+      public soc.proto.GameMessage.TradeWithBank getTradeWithBank() {
+        if (tradeWithBankBuilder_ == null) {
+          if (msgCase_ == 400) {
+            return (soc.proto.GameMessage.TradeWithBank) msg_;
+          }
+          return soc.proto.GameMessage.TradeWithBank.getDefaultInstance();
+        } else {
+          if (msgCase_ == 400) {
+            return tradeWithBankBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.TradeWithBank.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * player actions: trade
+       * </pre>
+       *
+       * <code>.TradeWithBank trade_with_bank = 400;</code>
+       */
+      public Builder setTradeWithBank(soc.proto.GameMessage.TradeWithBank value) {
+        if (tradeWithBankBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          tradeWithBankBuilder_.setMessage(value);
+        }
+        msgCase_ = 400;
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions: trade
+       * </pre>
+       *
+       * <code>.TradeWithBank trade_with_bank = 400;</code>
+       */
+      public Builder setTradeWithBank(
+          soc.proto.GameMessage.TradeWithBank.Builder builderForValue) {
+        if (tradeWithBankBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          tradeWithBankBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 400;
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions: trade
+       * </pre>
+       *
+       * <code>.TradeWithBank trade_with_bank = 400;</code>
+       */
+      public Builder mergeTradeWithBank(soc.proto.GameMessage.TradeWithBank value) {
+        if (tradeWithBankBuilder_ == null) {
+          if (msgCase_ == 400 &&
+              msg_ != soc.proto.GameMessage.TradeWithBank.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.TradeWithBank.newBuilder((soc.proto.GameMessage.TradeWithBank) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 400) {
+            tradeWithBankBuilder_.mergeFrom(value);
+          }
+          tradeWithBankBuilder_.setMessage(value);
+        }
+        msgCase_ = 400;
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions: trade
+       * </pre>
+       *
+       * <code>.TradeWithBank trade_with_bank = 400;</code>
+       */
+      public Builder clearTradeWithBank() {
+        if (tradeWithBankBuilder_ == null) {
+          if (msgCase_ == 400) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 400) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          tradeWithBankBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions: trade
+       * </pre>
+       *
+       * <code>.TradeWithBank trade_with_bank = 400;</code>
+       */
+      public soc.proto.GameMessage.TradeWithBank.Builder getTradeWithBankBuilder() {
+        return getTradeWithBankFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * player actions: trade
+       * </pre>
+       *
+       * <code>.TradeWithBank trade_with_bank = 400;</code>
+       */
+      public soc.proto.GameMessage.TradeWithBankOrBuilder getTradeWithBankOrBuilder() {
+        if ((msgCase_ == 400) && (tradeWithBankBuilder_ != null)) {
+          return tradeWithBankBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 400) {
+            return (soc.proto.GameMessage.TradeWithBank) msg_;
+          }
+          return soc.proto.GameMessage.TradeWithBank.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * player actions: trade
+       * </pre>
+       *
+       * <code>.TradeWithBank trade_with_bank = 400;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.TradeWithBank, soc.proto.GameMessage.TradeWithBank.Builder, soc.proto.GameMessage.TradeWithBankOrBuilder> 
+          getTradeWithBankFieldBuilder() {
+        if (tradeWithBankBuilder_ == null) {
+          if (!(msgCase_ == 400)) {
+            msg_ = soc.proto.GameMessage.TradeWithBank.getDefaultInstance();
+          }
+          tradeWithBankBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.TradeWithBank, soc.proto.GameMessage.TradeWithBank.Builder, soc.proto.GameMessage.TradeWithBankOrBuilder>(
+                  (soc.proto.GameMessage.TradeWithBank) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 400;
+        onChanged();;
+        return tradeWithBankBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.TradeMakeOffer, soc.proto.GameMessage.TradeMakeOffer.Builder, soc.proto.GameMessage.TradeMakeOfferOrBuilder> tradeMakeOfferBuilder_;
+      /**
+       * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+       */
+      public boolean hasTradeMakeOffer() {
+        return msgCase_ == 401;
+      }
+      /**
+       * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+       */
+      public soc.proto.GameMessage.TradeMakeOffer getTradeMakeOffer() {
+        if (tradeMakeOfferBuilder_ == null) {
+          if (msgCase_ == 401) {
+            return (soc.proto.GameMessage.TradeMakeOffer) msg_;
+          }
+          return soc.proto.GameMessage.TradeMakeOffer.getDefaultInstance();
+        } else {
+          if (msgCase_ == 401) {
+            return tradeMakeOfferBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.TradeMakeOffer.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+       */
+      public Builder setTradeMakeOffer(soc.proto.GameMessage.TradeMakeOffer value) {
+        if (tradeMakeOfferBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          tradeMakeOfferBuilder_.setMessage(value);
+        }
+        msgCase_ = 401;
+        return this;
+      }
+      /**
+       * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+       */
+      public Builder setTradeMakeOffer(
+          soc.proto.GameMessage.TradeMakeOffer.Builder builderForValue) {
+        if (tradeMakeOfferBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          tradeMakeOfferBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 401;
+        return this;
+      }
+      /**
+       * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+       */
+      public Builder mergeTradeMakeOffer(soc.proto.GameMessage.TradeMakeOffer value) {
+        if (tradeMakeOfferBuilder_ == null) {
+          if (msgCase_ == 401 &&
+              msg_ != soc.proto.GameMessage.TradeMakeOffer.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.TradeMakeOffer.newBuilder((soc.proto.GameMessage.TradeMakeOffer) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 401) {
+            tradeMakeOfferBuilder_.mergeFrom(value);
+          }
+          tradeMakeOfferBuilder_.setMessage(value);
+        }
+        msgCase_ = 401;
+        return this;
+      }
+      /**
+       * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+       */
+      public Builder clearTradeMakeOffer() {
+        if (tradeMakeOfferBuilder_ == null) {
+          if (msgCase_ == 401) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 401) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          tradeMakeOfferBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+       */
+      public soc.proto.GameMessage.TradeMakeOffer.Builder getTradeMakeOfferBuilder() {
+        return getTradeMakeOfferFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+       */
+      public soc.proto.GameMessage.TradeMakeOfferOrBuilder getTradeMakeOfferOrBuilder() {
+        if ((msgCase_ == 401) && (tradeMakeOfferBuilder_ != null)) {
+          return tradeMakeOfferBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 401) {
+            return (soc.proto.GameMessage.TradeMakeOffer) msg_;
+          }
+          return soc.proto.GameMessage.TradeMakeOffer.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.TradeMakeOffer, soc.proto.GameMessage.TradeMakeOffer.Builder, soc.proto.GameMessage.TradeMakeOfferOrBuilder> 
+          getTradeMakeOfferFieldBuilder() {
+        if (tradeMakeOfferBuilder_ == null) {
+          if (!(msgCase_ == 401)) {
+            msg_ = soc.proto.GameMessage.TradeMakeOffer.getDefaultInstance();
+          }
+          tradeMakeOfferBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.TradeMakeOffer, soc.proto.GameMessage.TradeMakeOffer.Builder, soc.proto.GameMessage.TradeMakeOfferOrBuilder>(
+                  (soc.proto.GameMessage.TradeMakeOffer) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 401;
+        onChanged();;
+        return tradeMakeOfferBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.TradeClearOffer, soc.proto.GameMessage.TradeClearOffer.Builder, soc.proto.GameMessage.TradeClearOfferOrBuilder> tradeClearOfferBuilder_;
+      /**
+       * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+       */
+      public boolean hasTradeClearOffer() {
+        return msgCase_ == 402;
+      }
+      /**
+       * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+       */
+      public soc.proto.GameMessage.TradeClearOffer getTradeClearOffer() {
+        if (tradeClearOfferBuilder_ == null) {
+          if (msgCase_ == 402) {
+            return (soc.proto.GameMessage.TradeClearOffer) msg_;
+          }
+          return soc.proto.GameMessage.TradeClearOffer.getDefaultInstance();
+        } else {
+          if (msgCase_ == 402) {
+            return tradeClearOfferBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.TradeClearOffer.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+       */
+      public Builder setTradeClearOffer(soc.proto.GameMessage.TradeClearOffer value) {
+        if (tradeClearOfferBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          tradeClearOfferBuilder_.setMessage(value);
+        }
+        msgCase_ = 402;
+        return this;
+      }
+      /**
+       * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+       */
+      public Builder setTradeClearOffer(
+          soc.proto.GameMessage.TradeClearOffer.Builder builderForValue) {
+        if (tradeClearOfferBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          tradeClearOfferBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 402;
+        return this;
+      }
+      /**
+       * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+       */
+      public Builder mergeTradeClearOffer(soc.proto.GameMessage.TradeClearOffer value) {
+        if (tradeClearOfferBuilder_ == null) {
+          if (msgCase_ == 402 &&
+              msg_ != soc.proto.GameMessage.TradeClearOffer.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.TradeClearOffer.newBuilder((soc.proto.GameMessage.TradeClearOffer) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 402) {
+            tradeClearOfferBuilder_.mergeFrom(value);
+          }
+          tradeClearOfferBuilder_.setMessage(value);
+        }
+        msgCase_ = 402;
+        return this;
+      }
+      /**
+       * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+       */
+      public Builder clearTradeClearOffer() {
+        if (tradeClearOfferBuilder_ == null) {
+          if (msgCase_ == 402) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 402) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          tradeClearOfferBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+       */
+      public soc.proto.GameMessage.TradeClearOffer.Builder getTradeClearOfferBuilder() {
+        return getTradeClearOfferFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+       */
+      public soc.proto.GameMessage.TradeClearOfferOrBuilder getTradeClearOfferOrBuilder() {
+        if ((msgCase_ == 402) && (tradeClearOfferBuilder_ != null)) {
+          return tradeClearOfferBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 402) {
+            return (soc.proto.GameMessage.TradeClearOffer) msg_;
+          }
+          return soc.proto.GameMessage.TradeClearOffer.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.TradeClearOffer, soc.proto.GameMessage.TradeClearOffer.Builder, soc.proto.GameMessage.TradeClearOfferOrBuilder> 
+          getTradeClearOfferFieldBuilder() {
+        if (tradeClearOfferBuilder_ == null) {
+          if (!(msgCase_ == 402)) {
+            msg_ = soc.proto.GameMessage.TradeClearOffer.getDefaultInstance();
+          }
+          tradeClearOfferBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.TradeClearOffer, soc.proto.GameMessage.TradeClearOffer.Builder, soc.proto.GameMessage.TradeClearOfferOrBuilder>(
+                  (soc.proto.GameMessage.TradeClearOffer) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 402;
+        onChanged();;
+        return tradeClearOfferBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.TradeRejectOffer, soc.proto.GameMessage.TradeRejectOffer.Builder, soc.proto.GameMessage.TradeRejectOfferOrBuilder> tradeRejectOfferBuilder_;
+      /**
+       * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+       */
+      public boolean hasTradeRejectOffer() {
+        return msgCase_ == 403;
+      }
+      /**
+       * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+       */
+      public soc.proto.GameMessage.TradeRejectOffer getTradeRejectOffer() {
+        if (tradeRejectOfferBuilder_ == null) {
+          if (msgCase_ == 403) {
+            return (soc.proto.GameMessage.TradeRejectOffer) msg_;
+          }
+          return soc.proto.GameMessage.TradeRejectOffer.getDefaultInstance();
+        } else {
+          if (msgCase_ == 403) {
+            return tradeRejectOfferBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.TradeRejectOffer.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+       */
+      public Builder setTradeRejectOffer(soc.proto.GameMessage.TradeRejectOffer value) {
+        if (tradeRejectOfferBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          tradeRejectOfferBuilder_.setMessage(value);
+        }
+        msgCase_ = 403;
+        return this;
+      }
+      /**
+       * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+       */
+      public Builder setTradeRejectOffer(
+          soc.proto.GameMessage.TradeRejectOffer.Builder builderForValue) {
+        if (tradeRejectOfferBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          tradeRejectOfferBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 403;
+        return this;
+      }
+      /**
+       * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+       */
+      public Builder mergeTradeRejectOffer(soc.proto.GameMessage.TradeRejectOffer value) {
+        if (tradeRejectOfferBuilder_ == null) {
+          if (msgCase_ == 403 &&
+              msg_ != soc.proto.GameMessage.TradeRejectOffer.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.TradeRejectOffer.newBuilder((soc.proto.GameMessage.TradeRejectOffer) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 403) {
+            tradeRejectOfferBuilder_.mergeFrom(value);
+          }
+          tradeRejectOfferBuilder_.setMessage(value);
+        }
+        msgCase_ = 403;
+        return this;
+      }
+      /**
+       * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+       */
+      public Builder clearTradeRejectOffer() {
+        if (tradeRejectOfferBuilder_ == null) {
+          if (msgCase_ == 403) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 403) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          tradeRejectOfferBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+       */
+      public soc.proto.GameMessage.TradeRejectOffer.Builder getTradeRejectOfferBuilder() {
+        return getTradeRejectOfferFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+       */
+      public soc.proto.GameMessage.TradeRejectOfferOrBuilder getTradeRejectOfferOrBuilder() {
+        if ((msgCase_ == 403) && (tradeRejectOfferBuilder_ != null)) {
+          return tradeRejectOfferBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 403) {
+            return (soc.proto.GameMessage.TradeRejectOffer) msg_;
+          }
+          return soc.proto.GameMessage.TradeRejectOffer.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.TradeRejectOffer, soc.proto.GameMessage.TradeRejectOffer.Builder, soc.proto.GameMessage.TradeRejectOfferOrBuilder> 
+          getTradeRejectOfferFieldBuilder() {
+        if (tradeRejectOfferBuilder_ == null) {
+          if (!(msgCase_ == 403)) {
+            msg_ = soc.proto.GameMessage.TradeRejectOffer.getDefaultInstance();
+          }
+          tradeRejectOfferBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.TradeRejectOffer, soc.proto.GameMessage.TradeRejectOffer.Builder, soc.proto.GameMessage.TradeRejectOfferOrBuilder>(
+                  (soc.proto.GameMessage.TradeRejectOffer) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 403;
+        onChanged();;
+        return tradeRejectOfferBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.TradeAcceptOffer, soc.proto.GameMessage.TradeAcceptOffer.Builder, soc.proto.GameMessage.TradeAcceptOfferOrBuilder> tradeAcceptOfferBuilder_;
+      /**
+       * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+       */
+      public boolean hasTradeAcceptOffer() {
+        return msgCase_ == 404;
+      }
+      /**
+       * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+       */
+      public soc.proto.GameMessage.TradeAcceptOffer getTradeAcceptOffer() {
+        if (tradeAcceptOfferBuilder_ == null) {
+          if (msgCase_ == 404) {
+            return (soc.proto.GameMessage.TradeAcceptOffer) msg_;
+          }
+          return soc.proto.GameMessage.TradeAcceptOffer.getDefaultInstance();
+        } else {
+          if (msgCase_ == 404) {
+            return tradeAcceptOfferBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.TradeAcceptOffer.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+       */
+      public Builder setTradeAcceptOffer(soc.proto.GameMessage.TradeAcceptOffer value) {
+        if (tradeAcceptOfferBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          tradeAcceptOfferBuilder_.setMessage(value);
+        }
+        msgCase_ = 404;
+        return this;
+      }
+      /**
+       * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+       */
+      public Builder setTradeAcceptOffer(
+          soc.proto.GameMessage.TradeAcceptOffer.Builder builderForValue) {
+        if (tradeAcceptOfferBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          tradeAcceptOfferBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 404;
+        return this;
+      }
+      /**
+       * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+       */
+      public Builder mergeTradeAcceptOffer(soc.proto.GameMessage.TradeAcceptOffer value) {
+        if (tradeAcceptOfferBuilder_ == null) {
+          if (msgCase_ == 404 &&
+              msg_ != soc.proto.GameMessage.TradeAcceptOffer.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.TradeAcceptOffer.newBuilder((soc.proto.GameMessage.TradeAcceptOffer) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 404) {
+            tradeAcceptOfferBuilder_.mergeFrom(value);
+          }
+          tradeAcceptOfferBuilder_.setMessage(value);
+        }
+        msgCase_ = 404;
+        return this;
+      }
+      /**
+       * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+       */
+      public Builder clearTradeAcceptOffer() {
+        if (tradeAcceptOfferBuilder_ == null) {
+          if (msgCase_ == 404) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 404) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          tradeAcceptOfferBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+       */
+      public soc.proto.GameMessage.TradeAcceptOffer.Builder getTradeAcceptOfferBuilder() {
+        return getTradeAcceptOfferFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+       */
+      public soc.proto.GameMessage.TradeAcceptOfferOrBuilder getTradeAcceptOfferOrBuilder() {
+        if ((msgCase_ == 404) && (tradeAcceptOfferBuilder_ != null)) {
+          return tradeAcceptOfferBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 404) {
+            return (soc.proto.GameMessage.TradeAcceptOffer) msg_;
+          }
+          return soc.proto.GameMessage.TradeAcceptOffer.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.TradeAcceptOffer, soc.proto.GameMessage.TradeAcceptOffer.Builder, soc.proto.GameMessage.TradeAcceptOfferOrBuilder> 
+          getTradeAcceptOfferFieldBuilder() {
+        if (tradeAcceptOfferBuilder_ == null) {
+          if (!(msgCase_ == 404)) {
+            msg_ = soc.proto.GameMessage.TradeAcceptOffer.getDefaultInstance();
+          }
+          tradeAcceptOfferBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.TradeAcceptOffer, soc.proto.GameMessage.TradeAcceptOffer.Builder, soc.proto.GameMessage.TradeAcceptOfferOrBuilder>(
+                  (soc.proto.GameMessage.TradeAcceptOffer) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 404;
+        onChanged();;
+        return tradeAcceptOfferBuilder_;
+      }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFieldsProto3(unknownFields);
@@ -21140,10 +30149,15 @@ public final class GameMessage {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_PutPiece_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_BuildRequest_descriptor;
+    internal_static_BuyInventoryItemRequest_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_BuildRequest_fieldAccessorTable;
+      internal_static_BuyInventoryItemRequest_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_InventoryItemAction_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_InventoryItemAction_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_CancelBuild_descriptor;
   private static final 
@@ -21215,6 +30229,31 @@ public final class GameMessage {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_EndTurn_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_TradeWithBank_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_TradeWithBank_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_TradeMakeOffer_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_TradeMakeOffer_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_TradeClearOffer_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_TradeClearOffer_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_TradeRejectOffer_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_TradeRejectOffer_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_TradeAcceptOffer_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_TradeAcceptOffer_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_GameMessageFromServer_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -21249,73 +30288,113 @@ public final class GameMessage {
       "AreasLegalNodesEntry\022\013\n\003key\030\001 \001(\r\022\031\n\005val" +
       "ue\030\002 \001(\0132\n._IntArray:\0028\001\"P\n\010PutPiece\022\030\n\004" +
       "type\030\001 \001(\0162\n.PieceType\022\025\n\rplayer_number\030" +
-      "\002 \001(\021\022\023\n\013coordinates\030\003 \001(\r\".\n\014BuildReque" +
-      "st\022\036\n\npiece_type\030\001 \001(\0162\n.PieceType\"g\n\013Ca" +
-      "ncelBuild\022 \n\npiece_type\030\001 \001(\0162\n.PieceTyp" +
-      "eH\000\022\'\n\titem_type\030\002 \001(\0162\022.OtherPlayableIt",
-      "emH\000B\r\n\013cancel_type\"b\n\tMovePiece\022\030\n\004type" +
-      "\030\001 \001(\0162\n.PieceType\022\025\n\rplayer_number\030\002 \001(" +
-      "\021\022\022\n\nfrom_coord\030\003 \001(\r\022\020\n\010to_coord\030\004 \001(\r\"" +
-      "S\n\013RemovePiece\022\030\n\004type\030\001 \001(\0162\n.PieceType" +
-      "\022\025\n\rplayer_number\030\002 \001(\021\022\023\n\013coordinates\030\003" +
-      " \001(\r\"\"\n\005State\022\031\n\005state\030\001 \001(\0162\n.GameState" +
-      "\"\226\001\n\rPlayerElement\022\024\n\014playerNumber\030\001 \001(\021" +
-      "\022%\n\006action\030\002 \001(\0162\025._PlayerElementAction\022" +
-      "(\n\013elementType\030\003 \001(\0162\023._PlayerElementTyp" +
-      "e\022\016\n\006amount\030\004 \001(\021\022\016\n\006isNews\030\005 \001(\010\"\211\001\n\016Pl",
-      "ayerElements\022\024\n\014playerNumber\030\001 \001(\021\022%\n\006ac" +
-      "tion\030\002 \001(\0162\025._PlayerElementAction\022)\n\014ele" +
-      "mentTypes\030\003 \003(\0162\023._PlayerElementType\022\017\n\007" +
-      "amounts\030\004 \003(\021\"\375\001\n\014GameElements\0220\n\014elemen" +
-      "tTypes\030\001 \003(\0162\032.GameElements._ElementType" +
-      "\022\016\n\006values\030\002 \003(\021\"\252\001\n\014_ElementType\022\035\n\031_UN" +
-      "SENT_DEFAULT_GAME_ELEM\020\000\022\017\n\013ROUND_COUNT\020" +
-      "\001\022\022\n\016DEV_CARD_COUNT\020\002\022\020\n\014FIRST_PLAYER\020\003\022" +
-      "\022\n\016CURRENT_PLAYER\020\004\022\027\n\023LARGEST_ARMY_PLAY" +
-      "ER\020\005\022\027\n\023LONGEST_ROAD_PLAYER\020\006\"&\n\tStartGa",
-      "me\022\031\n\005state\030\001 \001(\0162\n.GameState\"8\n\004Turn\022\025\n" +
-      "\rplayer_number\030\001 \001(\r\022\031\n\005state\030\002 \001(\0162\n.Ga" +
-      "meState\" \n\007SetTurn\022\025\n\rplayer_number\030\001 \001(" +
-      "\r\" \n\nDiceResult\022\022\n\ndice_total\030\001 \001(\r\"\264\001\n\023" +
-      "DiceResultResources\022>\n\020player_resources\030" +
-      "\001 \003(\0132$.DiceResultResources.PlayerResour" +
-      "ces\032]\n\017PlayerResources\022\025\n\rplayer_number\030" +
-      "\001 \001(\r\022\037\n\010res_type\030\002 \003(\0162\r.ResourceType\022\022" +
-      "\n\nres_amount\030\003 \003(\r\"\t\n\007EndTurn\"\351\004\n\025GameMe" +
-      "ssageFromServer\022\017\n\007ga_name\030\001 \001(\t\022\034\n\ngame",
-      "_state\030\002 \001(\0132\006.StateH\000\022(\n\016player_element" +
-      "\030\017 \001(\0132\016.PlayerElementH\000\022*\n\017player_eleme" +
-      "nts\030\020 \001(\0132\017.PlayerElementsH\000\022&\n\rgame_ele" +
-      "ments\030\021 \001(\0132\r.GameElementsH\000\022$\n\014board_la" +
-      "yout\030\036 \001(\0132\014.BoardLayoutH\000\0226\n\025potential_" +
-      "settlements\030\037 \001(\0132\025.PotentialSettlements" +
-      "H\000\022\036\n\tput_piece\030  \001(\0132\t.PutPieceH\000\022$\n\014ca" +
-      "ncel_build\030! \001(\0132\014.CancelBuildH\000\022 \n\nmove" +
-      "_piece\030\" \001(\0132\n.MovePieceH\000\022$\n\014remove_pie" +
-      "ce\030# \001(\0132\014.RemovePieceH\000\022 \n\nstart_game\030d",
-      " \001(\0132\n.StartGameH\000\022\025\n\004turn\030e \001(\0132\005.TurnH" +
-      "\000\022\034\n\010set_turn\030f \001(\0132\010.SetTurnH\000\022\"\n\013dice_" +
-      "result\030g \001(\0132\013.DiceResultH\000\0225\n\025dice_resu" +
-      "lt_resources\030h \001(\0132\024.DiceResultResources" +
-      "H\000B\005\n\003msg\"o\n\025GameMessageFromClient\022\017\n\007ga" +
-      "_name\030\001 \001(\t\022 \n\nstart_game\030d \001(\0132\n.StartG" +
-      "ameH\000\022\034\n\010end_turn\030e \001(\0132\010.EndTurnH\000B\005\n\003m" +
-      "sg*O\n\024_PlayerElementAction\022\032\n\026_UNSENT_DE" +
-      "FAULT_ACTION\020\000\022\007\n\003SET\020\001\022\010\n\004GAIN\020\002\022\010\n\004LOS" +
-      "E\020\003*\206\004\n\022_PlayerElementType\022\037\n\033_UNSENT_DE",
-      "FAULT_PLAYER_ELEM\020\000\022\r\n\tELEM_CLAY\020\001\022\014\n\010EL" +
-      "EM_ORE\020\002\022\016\n\nELEM_SHEEP\020\003\022\016\n\nELEM_WHEAT\020\004" +
-      "\022\r\n\tELEM_WOOD\020\005\022\031\n\025ELEM_UNKNOWN_RESOURCE" +
-      "\020\006\022\t\n\005ROADS\020\n\022\017\n\013SETTLEMENTS\020\013\022\n\n\006CITIES" +
-      "\020\014\022\t\n\005SHIPS\020\r\022\016\n\nNUMKNIGHTS\020\017\022\025\n\021ASK_SPE" +
-      "CIAL_BUILD\020\020\022\022\n\016RESOURCE_COUNT\020\021\022\030\n\024LAST" +
-      "_SETTLEMENT_NODE\020\022\022\030\n\024PLAYED_DEV_CARD_FL" +
-      "AG\020\023\022\037\n\033NUM_PICK_GOLD_HEX_RESOURCES\020e\022\020\n" +
-      "\014SCENARIO_SVP\020f\022!\n\035SCENARIO_PLAYEREVENTS" +
-      "_BITMASK\020g\022\"\n\036SCENARIO_SVP_LANDAREAS_BIT",
-      "MASK\020h\022\026\n\022STARTING_LANDAREAS\020i\022\030\n\024SCENAR" +
-      "IO_CLOTH_COUNT\020j\022\032\n\026SCENARIO_WARSHIP_COU" +
-      "NT\020kB\r\n\tsoc.protoH\001P\000b\006proto3"
+      "\002 \001(\021\022\023\n\013coordinates\030\003 \001(\r\"6\n\027BuyInvento" +
+      "ryItemRequest\022\033\n\023other_inv_item_type\030\001 \001" +
+      "(\005\"\375\002\n\023InventoryItemAction\0225\n\013action_typ" +
+      "e\030\001 \001(\0162 .InventoryItemAction._ActionTyp",
+      "e\022\025\n\rplayer_number\030\002 \001(\021\022\'\n\016dev_card_val" +
+      "ue\030\003 \001(\0162\r.DevCardValueH\000\022\035\n\023other_inv_i" +
+      "tem_type\030\004 \001(\005H\000\022\023\n\013reason_code\030\025 \001(\021\022\023\n" +
+      "\013is_playable\030\026 \001(\010\022\017\n\007is_kept\030\027 \001(\010\022\r\n\005i" +
+      "s_VP\030\030 \001(\010\022\027\n\017can_cancel_play\030\031 \001(\010\"_\n\013_" +
+      "ActionType\022\010\n\004DRAW\020\000\022\010\n\004PLAY\020\001\022\013\n\007ADD_NE" +
+      "W\020\002\022\013\n\007ADD_OLD\020\003\022\017\n\013CANNOT_PLAY\020\004\022\021\n\rPLA" +
+      "CING_EXTRA\020\005B\014\n\nitem_value\"g\n\013CancelBuil" +
+      "d\022 \n\npiece_type\030\001 \001(\0162\n.PieceTypeH\000\022\'\n\ti" +
+      "tem_type\030\002 \001(\0162\022.OtherPlayableItemH\000B\r\n\013",
+      "cancel_type\"b\n\tMovePiece\022\030\n\004type\030\001 \001(\0162\n" +
+      ".PieceType\022\025\n\rplayer_number\030\002 \001(\021\022\022\n\nfro" +
+      "m_coord\030\003 \001(\r\022\020\n\010to_coord\030\004 \001(\r\"S\n\013Remov" +
+      "ePiece\022\030\n\004type\030\001 \001(\0162\n.PieceType\022\025\n\rplay" +
+      "er_number\030\002 \001(\021\022\023\n\013coordinates\030\003 \001(\r\"\"\n\005" +
+      "State\022\031\n\005state\030\001 \001(\0162\n.GameState\"\226\001\n\rPla" +
+      "yerElement\022\024\n\014playerNumber\030\001 \001(\021\022%\n\006acti" +
+      "on\030\002 \001(\0162\025._PlayerElementAction\022(\n\013eleme" +
+      "ntType\030\003 \001(\0162\023._PlayerElementType\022\016\n\006amo" +
+      "unt\030\004 \001(\021\022\016\n\006isNews\030\005 \001(\010\"\211\001\n\016PlayerElem",
+      "ents\022\024\n\014playerNumber\030\001 \001(\021\022%\n\006action\030\002 \001" +
+      "(\0162\025._PlayerElementAction\022)\n\014elementType" +
+      "s\030\003 \003(\0162\023._PlayerElementType\022\017\n\007amounts\030" +
+      "\004 \003(\021\"\375\001\n\014GameElements\0220\n\014elementTypes\030\001" +
+      " \003(\0162\032.GameElements._ElementType\022\016\n\006valu" +
+      "es\030\002 \003(\021\"\252\001\n\014_ElementType\022\035\n\031_UNSENT_DEF" +
+      "AULT_GAME_ELEM\020\000\022\017\n\013ROUND_COUNT\020\001\022\022\n\016DEV" +
+      "_CARD_COUNT\020\002\022\020\n\014FIRST_PLAYER\020\003\022\022\n\016CURRE" +
+      "NT_PLAYER\020\004\022\027\n\023LARGEST_ARMY_PLAYER\020\005\022\027\n\023" +
+      "LONGEST_ROAD_PLAYER\020\006\"&\n\tStartGame\022\031\n\005st",
+      "ate\030\001 \001(\0162\n.GameState\"8\n\004Turn\022\025\n\rplayer_" +
+      "number\030\001 \001(\r\022\031\n\005state\030\002 \001(\0162\n.GameState\"" +
+      " \n\007SetTurn\022\025\n\rplayer_number\030\001 \001(\r\" \n\nDic" +
+      "eResult\022\022\n\ndice_total\030\001 \001(\r\"\264\001\n\023DiceResu" +
+      "ltResources\022>\n\020player_resources\030\001 \003(\0132$." +
+      "DiceResultResources.PlayerResources\032]\n\017P" +
+      "layerResources\022\025\n\rplayer_number\030\001 \001(\r\022\037\n" +
+      "\010res_type\030\002 \003(\0162\r.ResourceType\022\022\n\nres_am" +
+      "ount\030\003 \003(\r\"\t\n\007EndTurn\"b\n\rTradeWithBank\022\032" +
+      "\n\004give\030\001 \001(\0132\014.ResourceSet\022\031\n\003get\030\002 \001(\0132",
+      "\014.ResourceSet\022\032\n\022from_player_number\030\003 \001(" +
+      "\005\"\231\001\n\016TradeMakeOffer\022\032\n\004give\030\001 \001(\0132\014.Res" +
+      "ourceSet\022\031\n\003get\030\002 \001(\0132\014.ResourceSet\022\032\n\022f" +
+      "rom_player_number\030\003 \001(\005\022\036\n\nto_players\030\004 " +
+      "\001(\0132\n._IntArray\022\024\n\014offer_serial\030\005 \001(\005\"(\n" +
+      "\017TradeClearOffer\022\025\n\rplayer_number\030\001 \001(\021\"" +
+      "3\n\020TradeRejectOffer\022\037\n\027rejecting_player_" +
+      "number\030\001 \001(\005\"i\n\020TradeAcceptOffer\022\036\n\026offe" +
+      "ring_player_number\030\001 \001(\005\022\037\n\027accepting_pl" +
+      "ayer_number\030\002 \001(\005\022\024\n\014offer_serial\030\003 \001(\005\"",
+      "\211\007\n\025GameMessageFromServer\022\017\n\007ga_name\030\001 \001" +
+      "(\t\022\034\n\ngame_state\030\002 \001(\0132\006.StateH\000\022(\n\016play" +
+      "er_element\030\017 \001(\0132\016.PlayerElementH\000\022*\n\017pl" +
+      "ayer_elements\030\020 \001(\0132\017.PlayerElementsH\000\022&" +
+      "\n\rgame_elements\030\021 \001(\0132\r.GameElementsH\000\022$" +
+      "\n\014board_layout\030\036 \001(\0132\014.BoardLayoutH\000\0226\n\025" +
+      "potential_settlements\030\037 \001(\0132\025.PotentialS" +
+      "ettlementsH\000\022\036\n\tput_piece\030  \001(\0132\t.PutPie" +
+      "ceH\000\022$\n\014cancel_build\030! \001(\0132\014.CancelBuild" +
+      "H\000\022 \n\nmove_piece\030\" \001(\0132\n.MovePieceH\000\022$\n\014",
+      "remove_piece\030# \001(\0132\014.RemovePieceH\000\022 \n\nst" +
+      "art_game\030d \001(\0132\n.StartGameH\000\022\025\n\004turn\030e \001" +
+      "(\0132\005.TurnH\000\022\034\n\010set_turn\030f \001(\0132\010.SetTurnH" +
+      "\000\022\"\n\013dice_result\030g \001(\0132\013.DiceResultH\000\0225\n" +
+      "\025dice_result_resources\030h \001(\0132\024.DiceResul" +
+      "tResourcesH\000\0220\n\017inv_item_action\030\256\002 \001(\0132\024" +
+      ".InventoryItemActionH\000\022*\n\017trade_with_ban" +
+      "k\030\220\003 \001(\0132\016.TradeWithBankH\000\022,\n\020trade_make" +
+      "_offer\030\221\003 \001(\0132\017.TradeMakeOfferH\000\022.\n\021trad" +
+      "e_clear_offer\030\222\003 \001(\0132\020.TradeClearOfferH\000",
+      "\0220\n\022trade_reject_offer\030\223\003 \001(\0132\021.TradeRej" +
+      "ectOfferH\000\0220\n\022trade_accept_offer\030\224\003 \001(\0132" +
+      "\021.TradeAcceptOfferH\000B\005\n\003msg\"\255\004\n\025GameMess" +
+      "ageFromClient\022\017\n\007ga_name\030\001 \001(\t\022 \n\nstart_" +
+      "game\030d \001(\0132\n.StartGameH\000\022\034\n\010end_turn\030e \001" +
+      "(\0132\010.EndTurnH\000\022\037\n\tput_piece\030\310\001 \001(\0132\t.Put" +
+      "PieceH\000\022%\n\014cancel_build\030\311\001 \001(\0132\014.CancelB" +
+      "uildH\000\022!\n\nmove_piece\030\312\001 \001(\0132\n.MovePieceH" +
+      "\000\0221\n\014buy_inv_item\030\313\001 \001(\0132\030.BuyInventoryI" +
+      "temRequestH\000\0220\n\017inv_item_action\030\314\001 \001(\0132\024",
+      ".InventoryItemActionH\000\022*\n\017trade_with_ban" +
+      "k\030\220\003 \001(\0132\016.TradeWithBankH\000\022,\n\020trade_make" +
+      "_offer\030\221\003 \001(\0132\017.TradeMakeOfferH\000\022.\n\021trad" +
+      "e_clear_offer\030\222\003 \001(\0132\020.TradeClearOfferH\000" +
+      "\0220\n\022trade_reject_offer\030\223\003 \001(\0132\021.TradeRej" +
+      "ectOfferH\000\0220\n\022trade_accept_offer\030\224\003 \001(\0132" +
+      "\021.TradeAcceptOfferH\000B\005\n\003msg*O\n\024_PlayerEl" +
+      "ementAction\022\032\n\026_UNSENT_DEFAULT_ACTION\020\000\022" +
+      "\007\n\003SET\020\001\022\010\n\004GAIN\020\002\022\010\n\004LOSE\020\003*\206\004\n\022_Player" +
+      "ElementType\022\037\n\033_UNSENT_DEFAULT_PLAYER_EL",
+      "EM\020\000\022\r\n\tELEM_CLAY\020\001\022\014\n\010ELEM_ORE\020\002\022\016\n\nELE" +
+      "M_SHEEP\020\003\022\016\n\nELEM_WHEAT\020\004\022\r\n\tELEM_WOOD\020\005" +
+      "\022\031\n\025ELEM_UNKNOWN_RESOURCE\020\006\022\t\n\005ROADS\020\n\022\017" +
+      "\n\013SETTLEMENTS\020\013\022\n\n\006CITIES\020\014\022\t\n\005SHIPS\020\r\022\016" +
+      "\n\nNUMKNIGHTS\020\017\022\025\n\021ASK_SPECIAL_BUILD\020\020\022\022\n" +
+      "\016RESOURCE_COUNT\020\021\022\030\n\024LAST_SETTLEMENT_NOD" +
+      "E\020\022\022\030\n\024PLAYED_DEV_CARD_FLAG\020\023\022\037\n\033NUM_PIC" +
+      "K_GOLD_HEX_RESOURCES\020e\022\020\n\014SCENARIO_SVP\020f" +
+      "\022!\n\035SCENARIO_PLAYEREVENTS_BITMASK\020g\022\"\n\036S" +
+      "CENARIO_SVP_LANDAREAS_BITMASK\020h\022\026\n\022START",
+      "ING_LANDAREAS\020i\022\030\n\024SCENARIO_CLOTH_COUNT\020" +
+      "j\022\032\n\026SCENARIO_WARSHIP_COUNT\020kB\r\n\tsoc.pro" +
+      "toH\001P\000b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -21366,80 +30445,86 @@ public final class GameMessage {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_PutPiece_descriptor,
         new java.lang.String[] { "Type", "PlayerNumber", "Coordinates", });
-    internal_static_BuildRequest_descriptor =
+    internal_static_BuyInventoryItemRequest_descriptor =
       getDescriptor().getMessageTypes().get(3);
-    internal_static_BuildRequest_fieldAccessorTable = new
+    internal_static_BuyInventoryItemRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_BuildRequest_descriptor,
-        new java.lang.String[] { "PieceType", });
-    internal_static_CancelBuild_descriptor =
+        internal_static_BuyInventoryItemRequest_descriptor,
+        new java.lang.String[] { "OtherInvItemType", });
+    internal_static_InventoryItemAction_descriptor =
       getDescriptor().getMessageTypes().get(4);
+    internal_static_InventoryItemAction_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_InventoryItemAction_descriptor,
+        new java.lang.String[] { "ActionType", "PlayerNumber", "DevCardValue", "OtherInvItemType", "ReasonCode", "IsPlayable", "IsKept", "IsVP", "CanCancelPlay", "ItemValue", });
+    internal_static_CancelBuild_descriptor =
+      getDescriptor().getMessageTypes().get(5);
     internal_static_CancelBuild_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_CancelBuild_descriptor,
         new java.lang.String[] { "PieceType", "ItemType", "CancelType", });
     internal_static_MovePiece_descriptor =
-      getDescriptor().getMessageTypes().get(5);
+      getDescriptor().getMessageTypes().get(6);
     internal_static_MovePiece_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_MovePiece_descriptor,
         new java.lang.String[] { "Type", "PlayerNumber", "FromCoord", "ToCoord", });
     internal_static_RemovePiece_descriptor =
-      getDescriptor().getMessageTypes().get(6);
+      getDescriptor().getMessageTypes().get(7);
     internal_static_RemovePiece_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_RemovePiece_descriptor,
         new java.lang.String[] { "Type", "PlayerNumber", "Coordinates", });
     internal_static_State_descriptor =
-      getDescriptor().getMessageTypes().get(7);
+      getDescriptor().getMessageTypes().get(8);
     internal_static_State_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_State_descriptor,
         new java.lang.String[] { "State", });
     internal_static_PlayerElement_descriptor =
-      getDescriptor().getMessageTypes().get(8);
+      getDescriptor().getMessageTypes().get(9);
     internal_static_PlayerElement_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_PlayerElement_descriptor,
         new java.lang.String[] { "PlayerNumber", "Action", "ElementType", "Amount", "IsNews", });
     internal_static_PlayerElements_descriptor =
-      getDescriptor().getMessageTypes().get(9);
+      getDescriptor().getMessageTypes().get(10);
     internal_static_PlayerElements_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_PlayerElements_descriptor,
         new java.lang.String[] { "PlayerNumber", "Action", "ElementTypes", "Amounts", });
     internal_static_GameElements_descriptor =
-      getDescriptor().getMessageTypes().get(10);
+      getDescriptor().getMessageTypes().get(11);
     internal_static_GameElements_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_GameElements_descriptor,
         new java.lang.String[] { "ElementTypes", "Values", });
     internal_static_StartGame_descriptor =
-      getDescriptor().getMessageTypes().get(11);
+      getDescriptor().getMessageTypes().get(12);
     internal_static_StartGame_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_StartGame_descriptor,
         new java.lang.String[] { "State", });
     internal_static_Turn_descriptor =
-      getDescriptor().getMessageTypes().get(12);
+      getDescriptor().getMessageTypes().get(13);
     internal_static_Turn_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Turn_descriptor,
         new java.lang.String[] { "PlayerNumber", "State", });
     internal_static_SetTurn_descriptor =
-      getDescriptor().getMessageTypes().get(13);
+      getDescriptor().getMessageTypes().get(14);
     internal_static_SetTurn_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_SetTurn_descriptor,
         new java.lang.String[] { "PlayerNumber", });
     internal_static_DiceResult_descriptor =
-      getDescriptor().getMessageTypes().get(14);
+      getDescriptor().getMessageTypes().get(15);
     internal_static_DiceResult_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_DiceResult_descriptor,
         new java.lang.String[] { "DiceTotal", });
     internal_static_DiceResultResources_descriptor =
-      getDescriptor().getMessageTypes().get(15);
+      getDescriptor().getMessageTypes().get(16);
     internal_static_DiceResultResources_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_DiceResultResources_descriptor,
@@ -21451,23 +30536,53 @@ public final class GameMessage {
         internal_static_DiceResultResources_PlayerResources_descriptor,
         new java.lang.String[] { "PlayerNumber", "ResType", "ResAmount", });
     internal_static_EndTurn_descriptor =
-      getDescriptor().getMessageTypes().get(16);
+      getDescriptor().getMessageTypes().get(17);
     internal_static_EndTurn_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_EndTurn_descriptor,
         new java.lang.String[] { });
+    internal_static_TradeWithBank_descriptor =
+      getDescriptor().getMessageTypes().get(18);
+    internal_static_TradeWithBank_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_TradeWithBank_descriptor,
+        new java.lang.String[] { "Give", "Get", "FromPlayerNumber", });
+    internal_static_TradeMakeOffer_descriptor =
+      getDescriptor().getMessageTypes().get(19);
+    internal_static_TradeMakeOffer_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_TradeMakeOffer_descriptor,
+        new java.lang.String[] { "Give", "Get", "FromPlayerNumber", "ToPlayers", "OfferSerial", });
+    internal_static_TradeClearOffer_descriptor =
+      getDescriptor().getMessageTypes().get(20);
+    internal_static_TradeClearOffer_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_TradeClearOffer_descriptor,
+        new java.lang.String[] { "PlayerNumber", });
+    internal_static_TradeRejectOffer_descriptor =
+      getDescriptor().getMessageTypes().get(21);
+    internal_static_TradeRejectOffer_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_TradeRejectOffer_descriptor,
+        new java.lang.String[] { "RejectingPlayerNumber", });
+    internal_static_TradeAcceptOffer_descriptor =
+      getDescriptor().getMessageTypes().get(22);
+    internal_static_TradeAcceptOffer_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_TradeAcceptOffer_descriptor,
+        new java.lang.String[] { "OfferingPlayerNumber", "AcceptingPlayerNumber", "OfferSerial", });
     internal_static_GameMessageFromServer_descriptor =
-      getDescriptor().getMessageTypes().get(17);
+      getDescriptor().getMessageTypes().get(23);
     internal_static_GameMessageFromServer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_GameMessageFromServer_descriptor,
-        new java.lang.String[] { "GaName", "GameState", "PlayerElement", "PlayerElements", "GameElements", "BoardLayout", "PotentialSettlements", "PutPiece", "CancelBuild", "MovePiece", "RemovePiece", "StartGame", "Turn", "SetTurn", "DiceResult", "DiceResultResources", "Msg", });
+        new java.lang.String[] { "GaName", "GameState", "PlayerElement", "PlayerElements", "GameElements", "BoardLayout", "PotentialSettlements", "PutPiece", "CancelBuild", "MovePiece", "RemovePiece", "StartGame", "Turn", "SetTurn", "DiceResult", "DiceResultResources", "InvItemAction", "TradeWithBank", "TradeMakeOffer", "TradeClearOffer", "TradeRejectOffer", "TradeAcceptOffer", "Msg", });
     internal_static_GameMessageFromClient_descriptor =
-      getDescriptor().getMessageTypes().get(18);
+      getDescriptor().getMessageTypes().get(24);
     internal_static_GameMessageFromClient_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_GameMessageFromClient_descriptor,
-        new java.lang.String[] { "GaName", "StartGame", "EndTurn", "Msg", });
+        new java.lang.String[] { "GaName", "StartGame", "EndTurn", "PutPiece", "CancelBuild", "MovePiece", "BuyInvItem", "InvItemAction", "TradeWithBank", "TradeMakeOffer", "TradeClearOffer", "TradeRejectOffer", "TradeAcceptOffer", "Msg", });
     soc.proto.Data.getDescriptor();
   }
 

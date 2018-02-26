@@ -385,8 +385,12 @@ public final class Data {
 
   /**
    * <pre>
-   * Other playable/cancelable player item types, used in {&#64;link GameMessage.CancelBuild}.
-   * TODO: Might also be useful later in robot move planning.
+   * Dev Cards and other playable/cancelable player item types,
+   * not built pieces like roads and settlements; used in {&#64;link GameMessage.CancelBuild}.
+   *&lt;P&gt;
+   * This enum specifies only the general type of item, not the specific item:
+   * "a development card", not "the University victory point card".
+   * See specific-item types such {&#64;link DevCardValue} for specific item details.
    *&lt;P&gt;
    * Before v3.0.00 these were negative numbers stored in the same fields as {&#64;code PieceType}.
    * &#64;see PieceType
@@ -406,7 +410,7 @@ public final class Data {
     _UNSENT_DEFAULT_ITEM(0),
     /**
      * <pre>
-     * Before v3.0.00, SOCBuildRequest used -1 here to request 6-player Special Building Phase
+     * Development Card. See DevCardValue for each possible dev card; this item type sent from server to reject request to buy a Development Card.
      * </pre>
      *
      * <code>DEV_CARD = 2;</code>
@@ -414,7 +418,7 @@ public final class Data {
     DEV_CARD(2),
     /**
      * <pre>
-     * used from client to request canceling placement of a special SOCInventoryItem if possible
+     * Inventory Item. Used from client to request canceling placement of a special SOCInventoryItem if possible.
      * </pre>
      *
      * <code>INV_ITEM = 3;</code>
@@ -433,7 +437,7 @@ public final class Data {
     public static final int _UNSENT_DEFAULT_ITEM_VALUE = 0;
     /**
      * <pre>
-     * Before v3.0.00, SOCBuildRequest used -1 here to request 6-player Special Building Phase
+     * Development Card. See DevCardValue for each possible dev card; this item type sent from server to reject request to buy a Development Card.
      * </pre>
      *
      * <code>DEV_CARD = 2;</code>
@@ -441,7 +445,7 @@ public final class Data {
     public static final int DEV_CARD_VALUE = 2;
     /**
      * <pre>
-     * used from client to request canceling placement of a special SOCInventoryItem if possible
+     * Inventory Item. Used from client to request canceling placement of a special SOCInventoryItem if possible.
      * </pre>
      *
      * <code>INV_ITEM = 3;</code>
@@ -520,6 +524,264 @@ public final class Data {
     }
 
     // @@protoc_insertion_point(enum_scope:OtherPlayableItem)
+  }
+
+  /**
+   * <pre>
+   * Each possible development card, some of which need specific handling or special rules (Progress cards).
+   * Values 50-99 are unplayable Victory Point cards to be held until end of game.
+   * Values over 100 are reserved for expansions (unplayable VP cards will be 150-199, 250-299, etc).
+   * Uses new 5th-edition names, not old names (discovery, tower, temple, capitol/governor's house)
+   * &#64;see OtherPlayableItem
+   * </pre>
+   *
+   * Protobuf enum {@code DevCardValue}
+   */
+  public enum DevCardValue
+      implements com.google.protobuf.ProtocolMessageEnum {
+    /**
+     * <pre>
+     * Required for enum, but not sent: not a valid card type
+     * </pre>
+     *
+     * <code>_UNSENT_DEFAULT_DEVCARDVALUE = 0;</code>
+     */
+    _UNSENT_DEFAULT_DEVCARDVALUE(0),
+    /**
+     * <pre>
+     * Knight / Soldier
+     * </pre>
+     *
+     * <code>KNIGHT = 1;</code>
+     */
+    KNIGHT(1),
+    /**
+     * <pre>
+     * Monopoly
+     * </pre>
+     *
+     * <code>MONOPOLY = 2;</code>
+     */
+    MONOPOLY(2),
+    /**
+     * <pre>
+     * Road Building
+     * </pre>
+     *
+     * <code>ROAD_BUILDING = 3;</code>
+     */
+    ROAD_BUILDING(3),
+    /**
+     * <pre>
+     * Year of Plenty / Discovery
+     * </pre>
+     *
+     * <code>YEAR_OF_PLENTY = 4;</code>
+     */
+    YEAR_OF_PLENTY(4),
+    /**
+     * <pre>
+     * Chapel
+     * </pre>
+     *
+     * <code>VP_CHAPEL = 50;</code>
+     */
+    VP_CHAPEL(50),
+    /**
+     * <pre>
+     * Great Hall
+     * </pre>
+     *
+     * <code>VP_GREAT_HALL = 51;</code>
+     */
+    VP_GREAT_HALL(51),
+    /**
+     * <pre>
+     * Library
+     * </pre>
+     *
+     * <code>VP_LIBRARY = 52;</code>
+     */
+    VP_LIBRARY(52),
+    /**
+     * <pre>
+     * Market
+     * </pre>
+     *
+     * <code>VP_MARKET = 53;</code>
+     */
+    VP_MARKET(53),
+    /**
+     * <pre>
+     * University
+     * </pre>
+     *
+     * <code>VP_UNIVERSITY = 54;</code>
+     */
+    VP_UNIVERSITY(54),
+    UNRECOGNIZED(-1),
+    ;
+
+    /**
+     * <pre>
+     * Required for enum, but not sent: not a valid card type
+     * </pre>
+     *
+     * <code>_UNSENT_DEFAULT_DEVCARDVALUE = 0;</code>
+     */
+    public static final int _UNSENT_DEFAULT_DEVCARDVALUE_VALUE = 0;
+    /**
+     * <pre>
+     * Knight / Soldier
+     * </pre>
+     *
+     * <code>KNIGHT = 1;</code>
+     */
+    public static final int KNIGHT_VALUE = 1;
+    /**
+     * <pre>
+     * Monopoly
+     * </pre>
+     *
+     * <code>MONOPOLY = 2;</code>
+     */
+    public static final int MONOPOLY_VALUE = 2;
+    /**
+     * <pre>
+     * Road Building
+     * </pre>
+     *
+     * <code>ROAD_BUILDING = 3;</code>
+     */
+    public static final int ROAD_BUILDING_VALUE = 3;
+    /**
+     * <pre>
+     * Year of Plenty / Discovery
+     * </pre>
+     *
+     * <code>YEAR_OF_PLENTY = 4;</code>
+     */
+    public static final int YEAR_OF_PLENTY_VALUE = 4;
+    /**
+     * <pre>
+     * Chapel
+     * </pre>
+     *
+     * <code>VP_CHAPEL = 50;</code>
+     */
+    public static final int VP_CHAPEL_VALUE = 50;
+    /**
+     * <pre>
+     * Great Hall
+     * </pre>
+     *
+     * <code>VP_GREAT_HALL = 51;</code>
+     */
+    public static final int VP_GREAT_HALL_VALUE = 51;
+    /**
+     * <pre>
+     * Library
+     * </pre>
+     *
+     * <code>VP_LIBRARY = 52;</code>
+     */
+    public static final int VP_LIBRARY_VALUE = 52;
+    /**
+     * <pre>
+     * Market
+     * </pre>
+     *
+     * <code>VP_MARKET = 53;</code>
+     */
+    public static final int VP_MARKET_VALUE = 53;
+    /**
+     * <pre>
+     * University
+     * </pre>
+     *
+     * <code>VP_UNIVERSITY = 54;</code>
+     */
+    public static final int VP_UNIVERSITY_VALUE = 54;
+
+
+    public final int getNumber() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
+      return value;
+    }
+
+    /**
+     * @deprecated Use {@link #forNumber(int)} instead.
+     */
+    @java.lang.Deprecated
+    public static DevCardValue valueOf(int value) {
+      return forNumber(value);
+    }
+
+    public static DevCardValue forNumber(int value) {
+      switch (value) {
+        case 0: return _UNSENT_DEFAULT_DEVCARDVALUE;
+        case 1: return KNIGHT;
+        case 2: return MONOPOLY;
+        case 3: return ROAD_BUILDING;
+        case 4: return YEAR_OF_PLENTY;
+        case 50: return VP_CHAPEL;
+        case 51: return VP_GREAT_HALL;
+        case 52: return VP_LIBRARY;
+        case 53: return VP_MARKET;
+        case 54: return VP_UNIVERSITY;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf.Internal.EnumLiteMap<DevCardValue>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static final com.google.protobuf.Internal.EnumLiteMap<
+        DevCardValue> internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<DevCardValue>() {
+            public DevCardValue findValueByNumber(int number) {
+              return DevCardValue.forNumber(number);
+            }
+          };
+
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      return getDescriptor().getValues().get(ordinal());
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return soc.proto.Data.getDescriptor().getEnumTypes().get(3);
+    }
+
+    private static final DevCardValue[] VALUES = values();
+
+    public static DevCardValue valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
+      return VALUES[desc.getIndex()];
+    }
+
+    private final int value;
+
+    private DevCardValue(int value) {
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:DevCardValue)
   }
 
   /**
@@ -974,7 +1236,7 @@ public final class Data {
     }
     public static final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptor() {
-      return soc.proto.Data.getDescriptor().getEnumTypes().get(3);
+      return soc.proto.Data.getDescriptor().getEnumTypes().get(4);
     }
 
     private static final GameState[] VALUES = values();
@@ -1133,7 +1395,7 @@ public final class Data {
     }
     public static final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptor() {
-      return soc.proto.Data.getDescriptor().getEnumTypes().get(4);
+      return soc.proto.Data.getDescriptor().getEnumTypes().get(5);
     }
 
     private static final SeatLockState[] VALUES = values();
@@ -2295,6 +2557,1846 @@ public final class Data {
 
   }
 
+  public interface ResourceSetOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:ResourceSet)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * Amount of clay
+     * </pre>
+     *
+     * <code>int32 clay = 1;</code>
+     */
+    int getClay();
+
+    /**
+     * <pre>
+     * Amount of ore
+     * </pre>
+     *
+     * <code>int32 ore = 2;</code>
+     */
+    int getOre();
+
+    /**
+     * <pre>
+     * Amount of sheep
+     * </pre>
+     *
+     * <code>int32 sheep = 3;</code>
+     */
+    int getSheep();
+
+    /**
+     * <pre>
+     * Amount of wheat
+     * </pre>
+     *
+     * <code>int32 wheat = 4;</code>
+     */
+    int getWheat();
+
+    /**
+     * <pre>
+     * Amount of wood
+     * </pre>
+     *
+     * <code>int32 wood = 5;</code>
+     */
+    int getWood();
+
+    /**
+     * <pre>
+     * Optional field to include any other resource type(s) 
+     * </pre>
+     *
+     * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+     */
+    java.util.List<soc.proto.Data.ResourceSet.OtherResource> 
+        getOthersList();
+    /**
+     * <pre>
+     * Optional field to include any other resource type(s) 
+     * </pre>
+     *
+     * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+     */
+    soc.proto.Data.ResourceSet.OtherResource getOthers(int index);
+    /**
+     * <pre>
+     * Optional field to include any other resource type(s) 
+     * </pre>
+     *
+     * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+     */
+    int getOthersCount();
+    /**
+     * <pre>
+     * Optional field to include any other resource type(s) 
+     * </pre>
+     *
+     * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+     */
+    java.util.List<? extends soc.proto.Data.ResourceSet.OtherResourceOrBuilder> 
+        getOthersOrBuilderList();
+    /**
+     * <pre>
+     * Optional field to include any other resource type(s) 
+     * </pre>
+     *
+     * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+     */
+    soc.proto.Data.ResourceSet.OtherResourceOrBuilder getOthersOrBuilder(
+        int index);
+  }
+  /**
+   * <pre>
+   * Set with amounts of each standard Resource Type, with optional field for other types. 
+   * </pre>
+   *
+   * Protobuf type {@code ResourceSet}
+   */
+  public  static final class ResourceSet extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:ResourceSet)
+      ResourceSetOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use ResourceSet.newBuilder() to construct.
+    private ResourceSet(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private ResourceSet() {
+      clay_ = 0;
+      ore_ = 0;
+      sheep_ = 0;
+      wheat_ = 0;
+      wood_ = 0;
+      others_ = java.util.Collections.emptyList();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private ResourceSet(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+
+              clay_ = input.readInt32();
+              break;
+            }
+            case 16: {
+
+              ore_ = input.readInt32();
+              break;
+            }
+            case 24: {
+
+              sheep_ = input.readInt32();
+              break;
+            }
+            case 32: {
+
+              wheat_ = input.readInt32();
+              break;
+            }
+            case 40: {
+
+              wood_ = input.readInt32();
+              break;
+            }
+            case 50: {
+              if (!((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+                others_ = new java.util.ArrayList<soc.proto.Data.ResourceSet.OtherResource>();
+                mutable_bitField0_ |= 0x00000020;
+              }
+              others_.add(
+                  input.readMessage(soc.proto.Data.ResourceSet.OtherResource.parser(), extensionRegistry));
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+          others_ = java.util.Collections.unmodifiableList(others_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.Data.internal_static_ResourceSet_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.Data.internal_static_ResourceSet_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.Data.ResourceSet.class, soc.proto.Data.ResourceSet.Builder.class);
+    }
+
+    public interface OtherResourceOrBuilder extends
+        // @@protoc_insertion_point(interface_extends:ResourceSet.OtherResource)
+        com.google.protobuf.MessageOrBuilder {
+
+      /**
+       * <code>.ResourceType res_type = 1;</code>
+       */
+      int getResTypeValue();
+      /**
+       * <code>.ResourceType res_type = 1;</code>
+       */
+      soc.proto.Data.ResourceType getResType();
+
+      /**
+       * <code>int32 amount = 2;</code>
+       */
+      int getAmount();
+    }
+    /**
+     * <pre>
+     * Structure to include any other resource type 
+     * </pre>
+     *
+     * Protobuf type {@code ResourceSet.OtherResource}
+     */
+    public  static final class OtherResource extends
+        com.google.protobuf.GeneratedMessageV3 implements
+        // @@protoc_insertion_point(message_implements:ResourceSet.OtherResource)
+        OtherResourceOrBuilder {
+    private static final long serialVersionUID = 0L;
+      // Use OtherResource.newBuilder() to construct.
+      private OtherResource(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+        super(builder);
+      }
+      private OtherResource() {
+        resType_ = 0;
+        amount_ = 0;
+      }
+
+      @java.lang.Override
+      public final com.google.protobuf.UnknownFieldSet
+      getUnknownFields() {
+        return this.unknownFields;
+      }
+      private OtherResource(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        this();
+        int mutable_bitField0_ = 0;
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+            com.google.protobuf.UnknownFieldSet.newBuilder();
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              default: {
+                if (!parseUnknownFieldProto3(
+                    input, unknownFields, extensionRegistry, tag)) {
+                  done = true;
+                }
+                break;
+              }
+              case 8: {
+                int rawValue = input.readEnum();
+
+                resType_ = rawValue;
+                break;
+              }
+              case 16: {
+
+                amount_ = input.readInt32();
+                break;
+              }
+            }
+          }
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(this);
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(
+              e).setUnfinishedMessage(this);
+        } finally {
+          this.unknownFields = unknownFields.build();
+          makeExtensionsImmutable();
+        }
+      }
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.Data.internal_static_ResourceSet_OtherResource_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.Data.internal_static_ResourceSet_OtherResource_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.Data.ResourceSet.OtherResource.class, soc.proto.Data.ResourceSet.OtherResource.Builder.class);
+      }
+
+      public static final int RES_TYPE_FIELD_NUMBER = 1;
+      private int resType_;
+      /**
+       * <code>.ResourceType res_type = 1;</code>
+       */
+      public int getResTypeValue() {
+        return resType_;
+      }
+      /**
+       * <code>.ResourceType res_type = 1;</code>
+       */
+      public soc.proto.Data.ResourceType getResType() {
+        soc.proto.Data.ResourceType result = soc.proto.Data.ResourceType.valueOf(resType_);
+        return result == null ? soc.proto.Data.ResourceType.UNRECOGNIZED : result;
+      }
+
+      public static final int AMOUNT_FIELD_NUMBER = 2;
+      private int amount_;
+      /**
+       * <code>int32 amount = 2;</code>
+       */
+      public int getAmount() {
+        return amount_;
+      }
+
+      private byte memoizedIsInitialized = -1;
+      public final boolean isInitialized() {
+        byte isInitialized = memoizedIsInitialized;
+        if (isInitialized == 1) return true;
+        if (isInitialized == 0) return false;
+
+        memoizedIsInitialized = 1;
+        return true;
+      }
+
+      public void writeTo(com.google.protobuf.CodedOutputStream output)
+                          throws java.io.IOException {
+        if (resType_ != soc.proto.Data.ResourceType._NOT_YET_USED.getNumber()) {
+          output.writeEnum(1, resType_);
+        }
+        if (amount_ != 0) {
+          output.writeInt32(2, amount_);
+        }
+        unknownFields.writeTo(output);
+      }
+
+      public int getSerializedSize() {
+        int size = memoizedSize;
+        if (size != -1) return size;
+
+        size = 0;
+        if (resType_ != soc.proto.Data.ResourceType._NOT_YET_USED.getNumber()) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeEnumSize(1, resType_);
+        }
+        if (amount_ != 0) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeInt32Size(2, amount_);
+        }
+        size += unknownFields.getSerializedSize();
+        memoizedSize = size;
+        return size;
+      }
+
+      @java.lang.Override
+      public boolean equals(final java.lang.Object obj) {
+        if (obj == this) {
+         return true;
+        }
+        if (!(obj instanceof soc.proto.Data.ResourceSet.OtherResource)) {
+          return super.equals(obj);
+        }
+        soc.proto.Data.ResourceSet.OtherResource other = (soc.proto.Data.ResourceSet.OtherResource) obj;
+
+        boolean result = true;
+        result = result && resType_ == other.resType_;
+        result = result && (getAmount()
+            == other.getAmount());
+        result = result && unknownFields.equals(other.unknownFields);
+        return result;
+      }
+
+      @java.lang.Override
+      public int hashCode() {
+        if (memoizedHashCode != 0) {
+          return memoizedHashCode;
+        }
+        int hash = 41;
+        hash = (19 * hash) + getDescriptor().hashCode();
+        hash = (37 * hash) + RES_TYPE_FIELD_NUMBER;
+        hash = (53 * hash) + resType_;
+        hash = (37 * hash) + AMOUNT_FIELD_NUMBER;
+        hash = (53 * hash) + getAmount();
+        hash = (29 * hash) + unknownFields.hashCode();
+        memoizedHashCode = hash;
+        return hash;
+      }
+
+      public static soc.proto.Data.ResourceSet.OtherResource parseFrom(
+          java.nio.ByteBuffer data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static soc.proto.Data.ResourceSet.OtherResource parseFrom(
+          java.nio.ByteBuffer data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static soc.proto.Data.ResourceSet.OtherResource parseFrom(
+          com.google.protobuf.ByteString data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static soc.proto.Data.ResourceSet.OtherResource parseFrom(
+          com.google.protobuf.ByteString data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static soc.proto.Data.ResourceSet.OtherResource parseFrom(byte[] data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static soc.proto.Data.ResourceSet.OtherResource parseFrom(
+          byte[] data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static soc.proto.Data.ResourceSet.OtherResource parseFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static soc.proto.Data.ResourceSet.OtherResource parseFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static soc.proto.Data.ResourceSet.OtherResource parseDelimitedFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input);
+      }
+      public static soc.proto.Data.ResourceSet.OtherResource parseDelimitedFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static soc.proto.Data.ResourceSet.OtherResource parseFrom(
+          com.google.protobuf.CodedInputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static soc.proto.Data.ResourceSet.OtherResource parseFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+
+      public Builder newBuilderForType() { return newBuilder(); }
+      public static Builder newBuilder() {
+        return DEFAULT_INSTANCE.toBuilder();
+      }
+      public static Builder newBuilder(soc.proto.Data.ResourceSet.OtherResource prototype) {
+        return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      }
+      public Builder toBuilder() {
+        return this == DEFAULT_INSTANCE
+            ? new Builder() : new Builder().mergeFrom(this);
+      }
+
+      @java.lang.Override
+      protected Builder newBuilderForType(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        Builder builder = new Builder(parent);
+        return builder;
+      }
+      /**
+       * <pre>
+       * Structure to include any other resource type 
+       * </pre>
+       *
+       * Protobuf type {@code ResourceSet.OtherResource}
+       */
+      public static final class Builder extends
+          com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+          // @@protoc_insertion_point(builder_implements:ResourceSet.OtherResource)
+          soc.proto.Data.ResourceSet.OtherResourceOrBuilder {
+        public static final com.google.protobuf.Descriptors.Descriptor
+            getDescriptor() {
+          return soc.proto.Data.internal_static_ResourceSet_OtherResource_descriptor;
+        }
+
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internalGetFieldAccessorTable() {
+          return soc.proto.Data.internal_static_ResourceSet_OtherResource_fieldAccessorTable
+              .ensureFieldAccessorsInitialized(
+                  soc.proto.Data.ResourceSet.OtherResource.class, soc.proto.Data.ResourceSet.OtherResource.Builder.class);
+        }
+
+        // Construct using soc.proto.Data.ResourceSet.OtherResource.newBuilder()
+        private Builder() {
+          maybeForceBuilderInitialization();
+        }
+
+        private Builder(
+            com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+          super(parent);
+          maybeForceBuilderInitialization();
+        }
+        private void maybeForceBuilderInitialization() {
+          if (com.google.protobuf.GeneratedMessageV3
+                  .alwaysUseFieldBuilders) {
+          }
+        }
+        public Builder clear() {
+          super.clear();
+          resType_ = 0;
+
+          amount_ = 0;
+
+          return this;
+        }
+
+        public com.google.protobuf.Descriptors.Descriptor
+            getDescriptorForType() {
+          return soc.proto.Data.internal_static_ResourceSet_OtherResource_descriptor;
+        }
+
+        public soc.proto.Data.ResourceSet.OtherResource getDefaultInstanceForType() {
+          return soc.proto.Data.ResourceSet.OtherResource.getDefaultInstance();
+        }
+
+        public soc.proto.Data.ResourceSet.OtherResource build() {
+          soc.proto.Data.ResourceSet.OtherResource result = buildPartial();
+          if (!result.isInitialized()) {
+            throw newUninitializedMessageException(result);
+          }
+          return result;
+        }
+
+        public soc.proto.Data.ResourceSet.OtherResource buildPartial() {
+          soc.proto.Data.ResourceSet.OtherResource result = new soc.proto.Data.ResourceSet.OtherResource(this);
+          result.resType_ = resType_;
+          result.amount_ = amount_;
+          onBuilt();
+          return result;
+        }
+
+        public Builder clone() {
+          return (Builder) super.clone();
+        }
+        public Builder setField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return (Builder) super.setField(field, value);
+        }
+        public Builder clearField(
+            com.google.protobuf.Descriptors.FieldDescriptor field) {
+          return (Builder) super.clearField(field);
+        }
+        public Builder clearOneof(
+            com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+          return (Builder) super.clearOneof(oneof);
+        }
+        public Builder setRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            int index, java.lang.Object value) {
+          return (Builder) super.setRepeatedField(field, index, value);
+        }
+        public Builder addRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return (Builder) super.addRepeatedField(field, value);
+        }
+        public Builder mergeFrom(com.google.protobuf.Message other) {
+          if (other instanceof soc.proto.Data.ResourceSet.OtherResource) {
+            return mergeFrom((soc.proto.Data.ResourceSet.OtherResource)other);
+          } else {
+            super.mergeFrom(other);
+            return this;
+          }
+        }
+
+        public Builder mergeFrom(soc.proto.Data.ResourceSet.OtherResource other) {
+          if (other == soc.proto.Data.ResourceSet.OtherResource.getDefaultInstance()) return this;
+          if (other.resType_ != 0) {
+            setResTypeValue(other.getResTypeValue());
+          }
+          if (other.getAmount() != 0) {
+            setAmount(other.getAmount());
+          }
+          this.mergeUnknownFields(other.unknownFields);
+          onChanged();
+          return this;
+        }
+
+        public final boolean isInitialized() {
+          return true;
+        }
+
+        public Builder mergeFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+          soc.proto.Data.ResourceSet.OtherResource parsedMessage = null;
+          try {
+            parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            parsedMessage = (soc.proto.Data.ResourceSet.OtherResource) e.getUnfinishedMessage();
+            throw e.unwrapIOException();
+          } finally {
+            if (parsedMessage != null) {
+              mergeFrom(parsedMessage);
+            }
+          }
+          return this;
+        }
+
+        private int resType_ = 0;
+        /**
+         * <code>.ResourceType res_type = 1;</code>
+         */
+        public int getResTypeValue() {
+          return resType_;
+        }
+        /**
+         * <code>.ResourceType res_type = 1;</code>
+         */
+        public Builder setResTypeValue(int value) {
+          resType_ = value;
+          onChanged();
+          return this;
+        }
+        /**
+         * <code>.ResourceType res_type = 1;</code>
+         */
+        public soc.proto.Data.ResourceType getResType() {
+          soc.proto.Data.ResourceType result = soc.proto.Data.ResourceType.valueOf(resType_);
+          return result == null ? soc.proto.Data.ResourceType.UNRECOGNIZED : result;
+        }
+        /**
+         * <code>.ResourceType res_type = 1;</code>
+         */
+        public Builder setResType(soc.proto.Data.ResourceType value) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          
+          resType_ = value.getNumber();
+          onChanged();
+          return this;
+        }
+        /**
+         * <code>.ResourceType res_type = 1;</code>
+         */
+        public Builder clearResType() {
+          
+          resType_ = 0;
+          onChanged();
+          return this;
+        }
+
+        private int amount_ ;
+        /**
+         * <code>int32 amount = 2;</code>
+         */
+        public int getAmount() {
+          return amount_;
+        }
+        /**
+         * <code>int32 amount = 2;</code>
+         */
+        public Builder setAmount(int value) {
+          
+          amount_ = value;
+          onChanged();
+          return this;
+        }
+        /**
+         * <code>int32 amount = 2;</code>
+         */
+        public Builder clearAmount() {
+          
+          amount_ = 0;
+          onChanged();
+          return this;
+        }
+        public final Builder setUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.setUnknownFieldsProto3(unknownFields);
+        }
+
+        public final Builder mergeUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.mergeUnknownFields(unknownFields);
+        }
+
+
+        // @@protoc_insertion_point(builder_scope:ResourceSet.OtherResource)
+      }
+
+      // @@protoc_insertion_point(class_scope:ResourceSet.OtherResource)
+      private static final soc.proto.Data.ResourceSet.OtherResource DEFAULT_INSTANCE;
+      static {
+        DEFAULT_INSTANCE = new soc.proto.Data.ResourceSet.OtherResource();
+      }
+
+      public static soc.proto.Data.ResourceSet.OtherResource getDefaultInstance() {
+        return DEFAULT_INSTANCE;
+      }
+
+      private static final com.google.protobuf.Parser<OtherResource>
+          PARSER = new com.google.protobuf.AbstractParser<OtherResource>() {
+        public OtherResource parsePartialFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+            return new OtherResource(input, extensionRegistry);
+        }
+      };
+
+      public static com.google.protobuf.Parser<OtherResource> parser() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Parser<OtherResource> getParserForType() {
+        return PARSER;
+      }
+
+      public soc.proto.Data.ResourceSet.OtherResource getDefaultInstanceForType() {
+        return DEFAULT_INSTANCE;
+      }
+
+    }
+
+    private int bitField0_;
+    public static final int CLAY_FIELD_NUMBER = 1;
+    private int clay_;
+    /**
+     * <pre>
+     * Amount of clay
+     * </pre>
+     *
+     * <code>int32 clay = 1;</code>
+     */
+    public int getClay() {
+      return clay_;
+    }
+
+    public static final int ORE_FIELD_NUMBER = 2;
+    private int ore_;
+    /**
+     * <pre>
+     * Amount of ore
+     * </pre>
+     *
+     * <code>int32 ore = 2;</code>
+     */
+    public int getOre() {
+      return ore_;
+    }
+
+    public static final int SHEEP_FIELD_NUMBER = 3;
+    private int sheep_;
+    /**
+     * <pre>
+     * Amount of sheep
+     * </pre>
+     *
+     * <code>int32 sheep = 3;</code>
+     */
+    public int getSheep() {
+      return sheep_;
+    }
+
+    public static final int WHEAT_FIELD_NUMBER = 4;
+    private int wheat_;
+    /**
+     * <pre>
+     * Amount of wheat
+     * </pre>
+     *
+     * <code>int32 wheat = 4;</code>
+     */
+    public int getWheat() {
+      return wheat_;
+    }
+
+    public static final int WOOD_FIELD_NUMBER = 5;
+    private int wood_;
+    /**
+     * <pre>
+     * Amount of wood
+     * </pre>
+     *
+     * <code>int32 wood = 5;</code>
+     */
+    public int getWood() {
+      return wood_;
+    }
+
+    public static final int OTHERS_FIELD_NUMBER = 6;
+    private java.util.List<soc.proto.Data.ResourceSet.OtherResource> others_;
+    /**
+     * <pre>
+     * Optional field to include any other resource type(s) 
+     * </pre>
+     *
+     * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+     */
+    public java.util.List<soc.proto.Data.ResourceSet.OtherResource> getOthersList() {
+      return others_;
+    }
+    /**
+     * <pre>
+     * Optional field to include any other resource type(s) 
+     * </pre>
+     *
+     * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+     */
+    public java.util.List<? extends soc.proto.Data.ResourceSet.OtherResourceOrBuilder> 
+        getOthersOrBuilderList() {
+      return others_;
+    }
+    /**
+     * <pre>
+     * Optional field to include any other resource type(s) 
+     * </pre>
+     *
+     * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+     */
+    public int getOthersCount() {
+      return others_.size();
+    }
+    /**
+     * <pre>
+     * Optional field to include any other resource type(s) 
+     * </pre>
+     *
+     * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+     */
+    public soc.proto.Data.ResourceSet.OtherResource getOthers(int index) {
+      return others_.get(index);
+    }
+    /**
+     * <pre>
+     * Optional field to include any other resource type(s) 
+     * </pre>
+     *
+     * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+     */
+    public soc.proto.Data.ResourceSet.OtherResourceOrBuilder getOthersOrBuilder(
+        int index) {
+      return others_.get(index);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (clay_ != 0) {
+        output.writeInt32(1, clay_);
+      }
+      if (ore_ != 0) {
+        output.writeInt32(2, ore_);
+      }
+      if (sheep_ != 0) {
+        output.writeInt32(3, sheep_);
+      }
+      if (wheat_ != 0) {
+        output.writeInt32(4, wheat_);
+      }
+      if (wood_ != 0) {
+        output.writeInt32(5, wood_);
+      }
+      for (int i = 0; i < others_.size(); i++) {
+        output.writeMessage(6, others_.get(i));
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (clay_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(1, clay_);
+      }
+      if (ore_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(2, ore_);
+      }
+      if (sheep_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(3, sheep_);
+      }
+      if (wheat_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(4, wheat_);
+      }
+      if (wood_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(5, wood_);
+      }
+      for (int i = 0; i < others_.size(); i++) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(6, others_.get(i));
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.Data.ResourceSet)) {
+        return super.equals(obj);
+      }
+      soc.proto.Data.ResourceSet other = (soc.proto.Data.ResourceSet) obj;
+
+      boolean result = true;
+      result = result && (getClay()
+          == other.getClay());
+      result = result && (getOre()
+          == other.getOre());
+      result = result && (getSheep()
+          == other.getSheep());
+      result = result && (getWheat()
+          == other.getWheat());
+      result = result && (getWood()
+          == other.getWood());
+      result = result && getOthersList()
+          .equals(other.getOthersList());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + CLAY_FIELD_NUMBER;
+      hash = (53 * hash) + getClay();
+      hash = (37 * hash) + ORE_FIELD_NUMBER;
+      hash = (53 * hash) + getOre();
+      hash = (37 * hash) + SHEEP_FIELD_NUMBER;
+      hash = (53 * hash) + getSheep();
+      hash = (37 * hash) + WHEAT_FIELD_NUMBER;
+      hash = (53 * hash) + getWheat();
+      hash = (37 * hash) + WOOD_FIELD_NUMBER;
+      hash = (53 * hash) + getWood();
+      if (getOthersCount() > 0) {
+        hash = (37 * hash) + OTHERS_FIELD_NUMBER;
+        hash = (53 * hash) + getOthersList().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.Data.ResourceSet parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.Data.ResourceSet parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.Data.ResourceSet parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.Data.ResourceSet parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.Data.ResourceSet parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.Data.ResourceSet parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.Data.ResourceSet parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.Data.ResourceSet parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.Data.ResourceSet parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.Data.ResourceSet parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.Data.ResourceSet parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.Data.ResourceSet parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.Data.ResourceSet prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * Set with amounts of each standard Resource Type, with optional field for other types. 
+     * </pre>
+     *
+     * Protobuf type {@code ResourceSet}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:ResourceSet)
+        soc.proto.Data.ResourceSetOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.Data.internal_static_ResourceSet_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.Data.internal_static_ResourceSet_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.Data.ResourceSet.class, soc.proto.Data.ResourceSet.Builder.class);
+      }
+
+      // Construct using soc.proto.Data.ResourceSet.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+          getOthersFieldBuilder();
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        clay_ = 0;
+
+        ore_ = 0;
+
+        sheep_ = 0;
+
+        wheat_ = 0;
+
+        wood_ = 0;
+
+        if (othersBuilder_ == null) {
+          others_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000020);
+        } else {
+          othersBuilder_.clear();
+        }
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.Data.internal_static_ResourceSet_descriptor;
+      }
+
+      public soc.proto.Data.ResourceSet getDefaultInstanceForType() {
+        return soc.proto.Data.ResourceSet.getDefaultInstance();
+      }
+
+      public soc.proto.Data.ResourceSet build() {
+        soc.proto.Data.ResourceSet result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.Data.ResourceSet buildPartial() {
+        soc.proto.Data.ResourceSet result = new soc.proto.Data.ResourceSet(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        result.clay_ = clay_;
+        result.ore_ = ore_;
+        result.sheep_ = sheep_;
+        result.wheat_ = wheat_;
+        result.wood_ = wood_;
+        if (othersBuilder_ == null) {
+          if (((bitField0_ & 0x00000020) == 0x00000020)) {
+            others_ = java.util.Collections.unmodifiableList(others_);
+            bitField0_ = (bitField0_ & ~0x00000020);
+          }
+          result.others_ = others_;
+        } else {
+          result.others_ = othersBuilder_.build();
+        }
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.Data.ResourceSet) {
+          return mergeFrom((soc.proto.Data.ResourceSet)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.Data.ResourceSet other) {
+        if (other == soc.proto.Data.ResourceSet.getDefaultInstance()) return this;
+        if (other.getClay() != 0) {
+          setClay(other.getClay());
+        }
+        if (other.getOre() != 0) {
+          setOre(other.getOre());
+        }
+        if (other.getSheep() != 0) {
+          setSheep(other.getSheep());
+        }
+        if (other.getWheat() != 0) {
+          setWheat(other.getWheat());
+        }
+        if (other.getWood() != 0) {
+          setWood(other.getWood());
+        }
+        if (othersBuilder_ == null) {
+          if (!other.others_.isEmpty()) {
+            if (others_.isEmpty()) {
+              others_ = other.others_;
+              bitField0_ = (bitField0_ & ~0x00000020);
+            } else {
+              ensureOthersIsMutable();
+              others_.addAll(other.others_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.others_.isEmpty()) {
+            if (othersBuilder_.isEmpty()) {
+              othersBuilder_.dispose();
+              othersBuilder_ = null;
+              others_ = other.others_;
+              bitField0_ = (bitField0_ & ~0x00000020);
+              othersBuilder_ = 
+                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                   getOthersFieldBuilder() : null;
+            } else {
+              othersBuilder_.addAllMessages(other.others_);
+            }
+          }
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.Data.ResourceSet parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.Data.ResourceSet) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private int clay_ ;
+      /**
+       * <pre>
+       * Amount of clay
+       * </pre>
+       *
+       * <code>int32 clay = 1;</code>
+       */
+      public int getClay() {
+        return clay_;
+      }
+      /**
+       * <pre>
+       * Amount of clay
+       * </pre>
+       *
+       * <code>int32 clay = 1;</code>
+       */
+      public Builder setClay(int value) {
+        
+        clay_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Amount of clay
+       * </pre>
+       *
+       * <code>int32 clay = 1;</code>
+       */
+      public Builder clearClay() {
+        
+        clay_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int ore_ ;
+      /**
+       * <pre>
+       * Amount of ore
+       * </pre>
+       *
+       * <code>int32 ore = 2;</code>
+       */
+      public int getOre() {
+        return ore_;
+      }
+      /**
+       * <pre>
+       * Amount of ore
+       * </pre>
+       *
+       * <code>int32 ore = 2;</code>
+       */
+      public Builder setOre(int value) {
+        
+        ore_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Amount of ore
+       * </pre>
+       *
+       * <code>int32 ore = 2;</code>
+       */
+      public Builder clearOre() {
+        
+        ore_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int sheep_ ;
+      /**
+       * <pre>
+       * Amount of sheep
+       * </pre>
+       *
+       * <code>int32 sheep = 3;</code>
+       */
+      public int getSheep() {
+        return sheep_;
+      }
+      /**
+       * <pre>
+       * Amount of sheep
+       * </pre>
+       *
+       * <code>int32 sheep = 3;</code>
+       */
+      public Builder setSheep(int value) {
+        
+        sheep_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Amount of sheep
+       * </pre>
+       *
+       * <code>int32 sheep = 3;</code>
+       */
+      public Builder clearSheep() {
+        
+        sheep_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int wheat_ ;
+      /**
+       * <pre>
+       * Amount of wheat
+       * </pre>
+       *
+       * <code>int32 wheat = 4;</code>
+       */
+      public int getWheat() {
+        return wheat_;
+      }
+      /**
+       * <pre>
+       * Amount of wheat
+       * </pre>
+       *
+       * <code>int32 wheat = 4;</code>
+       */
+      public Builder setWheat(int value) {
+        
+        wheat_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Amount of wheat
+       * </pre>
+       *
+       * <code>int32 wheat = 4;</code>
+       */
+      public Builder clearWheat() {
+        
+        wheat_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int wood_ ;
+      /**
+       * <pre>
+       * Amount of wood
+       * </pre>
+       *
+       * <code>int32 wood = 5;</code>
+       */
+      public int getWood() {
+        return wood_;
+      }
+      /**
+       * <pre>
+       * Amount of wood
+       * </pre>
+       *
+       * <code>int32 wood = 5;</code>
+       */
+      public Builder setWood(int value) {
+        
+        wood_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Amount of wood
+       * </pre>
+       *
+       * <code>int32 wood = 5;</code>
+       */
+      public Builder clearWood() {
+        
+        wood_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private java.util.List<soc.proto.Data.ResourceSet.OtherResource> others_ =
+        java.util.Collections.emptyList();
+      private void ensureOthersIsMutable() {
+        if (!((bitField0_ & 0x00000020) == 0x00000020)) {
+          others_ = new java.util.ArrayList<soc.proto.Data.ResourceSet.OtherResource>(others_);
+          bitField0_ |= 0x00000020;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          soc.proto.Data.ResourceSet.OtherResource, soc.proto.Data.ResourceSet.OtherResource.Builder, soc.proto.Data.ResourceSet.OtherResourceOrBuilder> othersBuilder_;
+
+      /**
+       * <pre>
+       * Optional field to include any other resource type(s) 
+       * </pre>
+       *
+       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       */
+      public java.util.List<soc.proto.Data.ResourceSet.OtherResource> getOthersList() {
+        if (othersBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(others_);
+        } else {
+          return othersBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <pre>
+       * Optional field to include any other resource type(s) 
+       * </pre>
+       *
+       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       */
+      public int getOthersCount() {
+        if (othersBuilder_ == null) {
+          return others_.size();
+        } else {
+          return othersBuilder_.getCount();
+        }
+      }
+      /**
+       * <pre>
+       * Optional field to include any other resource type(s) 
+       * </pre>
+       *
+       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       */
+      public soc.proto.Data.ResourceSet.OtherResource getOthers(int index) {
+        if (othersBuilder_ == null) {
+          return others_.get(index);
+        } else {
+          return othersBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <pre>
+       * Optional field to include any other resource type(s) 
+       * </pre>
+       *
+       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       */
+      public Builder setOthers(
+          int index, soc.proto.Data.ResourceSet.OtherResource value) {
+        if (othersBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureOthersIsMutable();
+          others_.set(index, value);
+          onChanged();
+        } else {
+          othersBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Optional field to include any other resource type(s) 
+       * </pre>
+       *
+       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       */
+      public Builder setOthers(
+          int index, soc.proto.Data.ResourceSet.OtherResource.Builder builderForValue) {
+        if (othersBuilder_ == null) {
+          ensureOthersIsMutable();
+          others_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          othersBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Optional field to include any other resource type(s) 
+       * </pre>
+       *
+       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       */
+      public Builder addOthers(soc.proto.Data.ResourceSet.OtherResource value) {
+        if (othersBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureOthersIsMutable();
+          others_.add(value);
+          onChanged();
+        } else {
+          othersBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Optional field to include any other resource type(s) 
+       * </pre>
+       *
+       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       */
+      public Builder addOthers(
+          int index, soc.proto.Data.ResourceSet.OtherResource value) {
+        if (othersBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureOthersIsMutable();
+          others_.add(index, value);
+          onChanged();
+        } else {
+          othersBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Optional field to include any other resource type(s) 
+       * </pre>
+       *
+       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       */
+      public Builder addOthers(
+          soc.proto.Data.ResourceSet.OtherResource.Builder builderForValue) {
+        if (othersBuilder_ == null) {
+          ensureOthersIsMutable();
+          others_.add(builderForValue.build());
+          onChanged();
+        } else {
+          othersBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Optional field to include any other resource type(s) 
+       * </pre>
+       *
+       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       */
+      public Builder addOthers(
+          int index, soc.proto.Data.ResourceSet.OtherResource.Builder builderForValue) {
+        if (othersBuilder_ == null) {
+          ensureOthersIsMutable();
+          others_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          othersBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Optional field to include any other resource type(s) 
+       * </pre>
+       *
+       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       */
+      public Builder addAllOthers(
+          java.lang.Iterable<? extends soc.proto.Data.ResourceSet.OtherResource> values) {
+        if (othersBuilder_ == null) {
+          ensureOthersIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, others_);
+          onChanged();
+        } else {
+          othersBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Optional field to include any other resource type(s) 
+       * </pre>
+       *
+       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       */
+      public Builder clearOthers() {
+        if (othersBuilder_ == null) {
+          others_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000020);
+          onChanged();
+        } else {
+          othersBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Optional field to include any other resource type(s) 
+       * </pre>
+       *
+       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       */
+      public Builder removeOthers(int index) {
+        if (othersBuilder_ == null) {
+          ensureOthersIsMutable();
+          others_.remove(index);
+          onChanged();
+        } else {
+          othersBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Optional field to include any other resource type(s) 
+       * </pre>
+       *
+       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       */
+      public soc.proto.Data.ResourceSet.OtherResource.Builder getOthersBuilder(
+          int index) {
+        return getOthersFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <pre>
+       * Optional field to include any other resource type(s) 
+       * </pre>
+       *
+       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       */
+      public soc.proto.Data.ResourceSet.OtherResourceOrBuilder getOthersOrBuilder(
+          int index) {
+        if (othersBuilder_ == null) {
+          return others_.get(index);  } else {
+          return othersBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <pre>
+       * Optional field to include any other resource type(s) 
+       * </pre>
+       *
+       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       */
+      public java.util.List<? extends soc.proto.Data.ResourceSet.OtherResourceOrBuilder> 
+           getOthersOrBuilderList() {
+        if (othersBuilder_ != null) {
+          return othersBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(others_);
+        }
+      }
+      /**
+       * <pre>
+       * Optional field to include any other resource type(s) 
+       * </pre>
+       *
+       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       */
+      public soc.proto.Data.ResourceSet.OtherResource.Builder addOthersBuilder() {
+        return getOthersFieldBuilder().addBuilder(
+            soc.proto.Data.ResourceSet.OtherResource.getDefaultInstance());
+      }
+      /**
+       * <pre>
+       * Optional field to include any other resource type(s) 
+       * </pre>
+       *
+       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       */
+      public soc.proto.Data.ResourceSet.OtherResource.Builder addOthersBuilder(
+          int index) {
+        return getOthersFieldBuilder().addBuilder(
+            index, soc.proto.Data.ResourceSet.OtherResource.getDefaultInstance());
+      }
+      /**
+       * <pre>
+       * Optional field to include any other resource type(s) 
+       * </pre>
+       *
+       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       */
+      public java.util.List<soc.proto.Data.ResourceSet.OtherResource.Builder> 
+           getOthersBuilderList() {
+        return getOthersFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          soc.proto.Data.ResourceSet.OtherResource, soc.proto.Data.ResourceSet.OtherResource.Builder, soc.proto.Data.ResourceSet.OtherResourceOrBuilder> 
+          getOthersFieldBuilder() {
+        if (othersBuilder_ == null) {
+          othersBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+              soc.proto.Data.ResourceSet.OtherResource, soc.proto.Data.ResourceSet.OtherResource.Builder, soc.proto.Data.ResourceSet.OtherResourceOrBuilder>(
+                  others_,
+                  ((bitField0_ & 0x00000020) == 0x00000020),
+                  getParentForChildren(),
+                  isClean());
+          others_ = null;
+        }
+        return othersBuilder_;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:ResourceSet)
+    }
+
+    // @@protoc_insertion_point(class_scope:ResourceSet)
+    private static final soc.proto.Data.ResourceSet DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.Data.ResourceSet();
+    }
+
+    public static soc.proto.Data.ResourceSet getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ResourceSet>
+        PARSER = new com.google.protobuf.AbstractParser<ResourceSet>() {
+      public ResourceSet parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new ResourceSet(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<ResourceSet> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ResourceSet> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.Data.ResourceSet getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static__IntArray_descriptor;
   private static final 
@@ -2305,6 +4407,16 @@ public final class Data {
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static__SIntArray_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_ResourceSet_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_ResourceSet_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_ResourceSet_OtherResource_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_ResourceSet_OtherResource_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -2315,33 +4427,43 @@ public final class Data {
   static {
     java.lang.String[] descriptorData = {
       "\n\ndata.proto\"\030\n\t_IntArray\022\013\n\003arr\030\001 \003(\005\"\031" +
-      "\n\n_SIntArray\022\013\n\003arr\030\001 \003(\021*a\n\014ResourceTyp" +
-      "e\022\021\n\r_NOT_YET_USED\020\000\022\010\n\004CLAY\020\001\022\007\n\003ORE\020\002\022" +
-      "\t\n\005SHEEP\020\003\022\t\n\005WHEAT\020\004\022\010\n\004WOOD\020\005\022\013\n\007UNKNO" +
-      "WN\020\006*T\n\tPieceType\022\010\n\004ROAD\020\000\022\016\n\nSETTLEMEN" +
-      "T\020\001\022\010\n\004CITY\020\002\022\010\n\004SHIP\020\003\022\014\n\010FORTRESS\020\004\022\013\n" +
-      "\007VILLAGE\020\005*I\n\021OtherPlayableItem\022\030\n\024_UNSE" +
-      "NT_DEFAULT_ITEM\020\000\022\014\n\010DEV_CARD\020\002\022\014\n\010INV_I" +
-      "TEM\020\003*\245\005\n\tGameState\022\007\n\003NEW\020\000\022\t\n\005READY\020\001\022" +
-      "\"\n\036READY_RESET_WAIT_ROBOT_DISMISS\020\004\022\013\n\007S",
-      "TART1A\020\005\022\013\n\007START1B\020\006\022\013\n\007START2A\020\n\022)\n%ST" +
-      "ARTS_WAITING_FOR_PICK_GOLD_RESOURCE\020\016\022\013\n" +
-      "\007START2B\020\013\022\013\n\007START3A\020\014\022\013\n\007START3B\020\r\022\020\n\014" +
-      "ROLL_OR_CARD\020\017\022\t\n\005PLAY1\020\024\022\020\n\014PLACING_ROA" +
-      "D\020\036\022\026\n\022PLACING_SETTLEMENT\020\037\022\020\n\014PLACING_C" +
-      "ITY\020 \022\022\n\016PLACING_ROBBER\020!\022\022\n\016PLACING_PIR" +
-      "ATE\020\"\022\020\n\014PLACING_SHIP\020#\022\026\n\022PLACING_FREE_" +
-      "ROAD1\020(\022\026\n\022PLACING_FREE_ROAD2\020)\022\024\n\020PLACI" +
-      "NG_INV_ITEM\020*\022\030\n\024WAITING_FOR_DISCARDS\0202\022" +
-      "!\n\035WAITING_FOR_ROB_CHOOSE_PLAYER\0203\022\031\n\025WA",
-      "ITING_FOR_DISCOVERY\0204\022\030\n\024WAITING_FOR_MON" +
-      "OPOLY\0205\022 \n\034WAITING_FOR_ROBBER_OR_PIRATE\020" +
-      "6\022%\n!WAITING_FOR_ROB_CLOTH_OR_RESOURCE\0207" +
-      "\022\"\n\036WAITING_FOR_PICK_GOLD_RESOURCE\0208\022\024\n\020" +
-      "SPECIAL_BUILDING\020d\022\t\n\004OVER\020\350\007\022\016\n\tRESET_O" +
-      "LD\020\351\007*=\n\rSeatLockState\022\014\n\010UNLOCKED\020\000\022\n\n\006" +
-      "LOCKED\020\001\022\022\n\016CLEAR_ON_RESET\020\002B\r\n\tsoc.prot" +
-      "oH\001b\006proto3"
+      "\n\n_SIntArray\022\013\n\003arr\030\001 \003(\021\"\302\001\n\013ResourceSe" +
+      "t\022\014\n\004clay\030\001 \001(\005\022\013\n\003ore\030\002 \001(\005\022\r\n\005sheep\030\003 " +
+      "\001(\005\022\r\n\005wheat\030\004 \001(\005\022\014\n\004wood\030\005 \001(\005\022*\n\006othe" +
+      "rs\030\006 \003(\0132\032.ResourceSet.OtherResource\032@\n\r" +
+      "OtherResource\022\037\n\010res_type\030\001 \001(\0162\r.Resour" +
+      "ceType\022\016\n\006amount\030\002 \001(\005*a\n\014ResourceType\022\021" +
+      "\n\r_NOT_YET_USED\020\000\022\010\n\004CLAY\020\001\022\007\n\003ORE\020\002\022\t\n\005" +
+      "SHEEP\020\003\022\t\n\005WHEAT\020\004\022\010\n\004WOOD\020\005\022\013\n\007UNKNOWN\020" +
+      "\006*T\n\tPieceType\022\010\n\004ROAD\020\000\022\016\n\nSETTLEMENT\020\001",
+      "\022\010\n\004CITY\020\002\022\010\n\004SHIP\020\003\022\014\n\010FORTRESS\020\004\022\013\n\007VI" +
+      "LLAGE\020\005*I\n\021OtherPlayableItem\022\030\n\024_UNSENT_" +
+      "DEFAULT_ITEM\020\000\022\014\n\010DEV_CARD\020\002\022\014\n\010INV_ITEM" +
+      "\020\003*\305\001\n\014DevCardValue\022 \n\034_UNSENT_DEFAULT_D" +
+      "EVCARDVALUE\020\000\022\n\n\006KNIGHT\020\001\022\014\n\010MONOPOLY\020\002\022" +
+      "\021\n\rROAD_BUILDING\020\003\022\022\n\016YEAR_OF_PLENTY\020\004\022\r" +
+      "\n\tVP_CHAPEL\0202\022\021\n\rVP_GREAT_HALL\0203\022\016\n\nVP_L" +
+      "IBRARY\0204\022\r\n\tVP_MARKET\0205\022\021\n\rVP_UNIVERSITY" +
+      "\0206*\245\005\n\tGameState\022\007\n\003NEW\020\000\022\t\n\005READY\020\001\022\"\n\036" +
+      "READY_RESET_WAIT_ROBOT_DISMISS\020\004\022\013\n\007STAR",
+      "T1A\020\005\022\013\n\007START1B\020\006\022\013\n\007START2A\020\n\022)\n%START" +
+      "S_WAITING_FOR_PICK_GOLD_RESOURCE\020\016\022\013\n\007ST" +
+      "ART2B\020\013\022\013\n\007START3A\020\014\022\013\n\007START3B\020\r\022\020\n\014ROL" +
+      "L_OR_CARD\020\017\022\t\n\005PLAY1\020\024\022\020\n\014PLACING_ROAD\020\036" +
+      "\022\026\n\022PLACING_SETTLEMENT\020\037\022\020\n\014PLACING_CITY" +
+      "\020 \022\022\n\016PLACING_ROBBER\020!\022\022\n\016PLACING_PIRATE" +
+      "\020\"\022\020\n\014PLACING_SHIP\020#\022\026\n\022PLACING_FREE_ROA" +
+      "D1\020(\022\026\n\022PLACING_FREE_ROAD2\020)\022\024\n\020PLACING_" +
+      "INV_ITEM\020*\022\030\n\024WAITING_FOR_DISCARDS\0202\022!\n\035" +
+      "WAITING_FOR_ROB_CHOOSE_PLAYER\0203\022\031\n\025WAITI",
+      "NG_FOR_DISCOVERY\0204\022\030\n\024WAITING_FOR_MONOPO" +
+      "LY\0205\022 \n\034WAITING_FOR_ROBBER_OR_PIRATE\0206\022%" +
+      "\n!WAITING_FOR_ROB_CLOTH_OR_RESOURCE\0207\022\"\n" +
+      "\036WAITING_FOR_PICK_GOLD_RESOURCE\0208\022\024\n\020SPE" +
+      "CIAL_BUILDING\020d\022\t\n\004OVER\020\350\007\022\016\n\tRESET_OLD\020" +
+      "\351\007*=\n\rSeatLockState\022\014\n\010UNLOCKED\020\000\022\n\n\006LOC" +
+      "KED\020\001\022\022\n\016CLEAR_ON_RESET\020\002B\r\n\tsoc.protoH\001" +
+      "b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -2367,6 +4489,18 @@ public final class Data {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static__SIntArray_descriptor,
         new java.lang.String[] { "Arr", });
+    internal_static_ResourceSet_descriptor =
+      getDescriptor().getMessageTypes().get(2);
+    internal_static_ResourceSet_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_ResourceSet_descriptor,
+        new java.lang.String[] { "Clay", "Ore", "Sheep", "Wheat", "Wood", "Others", });
+    internal_static_ResourceSet_OtherResource_descriptor =
+      internal_static_ResourceSet_descriptor.getNestedTypes().get(0);
+    internal_static_ResourceSet_OtherResource_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_ResourceSet_OtherResource_descriptor,
+        new java.lang.String[] { "ResType", "Amount", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
- * Portions of this file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -54,6 +54,27 @@ enum ResourceType {
     WHEAT = 4;
     WOOD = 5;
     UNKNOWN = 6; // TODO: shares a slot with GOLD in some instances
+    // TODO maybe modernize resource names
+}
+
+/* Set with amounts of each standard Resource Type, with optional field for other types. */
+message ResourceSet {
+    /* Structure to include any other resource type */
+    message OtherResource {
+        ResourceType res_type = 1;
+        int32 amount = 2;
+    }
+
+    int32 clay  = 1;  // Amount of clay
+    int32 ore   = 2;  // Amount of ore
+    int32 sheep = 3;  // Amount of sheep
+    int32 wheat = 4;  // Amount of wheat
+    int32 wood  = 5;  // Amount of wood
+
+    // TODO maybe modernize resource names
+
+    /* Optional field to include any other resource type(s) */
+    repeated OtherResource others = 6;
 }
 
 /* Piece Types for {@link soc.game.SOCPlayingPiece}; same constant values as that class.
@@ -91,17 +112,39 @@ enum PieceType {
     VILLAGE = 5;
 }
 
-/* Other playable/cancelable player item types, used in {@link GameMessage.CancelBuild}.
- * TODO: Might also be useful later in robot move planning.
+/* Dev Cards and other playable/cancelable player item types,
+ * not built pieces like roads and settlements; used in {@link GameMessage.CancelBuild}.
+ *<P>
+ * This enum specifies only the general type of item, not the specific item:
+ * "a development card", not "the University victory point card".
+ * See specific-item types such {@link DevCardValue} for specific item details.
  *<P>
  * Before v3.0.00 these were negative numbers stored in the same fields as {@code PieceType}.
  * @see PieceType
  */
 enum OtherPlayableItem {
     _UNSENT_DEFAULT_ITEM = 0;  // Required for enum, but not sent: not a valid item type
-    // Before v3.0.00, SOCBuildRequest used -1 here to request 6-player Special Building Phase
-    DEV_CARD = 2;  // sent from server to reject request to buy a Development Card
-    INV_ITEM = 3;  // used from client to request canceling placement of a special SOCInventoryItem if possible
+    DEV_CARD = 2;  // Development Card. See DevCardValue for each possible dev card; this item type sent from server to reject request to buy a Development Card.
+    INV_ITEM = 3;  // Inventory Item. Used from client to request canceling placement of a special SOCInventoryItem if possible.
+}
+
+/* Each possible development card, some of which need specific handling or special rules (Progress cards).
+ * Values 50-99 are unplayable Victory Point cards to be held until end of game.
+ * Values over 100 are reserved for expansions (unplayable VP cards will be 150-199, 250-299, etc).
+ * Uses new 5th-edition names, not old names (discovery, tower, temple, capitol/governor's house)
+ * @see OtherPlayableItem
+ */
+enum DevCardValue {
+    _UNSENT_DEFAULT_DEVCARDVALUE = 0;  // Required for enum, but not sent: not a valid card type
+    KNIGHT = 1;          // Knight / Soldier
+    MONOPOLY = 2;        // Monopoly
+    ROAD_BUILDING = 3;   // Road Building
+    YEAR_OF_PLENTY = 4;  // Year of Plenty / Discovery
+    VP_CHAPEL = 50;      // Chapel
+    VP_GREAT_HALL = 51;  // Great Hall
+    VP_LIBRARY = 52;     // Library
+    VP_MARKET = 53;      // Market
+    VP_UNIVERSITY = 54;  // University
 }
 
 

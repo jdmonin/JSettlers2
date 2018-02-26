@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -111,11 +111,11 @@ message PotentialSettlements {
     repeated _SIntArray legal_sea_edges = 6;
 }
 
-/* Client player is asking to place, or server is announcing placement of, a piece on the board.
+/* Client player is asking to buy and place, or server is announcing placement of, a piece on the board.
  * Also used when joining a new game or a game in progress, to send the game state so far.
  *<P>
- * If message is for a {@link soc.game.SOCCity} while client is joining a game, must precede with
- * a {@code PutPiece} message with the Settlement at the same coordinate
+ * If message is from server for a {@link soc.game.SOCCity} while client is joining a game, must precede
+ * by sending that client a {@code PutPiece} message with the Settlement at the same coordinate
  * which was upgraded to that city.
  *<P>
  * Some game scenarios use {@link soc.game.SOCVillage villages} which aren't owned by any player;
@@ -130,6 +130,16 @@ message PotentialSettlements {
  * sending them {@link StartGame}. Scenario {@link soc.game.SOCScenario#K_SC_CLVI SC_CLVI}
  * sends its neutral villages before {@code START1A} but as part {@code "CV"} of the board layout
  * message, not as {@code PutPiece}s.
+ *<P>
+ * If this is a placement request from a client player: If successful, server announces
+ * {@link SOCPlayerElement} messages to the game for the resources spent, {@code PutPiece},
+ * and the new {@link State}. Otherwise server responds with an explanatory {@link GameServerText} and,
+ * if the gamestate allowed placement but resources or requested coordinates
+ * disallowed it, the current {@link State} and then a {@link CancelBuild}.
+ * After rejection the gamestate may be a placement state such as {@code PLACING_ROAD}.
+ *
+ * @see CancelBuild
+ * @see BuyInventoryItemRequest
  */
 message PutPiece {
     PieceType type = 1;
@@ -142,19 +152,128 @@ message PutPiece {
     uint32 coordinates = 3;
 }
 
-/* This message from client to server says which piece type the current player wants to build.
+/* This message from client means that the client player wants to buy a development card.
  *<P>
- * During game state {@link soc.game.SOCGame#PLAY1 PLAY1}, this is a build request during the player's turn.
+ * During game state {@code PLAY1}, this is a normal buy request.
  * When sent during other game states, and other players' turns, this is a request
- * to start the 6-player {@link soc.game.SOCGame#SPECIAL_BUILDING Special Building Phase}.
+ * to start the 6-player Special Building Phase.
+ *<P>
+ * If the player can buy a card, the server replies to the client with
+ * {@link SOCDevCardAction DEVCARDACTION}({@link SOCDevCardAction#DRAW}, {@link SOCDevCardConstants typeconstant}),
+ * and to all other players with {@link SOCDevCardAction DEVCARDACTION}({@link SOCDevCardAction#DRAW},
+ * {@link SOCDevCardConstants#UNKNOWN}).
+ *<P>
+ * If there are no cards remaining to buy, or player doesn't have enough resources,
+ * isn't currently their turn, or the player otherwise can't buy a card right now,
+ * the server will send them a text response denying the buy. Instead of that text,
+ * robot clients will be sent a {@link CancelBuildRequest} message.
+ *<P>
+ * Before v3.0.00 this message was {@code SOCBuyDevCardRequest}.
+ *
  * @see CancelBuild
- * @see BuyItemRequest
  */
-message BuildRequest {
-    /* Type of piece to build. When requesting Special Building Phase,
-     * this field is optional and its value is ignored.
+message BuyInventoryItemRequest {
+    int32 other_inv_item_type = 1;  // omit if Dev Card; the type of generic inventory item, from {@link SOCInventoryItem#itype}
+}
+
+/* Client player request, or server response or announcement, about
+ * Development Cards or other {@link SOCInventoryItem}s in a player's inventory.
+ *<P>
+ * Detailed message documentation location is TBD; for now see javadoc
+ * of {@code soc.message.SOCDevCardAction} and {@code SOCInventoryItemAction}.
+ *<P>
+ * Before v3.0.00 this message was {@code SOCDevCardAction} and {@code SOCInventoryItemAction}.
+ */
+message InventoryItemAction {
+    /* Types of action to take. Most of these are sent only from server, not as a request from client. */
+    enum _ActionType {
+        /* Draw/Buy: Add a Dev Card as new to player's inventory (like ADD_NEW) from the deck.
+         * Acts as a hint in case the client animates Dev Card draws from the deck.
+         * Otherwise equivalent to ADD_NEW.
+         */
+        DRAW = 0;
+
+        /* remove as old from player's inventory (action from server or request from client).
+         *<P>
+         * If this is from server for a non-Dev Card item:
+         * Check the {@link #isKept} flag to see if the item should be removed from inventory, or remain with state KEPT.
+         * Call {@link SOCInventoryItem#isPlayForPlacement(SOCGame, int)}: If true, playing this item requires placement;
+         * client receiving the message should call {@link SOCGame#setPlacingItem(SOCInventoryItem)}.
+         */
+        PLAY = 1;
+
+        /* Draw/Buy: Add as new to player's inventory; not playable this turn.
+         * Same as DRAW but without implying the item has just came from the Dev Card deck;
+         * can be used when client player sits down to take over a robot, and is sent its
+         * inventory details.
+         */
+        ADD_NEW = 2;
+
+        /* Add as old to player's inventory; can be played/activated this turn if is_playable flag is set */
+        ADD_OLD = 3;
+
+        /* The bot can't play the requested card at this time.
+         * This is sent only to the requesting robot, so playerNumber is always -1 in this message.
+         */
+        CANNOT_PLAY = 4;
+
+        /* If some other game action or event causes an item to need placement on the board,
+         * but it was never in the player's inventory, server sends {@code PLACING_EXTRA}
+         * to give the item details such as {@link #itemType} and {@link #canCancelPlay}.
+         * May be sent to entire game or just to the placing current player.
+         *<P>
+         * Play/placement rules are specific to each kind of inventory action, and the
+         * {@code PLACING_EXTRA} message may be sent before a game state change or other
+         * messages necessary for placement. The client handling {@code PLACING_EXTRA}
+         * should call {@link SOCGame#setPlacingItem(SOCInventoryItem)} and wait
+         * for those other messages. When they arrive, client can call
+         * {@link SOCGame#getPlacingItem()} to retrieve the item details.
+         */
+         PLACING_EXTRA = 5;
+    };
+
+    _ActionType action_type = 1;
+
+    /* Player number for this action, or -1 for action type {@code CANNOT_PLAY}.
+     * Remember that for playerNumber 0, protobuf won't send the field (== default).
+     * Ignored if sent from client.
      */
-    PieceType piece_type = 1;
+    sint32 player_number = 2;
+
+    /* Specific type of Dev Card or Inventory Item */
+    oneof item_value {
+        DevCardValue dev_card_value = 3;  // type of dev card, like {@link DevCardValue#ROADS}
+        int32 other_inv_item_type = 4;  // type of generic inventory item, from {@link SOCInventoryItem#itype}
+    }
+
+    // detail/flag fields for non-DevCard inventory items:
+
+    /* Optional reason codes for the CANNOT_PLAY action, corresponding
+     * to {@link SOCGame#canPlayInventoryItem(int, int)} return codes, or 0.
+     */
+    sint32 reason_code = 21;
+
+    /* If true, this item being added can be played or activated.
+     * Never sent for action_types PLAY or CANNOT_PLAY.
+     */
+    bool is_playable = 22;
+
+    /* If true, this item being added is kept in inventory until end of game.
+     * Never sent for action_types PLAY or CANNOT_PLAY.
+     */
+    bool is_kept = 23;
+
+    /* If true, this item being added is worth victory points.
+     * Never sent for action_types PLAY or CANNOT_PLAY.
+     */
+    bool is_VP = 24;
+
+    /* If true, this item is being added and its later play or placement can be canceled:
+     * See {@link SOCInventoryItem#canCancelPlay}.
+     * Never sent for action_types PLAY or CANNOT_PLAY.
+     */
+    bool can_cancel_play = 25;
+
 }
 
 /* This message type has five possible meanings, depending on game state and direction sent:
@@ -188,8 +307,8 @@ message BuildRequest {
  *   decide a better place to put their road, but robots must cancel
  *   the build request and decide on a new plan.
  *   <P>
- *   This can also be the reply if the client sends an illegal {@link BuildRequest}
- *   or {@link BuyItemRequest} (no resources, not the right game state, etc.)
+ *   This can also be the reply if the client sends an illegal {@link PutPiece}
+ *   or {@link BuyInventoryItemRequest} (no resources, not the right game state, etc.)
  *   or {@link MovePiece}.
  *</UL>
  * Before v3.0.00 this message was {@code SOCCancelBuildRequest}.
@@ -618,9 +737,78 @@ message EndTurn {
 // Player Actions
 //
 
+// TODO simple request
+// TODO simple action
+
 
 //
-// GameMessageFromServer, FromClient: For encode/decode, a GameMessage type
+// Player Actions: Trade
+//
+
+/* Client is making, or server is announcing, a bank trade or port trade.
+ * Also used to undo player's previous trade (swap previous give/get resource sets).
+ *<P>
+ * Before v3.0.00 this message was SOCBankTrade.
+ * @see TradeMakeOffer
+ */
+message TradeWithBank {
+    ResourceSet give = 1;
+    ResourceSet get  = 2;
+
+    int32 from_player_number = 3;  // ignored from client
+}
+
+/* Client is making, or server is announcing, a trade offer.
+ * Other player clients may respond with TradeRejectOffer or TradeAcceptOffer.
+ *<P>
+ * Before v3.0.00 this message was SOCMakeOffer.
+ * @see TradeWithBank
+ * @see TradeClearOffer
+ */
+message TradeMakeOffer {
+    ResourceSet give = 1;
+    ResourceSet get  = 2;
+
+    int32 from_player_number = 3;  // ignored from client
+    _IntArray to_players = 4;  // only needed if offer is not to all other players
+
+    int32 offer_serial = 5;  // optional offer number assigned by server, or 0 if server has not done so; ignored from client
+}
+
+/* A the player is retracting an offer.
+ * Or, all players are clearing all offers (usually at end of turn).
+ * @see TradeMakeOffer
+ */
+message TradeClearOffer {
+    sint32 player_number = 1;  // Player number, or -1 for clear all; ignored from client
+}
+
+/* A player is rejecting any and all trade offers currently made to them.
+ * @see TradeMakeOffer
+ * @see TradeAcceptOffer
+ */
+message TradeRejectOffer {
+    int32 rejecting_player_number = 1;  // Player number who sent this rejection; ignored from client
+}
+
+/* A player is accepting a trade offer currently made to them.
+ * If sent from client and trade is allowed, server responds with
+ * {@link PlayerElement}s, {@link GameServerText}, {@link TradeClearOffer}s,
+ * then (for robots' benefit) the received TradeAcceptOffer is re-sent to
+ * all clients in the game.
+ * @see TradeMakeOffer
+ * @see TradeRejectOffer
+ */
+message TradeAcceptOffer {
+    int32 offering_player_number = 1;  // player number offering the trade
+    int32 accepting_player_number = 2;  // player number accepting the trade; ignored from client
+
+    int32 offer_serial = 3;  // offer number from TradeMakeOffer, if not 0, in case of unexpected last-minute new offers
+}
+
+
+//
+// GameMessageFromServer, GameMessageFromClient: For encode/decode, a GameMessage type
 // containing all other message types using OneOf. These main GameMessageFromServer
 // and FromClient types are sent as a OneOf in the main Message.FromServer and FromClient.
 //
@@ -628,6 +816,7 @@ message EndTurn {
 
 message GameMessageFromServer {
     string ga_name = 1;      // Name of game
+
     oneof msg {
 
         // game and player state
@@ -654,14 +843,43 @@ message GameMessageFromServer {
         // player info
 
         // player actions
+        // (simplerequest = 300)
+        // (simpleaction = 301)
+        InventoryItemAction inv_item_action = 302;
+
+        // player actions: trade
+        TradeWithBank trade_with_bank = 400;
+        TradeMakeOffer trade_make_offer = 401;
+        TradeClearOffer trade_clear_offer = 402;
+        TradeRejectOffer trade_reject_offer = 403;
+        TradeAcceptOffer trade_accept_offer = 404;
     }
 }
 
 message GameMessageFromClient {
     string ga_name = 1;      // Name of game
+
     oneof msg {
         // turn
         StartGame start_game = 100;
         EndTurn end_turn = 101;
+
+        // player actions: buy/build/play pieces and items
+        PutPiece put_piece = 200;
+        CancelBuild cancel_build = 201;
+        MovePiece move_piece = 202;
+        BuyInventoryItemRequest buy_inv_item = 203;
+        InventoryItemAction inv_item_action = 204;
+
+        // player actions
+        // (simplerequest = 300)
+        // (simpleaction = 301)
+
+        // player actions: trade
+        TradeWithBank trade_with_bank = 400;
+        TradeMakeOffer trade_make_offer = 401;
+        TradeClearOffer trade_clear_offer = 402;
+        TradeRejectOffer trade_reject_offer = 403;
+        TradeAcceptOffer trade_accept_offer = 404;
     }
 }
