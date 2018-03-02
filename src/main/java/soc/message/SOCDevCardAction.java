@@ -22,6 +22,11 @@ package soc.message;
 
 import java.util.StringTokenizer;
 import soc.game.SOCDevCardConstants;  // for javadoc's use
+import soc.proto.Data.DevCardValue;
+import soc.proto.GameMessage;
+import soc.proto.Message;
+import soc.proto.GameMessage.InventoryItemAction;
+import soc.proto.GameMessage.InventoryItemAction._ActionType;
 
 
 /**
@@ -190,6 +195,47 @@ public class SOCDevCardAction extends SOCMessage
         }
 
         return new SOCDevCardAction(ga, pn, ac, ct);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        final DevCardValue cvalue = ProtoMessageBuildHelper.toDevCardValue(cardType);
+
+        GameMessage.InventoryItemAction.Builder b
+        = GameMessage.InventoryItemAction.newBuilder()
+            .setPlayerNumber(playerNumber);
+        if (cvalue != null)
+            b.setDevCardValue(cvalue);
+
+        final InventoryItemAction._ActionType act;
+
+        switch (actionType)
+        {
+        case DRAW:     act = _ActionType.DRAW;  break;
+        case PLAY:     act =_ActionType.PLAY;   break;
+        case ADD_NEW:  act =_ActionType.ADD_NEW;  break;
+        case ADD_OLD:  act =_ActionType.ADD_OLD;  break;
+        case CANNOT_PLAY: act = _ActionType.CANNOT_PLAY;  break;
+        default:
+            act = null;
+        }
+        if (act != null)
+            b.setActionType(act);
+
+        if ((cvalue != null) && (actionType != PLAY) && (actionType != CANNOT_PLAY))
+        {
+            final boolean isVP = ProtoMessageBuildHelper.isDevCardVP(cvalue);
+            b.setIsVP(isVP);
+            b.setIsKept(isVP);
+            b.setIsPlayable(! isVP);
+            b.setCanCancelPlay(! isVP);
+        }
+
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGaName(game).setInvItemAction(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
     /**

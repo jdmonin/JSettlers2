@@ -1253,6 +1253,44 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case GameMessage.GameMessageFromClient.END_TURN_FIELD_NUMBER:
                 return new SOCEndTurn(gaName);
 
+            // player actions: buy/build/play pieces and items
+
+            case GameMessage.GameMessageFromClient.PUT_PIECE_FIELD_NUMBER:
+                ;
+
+            case GameMessage.GameMessageFromClient.CANCEL_BUILD_FIELD_NUMBER:
+                ;
+
+            case GameMessage.GameMessageFromClient.MOVE_PIECE_FIELD_NUMBER:
+                ;
+
+            case GameMessage.GameMessageFromClient.BUY_INV_ITEM_FIELD_NUMBER:
+                ;
+
+            case GameMessage.GameMessageFromClient.INV_ITEM_ACTION_FIELD_NUMBER:
+                ;
+
+
+            // player actions
+            // TBD
+
+            // player actions: trade
+
+            case GameMessage.GameMessageFromClient.TRADE_WITH_BANK_FIELD_NUMBER:
+                ;
+
+            case GameMessage.GameMessageFromClient.TRADE_MAKE_OFFER_FIELD_NUMBER:
+                ;
+
+            case GameMessage.GameMessageFromClient.TRADE_CLEAR_OFFER_FIELD_NUMBER:
+                ;
+
+            case GameMessage.GameMessageFromClient.TRADE_REJECT_OFFER_FIELD_NUMBER:
+                ;
+
+            case GameMessage.GameMessageFromClient.TRADE_ACCEPT_OFFER_FIELD_NUMBER:
+                ;
+
             default:
                 System.err.println("Unhandled GameMessageFromClient type in SOCMessage.toMsg: " + typ);
                 return null;

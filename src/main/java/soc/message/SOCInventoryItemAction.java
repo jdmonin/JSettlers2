@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2016-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,6 +24,10 @@ import java.util.StringTokenizer;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCInventoryItem;     // for javadoc's use
+import soc.proto.GameMessage;
+import soc.proto.GameMessage.InventoryItemAction;
+import soc.proto.GameMessage.InventoryItemAction._ActionType;
+import soc.proto.Message;
 
 
 /**
@@ -183,7 +187,8 @@ public class SOCInventoryItemAction extends SOCMessage
     public final boolean isVP;
 
     /**
-     * If true, this item being added and its later play or placement can be canceled: {@link SOCInventoryItem#canCancelPlay}.
+     * If true, this item is being added and its later play or placement can be canceled:
+     * {@link SOCInventoryItem#canCancelPlay}.
      * This flag is sent for all actions except {@link #PLAY} and {@link #CANNOT_PLAY}.
      */
     public final boolean canCancelPlay;
@@ -338,6 +343,51 @@ public class SOCInventoryItemAction extends SOCMessage
             return new SOCInventoryItemAction(ga, pn, ac, it, kept, vp, canCancel);
         else
             return new SOCInventoryItemAction(ga, pn, ac, it, rc);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.InventoryItemAction.Builder b
+            = GameMessage.InventoryItemAction.newBuilder()
+                .setPlayerNumber(playerNumber)
+                .setOtherInvItemType(itemType);
+
+        final InventoryItemAction._ActionType act;
+        switch (action)
+        {
+        case ADD_PLAYABLE:
+            act = _ActionType.ADD_OLD;
+            b.setIsPlayable(true);
+            break;
+        case ADD_OTHER:
+            act = _ActionType.ADD_NEW;
+            break;
+        case PLAYED:
+            // fall through to PLAY
+        case PLAY:
+            act = _ActionType.PLAY;
+            break;
+        case CANNOT_PLAY:
+            act = _ActionType.CANNOT_PLAY;
+            b.setReasonCode(reasonCode);
+            break;
+        case PLACING_EXTRA:
+            act = _ActionType.PLACING_EXTRA;
+            break;
+        default:
+            act = null;
+        }
+        if (act != null)
+            b.setActionType(act);
+
+        if ((action != PLAY) && (action != CANNOT_PLAY))
+            b.setIsKept(isKept).setIsVP(isVP).setCanCancelPlay(canCancelPlay);
+
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGaName(game).setInvItemAction(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
     /**

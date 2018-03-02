@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,8 +19,13 @@
  **/
 package soc.message;
 
+import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
+import soc.game.SOCResourceConstants;
+import soc.game.SOCResourceSet;
 import soc.proto.Data;
+import soc.proto.Data.DevCardValue;
+import soc.proto.Data.ResourceSet.Builder;
 
 /**
  * Common helper functions for building Protobuf messages to send from the server or client.
@@ -30,6 +35,85 @@ import soc.proto.Data;
  */
 public abstract class ProtoMessageBuildHelper
 {
+    /**
+     * Build a protobuf {@code Data.ResourceSet.Builder} from this {@code SOCResourceSet}'s known resources.
+     * Unknown resources are ignored.
+     * @param rs  Resource set to build from; not {@code null}
+     * @return  A {@code Data.ResourceSet.Builder} from {@code rs}
+     * @throws NullPointerException if {@code rs == null}
+     */
+    public static final Data.ResourceSet.Builder toResourceSet(final SOCResourceSet rs)
+        throws NullPointerException
+    {
+        Builder rsb = Data.ResourceSet.newBuilder();
+
+        int n = rs.getAmount(SOCResourceConstants.CLAY);
+        if (n != 0)
+            rsb.setClay(n);
+        n = rs.getAmount(SOCResourceConstants.ORE);
+        if (n != 0)
+            rsb.setOre(n);
+        n = rs.getAmount(SOCResourceConstants.SHEEP);
+        if (n != 0)
+            rsb.setSheep(n);
+        n = rs.getAmount(SOCResourceConstants.WHEAT);
+        if (n != 0)
+            rsb.setWheat(n);
+        n = rs.getAmount(SOCResourceConstants.WOOD);
+        if (n != 0)
+            rsb.setWood(n);
+
+        return rsb;
+    }
+
+    /**
+     * Return the protobuf {@code Data.DevCardValue} enum value (object) for this development card constant.
+     * @param card  Type of development card, like {@link SOCDevCardConstants#ROADS}
+     * @return  Protobuf enum value for {@code card}, like {@link Data.DevCardValue#ROAD_BUILDING},
+     *    or {@code null} if not recognized
+     * @see #isDevCardVP(DevCardValue)
+     */
+    public static final Data.DevCardValue toDevCardValue(final int card)
+    {
+        final Data.DevCardValue dcv;
+
+        switch (card)
+        {
+        case SOCDevCardConstants.ROADS:
+            dcv = DevCardValue.ROAD_BUILDING;  break;
+        case SOCDevCardConstants.DISC:
+            dcv = DevCardValue.YEAR_OF_PLENTY;  break;
+        case SOCDevCardConstants.MONO:
+            dcv = DevCardValue.MONOPOLY;  break;
+        case SOCDevCardConstants.CAP:
+            dcv = DevCardValue.VP_GREAT_HALL;  break;
+        case SOCDevCardConstants.LIB:
+            dcv = DevCardValue.VP_LIBRARY;  break;
+        case SOCDevCardConstants.UNIV:
+            dcv = DevCardValue.VP_UNIVERSITY;  break;
+        case SOCDevCardConstants.TEMP:
+            dcv = DevCardValue.VP_CHAPEL;  break;
+        case SOCDevCardConstants.TOW:
+            dcv = DevCardValue.VP_MARKET;  break;
+        case SOCDevCardConstants.KNIGHT:
+            dcv = DevCardValue.KNIGHT;  break;
+        default:
+            dcv = null;
+        }
+
+        return dcv;
+    }
+
+    /**
+     * Is this development card worth a Victory Point?
+     * True if its cardNumber modulo 100 &gt;= 50.
+     * @param card  The card
+     * @return True if {@code card} is worth a VP
+     */
+    public static final boolean isDevCardVP(final Data.DevCardValue card)
+    {
+        return (card.getNumber() % 100) >= 50;
+    }
 
     /**
      * Return the protobuf {@code Data.SeatLockState} enum value (object) for this game state.

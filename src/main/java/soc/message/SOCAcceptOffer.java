@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2013-2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2013-2014,2016-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,6 +21,9 @@
 package soc.message;
 
 import java.util.StringTokenizer;
+
+import soc.proto.GameMessage;
+import soc.proto.Message;
 
 
 /**
@@ -146,6 +149,20 @@ public class SOCAcceptOffer extends SOCMessage
         }
 
         return new SOCAcceptOffer(ga, ac, of);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.TradeAcceptOffer.Builder b
+            = GameMessage.TradeAcceptOffer.newBuilder()
+                .setOfferingPlayerNumber(offering)
+                .setAcceptingPlayerNumber(accepting);
+                // TODO once server supports offerSerial field, set that if present
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGaName(game).setTradeAcceptOffer(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
     /**

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2010,2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2010,2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,6 +23,9 @@ package soc.message;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
 import soc.proto.Data;
+import soc.proto.Data._IntArray.Builder;
+import soc.proto.GameMessage;
+import soc.proto.Message;
 
 import java.util.StringTokenizer;
 
@@ -171,6 +174,43 @@ public class SOCMakeOffer extends SOCMessage
         }
 
         return new SOCMakeOffer(ga, new SOCTradeOffer(ga, from, to, give, get));
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        final int fromPN = offer.getFrom();
+        final boolean[] toPN = offer.getTo();
+        boolean toAll = true;
+        for (int pn = 0; pn < toPN.length; ++pn)
+        {
+            if (pn == fromPN)
+                continue;
+            if (! toPN[pn])
+            {
+                toAll = false;
+                break;
+            }
+        }
+
+        GameMessage.TradeMakeOffer.Builder b
+            = GameMessage.TradeMakeOffer.newBuilder()
+                .setGive(ProtoMessageBuildHelper.toResourceSet(offer.getGiveSet()))
+                .setGet(ProtoMessageBuildHelper.toResourceSet(offer.getGetSet()))
+                .setFromPlayerNumber(fromPN);
+        if (! toAll)
+        {
+            Builder iab = Data._IntArray.newBuilder();
+            for (int pn = 0; pn < toPN.length; ++pn)
+                if (toPN[pn])
+                    iab.addArr(pn);
+            b.setToPlayers(iab);
+        }
+        // TODO once server supports offerSerial field, set that if present
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGaName(game).setTradeMakeOffer(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
     /**
