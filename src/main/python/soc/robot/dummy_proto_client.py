@@ -16,16 +16,24 @@
 # See bottom of file for main() function.
 
 
+import argparse
 import socket
 import sys
 import traceback
 import google.protobuf
 from google.protobuf.internal import encoder, decoder
+import data_pb2
 import message_pb2
+import game_message_pb2
 
 class DummyProtoClient(object):
     """
-    Simple class to connect to a SOCServer over protobuf, but not join games.
+    Sample class to connect to a SOCServer over protobuf, and do one of:
+
+    - Demonstrate third-party bot authentication, but not join any games
+    - Observer Mode: Auth as a "human" client, join all newly created games
+      (and one current game, if any) and print all received recognized messages
+
     Default server port is PORT_DEFAULT_PROTOBUF (4000).
     Call constructor, then auth_and_run() to loop.  Message send/receive methods
     are write_delimited_message() and read_delimited_message().
@@ -33,22 +41,31 @@ class DummyProtoClient(object):
 
     PORT_DEFAULT_PROTOBUF = 4000
 
-    def __init__(self, srv, port=PORT_DEFAULT_PROTOBUF, cookie='??'):
+    def __init__(self, srv, port=PORT_DEFAULT_PROTOBUF, cookie='??', is_observer=False):
         """
         Set fields and try to connect to srv on the given TCP port.
         To actually communicate with the server, you must call auth_and_run().
         srv: Server hostname (FQDN) or IP string ("127.0.0.1" etc)
         port: TCP port; default protobuf port for JSettlers is PORT_DEFAULT_PROTOBUF
-        cookie: Server's required robot cookie (weak shared secret)
+        cookie: Server's required robot cookie (weak shared secret) if not Observer Mode, or None
+        is_observer: If true, run in Observer Mode instead of Bot Mode
         sock: Socket connected to the server
         connected: Are we connected to the server, with no errors sending or decoding messages?
+        nickname: Our nickname set during authentication, or None
+        joined_games: Our set of joined games, if Observer Mode
         """
         self.srv = srv
         self.port = port
+        self.is_observer = is_observer
+        if is_observer:
+            cookie = None
         self.cookie = cookie
+
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((srv, port))
         self.connected = False  # set true in auth_and_run
+        self.nickname = None  # set during auth_and_run
+        self.joined_games = set()  # for Observer Mode game tracking
 
     def disconnect(self, send_leave_all=True):
         """Clear our 'connected' flag field. Optionally send a LeaveAll message first."""
@@ -81,9 +98,16 @@ class DummyProtoClient(object):
         self.write_delimited_message(msg)
 
         msg = message_pb2.FromClient()
-        msg.im_a_robot.nickname = 'DummyProto-Python'
-        msg.im_a_robot.cookie = self.cookie
-        msg.im_a_robot.rb_class = 'soc.robot.DummyProtoClient_py'
+        if self.is_observer:
+            self.nickname = 'DummyProto-Observer'
+            msg.auth_req.role = message_pb2.AuthRequest.GAME_PLAYER
+            msg.auth_req.nickname = self.nickname
+            msg.auth_req.auth_scheme = message_pb2.AuthRequest.CLIENT_PLAINTEXT
+        else:
+            self.nickname = 'DummyProto-Python'
+            msg.im_a_robot.nickname = self.nickname
+            msg.im_a_robot.cookie = self.cookie
+            msg.im_a_robot.rb_class = 'soc.robot.DummyProtoClient_py'
         self.write_delimited_message(msg)
 
         # Loop to read any proto messages from the server, until ^C
@@ -107,6 +131,20 @@ class DummyProtoClient(object):
             else:
                 # EOF
                 self.disconnect(False)
+
+    def request_join_game(self, ga_name):
+        """
+        Send a request to join a game in Observer Mode.
+        Must be connected and in that mode, or raises AssertionError.
+        """
+        if not self.connected:
+            raise AssertionError("not connected")
+        if not self.is_observer:
+            raise AssertionError("not observer mode")
+
+        msg = message_pb2.FromClient()
+        msg.ga_join.ga_name = ga_name
+        self.write_delimited_message(msg)
 
     # All FromServer message treater functions; see msg_from_server_treaters.
     # The ordering of these declarations follows that within message.proto message FromServer.
@@ -135,22 +173,192 @@ class DummyProtoClient(object):
 
     # games
 
+    def proto_game_str(self, proto_game):
+        """Return a string with the contents of a _GameWithOptions protobuf message"""
+        ret = '_GameWithOptions(' + repr(proto_game.ga_name) + ', opts=' + repr(proto_game.opts)
+        if proto_game.unjoinable:
+            ret += ', unjoinable=True'
+        return ret + ')'
+
+    def _treat_games(self, msg):
+        """Current games on server; in Observer Mode, will try to join one."""
+        # examine and print repeated game contents (_GameWithOptions)
+        ga_name_to_join = None
+        s = '  Games(game=['
+        is_first = True
+        for ga in msg.game:
+            if is_first:
+                is_first = False
+            else:
+                s += ', '
+            s += self.proto_game_str(ga)
+            if (ga_name_to_join is None) and not ga.unjoinable:
+                ga_name_to_join = ga.ga_name
+        s += '])'
+        print(s)
+        if ga_name_to_join is not None:
+            self.request_join_game(ga_name_to_join)
+
+    def _treat_new_game(self, msg):
+        print("  NewGame(game=" + self.proto_game_str(msg.game)
+            + ", min_version=" + str(msg.min_version) + ")" )
+        print("  -- NEW GAME CREATED.")
+        if not msg.game.unjoinable:
+            self.request_join_game(msg.game.ga_name)
+
+    def _treat_join_game(self, msg):
+        print("  JoinGame(ga_name=" + repr(msg.ga_name)
+            + ", member_name=" + repr(msg.member_name) + ")" )
+        if msg.member_name == self.nickname:
+            print("  -- JOINED GAME as observer.")
+            self.joined_games.add(msg.ga_name)
+
     def _treat_bot_join_req(self, msg):
+        """This client can't join games; BotJoinGameRequest is seen only in Bot Mode, not Observer Mode."""
         print("  BotJoinGameRequest(" + repr(msg.game.ga_name) + ", "
             + str(msg.seat_number) + ")" )
-        print("  -- DISCONNECTING, this bot can't join games");
+        print("  -- DISCONNECTING, this bot can't join games")
         self.disconnect()
 
-    # within a game
+    def _treat_leave_game(self, msg):
+        print("  LeaveGame(ga_name=" + repr(msg.ga_name)
+            + ", member_name=" + repr(msg.member_name) + ")" )
+        if msg.member_name == self.nickname:
+            print("  -- LEFT GAME.")
+            self.joined_games.discard(msg.ga_name)
+
+    def _treat_delete_game(self, msg):
+        print("  DeleteGame(ga_name=" + repr(msg.ga_name) + ")" )
+        print("  -- GAME DELETED.")
+        self.joined_games.discard(msg.ga_name)  # in case bot was a member
+
+    #### within a game ####
+
+    # game and player state
+
+    def _treat_ga_state(self, ga_name, msg):
+        print("  State(game=" + repr(ga_name) + ", state=" + data_pb2.GameState.Name(msg.state) + ")")
+
+    def _treat_ga_player_element(self, ga_name, msg):
+        if msg.isNews:
+            s = ", isNews=True"
+        else:
+            s= ""
+        print("  PlayerElement(game=" + repr(ga_name) + ", pn=" + str(msg.playerNumber)
+            + ", action=" + game_message_pb2._PlayerElementAction.Name(msg.action)
+            + ", " + game_message_pb2._PlayerElementType.Name(msg.elementType)
+            + ": " + str(msg.amount) + s + ")")
+
+    def _treat_ga_player_elements(self, ga_name, msg):
+        s = ""
+        for i in range(len(msg.elementTypes)):
+            if i > 0:
+                s += ", "
+            s += (game_message_pb2._PlayerElementType.Name(msg.elementTypes[i])
+                + ": " + str(msg.amounts[i]))
+        print("  PlayerElements(game=" + repr(ga_name) + ", pn=" + str(msg.playerNumber)
+            + ", action=" + game_message_pb2._PlayerElementAction.Name(msg.action)
+            + ", {" + s + "})")
+
+    def _treat_ga_game_elements(self, ga_name, msg):
+        s = ""
+        for i in range(len(msg.elementTypes)):
+            if i > 0:
+                s += ", "
+            s += (game_message_pb2.GameElements._ElementType.Name(msg.elementTypes[i])
+                + ": " + str(msg.values[i]))
+        print("  GameElements(game=" + repr(ga_name) + ", {" + s + "})")
+
+    # board layout and contents
 
     def _treat_ga_board_layout(self, ga_name, msg):
         print("  BoardLayout(game=" + repr(ga_name) + ", encoding=" + str(msg.encoding_format)
               + ", parts=" + repr(msg.parts) + ")")
 
+    def _treat_ga_potential_settlements(self, ga_name, msg):
+        pn = msg.player_number
+        if not pn:
+            pn = 0
+        print("  PotentialSettlements(game=" + repr(ga_name) + ", pn=" + str(pn)
+              + ", ps_nodes=[" + ", ".join([format(c, '#05x') for c in msg.ps_nodes]) + "])")
+
+    def _treat_ga_put_piece(self, ga_name, msg):
+        pn = msg.player_number  # not sent if 0
+        if not pn:
+            pn = 0
+        ptype = msg.type  # not sent if ROAD (0)
+        if not ptype:
+            pt = data_pb2.ROAD
+        print("  PutPiece(game=" + repr(ga_name) + ", player_number=" + str(pn)
+              + ", coordinates=" + format(msg.coordinates, '#05x')
+              + ", type=" + data_pb2.PieceType.Name(ptype) + ")")
+
+    # turn
+
+    def _treat_ga_start_game(self, ga_name, msg):
+        print("  StartGame(game=" + repr(ga_name) + ", state=" + data_pb2.GameState.Name(msg.state) + ")")
+
+    def _treat_ga_turn(self, ga_name, msg):
+        pn = msg.player_number
+        if not pn:
+            pn = 0
+        print("  Turn(game=" + repr(ga_name) + ", pn=" + str(pn) + ", state=" + data_pb2.GameState.Name(msg.state) + ")")
+
+    def _treat_ga_set_turn(self, ga_name, msg):
+        pn = msg.player_number
+        if not pn:
+            pn = 0
+        print("  SetTurn(game=" + repr(ga_name) + ", pn=" + str(pn) + ")")
+
+    def _treat_ga_dice_result(self, ga_name, msg):
+        print("  DiceResult(game=" + repr(ga_name) + ", dice_total=" + str(msg.dice_total) + ")")
+
+    # player actions
+    def _treat_ga_inv_item_action(self, ga_name, msg):
+        pn = msg.player_number
+        if not pn:
+            pn = 0
+        atype = msg.action_type
+        if not atype:
+            atype = game_message_pb2.InventoryItemAction.DRAW
+        if msg.dev_card_value:
+            s = ", dev_card_value=" + data_pb2.DevCardValue.Name(msg.dev_card_value)
+        elif msg.other_inv_item_type:
+            s = ", other_inv_item_type=" + str(msg.other_inv_item_type)
+        else:
+            s = ", (unknown dev card or item)"
+        if msg.reason_code:
+            s += ", reason=" + str(msg.reason_code)
+        if msg.is_playable:
+            s += ", is_playable=True"
+        if msg.is_kept:
+            s += ", is_kept=True"
+        if msg.is_VP:
+            s += ", is_VP=True"
+        if msg.can_cancel_play:
+            s += ", can_cancel_play=True"
+        print("  InventoryItemAction(game=" + repr(ga_name) + ", pn=" + str(pn)
+            + ", action=" + game_message_pb2.InventoryItemAction._ActionType.Name(atype) + s + ")")
+
+
     # The ordering within this declaration follows that of game_message.proto message GameMessageFromServer.
     _game_msg_treaters = {
+        # game and player state
+        'game_state': _treat_ga_state,
+        'player_element': _treat_ga_player_element,
+        'player_elements': _treat_ga_player_elements,
+        'game_elements': _treat_ga_game_elements,
         # board layout and contents
         'board_layout': _treat_ga_board_layout,
+        'potential_settlements': _treat_ga_potential_settlements,
+        'put_piece': _treat_ga_put_piece,
+        # turn
+        'start_game': _treat_ga_start_game,
+        'turn': _treat_ga_turn,
+        'set_turn': _treat_ga_set_turn,
+        'dice_result': _treat_ga_dice_result,
+        # player actions
+        'inv_item_action': _treat_ga_inv_item_action,
     }
 
     def _treat_game_message(self, msg):
@@ -183,7 +391,12 @@ class DummyProtoClient(object):
         'bot_update_params': _treat_bot_update_params,
 
         # games
+        'games': _treat_games,
+        'ga_new': _treat_new_game,
+        'ga_join': _treat_join_game,
         'bot_join_req': _treat_bot_join_req,
+        'ga_leave': _treat_leave_game,
+        'ga_delete': _treat_delete_game,
 
         # within a game
         'game_message': _treat_game_message,
@@ -273,10 +486,19 @@ def main():
     port = DummyProtoClient.PORT_DEFAULT_PROTOBUF
     cookie = '??'
 
+    # TODO consider use argparse for positional arguments too
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-o", "--observe", help="Run in Observer Mode, not Bot Mode", action="store_true")
+    args, rest_of_argv = parser.parse_known_args()
+    sys.argv = sys.argv[:1] + rest_of_argv
+    is_observer = args.observe
+
     L = len(sys.argv)
     if (L < 2) or (L > 4):
-        sys.stderr.write("Arguments: serverhostname [cookie]   or serverhostname port cookie")
-        sys.stderr.write("Default port is " + str(port) + ", default cookie is " + cookie + " and probably wrong")
+        sys.stderr.write("Arguments: serverhostname [cookie or --observe]   or serverhostname port cookie (or --observe)\n")
+        sys.stderr.write("Default port is " + str(port) + ", default cookie is " + cookie + " and probably wrong\n")
+        sys.stderr.write("For Observer Mode (not Bot Mode) use -o or --observe instead of a cookie\n")
         sys.stderr.flush()
         sys.exit(1)  # <--- Early exit: Printed usage ---
 
@@ -288,7 +510,7 @@ def main():
         cookie = sys.argv[2]
 
     # try/except would surround this in a non-test client:
-    cli = DummyProtoClient(srv, port, cookie)
+    cli = DummyProtoClient(srv, port, cookie, is_observer)
     cli.auth_and_run()
     cli.close()
 
@@ -298,7 +520,7 @@ if __name__ == '__main__':
 
 # This file is part of the JSettlers project.
 #
-# This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+# This file Copyright (C) 2017-2018 Jeremy D Monin <jeremy@nand.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
