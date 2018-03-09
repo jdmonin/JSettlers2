@@ -213,9 +213,9 @@ public class SOCDevCardAction extends SOCMessage
         switch (actionType)
         {
         case DRAW:     act = _ActionType.DRAW;  break;
-        case PLAY:     act =_ActionType.PLAY;   break;
-        case ADD_NEW:  act =_ActionType.ADD_NEW;  break;
-        case ADD_OLD:  act =_ActionType.ADD_OLD;  break;
+        case PLAY:     act = _ActionType.PLAY;  break;
+        case ADD_NEW:  act = _ActionType.ADD_NEW;  break;
+        case ADD_OLD:  act = _ActionType.ADD_OLD;  break;
         case CANNOT_PLAY: act = _ActionType.CANNOT_PLAY;  break;
         default:
             act = null;

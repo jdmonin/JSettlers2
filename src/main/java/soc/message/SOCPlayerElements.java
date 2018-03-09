@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2010,2014-2015,2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2010,2014-2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas
  *
  * This program is free software; you can redistribute it and/or
@@ -198,7 +198,10 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
     {
         GameMessage.PlayerElements.Builder b
             = GameMessage.PlayerElements.newBuilder();
-        b.setPlayerNumber(playerNumber).setActionValue(actionType);
+        b.setPlayerNumber(playerNumber);
+        final GameMessage._PlayerElementAction act = ProtoMessageBuildHelper.toPlayerElementAction(actionType);
+        if (act != null)
+            b.setAction(act);
 
         final int n = (pa.length - 1) / 2;
         ArrayList<Integer> t = new ArrayList<>(n), a = new ArrayList<>(n);

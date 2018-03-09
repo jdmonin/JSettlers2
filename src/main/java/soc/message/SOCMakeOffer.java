@@ -23,7 +23,6 @@ package soc.message;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
 import soc.proto.Data;
-import soc.proto.Data._IntArray.Builder;
 import soc.proto.GameMessage;
 import soc.proto.Message;
 
@@ -200,7 +199,7 @@ public class SOCMakeOffer extends SOCMessage
                 .setFromPlayerNumber(fromPN);
         if (! toAll)
         {
-            Builder iab = Data._IntArray.newBuilder();
+            Data._IntArray.Builder iab = Data._IntArray.newBuilder();
             for (int pn = 0; pn < toPN.length; ++pn)
                 if (toPN[pn])
                     iab.addArr(pn);

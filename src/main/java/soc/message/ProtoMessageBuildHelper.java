@@ -25,7 +25,7 @@ import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.proto.Data;
 import soc.proto.Data.DevCardValue;
-import soc.proto.Data.ResourceSet.Builder;
+import soc.proto.GameMessage;
 
 /**
  * Common helper functions for building Protobuf messages to send from the server or client.
@@ -45,7 +45,7 @@ public abstract class ProtoMessageBuildHelper
     public static final Data.ResourceSet.Builder toResourceSet(final SOCResourceSet rs)
         throws NullPointerException
     {
-        Builder rsb = Data.ResourceSet.newBuilder();
+        Data.ResourceSet.Builder rsb = Data.ResourceSet.newBuilder();
 
         int n = rs.getAmount(SOCResourceConstants.CLAY);
         if (n != 0)
@@ -69,8 +69,9 @@ public abstract class ProtoMessageBuildHelper
     /**
      * Return the protobuf {@code Data.DevCardValue} enum value (object) for this development card constant.
      * @param card  Type of development card, like {@link SOCDevCardConstants#ROADS}
+     *     or {@link SOCDevCardConstants#UNKNOWN}
      * @return  Protobuf enum value for {@code card}, like {@link Data.DevCardValue#ROAD_BUILDING},
-     *    or {@code null} if not recognized
+     *     or {@code null} if {@link SOCDevCardConstants#UNKNOWN UNKNOWN} or not recognized
      * @see #isDevCardVP(DevCardValue)
      */
     public static final Data.DevCardValue toDevCardValue(final int card)
@@ -87,14 +88,14 @@ public abstract class ProtoMessageBuildHelper
             dcv = DevCardValue.MONOPOLY;  break;
         case SOCDevCardConstants.CAP:
             dcv = DevCardValue.VP_GREAT_HALL;  break;
-        case SOCDevCardConstants.LIB:
-            dcv = DevCardValue.VP_LIBRARY;  break;
+        case SOCDevCardConstants.LIB:  // is "market" in UI strings
+            dcv = DevCardValue.VP_MARKET;  break;
         case SOCDevCardConstants.UNIV:
             dcv = DevCardValue.VP_UNIVERSITY;  break;
         case SOCDevCardConstants.TEMP:
-            dcv = DevCardValue.VP_CHAPEL;  break;
+            dcv = DevCardValue.VP_LIBRARY;  break;
         case SOCDevCardConstants.TOW:
-            dcv = DevCardValue.VP_MARKET;  break;
+            dcv = DevCardValue.VP_CHAPEL;  break;
         case SOCDevCardConstants.KNIGHT:
             dcv = DevCardValue.KNIGHT;  break;
         default:
@@ -113,6 +114,33 @@ public abstract class ProtoMessageBuildHelper
     public static final boolean isDevCardVP(final Data.DevCardValue card)
     {
         return (card.getNumber() % 100) >= 50;
+    }
+
+    /**
+     * Return the protobuf {@code GameMessage._PlayerElementAction} enum value (object)
+     * for this {@link SOCPlayerElement} Action Type constant.
+     * @param action Action type: {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN},
+     *     or {@link SOCPlayerElement#LOSE}
+     * @return Protobuf enum value for {@code action}, like {@link GameMessage._PlayerElementAction#GAIN},
+     *    or {@code null} if not recognized
+     */
+    public static final GameMessage._PlayerElementAction toPlayerElementAction(final int action)
+    {
+        final GameMessage._PlayerElementAction act;
+
+        switch (action)
+        {
+        case SOCPlayerElement.SET:
+            act = GameMessage._PlayerElementAction.SET;  break;
+        case SOCPlayerElement.GAIN:
+            act = GameMessage._PlayerElementAction.GAIN;  break;
+        case SOCPlayerElement.LOSE:
+            act = GameMessage._PlayerElementAction.LOSE;  break;
+        default:
+            act = null;
+        }
+
+        return act;
     }
 
     /**
