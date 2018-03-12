@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2016-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -183,8 +183,9 @@ public class SOCInventoryItemAction extends SOCMessage
     public final boolean isVP;
 
     /**
-     * If true, this item being added and its later play or placement can be canceled: {@link SOCInventoryItem#canCancelPlay}.
-     * This flag is sent for all actions except {@link #PLAY} and {@link #CANNOT_PLAY}.
+     * If true when sent with any {@code ADD} action, this item's later play or placement can be canceled:
+     * {@link SOCInventoryItem#canCancelPlay}. This flag is sent for all actions
+     * except {@link #PLAY} and {@link #CANNOT_PLAY}.
      */
     public final boolean canCancelPlay;
 
@@ -218,7 +219,7 @@ public class SOCInventoryItemAction extends SOCMessage
      * @param it  the item type code, from {@link SOCInventoryItem#itype}
      * @param kept  If true, this is an add or play message with the {@link #isKept} flag set
      * @param vp    If true, this is an add  or play message with the {@link #isVP} flag set
-     * @param canCancel  If true, this is an add  or play message with the {@link #canCancelPlay} flag set
+     * @param canCancel  If true, this is an add or play message with the {@link #canCancelPlay} flag set
      */
     public SOCInventoryItemAction
         (final String ga, final int pn, final int ac, final int it,
