@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2012-2013,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2012-2013,2016-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -84,28 +84,37 @@ public interface SOCDevCardConstants
     /** road building card */
     public static final int ROADS = 1;
 
-    /**  discovery, year-of-plenty card */
+    /** discovery, year-of-plenty card */
     public static final int DISC = 2;
 
     /** monopoly card */
     public static final int MONO = 3;
 
-    /** capitol, governors-house VP card */
+    /** capitol, Governors House, Great Hall VP card */
     public static final int CAP = 4;
 
-    /** library, market VP card */
-    public static final int LIB = 5;
+    /**
+     * market VP card.
+     *<P>
+     * Before v2.0.00 this constant was {@code LIB}.
+     * Since the 5th Edition victory point cards include
+     * a Market and a Library, the same constant can't be both.
+     */
+    public static final int MARKET = 5;
 
     /** university VP card */
     public static final int UNIV = 6;
 
-    /** temple VP card */
+    /** temple, library VP card */
     public static final int TEMP = 7;
 
-    /** tower, chapel VP card */
-    public static final int TOW = 8;
+    /** tower, chapel VP card.
+     *<P>
+     * Before v2.0.00 this constant was {@code TOW}.
+     */
+    public static final int CHAPEL = 8;
 
-    /** Knight, robber card.
+    /** Knight, soldier, robber card.
      *<P>
      * In game scenario <tt>SC_PIRI</tt>, used for "Warship" cards to convert normal ships to warships.
      */

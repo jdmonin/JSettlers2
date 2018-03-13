@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2013 Luis A. Ramirez <lartkma@gmail.com>
- * Some parts of this file Copyright (C) 2013,2017 Jeremy D Monin <jeremy@nand.net>
+ * Some parts of this file Copyright (C) 2013,2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -191,7 +191,7 @@ public class SOCStringManager extends StringManager
      *     A count of -2 will localize to the plural resource name without a number, for uses such as "Joe monopolized clay".
      *<LI> <tt>{0,dcards}</tt> for a Development Card or list of dev cards.
      *     {@code arguments} should contain a single Integer or {@link SOCInventoryItem}, or a {@link List} of them,
-     *     in the range {@link SOCDevCardConstants#MIN} - {@link SOCDevCardConstants#TOW}.
+     *     in the range {@link SOCDevCardConstants#MIN} - {@link SOCDevCardConstants#KNIGHT}.
      *     <P>
      *     The returned format will include indefinite articles: "a Year of Plenty", "a Market (1 VP)", etc.
      *</UL>

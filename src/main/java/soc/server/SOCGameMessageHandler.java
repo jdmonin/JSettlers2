@@ -2578,7 +2578,7 @@ public class SOCGameMessageHandler
                     break;
 
                 // VP cards are secretly played when bought.
-                // (case SOCDevCardConstants.CAP, LIB, UNIV, TEMP, TOW):
+                // (case SOCDevCardConstants.CAP, MARKET, UNIV, TEMP, CHAPEL):
                 // If player clicks "Play Card" the message is handled at the
                 // client, in SOCHandPanel.actionPerformed case CARD.
                 //  "You secretly played this VP card when you bought it."
