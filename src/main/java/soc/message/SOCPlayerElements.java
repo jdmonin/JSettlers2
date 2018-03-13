@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2010,2014-2015,2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2010,2014-2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas
  *
  * This program is free software; you can redistribute it and/or
@@ -19,6 +19,9 @@
 package soc.message;
 
 import java.util.List;
+
+import soc.game.SOCResourceConstants;
+import soc.game.SOCResourceSet;
 
 /**
  * This message from the server sends information on some parts of a player's status,
@@ -96,6 +99,50 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
         {
             pa[pai] = et[eti];   ++pai;
             pa[pai] = amt[eti];  ++pai;
+        }
+    }
+
+    /**
+     * Constructor for server to tell client(s) about player resources.
+     *
+     * @param ga  name of the game
+     * @param pn  the player number
+     * @param ac  the type of action: {@link SOCPlayerElement#SET},
+     *             {@link SOCPlayerElement#GAIN}, or {@link SOCPlayerElement#LOSE}
+     * @param rs  resource set, to send known resource types; {@link SOCResourceConstants#UNKNOWN} are ignored
+     * @throws NullPointerException if {@code rs} null
+     * @since 2.0.00
+     */
+    public SOCPlayerElements(String ga, int pn, int ac, final SOCResourceSet rs)
+        throws NullPointerException
+    {
+        super(PLAYERELEMENTS, ga, null);
+
+        playerNumber = pn;
+        actionType = ac;
+
+        final int typeCount = rs.getResourceTypeCount();
+        pa = new int[2 + 2 * typeCount];
+        pa[0] = pn;
+        pa[1] = ac;
+        if (typeCount > 0)
+        {
+            elementTypes = new int[typeCount];
+            amounts = new int[typeCount];
+        }
+
+        for (int pai = 2, eti = 0, r = SOCResourceConstants.CLAY; r <= SOCResourceConstants.WOOD; ++r)
+        {
+            int amt = rs.getAmount(r);
+            if (amt > 0)
+            {
+                pa[pai] = r;    ++pai;
+                pa[pai] = amt;  ++pai;
+
+                elementTypes[eti] = r;
+                amounts[eti] = amt;
+                ++eti;
+            }
         }
     }
 
