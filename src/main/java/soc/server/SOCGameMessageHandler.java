@@ -30,6 +30,7 @@ import java.util.List;
 import soc.debug.D;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
+import soc.game.SOCDevCard;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
@@ -2385,7 +2386,7 @@ public class SOCGameMessageHandler
                     if (ga.clientVersionLowest >= SOCPlayerElements.MIN_VERSION)
                     {
                         srv.messageToGameWithMon(gaName, new SOCPlayerElements
-                            (gaName, pn, SOCPlayerElement.LOSE, SOCGame.CARD_SET));
+                            (gaName, pn, SOCPlayerElement.LOSE, SOCDevCard.COST));
                         srv.messageToGameWithMon
                             (gaName, new SOCGameElements(gaName, SOCGameElements.DEV_CARD_COUNT, devCount));
                     } else {

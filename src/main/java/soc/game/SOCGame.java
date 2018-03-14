@@ -565,13 +565,6 @@ public class SOCGame implements Serializable, Cloneable
     public static final ResourceSet EMPTY_RESOURCES = new SOCResourceSet();
 
     /**
-     * the set of resources a player needs to buy a development card
-     * @see SOCPlayingPiece#getResourcesToBuild(int)
-     * @see SOCInventory
-     */
-    public static final SOCResourceSet CARD_SET = new SOCResourceSet(0, 1, 1, 1, 0, 0);
-
-    /**
      * The {@link SOCBoard.BoardFactory} for creating new boards in the SOCGame constructors.
      * Differs at client and at server.
      * If null, SOCGame constructor sets to {@link SOCBoard.DefaultBoardFactory}.

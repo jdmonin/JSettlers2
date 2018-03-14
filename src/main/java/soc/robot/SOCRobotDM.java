@@ -36,6 +36,7 @@ import soc.disableDebug.D;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
+import soc.game.SOCDevCard;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
@@ -607,7 +608,7 @@ public class SOCRobotDM
 	///
 	SOCResourceSet targetResources = new SOCResourceSet();
 	for (int i = 0; i < knightsToBuy; i++) {
-	  targetResources.add(SOCGame.CARD_SET);
+	  targetResources.add(SOCDevCard.COST);
 	}
 	laETA = ourBSE.calculateRollsFast(ourPlayerData.getResources(), targetResources, 100, ourPlayerData.getPortFlags());
       } else {
@@ -2036,7 +2037,7 @@ public class SOCRobotDM
         if (game.getNumDevCards() > 0)
         {
             cardScoreOrETA = ourBSE.calculateRollsFast
-              (ourPlayerData.getResources(), SOCGame.CARD_SET, 100, ourPlayerData.getPortFlags());
+              (ourPlayerData.getResources(), SOCDevCard.COST, 100, ourPlayerData.getPortFlags());
         } else {
             cardScoreOrETA = 100;
         }

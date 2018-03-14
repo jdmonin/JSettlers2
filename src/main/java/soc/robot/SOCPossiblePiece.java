@@ -387,8 +387,9 @@ public abstract class SOCPossiblePiece
 
         case SOCPlayingPiece.MAXPLUSONE:
             // fall through
+
         case CARD:
-            return SOCGame.CARD_SET;
+            return SOCDevCard.COST;
 
         case PICK_SPECIAL:
             return ((SOCPossiblePickSpecialItem) this).cost;

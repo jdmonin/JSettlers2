@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2012,2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2012,2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -292,7 +292,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
      * the set of resources a player needs to build a playing piece.
      * @param pieceType The type of this playing piece, in range {@link #MIN} to ({@link #MAXPLUSONE} - 1).
      *           {@link #ROAD}, {@link #CITY}, etc.
-     *           For convenience, can also pass -2 or {@link #MAXPLUSONE} for {@link SOCGame#CARD_SET}.
+     *           For convenience, can also pass -2 or {@link #MAXPLUSONE} for {@link SOCDevCard#COST}.
      * @return the set, such as {@link SOCSettlement#COST}
      * @throws IllegalArgumentException if <tt>pieceType</tt> is out of range, or can never be built by players
      * @since 1.1.08
@@ -313,7 +313,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
         case -2:  // == SOCPossiblePiece.CARD (robots)
             // fall through
         case SOCPlayingPiece.MAXPLUSONE:
-            return SOCGame.CARD_SET;
+            return SOCDevCard.COST;
         default:
             throw new IllegalArgumentException("pieceType: " + pieceType);
         }

@@ -31,6 +31,15 @@ import soc.util.SOCStringManager;
 public class SOCDevCard
     extends SOCInventoryItem implements SOCDevCardConstants  // SOCInventoryItem implies Cloneable
 {
+    /**
+     * the set of resources a player needs to buy a development card.
+     *<P>
+     * Before v2.0.00 this field was {@code SOCGame.CARD_SET}.
+     *
+     * @see SOCPlayingPiece#getResourcesToBuild(int)
+     * @see SOCInventory
+     */
+    public static final SOCResourceSet COST = new SOCResourceSet(0, 1, 1, 1, 0, 0);
 
     /**
      * If true, {@link #getItemName(SOCGame, boolean, SOCStringManager)} can just use the
