@@ -1672,7 +1672,8 @@ public class SOCGameHandler extends GameHandler
         //D.ebugPrintln("*** gameHasHumanPlayer = "+gameHasHumanPlayer+" for "+gm);
 
         /**
-         * if no human players, check if there is at least one person watching the game
+         * if no human players, check if there is at least one person watching the game (observing).
+         * Even with observers, end it unless ga.isBotsOnly or PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL != 0.
          */
         if ( (! gameHasHumanPlayer) && ! srv.gameList.isGameEmpty(gm))
         {
@@ -1696,12 +1697,19 @@ public class SOCGameHandler extends GameHandler
                     }
                 }
 
-                if (!nameMatch)
+                if (! nameMatch)
                 {
                     gameHasObserver = true;
                     break;
                 }
             }
+
+            if (gameHasObserver && ! ga.isBotsOnly)
+            {
+                if (0 == srv.getConfigIntProperty(SOCServer.PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0))
+                    gameHasObserver = false;
+            }
+
         }
         //D.ebugPrintln("*** gameHasObserver = "+gameHasObserver+" for "+gm);
 
@@ -1717,7 +1725,7 @@ public class SOCGameHandler extends GameHandler
                     || (gameState == SOCGame.START1A)
                     || (gameState == SOCGame.START1B))
                 && (gameState < SOCGame.OVER)
-                && !(gameState < SOCGame.START1A))
+                && ! (gameState < SOCGame.START1A))
         {
             boolean foundNoRobots;
 

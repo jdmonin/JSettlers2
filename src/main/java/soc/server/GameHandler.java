@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -187,6 +187,9 @@ public abstract class GameHandler
      * returning from {@code leaveGame}. Send messages out to other game members
      * notifying them the player has left.
      *<P>
+     * See javadoc return value for behavior if the sole human player has left
+     * and only bots and/or observers remain.
+     *<P>
      * <B>Locks:</b> Has {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gm)}
      * when calling this method; does not have {@link SOCGame#takeMonitor()}.
      *
@@ -198,7 +201,12 @@ public abstract class GameHandler
      *           Don't exclude {@code c} from any communication about leaving the game,
      *           in case they are still connected and in other games.
      * @return true if the game should be ended and deleted (does not have other observers or non-robot players,
-     *           and game's {@code isBotsOnly} flag is false)
+     *           and game's {@code isBotsOnly} flag is false).
+     *           <P>
+     *           If {@code isBotsOnly} is false, and the game is now only robots and observers,
+     *           game should end unless the "allow robots-only games" property is nonzero: Check
+     *           {@link SOCServer#getConfigIntProperty(String, int) SOCServer.getConfigIntProperty}
+     *           ({@link SOCServer#PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL}, 0).
      */
     public abstract boolean leaveGame(SOCGame ga, Connection c);
 

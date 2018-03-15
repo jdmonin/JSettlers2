@@ -267,6 +267,11 @@ public class SOCServer extends Server
      * {@code *STARTBOTGAME*} debug command. This can be used to test the bots with any given
      * combination of game options and scenarios.  To permit starting such games without
      * automatically starting any at server startup, use a value less than 0.
+     *<P>
+     * If this property's value != 0, a game with 1 human player against bots, and 1 or more observers,
+     * won't be ended if that sole human player quits. A bot will replace the human, and
+     * the game will continue as a robots-only game. Otherwise any robots-only game will be
+     * ended even if it has observers.
      *
      * @see #PROP_JSETTLERS_BOTS_PERCENT3P
      * @since 2.0.00
@@ -953,7 +958,9 @@ public class SOCServer extends Server
 
     /**
      * Number of robot-only games not yet started (optional feature).
-     * Set at startup from {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL}.
+     * Set at startup from {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL},
+     * then counts down to 0 as games are played: See
+     * {@link #startRobotOnlyGames(boolean)}.
      * @since 2.0.00
      */
     private int numRobotOnlyGamesRemaining;
@@ -2492,7 +2499,7 @@ public class SOCServer extends Server
      * {@link SOCClientData#getCurrentCreatedGames()}.
      *<P>
      * Note that if this game had the {@link SOCGame#isBotsOnly} flag, and {@link #numRobotOnlyGamesRemaining} &gt; 0,
-     *  will call {@link #startRobotOnlyGames(boolean)}.
+     * will call {@link #startRobotOnlyGames(boolean)}.
      *<P>
      * <B>Locks:</B> Must have {@link #gameList}{@link SOCGameList#takeMonitor() .takeMonitor()}
      * before calling this method.
