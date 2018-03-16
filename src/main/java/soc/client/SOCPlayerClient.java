@@ -4208,8 +4208,14 @@ public class SOCPlayerClient
      */
     protected void handleDELETEGAME(SOCDeleteGame mes, final boolean isPractice)
     {
-        if (! gameDisplay.deleteFromGameList(mes.getGame(), isPractice))
-            gameDisplay.deleteFromGameList(GAMENAME_PREFIX_CANNOT_JOIN + mes.getGame(), isPractice);
+        final String gaName = mes.getGame();
+
+        if (! gameDisplay.deleteFromGameList(gaName, isPractice))
+            gameDisplay.deleteFromGameList(GAMENAME_PREFIX_CANNOT_JOIN + gaName, isPractice);
+
+        PlayerClientListener pcl = clientListeners.get(gaName);
+        if (pcl != null)
+            pcl.gameDisconnected(true, null);
     }
 
     /**
@@ -6643,11 +6649,9 @@ public class SOCPlayerClient
         {
             String gameName = e.getKey();
             SOCGame game = games.get(gameName);
-            boolean isPractice = false;
-            if (game != null)
-                isPractice = game.isPractice;
-            if (!(canPractice && isPractice))
-                e.getValue().gameDisconnected(err);
+            boolean isPractice = (game != null) && game.isPractice;
+            if (! (canPractice && isPractice))
+                e.getValue().gameDisconnected(false, err);
         }
 
         net.dispose();

@@ -1967,20 +1967,33 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * an error occurred, stop playing
-     *
-     * @param s  an error message
+     * Game was deleted or a server/network error occurred; stop playing.
+     * @param wasDeleted  True if game was deleted, isn't from an error;
+     *     this can happen while observing a game
+     * @param errorMessage  Error message if any, or {@code null}
      */
-    public void over(String s)
+    public void over(final boolean wasDeleted, final String errorMessage)
     {
         if (textInputIsInitial)
             textInputSetToInitialPrompt(false);  // Clear, set foreground color
         textInput.setEditable(false);
-        textInput.setText(s);
-        textDisplay.append("* " + strings.get("interface.error.lost.conn") + "\n");  // "Lost connection to the server."
-        textDisplay.append("*** " + strings.get("interface.error.game.stopped") + " ***\n");  // "Game stopped."
+        if (errorMessage != null)
+            textInput.setText(errorMessage);
+        if (wasDeleted)
+        {
+            textDisplay.append("*** " + strings.get("interface.error.game.has_been_deleted") + " ***\n");
+                // "Game has been deleted."
+        } else {
+            textDisplay.append("* " + strings.get("interface.error.lost.conn") + "\n");
+                // "Lost connection to the server."
+            textDisplay.append("*** " + strings.get("interface.error.game.stopped") + " ***\n");
+                // "Game stopped."
+        }
+
         game.setCurrentPlayerNumber(-1);
         boardPanel.repaint();
+        for (int i = 0; i < game.maxPlayers; i++)
+            hands[i].gameDisconnected();
     }
 
     /**
@@ -3816,9 +3829,9 @@ public class SOCPlayerInterface extends Frame
             pi.updateAtOver(scoresArray);
         }
 
-        public void gameDisconnected(String errorMessage)
+        public void gameDisconnected(final boolean wasDeleted, final String errorMessage)
         {
-            pi.over(errorMessage);
+            pi.over(wasDeleted, errorMessage);
         }
 
         public void messageBroadcast(String msg)
