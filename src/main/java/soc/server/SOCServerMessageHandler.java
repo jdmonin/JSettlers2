@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2016-2018 Jeremy D Monin <jeremy@nand.net>
  * Some contents were formerly part of SOCServer.java;
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
@@ -1801,7 +1801,13 @@ public class SOCServerMessageHandler
         final String gaName = mes.getGame();
         SOCGame ga = gameList.getGameData(gaName);
         if (ga == null)
-            return;
+        {
+            // Out of date client info, or may be observing a deleted game.
+            // Already authenticated (c != null), so replying is OK by security.
+            srv.messageToPlayerKeyed(c, gaName, "reply.game.not.found");  // "Game not found."
+
+            return;  // <--- Early return: No active game found ---
+        }
 
         /**
          * make sure this player isn't already sitting
