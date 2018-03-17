@@ -233,6 +233,12 @@ public interface PlayerClientListener
     void requestedChoosePlayer(List<SOCPlayer> choices, boolean isNoneAllowed);
 
     void requestedChooseRobResourceType(SOCPlayer player);
+
+    /**
+     * This player has just made a trade offer to other players.
+     * For offer details call {@code offerer.}{@link SOCPlayer#getCurrentOffer() getCurrentOffer()}.
+     * @param offerer  Player with a new trade offer
+     */
     void requestedTrade(SOCPlayer offerer);
 
     /**

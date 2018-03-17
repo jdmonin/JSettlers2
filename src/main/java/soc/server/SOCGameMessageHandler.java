@@ -1222,9 +1222,17 @@ public class SOCGameMessageHandler
                     remadeOffer = new SOCTradeOffer(gaName, player.getPlayerNumber(), offer.getTo(), offGive, offGet);
                     player.setCurrentOffer(remadeOffer);
 
-                    srv.messageToGameKeyedSpecial(ga, true, "trade.offered.rsrcs.for",
-                        player.getName(), offGive, offGet);
-                        // "{0} offered to give {1,rsrcs} for {2,rsrcs}."
+                    // v2.0.00 and newer clients will announce this with localized text;
+                    // older clients need it sent from the server
+                    if (ga.clientVersionLowest < SOCStringManager.VERSION_FOR_I18N)
+                    {
+                        // I18N OK: Pre-2.0.00 clients always use english
+                        final String txt = SOCStringManager.getFallbackServerManagerForClient().formatSpecial
+                            (ga, "{0} offered to give {1,rsrcs} for {2,rsrcs}.", player.getName(), offGive, offGet);
+                        srv.messageToGameForVersions
+                            (ga, 0, SOCStringManager.VERSION_FOR_I18N - 1,
+                             new SOCGameTextMsg(gaName, SOCServer.SERVERNAME, txt), true);
+                    }
                 }
 
                 SOCMakeOffer makeOfferMessage = new SOCMakeOffer(gaName, remadeOffer);

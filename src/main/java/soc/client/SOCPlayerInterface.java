@@ -42,6 +42,7 @@ import soc.game.SOCScenarioPlayerEvent;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCSpecialItem;
+import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 import soc.message.SOCSimpleAction;  // for action type constants
 import soc.message.SOCSimpleRequest;  // for request type constants
@@ -1863,6 +1864,26 @@ public class SOCPlayerInterface extends Frame
     private void resetBoardClearDia()
     {
         boardResetVoteDia = null;
+    }
+
+    /**
+     * Print game text to announce a player's new trade offer, if any.
+     * Calls {@code plFrom.}{@link SOCPlayer#getCurrentOffer() getCurrentOffer()}
+     * and {@link #printKeyedSpecial(String, Object...)}.
+     * Prints nothing if new offer is {@code null}.
+     * @param plFrom  Player with a new trade offer
+     * @see SOCHandPanel#updateCurrentOffer(boolean, boolean)
+     * @since 2.0.00
+     */
+    public void printTradeOffer(SOCPlayer plFrom)
+    {
+        final SOCTradeOffer offer = plFrom.getCurrentOffer();
+        if (offer == null)
+            return;
+
+        printKeyedSpecial("trade.offered.rsrcs.for",
+            plFrom.getName(), offer.getGiveSet(), offer.getGetSet());
+            // "{0} offered to give {1,rsrcs} for {2,rsrcs}."
     }
 
     /**
@@ -4119,6 +4140,7 @@ public class SOCPlayerInterface extends Frame
         public void requestedTrade(SOCPlayer offerer)
         {
             pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(true, false);
+            pi.printTradeOffer(offerer);
         }
 
         public void requestedTradeClear(SOCPlayer offerer)
