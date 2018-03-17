@@ -195,10 +195,12 @@ public class SOCStringManager extends StringManager
      *     <P>
      *     The returned format will include indefinite articles: "a Year of Plenty", "a Market (1 VP)", etc.
      *</UL>
+     *<P>
+     * To skip key retrieval, call {@link #formatSpecial(SOCGame, String, Object...)} instead of this method.
      *
      * @param game  Game, in case its options influence the strings (such as dev card Knight -> Warship in scenario _SC_PIRI)
-     * @param key  Key to use for string retrieval. Can contain <tt>{0,rsrcs}</tt> and or <tt>{0,dcards}</tt>.
-     *            You can use <tt>{1</tt>, <tt>{2</tt>, or any other slot number.
+     * @param key  Key to use for string retrieval. The retrieved string can contain <tt>{0,rsrcs}</tt> and/or
+     *            <tt>{0,dcards}</tt>. You can use <tt>{1</tt>, <tt>{2</tt>, or any other slot number.
      * @param arguments  Objects to go with <tt>{0,list}</tt>, <tt>{0,rsrcs}</tt>, <tt>{0,dcards}</tt>, etc in {@code key};
      *            see above for the expected object types.
      * @return the localized formatted string from the manager's bundle or one of its parents
@@ -209,8 +211,22 @@ public class SOCStringManager extends StringManager
     public String getSpecial(final SOCGame game, final String key, Object ... arguments)
         throws MissingResourceException, IllegalArgumentException
     {
-        String txtfmt = bundle.getString(key);
+        return formatSpecial(game, bundle.getString(key), arguments);
+    }
 
+    /**
+     * Format an already-localized format string (with special SoC-specific parameters).
+     * Called by {@code getSpecial(...)} after it retrieves the string from this manager's bundle.
+     *<P>
+     * See {@link #getSpecial(SOCGame, String, Object...)} for most javadocs,including parameters and returns.
+     * @param game  Game, in case its options influence the strings (such as dev card Knight -> Warship in scenario _SC_PIRI)
+     * @param txtfmt  Formatting string, already looked up by {@link ResourceBundle#getString(String)}
+     *     or from another source
+     * @param arguments Objects to go with {@code txtfmt}; details are in {@code getSpecial(..)} javadoc
+     */
+    public String formatSpecial(final SOCGame game, String txtfmt, Object ... arguments)
+        throws MissingResourceException, IllegalArgumentException
+    {
         /** Clone of arguments, with specials replaced with their localized strings */
         Object[] argsLocal = null;
 
