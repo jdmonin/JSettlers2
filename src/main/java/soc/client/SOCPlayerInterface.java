@@ -1867,23 +1867,40 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * Print game text to announce a player's new trade offer, if any.
-     * Calls {@code plFrom.}{@link SOCPlayer#getCurrentOffer() getCurrentOffer()}
-     * and {@link #printKeyedSpecial(String, Object...)}.
-     * Prints nothing if new offer is {@code null}.
-     * @param plFrom  Player with a new trade offer
+     * Print game text to announce either a bank/port trade, or a a player's new trade offer.
+     * @param plFrom  Player making the trade offer or bank trade
+     * @param give  {@code plFrom} gives these resources
+     * @param get   {@code plFrom} gets these resources
+     * @param isOffer  True to announce a trade offer, false for a completed bank/port trade
      * @see SOCHandPanel#updateCurrentOffer(boolean, boolean)
      * @since 2.0.00
      */
-    public void printTradeOffer(SOCPlayer plFrom)
+    public void printTradeResources
+        (final SOCPlayer plFrom, final SOCResourceSet give, final SOCResourceSet get, final boolean isOffer)
     {
-        final SOCTradeOffer offer = plFrom.getCurrentOffer();
-        if (offer == null)
-            return;
+        final String plName = plFrom.getName();
 
-        printKeyedSpecial("trade.offered.rsrcs.for",
-            plFrom.getName(), offer.getGiveSet(), offer.getGetSet());
-            // "{0} offered to give {1,rsrcs} for {2,rsrcs}."
+        if (isOffer)
+        {
+            printKeyedSpecial("trade.offered.rsrcs.for", plName, give, get);
+                // "{0} offered to give {1,rsrcs} for {2,rsrcs}."
+        } else {
+            // use total rsrc counts to determine bank or port
+            final int giveTotal = give.getTotal(),
+                      getTotal  = get.getTotal();
+            final String msgKey;
+            final int tradeFrom;  // 1 = "the bank" -- 4:1 trade; 2 = "a port" -- 3:1 or 2:1 trade
+            if (giveTotal > getTotal)
+            {
+                msgKey = "trade.traded.rsrcs.for.from.bankport";  // "{0} traded {1,rsrcs} for {2,rsrcs} from {3,choice, 1#the bank|2#a port}."
+                tradeFrom = ((giveTotal / getTotal) == 4) ? 1 : 2;
+            } else {
+                msgKey = "trade.traded.rsrcs.for.from.bankport.undoprevious";  // same + " (Undo previous trade)"
+                tradeFrom = ((getTotal / giveTotal) == 4) ? 1 : 2;
+            }
+
+            printKeyedSpecial(msgKey, plName, give, get, tradeFrom);
+        }
     }
 
     /**
@@ -4137,10 +4154,17 @@ public class SOCPlayerInterface extends Frame
             pi.showChooseRobClothOrResourceDialog(player.getPlayerNumber());
         }
 
+        public void playerBankTrade(final SOCPlayer player, final SOCResourceSet give, final SOCResourceSet get)
+        {
+            pi.printTradeResources(player, give, get, false);
+        }
+
         public void requestedTrade(SOCPlayer offerer)
         {
             pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(true, false);
-            pi.printTradeOffer(offerer);
+            final SOCTradeOffer offer = offerer.getCurrentOffer();
+            if (offer != null)
+                pi.printTradeResources(offerer, offer.getGiveSet(), offer.getGetSet(), true);
         }
 
         public void requestedTradeClear(SOCPlayer offerer)

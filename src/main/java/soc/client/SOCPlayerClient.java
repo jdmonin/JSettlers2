@@ -3482,6 +3482,13 @@ public class SOCPlayerClient
                 break;
 
             /**
+             * a player has made a bank/port trade
+             */
+            case SOCMessage.BANKTRADE:
+                handleBANKTRADE((SOCBankTrade) mes);
+                break;
+
+            /**
              * a player has made an offer
              */
             case SOCMessage.MAKEOFFER:
@@ -4996,22 +5003,40 @@ public class SOCPlayerClient
     }
 
     /**
+     * handle the "bank trade" message from a v2.0.00 or newer server.
+     * @param mes  the message
+     * @since 2.0.00
+     */
+    protected void handleBANKTRADE(final SOCBankTrade mes)
+    {
+        final String gaName = mes.getGame();
+        final SOCGame ga = games.get(gaName);
+        if (ga == null)
+            return;
+        PlayerClientListener pcl = clientListeners.get(gaName);
+        if (pcl == null)
+            return;
+
+        pcl.playerBankTrade(ga.getPlayer(mes.getPlayerNumber()), mes.getGiveSet(), mes.getGetSet());
+    }
+
+    /**
      * handle the "make offer" message
      * @param mes  the message
      */
     protected void handleMAKEOFFER(final SOCMakeOffer mes)
     {
-        final SOCGame ga = games.get(mes.getGame());
+        final String gaName = mes.getGame();
+        final SOCGame ga = games.get(gaName);
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            SOCTradeOffer offer = mes.getOffer();
-            SOCPlayer from = ga.getPlayer(offer.getFrom());
-            from.setCurrentOffer(offer);
+        SOCTradeOffer offer = mes.getOffer();
+        SOCPlayer from = ga.getPlayer(offer.getFrom());
+        from.setCurrentOffer(offer);
 
-            PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            pcl.requestedTrade(from);
-        }
+        PlayerClientListener pcl = clientListeners.get(gaName);
+        pcl.requestedTrade(from);
     }
 
     /**
@@ -6311,7 +6336,7 @@ public class SOCPlayerClient
      */
     public void bankTrade(SOCGame ga, SOCResourceSet give, SOCResourceSet get)
     {
-        put(SOCBankTrade.toCmd(ga.getName(), give, get), ga.isPractice);
+        put(new SOCBankTrade(ga.getName(), give, get, -1).toCmd(), ga.isPractice);
     }
 
     /**

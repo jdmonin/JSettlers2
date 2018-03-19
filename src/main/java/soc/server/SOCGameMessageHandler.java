@@ -1408,11 +1408,6 @@ public class SOCGameMessageHandler
                 {
                     ga.makeBankTrade(give, get);
                     handler.reportBankTrade(ga, give, get);
-
-                    final int cpn = ga.getCurrentPlayerNumber();
-                    final SOCPlayer cpl = ga.getPlayer(cpn);
-                    if (cpl.isRobot())
-                        c.put(SOCSimpleAction.toCmd(gaName, cpn, SOCSimpleAction.TRADE_SUCCESSFUL, 0, 0));
                 }
                 else
                 {

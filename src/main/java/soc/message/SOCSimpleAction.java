@@ -77,6 +77,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * The requested resource trade with the bank/ports was successful.
      * {@code value1} and {@code value2} are unused.
      * Sent to bots only; human players see a text message sent to the entire game.
+     * Not used in v2.0.00 or higher; bots instead receive a {@link SOCBankTrade} which has their player number.
      * @since 1.1.19
      */
     public static final int TRADE_SUCCESSFUL = 2;

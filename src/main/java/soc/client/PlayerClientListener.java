@@ -235,6 +235,14 @@ public interface PlayerClientListener
     void requestedChooseRobResourceType(SOCPlayer player);
 
     /**
+     * This player has just made a successful trade with the bank or a port.
+     * @param player  Player making the bank/port trade
+     * @param give  Resources given by player in trade
+     * @param get   Resources received by player in trade
+     */
+    void playerBankTrade(SOCPlayer player, SOCResourceSet give, SOCResourceSet get);
+
+    /**
      * This player has just made a trade offer to other players.
      * For offer details call {@code offerer.}{@link SOCPlayer#getCurrentOffer() getCurrentOffer()}.
      * @param offerer  Player with a new trade offer

@@ -44,6 +44,7 @@ import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
 
 import soc.message.SOCAcceptOffer;
+import soc.message.SOCBankTrade;
 import soc.message.SOCCancelBuildRequest;
 import soc.message.SOCChoosePlayer;
 import soc.message.SOCChoosePlayerRequest;
@@ -1566,12 +1567,11 @@ public class SOCRobotBrain extends Thread
                         planAndPlaceInvItem();  // choose and send a placement location
                     }
 
-                    if (waitingForTradeMsg && (mesType == SOCMessage.SIMPLEACTION)
-                        && (((SOCSimpleAction) mes).getActionType() == SOCSimpleAction.TRADE_SUCCESSFUL))
+                    if (waitingForTradeMsg && (mesType == SOCMessage.BANKTRADE)
+                        && (((SOCBankTrade) mes).getPlayerNumber() == ourPlayerNumber))
                     {
                         //
-                        // This is the bank/port trade message we've been waiting for;
-                        // is sent to only the trading player
+                        // This is the bank/port trade confirmation announcement we've been waiting for
                         //
                         waitingForTradeMsg = false;
                     }

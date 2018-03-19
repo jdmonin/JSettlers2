@@ -2855,7 +2855,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void bankTrade(SOCGame ga, SOCResourceSet give, SOCResourceSet get)
     {
-        put(SOCBankTrade.toCmd(ga.getName(), give, get));
+        put(new SOCBankTrade(ga.getName(), give, get, -1).toCmd());
     }
 
     /**
