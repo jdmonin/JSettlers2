@@ -438,6 +438,13 @@ public class SOCPlayerInterface extends Frame
     protected boolean gameIsStarting;
 
     /**
+     * Flag to set true either if game has been deleted while we're observing it,
+     * or was stopped by a server or network error. Is set in {@link #over(boolean, String)}.
+     * @since 2.0.00
+     */
+    protected boolean gameHasErrorOrDeletion;
+
+    /**
      * this other player has requested a board reset; voting is under way.
      * Null if no board reset vote is under way.
      *
@@ -2012,6 +2019,8 @@ public class SOCPlayerInterface extends Frame
      */
     public void over(final boolean wasDeleted, final String errorMessage)
     {
+        gameHasErrorOrDeletion = true;
+
         if (textInputIsInitial)
             textInputSetToInitialPrompt(false);  // Clear, set foreground color
         textInput.setEditable(false);
