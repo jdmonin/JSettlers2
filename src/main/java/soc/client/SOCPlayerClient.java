@@ -4580,6 +4580,7 @@ public class SOCPlayerClient
                 // announce with text message.
                 pcl.largestArmyRefresh(oldLargestArmyPlayer, ga.getPlayerWithLargestArmy());
             }
+            break;
 
         case SOCPlayerElement.CLAY:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
