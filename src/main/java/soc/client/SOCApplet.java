@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2013 Luis A. Ramirez <lartkma@gmail.com>
@@ -147,12 +147,12 @@ public class SOCApplet extends Applet
     }
 
     /**
-     * When the applet is destroyed, calls {@link SOCPlayerClient#dispose()}.
+     * When the applet is destroyed, calls {@link SOCPlayerClient#shutdownFromNetwork()}.
      */
     @Override
     public void destroy()
     {
-        client.dispose();
+        client.shutdownFromNetwork();
         client = null;
     }
 

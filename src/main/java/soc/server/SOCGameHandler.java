@@ -42,6 +42,7 @@ import java.util.Vector;
 
 import soc.debug.D;
 import soc.game.*;
+import soc.message.SOCBankTrade;
 import soc.message.SOCBoardLayout;
 import soc.message.SOCBoardLayout2;
 import soc.message.SOCBotJoinGameRequest;
@@ -61,6 +62,7 @@ import soc.message.SOCGameMembers;
 import soc.message.SOCGameServerText;
 import soc.message.SOCGameState;
 import soc.message.SOCGameStats;
+import soc.message.SOCGameTextMsg;
 import soc.message.SOCInventoryItemAction;
 import soc.message.SOCJoinGame;
 import soc.message.SOCJoinGameAuth;
@@ -99,6 +101,7 @@ import soc.proto.Data;
 import soc.server.genericServer.Connection;
 import soc.util.IntPair;
 import soc.util.SOCGameList;
+import soc.util.SOCStringManager;
 import soc.util.Version;
 
 /**
@@ -1674,7 +1677,8 @@ public class SOCGameHandler extends GameHandler
         //D.ebugPrintln("*** gameHasHumanPlayer = "+gameHasHumanPlayer+" for "+gm);
 
         /**
-         * if no human players, check if there is at least one person watching the game
+         * if no human players, check if there is at least one person watching the game (observing).
+         * Even with observers, end it unless ga.isBotsOnly or PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL != 0.
          */
         if ( (! gameHasHumanPlayer) && ! srv.gameList.isGameEmpty(gm))
         {
@@ -1698,12 +1702,19 @@ public class SOCGameHandler extends GameHandler
                     }
                 }
 
-                if (!nameMatch)
+                if (! nameMatch)
                 {
                     gameHasObserver = true;
                     break;
                 }
             }
+
+            if (gameHasObserver && ! ga.isBotsOnly)
+            {
+                if (0 == srv.getConfigIntProperty(SOCServer.PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0))
+                    gameHasObserver = false;
+            }
+
         }
         //D.ebugPrintln("*** gameHasObserver = "+gameHasObserver+" for "+gm);
 
@@ -1719,7 +1730,7 @@ public class SOCGameHandler extends GameHandler
                     || (gameState == SOCGame.START1A)
                     || (gameState == SOCGame.START1B))
                 && (gameState < SOCGame.OVER)
-                && !(gameState < SOCGame.START1A))
+                && ! (gameState < SOCGame.START1A))
         {
             boolean foundNoRobots;
 
@@ -2498,7 +2509,8 @@ public class SOCGameHandler extends GameHandler
 
     /**
      * report that the current player traded with the bank or a port,
-     * using {@link SOCPlayerElement} and {@link SOCGameServerText} messages.
+     * using {@link SOCPlayerElement} and {@link SOCBankTrade} messages
+     * (or {@link SOCGameTextMsg} to older clients).
      *
      * @param ga        the game
      * @param give      the number of the player making the offer
@@ -2514,21 +2526,42 @@ public class SOCGameHandler extends GameHandler
         reportRsrcGainLoss(gaName, give, true, false, cpn, -1, null, null);
         reportRsrcGainLoss(gaName, get, false, false, cpn, -1, null, null);
 
-        // use total rsrc counts to determine bank or port
-        final int giveTotal = give.getTotal(),
-                  getTotal  = get.getTotal();
-        final int tradeFrom;  // 1 = "the bank" -- 4:1 trade; 2 = "a port" -- 3:1 or 2:1 trade
-        final String msgKey;
-        if (giveTotal > getTotal)
-        {
-            msgKey = "trade.traded.rsrcs.for.from.bankport";  // "{0} traded {1,rsrcs} for {2,rsrcs} from {3,choice, 1#the bank|2#a port}."
-            tradeFrom = ((giveTotal / getTotal) == 4) ? 1 : 2;
-        } else {
-            msgKey = "trade.traded.rsrcs.for.from.bankport.undoprevious";  // same + " (Undo previous trade)"
-            tradeFrom = ((getTotal / giveTotal) == 4) ? 1 : 2;
-        }
+        SOCBankTrade bt = null;
+        if (ga.clientVersionHighest >= SOCStringManager.VERSION_FOR_I18N)
+            bt = new SOCBankTrade(gaName, give, get, cpn);
 
-        srv.messageToGameKeyedSpecial(ga, true, msgKey, ga.getPlayer(cpn).getName(), give, get, tradeFrom);
+        if (ga.clientVersionLowest >= SOCStringManager.VERSION_FOR_I18N)
+        {
+            srv.messageToGame(gaName, bt);
+        } else {
+            if (bt != null)
+                srv.messageToGameForVersions
+                    (ga, SOCStringManager.VERSION_FOR_I18N, Integer.MAX_VALUE, bt, true);
+
+            // Text announcement for older clients:
+
+            // use total rsrc counts to determine bank or port
+            final int giveTotal = give.getTotal(),
+                      getTotal  = get.getTotal();
+            final boolean isUndo = (giveTotal < getTotal);
+            final boolean isFromBank;  // from port if false
+            StringBuilder fmt = new StringBuilder("{0} traded {1,rsrcs} for {2,rsrcs} from ");
+            if (isUndo)
+                isFromBank = ((getTotal / giveTotal) == 4);
+            else
+                isFromBank = ((giveTotal / getTotal) == 4);
+
+            fmt.append(isFromBank ? "the bank." : "a port.");
+            if (isUndo)
+                fmt.append(" (Undo previous trade)");
+
+            // I18N OK: Pre-2.0.00 clients always use english
+            final String txt = SOCStringManager.getFallbackServerManagerForClient().formatSpecial
+                (ga, fmt.toString(), ga.getPlayer(cpn).getName(), give, get);
+            srv.messageToGameForVersions
+                (ga, 0, SOCStringManager.VERSION_FOR_I18N - 1,
+                 new SOCGameTextMsg(gaName, SOCServer.SERVERNAME, txt), true);
+        }
     }
 
     /**

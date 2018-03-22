@@ -88,13 +88,13 @@ public abstract class ProtoMessageBuildHelper
             dcv = DevCardValue.MONOPOLY;  break;
         case SOCDevCardConstants.CAP:
             dcv = DevCardValue.VP_GREAT_HALL;  break;
-        case SOCDevCardConstants.LIB:  // is "market" in UI strings
+        case SOCDevCardConstants.MARKET:
             dcv = DevCardValue.VP_MARKET;  break;
         case SOCDevCardConstants.UNIV:
             dcv = DevCardValue.VP_UNIVERSITY;  break;
         case SOCDevCardConstants.TEMP:
             dcv = DevCardValue.VP_LIBRARY;  break;
-        case SOCDevCardConstants.TOW:
+        case SOCDevCardConstants.CHAPEL:
             dcv = DevCardValue.VP_CHAPEL;  break;
         case SOCDevCardConstants.KNIGHT:
             dcv = DevCardValue.KNIGHT;  break;

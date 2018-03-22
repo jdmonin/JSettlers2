@@ -175,6 +175,10 @@
 # to test the bots with any given combination of game options and scenarios.
 # To permit starting such games without also starting any at server startup,
 # use a value less than 0.
+# If this property's value != 0, a game with 1 human player against bots, and
+# 1 or more observers, won't be ended if that sole human player quits. A bot
+# will replace the human, and the game will continue as a robots-only game.
+# Otherwise any robots-only game will be ended even if it has observers.
 # jsettlers.bots.botgames.total=0
 
 # Wait this many seconds at startup before starting robot-only games (default
@@ -220,7 +224,7 @@
 #
 # This file is part of the JSettlers project.
 #
-# This file Copyright (C) 2016-2017 Jeremy D Monin (jeremy@nand.net)
+# This file Copyright (C) 2016-2018 Jeremy D Monin (jeremy@nand.net)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

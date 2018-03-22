@@ -34,6 +34,8 @@ and backport minor new features until `2.0.00` is ready.
 	- When joining game in progress, server sends current round to update client's "*n* rounds left for No 7s" display
 	- More efficient game-setup messages over network
 	- SOCBuildRequest now optional before client's SOCPutPiece request
+- Server game cleanup: If the last human exits a game with bots and observers, don't
+  continue that game as bots-only unless property `jsettlers.bots.botgames.total` != 0
 - Server Config Validation mode: Test the current config and exit, with new startup option:
 	`-t` or `--test-config`
 - Game option key names can now be longer (8 characters)

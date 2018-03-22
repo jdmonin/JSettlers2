@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2013-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2013-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -233,6 +233,20 @@ public interface PlayerClientListener
     void requestedChoosePlayer(List<SOCPlayer> choices, boolean isNoneAllowed);
 
     void requestedChooseRobResourceType(SOCPlayer player);
+
+    /**
+     * This player has just made a successful trade with the bank or a port.
+     * @param player  Player making the bank/port trade
+     * @param give  Resources given by player in trade
+     * @param get   Resources received by player in trade
+     */
+    void playerBankTrade(SOCPlayer player, SOCResourceSet give, SOCResourceSet get);
+
+    /**
+     * This player has just made a trade offer to other players.
+     * For offer details call {@code offerer.}{@link SOCPlayer#getCurrentOffer() getCurrentOffer()}.
+     * @param offerer  Player with a new trade offer
+     */
     void requestedTrade(SOCPlayer offerer);
 
     /**
@@ -339,7 +353,13 @@ public interface PlayerClientListener
     void gameStateChanged(int gameState);
     void gameEnded(Map<SOCPlayer, Integer> scores);
 
-    void gameDisconnected(String errorMessage);
+    /**
+     * Game was deleted or a server/network error occurred; stop playing.
+     * @param wasDeleted  True if game was deleted, isn't from an error;
+     *     this can happen while observing a game
+     * @param errorMessage  Error message if any, or {@code null}
+     */
+    void gameDisconnected(boolean wasDeleted, String errorMessage);
 
     void messageBroadcast(String message);
 

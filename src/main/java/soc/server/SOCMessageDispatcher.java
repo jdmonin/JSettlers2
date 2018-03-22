@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2016-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,6 +23,7 @@ import soc.debug.D;
 import soc.game.SOCGame;
 import soc.message.SOCMessage;
 import soc.message.SOCMessageForGame;
+import soc.message.SOCSitDown;
 import soc.server.genericServer.Connection;
 import soc.server.genericServer.Server;
 
@@ -124,15 +125,20 @@ public class SOCMessageDispatcher
                 {
                     SOCGame ga = gameList.getGameData(gaName);
                     if ((ga == null) || (con == null))
-                        return;  // <--- Early return: ignore unknown games or unlikely missing con ---
-
-                    final GameMessageHandler hand = gameList.getGameTypeMessageHandler(gaName);
-                    if (hand != null)  // all consistent games will have a handler
                     {
-                        if (hand.dispatch(ga, (SOCMessageForGame) mes, con))
-                            return;  // <--- Handled by GameMessageHandler ---
+                        if (! (mes instanceof SOCSitDown))
+                            return;  // <--- Early return: ignore unknown games or unlikely missing con ---
 
-                        // else: Message type unknown or ignored by handler. Server handles it below.
+                        // For SOCSitDown, SOCServerMessageHandler will reply to con
+                    } else {
+                        final GameMessageHandler hand = gameList.getGameTypeMessageHandler(gaName);
+                        if (hand != null)  // all consistent games will have a handler
+                        {
+                            if (hand.dispatch(ga, (SOCMessageForGame) mes, con))
+                                return;  // <--- Was handled by GameMessageHandler ---
+
+                            // else: Message type unknown or ignored by handler. Server handles it below.
+                        }
                     }
                 }
             }

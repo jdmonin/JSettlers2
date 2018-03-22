@@ -3776,9 +3776,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *             For the classic 6-player board:<BR>
      *             0 for top-left, 1 for top-right, 2 for middle-right,
      *             3 for bottom-right, 4 for bottom-left, 5 for middle-left.
-     * @param diceResult Roll result to show, if rolled.
-     *                   To show, diceResult must be at least 2,
-     *                   and gamestate not SOCGame.ROLL_OR_CARD.
+     * @param diceResult Roll result to show, if rolled, from {@link SOCGame#getCurrentDice()}.
+     *                   To show, {@code diceResult} must be at least 2
+     *                   and gameState not {@link SOCGame#ROLL_OR_CARD}.
      */
     private final void drawArrow(Graphics g, int pnum, int diceResult)
     {

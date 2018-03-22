@@ -2386,7 +2386,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         case SOCSimpleAction.DEVCARD_BOUGHT:
         case SOCSimpleAction.RSRC_TYPE_MONOPOLIZED:
-        case SOCSimpleAction.TRADE_SUCCESSFUL:
         case SOCSimpleAction.SC_PIRI_FORT_ATTACK_RESULT:
             // game data updates are sent in preceding or following messages, can ignore this one
             break;
@@ -2862,7 +2861,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void bankTrade(SOCGame ga, SOCResourceSet give, SOCResourceSet get)
     {
-        put(SOCBankTrade.toCmd(ga.getName(), give, get));
+        put(new SOCBankTrade(ga.getName(), give, get, -1).toCmd());
     }
 
     /**

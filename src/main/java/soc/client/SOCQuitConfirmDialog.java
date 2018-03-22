@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2007,2008,2010,2013-2014,2016 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007,2008,2010,2013-2014,2016,2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -56,7 +56,7 @@ class SOCQuitConfirmDialog extends AskDialog
         if ((cli == null) || (gamePI == null))
             throw new IllegalArgumentException("no nulls");
         SOCGame ga = gamePI.getGame();
-        boolean gaOver = (ga.getGameState() >= SOCGame.OVER);
+        boolean gaOver = (ga.getGameState() >= SOCGame.OVER) || gamePI.gameHasErrorOrDeletion;
 
         SOCQuitConfirmDialog qcd = new SOCQuitConfirmDialog(cli, gamePI, gaOver);
         qcd.setVisible(true);
@@ -67,9 +67,10 @@ class SOCQuitConfirmDialog extends AskDialog
      *
      * @param cli      Player client interface
      * @param gamePI   Current game's player interface
-     * @param gameIsOver The game is over - "Quit" button should be default (if not over, Continue is default)
+     * @param gameIsOver The game is over - "Quit" button should be default (if not over, Continue is default).
+     *     Must be {@code true} if {@link SOCPlayerInterface#gameHasErrorOrDeletion}.
      */
-    protected SOCQuitConfirmDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI, boolean gameIsOver)
+    private SOCQuitConfirmDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI, boolean gameIsOver)
     {
         super(cli, gamePI,
             strings.get("dialog.quit.really", gamePI.getGame().getName()),  // "Really quit game {0}?"
@@ -80,7 +81,7 @@ class SOCQuitConfirmDialog extends AskDialog
             strings.get(gameIsOver
                 ? "dialog.quit.dont"            // "Don't quit"
                 : "dialog.base.continue.playing"),  // "Continue playing"
-            ((gamePI.getGame().getGameState() != SOCGame.NEW)
+            (((gamePI.getGame().getGameState() != SOCGame.NEW) && ! gamePI.gameHasErrorOrDeletion)
                 ? strings.get("dialog.quit.reset.board")  // "Reset board"
                 : null),
             (gameIsOver ? 1 : 2));

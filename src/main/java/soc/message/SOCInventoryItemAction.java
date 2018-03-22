@@ -187,9 +187,9 @@ public class SOCInventoryItemAction extends SOCMessage
     public final boolean isVP;
 
     /**
-     * If true, this item is being added and its later play or placement can be canceled:
-     * {@link SOCInventoryItem#canCancelPlay}.
-     * This flag is sent for all actions except {@link #PLAY} and {@link #CANNOT_PLAY}.
+     * If true when sent with any {@code ADD} action, this item's later play or placement can be canceled:
+     * {@link SOCInventoryItem#canCancelPlay}. This flag is sent for all actions
+     * except {@link #PLAY} and {@link #CANNOT_PLAY}.
      */
     public final boolean canCancelPlay;
 
@@ -223,7 +223,7 @@ public class SOCInventoryItemAction extends SOCMessage
      * @param it  the item type code, from {@link SOCInventoryItem#itype}
      * @param kept  If true, this is an add or play message with the {@link #isKept} flag set
      * @param vp    If true, this is an add  or play message with the {@link #isVP} flag set
-     * @param canCancel  If true, this is an add  or play message with the {@link #canCancelPlay} flag set
+     * @param canCancel  If true, this is an add or play message with the {@link #canCancelPlay} flag set
      */
     public SOCInventoryItemAction
         (final String ga, final int pn, final int ac, final int it,

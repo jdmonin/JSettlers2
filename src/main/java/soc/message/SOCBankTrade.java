@@ -24,21 +24,28 @@ import soc.game.SOCResourceSet;
 import soc.proto.Data;
 import soc.proto.GameMessage;
 import soc.proto.Message;
+import soc.util.SOCStringManager;  // javadocs only
 
 import java.util.StringTokenizer;
 
 
 /**
  * This request to server means that a player wants to trade with the bank or a port.
+ * Or, an info announcement from server of a successful bank/port trade (version 2.0.00 or higher)
+ * sent after the {@link SOCPlayerElement} messages which announce the resource changes.
+ * Clients older than v2.0.00 ignore this message from server; use {@link SOCStringManager#VERSION_FOR_I18N}.
  *<P>
- * If the trade is acceptable, server responds with {@link SOCPlayerElement}s:
+ * If the client's trade request is acceptable, server responds to entire game with {@link SOCPlayerElement}s:
  * A {@link SOCPlayerElement#LOSE} for each resource type being traded in,
  * then {@link SOCPlayerElement#GAIN} for those given to the player.
- * Otherwise the server declines the trade by sending the client an explanatory {@link SOCGameServerText}.
+ * Clients v2.0.00 or higher are sent a {@code SOCBankTrade} to announce the trade,
+ * older clients are sent a {@link SOCGameTextMsg} instead.
+ *<P>
+ * The server declines any unacceptable trade by sending the client an explanatory {@link SOCGameServerText}.
  *<P>
  * To undo a bank trade in version 1.1.13 or higher, the player's client can
  * send another BANKTRADE message with the same resources but give/get swapped.
- * For instance, if they gave 3 sheep to get 1 brick, send a BANKTRADE
+ * For instance, if they gave 3 sheep to get 1 brick, undo by sending a BANKTRADE
  * to give 1 brick to get 3 sheep.
  *
  * @author Robert S. Thomas
@@ -46,7 +53,7 @@ import java.util.StringTokenizer;
 public class SOCBankTrade extends SOCMessage
     implements SOCMessageForGame
 {
-    private static final long serialVersionUID = 1113L;  // last structural change v1.1.13
+    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /**
      * Name of game
@@ -64,18 +71,28 @@ public class SOCBankTrade extends SOCMessage
     private SOCResourceSet get;
 
     /**
+     * From server, player number who made the bank trade.
+     * Ignored from client (use -1 to not send this field).
+     * @since 2.0.00
+     */
+    private final int playerNumber;
+
+    /**
      * Create a BankTrade message.
      *
      * @param ga   the name of the game
      * @param give the set of resources being given to the bank/port
      * @param get  the set of resources being taken from the bank/port
+     * @param pn   the player number making the trade, or -1 for request from client.
+     *     Not sent if &lt; 0. Versions older than 2.0.00 ignore this field.
      */
-    public SOCBankTrade(String ga, SOCResourceSet give, SOCResourceSet get)
+    public SOCBankTrade(String ga, SOCResourceSet give, SOCResourceSet get, final int pn)
     {
         messageType = BANKTRADE;
         game = ga;
         this.give = give;
         this.get = get;
+        playerNumber = pn;
     }
 
     /**
@@ -103,37 +120,43 @@ public class SOCBankTrade extends SOCMessage
     }
 
     /**
+     * @return the player number who made the bank trade (message from server),
+     *     or -1 if not set (message from client). Versions older than 2.0.00 ignore this field.
+     */
+    public int getPlayerNumber()
+    {
+        return playerNumber;
+    }
+
+    /**
+     * Build a command string to send this message. {@code playerNumber} is sent only if &gt;= 0.
      * @return the command string
      */
     public String toCmd()
     {
-        return toCmd(game, give, get);
-    }
-
-    /**
-     * @return the command string
-     *
-     * @param ga  the name of the game
-     * @param give the set of resources being given to the bank/port
-     * @param get  the set of resources being taken from the bank/port
-     */
-    public static String toCmd(String ga, SOCResourceSet give, SOCResourceSet get)
-    {
-        String cmd = BANKTRADE + sep + ga;
+        StringBuilder cmd = new StringBuilder(BANKTRADE + sep + game);
 
         for (int i = Data.ResourceType.CLAY_VALUE; i <= Data.ResourceType.WOOD_VALUE;
              i++)
         {
-            cmd += (sep2 + give.getAmount(i));
+            cmd.append(sep2);
+            cmd.append(give.getAmount(i));
         }
 
         for (int i = Data.ResourceType.CLAY_VALUE; i <= Data.ResourceType.WOOD_VALUE;
                 i++)
         {
-            cmd += (sep2 + get.getAmount(i));
+            cmd.append(sep2);
+            cmd.append(get.getAmount(i));
         }
 
-        return cmd;
+        if (playerNumber >= 0)
+        {
+            cmd.append(sep2);
+            cmd.append(playerNumber);
+        }
+
+        return cmd.toString();
     }
 
     /**
@@ -147,6 +170,7 @@ public class SOCBankTrade extends SOCMessage
         String ga; // the game name
         SOCResourceSet give;  // the set of resources being given to the bank/port
         SOCResourceSet get;   // the set of resources being taken from the bank/port
+        int pn = -1;  // player number if sent
 
         give = new SOCResourceSet();
         get = new SOCResourceSet();
@@ -169,13 +193,16 @@ public class SOCBankTrade extends SOCMessage
             {
                 get.setAmount(Integer.parseInt(st.nextToken()), i);
             }
+
+            if (st.hasMoreTokens())
+                pn = Integer.parseInt(st.nextToken());
         }
         catch (Exception e)
         {
             return null;
         }
 
-        return new SOCBankTrade(ga, give, get);
+        return new SOCBankTrade(ga, give, get, pn);
     }
 
     @Override
@@ -197,6 +224,8 @@ public class SOCBankTrade extends SOCMessage
      */
     public String toString()
     {
-        return "SOCBankTrade:game=" + game + "|give=" + give + "|get=" + get;
+        return "SOCBankTrade:game=" + game + "|give=" + give + "|get=" + get
+            + ((playerNumber >= 0) ? ("|pn=" + playerNumber) : "");
     }
+
 }

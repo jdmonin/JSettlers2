@@ -41,6 +41,7 @@ import soc.game.SOCScenarioPlayerEvent;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCSpecialItem;
+import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 import soc.message.SOCSimpleAction;  // for action type constants
 import soc.message.SOCSimpleRequest;  // for request type constants
@@ -435,6 +436,13 @@ public class SOCPlayerInterface extends Frame
      * state {@link SOCGame#NEW}. Checked/cleared in {@link #updateAtGameState()}.
      */
     protected boolean gameIsStarting;
+
+    /**
+     * Flag to set true either if game has been deleted while we're observing it,
+     * or was stopped by a server or network error. Is set in {@link #over(boolean, String)}.
+     * @since 2.0.00
+     */
+    protected boolean gameHasErrorOrDeletion;
 
     /**
      * this other player has requested a board reset; voting is under way.
@@ -1866,6 +1874,43 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
+     * Print game text to announce either a bank/port trade, or a a player's new trade offer.
+     * @param plFrom  Player making the trade offer or bank trade
+     * @param give  {@code plFrom} gives these resources
+     * @param get   {@code plFrom} gets these resources
+     * @param isOffer  True to announce a trade offer, false for a completed bank/port trade
+     * @see SOCHandPanel#updateCurrentOffer(boolean, boolean)
+     * @since 2.0.00
+     */
+    public void printTradeResources
+        (final SOCPlayer plFrom, final SOCResourceSet give, final SOCResourceSet get, final boolean isOffer)
+    {
+        final String plName = plFrom.getName();
+
+        if (isOffer)
+        {
+            printKeyedSpecial("trade.offered.rsrcs.for", plName, give, get);
+                // "{0} offered to give {1,rsrcs} for {2,rsrcs}."
+        } else {
+            // use total rsrc counts to determine bank or port
+            final int giveTotal = give.getTotal(),
+                      getTotal  = get.getTotal();
+            final String msgKey;
+            final int tradeFrom;  // 1 = "the bank" -- 4:1 trade; 2 = "a port" -- 3:1 or 2:1 trade
+            if (giveTotal > getTotal)
+            {
+                msgKey = "trade.traded.rsrcs.for.from.bankport";  // "{0} traded {1,rsrcs} for {2,rsrcs} from {3,choice, 1#the bank|2#a port}."
+                tradeFrom = ((giveTotal / getTotal) == 4) ? 1 : 2;
+            } else {
+                msgKey = "trade.traded.rsrcs.for.from.bankport.undoprevious";  // same + " (Undo previous trade)"
+                tradeFrom = ((getTotal / giveTotal) == 4) ? 1 : 2;
+            }
+
+            printKeyedSpecial(msgKey, plName, give, get, tradeFrom);
+        }
+    }
+
+    /**
      * Get and print a localized string (having no parameters) in the text window, followed by a new line (<tt>'\n'</tt>).
      * Equivalent to {@link #print(String) print}("* " + {@link SOCStringManager#get(String) strings.get}({@code key})).
      * @param key  Key to use for string retrieval
@@ -1967,20 +2012,35 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * an error occurred, stop playing
-     *
-     * @param s  an error message
+     * Game was deleted or a server/network error occurred; stop playing.
+     * @param wasDeleted  True if game was deleted, isn't from an error;
+     *     this can happen while observing a game
+     * @param errorMessage  Error message if any, or {@code null}
      */
-    public void over(String s)
+    public void over(final boolean wasDeleted, final String errorMessage)
     {
+        gameHasErrorOrDeletion = true;
+
         if (textInputIsInitial)
             textInputSetToInitialPrompt(false);  // Clear, set foreground color
         textInput.setEditable(false);
-        textInput.setText(s);
-        textDisplay.append("* " + strings.get("interface.error.lost.conn") + "\n");  // "Lost connection to the server."
-        textDisplay.append("*** " + strings.get("interface.error.game.stopped") + " ***\n");  // "Game stopped."
+        if (errorMessage != null)
+            textInput.setText(errorMessage);
+        if (wasDeleted)
+        {
+            textDisplay.append("*** " + strings.get("interface.error.game.has_been_deleted") + " ***\n");
+                // "Game has been deleted."
+        } else {
+            textDisplay.append("* " + strings.get("interface.error.lost.conn") + "\n");
+                // "Lost connection to the server."
+            textDisplay.append("*** " + strings.get("interface.error.game.stopped") + " ***\n");
+                // "Game stopped."
+        }
+
         game.setCurrentPlayerNumber(-1);
         boardPanel.repaint();
+        for (int i = 0; i < game.maxPlayers; i++)
+            hands[i].gameDisconnected();
     }
 
     /**
@@ -3816,9 +3876,9 @@ public class SOCPlayerInterface extends Frame
             pi.updateAtOver(scoresArray);
         }
 
-        public void gameDisconnected(String errorMessage)
+        public void gameDisconnected(final boolean wasDeleted, final String errorMessage)
         {
-            pi.over(errorMessage);
+            pi.over(wasDeleted, errorMessage);
         }
 
         public void messageBroadcast(String msg)
@@ -4103,9 +4163,17 @@ public class SOCPlayerInterface extends Frame
             pi.showChooseRobClothOrResourceDialog(player.getPlayerNumber());
         }
 
+        public void playerBankTrade(final SOCPlayer player, final SOCResourceSet give, final SOCResourceSet get)
+        {
+            pi.printTradeResources(player, give, get, false);
+        }
+
         public void requestedTrade(SOCPlayer offerer)
         {
             pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(true, false);
+            final SOCTradeOffer offer = offerer.getCurrentOffer();
+            if (offer != null)
+                pi.printTradeResources(offerer, offer.getGiveSet(), offer.getGetSet(), true);
         }
 
         public void requestedTradeClear(SOCPlayer offerer)

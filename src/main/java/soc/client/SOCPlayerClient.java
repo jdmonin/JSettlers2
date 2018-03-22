@@ -131,6 +131,9 @@ import soc.util.Version;
  * Each game's {@link SOCGame#isPractice} flag determines which connection to use.
  *<P>
  * Once connected, messages from the server are processed in {@link MessageTreater#treat(SOCMessage, boolean)}.
+ *<P>
+ * If network trouble or applet shutdown occurs, calls {@link #shutdownFromNetwork()};
+ * may still be able to play practice games locally.
  *
  * @author Robert S Thomas
  */
@@ -3484,6 +3487,13 @@ public class SOCPlayerClient
                 break;
 
             /**
+             * a player has made a bank/port trade
+             */
+            case SOCMessage.BANKTRADE:
+                handleBANKTRADE((SOCBankTrade) mes);
+                break;
+
+            /**
              * a player has made an offer
              */
             case SOCMessage.MAKEOFFER:
@@ -4210,8 +4220,14 @@ public class SOCPlayerClient
      */
     protected void handleDELETEGAME(SOCDeleteGame mes, final boolean isPractice)
     {
-        if (! gameDisplay.deleteFromGameList(mes.getGame(), isPractice))
-            gameDisplay.deleteFromGameList(GAMENAME_PREFIX_CANNOT_JOIN + mes.getGame(), isPractice);
+        final String gaName = mes.getGame();
+
+        if (! gameDisplay.deleteFromGameList(gaName, isPractice))
+            gameDisplay.deleteFromGameList(GAMENAME_PREFIX_CANNOT_JOIN + gaName, isPractice);
+
+        PlayerClientListener pcl = clientListeners.get(gaName);
+        if (pcl != null)
+            pcl.gameDisconnected(true, null);
     }
 
     /**
@@ -4352,6 +4368,9 @@ public class SOCPlayerClient
 
     /**
      * echo the server ping, to ensure we're still connected.
+     * Ping may be a keepalive check or an attempt to kick by another
+     * client with the same nickname; may call
+     * {@link SOCPlayerClient#shutdownFromNetwork()} if so.
      * (ignored before version 1.1.08)
      * @since 1.1.08
      */
@@ -4363,7 +4382,7 @@ public class SOCPlayerClient
             gmgr.put(mes.toCmd(), isPractice);
         } else {
             net.ex = new RuntimeException(strings.get("pcli.error.kicked.samename"));  // "Kicked by player with same name."
-            client.dispose();
+            client.shutdownFromNetwork();
         }
     }
 
@@ -4991,22 +5010,40 @@ public class SOCPlayerClient
     }
 
     /**
+     * handle the "bank trade" message from a v2.0.00 or newer server.
+     * @param mes  the message
+     * @since 2.0.00
+     */
+    protected void handleBANKTRADE(final SOCBankTrade mes)
+    {
+        final String gaName = mes.getGame();
+        final SOCGame ga = games.get(gaName);
+        if (ga == null)
+            return;
+        PlayerClientListener pcl = clientListeners.get(gaName);
+        if (pcl == null)
+            return;
+
+        pcl.playerBankTrade(ga.getPlayer(mes.getPlayerNumber()), mes.getGiveSet(), mes.getGetSet());
+    }
+
+    /**
      * handle the "make offer" message
      * @param mes  the message
      */
     protected void handleMAKEOFFER(final SOCMakeOffer mes)
     {
-        final SOCGame ga = games.get(mes.getGame());
+        final String gaName = mes.getGame();
+        final SOCGame ga = games.get(gaName);
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            SOCTradeOffer offer = mes.getOffer();
-            SOCPlayer from = ga.getPlayer(offer.getFrom());
-            from.setCurrentOffer(offer);
+        SOCTradeOffer offer = mes.getOffer();
+        SOCPlayer from = ga.getPlayer(offer.getFrom());
+        from.setCurrentOffer(offer);
 
-            PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            pcl.requestedTrade(from);
-        }
+        PlayerClientListener pcl = clientListeners.get(gaName);
+        pcl.requestedTrade(from);
     }
 
     /**
@@ -6306,7 +6343,7 @@ public class SOCPlayerClient
      */
     public void bankTrade(SOCGame ga, SOCResourceSet give, SOCResourceSet get)
     {
-        put(SOCBankTrade.toCmd(ga.getName(), give, get), ga.isPractice);
+        put(new SOCBankTrade(ga.getName(), give, get, -1).toCmd(), ga.isPractice);
     }
 
     /**
@@ -6621,9 +6658,15 @@ public class SOCPlayerClient
 
     /**
      * network trouble; if possible, ask if they want to play locally (practiceServer vs. robots).
-     * Otherwise, go ahead and shut down.
+     * Otherwise, go ahead and shut down. Either way, calls
+     * {@link SOCPlayerClient.GameDisplay#showErrorPanel(String, boolean)}
+     * to show an error message or network exception detail.
+     *<P>
+     * "If possible" is determined from return value of {@link SOCPlayerClient.ClientNetwork#putLeaveAll()}.
+     *<P>
+     * Before v2.0.00 this method was {@code dispose()}.
      */
-    public void dispose()
+    public void shutdownFromNetwork()
     {
         final boolean canPractice = net.putLeaveAll(); // Can we still start a practice game?
 
@@ -6639,16 +6682,14 @@ public class SOCPlayerClient
 
         gameDisplay.channelsClosed(err);
 
-        // Stop network games; Practice games can continue.
+        // Stop network games; continue Practice games if possible.
         for (Map.Entry<String, PlayerClientListener> e : clientListeners.entrySet())
         {
             String gameName = e.getKey();
             SOCGame game = games.get(gameName);
-            boolean isPractice = false;
-            if (game != null)
-                isPractice = game.isPractice;
-            if (!(canPractice && isPractice))
-                e.getValue().gameDisconnected(err);
+            boolean isPractice = (game != null) && game.isPractice;
+            if (! (canPractice && isPractice))
+                e.getValue().gameDisconnected(false, err);
         }
 
         net.dispose();
@@ -6789,12 +6830,16 @@ public class SOCPlayerClient
          *<P>
          * The exception's {@link Throwable#toString() toString()} including its
          * {@link Throwable#getMessage() getMessage()} may be displayed to the user
-         * by {@link SOCPlayerClient#dispose()}; if throwing an error that the user
+         * by {@link SOCPlayerClient#shutdownFromNetwork()}; if throwing an error that the user
          * should see, be sure to set the detail message.
+         * @see #ex_P
          */
         Exception ex = null;
 
-        /** Practice-server error (stringport pipes), or null */
+        /**
+         * Practice-server error (stringport pipes), or null.
+         * @see #ex
+         */
         Exception ex_P = null;
 
         /**
@@ -7119,7 +7164,7 @@ public class SOCPlayerClient
          * returns false without attempting to send the message.
          *<P>
          * This message is copied to {@link #lastMessage_N}; any error sets {@link #ex}
-         * and calls {@link SOCPlayerClient#dispose()} to show the error message.
+         * and calls {@link SOCPlayerClient#shutdownFromNetwork()} to show the error message.
          *
          * @param s  the message
          * @return true if the message was sent, false if not
@@ -7146,7 +7191,7 @@ public class SOCPlayerClient
             {
                 ex = e;
                 System.err.println("could not write to the net: " + ex);  // I18N: Not localizing console output yet
-                client.dispose();
+                client.shutdownFromNetwork();
 
                 return false;
             }
@@ -7251,6 +7296,8 @@ public class SOCPlayerClient
             /**
              * continuously read from the net in a separate thread;
              * not used for talking to the practice server.
+             * If disconnected or an {@link IOException} occurs,
+             * calls {@link SOCPlayerClient#shutdownFromNetwork()}.
              */
             public void run()
             {
@@ -7270,7 +7317,7 @@ public class SOCPlayerClient
                     {
                         net.ex = e;
                         System.out.println("could not read from the net: " + net.ex);  // I18N: Not localizing console output yet
-                        client.dispose();
+                        client.shutdownFromNetwork();
                     }
                 }
             }
@@ -7304,6 +7351,8 @@ public class SOCPlayerClient
 
             /**
              * Continuously read from the practice string server in a separate thread.
+             * If disconnected or an {@link IOException} occurs, calls
+             * {@link SOCPlayerClient#shutdownFromNetwork()}.
              */
             public void run()
             {
@@ -7325,7 +7374,7 @@ public class SOCPlayerClient
                     {
                         ex_P = e;
                         System.out.println("could not read from practice server: " + ex_P);  // I18N: Not localizing console output yet
-                        client.dispose();
+                        client.shutdownFromNetwork();
                     }
                 }
             }

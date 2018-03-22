@@ -1,6 +1,6 @@
 /**
  * nand.net i18n utilities for Java: String Manager.
- * This file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2018 Jeremy D Monin <jeremy@nand.net>
  * Some parts of this file Copyright (C) 2013 Luis A. Ramirez <lartkma@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -46,7 +46,12 @@ import java.util.ResourceBundle;
  */
 public class StringManager
 {
-    protected ResourceBundle bundle;
+    /**
+     * This manager's resource bundle with localized strings.
+     * @see #get(String)
+     * @see ResourceBundle#getString(String)
+     */
+    final protected ResourceBundle bundle;
 
     /**
      * Create a string manager for the bundles at {@code bundlePath} with the default locale.
@@ -74,6 +79,7 @@ public class StringManager
      * @param key  Key to use for string retrieval
      * @return the localized string from the manager's bundle or one of its parents
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
+     * @see #get(String, Object...)
      */
     public final String get(final String key)
         throws MissingResourceException
@@ -88,6 +94,7 @@ public class StringManager
      *                   by calling {@link MessageFormat#format(String, Object...)}.
      * @return the localized formatted string from the manager's bundle or one of its parents
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
+     * @see #get(String)
      */
     public final String get(final String key, final Object ... arguments)
         throws MissingResourceException

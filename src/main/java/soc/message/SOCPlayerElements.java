@@ -21,6 +21,8 @@ package soc.message;
 import java.util.ArrayList;
 import java.util.List;
 
+import soc.game.SOCResourceConstants;
+import soc.game.SOCResourceSet;
 import soc.proto.GameMessage;
 import soc.proto.Message;
 
@@ -100,6 +102,50 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
         {
             pa[pai] = et[eti];   ++pai;
             pa[pai] = amt[eti];  ++pai;
+        }
+    }
+
+    /**
+     * Constructor for server to tell client(s) about player resources.
+     *
+     * @param ga  name of the game
+     * @param pn  the player number
+     * @param ac  the type of action: {@link SOCPlayerElement#SET},
+     *             {@link SOCPlayerElement#GAIN}, or {@link SOCPlayerElement#LOSE}
+     * @param rs  resource set, to send known resource types; {@link SOCResourceConstants#UNKNOWN} are ignored
+     * @throws NullPointerException if {@code rs} null
+     * @since 2.0.00
+     */
+    public SOCPlayerElements(String ga, int pn, int ac, final SOCResourceSet rs)
+        throws NullPointerException
+    {
+        super(PLAYERELEMENTS, ga, null);
+
+        playerNumber = pn;
+        actionType = ac;
+
+        final int typeCount = rs.getResourceTypeCount();
+        pa = new int[2 + 2 * typeCount];
+        pa[0] = pn;
+        pa[1] = ac;
+        if (typeCount > 0)
+        {
+            elementTypes = new int[typeCount];
+            amounts = new int[typeCount];
+        }
+
+        for (int pai = 2, eti = 0, r = SOCResourceConstants.CLAY; r <= SOCResourceConstants.WOOD; ++r)
+        {
+            int amt = rs.getAmount(r);
+            if (amt > 0)
+            {
+                pa[pai] = r;    ++pai;
+                pa[pai] = amt;  ++pai;
+
+                elementTypes[eti] = r;
+                amounts[eti] = amt;
+                ++eti;
+            }
         }
     }
 

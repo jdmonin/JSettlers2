@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2014,2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -31,6 +31,15 @@ import soc.util.SOCStringManager;
 public class SOCDevCard
     extends SOCInventoryItem implements SOCDevCardConstants  // SOCInventoryItem implies Cloneable
 {
+    /**
+     * the set of resources a player needs to buy a development card.
+     *<P>
+     * Before v2.0.00 this field was {@code SOCGame.CARD_SET}.
+     *
+     * @see SOCPlayingPiece#getResourcesToBuild(int)
+     * @see SOCInventory
+     */
+    public static final SOCResourceSet COST = new SOCResourceSet(0, 1, 1, 1, 0, 0);
 
     /**
      * If true, {@link #getItemName(SOCGame, boolean, SOCStringManager)} can just use the
@@ -44,41 +53,43 @@ public class SOCDevCard
 
     /**
      * Is this card type a Victory Point card?
-     * @param devCardType  A constant such as {@link SOCDevCardConstants#TOW}
+     * @param devCardType  A constant such as {@link SOCDevCardConstants#UNIV}
      *               or {@link SOCDevCardConstants#ROADS}
-     * @return  True for VP types, false otherwise
+     * @return  True for VP card types, false otherwise
      * @see #isVPItem()
      */
     public static boolean isVPCard(final int devCardType)
     {
-        return (devCardType >= SOCDevCardConstants.CAP) && (devCardType <= SOCDevCardConstants.TOW);
+        return (devCardType >= SOCDevCardConstants.CAP) && (devCardType <= SOCDevCardConstants.CHAPEL);
     }
 
     /**
      * Resource type-and-count text keys for {@link #getCardTypeName(int, SOCGame, boolean, SOCStringManager)}.
-     * Each subarray's indexes are the same values as {@link SOCDevCardConstants#UNKNOWN} to {@link SOCDevCardConstants#TOW}.
+     * Each subarray's indexes are the same values as constants in range {@link SOCDevCardConstants#UNKNOWN}
+     * to {@link SOCDevCardConstants#KNIGHT}.
      */
     private static final String[][] GETCARDTYPENAME_KEYS =
     {
         {     // without article
             "spec.dcards.unknown", "spec.dcards.roadbuilding", "spec.dcards.discoveryplenty", "spec.dcards.monopoly",
-            "spec.dcards.capgovhouse", "spec.dcards.libmarket", "spec.dcards.university",
+            "spec.dcards.capgovhouse", "spec.dcards.market", "spec.dcards.university",
             "spec.dcards.temple", "spec.dcards.towerchapel", "spec.dcards.knightsoldier"
         }, {  // with article (a/an)
             "spec.dcards.aunknown", "spec.dcards.aroadbuilding", "spec.dcards.adiscoveryplenty", "spec.dcards.amonopoly",
-            "spec.dcards.acapgovhouse", "spec.dcards.alibmarket", "spec.dcards.auniversity",
+            "spec.dcards.acapgovhouse", "spec.dcards.amarket", "spec.dcards.auniversity",
             "spec.dcards.atemple", "spec.dcards.atowerchapel", "spec.dcards.aknightsoldier"
         }
     };
 
     /**
      * Get a card type's name key.
-     * @param devCardType  A constant such as {@link SOCDevCardConstants#TOW}
+     * @param devCardType  A constant such as {@link SOCDevCardConstants#UNIV}
      *               or {@link SOCDevCardConstants#ROADS}
      * @param game  Game data, or {@code null}; some game options might change a card name.
      *              For example, {@link SOCGameOption#K_SC_PIRI _SC_PIRI} renames "Knight" to "Warship".
      * @param withArticle  If true, format is: "a Market (+1VP)"; if false, is "Market (1VP)"
-     * @return  The card name key for {@code ctype} and {@code withArticle}; unknown ctypes return "spec.dcards.unknown" / "spec.dcards.aunknown".
+     * @return  The card name key for {@code ctype} and {@code withArticle};
+     *     unknown ctypes return "spec.dcards.unknown" / "spec.dcards.aunknown".
      * @see #getCardTypeName(int, SOCGame, boolean, SOCStringManager)
      */
     public static String getCardTypeNameKey
@@ -106,7 +117,7 @@ public class SOCDevCard
 
     /**
      * Get a card type's name.
-     * @param devCardType  A constant such as {@link SOCDevCardConstants#TOW}
+     * @param devCardType  A constant such as {@link SOCDevCardConstants#UNIV}
      *               or {@link SOCDevCardConstants#ROADS}
      * @param game  Game data, or {@code null}; some game options might change a card name.
      *              For example, {@link SOCGameOption#K_SC_PIRI _SC_PIRI} renames "Knight" to "Warship".
