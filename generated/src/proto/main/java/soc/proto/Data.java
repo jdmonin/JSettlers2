@@ -549,36 +549,44 @@ public final class Data {
     _UNSENT_DEFAULT_DEVCARDVALUE(0),
     /**
      * <pre>
+     * Unknown or undisclosed card type, for announcements to other players
+     * </pre>
+     *
+     * <code>UNKNOWN_DEV_CARD = 1;</code>
+     */
+    UNKNOWN_DEV_CARD(1),
+    /**
+     * <pre>
      * Knight / Soldier
      * </pre>
      *
-     * <code>KNIGHT = 1;</code>
+     * <code>KNIGHT = 2;</code>
      */
-    KNIGHT(1),
+    KNIGHT(2),
     /**
      * <pre>
      * Monopoly
      * </pre>
      *
-     * <code>MONOPOLY = 2;</code>
+     * <code>MONOPOLY = 3;</code>
      */
-    MONOPOLY(2),
+    MONOPOLY(3),
     /**
      * <pre>
      * Road Building
      * </pre>
      *
-     * <code>ROAD_BUILDING = 3;</code>
+     * <code>ROAD_BUILDING = 4;</code>
      */
-    ROAD_BUILDING(3),
+    ROAD_BUILDING(4),
     /**
      * <pre>
      * Year of Plenty / Discovery
      * </pre>
      *
-     * <code>YEAR_OF_PLENTY = 4;</code>
+     * <code>YEAR_OF_PLENTY = 5;</code>
      */
-    YEAR_OF_PLENTY(4),
+    YEAR_OF_PLENTY(5),
     /**
      * <pre>
      * Chapel
@@ -632,36 +640,44 @@ public final class Data {
     public static final int _UNSENT_DEFAULT_DEVCARDVALUE_VALUE = 0;
     /**
      * <pre>
+     * Unknown or undisclosed card type, for announcements to other players
+     * </pre>
+     *
+     * <code>UNKNOWN_DEV_CARD = 1;</code>
+     */
+    public static final int UNKNOWN_DEV_CARD_VALUE = 1;
+    /**
+     * <pre>
      * Knight / Soldier
      * </pre>
      *
-     * <code>KNIGHT = 1;</code>
+     * <code>KNIGHT = 2;</code>
      */
-    public static final int KNIGHT_VALUE = 1;
+    public static final int KNIGHT_VALUE = 2;
     /**
      * <pre>
      * Monopoly
      * </pre>
      *
-     * <code>MONOPOLY = 2;</code>
+     * <code>MONOPOLY = 3;</code>
      */
-    public static final int MONOPOLY_VALUE = 2;
+    public static final int MONOPOLY_VALUE = 3;
     /**
      * <pre>
      * Road Building
      * </pre>
      *
-     * <code>ROAD_BUILDING = 3;</code>
+     * <code>ROAD_BUILDING = 4;</code>
      */
-    public static final int ROAD_BUILDING_VALUE = 3;
+    public static final int ROAD_BUILDING_VALUE = 4;
     /**
      * <pre>
      * Year of Plenty / Discovery
      * </pre>
      *
-     * <code>YEAR_OF_PLENTY = 4;</code>
+     * <code>YEAR_OF_PLENTY = 5;</code>
      */
-    public static final int YEAR_OF_PLENTY_VALUE = 4;
+    public static final int YEAR_OF_PLENTY_VALUE = 5;
     /**
      * <pre>
      * Chapel
@@ -723,10 +739,11 @@ public final class Data {
     public static DevCardValue forNumber(int value) {
       switch (value) {
         case 0: return _UNSENT_DEFAULT_DEVCARDVALUE;
-        case 1: return KNIGHT;
-        case 2: return MONOPOLY;
-        case 3: return ROAD_BUILDING;
-        case 4: return YEAR_OF_PLENTY;
+        case 1: return UNKNOWN_DEV_CARD;
+        case 2: return KNIGHT;
+        case 3: return MONOPOLY;
+        case 4: return ROAD_BUILDING;
+        case 5: return YEAR_OF_PLENTY;
         case 50: return VP_CHAPEL;
         case 51: return VP_GREAT_HALL;
         case 52: return VP_LIBRARY;
@@ -4439,31 +4456,31 @@ public final class Data {
       "\022\010\n\004CITY\020\002\022\010\n\004SHIP\020\003\022\014\n\010FORTRESS\020\004\022\013\n\007VI" +
       "LLAGE\020\005*I\n\021OtherPlayableItem\022\030\n\024_UNSENT_" +
       "DEFAULT_ITEM\020\000\022\014\n\010DEV_CARD\020\002\022\014\n\010INV_ITEM" +
-      "\020\003*\305\001\n\014DevCardValue\022 \n\034_UNSENT_DEFAULT_D" +
-      "EVCARDVALUE\020\000\022\n\n\006KNIGHT\020\001\022\014\n\010MONOPOLY\020\002\022" +
-      "\021\n\rROAD_BUILDING\020\003\022\022\n\016YEAR_OF_PLENTY\020\004\022\r" +
-      "\n\tVP_CHAPEL\0202\022\021\n\rVP_GREAT_HALL\0203\022\016\n\nVP_L" +
-      "IBRARY\0204\022\r\n\tVP_MARKET\0205\022\021\n\rVP_UNIVERSITY" +
-      "\0206*\245\005\n\tGameState\022\007\n\003NEW\020\000\022\t\n\005READY\020\001\022\"\n\036" +
-      "READY_RESET_WAIT_ROBOT_DISMISS\020\004\022\013\n\007STAR",
-      "T1A\020\005\022\013\n\007START1B\020\006\022\013\n\007START2A\020\n\022)\n%START" +
-      "S_WAITING_FOR_PICK_GOLD_RESOURCE\020\016\022\013\n\007ST" +
-      "ART2B\020\013\022\013\n\007START3A\020\014\022\013\n\007START3B\020\r\022\020\n\014ROL" +
-      "L_OR_CARD\020\017\022\t\n\005PLAY1\020\024\022\020\n\014PLACING_ROAD\020\036" +
-      "\022\026\n\022PLACING_SETTLEMENT\020\037\022\020\n\014PLACING_CITY" +
-      "\020 \022\022\n\016PLACING_ROBBER\020!\022\022\n\016PLACING_PIRATE" +
-      "\020\"\022\020\n\014PLACING_SHIP\020#\022\026\n\022PLACING_FREE_ROA" +
-      "D1\020(\022\026\n\022PLACING_FREE_ROAD2\020)\022\024\n\020PLACING_" +
-      "INV_ITEM\020*\022\030\n\024WAITING_FOR_DISCARDS\0202\022!\n\035" +
-      "WAITING_FOR_ROB_CHOOSE_PLAYER\0203\022\031\n\025WAITI",
-      "NG_FOR_DISCOVERY\0204\022\030\n\024WAITING_FOR_MONOPO" +
-      "LY\0205\022 \n\034WAITING_FOR_ROBBER_OR_PIRATE\0206\022%" +
-      "\n!WAITING_FOR_ROB_CLOTH_OR_RESOURCE\0207\022\"\n" +
-      "\036WAITING_FOR_PICK_GOLD_RESOURCE\0208\022\024\n\020SPE" +
-      "CIAL_BUILDING\020d\022\t\n\004OVER\020\350\007\022\016\n\tRESET_OLD\020" +
-      "\351\007*=\n\rSeatLockState\022\014\n\010UNLOCKED\020\000\022\n\n\006LOC" +
-      "KED\020\001\022\022\n\016CLEAR_ON_RESET\020\002B\r\n\tsoc.protoH\001" +
-      "b\006proto3"
+      "\020\003*\333\001\n\014DevCardValue\022 \n\034_UNSENT_DEFAULT_D" +
+      "EVCARDVALUE\020\000\022\024\n\020UNKNOWN_DEV_CARD\020\001\022\n\n\006K" +
+      "NIGHT\020\002\022\014\n\010MONOPOLY\020\003\022\021\n\rROAD_BUILDING\020\004" +
+      "\022\022\n\016YEAR_OF_PLENTY\020\005\022\r\n\tVP_CHAPEL\0202\022\021\n\rV" +
+      "P_GREAT_HALL\0203\022\016\n\nVP_LIBRARY\0204\022\r\n\tVP_MAR" +
+      "KET\0205\022\021\n\rVP_UNIVERSITY\0206*\245\005\n\tGameState\022\007" +
+      "\n\003NEW\020\000\022\t\n\005READY\020\001\022\"\n\036READY_RESET_WAIT_R",
+      "OBOT_DISMISS\020\004\022\013\n\007START1A\020\005\022\013\n\007START1B\020\006" +
+      "\022\013\n\007START2A\020\n\022)\n%STARTS_WAITING_FOR_PICK" +
+      "_GOLD_RESOURCE\020\016\022\013\n\007START2B\020\013\022\013\n\007START3A" +
+      "\020\014\022\013\n\007START3B\020\r\022\020\n\014ROLL_OR_CARD\020\017\022\t\n\005PLA" +
+      "Y1\020\024\022\020\n\014PLACING_ROAD\020\036\022\026\n\022PLACING_SETTLE" +
+      "MENT\020\037\022\020\n\014PLACING_CITY\020 \022\022\n\016PLACING_ROBB" +
+      "ER\020!\022\022\n\016PLACING_PIRATE\020\"\022\020\n\014PLACING_SHIP" +
+      "\020#\022\026\n\022PLACING_FREE_ROAD1\020(\022\026\n\022PLACING_FR" +
+      "EE_ROAD2\020)\022\024\n\020PLACING_INV_ITEM\020*\022\030\n\024WAIT" +
+      "ING_FOR_DISCARDS\0202\022!\n\035WAITING_FOR_ROB_CH",
+      "OOSE_PLAYER\0203\022\031\n\025WAITING_FOR_DISCOVERY\0204" +
+      "\022\030\n\024WAITING_FOR_MONOPOLY\0205\022 \n\034WAITING_FO" +
+      "R_ROBBER_OR_PIRATE\0206\022%\n!WAITING_FOR_ROB_" +
+      "CLOTH_OR_RESOURCE\0207\022\"\n\036WAITING_FOR_PICK_" +
+      "GOLD_RESOURCE\0208\022\024\n\020SPECIAL_BUILDING\020d\022\t\n" +
+      "\004OVER\020\350\007\022\016\n\tRESET_OLD\020\351\007*=\n\rSeatLockStat" +
+      "e\022\014\n\010UNLOCKED\020\000\022\n\n\006LOCKED\020\001\022\022\n\016CLEAR_ON_" +
+      "RESET\020\002B\r\n\tsoc.protoH\001b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

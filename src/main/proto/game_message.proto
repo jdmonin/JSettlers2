@@ -683,42 +683,53 @@ message SetTurn {
     uint32 player_number = 1;  // new current player's seat number
 }
 
+/* Prompt from server to entire game telling the current player to roll dice,
+ * or request from that client player to roll.
+ *<P>
+ * Before v3.0.00 this message was {@code SOCRollDicePrompt} and {@code SOCRollDice}.
+ */
+message DiceRollRequest {
+    /* From server, player number being prompted to roll; ignored from client.
+     * Currently this is always the current player; in some future expansion
+     * it could be a different player.
+     */
+    uint32 player_number = 1;
+}
+
 /* Reports the total of what was rolled on the dice this turn.
  * The two individual dice amounts can be reported in a text message.
  *<P>
- * This is in response to a client player's {@link RollDice} request.
- * Will always be followed by {@link State} (7 might lead to discards
- * or moving the robber, etc.), and sometimes with further messages after that,
+ * This is in response to a client player's {@link DiceRollRequest}.
+ * Will always be followed by {@link State} (rolling a 7 might lead to discards
+ * or moving the robber, etc.) and sometimes with further messages after that,
  * depending on the roll results and scenario/rules in effect.
  *<P>
  * When players gain resources on the roll, game members will be sent {@link DiceResultResources}.
  *<P>
  * Players who gain resources on the roll will be sent
  * {@link PlayerElement PlayerElement(SET, resType, amount)} messages
- * for all their new resource counts.  Before v2.0.00, those were sent to each
- * player in the game after a roll, not just those who gained resources.
- * Afterwards each gaining player (any client version) is sent their currently
- * held amounts for each resource as a group of <tt>PlayerElement(pn, {@link #SET}, ...)</tt>
- * messages. Then, for each player who gained resources, their total {@link ResourceCount}
- * is sent to the game. */
+ * for all their new resource counts.  Before v2.0.00 those were sent to each
+ * player in the game after a roll, not just those who gained resources, followed by
+ * sending the game a PlayerElement with their new total {@code RESOURCE_COUNT}.
+ */
 message DiceResult {
-    uint32 dice_total = 1;  // total rolled on both dice
+    /* Total rolled on both dice, 0 at start of turn,
+     * or -1 at start of game; see SOCGame.getCurrentDice()
+     */
+    sint32 dice_total = 1;
 }
 
-/* All resources gained by players from a dice roll.
- * Sent to all game members after a {@link DiceResult}.
+/* All resources gained by players from a dice roll, and their new resource totals.
+ * Announced to all game members after a {@link DiceResult} where players gain resources.
  */
 message DiceResultResources {
-    /* One player's gained resource types and amounts.
-     * Uses parallel lists to simplify nested message structure.
-     */
+    /* One player's gained resource types, amounts, and totals. */
     message PlayerResources {
-        uint32 player_number = 1;
-        /* Type of each resource gained; same length as res_amount */
-        repeated ResourceType res_type = 2;
-        /* Amount of each resource type gained; same length as res_type */
-        repeated uint32 res_amount = 3;
+        uint32 player_number = 1;    // Player number gaining resources
+        ResourceSet res_gained = 2;  // Type and amount of resources gained
+        uint32 res_total = 3;        // Player's new total resource count
     }
+
     repeated PlayerResources player_resources = 1;
 }
 
@@ -755,7 +766,7 @@ message TradeWithBank {
     ResourceSet give = 1;
     ResourceSet get  = 2;
 
-    int32 from_player_number = 3;  // ignored from client
+    int32 player_number = 3;  // ignored from client, always sent from server (default is 0)
 }
 
 /* Client is making, or server is announcing, a trade offer.
@@ -770,7 +781,7 @@ message TradeMakeOffer {
     ResourceSet get  = 2;
 
     int32 from_player_number = 3;  // ignored from client
-    _IntArray to_players = 4;  // only needed if offer is not to all other players
+    _IntArray to_players = 4;  // only needed if offer is not to all other player numbers (not only seated ones)
 
     int32 offer_serial = 5;  // optional offer number assigned by server, or 0 if server has not done so; ignored from client
 }
@@ -788,7 +799,7 @@ message TradeClearOffer {
  * @see TradeAcceptOffer
  */
 message TradeRejectOffer {
-    int32 rejecting_player_number = 1;  // Player number who sent this rejection; ignored from client
+    int32 player_number = 1;  // Player number who sent this rejection; ignored from client
 }
 
 /* A player is accepting a trade offer currently made to them.
@@ -837,8 +848,9 @@ message GameMessageFromServer {
         StartGame start_game = 100;
         Turn turn = 101;
         SetTurn set_turn = 102;
-        DiceResult dice_result = 103;
-        DiceResultResources dice_result_resources = 104;
+        DiceRollRequest dice_roll_request = 103;
+        DiceResult dice_result = 104;
+        DiceResultResources dice_result_resources = 105;
 
         // player info
 
@@ -862,7 +874,8 @@ message GameMessageFromClient {
     oneof msg {
         // turn
         StartGame start_game = 100;
-        EndTurn end_turn = 101;
+        DiceRollRequest dice_roll_request = 101;
+        EndTurn end_turn = 102;
 
         // player actions: buy/build/play pieces and items
         PutPiece put_piece = 200;

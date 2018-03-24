@@ -213,7 +213,7 @@ public class SOCBankTrade extends SOCMessage
                 .setGive(ProtoMessageBuildHelper.toResourceSet(give))
                 .setGet(ProtoMessageBuildHelper.toResourceSet(get));
         if (playerNumber >= 0)
-            b.setFromPlayerNumber(playerNumber);
+            b.setPlayerNumber(playerNumber);
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
         gb.setGaName(game).setTradeWithBank(b);

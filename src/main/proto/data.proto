@@ -136,10 +136,11 @@ enum OtherPlayableItem {
  */
 enum DevCardValue {
     _UNSENT_DEFAULT_DEVCARDVALUE = 0;  // Required for enum, but not sent: not a valid card type
-    KNIGHT = 1;          // Knight / Soldier
-    MONOPOLY = 2;        // Monopoly
-    ROAD_BUILDING = 3;   // Road Building
-    YEAR_OF_PLENTY = 4;  // Year of Plenty / Discovery
+    UNKNOWN_DEV_CARD = 1;  // Unknown or undisclosed card type, for announcements to other players
+    KNIGHT = 2;          // Knight / Soldier
+    MONOPOLY = 3;        // Monopoly
+    ROAD_BUILDING = 4;   // Road Building
+    YEAR_OF_PLENTY = 5;  // Year of Plenty / Discovery
     VP_CHAPEL = 50;      // Chapel
     VP_GREAT_HALL = 51;  // Great Hall
     VP_LIBRARY = 52;     // Library

@@ -135,7 +135,7 @@ public class SOCRejectOffer extends SOCMessage
     protected Message.FromServer toProtoFromServer()
     {
         GameMessage.TradeRejectOffer.Builder b
-            = GameMessage.TradeRejectOffer.newBuilder().setRejectingPlayerNumber(playerNumber);
+            = GameMessage.TradeRejectOffer.newBuilder().setPlayerNumber(playerNumber);
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
         gb.setGaName(game).setTradeRejectOffer(b);

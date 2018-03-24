@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2015,2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -224,16 +224,11 @@ public class SOCDiceResultResources extends SOCMessageTemplateMi
         {
             GameMessage.DiceResultResources.PlayerResources.Builder prb
                 = GameMessage.DiceResultResources.PlayerResources.newBuilder();
+
             prb.setPlayerNumber(playerNum.get(i));
             final SOCResourceSet rs = playerRsrc.get(i);
-            for (int rtype = SOCResourceConstants.MIN; rtype <= Data.ResourceType.WOOD_VALUE; ++rtype)
-            {
-                final int amt = rs.getAmount(rtype);
-                if (amt == 0)
-                    continue;
-                prb.addResTypeValue(rtype);
-                prb.addResAmount(amt);
-            }
+            prb.setResGained(ProtoMessageBuildHelper.toResourceSet(rs));
+            prb.setResTotal(rs.getTotal());  // TODO should be player's entire total, not gained total
 
             b.addPlayerResources(prb);
         }

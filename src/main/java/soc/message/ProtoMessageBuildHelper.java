@@ -24,7 +24,6 @@ import soc.game.SOCGame;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.proto.Data;
-import soc.proto.Data.DevCardValue;
 import soc.proto.GameMessage;
 
 /**
@@ -70,8 +69,8 @@ public abstract class ProtoMessageBuildHelper
      * Return the protobuf {@code Data.DevCardValue} enum value (object) for this development card constant.
      * @param card  Type of development card, like {@link SOCDevCardConstants#ROADS}
      *     or {@link SOCDevCardConstants#UNKNOWN}
-     * @return  Protobuf enum value for {@code card}, like {@link Data.DevCardValue#ROAD_BUILDING},
-     *     or {@code null} if {@link SOCDevCardConstants#UNKNOWN UNKNOWN} or not recognized
+     * @return  Protobuf enum value for {@code card}, like {@link Data.DevCardValue#ROAD_BUILDING}
+     *     or {@link Data.DevCardValue#UNKNOWN_DEV_CARD}, or {@code null} if not recognized
      * @see #isDevCardVP(DevCardValue)
      */
     public static final Data.DevCardValue toDevCardValue(final int card)
@@ -80,24 +79,26 @@ public abstract class ProtoMessageBuildHelper
 
         switch (card)
         {
+        case SOCDevCardConstants.UNKNOWN:
+            dcv = Data.DevCardValue.UNKNOWN_DEV_CARD;  break;
         case SOCDevCardConstants.ROADS:
-            dcv = DevCardValue.ROAD_BUILDING;  break;
+            dcv = Data.DevCardValue.ROAD_BUILDING;  break;
         case SOCDevCardConstants.DISC:
-            dcv = DevCardValue.YEAR_OF_PLENTY;  break;
+            dcv = Data.DevCardValue.YEAR_OF_PLENTY;  break;
         case SOCDevCardConstants.MONO:
-            dcv = DevCardValue.MONOPOLY;  break;
+            dcv = Data.DevCardValue.MONOPOLY;  break;
         case SOCDevCardConstants.CAP:
-            dcv = DevCardValue.VP_GREAT_HALL;  break;
+            dcv = Data.DevCardValue.VP_GREAT_HALL;  break;
         case SOCDevCardConstants.MARKET:
-            dcv = DevCardValue.VP_MARKET;  break;
+            dcv = Data.DevCardValue.VP_MARKET;  break;
         case SOCDevCardConstants.UNIV:
-            dcv = DevCardValue.VP_UNIVERSITY;  break;
+            dcv = Data.DevCardValue.VP_UNIVERSITY;  break;
         case SOCDevCardConstants.TEMP:
-            dcv = DevCardValue.VP_LIBRARY;  break;
+            dcv = Data.DevCardValue.VP_LIBRARY;  break;
         case SOCDevCardConstants.CHAPEL:
-            dcv = DevCardValue.VP_CHAPEL;  break;
+            dcv = Data.DevCardValue.VP_CHAPEL;  break;
         case SOCDevCardConstants.KNIGHT:
-            dcv = DevCardValue.KNIGHT;  break;
+            dcv = Data.DevCardValue.KNIGHT;  break;
         default:
             dcv = null;
         }

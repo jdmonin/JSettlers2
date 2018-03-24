@@ -14740,16 +14740,509 @@ public final class GameMessage {
 
   }
 
+  public interface DiceRollRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:DiceRollRequest)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * From server, player number being prompted to roll; ignored from client.
+     * Currently this is always the current player; in some future expansion
+     * it could be a different player.
+     * </pre>
+     *
+     * <code>uint32 player_number = 1;</code>
+     */
+    int getPlayerNumber();
+  }
+  /**
+   * <pre>
+   * Prompt from server to entire game telling the current player to roll dice,
+   * or request from that client player to roll.
+   *&lt;P&gt;
+   * Before v3.0.00 this message was {&#64;code SOCRollDicePrompt} and {&#64;code SOCRollDice}.
+   * </pre>
+   *
+   * Protobuf type {@code DiceRollRequest}
+   */
+  public  static final class DiceRollRequest extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:DiceRollRequest)
+      DiceRollRequestOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use DiceRollRequest.newBuilder() to construct.
+    private DiceRollRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private DiceRollRequest() {
+      playerNumber_ = 0;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private DiceRollRequest(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+
+              playerNumber_ = input.readUInt32();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_DiceRollRequest_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_DiceRollRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.DiceRollRequest.class, soc.proto.GameMessage.DiceRollRequest.Builder.class);
+    }
+
+    public static final int PLAYER_NUMBER_FIELD_NUMBER = 1;
+    private int playerNumber_;
+    /**
+     * <pre>
+     * From server, player number being prompted to roll; ignored from client.
+     * Currently this is always the current player; in some future expansion
+     * it could be a different player.
+     * </pre>
+     *
+     * <code>uint32 player_number = 1;</code>
+     */
+    public int getPlayerNumber() {
+      return playerNumber_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (playerNumber_ != 0) {
+        output.writeUInt32(1, playerNumber_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (playerNumber_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(1, playerNumber_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.DiceRollRequest)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.DiceRollRequest other = (soc.proto.GameMessage.DiceRollRequest) obj;
+
+      boolean result = true;
+      result = result && (getPlayerNumber()
+          == other.getPlayerNumber());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + PLAYER_NUMBER_FIELD_NUMBER;
+      hash = (53 * hash) + getPlayerNumber();
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.DiceRollRequest parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.DiceRollRequest parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.DiceRollRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.DiceRollRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.DiceRollRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.DiceRollRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.DiceRollRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.DiceRollRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.DiceRollRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.DiceRollRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.DiceRollRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.DiceRollRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.DiceRollRequest prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * Prompt from server to entire game telling the current player to roll dice,
+     * or request from that client player to roll.
+     *&lt;P&gt;
+     * Before v3.0.00 this message was {&#64;code SOCRollDicePrompt} and {&#64;code SOCRollDice}.
+     * </pre>
+     *
+     * Protobuf type {@code DiceRollRequest}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:DiceRollRequest)
+        soc.proto.GameMessage.DiceRollRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_DiceRollRequest_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_DiceRollRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.DiceRollRequest.class, soc.proto.GameMessage.DiceRollRequest.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.DiceRollRequest.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        playerNumber_ = 0;
+
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_DiceRollRequest_descriptor;
+      }
+
+      public soc.proto.GameMessage.DiceRollRequest getDefaultInstanceForType() {
+        return soc.proto.GameMessage.DiceRollRequest.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.DiceRollRequest build() {
+        soc.proto.GameMessage.DiceRollRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.DiceRollRequest buildPartial() {
+        soc.proto.GameMessage.DiceRollRequest result = new soc.proto.GameMessage.DiceRollRequest(this);
+        result.playerNumber_ = playerNumber_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.DiceRollRequest) {
+          return mergeFrom((soc.proto.GameMessage.DiceRollRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.DiceRollRequest other) {
+        if (other == soc.proto.GameMessage.DiceRollRequest.getDefaultInstance()) return this;
+        if (other.getPlayerNumber() != 0) {
+          setPlayerNumber(other.getPlayerNumber());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.DiceRollRequest parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.DiceRollRequest) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private int playerNumber_ ;
+      /**
+       * <pre>
+       * From server, player number being prompted to roll; ignored from client.
+       * Currently this is always the current player; in some future expansion
+       * it could be a different player.
+       * </pre>
+       *
+       * <code>uint32 player_number = 1;</code>
+       */
+      public int getPlayerNumber() {
+        return playerNumber_;
+      }
+      /**
+       * <pre>
+       * From server, player number being prompted to roll; ignored from client.
+       * Currently this is always the current player; in some future expansion
+       * it could be a different player.
+       * </pre>
+       *
+       * <code>uint32 player_number = 1;</code>
+       */
+      public Builder setPlayerNumber(int value) {
+        
+        playerNumber_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * From server, player number being prompted to roll; ignored from client.
+       * Currently this is always the current player; in some future expansion
+       * it could be a different player.
+       * </pre>
+       *
+       * <code>uint32 player_number = 1;</code>
+       */
+      public Builder clearPlayerNumber() {
+        
+        playerNumber_ = 0;
+        onChanged();
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:DiceRollRequest)
+    }
+
+    // @@protoc_insertion_point(class_scope:DiceRollRequest)
+    private static final soc.proto.GameMessage.DiceRollRequest DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.DiceRollRequest();
+    }
+
+    public static soc.proto.GameMessage.DiceRollRequest getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<DiceRollRequest>
+        PARSER = new com.google.protobuf.AbstractParser<DiceRollRequest>() {
+      public DiceRollRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new DiceRollRequest(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<DiceRollRequest> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<DiceRollRequest> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.DiceRollRequest getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface DiceResultOrBuilder extends
       // @@protoc_insertion_point(interface_extends:DiceResult)
       com.google.protobuf.MessageOrBuilder {
 
     /**
      * <pre>
-     * total rolled on both dice
+     * Total rolled on both dice, 0 at start of turn,
+     * or -1 at start of game; see SOCGame.getCurrentDice()
      * </pre>
      *
-     * <code>uint32 dice_total = 1;</code>
+     * <code>sint32 dice_total = 1;</code>
      */
     int getDiceTotal();
   }
@@ -14758,21 +15251,18 @@ public final class GameMessage {
    * Reports the total of what was rolled on the dice this turn.
    * The two individual dice amounts can be reported in a text message.
    *&lt;P&gt;
-   * This is in response to a client player's {&#64;link RollDice} request.
-   * Will always be followed by {&#64;link State} (7 might lead to discards
-   * or moving the robber, etc.), and sometimes with further messages after that,
+   * This is in response to a client player's {&#64;link DiceRollRequest}.
+   * Will always be followed by {&#64;link State} (rolling a 7 might lead to discards
+   * or moving the robber, etc.) and sometimes with further messages after that,
    * depending on the roll results and scenario/rules in effect.
    *&lt;P&gt;
    * When players gain resources on the roll, game members will be sent {&#64;link DiceResultResources}.
    *&lt;P&gt;
    * Players who gain resources on the roll will be sent
    * {&#64;link PlayerElement PlayerElement(SET, resType, amount)} messages
-   * for all their new resource counts.  Before v2.0.00, those were sent to each
-   * player in the game after a roll, not just those who gained resources.
-   * Afterwards each gaining player (any client version) is sent their currently
-   * held amounts for each resource as a group of &lt;tt&gt;PlayerElement(pn, {&#64;link #SET}, ...)&lt;/tt&gt;
-   * messages. Then, for each player who gained resources, their total {&#64;link ResourceCount}
-   * is sent to the game. 
+   * for all their new resource counts.  Before v2.0.00 those were sent to each
+   * player in the game after a roll, not just those who gained resources, followed by
+   * sending the game a PlayerElement with their new total {&#64;code RESOURCE_COUNT}.
    * </pre>
    *
    * Protobuf type {@code DiceResult}
@@ -14820,7 +15310,7 @@ public final class GameMessage {
             }
             case 8: {
 
-              diceTotal_ = input.readUInt32();
+              diceTotal_ = input.readSInt32();
               break;
             }
           }
@@ -14851,10 +15341,11 @@ public final class GameMessage {
     private int diceTotal_;
     /**
      * <pre>
-     * total rolled on both dice
+     * Total rolled on both dice, 0 at start of turn,
+     * or -1 at start of game; see SOCGame.getCurrentDice()
      * </pre>
      *
-     * <code>uint32 dice_total = 1;</code>
+     * <code>sint32 dice_total = 1;</code>
      */
     public int getDiceTotal() {
       return diceTotal_;
@@ -14873,7 +15364,7 @@ public final class GameMessage {
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (diceTotal_ != 0) {
-        output.writeUInt32(1, diceTotal_);
+        output.writeSInt32(1, diceTotal_);
       }
       unknownFields.writeTo(output);
     }
@@ -14885,7 +15376,7 @@ public final class GameMessage {
       size = 0;
       if (diceTotal_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(1, diceTotal_);
+          .computeSInt32Size(1, diceTotal_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -15016,21 +15507,18 @@ public final class GameMessage {
      * Reports the total of what was rolled on the dice this turn.
      * The two individual dice amounts can be reported in a text message.
      *&lt;P&gt;
-     * This is in response to a client player's {&#64;link RollDice} request.
-     * Will always be followed by {&#64;link State} (7 might lead to discards
-     * or moving the robber, etc.), and sometimes with further messages after that,
+     * This is in response to a client player's {&#64;link DiceRollRequest}.
+     * Will always be followed by {&#64;link State} (rolling a 7 might lead to discards
+     * or moving the robber, etc.) and sometimes with further messages after that,
      * depending on the roll results and scenario/rules in effect.
      *&lt;P&gt;
      * When players gain resources on the roll, game members will be sent {&#64;link DiceResultResources}.
      *&lt;P&gt;
      * Players who gain resources on the roll will be sent
      * {&#64;link PlayerElement PlayerElement(SET, resType, amount)} messages
-     * for all their new resource counts.  Before v2.0.00, those were sent to each
-     * player in the game after a roll, not just those who gained resources.
-     * Afterwards each gaining player (any client version) is sent their currently
-     * held amounts for each resource as a group of &lt;tt&gt;PlayerElement(pn, {&#64;link #SET}, ...)&lt;/tt&gt;
-     * messages. Then, for each player who gained resources, their total {&#64;link ResourceCount}
-     * is sent to the game. 
+     * for all their new resource counts.  Before v2.0.00 those were sent to each
+     * player in the game after a roll, not just those who gained resources, followed by
+     * sending the game a PlayerElement with their new total {&#64;code RESOURCE_COUNT}.
      * </pre>
      *
      * Protobuf type {@code DiceResult}
@@ -15167,20 +15655,22 @@ public final class GameMessage {
       private int diceTotal_ ;
       /**
        * <pre>
-       * total rolled on both dice
+       * Total rolled on both dice, 0 at start of turn,
+       * or -1 at start of game; see SOCGame.getCurrentDice()
        * </pre>
        *
-       * <code>uint32 dice_total = 1;</code>
+       * <code>sint32 dice_total = 1;</code>
        */
       public int getDiceTotal() {
         return diceTotal_;
       }
       /**
        * <pre>
-       * total rolled on both dice
+       * Total rolled on both dice, 0 at start of turn,
+       * or -1 at start of game; see SOCGame.getCurrentDice()
        * </pre>
        *
-       * <code>uint32 dice_total = 1;</code>
+       * <code>sint32 dice_total = 1;</code>
        */
       public Builder setDiceTotal(int value) {
         
@@ -15190,10 +15680,11 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * total rolled on both dice
+       * Total rolled on both dice, 0 at start of turn,
+       * or -1 at start of game; see SOCGame.getCurrentDice()
        * </pre>
        *
-       * <code>uint32 dice_total = 1;</code>
+       * <code>sint32 dice_total = 1;</code>
        */
       public Builder clearDiceTotal() {
         
@@ -15280,8 +15771,8 @@ public final class GameMessage {
   }
   /**
    * <pre>
-   * All resources gained by players from a dice roll.
-   * Sent to all game members after a {&#64;link DiceResult}.
+   * All resources gained by players from a dice roll, and their new resource totals.
+   * Announced to all game members after a {&#64;link DiceResult} where players gain resources.
    * </pre>
    *
    * Protobuf type {@code DiceResultResources}
@@ -15368,81 +15859,51 @@ public final class GameMessage {
         com.google.protobuf.MessageOrBuilder {
 
       /**
+       * <pre>
+       * Player number gaining resources
+       * </pre>
+       *
        * <code>uint32 player_number = 1;</code>
        */
       int getPlayerNumber();
 
       /**
        * <pre>
-       * Type of each resource gained; same length as res_amount 
+       * Type and amount of resources gained
        * </pre>
        *
-       * <code>repeated .ResourceType res_type = 2;</code>
+       * <code>.ResourceSet res_gained = 2;</code>
        */
-      java.util.List<soc.proto.Data.ResourceType> getResTypeList();
+      boolean hasResGained();
       /**
        * <pre>
-       * Type of each resource gained; same length as res_amount 
+       * Type and amount of resources gained
        * </pre>
        *
-       * <code>repeated .ResourceType res_type = 2;</code>
+       * <code>.ResourceSet res_gained = 2;</code>
        */
-      int getResTypeCount();
+      soc.proto.Data.ResourceSet getResGained();
       /**
        * <pre>
-       * Type of each resource gained; same length as res_amount 
+       * Type and amount of resources gained
        * </pre>
        *
-       * <code>repeated .ResourceType res_type = 2;</code>
+       * <code>.ResourceSet res_gained = 2;</code>
        */
-      soc.proto.Data.ResourceType getResType(int index);
-      /**
-       * <pre>
-       * Type of each resource gained; same length as res_amount 
-       * </pre>
-       *
-       * <code>repeated .ResourceType res_type = 2;</code>
-       */
-      java.util.List<java.lang.Integer>
-      getResTypeValueList();
-      /**
-       * <pre>
-       * Type of each resource gained; same length as res_amount 
-       * </pre>
-       *
-       * <code>repeated .ResourceType res_type = 2;</code>
-       */
-      int getResTypeValue(int index);
+      soc.proto.Data.ResourceSetOrBuilder getResGainedOrBuilder();
 
       /**
        * <pre>
-       * Amount of each resource type gained; same length as res_type 
+       * Player's new total resource count
        * </pre>
        *
-       * <code>repeated uint32 res_amount = 3;</code>
+       * <code>uint32 res_total = 3;</code>
        */
-      java.util.List<java.lang.Integer> getResAmountList();
-      /**
-       * <pre>
-       * Amount of each resource type gained; same length as res_type 
-       * </pre>
-       *
-       * <code>repeated uint32 res_amount = 3;</code>
-       */
-      int getResAmountCount();
-      /**
-       * <pre>
-       * Amount of each resource type gained; same length as res_type 
-       * </pre>
-       *
-       * <code>repeated uint32 res_amount = 3;</code>
-       */
-      int getResAmount(int index);
+      int getResTotal();
     }
     /**
      * <pre>
-     * One player's gained resource types and amounts.
-     * Uses parallel lists to simplify nested message structure.
+     * One player's gained resource types, amounts, and totals. 
      * </pre>
      *
      * Protobuf type {@code DiceResultResources.PlayerResources}
@@ -15458,8 +15919,7 @@ public final class GameMessage {
       }
       private PlayerResources() {
         playerNumber_ = 0;
-        resType_ = java.util.Collections.emptyList();
-        resAmount_ = java.util.Collections.emptyList();
+        resTotal_ = 0;
       }
 
       @java.lang.Override
@@ -15495,48 +15955,22 @@ public final class GameMessage {
                 playerNumber_ = input.readUInt32();
                 break;
               }
-              case 16: {
-                int rawValue = input.readEnum();
-                if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
-                  resType_ = new java.util.ArrayList<java.lang.Integer>();
-                  mutable_bitField0_ |= 0x00000002;
-                }
-                resType_.add(rawValue);
-                break;
-              }
               case 18: {
-                int length = input.readRawVarint32();
-                int oldLimit = input.pushLimit(length);
-                while(input.getBytesUntilLimit() > 0) {
-                  int rawValue = input.readEnum();
-                  if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
-                    resType_ = new java.util.ArrayList<java.lang.Integer>();
-                    mutable_bitField0_ |= 0x00000002;
-                  }
-                  resType_.add(rawValue);
+                soc.proto.Data.ResourceSet.Builder subBuilder = null;
+                if (resGained_ != null) {
+                  subBuilder = resGained_.toBuilder();
                 }
-                input.popLimit(oldLimit);
+                resGained_ = input.readMessage(soc.proto.Data.ResourceSet.parser(), extensionRegistry);
+                if (subBuilder != null) {
+                  subBuilder.mergeFrom(resGained_);
+                  resGained_ = subBuilder.buildPartial();
+                }
+
                 break;
               }
               case 24: {
-                if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
-                  resAmount_ = new java.util.ArrayList<java.lang.Integer>();
-                  mutable_bitField0_ |= 0x00000004;
-                }
-                resAmount_.add(input.readUInt32());
-                break;
-              }
-              case 26: {
-                int length = input.readRawVarint32();
-                int limit = input.pushLimit(length);
-                if (!((mutable_bitField0_ & 0x00000004) == 0x00000004) && input.getBytesUntilLimit() > 0) {
-                  resAmount_ = new java.util.ArrayList<java.lang.Integer>();
-                  mutable_bitField0_ |= 0x00000004;
-                }
-                while (input.getBytesUntilLimit() > 0) {
-                  resAmount_.add(input.readUInt32());
-                }
-                input.popLimit(limit);
+
+                resTotal_ = input.readUInt32();
                 break;
               }
             }
@@ -15547,12 +15981,6 @@ public final class GameMessage {
           throw new com.google.protobuf.InvalidProtocolBufferException(
               e).setUnfinishedMessage(this);
         } finally {
-          if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
-            resType_ = java.util.Collections.unmodifiableList(resType_);
-          }
-          if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
-            resAmount_ = java.util.Collections.unmodifiableList(resAmount_);
-          }
           this.unknownFields = unknownFields.build();
           makeExtensionsImmutable();
         }
@@ -15569,115 +15997,64 @@ public final class GameMessage {
                 soc.proto.GameMessage.DiceResultResources.PlayerResources.class, soc.proto.GameMessage.DiceResultResources.PlayerResources.Builder.class);
       }
 
-      private int bitField0_;
       public static final int PLAYER_NUMBER_FIELD_NUMBER = 1;
       private int playerNumber_;
       /**
+       * <pre>
+       * Player number gaining resources
+       * </pre>
+       *
        * <code>uint32 player_number = 1;</code>
        */
       public int getPlayerNumber() {
         return playerNumber_;
       }
 
-      public static final int RES_TYPE_FIELD_NUMBER = 2;
-      private java.util.List<java.lang.Integer> resType_;
-      private static final com.google.protobuf.Internal.ListAdapter.Converter<
-          java.lang.Integer, soc.proto.Data.ResourceType> resType_converter_ =
-              new com.google.protobuf.Internal.ListAdapter.Converter<
-                  java.lang.Integer, soc.proto.Data.ResourceType>() {
-                public soc.proto.Data.ResourceType convert(java.lang.Integer from) {
-                  soc.proto.Data.ResourceType result = soc.proto.Data.ResourceType.valueOf(from);
-                  return result == null ? soc.proto.Data.ResourceType.UNRECOGNIZED : result;
-                }
-              };
+      public static final int RES_GAINED_FIELD_NUMBER = 2;
+      private soc.proto.Data.ResourceSet resGained_;
       /**
        * <pre>
-       * Type of each resource gained; same length as res_amount 
+       * Type and amount of resources gained
        * </pre>
        *
-       * <code>repeated .ResourceType res_type = 2;</code>
+       * <code>.ResourceSet res_gained = 2;</code>
        */
-      public java.util.List<soc.proto.Data.ResourceType> getResTypeList() {
-        return new com.google.protobuf.Internal.ListAdapter<
-            java.lang.Integer, soc.proto.Data.ResourceType>(resType_, resType_converter_);
+      public boolean hasResGained() {
+        return resGained_ != null;
       }
       /**
        * <pre>
-       * Type of each resource gained; same length as res_amount 
+       * Type and amount of resources gained
        * </pre>
        *
-       * <code>repeated .ResourceType res_type = 2;</code>
+       * <code>.ResourceSet res_gained = 2;</code>
        */
-      public int getResTypeCount() {
-        return resType_.size();
+      public soc.proto.Data.ResourceSet getResGained() {
+        return resGained_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : resGained_;
       }
       /**
        * <pre>
-       * Type of each resource gained; same length as res_amount 
+       * Type and amount of resources gained
        * </pre>
        *
-       * <code>repeated .ResourceType res_type = 2;</code>
+       * <code>.ResourceSet res_gained = 2;</code>
        */
-      public soc.proto.Data.ResourceType getResType(int index) {
-        return resType_converter_.convert(resType_.get(index));
+      public soc.proto.Data.ResourceSetOrBuilder getResGainedOrBuilder() {
+        return getResGained();
       }
-      /**
-       * <pre>
-       * Type of each resource gained; same length as res_amount 
-       * </pre>
-       *
-       * <code>repeated .ResourceType res_type = 2;</code>
-       */
-      public java.util.List<java.lang.Integer>
-      getResTypeValueList() {
-        return resType_;
-      }
-      /**
-       * <pre>
-       * Type of each resource gained; same length as res_amount 
-       * </pre>
-       *
-       * <code>repeated .ResourceType res_type = 2;</code>
-       */
-      public int getResTypeValue(int index) {
-        return resType_.get(index);
-      }
-      private int resTypeMemoizedSerializedSize;
 
-      public static final int RES_AMOUNT_FIELD_NUMBER = 3;
-      private java.util.List<java.lang.Integer> resAmount_;
+      public static final int RES_TOTAL_FIELD_NUMBER = 3;
+      private int resTotal_;
       /**
        * <pre>
-       * Amount of each resource type gained; same length as res_type 
+       * Player's new total resource count
        * </pre>
        *
-       * <code>repeated uint32 res_amount = 3;</code>
+       * <code>uint32 res_total = 3;</code>
        */
-      public java.util.List<java.lang.Integer>
-          getResAmountList() {
-        return resAmount_;
+      public int getResTotal() {
+        return resTotal_;
       }
-      /**
-       * <pre>
-       * Amount of each resource type gained; same length as res_type 
-       * </pre>
-       *
-       * <code>repeated uint32 res_amount = 3;</code>
-       */
-      public int getResAmountCount() {
-        return resAmount_.size();
-      }
-      /**
-       * <pre>
-       * Amount of each resource type gained; same length as res_type 
-       * </pre>
-       *
-       * <code>repeated uint32 res_amount = 3;</code>
-       */
-      public int getResAmount(int index) {
-        return resAmount_.get(index);
-      }
-      private int resAmountMemoizedSerializedSize = -1;
 
       private byte memoizedIsInitialized = -1;
       public final boolean isInitialized() {
@@ -15691,23 +16068,14 @@ public final class GameMessage {
 
       public void writeTo(com.google.protobuf.CodedOutputStream output)
                           throws java.io.IOException {
-        getSerializedSize();
         if (playerNumber_ != 0) {
           output.writeUInt32(1, playerNumber_);
         }
-        if (getResTypeList().size() > 0) {
-          output.writeUInt32NoTag(18);
-          output.writeUInt32NoTag(resTypeMemoizedSerializedSize);
+        if (resGained_ != null) {
+          output.writeMessage(2, getResGained());
         }
-        for (int i = 0; i < resType_.size(); i++) {
-          output.writeEnumNoTag(resType_.get(i));
-        }
-        if (getResAmountList().size() > 0) {
-          output.writeUInt32NoTag(26);
-          output.writeUInt32NoTag(resAmountMemoizedSerializedSize);
-        }
-        for (int i = 0; i < resAmount_.size(); i++) {
-          output.writeUInt32NoTag(resAmount_.get(i));
+        if (resTotal_ != 0) {
+          output.writeUInt32(3, resTotal_);
         }
         unknownFields.writeTo(output);
       }
@@ -15721,31 +16089,13 @@ public final class GameMessage {
           size += com.google.protobuf.CodedOutputStream
             .computeUInt32Size(1, playerNumber_);
         }
-        {
-          int dataSize = 0;
-          for (int i = 0; i < resType_.size(); i++) {
-            dataSize += com.google.protobuf.CodedOutputStream
-              .computeEnumSizeNoTag(resType_.get(i));
-          }
-          size += dataSize;
-          if (!getResTypeList().isEmpty()) {  size += 1;
-            size += com.google.protobuf.CodedOutputStream
-              .computeUInt32SizeNoTag(dataSize);
-          }resTypeMemoizedSerializedSize = dataSize;
+        if (resGained_ != null) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(2, getResGained());
         }
-        {
-          int dataSize = 0;
-          for (int i = 0; i < resAmount_.size(); i++) {
-            dataSize += com.google.protobuf.CodedOutputStream
-              .computeUInt32SizeNoTag(resAmount_.get(i));
-          }
-          size += dataSize;
-          if (!getResAmountList().isEmpty()) {
-            size += 1;
-            size += com.google.protobuf.CodedOutputStream
-                .computeInt32SizeNoTag(dataSize);
-          }
-          resAmountMemoizedSerializedSize = dataSize;
+        if (resTotal_ != 0) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeUInt32Size(3, resTotal_);
         }
         size += unknownFields.getSerializedSize();
         memoizedSize = size;
@@ -15765,9 +16115,13 @@ public final class GameMessage {
         boolean result = true;
         result = result && (getPlayerNumber()
             == other.getPlayerNumber());
-        result = result && resType_.equals(other.resType_);
-        result = result && getResAmountList()
-            .equals(other.getResAmountList());
+        result = result && (hasResGained() == other.hasResGained());
+        if (hasResGained()) {
+          result = result && getResGained()
+              .equals(other.getResGained());
+        }
+        result = result && (getResTotal()
+            == other.getResTotal());
         result = result && unknownFields.equals(other.unknownFields);
         return result;
       }
@@ -15781,14 +16135,12 @@ public final class GameMessage {
         hash = (19 * hash) + getDescriptor().hashCode();
         hash = (37 * hash) + PLAYER_NUMBER_FIELD_NUMBER;
         hash = (53 * hash) + getPlayerNumber();
-        if (getResTypeCount() > 0) {
-          hash = (37 * hash) + RES_TYPE_FIELD_NUMBER;
-          hash = (53 * hash) + resType_.hashCode();
+        if (hasResGained()) {
+          hash = (37 * hash) + RES_GAINED_FIELD_NUMBER;
+          hash = (53 * hash) + getResGained().hashCode();
         }
-        if (getResAmountCount() > 0) {
-          hash = (37 * hash) + RES_AMOUNT_FIELD_NUMBER;
-          hash = (53 * hash) + getResAmountList().hashCode();
-        }
+        hash = (37 * hash) + RES_TOTAL_FIELD_NUMBER;
+        hash = (53 * hash) + getResTotal();
         hash = (29 * hash) + unknownFields.hashCode();
         memoizedHashCode = hash;
         return hash;
@@ -15884,8 +16236,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * One player's gained resource types and amounts.
-       * Uses parallel lists to simplify nested message structure.
+       * One player's gained resource types, amounts, and totals. 
        * </pre>
        *
        * Protobuf type {@code DiceResultResources.PlayerResources}
@@ -15925,10 +16276,14 @@ public final class GameMessage {
           super.clear();
           playerNumber_ = 0;
 
-          resType_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000002);
-          resAmount_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000004);
+          if (resGainedBuilder_ == null) {
+            resGained_ = null;
+          } else {
+            resGained_ = null;
+            resGainedBuilder_ = null;
+          }
+          resTotal_ = 0;
+
           return this;
         }
 
@@ -15951,20 +16306,13 @@ public final class GameMessage {
 
         public soc.proto.GameMessage.DiceResultResources.PlayerResources buildPartial() {
           soc.proto.GameMessage.DiceResultResources.PlayerResources result = new soc.proto.GameMessage.DiceResultResources.PlayerResources(this);
-          int from_bitField0_ = bitField0_;
-          int to_bitField0_ = 0;
           result.playerNumber_ = playerNumber_;
-          if (((bitField0_ & 0x00000002) == 0x00000002)) {
-            resType_ = java.util.Collections.unmodifiableList(resType_);
-            bitField0_ = (bitField0_ & ~0x00000002);
+          if (resGainedBuilder_ == null) {
+            result.resGained_ = resGained_;
+          } else {
+            result.resGained_ = resGainedBuilder_.build();
           }
-          result.resType_ = resType_;
-          if (((bitField0_ & 0x00000004) == 0x00000004)) {
-            resAmount_ = java.util.Collections.unmodifiableList(resAmount_);
-            bitField0_ = (bitField0_ & ~0x00000004);
-          }
-          result.resAmount_ = resAmount_;
-          result.bitField0_ = to_bitField0_;
+          result.resTotal_ = resTotal_;
           onBuilt();
           return result;
         }
@@ -16009,25 +16357,11 @@ public final class GameMessage {
           if (other.getPlayerNumber() != 0) {
             setPlayerNumber(other.getPlayerNumber());
           }
-          if (!other.resType_.isEmpty()) {
-            if (resType_.isEmpty()) {
-              resType_ = other.resType_;
-              bitField0_ = (bitField0_ & ~0x00000002);
-            } else {
-              ensureResTypeIsMutable();
-              resType_.addAll(other.resType_);
-            }
-            onChanged();
+          if (other.hasResGained()) {
+            mergeResGained(other.getResGained());
           }
-          if (!other.resAmount_.isEmpty()) {
-            if (resAmount_.isEmpty()) {
-              resAmount_ = other.resAmount_;
-              bitField0_ = (bitField0_ & ~0x00000004);
-            } else {
-              ensureResAmountIsMutable();
-              resAmount_.addAll(other.resAmount_);
-            }
-            onChanged();
+          if (other.getResTotal() != 0) {
+            setResTotal(other.getResTotal());
           }
           this.mergeUnknownFields(other.unknownFields);
           onChanged();
@@ -16055,16 +16389,23 @@ public final class GameMessage {
           }
           return this;
         }
-        private int bitField0_;
 
         private int playerNumber_ ;
         /**
+         * <pre>
+         * Player number gaining resources
+         * </pre>
+         *
          * <code>uint32 player_number = 1;</code>
          */
         public int getPlayerNumber() {
           return playerNumber_;
         }
         /**
+         * <pre>
+         * Player number gaining resources
+         * </pre>
+         *
          * <code>uint32 player_number = 1;</code>
          */
         public Builder setPlayerNumber(int value) {
@@ -16074,6 +16415,10 @@ public final class GameMessage {
           return this;
         }
         /**
+         * <pre>
+         * Player number gaining resources
+         * </pre>
+         *
          * <code>uint32 player_number = 1;</code>
          */
         public Builder clearPlayerNumber() {
@@ -16083,262 +16428,193 @@ public final class GameMessage {
           return this;
         }
 
-        private java.util.List<java.lang.Integer> resType_ =
-          java.util.Collections.emptyList();
-        private void ensureResTypeIsMutable() {
-          if (!((bitField0_ & 0x00000002) == 0x00000002)) {
-            resType_ = new java.util.ArrayList<java.lang.Integer>(resType_);
-            bitField0_ |= 0x00000002;
+        private soc.proto.Data.ResourceSet resGained_ = null;
+        private com.google.protobuf.SingleFieldBuilderV3<
+            soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> resGainedBuilder_;
+        /**
+         * <pre>
+         * Type and amount of resources gained
+         * </pre>
+         *
+         * <code>.ResourceSet res_gained = 2;</code>
+         */
+        public boolean hasResGained() {
+          return resGainedBuilder_ != null || resGained_ != null;
+        }
+        /**
+         * <pre>
+         * Type and amount of resources gained
+         * </pre>
+         *
+         * <code>.ResourceSet res_gained = 2;</code>
+         */
+        public soc.proto.Data.ResourceSet getResGained() {
+          if (resGainedBuilder_ == null) {
+            return resGained_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : resGained_;
+          } else {
+            return resGainedBuilder_.getMessage();
           }
         }
         /**
          * <pre>
-         * Type of each resource gained; same length as res_amount 
+         * Type and amount of resources gained
          * </pre>
          *
-         * <code>repeated .ResourceType res_type = 2;</code>
+         * <code>.ResourceSet res_gained = 2;</code>
          */
-        public java.util.List<soc.proto.Data.ResourceType> getResTypeList() {
-          return new com.google.protobuf.Internal.ListAdapter<
-              java.lang.Integer, soc.proto.Data.ResourceType>(resType_, resType_converter_);
-        }
-        /**
-         * <pre>
-         * Type of each resource gained; same length as res_amount 
-         * </pre>
-         *
-         * <code>repeated .ResourceType res_type = 2;</code>
-         */
-        public int getResTypeCount() {
-          return resType_.size();
-        }
-        /**
-         * <pre>
-         * Type of each resource gained; same length as res_amount 
-         * </pre>
-         *
-         * <code>repeated .ResourceType res_type = 2;</code>
-         */
-        public soc.proto.Data.ResourceType getResType(int index) {
-          return resType_converter_.convert(resType_.get(index));
-        }
-        /**
-         * <pre>
-         * Type of each resource gained; same length as res_amount 
-         * </pre>
-         *
-         * <code>repeated .ResourceType res_type = 2;</code>
-         */
-        public Builder setResType(
-            int index, soc.proto.Data.ResourceType value) {
-          if (value == null) {
-            throw new NullPointerException();
+        public Builder setResGained(soc.proto.Data.ResourceSet value) {
+          if (resGainedBuilder_ == null) {
+            if (value == null) {
+              throw new NullPointerException();
+            }
+            resGained_ = value;
+            onChanged();
+          } else {
+            resGainedBuilder_.setMessage(value);
           }
-          ensureResTypeIsMutable();
-          resType_.set(index, value.getNumber());
-          onChanged();
+
           return this;
         }
         /**
          * <pre>
-         * Type of each resource gained; same length as res_amount 
+         * Type and amount of resources gained
          * </pre>
          *
-         * <code>repeated .ResourceType res_type = 2;</code>
+         * <code>.ResourceSet res_gained = 2;</code>
          */
-        public Builder addResType(soc.proto.Data.ResourceType value) {
-          if (value == null) {
-            throw new NullPointerException();
+        public Builder setResGained(
+            soc.proto.Data.ResourceSet.Builder builderForValue) {
+          if (resGainedBuilder_ == null) {
+            resGained_ = builderForValue.build();
+            onChanged();
+          } else {
+            resGainedBuilder_.setMessage(builderForValue.build());
           }
-          ensureResTypeIsMutable();
-          resType_.add(value.getNumber());
-          onChanged();
+
           return this;
         }
         /**
          * <pre>
-         * Type of each resource gained; same length as res_amount 
+         * Type and amount of resources gained
          * </pre>
          *
-         * <code>repeated .ResourceType res_type = 2;</code>
+         * <code>.ResourceSet res_gained = 2;</code>
          */
-        public Builder addAllResType(
-            java.lang.Iterable<? extends soc.proto.Data.ResourceType> values) {
-          ensureResTypeIsMutable();
-          for (soc.proto.Data.ResourceType value : values) {
-            resType_.add(value.getNumber());
+        public Builder mergeResGained(soc.proto.Data.ResourceSet value) {
+          if (resGainedBuilder_ == null) {
+            if (resGained_ != null) {
+              resGained_ =
+                soc.proto.Data.ResourceSet.newBuilder(resGained_).mergeFrom(value).buildPartial();
+            } else {
+              resGained_ = value;
+            }
+            onChanged();
+          } else {
+            resGainedBuilder_.mergeFrom(value);
           }
-          onChanged();
+
           return this;
         }
         /**
          * <pre>
-         * Type of each resource gained; same length as res_amount 
+         * Type and amount of resources gained
          * </pre>
          *
-         * <code>repeated .ResourceType res_type = 2;</code>
+         * <code>.ResourceSet res_gained = 2;</code>
          */
-        public Builder clearResType() {
-          resType_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000002);
-          onChanged();
-          return this;
-        }
-        /**
-         * <pre>
-         * Type of each resource gained; same length as res_amount 
-         * </pre>
-         *
-         * <code>repeated .ResourceType res_type = 2;</code>
-         */
-        public java.util.List<java.lang.Integer>
-        getResTypeValueList() {
-          return java.util.Collections.unmodifiableList(resType_);
-        }
-        /**
-         * <pre>
-         * Type of each resource gained; same length as res_amount 
-         * </pre>
-         *
-         * <code>repeated .ResourceType res_type = 2;</code>
-         */
-        public int getResTypeValue(int index) {
-          return resType_.get(index);
-        }
-        /**
-         * <pre>
-         * Type of each resource gained; same length as res_amount 
-         * </pre>
-         *
-         * <code>repeated .ResourceType res_type = 2;</code>
-         */
-        public Builder setResTypeValue(
-            int index, int value) {
-          ensureResTypeIsMutable();
-          resType_.set(index, value);
-          onChanged();
-          return this;
-        }
-        /**
-         * <pre>
-         * Type of each resource gained; same length as res_amount 
-         * </pre>
-         *
-         * <code>repeated .ResourceType res_type = 2;</code>
-         */
-        public Builder addResTypeValue(int value) {
-          ensureResTypeIsMutable();
-          resType_.add(value);
-          onChanged();
-          return this;
-        }
-        /**
-         * <pre>
-         * Type of each resource gained; same length as res_amount 
-         * </pre>
-         *
-         * <code>repeated .ResourceType res_type = 2;</code>
-         */
-        public Builder addAllResTypeValue(
-            java.lang.Iterable<java.lang.Integer> values) {
-          ensureResTypeIsMutable();
-          for (int value : values) {
-            resType_.add(value);
+        public Builder clearResGained() {
+          if (resGainedBuilder_ == null) {
+            resGained_ = null;
+            onChanged();
+          } else {
+            resGained_ = null;
+            resGainedBuilder_ = null;
           }
-          onChanged();
+
           return this;
+        }
+        /**
+         * <pre>
+         * Type and amount of resources gained
+         * </pre>
+         *
+         * <code>.ResourceSet res_gained = 2;</code>
+         */
+        public soc.proto.Data.ResourceSet.Builder getResGainedBuilder() {
+          
+          onChanged();
+          return getResGainedFieldBuilder().getBuilder();
+        }
+        /**
+         * <pre>
+         * Type and amount of resources gained
+         * </pre>
+         *
+         * <code>.ResourceSet res_gained = 2;</code>
+         */
+        public soc.proto.Data.ResourceSetOrBuilder getResGainedOrBuilder() {
+          if (resGainedBuilder_ != null) {
+            return resGainedBuilder_.getMessageOrBuilder();
+          } else {
+            return resGained_ == null ?
+                soc.proto.Data.ResourceSet.getDefaultInstance() : resGained_;
+          }
+        }
+        /**
+         * <pre>
+         * Type and amount of resources gained
+         * </pre>
+         *
+         * <code>.ResourceSet res_gained = 2;</code>
+         */
+        private com.google.protobuf.SingleFieldBuilderV3<
+            soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> 
+            getResGainedFieldBuilder() {
+          if (resGainedBuilder_ == null) {
+            resGainedBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+                soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder>(
+                    getResGained(),
+                    getParentForChildren(),
+                    isClean());
+            resGained_ = null;
+          }
+          return resGainedBuilder_;
         }
 
-        private java.util.List<java.lang.Integer> resAmount_ = java.util.Collections.emptyList();
-        private void ensureResAmountIsMutable() {
-          if (!((bitField0_ & 0x00000004) == 0x00000004)) {
-            resAmount_ = new java.util.ArrayList<java.lang.Integer>(resAmount_);
-            bitField0_ |= 0x00000004;
-           }
+        private int resTotal_ ;
+        /**
+         * <pre>
+         * Player's new total resource count
+         * </pre>
+         *
+         * <code>uint32 res_total = 3;</code>
+         */
+        public int getResTotal() {
+          return resTotal_;
         }
         /**
          * <pre>
-         * Amount of each resource type gained; same length as res_type 
+         * Player's new total resource count
          * </pre>
          *
-         * <code>repeated uint32 res_amount = 3;</code>
+         * <code>uint32 res_total = 3;</code>
          */
-        public java.util.List<java.lang.Integer>
-            getResAmountList() {
-          return java.util.Collections.unmodifiableList(resAmount_);
-        }
-        /**
-         * <pre>
-         * Amount of each resource type gained; same length as res_type 
-         * </pre>
-         *
-         * <code>repeated uint32 res_amount = 3;</code>
-         */
-        public int getResAmountCount() {
-          return resAmount_.size();
-        }
-        /**
-         * <pre>
-         * Amount of each resource type gained; same length as res_type 
-         * </pre>
-         *
-         * <code>repeated uint32 res_amount = 3;</code>
-         */
-        public int getResAmount(int index) {
-          return resAmount_.get(index);
-        }
-        /**
-         * <pre>
-         * Amount of each resource type gained; same length as res_type 
-         * </pre>
-         *
-         * <code>repeated uint32 res_amount = 3;</code>
-         */
-        public Builder setResAmount(
-            int index, int value) {
-          ensureResAmountIsMutable();
-          resAmount_.set(index, value);
+        public Builder setResTotal(int value) {
+          
+          resTotal_ = value;
           onChanged();
           return this;
         }
         /**
          * <pre>
-         * Amount of each resource type gained; same length as res_type 
+         * Player's new total resource count
          * </pre>
          *
-         * <code>repeated uint32 res_amount = 3;</code>
+         * <code>uint32 res_total = 3;</code>
          */
-        public Builder addResAmount(int value) {
-          ensureResAmountIsMutable();
-          resAmount_.add(value);
-          onChanged();
-          return this;
-        }
-        /**
-         * <pre>
-         * Amount of each resource type gained; same length as res_type 
-         * </pre>
-         *
-         * <code>repeated uint32 res_amount = 3;</code>
-         */
-        public Builder addAllResAmount(
-            java.lang.Iterable<? extends java.lang.Integer> values) {
-          ensureResAmountIsMutable();
-          com.google.protobuf.AbstractMessageLite.Builder.addAll(
-              values, resAmount_);
-          onChanged();
-          return this;
-        }
-        /**
-         * <pre>
-         * Amount of each resource type gained; same length as res_type 
-         * </pre>
-         *
-         * <code>repeated uint32 res_amount = 3;</code>
-         */
-        public Builder clearResAmount() {
-          resAmount_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000004);
+        public Builder clearResTotal() {
+          
+          resTotal_ = 0;
           onChanged();
           return this;
         }
@@ -16581,8 +16857,8 @@ public final class GameMessage {
     }
     /**
      * <pre>
-     * All resources gained by players from a dice roll.
-     * Sent to all game members after a {&#64;link DiceResult}.
+     * All resources gained by players from a dice roll, and their new resource totals.
+     * Announced to all game members after a {&#64;link DiceResult} where players gain resources.
      * </pre>
      *
      * Protobuf type {@code DiceResultResources}
@@ -17466,12 +17742,12 @@ public final class GameMessage {
 
     /**
      * <pre>
-     * ignored from client
+     * ignored from client, always sent from server (default is 0)
      * </pre>
      *
-     * <code>int32 from_player_number = 3;</code>
+     * <code>int32 player_number = 3;</code>
      */
-    int getFromPlayerNumber();
+    int getPlayerNumber();
   }
   /**
    * <pre>
@@ -17494,7 +17770,7 @@ public final class GameMessage {
       super(builder);
     }
     private TradeWithBank() {
-      fromPlayerNumber_ = 0;
+      playerNumber_ = 0;
     }
 
     @java.lang.Override
@@ -17553,7 +17829,7 @@ public final class GameMessage {
             }
             case 24: {
 
-              fromPlayerNumber_ = input.readInt32();
+              playerNumber_ = input.readInt32();
               break;
             }
           }
@@ -17622,17 +17898,17 @@ public final class GameMessage {
       return getGet();
     }
 
-    public static final int FROM_PLAYER_NUMBER_FIELD_NUMBER = 3;
-    private int fromPlayerNumber_;
+    public static final int PLAYER_NUMBER_FIELD_NUMBER = 3;
+    private int playerNumber_;
     /**
      * <pre>
-     * ignored from client
+     * ignored from client, always sent from server (default is 0)
      * </pre>
      *
-     * <code>int32 from_player_number = 3;</code>
+     * <code>int32 player_number = 3;</code>
      */
-    public int getFromPlayerNumber() {
-      return fromPlayerNumber_;
+    public int getPlayerNumber() {
+      return playerNumber_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -17653,8 +17929,8 @@ public final class GameMessage {
       if (get_ != null) {
         output.writeMessage(2, getGet());
       }
-      if (fromPlayerNumber_ != 0) {
-        output.writeInt32(3, fromPlayerNumber_);
+      if (playerNumber_ != 0) {
+        output.writeInt32(3, playerNumber_);
       }
       unknownFields.writeTo(output);
     }
@@ -17672,9 +17948,9 @@ public final class GameMessage {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(2, getGet());
       }
-      if (fromPlayerNumber_ != 0) {
+      if (playerNumber_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(3, fromPlayerNumber_);
+          .computeInt32Size(3, playerNumber_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -17702,8 +17978,8 @@ public final class GameMessage {
         result = result && getGet()
             .equals(other.getGet());
       }
-      result = result && (getFromPlayerNumber()
-          == other.getFromPlayerNumber());
+      result = result && (getPlayerNumber()
+          == other.getPlayerNumber());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -17723,8 +17999,8 @@ public final class GameMessage {
         hash = (37 * hash) + GET_FIELD_NUMBER;
         hash = (53 * hash) + getGet().hashCode();
       }
-      hash = (37 * hash) + FROM_PLAYER_NUMBER_FIELD_NUMBER;
-      hash = (53 * hash) + getFromPlayerNumber();
+      hash = (37 * hash) + PLAYER_NUMBER_FIELD_NUMBER;
+      hash = (53 * hash) + getPlayerNumber();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -17874,7 +18150,7 @@ public final class GameMessage {
           get_ = null;
           getBuilder_ = null;
         }
-        fromPlayerNumber_ = 0;
+        playerNumber_ = 0;
 
         return this;
       }
@@ -17908,7 +18184,7 @@ public final class GameMessage {
         } else {
           result.get_ = getBuilder_.build();
         }
-        result.fromPlayerNumber_ = fromPlayerNumber_;
+        result.playerNumber_ = playerNumber_;
         onBuilt();
         return result;
       }
@@ -17956,8 +18232,8 @@ public final class GameMessage {
         if (other.hasGet()) {
           mergeGet(other.getGet());
         }
-        if (other.getFromPlayerNumber() != 0) {
-          setFromPlayerNumber(other.getFromPlayerNumber());
+        if (other.getPlayerNumber() != 0) {
+          setPlayerNumber(other.getPlayerNumber());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -18220,40 +18496,40 @@ public final class GameMessage {
         return getBuilder_;
       }
 
-      private int fromPlayerNumber_ ;
+      private int playerNumber_ ;
       /**
        * <pre>
-       * ignored from client
+       * ignored from client, always sent from server (default is 0)
        * </pre>
        *
-       * <code>int32 from_player_number = 3;</code>
+       * <code>int32 player_number = 3;</code>
        */
-      public int getFromPlayerNumber() {
-        return fromPlayerNumber_;
+      public int getPlayerNumber() {
+        return playerNumber_;
       }
       /**
        * <pre>
-       * ignored from client
+       * ignored from client, always sent from server (default is 0)
        * </pre>
        *
-       * <code>int32 from_player_number = 3;</code>
+       * <code>int32 player_number = 3;</code>
        */
-      public Builder setFromPlayerNumber(int value) {
+      public Builder setPlayerNumber(int value) {
         
-        fromPlayerNumber_ = value;
+        playerNumber_ = value;
         onChanged();
         return this;
       }
       /**
        * <pre>
-       * ignored from client
+       * ignored from client, always sent from server (default is 0)
        * </pre>
        *
-       * <code>int32 from_player_number = 3;</code>
+       * <code>int32 player_number = 3;</code>
        */
-      public Builder clearFromPlayerNumber() {
+      public Builder clearPlayerNumber() {
         
-        fromPlayerNumber_ = 0;
+        playerNumber_ = 0;
         onChanged();
         return this;
       }
@@ -18347,7 +18623,7 @@ public final class GameMessage {
 
     /**
      * <pre>
-     * only needed if offer is not to all other players
+     * only needed if offer is not to all other player numbers (not only seated ones)
      * </pre>
      *
      * <code>._IntArray to_players = 4;</code>
@@ -18355,7 +18631,7 @@ public final class GameMessage {
     boolean hasToPlayers();
     /**
      * <pre>
-     * only needed if offer is not to all other players
+     * only needed if offer is not to all other player numbers (not only seated ones)
      * </pre>
      *
      * <code>._IntArray to_players = 4;</code>
@@ -18363,7 +18639,7 @@ public final class GameMessage {
     soc.proto.Data._IntArray getToPlayers();
     /**
      * <pre>
-     * only needed if offer is not to all other players
+     * only needed if offer is not to all other player numbers (not only seated ones)
      * </pre>
      *
      * <code>._IntArray to_players = 4;</code>
@@ -18565,7 +18841,7 @@ public final class GameMessage {
     private soc.proto.Data._IntArray toPlayers_;
     /**
      * <pre>
-     * only needed if offer is not to all other players
+     * only needed if offer is not to all other player numbers (not only seated ones)
      * </pre>
      *
      * <code>._IntArray to_players = 4;</code>
@@ -18575,7 +18851,7 @@ public final class GameMessage {
     }
     /**
      * <pre>
-     * only needed if offer is not to all other players
+     * only needed if offer is not to all other player numbers (not only seated ones)
      * </pre>
      *
      * <code>._IntArray to_players = 4;</code>
@@ -18585,7 +18861,7 @@ public final class GameMessage {
     }
     /**
      * <pre>
-     * only needed if offer is not to all other players
+     * only needed if offer is not to all other player numbers (not only seated ones)
      * </pre>
      *
      * <code>._IntArray to_players = 4;</code>
@@ -19283,7 +19559,7 @@ public final class GameMessage {
           soc.proto.Data._IntArray, soc.proto.Data._IntArray.Builder, soc.proto.Data._IntArrayOrBuilder> toPlayersBuilder_;
       /**
        * <pre>
-       * only needed if offer is not to all other players
+       * only needed if offer is not to all other player numbers (not only seated ones)
        * </pre>
        *
        * <code>._IntArray to_players = 4;</code>
@@ -19293,7 +19569,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * only needed if offer is not to all other players
+       * only needed if offer is not to all other player numbers (not only seated ones)
        * </pre>
        *
        * <code>._IntArray to_players = 4;</code>
@@ -19307,7 +19583,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * only needed if offer is not to all other players
+       * only needed if offer is not to all other player numbers (not only seated ones)
        * </pre>
        *
        * <code>._IntArray to_players = 4;</code>
@@ -19327,7 +19603,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * only needed if offer is not to all other players
+       * only needed if offer is not to all other player numbers (not only seated ones)
        * </pre>
        *
        * <code>._IntArray to_players = 4;</code>
@@ -19345,7 +19621,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * only needed if offer is not to all other players
+       * only needed if offer is not to all other player numbers (not only seated ones)
        * </pre>
        *
        * <code>._IntArray to_players = 4;</code>
@@ -19367,7 +19643,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * only needed if offer is not to all other players
+       * only needed if offer is not to all other player numbers (not only seated ones)
        * </pre>
        *
        * <code>._IntArray to_players = 4;</code>
@@ -19385,7 +19661,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * only needed if offer is not to all other players
+       * only needed if offer is not to all other player numbers (not only seated ones)
        * </pre>
        *
        * <code>._IntArray to_players = 4;</code>
@@ -19397,7 +19673,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * only needed if offer is not to all other players
+       * only needed if offer is not to all other player numbers (not only seated ones)
        * </pre>
        *
        * <code>._IntArray to_players = 4;</code>
@@ -19412,7 +19688,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * only needed if offer is not to all other players
+       * only needed if offer is not to all other player numbers (not only seated ones)
        * </pre>
        *
        * <code>._IntArray to_players = 4;</code>
@@ -20006,9 +20282,9 @@ public final class GameMessage {
      * Player number who sent this rejection; ignored from client
      * </pre>
      *
-     * <code>int32 rejecting_player_number = 1;</code>
+     * <code>int32 player_number = 1;</code>
      */
-    int getRejectingPlayerNumber();
+    int getPlayerNumber();
   }
   /**
    * <pre>
@@ -20029,7 +20305,7 @@ public final class GameMessage {
       super(builder);
     }
     private TradeRejectOffer() {
-      rejectingPlayerNumber_ = 0;
+      playerNumber_ = 0;
     }
 
     @java.lang.Override
@@ -20062,7 +20338,7 @@ public final class GameMessage {
             }
             case 8: {
 
-              rejectingPlayerNumber_ = input.readInt32();
+              playerNumber_ = input.readInt32();
               break;
             }
           }
@@ -20089,17 +20365,17 @@ public final class GameMessage {
               soc.proto.GameMessage.TradeRejectOffer.class, soc.proto.GameMessage.TradeRejectOffer.Builder.class);
     }
 
-    public static final int REJECTING_PLAYER_NUMBER_FIELD_NUMBER = 1;
-    private int rejectingPlayerNumber_;
+    public static final int PLAYER_NUMBER_FIELD_NUMBER = 1;
+    private int playerNumber_;
     /**
      * <pre>
      * Player number who sent this rejection; ignored from client
      * </pre>
      *
-     * <code>int32 rejecting_player_number = 1;</code>
+     * <code>int32 player_number = 1;</code>
      */
-    public int getRejectingPlayerNumber() {
-      return rejectingPlayerNumber_;
+    public int getPlayerNumber() {
+      return playerNumber_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -20114,8 +20390,8 @@ public final class GameMessage {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (rejectingPlayerNumber_ != 0) {
-        output.writeInt32(1, rejectingPlayerNumber_);
+      if (playerNumber_ != 0) {
+        output.writeInt32(1, playerNumber_);
       }
       unknownFields.writeTo(output);
     }
@@ -20125,9 +20401,9 @@ public final class GameMessage {
       if (size != -1) return size;
 
       size = 0;
-      if (rejectingPlayerNumber_ != 0) {
+      if (playerNumber_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(1, rejectingPlayerNumber_);
+          .computeInt32Size(1, playerNumber_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -20145,8 +20421,8 @@ public final class GameMessage {
       soc.proto.GameMessage.TradeRejectOffer other = (soc.proto.GameMessage.TradeRejectOffer) obj;
 
       boolean result = true;
-      result = result && (getRejectingPlayerNumber()
-          == other.getRejectingPlayerNumber());
+      result = result && (getPlayerNumber()
+          == other.getPlayerNumber());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -20158,8 +20434,8 @@ public final class GameMessage {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + REJECTING_PLAYER_NUMBER_FIELD_NUMBER;
-      hash = (53 * hash) + getRejectingPlayerNumber();
+      hash = (37 * hash) + PLAYER_NUMBER_FIELD_NUMBER;
+      hash = (53 * hash) + getPlayerNumber();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -20295,7 +20571,7 @@ public final class GameMessage {
       }
       public Builder clear() {
         super.clear();
-        rejectingPlayerNumber_ = 0;
+        playerNumber_ = 0;
 
         return this;
       }
@@ -20319,7 +20595,7 @@ public final class GameMessage {
 
       public soc.proto.GameMessage.TradeRejectOffer buildPartial() {
         soc.proto.GameMessage.TradeRejectOffer result = new soc.proto.GameMessage.TradeRejectOffer(this);
-        result.rejectingPlayerNumber_ = rejectingPlayerNumber_;
+        result.playerNumber_ = playerNumber_;
         onBuilt();
         return result;
       }
@@ -20361,8 +20637,8 @@ public final class GameMessage {
 
       public Builder mergeFrom(soc.proto.GameMessage.TradeRejectOffer other) {
         if (other == soc.proto.GameMessage.TradeRejectOffer.getDefaultInstance()) return this;
-        if (other.getRejectingPlayerNumber() != 0) {
-          setRejectingPlayerNumber(other.getRejectingPlayerNumber());
+        if (other.getPlayerNumber() != 0) {
+          setPlayerNumber(other.getPlayerNumber());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -20391,27 +20667,27 @@ public final class GameMessage {
         return this;
       }
 
-      private int rejectingPlayerNumber_ ;
+      private int playerNumber_ ;
       /**
        * <pre>
        * Player number who sent this rejection; ignored from client
        * </pre>
        *
-       * <code>int32 rejecting_player_number = 1;</code>
+       * <code>int32 player_number = 1;</code>
        */
-      public int getRejectingPlayerNumber() {
-        return rejectingPlayerNumber_;
+      public int getPlayerNumber() {
+        return playerNumber_;
       }
       /**
        * <pre>
        * Player number who sent this rejection; ignored from client
        * </pre>
        *
-       * <code>int32 rejecting_player_number = 1;</code>
+       * <code>int32 player_number = 1;</code>
        */
-      public Builder setRejectingPlayerNumber(int value) {
+      public Builder setPlayerNumber(int value) {
         
-        rejectingPlayerNumber_ = value;
+        playerNumber_ = value;
         onChanged();
         return this;
       }
@@ -20420,11 +20696,11 @@ public final class GameMessage {
        * Player number who sent this rejection; ignored from client
        * </pre>
        *
-       * <code>int32 rejecting_player_number = 1;</code>
+       * <code>int32 player_number = 1;</code>
        */
-      public Builder clearRejectingPlayerNumber() {
+      public Builder clearPlayerNumber() {
         
-        rejectingPlayerNumber_ = 0;
+        playerNumber_ = 0;
         onChanged();
         return this;
       }
@@ -21371,28 +21647,41 @@ public final class GameMessage {
     soc.proto.GameMessage.SetTurnOrBuilder getSetTurnOrBuilder();
 
     /**
-     * <code>.DiceResult dice_result = 103;</code>
+     * <code>.DiceRollRequest dice_roll_request = 103;</code>
+     */
+    boolean hasDiceRollRequest();
+    /**
+     * <code>.DiceRollRequest dice_roll_request = 103;</code>
+     */
+    soc.proto.GameMessage.DiceRollRequest getDiceRollRequest();
+    /**
+     * <code>.DiceRollRequest dice_roll_request = 103;</code>
+     */
+    soc.proto.GameMessage.DiceRollRequestOrBuilder getDiceRollRequestOrBuilder();
+
+    /**
+     * <code>.DiceResult dice_result = 104;</code>
      */
     boolean hasDiceResult();
     /**
-     * <code>.DiceResult dice_result = 103;</code>
+     * <code>.DiceResult dice_result = 104;</code>
      */
     soc.proto.GameMessage.DiceResult getDiceResult();
     /**
-     * <code>.DiceResult dice_result = 103;</code>
+     * <code>.DiceResult dice_result = 104;</code>
      */
     soc.proto.GameMessage.DiceResultOrBuilder getDiceResultOrBuilder();
 
     /**
-     * <code>.DiceResultResources dice_result_resources = 104;</code>
+     * <code>.DiceResultResources dice_result_resources = 105;</code>
      */
     boolean hasDiceResultResources();
     /**
-     * <code>.DiceResultResources dice_result_resources = 104;</code>
+     * <code>.DiceResultResources dice_result_resources = 105;</code>
      */
     soc.proto.GameMessage.DiceResultResources getDiceResultResources();
     /**
-     * <code>.DiceResultResources dice_result_resources = 104;</code>
+     * <code>.DiceResultResources dice_result_resources = 105;</code>
      */
     soc.proto.GameMessage.DiceResultResourcesOrBuilder getDiceResultResourcesOrBuilder();
 
@@ -21739,8 +22028,22 @@ public final class GameMessage {
               break;
             }
             case 826: {
-              soc.proto.GameMessage.DiceResult.Builder subBuilder = null;
+              soc.proto.GameMessage.DiceRollRequest.Builder subBuilder = null;
               if (msgCase_ == 103) {
+                subBuilder = ((soc.proto.GameMessage.DiceRollRequest) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.DiceRollRequest.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.DiceRollRequest) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 103;
+              break;
+            }
+            case 834: {
+              soc.proto.GameMessage.DiceResult.Builder subBuilder = null;
+              if (msgCase_ == 104) {
                 subBuilder = ((soc.proto.GameMessage.DiceResult) msg_).toBuilder();
               }
               msg_ =
@@ -21749,12 +22052,12 @@ public final class GameMessage {
                 subBuilder.mergeFrom((soc.proto.GameMessage.DiceResult) msg_);
                 msg_ = subBuilder.buildPartial();
               }
-              msgCase_ = 103;
+              msgCase_ = 104;
               break;
             }
-            case 834: {
+            case 842: {
               soc.proto.GameMessage.DiceResultResources.Builder subBuilder = null;
-              if (msgCase_ == 104) {
+              if (msgCase_ == 105) {
                 subBuilder = ((soc.proto.GameMessage.DiceResultResources) msg_).toBuilder();
               }
               msg_ =
@@ -21763,7 +22066,7 @@ public final class GameMessage {
                 subBuilder.mergeFrom((soc.proto.GameMessage.DiceResultResources) msg_);
                 msg_ = subBuilder.buildPartial();
               }
-              msgCase_ = 104;
+              msgCase_ = 105;
               break;
             }
             case 2418: {
@@ -21891,8 +22194,9 @@ public final class GameMessage {
       START_GAME(100),
       TURN(101),
       SET_TURN(102),
-      DICE_RESULT(103),
-      DICE_RESULT_RESOURCES(104),
+      DICE_ROLL_REQUEST(103),
+      DICE_RESULT(104),
+      DICE_RESULT_RESOURCES(105),
       INV_ITEM_ACTION(302),
       TRADE_WITH_BANK(400),
       TRADE_MAKE_OFFER(401),
@@ -21927,8 +22231,9 @@ public final class GameMessage {
           case 100: return START_GAME;
           case 101: return TURN;
           case 102: return SET_TURN;
-          case 103: return DICE_RESULT;
-          case 104: return DICE_RESULT_RESOURCES;
+          case 103: return DICE_ROLL_REQUEST;
+          case 104: return DICE_RESULT;
+          case 105: return DICE_RESULT_RESOURCES;
           case 302: return INV_ITEM_ACTION;
           case 400: return TRADE_WITH_BANK;
           case 401: return TRADE_MAKE_OFFER;
@@ -22378,53 +22683,79 @@ public final class GameMessage {
       return soc.proto.GameMessage.SetTurn.getDefaultInstance();
     }
 
-    public static final int DICE_RESULT_FIELD_NUMBER = 103;
+    public static final int DICE_ROLL_REQUEST_FIELD_NUMBER = 103;
     /**
-     * <code>.DiceResult dice_result = 103;</code>
+     * <code>.DiceRollRequest dice_roll_request = 103;</code>
      */
-    public boolean hasDiceResult() {
+    public boolean hasDiceRollRequest() {
       return msgCase_ == 103;
     }
     /**
-     * <code>.DiceResult dice_result = 103;</code>
+     * <code>.DiceRollRequest dice_roll_request = 103;</code>
+     */
+    public soc.proto.GameMessage.DiceRollRequest getDiceRollRequest() {
+      if (msgCase_ == 103) {
+         return (soc.proto.GameMessage.DiceRollRequest) msg_;
+      }
+      return soc.proto.GameMessage.DiceRollRequest.getDefaultInstance();
+    }
+    /**
+     * <code>.DiceRollRequest dice_roll_request = 103;</code>
+     */
+    public soc.proto.GameMessage.DiceRollRequestOrBuilder getDiceRollRequestOrBuilder() {
+      if (msgCase_ == 103) {
+         return (soc.proto.GameMessage.DiceRollRequest) msg_;
+      }
+      return soc.proto.GameMessage.DiceRollRequest.getDefaultInstance();
+    }
+
+    public static final int DICE_RESULT_FIELD_NUMBER = 104;
+    /**
+     * <code>.DiceResult dice_result = 104;</code>
+     */
+    public boolean hasDiceResult() {
+      return msgCase_ == 104;
+    }
+    /**
+     * <code>.DiceResult dice_result = 104;</code>
      */
     public soc.proto.GameMessage.DiceResult getDiceResult() {
-      if (msgCase_ == 103) {
+      if (msgCase_ == 104) {
          return (soc.proto.GameMessage.DiceResult) msg_;
       }
       return soc.proto.GameMessage.DiceResult.getDefaultInstance();
     }
     /**
-     * <code>.DiceResult dice_result = 103;</code>
+     * <code>.DiceResult dice_result = 104;</code>
      */
     public soc.proto.GameMessage.DiceResultOrBuilder getDiceResultOrBuilder() {
-      if (msgCase_ == 103) {
+      if (msgCase_ == 104) {
          return (soc.proto.GameMessage.DiceResult) msg_;
       }
       return soc.proto.GameMessage.DiceResult.getDefaultInstance();
     }
 
-    public static final int DICE_RESULT_RESOURCES_FIELD_NUMBER = 104;
+    public static final int DICE_RESULT_RESOURCES_FIELD_NUMBER = 105;
     /**
-     * <code>.DiceResultResources dice_result_resources = 104;</code>
+     * <code>.DiceResultResources dice_result_resources = 105;</code>
      */
     public boolean hasDiceResultResources() {
-      return msgCase_ == 104;
+      return msgCase_ == 105;
     }
     /**
-     * <code>.DiceResultResources dice_result_resources = 104;</code>
+     * <code>.DiceResultResources dice_result_resources = 105;</code>
      */
     public soc.proto.GameMessage.DiceResultResources getDiceResultResources() {
-      if (msgCase_ == 104) {
+      if (msgCase_ == 105) {
          return (soc.proto.GameMessage.DiceResultResources) msg_;
       }
       return soc.proto.GameMessage.DiceResultResources.getDefaultInstance();
     }
     /**
-     * <code>.DiceResultResources dice_result_resources = 104;</code>
+     * <code>.DiceResultResources dice_result_resources = 105;</code>
      */
     public soc.proto.GameMessage.DiceResultResourcesOrBuilder getDiceResultResourcesOrBuilder() {
-      if (msgCase_ == 104) {
+      if (msgCase_ == 105) {
          return (soc.proto.GameMessage.DiceResultResources) msg_;
       }
       return soc.proto.GameMessage.DiceResultResources.getDefaultInstance();
@@ -22671,10 +23002,13 @@ public final class GameMessage {
         output.writeMessage(102, (soc.proto.GameMessage.SetTurn) msg_);
       }
       if (msgCase_ == 103) {
-        output.writeMessage(103, (soc.proto.GameMessage.DiceResult) msg_);
+        output.writeMessage(103, (soc.proto.GameMessage.DiceRollRequest) msg_);
       }
       if (msgCase_ == 104) {
-        output.writeMessage(104, (soc.proto.GameMessage.DiceResultResources) msg_);
+        output.writeMessage(104, (soc.proto.GameMessage.DiceResult) msg_);
+      }
+      if (msgCase_ == 105) {
+        output.writeMessage(105, (soc.proto.GameMessage.DiceResultResources) msg_);
       }
       if (msgCase_ == 302) {
         output.writeMessage(302, (soc.proto.GameMessage.InventoryItemAction) msg_);
@@ -22759,11 +23093,15 @@ public final class GameMessage {
       }
       if (msgCase_ == 103) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(103, (soc.proto.GameMessage.DiceResult) msg_);
+          .computeMessageSize(103, (soc.proto.GameMessage.DiceRollRequest) msg_);
       }
       if (msgCase_ == 104) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(104, (soc.proto.GameMessage.DiceResultResources) msg_);
+          .computeMessageSize(104, (soc.proto.GameMessage.DiceResult) msg_);
+      }
+      if (msgCase_ == 105) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(105, (soc.proto.GameMessage.DiceResultResources) msg_);
       }
       if (msgCase_ == 302) {
         size += com.google.protobuf.CodedOutputStream
@@ -22864,10 +23202,14 @@ public final class GameMessage {
               .equals(other.getSetTurn());
           break;
         case 103:
+          result = result && getDiceRollRequest()
+              .equals(other.getDiceRollRequest());
+          break;
+        case 104:
           result = result && getDiceResult()
               .equals(other.getDiceResult());
           break;
-        case 104:
+        case 105:
           result = result && getDiceResultResources()
               .equals(other.getDiceResultResources());
           break;
@@ -22965,10 +23307,14 @@ public final class GameMessage {
           hash = (53 * hash) + getSetTurn().hashCode();
           break;
         case 103:
+          hash = (37 * hash) + DICE_ROLL_REQUEST_FIELD_NUMBER;
+          hash = (53 * hash) + getDiceRollRequest().hashCode();
+          break;
+        case 104:
           hash = (37 * hash) + DICE_RESULT_FIELD_NUMBER;
           hash = (53 * hash) + getDiceResult().hashCode();
           break;
-        case 104:
+        case 105:
           hash = (37 * hash) + DICE_RESULT_RESOURCES_FIELD_NUMBER;
           hash = (53 * hash) + getDiceResultResources().hashCode();
           break;
@@ -23247,13 +23593,20 @@ public final class GameMessage {
           }
         }
         if (msgCase_ == 103) {
+          if (diceRollRequestBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = diceRollRequestBuilder_.build();
+          }
+        }
+        if (msgCase_ == 104) {
           if (diceResultBuilder_ == null) {
             result.msg_ = msg_;
           } else {
             result.msg_ = diceResultBuilder_.build();
           }
         }
-        if (msgCase_ == 104) {
+        if (msgCase_ == 105) {
           if (diceResultResourcesBuilder_ == null) {
             result.msg_ = msg_;
           } else {
@@ -23399,6 +23752,10 @@ public final class GameMessage {
           }
           case SET_TURN: {
             mergeSetTurn(other.getSetTurn());
+            break;
+          }
+          case DICE_ROLL_REQUEST: {
+            mergeDiceRollRequest(other.getDiceRollRequest());
             break;
           }
           case DICE_RESULT: {
@@ -25481,31 +25838,167 @@ public final class GameMessage {
       }
 
       private com.google.protobuf.SingleFieldBuilderV3<
-          soc.proto.GameMessage.DiceResult, soc.proto.GameMessage.DiceResult.Builder, soc.proto.GameMessage.DiceResultOrBuilder> diceResultBuilder_;
+          soc.proto.GameMessage.DiceRollRequest, soc.proto.GameMessage.DiceRollRequest.Builder, soc.proto.GameMessage.DiceRollRequestOrBuilder> diceRollRequestBuilder_;
       /**
-       * <code>.DiceResult dice_result = 103;</code>
+       * <code>.DiceRollRequest dice_roll_request = 103;</code>
        */
-      public boolean hasDiceResult() {
+      public boolean hasDiceRollRequest() {
         return msgCase_ == 103;
       }
       /**
-       * <code>.DiceResult dice_result = 103;</code>
+       * <code>.DiceRollRequest dice_roll_request = 103;</code>
+       */
+      public soc.proto.GameMessage.DiceRollRequest getDiceRollRequest() {
+        if (diceRollRequestBuilder_ == null) {
+          if (msgCase_ == 103) {
+            return (soc.proto.GameMessage.DiceRollRequest) msg_;
+          }
+          return soc.proto.GameMessage.DiceRollRequest.getDefaultInstance();
+        } else {
+          if (msgCase_ == 103) {
+            return diceRollRequestBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.DiceRollRequest.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.DiceRollRequest dice_roll_request = 103;</code>
+       */
+      public Builder setDiceRollRequest(soc.proto.GameMessage.DiceRollRequest value) {
+        if (diceRollRequestBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          diceRollRequestBuilder_.setMessage(value);
+        }
+        msgCase_ = 103;
+        return this;
+      }
+      /**
+       * <code>.DiceRollRequest dice_roll_request = 103;</code>
+       */
+      public Builder setDiceRollRequest(
+          soc.proto.GameMessage.DiceRollRequest.Builder builderForValue) {
+        if (diceRollRequestBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          diceRollRequestBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 103;
+        return this;
+      }
+      /**
+       * <code>.DiceRollRequest dice_roll_request = 103;</code>
+       */
+      public Builder mergeDiceRollRequest(soc.proto.GameMessage.DiceRollRequest value) {
+        if (diceRollRequestBuilder_ == null) {
+          if (msgCase_ == 103 &&
+              msg_ != soc.proto.GameMessage.DiceRollRequest.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.DiceRollRequest.newBuilder((soc.proto.GameMessage.DiceRollRequest) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 103) {
+            diceRollRequestBuilder_.mergeFrom(value);
+          }
+          diceRollRequestBuilder_.setMessage(value);
+        }
+        msgCase_ = 103;
+        return this;
+      }
+      /**
+       * <code>.DiceRollRequest dice_roll_request = 103;</code>
+       */
+      public Builder clearDiceRollRequest() {
+        if (diceRollRequestBuilder_ == null) {
+          if (msgCase_ == 103) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 103) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          diceRollRequestBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.DiceRollRequest dice_roll_request = 103;</code>
+       */
+      public soc.proto.GameMessage.DiceRollRequest.Builder getDiceRollRequestBuilder() {
+        return getDiceRollRequestFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.DiceRollRequest dice_roll_request = 103;</code>
+       */
+      public soc.proto.GameMessage.DiceRollRequestOrBuilder getDiceRollRequestOrBuilder() {
+        if ((msgCase_ == 103) && (diceRollRequestBuilder_ != null)) {
+          return diceRollRequestBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 103) {
+            return (soc.proto.GameMessage.DiceRollRequest) msg_;
+          }
+          return soc.proto.GameMessage.DiceRollRequest.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.DiceRollRequest dice_roll_request = 103;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.DiceRollRequest, soc.proto.GameMessage.DiceRollRequest.Builder, soc.proto.GameMessage.DiceRollRequestOrBuilder> 
+          getDiceRollRequestFieldBuilder() {
+        if (diceRollRequestBuilder_ == null) {
+          if (!(msgCase_ == 103)) {
+            msg_ = soc.proto.GameMessage.DiceRollRequest.getDefaultInstance();
+          }
+          diceRollRequestBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.DiceRollRequest, soc.proto.GameMessage.DiceRollRequest.Builder, soc.proto.GameMessage.DiceRollRequestOrBuilder>(
+                  (soc.proto.GameMessage.DiceRollRequest) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 103;
+        onChanged();;
+        return diceRollRequestBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.DiceResult, soc.proto.GameMessage.DiceResult.Builder, soc.proto.GameMessage.DiceResultOrBuilder> diceResultBuilder_;
+      /**
+       * <code>.DiceResult dice_result = 104;</code>
+       */
+      public boolean hasDiceResult() {
+        return msgCase_ == 104;
+      }
+      /**
+       * <code>.DiceResult dice_result = 104;</code>
        */
       public soc.proto.GameMessage.DiceResult getDiceResult() {
         if (diceResultBuilder_ == null) {
-          if (msgCase_ == 103) {
+          if (msgCase_ == 104) {
             return (soc.proto.GameMessage.DiceResult) msg_;
           }
           return soc.proto.GameMessage.DiceResult.getDefaultInstance();
         } else {
-          if (msgCase_ == 103) {
+          if (msgCase_ == 104) {
             return diceResultBuilder_.getMessage();
           }
           return soc.proto.GameMessage.DiceResult.getDefaultInstance();
         }
       }
       /**
-       * <code>.DiceResult dice_result = 103;</code>
+       * <code>.DiceResult dice_result = 104;</code>
        */
       public Builder setDiceResult(soc.proto.GameMessage.DiceResult value) {
         if (diceResultBuilder_ == null) {
@@ -25517,11 +26010,11 @@ public final class GameMessage {
         } else {
           diceResultBuilder_.setMessage(value);
         }
-        msgCase_ = 103;
+        msgCase_ = 104;
         return this;
       }
       /**
-       * <code>.DiceResult dice_result = 103;</code>
+       * <code>.DiceResult dice_result = 104;</code>
        */
       public Builder setDiceResult(
           soc.proto.GameMessage.DiceResult.Builder builderForValue) {
@@ -25531,15 +26024,15 @@ public final class GameMessage {
         } else {
           diceResultBuilder_.setMessage(builderForValue.build());
         }
-        msgCase_ = 103;
+        msgCase_ = 104;
         return this;
       }
       /**
-       * <code>.DiceResult dice_result = 103;</code>
+       * <code>.DiceResult dice_result = 104;</code>
        */
       public Builder mergeDiceResult(soc.proto.GameMessage.DiceResult value) {
         if (diceResultBuilder_ == null) {
-          if (msgCase_ == 103 &&
+          if (msgCase_ == 104 &&
               msg_ != soc.proto.GameMessage.DiceResult.getDefaultInstance()) {
             msg_ = soc.proto.GameMessage.DiceResult.newBuilder((soc.proto.GameMessage.DiceResult) msg_)
                 .mergeFrom(value).buildPartial();
@@ -25548,26 +26041,26 @@ public final class GameMessage {
           }
           onChanged();
         } else {
-          if (msgCase_ == 103) {
+          if (msgCase_ == 104) {
             diceResultBuilder_.mergeFrom(value);
           }
           diceResultBuilder_.setMessage(value);
         }
-        msgCase_ = 103;
+        msgCase_ = 104;
         return this;
       }
       /**
-       * <code>.DiceResult dice_result = 103;</code>
+       * <code>.DiceResult dice_result = 104;</code>
        */
       public Builder clearDiceResult() {
         if (diceResultBuilder_ == null) {
-          if (msgCase_ == 103) {
+          if (msgCase_ == 104) {
             msgCase_ = 0;
             msg_ = null;
             onChanged();
           }
         } else {
-          if (msgCase_ == 103) {
+          if (msgCase_ == 104) {
             msgCase_ = 0;
             msg_ = null;
           }
@@ -25576,32 +26069,32 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <code>.DiceResult dice_result = 103;</code>
+       * <code>.DiceResult dice_result = 104;</code>
        */
       public soc.proto.GameMessage.DiceResult.Builder getDiceResultBuilder() {
         return getDiceResultFieldBuilder().getBuilder();
       }
       /**
-       * <code>.DiceResult dice_result = 103;</code>
+       * <code>.DiceResult dice_result = 104;</code>
        */
       public soc.proto.GameMessage.DiceResultOrBuilder getDiceResultOrBuilder() {
-        if ((msgCase_ == 103) && (diceResultBuilder_ != null)) {
+        if ((msgCase_ == 104) && (diceResultBuilder_ != null)) {
           return diceResultBuilder_.getMessageOrBuilder();
         } else {
-          if (msgCase_ == 103) {
+          if (msgCase_ == 104) {
             return (soc.proto.GameMessage.DiceResult) msg_;
           }
           return soc.proto.GameMessage.DiceResult.getDefaultInstance();
         }
       }
       /**
-       * <code>.DiceResult dice_result = 103;</code>
+       * <code>.DiceResult dice_result = 104;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.GameMessage.DiceResult, soc.proto.GameMessage.DiceResult.Builder, soc.proto.GameMessage.DiceResultOrBuilder> 
           getDiceResultFieldBuilder() {
         if (diceResultBuilder_ == null) {
-          if (!(msgCase_ == 103)) {
+          if (!(msgCase_ == 104)) {
             msg_ = soc.proto.GameMessage.DiceResult.getDefaultInstance();
           }
           diceResultBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -25611,7 +26104,7 @@ public final class GameMessage {
                   isClean());
           msg_ = null;
         }
-        msgCase_ = 103;
+        msgCase_ = 104;
         onChanged();;
         return diceResultBuilder_;
       }
@@ -25619,29 +26112,29 @@ public final class GameMessage {
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.GameMessage.DiceResultResources, soc.proto.GameMessage.DiceResultResources.Builder, soc.proto.GameMessage.DiceResultResourcesOrBuilder> diceResultResourcesBuilder_;
       /**
-       * <code>.DiceResultResources dice_result_resources = 104;</code>
+       * <code>.DiceResultResources dice_result_resources = 105;</code>
        */
       public boolean hasDiceResultResources() {
-        return msgCase_ == 104;
+        return msgCase_ == 105;
       }
       /**
-       * <code>.DiceResultResources dice_result_resources = 104;</code>
+       * <code>.DiceResultResources dice_result_resources = 105;</code>
        */
       public soc.proto.GameMessage.DiceResultResources getDiceResultResources() {
         if (diceResultResourcesBuilder_ == null) {
-          if (msgCase_ == 104) {
+          if (msgCase_ == 105) {
             return (soc.proto.GameMessage.DiceResultResources) msg_;
           }
           return soc.proto.GameMessage.DiceResultResources.getDefaultInstance();
         } else {
-          if (msgCase_ == 104) {
+          if (msgCase_ == 105) {
             return diceResultResourcesBuilder_.getMessage();
           }
           return soc.proto.GameMessage.DiceResultResources.getDefaultInstance();
         }
       }
       /**
-       * <code>.DiceResultResources dice_result_resources = 104;</code>
+       * <code>.DiceResultResources dice_result_resources = 105;</code>
        */
       public Builder setDiceResultResources(soc.proto.GameMessage.DiceResultResources value) {
         if (diceResultResourcesBuilder_ == null) {
@@ -25653,11 +26146,11 @@ public final class GameMessage {
         } else {
           diceResultResourcesBuilder_.setMessage(value);
         }
-        msgCase_ = 104;
+        msgCase_ = 105;
         return this;
       }
       /**
-       * <code>.DiceResultResources dice_result_resources = 104;</code>
+       * <code>.DiceResultResources dice_result_resources = 105;</code>
        */
       public Builder setDiceResultResources(
           soc.proto.GameMessage.DiceResultResources.Builder builderForValue) {
@@ -25667,15 +26160,15 @@ public final class GameMessage {
         } else {
           diceResultResourcesBuilder_.setMessage(builderForValue.build());
         }
-        msgCase_ = 104;
+        msgCase_ = 105;
         return this;
       }
       /**
-       * <code>.DiceResultResources dice_result_resources = 104;</code>
+       * <code>.DiceResultResources dice_result_resources = 105;</code>
        */
       public Builder mergeDiceResultResources(soc.proto.GameMessage.DiceResultResources value) {
         if (diceResultResourcesBuilder_ == null) {
-          if (msgCase_ == 104 &&
+          if (msgCase_ == 105 &&
               msg_ != soc.proto.GameMessage.DiceResultResources.getDefaultInstance()) {
             msg_ = soc.proto.GameMessage.DiceResultResources.newBuilder((soc.proto.GameMessage.DiceResultResources) msg_)
                 .mergeFrom(value).buildPartial();
@@ -25684,26 +26177,26 @@ public final class GameMessage {
           }
           onChanged();
         } else {
-          if (msgCase_ == 104) {
+          if (msgCase_ == 105) {
             diceResultResourcesBuilder_.mergeFrom(value);
           }
           diceResultResourcesBuilder_.setMessage(value);
         }
-        msgCase_ = 104;
+        msgCase_ = 105;
         return this;
       }
       /**
-       * <code>.DiceResultResources dice_result_resources = 104;</code>
+       * <code>.DiceResultResources dice_result_resources = 105;</code>
        */
       public Builder clearDiceResultResources() {
         if (diceResultResourcesBuilder_ == null) {
-          if (msgCase_ == 104) {
+          if (msgCase_ == 105) {
             msgCase_ = 0;
             msg_ = null;
             onChanged();
           }
         } else {
-          if (msgCase_ == 104) {
+          if (msgCase_ == 105) {
             msgCase_ = 0;
             msg_ = null;
           }
@@ -25712,32 +26205,32 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <code>.DiceResultResources dice_result_resources = 104;</code>
+       * <code>.DiceResultResources dice_result_resources = 105;</code>
        */
       public soc.proto.GameMessage.DiceResultResources.Builder getDiceResultResourcesBuilder() {
         return getDiceResultResourcesFieldBuilder().getBuilder();
       }
       /**
-       * <code>.DiceResultResources dice_result_resources = 104;</code>
+       * <code>.DiceResultResources dice_result_resources = 105;</code>
        */
       public soc.proto.GameMessage.DiceResultResourcesOrBuilder getDiceResultResourcesOrBuilder() {
-        if ((msgCase_ == 104) && (diceResultResourcesBuilder_ != null)) {
+        if ((msgCase_ == 105) && (diceResultResourcesBuilder_ != null)) {
           return diceResultResourcesBuilder_.getMessageOrBuilder();
         } else {
-          if (msgCase_ == 104) {
+          if (msgCase_ == 105) {
             return (soc.proto.GameMessage.DiceResultResources) msg_;
           }
           return soc.proto.GameMessage.DiceResultResources.getDefaultInstance();
         }
       }
       /**
-       * <code>.DiceResultResources dice_result_resources = 104;</code>
+       * <code>.DiceResultResources dice_result_resources = 105;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.GameMessage.DiceResultResources, soc.proto.GameMessage.DiceResultResources.Builder, soc.proto.GameMessage.DiceResultResourcesOrBuilder> 
           getDiceResultResourcesFieldBuilder() {
         if (diceResultResourcesBuilder_ == null) {
-          if (!(msgCase_ == 104)) {
+          if (!(msgCase_ == 105)) {
             msg_ = soc.proto.GameMessage.DiceResultResources.getDefaultInstance();
           }
           diceResultResourcesBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -25747,7 +26240,7 @@ public final class GameMessage {
                   isClean());
           msg_ = null;
         }
-        msgCase_ = 104;
+        msgCase_ = 105;
         onChanged();;
         return diceResultResourcesBuilder_;
       }
@@ -26754,15 +27247,28 @@ public final class GameMessage {
     soc.proto.GameMessage.StartGameOrBuilder getStartGameOrBuilder();
 
     /**
-     * <code>.EndTurn end_turn = 101;</code>
+     * <code>.DiceRollRequest dice_roll_request = 101;</code>
+     */
+    boolean hasDiceRollRequest();
+    /**
+     * <code>.DiceRollRequest dice_roll_request = 101;</code>
+     */
+    soc.proto.GameMessage.DiceRollRequest getDiceRollRequest();
+    /**
+     * <code>.DiceRollRequest dice_roll_request = 101;</code>
+     */
+    soc.proto.GameMessage.DiceRollRequestOrBuilder getDiceRollRequestOrBuilder();
+
+    /**
+     * <code>.EndTurn end_turn = 102;</code>
      */
     boolean hasEndTurn();
     /**
-     * <code>.EndTurn end_turn = 101;</code>
+     * <code>.EndTurn end_turn = 102;</code>
      */
     soc.proto.GameMessage.EndTurn getEndTurn();
     /**
-     * <code>.EndTurn end_turn = 101;</code>
+     * <code>.EndTurn end_turn = 102;</code>
      */
     soc.proto.GameMessage.EndTurnOrBuilder getEndTurnOrBuilder();
 
@@ -26987,8 +27493,22 @@ public final class GameMessage {
               break;
             }
             case 810: {
-              soc.proto.GameMessage.EndTurn.Builder subBuilder = null;
+              soc.proto.GameMessage.DiceRollRequest.Builder subBuilder = null;
               if (msgCase_ == 101) {
+                subBuilder = ((soc.proto.GameMessage.DiceRollRequest) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.DiceRollRequest.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.DiceRollRequest) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 101;
+              break;
+            }
+            case 818: {
+              soc.proto.GameMessage.EndTurn.Builder subBuilder = null;
+              if (msgCase_ == 102) {
                 subBuilder = ((soc.proto.GameMessage.EndTurn) msg_).toBuilder();
               }
               msg_ =
@@ -26997,7 +27517,7 @@ public final class GameMessage {
                 subBuilder.mergeFrom((soc.proto.GameMessage.EndTurn) msg_);
                 msg_ = subBuilder.buildPartial();
               }
-              msgCase_ = 101;
+              msgCase_ = 102;
               break;
             }
             case 1602: {
@@ -27169,7 +27689,8 @@ public final class GameMessage {
     public enum MsgCase
         implements com.google.protobuf.Internal.EnumLite {
       START_GAME(100),
-      END_TURN(101),
+      DICE_ROLL_REQUEST(101),
+      END_TURN(102),
       PUT_PIECE(200),
       CANCEL_BUILD(201),
       MOVE_PIECE(202),
@@ -27196,7 +27717,8 @@ public final class GameMessage {
       public static MsgCase forNumber(int value) {
         switch (value) {
           case 100: return START_GAME;
-          case 101: return END_TURN;
+          case 101: return DICE_ROLL_REQUEST;
+          case 102: return END_TURN;
           case 200: return PUT_PIECE;
           case 201: return CANCEL_BUILD;
           case 202: return MOVE_PIECE;
@@ -27302,27 +27824,53 @@ public final class GameMessage {
       return soc.proto.GameMessage.StartGame.getDefaultInstance();
     }
 
-    public static final int END_TURN_FIELD_NUMBER = 101;
+    public static final int DICE_ROLL_REQUEST_FIELD_NUMBER = 101;
     /**
-     * <code>.EndTurn end_turn = 101;</code>
+     * <code>.DiceRollRequest dice_roll_request = 101;</code>
      */
-    public boolean hasEndTurn() {
+    public boolean hasDiceRollRequest() {
       return msgCase_ == 101;
     }
     /**
-     * <code>.EndTurn end_turn = 101;</code>
+     * <code>.DiceRollRequest dice_roll_request = 101;</code>
+     */
+    public soc.proto.GameMessage.DiceRollRequest getDiceRollRequest() {
+      if (msgCase_ == 101) {
+         return (soc.proto.GameMessage.DiceRollRequest) msg_;
+      }
+      return soc.proto.GameMessage.DiceRollRequest.getDefaultInstance();
+    }
+    /**
+     * <code>.DiceRollRequest dice_roll_request = 101;</code>
+     */
+    public soc.proto.GameMessage.DiceRollRequestOrBuilder getDiceRollRequestOrBuilder() {
+      if (msgCase_ == 101) {
+         return (soc.proto.GameMessage.DiceRollRequest) msg_;
+      }
+      return soc.proto.GameMessage.DiceRollRequest.getDefaultInstance();
+    }
+
+    public static final int END_TURN_FIELD_NUMBER = 102;
+    /**
+     * <code>.EndTurn end_turn = 102;</code>
+     */
+    public boolean hasEndTurn() {
+      return msgCase_ == 102;
+    }
+    /**
+     * <code>.EndTurn end_turn = 102;</code>
      */
     public soc.proto.GameMessage.EndTurn getEndTurn() {
-      if (msgCase_ == 101) {
+      if (msgCase_ == 102) {
          return (soc.proto.GameMessage.EndTurn) msg_;
       }
       return soc.proto.GameMessage.EndTurn.getDefaultInstance();
     }
     /**
-     * <code>.EndTurn end_turn = 101;</code>
+     * <code>.EndTurn end_turn = 102;</code>
      */
     public soc.proto.GameMessage.EndTurnOrBuilder getEndTurnOrBuilder() {
-      if (msgCase_ == 101) {
+      if (msgCase_ == 102) {
          return (soc.proto.GameMessage.EndTurn) msg_;
       }
       return soc.proto.GameMessage.EndTurn.getDefaultInstance();
@@ -27631,7 +28179,10 @@ public final class GameMessage {
         output.writeMessage(100, (soc.proto.GameMessage.StartGame) msg_);
       }
       if (msgCase_ == 101) {
-        output.writeMessage(101, (soc.proto.GameMessage.EndTurn) msg_);
+        output.writeMessage(101, (soc.proto.GameMessage.DiceRollRequest) msg_);
+      }
+      if (msgCase_ == 102) {
+        output.writeMessage(102, (soc.proto.GameMessage.EndTurn) msg_);
       }
       if (msgCase_ == 200) {
         output.writeMessage(200, (soc.proto.GameMessage.PutPiece) msg_);
@@ -27680,7 +28231,11 @@ public final class GameMessage {
       }
       if (msgCase_ == 101) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(101, (soc.proto.GameMessage.EndTurn) msg_);
+          .computeMessageSize(101, (soc.proto.GameMessage.DiceRollRequest) msg_);
+      }
+      if (msgCase_ == 102) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(102, (soc.proto.GameMessage.EndTurn) msg_);
       }
       if (msgCase_ == 200) {
         size += com.google.protobuf.CodedOutputStream
@@ -27749,6 +28304,10 @@ public final class GameMessage {
               .equals(other.getStartGame());
           break;
         case 101:
+          result = result && getDiceRollRequest()
+              .equals(other.getDiceRollRequest());
+          break;
+        case 102:
           result = result && getEndTurn()
               .equals(other.getEndTurn());
           break;
@@ -27814,6 +28373,10 @@ public final class GameMessage {
           hash = (53 * hash) + getStartGame().hashCode();
           break;
         case 101:
+          hash = (37 * hash) + DICE_ROLL_REQUEST_FIELD_NUMBER;
+          hash = (53 * hash) + getDiceRollRequest().hashCode();
+          break;
+        case 102:
           hash = (37 * hash) + END_TURN_FIELD_NUMBER;
           hash = (53 * hash) + getEndTurn().hashCode();
           break;
@@ -28024,6 +28587,13 @@ public final class GameMessage {
           }
         }
         if (msgCase_ == 101) {
+          if (diceRollRequestBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = diceRollRequestBuilder_.build();
+          }
+        }
+        if (msgCase_ == 102) {
           if (endTurnBuilder_ == null) {
             result.msg_ = msg_;
           } else {
@@ -28149,6 +28719,10 @@ public final class GameMessage {
         switch (other.getMsgCase()) {
           case START_GAME: {
             mergeStartGame(other.getStartGame());
+            break;
+          }
+          case DICE_ROLL_REQUEST: {
+            mergeDiceRollRequest(other.getDiceRollRequest());
             break;
           }
           case END_TURN: {
@@ -28503,31 +29077,167 @@ public final class GameMessage {
       }
 
       private com.google.protobuf.SingleFieldBuilderV3<
-          soc.proto.GameMessage.EndTurn, soc.proto.GameMessage.EndTurn.Builder, soc.proto.GameMessage.EndTurnOrBuilder> endTurnBuilder_;
+          soc.proto.GameMessage.DiceRollRequest, soc.proto.GameMessage.DiceRollRequest.Builder, soc.proto.GameMessage.DiceRollRequestOrBuilder> diceRollRequestBuilder_;
       /**
-       * <code>.EndTurn end_turn = 101;</code>
+       * <code>.DiceRollRequest dice_roll_request = 101;</code>
        */
-      public boolean hasEndTurn() {
+      public boolean hasDiceRollRequest() {
         return msgCase_ == 101;
       }
       /**
-       * <code>.EndTurn end_turn = 101;</code>
+       * <code>.DiceRollRequest dice_roll_request = 101;</code>
+       */
+      public soc.proto.GameMessage.DiceRollRequest getDiceRollRequest() {
+        if (diceRollRequestBuilder_ == null) {
+          if (msgCase_ == 101) {
+            return (soc.proto.GameMessage.DiceRollRequest) msg_;
+          }
+          return soc.proto.GameMessage.DiceRollRequest.getDefaultInstance();
+        } else {
+          if (msgCase_ == 101) {
+            return diceRollRequestBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.DiceRollRequest.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.DiceRollRequest dice_roll_request = 101;</code>
+       */
+      public Builder setDiceRollRequest(soc.proto.GameMessage.DiceRollRequest value) {
+        if (diceRollRequestBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          diceRollRequestBuilder_.setMessage(value);
+        }
+        msgCase_ = 101;
+        return this;
+      }
+      /**
+       * <code>.DiceRollRequest dice_roll_request = 101;</code>
+       */
+      public Builder setDiceRollRequest(
+          soc.proto.GameMessage.DiceRollRequest.Builder builderForValue) {
+        if (diceRollRequestBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          diceRollRequestBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 101;
+        return this;
+      }
+      /**
+       * <code>.DiceRollRequest dice_roll_request = 101;</code>
+       */
+      public Builder mergeDiceRollRequest(soc.proto.GameMessage.DiceRollRequest value) {
+        if (diceRollRequestBuilder_ == null) {
+          if (msgCase_ == 101 &&
+              msg_ != soc.proto.GameMessage.DiceRollRequest.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.DiceRollRequest.newBuilder((soc.proto.GameMessage.DiceRollRequest) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 101) {
+            diceRollRequestBuilder_.mergeFrom(value);
+          }
+          diceRollRequestBuilder_.setMessage(value);
+        }
+        msgCase_ = 101;
+        return this;
+      }
+      /**
+       * <code>.DiceRollRequest dice_roll_request = 101;</code>
+       */
+      public Builder clearDiceRollRequest() {
+        if (diceRollRequestBuilder_ == null) {
+          if (msgCase_ == 101) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 101) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          diceRollRequestBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.DiceRollRequest dice_roll_request = 101;</code>
+       */
+      public soc.proto.GameMessage.DiceRollRequest.Builder getDiceRollRequestBuilder() {
+        return getDiceRollRequestFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.DiceRollRequest dice_roll_request = 101;</code>
+       */
+      public soc.proto.GameMessage.DiceRollRequestOrBuilder getDiceRollRequestOrBuilder() {
+        if ((msgCase_ == 101) && (diceRollRequestBuilder_ != null)) {
+          return diceRollRequestBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 101) {
+            return (soc.proto.GameMessage.DiceRollRequest) msg_;
+          }
+          return soc.proto.GameMessage.DiceRollRequest.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.DiceRollRequest dice_roll_request = 101;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.DiceRollRequest, soc.proto.GameMessage.DiceRollRequest.Builder, soc.proto.GameMessage.DiceRollRequestOrBuilder> 
+          getDiceRollRequestFieldBuilder() {
+        if (diceRollRequestBuilder_ == null) {
+          if (!(msgCase_ == 101)) {
+            msg_ = soc.proto.GameMessage.DiceRollRequest.getDefaultInstance();
+          }
+          diceRollRequestBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.DiceRollRequest, soc.proto.GameMessage.DiceRollRequest.Builder, soc.proto.GameMessage.DiceRollRequestOrBuilder>(
+                  (soc.proto.GameMessage.DiceRollRequest) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 101;
+        onChanged();;
+        return diceRollRequestBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.EndTurn, soc.proto.GameMessage.EndTurn.Builder, soc.proto.GameMessage.EndTurnOrBuilder> endTurnBuilder_;
+      /**
+       * <code>.EndTurn end_turn = 102;</code>
+       */
+      public boolean hasEndTurn() {
+        return msgCase_ == 102;
+      }
+      /**
+       * <code>.EndTurn end_turn = 102;</code>
        */
       public soc.proto.GameMessage.EndTurn getEndTurn() {
         if (endTurnBuilder_ == null) {
-          if (msgCase_ == 101) {
+          if (msgCase_ == 102) {
             return (soc.proto.GameMessage.EndTurn) msg_;
           }
           return soc.proto.GameMessage.EndTurn.getDefaultInstance();
         } else {
-          if (msgCase_ == 101) {
+          if (msgCase_ == 102) {
             return endTurnBuilder_.getMessage();
           }
           return soc.proto.GameMessage.EndTurn.getDefaultInstance();
         }
       }
       /**
-       * <code>.EndTurn end_turn = 101;</code>
+       * <code>.EndTurn end_turn = 102;</code>
        */
       public Builder setEndTurn(soc.proto.GameMessage.EndTurn value) {
         if (endTurnBuilder_ == null) {
@@ -28539,11 +29249,11 @@ public final class GameMessage {
         } else {
           endTurnBuilder_.setMessage(value);
         }
-        msgCase_ = 101;
+        msgCase_ = 102;
         return this;
       }
       /**
-       * <code>.EndTurn end_turn = 101;</code>
+       * <code>.EndTurn end_turn = 102;</code>
        */
       public Builder setEndTurn(
           soc.proto.GameMessage.EndTurn.Builder builderForValue) {
@@ -28553,15 +29263,15 @@ public final class GameMessage {
         } else {
           endTurnBuilder_.setMessage(builderForValue.build());
         }
-        msgCase_ = 101;
+        msgCase_ = 102;
         return this;
       }
       /**
-       * <code>.EndTurn end_turn = 101;</code>
+       * <code>.EndTurn end_turn = 102;</code>
        */
       public Builder mergeEndTurn(soc.proto.GameMessage.EndTurn value) {
         if (endTurnBuilder_ == null) {
-          if (msgCase_ == 101 &&
+          if (msgCase_ == 102 &&
               msg_ != soc.proto.GameMessage.EndTurn.getDefaultInstance()) {
             msg_ = soc.proto.GameMessage.EndTurn.newBuilder((soc.proto.GameMessage.EndTurn) msg_)
                 .mergeFrom(value).buildPartial();
@@ -28570,26 +29280,26 @@ public final class GameMessage {
           }
           onChanged();
         } else {
-          if (msgCase_ == 101) {
+          if (msgCase_ == 102) {
             endTurnBuilder_.mergeFrom(value);
           }
           endTurnBuilder_.setMessage(value);
         }
-        msgCase_ = 101;
+        msgCase_ = 102;
         return this;
       }
       /**
-       * <code>.EndTurn end_turn = 101;</code>
+       * <code>.EndTurn end_turn = 102;</code>
        */
       public Builder clearEndTurn() {
         if (endTurnBuilder_ == null) {
-          if (msgCase_ == 101) {
+          if (msgCase_ == 102) {
             msgCase_ = 0;
             msg_ = null;
             onChanged();
           }
         } else {
-          if (msgCase_ == 101) {
+          if (msgCase_ == 102) {
             msgCase_ = 0;
             msg_ = null;
           }
@@ -28598,32 +29308,32 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <code>.EndTurn end_turn = 101;</code>
+       * <code>.EndTurn end_turn = 102;</code>
        */
       public soc.proto.GameMessage.EndTurn.Builder getEndTurnBuilder() {
         return getEndTurnFieldBuilder().getBuilder();
       }
       /**
-       * <code>.EndTurn end_turn = 101;</code>
+       * <code>.EndTurn end_turn = 102;</code>
        */
       public soc.proto.GameMessage.EndTurnOrBuilder getEndTurnOrBuilder() {
-        if ((msgCase_ == 101) && (endTurnBuilder_ != null)) {
+        if ((msgCase_ == 102) && (endTurnBuilder_ != null)) {
           return endTurnBuilder_.getMessageOrBuilder();
         } else {
-          if (msgCase_ == 101) {
+          if (msgCase_ == 102) {
             return (soc.proto.GameMessage.EndTurn) msg_;
           }
           return soc.proto.GameMessage.EndTurn.getDefaultInstance();
         }
       }
       /**
-       * <code>.EndTurn end_turn = 101;</code>
+       * <code>.EndTurn end_turn = 102;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.GameMessage.EndTurn, soc.proto.GameMessage.EndTurn.Builder, soc.proto.GameMessage.EndTurnOrBuilder> 
           getEndTurnFieldBuilder() {
         if (endTurnBuilder_ == null) {
-          if (!(msgCase_ == 101)) {
+          if (!(msgCase_ == 102)) {
             msg_ = soc.proto.GameMessage.EndTurn.getDefaultInstance();
           }
           endTurnBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -28633,7 +29343,7 @@ public final class GameMessage {
                   isClean());
           msg_ = null;
         }
-        msgCase_ = 101;
+        msgCase_ = 102;
         onChanged();;
         return endTurnBuilder_;
       }
@@ -30209,6 +30919,11 @@ public final class GameMessage {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_SetTurn_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_DiceRollRequest_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_DiceRollRequest_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_DiceResult_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -30324,77 +31039,80 @@ public final class GameMessage {
       "LONGEST_ROAD_PLAYER\020\006\"&\n\tStartGame\022\031\n\005st",
       "ate\030\001 \001(\0162\n.GameState\"8\n\004Turn\022\025\n\rplayer_" +
       "number\030\001 \001(\r\022\031\n\005state\030\002 \001(\0162\n.GameState\"" +
-      " \n\007SetTurn\022\025\n\rplayer_number\030\001 \001(\r\" \n\nDic" +
-      "eResult\022\022\n\ndice_total\030\001 \001(\r\"\264\001\n\023DiceResu" +
-      "ltResources\022>\n\020player_resources\030\001 \003(\0132$." +
-      "DiceResultResources.PlayerResources\032]\n\017P" +
-      "layerResources\022\025\n\rplayer_number\030\001 \001(\r\022\037\n" +
-      "\010res_type\030\002 \003(\0162\r.ResourceType\022\022\n\nres_am" +
-      "ount\030\003 \003(\r\"\t\n\007EndTurn\"b\n\rTradeWithBank\022\032" +
-      "\n\004give\030\001 \001(\0132\014.ResourceSet\022\031\n\003get\030\002 \001(\0132",
-      "\014.ResourceSet\022\032\n\022from_player_number\030\003 \001(" +
-      "\005\"\231\001\n\016TradeMakeOffer\022\032\n\004give\030\001 \001(\0132\014.Res" +
-      "ourceSet\022\031\n\003get\030\002 \001(\0132\014.ResourceSet\022\032\n\022f" +
-      "rom_player_number\030\003 \001(\005\022\036\n\nto_players\030\004 " +
-      "\001(\0132\n._IntArray\022\024\n\014offer_serial\030\005 \001(\005\"(\n" +
-      "\017TradeClearOffer\022\025\n\rplayer_number\030\001 \001(\021\"" +
-      "3\n\020TradeRejectOffer\022\037\n\027rejecting_player_" +
-      "number\030\001 \001(\005\"i\n\020TradeAcceptOffer\022\036\n\026offe" +
-      "ring_player_number\030\001 \001(\005\022\037\n\027accepting_pl" +
-      "ayer_number\030\002 \001(\005\022\024\n\014offer_serial\030\003 \001(\005\"",
-      "\211\007\n\025GameMessageFromServer\022\017\n\007ga_name\030\001 \001" +
-      "(\t\022\034\n\ngame_state\030\002 \001(\0132\006.StateH\000\022(\n\016play" +
-      "er_element\030\017 \001(\0132\016.PlayerElementH\000\022*\n\017pl" +
-      "ayer_elements\030\020 \001(\0132\017.PlayerElementsH\000\022&" +
-      "\n\rgame_elements\030\021 \001(\0132\r.GameElementsH\000\022$" +
-      "\n\014board_layout\030\036 \001(\0132\014.BoardLayoutH\000\0226\n\025" +
-      "potential_settlements\030\037 \001(\0132\025.PotentialS" +
-      "ettlementsH\000\022\036\n\tput_piece\030  \001(\0132\t.PutPie" +
-      "ceH\000\022$\n\014cancel_build\030! \001(\0132\014.CancelBuild" +
-      "H\000\022 \n\nmove_piece\030\" \001(\0132\n.MovePieceH\000\022$\n\014",
-      "remove_piece\030# \001(\0132\014.RemovePieceH\000\022 \n\nst" +
-      "art_game\030d \001(\0132\n.StartGameH\000\022\025\n\004turn\030e \001" +
-      "(\0132\005.TurnH\000\022\034\n\010set_turn\030f \001(\0132\010.SetTurnH" +
-      "\000\022\"\n\013dice_result\030g \001(\0132\013.DiceResultH\000\0225\n" +
-      "\025dice_result_resources\030h \001(\0132\024.DiceResul" +
-      "tResourcesH\000\0220\n\017inv_item_action\030\256\002 \001(\0132\024" +
-      ".InventoryItemActionH\000\022*\n\017trade_with_ban" +
-      "k\030\220\003 \001(\0132\016.TradeWithBankH\000\022,\n\020trade_make" +
-      "_offer\030\221\003 \001(\0132\017.TradeMakeOfferH\000\022.\n\021trad" +
-      "e_clear_offer\030\222\003 \001(\0132\020.TradeClearOfferH\000",
-      "\0220\n\022trade_reject_offer\030\223\003 \001(\0132\021.TradeRej" +
-      "ectOfferH\000\0220\n\022trade_accept_offer\030\224\003 \001(\0132" +
-      "\021.TradeAcceptOfferH\000B\005\n\003msg\"\255\004\n\025GameMess" +
-      "ageFromClient\022\017\n\007ga_name\030\001 \001(\t\022 \n\nstart_" +
-      "game\030d \001(\0132\n.StartGameH\000\022\034\n\010end_turn\030e \001" +
-      "(\0132\010.EndTurnH\000\022\037\n\tput_piece\030\310\001 \001(\0132\t.Put" +
-      "PieceH\000\022%\n\014cancel_build\030\311\001 \001(\0132\014.CancelB" +
-      "uildH\000\022!\n\nmove_piece\030\312\001 \001(\0132\n.MovePieceH" +
-      "\000\0221\n\014buy_inv_item\030\313\001 \001(\0132\030.BuyInventoryI" +
-      "temRequestH\000\0220\n\017inv_item_action\030\314\001 \001(\0132\024",
-      ".InventoryItemActionH\000\022*\n\017trade_with_ban" +
-      "k\030\220\003 \001(\0132\016.TradeWithBankH\000\022,\n\020trade_make" +
-      "_offer\030\221\003 \001(\0132\017.TradeMakeOfferH\000\022.\n\021trad" +
-      "e_clear_offer\030\222\003 \001(\0132\020.TradeClearOfferH\000" +
-      "\0220\n\022trade_reject_offer\030\223\003 \001(\0132\021.TradeRej" +
-      "ectOfferH\000\0220\n\022trade_accept_offer\030\224\003 \001(\0132" +
-      "\021.TradeAcceptOfferH\000B\005\n\003msg*O\n\024_PlayerEl" +
-      "ementAction\022\032\n\026_UNSENT_DEFAULT_ACTION\020\000\022" +
-      "\007\n\003SET\020\001\022\010\n\004GAIN\020\002\022\010\n\004LOSE\020\003*\206\004\n\022_Player" +
-      "ElementType\022\037\n\033_UNSENT_DEFAULT_PLAYER_EL",
-      "EM\020\000\022\r\n\tELEM_CLAY\020\001\022\014\n\010ELEM_ORE\020\002\022\016\n\nELE" +
-      "M_SHEEP\020\003\022\016\n\nELEM_WHEAT\020\004\022\r\n\tELEM_WOOD\020\005" +
-      "\022\031\n\025ELEM_UNKNOWN_RESOURCE\020\006\022\t\n\005ROADS\020\n\022\017" +
-      "\n\013SETTLEMENTS\020\013\022\n\n\006CITIES\020\014\022\t\n\005SHIPS\020\r\022\016" +
-      "\n\nNUMKNIGHTS\020\017\022\025\n\021ASK_SPECIAL_BUILD\020\020\022\022\n" +
-      "\016RESOURCE_COUNT\020\021\022\030\n\024LAST_SETTLEMENT_NOD" +
-      "E\020\022\022\030\n\024PLAYED_DEV_CARD_FLAG\020\023\022\037\n\033NUM_PIC" +
-      "K_GOLD_HEX_RESOURCES\020e\022\020\n\014SCENARIO_SVP\020f" +
-      "\022!\n\035SCENARIO_PLAYEREVENTS_BITMASK\020g\022\"\n\036S" +
-      "CENARIO_SVP_LANDAREAS_BITMASK\020h\022\026\n\022START",
-      "ING_LANDAREAS\020i\022\030\n\024SCENARIO_CLOTH_COUNT\020" +
-      "j\022\032\n\026SCENARIO_WARSHIP_COUNT\020kB\r\n\tsoc.pro" +
-      "toH\001P\000b\006proto3"
+      " \n\007SetTurn\022\025\n\rplayer_number\030\001 \001(\r\"(\n\017Dic" +
+      "eRollRequest\022\025\n\rplayer_number\030\001 \001(\r\" \n\nD" +
+      "iceResult\022\022\n\ndice_total\030\001 \001(\021\"\264\001\n\023DiceRe" +
+      "sultResources\022>\n\020player_resources\030\001 \003(\0132" +
+      "$.DiceResultResources.PlayerResources\032]\n" +
+      "\017PlayerResources\022\025\n\rplayer_number\030\001 \001(\r\022" +
+      " \n\nres_gained\030\002 \001(\0132\014.ResourceSet\022\021\n\tres" +
+      "_total\030\003 \001(\r\"\t\n\007EndTurn\"]\n\rTradeWithBank",
+      "\022\032\n\004give\030\001 \001(\0132\014.ResourceSet\022\031\n\003get\030\002 \001(" +
+      "\0132\014.ResourceSet\022\025\n\rplayer_number\030\003 \001(\005\"\231" +
+      "\001\n\016TradeMakeOffer\022\032\n\004give\030\001 \001(\0132\014.Resour" +
+      "ceSet\022\031\n\003get\030\002 \001(\0132\014.ResourceSet\022\032\n\022from" +
+      "_player_number\030\003 \001(\005\022\036\n\nto_players\030\004 \001(\013" +
+      "2\n._IntArray\022\024\n\014offer_serial\030\005 \001(\005\"(\n\017Tr" +
+      "adeClearOffer\022\025\n\rplayer_number\030\001 \001(\021\")\n\020" +
+      "TradeRejectOffer\022\025\n\rplayer_number\030\001 \001(\005\"" +
+      "i\n\020TradeAcceptOffer\022\036\n\026offering_player_n" +
+      "umber\030\001 \001(\005\022\037\n\027accepting_player_number\030\002",
+      " \001(\005\022\024\n\014offer_serial\030\003 \001(\005\"\270\007\n\025GameMessa" +
+      "geFromServer\022\017\n\007ga_name\030\001 \001(\t\022\034\n\ngame_st" +
+      "ate\030\002 \001(\0132\006.StateH\000\022(\n\016player_element\030\017 " +
+      "\001(\0132\016.PlayerElementH\000\022*\n\017player_elements" +
+      "\030\020 \001(\0132\017.PlayerElementsH\000\022&\n\rgame_elemen" +
+      "ts\030\021 \001(\0132\r.GameElementsH\000\022$\n\014board_layou" +
+      "t\030\036 \001(\0132\014.BoardLayoutH\000\0226\n\025potential_set" +
+      "tlements\030\037 \001(\0132\025.PotentialSettlementsH\000\022" +
+      "\036\n\tput_piece\030  \001(\0132\t.PutPieceH\000\022$\n\014cance" +
+      "l_build\030! \001(\0132\014.CancelBuildH\000\022 \n\nmove_pi",
+      "ece\030\" \001(\0132\n.MovePieceH\000\022$\n\014remove_piece\030" +
+      "# \001(\0132\014.RemovePieceH\000\022 \n\nstart_game\030d \001(" +
+      "\0132\n.StartGameH\000\022\025\n\004turn\030e \001(\0132\005.TurnH\000\022\034" +
+      "\n\010set_turn\030f \001(\0132\010.SetTurnH\000\022-\n\021dice_rol" +
+      "l_request\030g \001(\0132\020.DiceRollRequestH\000\022\"\n\013d" +
+      "ice_result\030h \001(\0132\013.DiceResultH\000\0225\n\025dice_" +
+      "result_resources\030i \001(\0132\024.DiceResultResou" +
+      "rcesH\000\0220\n\017inv_item_action\030\256\002 \001(\0132\024.Inven" +
+      "toryItemActionH\000\022*\n\017trade_with_bank\030\220\003 \001" +
+      "(\0132\016.TradeWithBankH\000\022,\n\020trade_make_offer",
+      "\030\221\003 \001(\0132\017.TradeMakeOfferH\000\022.\n\021trade_clea" +
+      "r_offer\030\222\003 \001(\0132\020.TradeClearOfferH\000\0220\n\022tr" +
+      "ade_reject_offer\030\223\003 \001(\0132\021.TradeRejectOff" +
+      "erH\000\0220\n\022trade_accept_offer\030\224\003 \001(\0132\021.Trad" +
+      "eAcceptOfferH\000B\005\n\003msg\"\334\004\n\025GameMessageFro" +
+      "mClient\022\017\n\007ga_name\030\001 \001(\t\022 \n\nstart_game\030d" +
+      " \001(\0132\n.StartGameH\000\022-\n\021dice_roll_request\030" +
+      "e \001(\0132\020.DiceRollRequestH\000\022\034\n\010end_turn\030f " +
+      "\001(\0132\010.EndTurnH\000\022\037\n\tput_piece\030\310\001 \001(\0132\t.Pu" +
+      "tPieceH\000\022%\n\014cancel_build\030\311\001 \001(\0132\014.Cancel",
+      "BuildH\000\022!\n\nmove_piece\030\312\001 \001(\0132\n.MovePiece" +
+      "H\000\0221\n\014buy_inv_item\030\313\001 \001(\0132\030.BuyInventory" +
+      "ItemRequestH\000\0220\n\017inv_item_action\030\314\001 \001(\0132" +
+      "\024.InventoryItemActionH\000\022*\n\017trade_with_ba" +
+      "nk\030\220\003 \001(\0132\016.TradeWithBankH\000\022,\n\020trade_mak" +
+      "e_offer\030\221\003 \001(\0132\017.TradeMakeOfferH\000\022.\n\021tra" +
+      "de_clear_offer\030\222\003 \001(\0132\020.TradeClearOfferH" +
+      "\000\0220\n\022trade_reject_offer\030\223\003 \001(\0132\021.TradeRe" +
+      "jectOfferH\000\0220\n\022trade_accept_offer\030\224\003 \001(\013" +
+      "2\021.TradeAcceptOfferH\000B\005\n\003msg*O\n\024_PlayerE",
+      "lementAction\022\032\n\026_UNSENT_DEFAULT_ACTION\020\000" +
+      "\022\007\n\003SET\020\001\022\010\n\004GAIN\020\002\022\010\n\004LOSE\020\003*\206\004\n\022_Playe" +
+      "rElementType\022\037\n\033_UNSENT_DEFAULT_PLAYER_E" +
+      "LEM\020\000\022\r\n\tELEM_CLAY\020\001\022\014\n\010ELEM_ORE\020\002\022\016\n\nEL" +
+      "EM_SHEEP\020\003\022\016\n\nELEM_WHEAT\020\004\022\r\n\tELEM_WOOD\020" +
+      "\005\022\031\n\025ELEM_UNKNOWN_RESOURCE\020\006\022\t\n\005ROADS\020\n\022" +
+      "\017\n\013SETTLEMENTS\020\013\022\n\n\006CITIES\020\014\022\t\n\005SHIPS\020\r\022" +
+      "\016\n\nNUMKNIGHTS\020\017\022\025\n\021ASK_SPECIAL_BUILD\020\020\022\022" +
+      "\n\016RESOURCE_COUNT\020\021\022\030\n\024LAST_SETTLEMENT_NO" +
+      "DE\020\022\022\030\n\024PLAYED_DEV_CARD_FLAG\020\023\022\037\n\033NUM_PI",
+      "CK_GOLD_HEX_RESOURCES\020e\022\020\n\014SCENARIO_SVP\020" +
+      "f\022!\n\035SCENARIO_PLAYEREVENTS_BITMASK\020g\022\"\n\036" +
+      "SCENARIO_SVP_LANDAREAS_BITMASK\020h\022\026\n\022STAR" +
+      "TING_LANDAREAS\020i\022\030\n\024SCENARIO_CLOTH_COUNT" +
+      "\020j\022\032\n\026SCENARIO_WARSHIP_COUNT\020kB\r\n\tsoc.pr" +
+      "otoH\001P\000b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -30517,14 +31235,20 @@ public final class GameMessage {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_SetTurn_descriptor,
         new java.lang.String[] { "PlayerNumber", });
-    internal_static_DiceResult_descriptor =
+    internal_static_DiceRollRequest_descriptor =
       getDescriptor().getMessageTypes().get(15);
+    internal_static_DiceRollRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_DiceRollRequest_descriptor,
+        new java.lang.String[] { "PlayerNumber", });
+    internal_static_DiceResult_descriptor =
+      getDescriptor().getMessageTypes().get(16);
     internal_static_DiceResult_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_DiceResult_descriptor,
         new java.lang.String[] { "DiceTotal", });
     internal_static_DiceResultResources_descriptor =
-      getDescriptor().getMessageTypes().get(16);
+      getDescriptor().getMessageTypes().get(17);
     internal_static_DiceResultResources_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_DiceResultResources_descriptor,
@@ -30534,55 +31258,55 @@ public final class GameMessage {
     internal_static_DiceResultResources_PlayerResources_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_DiceResultResources_PlayerResources_descriptor,
-        new java.lang.String[] { "PlayerNumber", "ResType", "ResAmount", });
+        new java.lang.String[] { "PlayerNumber", "ResGained", "ResTotal", });
     internal_static_EndTurn_descriptor =
-      getDescriptor().getMessageTypes().get(17);
+      getDescriptor().getMessageTypes().get(18);
     internal_static_EndTurn_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_EndTurn_descriptor,
         new java.lang.String[] { });
     internal_static_TradeWithBank_descriptor =
-      getDescriptor().getMessageTypes().get(18);
+      getDescriptor().getMessageTypes().get(19);
     internal_static_TradeWithBank_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_TradeWithBank_descriptor,
-        new java.lang.String[] { "Give", "Get", "FromPlayerNumber", });
+        new java.lang.String[] { "Give", "Get", "PlayerNumber", });
     internal_static_TradeMakeOffer_descriptor =
-      getDescriptor().getMessageTypes().get(19);
+      getDescriptor().getMessageTypes().get(20);
     internal_static_TradeMakeOffer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_TradeMakeOffer_descriptor,
         new java.lang.String[] { "Give", "Get", "FromPlayerNumber", "ToPlayers", "OfferSerial", });
     internal_static_TradeClearOffer_descriptor =
-      getDescriptor().getMessageTypes().get(20);
+      getDescriptor().getMessageTypes().get(21);
     internal_static_TradeClearOffer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_TradeClearOffer_descriptor,
         new java.lang.String[] { "PlayerNumber", });
     internal_static_TradeRejectOffer_descriptor =
-      getDescriptor().getMessageTypes().get(21);
+      getDescriptor().getMessageTypes().get(22);
     internal_static_TradeRejectOffer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_TradeRejectOffer_descriptor,
-        new java.lang.String[] { "RejectingPlayerNumber", });
+        new java.lang.String[] { "PlayerNumber", });
     internal_static_TradeAcceptOffer_descriptor =
-      getDescriptor().getMessageTypes().get(22);
+      getDescriptor().getMessageTypes().get(23);
     internal_static_TradeAcceptOffer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_TradeAcceptOffer_descriptor,
         new java.lang.String[] { "OfferingPlayerNumber", "AcceptingPlayerNumber", "OfferSerial", });
     internal_static_GameMessageFromServer_descriptor =
-      getDescriptor().getMessageTypes().get(23);
+      getDescriptor().getMessageTypes().get(24);
     internal_static_GameMessageFromServer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_GameMessageFromServer_descriptor,
-        new java.lang.String[] { "GaName", "GameState", "PlayerElement", "PlayerElements", "GameElements", "BoardLayout", "PotentialSettlements", "PutPiece", "CancelBuild", "MovePiece", "RemovePiece", "StartGame", "Turn", "SetTurn", "DiceResult", "DiceResultResources", "InvItemAction", "TradeWithBank", "TradeMakeOffer", "TradeClearOffer", "TradeRejectOffer", "TradeAcceptOffer", "Msg", });
+        new java.lang.String[] { "GaName", "GameState", "PlayerElement", "PlayerElements", "GameElements", "BoardLayout", "PotentialSettlements", "PutPiece", "CancelBuild", "MovePiece", "RemovePiece", "StartGame", "Turn", "SetTurn", "DiceRollRequest", "DiceResult", "DiceResultResources", "InvItemAction", "TradeWithBank", "TradeMakeOffer", "TradeClearOffer", "TradeRejectOffer", "TradeAcceptOffer", "Msg", });
     internal_static_GameMessageFromClient_descriptor =
-      getDescriptor().getMessageTypes().get(24);
+      getDescriptor().getMessageTypes().get(25);
     internal_static_GameMessageFromClient_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_GameMessageFromClient_descriptor,
-        new java.lang.String[] { "GaName", "StartGame", "EndTurn", "PutPiece", "CancelBuild", "MovePiece", "BuyInvItem", "InvItemAction", "TradeWithBank", "TradeMakeOffer", "TradeClearOffer", "TradeRejectOffer", "TradeAcceptOffer", "Msg", });
+        new java.lang.String[] { "GaName", "StartGame", "DiceRollRequest", "EndTurn", "PutPiece", "CancelBuild", "MovePiece", "BuyInvItem", "InvItemAction", "TradeWithBank", "TradeMakeOffer", "TradeClearOffer", "TradeRejectOffer", "TradeAcceptOffer", "Msg", });
     soc.proto.Data.getDescriptor();
   }
 
