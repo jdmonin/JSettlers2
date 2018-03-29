@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -119,8 +119,11 @@ public class SOCPlayerElement extends SOCMessage
     public static final int ASK_SPECIAL_BUILD = 16;
 
     /**
-     * Total resources this player has available in hand to use.
+     * Total resources this player has available in hand to use,
+     * from their hand's {@link soc.game.SOCResourceSet#getTotal()}.
      * Sent only with {@link #SET}, not {@link #GAIN} or {@link #LOSE}.
+     *<P>
+     * Alternately, send that info as part of a {@link SOCDiceResultResources} message.
      *<P>
      * Games with clients older than v2.0.00 use {@link SOCResourceCount} messages instead of this element:
      * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.

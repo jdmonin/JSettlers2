@@ -468,49 +468,23 @@ public class SOCGameMessageHandler
                 if (ga.getCurrentDice() != 7)
                 {
                     boolean noPlayersGained = true;
-                    boolean[] plGained = new boolean[SOCGame.MAXPLAYERS];  // send total rsrcs only to players who gain
 
                     /**
                      * Clients v2.0.00 and newer get an i18n-neutral SOCDiceResultResources message.
                      * Older clients get a string such as "Joe gets 3 sheep. Mike gets 1 clay."
                      */
-                    String rollRsrcOldCli = null;
-                    SOCDiceResultResources rollRsrcNewCli = null;
+                    String rollRsrcTxtOldCli = null;
+                    SOCDiceResultResources rollRsrcMsgNewCli = null;
 
                     if (ga.clientVersionHighest >= SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
                     {
-                        // build a SOCDiceResultResources message
-                        ArrayList<Integer> pnum = null;
-                        ArrayList<SOCResourceSet> rsrc = null;
-
-                        for (int pn = 0; pn < ga.maxPlayers; ++pn)
-                        {
-                            if (ga.isSeatVacant(pn))
-                                continue;
-
-                            final SOCPlayer pp = ga.getPlayer(pn);
-                            final SOCResourceSet rs = pp.getRolledResources();
-                            if (rs.getKnownTotal() == 0)
-                                continue;
-
-                            plGained[pn] = true;
-                            if (noPlayersGained)
-                            {
-                                noPlayersGained = false;
-                                pnum = new ArrayList<Integer>();
-                                rsrc = new ArrayList<SOCResourceSet>();
-                            }
-                            pnum.add(Integer.valueOf(pn));
-                            rsrc.add(rs);
-                        }
-
-                        if (! noPlayersGained)
-                            rollRsrcNewCli = new SOCDiceResultResources(gn, pnum, rsrc);
+                        rollRsrcMsgNewCli = SOCDiceResultResources.buildForGame(ga);
+                        noPlayersGained = (rollRsrcMsgNewCli == null);
                     }
 
                     if (ga.clientVersionLowest < SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
                     {
-                        // Build a string
+                        // Build a string to announce to v1.x.xx clients
                     StringBuffer gainsText = new StringBuffer();
 
                     noPlayersGained = true;  // for string spacing; might be false due to loop for new clients in game
@@ -523,7 +497,6 @@ public class SOCGameMessageHandler
 
                             if (rsrcs.getKnownTotal() != 0)
                             {
-                                plGained[pn] = true;
                                 if (noPlayersGained)
                                     noPlayersGained = false;
                                 else
@@ -541,7 +514,7 @@ public class SOCGameMessageHandler
                     }
 
                     if (! noPlayersGained)
-                        rollRsrcOldCli = gainsText.toString();
+                        rollRsrcTxtOldCli = gainsText.toString();
 
                     }
 
@@ -555,33 +528,35 @@ public class SOCGameMessageHandler
                         // debug_printPieceDiceNumbers(ga, message);
                         srv.messageToGameKeyed(ga, true, key);
                     } else {
-                        if (rollRsrcOldCli == null)
-                            srv.messageToGame(gn, rollRsrcNewCli);
-                        else if (rollRsrcNewCli == null)
-                            srv.messageToGame(gn, rollRsrcOldCli);
+                        if (rollRsrcTxtOldCli == null)
+                            srv.messageToGame(gn, rollRsrcMsgNewCli);
+                        else if (rollRsrcMsgNewCli == null)
+                            srv.messageToGame(gn, rollRsrcTxtOldCli);
                         else
                         {
                             // neither is null: we have old and new clients
-                            srv.messageToGameForVersions(ga, 0, (SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES - 1),
-                                new SOCGameTextMsg(gn, SOCGameTextMsg.SERVERNAME, rollRsrcOldCli), true);
-                            srv.messageToGameForVersions(ga, SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES, Integer.MAX_VALUE,
-                                rollRsrcNewCli, true);
+                            srv.messageToGameForVersions
+                                (ga, 0, (SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES - 1),
+                                 new SOCGameTextMsg(gn, SOCGameTextMsg.SERVERNAME, rollRsrcTxtOldCli), true);
+                            srv.messageToGameForVersions
+                                (ga, SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES, Integer.MAX_VALUE,
+                                 rollRsrcMsgNewCli, true);
                         }
 
                         //
                         //  Send gaining players all their resource info for accuracy
+                        //  and announce their new resource totals to game
                         //
                         for (int pn = 0; pn < ga.maxPlayers; ++pn)
                         {
-                            if (! plGained[pn])
-                                continue;  // skip if player didn't gain; before v2.0.00, each player in game got these
-
                             final SOCPlayer pp = ga.getPlayer(pn);
                             Connection playerCon = srv.getConnection(pp.getName());
                             if (playerCon == null)
                                 continue;
+                            if (pp.getRolledResources().getKnownTotal() == 0)
+                                continue;  // skip if player didn't gain; before v2.0.00 each player in game got these
 
-                            // CLAY, ORE, SHEEP, WHEAT, WOOD
+                            // send CLAY, ORE, SHEEP, WHEAT, WOOD even if player's amount is 0
                             final SOCResourceSet resources = pp.getResources();
                             final int[] counts = resources.getAmounts(false);
                             if (playerCon.getVersion() >= SOCPlayerElements.MIN_VERSION)
@@ -592,12 +567,9 @@ public class SOCGameMessageHandler
                                     srv.messageToPlayer(playerCon, new SOCPlayerElement
                                         (gn, pn, SOCPlayerElement.SET, SOCGameHandler.ELEM_RESOURCES[i], counts[i]));
 
-                            final int total = resources.getTotal();
-                            if (ga.clientVersionLowest < SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
-                                srv.messageToGame(gn, new SOCResourceCount(gn, pn, total));
-                            else
-                                srv.messageToGame(gn, new SOCPlayerElement
-                                    (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.RESOURCE_COUNT, total));
+                            if (ga.clientVersionLowest < SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
+                                srv.messageToGame(gn, new SOCResourceCount(gn, pn, resources.getTotal()));
+                            // else, already-sent SOCDiceResultResources included players' new resource totals
 
                             // we'll send gold picks text, PLAYERELEMENT, and SIMPLEREQUEST(PROMPT_PICK_RESOURCES)
                             // after the per-player loop

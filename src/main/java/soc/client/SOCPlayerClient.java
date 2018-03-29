@@ -5646,8 +5646,15 @@ public class SOCPlayerClient
         if (pcl == null)
             return;
 
-        SOCDisplaylessPlayerClient.handleDICERESULTRESOURCES(mes, ga);
+        SOCDisplaylessPlayerClient.handleDICERESULTRESOURCES(mes, ga, nickname, true);
         pcl.diceRolledResources(mes.playerNum, mes.playerRsrc);
+
+        // handle total counts here, visually updating any discrepancies
+        final int n = mes.playerNum.size();
+        for (int i = 0; i < n; ++i)
+            handlePLAYERELEMENT
+                (clientListeners.get(mes.getGame()), ga, null, mes.playerNum.get(i),
+                 SOCPlayerElement.SET, SOCPlayerElement.RESOURCE_COUNT, mes.playerResTotal.get(i), false);
     }
 
     /**
