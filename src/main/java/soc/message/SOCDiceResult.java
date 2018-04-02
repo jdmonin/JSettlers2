@@ -60,7 +60,7 @@ public class SOCDiceResult extends SOCMessageTemplate1i
      * Create a DiceResult message.
      *
      * @param ga  the name of the game
-     * @param dr  the dice result
+     * @param dr  the dice result, from {@link soc.game.SOCGame#getCurrentDice()}
      */
     public SOCDiceResult(String ga, int dr)
     {
@@ -79,7 +79,7 @@ public class SOCDiceResult extends SOCMessageTemplate1i
      * DICERESULT sep game sep2 result
      *
      * @param ga  the name of the game
-     * @param dr  the dice result
+     * @param dr  the dice result, from {@link soc.game.SOCGame#getCurrentDice()}
      * @return the command string
      */
     public static String toCmd(String ga, int dr)
