@@ -5244,7 +5244,8 @@ public class SOCPlayerClient
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
         if (pcl == null)
             return;  // Not one of our games
-        pcl.requestedDiceRoll();
+
+        pcl.requestedDiceRoll(mes.getPlayerNumber());
     }
 
     /**
@@ -6644,7 +6645,8 @@ public class SOCPlayerClient
 
     /**
      * Server version, for checking feature availability.
-     * Returns -1 if unknown.
+     * Returns -1 if unknown. Checks {@link SOCGame#isPractice}:
+     * practice games always return this client's own {@link soc.util.Version#versionNumber()}.
      *<P>
      * Instead of calling this method, some client code checks a game's version like:<BR>
      * {@code (game.isPractice || (client.sVersion >= VERSION_FOR_AUTHREQUEST))}

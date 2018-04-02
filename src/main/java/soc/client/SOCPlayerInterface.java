@@ -113,6 +113,10 @@ import javax.sound.sampled.LineUnavailableException;
  * ({@link SOCPlayerClient#PREF_SOUND_ON} etc) are.
  *<P>
  * A separate {@link SOCPlayerClient} window holds the list of current games and channels.
+ *<P>
+ * Some requests, actions, and features need different behavior depending on the
+ * server version we're connected to: check {@link SOCPlayerClient#getServerVersion(SOCGame)}
+ * if needed.
  *
  * @author Robert S. Thomas
  */
@@ -2272,14 +2276,24 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * A player is being asked to roll (or play a card) at the start of their turn.
-     * Update displays if needed.
+     * Update displays if needed. Also may be called during initial placement
+     * when it's a player's turn to place.
      *<P>
      * If the client is the current player, calls {@link SOCHandPanel#autoRollOrPromptPlayer()}
      * unless {@link ClientBridge#isNonBlockingDialogVisible()}.
+     * @param pn  Player number being prompted
      * @since 1.1.11
      */
-    public void updateAtRollPrompt()
+    public void updateAtRollPrompt(final int pn)
     {
+        if ((client.getServerVersion(game) >= SOCStringManager.VERSION_FOR_I18N)
+            && ! game.isInitialPlacement())
+        {
+            printKeyed("game.prompt.turn_to_roll_dice", game.getPlayer(pn).getName());
+                // "It's Joe's turn to roll the dice."
+        }
+        // else, server has just sent the prompt text and we've printed it
+
         if (clientIsCurrentPlayer() && ! clientListener.isNonBlockingDialogVisible())
             getClientHand().autoRollOrPromptPlayer();
     }
@@ -4196,9 +4210,9 @@ public class SOCPlayerInterface extends Frame
             pi.clearTradeMsg(pn);
         }
 
-        public void requestedDiceRoll()
+        public void requestedDiceRoll(final int pn)
         {
-            pi.updateAtRollPrompt();
+            pi.updateAtRollPrompt(pn);
         }
 
         public void debugFreePlaceModeToggled(boolean isEnabled)

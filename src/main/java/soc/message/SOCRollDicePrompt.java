@@ -27,6 +27,8 @@ import java.util.StringTokenizer;
  * and they may roll the dice, or take other action allowable at that time.
  * For example, the player's hand panel can start an auto-roll countdown timer.
  *<P>
+ * Also may be sent during initial placement when it's a player's turn to place.
+ *<P>
  * If the player is rolling the dice they will respond with {@link SOCRollDice},
  * or {@link SOCPlayDevCardRequest} to play a development card instead.
  *<P>
@@ -35,6 +37,11 @@ import java.util.StringTokenizer;
  * after initial placement.
  *<P>
  * If the client is older than v1.1.00 (1.0.6 for example) it will ignore this prompt.
+ *<P>
+ * Before v2.0.00 this message was preceded by a {@link SOCGameTextMsg} announcing the same information:
+ * "It's Joe's turn to roll the dice." Clients v2.0.00 and newer print this announcement when they
+ * receive a {@code SOCRollDicePrompt}, because server v2.0.00 and newer won't send that redundant text.
+ * Check version against {@link soc.util.SOCStringManager#VERSION_FOR_I18N}.
  *
  * @author Jeremy D. Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.00

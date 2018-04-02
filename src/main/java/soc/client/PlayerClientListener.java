@@ -260,7 +260,14 @@ public interface PlayerClientListener
      */
     void requestedTradeReset(SOCPlayer playerToReset);
     void requestedSpecialBuild(SOCPlayer player);
-    void requestedDiceRoll();
+
+    /**
+     * Server is prompting a player to roll the dice (or play a dev card) to begin their turn.
+     * This prompt is sent to all game members, not just the current player.
+     * Also may be called during initial placement when it's a player's turn to place.
+     * @param pn  Player number being prompted
+     */
+    void requestedDiceRoll(final int pn);
 
     /** The largest army might have changed, so update */
     void largestArmyRefresh(SOCPlayer old, SOCPlayer potentialNew);
