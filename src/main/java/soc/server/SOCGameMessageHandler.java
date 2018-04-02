@@ -749,9 +749,7 @@ public class SOCGameMessageHandler
                 } else {
                     handler.endGameTurn(ga, player, true);  // already did ga.takeMonitor()
                 }
-            }
-            else
-            {
+            } else {
                 /**
                  * (TODO) there could be a better feedback message here
                  */
@@ -821,10 +819,7 @@ public class SOCGameMessageHandler
                      */
                     SOCPlayer victim = victims.get(0);
                     handler.reportRobbery(ga, player, victim, result.getLoot());
-                }
-
-                else
-                {
+                } else {
                     final String msgKey;
                     // These messages use ChoiceFormat to choose "robber" or "pirate":
                     //    robberpirate.moved={0} moved {1,choice, 1#the robber|2#the pirate}.
@@ -867,9 +862,7 @@ public class SOCGameMessageHandler
                     final int vpn = victims.get(0).getPlayerNumber();
                     srv.messageToPlayer(c, new SOCChoosePlayer(gaName, vpn));
                 }
-            }
-            else
-            {
+            } else {
                 srv.messageToPlayerKeyed
                     (c, gaName, ((coord < 0) ? "robber.cantmove.pirate" : "robber.cantmove"));
                     // "You can't move the pirate" / "You can't move the robber"
@@ -960,9 +953,7 @@ public class SOCGameMessageHandler
                 default:
                     srv.messageToPlayerKeyed(c, ga.getName(), "robber.cantsteal");  // "You can't steal from that player."
                 }
-            }
-            else
-            {
+            } else {
                 srv.messageToPlayerKeyed(c, ga.getName(), "reply.not.your.turn");  // "It's not your turn."
             }
         }
@@ -1015,21 +1006,13 @@ public class SOCGameMessageHandler
                         // msg = "The game is over; no one won.";
                     srv.messageToPlayer(c, gname, msg);
                 }
-            }
-            else if (handler.checkTurn(c, ga))
-            {
+            } else if (handler.checkTurn(c, ga)) {
                 SOCPlayer pl = ga.getPlayer(plName);
                 if ((pl != null) && ga.canEndTurn(pl.getPlayerNumber()))
-                {
                     handler.endGameTurn(ga, pl, true);
-                }
                 else
-                {
                     srv.messageToPlayer(c, gname, "You can't end your turn yet.");
-                }
-            }
-            else
-            {
+            } else {
                 srv.messageToPlayer(c, gname, "It's not your turn.");
             }
         }
@@ -1325,26 +1308,20 @@ public class SOCGameMessageHandler
                      * clear all offers
                      */
                     for (int i = 0; i < ga.maxPlayers; i++)
-                    {
                         ga.getPlayer(i).setCurrentOffer(null);
-                    }
                     srv.gameList.takeMonitorForGame(gaName);
                     if (ga.clientVersionLowest >= SOCClearOffer.VERSION_FOR_CLEAR_ALL)
-                    {
                         srv.messageToGameWithMon(gaName, new SOCClearOffer(gaName, -1));
-                    } else {
+                    else
                         for (int i = 0; i < ga.maxPlayers; i++)
                             srv.messageToGameWithMon(gaName, new SOCClearOffer(gaName, i));
-                    }
                     srv.gameList.releaseMonitorForGame(gaName);
 
                     /**
                      * send a message (for the bots) that the offer was accepted
                      */
                     srv.messageToGame(gaName, mes);
-                }
-                else
-                {
+                } else {
                     srv.messageToPlayer(c, gaName, "You can't make that trade.");
                 }
             }
@@ -1380,18 +1357,14 @@ public class SOCGameMessageHandler
                 {
                     ga.makeBankTrade(give, get);
                     handler.reportBankTrade(ga, give, get);
-                }
-                else
-                {
+                } else {
                     srv.messageToPlayer(c, gaName, "You can't make that trade.");
                     SOCClientData scd = (SOCClientData) c.getAppData();
                     if ((scd != null) && scd.isRobot)
                         D.ebugPrintln("ILLEGAL BANK TRADE: " + c.getData()
                           + ": give " + give + ", get " + get);
                 }
-            }
-            else
-            {
+            } else {
                 srv.messageToPlayer(c, gaName, "It's not your turn.");
             }
         }
@@ -1436,9 +1409,7 @@ public class SOCGameMessageHandler
                 if ((ga.getGameState() == SOCGame.PLAY1) || (ga.getGameState() == SOCGame.SPECIAL_BUILDING))
                 {
                     sendDenyReply = ! handleBUILDREQUEST(ga, player, c, pieceType, true);
-                }
-                else if (pieceType == -1)
-                {
+                } else if (pieceType == -1) {
                     // 6-player board: Special Building Phase
                     // during start of own turn
                     try
@@ -1452,15 +1423,11 @@ public class SOCGameMessageHandler
                         srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.ask");  // "You can't ask to build now."
                         sendDenyReply = true;
                     }
-                }
-                else
-                {
+                } else {
                     srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now");  // "You can't build now."
                     sendDenyReply = true;
                 }
-            }
-            else
-            {
+            } else {
                 if (ga.maxPlayers <= 4)
                 {
                     srv.messageToPlayerKeyed(c, gaName, "reply.not.your.turn");  // "It's not your turn."
@@ -1549,9 +1516,7 @@ public class SOCGameMessageHandler
                 }
                 if (sendGameState)
                     handler.sendGameState(ga);
-            }
-            else
-            {
+            } else {
                 srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.road");  // "You can't build a road now."
                 sendDenyReply = true;
             }
@@ -1581,9 +1546,7 @@ public class SOCGameMessageHandler
                 }
                 if (sendGameState)
                     handler.sendGameState(ga);
-            }
-            else
-            {
+            } else {
                 srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.stlmt");  // "You can't build a settlement now."
                 sendDenyReply = true;
             }
@@ -1607,9 +1570,7 @@ public class SOCGameMessageHandler
                 }
                 if (sendGameState)
                     handler.sendGameState(ga);
-            }
-            else
-            {
+            } else {
                 srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.city");  // "You can't build a city now."
                 sendDenyReply = true;
             }
@@ -1633,9 +1594,7 @@ public class SOCGameMessageHandler
                 }
                 if (sendGameState)
                     handler.sendGameState(ga);
-            }
-            else
-            {
+            } else {
                 srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.ship");  // "You can't build a ship now."
                 sendDenyReply = true;
             }
@@ -1697,9 +1656,7 @@ public class SOCGameMessageHandler
                             srv.messageToGameKeyed(ga, true, "action.card.roadbuilding.skip.r", player.getName());
                                 // "{0} skipped placing the second road."
                         }
-                    }
-                    else
-                    {
+                    } else {
                         srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a road."/*18N*/ );
                         noAction = true;
                     }
@@ -1736,9 +1693,7 @@ public class SOCGameMessageHandler
                             // (Safe since we've validated all message parameters)
                         srv.messageToGameKeyed(ga, true, "action.built.stlmt.cancel", player.getName());  //  "{0} cancelled this settlement placement."
                         // The handler.sendGameState below is redundant if client reaction changes game state
-                    }
-                    else
-                    {
+                    } else {
                         srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a settlement."/*18N*/ );
                         noAction = true;
                     }
@@ -1760,9 +1715,7 @@ public class SOCGameMessageHandler
                             srv.messageToGame(gaName, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WHEAT, 2));
                         }
-                    }
-                    else
-                    {
+                    } else {
                         srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a city."/*18N*/ );
                         noAction = true;
                     }
@@ -1790,9 +1743,7 @@ public class SOCGameMessageHandler
                             srv.messageToGameKeyed(ga, true, "action.card.roadbuilding.skip.s", player.getName());
                                 // "{0} skipped placing the second ship."
                         }
-                    }
-                    else
-                    {
+                    } else {
                         srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a ship."/*18N*/ );
                         noAction = true;
                     }
@@ -1825,17 +1776,15 @@ public class SOCGameMessageHandler
                 }
 
                 if (! noAction)
-                    handler.sendGameState(ga);
-                else
                 {
+                    handler.sendGameState(ga);
+                } else {
                     // bot is waiting for a gamestate reply, not text
                     final SOCClientData scd = (SOCClientData) c.getAppData();
                     if ((scd != null) && scd.isRobot)
                         c.put(SOCGameState.toCmd(gaName, gstate));
                 }
-            }
-            else
-            {
+            } else {
                 srv.messageToPlayerKeyed(c, gaName, "reply.not.your.turn");  // "It's not your turn."
             }
         }
@@ -1954,9 +1903,7 @@ public class SOCGameMessageHandler
                                 // gold hex revealed from fog (scenario SC_FOG)
                                 handler.sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
                             }
-                        }
-                        else
-                        {
+                        } else {
                             D.ebugPrintln("ILLEGAL ROAD: 0x" + Integer.toHexString(coord)
                                 + ": player " + pn);
                             if (player.isRobot() && D.ebugOn)
@@ -1970,9 +1917,7 @@ public class SOCGameMessageHandler
                                 // "You can't build a road there."
                             sendDenyReply = true;
                         }
-                    }
-                    else
-                    {
+                    } else {
                         srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.road");
                             // "You can't build a road now."
                     }
@@ -2007,9 +1952,7 @@ public class SOCGameMessageHandler
                                 // Prompt to pick from gold: send text and SOCSimpleRequest(PROMPT_PICK_RESOURCES)
                                 handler.sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
                             }
-                        }
-                        else
-                        {
+                        } else {
                             D.ebugPrintln("ILLEGAL SETTLEMENT: 0x" + Integer.toHexString(coord)
                                 + ": player " + pn);
                             if (player.isRobot() && D.ebugOn)
@@ -2024,9 +1967,7 @@ public class SOCGameMessageHandler
                                 // "You can't build a settlement there."
                             sendDenyReply = true;
                         }
-                    }
-                    else
-                    {
+                    } else {
                         srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.stlmt");
                             // "You can't build a settlement now."
                     }
@@ -2066,9 +2007,7 @@ public class SOCGameMessageHandler
                                 handler.sendTurn(ga, false);  // Announce new state and new current player
                             else
                                 handler.sendGameState(ga);
-                        }
-                        else
-                        {
+                        } else {
                             D.ebugPrintln("ILLEGAL CITY: 0x" + Integer.toHexString(coord)
                                 + ": player " + pn);
                             if (player.isRobot() && D.ebugOn)
@@ -2082,9 +2021,7 @@ public class SOCGameMessageHandler
                                 // "You can't build a city there."
                             sendDenyReply = true;
                         }
-                    }
-                    else
-                    {
+                    } else {
                         srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.city");
                             // "You can't build a city now."
                     }
@@ -2120,9 +2057,7 @@ public class SOCGameMessageHandler
                                 // gold hex revealed from fog (scenario SC_FOG)
                                 handler.sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
                             }
-                        }
-                        else
-                        {
+                        } else {
                             D.ebugPrintln("ILLEGAL SHIP: 0x" + Integer.toHexString(coord)
                                 + ": player " + pn);
                             if (player.isRobot() && D.ebugOn)
@@ -2136,9 +2071,7 @@ public class SOCGameMessageHandler
                                 // "You can't build a ship there."
                             sendDenyReply = true;
                         }
-                    }
-                    else
-                    {
+                    } else {
                         srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.ship");
                             // "You can't build a ship now."
                     }
@@ -2158,9 +2091,7 @@ public class SOCGameMessageHandler
                         ga.lastActionTime = 0L;
                     }
                 }
-            }
-            else
-            {
+            } else {
                 srv.messageToPlayerKeyed(c, gaName, "reply.not.your.turn");  // "It's not your turn."
             }
         }
@@ -2430,22 +2361,14 @@ public class SOCGameMessageHandler
                     }
 
                     handler.sendGameState(ga);
-                }
-                else
-                {
+                } else {
                     if (ga.getNumDevCards() == 0)
-                    {
                         srv.messageToPlayer(c, gaName, "There are no more Development cards.");
-                    }
                     else
-                    {
                         srv.messageToPlayer(c, gaName, "You can't buy a development card now.");
-                    }
                     sendDenyReply = true;
                 }
-            }
-            else
-            {
+            } else {
                 if (ga.maxPlayers <= 4)
                 {
                     srv.messageToPlayer(c, gaName, "It's not your turn.");
@@ -2514,6 +2437,7 @@ public class SOCGameMessageHandler
                             ? SOCPlayerElement.SCENARIO_WARSHIP_COUNT : SOCPlayerElement.NUMKNIGHTS;
 
                         ga.playKnight();
+
                         final String cardplayed = (isWarshipConvert)
                             ? "action.card.soldier.warship"  // "converted a ship to a warship."
                             : "action.card.soldier";         // "played a Soldier card."
@@ -2543,9 +2467,7 @@ public class SOCGameMessageHandler
                         {
                             handler.sendGameState(ga);
                         }
-                    }
-                    else
-                    {
+                    } else {
                         denyPlayCardNow = true;
                         // "You can't play a " + ((isWarshipConvert) ? "Warship" : "Soldier") + " card now."
                     }
@@ -2557,6 +2479,7 @@ public class SOCGameMessageHandler
                     if (ga.canPlayRoadBuilding(pn))
                     {
                         ga.playRoadBuilding();
+
                         srv.gameList.takeMonitorForGame(gaName);
                         srv.messageToGameWithMon(gaName, new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.ROADS));
                         if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
@@ -2568,20 +2491,14 @@ public class SOCGameMessageHandler
                         srv.gameList.releaseMonitorForGame(gaName);
                         handler.sendGameState(ga);
                         if (ga.getGameState() == SOCGame.PLACING_FREE_ROAD1)
-                        {
                             srv.messageToPlayerKeyed
                                 (c, gaName, (ga.hasSeaBoard) ? "action.card.road.place.2s" : "action.card.road.place.2r");
                             // "You may place 2 roads/ships." or "You may place 2 roads."
-                        }
                         else
-                        {
                             srv.messageToPlayerKeyed
                                 (c, gaName, (ga.hasSeaBoard) ? "action.card.road.place.1s" : "action.card.road.place.1r");
                             // "You may place your 1 remaining road or ship." or "... place your 1 remaining road."
-                        }
-                    }
-                    else
-                    {
+                    } else {
                         denyPlayCardNow = true;  // "You can't play a Road Building card now."
                     }
 
@@ -2592,6 +2509,7 @@ public class SOCGameMessageHandler
                     if (ga.canPlayDiscovery(pn))
                     {
                         ga.playDiscovery();
+
                         srv.gameList.takeMonitorForGame(gaName);
                         srv.messageToGameWithMon(gaName, new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.DISC));
                         if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
@@ -2603,9 +2521,7 @@ public class SOCGameMessageHandler
                             // "played a Year of Plenty card."
                         srv.gameList.releaseMonitorForGame(gaName);
                         handler.sendGameState(ga);
-                    }
-                    else
-                    {
+                    } else {
                         denyPlayCardNow = true;  // "You can't play a Year of Plenty card now."
                     }
 
@@ -2616,6 +2532,7 @@ public class SOCGameMessageHandler
                     if (ga.canPlayMonopoly(pn))
                     {
                         ga.playMonopoly();
+
                         srv.gameList.takeMonitorForGame(gaName);
                         srv.messageToGameWithMon(gaName, new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.MONO));
                         if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
@@ -2626,9 +2543,7 @@ public class SOCGameMessageHandler
                         srv.messageToGameKeyed(ga, false, "action.card.mono", player.getName());  // "played a Monopoly card."
                         srv.gameList.releaseMonitorForGame(gaName);
                         handler.sendGameState(ga);
-                    }
-                    else
-                    {
+                    } else {
                         denyPlayCardNow = true;  // "You can't play a Monopoly card now."
                     }
 
@@ -2648,9 +2563,7 @@ public class SOCGameMessageHandler
                     // in case ctype was changed here from message value.
 
                 }
-            }
-            else
-            {
+            } else {
                 denyTextKey = "reply.not.your.turn";  // "It's not your turn."
             }
 
@@ -2720,14 +2633,10 @@ public class SOCGameMessageHandler
                         srv.messageToGameKeyedSpecial(ga, true, "action.card.discov.received", player.getName(), rsrcs);
                             // "{0} received {1,rsrcs} from the bank."
                         handler.sendGameState(ga);
-                    }
-                    else
-                    {
+                    } else {
                         srv.messageToPlayerKeyed(c, gaName, "action.card.discov.notlegal");  // "That is not a legal Year of Plenty pick."
                     }
-                }
-                else
-                {
+                } else {
                     srv.messageToPlayerKeyed(c, gaName, "reply.not.your.turn");  // "It's not your turn."
                 }
             } else {
@@ -2789,9 +2698,7 @@ public class SOCGameMessageHandler
                         // force-end game turn
                         handler.endGameTurn(ga, player, true);  // locking: already did ga.takeMonitor()
                     }
-                }
-                else
-                {
+                } else {
                     srv.messageToPlayer(c, gaName, "You can't pick that many resources.");
                     final int npick = player.getNeedToPickGoldHexResources();
                     if ((npick > 0) && (gstate < SOCGame.OVER))
@@ -2911,15 +2818,11 @@ public class SOCGameMessageHandler
                     }
 
                     handler.sendGameState(ga);
-                }
-                else
-                {
+                } else {
                     srv.messageToPlayerKeyedSpecial(c, ga, "reply.playdevcard.cannot.now", SOCDevCardConstants.MONO);
                         // "You can't play a Monopoly card now."  Before v2.0.00, was "You can't do a Monopoly pick now."
                 }
-            }
-            else
-            {
+            } else {
                 srv.messageToPlayerKeyed(c, gaName, "reply.not.your.turn");  // "It's not your turn."
             }
         }
