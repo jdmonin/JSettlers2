@@ -1893,8 +1893,9 @@ public class SOCPlayerInterface extends Frame
 
         if (isOffer)
         {
-            printKeyedSpecial("trade.offered.rsrcs.for", plName, give, get);
-                // "{0} offered to give {1,rsrcs} for {2,rsrcs}."
+            if (client.getServerVersion(game) >= SOCStringManager.VERSION_FOR_I18N)
+                printKeyedSpecial("trade.offered.rsrcs.for", plName, give, get);
+                    // "{0} offered to give {1,rsrcs} for {2,rsrcs}."
         } else {
             // use total rsrc counts to determine bank or port
             final int giveTotal = give.getTotal(),
