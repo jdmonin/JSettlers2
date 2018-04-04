@@ -1128,21 +1128,35 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (ga == null)
             return;
 
-        handleDICERESULTRESOURCES(mes, ga);
+        handleDICERESULTRESOURCES(mes, ga, nickname, false);
     }
 
     /**
      * Handle all players' dice roll result resources: static version to share with SOCPlayerClient.
      * Game players gain resources.
+     * @param mes  Message data
+     * @param ga  Game to update
+     * @param nickname  Our client player's nickname, needed for element data update
+     * @param skipResourceCount  If true, ignore the resource part of the message
+     *     because caller will handle that separately.
      * @since 2.0.00
      */
-    public static final void handleDICERESULTRESOURCES(final SOCDiceResultResources mes, SOCGame ga)
+    public static final void handleDICERESULTRESOURCES
+        (final SOCDiceResultResources mes, final SOCGame ga, final String nickname, final boolean skipResourceCount)
     {
         final int n = mes.playerNum.size();
         for (int p = 0; p < n; ++p)  // current index reading from playerNum and playerRsrc
         {
             final SOCResourceSet rs = mes.playerRsrc.get(p);
-            ga.getPlayer(mes.playerNum.get(p)).getResources().add(rs);
+            final int pn = mes.playerNum.get(p);
+            final SOCPlayer pl = ga.getPlayer(pn);
+
+            pl.getResources().add(rs);
+
+            if (! skipResourceCount)
+                handlePLAYERELEMENT_simple
+                    (ga, pl, pn, SOCPlayerElement.SET,
+                     SOCPlayerElement.RESOURCE_COUNT, mes.playerResTotal.get(p), nickname);
         }
     }
 
@@ -1487,7 +1501,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *     or {@link SOCPlayerElement#LOSE LOSE}
      * @param etype  Element type, such as {@link SOCPlayerElement#SETTLEMENTS} or {@link SOCPlayerElement#NUMKNIGHTS}
      * @param val  The new value to set, or the delta to gain/lose
-     * @param nickname  Our client player nickname/username, for a few elements where that matters
+     * @param nickname  Our client player nickname/username, for the only element where that matters:
+     *     {@link SOCPlayerElement#RESOURCE_COUNT}. Can be {@code null} otherwise.
      * @since 2.0.00
      */
     public static void handlePLAYERELEMENT_simple
@@ -1522,9 +1537,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 }
 
                 //
-                //  fix it
+                //  fix it if possible
                 //
-                if (! pl.getName().equals(nickname))
+                if ((nickname != null) && ! pl.getName().equals(nickname))
                 {
                     rsrcs.clear();
                     rsrcs.setAmount(val, SOCResourceConstants.UNKNOWN);

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2015-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -38,7 +38,7 @@ import soc.game.SOCGameOption;  // for javadocs only
  * convenience methods with more intuitive names to retrieve the player number and typecode.
  *<P>
  * This message type would be useful for new functions that don't have a complicated
- * set of details attached.  If {@link SOCRollDiceRequest} or the Ask-Special-Build message types
+ * set of details attached.  If {@link SOCRollDicePrompt} or the Ask-Special-Build message types
  * were implemented today, they would add request types to this message type.
  *
  *<H3>Request from Client to Server</H3>

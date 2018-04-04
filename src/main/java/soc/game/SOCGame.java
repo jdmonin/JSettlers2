@@ -2016,6 +2016,7 @@ public class SOCGame implements Serializable, Cloneable
      *  -1 at start of game, 0 during player's turn before roll (state {@link #ROLL_OR_CARD}).
      * @return the current dice result
      * @see #rollDice()
+     * @see SOCPlayer#getRolledResources()
      */
     public int getCurrentDice()
     {
@@ -4931,6 +4932,8 @@ public class SOCGame implements Serializable, Cloneable
      * {@link #WAITING_FOR_ROBBER_OR_PIRATE}, or {@link #PLACING_ROBBER}.
      *<P>
      * For dice roll total, see returned {@link RollResult} or call {@link #getCurrentDice()} afterwards.
+     * Each player's {@link SOCPlayer#getRolledResources()} will show their resources gained, if any,
+     * but not gold or scenario-specific items from {@link RollResult}.
      *<P>
      * Checks game option N7: Roll no 7s during first # rounds
      * and N7C: Roll no 7s until a city is built.
@@ -8468,6 +8471,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Dice roll result, for reporting from {@link SOCGame#rollDice()}.
      * Each game has 1 instance of this object, which is updated each turn.
+     * @see SOCPlayer#getRolledResources()
      * @see SOCMoveRobberResult
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 2.0.00

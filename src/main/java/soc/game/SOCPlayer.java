@@ -1899,8 +1899,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * Get the location of this player's most recent
      * road or ship.  Useful during initial placement.
-     * @return the coordinates of the last road/ship
-     * played by this player
+     * @return the coordinates of the last road/ship played by this player
      */
     public int getLastRoadCoord()
     {
@@ -4363,6 +4362,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Does this player have at least one potential road?
      * @return true if there is at least one potential road
      */
     public boolean hasPotentialRoad()
@@ -4371,6 +4371,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Does this player have at least one potential settlement?
      * @return true if there is at least one potential settlement
      * @see #getPotentialSettlements()
      */
@@ -4380,6 +4381,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Does this player have at least one potential city?
      * @return true if there is at least one potential city
      */
     public boolean hasPotentialCity()

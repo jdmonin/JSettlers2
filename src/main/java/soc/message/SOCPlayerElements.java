@@ -106,7 +106,9 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
     }
 
     /**
-     * Constructor for server to tell client(s) about player resources.
+     * Constructor for server to tell client(s) about known player resources:
+     * {@link SOCResourceConstants#CLAY} through {@link SOCResourceConstants#WOOD}.
+     * Resource types with {@link SOCResourceSet#getAmount(int) rs.getAmount(type)} == 0 aren't sent.
      *
      * @param ga  name of the game
      * @param pn  the player number

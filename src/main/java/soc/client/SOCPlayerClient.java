@@ -5245,7 +5245,8 @@ public class SOCPlayerClient
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
         if (pcl == null)
             return;  // Not one of our games
-        pcl.requestedDiceRoll();
+
+        pcl.requestedDiceRoll(mes.getPlayerNumber());
     }
 
     /**
@@ -5647,8 +5648,15 @@ public class SOCPlayerClient
         if (pcl == null)
             return;
 
-        SOCDisplaylessPlayerClient.handleDICERESULTRESOURCES(mes, ga);
+        SOCDisplaylessPlayerClient.handleDICERESULTRESOURCES(mes, ga, nickname, true);
         pcl.diceRolledResources(mes.playerNum, mes.playerRsrc);
+
+        // handle total counts here, visually updating any discrepancies
+        final int n = mes.playerNum.size();
+        for (int i = 0; i < n; ++i)
+            handlePLAYERELEMENT
+                (clientListeners.get(mes.getGame()), ga, null, mes.playerNum.get(i),
+                 SOCPlayerElement.SET, SOCPlayerElement.RESOURCE_COUNT, mes.playerResTotal.get(i), false);
     }
 
     /**
@@ -6638,7 +6646,8 @@ public class SOCPlayerClient
 
     /**
      * Server version, for checking feature availability.
-     * Returns -1 if unknown.
+     * Returns -1 if unknown. Checks {@link SOCGame#isPractice}:
+     * practice games always return this client's own {@link soc.util.Version#versionNumber()}.
      *<P>
      * Instead of calling this method, some client code checks a game's version like:<BR>
      * {@code (game.isPractice || (client.sVersion >= VERSION_FOR_AUTHREQUEST))}

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008,2010,2012-2013,2015-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008,2010,2012-2013,2015-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,7 +29,7 @@ package soc.game;
  * Check for that; it's not reported as part of this object.
  *<P>
  * This result object isn't intended to be conveyed over a network to clients; the server
- * should translate it into {@code SOCMessage}s which change game state.
+ * should translate it into messages which change game state.
  */
 public class SOCForceEndTurnResult
 {

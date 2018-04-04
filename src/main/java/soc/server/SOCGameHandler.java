@@ -1903,9 +1903,8 @@ public class SOCGameHandler extends GameHandler
     /**
      * Send all game members the current state of the game with a {@link SOCGameState} message.
      * Assumes current player does not change during this state.
-     * If we send a text message to prompt the new player to roll,
-     * also sends a RollDicePrompt data message.
      * May also send other messages to the current player.
+     * If state is {@link SOCGame#ROLL_OR_CARD}, sends game a {@link SOCRollDicePrompt}.
      *<P>
      * For more details and references, see {@link #sendGameState(SOCGame, boolean, boolean)}.
      * Be sure that callers to {@code sendGameState} don't assume the game will still
@@ -1925,6 +1924,12 @@ public class SOCGameHandler extends GameHandler
      * May also send other messages to the current player.
      * Note that the current (or new) player number is not sent here.
      * If game is now OVER, sends appropriate messages.
+     *<P>
+     * State {@link SOCGame#ROLL_OR_CARD}:
+     * If {@code sendRollPrompt}, send game a {@code RollDicePrompt} announcement.
+     * Clients v2.0.00 or newer ({@link SOCStringManager#VERSION_FOR_I18N}) will print
+     * "It's Joe's turn to roll the dice." Older clients will be sent a text message
+     * to say that.
      *<P>
      * State {@link SOCGame#WAITING_FOR_DISCARDS}:
      * If a 7 is rolled, will also say who must discard (in a GAMETEXTMSG).
@@ -1960,12 +1965,9 @@ public class SOCGameHandler extends GameHandler
      * @param omitGameStateMessage  if true, don't send the {@link SOCGameState} message itself
      *    but do send any other messages as described above. For use just after sending a message which
      *    includes a Game State field.
-     * @param sendRollPrompt  If true, and if we send a text message to prompt
-     *    the player to roll, send a RollDicePrompt data message.
-     *    If the client is too old (1.0.6), it will ignore the prompt.
-     *
-     * @return    did we send a text message to prompt the player to roll?
-     *    If so, sendTurn can also send a RollDicePrompt data message.
+     * @param sendRollPrompt  If true and state is {@link SOCGame#ROLL_OR_CARD}, send game a {@code RollDicePrompt}.
+     * @return  If true, caller ({@code sendTurn}) should send game a {@code RollDicePrompt}
+     *    because {@code sendRollPrompt} is false, although they may send other messages first.
      * @since 1.1.00
      */
     boolean sendGameState(SOCGame ga, final boolean omitGameStateMessage, final boolean sendRollPrompt)
@@ -1976,7 +1978,7 @@ public class SOCGameHandler extends GameHandler
         final int gaState = ga.getGameState();
         final int cpn = ga.getCurrentPlayerNumber();
         final String gname = ga.getName();
-        boolean promptedRoll = false;
+        boolean wantRollPrompt = false;
 
         if (gaState == SOCGame.OVER)
         {
@@ -2028,11 +2030,21 @@ public class SOCGameHandler extends GameHandler
             break;
 
         case SOCGame.ROLL_OR_CARD:
-            srv.messageToGameKeyed(ga, true, "prompt.turn.to.roll.dice", player.getName());  // "It's Joe's turn to roll the dice."
-            promptedRoll = true;
+            if (ga.clientVersionLowest < SOCStringManager.VERSION_FOR_I18N)
+            {
+                // v2.0.00 and newer clients will announce this with localized text;
+                // older clients need text sent from the server
+                final String prompt = "It's " + player.getName() + "'s turn to roll the dice.";
+                    // "It's Joe's turn to roll the dice."
+                    // I18N OK: Pre-2.0.00 clients always use english
+                srv.messageToGameForVersions
+                    (ga, 0, SOCStringManager.VERSION_FOR_I18N - 1,
+                     new SOCGameTextMsg(gname, SOCServer.SERVERNAME, prompt), true);
+            }
             if (sendRollPrompt)
-                srv.messageToGame(gname, new SOCRollDicePrompt (gname, player.getPlayerNumber()));
-
+                srv.messageToGame(gname, new SOCRollDicePrompt(gname, player.getPlayerNumber()));
+            else
+                wantRollPrompt = true;
             break;
 
         case SOCGame.WAITING_FOR_DISCARDS:
@@ -2098,7 +2110,7 @@ public class SOCGameHandler extends GameHandler
 
         }  // switch ga.getGameState
 
-        return promptedRoll;
+        return wantRollPrompt;
     }
 
     /**
@@ -2902,9 +2914,9 @@ public class SOCGameHandler extends GameHandler
         }
         else
         {
-            boolean toldRoll = sendGameState(ga, false, false);
+            final boolean sendRoll = sendGameState(ga, false, false);
 
-            if (toldRoll)
+            if (sendRoll)
             {
                 // When normal play starts, or after placing 2nd free road,
                 // announce even though player unchanged,
@@ -2916,8 +2928,8 @@ public class SOCGameHandler extends GameHandler
     }
 
     /**
-     * At start of a new turn, send new {@link SOCGame#getGameState()} and {@link SOCTurn} with whose turn it is.
-     * Optionally also send a prompt to roll. If the client is too old (1.0.6), it will ignore the prompt.
+     * At start of a new turn, send game its new {@link SOCGame#getGameState()}
+     * and {@link SOCTurn} for whose turn it is. Optionally also send a prompt to roll.
      *<P>
      * The {@link SOCTurn} sent will have a field for the Game State unless
      * {@link SOCGame#clientVersionLowest} &lt; 2.0.00 ({@link SOCGameState#VERSION_FOR_GAME_STATE_AS_FIELD}),
@@ -2929,7 +2941,7 @@ public class SOCGameHandler extends GameHandler
      * during and after initial placement.
      *
      * @param ga  the game
-     * @param sendRollPrompt  whether to send a RollDicePrompt message afterwards
+     * @param sendRollPrompt  If true, also send a {@code RollDicePrompt} message after {@code Turn}
      */
     void sendTurn(final SOCGame ga, boolean sendRollPrompt)
     {

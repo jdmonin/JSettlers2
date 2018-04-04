@@ -124,8 +124,11 @@ public class SOCPlayerElement extends SOCMessage
     public static final int ASK_SPECIAL_BUILD = 16;
 
     /**
-     * Total resources this player has available in hand to use.
+     * Total resources this player has available in hand to use,
+     * from their hand's {@link soc.game.SOCResourceSet#getTotal()}.
      * Sent only with {@link #SET}, not {@link #GAIN} or {@link #LOSE}.
+     *<P>
+     * Alternately, send that info as part of a {@link SOCDiceResultResources} message.
      *<P>
      * Games with clients older than v2.0.00 use {@link SOCResourceCount} messages instead of this element:
      * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.
