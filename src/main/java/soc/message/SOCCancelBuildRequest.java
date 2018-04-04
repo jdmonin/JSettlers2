@@ -144,7 +144,8 @@ public class SOCCancelBuildRequest extends SOCMessage
      * CANCELBUILDREQUEST sep game sep2 pieceType
      *
      * @param ga  the name of the game
-     * @param pt  the type of piece to build
+     * @param pt  the type of piece to cancel build;
+     *     see {@link #SOCCancelBuildRequest(String, int)} constructor for values
      * @return the command string
      */
     public static String toCmd(String ga, int pt)
