@@ -2741,6 +2741,7 @@ public class SOCGameMessageHandler
                     final int rsrc = mes.getResourceType();
                     final int[] monoPicks = ga.doMonopolyAction(rsrc);
                     final boolean[] isVictim = new boolean[ga.maxPlayers];
+                    final int cpn = ga.getCurrentPlayerNumber();
                     final String monoPlayerName = c.getData();
                     int monoTotal = 0;
                     for (int pn = 0; pn < ga.maxPlayers; ++pn)
@@ -2756,7 +2757,7 @@ public class SOCGameMessageHandler
                     srv.gameList.takeMonitorForGame(gaName);
 
                     final SOCSimpleAction actMsg = new SOCSimpleAction
-                        (gaName, ga.getCurrentPlayerNumber(),
+                        (gaName, cpn,
                          SOCSimpleAction.RSRC_TYPE_MONOPOLIZED, monoTotal, rsrc);
                          // Client will print "You monopolized 5 sheep." or "Joe monopolized 5 Sheep."
 
@@ -2781,19 +2782,16 @@ public class SOCGameMessageHandler
                     }
 
                     /**
-                     * send each player's resource counts for the monopolized resource;
+                     * send each affected player's resource counts for the monopolized resource;
                      * set isNews flag for each victim player's count
                      */
                     for (int pn = 0; pn < ga.maxPlayers; ++pn)
-                    {
-                        /**
-                         * Note: This works because SOCPlayerElement.CLAY == SOCResourceConstants.CLAY
-                         */
-                        srv.messageToGameWithMon
-                            (gaName, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.SET,
-                                 rsrc, ga.getPlayer(pn).getResources().getAmount(rsrc), isVictim[pn]));
-                    }
+                        if ((pn == cpn) || isVictim[pn])
+                            // sending rsrc number works because SOCPlayerElement.CLAY == SOCResourceConstants.CLAY
+                            srv.messageToGameWithMon
+                                (gaName, new SOCPlayerElement
+                                    (gaName, pn, SOCPlayerElement.SET,
+                                     rsrc, ga.getPlayer(pn).getResources().getAmount(rsrc), (pn != cpn)));
 
                     srv.gameList.releaseMonitorForGame(gaName);
 
