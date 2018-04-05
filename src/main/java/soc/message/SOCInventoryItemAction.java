@@ -26,7 +26,6 @@ import soc.game.SOCGameOption;
 import soc.game.SOCInventoryItem;     // for javadoc's use
 import soc.proto.GameMessage;
 import soc.proto.GameMessage.InventoryItemAction;
-import soc.proto.GameMessage.InventoryItemAction._ActionType;
 import soc.proto.Message;
 
 
@@ -357,23 +356,23 @@ public class SOCInventoryItemAction extends SOCMessage
         switch (action)
         {
         case ADD_PLAYABLE:
-            act = _ActionType.ADD_OLD;
+            act = InventoryItemAction._ActionType.ADD_OLD;
             b.setIsPlayable(true);
             break;
         case ADD_OTHER:
-            act = _ActionType.ADD_NEW;
+            act = InventoryItemAction._ActionType.ADD_NEW;
             break;
         case PLAYED:
             // fall through to PLAY
         case PLAY:
-            act = _ActionType.PLAY;
+            act = InventoryItemAction._ActionType.PLAY;
             break;
         case CANNOT_PLAY:
-            act = _ActionType.CANNOT_PLAY;
+            act = InventoryItemAction._ActionType.CANNOT_PLAY;
             b.setReasonCode(reasonCode);
             break;
         case PLACING_EXTRA:
-            act = _ActionType.PLACING_EXTRA;
+            act = InventoryItemAction._ActionType.PLACING_EXTRA;
             break;
         default:
             act = null;

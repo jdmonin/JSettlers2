@@ -26,7 +26,6 @@ import soc.proto.Data.DevCardValue;
 import soc.proto.GameMessage;
 import soc.proto.Message;
 import soc.proto.GameMessage.InventoryItemAction;
-import soc.proto.GameMessage.InventoryItemAction._ActionType;
 
 
 /**
@@ -203,8 +202,8 @@ public class SOCDevCardAction extends SOCMessage
         final DevCardValue cvalue = ProtoMessageBuildHelper.toDevCardValue(cardType);
 
         GameMessage.InventoryItemAction.Builder b
-        = GameMessage.InventoryItemAction.newBuilder()
-            .setPlayerNumber(playerNumber);
+            = GameMessage.InventoryItemAction.newBuilder()
+                .setPlayerNumber(playerNumber);
         if (cvalue != null)
             b.setDevCardValue(cvalue);
 
@@ -212,11 +211,11 @@ public class SOCDevCardAction extends SOCMessage
 
         switch (actionType)
         {
-        case DRAW:     act = _ActionType.DRAW;  break;
-        case PLAY:     act = _ActionType.PLAY;  break;
-        case ADD_NEW:  act = _ActionType.ADD_NEW;  break;
-        case ADD_OLD:  act = _ActionType.ADD_OLD;  break;
-        case CANNOT_PLAY: act = _ActionType.CANNOT_PLAY;  break;
+        case DRAW:     act = InventoryItemAction._ActionType.DRAW;  break;
+        case PLAY:     act = InventoryItemAction._ActionType.PLAY;  break;
+        case ADD_NEW:  act = InventoryItemAction._ActionType.ADD_NEW;  break;
+        case ADD_OLD:  act = InventoryItemAction._ActionType.ADD_OLD;  break;
+        case CANNOT_PLAY: act = InventoryItemAction._ActionType.CANNOT_PLAY;  break;
         default:
             act = null;
         }
