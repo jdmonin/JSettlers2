@@ -70,7 +70,6 @@ public class SOCDiceResultResources extends SOCMessageTemplateMi
 
     /**
      * {@code playerResTotal(i)} is the new resource total count held by player {@link #playerNum playerNum(i)}.
-     * Used at client only, null at server.
      * @see #playerRsrc
      */
     public List<Integer> playerResTotal;
@@ -315,7 +314,7 @@ public class SOCDiceResultResources extends SOCMessageTemplateMi
             prb.setPlayerNumber(playerNum.get(i));
             final SOCResourceSet rs = playerRsrc.get(i);
             prb.setResGained(ProtoMessageBuildHelper.toResourceSet(rs));
-            prb.setResTotal(rs.getTotal());  // TODO should be player's entire total, not gained total
+            prb.setResTotal(playerResTotal.get(i));
 
             b.addPlayerResources(prb);
         }
