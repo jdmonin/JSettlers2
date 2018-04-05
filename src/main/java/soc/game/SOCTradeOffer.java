@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,6 +21,7 @@
 package soc.game;
 
 import java.io.Serializable;
+import java.util.List;
 
 
 /**
@@ -36,7 +37,38 @@ public class SOCTradeOffer implements Serializable, Cloneable
     boolean[] to;
 
     /**
-     * The constructor for a SOCTradeOffer
+     * Make a boolean array of player numbers from a list.
+     * @param pnList  List of player numbers; should be in range 0-3 or 0-5 inclusive,
+     *     for a 4-player or 6-player game. Element values outside that range are ignored.
+     * @return Boolean array whose element indexes from {@code pnList} are {@code true}
+     *    and all others are {@code false}, or {@code null} if {@code pnList}
+     *    was null, empty, or had no values &gt;= 0
+     * @since 3.0.00
+     */
+    public static final boolean[] makePNArray(final List<Integer> pnList)
+    {
+        if (pnList == null)
+            return null;
+
+        int max = -1;
+        for (final int i : pnList)
+            if (i > max)
+                max = i;
+        if (max == -1)
+            return null;
+
+        final int L = (max >= 4) ? 6 : 4;
+        boolean[] pnArr = new boolean[L];
+        for (final int i : pnList)
+            if ((i >= 0) && (i < L))
+                pnArr[i] = true;
+
+        return pnArr;
+    }
+
+    /**
+     * The constructor for a SOCTradeOffer.
+     * To use a list of player numbers instead of a boolean array, use {@link #makePNArray(List)} to convert it.
      *
      * @param  game  the name of the game in which this offer was made
      * @param  from  the number of the player making the offer

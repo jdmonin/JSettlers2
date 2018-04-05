@@ -27,7 +27,8 @@ import soc.proto.Data;
 import soc.proto.GameMessage;
 
 /**
- * Common helper functions for building Protobuf messages to send from the server or client.
+ * Common helper functions for building Protobuf messages to send from the server or client
+ * and translating received protobuf fields into game objects like {@link SOCResourceSet}.
  *
  * @since 3.0.00
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -35,11 +36,12 @@ import soc.proto.GameMessage;
 public abstract class ProtoMessageBuildHelper
 {
     /**
-     * Build a protobuf {@code Data.ResourceSet.Builder} from this {@code SOCResourceSet}'s known resources.
+     * Build a protobuf {@code Data.ResourceSet.Builder} from this {@link SOCResourceSet}'s known resources.
      * Unknown resources are ignored.
      * @param rs  Resource set to build from; not {@code null}
      * @return  A {@code Data.ResourceSet.Builder} from {@code rs}
      * @throws NullPointerException if {@code rs == null}
+     * @see #fromResourceSet(soc.proto.Data.ResourceSet)
      */
     public static final Data.ResourceSet.Builder toResourceSet(final SOCResourceSet rs)
         throws NullPointerException
@@ -66,12 +68,27 @@ public abstract class ProtoMessageBuildHelper
     }
 
     /**
+     * Build a {@link SOCResourceSet} from this protobuf {@code Data.ResourceSet.Builder}'s known resources.
+     * Unknown resources are ignored.
+     * @param rs  Protobuf ResourceSet to build from; not {@code null}
+     * @return  A {@link SOCResourceSet} from {@code rs}
+     * @throws NullPointerException if {@code rs == null}
+     * @see #toResourceSet(SOCResourceSet)
+     */
+    public static final SOCResourceSet fromResourceSet(final Data.ResourceSet rs)
+        throws NullPointerException
+    {
+        return new SOCResourceSet(rs.getClay(), rs.getOre(), rs.getSheep(), rs.getWheat(), rs.getWood(), 0);
+    }
+
+    /**
      * Return the protobuf {@code Data.DevCardValue} enum value (object) for this development card constant.
      * @param card  Type of development card, like {@link SOCDevCardConstants#ROADS}
      *     or {@link SOCDevCardConstants#UNKNOWN}
      * @return  Protobuf enum value for {@code card}, like {@link Data.DevCardValue#ROAD_BUILDING}
      *     or {@link Data.DevCardValue#UNKNOWN_DEV_CARD}, or {@code null} if not recognized
      * @see #isDevCardVP(DevCardValue)
+     * @see #fromDevCardValue(soc.proto.Data.DevCardValue)
      */
     public static final Data.DevCardValue toDevCardValue(final int card)
     {
@@ -104,6 +121,48 @@ public abstract class ProtoMessageBuildHelper
         }
 
         return dcv;
+    }
+
+    /**
+     * Return the {@link SOCDevCardConstants} for this protobuf {@code Data.DevCardValue} enum value (object).
+     * @param card Protobuf enum value for {@code card}, like {@link Data.DevCardValue#ROAD_BUILDING}
+     *     or {@link Data.DevCardValue#UNKNOWN_DEV_CARD}, or {@code null}
+     * @return Type of development card, like {@link SOCDevCardConstants#ROADS}
+     *     or {@link SOCDevCardConstants#UNKNOWN} if {@code null} or unknown
+     * @see #toDevCardValue(int)
+     */
+    public static final int fromDevCardValue(final Data.DevCardValue card)
+    {
+        if (card == null)
+            return SOCDevCardConstants.UNKNOWN;
+
+        final int ctype;
+
+        switch (card)
+        {
+        case ROAD_BUILDING:
+            ctype = SOCDevCardConstants.ROADS;  break;
+        case YEAR_OF_PLENTY:
+            ctype = SOCDevCardConstants.DISC;  break;
+        case MONOPOLY:
+            ctype = SOCDevCardConstants.MONO;  break;
+        case VP_GREAT_HALL:
+            ctype = SOCDevCardConstants.CAP;  break;
+        case VP_MARKET:
+            ctype = SOCDevCardConstants.MARKET;  break;
+        case VP_UNIVERSITY:
+            ctype = SOCDevCardConstants.UNIV;  break;
+        case VP_LIBRARY:
+            ctype = SOCDevCardConstants.TEMP;  break;
+        case VP_CHAPEL:
+            ctype = SOCDevCardConstants.CHAPEL;  break;
+        case KNIGHT:
+            ctype = SOCDevCardConstants.KNIGHT;  break;
+        default:
+            ctype = SOCDevCardConstants.UNKNOWN;
+        }
+
+        return ctype;
     }
 
     /**

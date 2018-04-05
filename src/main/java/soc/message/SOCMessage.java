@@ -22,12 +22,15 @@ package soc.message;
 import java.io.Serializable;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
 import com.google.protobuf.GeneratedMessageV3;
 
 import soc.game.SOCGame;
+import soc.game.SOCTradeOffer;
+import soc.proto.Data;
 import soc.proto.GameMessage;
 import soc.proto.Message;
 
@@ -1083,6 +1086,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
      */
     public static SOCMessage toMsg(final Message.FromClient msg)
     {
+        // Note: calls toMsgForGame(..) to convert any GameMessageFromClient
+
         final int typ = msg.getMsgCase().getNumber();
         try
         {
@@ -1256,19 +1261,50 @@ public abstract class SOCMessage implements Serializable, Cloneable
             // player actions: buy/build/play pieces and items
 
             case GameMessage.GameMessageFromClient.PUT_PIECE_FIELD_NUMBER:
-                ;
+                {
+                    GameMessage.PutPiece m = msg.getPutPiece();
+                    return new SOCPutPiece(gaName, -1, m.getTypeValue(), m.getCoordinates());
+                }
 
             case GameMessage.GameMessageFromClient.CANCEL_BUILD_FIELD_NUMBER:
-                ;
+                {
+                    GameMessage.CancelBuild m = msg.getCancelBuild();
+                    return new SOCCancelBuildRequest(gaName, m.getPieceTypeValue());
+                }
 
             case GameMessage.GameMessageFromClient.MOVE_PIECE_FIELD_NUMBER:
-                ;
+                {
+                    GameMessage.MovePiece m = msg.getMovePiece();
+                    return new SOCMovePiece
+                        (gaName, -1, m.getTypeValue(), m.getFromCoord(), m.getToCoord());
+                }
 
             case GameMessage.GameMessageFromClient.BUY_INV_ITEM_FIELD_NUMBER:
-                ;
+                {
+                    GameMessage.BuyInventoryItemRequest m = msg.getBuyInvItem();
+                    final int itype = m.getOtherInvItemType();
+                    if (itype == 0)
+                        return new SOCBuyDevCardRequest(gaName);
+                    else
+                        return null;  // currently players can't buy inventory items
+                }
 
             case GameMessage.GameMessageFromClient.INV_ITEM_ACTION_FIELD_NUMBER:
-                ;
+                {
+                    GameMessage.InventoryItemAction m = msg.getInvItemAction();
+                    final int itype = m.getOtherInvItemType(),
+                              action = m.getActionTypeValue();
+                    if (itype == 0)
+                    {
+                        if (action == GameMessage.InventoryItemAction._ActionType.PLAY_VALUE)
+                            return new SOCPlayDevCardRequest
+                                (gaName, ProtoMessageBuildHelper.fromDevCardValue(m.getDevCardValue()));
+                        else
+                            return null;  // currently player clients don't send SOCDevCardAction; server has no handler
+                    } else {
+                        return new SOCInventoryItemAction(gaName, -1, action, itype);
+                    }
+                }
 
 
             // player actions
@@ -1277,19 +1313,41 @@ public abstract class SOCMessage implements Serializable, Cloneable
             // player actions: trade
 
             case GameMessage.GameMessageFromClient.TRADE_WITH_BANK_FIELD_NUMBER:
-                ;
+                {
+                    GameMessage.TradeWithBank m = msg.getTradeWithBank();
+                    return new SOCBankTrade
+                        (gaName, ProtoMessageBuildHelper.fromResourceSet(m.getGive()),
+                         ProtoMessageBuildHelper.fromResourceSet(m.getGet()), -1);
+                }
 
             case GameMessage.GameMessageFromClient.TRADE_MAKE_OFFER_FIELD_NUMBER:
-                ;
+                {
+                    GameMessage.TradeMakeOffer m = msg.getTradeMakeOffer();
+                    boolean[] offerTo = null;
+
+                    final Data._IntArray offerToField = m.getToPlayers();
+                    if (offerToField != null)
+                        offerTo = SOCTradeOffer.makePNArray(offerToField.getArrList());
+                    return new SOCMakeOffer(gaName, new SOCTradeOffer
+                        (gaName, -1, offerTo, ProtoMessageBuildHelper.fromResourceSet(m.getGive()),
+                         ProtoMessageBuildHelper.fromResourceSet(m.getGet())));
+
+                    // TODO also use offer_serial when that's supported
+                }
 
             case GameMessage.GameMessageFromClient.TRADE_CLEAR_OFFER_FIELD_NUMBER:
-                ;
+                return new SOCClearOffer(gaName, -1);
 
             case GameMessage.GameMessageFromClient.TRADE_REJECT_OFFER_FIELD_NUMBER:
-                ;
+                return new SOCRejectOffer(gaName, -1);
 
             case GameMessage.GameMessageFromClient.TRADE_ACCEPT_OFFER_FIELD_NUMBER:
-                ;
+                {
+                    GameMessage.TradeAcceptOffer m = msg.getTradeAcceptOffer();
+                    return new SOCAcceptOffer(gaName, m.getAcceptingPlayerNumber(), m.getOfferingPlayerNumber());
+
+                    // TODO also use offer_serial when that's supported
+                }
 
             default:
                 System.err.println("Unhandled GameMessageFromClient type in SOCMessage.toMsg: " + typ);

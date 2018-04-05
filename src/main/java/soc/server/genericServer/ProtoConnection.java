@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  *
  * This program is free software; you can redistribute it and/or
@@ -34,8 +34,11 @@ import java.util.Vector;
 
 /**
  * A protobuf TCP client's connection at a server.
- * Reads from the net, writes atomically to the net and
- * holds the connection data.
+ * Reads from the net, writes atomically to the net and holds the connection data.
+ * Inbound protobuf messages from the client are translated in
+ * {@link SOCMessage#toMsg(soc.proto.Message.FromClient)},
+ * then processed as legacy {@code SOCMessage}s.
+ * Future work will remove the legacy layer.
  *<P>
  * This Runnable class has a run method, but you must start the thread yourself.
  * Constructors will not create or start a thread.
