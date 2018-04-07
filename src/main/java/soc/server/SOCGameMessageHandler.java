@@ -550,11 +550,11 @@ public class SOCGameMessageHandler
                         for (int pn = 0; pn < ga.maxPlayers; ++pn)
                         {
                             final SOCPlayer pp = ga.getPlayer(pn);
-                            Connection playerCon = srv.getConnection(pp.getName());
-                            if (playerCon == null)
-                                continue;
                             if (pp.getRolledResources().getKnownTotal() == 0)
                                 continue;  // skip if player didn't gain; before v2.0.00 each player in game got these
+                            final Connection playerCon = srv.getConnection(pp.getName());
+                            if (playerCon == null)
+                                continue;
 
                             // send CLAY, ORE, SHEEP, WHEAT, WOOD even if player's amount is 0
                             final SOCResourceSet resources = pp.getResources();
