@@ -1048,8 +1048,17 @@ public class SOCGame implements Serializable, Cloneable
      * (system clock time, not a duration from {@link #startTime});
      * Same format as {@link System#currentTimeMillis()}.
      * @see #startTime
+     * @see #hasWarnedExpir
      */
     long expiration;
+
+    /**
+     * Has the server warned game's member clients that this game will expire soon?
+     * See {@link #hasWarnedExpiration()} for details.
+     * @see #expiration
+     * @since 1.2.01
+     */
+    private boolean hasWarnedExpir;
 
     /**
      * The last time a game action happened; can be used to check for game inactivity.
@@ -1381,14 +1390,44 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Get the expiration time at which this game will be destroyed.
+     * Used only at server.
      * @return the expiration time in milliseconds
      *         (system clock time, not a duration from {@link #startTime});
-     *         same epoch as {@link java.util.Date#getTime()}
+     *         same epoch as {@link java.util.Date#getTime()}.
+     *         Not used at client, returns 0.
      * @see #getStartTime()
+     * @see #setExpiration(long)
+     * @see #hasWarnedExpiration()
      */
     public long getExpiration()
     {
         return expiration;
+    }
+
+    /**
+     * Has the server warned game's member clients that this game will expire soon?
+     * All games get at least 1 warning before expiring. Otherwise a local-server game
+     * might immediately expire when a sleeping laptop wakes.
+     *<P>
+     * Used only at server, which calls {@link #setWarnedExpiration()}.
+     * @return true if this warning flag is set.
+     *     Not used at client, returns false.
+     * @see #getExpiration()
+     * @since 1.2.01
+     */
+    public boolean hasWarnedExpiration()
+    {
+        return hasWarnedExpir;
+    }
+
+    /**
+     * Set the {@link #hasWarnedExpiration()} flag.
+     * To clear this flag, call {@link #setExpiration(long)} to change the expiration time.
+     * @since 1.2.01
+     */
+    public void setWarnedExpiration()
+    {
+        hasWarnedExpir = true;
     }
 
     /**
@@ -1411,14 +1450,20 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Set the expiration time at which this game will be destroyed.
+     * Also clears the {@link #hasWarnedExpiration()} flag, for use when extending the game,
+     * so server can warn again near the new expiration time.
+     *<P>
+     * Called at server, not client.
      *
      * @param ex  the absolute expiration time in milliseconds
      *            (system clock time, not a duration from {@link #startTime});
      *            same epoch as {@link java.util.Date#getTime()}
+     * @see #getExpiration()
      */
     public void setExpiration(final long ex)
     {
         expiration = ex;
+        hasWarnedExpir = false;
     }
 
     /**

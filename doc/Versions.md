@@ -20,7 +20,12 @@ and backport minor new features until `2.0.00` is ready.
 - Game Scenario and special-rules support
 - Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard's dialog)
 - Sound prompt when client player is offered a trade
-- Game expire time increased: Now 2 hours, was 90 minutes; also warns 5 or 6 minutes earlier
+- Game expiration:
+    - Initial game length increased: Now 2 hours, was 90 minutes
+    - Warns 5 or 6 minutes earlier
+    - Ensure at least 1 warning before ending game:
+      Local-server games won't immediately expire when a sleeping laptop wakes
+      (Practice games haven't expired since v1.1.09)
 - Game windows: Render board with antialiasing; player name labels sans-serif for cleaner look
 - I18N framework in place, started by Luis A. Ramirez; thank you Luis. Jeremy wrote more I18N utilities (package net.nand.util.i18n).
 - Client sends server its locale, to support i18n localization
