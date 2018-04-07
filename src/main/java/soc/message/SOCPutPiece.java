@@ -77,7 +77,8 @@ public class SOCPutPiece extends SOCMessage
     private int pieceType;
 
     /**
-     * the player number who played the piece, or -1 for non-player-owned {@link soc.game.SOCPlayingPiece#VILLAGE}
+     * the player number who played the piece, or -1 for non-player-owned {@link soc.game.SOCPlayingPiece#VILLAGE}.
+     * Sent from server, ignored if sent from client.
      */
     private int playerNumber;
 
@@ -91,7 +92,8 @@ public class SOCPutPiece extends SOCMessage
      *
      * @param na  name of the game
      * @param pt  type of playing piece, such as {@link soc.game.SOCPlayingPiece#CITY}; must be >= 0
-     * @param pn  player number, or -1 for non-player-owned {@link soc.game.SOCPlayingPiece#VILLAGE}
+     * @param pn  player number, or -1 for non-player-owned {@link soc.game.SOCPlayingPiece#VILLAGE}.
+     *     Sent from server, ignored if sent from client.
      * @param co  coordinates; must be >= 0
      * @throws IllegalArgumentException if {@code pt} &lt; 0 or {@code co} &lt; 0
      */
@@ -127,7 +129,7 @@ public class SOCPutPiece extends SOCMessage
     }
 
     /**
-     * @return the player number
+     * @return the player number from server, or any value sent from client (not used by server)
      */
     public int getPlayerNumber()
     {

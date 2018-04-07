@@ -81,7 +81,7 @@ public class SOCBankTrade extends SOCMessage
      * @param ga   the name of the game
      * @param give the set of resources being given to the bank/port
      * @param get  the set of resources being taken from the bank/port
-     * @param pn   the player number making the trade, or -1 for request from client.
+     * @param pn   the player number making the trade, or -1 to send a request from client.
      *     Not sent if &lt; 0. Versions older than 2.0.00 ignore this field.
      */
     public SOCBankTrade(String ga, SOCResourceSet give, SOCResourceSet get, final int pn)

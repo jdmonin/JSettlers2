@@ -149,7 +149,8 @@ public class SOCInventoryItemAction extends SOCMessage
     private final String game;
 
     /**
-     * Player number, or -1 for action {@link #CANNOT_PLAY}
+     * Player number (or -1 for action {@link #CANNOT_PLAY}) from server,
+     * or any value sent from client (not used by server)
      */
     public final int playerNumber;
 
@@ -200,7 +201,8 @@ public class SOCInventoryItemAction extends SOCMessage
      * use the {@link #SOCInventoryItemAction(String, int, int, int, int)} constructor instead.
      *
      * @param ga  name of the game
-     * @param pn  the player number, or -1 for action type {@link #CANNOT_PLAY}
+     * @param pn  the player number, or -1 for action type {@link #CANNOT_PLAY}.
+     *     Sent from server, ignored if sent from client.
      * @param ac  the type of action, such as {@link #PLAY}
      * @param it  the item type code, from {@link SOCInventoryItem#itype}
      */
@@ -214,7 +216,8 @@ public class SOCInventoryItemAction extends SOCMessage
      * {@link #reasonCode} will be 0.
      *
      * @param ga  name of the game
-     * @param pn  the player number, or -1 for action type {@link #CANNOT_PLAY}
+     * @param pn  the player number, or -1 for action type {@link #CANNOT_PLAY}.
+     *     Sent from server, ignored if sent from client.
      * @param ac  the type of action, such as {@link #ADD_PLAYABLE} or {@link #PLAYED}
      * @param it  the item type code, from {@link SOCInventoryItem#itype}
      * @param kept  If true, this is an add or play message with the {@link #isKept} flag set
@@ -241,7 +244,8 @@ public class SOCInventoryItemAction extends SOCMessage
      * The {@link #isKept}, {@link #isVP}, and {@link #canCancelPlay} flags will be false.
      *
      * @param ga  name of the game
-     * @param pn  the player number, or -1 for action type {@link #CANNOT_PLAY}
+     * @param pn  the player number, or -1 for action type {@link #CANNOT_PLAY}.
+     *     Sent from server, ignored if sent from client.
      * @param ac  the type of action, such as {@link #ADD_PLAYABLE}
      * @param it  the item type code, from {@link SOCInventoryItem#itype}
      * @param rc  reason code for {@link #reasonCode}, or 0
@@ -282,7 +286,7 @@ public class SOCInventoryItemAction extends SOCMessage
      * INVENTORYITEMACTION sep game sep2 playerNumber sep2 action sep2 itemType [ sep2 rcode ]
      *
      * @param ga  the game name
-     * @param pn  the player number
+     * @param pn  the player number if sent from server; ignored if sent from client
      * @param ac  the type of action
      * @param it  the item type code
      * @param rc  the reason code if action == CANNOT_PLAY

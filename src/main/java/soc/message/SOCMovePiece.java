@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2013,2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2013,2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -68,7 +68,7 @@ public class SOCMovePiece extends SOCMessageTemplate4i
     }
 
     /**
-     * @return the player number
+     * @return the player number from server, or any value sent from client (not used by server)
      */
     public int getPlayerNumber()
     {
