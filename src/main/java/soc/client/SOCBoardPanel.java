@@ -3000,6 +3000,21 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             return;
         }
 
+        // Set up dice number font fields early: they're also used
+        // for fortresses, village markers, etc, which might get
+        // drawn before a hex having a dice number
+        if (diceNumberCircleFont == null)
+        {
+            int fsize = DICE_NUMBER_FONTPOINTS;
+            if (isScaled)
+                fsize = scaleToActual(fsize);
+            diceNumberCircleFont = new Font("Dialog", Font.BOLD, fsize);
+        }
+        if ((diceNumberCircleFM == null) && (diceNumberCircleFont != null))
+        {
+            diceNumberCircleFM = getFontMetrics(diceNumberCircleFont);
+        }
+
         if (isScaledOrRotated)
         {
             if (isRotated)
@@ -3165,18 +3180,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         final int hnl = board.getNumberOnHexFromNumber(hexNum);
         if (hnl > 0)
         {
-            if (diceNumberCircleFont == null)
-            {
-                int fsize = DICE_NUMBER_FONTPOINTS;
-                if (isScaled)
-                    fsize = scaleToActual(fsize);
-                diceNumberCircleFont = new Font("Dialog", Font.BOLD, fsize);
-            }
-            if ((diceNumberCircleFM == null) && (diceNumberCircleFont != null))
-            {
-                diceNumberCircleFM = getFontMetrics(diceNumberCircleFont);
-            }
-
             if ((diceNumberCircleFM != null) && (diceNumberCircleFont != null))
             {
                 final int dx, dy;  // Offset of number graphic from upper-left corner of hex
@@ -3226,7 +3229,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 g.setColor(Color.BLACK);
                 g.drawString(numstr, x, y);
 
-            }  // if (diceNumber fonts OK)
+            } else {
+                missedDraw = true;
+            }
         }  // if (hnl > 0)
 
         if (missedDraw)
