@@ -22,12 +22,16 @@ package soc.message;
 import java.util.StringTokenizer;
 
 import soc.game.SOCGame;  // for javadocs only
+import soc.game.SOCGameOption;  // for javadocs only
 import soc.game.SOCPlayer;  // for javadocs only
 import soc.game.SOCSpecialItem;  // for javadocs only
 
 /**
  * This message is to pick, set, or clear a {@link SOCSpecialItem} in the game and/or owning player's Special Item list.
  * Within the game data, items are held in per-game and/or per-player Special Item lists.
+ *<P>
+ * Sent for the Wonders chosen by players in the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
+ *<P>
  * The message conveys which object is affected ({@link #typeKey}, {@link #gameItemIndex}, {@link #playerItemIndex})
  * and the object data fields ({@link #playerNumber}, {@link #coord}, {@link #level}, {@link #sv}).
  * When a Special Item is held in the game's list and also its owning player's list,

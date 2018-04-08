@@ -51,7 +51,8 @@ public class SOCClearOffer extends SOCMessage
     private String game;
 
     /**
-     * The seat number, or -1 for all
+     * The seat number, or -1 for all.
+     * Sent from server, ignored if sent from client.
      */
     private int playerNumber;
 
@@ -59,7 +60,8 @@ public class SOCClearOffer extends SOCMessage
      * Create a ClearOffer message.
      *
      * @param ga  the name of the game
-     * @param pn  the seat number, or -1 for all (1.1.09 or newer only)
+     * @param pn  the seat number, or -1 for all (1.1.09 or newer only).
+     *     Sent from server, ignored if sent from client.
      */
     public SOCClearOffer(String ga, int pn)
     {
@@ -77,7 +79,7 @@ public class SOCClearOffer extends SOCMessage
     }
 
     /**
-     * @return the seat number, or -1 for all
+     * @return the seat number, or -1 for all. Sent from server, ignored if sent from client.
      */
     public int getPlayerNumber()
     {
@@ -98,7 +100,7 @@ public class SOCClearOffer extends SOCMessage
      * CLEAROFFER sep game sep2 playerNumber
      *
      * @param ga  the name of the game
-     * @param pn  the seat number
+     * @param pn  the seat number; ignored if sent from client
      * @return the command string
      */
     public static String toCmd(String ga, int pn)

@@ -53,7 +53,9 @@ public class SOCMakeOffer extends SOCMessage
      * Create a MakeOffer message.
      *
      * @param ga   the name of the game
-     * @param of   the offer being made
+     * @param of   the offer being made.
+     *    From server, this offer's {@link SOCTradeOffer#getFrom()} is the player number
+     *    making the offer. From client, value of {@code of.getFrom()} is ignored at server.
      */
     public SOCMakeOffer(String ga, SOCTradeOffer of)
     {
@@ -71,6 +73,9 @@ public class SOCMakeOffer extends SOCMessage
     }
 
     /**
+     * Get the offer being made.
+     * From server, this offer's {@link SOCTradeOffer#getFrom()} is the player number
+     * making the offer. From client, value of {@code getFrom()} is ignored at server.
      * @return the offer being made
      */
     public SOCTradeOffer getOffer()
@@ -90,7 +95,9 @@ public class SOCMakeOffer extends SOCMessage
      * @return the command string
      *
      * @param ga  the name of the game
-     * @param of   the offer being made
+     * @param of   the offer being made.
+     *    From server, this offer's {@link SOCTradeOffer#getFrom()} is the player number
+     *    making the offer. From client, value of {@code of.getFrom()} is ignored at server.
      */
     public static String toCmd(String ga, SOCTradeOffer of)
     {

@@ -36,6 +36,8 @@ import soc.proto.GameMessage.InventoryItemAction;
  * If a robot asks to play a dev card that they can't right now,
  * the server sends that bot {@code DEVCARDACTION}(-1, {@link #CANNOT_PLAY}, cardtype).
  *<P>
+ * Not sent from client, sends {@link SOCBuyDevCardRequest} or {@link SOCPlayDevCardRequest} instead.
+ *<P>
  * Before v2.0.00, this message type was {@code DEVCARD} (class name {@code SOCDevCard}).
  *
  * @author Robert S Thomas

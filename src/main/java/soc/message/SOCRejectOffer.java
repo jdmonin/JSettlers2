@@ -27,7 +27,7 @@ import soc.proto.Message;
 
 
 /**
- * This message means that the player is rejecting an offer.
+ * This message means that the player is rejecting all offers ("no thanks").
  *<P>
  * Sent from rejecting player's client to server.
  * The server then sends a copy of the message to all players
@@ -50,7 +50,7 @@ public class SOCRejectOffer extends SOCMessage
     private String game;
 
     /**
-     * The seat number
+     * The seat number rejecting all offers made to them
      */
     private int playerNumber;
 
@@ -58,7 +58,8 @@ public class SOCRejectOffer extends SOCMessage
      * Create a RejectOffer message.
      *
      * @param ga  the name of the game
-     * @param pn  the seat number
+     * @param pn  the seat number rejecting all offers made to them.
+     *     Sent from server, ignored if sent from client.
      */
     public SOCRejectOffer(String ga, int pn)
     {
@@ -76,7 +77,8 @@ public class SOCRejectOffer extends SOCMessage
     }
 
     /**
-     * @return the seat number
+     * @return the seat number rejecting all offers made to them,
+     *     if sent from server, or any value sent from client (not used by server)
      */
     public int getPlayerNumber()
     {
@@ -97,7 +99,8 @@ public class SOCRejectOffer extends SOCMessage
      * REJECTOFFER sep game sep2 playerNumber
      *
      * @param ga  the name of the game
-     * @param pn  the seat number
+     * @param pn  the seat number rejecting all offers made to them.
+     *     Sent from server, ignored if sent from client.
      * @return the command string
      */
     public static String toCmd(String ga, int pn)

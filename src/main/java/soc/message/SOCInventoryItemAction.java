@@ -99,21 +99,29 @@ public class SOCInventoryItemAction extends SOCMessage
     // Item Actions:
     // If you add or change actions, update toString().
 
+    /**
+     * item action BUY: Client request to buy an item (unused in v2.0.00).
+     * This is reserved for possible use in future scenarios or expansions, or if messages
+     * for dev cards and these "other inventory items" are ever combined (v3 protobuf).
+     * Some usages might require {@link #itemType}, some might ignore it from client.
+     */
+    public static final int BUY = 1;
+
     /** item action ADD_PLAYABLE: From server, add as Playable to player's inventory */
-    public static final int ADD_PLAYABLE = 1;
+    public static final int ADD_PLAYABLE = 2;
 
     /** item action ADD_OTHER: From server, add as New or Kept to player's inventory,
      *  depending on whether this item's type is kept until end of game */
-    public static final int ADD_OTHER = 2;
+    public static final int ADD_OTHER = 3;
 
     /** item action PLAY: Client request to play a PLAYABLE item */
-    public static final int PLAY = 3;
+    public static final int PLAY = 4;
 
     /**
      * item action CANNOT_PLAY: From server, the player or bot can't play the requested item at this time.
      * This is sent only to the requesting player, so playerNumber is always -1 in this message.
      */
-    public static final int CANNOT_PLAY = 4;
+    public static final int CANNOT_PLAY = 5;
 
     /**
      * item action PLAYED: From server, item was played.
@@ -121,7 +129,7 @@ public class SOCInventoryItemAction extends SOCMessage
      * Call {@link SOCInventoryItem#isPlayForPlacement(SOCGame, int)}: If true, playing this item requires placement;
      * client receiving the message should call {@link SOCGame#setPlacingItem(SOCInventoryItem)}.
      */
-    public static final int PLAYED = 5;
+    public static final int PLAYED = 6;
 
     /**
      * If some other game action or event causes an item to need placement on the board,
@@ -135,7 +143,7 @@ public class SOCInventoryItemAction extends SOCMessage
      * for those other messages. When they arrive, client can call {@link SOCGame#getPlacingItem()} to
      * retrieve the item details.
      */
-    public static final int PLACING_EXTRA = 6;
+    public static final int PLACING_EXTRA = 7;
 
     /** {@link #isKept} flag position for sending over network in a bit field */
     private static final int FLAG_ISKEPT = 0x01;
@@ -152,7 +160,8 @@ public class SOCInventoryItemAction extends SOCMessage
     private final String game;
 
     /**
-     * Player number, or -1 for action {@link #CANNOT_PLAY}
+     * Player number (or -1 for action {@link #CANNOT_PLAY}) from server,
+     * or any value sent from client (not used by server)
      */
     public final int playerNumber;
 
@@ -203,7 +212,8 @@ public class SOCInventoryItemAction extends SOCMessage
      * use the {@link #SOCInventoryItemAction(String, int, int, int, int)} constructor instead.
      *
      * @param ga  name of the game
-     * @param pn  the player number, or -1 for action type {@link #CANNOT_PLAY}
+     * @param pn  the player number, or -1 for action type {@link #CANNOT_PLAY}.
+     *     Sent from server, ignored if sent from client.
      * @param ac  the type of action, such as {@link #PLAY}
      * @param it  the item type code, from {@link SOCInventoryItem#itype}
      */
@@ -217,7 +227,8 @@ public class SOCInventoryItemAction extends SOCMessage
      * {@link #reasonCode} will be 0.
      *
      * @param ga  name of the game
-     * @param pn  the player number, or -1 for action type {@link #CANNOT_PLAY}
+     * @param pn  the player number, or -1 for action type {@link #CANNOT_PLAY}.
+     *     Sent from server, ignored if sent from client.
      * @param ac  the type of action, such as {@link #ADD_PLAYABLE} or {@link #PLAYED}
      * @param it  the item type code, from {@link SOCInventoryItem#itype}
      * @param kept  If true, this is an add or play message with the {@link #isKept} flag set
@@ -244,7 +255,8 @@ public class SOCInventoryItemAction extends SOCMessage
      * The {@link #isKept}, {@link #isVP}, and {@link #canCancelPlay} flags will be false.
      *
      * @param ga  name of the game
-     * @param pn  the player number, or -1 for action type {@link #CANNOT_PLAY}
+     * @param pn  the player number, or -1 for action type {@link #CANNOT_PLAY}.
+     *     Sent from server, ignored if sent from client.
      * @param ac  the type of action, such as {@link #ADD_PLAYABLE}
      * @param it  the item type code, from {@link SOCInventoryItem#itype}
      * @param rc  reason code for {@link #reasonCode}, or 0
@@ -285,7 +297,7 @@ public class SOCInventoryItemAction extends SOCMessage
      * INVENTORYITEMACTION sep game sep2 playerNumber sep2 action sep2 itemType [ sep2 rcode ]
      *
      * @param ga  the game name
-     * @param pn  the player number
+     * @param pn  the player number if sent from server; ignored if sent from client
      * @param ac  the type of action
      * @param it  the item type code
      * @param rc  the reason code if action == CANNOT_PLAY
@@ -397,6 +409,7 @@ public class SOCInventoryItemAction extends SOCMessage
         final String ac;
         switch (action)
         {
+        case BUY:           ac = "BUY";           break;
         case ADD_PLAYABLE:  ac = "ADD_PLAYABLE";  break;
         case ADD_OTHER:     ac = "ADD_OTHER";     break;
         case PLAY:          ac = "PLAY";          break;

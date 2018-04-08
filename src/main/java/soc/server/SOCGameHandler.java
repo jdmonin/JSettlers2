@@ -1038,7 +1038,8 @@ public class SOCGameHandler extends GameHandler
                 {
                     final int cl = vi.getCloth();
                     if (cl != SOCVillage.STARTING_CLOTH)
-                        srv.messageToGame(gameName, new SOCPieceValue(gameName, vi.getCoordinates(), cl, 0));
+                        srv.messageToGame(gameName, new SOCPieceValue
+                            (gameName, SOCPlayingPiece.VILLAGE, vi.getCoordinates(), cl, 0));
                 }
 
             // SC_FTRI:
@@ -1235,7 +1236,7 @@ public class SOCGameHandler extends GameHandler
                     c.put(new SOCPutPiece(gameName, i, piece.getType(), coord));
 
                     if (str != SOCFortress.STARTING_STRENGTH)
-                        c.put(new SOCPieceValue(gameName, coord, str, 0));
+                        c.put(new SOCPieceValue(gameName, SOCPlayingPiece.FORTRESS, coord, str, 0));
                 }
             }
 
@@ -3658,7 +3659,8 @@ public class SOCGameHandler extends GameHandler
 
                 // Player gets 1 cloth for establishing trade
                 SOCVillage vi = (SOCVillage) obj;
-                srv.messageToGame(gaName, new SOCPieceValue(gaName, vi.getCoordinates(), vi.getCloth(), 0));
+                srv.messageToGame(gaName, new SOCPieceValue
+                    (gaName, SOCPlayingPiece.VILLAGE, vi.getCoordinates(), vi.getCloth(), 0));
                 srv.messageToGame(gaName, new SOCPlayerElement
                     (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, pl.getCloth()));
             }

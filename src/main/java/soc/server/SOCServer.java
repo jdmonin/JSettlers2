@@ -526,6 +526,7 @@ public class SOCServer extends Server
      * Sleep time (minutes) between checks for expired games in {@link SOCGameTimeoutChecker#run()}.
      * Default is 5 minutes. Must be at most half of {@link #GAME_TIME_EXPIRE_WARN_MINUTES}
      * so the user has time to react after seeing the warning.
+     * @see SOCGameListAtServer#GAME_TIME_EXPIRE_MINUTES
      * @since 1.2.00
      */
     public static int GAME_TIME_EXPIRE_CHECK_MINUTES = 5;
@@ -7119,15 +7120,16 @@ public class SOCServer extends Server
      *
      * @param currentTimeMillis  The time when called, from {@link System#currentTimeMillis()}
      * @see #GAME_TIME_EXPIRE_WARN_MINUTES
+     * @see SOCGameListAtServer#GAME_TIME_EXPIRE_MINUTES
      * @see #checkForExpiredTurns(long)
      */
     public void checkForExpiredGames(final long currentTimeMillis)
     {
-        Vector<String> expired = new Vector<String>();
+        List<String> expired = new ArrayList<String>();
 
         gameList.takeMonitor();
 
-        // Add 3 extra minutes because of coarse 5-minute granularity in SOCGameTimeoutChecker.run()
+        // Warn 3 minutes earlier, because of coarse 5-minute granularity in SOCGameTimeoutChecker.run()
         long warn_ms = (3 + GAME_TIME_EXPIRE_WARN_MINUTES) * 60L * 1000L;
 
         try
@@ -7138,13 +7140,14 @@ public class SOCServer extends Server
                     continue;  // <--- Skip practice games, they don't expire ---
 
                 long gameExpir = gameData.getExpiration();
+                final boolean hasWarned = gameData.hasWarnedExpiration();
 
                 // Start our text messages with ">>>" to mark as urgent to the client.
 
-                if (gameExpir <= currentTimeMillis)
+                if (hasWarned && (gameExpir <= currentTimeMillis))
                 {
                     final String gameName = gameData.getName();
-                    expired.addElement(gameName);
+                    expired.add(gameName);
                     messageToGameKeyed(gameData, true, "game.time.expire.destroyed");
                         // ">>> The time limit on this game has expired, it will now be destroyed."
                 }
@@ -7159,6 +7162,9 @@ public class SOCServer extends Server
 
                     messageToGameKeyed(gameData, true, "game.time.expire.soon.addtime", Integer.valueOf(minutes));
                         // ">>> Less than {0} minutes remaining. Type *ADDTIME* to extend this game another 30 minutes."
+
+                    if (! hasWarned)
+                        gameData.setWarnedExpiration();
                 }
                 else if ((currentTimeMillis - gameData.lastActionTime) > (GAME_TIME_EXPIRE_CHECK_MINUTES * 60 * 1000))
                 {
@@ -7178,13 +7184,10 @@ public class SOCServer extends Server
 
         //
         // destroy the expired games
-        //    Assumes the list will be short, so the monitor take/release overhead will be acceptable.
+        //    Assumes the list will be short, so the game list monitor take/release overhead will be acceptable.
         //
-        for (Enumeration<String> ex = expired.elements(); ex.hasMoreElements();)
-        {
-            String ga = ex.nextElement();
+        for (String ga : expired)
             destroyGameAndBroadcast(ga, "checkForExpired");
-        }
     }
 
     /**
