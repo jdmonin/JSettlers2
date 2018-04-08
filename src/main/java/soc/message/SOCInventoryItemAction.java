@@ -96,21 +96,29 @@ public class SOCInventoryItemAction extends SOCMessage
     // Item Actions:
     // If you add or change actions, update toString().
 
+    /**
+     * item action BUY: Client request to buy an item (unused in v2.0.00).
+     * This is reserved for possible use in future scenarios or expansions, or if messages
+     * for dev cards and these "other inventory items" are ever combined (v3 protobuf).
+     * Some usages might require {@link #itemType}, some might ignore it from client.
+     */
+    public static final int BUY = 1;
+
     /** item action ADD_PLAYABLE: From server, add as Playable to player's inventory */
-    public static final int ADD_PLAYABLE = 1;
+    public static final int ADD_PLAYABLE = 2;
 
     /** item action ADD_OTHER: From server, add as New or Kept to player's inventory,
      *  depending on whether this item's type is kept until end of game */
-    public static final int ADD_OTHER = 2;
+    public static final int ADD_OTHER = 3;
 
     /** item action PLAY: Client request to play a PLAYABLE item */
-    public static final int PLAY = 3;
+    public static final int PLAY = 4;
 
     /**
      * item action CANNOT_PLAY: From server, the player or bot can't play the requested item at this time.
      * This is sent only to the requesting player, so playerNumber is always -1 in this message.
      */
-    public static final int CANNOT_PLAY = 4;
+    public static final int CANNOT_PLAY = 5;
 
     /**
      * item action PLAYED: From server, item was played.
@@ -118,7 +126,7 @@ public class SOCInventoryItemAction extends SOCMessage
      * Call {@link SOCInventoryItem#isPlayForPlacement(SOCGame, int)}: If true, playing this item requires placement;
      * client receiving the message should call {@link SOCGame#setPlacingItem(SOCInventoryItem)}.
      */
-    public static final int PLAYED = 5;
+    public static final int PLAYED = 6;
 
     /**
      * If some other game action or event causes an item to need placement on the board,
@@ -132,7 +140,7 @@ public class SOCInventoryItemAction extends SOCMessage
      * for those other messages. When they arrive, client can call {@link SOCGame#getPlacingItem()} to
      * retrieve the item details.
      */
-    public static final int PLACING_EXTRA = 6;
+    public static final int PLACING_EXTRA = 7;
 
     /** {@link #isKept} flag position for sending over network in a bit field */
     private static final int FLAG_ISKEPT = 0x01;
@@ -353,6 +361,7 @@ public class SOCInventoryItemAction extends SOCMessage
         final String ac;
         switch (action)
         {
+        case BUY:           ac = "BUY";           break;
         case ADD_PLAYABLE:  ac = "ADD_PLAYABLE";  break;
         case ADD_OTHER:     ac = "ADD_OTHER";     break;
         case PLAY:          ac = "PLAY";          break;

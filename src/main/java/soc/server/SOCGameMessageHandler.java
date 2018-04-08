@@ -584,7 +584,8 @@ public class SOCGameMessageHandler
                         final SOCBoardLarge board = (SOCBoardLarge) (ga.getBoard());
                         SOCVillage vi = board.getVillageAtNode(coord);
                         if (vi != null)
-                            srv.messageToGame(gn, new SOCPieceValue(gn, coord, vi.getCloth(), 0));
+                            srv.messageToGame(gn, new SOCPieceValue
+                                (gn, SOCPlayingPiece.VILLAGE, coord, vi.getCloth(), 0));
 
                         if (roll.cloth[0] > 0)
                             // some taken from board general supply
@@ -1075,10 +1076,11 @@ public class SOCGameMessageHandler
                         srv.messageToGame(gaName, new SOCPlayerElement
                             (gaName, cpn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_WARSHIP_COUNT, n));
                 } else {
-                    // player won
+                    // player won battle
 
                     final int fortStrength = fort.getStrength();
-                    srv.messageToGame(gaName, new SOCPieceValue(gaName, fort.getCoordinates(), fortStrength, 0));
+                    srv.messageToGame(gaName, new SOCPieceValue
+                        (gaName, SOCPlayingPiece.FORTRESS, fort.getCoordinates(), fortStrength, 0));
                     if (0 == fortStrength)
                         srv.messageToGame(gaName, new SOCPutPiece
                             (gaName, cpn, SOCPlayingPiece.SETTLEMENT, fort.getCoordinates()));

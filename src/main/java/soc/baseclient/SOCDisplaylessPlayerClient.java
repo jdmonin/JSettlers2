@@ -2484,8 +2484,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (! ga.hasSeaBoard)
             return;  // should not happen
 
-        final int coord = mes.getParam1();
-        final int pv = mes.getParam2();
+        final int coord = mes.getParam2();
+        final int pv = mes.getParam3();
 
         if (ga.isGameOptionSet(SOCGameOption.K_SC_CLVI))
         {
