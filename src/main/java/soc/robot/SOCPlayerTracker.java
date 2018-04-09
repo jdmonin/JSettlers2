@@ -37,6 +37,7 @@ import soc.game.SOCPlayer;
 import soc.game.SOCPlayerNumbers;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCRoad;
+import soc.game.SOCRoutePiece;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 
@@ -85,7 +86,7 @@ public class SOCPlayerTracker
     // protected static final DecimalFormat df1 = new DecimalFormat("###0.00");
 
     /**
-     * Road expansion level for {@link #addOurNewRoadOrShip(SOCRoad, HashMap, int)};
+     * Road expansion level for {@link #addOurNewRoadOrShip(SOCRoutePiece, HashMap, int)};
      * how far away to look for possible future settlements
      * (level of recursion).
      */
@@ -99,7 +100,7 @@ public class SOCPlayerTracker
     static protected int EXPAND_LEVEL_SHIP_EXTRA = 2;
 
     /**
-     * Road expansion level for {@link #updateLRPotential(SOCPossibleRoad, SOCPlayer, SOCRoad, int, int)};
+     * Road expansion level for {@link #updateLRPotential(SOCPossibleRoad, SOCPlayer, SOCRoutePiece, int, int)};
      * how far away to look for possible future roads
      * (level of recursion).
      */
@@ -126,7 +127,7 @@ public class SOCPlayerTracker
     /**
      * Possible near-future settlements for this player.
      * Key = {@link Integer} node coordinate, value = {@link SOCPossibleSettlement}.
-     * Expanded in {@link #addOurNewRoadOrShip(SOCRoad, HashMap, int)}
+     * Expanded in {@link #addOurNewRoadOrShip(SOCRoutePiece, HashMap, int)}
      * via {@link #expandRoadOrShip(SOCPossibleRoad, SOCPlayer, SOCPlayer, HashMap, int)}.
      * Also updated in {@link #addNewSettlement(SOCSettlement, HashMap)},
      * {@link #cancelWrongSettlement(SOCSettlement)}, a few other places.
@@ -136,7 +137,7 @@ public class SOCPlayerTracker
     /**
      * Includes both roads and ships.
      * Key = {@link Integer} edge coordinate, value = {@link SOCPossibleRoad} or {@link SOCPossibleShip}
-     * Expanded in {@link #addOurNewRoadOrShip(SOCRoad, HashMap, int)}
+     * Expanded in {@link #addOurNewRoadOrShip(SOCRoutePiece, HashMap, int)}
      * via {@link #expandRoadOrShip(SOCPossibleRoad, SOCPlayer, SOCPlayer, HashMap, int)}.
      */
     protected TreeMap<Integer, SOCPossibleRoad> possibleRoads;
@@ -570,7 +571,7 @@ public class SOCPlayerTracker
      * @param road       the road or ship
      * @param trackers   player trackers for the players
      */
-    public void addNewRoadOrShip(SOCRoad road, HashMap<Integer, SOCPlayerTracker> trackers)
+    public void addNewRoadOrShip(SOCRoutePiece road, HashMap<Integer, SOCPlayerTracker> trackers)
     {
         if (road.getPlayerNumber() == playerNumber)
         {
@@ -585,14 +586,14 @@ public class SOCPlayerTracker
     /**
      * Remove our incorrect road or ship placement, it's been rejected by the server.
      *
-     * @param road Location of our bad road or ship
+     * @param rs  Location of our bad road or ship
      *
      * @see SOCRobotBrain#cancelWrongPiecePlacement(SOCCancelBuildRequest)
      * @since 1.1.00
      */
-    public void cancelWrongRoadOrShip(SOCRoad road)
+    public void cancelWrongRoadOrShip(SOCRoutePiece rs)
     {
-        addTheirNewRoadOrShip(road, true);
+        addTheirNewRoadOrShip(rs, true);
 
         //
         // Cancel-actions to remove from potential settlements list,
@@ -605,7 +606,7 @@ public class SOCPlayerTracker
         while (prIter.hasNext())
         {
             SOCPossibleRoad pr = prIter.next();
-            if (pr.getCoordinates() == road.getCoordinates())
+            if (pr.getCoordinates() == rs.getCoordinates())
             {
                 //
                 // if so, remove it
@@ -625,12 +626,13 @@ public class SOCPlayerTracker
      * Calls {@link #expandRoadOrShip(SOCPossibleRoad, SOCPlayer, SOCPlayer, HashMap, int)}
      * on newly possible adjacent roads or ships.
      *
-     * @param road         the road or ship
+     * @param rs           the road or ship
      * @param trackers     player trackers for the players
      * @param expandLevel  how far out we should expand roads/ships;
      *                     passed to {@link #expandRoadOrShip(SOCPossibleRoad, SOCPlayer, SOCPlayer, HashMap, int)}
      */
-    private void addOurNewRoadOrShip(SOCRoad road, HashMap<Integer, SOCPlayerTracker> trackers, int expandLevel)
+    private void addOurNewRoadOrShip
+        (final SOCRoutePiece rs, HashMap<Integer, SOCPlayerTracker> trackers, final int expandLevel)
     {
         //D.ebugPrintln("$$$ addOurNewRoad : "+road);
         //
@@ -647,7 +649,7 @@ public class SOCPlayerTracker
             //
             pr.resetExpandedFlag();
 
-            if (pr.getCoordinates() == road.getCoordinates())
+            if (pr.getCoordinates() == rs.getCoordinates())
             {
                 //
                 // if so, remove it
@@ -667,7 +669,7 @@ public class SOCPlayerTracker
         // check adjacent nodes to road for potential settlements
         //
         final SOCBoard board = game.getBoard();
-        Collection<Integer> adjNodeEnum = board.getAdjacentNodesToEdge(road.getCoordinates());
+        Collection<Integer> adjNodeEnum = board.getAdjacentNodesToEdge(rs.getCoordinates());
 
         for (Integer adjNode : adjNodeEnum)
         {
@@ -713,7 +715,7 @@ public class SOCPlayerTracker
         //
         // check adjacent edges to road
         //
-        for (Integer adjEdge : board.getAdjacentEdgesToEdge(road.getCoordinates()))
+        for (Integer adjEdge : board.getAdjacentEdgesToEdge(rs.getCoordinates()))
         {
             final int edge = adjEdge.intValue();
 
@@ -723,7 +725,7 @@ public class SOCPlayerTracker
             // or ship to continue this route
             //
             boolean edgeIsPotentialRoute =
-                (road.isRoadNotShip())
+                (rs.isRoadNotShip())
                 ? player.isPotentialRoad(edge)
                 : player.isPotentialShip(edge);
 
@@ -737,11 +739,11 @@ public class SOCPlayerTracker
             {
                 // Determine if can transition ship <-> road
                 // at a coastal settlement
-                final int nodeBetween = ((SOCBoardLarge) board).getNodeBetweenAdjacentEdges(road.getCoordinates(), edge);
+                final int nodeBetween = ((SOCBoardLarge) board).getNodeBetweenAdjacentEdges(rs.getCoordinates(), edge);
                 if (player.canPlaceSettlement(nodeBetween))
                 {
                     // check opposite type at transition
-                    edgeIsPotentialRoute = (road.isRoadNotShip())
+                    edgeIsPotentialRoute = (rs.isRoadNotShip())
                         ? player.isPotentialShip(edge)
                         : player.isPotentialRoad(edge);
 
@@ -761,7 +763,7 @@ public class SOCPlayerTracker
                 {
                     // if so, it must be the same type for now (TODO).
                     //   For now, can't differ along a coastal route.
-                    if (edgeRequiresCoastalSettlement && (pr.isRoadNotShip() != road.isRoadNotShip()))
+                    if (edgeRequiresCoastalSettlement && (pr.isRoadNotShip() != rs.isRoadNotShip()))
                     {
                         continue;  // <--- road vs ship mismatch ---
                     }
@@ -789,7 +791,7 @@ public class SOCPlayerTracker
                     //D.ebugPrintln("$$$ adding new pr at "+Integer.toHexString(adjEdge.intValue()));
                     SOCPossibleRoad newPR;
                     final int roadsBetween;  // for effort if requires settlement
-                    boolean isRoad = road.isRoadNotShip();
+                    boolean isRoad = rs.isRoadNotShip();
                     if (edgeRequiresCoastalSettlement)
                     {
                         isRoad = ! isRoad;
@@ -841,8 +843,8 @@ public class SOCPlayerTracker
         //
         // in scenario _SC_PIRI, update the closest ship to our fortress
         //
-        if ((road instanceof SOCShip) && game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
-            updateScenario_SC_PIRI_closestShipToFortress((SOCShip) road, true);
+        if ((rs instanceof SOCShip) && game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            updateScenario_SC_PIRI_closestShipToFortress((SOCShip) rs, true);
     }
 
     /**
@@ -881,15 +883,15 @@ public class SOCPlayerTracker
         final SOCBoard board = game.getBoard();
         final int tgtRoadEdge = targetRoad.getCoordinates();
         final boolean isRoadNotShip = targetRoad.isRoadNotShip();
-        final SOCRoad dummyRoad;
+        final SOCRoutePiece dummyRS;
         if (isRoadNotShip
             || ((targetRoad instanceof SOCPossibleShip) && ((SOCPossibleShip) targetRoad).isCoastalRoadAndShip))
-            dummyRoad = new SOCRoad(dummy, tgtRoadEdge, board);
+            dummyRS = new SOCRoad(dummy, tgtRoadEdge, board);
             // TODO better handling for coastal roads/ships
         else
-            dummyRoad = new SOCShip(dummy, tgtRoadEdge, board);
+            dummyRS = new SOCShip(dummy, tgtRoadEdge, board);
 
-        dummy.putPiece(dummyRoad, true);
+        dummy.putPiece(dummyRS, true);
 
         //
         // see if this road/ship adds any new possible settlements
@@ -1128,7 +1130,7 @@ public class SOCPlayerTracker
         //
         // remove the dummy road
         //
-        dummy.removePiece(dummyRoad, null);
+        dummy.removePiece(dummyRS, null);
     }
 
     /**
@@ -1136,11 +1138,11 @@ public class SOCPlayerTracker
      * by acting as if another player has placed there.
      * (That way, we won't decide to place there again.)
      *
-     * @param road  the new road or ship
+     * @param rs  the new road or ship
      * @param isCancel Is this our own robot's road placement, rejected by the server?
      *     If so, this method call will cancel its placement within the tracker data.
      */
-    private void addTheirNewRoadOrShip(SOCRoad road, boolean isCancel)
+    private void addTheirNewRoadOrShip(SOCRoutePiece rs, boolean isCancel)
     {
         /**
          * see if another player's road interferes with our possible roads
@@ -1150,15 +1152,15 @@ public class SOCPlayerTracker
          * if another player's road is on one of our possible
          * roads, then remove it
          */
-        D.ebugPrintln("$$$ addTheirNewRoadOrShip : " + road);
+        D.ebugPrintln("$$$ addTheirNewRoadOrShip : " + rs);
 
-        Integer roadCoordinates = Integer.valueOf(road.getCoordinates());
-        SOCPossibleRoad pr = possibleRoads.get(roadCoordinates);
+        Integer edge = Integer.valueOf(rs.getCoordinates());
+        SOCPossibleRoad pr = possibleRoads.get(edge);
 
         if (pr != null)
         {
             //D.ebugPrintln("$$$ removing road at "+Integer.toHexString(pr.getCoordinates()));
-            possibleRoads.remove(roadCoordinates);
+            possibleRoads.remove(edge);
             removeFromNecessaryRoads(pr);
             removeDependents(pr);
         }
@@ -1179,7 +1181,7 @@ public class SOCPlayerTracker
     /**
      * For scenario {@code _SC_PIRI}, update the player's ship closest to their Fortress.
      * Assumes no ship will ever be west of the fortress (smaller column number).
-     * Must be called after adding or removing a ship from our player's {@link SOCPlayer#getRoads()}.
+     * Must be called after adding or removing a ship from our player's {@link SOCPlayer#getRoadsAndShips()}.
      * @param ship  Ship that was added or removed, or {@code null} to check all ships after removal
      * @param shipAdded  True if {@code ship} was added; false if {@code ship} or any other ship was removed
      *            or if we're updating Closest Ship without adding or removing a ship
@@ -1232,13 +1234,13 @@ public class SOCPlayerTracker
             // A ship has been removed.  We don't know which one.
             // So, check all ships for distance from fortress.
 
-            Enumeration<SOCRoad> roadAndShipEnum = player.getRoads().elements();
+            Enumeration<SOCRoutePiece> roadAndShipEnum = player.getRoadsAndShips().elements();
 
             SOCShip closest = null;
             int closeR = -1, closeC = -1;
             while (roadAndShipEnum.hasMoreElements())
             {
-                final SOCRoad rs = roadAndShipEnum.nextElement();
+                final SOCRoutePiece rs = roadAndShipEnum.nextElement();
                 if (! (rs instanceof SOCShip))
                     continue;
 
@@ -1629,8 +1631,8 @@ public class SOCPlayerTracker
                 if (possibleRoads.get(edge) != null)
                     continue;  // already a possible road or ship here
 
-                SOCRoad road = board.roadAtEdge(edge);
-                if ((road != null) && road.isRoadNotShip())
+                SOCRoutePiece rs = board.roadOrShipAtEdge(edge);
+                if ((rs != null) && rs.isRoadNotShip())
                 {
                     settleAlreadyHasRoad = true;
                     break;
@@ -1655,7 +1657,7 @@ public class SOCPlayerTracker
                     continue;  // already a possible road or ship
                 }
 
-                if (board.roadAtEdge(edge) != null)
+                if (board.roadOrShipAtEdge(edge) != null)
                 {
                     continue;  // not new, something's already there
                 }
@@ -2064,11 +2066,11 @@ public class SOCPlayerTracker
                 while (adjEdgeEnum.hasMoreElements())
                 {
                     final int adjEdge = adjEdgeEnum.nextElement().intValue();
-                    Enumeration<SOCRoad> realRoadEnum = player.getRoads().elements();
+                    Enumeration<SOCRoutePiece> realRoadEnum = player.getRoadsAndShips().elements();
 
                     while (realRoadEnum.hasMoreElements())
                     {
-                        SOCRoad realRoad = realRoadEnum.nextElement();
+                        SOCRoutePiece realRoad = realRoadEnum.nextElement();
 
                         if (adjEdge == realRoad.getCoordinates())
                         {
@@ -2567,15 +2569,15 @@ public class SOCPlayerTracker
             if (posRoad.getNecessaryRoads().isEmpty())
             {
                 //
-                // calc longest road value
+                // calc longest route value
                 //
-                SOCRoad dummyRoad;
+                final SOCRoutePiece dummyRS;
                 if (posRoad.isRoadNotShip()
                     || ((posRoad instanceof SOCPossibleShip) && ((SOCPossibleShip) posRoad).isCoastalRoadAndShip))
-                    dummyRoad = new SOCRoad(dummy, posRoad.getCoordinates(), null);  // TODO better coastal handling
+                    dummyRS = new SOCRoad(dummy, posRoad.getCoordinates(), null);  // TODO better coastal handling
                 else
-                    dummyRoad = new SOCShip(dummy, posRoad.getCoordinates(), null);
-                dummy.putPiece(dummyRoad, true);
+                    dummyRS = new SOCShip(dummy, posRoad.getCoordinates(), null);
+                dummy.putPiece(dummyRS, true);
 
                 int newLRLength = dummy.calcLongestRoad2();
 
@@ -2593,8 +2595,8 @@ public class SOCPlayerTracker
                 // update potential LR value
                 //
                 posRoad.setLRPotential(0);
-                updateLRPotential(posRoad, dummy, dummyRoad, lrLength, LR_CALC_LEVEL);
-                dummy.removePiece(dummyRoad, null);
+                updateLRPotential(posRoad, dummy, dummyRS, lrLength, LR_CALC_LEVEL);
+                dummy.removePiece(dummyRS, null);
             }
             else
             {
@@ -2614,11 +2616,12 @@ public class SOCPlayerTracker
      *
      * @param posRoad   the possible road or ship
      * @param dummy     the dummy player
+     * @param dummyRS   the dummy road or ship
      * @param lrLength  the current LR length
      * @param level     how many levels of recursion, or 0 to not recurse
      */
     public void updateLRPotential
-        (SOCPossibleRoad posRoad, SOCPlayer dummy, SOCRoad dummyRoad, final int lrLength, final int level)
+        (SOCPossibleRoad posRoad, SOCPlayer dummy, SOCRoutePiece dummyRS, final int lrLength, final int level)
     {
         //D.ebugPrintln("$$$ updateLRPotential for road at "+Integer.toHexString(posRoad.getCoordinates())+" level="+level);
         //
@@ -2637,14 +2640,14 @@ public class SOCPlayerTracker
         {
             noMoreExpansion = false;
 
-            Enumeration<Integer> adjEdgeEnum = board.getAdjacentEdgesToEdge(dummyRoad.getCoordinates()).elements();
+            Enumeration<Integer> adjEdgeEnum = board.getAdjacentEdgesToEdge(dummyRS.getCoordinates()).elements();
 
             while (adjEdgeEnum.hasMoreElements())
             {
                 final int adjEdge = adjEdgeEnum.nextElement().intValue();
 
-                if ( (dummyRoad.isRoadNotShip() && dummy.isPotentialRoad(adjEdge))
-                     || ((! dummyRoad.isRoadNotShip()) && dummy.isPotentialShip(adjEdge)) )
+                if ( (dummyRS.isRoadNotShip() && dummy.isPotentialRoad(adjEdge))
+                     || ((! dummyRS.isRoadNotShip()) && dummy.isPotentialShip(adjEdge)) )
                 {
                     noMoreExpansion = false;
 
@@ -2672,22 +2675,22 @@ public class SOCPlayerTracker
             //
             // we need to add new roads/ships adjacent to dummyRoad, and recurse
             //
-            Enumeration<Integer> adjEdgeEnum = board.getAdjacentEdgesToEdge(dummyRoad.getCoordinates()).elements();
+            Enumeration<Integer> adjEdgeEnum = board.getAdjacentEdgesToEdge(dummyRS.getCoordinates()).elements();
             while (adjEdgeEnum.hasMoreElements())
             {
                 final int adjEdge = adjEdgeEnum.nextElement().intValue();
 
-                if ( (dummyRoad.isRoadNotShip() && dummy.isPotentialRoad(adjEdge))
-                     || ((! dummyRoad.isRoadNotShip()) && dummy.isPotentialShip(adjEdge)) )
+                if ( (dummyRS.isRoadNotShip() && dummy.isPotentialRoad(adjEdge))
+                     || ((! dummyRS.isRoadNotShip()) && dummy.isPotentialShip(adjEdge)) )
                 {
-                    SOCRoad newDummyRoad;
-                    if (dummyRoad.isRoadNotShip())
-                        newDummyRoad = new SOCRoad(dummy, adjEdge, board);
+                    final SOCRoutePiece newDummyRS;
+                    if (dummyRS.isRoadNotShip())
+                        newDummyRS = new SOCRoad(dummy, adjEdge, board);
                     else
-                        newDummyRoad = new SOCShip(dummy, adjEdge, board);
-                    dummy.putPiece(newDummyRoad, true);
-                    updateLRPotential(posRoad, dummy, newDummyRoad, lrLength, level - 1);
-                    dummy.removePiece(newDummyRoad, null);
+                        newDummyRS = new SOCShip(dummy, adjEdge, board);
+                    dummy.putPiece(newDummyRS, true);
+                    updateLRPotential(posRoad, dummy, newDummyRS, lrLength, level - 1);
+                    dummy.removePiece(newDummyRS, null);
                 }
             }
         }
@@ -3937,7 +3940,7 @@ public class SOCPlayerTracker
                 {
                 case SOCPlayingPiece.SHIP:  // fall through to ROAD
                 case SOCPlayingPiece.ROAD:
-                    trackerCopy.addNewRoadOrShip((SOCRoad) piece, trackersCopy);
+                    trackerCopy.addNewRoadOrShip((SOCRoutePiece) piece, trackersCopy);
 
                     break;
 
@@ -3982,7 +3985,7 @@ public class SOCPlayerTracker
                 {
                 case SOCPlayingPiece.SHIP:  // fall through to ROAD
                 case SOCPlayingPiece.ROAD:
-                    tracker.addNewRoadOrShip((SOCRoad) piece, trackers);
+                    tracker.addNewRoadOrShip((SOCRoutePiece) piece, trackers);
 
                     break;
 

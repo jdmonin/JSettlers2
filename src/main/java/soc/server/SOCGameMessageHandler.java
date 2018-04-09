@@ -1911,7 +1911,7 @@ public class SOCGameMessageHandler
                             if (player.isRobot() && D.ebugOn)
                             {
                                 D.ebugPrintln(" - pl.isPotentialRoad: " + player.isPotentialRoad(coord));
-                                SOCPlayingPiece pp = ga.getBoard().roadAtEdge(coord);
+                                SOCPlayingPiece pp = ga.getBoard().roadOrShipAtEdge(coord);
                                 D.ebugPrintln(" - roadAtEdge: " + ((pp != null) ? pp : "none"));
                             }
 
@@ -2065,7 +2065,7 @@ public class SOCGameMessageHandler
                             if (player.isRobot() && D.ebugOn)
                             {
                                 D.ebugPrintln(" - pl.isPotentialShip: " + player.isPotentialShip(coord));
-                                SOCPlayingPiece pp = ga.getBoard().roadAtEdge(coord);
+                                SOCPlayingPiece pp = ga.getBoard().roadOrShipAtEdge(coord);
                                 D.ebugPrintln(" - ship/roadAtEdge: " + ((pp != null) ? pp : "none"));
                             }
 

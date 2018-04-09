@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2011-2012,2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2011-2012,2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -23,13 +23,12 @@ package soc.game;
 
 
 /**
- * A road playing piece, or (on the large sea board) a {@link SOCShip ship} playing piece.
+ * A road playing piece.
  *<P>
- * To simplify some game code, ships are a subclass of roads.
- * To see if this piece is actually a road, check {@link #isRoadNotShip()}.
+ * To simplify some game code, roads and {@link SOCShip}s have a common superclass.
  */
 @SuppressWarnings("serial")
-public class SOCRoad extends SOCPlayingPiece
+public class SOCRoad extends SOCRoutePiece
 {
     /**
      * The set of resources a player needs to build a {@link SOCRoad road}.
@@ -44,33 +43,14 @@ public class SOCRoad extends SOCPlayingPiece
      * Make a new road
      *
      * @param pl  player who owns the road
-     * @param co  coordinates
-     * @param board  board if known; otherwise will extract from <tt>pl</tt>
-     * @throws IllegalArgumentException  if <tt>pl</tt> null, or board null and <tt>pl.board</tt> also null
+     * @param edge  road's edge coordinate
+     * @param board  board if known; otherwise will extract from {@code pl}
+     * @throws IllegalArgumentException  if {@code pl} null, or board null and {@code pl.board} also null
      */
-    public SOCRoad(SOCPlayer pl, int co, SOCBoard board)
+    public SOCRoad(final SOCPlayer pl, final int edge, final SOCBoard board)
         throws IllegalArgumentException
     {
-        super(SOCPlayingPiece.ROAD, pl, co, board);
-    }
-
-    /**
-     * The 2 nodes touching this road.
-     * @return the 2 nodes touching this road, same format as {@link SOCBoard#getAdjacentNodesToEdge_arr(int)}
-     */
-    public int[] getAdjacentNodes()
-    {
-        return board.getAdjacentNodesToEdge_arr(coord);
-    }
-
-    /**
-     * Is this piece really a road on land, and not a ship on water (our subclass)?
-     * @return True for roads (pieceType {@link SOCPlayingPiece#ROAD}), false otherwise
-     * @since 2.0.00
-     */
-    public final boolean isRoadNotShip()
-    {
-        return (pieceType == SOCPlayingPiece.ROAD);
+        super(pl, SOCPlayingPiece.ROAD, edge, board);
     }
 
 }

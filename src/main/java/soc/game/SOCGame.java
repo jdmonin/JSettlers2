@@ -3121,7 +3121,7 @@ public class SOCGame implements Serializable, Cloneable
          */
         if (hasSeaBoard && isAtServer && ! (pp instanceof SOCVillage))
         {
-            if (pp instanceof SOCRoad)
+            if (pp instanceof SOCRoutePiece)
             {
                 // roads, ships
                 final int[] endHexes = ((SOCBoardLarge) board).getAdjacentHexesToEdgeEnds(coord);
@@ -3254,7 +3254,7 @@ public class SOCGame implements Serializable, Cloneable
          */
         if (pieceType != SOCPlayingPiece.CITY)
         {
-            if (pp instanceof SOCRoad)
+            if (pp instanceof SOCRoutePiece)
             {
                 /**
                  * the affected player is the one who build the road or ship
@@ -3279,15 +3279,11 @@ public class SOCGame implements Serializable, Cloneable
                     final int adjEdge = adj.intValue();
 
                     /**
-                     * look for other player's roads adjacent to this node
+                     * look for other players' roads and ships adjacent to this node
                      */
-                    for (SOCRoad road : board.getRoads())
-                    {
+                    for (SOCRoutePiece road : board.getRoadsAndShips())
                         if (adjEdge == road.getCoordinates())
-                        {
                             roads[road.getPlayerNumber()]++;
-                        }
-                    }
                 }
 
                 /**
@@ -3743,7 +3739,7 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         final SOCPlayer pl = players[pn];
-        final SOCRoad pieceAtFrom = pl.getRoadOrShip(fromEdge);
+        final SOCRoutePiece pieceAtFrom = pl.getRoadOrShip(fromEdge);
         if ((pieceAtFrom == null) || pieceAtFrom.isRoadNotShip())
             return null;
         SOCShip canShip = (SOCShip) pieceAtFrom;
@@ -5999,10 +5995,10 @@ public class SOCGame implements Serializable, Cloneable
         // Look for player's ship at edge adjacent to pirate fortress;
         // start with most recently placed ship
         final int[] edges = board.getAdjacentEdgesToNode_arr(fort.getCoordinates());
-        Vector<SOCRoad> roadsAndShips = currPlayer.getRoads();
+        Vector<SOCRoutePiece> roadsAndShips = currPlayer.getRoadsAndShips();
         for (int i = roadsAndShips.size() - 1; i >= 0; --i)
         {
-            SOCRoad rs = roadsAndShips.get(i);
+            SOCRoutePiece rs = roadsAndShips.get(i);
             if (! (rs instanceof SOCShip))
                 continue;
 
@@ -6120,10 +6116,10 @@ public class SOCGame implements Serializable, Cloneable
                 // find player's newest-placed ship adjacent to shipEdge;
                 // it will also be lost
                 final Vector<Integer> adjacEdges = board.getAdjacentEdgesToEdge(shipEdge);
-                Vector<SOCRoad> roadsAndShips = currPlayer.getRoads();
+                Vector<SOCRoutePiece> roadsAndShips = currPlayer.getRoadsAndShips();
                 for (int i = roadsAndShips.size() - 1; i >= 0; --i)
                 {
-                    SOCRoad rs = roadsAndShips.get(i);
+                    SOCRoutePiece rs = roadsAndShips.get(i);
                     if (! (rs instanceof SOCShip))
                         continue;
 
@@ -6223,9 +6219,9 @@ public class SOCGame implements Serializable, Cloneable
             if (isSeatVacant(i))
                 continue;
 
-            Vector<SOCRoad> roads_ships = players[i].getRoads();
+            Vector<SOCRoutePiece> roads_ships = players[i].getRoadsAndShips();
             boolean touching = false;
-            for (SOCRoad rs : roads_ships)
+            for (SOCRoutePiece rs : roads_ships)
             {
                 if (rs.isRoadNotShip())
                     continue;
@@ -7141,12 +7137,12 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, is this ship upgraded to a warship?
      * Counts down {@code sh}'s player's {@link SOCPlayer#getNumWarships()}
-     * while it looks for {@code sh} among the ships from {@link SOCPlayer#getRoads()},
+     * while it looks for {@code sh} among the ships from {@link SOCPlayer#getRoadsAndShips()},
      * which is in the same chronological order as warship conversions.
      * (Those are the ships heading out to sea starting at the player's coastal settlement.)
      *
      * @param sh  A ship whose player is in this game
-     * @return  True if {@link SOCPlayer#getRoads()} contains, among its
+     * @return  True if {@link SOCPlayer#getRoadsAndShips()} contains, among its
      *          first {@link SOCPlayer#getNumWarships()} ships, a ship
      *          located at {@link SOCShip#getCoordinates() sh.getCoordinates()}.
      * @see #playKnight()
@@ -7164,7 +7160,7 @@ public class SOCGame implements Serializable, Cloneable
         if (0 == numWarships)
             return false;  // <--- early return: no warships ---
 
-        for (SOCRoad rship : pl.getRoads())
+        for (SOCRoutePiece rship : pl.getRoadsAndShips())
         {
             if (! (rship instanceof SOCShip))
                 continue;
@@ -7226,9 +7222,10 @@ public class SOCGame implements Serializable, Cloneable
      * In <b>game scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}</b>,
      * can this player currently play a Warship (Knight) card to
      * convert one of their ships into a warship?
-     * Conditions in first paragraph must be true, and player's {@link SOCPlayer#getRoads()}
-     * must contain more ships than {@link SOCPlayer#getNumWarships()}.
-     * That scenario has no robber on the board, only the pirate fleet.
+     * Conditions in first paragraph must be true, and player's
+     * {@link SOCPlayer#getRoadsAndShips()} must contain more ships
+     * than {@link SOCPlayer#getNumWarships()}. That scenario has
+     * no robber on the board, only the pirate fleet.
      *
      * @param pn  the number of the player
      * @return true if the player can play a knight card
@@ -7254,10 +7251,10 @@ public class SOCGame implements Serializable, Cloneable
             return true;
 
         // Check if the player has any ship to convert to a warship
-        final Vector<SOCRoad> roadsShips = players[pn].getRoads();
+        final Vector<SOCRoutePiece> roadsShips = players[pn].getRoadsAndShips();
         int numShip = 0;
-        for (SOCRoad r : roadsShips)
-            if (r instanceof SOCShip)
+        for (SOCRoutePiece rs : roadsShips)
+            if (rs instanceof SOCShip)
                 ++numShip;
 
         return (numShip - players[pn].getNumWarships()) > 0;

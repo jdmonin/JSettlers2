@@ -65,8 +65,8 @@ import soc.util.IntPair;
  * followed by the robber hex and pirate hex (if they're &gt; 0),
  * and then (a separate message) the legal settlement/city nodes and land areas.
  *<P>
- * Ship pieces extend the {@link SOCRoad} class; road-related getters/setters will work on them,
- * but check {@link SOCRoad#isRoadNotShip()} to differentiate.
+ * Road and ship pieces extend the {@link SOCRoutePiece} class; road-related getters/setters
+ * will work on both types, but check {@link SOCRoutePiece#isRoadNotShip()} to differentiate.
  * You cannot place both a road and a ship on the same coastal edge coordinate.
  *
  *<H4> Layout Parts: </H4>
@@ -164,7 +164,7 @@ import soc.util.IntPair;
  *      {@link #isEdgeInBounds(int, int)} <br>
  *      {@link #isEdgeCoastline(int)} <br>
  *      {@link #isEdgeLegalRoad(int)} <br>
- *      {@link #roadAtEdge(int)} <br>
+ *      {@link #roadOrShipAtEdge(int)} <br>
  *      {@link #getPortsEdges()}
  *    </td>
  *    <td><!-- node -->

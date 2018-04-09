@@ -72,7 +72,8 @@ import java.util.Vector;
  *</UL>
  *<P>
  * On the {@link SOCBoardLarge large sea board}, our list of the player's roads also
- * contains their ships.  They are otherwise treated separately.
+ * contains their ships. Some method names like {@link #isConnectedByRoad(int, int)}
+ * also group roads and ships together. They are otherwise treated separately.
  *<P>
  * Some fields are for use at the server only, and are null at the client:
  * {@link #resourceStats}, {@link #pendingMessagesOut}, etc.
@@ -134,9 +135,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * a list of this player's roads and ships in play.
      * Although roads and ships are kept together here,
      * in {@link #numPieces}[] they're counted separately.
+     *<P>
+     * Before v2.0.00 this field was {@code roads}.
      * @see #getRoadOrShip(int)
+     * @see #roadNodes
      */
-    private Vector<SOCRoad> roads;
+    private Vector<SOCRoutePiece> roadsAndShips;
 
     /**
      * a list of this player's settlements in play
@@ -299,6 +303,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * all of the nodes that this player's roads and ships touch;
      * this is used to calculate longest road / longest trade route.
+     * @see #roadsAndShips
+     * @see #roadNodeGraph
      */
     private Vector<Integer> roadNodes;
 
@@ -602,7 +608,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         playerNumber = player.playerNumber;
         numPieces = player.numPieces.clone();
         pieces = new Vector<SOCPlayingPiece>(player.pieces);
-        roads = new Vector<SOCRoad>(player.roads);
+        roadsAndShips = new Vector<SOCRoutePiece>(player.roadsAndShips);
         settlements = new Vector<SOCSettlement>(player.settlements);
         cities = new Vector<SOCCity>(player.cities);
         spItems = new HashMap<String, ArrayList<SOCSpecialItem>>();
@@ -738,7 +744,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             --numPieces[SOCPlayingPiece.SETTLEMENT];  // Pirate Fortress is a captured settlement
 
         pieces = new Vector<SOCPlayingPiece>(24);
-        roads = new Vector<SOCRoad>(15);
+        roadsAndShips = new Vector<SOCRoutePiece>(15);
         settlements = new Vector<SOCSettlement>(5);
         cities = new Vector<SOCCity>(4);
         spItems = new HashMap<String, ArrayList<SOCSpecialItem>>();
@@ -1153,7 +1159,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * to defend against the pirate fleet and attack the {@link SOCFortress}.
      *<P>
      * {@link SOCShip} has no "isWarship" field; the player's first {@code numWarships}
-     * ships within {@link #getRoads()} are the warships, because those are the ships
+     * ships within {@link #getRoadsAndShips()} are the warships, because those are the ships
      * heading out to sea starting at the player's settlement, placed chronologically.
      * See {@link SOCGame#isShipWarship(SOCShip)} for details.
      * @since 2.0.00
@@ -1188,13 +1194,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * Get this player's roads and ships on the board.  Chronological order.
      * Note that if a ship is moved on the board, it may go to the end of this list.
+     *<P>
+     * Before v2.0.00 this method was {@code getRoads}.
      * @return the list of roads/ships in play
      * @see #getRoadOrShip(int)
      * @see #getMostRecentShip()
      */
-    public Vector<SOCRoad> getRoads()
+    public Vector<SOCRoutePiece> getRoadsAndShips()
     {
-        return roads;
+        return roadsAndShips;
     }
 
     /**
@@ -1204,9 +1212,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @see #getMostRecentShip()
      * @since 2.0.00
      */
-    public SOCRoad getRoadOrShip(final int edge)
+    public SOCRoutePiece getRoadOrShip(final int edge)
     {
-        for (SOCRoad roadOrShip : roads)
+        for (SOCRoutePiece roadOrShip : roadsAndShips)
         {
             if (roadOrShip.getCoordinates() == edge)
                 return roadOrShip;
@@ -1217,16 +1225,16 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Get this player's most recently placed ship, if any.
-     * @return Most recent ship from {@link #getRoads()}, or {@code null}
+     * @return Most recent ship from {@link #getRoadsAndShips()}, or {@code null}
      *    if that list contains no {@link SOCShip}s
-     * @see #getRoads()
+     * @see #getRoadsAndShips()
      * @since 2.0.00
      */
     public SOCShip getMostRecentShip()
     {
-        for (int i = roads.size() - 1; i >= 0; --i)
+        for (int i = roadsAndShips.size() - 1; i >= 0; --i)
         {
-            SOCRoad rs = roads.get(i);
+            SOCRoutePiece rs = roadsAndShips.get(i);
             if (rs instanceof SOCShip)
                 return (SOCShip) rs;
         }
@@ -1517,14 +1525,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 adjEdges[i] = -9;  // ignore this edge
 
         // Look for a road/ship of ours, adjacent to node
-        for (SOCRoad road : roads)
+        for (SOCRoutePiece rs : roadsAndShips)
         {
-            final int edge = road.getCoordinates();
+            final int edge = rs.getCoordinates();
             for (int i = 0; i < 3; ++i)
             {
                 if (edge == adjEdges[i])
                 {
-                    if (road.isRoadNotShip() == wantShip)
+                    if (rs.isRoadNotShip() == wantShip)
                         continue;  // interested in ships only, or roads only, not both types
 
                     routeContinues = true;
@@ -1567,7 +1575,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *
      * @param newShipEdge  A ship in a currently-open trade route, either newly placed
      *                  or adjacent to a newly placed settlement.
-     *                  If the ship is newly placed, it should not yet be in {@link #roads}.
+     *                  If the ship is newly placed, it should not yet be in {@link #roadsAndShips}.
      *                  If the settlement is newly placed, it should not yet be in {@link #settlements}.
      * @param edgeFarNode  The unvisited node at the far end of <tt>fromEdge</tt>.
      *                  We'll examine this node and then continue to move along edges past it.
@@ -1802,7 +1810,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 if ((nodeEdges[i] == edge) || (nodeEdges[i] == -9))
                     continue;  // not a new direction
 
-                SOCRoad rs = getRoadOrShip(nodeEdges[i]);
+                SOCRoutePiece rs = getRoadOrShip(nodeEdges[i]);
                 if ((rs == null) || rs.isRoadNotShip())
                     continue;  // not a ship
 
@@ -2460,7 +2468,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
              */
             case SOCPlayingPiece.ROAD:
                 numPieces[SOCPlayingPiece.ROAD]--;
-                putPiece_roadOrShip((SOCRoad) piece, board, isTempPiece);
+                putPiece_roadOrShip((SOCRoutePiece) piece, board, isTempPiece);
                 break;
 
             /**
@@ -2585,19 +2593,21 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param isTempPiece  Is this a temporary piece?  If so, do not check special edges or "gift" ports.
      * @since 2.0.00
      */
-    private void putPiece_roadOrShip(SOCRoad piece, SOCBoard board, final boolean isTempPiece)
+    private void putPiece_roadOrShip
+        (final SOCRoutePiece piece, final SOCBoard board, final boolean isTempPiece)
     {
         /**
          * before adding a ship, check to see if its trade route is now closed
          * or if it's reached a Special Edge or an _SC_FTRI "gift" trade port.
          */
         if ((piece instanceof SOCShip))
-            putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges((SOCShip) piece, (SOCBoardLarge) board, isTempPiece);
+            putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges
+                ((SOCShip) piece, (SOCBoardLarge) board, isTempPiece);
 
         /**
          * remember it
          */
-        roads.addElement(piece);
+        roadsAndShips.addElement(piece);
         lastRoadCoord = piece.getCoordinates();
 
         /**
@@ -2696,7 +2706,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * calls {@link SOCGame#removePort(SOCPlayer, int)} and fires {@link SOCScenarioPlayerEvent#REMOVED_TRADE_PORT}.
      *
      * @param newShip  Our new ship being placed in {@link #putPiece(SOCPlayingPiece, boolean)};
-     *                 should not yet be added to {@link #roads}
+     *                 should not yet be added to {@link #roadsAndShips}
      * @param board  game board
      * @param isTempPiece  Is this a temporary piece?  If so, do not check special edges or "gift" ports.
      * @since 2.0.00
@@ -2833,7 +2843,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             final int edge = nodeEdges[i];
             if (edge == -9)
                 continue;
-            SOCRoad pp = getRoadOrShip(edge);
+            SOCRoutePiece pp = getRoadOrShip(edge);
             if ((pp == null) || ! (pp instanceof SOCShip))
                 continue;
             SOCShip sh = (SOCShip) pp;
@@ -2966,14 +2976,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 //
                 Vector<Integer> adjEdges = board.getAdjacentEdgesToEdge(pieceCoord);
 
-                for (SOCRoad road : roads)
+                for (SOCRoutePiece rs : roadsAndShips)
                 {
                     for (Integer edgeObj : adjEdges)
                     {
                         final int edge = edgeObj.intValue();
 
-                        if (road.getCoordinates() == edge)
-                            updatePotentials(road);
+                        if (rs.getCoordinates() == edge)
+                            updatePotentials(rs);
                     }
                 }
             }
@@ -3138,13 +3148,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         boolean adjRoad = false;
                         Vector<Integer> adjEdges = board.getAdjacentEdgesToNode(settlementNode);
 
-                        for (SOCRoad road : roads)
+                        for (SOCRoutePiece rs : roadsAndShips)
                         {
                             for (Integer adjEdgeObj : adjEdges)
                             {
                                 final int adjEdge = adjEdgeObj.intValue();
 
-                                if (road.getCoordinates() == adjEdge)
+                                if (rs.getCoordinates() == adjEdge)
                                 {
                                     //D.ebugPrintln("))) found adj road at "+Integer.toHexString(adjEdge.intValue()));
                                     adjRoad = true;
@@ -3230,7 +3240,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 {
                 case SOCPlayingPiece.SHIP:  // fall through to ROAD
                 case SOCPlayingPiece.ROAD:
-                    roads.removeElement(p);
+                    roadsAndShips.removeElement(p);
                     numPieces[ptype]++;
 
                     if (ptype == SOCPlayingPiece.SHIP)
@@ -3260,9 +3270,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                             Collection<Integer> adjEdges = board.getAdjacentEdgesToNode(node.intValue());
                             boolean match = false;
 
-                            for (SOCRoad rd : roads)
+                            for (SOCRoutePiece rs : roadsAndShips)
                             {
-                                final int rdEdge = rd.getCoordinates();
+                                final int rdEdge = rs.getCoordinates();
 
                                 for (Integer adjEdgeObj : adjEdges)
                                 {
@@ -3402,9 +3412,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                                     if (adjAdjEdge != adjEdgeID)
                                     {
-                                        for (SOCRoad ourRoad : roads)
+                                        for (SOCRoutePiece ourRS : roadsAndShips)
                                         {
-                                            if (ourRoad.getCoordinates() == adjAdjEdge)
+                                            if (ourRS.getCoordinates() == adjAdjEdge)
                                             {
                                                 /**
                                                  * we're still connected
@@ -3799,7 +3809,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 HashSet<Integer> ourRoads = new HashSet<Integer>();  // TODO more efficient way of looking this up, with fewer temp objs
                 for (SOCPlayingPiece p : this.pieces)
                 {
-                    if (p instanceof SOCRoad)   // roads and ships
+                    if (p instanceof SOCRoutePiece)   // roads and ships
                         ourRoads.add(Integer.valueOf(p.getCoordinates()));
                 }
 
@@ -4536,7 +4546,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                         if (isConnectedByRoad(coord, j))
                         {
-                            final SOCRoad roadFromNode;  // sea board: road/ship from node to j
+                            final SOCRoutePiece rsFromNode;  // sea board: road/ship from node to j
 
                             if (game.hasSeaBoard)
                             {
@@ -4544,21 +4554,21 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                 // which require a settlement/city at node.
                                 // If len==0, inboundRoad is null because we're just starting.
 
-                                roadFromNode = getRoadOrShip
-                                (board.getEdgeBetweenAdjacentNodes(coord, j));
+                                rsFromNode =
+                                    getRoadOrShip(board.getEdgeBetweenAdjacentNodes(coord, j));
                                 if (len > 0)
                                 {
-                                    if (roadFromNode == null)  // shouldn't happen
+                                    if (rsFromNode == null)  // shouldn't happen
                                         continue;
 
-                                    if ((roadFromNode.isRoadNotShip() != curNode.inboundRoad.isRoadNotShip())
+                                    if ((rsFromNode.isRoadNotShip() != curNode.inboundRS.isRoadNotShip())
                                         && (settlementAtNodeCoord == null))
                                     {
                                         continue;  // Requires settlement/city to connect road to ship
                                     }
                                 }
                             } else {
-                                roadFromNode = null;
+                                rsFromNode = null;
                             }
 
                             IntPair pair = new IntPair(coord, j);
@@ -4577,7 +4587,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                             {
                                 Vector<IntPair> newVis = new Vector<IntPair>(visited);
                                 newVis.addElement(pair);
-                                pending.push(new NodeLenVis<IntPair>(j, len + 1, newVis, roadFromNode));
+                                pending.push(new NodeLenVis<IntPair>(j, len + 1, newVis, rsFromNode));
                                 pathEnd = false;
                             }
                         }
@@ -4791,8 +4801,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         numPieces = null;
         pieces.removeAllElements();
         pieces = null;
-        roads.removeAllElements();
-        roads = null;
+        roadsAndShips.removeAllElements();
+        roadsAndShips = null;
         settlements.removeAllElements();
         settlements = null;
         cities.removeAllElements();

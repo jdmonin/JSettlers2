@@ -3755,7 +3755,7 @@ public class SOCGameHandler extends GameHandler
         int shipCount = 0, roadCount = 0;
         for (int edge : seEdges)
         {
-            SOCRoad pp = board.roadAtEdge(edge);
+            SOCRoutePiece pp = board.roadOrShipAtEdge(edge);
             if (pp == null)
                 continue;
 

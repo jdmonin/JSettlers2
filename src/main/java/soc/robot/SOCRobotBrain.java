@@ -38,6 +38,7 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
+import soc.game.SOCRoutePiece;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCSpecialItem;
@@ -3915,15 +3916,15 @@ public class SOCRobotBrain extends Thread
         while (adjEdgeEnum.hasMoreElements())
         {
             final int adjEdge = adjEdgeEnum.nextElement().intValue();
-            Enumeration<SOCRoad> roadEnum = board.getRoads().elements();
+            Enumeration<SOCRoutePiece> roadEnum = board.getRoadsAndShips().elements();
 
             while (roadEnum.hasMoreElements())
             {
-                SOCRoad road = roadEnum.nextElement();
+                final SOCRoutePiece rs = roadEnum.nextElement();
 
-                if (road.getCoordinates() == adjEdge)
+                if (rs.getCoordinates() == adjEdge)
                 {
-                    final int roadPN = road.getPlayerNumber();
+                    final int roadPN = rs.getPlayerNumber();
 
                     roadCount[roadPN]++;
 
@@ -4083,13 +4084,13 @@ public class SOCRobotBrain extends Thread
     /**
      * Run a newly placed road or ship through the playerTrackers.
      *
-     * @param newRoad  The newly placed road or ship
+     * @param newPiece  The newly placed road or ship
      * @param isCancel Is this our own robot's placement, rejected by the server?
      *     If so, this method call will cancel its placement within the game data / robot data.
      */
-    protected void trackNewRoadOrShip(final SOCRoad newRoad, final boolean isCancel)
+    protected void trackNewRoadOrShip(final SOCRoutePiece newPiece, final boolean isCancel)
     {
-        final int newRoadPN = newRoad.getPlayerNumber();
+        final int newRoadPN = newPiece.getPlayerNumber();
 
         Iterator<SOCPlayerTracker> trackersIter = playerTrackers.values().iterator();
 
@@ -4101,9 +4102,9 @@ public class SOCRobotBrain extends Thread
             try
             {
                 if (! isCancel)
-                    tracker.addNewRoadOrShip(newRoad, playerTrackers);
+                    tracker.addNewRoadOrShip(newPiece, playerTrackers);
                 else
-                    tracker.cancelWrongRoadOrShip(newRoad);
+                    tracker.cancelWrongRoadOrShip(newPiece);
             }
             catch (Exception e)
             {
@@ -4395,7 +4396,7 @@ public class SOCRobotBrain extends Thread
             {
             case SOCPlayingPiece.SHIP:  // fall through to ROAD
             case SOCPlayingPiece.ROAD:
-                trackNewRoadOrShip((SOCRoad) cancelPiece, true);
+                trackNewRoadOrShip((SOCRoutePiece) cancelPiece, true);
                 if (cancelPiece.getType() == SOCPlayingPiece.ROAD)
                     ourPlayerData.clearPotentialRoad(coord);
                 else

@@ -32,6 +32,7 @@ import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCRoad;
+import soc.game.SOCRoutePiece;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCVillage;
@@ -4118,9 +4119,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          */
         if (! game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
         {
-            for (SOCRoad r : board.getRoads())
+            for (SOCRoutePiece rs : board.getRoadsAndShips())
             {
-                drawRoadOrShip(g, r.getCoordinates(), r.getPlayerNumber(), false, ! (r instanceof SOCShip), false);
+                drawRoadOrShip(g, rs.getCoordinates(), rs.getPlayerNumber(), false, ! (rs instanceof SOCShip), false);
             }
         } else {
             for (int pn = 0; pn < game.maxPlayers; ++pn)
@@ -4129,11 +4130,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 // count warships here, for efficiency, instead of calling SOCGame.isShipWarship for each one
                 int numWarships = pl.getNumWarships();
-                for (SOCRoad r : pl.getRoads())
+                for (SOCRoutePiece rs : pl.getRoadsAndShips())
                 {
-                    final boolean isShip = (r instanceof SOCShip);
+                    final boolean isShip = (rs instanceof SOCShip);
                     final boolean isWarship = isShip && (numWarships > 0);
-                    drawRoadOrShip(g, r.getCoordinates(), pn, false, ! isShip, isWarship);
+                    drawRoadOrShip(g, rs.getCoordinates(), pn, false, ! isShip, isWarship);
                     if (isWarship)
                         --numWarships;  // this works since warships begin with player's 1st-placed ship in getRoads()
                 }
@@ -7767,7 +7768,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 hoverIsWarship = false;
 
                 // Is a road or ship there?
-                final SOCRoad rs = board.roadAtEdge(id);
+                final SOCRoutePiece rs = board.roadOrShipAtEdge(id);
                 if (rs != null)
                 {
                     if (! hoverTextSet)

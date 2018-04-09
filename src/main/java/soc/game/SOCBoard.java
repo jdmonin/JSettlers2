@@ -120,7 +120,7 @@ import java.util.Vector;
  *      {@link #getLandHexCoords()}
  *    </td>
  *    <td><!-- edge -->
- *      {@link #roadAtEdge(int)} <br>
+ *      {@link #roadOrShipAtEdge(int)} <br>
  *      {@link #getPortsEdges()}
  *    </td>
  *    <td><!-- node -->
@@ -167,13 +167,13 @@ import java.util.Vector;
  * this coordinate grid.
  *<P>
  * For the large sea board (encoding v3: {@link #BOARD_ENCODING_LARGE}), see subclass {@link SOCBoardLarge}.
- * Remember that ship pieces extend the {@link SOCRoad} class.
+ * Remember that road and ship pieces extend the {@link SOCRoutePiece} class.
  * Most methods of {@link SOCBoard}, {@link SOCGame} and {@link SOCPlayer} differentiate them
  * ({@link SOCPlayer#hasPotentialRoad()} vs {@link SOCPlayer#hasPotentialShip()}),
  * but a few methods group them together:
  *<UL>
- *<LI> {@link #roadAtEdge(int)}
- *<LI> {@link #getRoads()}
+ *<LI> {@link #roadOrShipAtEdge(int)}
+ *<LI> {@link #getRoadsAndShips()}
  *</UL>
  * On the large sea board, there can optionally be multiple "land areas"
  * (groups of islands), if {@link SOCBoardLarge#getLandAreasLegalNodes()} != null.
@@ -662,11 +662,13 @@ public abstract class SOCBoard implements Serializable, Cloneable
     protected Vector<Integer>[] ports = new Vector[6];  // 1 per resource type, MISC_PORT to WOOD_PORT
 
     /**
-     * roads on the board; Vector of SOCPlayingPiece.
+     * roads on the board; Vector of {@link SOCRoad}s.
      * On the large sea board ({@link SOCBoardLarge}), also
-     * contains all ships on the board.
+     * contains all {@link SOCShip}s on the board.
+     *<P>
+     * Before v2.0.00 this field was {@code roads}.
      */
-    protected Vector<SOCRoad> roads = new Vector<SOCRoad>(60);
+    protected Vector<SOCRoutePiece> roadsAndShips = new Vector<SOCRoutePiece>(60);
 
     /**
      * settlements on the board
@@ -1943,15 +1945,15 @@ public abstract class SOCBoard implements Serializable, Cloneable
         {
         case SOCPlayingPiece.SHIP:  // fall through to ROAD
         case SOCPlayingPiece.ROAD:
-            roads.addElement((SOCRoad)pp);
+            roadsAndShips.addElement((SOCRoutePiece) pp);
             break;
 
         case SOCPlayingPiece.SETTLEMENT:
-            settlements.addElement((SOCSettlement)pp);
+            settlements.addElement((SOCSettlement) pp);
             break;
 
         case SOCPlayingPiece.CITY:
-            cities.addElement((SOCCity)pp);
+            cities.addElement((SOCCity) pp);
             break;
 
         }
@@ -1977,7 +1979,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
         {
         case SOCPlayingPiece.SHIP:  // fall through to ROAD
         case SOCPlayingPiece.ROAD:
-            roads.removeElement(piece);
+            roadsAndShips.removeElement(piece);
             break;
 
         case SOCPlayingPiece.SETTLEMENT:
@@ -1991,11 +1993,13 @@ public abstract class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * get the list of roads and ships
+     * Get the list of roads and ships.
+     *<P>
+     * Before v2.0.00 this method was {@code getRoads}.
      */
-    public Vector<SOCRoad> getRoads()
+    public Vector<SOCRoutePiece> getRoadsAndShips()
     {
-        return roads;
+        return roadsAndShips;
     }
 
     /**
@@ -3105,20 +3109,20 @@ public abstract class SOCBoard implements Serializable, Cloneable
 
     /**
      * If there's a road or ship placed at this edge, find it.
+     *<P>
+     * Before v2.0.00 this method was {@code roadAtEdge}.
      *
      * @param edgeCoord Location coordinate (as returned by SOCBoardPanel.findEdge)
      * @return road or ship, or null.  Use {@link SOCPlayingPiece#getType()}
-     *   or {@link SOCRoad#isRoadNotShip()} to determine the returned piece type.
+     *   or {@link SOCRoutePiece#isRoadNotShip()} to determine the returned piece type.
      *   At most one road or ship can be placed at any one edge.
      */
-    public SOCRoad roadAtEdge(int edgeCoord)
+    public SOCRoutePiece roadOrShipAtEdge(int edgeCoord)
     {
-        for (SOCRoad p : roads)
+        for (SOCRoutePiece p : roadsAndShips)
         {
             if (edgeCoord == p.getCoordinates())
-            {
                 return p;  // <-- Early return: Found it ---
-            }
         }
 
         return null;
