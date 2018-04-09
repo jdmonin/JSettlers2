@@ -1260,9 +1260,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             // player actions: buy/build/play pieces and items
 
-            case GameMessage.GameMessageFromClient.PUT_PIECE_FIELD_NUMBER:
+            case GameMessage.GameMessageFromClient.BUILD_PIECE_FIELD_NUMBER:
                 {
-                    GameMessage.PutPiece m = msg.getPutPiece();
+                    GameMessage.BuildPiece m = msg.getBuildPiece();
                     return new SOCPutPiece(gaName, -1, m.getTypeValue(), m.getCoordinates());
                 }
 
@@ -1279,9 +1279,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
                         (gaName, -1, m.getTypeValue(), m.getFromCoord(), m.getToCoord());
                 }
 
-            case GameMessage.GameMessageFromClient.BUY_INV_ITEM_FIELD_NUMBER:
+            case GameMessage.GameMessageFromClient.BUY_INVENTORY_ITEM_FIELD_NUMBER:
                 {
-                    GameMessage.BuyInventoryItemRequest m = msg.getBuyInvItem();
+                    GameMessage.BuyInventoryItemRequest m = msg.getBuyInventoryItem();
                     final int itype = m.getOtherInvItemType();
                     if (itype == 0)
                         return new SOCBuyDevCardRequest(gaName);
@@ -1289,9 +1289,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
                         return null;  // currently players can't buy inventory items
                 }
 
-            case GameMessage.GameMessageFromClient.INV_ITEM_ACTION_FIELD_NUMBER:
+            case GameMessage.GameMessageFromClient.INVENTORY_ITEM_ACTION_FIELD_NUMBER:
                 {
-                    GameMessage.InventoryItemAction m = msg.getInvItemAction();
+                    GameMessage.InventoryItemAction m = msg.getInventoryItemAction();
                     final int itype = m.getOtherInvItemType(),
                               action = m.getActionTypeValue();
                     if (itype == 0)

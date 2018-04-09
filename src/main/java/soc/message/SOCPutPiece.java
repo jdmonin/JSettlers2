@@ -214,12 +214,12 @@ public class SOCPutPiece extends SOCMessage
     @Override
     protected Message.FromServer toProtoFromServer()
     {
-        GameMessage.PutPiece.Builder b
-            = GameMessage.PutPiece.newBuilder();
+        GameMessage.BuildPiece.Builder b
+            = GameMessage.BuildPiece.newBuilder();
         b.setPlayerNumber(playerNumber).setTypeValue(pieceType).setCoordinates(coordinates);
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
-        gb.setGaName(game).setPutPiece(b);
+        gb.setGaName(game).setBuildPiece(b);
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 

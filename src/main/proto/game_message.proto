@@ -60,6 +60,10 @@ message BoardLayout
 
 /* A list of potential settlements, with optional related potential/legal position info.
  * Sent from server when game starts or client joins a game in progress.
+ * This definitively sends the player's current possible placement locations, instead of having the client
+ * try to infer it from the board and rules. Some seafarers scenarios have nonstandard restrictions
+ * on where the players can place. By having the server be authoritative on this, more scenarios
+ * could be added later without a client change.
  */
 message PotentialSettlements {
     /* Player Number this applies to; may be -1 for all players at start of game.
@@ -111,11 +115,11 @@ message PotentialSettlements {
     repeated _SIntArray legal_sea_edges = 6;
 }
 
-/* Client player is asking to buy and place, or server is announcing placement of, a piece on the board.
+/* Client player is asking to buy and build, or server is announcing placement of, a piece on the board.
  * Also used when joining a new game or a game in progress, to send the game state so far.
  *<P>
  * If message is from server for a {@link soc.game.SOCCity} while client is joining a game, must precede
- * by sending that client a {@code PutPiece} message with the Settlement at the same coordinate
+ * by sending that client a {@code BuildPiece} message with the Settlement at the same coordinate
  * which was upgraded to that city.
  *<P>
  * Some game scenarios use {@link soc.game.SOCVillage villages} which aren't owned by any player;
@@ -129,19 +133,21 @@ message PotentialSettlements {
  * the clients while game state is &lt; {@link soc.game.SOCGame#START1A START1A} and before
  * sending them {@link StartGame}. Scenario {@link soc.game.SOCScenario#K_SC_CLVI SC_CLVI}
  * sends its neutral villages before {@code START1A} but as part {@code "CV"} of the board layout
- * message, not as {@code PutPiece}s.
+ * message, not as {@code BuildPiece}s.
  *<P>
  * If this is a placement request from a client player: If successful, server announces
- * {@link SOCPlayerElement} messages to the game for the resources spent, {@code PutPiece},
+ * {@link SOCPlayerElement} messages to the game for the resources spent, {@code BuildPiece},
  * and the new {@link State}. Otherwise server responds with an explanatory {@link GameServerText} and,
  * if the gamestate allowed placement but resources or requested coordinates
  * disallowed it, the current {@link State} and then a {@link CancelBuild}.
  * After rejection the gamestate may be a placement state such as {@code PLACING_ROAD}.
+ *<P>
+ * Before v3.0.00 this message was {@code SOCPutPiece}.
  *
  * @see CancelBuild
  * @see BuyInventoryItemRequest
  */
-message PutPiece {
+message BuildPiece {
     PieceType type = 1;
     /* the player number who played the piece, or -1 for non-player-owned
      * ({@link soc.game.SOCPlayingPiece#VILLAGE}).
@@ -153,6 +159,7 @@ message PutPiece {
 }
 
 /* This message from client means that the client player wants to buy a development card.
+ * Some future scenario or expansion might also use it to request buying other inventory items.
  *<P>
  * During game state {@code PLAY1}, this is a normal buy request.
  * When sent during other game states, and other players' turns, this is a request
@@ -168,12 +175,19 @@ message PutPiece {
  * the server will send them a text response denying the buy. Instead of that text,
  * robot clients will be sent a {@link CancelBuildRequest} message.
  *<P>
- * Before v3.0.00 this message was {@code SOCBuyDevCardRequest}.
+ * Before v3.0.00 this message was {@code SOCBuyDevCardRequest} and
+ * {@code SOCInventoryItemAction(action = BUY)}.
  *
  * @see CancelBuild
  */
 message BuyInventoryItemRequest {
-    int32 other_inv_item_type = 1;  // omit if Dev Card; the type of generic inventory item, from {@link SOCInventoryItem#itype}
+    /* True if not requesting a Dev Card, but instead want to buy a generic inventory item */
+    bool is_not_dev_card = 1;
+
+    /* The type of generic inventory item, from {@link SOCInventoryItem#itype},
+     * if player has any choice of which type to buy. For Dev Card, omit this field.
+     */
+    sint32 other_inv_item_type = 2;
 }
 
 /* Client player request, or server response or announcement, about
@@ -185,13 +199,20 @@ message BuyInventoryItemRequest {
  * Before v3.0.00 this message was {@code SOCDevCardAction} and {@code SOCInventoryItemAction}.
  */
 message InventoryItemAction {
-    /* Types of action to take. Most of these are sent only from server, not as a request from client. */
+    /* Types of action to take. Each action is sent only from server,
+     * not as a request from a client, except where noted.
+     */
     enum _ActionType {
-        /* Draw/Buy: Add a Dev Card as new to player's inventory (like ADD_NEW) from the deck.
+        /* Required for enum, but not sent */
+        _UNSENT_DEFAULT_ACTION = 0;
+
+        /* Draw/Buy: From Server, action to add a Dev Card as new
+         * to player's inventory (like ADD_NEW) from the deck.
          * Acts as a hint in case the client animates Dev Card draws from the deck.
          * Otherwise equivalent to ADD_NEW.
+         * Is reply to client's {@link BuyInventoryItemRequest} message.
          */
-        DRAW = 0;
+        DRAW = 1;
 
         /* remove as old from player's inventory (action from server or request from client).
          *<P>
@@ -200,22 +221,22 @@ message InventoryItemAction {
          * Call {@link SOCInventoryItem#isPlayForPlacement(SOCGame, int)}: If true, playing this item requires placement;
          * client receiving the message should call {@link SOCGame#setPlacingItem(SOCInventoryItem)}.
          */
-        PLAY = 1;
+        PLAY = 2;
 
         /* Draw/Buy: Add as new to player's inventory; not playable this turn.
          * Same as DRAW but without implying the item has just came from the Dev Card deck;
          * can be used when client player sits down to take over a robot, and is sent its
          * inventory details.
          */
-        ADD_NEW = 2;
+        ADD_NEW = 3;
 
         /* Add as old to player's inventory; can be played/activated this turn if is_playable flag is set */
-        ADD_OLD = 3;
+        ADD_OLD = 4;
 
         /* The bot can't play the requested card at this time.
          * This is sent only to the requesting robot, so playerNumber is always -1 in this message.
          */
-        CANNOT_PLAY = 4;
+        CANNOT_PLAY = 5;
 
         /* If some other game action or event causes an item to need placement on the board,
          * but it was never in the player's inventory, server sends {@code PLACING_EXTRA}
@@ -229,7 +250,7 @@ message InventoryItemAction {
          * for those other messages. When they arrive, client can call
          * {@link SOCGame#getPlacingItem()} to retrieve the item details.
          */
-         PLACING_EXTRA = 5;
+         PLACING_EXTRA = 6;
     };
 
     _ActionType action_type = 1;
@@ -242,8 +263,13 @@ message InventoryItemAction {
 
     /* Specific type of Dev Card or Inventory Item */
     oneof item_value {
-        DevCardValue dev_card_value = 3;  // type of dev card, like {@link DevCardValue#ROADS}
-        int32 other_inv_item_type = 4;  // type of generic inventory item, from {@link SOCInventoryItem#itype}
+        /* Type of dev card, like {@link DevCardValue#ROADS}.
+         * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+         */
+        DevCardValue dev_card_value = 3;
+
+        /* Type of generic inventory item, from {@link SOCInventoryItem#itype} */
+        int32 other_inv_item_type = 4;
     }
 
     // detail/flag fields for non-DevCard inventory items:
@@ -581,11 +607,11 @@ message PlayerElement {
     /* Some element types can use -1 for all players, some others don't use this field.
      * Remember that for playerNumber 0, protobuf won't send the field (== default).
      */
-    sint32 playerNumber = 1;
+    sint32 player_number = 1;
     _PlayerElementAction action = 2;
-    _PlayerElementType elementType = 3;
+    _PlayerElementType element_type = 3;
     sint32 amount = 4;
-    bool isNews = 5;
+    bool is_news = 5;
 }
 
 /*
@@ -604,7 +630,7 @@ message PlayerElements {
      */
     sint32 playerNumber = 1;
     _PlayerElementAction action = 2;
-    repeated _PlayerElementType elementTypes = 3;
+    repeated _PlayerElementType element_types = 3;
     repeated sint32 amounts = 4;
 }
 
@@ -639,7 +665,7 @@ message GameElements {
         LONGEST_ROAD_PLAYER = 6;
     }
 
-    repeated _ElementType elementTypes = 1;
+    repeated _ElementType element_types = 1;
     repeated sint32 values = 2;
 }
 
@@ -839,7 +865,7 @@ message GameMessageFromServer {
         // board layout and contents
         BoardLayout board_layout = 30;
         PotentialSettlements potential_settlements = 31;
-        PutPiece put_piece = 32;
+        BuildPiece build_piece = 32;
         CancelBuild cancel_build = 33;
         MovePiece move_piece = 34;
         RemovePiece remove_piece = 35;
@@ -878,11 +904,11 @@ message GameMessageFromClient {
         EndTurn end_turn = 102;
 
         // player actions: buy/build/play pieces and items
-        PutPiece put_piece = 200;
+        BuildPiece build_piece = 200;
         CancelBuild cancel_build = 201;
         MovePiece move_piece = 202;
-        BuyInventoryItemRequest buy_inv_item = 203;
-        InventoryItemAction inv_item_action = 204;
+        BuyInventoryItemRequest buy_inventory_item = 203;
+        InventoryItemAction inventory_item_action = 204;
 
         // player actions
         // (simplerequest = 300)
