@@ -246,7 +246,6 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
     {
         GameMessage.PlayerElements.Builder b
             = GameMessage.PlayerElements.newBuilder();
-        b.setPlayerNumber(playerNumber);
         final GameMessage._PlayerElementAction act = ProtoMessageBuildHelper.toPlayerElementAction(actionType);
         if (act != null)
             b.setAction(act);
@@ -263,7 +262,7 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
 
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
-        gb.setGaName(game).setPlayerElements(b);
+        gb.setGameName(game).setPlayerNumber(playerNumber).setPlayerElements(b);
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 

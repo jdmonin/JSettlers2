@@ -164,10 +164,10 @@ public class SOCMovePiece extends SOCMessageTemplate4i
     {
         GameMessage.MovePiece.Builder b
             = GameMessage.MovePiece.newBuilder();
-        b.setPlayerNumber(p1).setTypeValue(p2).setFromCoord(p3).setToCoord(p4);
+        b.setTypeValue(p2).setFromCoord(p3).setToCoord(p4);
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
-        gb.setGaName(game).setMovePiece(b);
+        gb.setGameName(game).setPlayerNumber(p1).setMovePiece(b);
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 

@@ -81,10 +81,10 @@ public class SOCSetTurn extends SOCMessageTemplate1i
     protected Message.FromServer toProtoFromServer()
     {
         GameMessage.SetTurn.Builder b
-            = GameMessage.SetTurn.newBuilder().setPlayerNumber(p1);
+            = GameMessage.SetTurn.newBuilder();
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
-        gb.setGaName(game).setSetTurn(b);
+        gb.setGameName(game).setPlayerNumber(p1).setSetTurn(b);
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 

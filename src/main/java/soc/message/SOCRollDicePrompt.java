@@ -148,10 +148,10 @@ public class SOCRollDicePrompt extends SOCMessage
     protected Message.FromServer toProtoFromServer()
     {
         GameMessage.DiceRollRequest.Builder b
-            = GameMessage.DiceRollRequest.newBuilder().setPlayerNumber(playerNumber);
+            = GameMessage.DiceRollRequest.newBuilder();
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
-        gb.setGaName(game).setDiceRollRequest(b);
+        gb.setGameName(game).setPlayerNumber(playerNumber).setDiceRollRequest(b);
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 

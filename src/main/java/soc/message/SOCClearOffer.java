@@ -138,10 +138,10 @@ public class SOCClearOffer extends SOCMessage
     protected Message.FromServer toProtoFromServer()
     {
         GameMessage.TradeClearOffer.Builder b
-            = GameMessage.TradeClearOffer.newBuilder().setPlayerNumber(playerNumber);
+            = GameMessage.TradeClearOffer.newBuilder();
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
-        gb.setGaName(game).setTradeClearOffer(b);
+        gb.setGameName(game).setPlayerNumber(playerNumber).setTradeClearOffer(b);
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 

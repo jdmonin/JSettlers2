@@ -361,7 +361,6 @@ public class SOCInventoryItemAction extends SOCMessage
     {
         GameMessage.InventoryItemAction.Builder b
             = GameMessage.InventoryItemAction.newBuilder()
-                .setPlayerNumber(playerNumber)
                 .setOtherInvItemType(itemType);
 
         final InventoryItemAction._ActionType act;
@@ -397,7 +396,7 @@ public class SOCInventoryItemAction extends SOCMessage
 
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
-        gb.setGaName(game).setInvItemAction(b);
+        gb.setGameName(game).setPlayerNumber(playerNumber).setInventoryItemAction(b);
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 

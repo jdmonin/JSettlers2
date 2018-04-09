@@ -146,7 +146,7 @@ class DummyProtoClient(object):
         msg.ga_join.ga_name = ga_name
         self.write_delimited_message(msg)
 
-    # All FromServer message treater functions; see msg_from_server_treaters.
+    # All FromServer message treater functions; see msg_from_server_treaters, _game_msg_treaters.
     # The ordering of these declarations follows that within message.proto message FromServer.
 
     # auth/connect
@@ -234,89 +234,92 @@ class DummyProtoClient(object):
 
     #### within a game ####
 
+    # these treater functions all have the same formal arg list, which
+    # includes the message's player number field; not all game message
+    # types use player_number.
+
     # game and player state
 
-    def _treat_ga_state(self, ga_name, msg):
+    def _treat_ga_state(self, ga_name, pn, msg):
         print("  State(game=" + repr(ga_name) + ", state=" + data_pb2.GameState.Name(msg.state) + ")")
 
-    def _treat_ga_player_element(self, ga_name, msg):
-        if msg.isNews:
-            s = ", isNews=True"
+    def _treat_ga_player_element(self, ga_name, pn, msg):
+        if pn is None:
+            pn = 0
+        if msg.is_news:
+            s = ", is_news=True"
         else:
             s= ""
-        print("  PlayerElement(game=" + repr(ga_name) + ", pn=" + str(msg.playerNumber)
+        print("  PlayerElement(game=" + repr(ga_name) + ", pn=" + str(pn)
             + ", action=" + game_message_pb2._PlayerElementAction.Name(msg.action)
-            + ", " + game_message_pb2._PlayerElementType.Name(msg.elementType)
+            + ", " + game_message_pb2._PlayerElementType.Name(msg.element_type)
             + ": " + str(msg.amount) + s + ")")
 
-    def _treat_ga_player_elements(self, ga_name, msg):
+    def _treat_ga_player_elements(self, ga_name, pn, msg):
+        if pn is None:
+            pn = 0
         s = ""
-        for i in range(len(msg.elementTypes)):
+        for i in range(len(msg.element_types)):
             if i > 0:
                 s += ", "
-            s += (game_message_pb2._PlayerElementType.Name(msg.elementTypes[i])
+            s += (game_message_pb2._PlayerElementType.Name(msg.element_types[i])
                 + ": " + str(msg.amounts[i]))
-        print("  PlayerElements(game=" + repr(ga_name) + ", pn=" + str(msg.playerNumber)
+        print("  PlayerElements(game=" + repr(ga_name) + ", pn=" + str(pn)
             + ", action=" + game_message_pb2._PlayerElementAction.Name(msg.action)
             + ", {" + s + "})")
 
-    def _treat_ga_game_elements(self, ga_name, msg):
+    def _treat_ga_game_elements(self, ga_name, pn, msg):
         s = ""
-        for i in range(len(msg.elementTypes)):
+        for i in range(len(msg.element_types)):
             if i > 0:
                 s += ", "
-            s += (game_message_pb2.GameElements._ElementType.Name(msg.elementTypes[i])
+            s += (game_message_pb2.GameElements._ElementType.Name(msg.element_types[i])
                 + ": " + str(msg.values[i]))
         print("  GameElements(game=" + repr(ga_name) + ", {" + s + "})")
 
     # board layout and contents
 
-    def _treat_ga_board_layout(self, ga_name, msg):
+    def _treat_ga_board_layout(self, ga_name, pn, msg):
         print("  BoardLayout(game=" + repr(ga_name) + ", encoding=" + str(msg.encoding_format)
               + ", parts=" + repr(msg.parts) + ")")
 
-    def _treat_ga_potential_settlements(self, ga_name, msg):
-        pn = msg.player_number
-        if not pn:
+    def _treat_ga_potential_settlements(self, ga_name, pn, msg):
+        if pn is None:
             pn = 0
         print("  PotentialSettlements(game=" + repr(ga_name) + ", pn=" + str(pn)
               + ", ps_nodes=[" + ", ".join([format(c, '#05x') for c in msg.ps_nodes]) + "])")
 
-    def _treat_ga_put_piece(self, ga_name, msg):
-        pn = msg.player_number  # not sent if 0
-        if not pn:
+    def _treat_ga_build_piece(self, ga_name, pn, msg):
+        if pn is None:
             pn = 0
         ptype = msg.type  # not sent if ROAD (0)
         if not ptype:
             pt = data_pb2.ROAD
-        print("  PutPiece(game=" + repr(ga_name) + ", player_number=" + str(pn)
+        print("  BuildPiece(game=" + repr(ga_name) + ", player_number=" + str(pn)
               + ", coordinates=" + format(msg.coordinates, '#05x')
               + ", type=" + data_pb2.PieceType.Name(ptype) + ")")
 
     # turn
 
-    def _treat_ga_start_game(self, ga_name, msg):
+    def _treat_ga_start_game(self, ga_name, pn, msg):
         print("  StartGame(game=" + repr(ga_name) + ", state=" + data_pb2.GameState.Name(msg.state) + ")")
 
-    def _treat_ga_turn(self, ga_name, msg):
-        pn = msg.player_number
-        if not pn:
+    def _treat_ga_turn(self, ga_name, pn, msg):
+        if pn is None:
             pn = 0
         print("  Turn(game=" + repr(ga_name) + ", pn=" + str(pn) + ", state=" + data_pb2.GameState.Name(msg.state) + ")")
 
-    def _treat_ga_set_turn(self, ga_name, msg):
-        pn = msg.player_number
-        if not pn:
+    def _treat_ga_set_turn(self, ga_name, pn, msg):
+        if pn is None:
             pn = 0
         print("  SetTurn(game=" + repr(ga_name) + ", pn=" + str(pn) + ")")
 
-    def _treat_ga_dice_result(self, ga_name, msg):
+    def _treat_ga_dice_result(self, ga_name, pn, msg):
         print("  DiceResult(game=" + repr(ga_name) + ", dice_total=" + str(msg.dice_total) + ")")
 
     # player actions
-    def _treat_ga_inv_item_action(self, ga_name, msg):
-        pn = msg.player_number
-        if not pn:
+    def _treat_ga_inventory_item_action(self, ga_name, pn, msg):
+        if pn is None:
             pn = 0
         atype = msg.action_type
         if not atype:
@@ -351,14 +354,14 @@ class DummyProtoClient(object):
         # board layout and contents
         'board_layout': _treat_ga_board_layout,
         'potential_settlements': _treat_ga_potential_settlements,
-        'put_piece': _treat_ga_put_piece,
+        'build_piece': _treat_ga_build_piece,
         # turn
         'start_game': _treat_ga_start_game,
         'turn': _treat_ga_turn,
         'set_turn': _treat_ga_set_turn,
         'dice_result': _treat_ga_dice_result,
         # player actions
-        'inv_item_action': _treat_ga_inv_item_action,
+        'inventory_item_action': _treat_ga_inventory_item_action,
     }
 
     def _treat_game_message(self, msg):
@@ -372,11 +375,12 @@ class DummyProtoClient(object):
         if typ is None:
             return
         mdata = getattr(msg, typ, None)  # for message typ board_layout, get msg.board_layout contents
+        pn = msg.player_number  # may be None if not used or if player 0
         if typ in self._game_msg_treaters:
-            self._game_msg_treaters[typ](self, msg.ga_name, mdata)
+            self._game_msg_treaters[typ](self, msg.game_name, pn, mdata)
         else:
             print("  treat_game_message(): No handler for message type " + str(typ)
-                + ": {{\n" + repr(mdata) + "  }}")
+                + "(pn=" + str(pn) + "): {{\n" + repr(mdata) + "  }}")
 
     # Static FromServer message-type handler switch dict for treat(), initialized once.
     # The ordering within this declaration follows that of message.proto message FromServer.

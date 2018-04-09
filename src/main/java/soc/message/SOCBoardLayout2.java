@@ -499,7 +499,7 @@ public class SOCBoardLayout2 extends SOCMessage
 
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
-        gb.setGaName(game).setBoardLayout(b);
+        gb.setGameName(game).setBoardLayout(b);
 
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }

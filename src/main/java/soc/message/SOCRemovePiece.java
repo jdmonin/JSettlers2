@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -109,10 +109,10 @@ public class SOCRemovePiece extends SOCMessageTemplate3i
     {
         GameMessage.RemovePiece.Builder b
             = GameMessage.RemovePiece.newBuilder();
-        b.setPlayerNumber(p1).setTypeValue(p2).setCoordinates(p3);
+        b.setTypeValue(p2).setCoordinates(p3);
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
-        gb.setGaName(game).setRemovePiece(b);
+        gb.setGameName(game).setPlayerNumber(p1).setRemovePiece(b);
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 

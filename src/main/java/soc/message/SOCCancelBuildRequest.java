@@ -193,7 +193,7 @@ public class SOCCancelBuildRequest extends SOCMessage
             b.setItemTypeValue(-pieceType);
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
-        gb.setGaName(game).setCancelBuild(b);
+        gb.setGameName(game).setCancelBuild(b);
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 

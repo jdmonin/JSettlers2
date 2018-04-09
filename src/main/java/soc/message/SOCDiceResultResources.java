@@ -321,7 +321,7 @@ public class SOCDiceResultResources extends SOCMessageTemplateMi
 
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
-        gb.setGaName(game).setDiceResultResources(b);
+        gb.setGameName(game).setDiceResultResources(b);
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 

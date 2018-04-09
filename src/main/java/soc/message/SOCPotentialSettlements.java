@@ -573,7 +573,6 @@ public class SOCPotentialSettlements extends SOCMessage
     {
         GameMessage.PotentialSettlements.Builder b
             = GameMessage.PotentialSettlements.newBuilder();
-        b.setPlayerNumber(playerNumber);
 
         if (landAreasLegalNodes == null)
         {
@@ -620,7 +619,7 @@ public class SOCPotentialSettlements extends SOCMessage
 
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
-        gb.setGaName(game).setPotentialSettlements(b);
+        gb.setGameName(game).setPlayerNumber(playerNumber).setPotentialSettlements(b);
 
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }

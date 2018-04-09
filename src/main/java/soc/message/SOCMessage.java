@@ -1241,7 +1241,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      */
     private static SOCMessage toMsgForGame(final GameMessage.GameMessageFromClient msg)
     {
-        final String gaName = msg.getGaName();
+        final String gaName = msg.getGameName();
         if (gaName == null)
             return null;
 
@@ -1344,7 +1344,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case GameMessage.GameMessageFromClient.TRADE_ACCEPT_OFFER_FIELD_NUMBER:
                 {
                     GameMessage.TradeAcceptOffer m = msg.getTradeAcceptOffer();
-                    return new SOCAcceptOffer(gaName, m.getAcceptingPlayerNumber(), m.getOfferingPlayerNumber());
+                    return new SOCAcceptOffer(gaName, -1, m.getOfferingPlayerNumber());
 
                     // TODO also use offer_serial when that's supported
                 }

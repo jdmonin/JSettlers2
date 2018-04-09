@@ -156,12 +156,11 @@ public class SOCAcceptOffer extends SOCMessage
     {
         GameMessage.TradeAcceptOffer.Builder b
             = GameMessage.TradeAcceptOffer.newBuilder()
-                .setOfferingPlayerNumber(offering)
-                .setAcceptingPlayerNumber(accepting);
+                .setOfferingPlayerNumber(offering);
                 // TODO once server supports offerSerial field, set that if present
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
-        gb.setGaName(game).setTradeAcceptOffer(b);
+        gb.setGameName(game).setPlayerNumber(accepting).setTradeAcceptOffer(b);
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 

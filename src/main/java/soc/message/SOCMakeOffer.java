@@ -202,8 +202,7 @@ public class SOCMakeOffer extends SOCMessage
         GameMessage.TradeMakeOffer.Builder b
             = GameMessage.TradeMakeOffer.newBuilder()
                 .setGive(ProtoMessageBuildHelper.toResourceSet(offer.getGiveSet()))
-                .setGet(ProtoMessageBuildHelper.toResourceSet(offer.getGetSet()))
-                .setFromPlayerNumber(fromPN);
+                .setGet(ProtoMessageBuildHelper.toResourceSet(offer.getGetSet()));
         if (! toAll)
         {
             Data._IntArray.Builder iab = Data._IntArray.newBuilder();
@@ -215,7 +214,7 @@ public class SOCMakeOffer extends SOCMessage
         // TODO once server supports offerSerial field, set that if present
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
-        gb.setGaName(game).setTradeMakeOffer(b);
+        gb.setGameName(game).setPlayerNumber(fromPN).setTradeMakeOffer(b);
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 

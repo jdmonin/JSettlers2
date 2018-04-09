@@ -522,14 +522,14 @@ public class SOCPlayerElement extends SOCMessage
     {
         GameMessage.PlayerElement.Builder b
             = GameMessage.PlayerElement.newBuilder();
-        b.setPlayerNumber(playerNumber).setIsNews(news);
+        b.setIsNews(news);
         final GameMessage._PlayerElementAction act = ProtoMessageBuildHelper.toPlayerElementAction(actionType);
         if (act != null)
             b.setAction(act);
         b.setElementTypeValue(elementType).setAmount(amount);
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
-        gb.setGaName(game).setPlayerElement(b);
+        gb.setGameName(game).setPlayerNumber(playerNumber).setPlayerElement(b);
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 

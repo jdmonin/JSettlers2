@@ -123,7 +123,7 @@ public class SOCDiceResult extends SOCMessageTemplate1i
             = GameMessage.DiceResult.newBuilder().setDiceTotal(p1);
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
-        gb.setGaName(game).setDiceResult(b);
+        gb.setGameName(game).setDiceResult(b);
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
