@@ -24,15 +24,16 @@ import java.util.StringTokenizer;
 /**
  * This message from server updates the value field(s) of a piece on the board.
  *
- * <H5>Current uses (v2.0.00):</H5>
+ *<H5>Current uses (v2.0.00):</H5>
  *<UL>
  * <LI> Cloth count for a village in the {@code SC_CLVI} cloth trade scenario
  * <LI> Fortress strength in the {@code SC_PIRI} pirate islands scenario
  *</UL>
- * <H5>Parameters:</H5>
+ *
+ *<H5>Parameters:</H5>
  *<OL>
  * <LI> Type of the piece to be updated, such as {@link soc.game.SOCPlayingPiece#FORTRESS}. <br>
- *      Client can ignore this field unless the game's scenario uses multiple piece types with values.
+ *      Client can ignore this field unless the game's scenario uses values on multiple piece types.
  * <LI> Coordinate of the piece
  * <LI> New value for the piece
  * <LI> New secondary value (if piece has 2 value fields), or 0
@@ -49,7 +50,7 @@ public class SOCPieceValue extends SOCMessageTemplate4i
      * Create a SOCPieceValue message.
      *
      * @param ga  the name of the game
-     * @param pt  Type of the piece to be updated, such as {@link soc.game.SOCPlayingPiece#FORTRESS} <br>
+     * @param pt  Type of the piece to be updated, such as {@link soc.game.SOCPlayingPiece#FORTRESS}
      * @param coord  Coordinate of the piece
      * @param pv1    New value for the piece
      * @param pv2    New secondary value (if piece has 2 value fields), or 0

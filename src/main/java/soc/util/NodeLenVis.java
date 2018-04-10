@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2011-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2011-2012,2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@ package soc.util;
 
 import java.util.Vector;
 
-import soc.game.SOCRoad;
+import soc.game.SOCRoutePiece;
 
 
 /**
@@ -56,7 +56,7 @@ public class NodeLenVis<T>
      * If <tt>len</tt> == 0, <tt>inboundRoad</tt> is null because we're just starting the segment.
      * @since 2.0.00
      */
-    public SOCRoad inboundRoad;
+    public final SOCRoutePiece inboundRS;
 
     /**
      * Creates a new NodeLenVis object.
@@ -80,12 +80,12 @@ public class NodeLenVis<T>
      *            only needed if {@link soc.game.SOCGame#hasSeaBoard}
      * @since 2.0.00
      */
-    public NodeLenVis(int n, int l, Vector<T> v, SOCRoad rs)
+    public NodeLenVis(int n, int l, Vector<T> v, SOCRoutePiece rs)
     {
         node = n;
         len = l;
         vis = v;
-        inboundRoad = rs;
+        inboundRS = rs;
     }
 
     /**

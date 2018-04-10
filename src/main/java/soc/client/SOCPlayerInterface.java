@@ -1878,16 +1878,20 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * Print game text to announce either a bank/port trade, or a a player's new trade offer.
-     * @param plFrom  Player making the trade offer or bank trade
+     * Print game text to announce either a bank/port trade, a player's new trade offer,
+     * or an accepted and completed trade offer between two players.
+     * @param plFrom  Player making the trade offer or the bank/port/player trade
      * @param give  {@code plFrom} gives these resources
      * @param get   {@code plFrom} gets these resources
-     * @param isOffer  True to announce a trade offer, false for a completed bank/port trade
+     * @param isOffer  True to announce a trade offer, false for a completed bank/port/player trade
+     * @param plTo    For a completed trade offer between players, the player accepting the offer.
+     *     {@code null} otherwise. Ignored if {@code isOffer}.
      * @see SOCHandPanel#updateCurrentOffer(boolean, boolean)
      * @since 2.0.00
      */
     public void printTradeResources
-        (final SOCPlayer plFrom, final SOCResourceSet give, final SOCResourceSet get, final boolean isOffer)
+        (final SOCPlayer plFrom, final SOCResourceSet give, final SOCResourceSet get,
+         final boolean isOffer, final SOCPlayer plTo)
     {
         final String plName = plFrom.getName();
 
@@ -1896,7 +1900,15 @@ public class SOCPlayerInterface extends Frame
             if (client.getServerVersion(game) >= SOCStringManager.VERSION_FOR_I18N)
                 printKeyedSpecial("trade.offered.rsrcs.for", plName, give, get);
                     // "{0} offered to give {1,rsrcs} for {2,rsrcs}."
-        } else {
+        }
+        else if (plTo != null)
+        {
+            if (client.getServerVersion(game) >= SOCStringManager.VERSION_FOR_I18N)
+                printKeyedSpecial("trade.gave.rsrcs.for.from.player", plName, give, get, plTo.getName());
+                    // "{0} gave {1,rsrcs} for {2,rsrcs} from {3}."
+        }
+        else
+        {
             // use total rsrc counts to determine bank or port
             final int giveTotal = give.getTotal(),
                       getTotal  = get.getTotal();
@@ -4180,7 +4192,7 @@ public class SOCPlayerInterface extends Frame
 
         public void playerBankTrade(final SOCPlayer player, final SOCResourceSet give, final SOCResourceSet get)
         {
-            pi.printTradeResources(player, give, get, false);
+            pi.printTradeResources(player, give, get, false, null);
         }
 
         public void requestedTrade(SOCPlayer offerer)
@@ -4188,7 +4200,7 @@ public class SOCPlayerInterface extends Frame
             pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(true, false);
             final SOCTradeOffer offer = offerer.getCurrentOffer();
             if (offer != null)
-                pi.printTradeResources(offerer, offer.getGiveSet(), offer.getGetSet(), true);
+                pi.printTradeResources(offerer, offer.getGiveSet(), offer.getGetSet(), true, null);
         }
 
         public void requestedTradeClear(SOCPlayer offerer)
@@ -4203,6 +4215,13 @@ public class SOCPlayerInterface extends Frame
         public void requestedTradeRejection(SOCPlayer rejecter)
         {
             pi.getPlayerHandPanel(rejecter.getPlayerNumber()).rejectOfferShowNonClient();
+        }
+
+        public void playerTradeAccepted(final SOCPlayer offerer, final SOCPlayer acceptor)
+        {
+            final SOCTradeOffer offer = offerer.getCurrentOffer();
+            if (offer != null)
+                pi.printTradeResources(offerer, offer.getGiveSet(), offer.getGetSet(), false, acceptor);
         }
 
         public void requestedTradeReset(SOCPlayer playerToReset)

@@ -239,6 +239,7 @@ public interface PlayerClientListener
      * @param player  Player making the bank/port trade
      * @param give  Resources given by player in trade
      * @param get   Resources received by player in trade
+     * @see #playerTradeAccepted(SOCPlayer, SOCPlayer)
      */
     void playerBankTrade(SOCPlayer player, SOCResourceSet give, SOCResourceSet get);
 
@@ -250,10 +251,19 @@ public interface PlayerClientListener
     void requestedTrade(SOCPlayer offerer);
 
     /**
-     * @param offerer May be {@code null}
+     * @param offerer May be {@code null} to clear all seats
      */
     void requestedTradeClear(SOCPlayer offerer);
     void requestedTradeRejection(SOCPlayer rejecter);
+
+    /**
+     * A player has accepted a trade offer from another player.
+     * For offer details call {@code offerer.}{@link SOCPlayer#getCurrentOffer() getCurrentOffer()}.
+     * @param offerer  Player who made the trade offer
+     * @param acceptor  Player who accepted the trade offer
+     * @see #playerBankTrade(SOCPlayer, SOCResourceSet, SOCResourceSet)
+     */
+    void playerTradeAccepted(SOCPlayer offerer, SOCPlayer acceptor);
 
     /**
      * @param playerToReset May be {@code null} to clear all seats

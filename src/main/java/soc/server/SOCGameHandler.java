@@ -1551,26 +1551,28 @@ public class SOCGameHandler extends GameHandler
             final int dcAge = (dcState == SOCInventory.NEW) ? SOCInventory.NEW : SOCInventory.OLD;
             final int addCmd = (dcAge == SOCInventory.NEW) ? SOCDevCardAction.ADD_NEW : SOCDevCardAction.ADD_OLD;
 
-            for (final SOCInventoryItem card : cardsInv.getByState(dcState))
+            for (final SOCInventoryItem iitem : cardsInv.getByState(dcState))
             {
                 final SOCMessage addMsg;
-                if (card instanceof SOCDevCard)
+                if (iitem instanceof SOCDevCard)
                 {
-                    final int dcType = card.itype;
+                    final int dcType = iitem.itype;
                     if (cliVersionNew || (dcType != SOCDevCardConstants.KNIGHT))
                         addMsg = new SOCDevCardAction(gaName, pn, addCmd, dcType);
                     else
                         addMsg = new SOCDevCardAction(gaName, pn, addCmd, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X);
                 } else {
-                    // None yet
-                    System.err.println("L1385: Unrecognized inventory item type " + card.getClass());
-                    addMsg = null;
+                    // SC_FTRI "gift port" to be placed later
+                    // or another general inventory item
+                    addMsg = new SOCInventoryItemAction
+                        (gaName, pn,
+                         (iitem.isPlayable() ? SOCInventoryItemAction.ADD_PLAYABLE : SOCInventoryItemAction.ADD_OTHER),
+                         iitem.itype, iitem.isKept(), iitem.isVPItem(), iitem.canCancelPlay);
                 }
 
-                if (addMsg != null)
-                    srv.messageToPlayer(c, addMsg);
+                srv.messageToPlayer(c, addMsg);
 
-            }  // for (card)
+            }  // for (item)
         }  // for (dcState)
 
         /**
@@ -2494,11 +2496,13 @@ public class SOCGameHandler extends GameHandler
     }
 
     /**
-     * report a trade that has taken place between players, using {@link SOCPlayerElement}
-     * and {@link SOCGameServerText} messages.
+     * Report a trade that has taken place between players, using {@link SOCPlayerElement}.
+     * Also announces the trade to pre-v2.0.00 clients with a {@link SOCGameTextMsg}
+     * ("Joe gave 1 sheep for 1 wood from Lily.").
      *<P>
-     * Callers must also report trades to robots by re-sending the accepting player's
-     * {@link SOCAcceptOffer} message to the game after calling this method.
+     * Caller must also report trade player numbers by sending a {@link SOCAcceptOffer}
+     * message to the game after calling this method. In v2.0.00 and newer clients,
+     * that message announces the trade instead of {@link SOCGameTextMsg}.
      *
      * @param ga        the game
      * @param offering  the number of the player making the offer
@@ -2515,9 +2519,16 @@ public class SOCGameHandler extends GameHandler
 
         reportRsrcGainLoss(gaName, giveSet, true, false, offering, accepting, null, null);
         reportRsrcGainLoss(gaName, getSet, false, false, offering, accepting, null, null);
-        srv.messageToGameKeyedSpecial(ga, true, "trade.gave.rsrcs.for.from.player",
-            ga.getPlayer(offering).getName(), giveSet, getSet, ga.getPlayer(accepting).getName());
-            // "{0} gave {1,rsrcs} for {2,rsrcs} from {3}."
+        if (ga.clientVersionLowest < SOCStringManager.VERSION_FOR_I18N)
+        {
+            // I18N OK: Pre-2.0.00 clients always use english
+            final String txt = SOCStringManager.getFallbackServerManagerForClient().formatSpecial
+                (ga, "{0} gave {1,rsrcs} for {2,rsrcs} from {3}.",
+                 ga.getPlayer(offering).getName(), giveSet, getSet, ga.getPlayer(accepting).getName());
+            srv.messageToGameForVersions
+                (ga, 0, SOCStringManager.VERSION_FOR_I18N - 1,
+                 new SOCGameTextMsg(gaName, SOCServer.SERVERNAME, txt), true);
+        }
     }
 
     /**
@@ -3033,6 +3044,7 @@ public class SOCGameHandler extends GameHandler
      */
     private final void debugGiveResources(Connection c, String mes, SOCGame game)
     {
+        final String gaName = game.getName();
         StringTokenizer st = new StringTokenizer(mes.substring(6));
         int[] resources = new int[Data.ResourceType.WOOD_VALUE + 1];
         int resourceType = Data.ResourceType.CLAY_VALUE;
@@ -3074,27 +3086,37 @@ public class SOCGameHandler extends GameHandler
 
         if (parseError)
         {
-            srv.messageToPlayer(c, game.getName(), "### Usage: " + DEBUG_COMMANDS_HELP_RSRCS);
-            srv.messageToPlayer(c, game.getName(), DEBUG_COMMANDS_HELP_PLAYER);
+            srv.messageToPlayer(c, gaName, "### Usage: " + DEBUG_COMMANDS_HELP_RSRCS);
+            srv.messageToPlayer(c, gaName, DEBUG_COMMANDS_HELP_PLAYER);
 
             return;  // <--- early return ---
         }
 
-        SOCResourceSet rset = pl.getResources();
+        SOCResourceSet rset = new SOCResourceSet();
         int pnum = pl.getPlayerNumber();
-        String outMes = "### " + pl.getName() + " gets";
+        final boolean hasOldClients = (game.clientVersionLowest < SOCPlayerElements.MIN_VERSION);
+        StringBuilder outTxt = new StringBuilder("### " + pl.getName() + " gets");  // I18N OK: debug only
 
         for (resourceType = Data.ResourceType.CLAY_VALUE;
-                resourceType <= Data.ResourceType.WOOD_VALUE; resourceType++)
+             resourceType <= Data.ResourceType.WOOD_VALUE; ++resourceType)
         {
-            rset.add(resources[resourceType], resourceType);
-            outMes += (" " + resources[resourceType]);
+            final int amt = resources[resourceType];
+            rset.add(amt, resourceType);
+            outTxt.append(' ');
+            outTxt.append(amt);
 
             // SOCResourceConstants.CLAY == SOCPlayerElement.CLAY
-            srv.messageToGame(game.getName(), new SOCPlayerElement(game.getName(), pnum, SOCPlayerElement.GAIN, resourceType, resources[resourceType]));
+            if (hasOldClients && (amt > 0))
+                srv.messageToGame
+                    (gaName, new SOCPlayerElement(gaName, pnum, SOCPlayerElement.GAIN, resourceType, amt));
         }
+        if (! hasOldClients)
+            srv.messageToGame
+                (gaName, new SOCPlayerElements(gaName, pnum, SOCPlayerElement.GAIN, rset));
 
-        srv.messageToGame(game.getName(), outMes);
+        pl.getResources().add(rset);
+
+        srv.messageToGame(gaName, outTxt.toString());
     }
 
     /** this is a debugging command that gives a dev card to a player.
@@ -3754,7 +3776,7 @@ public class SOCGameHandler extends GameHandler
         int shipCount = 0, roadCount = 0;
         for (int edge : seEdges)
         {
-            SOCRoad pp = board.roadAtEdge(edge);
+            SOCRoutePiece pp = board.roadOrShipAtEdge(edge);
             if (pp == null)
                 continue;
 

@@ -3518,6 +3518,13 @@ public class SOCPlayerClient
                 break;
 
             /**
+             * a player has accepted a trade offer
+             */
+            case SOCMessage.ACCEPTOFFER:
+                handleACCEPTOFFER((SOCAcceptOffer) mes);
+                break;
+
+            /**
              * the trade message needs to be cleared
              */
             case SOCMessage.CLEARTRADEMSG:
@@ -5087,6 +5094,25 @@ public class SOCPlayerClient
 
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
         pcl.requestedTradeRejection(player);
+    }
+
+    /**
+     * handle the "accept offer" message
+     * @param mes  the message
+     * @since 2.0.00
+     */
+    protected void handleACCEPTOFFER(final SOCAcceptOffer mes)
+    {
+        final String gaName = mes.getGame();
+        final SOCGame ga = games.get(gaName);
+        if (ga == null)
+            return;
+        PlayerClientListener pcl = clientListeners.get(gaName);
+        if (pcl == null)
+            return;
+
+        pcl.playerTradeAccepted
+            (ga.getPlayer(mes.getOfferingNumber()), ga.getPlayer(mes.getAcceptingNumber()));
     }
 
     /**

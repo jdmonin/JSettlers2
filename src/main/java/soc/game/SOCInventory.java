@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007,2009,2012-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007,2009,2012-2014,2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +27,10 @@ import java.util.List;
 
 
 /**
- * This represents a collection of development cards, and occasional scenario-specific items.
+ * This represents a player's collection of development cards, and occasional scenario-specific items.
+ * Organized to help lifecycle management (new-to-old, playable versus keep until end of game)
+ * of player's inventory items.
+ *<P>
  * Players can have 0, 1, or more of any card type or item type.
  * Each item's current state can be New to be played soon; Playable; or Kept in hand
  * until the end of the game (Victory Point cards, which are never New).

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2013,2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2013,2017-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -24,7 +24,7 @@ package soc.game;
 
 /**
  * A ship playing piece, on the large sea board ({@link SOCBoardLarge}).
- * To simplify some game code, ships are a subclass of roads.
+ * To simplify some game code, ships and {@link SOCRoad}s have a common superclass.
  *<P>
  * Ships are open until their route has a settlement or city on both ends.
  * Ships can be moved any turn after the turn they're placed, until {@link #isClosed()} is true.
@@ -36,7 +36,7 @@ package soc.game;
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */
-public class SOCShip extends SOCRoad
+public class SOCShip extends SOCRoutePiece
 {
     /**
      * The set of resources a player needs to build a {@link SOCShip ship}.
@@ -57,15 +57,14 @@ public class SOCShip extends SOCRoad
      * The ship is considered part of an open trade route, until {@link #setClosed()} is called.
      *
      * @param pl  player who owns the ship
-     * @param edge  edge coordinate
-     * @param board  board if known; otherwise will extract from <tt>pl</tt>
-     * @throws IllegalArgumentException  if <tt>pl</tt> null, or board null and <tt>pl.board</tt> also null
+     * @param edge  ship's edge coordinate
+     * @param board  board if known; otherwise will extract from {@code pl}
+     * @throws IllegalArgumentException  if {@code pl} null, or board null and {@code pl.board} also null
      */
     public SOCShip(SOCPlayer pl, final int edge, SOCBoard board)
         throws IllegalArgumentException
     {
-        super(pl, edge, board);
-        pieceType = SOCPlayingPiece.SHIP;
+        super(pl, SOCPlayingPiece.SHIP, edge, board);
     }
 
     /**

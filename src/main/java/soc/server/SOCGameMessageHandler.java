@@ -1285,7 +1285,8 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleACCEPTOFFER(SOCGame ga, Connection c, final SOCAcceptOffer mes)
+    private void handleACCEPTOFFER
+        (final SOCGame ga, final Connection c, final SOCAcceptOffer mes)
     {
         ga.takeMonitor();
 
@@ -1304,7 +1305,14 @@ public class SOCGameMessageHandler
                     ga.makeTrade(offeringNumber, acceptingNumber);
                     handler.reportTrade(ga, offeringNumber, acceptingNumber);
 
-                    srv.recordGameEvent(gaName, mes);
+                    /**
+                     * announce the accepted offer to game; won't re-send mes from client
+                     * because its acceptingNumber isn't required or sanitized
+                     */
+                    final SOCAcceptOffer mesOut
+                        = new SOCAcceptOffer(gaName, acceptingNumber, offeringNumber);
+                    srv.messageToGame(gaName, mesOut);
+                    srv.recordGameEvent(gaName, mesOut);
 
                     /**
                      * clear all offers
@@ -1318,11 +1326,6 @@ public class SOCGameMessageHandler
                         for (int i = 0; i < ga.maxPlayers; i++)
                             srv.messageToGameWithMon(gaName, new SOCClearOffer(gaName, i));
                     srv.gameList.releaseMonitorForGame(gaName);
-
-                    /**
-                     * send a message (for the bots) that the offer was accepted
-                     */
-                    srv.messageToGame(gaName, mes);
                 } else {
                     srv.messageToPlayer(c, gaName, "You can't make that trade.");
                 }
@@ -1911,7 +1914,7 @@ public class SOCGameMessageHandler
                             if (player.isRobot() && D.ebugOn)
                             {
                                 D.ebugPrintln(" - pl.isPotentialRoad: " + player.isPotentialRoad(coord));
-                                SOCPlayingPiece pp = ga.getBoard().roadAtEdge(coord);
+                                SOCPlayingPiece pp = ga.getBoard().roadOrShipAtEdge(coord);
                                 D.ebugPrintln(" - roadAtEdge: " + ((pp != null) ? pp : "none"));
                             }
 
@@ -2065,7 +2068,7 @@ public class SOCGameMessageHandler
                             if (player.isRobot() && D.ebugOn)
                             {
                                 D.ebugPrintln(" - pl.isPotentialShip: " + player.isPotentialShip(coord));
-                                SOCPlayingPiece pp = ga.getBoard().roadAtEdge(coord);
+                                SOCPlayingPiece pp = ga.getBoard().roadOrShipAtEdge(coord);
                                 D.ebugPrintln(" - ship/roadAtEdge: " + ((pp != null) ? pp : "none"));
                             }
 

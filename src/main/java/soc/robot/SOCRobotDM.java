@@ -47,6 +47,7 @@ import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
+import soc.game.SOCRoutePiece;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCSpecialItem;
@@ -1008,14 +1009,14 @@ public class SOCRobotDM
         //
         //  TODO for now, coastal roads/ships are always built as roads not ships
         //
-        final SOCRoad tmpRoad;
+        final SOCRoutePiece tmpRS;
         if ((favoriteRoad instanceof SOCPossibleShip)
             && ! ((SOCPossibleShip) favoriteRoad).isCoastalRoadAndShip )
-            tmpRoad = new SOCShip(ourPlayerData, favoriteRoad.getCoordinates(), null);
+            tmpRS = new SOCShip(ourPlayerData, favoriteRoad.getCoordinates(), null);
         else
-            tmpRoad = new SOCRoad(ourPlayerData, favoriteRoad.getCoordinates(), null);
+            tmpRS = new SOCRoad(ourPlayerData, favoriteRoad.getCoordinates(), null);
 
-        HashMap<Integer, SOCPlayerTracker> trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRoad, game, playerTrackers);
+        HashMap<Integer, SOCPlayerTracker> trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRS, game, playerTrackers);
         SOCPlayerTracker.updateWinGameETAs(trackersCopy);
 
         SOCPlayerTracker ourPlayerTrackerCopy = trackersCopy.get(Integer.valueOf(ourPlayerNumber));
@@ -1107,7 +1108,7 @@ public class SOCRobotDM
           }
         }
 
-        SOCPlayerTracker.undoTryPutPiece(tmpRoad, game);
+        SOCPlayerTracker.undoTryPutPiece(tmpRS, game);
 
         if (! buildingPlan.empty())
         {
@@ -2443,7 +2444,7 @@ public class SOCRobotDM
     HashMap<Integer, SOCPlayerTracker> trackersCopy = null;
     SOCSettlement tmpSet = null;
     SOCCity tmpCity = null;
-    SOCRoad tmpRoad = null;  // road or ship
+    SOCRoutePiece tmpRS = null;  // road or ship
     float bonus = 0;
 
     D.ebugPrintln("--- before [start] ---");
@@ -2469,13 +2470,13 @@ public class SOCRobotDM
       break;
 
     case SOCPossiblePiece.ROAD:
-      tmpRoad = new SOCRoad(ourPlayerData, posPiece.getCoordinates(), null);
-      trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRoad, game, playerTrackers);
+      tmpRS = new SOCRoad(ourPlayerData, posPiece.getCoordinates(), null);
+      trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRS, game, playerTrackers);
       break;
 
     case SOCPossiblePiece.SHIP:
-      tmpRoad = new SOCShip(ourPlayerData, posPiece.getCoordinates(), null);
-      trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRoad, game, playerTrackers);
+      tmpRS = new SOCShip(ourPlayerData, posPiece.getCoordinates(), null);
+      trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRS, game, playerTrackers);
       break;
     }
 
@@ -2508,7 +2509,7 @@ public class SOCRobotDM
 
     case SOCPossiblePiece.SHIP:  // fall through to ROAD
     case SOCPossiblePiece.ROAD:
-      SOCPlayerTracker.undoTryPutPiece(tmpRoad, game);
+      SOCPlayerTracker.undoTryPutPiece(tmpRS, game);
       break;
     }
 
@@ -2548,7 +2549,7 @@ public class SOCRobotDM
     D.ebugPrintln("ourCurrentWGETA = "+ourCurrentWGETA);
 
     HashMap<Integer, SOCPlayerTracker> trackersCopy = null;
-    SOCRoad tmpRoad1 = null;
+    SOCRoutePiece tmpRS = null;
     // Building road or ship?  TODO Better ETA calc for coastal road/ship
     final boolean isShip = (posRoad instanceof SOCPossibleShip)
         && ! ((SOCPossibleShip) posRoad).isCoastalRoadAndShip;
@@ -2567,10 +2568,10 @@ public class SOCRobotDM
     } catch (CutoffExceededException e) {
       D.ebugPrintln("crap in getWinGameETABonusForRoad - "+e);
     }
-    tmpRoad1 = (isShip)
+    tmpRS = (isShip)
         ? new SOCShip(ourPlayerData, posRoad.getCoordinates(), null)
         : new SOCRoad(ourPlayerData, posRoad.getCoordinates(), null);
-    trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRoad1, game, playerTrackers);
+    trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRS, game, playerTrackers);
     SOCPlayerTracker.updateWinGameETAs(trackersCopy);
     float score = calcWGETABonus(playerTrackers, trackersCopy);
 
@@ -2591,7 +2592,7 @@ public class SOCRobotDM
     }
 
     D.ebugPrintln("--- after [end] ---");
-    SOCPlayerTracker.undoTryPutPiece(tmpRoad1, game);
+    SOCPlayerTracker.undoTryPutPiece(tmpRS, game);
     ourPlayerData.getResources().clear();
     ourPlayerData.getResources().add(originalResources);
     D.ebugPrintln("--- cleanup done ---");
