@@ -27,7 +27,7 @@ import soc.game.SOCDevCardConstants;  // for javadoc's use
 /**
  * This message from the server means that a player is
  * {@link #DRAW drawing} or {@link #PLAY playing}
- * a development card; response to {@link SOCPlayDevCardRequest}.
+ * a development card; server's response to {@link SOCPlayDevCardRequest}.
  *<P>
  * If a robot asks to play a dev card that they can't right now,
  * the server sends that bot {@code DEVCARDACTION}(-1, {@link #CANNOT_PLAY}, cardtype).
