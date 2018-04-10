@@ -1549,26 +1549,28 @@ public class SOCGameHandler extends GameHandler
             final int dcAge = (dcState == SOCInventory.NEW) ? SOCInventory.NEW : SOCInventory.OLD;
             final int addCmd = (dcAge == SOCInventory.NEW) ? SOCDevCardAction.ADD_NEW : SOCDevCardAction.ADD_OLD;
 
-            for (final SOCInventoryItem card : cardsInv.getByState(dcState))
+            for (final SOCInventoryItem iitem : cardsInv.getByState(dcState))
             {
                 final SOCMessage addMsg;
-                if (card instanceof SOCDevCard)
+                if (iitem instanceof SOCDevCard)
                 {
-                    final int dcType = card.itype;
+                    final int dcType = iitem.itype;
                     if (cliVersionNew || (dcType != SOCDevCardConstants.KNIGHT))
                         addMsg = new SOCDevCardAction(gaName, pn, addCmd, dcType);
                     else
                         addMsg = new SOCDevCardAction(gaName, pn, addCmd, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X);
                 } else {
-                    // None yet
-                    System.err.println("L1385: Unrecognized inventory item type " + card.getClass());
-                    addMsg = null;
+                    // SC_FTRI "gift port" to be placed later
+                    // or another general inventory item
+                    addMsg = new SOCInventoryItemAction
+                        (gaName, pn,
+                         (iitem.isPlayable() ? SOCInventoryItemAction.ADD_PLAYABLE : SOCInventoryItemAction.ADD_OTHER),
+                         iitem.itype, iitem.isKept(), iitem.isVPItem(), iitem.canCancelPlay);
                 }
 
-                if (addMsg != null)
-                    srv.messageToPlayer(c, addMsg);
+                srv.messageToPlayer(c, addMsg);
 
-            }  // for (card)
+            }  // for (item)
         }  // for (dcState)
 
         /**
