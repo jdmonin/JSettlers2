@@ -3036,6 +3036,7 @@ public class SOCGameHandler extends GameHandler
      */
     private final void debugGiveResources(Connection c, String mes, SOCGame game)
     {
+        final String gaName = game.getName();
         StringTokenizer st = new StringTokenizer(mes.substring(6));
         int[] resources = new int[SOCResourceConstants.WOOD + 1];
         int resourceType = SOCResourceConstants.CLAY;
@@ -3077,27 +3078,37 @@ public class SOCGameHandler extends GameHandler
 
         if (parseError)
         {
-            srv.messageToPlayer(c, game.getName(), "### Usage: " + DEBUG_COMMANDS_HELP_RSRCS);
-            srv.messageToPlayer(c, game.getName(), DEBUG_COMMANDS_HELP_PLAYER);
+            srv.messageToPlayer(c, gaName, "### Usage: " + DEBUG_COMMANDS_HELP_RSRCS);
+            srv.messageToPlayer(c, gaName, DEBUG_COMMANDS_HELP_PLAYER);
 
             return;  // <--- early return ---
         }
 
-        SOCResourceSet rset = pl.getResources();
+        SOCResourceSet rset = new SOCResourceSet();
         int pnum = pl.getPlayerNumber();
-        String outMes = "### " + pl.getName() + " gets";
+        final boolean hasOldClients = (game.clientVersionLowest < SOCPlayerElements.MIN_VERSION);
+        StringBuilder outTxt = new StringBuilder("### " + pl.getName() + " gets");  // I18N OK: debug only
 
         for (resourceType = SOCResourceConstants.CLAY;
-                resourceType <= SOCResourceConstants.WOOD; resourceType++)
+             resourceType <= SOCResourceConstants.WOOD; ++resourceType)
         {
-            rset.add(resources[resourceType], resourceType);
-            outMes += (" " + resources[resourceType]);
+            final int amt = resources[resourceType];
+            rset.add(amt, resourceType);
+            outTxt.append(' ');
+            outTxt.append(amt);
 
             // SOCResourceConstants.CLAY == SOCPlayerElement.CLAY
-            srv.messageToGame(game.getName(), new SOCPlayerElement(game.getName(), pnum, SOCPlayerElement.GAIN, resourceType, resources[resourceType]));
+            if (hasOldClients && (amt > 0))
+                srv.messageToGame
+                    (gaName, new SOCPlayerElement(gaName, pnum, SOCPlayerElement.GAIN, resourceType, amt));
         }
+        if (! hasOldClients)
+            srv.messageToGame
+                (gaName, new SOCPlayerElements(gaName, pnum, SOCPlayerElement.GAIN, rset));
 
-        srv.messageToGame(game.getName(), outMes);
+        pl.getResources().add(rset);
+
+        srv.messageToGame(gaName, outTxt.toString());
     }
 
     /** this is a debugging command that gives a dev card to a player.
