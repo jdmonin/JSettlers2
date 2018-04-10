@@ -347,7 +347,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                                warshipY =
         { 21, 22, 27, 31, 36,    36, 33, 29, 24, 21, 22, 27, 31, 36,    36, 43, 43, 36, 36, 33, 29, 24, 21 };
 
-    /*** Fortress polygon for scenario <tt>SC_PIRI</tt>. X is -13 to +13; Y is -11 to +11. @since 2.0.00 */
+    /**
+     * Fortress polygon for scenario <tt>SC_PIRI</tt>.
+     * X is -13 to +13; Y is -11 to +11.
+     * @since 2.0.00
+     */
     private static final int[] fortressX =
         //  left side        //  crenellations
         // right side        // entrance portal
@@ -355,7 +359,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           7,  7, 13, 13,     3, 3, 1, -1, -3, -3 },
                                fortressY =
         {  11,-11,-11, -7,   -7,-10,-10, -7,-7,-10,-10,-7,
-         -7,-11,-11, 11,     11,7, 5,  5,  7, 11 };
+         -7,-11,-11, 11,     11,8, 6,  6,  8, 11 };
 
     /**
      * village polygon. X is -13 to +13; Y is -9 to +9.
