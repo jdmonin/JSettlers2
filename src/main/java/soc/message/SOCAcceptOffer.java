@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2013-2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2013-2014,2016-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,14 +27,15 @@ import java.util.StringTokenizer;
  * This message means that the player is accepting an offer.
  *<P>
  * Sent from accepting player's client to server.
- * If the trade is allowed, also sent from server to all players so
- * that robots can learn that news.
+ * If the trade is allowed, announced from server to all players.
  *<UL>
  * <LI> Message to server is in response to a {@link SOCMakeOffer} sent earlier this turn to client.
- * <LI> Server's response (broadcast to game) is {@link SOCPlayerElement}s, {@link SOCGameServerText},
- *      {@link SOCClearOffer}s, then (for robots' benefit) the received ACCEPTOFFER is re-sent to
- *      all clients in the game.
+ * <LI> Server's response (announced to game) is {@link SOCPlayerElement}s, {@link SOCGameServerText},
+ *      then the {@code AcceptOffer}, then {@link SOCClearOffer}s.
  *</UL>
+ *<P>
+ * Before v2.0.00 the server announced the {@code SOCClearOffer}s before {@code SOCAcceptOffer}. The old
+ * non-robot clients ignored that {@code SOCAcceptOffer}, so changing the order has no effect on them.
  * @author Robert S. Thomas
  * @see SOCRejectOffer
  */
@@ -49,7 +50,8 @@ public class SOCAcceptOffer extends SOCMessage
     private String game;
 
     /**
-     * The number of the accepting player
+     * The number of the accepting player.
+     * Sent from server, ignored if sent from client.
      */
     private int accepting;
 
@@ -62,8 +64,9 @@ public class SOCAcceptOffer extends SOCMessage
      * Create a AcceptOffer message.
      *
      * @param ga  the name of the game
-     * @param ac  the number of the accepting player
-     * @param of  the number of the offering player
+     * @param ac  the player number of the accepting player.
+     *     Sent from server, ignored if sent from client.
+     * @param of  the player number of the offering player
      */
     public SOCAcceptOffer(String ga, int ac, int of)
     {
@@ -82,7 +85,10 @@ public class SOCAcceptOffer extends SOCMessage
     }
 
     /**
-     * @return the number of the accepting player
+     * Get the player number accepting the trade offer
+     * from {@link #getOfferingNumber()}.
+     * @return the number of the accepting player from server,
+     *     or any value sent from client (not used by server)
      */
     public int getAcceptingNumber()
     {
@@ -90,6 +96,8 @@ public class SOCAcceptOffer extends SOCMessage
     }
 
     /**
+     * Get the player number offering this trade which is
+     * being accepted by {@link #getAcceptingNumber()}.
      * @return the number of the offering player
      */
     public int getOfferingNumber()
@@ -111,8 +119,9 @@ public class SOCAcceptOffer extends SOCMessage
      * ACCEPTOFFER sep game sep2 accepting sep2 offering
      *
      * @param ga  the name of the game
-     * @param ac  the number of the accepting player
-     * @param of  the number of the offering player
+     * @param ac  the player number of the accepting player.
+     *     Sent from server, ignored if sent from client.
+     * @param of  the player number of the offering player
      * @return the command string
      */
     public static String toCmd(String ga, int ac, int of)
