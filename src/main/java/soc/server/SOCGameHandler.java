@@ -2494,11 +2494,13 @@ public class SOCGameHandler extends GameHandler
     }
 
     /**
-     * report a trade that has taken place between players, using {@link SOCPlayerElement}
-     * and {@link SOCGameServerText} messages.
+     * Report a trade that has taken place between players, using {@link SOCPlayerElement}.
+     * Also announces the trade to pre-v2.0.00 clients with a {@link SOCGameTextMsg}
+     * ("Joe gave 1 sheep for 1 wood from Lily.").
      *<P>
-     * Callers must also report trades to robots by re-sending the accepting player's
-     * {@link SOCAcceptOffer} message to the game after calling this method.
+     * Caller must also report trade player numbers by sending a {@link SOCAcceptOffer}
+     * message to the game after calling this method. In v2.0.00 and newer clients,
+     * that message announces the trade instead of {@link SOCGameTextMsg}.
      *
      * @param ga        the game
      * @param offering  the number of the player making the offer
@@ -2515,9 +2517,16 @@ public class SOCGameHandler extends GameHandler
 
         reportRsrcGainLoss(gaName, giveSet, true, false, offering, accepting, null, null);
         reportRsrcGainLoss(gaName, getSet, false, false, offering, accepting, null, null);
-        srv.messageToGameKeyedSpecial(ga, true, "trade.gave.rsrcs.for.from.player",
-            ga.getPlayer(offering).getName(), giveSet, getSet, ga.getPlayer(accepting).getName());
-            // "{0} gave {1,rsrcs} for {2,rsrcs} from {3}."
+        if (ga.clientVersionLowest < SOCStringManager.VERSION_FOR_I18N)
+        {
+            // I18N OK: Pre-2.0.00 clients always use english
+            final String txt = SOCStringManager.getFallbackServerManagerForClient().formatSpecial
+                (ga, "{0} gave {1,rsrcs} for {2,rsrcs} from {3}.",
+                 ga.getPlayer(offering).getName(), giveSet, getSet, ga.getPlayer(accepting).getName());
+            srv.messageToGameForVersions
+                (ga, 0, SOCStringManager.VERSION_FOR_I18N - 1,
+                 new SOCGameTextMsg(gaName, SOCServer.SERVERNAME, txt), true);
+        }
     }
 
     /**
