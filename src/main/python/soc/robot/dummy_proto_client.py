@@ -173,7 +173,7 @@ class DummyProtoClient(object):
 
     # games
 
-    def proto_game_str(self, proto_game):
+    def format_proto_game_str(self, proto_game):
         """Return a string with the contents of a _GameWithOptions protobuf message"""
         ret = '_GameWithOptions(' + repr(proto_game.ga_name) + ', opts=' + repr(proto_game.opts)
         if proto_game.unjoinable:
@@ -191,7 +191,7 @@ class DummyProtoClient(object):
                 is_first = False
             else:
                 s += ', '
-            s += self.proto_game_str(ga)
+            s += self.format_proto_game_str(ga)
             if (ga_name_to_join is None) and not ga.unjoinable:
                 ga_name_to_join = ga.ga_name
         s += '])'
@@ -200,7 +200,7 @@ class DummyProtoClient(object):
             self.request_join_game(ga_name_to_join)
 
     def _treat_new_game(self, msg):
-        print("  NewGame(game=" + self.proto_game_str(msg.game)
+        print("  NewGame(game=" + self.format_proto_game_str(msg.game)
             + ", min_version=" + str(msg.min_version) + ")" )
         print("  -- NEW GAME CREATED.")
         if not msg.game.unjoinable:
@@ -296,7 +296,7 @@ class DummyProtoClient(object):
         if not ptype:
             pt = data_pb2.ROAD
         print("  BuildPiece(game=" + repr(ga_name) + ", player_number=" + str(pn)
-              + ", coordinates=" + format(msg.coordinates, '#05x')
+              + ", coordinates=" + self.format_proto_coord(msg.coordinates)
               + ", type=" + data_pb2.PieceType.Name(ptype) + ")")
 
     # turn
@@ -479,6 +479,38 @@ class DummyProtoClient(object):
                 # we found a byte with high bit 0, which means it's the last byte of this varint
                 break
         return raw_varint32
+
+    # utility: misc data formatters
+
+    def format_proto_coord(self, coord):
+        """
+        Returns a string for this data.proto 2D board coordinate, formatted as: '(0xRR, 0xCC)'
+        coord can be a EdgeCoord, HexCoord, NodeCoord or PieceCoord.
+        If PieceCoord:
+            - Prepend 'edge_coord', 'hex_coord', or 'node_coord' to the '(0xRR, 0xCC)' returned.
+            - If none of those 3 coordinate type fields are provided, returns 'piece_coord(empty)'
+        If coord isn't one of those types or None, raises a ValueError trying to get the coord_type OneOf value.
+        """
+        if coord is None:
+            return 'None'
+        if hasattr(coord, 'row') or hasattr(coord, 'column'):
+            r = coord.row
+            c = coord.column
+            if r is None:
+                r = 0
+            if c is None:
+                c = 0
+            return '(' + format(r, '#04x') + ', ' + format(c, '#04x') + ')'
+        else:
+            try:
+                cf_name = str(coord.WhichOneof("coord_type"))
+            except:
+                raise ValueError("coord has no coord_type: " + repr(coord))
+            if cf_name in ['edge_coord', 'hex_coord', 'node_coord']:
+                # format and return coord.edge_coord, .hex_coord or .node_coord
+                return cf_name + self.format_proto_coord(getattr(coord, cf_name, None))
+            else:
+                return 'piece_coord(empty)'
 
 def main():
     """

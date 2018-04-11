@@ -109,7 +109,8 @@ public class SOCRemovePiece extends SOCMessageTemplate3i
     {
         GameMessage.RemovePiece.Builder b
             = GameMessage.RemovePiece.newBuilder();
-        b.setTypeValue(p2).setCoordinates(p3);
+        b.setTypeValue(p2)
+         .setCoordinates(ProtoMessageBuildHelper.toPieceCoord(p3, p2));
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
         gb.setGameName(game).setPlayerNumber(p1).setRemovePiece(b);

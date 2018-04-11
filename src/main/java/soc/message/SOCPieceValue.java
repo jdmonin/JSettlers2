@@ -21,6 +21,9 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.proto.GameMessage;
+import soc.proto.Message;
+
 /**
  * This message from server updates the value field(s) of a piece on the board.
  *
@@ -90,6 +93,21 @@ public class SOCPieceValue extends SOCMessageTemplate4i
         }
 
         return new SOCPieceValue(ga, pt, co, pv1, pv2);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.PieceValue.Builder b
+            = GameMessage.PieceValue.newBuilder();
+        b.setTypeValue(p1)
+         .setCoordinates(ProtoMessageBuildHelper.toPieceCoord(p2, p1))
+         .setPieceValue1(p3)
+         .setPieceValue2(p4);
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGameName(game).setPlayerNumber(p1).setPieceValue(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
     /**

@@ -114,6 +114,24 @@ message PotentialSettlements {
     repeated _SIntArray legal_sea_edges = 5;
 }
 
+/* This message from server updates the value field(s) of a piece on the board.
+ *
+ *<H5>Current uses (v2.0.00):</H5>
+ *<UL>
+ * <LI> Cloth count for a village in the {@code SC_CLVI} cloth trade scenario
+ * <LI> Fortress strength in the {@code SC_PIRI} pirate islands scenario
+ *</UL>
+ */
+message PieceValue {
+    /* Type of playing piece, like {@code VILLAGE} or {@code FORTRESS}.
+     * Client can ignore this field unless the game's scenario uses values on multiple piece types.
+     */
+    PieceType type = 1;
+    PieceCoord coordinates = 2;  // Coordinate of the piece
+    sint32 piece_value1 = 3;  // New value for the piece
+    sint32 piece_value2 = 4;  // New secondary value (if piece has 2 value fields)
+}
+
 /* Client player is asking to buy and build, or server is announcing placement of, a piece on the board.
  * Also used when joining a new game or a game in progress, to send the game state so far.
  *<P>
@@ -148,7 +166,12 @@ message PotentialSettlements {
  */
 message BuildPiece {
     PieceType type = 1;
-    uint32 coordinates = 2;
+
+    /* The piece's edge, node, or hex coordinate.
+     * See data.PieceCoord doc for which types set which field
+     * (edge_coord or node_coord).
+     */
+    PieceCoord coordinates = 2;
 }
 
 /* This message from client means that the client player wants to buy a development card.
@@ -346,13 +369,12 @@ message CancelBuild {
  * or reply to the requesting client with {@link CancelBuildRequest}.
  *<P>
  * Before v3.0.00 this message was {@code SOCMovePieceRequest} and {@code SOCMovePiece}.
- * @since 2.0.00
  */
 message MovePiece {
     /* Type of playing piece; only {@code SHIP} so far */
     PieceType type = 1;
-    uint32 from_coord = 2;
-    uint32 to_coord = 3;
+    PieceCoord from_coordinates = 2;
+    PieceCoord to_coordinates = 3;
 }
 
 /* This message from server announces a {@link soc.game.SOCShip} removed from the board.
@@ -361,13 +383,11 @@ message MovePiece {
  * in case that changes in a later version.
  *<P>
  * Introduced in v2.0.00 for the pirate islands scenario (_SC_PIRI).
- *
- * @since 2.0.00
  */
 message RemovePiece {
     /* Type of playing piece; only {@code SHIP} so far */
     PieceType type = 1;
-    uint32 coordinates = 2;
+    PieceCoord coordinates = 2;
 }
 
 
@@ -860,10 +880,11 @@ message GameMessageFromServer {
         // board layout and contents
         BoardLayout board_layout = 30;
         PotentialSettlements potential_settlements = 31;
-        BuildPiece build_piece = 32;
-        CancelBuild cancel_build = 33;
-        MovePiece move_piece = 34;
-        RemovePiece remove_piece = 35;
+        PieceValue piece_value = 32;
+        BuildPiece build_piece = 33;
+        CancelBuild cancel_build = 34;
+        MovePiece move_piece = 35;
+        RemovePiece remove_piece = 36;
 
         // turn
         StartGame start_game = 100;

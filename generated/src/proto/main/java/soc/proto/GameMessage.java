@@ -4642,6 +4642,966 @@ public final class GameMessage {
 
   }
 
+  public interface PieceValueOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:PieceValue)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * Type of playing piece, like {&#64;code VILLAGE} or {&#64;code FORTRESS}.
+     * Client can ignore this field unless the game's scenario uses values on multiple piece types.
+     * </pre>
+     *
+     * <code>.PieceType type = 1;</code>
+     */
+    int getTypeValue();
+    /**
+     * <pre>
+     * Type of playing piece, like {&#64;code VILLAGE} or {&#64;code FORTRESS}.
+     * Client can ignore this field unless the game's scenario uses values on multiple piece types.
+     * </pre>
+     *
+     * <code>.PieceType type = 1;</code>
+     */
+    soc.proto.Data.PieceType getType();
+
+    /**
+     * <pre>
+     * Coordinate of the piece
+     * </pre>
+     *
+     * <code>.PieceCoord coordinates = 2;</code>
+     */
+    boolean hasCoordinates();
+    /**
+     * <pre>
+     * Coordinate of the piece
+     * </pre>
+     *
+     * <code>.PieceCoord coordinates = 2;</code>
+     */
+    soc.proto.Data.PieceCoord getCoordinates();
+    /**
+     * <pre>
+     * Coordinate of the piece
+     * </pre>
+     *
+     * <code>.PieceCoord coordinates = 2;</code>
+     */
+    soc.proto.Data.PieceCoordOrBuilder getCoordinatesOrBuilder();
+
+    /**
+     * <pre>
+     * New value for the piece
+     * </pre>
+     *
+     * <code>sint32 piece_value1 = 3;</code>
+     */
+    int getPieceValue1();
+
+    /**
+     * <pre>
+     * New secondary value (if piece has 2 value fields)
+     * </pre>
+     *
+     * <code>sint32 piece_value2 = 4;</code>
+     */
+    int getPieceValue2();
+  }
+  /**
+   * <pre>
+   * This message from server updates the value field(s) of a piece on the board.
+   *&lt;H5&gt;Current uses (v2.0.00):&lt;/H5&gt;
+   *&lt;UL&gt;
+   * &lt;LI&gt; Cloth count for a village in the {&#64;code SC_CLVI} cloth trade scenario
+   * &lt;LI&gt; Fortress strength in the {&#64;code SC_PIRI} pirate islands scenario
+   *&lt;/UL&gt;
+   * </pre>
+   *
+   * Protobuf type {@code PieceValue}
+   */
+  public  static final class PieceValue extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:PieceValue)
+      PieceValueOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use PieceValue.newBuilder() to construct.
+    private PieceValue(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private PieceValue() {
+      type_ = 0;
+      pieceValue1_ = 0;
+      pieceValue2_ = 0;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private PieceValue(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              int rawValue = input.readEnum();
+
+              type_ = rawValue;
+              break;
+            }
+            case 18: {
+              soc.proto.Data.PieceCoord.Builder subBuilder = null;
+              if (coordinates_ != null) {
+                subBuilder = coordinates_.toBuilder();
+              }
+              coordinates_ = input.readMessage(soc.proto.Data.PieceCoord.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(coordinates_);
+                coordinates_ = subBuilder.buildPartial();
+              }
+
+              break;
+            }
+            case 24: {
+
+              pieceValue1_ = input.readSInt32();
+              break;
+            }
+            case 32: {
+
+              pieceValue2_ = input.readSInt32();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_PieceValue_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_PieceValue_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.PieceValue.class, soc.proto.GameMessage.PieceValue.Builder.class);
+    }
+
+    public static final int TYPE_FIELD_NUMBER = 1;
+    private int type_;
+    /**
+     * <pre>
+     * Type of playing piece, like {&#64;code VILLAGE} or {&#64;code FORTRESS}.
+     * Client can ignore this field unless the game's scenario uses values on multiple piece types.
+     * </pre>
+     *
+     * <code>.PieceType type = 1;</code>
+     */
+    public int getTypeValue() {
+      return type_;
+    }
+    /**
+     * <pre>
+     * Type of playing piece, like {&#64;code VILLAGE} or {&#64;code FORTRESS}.
+     * Client can ignore this field unless the game's scenario uses values on multiple piece types.
+     * </pre>
+     *
+     * <code>.PieceType type = 1;</code>
+     */
+    public soc.proto.Data.PieceType getType() {
+      soc.proto.Data.PieceType result = soc.proto.Data.PieceType.valueOf(type_);
+      return result == null ? soc.proto.Data.PieceType.UNRECOGNIZED : result;
+    }
+
+    public static final int COORDINATES_FIELD_NUMBER = 2;
+    private soc.proto.Data.PieceCoord coordinates_;
+    /**
+     * <pre>
+     * Coordinate of the piece
+     * </pre>
+     *
+     * <code>.PieceCoord coordinates = 2;</code>
+     */
+    public boolean hasCoordinates() {
+      return coordinates_ != null;
+    }
+    /**
+     * <pre>
+     * Coordinate of the piece
+     * </pre>
+     *
+     * <code>.PieceCoord coordinates = 2;</code>
+     */
+    public soc.proto.Data.PieceCoord getCoordinates() {
+      return coordinates_ == null ? soc.proto.Data.PieceCoord.getDefaultInstance() : coordinates_;
+    }
+    /**
+     * <pre>
+     * Coordinate of the piece
+     * </pre>
+     *
+     * <code>.PieceCoord coordinates = 2;</code>
+     */
+    public soc.proto.Data.PieceCoordOrBuilder getCoordinatesOrBuilder() {
+      return getCoordinates();
+    }
+
+    public static final int PIECE_VALUE1_FIELD_NUMBER = 3;
+    private int pieceValue1_;
+    /**
+     * <pre>
+     * New value for the piece
+     * </pre>
+     *
+     * <code>sint32 piece_value1 = 3;</code>
+     */
+    public int getPieceValue1() {
+      return pieceValue1_;
+    }
+
+    public static final int PIECE_VALUE2_FIELD_NUMBER = 4;
+    private int pieceValue2_;
+    /**
+     * <pre>
+     * New secondary value (if piece has 2 value fields)
+     * </pre>
+     *
+     * <code>sint32 piece_value2 = 4;</code>
+     */
+    public int getPieceValue2() {
+      return pieceValue2_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (type_ != soc.proto.Data.PieceType.ROAD.getNumber()) {
+        output.writeEnum(1, type_);
+      }
+      if (coordinates_ != null) {
+        output.writeMessage(2, getCoordinates());
+      }
+      if (pieceValue1_ != 0) {
+        output.writeSInt32(3, pieceValue1_);
+      }
+      if (pieceValue2_ != 0) {
+        output.writeSInt32(4, pieceValue2_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (type_ != soc.proto.Data.PieceType.ROAD.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(1, type_);
+      }
+      if (coordinates_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, getCoordinates());
+      }
+      if (pieceValue1_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeSInt32Size(3, pieceValue1_);
+      }
+      if (pieceValue2_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeSInt32Size(4, pieceValue2_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.PieceValue)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.PieceValue other = (soc.proto.GameMessage.PieceValue) obj;
+
+      boolean result = true;
+      result = result && type_ == other.type_;
+      result = result && (hasCoordinates() == other.hasCoordinates());
+      if (hasCoordinates()) {
+        result = result && getCoordinates()
+            .equals(other.getCoordinates());
+      }
+      result = result && (getPieceValue1()
+          == other.getPieceValue1());
+      result = result && (getPieceValue2()
+          == other.getPieceValue2());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + TYPE_FIELD_NUMBER;
+      hash = (53 * hash) + type_;
+      if (hasCoordinates()) {
+        hash = (37 * hash) + COORDINATES_FIELD_NUMBER;
+        hash = (53 * hash) + getCoordinates().hashCode();
+      }
+      hash = (37 * hash) + PIECE_VALUE1_FIELD_NUMBER;
+      hash = (53 * hash) + getPieceValue1();
+      hash = (37 * hash) + PIECE_VALUE2_FIELD_NUMBER;
+      hash = (53 * hash) + getPieceValue2();
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.PieceValue parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.PieceValue parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.PieceValue parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.PieceValue parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.PieceValue parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.PieceValue parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.PieceValue parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.PieceValue parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.PieceValue parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.PieceValue parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.PieceValue parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.PieceValue parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.PieceValue prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * This message from server updates the value field(s) of a piece on the board.
+     *&lt;H5&gt;Current uses (v2.0.00):&lt;/H5&gt;
+     *&lt;UL&gt;
+     * &lt;LI&gt; Cloth count for a village in the {&#64;code SC_CLVI} cloth trade scenario
+     * &lt;LI&gt; Fortress strength in the {&#64;code SC_PIRI} pirate islands scenario
+     *&lt;/UL&gt;
+     * </pre>
+     *
+     * Protobuf type {@code PieceValue}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:PieceValue)
+        soc.proto.GameMessage.PieceValueOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_PieceValue_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_PieceValue_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.PieceValue.class, soc.proto.GameMessage.PieceValue.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.PieceValue.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        type_ = 0;
+
+        if (coordinatesBuilder_ == null) {
+          coordinates_ = null;
+        } else {
+          coordinates_ = null;
+          coordinatesBuilder_ = null;
+        }
+        pieceValue1_ = 0;
+
+        pieceValue2_ = 0;
+
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_PieceValue_descriptor;
+      }
+
+      public soc.proto.GameMessage.PieceValue getDefaultInstanceForType() {
+        return soc.proto.GameMessage.PieceValue.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.PieceValue build() {
+        soc.proto.GameMessage.PieceValue result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.PieceValue buildPartial() {
+        soc.proto.GameMessage.PieceValue result = new soc.proto.GameMessage.PieceValue(this);
+        result.type_ = type_;
+        if (coordinatesBuilder_ == null) {
+          result.coordinates_ = coordinates_;
+        } else {
+          result.coordinates_ = coordinatesBuilder_.build();
+        }
+        result.pieceValue1_ = pieceValue1_;
+        result.pieceValue2_ = pieceValue2_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.PieceValue) {
+          return mergeFrom((soc.proto.GameMessage.PieceValue)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.PieceValue other) {
+        if (other == soc.proto.GameMessage.PieceValue.getDefaultInstance()) return this;
+        if (other.type_ != 0) {
+          setTypeValue(other.getTypeValue());
+        }
+        if (other.hasCoordinates()) {
+          mergeCoordinates(other.getCoordinates());
+        }
+        if (other.getPieceValue1() != 0) {
+          setPieceValue1(other.getPieceValue1());
+        }
+        if (other.getPieceValue2() != 0) {
+          setPieceValue2(other.getPieceValue2());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.PieceValue parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.PieceValue) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private int type_ = 0;
+      /**
+       * <pre>
+       * Type of playing piece, like {&#64;code VILLAGE} or {&#64;code FORTRESS}.
+       * Client can ignore this field unless the game's scenario uses values on multiple piece types.
+       * </pre>
+       *
+       * <code>.PieceType type = 1;</code>
+       */
+      public int getTypeValue() {
+        return type_;
+      }
+      /**
+       * <pre>
+       * Type of playing piece, like {&#64;code VILLAGE} or {&#64;code FORTRESS}.
+       * Client can ignore this field unless the game's scenario uses values on multiple piece types.
+       * </pre>
+       *
+       * <code>.PieceType type = 1;</code>
+       */
+      public Builder setTypeValue(int value) {
+        type_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Type of playing piece, like {&#64;code VILLAGE} or {&#64;code FORTRESS}.
+       * Client can ignore this field unless the game's scenario uses values on multiple piece types.
+       * </pre>
+       *
+       * <code>.PieceType type = 1;</code>
+       */
+      public soc.proto.Data.PieceType getType() {
+        soc.proto.Data.PieceType result = soc.proto.Data.PieceType.valueOf(type_);
+        return result == null ? soc.proto.Data.PieceType.UNRECOGNIZED : result;
+      }
+      /**
+       * <pre>
+       * Type of playing piece, like {&#64;code VILLAGE} or {&#64;code FORTRESS}.
+       * Client can ignore this field unless the game's scenario uses values on multiple piece types.
+       * </pre>
+       *
+       * <code>.PieceType type = 1;</code>
+       */
+      public Builder setType(soc.proto.Data.PieceType value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        
+        type_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Type of playing piece, like {&#64;code VILLAGE} or {&#64;code FORTRESS}.
+       * Client can ignore this field unless the game's scenario uses values on multiple piece types.
+       * </pre>
+       *
+       * <code>.PieceType type = 1;</code>
+       */
+      public Builder clearType() {
+        
+        type_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private soc.proto.Data.PieceCoord coordinates_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder> coordinatesBuilder_;
+      /**
+       * <pre>
+       * Coordinate of the piece
+       * </pre>
+       *
+       * <code>.PieceCoord coordinates = 2;</code>
+       */
+      public boolean hasCoordinates() {
+        return coordinatesBuilder_ != null || coordinates_ != null;
+      }
+      /**
+       * <pre>
+       * Coordinate of the piece
+       * </pre>
+       *
+       * <code>.PieceCoord coordinates = 2;</code>
+       */
+      public soc.proto.Data.PieceCoord getCoordinates() {
+        if (coordinatesBuilder_ == null) {
+          return coordinates_ == null ? soc.proto.Data.PieceCoord.getDefaultInstance() : coordinates_;
+        } else {
+          return coordinatesBuilder_.getMessage();
+        }
+      }
+      /**
+       * <pre>
+       * Coordinate of the piece
+       * </pre>
+       *
+       * <code>.PieceCoord coordinates = 2;</code>
+       */
+      public Builder setCoordinates(soc.proto.Data.PieceCoord value) {
+        if (coordinatesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          coordinates_ = value;
+          onChanged();
+        } else {
+          coordinatesBuilder_.setMessage(value);
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * Coordinate of the piece
+       * </pre>
+       *
+       * <code>.PieceCoord coordinates = 2;</code>
+       */
+      public Builder setCoordinates(
+          soc.proto.Data.PieceCoord.Builder builderForValue) {
+        if (coordinatesBuilder_ == null) {
+          coordinates_ = builderForValue.build();
+          onChanged();
+        } else {
+          coordinatesBuilder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * Coordinate of the piece
+       * </pre>
+       *
+       * <code>.PieceCoord coordinates = 2;</code>
+       */
+      public Builder mergeCoordinates(soc.proto.Data.PieceCoord value) {
+        if (coordinatesBuilder_ == null) {
+          if (coordinates_ != null) {
+            coordinates_ =
+              soc.proto.Data.PieceCoord.newBuilder(coordinates_).mergeFrom(value).buildPartial();
+          } else {
+            coordinates_ = value;
+          }
+          onChanged();
+        } else {
+          coordinatesBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * Coordinate of the piece
+       * </pre>
+       *
+       * <code>.PieceCoord coordinates = 2;</code>
+       */
+      public Builder clearCoordinates() {
+        if (coordinatesBuilder_ == null) {
+          coordinates_ = null;
+          onChanged();
+        } else {
+          coordinates_ = null;
+          coordinatesBuilder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * Coordinate of the piece
+       * </pre>
+       *
+       * <code>.PieceCoord coordinates = 2;</code>
+       */
+      public soc.proto.Data.PieceCoord.Builder getCoordinatesBuilder() {
+        
+        onChanged();
+        return getCoordinatesFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * Coordinate of the piece
+       * </pre>
+       *
+       * <code>.PieceCoord coordinates = 2;</code>
+       */
+      public soc.proto.Data.PieceCoordOrBuilder getCoordinatesOrBuilder() {
+        if (coordinatesBuilder_ != null) {
+          return coordinatesBuilder_.getMessageOrBuilder();
+        } else {
+          return coordinates_ == null ?
+              soc.proto.Data.PieceCoord.getDefaultInstance() : coordinates_;
+        }
+      }
+      /**
+       * <pre>
+       * Coordinate of the piece
+       * </pre>
+       *
+       * <code>.PieceCoord coordinates = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder> 
+          getCoordinatesFieldBuilder() {
+        if (coordinatesBuilder_ == null) {
+          coordinatesBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder>(
+                  getCoordinates(),
+                  getParentForChildren(),
+                  isClean());
+          coordinates_ = null;
+        }
+        return coordinatesBuilder_;
+      }
+
+      private int pieceValue1_ ;
+      /**
+       * <pre>
+       * New value for the piece
+       * </pre>
+       *
+       * <code>sint32 piece_value1 = 3;</code>
+       */
+      public int getPieceValue1() {
+        return pieceValue1_;
+      }
+      /**
+       * <pre>
+       * New value for the piece
+       * </pre>
+       *
+       * <code>sint32 piece_value1 = 3;</code>
+       */
+      public Builder setPieceValue1(int value) {
+        
+        pieceValue1_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * New value for the piece
+       * </pre>
+       *
+       * <code>sint32 piece_value1 = 3;</code>
+       */
+      public Builder clearPieceValue1() {
+        
+        pieceValue1_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int pieceValue2_ ;
+      /**
+       * <pre>
+       * New secondary value (if piece has 2 value fields)
+       * </pre>
+       *
+       * <code>sint32 piece_value2 = 4;</code>
+       */
+      public int getPieceValue2() {
+        return pieceValue2_;
+      }
+      /**
+       * <pre>
+       * New secondary value (if piece has 2 value fields)
+       * </pre>
+       *
+       * <code>sint32 piece_value2 = 4;</code>
+       */
+      public Builder setPieceValue2(int value) {
+        
+        pieceValue2_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * New secondary value (if piece has 2 value fields)
+       * </pre>
+       *
+       * <code>sint32 piece_value2 = 4;</code>
+       */
+      public Builder clearPieceValue2() {
+        
+        pieceValue2_ = 0;
+        onChanged();
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:PieceValue)
+    }
+
+    // @@protoc_insertion_point(class_scope:PieceValue)
+    private static final soc.proto.GameMessage.PieceValue DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.PieceValue();
+    }
+
+    public static soc.proto.GameMessage.PieceValue getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<PieceValue>
+        PARSER = new com.google.protobuf.AbstractParser<PieceValue>() {
+      public PieceValue parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new PieceValue(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<PieceValue> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<PieceValue> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.PieceValue getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface BuildPieceOrBuilder extends
       // @@protoc_insertion_point(interface_extends:BuildPiece)
       com.google.protobuf.MessageOrBuilder {
@@ -4656,9 +5616,35 @@ public final class GameMessage {
     soc.proto.Data.PieceType getType();
 
     /**
-     * <code>uint32 coordinates = 2;</code>
+     * <pre>
+     * The piece's edge, node, or hex coordinate.
+     * See data.PieceCoord doc for which types set which field
+     * (edge_coord or node_coord).
+     * </pre>
+     *
+     * <code>.PieceCoord coordinates = 2;</code>
      */
-    int getCoordinates();
+    boolean hasCoordinates();
+    /**
+     * <pre>
+     * The piece's edge, node, or hex coordinate.
+     * See data.PieceCoord doc for which types set which field
+     * (edge_coord or node_coord).
+     * </pre>
+     *
+     * <code>.PieceCoord coordinates = 2;</code>
+     */
+    soc.proto.Data.PieceCoord getCoordinates();
+    /**
+     * <pre>
+     * The piece's edge, node, or hex coordinate.
+     * See data.PieceCoord doc for which types set which field
+     * (edge_coord or node_coord).
+     * </pre>
+     *
+     * <code>.PieceCoord coordinates = 2;</code>
+     */
+    soc.proto.Data.PieceCoordOrBuilder getCoordinatesOrBuilder();
   }
   /**
    * <pre>
@@ -4707,7 +5693,6 @@ public final class GameMessage {
     }
     private BuildPiece() {
       type_ = 0;
-      coordinates_ = 0;
     }
 
     @java.lang.Override
@@ -4744,9 +5729,17 @@ public final class GameMessage {
               type_ = rawValue;
               break;
             }
-            case 16: {
+            case 18: {
+              soc.proto.Data.PieceCoord.Builder subBuilder = null;
+              if (coordinates_ != null) {
+                subBuilder = coordinates_.toBuilder();
+              }
+              coordinates_ = input.readMessage(soc.proto.Data.PieceCoord.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(coordinates_);
+                coordinates_ = subBuilder.buildPartial();
+              }
 
-              coordinates_ = input.readUInt32();
               break;
             }
           }
@@ -4790,12 +5783,42 @@ public final class GameMessage {
     }
 
     public static final int COORDINATES_FIELD_NUMBER = 2;
-    private int coordinates_;
+    private soc.proto.Data.PieceCoord coordinates_;
     /**
-     * <code>uint32 coordinates = 2;</code>
+     * <pre>
+     * The piece's edge, node, or hex coordinate.
+     * See data.PieceCoord doc for which types set which field
+     * (edge_coord or node_coord).
+     * </pre>
+     *
+     * <code>.PieceCoord coordinates = 2;</code>
      */
-    public int getCoordinates() {
-      return coordinates_;
+    public boolean hasCoordinates() {
+      return coordinates_ != null;
+    }
+    /**
+     * <pre>
+     * The piece's edge, node, or hex coordinate.
+     * See data.PieceCoord doc for which types set which field
+     * (edge_coord or node_coord).
+     * </pre>
+     *
+     * <code>.PieceCoord coordinates = 2;</code>
+     */
+    public soc.proto.Data.PieceCoord getCoordinates() {
+      return coordinates_ == null ? soc.proto.Data.PieceCoord.getDefaultInstance() : coordinates_;
+    }
+    /**
+     * <pre>
+     * The piece's edge, node, or hex coordinate.
+     * See data.PieceCoord doc for which types set which field
+     * (edge_coord or node_coord).
+     * </pre>
+     *
+     * <code>.PieceCoord coordinates = 2;</code>
+     */
+    public soc.proto.Data.PieceCoordOrBuilder getCoordinatesOrBuilder() {
+      return getCoordinates();
     }
 
     private byte memoizedIsInitialized = -1;
@@ -4813,8 +5836,8 @@ public final class GameMessage {
       if (type_ != soc.proto.Data.PieceType.ROAD.getNumber()) {
         output.writeEnum(1, type_);
       }
-      if (coordinates_ != 0) {
-        output.writeUInt32(2, coordinates_);
+      if (coordinates_ != null) {
+        output.writeMessage(2, getCoordinates());
       }
       unknownFields.writeTo(output);
     }
@@ -4828,9 +5851,9 @@ public final class GameMessage {
         size += com.google.protobuf.CodedOutputStream
           .computeEnumSize(1, type_);
       }
-      if (coordinates_ != 0) {
+      if (coordinates_ != null) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(2, coordinates_);
+          .computeMessageSize(2, getCoordinates());
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -4849,8 +5872,11 @@ public final class GameMessage {
 
       boolean result = true;
       result = result && type_ == other.type_;
-      result = result && (getCoordinates()
-          == other.getCoordinates());
+      result = result && (hasCoordinates() == other.hasCoordinates());
+      if (hasCoordinates()) {
+        result = result && getCoordinates()
+            .equals(other.getCoordinates());
+      }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -4864,8 +5890,10 @@ public final class GameMessage {
       hash = (19 * hash) + getDescriptor().hashCode();
       hash = (37 * hash) + TYPE_FIELD_NUMBER;
       hash = (53 * hash) + type_;
-      hash = (37 * hash) + COORDINATES_FIELD_NUMBER;
-      hash = (53 * hash) + getCoordinates();
+      if (hasCoordinates()) {
+        hash = (37 * hash) + COORDINATES_FIELD_NUMBER;
+        hash = (53 * hash) + getCoordinates().hashCode();
+      }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -5030,8 +6058,12 @@ public final class GameMessage {
         super.clear();
         type_ = 0;
 
-        coordinates_ = 0;
-
+        if (coordinatesBuilder_ == null) {
+          coordinates_ = null;
+        } else {
+          coordinates_ = null;
+          coordinatesBuilder_ = null;
+        }
         return this;
       }
 
@@ -5055,7 +6087,11 @@ public final class GameMessage {
       public soc.proto.GameMessage.BuildPiece buildPartial() {
         soc.proto.GameMessage.BuildPiece result = new soc.proto.GameMessage.BuildPiece(this);
         result.type_ = type_;
-        result.coordinates_ = coordinates_;
+        if (coordinatesBuilder_ == null) {
+          result.coordinates_ = coordinates_;
+        } else {
+          result.coordinates_ = coordinatesBuilder_.build();
+        }
         onBuilt();
         return result;
       }
@@ -5100,8 +6136,8 @@ public final class GameMessage {
         if (other.type_ != 0) {
           setTypeValue(other.getTypeValue());
         }
-        if (other.getCoordinates() != 0) {
-          setCoordinates(other.getCoordinates());
+        if (other.hasCoordinates()) {
+          mergeCoordinates(other.getCoordinates());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -5174,30 +6210,175 @@ public final class GameMessage {
         return this;
       }
 
-      private int coordinates_ ;
+      private soc.proto.Data.PieceCoord coordinates_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder> coordinatesBuilder_;
       /**
-       * <code>uint32 coordinates = 2;</code>
+       * <pre>
+       * The piece's edge, node, or hex coordinate.
+       * See data.PieceCoord doc for which types set which field
+       * (edge_coord or node_coord).
+       * </pre>
+       *
+       * <code>.PieceCoord coordinates = 2;</code>
        */
-      public int getCoordinates() {
-        return coordinates_;
+      public boolean hasCoordinates() {
+        return coordinatesBuilder_ != null || coordinates_ != null;
       }
       /**
-       * <code>uint32 coordinates = 2;</code>
+       * <pre>
+       * The piece's edge, node, or hex coordinate.
+       * See data.PieceCoord doc for which types set which field
+       * (edge_coord or node_coord).
+       * </pre>
+       *
+       * <code>.PieceCoord coordinates = 2;</code>
        */
-      public Builder setCoordinates(int value) {
-        
-        coordinates_ = value;
-        onChanged();
+      public soc.proto.Data.PieceCoord getCoordinates() {
+        if (coordinatesBuilder_ == null) {
+          return coordinates_ == null ? soc.proto.Data.PieceCoord.getDefaultInstance() : coordinates_;
+        } else {
+          return coordinatesBuilder_.getMessage();
+        }
+      }
+      /**
+       * <pre>
+       * The piece's edge, node, or hex coordinate.
+       * See data.PieceCoord doc for which types set which field
+       * (edge_coord or node_coord).
+       * </pre>
+       *
+       * <code>.PieceCoord coordinates = 2;</code>
+       */
+      public Builder setCoordinates(soc.proto.Data.PieceCoord value) {
+        if (coordinatesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          coordinates_ = value;
+          onChanged();
+        } else {
+          coordinatesBuilder_.setMessage(value);
+        }
+
         return this;
       }
       /**
-       * <code>uint32 coordinates = 2;</code>
+       * <pre>
+       * The piece's edge, node, or hex coordinate.
+       * See data.PieceCoord doc for which types set which field
+       * (edge_coord or node_coord).
+       * </pre>
+       *
+       * <code>.PieceCoord coordinates = 2;</code>
+       */
+      public Builder setCoordinates(
+          soc.proto.Data.PieceCoord.Builder builderForValue) {
+        if (coordinatesBuilder_ == null) {
+          coordinates_ = builderForValue.build();
+          onChanged();
+        } else {
+          coordinatesBuilder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * The piece's edge, node, or hex coordinate.
+       * See data.PieceCoord doc for which types set which field
+       * (edge_coord or node_coord).
+       * </pre>
+       *
+       * <code>.PieceCoord coordinates = 2;</code>
+       */
+      public Builder mergeCoordinates(soc.proto.Data.PieceCoord value) {
+        if (coordinatesBuilder_ == null) {
+          if (coordinates_ != null) {
+            coordinates_ =
+              soc.proto.Data.PieceCoord.newBuilder(coordinates_).mergeFrom(value).buildPartial();
+          } else {
+            coordinates_ = value;
+          }
+          onChanged();
+        } else {
+          coordinatesBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * The piece's edge, node, or hex coordinate.
+       * See data.PieceCoord doc for which types set which field
+       * (edge_coord or node_coord).
+       * </pre>
+       *
+       * <code>.PieceCoord coordinates = 2;</code>
        */
       public Builder clearCoordinates() {
-        
-        coordinates_ = 0;
-        onChanged();
+        if (coordinatesBuilder_ == null) {
+          coordinates_ = null;
+          onChanged();
+        } else {
+          coordinates_ = null;
+          coordinatesBuilder_ = null;
+        }
+
         return this;
+      }
+      /**
+       * <pre>
+       * The piece's edge, node, or hex coordinate.
+       * See data.PieceCoord doc for which types set which field
+       * (edge_coord or node_coord).
+       * </pre>
+       *
+       * <code>.PieceCoord coordinates = 2;</code>
+       */
+      public soc.proto.Data.PieceCoord.Builder getCoordinatesBuilder() {
+        
+        onChanged();
+        return getCoordinatesFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * The piece's edge, node, or hex coordinate.
+       * See data.PieceCoord doc for which types set which field
+       * (edge_coord or node_coord).
+       * </pre>
+       *
+       * <code>.PieceCoord coordinates = 2;</code>
+       */
+      public soc.proto.Data.PieceCoordOrBuilder getCoordinatesOrBuilder() {
+        if (coordinatesBuilder_ != null) {
+          return coordinatesBuilder_.getMessageOrBuilder();
+        } else {
+          return coordinates_ == null ?
+              soc.proto.Data.PieceCoord.getDefaultInstance() : coordinates_;
+        }
+      }
+      /**
+       * <pre>
+       * The piece's edge, node, or hex coordinate.
+       * See data.PieceCoord doc for which types set which field
+       * (edge_coord or node_coord).
+       * </pre>
+       *
+       * <code>.PieceCoord coordinates = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder> 
+          getCoordinatesFieldBuilder() {
+        if (coordinatesBuilder_ == null) {
+          coordinatesBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder>(
+                  getCoordinates(),
+                  getParentForChildren(),
+                  isClean());
+          coordinates_ = null;
+        }
+        return coordinatesBuilder_;
       }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
@@ -8152,14 +9333,30 @@ public final class GameMessage {
     soc.proto.Data.PieceType getType();
 
     /**
-     * <code>uint32 from_coord = 2;</code>
+     * <code>.PieceCoord from_coordinates = 2;</code>
      */
-    int getFromCoord();
+    boolean hasFromCoordinates();
+    /**
+     * <code>.PieceCoord from_coordinates = 2;</code>
+     */
+    soc.proto.Data.PieceCoord getFromCoordinates();
+    /**
+     * <code>.PieceCoord from_coordinates = 2;</code>
+     */
+    soc.proto.Data.PieceCoordOrBuilder getFromCoordinatesOrBuilder();
 
     /**
-     * <code>uint32 to_coord = 3;</code>
+     * <code>.PieceCoord to_coordinates = 3;</code>
      */
-    int getToCoord();
+    boolean hasToCoordinates();
+    /**
+     * <code>.PieceCoord to_coordinates = 3;</code>
+     */
+    soc.proto.Data.PieceCoord getToCoordinates();
+    /**
+     * <code>.PieceCoord to_coordinates = 3;</code>
+     */
+    soc.proto.Data.PieceCoordOrBuilder getToCoordinatesOrBuilder();
   }
   /**
    * <pre>
@@ -8172,7 +9369,6 @@ public final class GameMessage {
    * or reply to the requesting client with {&#64;link CancelBuildRequest}.
    *&lt;P&gt;
    * Before v3.0.00 this message was {&#64;code SOCMovePieceRequest} and {&#64;code SOCMovePiece}.
-   * &#64;since 2.0.00
    * </pre>
    *
    * Protobuf type {@code MovePiece}
@@ -8188,8 +9384,6 @@ public final class GameMessage {
     }
     private MovePiece() {
       type_ = 0;
-      fromCoord_ = 0;
-      toCoord_ = 0;
     }
 
     @java.lang.Override
@@ -8226,14 +9420,30 @@ public final class GameMessage {
               type_ = rawValue;
               break;
             }
-            case 16: {
+            case 18: {
+              soc.proto.Data.PieceCoord.Builder subBuilder = null;
+              if (fromCoordinates_ != null) {
+                subBuilder = fromCoordinates_.toBuilder();
+              }
+              fromCoordinates_ = input.readMessage(soc.proto.Data.PieceCoord.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(fromCoordinates_);
+                fromCoordinates_ = subBuilder.buildPartial();
+              }
 
-              fromCoord_ = input.readUInt32();
               break;
             }
-            case 24: {
+            case 26: {
+              soc.proto.Data.PieceCoord.Builder subBuilder = null;
+              if (toCoordinates_ != null) {
+                subBuilder = toCoordinates_.toBuilder();
+              }
+              toCoordinates_ = input.readMessage(soc.proto.Data.PieceCoord.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(toCoordinates_);
+                toCoordinates_ = subBuilder.buildPartial();
+              }
 
-              toCoord_ = input.readUInt32();
               break;
             }
           }
@@ -8284,22 +9494,46 @@ public final class GameMessage {
       return result == null ? soc.proto.Data.PieceType.UNRECOGNIZED : result;
     }
 
-    public static final int FROM_COORD_FIELD_NUMBER = 2;
-    private int fromCoord_;
+    public static final int FROM_COORDINATES_FIELD_NUMBER = 2;
+    private soc.proto.Data.PieceCoord fromCoordinates_;
     /**
-     * <code>uint32 from_coord = 2;</code>
+     * <code>.PieceCoord from_coordinates = 2;</code>
      */
-    public int getFromCoord() {
-      return fromCoord_;
+    public boolean hasFromCoordinates() {
+      return fromCoordinates_ != null;
+    }
+    /**
+     * <code>.PieceCoord from_coordinates = 2;</code>
+     */
+    public soc.proto.Data.PieceCoord getFromCoordinates() {
+      return fromCoordinates_ == null ? soc.proto.Data.PieceCoord.getDefaultInstance() : fromCoordinates_;
+    }
+    /**
+     * <code>.PieceCoord from_coordinates = 2;</code>
+     */
+    public soc.proto.Data.PieceCoordOrBuilder getFromCoordinatesOrBuilder() {
+      return getFromCoordinates();
     }
 
-    public static final int TO_COORD_FIELD_NUMBER = 3;
-    private int toCoord_;
+    public static final int TO_COORDINATES_FIELD_NUMBER = 3;
+    private soc.proto.Data.PieceCoord toCoordinates_;
     /**
-     * <code>uint32 to_coord = 3;</code>
+     * <code>.PieceCoord to_coordinates = 3;</code>
      */
-    public int getToCoord() {
-      return toCoord_;
+    public boolean hasToCoordinates() {
+      return toCoordinates_ != null;
+    }
+    /**
+     * <code>.PieceCoord to_coordinates = 3;</code>
+     */
+    public soc.proto.Data.PieceCoord getToCoordinates() {
+      return toCoordinates_ == null ? soc.proto.Data.PieceCoord.getDefaultInstance() : toCoordinates_;
+    }
+    /**
+     * <code>.PieceCoord to_coordinates = 3;</code>
+     */
+    public soc.proto.Data.PieceCoordOrBuilder getToCoordinatesOrBuilder() {
+      return getToCoordinates();
     }
 
     private byte memoizedIsInitialized = -1;
@@ -8317,11 +9551,11 @@ public final class GameMessage {
       if (type_ != soc.proto.Data.PieceType.ROAD.getNumber()) {
         output.writeEnum(1, type_);
       }
-      if (fromCoord_ != 0) {
-        output.writeUInt32(2, fromCoord_);
+      if (fromCoordinates_ != null) {
+        output.writeMessage(2, getFromCoordinates());
       }
-      if (toCoord_ != 0) {
-        output.writeUInt32(3, toCoord_);
+      if (toCoordinates_ != null) {
+        output.writeMessage(3, getToCoordinates());
       }
       unknownFields.writeTo(output);
     }
@@ -8335,13 +9569,13 @@ public final class GameMessage {
         size += com.google.protobuf.CodedOutputStream
           .computeEnumSize(1, type_);
       }
-      if (fromCoord_ != 0) {
+      if (fromCoordinates_ != null) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(2, fromCoord_);
+          .computeMessageSize(2, getFromCoordinates());
       }
-      if (toCoord_ != 0) {
+      if (toCoordinates_ != null) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(3, toCoord_);
+          .computeMessageSize(3, getToCoordinates());
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -8360,10 +9594,16 @@ public final class GameMessage {
 
       boolean result = true;
       result = result && type_ == other.type_;
-      result = result && (getFromCoord()
-          == other.getFromCoord());
-      result = result && (getToCoord()
-          == other.getToCoord());
+      result = result && (hasFromCoordinates() == other.hasFromCoordinates());
+      if (hasFromCoordinates()) {
+        result = result && getFromCoordinates()
+            .equals(other.getFromCoordinates());
+      }
+      result = result && (hasToCoordinates() == other.hasToCoordinates());
+      if (hasToCoordinates()) {
+        result = result && getToCoordinates()
+            .equals(other.getToCoordinates());
+      }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -8377,10 +9617,14 @@ public final class GameMessage {
       hash = (19 * hash) + getDescriptor().hashCode();
       hash = (37 * hash) + TYPE_FIELD_NUMBER;
       hash = (53 * hash) + type_;
-      hash = (37 * hash) + FROM_COORD_FIELD_NUMBER;
-      hash = (53 * hash) + getFromCoord();
-      hash = (37 * hash) + TO_COORD_FIELD_NUMBER;
-      hash = (53 * hash) + getToCoord();
+      if (hasFromCoordinates()) {
+        hash = (37 * hash) + FROM_COORDINATES_FIELD_NUMBER;
+        hash = (53 * hash) + getFromCoordinates().hashCode();
+      }
+      if (hasToCoordinates()) {
+        hash = (37 * hash) + TO_COORDINATES_FIELD_NUMBER;
+        hash = (53 * hash) + getToCoordinates().hashCode();
+      }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -8485,7 +9729,6 @@ public final class GameMessage {
      * or reply to the requesting client with {&#64;link CancelBuildRequest}.
      *&lt;P&gt;
      * Before v3.0.00 this message was {&#64;code SOCMovePieceRequest} and {&#64;code SOCMovePiece}.
-     * &#64;since 2.0.00
      * </pre>
      *
      * Protobuf type {@code MovePiece}
@@ -8525,10 +9768,18 @@ public final class GameMessage {
         super.clear();
         type_ = 0;
 
-        fromCoord_ = 0;
-
-        toCoord_ = 0;
-
+        if (fromCoordinatesBuilder_ == null) {
+          fromCoordinates_ = null;
+        } else {
+          fromCoordinates_ = null;
+          fromCoordinatesBuilder_ = null;
+        }
+        if (toCoordinatesBuilder_ == null) {
+          toCoordinates_ = null;
+        } else {
+          toCoordinates_ = null;
+          toCoordinatesBuilder_ = null;
+        }
         return this;
       }
 
@@ -8552,8 +9803,16 @@ public final class GameMessage {
       public soc.proto.GameMessage.MovePiece buildPartial() {
         soc.proto.GameMessage.MovePiece result = new soc.proto.GameMessage.MovePiece(this);
         result.type_ = type_;
-        result.fromCoord_ = fromCoord_;
-        result.toCoord_ = toCoord_;
+        if (fromCoordinatesBuilder_ == null) {
+          result.fromCoordinates_ = fromCoordinates_;
+        } else {
+          result.fromCoordinates_ = fromCoordinatesBuilder_.build();
+        }
+        if (toCoordinatesBuilder_ == null) {
+          result.toCoordinates_ = toCoordinates_;
+        } else {
+          result.toCoordinates_ = toCoordinatesBuilder_.build();
+        }
         onBuilt();
         return result;
       }
@@ -8598,11 +9857,11 @@ public final class GameMessage {
         if (other.type_ != 0) {
           setTypeValue(other.getTypeValue());
         }
-        if (other.getFromCoord() != 0) {
-          setFromCoord(other.getFromCoord());
+        if (other.hasFromCoordinates()) {
+          mergeFromCoordinates(other.getFromCoordinates());
         }
-        if (other.getToCoord() != 0) {
-          setToCoord(other.getToCoord());
+        if (other.hasToCoordinates()) {
+          mergeToCoordinates(other.getToCoordinates());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -8695,56 +9954,238 @@ public final class GameMessage {
         return this;
       }
 
-      private int fromCoord_ ;
+      private soc.proto.Data.PieceCoord fromCoordinates_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder> fromCoordinatesBuilder_;
       /**
-       * <code>uint32 from_coord = 2;</code>
+       * <code>.PieceCoord from_coordinates = 2;</code>
        */
-      public int getFromCoord() {
-        return fromCoord_;
+      public boolean hasFromCoordinates() {
+        return fromCoordinatesBuilder_ != null || fromCoordinates_ != null;
       }
       /**
-       * <code>uint32 from_coord = 2;</code>
+       * <code>.PieceCoord from_coordinates = 2;</code>
        */
-      public Builder setFromCoord(int value) {
-        
-        fromCoord_ = value;
-        onChanged();
+      public soc.proto.Data.PieceCoord getFromCoordinates() {
+        if (fromCoordinatesBuilder_ == null) {
+          return fromCoordinates_ == null ? soc.proto.Data.PieceCoord.getDefaultInstance() : fromCoordinates_;
+        } else {
+          return fromCoordinatesBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.PieceCoord from_coordinates = 2;</code>
+       */
+      public Builder setFromCoordinates(soc.proto.Data.PieceCoord value) {
+        if (fromCoordinatesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          fromCoordinates_ = value;
+          onChanged();
+        } else {
+          fromCoordinatesBuilder_.setMessage(value);
+        }
+
         return this;
       }
       /**
-       * <code>uint32 from_coord = 2;</code>
+       * <code>.PieceCoord from_coordinates = 2;</code>
        */
-      public Builder clearFromCoord() {
-        
-        fromCoord_ = 0;
-        onChanged();
+      public Builder setFromCoordinates(
+          soc.proto.Data.PieceCoord.Builder builderForValue) {
+        if (fromCoordinatesBuilder_ == null) {
+          fromCoordinates_ = builderForValue.build();
+          onChanged();
+        } else {
+          fromCoordinatesBuilder_.setMessage(builderForValue.build());
+        }
+
         return this;
+      }
+      /**
+       * <code>.PieceCoord from_coordinates = 2;</code>
+       */
+      public Builder mergeFromCoordinates(soc.proto.Data.PieceCoord value) {
+        if (fromCoordinatesBuilder_ == null) {
+          if (fromCoordinates_ != null) {
+            fromCoordinates_ =
+              soc.proto.Data.PieceCoord.newBuilder(fromCoordinates_).mergeFrom(value).buildPartial();
+          } else {
+            fromCoordinates_ = value;
+          }
+          onChanged();
+        } else {
+          fromCoordinatesBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>.PieceCoord from_coordinates = 2;</code>
+       */
+      public Builder clearFromCoordinates() {
+        if (fromCoordinatesBuilder_ == null) {
+          fromCoordinates_ = null;
+          onChanged();
+        } else {
+          fromCoordinates_ = null;
+          fromCoordinatesBuilder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <code>.PieceCoord from_coordinates = 2;</code>
+       */
+      public soc.proto.Data.PieceCoord.Builder getFromCoordinatesBuilder() {
+        
+        onChanged();
+        return getFromCoordinatesFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.PieceCoord from_coordinates = 2;</code>
+       */
+      public soc.proto.Data.PieceCoordOrBuilder getFromCoordinatesOrBuilder() {
+        if (fromCoordinatesBuilder_ != null) {
+          return fromCoordinatesBuilder_.getMessageOrBuilder();
+        } else {
+          return fromCoordinates_ == null ?
+              soc.proto.Data.PieceCoord.getDefaultInstance() : fromCoordinates_;
+        }
+      }
+      /**
+       * <code>.PieceCoord from_coordinates = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder> 
+          getFromCoordinatesFieldBuilder() {
+        if (fromCoordinatesBuilder_ == null) {
+          fromCoordinatesBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder>(
+                  getFromCoordinates(),
+                  getParentForChildren(),
+                  isClean());
+          fromCoordinates_ = null;
+        }
+        return fromCoordinatesBuilder_;
       }
 
-      private int toCoord_ ;
+      private soc.proto.Data.PieceCoord toCoordinates_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder> toCoordinatesBuilder_;
       /**
-       * <code>uint32 to_coord = 3;</code>
+       * <code>.PieceCoord to_coordinates = 3;</code>
        */
-      public int getToCoord() {
-        return toCoord_;
+      public boolean hasToCoordinates() {
+        return toCoordinatesBuilder_ != null || toCoordinates_ != null;
       }
       /**
-       * <code>uint32 to_coord = 3;</code>
+       * <code>.PieceCoord to_coordinates = 3;</code>
        */
-      public Builder setToCoord(int value) {
-        
-        toCoord_ = value;
-        onChanged();
+      public soc.proto.Data.PieceCoord getToCoordinates() {
+        if (toCoordinatesBuilder_ == null) {
+          return toCoordinates_ == null ? soc.proto.Data.PieceCoord.getDefaultInstance() : toCoordinates_;
+        } else {
+          return toCoordinatesBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.PieceCoord to_coordinates = 3;</code>
+       */
+      public Builder setToCoordinates(soc.proto.Data.PieceCoord value) {
+        if (toCoordinatesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          toCoordinates_ = value;
+          onChanged();
+        } else {
+          toCoordinatesBuilder_.setMessage(value);
+        }
+
         return this;
       }
       /**
-       * <code>uint32 to_coord = 3;</code>
+       * <code>.PieceCoord to_coordinates = 3;</code>
        */
-      public Builder clearToCoord() {
-        
-        toCoord_ = 0;
-        onChanged();
+      public Builder setToCoordinates(
+          soc.proto.Data.PieceCoord.Builder builderForValue) {
+        if (toCoordinatesBuilder_ == null) {
+          toCoordinates_ = builderForValue.build();
+          onChanged();
+        } else {
+          toCoordinatesBuilder_.setMessage(builderForValue.build());
+        }
+
         return this;
+      }
+      /**
+       * <code>.PieceCoord to_coordinates = 3;</code>
+       */
+      public Builder mergeToCoordinates(soc.proto.Data.PieceCoord value) {
+        if (toCoordinatesBuilder_ == null) {
+          if (toCoordinates_ != null) {
+            toCoordinates_ =
+              soc.proto.Data.PieceCoord.newBuilder(toCoordinates_).mergeFrom(value).buildPartial();
+          } else {
+            toCoordinates_ = value;
+          }
+          onChanged();
+        } else {
+          toCoordinatesBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>.PieceCoord to_coordinates = 3;</code>
+       */
+      public Builder clearToCoordinates() {
+        if (toCoordinatesBuilder_ == null) {
+          toCoordinates_ = null;
+          onChanged();
+        } else {
+          toCoordinates_ = null;
+          toCoordinatesBuilder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <code>.PieceCoord to_coordinates = 3;</code>
+       */
+      public soc.proto.Data.PieceCoord.Builder getToCoordinatesBuilder() {
+        
+        onChanged();
+        return getToCoordinatesFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.PieceCoord to_coordinates = 3;</code>
+       */
+      public soc.proto.Data.PieceCoordOrBuilder getToCoordinatesOrBuilder() {
+        if (toCoordinatesBuilder_ != null) {
+          return toCoordinatesBuilder_.getMessageOrBuilder();
+        } else {
+          return toCoordinates_ == null ?
+              soc.proto.Data.PieceCoord.getDefaultInstance() : toCoordinates_;
+        }
+      }
+      /**
+       * <code>.PieceCoord to_coordinates = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder> 
+          getToCoordinatesFieldBuilder() {
+        if (toCoordinatesBuilder_ == null) {
+          toCoordinatesBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder>(
+                  getToCoordinates(),
+                  getParentForChildren(),
+                  isClean());
+          toCoordinates_ = null;
+        }
+        return toCoordinatesBuilder_;
       }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
@@ -8817,9 +10258,17 @@ public final class GameMessage {
     soc.proto.Data.PieceType getType();
 
     /**
-     * <code>uint32 coordinates = 2;</code>
+     * <code>.PieceCoord coordinates = 2;</code>
      */
-    int getCoordinates();
+    boolean hasCoordinates();
+    /**
+     * <code>.PieceCoord coordinates = 2;</code>
+     */
+    soc.proto.Data.PieceCoord getCoordinates();
+    /**
+     * <code>.PieceCoord coordinates = 2;</code>
+     */
+    soc.proto.Data.PieceCoordOrBuilder getCoordinatesOrBuilder();
   }
   /**
    * <pre>
@@ -8829,7 +10278,6 @@ public final class GameMessage {
    * in case that changes in a later version.
    *&lt;P&gt;
    * Introduced in v2.0.00 for the pirate islands scenario (_SC_PIRI).
-   * &#64;since 2.0.00
    * </pre>
    *
    * Protobuf type {@code RemovePiece}
@@ -8845,7 +10293,6 @@ public final class GameMessage {
     }
     private RemovePiece() {
       type_ = 0;
-      coordinates_ = 0;
     }
 
     @java.lang.Override
@@ -8882,9 +10329,17 @@ public final class GameMessage {
               type_ = rawValue;
               break;
             }
-            case 16: {
+            case 18: {
+              soc.proto.Data.PieceCoord.Builder subBuilder = null;
+              if (coordinates_ != null) {
+                subBuilder = coordinates_.toBuilder();
+              }
+              coordinates_ = input.readMessage(soc.proto.Data.PieceCoord.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(coordinates_);
+                coordinates_ = subBuilder.buildPartial();
+              }
 
-              coordinates_ = input.readUInt32();
               break;
             }
           }
@@ -8936,12 +10391,24 @@ public final class GameMessage {
     }
 
     public static final int COORDINATES_FIELD_NUMBER = 2;
-    private int coordinates_;
+    private soc.proto.Data.PieceCoord coordinates_;
     /**
-     * <code>uint32 coordinates = 2;</code>
+     * <code>.PieceCoord coordinates = 2;</code>
      */
-    public int getCoordinates() {
-      return coordinates_;
+    public boolean hasCoordinates() {
+      return coordinates_ != null;
+    }
+    /**
+     * <code>.PieceCoord coordinates = 2;</code>
+     */
+    public soc.proto.Data.PieceCoord getCoordinates() {
+      return coordinates_ == null ? soc.proto.Data.PieceCoord.getDefaultInstance() : coordinates_;
+    }
+    /**
+     * <code>.PieceCoord coordinates = 2;</code>
+     */
+    public soc.proto.Data.PieceCoordOrBuilder getCoordinatesOrBuilder() {
+      return getCoordinates();
     }
 
     private byte memoizedIsInitialized = -1;
@@ -8959,8 +10426,8 @@ public final class GameMessage {
       if (type_ != soc.proto.Data.PieceType.ROAD.getNumber()) {
         output.writeEnum(1, type_);
       }
-      if (coordinates_ != 0) {
-        output.writeUInt32(2, coordinates_);
+      if (coordinates_ != null) {
+        output.writeMessage(2, getCoordinates());
       }
       unknownFields.writeTo(output);
     }
@@ -8974,9 +10441,9 @@ public final class GameMessage {
         size += com.google.protobuf.CodedOutputStream
           .computeEnumSize(1, type_);
       }
-      if (coordinates_ != 0) {
+      if (coordinates_ != null) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(2, coordinates_);
+          .computeMessageSize(2, getCoordinates());
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -8995,8 +10462,11 @@ public final class GameMessage {
 
       boolean result = true;
       result = result && type_ == other.type_;
-      result = result && (getCoordinates()
-          == other.getCoordinates());
+      result = result && (hasCoordinates() == other.hasCoordinates());
+      if (hasCoordinates()) {
+        result = result && getCoordinates()
+            .equals(other.getCoordinates());
+      }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -9010,8 +10480,10 @@ public final class GameMessage {
       hash = (19 * hash) + getDescriptor().hashCode();
       hash = (37 * hash) + TYPE_FIELD_NUMBER;
       hash = (53 * hash) + type_;
-      hash = (37 * hash) + COORDINATES_FIELD_NUMBER;
-      hash = (53 * hash) + getCoordinates();
+      if (hasCoordinates()) {
+        hash = (37 * hash) + COORDINATES_FIELD_NUMBER;
+        hash = (53 * hash) + getCoordinates().hashCode();
+      }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -9113,7 +10585,6 @@ public final class GameMessage {
      * in case that changes in a later version.
      *&lt;P&gt;
      * Introduced in v2.0.00 for the pirate islands scenario (_SC_PIRI).
-     * &#64;since 2.0.00
      * </pre>
      *
      * Protobuf type {@code RemovePiece}
@@ -9153,8 +10624,12 @@ public final class GameMessage {
         super.clear();
         type_ = 0;
 
-        coordinates_ = 0;
-
+        if (coordinatesBuilder_ == null) {
+          coordinates_ = null;
+        } else {
+          coordinates_ = null;
+          coordinatesBuilder_ = null;
+        }
         return this;
       }
 
@@ -9178,7 +10653,11 @@ public final class GameMessage {
       public soc.proto.GameMessage.RemovePiece buildPartial() {
         soc.proto.GameMessage.RemovePiece result = new soc.proto.GameMessage.RemovePiece(this);
         result.type_ = type_;
-        result.coordinates_ = coordinates_;
+        if (coordinatesBuilder_ == null) {
+          result.coordinates_ = coordinates_;
+        } else {
+          result.coordinates_ = coordinatesBuilder_.build();
+        }
         onBuilt();
         return result;
       }
@@ -9223,8 +10702,8 @@ public final class GameMessage {
         if (other.type_ != 0) {
           setTypeValue(other.getTypeValue());
         }
-        if (other.getCoordinates() != 0) {
-          setCoordinates(other.getCoordinates());
+        if (other.hasCoordinates()) {
+          mergeCoordinates(other.getCoordinates());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -9317,30 +10796,121 @@ public final class GameMessage {
         return this;
       }
 
-      private int coordinates_ ;
+      private soc.proto.Data.PieceCoord coordinates_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder> coordinatesBuilder_;
       /**
-       * <code>uint32 coordinates = 2;</code>
+       * <code>.PieceCoord coordinates = 2;</code>
        */
-      public int getCoordinates() {
-        return coordinates_;
+      public boolean hasCoordinates() {
+        return coordinatesBuilder_ != null || coordinates_ != null;
       }
       /**
-       * <code>uint32 coordinates = 2;</code>
+       * <code>.PieceCoord coordinates = 2;</code>
        */
-      public Builder setCoordinates(int value) {
-        
-        coordinates_ = value;
-        onChanged();
+      public soc.proto.Data.PieceCoord getCoordinates() {
+        if (coordinatesBuilder_ == null) {
+          return coordinates_ == null ? soc.proto.Data.PieceCoord.getDefaultInstance() : coordinates_;
+        } else {
+          return coordinatesBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.PieceCoord coordinates = 2;</code>
+       */
+      public Builder setCoordinates(soc.proto.Data.PieceCoord value) {
+        if (coordinatesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          coordinates_ = value;
+          onChanged();
+        } else {
+          coordinatesBuilder_.setMessage(value);
+        }
+
         return this;
       }
       /**
-       * <code>uint32 coordinates = 2;</code>
+       * <code>.PieceCoord coordinates = 2;</code>
+       */
+      public Builder setCoordinates(
+          soc.proto.Data.PieceCoord.Builder builderForValue) {
+        if (coordinatesBuilder_ == null) {
+          coordinates_ = builderForValue.build();
+          onChanged();
+        } else {
+          coordinatesBuilder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <code>.PieceCoord coordinates = 2;</code>
+       */
+      public Builder mergeCoordinates(soc.proto.Data.PieceCoord value) {
+        if (coordinatesBuilder_ == null) {
+          if (coordinates_ != null) {
+            coordinates_ =
+              soc.proto.Data.PieceCoord.newBuilder(coordinates_).mergeFrom(value).buildPartial();
+          } else {
+            coordinates_ = value;
+          }
+          onChanged();
+        } else {
+          coordinatesBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>.PieceCoord coordinates = 2;</code>
        */
       public Builder clearCoordinates() {
-        
-        coordinates_ = 0;
-        onChanged();
+        if (coordinatesBuilder_ == null) {
+          coordinates_ = null;
+          onChanged();
+        } else {
+          coordinates_ = null;
+          coordinatesBuilder_ = null;
+        }
+
         return this;
+      }
+      /**
+       * <code>.PieceCoord coordinates = 2;</code>
+       */
+      public soc.proto.Data.PieceCoord.Builder getCoordinatesBuilder() {
+        
+        onChanged();
+        return getCoordinatesFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.PieceCoord coordinates = 2;</code>
+       */
+      public soc.proto.Data.PieceCoordOrBuilder getCoordinatesOrBuilder() {
+        if (coordinatesBuilder_ != null) {
+          return coordinatesBuilder_.getMessageOrBuilder();
+        } else {
+          return coordinates_ == null ?
+              soc.proto.Data.PieceCoord.getDefaultInstance() : coordinates_;
+        }
+      }
+      /**
+       * <code>.PieceCoord coordinates = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder> 
+          getCoordinatesFieldBuilder() {
+        if (coordinatesBuilder_ == null) {
+          coordinatesBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder>(
+                  getCoordinates(),
+                  getParentForChildren(),
+                  isClean());
+          coordinates_ = null;
+        }
+        return coordinatesBuilder_;
       }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
@@ -20420,54 +21990,67 @@ public final class GameMessage {
     soc.proto.GameMessage.PotentialSettlementsOrBuilder getPotentialSettlementsOrBuilder();
 
     /**
-     * <code>.BuildPiece build_piece = 32;</code>
+     * <code>.PieceValue piece_value = 32;</code>
+     */
+    boolean hasPieceValue();
+    /**
+     * <code>.PieceValue piece_value = 32;</code>
+     */
+    soc.proto.GameMessage.PieceValue getPieceValue();
+    /**
+     * <code>.PieceValue piece_value = 32;</code>
+     */
+    soc.proto.GameMessage.PieceValueOrBuilder getPieceValueOrBuilder();
+
+    /**
+     * <code>.BuildPiece build_piece = 33;</code>
      */
     boolean hasBuildPiece();
     /**
-     * <code>.BuildPiece build_piece = 32;</code>
+     * <code>.BuildPiece build_piece = 33;</code>
      */
     soc.proto.GameMessage.BuildPiece getBuildPiece();
     /**
-     * <code>.BuildPiece build_piece = 32;</code>
+     * <code>.BuildPiece build_piece = 33;</code>
      */
     soc.proto.GameMessage.BuildPieceOrBuilder getBuildPieceOrBuilder();
 
     /**
-     * <code>.CancelBuild cancel_build = 33;</code>
+     * <code>.CancelBuild cancel_build = 34;</code>
      */
     boolean hasCancelBuild();
     /**
-     * <code>.CancelBuild cancel_build = 33;</code>
+     * <code>.CancelBuild cancel_build = 34;</code>
      */
     soc.proto.GameMessage.CancelBuild getCancelBuild();
     /**
-     * <code>.CancelBuild cancel_build = 33;</code>
+     * <code>.CancelBuild cancel_build = 34;</code>
      */
     soc.proto.GameMessage.CancelBuildOrBuilder getCancelBuildOrBuilder();
 
     /**
-     * <code>.MovePiece move_piece = 34;</code>
+     * <code>.MovePiece move_piece = 35;</code>
      */
     boolean hasMovePiece();
     /**
-     * <code>.MovePiece move_piece = 34;</code>
+     * <code>.MovePiece move_piece = 35;</code>
      */
     soc.proto.GameMessage.MovePiece getMovePiece();
     /**
-     * <code>.MovePiece move_piece = 34;</code>
+     * <code>.MovePiece move_piece = 35;</code>
      */
     soc.proto.GameMessage.MovePieceOrBuilder getMovePieceOrBuilder();
 
     /**
-     * <code>.RemovePiece remove_piece = 35;</code>
+     * <code>.RemovePiece remove_piece = 36;</code>
      */
     boolean hasRemovePiece();
     /**
-     * <code>.RemovePiece remove_piece = 35;</code>
+     * <code>.RemovePiece remove_piece = 36;</code>
      */
     soc.proto.GameMessage.RemovePiece getRemovePiece();
     /**
-     * <code>.RemovePiece remove_piece = 35;</code>
+     * <code>.RemovePiece remove_piece = 36;</code>
      */
     soc.proto.GameMessage.RemovePieceOrBuilder getRemovePieceOrBuilder();
 
@@ -20812,8 +22395,22 @@ public final class GameMessage {
               break;
             }
             case 258: {
-              soc.proto.GameMessage.BuildPiece.Builder subBuilder = null;
+              soc.proto.GameMessage.PieceValue.Builder subBuilder = null;
               if (msgCase_ == 32) {
+                subBuilder = ((soc.proto.GameMessage.PieceValue) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.PieceValue.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.PieceValue) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 32;
+              break;
+            }
+            case 266: {
+              soc.proto.GameMessage.BuildPiece.Builder subBuilder = null;
+              if (msgCase_ == 33) {
                 subBuilder = ((soc.proto.GameMessage.BuildPiece) msg_).toBuilder();
               }
               msg_ =
@@ -20822,12 +22419,12 @@ public final class GameMessage {
                 subBuilder.mergeFrom((soc.proto.GameMessage.BuildPiece) msg_);
                 msg_ = subBuilder.buildPartial();
               }
-              msgCase_ = 32;
+              msgCase_ = 33;
               break;
             }
-            case 266: {
+            case 274: {
               soc.proto.GameMessage.CancelBuild.Builder subBuilder = null;
-              if (msgCase_ == 33) {
+              if (msgCase_ == 34) {
                 subBuilder = ((soc.proto.GameMessage.CancelBuild) msg_).toBuilder();
               }
               msg_ =
@@ -20836,12 +22433,12 @@ public final class GameMessage {
                 subBuilder.mergeFrom((soc.proto.GameMessage.CancelBuild) msg_);
                 msg_ = subBuilder.buildPartial();
               }
-              msgCase_ = 33;
+              msgCase_ = 34;
               break;
             }
-            case 274: {
+            case 282: {
               soc.proto.GameMessage.MovePiece.Builder subBuilder = null;
-              if (msgCase_ == 34) {
+              if (msgCase_ == 35) {
                 subBuilder = ((soc.proto.GameMessage.MovePiece) msg_).toBuilder();
               }
               msg_ =
@@ -20850,12 +22447,12 @@ public final class GameMessage {
                 subBuilder.mergeFrom((soc.proto.GameMessage.MovePiece) msg_);
                 msg_ = subBuilder.buildPartial();
               }
-              msgCase_ = 34;
+              msgCase_ = 35;
               break;
             }
-            case 282: {
+            case 290: {
               soc.proto.GameMessage.RemovePiece.Builder subBuilder = null;
-              if (msgCase_ == 35) {
+              if (msgCase_ == 36) {
                 subBuilder = ((soc.proto.GameMessage.RemovePiece) msg_).toBuilder();
               }
               msg_ =
@@ -20864,7 +22461,7 @@ public final class GameMessage {
                 subBuilder.mergeFrom((soc.proto.GameMessage.RemovePiece) msg_);
                 msg_ = subBuilder.buildPartial();
               }
-              msgCase_ = 35;
+              msgCase_ = 36;
               break;
             }
             case 802: {
@@ -21069,10 +22666,11 @@ public final class GameMessage {
       GAME_ELEMENTS(17),
       BOARD_LAYOUT(30),
       POTENTIAL_SETTLEMENTS(31),
-      BUILD_PIECE(32),
-      CANCEL_BUILD(33),
-      MOVE_PIECE(34),
-      REMOVE_PIECE(35),
+      PIECE_VALUE(32),
+      BUILD_PIECE(33),
+      CANCEL_BUILD(34),
+      MOVE_PIECE(35),
+      REMOVE_PIECE(36),
       START_GAME(100),
       TURN(101),
       SET_TURN(102),
@@ -21106,10 +22704,11 @@ public final class GameMessage {
           case 17: return GAME_ELEMENTS;
           case 30: return BOARD_LAYOUT;
           case 31: return POTENTIAL_SETTLEMENTS;
-          case 32: return BUILD_PIECE;
-          case 33: return CANCEL_BUILD;
-          case 34: return MOVE_PIECE;
-          case 35: return REMOVE_PIECE;
+          case 32: return PIECE_VALUE;
+          case 33: return BUILD_PIECE;
+          case 34: return CANCEL_BUILD;
+          case 35: return MOVE_PIECE;
+          case 36: return REMOVE_PIECE;
           case 100: return START_GAME;
           case 101: return TURN;
           case 102: return SET_TURN;
@@ -21378,105 +22977,131 @@ public final class GameMessage {
       return soc.proto.GameMessage.PotentialSettlements.getDefaultInstance();
     }
 
-    public static final int BUILD_PIECE_FIELD_NUMBER = 32;
+    public static final int PIECE_VALUE_FIELD_NUMBER = 32;
     /**
-     * <code>.BuildPiece build_piece = 32;</code>
+     * <code>.PieceValue piece_value = 32;</code>
      */
-    public boolean hasBuildPiece() {
+    public boolean hasPieceValue() {
       return msgCase_ == 32;
     }
     /**
-     * <code>.BuildPiece build_piece = 32;</code>
+     * <code>.PieceValue piece_value = 32;</code>
      */
-    public soc.proto.GameMessage.BuildPiece getBuildPiece() {
+    public soc.proto.GameMessage.PieceValue getPieceValue() {
       if (msgCase_ == 32) {
-         return (soc.proto.GameMessage.BuildPiece) msg_;
+         return (soc.proto.GameMessage.PieceValue) msg_;
       }
-      return soc.proto.GameMessage.BuildPiece.getDefaultInstance();
+      return soc.proto.GameMessage.PieceValue.getDefaultInstance();
     }
     /**
-     * <code>.BuildPiece build_piece = 32;</code>
+     * <code>.PieceValue piece_value = 32;</code>
      */
-    public soc.proto.GameMessage.BuildPieceOrBuilder getBuildPieceOrBuilder() {
+    public soc.proto.GameMessage.PieceValueOrBuilder getPieceValueOrBuilder() {
       if (msgCase_ == 32) {
-         return (soc.proto.GameMessage.BuildPiece) msg_;
+         return (soc.proto.GameMessage.PieceValue) msg_;
       }
-      return soc.proto.GameMessage.BuildPiece.getDefaultInstance();
+      return soc.proto.GameMessage.PieceValue.getDefaultInstance();
     }
 
-    public static final int CANCEL_BUILD_FIELD_NUMBER = 33;
+    public static final int BUILD_PIECE_FIELD_NUMBER = 33;
     /**
-     * <code>.CancelBuild cancel_build = 33;</code>
+     * <code>.BuildPiece build_piece = 33;</code>
      */
-    public boolean hasCancelBuild() {
+    public boolean hasBuildPiece() {
       return msgCase_ == 33;
     }
     /**
-     * <code>.CancelBuild cancel_build = 33;</code>
+     * <code>.BuildPiece build_piece = 33;</code>
      */
-    public soc.proto.GameMessage.CancelBuild getCancelBuild() {
+    public soc.proto.GameMessage.BuildPiece getBuildPiece() {
       if (msgCase_ == 33) {
-         return (soc.proto.GameMessage.CancelBuild) msg_;
+         return (soc.proto.GameMessage.BuildPiece) msg_;
       }
-      return soc.proto.GameMessage.CancelBuild.getDefaultInstance();
+      return soc.proto.GameMessage.BuildPiece.getDefaultInstance();
     }
     /**
-     * <code>.CancelBuild cancel_build = 33;</code>
+     * <code>.BuildPiece build_piece = 33;</code>
      */
-    public soc.proto.GameMessage.CancelBuildOrBuilder getCancelBuildOrBuilder() {
+    public soc.proto.GameMessage.BuildPieceOrBuilder getBuildPieceOrBuilder() {
       if (msgCase_ == 33) {
-         return (soc.proto.GameMessage.CancelBuild) msg_;
+         return (soc.proto.GameMessage.BuildPiece) msg_;
       }
-      return soc.proto.GameMessage.CancelBuild.getDefaultInstance();
+      return soc.proto.GameMessage.BuildPiece.getDefaultInstance();
     }
 
-    public static final int MOVE_PIECE_FIELD_NUMBER = 34;
+    public static final int CANCEL_BUILD_FIELD_NUMBER = 34;
     /**
-     * <code>.MovePiece move_piece = 34;</code>
+     * <code>.CancelBuild cancel_build = 34;</code>
      */
-    public boolean hasMovePiece() {
+    public boolean hasCancelBuild() {
       return msgCase_ == 34;
     }
     /**
-     * <code>.MovePiece move_piece = 34;</code>
+     * <code>.CancelBuild cancel_build = 34;</code>
+     */
+    public soc.proto.GameMessage.CancelBuild getCancelBuild() {
+      if (msgCase_ == 34) {
+         return (soc.proto.GameMessage.CancelBuild) msg_;
+      }
+      return soc.proto.GameMessage.CancelBuild.getDefaultInstance();
+    }
+    /**
+     * <code>.CancelBuild cancel_build = 34;</code>
+     */
+    public soc.proto.GameMessage.CancelBuildOrBuilder getCancelBuildOrBuilder() {
+      if (msgCase_ == 34) {
+         return (soc.proto.GameMessage.CancelBuild) msg_;
+      }
+      return soc.proto.GameMessage.CancelBuild.getDefaultInstance();
+    }
+
+    public static final int MOVE_PIECE_FIELD_NUMBER = 35;
+    /**
+     * <code>.MovePiece move_piece = 35;</code>
+     */
+    public boolean hasMovePiece() {
+      return msgCase_ == 35;
+    }
+    /**
+     * <code>.MovePiece move_piece = 35;</code>
      */
     public soc.proto.GameMessage.MovePiece getMovePiece() {
-      if (msgCase_ == 34) {
+      if (msgCase_ == 35) {
          return (soc.proto.GameMessage.MovePiece) msg_;
       }
       return soc.proto.GameMessage.MovePiece.getDefaultInstance();
     }
     /**
-     * <code>.MovePiece move_piece = 34;</code>
+     * <code>.MovePiece move_piece = 35;</code>
      */
     public soc.proto.GameMessage.MovePieceOrBuilder getMovePieceOrBuilder() {
-      if (msgCase_ == 34) {
+      if (msgCase_ == 35) {
          return (soc.proto.GameMessage.MovePiece) msg_;
       }
       return soc.proto.GameMessage.MovePiece.getDefaultInstance();
     }
 
-    public static final int REMOVE_PIECE_FIELD_NUMBER = 35;
+    public static final int REMOVE_PIECE_FIELD_NUMBER = 36;
     /**
-     * <code>.RemovePiece remove_piece = 35;</code>
+     * <code>.RemovePiece remove_piece = 36;</code>
      */
     public boolean hasRemovePiece() {
-      return msgCase_ == 35;
+      return msgCase_ == 36;
     }
     /**
-     * <code>.RemovePiece remove_piece = 35;</code>
+     * <code>.RemovePiece remove_piece = 36;</code>
      */
     public soc.proto.GameMessage.RemovePiece getRemovePiece() {
-      if (msgCase_ == 35) {
+      if (msgCase_ == 36) {
          return (soc.proto.GameMessage.RemovePiece) msg_;
       }
       return soc.proto.GameMessage.RemovePiece.getDefaultInstance();
     }
     /**
-     * <code>.RemovePiece remove_piece = 35;</code>
+     * <code>.RemovePiece remove_piece = 36;</code>
      */
     public soc.proto.GameMessage.RemovePieceOrBuilder getRemovePieceOrBuilder() {
-      if (msgCase_ == 35) {
+      if (msgCase_ == 36) {
          return (soc.proto.GameMessage.RemovePiece) msg_;
       }
       return soc.proto.GameMessage.RemovePiece.getDefaultInstance();
@@ -21873,16 +23498,19 @@ public final class GameMessage {
         output.writeMessage(31, (soc.proto.GameMessage.PotentialSettlements) msg_);
       }
       if (msgCase_ == 32) {
-        output.writeMessage(32, (soc.proto.GameMessage.BuildPiece) msg_);
+        output.writeMessage(32, (soc.proto.GameMessage.PieceValue) msg_);
       }
       if (msgCase_ == 33) {
-        output.writeMessage(33, (soc.proto.GameMessage.CancelBuild) msg_);
+        output.writeMessage(33, (soc.proto.GameMessage.BuildPiece) msg_);
       }
       if (msgCase_ == 34) {
-        output.writeMessage(34, (soc.proto.GameMessage.MovePiece) msg_);
+        output.writeMessage(34, (soc.proto.GameMessage.CancelBuild) msg_);
       }
       if (msgCase_ == 35) {
-        output.writeMessage(35, (soc.proto.GameMessage.RemovePiece) msg_);
+        output.writeMessage(35, (soc.proto.GameMessage.MovePiece) msg_);
+      }
+      if (msgCase_ == 36) {
+        output.writeMessage(36, (soc.proto.GameMessage.RemovePiece) msg_);
       }
       if (msgCase_ == 100) {
         output.writeMessage(100, (soc.proto.GameMessage.StartGame) msg_);
@@ -21961,19 +23589,23 @@ public final class GameMessage {
       }
       if (msgCase_ == 32) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(32, (soc.proto.GameMessage.BuildPiece) msg_);
+          .computeMessageSize(32, (soc.proto.GameMessage.PieceValue) msg_);
       }
       if (msgCase_ == 33) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(33, (soc.proto.GameMessage.CancelBuild) msg_);
+          .computeMessageSize(33, (soc.proto.GameMessage.BuildPiece) msg_);
       }
       if (msgCase_ == 34) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(34, (soc.proto.GameMessage.MovePiece) msg_);
+          .computeMessageSize(34, (soc.proto.GameMessage.CancelBuild) msg_);
       }
       if (msgCase_ == 35) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(35, (soc.proto.GameMessage.RemovePiece) msg_);
+          .computeMessageSize(35, (soc.proto.GameMessage.MovePiece) msg_);
+      }
+      if (msgCase_ == 36) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(36, (soc.proto.GameMessage.RemovePiece) msg_);
       }
       if (msgCase_ == 100) {
         size += com.google.protobuf.CodedOutputStream
@@ -22072,18 +23704,22 @@ public final class GameMessage {
               .equals(other.getPotentialSettlements());
           break;
         case 32:
+          result = result && getPieceValue()
+              .equals(other.getPieceValue());
+          break;
+        case 33:
           result = result && getBuildPiece()
               .equals(other.getBuildPiece());
           break;
-        case 33:
+        case 34:
           result = result && getCancelBuild()
               .equals(other.getCancelBuild());
           break;
-        case 34:
+        case 35:
           result = result && getMovePiece()
               .equals(other.getMovePiece());
           break;
-        case 35:
+        case 36:
           result = result && getRemovePiece()
               .equals(other.getRemovePiece());
           break;
@@ -22179,18 +23815,22 @@ public final class GameMessage {
           hash = (53 * hash) + getPotentialSettlements().hashCode();
           break;
         case 32:
+          hash = (37 * hash) + PIECE_VALUE_FIELD_NUMBER;
+          hash = (53 * hash) + getPieceValue().hashCode();
+          break;
+        case 33:
           hash = (37 * hash) + BUILD_PIECE_FIELD_NUMBER;
           hash = (53 * hash) + getBuildPiece().hashCode();
           break;
-        case 33:
+        case 34:
           hash = (37 * hash) + CANCEL_BUILD_FIELD_NUMBER;
           hash = (53 * hash) + getCancelBuild().hashCode();
           break;
-        case 34:
+        case 35:
           hash = (37 * hash) + MOVE_PIECE_FIELD_NUMBER;
           hash = (53 * hash) + getMovePiece().hashCode();
           break;
-        case 35:
+        case 36:
           hash = (37 * hash) + REMOVE_PIECE_FIELD_NUMBER;
           hash = (53 * hash) + getRemovePiece().hashCode();
           break;
@@ -22447,27 +24087,34 @@ public final class GameMessage {
           }
         }
         if (msgCase_ == 32) {
+          if (pieceValueBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = pieceValueBuilder_.build();
+          }
+        }
+        if (msgCase_ == 33) {
           if (buildPieceBuilder_ == null) {
             result.msg_ = msg_;
           } else {
             result.msg_ = buildPieceBuilder_.build();
           }
         }
-        if (msgCase_ == 33) {
+        if (msgCase_ == 34) {
           if (cancelBuildBuilder_ == null) {
             result.msg_ = msg_;
           } else {
             result.msg_ = cancelBuildBuilder_.build();
           }
         }
-        if (msgCase_ == 34) {
+        if (msgCase_ == 35) {
           if (movePieceBuilder_ == null) {
             result.msg_ = msg_;
           } else {
             result.msg_ = movePieceBuilder_.build();
           }
         }
-        if (msgCase_ == 35) {
+        if (msgCase_ == 36) {
           if (removePieceBuilder_ == null) {
             result.msg_ = msg_;
           } else {
@@ -22630,6 +24277,10 @@ public final class GameMessage {
           }
           case POTENTIAL_SETTLEMENTS: {
             mergePotentialSettlements(other.getPotentialSettlements());
+            break;
+          }
+          case PIECE_VALUE: {
+            mergePieceValue(other.getPieceValue());
             break;
           }
           case BUILD_PIECE: {
@@ -23780,31 +25431,167 @@ public final class GameMessage {
       }
 
       private com.google.protobuf.SingleFieldBuilderV3<
-          soc.proto.GameMessage.BuildPiece, soc.proto.GameMessage.BuildPiece.Builder, soc.proto.GameMessage.BuildPieceOrBuilder> buildPieceBuilder_;
+          soc.proto.GameMessage.PieceValue, soc.proto.GameMessage.PieceValue.Builder, soc.proto.GameMessage.PieceValueOrBuilder> pieceValueBuilder_;
       /**
-       * <code>.BuildPiece build_piece = 32;</code>
+       * <code>.PieceValue piece_value = 32;</code>
        */
-      public boolean hasBuildPiece() {
+      public boolean hasPieceValue() {
         return msgCase_ == 32;
       }
       /**
-       * <code>.BuildPiece build_piece = 32;</code>
+       * <code>.PieceValue piece_value = 32;</code>
+       */
+      public soc.proto.GameMessage.PieceValue getPieceValue() {
+        if (pieceValueBuilder_ == null) {
+          if (msgCase_ == 32) {
+            return (soc.proto.GameMessage.PieceValue) msg_;
+          }
+          return soc.proto.GameMessage.PieceValue.getDefaultInstance();
+        } else {
+          if (msgCase_ == 32) {
+            return pieceValueBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.PieceValue.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.PieceValue piece_value = 32;</code>
+       */
+      public Builder setPieceValue(soc.proto.GameMessage.PieceValue value) {
+        if (pieceValueBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          pieceValueBuilder_.setMessage(value);
+        }
+        msgCase_ = 32;
+        return this;
+      }
+      /**
+       * <code>.PieceValue piece_value = 32;</code>
+       */
+      public Builder setPieceValue(
+          soc.proto.GameMessage.PieceValue.Builder builderForValue) {
+        if (pieceValueBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          pieceValueBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 32;
+        return this;
+      }
+      /**
+       * <code>.PieceValue piece_value = 32;</code>
+       */
+      public Builder mergePieceValue(soc.proto.GameMessage.PieceValue value) {
+        if (pieceValueBuilder_ == null) {
+          if (msgCase_ == 32 &&
+              msg_ != soc.proto.GameMessage.PieceValue.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.PieceValue.newBuilder((soc.proto.GameMessage.PieceValue) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 32) {
+            pieceValueBuilder_.mergeFrom(value);
+          }
+          pieceValueBuilder_.setMessage(value);
+        }
+        msgCase_ = 32;
+        return this;
+      }
+      /**
+       * <code>.PieceValue piece_value = 32;</code>
+       */
+      public Builder clearPieceValue() {
+        if (pieceValueBuilder_ == null) {
+          if (msgCase_ == 32) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 32) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          pieceValueBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.PieceValue piece_value = 32;</code>
+       */
+      public soc.proto.GameMessage.PieceValue.Builder getPieceValueBuilder() {
+        return getPieceValueFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.PieceValue piece_value = 32;</code>
+       */
+      public soc.proto.GameMessage.PieceValueOrBuilder getPieceValueOrBuilder() {
+        if ((msgCase_ == 32) && (pieceValueBuilder_ != null)) {
+          return pieceValueBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 32) {
+            return (soc.proto.GameMessage.PieceValue) msg_;
+          }
+          return soc.proto.GameMessage.PieceValue.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.PieceValue piece_value = 32;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.PieceValue, soc.proto.GameMessage.PieceValue.Builder, soc.proto.GameMessage.PieceValueOrBuilder> 
+          getPieceValueFieldBuilder() {
+        if (pieceValueBuilder_ == null) {
+          if (!(msgCase_ == 32)) {
+            msg_ = soc.proto.GameMessage.PieceValue.getDefaultInstance();
+          }
+          pieceValueBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.PieceValue, soc.proto.GameMessage.PieceValue.Builder, soc.proto.GameMessage.PieceValueOrBuilder>(
+                  (soc.proto.GameMessage.PieceValue) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 32;
+        onChanged();;
+        return pieceValueBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.BuildPiece, soc.proto.GameMessage.BuildPiece.Builder, soc.proto.GameMessage.BuildPieceOrBuilder> buildPieceBuilder_;
+      /**
+       * <code>.BuildPiece build_piece = 33;</code>
+       */
+      public boolean hasBuildPiece() {
+        return msgCase_ == 33;
+      }
+      /**
+       * <code>.BuildPiece build_piece = 33;</code>
        */
       public soc.proto.GameMessage.BuildPiece getBuildPiece() {
         if (buildPieceBuilder_ == null) {
-          if (msgCase_ == 32) {
+          if (msgCase_ == 33) {
             return (soc.proto.GameMessage.BuildPiece) msg_;
           }
           return soc.proto.GameMessage.BuildPiece.getDefaultInstance();
         } else {
-          if (msgCase_ == 32) {
+          if (msgCase_ == 33) {
             return buildPieceBuilder_.getMessage();
           }
           return soc.proto.GameMessage.BuildPiece.getDefaultInstance();
         }
       }
       /**
-       * <code>.BuildPiece build_piece = 32;</code>
+       * <code>.BuildPiece build_piece = 33;</code>
        */
       public Builder setBuildPiece(soc.proto.GameMessage.BuildPiece value) {
         if (buildPieceBuilder_ == null) {
@@ -23816,11 +25603,11 @@ public final class GameMessage {
         } else {
           buildPieceBuilder_.setMessage(value);
         }
-        msgCase_ = 32;
+        msgCase_ = 33;
         return this;
       }
       /**
-       * <code>.BuildPiece build_piece = 32;</code>
+       * <code>.BuildPiece build_piece = 33;</code>
        */
       public Builder setBuildPiece(
           soc.proto.GameMessage.BuildPiece.Builder builderForValue) {
@@ -23830,15 +25617,15 @@ public final class GameMessage {
         } else {
           buildPieceBuilder_.setMessage(builderForValue.build());
         }
-        msgCase_ = 32;
+        msgCase_ = 33;
         return this;
       }
       /**
-       * <code>.BuildPiece build_piece = 32;</code>
+       * <code>.BuildPiece build_piece = 33;</code>
        */
       public Builder mergeBuildPiece(soc.proto.GameMessage.BuildPiece value) {
         if (buildPieceBuilder_ == null) {
-          if (msgCase_ == 32 &&
+          if (msgCase_ == 33 &&
               msg_ != soc.proto.GameMessage.BuildPiece.getDefaultInstance()) {
             msg_ = soc.proto.GameMessage.BuildPiece.newBuilder((soc.proto.GameMessage.BuildPiece) msg_)
                 .mergeFrom(value).buildPartial();
@@ -23847,26 +25634,26 @@ public final class GameMessage {
           }
           onChanged();
         } else {
-          if (msgCase_ == 32) {
+          if (msgCase_ == 33) {
             buildPieceBuilder_.mergeFrom(value);
           }
           buildPieceBuilder_.setMessage(value);
         }
-        msgCase_ = 32;
+        msgCase_ = 33;
         return this;
       }
       /**
-       * <code>.BuildPiece build_piece = 32;</code>
+       * <code>.BuildPiece build_piece = 33;</code>
        */
       public Builder clearBuildPiece() {
         if (buildPieceBuilder_ == null) {
-          if (msgCase_ == 32) {
+          if (msgCase_ == 33) {
             msgCase_ = 0;
             msg_ = null;
             onChanged();
           }
         } else {
-          if (msgCase_ == 32) {
+          if (msgCase_ == 33) {
             msgCase_ = 0;
             msg_ = null;
           }
@@ -23875,32 +25662,32 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <code>.BuildPiece build_piece = 32;</code>
+       * <code>.BuildPiece build_piece = 33;</code>
        */
       public soc.proto.GameMessage.BuildPiece.Builder getBuildPieceBuilder() {
         return getBuildPieceFieldBuilder().getBuilder();
       }
       /**
-       * <code>.BuildPiece build_piece = 32;</code>
+       * <code>.BuildPiece build_piece = 33;</code>
        */
       public soc.proto.GameMessage.BuildPieceOrBuilder getBuildPieceOrBuilder() {
-        if ((msgCase_ == 32) && (buildPieceBuilder_ != null)) {
+        if ((msgCase_ == 33) && (buildPieceBuilder_ != null)) {
           return buildPieceBuilder_.getMessageOrBuilder();
         } else {
-          if (msgCase_ == 32) {
+          if (msgCase_ == 33) {
             return (soc.proto.GameMessage.BuildPiece) msg_;
           }
           return soc.proto.GameMessage.BuildPiece.getDefaultInstance();
         }
       }
       /**
-       * <code>.BuildPiece build_piece = 32;</code>
+       * <code>.BuildPiece build_piece = 33;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.GameMessage.BuildPiece, soc.proto.GameMessage.BuildPiece.Builder, soc.proto.GameMessage.BuildPieceOrBuilder> 
           getBuildPieceFieldBuilder() {
         if (buildPieceBuilder_ == null) {
-          if (!(msgCase_ == 32)) {
+          if (!(msgCase_ == 33)) {
             msg_ = soc.proto.GameMessage.BuildPiece.getDefaultInstance();
           }
           buildPieceBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -23910,7 +25697,7 @@ public final class GameMessage {
                   isClean());
           msg_ = null;
         }
-        msgCase_ = 32;
+        msgCase_ = 33;
         onChanged();;
         return buildPieceBuilder_;
       }
@@ -23918,29 +25705,29 @@ public final class GameMessage {
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.GameMessage.CancelBuild, soc.proto.GameMessage.CancelBuild.Builder, soc.proto.GameMessage.CancelBuildOrBuilder> cancelBuildBuilder_;
       /**
-       * <code>.CancelBuild cancel_build = 33;</code>
+       * <code>.CancelBuild cancel_build = 34;</code>
        */
       public boolean hasCancelBuild() {
-        return msgCase_ == 33;
+        return msgCase_ == 34;
       }
       /**
-       * <code>.CancelBuild cancel_build = 33;</code>
+       * <code>.CancelBuild cancel_build = 34;</code>
        */
       public soc.proto.GameMessage.CancelBuild getCancelBuild() {
         if (cancelBuildBuilder_ == null) {
-          if (msgCase_ == 33) {
+          if (msgCase_ == 34) {
             return (soc.proto.GameMessage.CancelBuild) msg_;
           }
           return soc.proto.GameMessage.CancelBuild.getDefaultInstance();
         } else {
-          if (msgCase_ == 33) {
+          if (msgCase_ == 34) {
             return cancelBuildBuilder_.getMessage();
           }
           return soc.proto.GameMessage.CancelBuild.getDefaultInstance();
         }
       }
       /**
-       * <code>.CancelBuild cancel_build = 33;</code>
+       * <code>.CancelBuild cancel_build = 34;</code>
        */
       public Builder setCancelBuild(soc.proto.GameMessage.CancelBuild value) {
         if (cancelBuildBuilder_ == null) {
@@ -23952,11 +25739,11 @@ public final class GameMessage {
         } else {
           cancelBuildBuilder_.setMessage(value);
         }
-        msgCase_ = 33;
+        msgCase_ = 34;
         return this;
       }
       /**
-       * <code>.CancelBuild cancel_build = 33;</code>
+       * <code>.CancelBuild cancel_build = 34;</code>
        */
       public Builder setCancelBuild(
           soc.proto.GameMessage.CancelBuild.Builder builderForValue) {
@@ -23966,15 +25753,15 @@ public final class GameMessage {
         } else {
           cancelBuildBuilder_.setMessage(builderForValue.build());
         }
-        msgCase_ = 33;
+        msgCase_ = 34;
         return this;
       }
       /**
-       * <code>.CancelBuild cancel_build = 33;</code>
+       * <code>.CancelBuild cancel_build = 34;</code>
        */
       public Builder mergeCancelBuild(soc.proto.GameMessage.CancelBuild value) {
         if (cancelBuildBuilder_ == null) {
-          if (msgCase_ == 33 &&
+          if (msgCase_ == 34 &&
               msg_ != soc.proto.GameMessage.CancelBuild.getDefaultInstance()) {
             msg_ = soc.proto.GameMessage.CancelBuild.newBuilder((soc.proto.GameMessage.CancelBuild) msg_)
                 .mergeFrom(value).buildPartial();
@@ -23983,26 +25770,26 @@ public final class GameMessage {
           }
           onChanged();
         } else {
-          if (msgCase_ == 33) {
+          if (msgCase_ == 34) {
             cancelBuildBuilder_.mergeFrom(value);
           }
           cancelBuildBuilder_.setMessage(value);
         }
-        msgCase_ = 33;
+        msgCase_ = 34;
         return this;
       }
       /**
-       * <code>.CancelBuild cancel_build = 33;</code>
+       * <code>.CancelBuild cancel_build = 34;</code>
        */
       public Builder clearCancelBuild() {
         if (cancelBuildBuilder_ == null) {
-          if (msgCase_ == 33) {
+          if (msgCase_ == 34) {
             msgCase_ = 0;
             msg_ = null;
             onChanged();
           }
         } else {
-          if (msgCase_ == 33) {
+          if (msgCase_ == 34) {
             msgCase_ = 0;
             msg_ = null;
           }
@@ -24011,32 +25798,32 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <code>.CancelBuild cancel_build = 33;</code>
+       * <code>.CancelBuild cancel_build = 34;</code>
        */
       public soc.proto.GameMessage.CancelBuild.Builder getCancelBuildBuilder() {
         return getCancelBuildFieldBuilder().getBuilder();
       }
       /**
-       * <code>.CancelBuild cancel_build = 33;</code>
+       * <code>.CancelBuild cancel_build = 34;</code>
        */
       public soc.proto.GameMessage.CancelBuildOrBuilder getCancelBuildOrBuilder() {
-        if ((msgCase_ == 33) && (cancelBuildBuilder_ != null)) {
+        if ((msgCase_ == 34) && (cancelBuildBuilder_ != null)) {
           return cancelBuildBuilder_.getMessageOrBuilder();
         } else {
-          if (msgCase_ == 33) {
+          if (msgCase_ == 34) {
             return (soc.proto.GameMessage.CancelBuild) msg_;
           }
           return soc.proto.GameMessage.CancelBuild.getDefaultInstance();
         }
       }
       /**
-       * <code>.CancelBuild cancel_build = 33;</code>
+       * <code>.CancelBuild cancel_build = 34;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.GameMessage.CancelBuild, soc.proto.GameMessage.CancelBuild.Builder, soc.proto.GameMessage.CancelBuildOrBuilder> 
           getCancelBuildFieldBuilder() {
         if (cancelBuildBuilder_ == null) {
-          if (!(msgCase_ == 33)) {
+          if (!(msgCase_ == 34)) {
             msg_ = soc.proto.GameMessage.CancelBuild.getDefaultInstance();
           }
           cancelBuildBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -24046,7 +25833,7 @@ public final class GameMessage {
                   isClean());
           msg_ = null;
         }
-        msgCase_ = 33;
+        msgCase_ = 34;
         onChanged();;
         return cancelBuildBuilder_;
       }
@@ -24054,29 +25841,29 @@ public final class GameMessage {
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.GameMessage.MovePiece, soc.proto.GameMessage.MovePiece.Builder, soc.proto.GameMessage.MovePieceOrBuilder> movePieceBuilder_;
       /**
-       * <code>.MovePiece move_piece = 34;</code>
+       * <code>.MovePiece move_piece = 35;</code>
        */
       public boolean hasMovePiece() {
-        return msgCase_ == 34;
+        return msgCase_ == 35;
       }
       /**
-       * <code>.MovePiece move_piece = 34;</code>
+       * <code>.MovePiece move_piece = 35;</code>
        */
       public soc.proto.GameMessage.MovePiece getMovePiece() {
         if (movePieceBuilder_ == null) {
-          if (msgCase_ == 34) {
+          if (msgCase_ == 35) {
             return (soc.proto.GameMessage.MovePiece) msg_;
           }
           return soc.proto.GameMessage.MovePiece.getDefaultInstance();
         } else {
-          if (msgCase_ == 34) {
+          if (msgCase_ == 35) {
             return movePieceBuilder_.getMessage();
           }
           return soc.proto.GameMessage.MovePiece.getDefaultInstance();
         }
       }
       /**
-       * <code>.MovePiece move_piece = 34;</code>
+       * <code>.MovePiece move_piece = 35;</code>
        */
       public Builder setMovePiece(soc.proto.GameMessage.MovePiece value) {
         if (movePieceBuilder_ == null) {
@@ -24088,11 +25875,11 @@ public final class GameMessage {
         } else {
           movePieceBuilder_.setMessage(value);
         }
-        msgCase_ = 34;
+        msgCase_ = 35;
         return this;
       }
       /**
-       * <code>.MovePiece move_piece = 34;</code>
+       * <code>.MovePiece move_piece = 35;</code>
        */
       public Builder setMovePiece(
           soc.proto.GameMessage.MovePiece.Builder builderForValue) {
@@ -24102,15 +25889,15 @@ public final class GameMessage {
         } else {
           movePieceBuilder_.setMessage(builderForValue.build());
         }
-        msgCase_ = 34;
+        msgCase_ = 35;
         return this;
       }
       /**
-       * <code>.MovePiece move_piece = 34;</code>
+       * <code>.MovePiece move_piece = 35;</code>
        */
       public Builder mergeMovePiece(soc.proto.GameMessage.MovePiece value) {
         if (movePieceBuilder_ == null) {
-          if (msgCase_ == 34 &&
+          if (msgCase_ == 35 &&
               msg_ != soc.proto.GameMessage.MovePiece.getDefaultInstance()) {
             msg_ = soc.proto.GameMessage.MovePiece.newBuilder((soc.proto.GameMessage.MovePiece) msg_)
                 .mergeFrom(value).buildPartial();
@@ -24119,26 +25906,26 @@ public final class GameMessage {
           }
           onChanged();
         } else {
-          if (msgCase_ == 34) {
+          if (msgCase_ == 35) {
             movePieceBuilder_.mergeFrom(value);
           }
           movePieceBuilder_.setMessage(value);
         }
-        msgCase_ = 34;
+        msgCase_ = 35;
         return this;
       }
       /**
-       * <code>.MovePiece move_piece = 34;</code>
+       * <code>.MovePiece move_piece = 35;</code>
        */
       public Builder clearMovePiece() {
         if (movePieceBuilder_ == null) {
-          if (msgCase_ == 34) {
+          if (msgCase_ == 35) {
             msgCase_ = 0;
             msg_ = null;
             onChanged();
           }
         } else {
-          if (msgCase_ == 34) {
+          if (msgCase_ == 35) {
             msgCase_ = 0;
             msg_ = null;
           }
@@ -24147,32 +25934,32 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <code>.MovePiece move_piece = 34;</code>
+       * <code>.MovePiece move_piece = 35;</code>
        */
       public soc.proto.GameMessage.MovePiece.Builder getMovePieceBuilder() {
         return getMovePieceFieldBuilder().getBuilder();
       }
       /**
-       * <code>.MovePiece move_piece = 34;</code>
+       * <code>.MovePiece move_piece = 35;</code>
        */
       public soc.proto.GameMessage.MovePieceOrBuilder getMovePieceOrBuilder() {
-        if ((msgCase_ == 34) && (movePieceBuilder_ != null)) {
+        if ((msgCase_ == 35) && (movePieceBuilder_ != null)) {
           return movePieceBuilder_.getMessageOrBuilder();
         } else {
-          if (msgCase_ == 34) {
+          if (msgCase_ == 35) {
             return (soc.proto.GameMessage.MovePiece) msg_;
           }
           return soc.proto.GameMessage.MovePiece.getDefaultInstance();
         }
       }
       /**
-       * <code>.MovePiece move_piece = 34;</code>
+       * <code>.MovePiece move_piece = 35;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.GameMessage.MovePiece, soc.proto.GameMessage.MovePiece.Builder, soc.proto.GameMessage.MovePieceOrBuilder> 
           getMovePieceFieldBuilder() {
         if (movePieceBuilder_ == null) {
-          if (!(msgCase_ == 34)) {
+          if (!(msgCase_ == 35)) {
             msg_ = soc.proto.GameMessage.MovePiece.getDefaultInstance();
           }
           movePieceBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -24182,7 +25969,7 @@ public final class GameMessage {
                   isClean());
           msg_ = null;
         }
-        msgCase_ = 34;
+        msgCase_ = 35;
         onChanged();;
         return movePieceBuilder_;
       }
@@ -24190,29 +25977,29 @@ public final class GameMessage {
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.GameMessage.RemovePiece, soc.proto.GameMessage.RemovePiece.Builder, soc.proto.GameMessage.RemovePieceOrBuilder> removePieceBuilder_;
       /**
-       * <code>.RemovePiece remove_piece = 35;</code>
+       * <code>.RemovePiece remove_piece = 36;</code>
        */
       public boolean hasRemovePiece() {
-        return msgCase_ == 35;
+        return msgCase_ == 36;
       }
       /**
-       * <code>.RemovePiece remove_piece = 35;</code>
+       * <code>.RemovePiece remove_piece = 36;</code>
        */
       public soc.proto.GameMessage.RemovePiece getRemovePiece() {
         if (removePieceBuilder_ == null) {
-          if (msgCase_ == 35) {
+          if (msgCase_ == 36) {
             return (soc.proto.GameMessage.RemovePiece) msg_;
           }
           return soc.proto.GameMessage.RemovePiece.getDefaultInstance();
         } else {
-          if (msgCase_ == 35) {
+          if (msgCase_ == 36) {
             return removePieceBuilder_.getMessage();
           }
           return soc.proto.GameMessage.RemovePiece.getDefaultInstance();
         }
       }
       /**
-       * <code>.RemovePiece remove_piece = 35;</code>
+       * <code>.RemovePiece remove_piece = 36;</code>
        */
       public Builder setRemovePiece(soc.proto.GameMessage.RemovePiece value) {
         if (removePieceBuilder_ == null) {
@@ -24224,11 +26011,11 @@ public final class GameMessage {
         } else {
           removePieceBuilder_.setMessage(value);
         }
-        msgCase_ = 35;
+        msgCase_ = 36;
         return this;
       }
       /**
-       * <code>.RemovePiece remove_piece = 35;</code>
+       * <code>.RemovePiece remove_piece = 36;</code>
        */
       public Builder setRemovePiece(
           soc.proto.GameMessage.RemovePiece.Builder builderForValue) {
@@ -24238,15 +26025,15 @@ public final class GameMessage {
         } else {
           removePieceBuilder_.setMessage(builderForValue.build());
         }
-        msgCase_ = 35;
+        msgCase_ = 36;
         return this;
       }
       /**
-       * <code>.RemovePiece remove_piece = 35;</code>
+       * <code>.RemovePiece remove_piece = 36;</code>
        */
       public Builder mergeRemovePiece(soc.proto.GameMessage.RemovePiece value) {
         if (removePieceBuilder_ == null) {
-          if (msgCase_ == 35 &&
+          if (msgCase_ == 36 &&
               msg_ != soc.proto.GameMessage.RemovePiece.getDefaultInstance()) {
             msg_ = soc.proto.GameMessage.RemovePiece.newBuilder((soc.proto.GameMessage.RemovePiece) msg_)
                 .mergeFrom(value).buildPartial();
@@ -24255,26 +26042,26 @@ public final class GameMessage {
           }
           onChanged();
         } else {
-          if (msgCase_ == 35) {
+          if (msgCase_ == 36) {
             removePieceBuilder_.mergeFrom(value);
           }
           removePieceBuilder_.setMessage(value);
         }
-        msgCase_ = 35;
+        msgCase_ = 36;
         return this;
       }
       /**
-       * <code>.RemovePiece remove_piece = 35;</code>
+       * <code>.RemovePiece remove_piece = 36;</code>
        */
       public Builder clearRemovePiece() {
         if (removePieceBuilder_ == null) {
-          if (msgCase_ == 35) {
+          if (msgCase_ == 36) {
             msgCase_ = 0;
             msg_ = null;
             onChanged();
           }
         } else {
-          if (msgCase_ == 35) {
+          if (msgCase_ == 36) {
             msgCase_ = 0;
             msg_ = null;
           }
@@ -24283,32 +26070,32 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <code>.RemovePiece remove_piece = 35;</code>
+       * <code>.RemovePiece remove_piece = 36;</code>
        */
       public soc.proto.GameMessage.RemovePiece.Builder getRemovePieceBuilder() {
         return getRemovePieceFieldBuilder().getBuilder();
       }
       /**
-       * <code>.RemovePiece remove_piece = 35;</code>
+       * <code>.RemovePiece remove_piece = 36;</code>
        */
       public soc.proto.GameMessage.RemovePieceOrBuilder getRemovePieceOrBuilder() {
-        if ((msgCase_ == 35) && (removePieceBuilder_ != null)) {
+        if ((msgCase_ == 36) && (removePieceBuilder_ != null)) {
           return removePieceBuilder_.getMessageOrBuilder();
         } else {
-          if (msgCase_ == 35) {
+          if (msgCase_ == 36) {
             return (soc.proto.GameMessage.RemovePiece) msg_;
           }
           return soc.proto.GameMessage.RemovePiece.getDefaultInstance();
         }
       }
       /**
-       * <code>.RemovePiece remove_piece = 35;</code>
+       * <code>.RemovePiece remove_piece = 36;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.GameMessage.RemovePiece, soc.proto.GameMessage.RemovePiece.Builder, soc.proto.GameMessage.RemovePieceOrBuilder> 
           getRemovePieceFieldBuilder() {
         if (removePieceBuilder_ == null) {
-          if (!(msgCase_ == 35)) {
+          if (!(msgCase_ == 36)) {
             msg_ = soc.proto.GameMessage.RemovePiece.getDefaultInstance();
           }
           removePieceBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -24318,7 +26105,7 @@ public final class GameMessage {
                   isClean());
           msg_ = null;
         }
-        msgCase_ = 35;
+        msgCase_ = 36;
         onChanged();;
         return removePieceBuilder_;
       }
@@ -29748,6 +31535,11 @@ public final class GameMessage {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_PotentialSettlements_LandAreasLegalNodesEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_PieceValue_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_PieceValue_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_BuildPiece_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -29895,112 +31687,117 @@ public final class GameMessage {
       "lNodesEntry\022$\n\017legal_sea_edges\030\005 \003(\0132\013._" +
       "SIntArray\032F\n\030LandAreasLegalNodesEntry\022\013\n" +
       "\003key\030\001 \001(\r\022\031\n\005value\030\002 \001(\0132\n._IntArray:\0028" +
-      "\001\";\n\nBuildPiece\022\030\n\004type\030\001 \001(\0162\n.PieceTyp" +
-      "e\022\023\n\013coordinates\030\002 \001(\r\"O\n\027BuyInventoryIt" +
-      "emRequest\022\027\n\017is_not_dev_card\030\001 \001(\010\022\033\n\023ot" +
-      "her_inv_item_type\030\002 \001(\021\"\202\003\n\023InventoryIte" +
-      "mAction\0225\n\013action_type\030\001 \001(\0162 .Inventory" +
-      "ItemAction._ActionType\022\'\n\016dev_card_value",
-      "\030\002 \001(\0162\r.DevCardValueH\000\022\035\n\023other_inv_ite" +
-      "m_type\030\003 \001(\005H\000\022\023\n\013reason_code\030\025 \001(\021\022\023\n\013i" +
-      "s_playable\030\026 \001(\010\022\017\n\007is_kept\030\027 \001(\010\022\r\n\005is_" +
-      "VP\030\030 \001(\010\022\027\n\017can_cancel_play\030\031 \001(\010\"{\n\013_Ac" +
-      "tionType\022\032\n\026_UNSENT_DEFAULT_ACTION\020\000\022\010\n\004" +
-      "DRAW\020\001\022\010\n\004PLAY\020\002\022\013\n\007ADD_NEW\020\003\022\013\n\007ADD_OLD" +
-      "\020\004\022\017\n\013CANNOT_PLAY\020\005\022\021\n\rPLACING_EXTRA\020\006B\014" +
-      "\n\nitem_value\"g\n\013CancelBuild\022 \n\npiece_typ" +
-      "e\030\001 \001(\0162\n.PieceTypeH\000\022\'\n\titem_type\030\002 \001(\016" +
-      "2\022.OtherPlayableItemH\000B\r\n\013cancel_type\"K\n",
-      "\tMovePiece\022\030\n\004type\030\001 \001(\0162\n.PieceType\022\022\n\n" +
-      "from_coord\030\002 \001(\r\022\020\n\010to_coord\030\003 \001(\r\"<\n\013Re" +
-      "movePiece\022\030\n\004type\030\001 \001(\0162\n.PieceType\022\023\n\013c" +
-      "oordinates\030\002 \001(\r\"\"\n\005State\022\031\n\005state\030\001 \001(\016" +
-      "2\n.GameState\"\202\001\n\rPlayerElement\022%\n\006action" +
-      "\030\001 \001(\0162\025._PlayerElementAction\022)\n\014element" +
-      "_type\030\002 \001(\0162\023._PlayerElementType\022\016\n\006amou" +
-      "nt\030\003 \001(\021\022\017\n\007is_news\030\004 \001(\010\"t\n\016PlayerEleme" +
-      "nts\022%\n\006action\030\001 \001(\0162\025._PlayerElementActi" +
-      "on\022*\n\relement_types\030\002 \003(\0162\023._PlayerEleme",
-      "ntType\022\017\n\007amounts\030\003 \003(\021\"\376\001\n\014GameElements" +
-      "\0221\n\relement_types\030\001 \003(\0162\032.GameElements._" +
-      "ElementType\022\016\n\006values\030\002 \003(\021\"\252\001\n\014_Element" +
-      "Type\022\035\n\031_UNSENT_DEFAULT_GAME_ELEM\020\000\022\017\n\013R" +
-      "OUND_COUNT\020\001\022\022\n\016DEV_CARD_COUNT\020\002\022\020\n\014FIRS" +
-      "T_PLAYER\020\003\022\022\n\016CURRENT_PLAYER\020\004\022\027\n\023LARGES" +
-      "T_ARMY_PLAYER\020\005\022\027\n\023LONGEST_ROAD_PLAYER\020\006" +
-      "\"&\n\tStartGame\022\031\n\005state\030\001 \001(\0162\n.GameState" +
-      "\"!\n\004Turn\022\031\n\005state\030\001 \001(\0162\n.GameState\"\t\n\007S" +
-      "etTurn\"\021\n\017DiceRollRequest\" \n\nDiceResult\022",
-      "\022\n\ndice_total\030\001 \001(\021\"\264\001\n\023DiceResultResour" +
-      "ces\022>\n\020player_resources\030\001 \003(\0132$.DiceResu" +
-      "ltResources.PlayerResources\032]\n\017PlayerRes" +
-      "ources\022\025\n\rplayer_number\030\001 \001(\r\022 \n\nres_gai" +
-      "ned\030\002 \001(\0132\014.ResourceSet\022\021\n\tres_total\030\003 \001" +
-      "(\r\"\t\n\007EndTurn\"F\n\rTradeWithBank\022\032\n\004give\030\001" +
-      " \001(\0132\014.ResourceSet\022\031\n\003get\030\002 \001(\0132\014.Resour" +
-      "ceSet\"}\n\016TradeMakeOffer\022\032\n\004give\030\001 \001(\0132\014." +
-      "ResourceSet\022\031\n\003get\030\002 \001(\0132\014.ResourceSet\022\036" +
-      "\n\nto_players\030\003 \001(\0132\n._IntArray\022\024\n\014offer_",
-      "serial\030\004 \001(\005\"\021\n\017TradeClearOffer\"\022\n\020Trade" +
-      "RejectOffer\"H\n\020TradeAcceptOffer\022\036\n\026offer" +
-      "ing_player_number\030\001 \001(\005\022\024\n\014offer_serial\030" +
-      "\002 \001(\005\"\333\007\n\025GameMessageFromServer\022\021\n\tgame_" +
-      "name\030\001 \001(\t\022\025\n\rplayer_number\030\002 \001(\021\022\034\n\ngam" +
-      "e_state\030\003 \001(\0132\006.StateH\000\022(\n\016player_elemen" +
-      "t\030\017 \001(\0132\016.PlayerElementH\000\022*\n\017player_elem" +
-      "ents\030\020 \001(\0132\017.PlayerElementsH\000\022&\n\rgame_el" +
-      "ements\030\021 \001(\0132\r.GameElementsH\000\022$\n\014board_l" +
-      "ayout\030\036 \001(\0132\014.BoardLayoutH\000\0226\n\025potential",
-      "_settlements\030\037 \001(\0132\025.PotentialSettlement" +
-      "sH\000\022\"\n\013build_piece\030  \001(\0132\013.BuildPieceH\000\022" +
-      "$\n\014cancel_build\030! \001(\0132\014.CancelBuildH\000\022 \n" +
-      "\nmove_piece\030\" \001(\0132\n.MovePieceH\000\022$\n\014remov" +
-      "e_piece\030# \001(\0132\014.RemovePieceH\000\022 \n\nstart_g" +
-      "ame\030d \001(\0132\n.StartGameH\000\022\025\n\004turn\030e \001(\0132\005." +
-      "TurnH\000\022\034\n\010set_turn\030f \001(\0132\010.SetTurnH\000\022-\n\021" +
-      "dice_roll_request\030g \001(\0132\020.DiceRollReques" +
-      "tH\000\022\"\n\013dice_result\030h \001(\0132\013.DiceResultH\000\022" +
-      "5\n\025dice_result_resources\030i \001(\0132\024.DiceRes",
-      "ultResourcesH\000\0226\n\025inventory_item_action\030" +
-      "\256\002 \001(\0132\024.InventoryItemActionH\000\022*\n\017trade_" +
-      "with_bank\030\220\003 \001(\0132\016.TradeWithBankH\000\022,\n\020tr" +
-      "ade_make_offer\030\221\003 \001(\0132\017.TradeMakeOfferH\000" +
-      "\022.\n\021trade_clear_offer\030\222\003 \001(\0132\020.TradeClea" +
-      "rOfferH\000\0220\n\022trade_reject_offer\030\223\003 \001(\0132\021." +
-      "TradeRejectOfferH\000\0220\n\022trade_accept_offer" +
-      "\030\224\003 \001(\0132\021.TradeAcceptOfferH\000B\005\n\003msg\"\356\004\n\025" +
-      "GameMessageFromClient\022\021\n\tgame_name\030\001 \001(\t" +
-      "\022 \n\nstart_game\030d \001(\0132\n.StartGameH\000\022-\n\021di",
-      "ce_roll_request\030e \001(\0132\020.DiceRollRequestH" +
-      "\000\022\034\n\010end_turn\030f \001(\0132\010.EndTurnH\000\022#\n\013build" +
-      "_piece\030\310\001 \001(\0132\013.BuildPieceH\000\022%\n\014cancel_b" +
-      "uild\030\311\001 \001(\0132\014.CancelBuildH\000\022!\n\nmove_piec" +
-      "e\030\312\001 \001(\0132\n.MovePieceH\000\0227\n\022buy_inventory_" +
-      "item\030\313\001 \001(\0132\030.BuyInventoryItemRequestH\000\022" +
-      "6\n\025inventory_item_action\030\314\001 \001(\0132\024.Invent" +
-      "oryItemActionH\000\022*\n\017trade_with_bank\030\220\003 \001(" +
-      "\0132\016.TradeWithBankH\000\022,\n\020trade_make_offer\030" +
-      "\221\003 \001(\0132\017.TradeMakeOfferH\000\022.\n\021trade_clear",
-      "_offer\030\222\003 \001(\0132\020.TradeClearOfferH\000\0220\n\022tra" +
-      "de_reject_offer\030\223\003 \001(\0132\021.TradeRejectOffe" +
-      "rH\000\0220\n\022trade_accept_offer\030\224\003 \001(\0132\021.Trade" +
-      "AcceptOfferH\000B\005\n\003msg*O\n\024_PlayerElementAc" +
-      "tion\022\032\n\026_UNSENT_DEFAULT_ACTION\020\000\022\007\n\003SET\020" +
-      "\001\022\010\n\004GAIN\020\002\022\010\n\004LOSE\020\003*\206\004\n\022_PlayerElement" +
-      "Type\022\037\n\033_UNSENT_DEFAULT_PLAYER_ELEM\020\000\022\r\n" +
-      "\tELEM_CLAY\020\001\022\014\n\010ELEM_ORE\020\002\022\016\n\nELEM_SHEEP" +
-      "\020\003\022\016\n\nELEM_WHEAT\020\004\022\r\n\tELEM_WOOD\020\005\022\031\n\025ELE" +
-      "M_UNKNOWN_RESOURCE\020\006\022\t\n\005ROADS\020\n\022\017\n\013SETTL",
-      "EMENTS\020\013\022\n\n\006CITIES\020\014\022\t\n\005SHIPS\020\r\022\016\n\nNUMKN" +
-      "IGHTS\020\017\022\025\n\021ASK_SPECIAL_BUILD\020\020\022\022\n\016RESOUR" +
-      "CE_COUNT\020\021\022\030\n\024LAST_SETTLEMENT_NODE\020\022\022\030\n\024" +
-      "PLAYED_DEV_CARD_FLAG\020\023\022\037\n\033NUM_PICK_GOLD_" +
-      "HEX_RESOURCES\020e\022\020\n\014SCENARIO_SVP\020f\022!\n\035SCE" +
-      "NARIO_PLAYEREVENTS_BITMASK\020g\022\"\n\036SCENARIO" +
-      "_SVP_LANDAREAS_BITMASK\020h\022\026\n\022STARTING_LAN" +
-      "DAREAS\020i\022\030\n\024SCENARIO_CLOTH_COUNT\020j\022\032\n\026SC" +
-      "ENARIO_WARSHIP_COUNT\020kB\r\n\tsoc.protoH\001P\000b" +
-      "\006proto3"
+      "\001\"t\n\nPieceValue\022\030\n\004type\030\001 \001(\0162\n.PieceTyp" +
+      "e\022 \n\013coordinates\030\002 \001(\0132\013.PieceCoord\022\024\n\014p" +
+      "iece_value1\030\003 \001(\021\022\024\n\014piece_value2\030\004 \001(\021\"" +
+      "H\n\nBuildPiece\022\030\n\004type\030\001 \001(\0162\n.PieceType\022" +
+      " \n\013coordinates\030\002 \001(\0132\013.PieceCoord\"O\n\027Buy" +
+      "InventoryItemRequest\022\027\n\017is_not_dev_card\030",
+      "\001 \001(\010\022\033\n\023other_inv_item_type\030\002 \001(\021\"\202\003\n\023I" +
+      "nventoryItemAction\0225\n\013action_type\030\001 \001(\0162" +
+      " .InventoryItemAction._ActionType\022\'\n\016dev" +
+      "_card_value\030\002 \001(\0162\r.DevCardValueH\000\022\035\n\023ot" +
+      "her_inv_item_type\030\003 \001(\005H\000\022\023\n\013reason_code" +
+      "\030\025 \001(\021\022\023\n\013is_playable\030\026 \001(\010\022\017\n\007is_kept\030\027" +
+      " \001(\010\022\r\n\005is_VP\030\030 \001(\010\022\027\n\017can_cancel_play\030\031" +
+      " \001(\010\"{\n\013_ActionType\022\032\n\026_UNSENT_DEFAULT_A" +
+      "CTION\020\000\022\010\n\004DRAW\020\001\022\010\n\004PLAY\020\002\022\013\n\007ADD_NEW\020\003" +
+      "\022\013\n\007ADD_OLD\020\004\022\017\n\013CANNOT_PLAY\020\005\022\021\n\rPLACIN",
+      "G_EXTRA\020\006B\014\n\nitem_value\"g\n\013CancelBuild\022 " +
+      "\n\npiece_type\030\001 \001(\0162\n.PieceTypeH\000\022\'\n\titem" +
+      "_type\030\002 \001(\0162\022.OtherPlayableItemH\000B\r\n\013can" +
+      "cel_type\"q\n\tMovePiece\022\030\n\004type\030\001 \001(\0162\n.Pi" +
+      "eceType\022%\n\020from_coordinates\030\002 \001(\0132\013.Piec" +
+      "eCoord\022#\n\016to_coordinates\030\003 \001(\0132\013.PieceCo" +
+      "ord\"I\n\013RemovePiece\022\030\n\004type\030\001 \001(\0162\n.Piece" +
+      "Type\022 \n\013coordinates\030\002 \001(\0132\013.PieceCoord\"\"" +
+      "\n\005State\022\031\n\005state\030\001 \001(\0162\n.GameState\"\202\001\n\rP" +
+      "layerElement\022%\n\006action\030\001 \001(\0162\025._PlayerEl",
+      "ementAction\022)\n\014element_type\030\002 \001(\0162\023._Pla" +
+      "yerElementType\022\016\n\006amount\030\003 \001(\021\022\017\n\007is_new" +
+      "s\030\004 \001(\010\"t\n\016PlayerElements\022%\n\006action\030\001 \001(" +
+      "\0162\025._PlayerElementAction\022*\n\relement_type" +
+      "s\030\002 \003(\0162\023._PlayerElementType\022\017\n\007amounts\030" +
+      "\003 \003(\021\"\376\001\n\014GameElements\0221\n\relement_types\030" +
+      "\001 \003(\0162\032.GameElements._ElementType\022\016\n\006val" +
+      "ues\030\002 \003(\021\"\252\001\n\014_ElementType\022\035\n\031_UNSENT_DE" +
+      "FAULT_GAME_ELEM\020\000\022\017\n\013ROUND_COUNT\020\001\022\022\n\016DE" +
+      "V_CARD_COUNT\020\002\022\020\n\014FIRST_PLAYER\020\003\022\022\n\016CURR",
+      "ENT_PLAYER\020\004\022\027\n\023LARGEST_ARMY_PLAYER\020\005\022\027\n" +
+      "\023LONGEST_ROAD_PLAYER\020\006\"&\n\tStartGame\022\031\n\005s" +
+      "tate\030\001 \001(\0162\n.GameState\"!\n\004Turn\022\031\n\005state\030" +
+      "\001 \001(\0162\n.GameState\"\t\n\007SetTurn\"\021\n\017DiceRoll" +
+      "Request\" \n\nDiceResult\022\022\n\ndice_total\030\001 \001(" +
+      "\021\"\264\001\n\023DiceResultResources\022>\n\020player_reso" +
+      "urces\030\001 \003(\0132$.DiceResultResources.Player" +
+      "Resources\032]\n\017PlayerResources\022\025\n\rplayer_n" +
+      "umber\030\001 \001(\r\022 \n\nres_gained\030\002 \001(\0132\014.Resour" +
+      "ceSet\022\021\n\tres_total\030\003 \001(\r\"\t\n\007EndTurn\"F\n\rT",
+      "radeWithBank\022\032\n\004give\030\001 \001(\0132\014.ResourceSet" +
+      "\022\031\n\003get\030\002 \001(\0132\014.ResourceSet\"}\n\016TradeMake" +
+      "Offer\022\032\n\004give\030\001 \001(\0132\014.ResourceSet\022\031\n\003get" +
+      "\030\002 \001(\0132\014.ResourceSet\022\036\n\nto_players\030\003 \001(\013" +
+      "2\n._IntArray\022\024\n\014offer_serial\030\004 \001(\005\"\021\n\017Tr" +
+      "adeClearOffer\"\022\n\020TradeRejectOffer\"H\n\020Tra" +
+      "deAcceptOffer\022\036\n\026offering_player_number\030" +
+      "\001 \001(\005\022\024\n\014offer_serial\030\002 \001(\005\"\377\007\n\025GameMess" +
+      "ageFromServer\022\021\n\tgame_name\030\001 \001(\t\022\025\n\rplay" +
+      "er_number\030\002 \001(\021\022\034\n\ngame_state\030\003 \001(\0132\006.St",
+      "ateH\000\022(\n\016player_element\030\017 \001(\0132\016.PlayerEl" +
+      "ementH\000\022*\n\017player_elements\030\020 \001(\0132\017.Playe" +
+      "rElementsH\000\022&\n\rgame_elements\030\021 \001(\0132\r.Gam" +
+      "eElementsH\000\022$\n\014board_layout\030\036 \001(\0132\014.Boar" +
+      "dLayoutH\000\0226\n\025potential_settlements\030\037 \001(\013" +
+      "2\025.PotentialSettlementsH\000\022\"\n\013piece_value" +
+      "\030  \001(\0132\013.PieceValueH\000\022\"\n\013build_piece\030! \001" +
+      "(\0132\013.BuildPieceH\000\022$\n\014cancel_build\030\" \001(\0132" +
+      "\014.CancelBuildH\000\022 \n\nmove_piece\030# \001(\0132\n.Mo" +
+      "vePieceH\000\022$\n\014remove_piece\030$ \001(\0132\014.Remove",
+      "PieceH\000\022 \n\nstart_game\030d \001(\0132\n.StartGameH" +
+      "\000\022\025\n\004turn\030e \001(\0132\005.TurnH\000\022\034\n\010set_turn\030f \001" +
+      "(\0132\010.SetTurnH\000\022-\n\021dice_roll_request\030g \001(" +
+      "\0132\020.DiceRollRequestH\000\022\"\n\013dice_result\030h \001" +
+      "(\0132\013.DiceResultH\000\0225\n\025dice_result_resourc" +
+      "es\030i \001(\0132\024.DiceResultResourcesH\000\0226\n\025inve" +
+      "ntory_item_action\030\256\002 \001(\0132\024.InventoryItem" +
+      "ActionH\000\022*\n\017trade_with_bank\030\220\003 \001(\0132\016.Tra" +
+      "deWithBankH\000\022,\n\020trade_make_offer\030\221\003 \001(\0132" +
+      "\017.TradeMakeOfferH\000\022.\n\021trade_clear_offer\030",
+      "\222\003 \001(\0132\020.TradeClearOfferH\000\0220\n\022trade_reje" +
+      "ct_offer\030\223\003 \001(\0132\021.TradeRejectOfferH\000\0220\n\022" +
+      "trade_accept_offer\030\224\003 \001(\0132\021.TradeAcceptO" +
+      "fferH\000B\005\n\003msg\"\356\004\n\025GameMessageFromClient\022" +
+      "\021\n\tgame_name\030\001 \001(\t\022 \n\nstart_game\030d \001(\0132\n" +
+      ".StartGameH\000\022-\n\021dice_roll_request\030e \001(\0132" +
+      "\020.DiceRollRequestH\000\022\034\n\010end_turn\030f \001(\0132\010." +
+      "EndTurnH\000\022#\n\013build_piece\030\310\001 \001(\0132\013.BuildP" +
+      "ieceH\000\022%\n\014cancel_build\030\311\001 \001(\0132\014.CancelBu" +
+      "ildH\000\022!\n\nmove_piece\030\312\001 \001(\0132\n.MovePieceH\000",
+      "\0227\n\022buy_inventory_item\030\313\001 \001(\0132\030.BuyInven" +
+      "toryItemRequestH\000\0226\n\025inventory_item_acti" +
+      "on\030\314\001 \001(\0132\024.InventoryItemActionH\000\022*\n\017tra" +
+      "de_with_bank\030\220\003 \001(\0132\016.TradeWithBankH\000\022,\n" +
+      "\020trade_make_offer\030\221\003 \001(\0132\017.TradeMakeOffe" +
+      "rH\000\022.\n\021trade_clear_offer\030\222\003 \001(\0132\020.TradeC" +
+      "learOfferH\000\0220\n\022trade_reject_offer\030\223\003 \001(\013" +
+      "2\021.TradeRejectOfferH\000\0220\n\022trade_accept_of" +
+      "fer\030\224\003 \001(\0132\021.TradeAcceptOfferH\000B\005\n\003msg*O" +
+      "\n\024_PlayerElementAction\022\032\n\026_UNSENT_DEFAUL",
+      "T_ACTION\020\000\022\007\n\003SET\020\001\022\010\n\004GAIN\020\002\022\010\n\004LOSE\020\003*" +
+      "\206\004\n\022_PlayerElementType\022\037\n\033_UNSENT_DEFAUL" +
+      "T_PLAYER_ELEM\020\000\022\r\n\tELEM_CLAY\020\001\022\014\n\010ELEM_O" +
+      "RE\020\002\022\016\n\nELEM_SHEEP\020\003\022\016\n\nELEM_WHEAT\020\004\022\r\n\t" +
+      "ELEM_WOOD\020\005\022\031\n\025ELEM_UNKNOWN_RESOURCE\020\006\022\t" +
+      "\n\005ROADS\020\n\022\017\n\013SETTLEMENTS\020\013\022\n\n\006CITIES\020\014\022\t" +
+      "\n\005SHIPS\020\r\022\016\n\nNUMKNIGHTS\020\017\022\025\n\021ASK_SPECIAL" +
+      "_BUILD\020\020\022\022\n\016RESOURCE_COUNT\020\021\022\030\n\024LAST_SET" +
+      "TLEMENT_NODE\020\022\022\030\n\024PLAYED_DEV_CARD_FLAG\020\023" +
+      "\022\037\n\033NUM_PICK_GOLD_HEX_RESOURCES\020e\022\020\n\014SCE",
+      "NARIO_SVP\020f\022!\n\035SCENARIO_PLAYEREVENTS_BIT" +
+      "MASK\020g\022\"\n\036SCENARIO_SVP_LANDAREAS_BITMASK" +
+      "\020h\022\026\n\022STARTING_LANDAREAS\020i\022\030\n\024SCENARIO_C" +
+      "LOTH_COUNT\020j\022\032\n\026SCENARIO_WARSHIP_COUNT\020k" +
+      "B\r\n\tsoc.protoH\001P\000b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -30045,98 +31842,104 @@ public final class GameMessage {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_PotentialSettlements_LandAreasLegalNodesEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
-    internal_static_BuildPiece_descriptor =
+    internal_static_PieceValue_descriptor =
       getDescriptor().getMessageTypes().get(2);
+    internal_static_PieceValue_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_PieceValue_descriptor,
+        new java.lang.String[] { "Type", "Coordinates", "PieceValue1", "PieceValue2", });
+    internal_static_BuildPiece_descriptor =
+      getDescriptor().getMessageTypes().get(3);
     internal_static_BuildPiece_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_BuildPiece_descriptor,
         new java.lang.String[] { "Type", "Coordinates", });
     internal_static_BuyInventoryItemRequest_descriptor =
-      getDescriptor().getMessageTypes().get(3);
+      getDescriptor().getMessageTypes().get(4);
     internal_static_BuyInventoryItemRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_BuyInventoryItemRequest_descriptor,
         new java.lang.String[] { "IsNotDevCard", "OtherInvItemType", });
     internal_static_InventoryItemAction_descriptor =
-      getDescriptor().getMessageTypes().get(4);
+      getDescriptor().getMessageTypes().get(5);
     internal_static_InventoryItemAction_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_InventoryItemAction_descriptor,
         new java.lang.String[] { "ActionType", "DevCardValue", "OtherInvItemType", "ReasonCode", "IsPlayable", "IsKept", "IsVP", "CanCancelPlay", "ItemValue", });
     internal_static_CancelBuild_descriptor =
-      getDescriptor().getMessageTypes().get(5);
+      getDescriptor().getMessageTypes().get(6);
     internal_static_CancelBuild_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_CancelBuild_descriptor,
         new java.lang.String[] { "PieceType", "ItemType", "CancelType", });
     internal_static_MovePiece_descriptor =
-      getDescriptor().getMessageTypes().get(6);
+      getDescriptor().getMessageTypes().get(7);
     internal_static_MovePiece_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_MovePiece_descriptor,
-        new java.lang.String[] { "Type", "FromCoord", "ToCoord", });
+        new java.lang.String[] { "Type", "FromCoordinates", "ToCoordinates", });
     internal_static_RemovePiece_descriptor =
-      getDescriptor().getMessageTypes().get(7);
+      getDescriptor().getMessageTypes().get(8);
     internal_static_RemovePiece_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_RemovePiece_descriptor,
         new java.lang.String[] { "Type", "Coordinates", });
     internal_static_State_descriptor =
-      getDescriptor().getMessageTypes().get(8);
+      getDescriptor().getMessageTypes().get(9);
     internal_static_State_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_State_descriptor,
         new java.lang.String[] { "State", });
     internal_static_PlayerElement_descriptor =
-      getDescriptor().getMessageTypes().get(9);
+      getDescriptor().getMessageTypes().get(10);
     internal_static_PlayerElement_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_PlayerElement_descriptor,
         new java.lang.String[] { "Action", "ElementType", "Amount", "IsNews", });
     internal_static_PlayerElements_descriptor =
-      getDescriptor().getMessageTypes().get(10);
+      getDescriptor().getMessageTypes().get(11);
     internal_static_PlayerElements_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_PlayerElements_descriptor,
         new java.lang.String[] { "Action", "ElementTypes", "Amounts", });
     internal_static_GameElements_descriptor =
-      getDescriptor().getMessageTypes().get(11);
+      getDescriptor().getMessageTypes().get(12);
     internal_static_GameElements_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_GameElements_descriptor,
         new java.lang.String[] { "ElementTypes", "Values", });
     internal_static_StartGame_descriptor =
-      getDescriptor().getMessageTypes().get(12);
+      getDescriptor().getMessageTypes().get(13);
     internal_static_StartGame_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_StartGame_descriptor,
         new java.lang.String[] { "State", });
     internal_static_Turn_descriptor =
-      getDescriptor().getMessageTypes().get(13);
+      getDescriptor().getMessageTypes().get(14);
     internal_static_Turn_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Turn_descriptor,
         new java.lang.String[] { "State", });
     internal_static_SetTurn_descriptor =
-      getDescriptor().getMessageTypes().get(14);
+      getDescriptor().getMessageTypes().get(15);
     internal_static_SetTurn_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_SetTurn_descriptor,
         new java.lang.String[] { });
     internal_static_DiceRollRequest_descriptor =
-      getDescriptor().getMessageTypes().get(15);
+      getDescriptor().getMessageTypes().get(16);
     internal_static_DiceRollRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_DiceRollRequest_descriptor,
         new java.lang.String[] { });
     internal_static_DiceResult_descriptor =
-      getDescriptor().getMessageTypes().get(16);
+      getDescriptor().getMessageTypes().get(17);
     internal_static_DiceResult_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_DiceResult_descriptor,
         new java.lang.String[] { "DiceTotal", });
     internal_static_DiceResultResources_descriptor =
-      getDescriptor().getMessageTypes().get(17);
+      getDescriptor().getMessageTypes().get(18);
     internal_static_DiceResultResources_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_DiceResultResources_descriptor,
@@ -30148,49 +31951,49 @@ public final class GameMessage {
         internal_static_DiceResultResources_PlayerResources_descriptor,
         new java.lang.String[] { "PlayerNumber", "ResGained", "ResTotal", });
     internal_static_EndTurn_descriptor =
-      getDescriptor().getMessageTypes().get(18);
+      getDescriptor().getMessageTypes().get(19);
     internal_static_EndTurn_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_EndTurn_descriptor,
         new java.lang.String[] { });
     internal_static_TradeWithBank_descriptor =
-      getDescriptor().getMessageTypes().get(19);
+      getDescriptor().getMessageTypes().get(20);
     internal_static_TradeWithBank_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_TradeWithBank_descriptor,
         new java.lang.String[] { "Give", "Get", });
     internal_static_TradeMakeOffer_descriptor =
-      getDescriptor().getMessageTypes().get(20);
+      getDescriptor().getMessageTypes().get(21);
     internal_static_TradeMakeOffer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_TradeMakeOffer_descriptor,
         new java.lang.String[] { "Give", "Get", "ToPlayers", "OfferSerial", });
     internal_static_TradeClearOffer_descriptor =
-      getDescriptor().getMessageTypes().get(21);
+      getDescriptor().getMessageTypes().get(22);
     internal_static_TradeClearOffer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_TradeClearOffer_descriptor,
         new java.lang.String[] { });
     internal_static_TradeRejectOffer_descriptor =
-      getDescriptor().getMessageTypes().get(22);
+      getDescriptor().getMessageTypes().get(23);
     internal_static_TradeRejectOffer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_TradeRejectOffer_descriptor,
         new java.lang.String[] { });
     internal_static_TradeAcceptOffer_descriptor =
-      getDescriptor().getMessageTypes().get(23);
+      getDescriptor().getMessageTypes().get(24);
     internal_static_TradeAcceptOffer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_TradeAcceptOffer_descriptor,
         new java.lang.String[] { "OfferingPlayerNumber", "OfferSerial", });
     internal_static_GameMessageFromServer_descriptor =
-      getDescriptor().getMessageTypes().get(24);
+      getDescriptor().getMessageTypes().get(25);
     internal_static_GameMessageFromServer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_GameMessageFromServer_descriptor,
-        new java.lang.String[] { "GameName", "PlayerNumber", "GameState", "PlayerElement", "PlayerElements", "GameElements", "BoardLayout", "PotentialSettlements", "BuildPiece", "CancelBuild", "MovePiece", "RemovePiece", "StartGame", "Turn", "SetTurn", "DiceRollRequest", "DiceResult", "DiceResultResources", "InventoryItemAction", "TradeWithBank", "TradeMakeOffer", "TradeClearOffer", "TradeRejectOffer", "TradeAcceptOffer", "Msg", });
+        new java.lang.String[] { "GameName", "PlayerNumber", "GameState", "PlayerElement", "PlayerElements", "GameElements", "BoardLayout", "PotentialSettlements", "PieceValue", "BuildPiece", "CancelBuild", "MovePiece", "RemovePiece", "StartGame", "Turn", "SetTurn", "DiceRollRequest", "DiceResult", "DiceResultResources", "InventoryItemAction", "TradeWithBank", "TradeMakeOffer", "TradeClearOffer", "TradeRejectOffer", "TradeAcceptOffer", "Msg", });
     internal_static_GameMessageFromClient_descriptor =
-      getDescriptor().getMessageTypes().get(25);
+      getDescriptor().getMessageTypes().get(26);
     internal_static_GameMessageFromClient_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_GameMessageFromClient_descriptor,
