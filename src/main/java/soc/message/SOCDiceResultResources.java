@@ -60,19 +60,19 @@ public class SOCDiceResultResources extends SOCMessageTemplateMi
     /**
      * {@code playerNum(i)} is the player number gaining the resources in {@link #playerRsrc playerRsrc(i)}.
      */
-    public List<Integer> playerNum;
+    public final List<Integer> playerNum;
 
     /**
      * {@code playerRsrc(i)} is the resource set gained by player {@link #playerNum playerNum(i)}.
      * @see #playerResTotal
      */
-    public List<SOCResourceSet> playerRsrc;
+    public final List<SOCResourceSet> playerRsrc;
 
     /**
      * {@code playerResTotal(i)} is the new resource total count held by player {@link #playerNum playerNum(i)}.
      * @see #playerRsrc
      */
-    public List<Integer> playerResTotal;
+    public final List<Integer> playerResTotal;
 
     /**
      * Builder for server to tell clients about players' gained resources and new total counts.
