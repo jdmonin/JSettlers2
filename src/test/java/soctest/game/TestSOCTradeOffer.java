@@ -31,6 +31,9 @@ import soc.game.SOCTradeOffer;
 
 /**
  * Unit testing for {@link SOCTradeOffer#makePNArray(List)}.
+ *<P>
+ * If other {@link SOCTradeOffer} tests are added here later, consider backporting to v2.x.xx.
+ * @since 3.0.00
  */
 public class TestSOCTradeOffer
 {
