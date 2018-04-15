@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='data.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\ndata.proto\"\x18\n\t_IntArray\x12\x0b\n\x03\x61rr\x18\x01 \x03(\x05\"\x19\n\n_SIntArray\x12\x0b\n\x03\x61rr\x18\x01 \x03(\x11\"(\n\tNodeCoord\x12\x0b\n\x03row\x18\x01 \x01(\x05\x12\x0e\n\x06\x63olumn\x18\x02 \x01(\x05\"(\n\tEdgeCoord\x12\x0b\n\x03row\x18\x01 \x01(\x05\x12\x0e\n\x06\x63olumn\x18\x02 \x01(\x05\"\'\n\x08HexCoord\x12\x0b\n\x03row\x18\x01 \x01(\x05\x12\x0e\n\x06\x63olumn\x18\x02 \x01(\x05\"~\n\nPieceCoord\x12 \n\nnode_coord\x18\x01 \x01(\x0b\x32\n.NodeCoordH\x00\x12 \n\nedge_coord\x18\x02 \x01(\x0b\x32\n.EdgeCoordH\x00\x12\x1e\n\thex_coord\x18\x03 \x01(\x0b\x32\t.HexCoordH\x00\x42\x0c\n\ncoord_type\"\xc2\x01\n\x0bResourceSet\x12\x0c\n\x04\x63lay\x18\x01 \x01(\x05\x12\x0b\n\x03ore\x18\x02 \x01(\x05\x12\r\n\x05sheep\x18\x03 \x01(\x05\x12\r\n\x05wheat\x18\x04 \x01(\x05\x12\x0c\n\x04wood\x18\x05 \x01(\x05\x12*\n\x06others\x18\x06 \x03(\x0b\x32\x1a.ResourceSet.OtherResource\x1a@\n\rOtherResource\x12\x1f\n\x08res_type\x18\x01 \x01(\x0e\x32\r.ResourceType\x12\x0e\n\x06\x61mount\x18\x02 \x01(\x05*a\n\x0cResourceType\x12\x11\n\r_NOT_YET_USED\x10\x00\x12\x08\n\x04\x43LAY\x10\x01\x12\x07\n\x03ORE\x10\x02\x12\t\n\x05SHEEP\x10\x03\x12\t\n\x05WHEAT\x10\x04\x12\x08\n\x04WOOD\x10\x05\x12\x0b\n\x07UNKNOWN\x10\x06*T\n\tPieceType\x12\x08\n\x04ROAD\x10\x00\x12\x0e\n\nSETTLEMENT\x10\x01\x12\x08\n\x04\x43ITY\x10\x02\x12\x08\n\x04SHIP\x10\x03\x12\x0c\n\x08\x46ORTRESS\x10\x04\x12\x0b\n\x07VILLAGE\x10\x05*I\n\x11OtherPlayableItem\x12\x18\n\x14_UNSENT_DEFAULT_ITEM\x10\x00\x12\x0c\n\x08\x44\x45V_CARD\x10\x02\x12\x0c\n\x08INV_ITEM\x10\x03*\xdb\x01\n\x0c\x44\x65vCardValue\x12 \n\x1c_UNSENT_DEFAULT_DEVCARDVALUE\x10\x00\x12\x14\n\x10UNKNOWN_DEV_CARD\x10\x01\x12\n\n\x06KNIGHT\x10\x02\x12\x0c\n\x08MONOPOLY\x10\x03\x12\x11\n\rROAD_BUILDING\x10\x04\x12\x12\n\x0eYEAR_OF_PLENTY\x10\x05\x12\r\n\tVP_CHAPEL\x10\x32\x12\x11\n\rVP_GREAT_HALL\x10\x33\x12\x0e\n\nVP_LIBRARY\x10\x34\x12\r\n\tVP_MARKET\x10\x35\x12\x11\n\rVP_UNIVERSITY\x10\x36*\xa5\x05\n\tGameState\x12\x07\n\x03NEW\x10\x00\x12\t\n\x05READY\x10\x01\x12\"\n\x1eREADY_RESET_WAIT_ROBOT_DISMISS\x10\x04\x12\x0b\n\x07START1A\x10\x05\x12\x0b\n\x07START1B\x10\x06\x12\x0b\n\x07START2A\x10\n\x12)\n%STARTS_WAITING_FOR_PICK_GOLD_RESOURCE\x10\x0e\x12\x0b\n\x07START2B\x10\x0b\x12\x0b\n\x07START3A\x10\x0c\x12\x0b\n\x07START3B\x10\r\x12\x10\n\x0cROLL_OR_CARD\x10\x0f\x12\t\n\x05PLAY1\x10\x14\x12\x10\n\x0cPLACING_ROAD\x10\x1e\x12\x16\n\x12PLACING_SETTLEMENT\x10\x1f\x12\x10\n\x0cPLACING_CITY\x10 \x12\x12\n\x0ePLACING_ROBBER\x10!\x12\x12\n\x0ePLACING_PIRATE\x10\"\x12\x10\n\x0cPLACING_SHIP\x10#\x12\x16\n\x12PLACING_FREE_ROAD1\x10(\x12\x16\n\x12PLACING_FREE_ROAD2\x10)\x12\x14\n\x10PLACING_INV_ITEM\x10*\x12\x18\n\x14WAITING_FOR_DISCARDS\x10\x32\x12!\n\x1dWAITING_FOR_ROB_CHOOSE_PLAYER\x10\x33\x12\x19\n\x15WAITING_FOR_DISCOVERY\x10\x34\x12\x18\n\x14WAITING_FOR_MONOPOLY\x10\x35\x12 \n\x1cWAITING_FOR_ROBBER_OR_PIRATE\x10\x36\x12%\n!WAITING_FOR_ROB_CLOTH_OR_RESOURCE\x10\x37\x12\"\n\x1eWAITING_FOR_PICK_GOLD_RESOURCE\x10\x38\x12\x14\n\x10SPECIAL_BUILDING\x10\x64\x12\t\n\x04OVER\x10\xe8\x07\x12\x0e\n\tRESET_OLD\x10\xe9\x07*=\n\rSeatLockState\x12\x0c\n\x08UNLOCKED\x10\x00\x12\n\n\x06LOCKED\x10\x01\x12\x12\n\x0e\x43LEAR_ON_RESET\x10\x02\x42\r\n\tsoc.protoH\x01\x62\x06proto3')
+  serialized_pb=_b('\n\ndata.proto\"\x18\n\t_IntArray\x12\x0b\n\x03\x61rr\x18\x01 \x03(\x05\"\x19\n\n_SIntArray\x12\x0b\n\x03\x61rr\x18\x01 \x03(\x11\"(\n\tNodeCoord\x12\x0b\n\x03row\x18\x01 \x01(\x05\x12\x0e\n\x06\x63olumn\x18\x02 \x01(\x05\"(\n\tEdgeCoord\x12\x0b\n\x03row\x18\x01 \x01(\x05\x12\x0e\n\x06\x63olumn\x18\x02 \x01(\x05\"\'\n\x08HexCoord\x12\x0b\n\x03row\x18\x01 \x01(\x05\x12\x0e\n\x06\x63olumn\x18\x02 \x01(\x05\"~\n\nBoardCoord\x12 \n\nnode_coord\x18\x01 \x01(\x0b\x32\n.NodeCoordH\x00\x12 \n\nedge_coord\x18\x02 \x01(\x0b\x32\n.EdgeCoordH\x00\x12\x1e\n\thex_coord\x18\x03 \x01(\x0b\x32\t.HexCoordH\x00\x42\x0c\n\ncoord_type\"%\n\t_EdgeList\x12\x18\n\x04\x65\x64ge\x18\x01 \x03(\x0b\x32\n.EdgeCoord\"\"\n\x08_HexList\x12\x16\n\x03hex\x18\x01 \x03(\x0b\x32\t.HexCoord\"%\n\t_NodeList\x12\x18\n\x04node\x18\x01 \x03(\x0b\x32\n.NodeCoord\"-\n\x0f_BoardCoordList\x12\x1a\n\x05\x63oord\x18\x01 \x03(\x0b\x32\x0b.BoardCoord\"\xc2\x01\n\x0bResourceSet\x12\x0c\n\x04\x63lay\x18\x01 \x01(\x05\x12\x0b\n\x03ore\x18\x02 \x01(\x05\x12\r\n\x05sheep\x18\x03 \x01(\x05\x12\r\n\x05wheat\x18\x04 \x01(\x05\x12\x0c\n\x04wood\x18\x05 \x01(\x05\x12*\n\x06others\x18\x06 \x03(\x0b\x32\x1a.ResourceSet.OtherResource\x1a@\n\rOtherResource\x12\x1f\n\x08res_type\x18\x01 \x01(\x0e\x32\r.ResourceType\x12\x0e\n\x06\x61mount\x18\x02 \x01(\x05*a\n\x0cResourceType\x12\x11\n\r_NOT_YET_USED\x10\x00\x12\x08\n\x04\x43LAY\x10\x01\x12\x07\n\x03ORE\x10\x02\x12\t\n\x05SHEEP\x10\x03\x12\t\n\x05WHEAT\x10\x04\x12\x08\n\x04WOOD\x10\x05\x12\x0b\n\x07UNKNOWN\x10\x06*T\n\tPieceType\x12\x08\n\x04ROAD\x10\x00\x12\x0e\n\nSETTLEMENT\x10\x01\x12\x08\n\x04\x43ITY\x10\x02\x12\x08\n\x04SHIP\x10\x03\x12\x0c\n\x08\x46ORTRESS\x10\x04\x12\x0b\n\x07VILLAGE\x10\x05*I\n\x11OtherPlayableItem\x12\x18\n\x14_UNSENT_DEFAULT_ITEM\x10\x00\x12\x0c\n\x08\x44\x45V_CARD\x10\x02\x12\x0c\n\x08INV_ITEM\x10\x03*\xdb\x01\n\x0c\x44\x65vCardValue\x12 \n\x1c_UNSENT_DEFAULT_DEVCARDVALUE\x10\x00\x12\x14\n\x10UNKNOWN_DEV_CARD\x10\x01\x12\n\n\x06KNIGHT\x10\x02\x12\x0c\n\x08MONOPOLY\x10\x03\x12\x11\n\rROAD_BUILDING\x10\x04\x12\x12\n\x0eYEAR_OF_PLENTY\x10\x05\x12\r\n\tVP_CHAPEL\x10\x32\x12\x11\n\rVP_GREAT_HALL\x10\x33\x12\x0e\n\nVP_LIBRARY\x10\x34\x12\r\n\tVP_MARKET\x10\x35\x12\x11\n\rVP_UNIVERSITY\x10\x36*\xa5\x05\n\tGameState\x12\x07\n\x03NEW\x10\x00\x12\t\n\x05READY\x10\x01\x12\"\n\x1eREADY_RESET_WAIT_ROBOT_DISMISS\x10\x04\x12\x0b\n\x07START1A\x10\x05\x12\x0b\n\x07START1B\x10\x06\x12\x0b\n\x07START2A\x10\n\x12)\n%STARTS_WAITING_FOR_PICK_GOLD_RESOURCE\x10\x0e\x12\x0b\n\x07START2B\x10\x0b\x12\x0b\n\x07START3A\x10\x0c\x12\x0b\n\x07START3B\x10\r\x12\x10\n\x0cROLL_OR_CARD\x10\x0f\x12\t\n\x05PLAY1\x10\x14\x12\x10\n\x0cPLACING_ROAD\x10\x1e\x12\x16\n\x12PLACING_SETTLEMENT\x10\x1f\x12\x10\n\x0cPLACING_CITY\x10 \x12\x12\n\x0ePLACING_ROBBER\x10!\x12\x12\n\x0ePLACING_PIRATE\x10\"\x12\x10\n\x0cPLACING_SHIP\x10#\x12\x16\n\x12PLACING_FREE_ROAD1\x10(\x12\x16\n\x12PLACING_FREE_ROAD2\x10)\x12\x14\n\x10PLACING_INV_ITEM\x10*\x12\x18\n\x14WAITING_FOR_DISCARDS\x10\x32\x12!\n\x1dWAITING_FOR_ROB_CHOOSE_PLAYER\x10\x33\x12\x19\n\x15WAITING_FOR_DISCOVERY\x10\x34\x12\x18\n\x14WAITING_FOR_MONOPOLY\x10\x35\x12 \n\x1cWAITING_FOR_ROBBER_OR_PIRATE\x10\x36\x12%\n!WAITING_FOR_ROB_CLOTH_OR_RESOURCE\x10\x37\x12\"\n\x1eWAITING_FOR_PICK_GOLD_RESOURCE\x10\x38\x12\x14\n\x10SPECIAL_BUILDING\x10\x64\x12\t\n\x04OVER\x10\xe8\x07\x12\x0e\n\tRESET_OLD\x10\xe9\x07*=\n\rSeatLockState\x12\x0c\n\x08UNLOCKED\x10\x00\x12\n\n\x06LOCKED\x10\x01\x12\x12\n\x0e\x43LEAR_ON_RESET\x10\x02\x42\r\n\tsoc.protoH\x01\x62\x06proto3')
 )
 
 _RESOURCETYPE = _descriptor.EnumDescriptor(
@@ -60,8 +60,8 @@ _RESOURCETYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=517,
-  serialized_end=614,
+  serialized_start=678,
+  serialized_end=775,
 )
 _sym_db.RegisterEnumDescriptor(_RESOURCETYPE)
 
@@ -99,8 +99,8 @@ _PIECETYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=616,
-  serialized_end=700,
+  serialized_start=777,
+  serialized_end=861,
 )
 _sym_db.RegisterEnumDescriptor(_PIECETYPE)
 
@@ -126,8 +126,8 @@ _OTHERPLAYABLEITEM = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=702,
-  serialized_end=775,
+  serialized_start=863,
+  serialized_end=936,
 )
 _sym_db.RegisterEnumDescriptor(_OTHERPLAYABLEITEM)
 
@@ -185,8 +185,8 @@ _DEVCARDVALUE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=778,
-  serialized_end=997,
+  serialized_start=939,
+  serialized_end=1158,
 )
 _sym_db.RegisterEnumDescriptor(_DEVCARDVALUE)
 
@@ -324,8 +324,8 @@ _GAMESTATE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1000,
-  serialized_end=1677,
+  serialized_start=1161,
+  serialized_end=1838,
 )
 _sym_db.RegisterEnumDescriptor(_GAMESTATE)
 
@@ -351,8 +351,8 @@ _SEATLOCKSTATE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1679,
-  serialized_end=1740,
+  serialized_start=1840,
+  serialized_end=1901,
 )
 _sym_db.RegisterEnumDescriptor(_SEATLOCKSTATE)
 
@@ -597,29 +597,29 @@ _HEXCOORD = _descriptor.Descriptor(
 )
 
 
-_PIECECOORD = _descriptor.Descriptor(
-  name='PieceCoord',
-  full_name='PieceCoord',
+_BOARDCOORD = _descriptor.Descriptor(
+  name='BoardCoord',
+  full_name='BoardCoord',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='node_coord', full_name='PieceCoord.node_coord', index=0,
+      name='node_coord', full_name='BoardCoord.node_coord', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='edge_coord', full_name='PieceCoord.edge_coord', index=1,
+      name='edge_coord', full_name='BoardCoord.edge_coord', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='hex_coord', full_name='PieceCoord.hex_coord', index=2,
+      name='hex_coord', full_name='BoardCoord.hex_coord', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -637,11 +637,135 @@ _PIECECOORD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
-      name='coord_type', full_name='PieceCoord.coord_type',
+      name='coord_type', full_name='BoardCoord.coord_type',
       index=0, containing_type=None, fields=[]),
   ],
   serialized_start=192,
   serialized_end=318,
+)
+
+
+__EDGELIST = _descriptor.Descriptor(
+  name='_EdgeList',
+  full_name='_EdgeList',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='edge', full_name='_EdgeList.edge', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=320,
+  serialized_end=357,
+)
+
+
+__HEXLIST = _descriptor.Descriptor(
+  name='_HexList',
+  full_name='_HexList',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='hex', full_name='_HexList.hex', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=359,
+  serialized_end=393,
+)
+
+
+__NODELIST = _descriptor.Descriptor(
+  name='_NodeList',
+  full_name='_NodeList',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='node', full_name='_NodeList.node', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=395,
+  serialized_end=432,
+)
+
+
+__BOARDCOORDLIST = _descriptor.Descriptor(
+  name='_BoardCoordList',
+  full_name='_BoardCoordList',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='coord', full_name='_BoardCoordList.coord', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=434,
+  serialized_end=479,
 )
 
 
@@ -678,8 +802,8 @@ _RESOURCESET_OTHERRESOURCE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=451,
-  serialized_end=515,
+  serialized_start=612,
+  serialized_end=676,
 )
 
 _RESOURCESET = _descriptor.Descriptor(
@@ -743,22 +867,26 @@ _RESOURCESET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=321,
-  serialized_end=515,
+  serialized_start=482,
+  serialized_end=676,
 )
 
-_PIECECOORD.fields_by_name['node_coord'].message_type = _NODECOORD
-_PIECECOORD.fields_by_name['edge_coord'].message_type = _EDGECOORD
-_PIECECOORD.fields_by_name['hex_coord'].message_type = _HEXCOORD
-_PIECECOORD.oneofs_by_name['coord_type'].fields.append(
-  _PIECECOORD.fields_by_name['node_coord'])
-_PIECECOORD.fields_by_name['node_coord'].containing_oneof = _PIECECOORD.oneofs_by_name['coord_type']
-_PIECECOORD.oneofs_by_name['coord_type'].fields.append(
-  _PIECECOORD.fields_by_name['edge_coord'])
-_PIECECOORD.fields_by_name['edge_coord'].containing_oneof = _PIECECOORD.oneofs_by_name['coord_type']
-_PIECECOORD.oneofs_by_name['coord_type'].fields.append(
-  _PIECECOORD.fields_by_name['hex_coord'])
-_PIECECOORD.fields_by_name['hex_coord'].containing_oneof = _PIECECOORD.oneofs_by_name['coord_type']
+_BOARDCOORD.fields_by_name['node_coord'].message_type = _NODECOORD
+_BOARDCOORD.fields_by_name['edge_coord'].message_type = _EDGECOORD
+_BOARDCOORD.fields_by_name['hex_coord'].message_type = _HEXCOORD
+_BOARDCOORD.oneofs_by_name['coord_type'].fields.append(
+  _BOARDCOORD.fields_by_name['node_coord'])
+_BOARDCOORD.fields_by_name['node_coord'].containing_oneof = _BOARDCOORD.oneofs_by_name['coord_type']
+_BOARDCOORD.oneofs_by_name['coord_type'].fields.append(
+  _BOARDCOORD.fields_by_name['edge_coord'])
+_BOARDCOORD.fields_by_name['edge_coord'].containing_oneof = _BOARDCOORD.oneofs_by_name['coord_type']
+_BOARDCOORD.oneofs_by_name['coord_type'].fields.append(
+  _BOARDCOORD.fields_by_name['hex_coord'])
+_BOARDCOORD.fields_by_name['hex_coord'].containing_oneof = _BOARDCOORD.oneofs_by_name['coord_type']
+__EDGELIST.fields_by_name['edge'].message_type = _EDGECOORD
+__HEXLIST.fields_by_name['hex'].message_type = _HEXCOORD
+__NODELIST.fields_by_name['node'].message_type = _NODECOORD
+__BOARDCOORDLIST.fields_by_name['coord'].message_type = _BOARDCOORD
 _RESOURCESET_OTHERRESOURCE.fields_by_name['res_type'].enum_type = _RESOURCETYPE
 _RESOURCESET_OTHERRESOURCE.containing_type = _RESOURCESET
 _RESOURCESET.fields_by_name['others'].message_type = _RESOURCESET_OTHERRESOURCE
@@ -767,7 +895,11 @@ DESCRIPTOR.message_types_by_name['_SIntArray'] = __SINTARRAY
 DESCRIPTOR.message_types_by_name['NodeCoord'] = _NODECOORD
 DESCRIPTOR.message_types_by_name['EdgeCoord'] = _EDGECOORD
 DESCRIPTOR.message_types_by_name['HexCoord'] = _HEXCOORD
-DESCRIPTOR.message_types_by_name['PieceCoord'] = _PIECECOORD
+DESCRIPTOR.message_types_by_name['BoardCoord'] = _BOARDCOORD
+DESCRIPTOR.message_types_by_name['_EdgeList'] = __EDGELIST
+DESCRIPTOR.message_types_by_name['_HexList'] = __HEXLIST
+DESCRIPTOR.message_types_by_name['_NodeList'] = __NODELIST
+DESCRIPTOR.message_types_by_name['_BoardCoordList'] = __BOARDCOORDLIST
 DESCRIPTOR.message_types_by_name['ResourceSet'] = _RESOURCESET
 DESCRIPTOR.enum_types_by_name['ResourceType'] = _RESOURCETYPE
 DESCRIPTOR.enum_types_by_name['PieceType'] = _PIECETYPE
@@ -812,12 +944,40 @@ HexCoord = _reflection.GeneratedProtocolMessageType('HexCoord', (_message.Messag
   ))
 _sym_db.RegisterMessage(HexCoord)
 
-PieceCoord = _reflection.GeneratedProtocolMessageType('PieceCoord', (_message.Message,), dict(
-  DESCRIPTOR = _PIECECOORD,
+BoardCoord = _reflection.GeneratedProtocolMessageType('BoardCoord', (_message.Message,), dict(
+  DESCRIPTOR = _BOARDCOORD,
   __module__ = 'data_pb2'
-  # @@protoc_insertion_point(class_scope:PieceCoord)
+  # @@protoc_insertion_point(class_scope:BoardCoord)
   ))
-_sym_db.RegisterMessage(PieceCoord)
+_sym_db.RegisterMessage(BoardCoord)
+
+_EdgeList = _reflection.GeneratedProtocolMessageType('_EdgeList', (_message.Message,), dict(
+  DESCRIPTOR = __EDGELIST,
+  __module__ = 'data_pb2'
+  # @@protoc_insertion_point(class_scope:_EdgeList)
+  ))
+_sym_db.RegisterMessage(_EdgeList)
+
+_HexList = _reflection.GeneratedProtocolMessageType('_HexList', (_message.Message,), dict(
+  DESCRIPTOR = __HEXLIST,
+  __module__ = 'data_pb2'
+  # @@protoc_insertion_point(class_scope:_HexList)
+  ))
+_sym_db.RegisterMessage(_HexList)
+
+_NodeList = _reflection.GeneratedProtocolMessageType('_NodeList', (_message.Message,), dict(
+  DESCRIPTOR = __NODELIST,
+  __module__ = 'data_pb2'
+  # @@protoc_insertion_point(class_scope:_NodeList)
+  ))
+_sym_db.RegisterMessage(_NodeList)
+
+_BoardCoordList = _reflection.GeneratedProtocolMessageType('_BoardCoordList', (_message.Message,), dict(
+  DESCRIPTOR = __BOARDCOORDLIST,
+  __module__ = 'data_pb2'
+  # @@protoc_insertion_point(class_scope:_BoardCoordList)
+  ))
+_sym_db.RegisterMessage(_BoardCoordList)
 
 ResourceSet = _reflection.GeneratedProtocolMessageType('ResourceSet', (_message.Message,), dict(
 

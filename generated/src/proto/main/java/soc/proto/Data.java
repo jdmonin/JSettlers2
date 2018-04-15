@@ -185,7 +185,7 @@ public final class Data {
    * Piece Types for {&#64;link soc.game.SOCPlayingPiece}; same constant values as that class.
    * Used in {&#64;link GameMessage.PutPiece}, {&#64;link GameMessage.CancelBuild}, etc.
    * For the resources needed to build a piece type, see {&#64;link soc.game.SOCPlayingPiece#getResourcesToBuild(int)}.
-   * &#64;see PieceCoord
+   * &#64;see BoardCoord
    * &#64;see OtherPlayableItem
    * </pre>
    *
@@ -4144,8 +4144,8 @@ public final class Data {
 
   }
 
-  public interface PieceCoordOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:PieceCoord)
+  public interface BoardCoordOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:BoardCoord)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -4187,29 +4187,29 @@ public final class Data {
      */
     soc.proto.Data.HexCoordOrBuilder getHexCoordOrBuilder();
 
-    public soc.proto.Data.PieceCoord.CoordTypeCase getCoordTypeCase();
+    public soc.proto.Data.BoardCoord.CoordTypeCase getCoordTypeCase();
   }
   /**
    * <pre>
-   * Coordinate type for general messages about multiple types of pieces
-   * which may be located at a node, edge, or hex.
+   * Coordinate type to use in general messages about multiple types of pieces
+   * or other things which may be located at a node, edge, or hex.
    * Use edge_coord for roads and ships, node_coord for all other PieceTypes.
    * Currently no known PieceType uses hex_coord.
    * &#64;see PieceType
    * </pre>
    *
-   * Protobuf type {@code PieceCoord}
+   * Protobuf type {@code BoardCoord}
    */
-  public  static final class PieceCoord extends
+  public  static final class BoardCoord extends
       com.google.protobuf.GeneratedMessageV3 implements
-      // @@protoc_insertion_point(message_implements:PieceCoord)
-      PieceCoordOrBuilder {
+      // @@protoc_insertion_point(message_implements:BoardCoord)
+      BoardCoordOrBuilder {
   private static final long serialVersionUID = 0L;
-    // Use PieceCoord.newBuilder() to construct.
-    private PieceCoord(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+    // Use BoardCoord.newBuilder() to construct.
+    private BoardCoord(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
     }
-    private PieceCoord() {
+    private BoardCoord() {
     }
 
     @java.lang.Override
@@ -4217,7 +4217,7 @@ public final class Data {
     getUnknownFields() {
       return this.unknownFields;
     }
-    private PieceCoord(
+    private BoardCoord(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -4296,14 +4296,14 @@ public final class Data {
     }
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return soc.proto.Data.internal_static_PieceCoord_descriptor;
+      return soc.proto.Data.internal_static_BoardCoord_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return soc.proto.Data.internal_static_PieceCoord_fieldAccessorTable
+      return soc.proto.Data.internal_static_BoardCoord_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              soc.proto.Data.PieceCoord.class, soc.proto.Data.PieceCoord.Builder.class);
+              soc.proto.Data.BoardCoord.class, soc.proto.Data.BoardCoord.Builder.class);
     }
 
     private int coordTypeCase_ = 0;
@@ -4475,10 +4475,10 @@ public final class Data {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof soc.proto.Data.PieceCoord)) {
+      if (!(obj instanceof soc.proto.Data.BoardCoord)) {
         return super.equals(obj);
       }
-      soc.proto.Data.PieceCoord other = (soc.proto.Data.PieceCoord) obj;
+      soc.proto.Data.BoardCoord other = (soc.proto.Data.BoardCoord) obj;
 
       boolean result = true;
       result = result && getCoordTypeCase().equals(
@@ -4532,69 +4532,69 @@ public final class Data {
       return hash;
     }
 
-    public static soc.proto.Data.PieceCoord parseFrom(
+    public static soc.proto.Data.BoardCoord parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static soc.proto.Data.PieceCoord parseFrom(
+    public static soc.proto.Data.BoardCoord parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static soc.proto.Data.PieceCoord parseFrom(
+    public static soc.proto.Data.BoardCoord parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static soc.proto.Data.PieceCoord parseFrom(
+    public static soc.proto.Data.BoardCoord parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static soc.proto.Data.PieceCoord parseFrom(byte[] data)
+    public static soc.proto.Data.BoardCoord parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static soc.proto.Data.PieceCoord parseFrom(
+    public static soc.proto.Data.BoardCoord parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static soc.proto.Data.PieceCoord parseFrom(java.io.InputStream input)
+    public static soc.proto.Data.BoardCoord parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static soc.proto.Data.PieceCoord parseFrom(
+    public static soc.proto.Data.BoardCoord parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
-    public static soc.proto.Data.PieceCoord parseDelimitedFrom(java.io.InputStream input)
+    public static soc.proto.Data.BoardCoord parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input);
     }
-    public static soc.proto.Data.PieceCoord parseDelimitedFrom(
+    public static soc.proto.Data.BoardCoord parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static soc.proto.Data.PieceCoord parseFrom(
+    public static soc.proto.Data.BoardCoord parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static soc.proto.Data.PieceCoord parseFrom(
+    public static soc.proto.Data.BoardCoord parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -4606,7 +4606,7 @@ public final class Data {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(soc.proto.Data.PieceCoord prototype) {
+    public static Builder newBuilder(soc.proto.Data.BoardCoord prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     public Builder toBuilder() {
@@ -4622,32 +4622,32 @@ public final class Data {
     }
     /**
      * <pre>
-     * Coordinate type for general messages about multiple types of pieces
-     * which may be located at a node, edge, or hex.
+     * Coordinate type to use in general messages about multiple types of pieces
+     * or other things which may be located at a node, edge, or hex.
      * Use edge_coord for roads and ships, node_coord for all other PieceTypes.
      * Currently no known PieceType uses hex_coord.
      * &#64;see PieceType
      * </pre>
      *
-     * Protobuf type {@code PieceCoord}
+     * Protobuf type {@code BoardCoord}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:PieceCoord)
-        soc.proto.Data.PieceCoordOrBuilder {
+        // @@protoc_insertion_point(builder_implements:BoardCoord)
+        soc.proto.Data.BoardCoordOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return soc.proto.Data.internal_static_PieceCoord_descriptor;
+        return soc.proto.Data.internal_static_BoardCoord_descriptor;
       }
 
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return soc.proto.Data.internal_static_PieceCoord_fieldAccessorTable
+        return soc.proto.Data.internal_static_BoardCoord_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                soc.proto.Data.PieceCoord.class, soc.proto.Data.PieceCoord.Builder.class);
+                soc.proto.Data.BoardCoord.class, soc.proto.Data.BoardCoord.Builder.class);
       }
 
-      // Construct using soc.proto.Data.PieceCoord.newBuilder()
+      // Construct using soc.proto.Data.BoardCoord.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
@@ -4671,23 +4671,23 @@ public final class Data {
 
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return soc.proto.Data.internal_static_PieceCoord_descriptor;
+        return soc.proto.Data.internal_static_BoardCoord_descriptor;
       }
 
-      public soc.proto.Data.PieceCoord getDefaultInstanceForType() {
-        return soc.proto.Data.PieceCoord.getDefaultInstance();
+      public soc.proto.Data.BoardCoord getDefaultInstanceForType() {
+        return soc.proto.Data.BoardCoord.getDefaultInstance();
       }
 
-      public soc.proto.Data.PieceCoord build() {
-        soc.proto.Data.PieceCoord result = buildPartial();
+      public soc.proto.Data.BoardCoord build() {
+        soc.proto.Data.BoardCoord result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
         return result;
       }
 
-      public soc.proto.Data.PieceCoord buildPartial() {
-        soc.proto.Data.PieceCoord result = new soc.proto.Data.PieceCoord(this);
+      public soc.proto.Data.BoardCoord buildPartial() {
+        soc.proto.Data.BoardCoord result = new soc.proto.Data.BoardCoord(this);
         if (coordTypeCase_ == 1) {
           if (nodeCoordBuilder_ == null) {
             result.coordType_ = coordType_;
@@ -4741,16 +4741,16 @@ public final class Data {
         return (Builder) super.addRepeatedField(field, value);
       }
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof soc.proto.Data.PieceCoord) {
-          return mergeFrom((soc.proto.Data.PieceCoord)other);
+        if (other instanceof soc.proto.Data.BoardCoord) {
+          return mergeFrom((soc.proto.Data.BoardCoord)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(soc.proto.Data.PieceCoord other) {
-        if (other == soc.proto.Data.PieceCoord.getDefaultInstance()) return this;
+      public Builder mergeFrom(soc.proto.Data.BoardCoord other) {
+        if (other == soc.proto.Data.BoardCoord.getDefaultInstance()) return this;
         switch (other.getCoordTypeCase()) {
           case NODE_COORD: {
             mergeNodeCoord(other.getNodeCoord());
@@ -4781,11 +4781,11 @@ public final class Data {
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        soc.proto.Data.PieceCoord parsedMessage = null;
+        soc.proto.Data.BoardCoord parsedMessage = null;
         try {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (soc.proto.Data.PieceCoord) e.getUnfinishedMessage();
+          parsedMessage = (soc.proto.Data.BoardCoord) e.getUnfinishedMessage();
           throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
@@ -5228,39 +5228,3087 @@ public final class Data {
       }
 
 
-      // @@protoc_insertion_point(builder_scope:PieceCoord)
+      // @@protoc_insertion_point(builder_scope:BoardCoord)
     }
 
-    // @@protoc_insertion_point(class_scope:PieceCoord)
-    private static final soc.proto.Data.PieceCoord DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:BoardCoord)
+    private static final soc.proto.Data.BoardCoord DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new soc.proto.Data.PieceCoord();
+      DEFAULT_INSTANCE = new soc.proto.Data.BoardCoord();
     }
 
-    public static soc.proto.Data.PieceCoord getDefaultInstance() {
+    public static soc.proto.Data.BoardCoord getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static final com.google.protobuf.Parser<PieceCoord>
-        PARSER = new com.google.protobuf.AbstractParser<PieceCoord>() {
-      public PieceCoord parsePartialFrom(
+    private static final com.google.protobuf.Parser<BoardCoord>
+        PARSER = new com.google.protobuf.AbstractParser<BoardCoord>() {
+      public BoardCoord parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new PieceCoord(input, extensionRegistry);
+          return new BoardCoord(input, extensionRegistry);
       }
     };
 
-    public static com.google.protobuf.Parser<PieceCoord> parser() {
+    public static com.google.protobuf.Parser<BoardCoord> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<PieceCoord> getParserForType() {
+    public com.google.protobuf.Parser<BoardCoord> getParserForType() {
       return PARSER;
     }
 
-    public soc.proto.Data.PieceCoord getDefaultInstanceForType() {
+    public soc.proto.Data.BoardCoord getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface _EdgeListOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:_EdgeList)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>repeated .EdgeCoord edge = 1;</code>
+     */
+    java.util.List<soc.proto.Data.EdgeCoord> 
+        getEdgeList();
+    /**
+     * <code>repeated .EdgeCoord edge = 1;</code>
+     */
+    soc.proto.Data.EdgeCoord getEdge(int index);
+    /**
+     * <code>repeated .EdgeCoord edge = 1;</code>
+     */
+    int getEdgeCount();
+    /**
+     * <code>repeated .EdgeCoord edge = 1;</code>
+     */
+    java.util.List<? extends soc.proto.Data.EdgeCoordOrBuilder> 
+        getEdgeOrBuilderList();
+    /**
+     * <code>repeated .EdgeCoord edge = 1;</code>
+     */
+    soc.proto.Data.EdgeCoordOrBuilder getEdgeOrBuilder(
+        int index);
+  }
+  /**
+   * <pre>
+   * Data type for list of EdgeCoord, since oneof and map can't directly contain a repeated field. 
+   * </pre>
+   *
+   * Protobuf type {@code _EdgeList}
+   */
+  public  static final class _EdgeList extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:_EdgeList)
+      _EdgeListOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use _EdgeList.newBuilder() to construct.
+    private _EdgeList(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private _EdgeList() {
+      edge_ = java.util.Collections.emptyList();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private _EdgeList(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                edge_ = new java.util.ArrayList<soc.proto.Data.EdgeCoord>();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              edge_.add(
+                  input.readMessage(soc.proto.Data.EdgeCoord.parser(), extensionRegistry));
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+          edge_ = java.util.Collections.unmodifiableList(edge_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.Data.internal_static__EdgeList_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.Data.internal_static__EdgeList_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.Data._EdgeList.class, soc.proto.Data._EdgeList.Builder.class);
+    }
+
+    public static final int EDGE_FIELD_NUMBER = 1;
+    private java.util.List<soc.proto.Data.EdgeCoord> edge_;
+    /**
+     * <code>repeated .EdgeCoord edge = 1;</code>
+     */
+    public java.util.List<soc.proto.Data.EdgeCoord> getEdgeList() {
+      return edge_;
+    }
+    /**
+     * <code>repeated .EdgeCoord edge = 1;</code>
+     */
+    public java.util.List<? extends soc.proto.Data.EdgeCoordOrBuilder> 
+        getEdgeOrBuilderList() {
+      return edge_;
+    }
+    /**
+     * <code>repeated .EdgeCoord edge = 1;</code>
+     */
+    public int getEdgeCount() {
+      return edge_.size();
+    }
+    /**
+     * <code>repeated .EdgeCoord edge = 1;</code>
+     */
+    public soc.proto.Data.EdgeCoord getEdge(int index) {
+      return edge_.get(index);
+    }
+    /**
+     * <code>repeated .EdgeCoord edge = 1;</code>
+     */
+    public soc.proto.Data.EdgeCoordOrBuilder getEdgeOrBuilder(
+        int index) {
+      return edge_.get(index);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      for (int i = 0; i < edge_.size(); i++) {
+        output.writeMessage(1, edge_.get(i));
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      for (int i = 0; i < edge_.size(); i++) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, edge_.get(i));
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.Data._EdgeList)) {
+        return super.equals(obj);
+      }
+      soc.proto.Data._EdgeList other = (soc.proto.Data._EdgeList) obj;
+
+      boolean result = true;
+      result = result && getEdgeList()
+          .equals(other.getEdgeList());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (getEdgeCount() > 0) {
+        hash = (37 * hash) + EDGE_FIELD_NUMBER;
+        hash = (53 * hash) + getEdgeList().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.Data._EdgeList parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.Data._EdgeList parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.Data._EdgeList parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.Data._EdgeList parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.Data._EdgeList parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.Data._EdgeList parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.Data._EdgeList parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.Data._EdgeList parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.Data._EdgeList parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.Data._EdgeList parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.Data._EdgeList parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.Data._EdgeList parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.Data._EdgeList prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * Data type for list of EdgeCoord, since oneof and map can't directly contain a repeated field. 
+     * </pre>
+     *
+     * Protobuf type {@code _EdgeList}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:_EdgeList)
+        soc.proto.Data._EdgeListOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.Data.internal_static__EdgeList_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.Data.internal_static__EdgeList_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.Data._EdgeList.class, soc.proto.Data._EdgeList.Builder.class);
+      }
+
+      // Construct using soc.proto.Data._EdgeList.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+          getEdgeFieldBuilder();
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        if (edgeBuilder_ == null) {
+          edge_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000001);
+        } else {
+          edgeBuilder_.clear();
+        }
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.Data.internal_static__EdgeList_descriptor;
+      }
+
+      public soc.proto.Data._EdgeList getDefaultInstanceForType() {
+        return soc.proto.Data._EdgeList.getDefaultInstance();
+      }
+
+      public soc.proto.Data._EdgeList build() {
+        soc.proto.Data._EdgeList result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.Data._EdgeList buildPartial() {
+        soc.proto.Data._EdgeList result = new soc.proto.Data._EdgeList(this);
+        int from_bitField0_ = bitField0_;
+        if (edgeBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) == 0x00000001)) {
+            edge_ = java.util.Collections.unmodifiableList(edge_);
+            bitField0_ = (bitField0_ & ~0x00000001);
+          }
+          result.edge_ = edge_;
+        } else {
+          result.edge_ = edgeBuilder_.build();
+        }
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.Data._EdgeList) {
+          return mergeFrom((soc.proto.Data._EdgeList)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.Data._EdgeList other) {
+        if (other == soc.proto.Data._EdgeList.getDefaultInstance()) return this;
+        if (edgeBuilder_ == null) {
+          if (!other.edge_.isEmpty()) {
+            if (edge_.isEmpty()) {
+              edge_ = other.edge_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+            } else {
+              ensureEdgeIsMutable();
+              edge_.addAll(other.edge_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.edge_.isEmpty()) {
+            if (edgeBuilder_.isEmpty()) {
+              edgeBuilder_.dispose();
+              edgeBuilder_ = null;
+              edge_ = other.edge_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+              edgeBuilder_ = 
+                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                   getEdgeFieldBuilder() : null;
+            } else {
+              edgeBuilder_.addAllMessages(other.edge_);
+            }
+          }
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.Data._EdgeList parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.Data._EdgeList) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private java.util.List<soc.proto.Data.EdgeCoord> edge_ =
+        java.util.Collections.emptyList();
+      private void ensureEdgeIsMutable() {
+        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+          edge_ = new java.util.ArrayList<soc.proto.Data.EdgeCoord>(edge_);
+          bitField0_ |= 0x00000001;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          soc.proto.Data.EdgeCoord, soc.proto.Data.EdgeCoord.Builder, soc.proto.Data.EdgeCoordOrBuilder> edgeBuilder_;
+
+      /**
+       * <code>repeated .EdgeCoord edge = 1;</code>
+       */
+      public java.util.List<soc.proto.Data.EdgeCoord> getEdgeList() {
+        if (edgeBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(edge_);
+        } else {
+          return edgeBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .EdgeCoord edge = 1;</code>
+       */
+      public int getEdgeCount() {
+        if (edgeBuilder_ == null) {
+          return edge_.size();
+        } else {
+          return edgeBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .EdgeCoord edge = 1;</code>
+       */
+      public soc.proto.Data.EdgeCoord getEdge(int index) {
+        if (edgeBuilder_ == null) {
+          return edge_.get(index);
+        } else {
+          return edgeBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .EdgeCoord edge = 1;</code>
+       */
+      public Builder setEdge(
+          int index, soc.proto.Data.EdgeCoord value) {
+        if (edgeBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureEdgeIsMutable();
+          edge_.set(index, value);
+          onChanged();
+        } else {
+          edgeBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .EdgeCoord edge = 1;</code>
+       */
+      public Builder setEdge(
+          int index, soc.proto.Data.EdgeCoord.Builder builderForValue) {
+        if (edgeBuilder_ == null) {
+          ensureEdgeIsMutable();
+          edge_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          edgeBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .EdgeCoord edge = 1;</code>
+       */
+      public Builder addEdge(soc.proto.Data.EdgeCoord value) {
+        if (edgeBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureEdgeIsMutable();
+          edge_.add(value);
+          onChanged();
+        } else {
+          edgeBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .EdgeCoord edge = 1;</code>
+       */
+      public Builder addEdge(
+          int index, soc.proto.Data.EdgeCoord value) {
+        if (edgeBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureEdgeIsMutable();
+          edge_.add(index, value);
+          onChanged();
+        } else {
+          edgeBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .EdgeCoord edge = 1;</code>
+       */
+      public Builder addEdge(
+          soc.proto.Data.EdgeCoord.Builder builderForValue) {
+        if (edgeBuilder_ == null) {
+          ensureEdgeIsMutable();
+          edge_.add(builderForValue.build());
+          onChanged();
+        } else {
+          edgeBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .EdgeCoord edge = 1;</code>
+       */
+      public Builder addEdge(
+          int index, soc.proto.Data.EdgeCoord.Builder builderForValue) {
+        if (edgeBuilder_ == null) {
+          ensureEdgeIsMutable();
+          edge_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          edgeBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .EdgeCoord edge = 1;</code>
+       */
+      public Builder addAllEdge(
+          java.lang.Iterable<? extends soc.proto.Data.EdgeCoord> values) {
+        if (edgeBuilder_ == null) {
+          ensureEdgeIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, edge_);
+          onChanged();
+        } else {
+          edgeBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .EdgeCoord edge = 1;</code>
+       */
+      public Builder clearEdge() {
+        if (edgeBuilder_ == null) {
+          edge_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000001);
+          onChanged();
+        } else {
+          edgeBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .EdgeCoord edge = 1;</code>
+       */
+      public Builder removeEdge(int index) {
+        if (edgeBuilder_ == null) {
+          ensureEdgeIsMutable();
+          edge_.remove(index);
+          onChanged();
+        } else {
+          edgeBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .EdgeCoord edge = 1;</code>
+       */
+      public soc.proto.Data.EdgeCoord.Builder getEdgeBuilder(
+          int index) {
+        return getEdgeFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .EdgeCoord edge = 1;</code>
+       */
+      public soc.proto.Data.EdgeCoordOrBuilder getEdgeOrBuilder(
+          int index) {
+        if (edgeBuilder_ == null) {
+          return edge_.get(index);  } else {
+          return edgeBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .EdgeCoord edge = 1;</code>
+       */
+      public java.util.List<? extends soc.proto.Data.EdgeCoordOrBuilder> 
+           getEdgeOrBuilderList() {
+        if (edgeBuilder_ != null) {
+          return edgeBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(edge_);
+        }
+      }
+      /**
+       * <code>repeated .EdgeCoord edge = 1;</code>
+       */
+      public soc.proto.Data.EdgeCoord.Builder addEdgeBuilder() {
+        return getEdgeFieldBuilder().addBuilder(
+            soc.proto.Data.EdgeCoord.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .EdgeCoord edge = 1;</code>
+       */
+      public soc.proto.Data.EdgeCoord.Builder addEdgeBuilder(
+          int index) {
+        return getEdgeFieldBuilder().addBuilder(
+            index, soc.proto.Data.EdgeCoord.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .EdgeCoord edge = 1;</code>
+       */
+      public java.util.List<soc.proto.Data.EdgeCoord.Builder> 
+           getEdgeBuilderList() {
+        return getEdgeFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          soc.proto.Data.EdgeCoord, soc.proto.Data.EdgeCoord.Builder, soc.proto.Data.EdgeCoordOrBuilder> 
+          getEdgeFieldBuilder() {
+        if (edgeBuilder_ == null) {
+          edgeBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+              soc.proto.Data.EdgeCoord, soc.proto.Data.EdgeCoord.Builder, soc.proto.Data.EdgeCoordOrBuilder>(
+                  edge_,
+                  ((bitField0_ & 0x00000001) == 0x00000001),
+                  getParentForChildren(),
+                  isClean());
+          edge_ = null;
+        }
+        return edgeBuilder_;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:_EdgeList)
+    }
+
+    // @@protoc_insertion_point(class_scope:_EdgeList)
+    private static final soc.proto.Data._EdgeList DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.Data._EdgeList();
+    }
+
+    public static soc.proto.Data._EdgeList getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<_EdgeList>
+        PARSER = new com.google.protobuf.AbstractParser<_EdgeList>() {
+      public _EdgeList parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new _EdgeList(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<_EdgeList> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<_EdgeList> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.Data._EdgeList getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface _HexListOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:_HexList)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>repeated .HexCoord hex = 1;</code>
+     */
+    java.util.List<soc.proto.Data.HexCoord> 
+        getHexList();
+    /**
+     * <code>repeated .HexCoord hex = 1;</code>
+     */
+    soc.proto.Data.HexCoord getHex(int index);
+    /**
+     * <code>repeated .HexCoord hex = 1;</code>
+     */
+    int getHexCount();
+    /**
+     * <code>repeated .HexCoord hex = 1;</code>
+     */
+    java.util.List<? extends soc.proto.Data.HexCoordOrBuilder> 
+        getHexOrBuilderList();
+    /**
+     * <code>repeated .HexCoord hex = 1;</code>
+     */
+    soc.proto.Data.HexCoordOrBuilder getHexOrBuilder(
+        int index);
+  }
+  /**
+   * <pre>
+   * Data type for list of HexCoord, since oneof and map can't directly contain a repeated field. 
+   * </pre>
+   *
+   * Protobuf type {@code _HexList}
+   */
+  public  static final class _HexList extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:_HexList)
+      _HexListOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use _HexList.newBuilder() to construct.
+    private _HexList(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private _HexList() {
+      hex_ = java.util.Collections.emptyList();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private _HexList(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                hex_ = new java.util.ArrayList<soc.proto.Data.HexCoord>();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              hex_.add(
+                  input.readMessage(soc.proto.Data.HexCoord.parser(), extensionRegistry));
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+          hex_ = java.util.Collections.unmodifiableList(hex_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.Data.internal_static__HexList_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.Data.internal_static__HexList_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.Data._HexList.class, soc.proto.Data._HexList.Builder.class);
+    }
+
+    public static final int HEX_FIELD_NUMBER = 1;
+    private java.util.List<soc.proto.Data.HexCoord> hex_;
+    /**
+     * <code>repeated .HexCoord hex = 1;</code>
+     */
+    public java.util.List<soc.proto.Data.HexCoord> getHexList() {
+      return hex_;
+    }
+    /**
+     * <code>repeated .HexCoord hex = 1;</code>
+     */
+    public java.util.List<? extends soc.proto.Data.HexCoordOrBuilder> 
+        getHexOrBuilderList() {
+      return hex_;
+    }
+    /**
+     * <code>repeated .HexCoord hex = 1;</code>
+     */
+    public int getHexCount() {
+      return hex_.size();
+    }
+    /**
+     * <code>repeated .HexCoord hex = 1;</code>
+     */
+    public soc.proto.Data.HexCoord getHex(int index) {
+      return hex_.get(index);
+    }
+    /**
+     * <code>repeated .HexCoord hex = 1;</code>
+     */
+    public soc.proto.Data.HexCoordOrBuilder getHexOrBuilder(
+        int index) {
+      return hex_.get(index);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      for (int i = 0; i < hex_.size(); i++) {
+        output.writeMessage(1, hex_.get(i));
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      for (int i = 0; i < hex_.size(); i++) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, hex_.get(i));
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.Data._HexList)) {
+        return super.equals(obj);
+      }
+      soc.proto.Data._HexList other = (soc.proto.Data._HexList) obj;
+
+      boolean result = true;
+      result = result && getHexList()
+          .equals(other.getHexList());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (getHexCount() > 0) {
+        hash = (37 * hash) + HEX_FIELD_NUMBER;
+        hash = (53 * hash) + getHexList().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.Data._HexList parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.Data._HexList parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.Data._HexList parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.Data._HexList parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.Data._HexList parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.Data._HexList parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.Data._HexList parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.Data._HexList parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.Data._HexList parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.Data._HexList parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.Data._HexList parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.Data._HexList parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.Data._HexList prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * Data type for list of HexCoord, since oneof and map can't directly contain a repeated field. 
+     * </pre>
+     *
+     * Protobuf type {@code _HexList}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:_HexList)
+        soc.proto.Data._HexListOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.Data.internal_static__HexList_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.Data.internal_static__HexList_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.Data._HexList.class, soc.proto.Data._HexList.Builder.class);
+      }
+
+      // Construct using soc.proto.Data._HexList.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+          getHexFieldBuilder();
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        if (hexBuilder_ == null) {
+          hex_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000001);
+        } else {
+          hexBuilder_.clear();
+        }
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.Data.internal_static__HexList_descriptor;
+      }
+
+      public soc.proto.Data._HexList getDefaultInstanceForType() {
+        return soc.proto.Data._HexList.getDefaultInstance();
+      }
+
+      public soc.proto.Data._HexList build() {
+        soc.proto.Data._HexList result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.Data._HexList buildPartial() {
+        soc.proto.Data._HexList result = new soc.proto.Data._HexList(this);
+        int from_bitField0_ = bitField0_;
+        if (hexBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) == 0x00000001)) {
+            hex_ = java.util.Collections.unmodifiableList(hex_);
+            bitField0_ = (bitField0_ & ~0x00000001);
+          }
+          result.hex_ = hex_;
+        } else {
+          result.hex_ = hexBuilder_.build();
+        }
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.Data._HexList) {
+          return mergeFrom((soc.proto.Data._HexList)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.Data._HexList other) {
+        if (other == soc.proto.Data._HexList.getDefaultInstance()) return this;
+        if (hexBuilder_ == null) {
+          if (!other.hex_.isEmpty()) {
+            if (hex_.isEmpty()) {
+              hex_ = other.hex_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+            } else {
+              ensureHexIsMutable();
+              hex_.addAll(other.hex_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.hex_.isEmpty()) {
+            if (hexBuilder_.isEmpty()) {
+              hexBuilder_.dispose();
+              hexBuilder_ = null;
+              hex_ = other.hex_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+              hexBuilder_ = 
+                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                   getHexFieldBuilder() : null;
+            } else {
+              hexBuilder_.addAllMessages(other.hex_);
+            }
+          }
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.Data._HexList parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.Data._HexList) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private java.util.List<soc.proto.Data.HexCoord> hex_ =
+        java.util.Collections.emptyList();
+      private void ensureHexIsMutable() {
+        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+          hex_ = new java.util.ArrayList<soc.proto.Data.HexCoord>(hex_);
+          bitField0_ |= 0x00000001;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          soc.proto.Data.HexCoord, soc.proto.Data.HexCoord.Builder, soc.proto.Data.HexCoordOrBuilder> hexBuilder_;
+
+      /**
+       * <code>repeated .HexCoord hex = 1;</code>
+       */
+      public java.util.List<soc.proto.Data.HexCoord> getHexList() {
+        if (hexBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(hex_);
+        } else {
+          return hexBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .HexCoord hex = 1;</code>
+       */
+      public int getHexCount() {
+        if (hexBuilder_ == null) {
+          return hex_.size();
+        } else {
+          return hexBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .HexCoord hex = 1;</code>
+       */
+      public soc.proto.Data.HexCoord getHex(int index) {
+        if (hexBuilder_ == null) {
+          return hex_.get(index);
+        } else {
+          return hexBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .HexCoord hex = 1;</code>
+       */
+      public Builder setHex(
+          int index, soc.proto.Data.HexCoord value) {
+        if (hexBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureHexIsMutable();
+          hex_.set(index, value);
+          onChanged();
+        } else {
+          hexBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .HexCoord hex = 1;</code>
+       */
+      public Builder setHex(
+          int index, soc.proto.Data.HexCoord.Builder builderForValue) {
+        if (hexBuilder_ == null) {
+          ensureHexIsMutable();
+          hex_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          hexBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .HexCoord hex = 1;</code>
+       */
+      public Builder addHex(soc.proto.Data.HexCoord value) {
+        if (hexBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureHexIsMutable();
+          hex_.add(value);
+          onChanged();
+        } else {
+          hexBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .HexCoord hex = 1;</code>
+       */
+      public Builder addHex(
+          int index, soc.proto.Data.HexCoord value) {
+        if (hexBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureHexIsMutable();
+          hex_.add(index, value);
+          onChanged();
+        } else {
+          hexBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .HexCoord hex = 1;</code>
+       */
+      public Builder addHex(
+          soc.proto.Data.HexCoord.Builder builderForValue) {
+        if (hexBuilder_ == null) {
+          ensureHexIsMutable();
+          hex_.add(builderForValue.build());
+          onChanged();
+        } else {
+          hexBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .HexCoord hex = 1;</code>
+       */
+      public Builder addHex(
+          int index, soc.proto.Data.HexCoord.Builder builderForValue) {
+        if (hexBuilder_ == null) {
+          ensureHexIsMutable();
+          hex_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          hexBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .HexCoord hex = 1;</code>
+       */
+      public Builder addAllHex(
+          java.lang.Iterable<? extends soc.proto.Data.HexCoord> values) {
+        if (hexBuilder_ == null) {
+          ensureHexIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, hex_);
+          onChanged();
+        } else {
+          hexBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .HexCoord hex = 1;</code>
+       */
+      public Builder clearHex() {
+        if (hexBuilder_ == null) {
+          hex_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000001);
+          onChanged();
+        } else {
+          hexBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .HexCoord hex = 1;</code>
+       */
+      public Builder removeHex(int index) {
+        if (hexBuilder_ == null) {
+          ensureHexIsMutable();
+          hex_.remove(index);
+          onChanged();
+        } else {
+          hexBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .HexCoord hex = 1;</code>
+       */
+      public soc.proto.Data.HexCoord.Builder getHexBuilder(
+          int index) {
+        return getHexFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .HexCoord hex = 1;</code>
+       */
+      public soc.proto.Data.HexCoordOrBuilder getHexOrBuilder(
+          int index) {
+        if (hexBuilder_ == null) {
+          return hex_.get(index);  } else {
+          return hexBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .HexCoord hex = 1;</code>
+       */
+      public java.util.List<? extends soc.proto.Data.HexCoordOrBuilder> 
+           getHexOrBuilderList() {
+        if (hexBuilder_ != null) {
+          return hexBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(hex_);
+        }
+      }
+      /**
+       * <code>repeated .HexCoord hex = 1;</code>
+       */
+      public soc.proto.Data.HexCoord.Builder addHexBuilder() {
+        return getHexFieldBuilder().addBuilder(
+            soc.proto.Data.HexCoord.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .HexCoord hex = 1;</code>
+       */
+      public soc.proto.Data.HexCoord.Builder addHexBuilder(
+          int index) {
+        return getHexFieldBuilder().addBuilder(
+            index, soc.proto.Data.HexCoord.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .HexCoord hex = 1;</code>
+       */
+      public java.util.List<soc.proto.Data.HexCoord.Builder> 
+           getHexBuilderList() {
+        return getHexFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          soc.proto.Data.HexCoord, soc.proto.Data.HexCoord.Builder, soc.proto.Data.HexCoordOrBuilder> 
+          getHexFieldBuilder() {
+        if (hexBuilder_ == null) {
+          hexBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+              soc.proto.Data.HexCoord, soc.proto.Data.HexCoord.Builder, soc.proto.Data.HexCoordOrBuilder>(
+                  hex_,
+                  ((bitField0_ & 0x00000001) == 0x00000001),
+                  getParentForChildren(),
+                  isClean());
+          hex_ = null;
+        }
+        return hexBuilder_;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:_HexList)
+    }
+
+    // @@protoc_insertion_point(class_scope:_HexList)
+    private static final soc.proto.Data._HexList DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.Data._HexList();
+    }
+
+    public static soc.proto.Data._HexList getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<_HexList>
+        PARSER = new com.google.protobuf.AbstractParser<_HexList>() {
+      public _HexList parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new _HexList(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<_HexList> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<_HexList> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.Data._HexList getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface _NodeListOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:_NodeList)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>repeated .NodeCoord node = 1;</code>
+     */
+    java.util.List<soc.proto.Data.NodeCoord> 
+        getNodeList();
+    /**
+     * <code>repeated .NodeCoord node = 1;</code>
+     */
+    soc.proto.Data.NodeCoord getNode(int index);
+    /**
+     * <code>repeated .NodeCoord node = 1;</code>
+     */
+    int getNodeCount();
+    /**
+     * <code>repeated .NodeCoord node = 1;</code>
+     */
+    java.util.List<? extends soc.proto.Data.NodeCoordOrBuilder> 
+        getNodeOrBuilderList();
+    /**
+     * <code>repeated .NodeCoord node = 1;</code>
+     */
+    soc.proto.Data.NodeCoordOrBuilder getNodeOrBuilder(
+        int index);
+  }
+  /**
+   * <pre>
+   * Data type for list of NodeCoord, since oneof and map can't directly contain a repeated field. 
+   * </pre>
+   *
+   * Protobuf type {@code _NodeList}
+   */
+  public  static final class _NodeList extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:_NodeList)
+      _NodeListOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use _NodeList.newBuilder() to construct.
+    private _NodeList(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private _NodeList() {
+      node_ = java.util.Collections.emptyList();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private _NodeList(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                node_ = new java.util.ArrayList<soc.proto.Data.NodeCoord>();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              node_.add(
+                  input.readMessage(soc.proto.Data.NodeCoord.parser(), extensionRegistry));
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+          node_ = java.util.Collections.unmodifiableList(node_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.Data.internal_static__NodeList_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.Data.internal_static__NodeList_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.Data._NodeList.class, soc.proto.Data._NodeList.Builder.class);
+    }
+
+    public static final int NODE_FIELD_NUMBER = 1;
+    private java.util.List<soc.proto.Data.NodeCoord> node_;
+    /**
+     * <code>repeated .NodeCoord node = 1;</code>
+     */
+    public java.util.List<soc.proto.Data.NodeCoord> getNodeList() {
+      return node_;
+    }
+    /**
+     * <code>repeated .NodeCoord node = 1;</code>
+     */
+    public java.util.List<? extends soc.proto.Data.NodeCoordOrBuilder> 
+        getNodeOrBuilderList() {
+      return node_;
+    }
+    /**
+     * <code>repeated .NodeCoord node = 1;</code>
+     */
+    public int getNodeCount() {
+      return node_.size();
+    }
+    /**
+     * <code>repeated .NodeCoord node = 1;</code>
+     */
+    public soc.proto.Data.NodeCoord getNode(int index) {
+      return node_.get(index);
+    }
+    /**
+     * <code>repeated .NodeCoord node = 1;</code>
+     */
+    public soc.proto.Data.NodeCoordOrBuilder getNodeOrBuilder(
+        int index) {
+      return node_.get(index);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      for (int i = 0; i < node_.size(); i++) {
+        output.writeMessage(1, node_.get(i));
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      for (int i = 0; i < node_.size(); i++) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, node_.get(i));
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.Data._NodeList)) {
+        return super.equals(obj);
+      }
+      soc.proto.Data._NodeList other = (soc.proto.Data._NodeList) obj;
+
+      boolean result = true;
+      result = result && getNodeList()
+          .equals(other.getNodeList());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (getNodeCount() > 0) {
+        hash = (37 * hash) + NODE_FIELD_NUMBER;
+        hash = (53 * hash) + getNodeList().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.Data._NodeList parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.Data._NodeList parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.Data._NodeList parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.Data._NodeList parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.Data._NodeList parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.Data._NodeList parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.Data._NodeList parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.Data._NodeList parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.Data._NodeList parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.Data._NodeList parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.Data._NodeList parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.Data._NodeList parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.Data._NodeList prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * Data type for list of NodeCoord, since oneof and map can't directly contain a repeated field. 
+     * </pre>
+     *
+     * Protobuf type {@code _NodeList}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:_NodeList)
+        soc.proto.Data._NodeListOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.Data.internal_static__NodeList_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.Data.internal_static__NodeList_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.Data._NodeList.class, soc.proto.Data._NodeList.Builder.class);
+      }
+
+      // Construct using soc.proto.Data._NodeList.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+          getNodeFieldBuilder();
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        if (nodeBuilder_ == null) {
+          node_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000001);
+        } else {
+          nodeBuilder_.clear();
+        }
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.Data.internal_static__NodeList_descriptor;
+      }
+
+      public soc.proto.Data._NodeList getDefaultInstanceForType() {
+        return soc.proto.Data._NodeList.getDefaultInstance();
+      }
+
+      public soc.proto.Data._NodeList build() {
+        soc.proto.Data._NodeList result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.Data._NodeList buildPartial() {
+        soc.proto.Data._NodeList result = new soc.proto.Data._NodeList(this);
+        int from_bitField0_ = bitField0_;
+        if (nodeBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) == 0x00000001)) {
+            node_ = java.util.Collections.unmodifiableList(node_);
+            bitField0_ = (bitField0_ & ~0x00000001);
+          }
+          result.node_ = node_;
+        } else {
+          result.node_ = nodeBuilder_.build();
+        }
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.Data._NodeList) {
+          return mergeFrom((soc.proto.Data._NodeList)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.Data._NodeList other) {
+        if (other == soc.proto.Data._NodeList.getDefaultInstance()) return this;
+        if (nodeBuilder_ == null) {
+          if (!other.node_.isEmpty()) {
+            if (node_.isEmpty()) {
+              node_ = other.node_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+            } else {
+              ensureNodeIsMutable();
+              node_.addAll(other.node_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.node_.isEmpty()) {
+            if (nodeBuilder_.isEmpty()) {
+              nodeBuilder_.dispose();
+              nodeBuilder_ = null;
+              node_ = other.node_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+              nodeBuilder_ = 
+                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                   getNodeFieldBuilder() : null;
+            } else {
+              nodeBuilder_.addAllMessages(other.node_);
+            }
+          }
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.Data._NodeList parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.Data._NodeList) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private java.util.List<soc.proto.Data.NodeCoord> node_ =
+        java.util.Collections.emptyList();
+      private void ensureNodeIsMutable() {
+        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+          node_ = new java.util.ArrayList<soc.proto.Data.NodeCoord>(node_);
+          bitField0_ |= 0x00000001;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          soc.proto.Data.NodeCoord, soc.proto.Data.NodeCoord.Builder, soc.proto.Data.NodeCoordOrBuilder> nodeBuilder_;
+
+      /**
+       * <code>repeated .NodeCoord node = 1;</code>
+       */
+      public java.util.List<soc.proto.Data.NodeCoord> getNodeList() {
+        if (nodeBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(node_);
+        } else {
+          return nodeBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .NodeCoord node = 1;</code>
+       */
+      public int getNodeCount() {
+        if (nodeBuilder_ == null) {
+          return node_.size();
+        } else {
+          return nodeBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .NodeCoord node = 1;</code>
+       */
+      public soc.proto.Data.NodeCoord getNode(int index) {
+        if (nodeBuilder_ == null) {
+          return node_.get(index);
+        } else {
+          return nodeBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .NodeCoord node = 1;</code>
+       */
+      public Builder setNode(
+          int index, soc.proto.Data.NodeCoord value) {
+        if (nodeBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureNodeIsMutable();
+          node_.set(index, value);
+          onChanged();
+        } else {
+          nodeBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .NodeCoord node = 1;</code>
+       */
+      public Builder setNode(
+          int index, soc.proto.Data.NodeCoord.Builder builderForValue) {
+        if (nodeBuilder_ == null) {
+          ensureNodeIsMutable();
+          node_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          nodeBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .NodeCoord node = 1;</code>
+       */
+      public Builder addNode(soc.proto.Data.NodeCoord value) {
+        if (nodeBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureNodeIsMutable();
+          node_.add(value);
+          onChanged();
+        } else {
+          nodeBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .NodeCoord node = 1;</code>
+       */
+      public Builder addNode(
+          int index, soc.proto.Data.NodeCoord value) {
+        if (nodeBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureNodeIsMutable();
+          node_.add(index, value);
+          onChanged();
+        } else {
+          nodeBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .NodeCoord node = 1;</code>
+       */
+      public Builder addNode(
+          soc.proto.Data.NodeCoord.Builder builderForValue) {
+        if (nodeBuilder_ == null) {
+          ensureNodeIsMutable();
+          node_.add(builderForValue.build());
+          onChanged();
+        } else {
+          nodeBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .NodeCoord node = 1;</code>
+       */
+      public Builder addNode(
+          int index, soc.proto.Data.NodeCoord.Builder builderForValue) {
+        if (nodeBuilder_ == null) {
+          ensureNodeIsMutable();
+          node_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          nodeBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .NodeCoord node = 1;</code>
+       */
+      public Builder addAllNode(
+          java.lang.Iterable<? extends soc.proto.Data.NodeCoord> values) {
+        if (nodeBuilder_ == null) {
+          ensureNodeIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, node_);
+          onChanged();
+        } else {
+          nodeBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .NodeCoord node = 1;</code>
+       */
+      public Builder clearNode() {
+        if (nodeBuilder_ == null) {
+          node_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000001);
+          onChanged();
+        } else {
+          nodeBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .NodeCoord node = 1;</code>
+       */
+      public Builder removeNode(int index) {
+        if (nodeBuilder_ == null) {
+          ensureNodeIsMutable();
+          node_.remove(index);
+          onChanged();
+        } else {
+          nodeBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .NodeCoord node = 1;</code>
+       */
+      public soc.proto.Data.NodeCoord.Builder getNodeBuilder(
+          int index) {
+        return getNodeFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .NodeCoord node = 1;</code>
+       */
+      public soc.proto.Data.NodeCoordOrBuilder getNodeOrBuilder(
+          int index) {
+        if (nodeBuilder_ == null) {
+          return node_.get(index);  } else {
+          return nodeBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .NodeCoord node = 1;</code>
+       */
+      public java.util.List<? extends soc.proto.Data.NodeCoordOrBuilder> 
+           getNodeOrBuilderList() {
+        if (nodeBuilder_ != null) {
+          return nodeBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(node_);
+        }
+      }
+      /**
+       * <code>repeated .NodeCoord node = 1;</code>
+       */
+      public soc.proto.Data.NodeCoord.Builder addNodeBuilder() {
+        return getNodeFieldBuilder().addBuilder(
+            soc.proto.Data.NodeCoord.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .NodeCoord node = 1;</code>
+       */
+      public soc.proto.Data.NodeCoord.Builder addNodeBuilder(
+          int index) {
+        return getNodeFieldBuilder().addBuilder(
+            index, soc.proto.Data.NodeCoord.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .NodeCoord node = 1;</code>
+       */
+      public java.util.List<soc.proto.Data.NodeCoord.Builder> 
+           getNodeBuilderList() {
+        return getNodeFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          soc.proto.Data.NodeCoord, soc.proto.Data.NodeCoord.Builder, soc.proto.Data.NodeCoordOrBuilder> 
+          getNodeFieldBuilder() {
+        if (nodeBuilder_ == null) {
+          nodeBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+              soc.proto.Data.NodeCoord, soc.proto.Data.NodeCoord.Builder, soc.proto.Data.NodeCoordOrBuilder>(
+                  node_,
+                  ((bitField0_ & 0x00000001) == 0x00000001),
+                  getParentForChildren(),
+                  isClean());
+          node_ = null;
+        }
+        return nodeBuilder_;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:_NodeList)
+    }
+
+    // @@protoc_insertion_point(class_scope:_NodeList)
+    private static final soc.proto.Data._NodeList DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.Data._NodeList();
+    }
+
+    public static soc.proto.Data._NodeList getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<_NodeList>
+        PARSER = new com.google.protobuf.AbstractParser<_NodeList>() {
+      public _NodeList parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new _NodeList(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<_NodeList> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<_NodeList> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.Data._NodeList getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface _BoardCoordListOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:_BoardCoordList)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>repeated .BoardCoord coord = 1;</code>
+     */
+    java.util.List<soc.proto.Data.BoardCoord> 
+        getCoordList();
+    /**
+     * <code>repeated .BoardCoord coord = 1;</code>
+     */
+    soc.proto.Data.BoardCoord getCoord(int index);
+    /**
+     * <code>repeated .BoardCoord coord = 1;</code>
+     */
+    int getCoordCount();
+    /**
+     * <code>repeated .BoardCoord coord = 1;</code>
+     */
+    java.util.List<? extends soc.proto.Data.BoardCoordOrBuilder> 
+        getCoordOrBuilderList();
+    /**
+     * <code>repeated .BoardCoord coord = 1;</code>
+     */
+    soc.proto.Data.BoardCoordOrBuilder getCoordOrBuilder(
+        int index);
+  }
+  /**
+   * <pre>
+   * Data type for list of BoardCoord, since oneof and map can't directly contain a repeated field. 
+   * </pre>
+   *
+   * Protobuf type {@code _BoardCoordList}
+   */
+  public  static final class _BoardCoordList extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:_BoardCoordList)
+      _BoardCoordListOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use _BoardCoordList.newBuilder() to construct.
+    private _BoardCoordList(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private _BoardCoordList() {
+      coord_ = java.util.Collections.emptyList();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private _BoardCoordList(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                coord_ = new java.util.ArrayList<soc.proto.Data.BoardCoord>();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              coord_.add(
+                  input.readMessage(soc.proto.Data.BoardCoord.parser(), extensionRegistry));
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+          coord_ = java.util.Collections.unmodifiableList(coord_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.Data.internal_static__BoardCoordList_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.Data.internal_static__BoardCoordList_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.Data._BoardCoordList.class, soc.proto.Data._BoardCoordList.Builder.class);
+    }
+
+    public static final int COORD_FIELD_NUMBER = 1;
+    private java.util.List<soc.proto.Data.BoardCoord> coord_;
+    /**
+     * <code>repeated .BoardCoord coord = 1;</code>
+     */
+    public java.util.List<soc.proto.Data.BoardCoord> getCoordList() {
+      return coord_;
+    }
+    /**
+     * <code>repeated .BoardCoord coord = 1;</code>
+     */
+    public java.util.List<? extends soc.proto.Data.BoardCoordOrBuilder> 
+        getCoordOrBuilderList() {
+      return coord_;
+    }
+    /**
+     * <code>repeated .BoardCoord coord = 1;</code>
+     */
+    public int getCoordCount() {
+      return coord_.size();
+    }
+    /**
+     * <code>repeated .BoardCoord coord = 1;</code>
+     */
+    public soc.proto.Data.BoardCoord getCoord(int index) {
+      return coord_.get(index);
+    }
+    /**
+     * <code>repeated .BoardCoord coord = 1;</code>
+     */
+    public soc.proto.Data.BoardCoordOrBuilder getCoordOrBuilder(
+        int index) {
+      return coord_.get(index);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      for (int i = 0; i < coord_.size(); i++) {
+        output.writeMessage(1, coord_.get(i));
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      for (int i = 0; i < coord_.size(); i++) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, coord_.get(i));
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.Data._BoardCoordList)) {
+        return super.equals(obj);
+      }
+      soc.proto.Data._BoardCoordList other = (soc.proto.Data._BoardCoordList) obj;
+
+      boolean result = true;
+      result = result && getCoordList()
+          .equals(other.getCoordList());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (getCoordCount() > 0) {
+        hash = (37 * hash) + COORD_FIELD_NUMBER;
+        hash = (53 * hash) + getCoordList().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.Data._BoardCoordList parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.Data._BoardCoordList parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.Data._BoardCoordList parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.Data._BoardCoordList parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.Data._BoardCoordList parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.Data._BoardCoordList parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.Data._BoardCoordList parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.Data._BoardCoordList parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.Data._BoardCoordList parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.Data._BoardCoordList parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.Data._BoardCoordList parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.Data._BoardCoordList parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.Data._BoardCoordList prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * Data type for list of BoardCoord, since oneof and map can't directly contain a repeated field. 
+     * </pre>
+     *
+     * Protobuf type {@code _BoardCoordList}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:_BoardCoordList)
+        soc.proto.Data._BoardCoordListOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.Data.internal_static__BoardCoordList_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.Data.internal_static__BoardCoordList_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.Data._BoardCoordList.class, soc.proto.Data._BoardCoordList.Builder.class);
+      }
+
+      // Construct using soc.proto.Data._BoardCoordList.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+          getCoordFieldBuilder();
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        if (coordBuilder_ == null) {
+          coord_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000001);
+        } else {
+          coordBuilder_.clear();
+        }
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.Data.internal_static__BoardCoordList_descriptor;
+      }
+
+      public soc.proto.Data._BoardCoordList getDefaultInstanceForType() {
+        return soc.proto.Data._BoardCoordList.getDefaultInstance();
+      }
+
+      public soc.proto.Data._BoardCoordList build() {
+        soc.proto.Data._BoardCoordList result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.Data._BoardCoordList buildPartial() {
+        soc.proto.Data._BoardCoordList result = new soc.proto.Data._BoardCoordList(this);
+        int from_bitField0_ = bitField0_;
+        if (coordBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) == 0x00000001)) {
+            coord_ = java.util.Collections.unmodifiableList(coord_);
+            bitField0_ = (bitField0_ & ~0x00000001);
+          }
+          result.coord_ = coord_;
+        } else {
+          result.coord_ = coordBuilder_.build();
+        }
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.Data._BoardCoordList) {
+          return mergeFrom((soc.proto.Data._BoardCoordList)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.Data._BoardCoordList other) {
+        if (other == soc.proto.Data._BoardCoordList.getDefaultInstance()) return this;
+        if (coordBuilder_ == null) {
+          if (!other.coord_.isEmpty()) {
+            if (coord_.isEmpty()) {
+              coord_ = other.coord_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+            } else {
+              ensureCoordIsMutable();
+              coord_.addAll(other.coord_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.coord_.isEmpty()) {
+            if (coordBuilder_.isEmpty()) {
+              coordBuilder_.dispose();
+              coordBuilder_ = null;
+              coord_ = other.coord_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+              coordBuilder_ = 
+                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                   getCoordFieldBuilder() : null;
+            } else {
+              coordBuilder_.addAllMessages(other.coord_);
+            }
+          }
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.Data._BoardCoordList parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.Data._BoardCoordList) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private java.util.List<soc.proto.Data.BoardCoord> coord_ =
+        java.util.Collections.emptyList();
+      private void ensureCoordIsMutable() {
+        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+          coord_ = new java.util.ArrayList<soc.proto.Data.BoardCoord>(coord_);
+          bitField0_ |= 0x00000001;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder> coordBuilder_;
+
+      /**
+       * <code>repeated .BoardCoord coord = 1;</code>
+       */
+      public java.util.List<soc.proto.Data.BoardCoord> getCoordList() {
+        if (coordBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(coord_);
+        } else {
+          return coordBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .BoardCoord coord = 1;</code>
+       */
+      public int getCoordCount() {
+        if (coordBuilder_ == null) {
+          return coord_.size();
+        } else {
+          return coordBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .BoardCoord coord = 1;</code>
+       */
+      public soc.proto.Data.BoardCoord getCoord(int index) {
+        if (coordBuilder_ == null) {
+          return coord_.get(index);
+        } else {
+          return coordBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .BoardCoord coord = 1;</code>
+       */
+      public Builder setCoord(
+          int index, soc.proto.Data.BoardCoord value) {
+        if (coordBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureCoordIsMutable();
+          coord_.set(index, value);
+          onChanged();
+        } else {
+          coordBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .BoardCoord coord = 1;</code>
+       */
+      public Builder setCoord(
+          int index, soc.proto.Data.BoardCoord.Builder builderForValue) {
+        if (coordBuilder_ == null) {
+          ensureCoordIsMutable();
+          coord_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          coordBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .BoardCoord coord = 1;</code>
+       */
+      public Builder addCoord(soc.proto.Data.BoardCoord value) {
+        if (coordBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureCoordIsMutable();
+          coord_.add(value);
+          onChanged();
+        } else {
+          coordBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .BoardCoord coord = 1;</code>
+       */
+      public Builder addCoord(
+          int index, soc.proto.Data.BoardCoord value) {
+        if (coordBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureCoordIsMutable();
+          coord_.add(index, value);
+          onChanged();
+        } else {
+          coordBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .BoardCoord coord = 1;</code>
+       */
+      public Builder addCoord(
+          soc.proto.Data.BoardCoord.Builder builderForValue) {
+        if (coordBuilder_ == null) {
+          ensureCoordIsMutable();
+          coord_.add(builderForValue.build());
+          onChanged();
+        } else {
+          coordBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .BoardCoord coord = 1;</code>
+       */
+      public Builder addCoord(
+          int index, soc.proto.Data.BoardCoord.Builder builderForValue) {
+        if (coordBuilder_ == null) {
+          ensureCoordIsMutable();
+          coord_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          coordBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .BoardCoord coord = 1;</code>
+       */
+      public Builder addAllCoord(
+          java.lang.Iterable<? extends soc.proto.Data.BoardCoord> values) {
+        if (coordBuilder_ == null) {
+          ensureCoordIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, coord_);
+          onChanged();
+        } else {
+          coordBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .BoardCoord coord = 1;</code>
+       */
+      public Builder clearCoord() {
+        if (coordBuilder_ == null) {
+          coord_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000001);
+          onChanged();
+        } else {
+          coordBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .BoardCoord coord = 1;</code>
+       */
+      public Builder removeCoord(int index) {
+        if (coordBuilder_ == null) {
+          ensureCoordIsMutable();
+          coord_.remove(index);
+          onChanged();
+        } else {
+          coordBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .BoardCoord coord = 1;</code>
+       */
+      public soc.proto.Data.BoardCoord.Builder getCoordBuilder(
+          int index) {
+        return getCoordFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .BoardCoord coord = 1;</code>
+       */
+      public soc.proto.Data.BoardCoordOrBuilder getCoordOrBuilder(
+          int index) {
+        if (coordBuilder_ == null) {
+          return coord_.get(index);  } else {
+          return coordBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .BoardCoord coord = 1;</code>
+       */
+      public java.util.List<? extends soc.proto.Data.BoardCoordOrBuilder> 
+           getCoordOrBuilderList() {
+        if (coordBuilder_ != null) {
+          return coordBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(coord_);
+        }
+      }
+      /**
+       * <code>repeated .BoardCoord coord = 1;</code>
+       */
+      public soc.proto.Data.BoardCoord.Builder addCoordBuilder() {
+        return getCoordFieldBuilder().addBuilder(
+            soc.proto.Data.BoardCoord.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .BoardCoord coord = 1;</code>
+       */
+      public soc.proto.Data.BoardCoord.Builder addCoordBuilder(
+          int index) {
+        return getCoordFieldBuilder().addBuilder(
+            index, soc.proto.Data.BoardCoord.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .BoardCoord coord = 1;</code>
+       */
+      public java.util.List<soc.proto.Data.BoardCoord.Builder> 
+           getCoordBuilderList() {
+        return getCoordFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder> 
+          getCoordFieldBuilder() {
+        if (coordBuilder_ == null) {
+          coordBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+              soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder>(
+                  coord_,
+                  ((bitField0_ & 0x00000001) == 0x00000001),
+                  getParentForChildren(),
+                  isClean());
+          coord_ = null;
+        }
+        return coordBuilder_;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:_BoardCoordList)
+    }
+
+    // @@protoc_insertion_point(class_scope:_BoardCoordList)
+    private static final soc.proto.Data._BoardCoordList DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.Data._BoardCoordList();
+    }
+
+    public static soc.proto.Data._BoardCoordList getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<_BoardCoordList>
+        PARSER = new com.google.protobuf.AbstractParser<_BoardCoordList>() {
+      public _BoardCoordList parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new _BoardCoordList(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<_BoardCoordList> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<_BoardCoordList> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.Data._BoardCoordList getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -7132,10 +10180,30 @@ public final class Data {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_HexCoord_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_PieceCoord_descriptor;
+    internal_static_BoardCoord_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_PieceCoord_fieldAccessorTable;
+      internal_static_BoardCoord_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static__EdgeList_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static__EdgeList_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static__HexList_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static__HexList_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static__NodeList_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static__NodeList_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static__BoardCoordList_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static__BoardCoordList_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_ResourceSet_descriptor;
   private static final 
@@ -7159,47 +10227,51 @@ public final class Data {
       "\n\n_SIntArray\022\013\n\003arr\030\001 \003(\021\"(\n\tNodeCoord\022\013" +
       "\n\003row\030\001 \001(\005\022\016\n\006column\030\002 \001(\005\"(\n\tEdgeCoord" +
       "\022\013\n\003row\030\001 \001(\005\022\016\n\006column\030\002 \001(\005\"\'\n\010HexCoor" +
-      "d\022\013\n\003row\030\001 \001(\005\022\016\n\006column\030\002 \001(\005\"~\n\nPieceC" +
+      "d\022\013\n\003row\030\001 \001(\005\022\016\n\006column\030\002 \001(\005\"~\n\nBoardC" +
       "oord\022 \n\nnode_coord\030\001 \001(\0132\n.NodeCoordH\000\022 " +
       "\n\nedge_coord\030\002 \001(\0132\n.EdgeCoordH\000\022\036\n\thex_" +
-      "coord\030\003 \001(\0132\t.HexCoordH\000B\014\n\ncoord_type\"\302" +
-      "\001\n\013ResourceSet\022\014\n\004clay\030\001 \001(\005\022\013\n\003ore\030\002 \001(" +
-      "\005\022\r\n\005sheep\030\003 \001(\005\022\r\n\005wheat\030\004 \001(\005\022\014\n\004wood\030",
-      "\005 \001(\005\022*\n\006others\030\006 \003(\0132\032.ResourceSet.Othe" +
-      "rResource\032@\n\rOtherResource\022\037\n\010res_type\030\001" +
-      " \001(\0162\r.ResourceType\022\016\n\006amount\030\002 \001(\005*a\n\014R" +
-      "esourceType\022\021\n\r_NOT_YET_USED\020\000\022\010\n\004CLAY\020\001" +
-      "\022\007\n\003ORE\020\002\022\t\n\005SHEEP\020\003\022\t\n\005WHEAT\020\004\022\010\n\004WOOD\020" +
-      "\005\022\013\n\007UNKNOWN\020\006*T\n\tPieceType\022\010\n\004ROAD\020\000\022\016\n" +
-      "\nSETTLEMENT\020\001\022\010\n\004CITY\020\002\022\010\n\004SHIP\020\003\022\014\n\010FOR" +
-      "TRESS\020\004\022\013\n\007VILLAGE\020\005*I\n\021OtherPlayableIte" +
-      "m\022\030\n\024_UNSENT_DEFAULT_ITEM\020\000\022\014\n\010DEV_CARD\020" +
-      "\002\022\014\n\010INV_ITEM\020\003*\333\001\n\014DevCardValue\022 \n\034_UNS",
-      "ENT_DEFAULT_DEVCARDVALUE\020\000\022\024\n\020UNKNOWN_DE" +
-      "V_CARD\020\001\022\n\n\006KNIGHT\020\002\022\014\n\010MONOPOLY\020\003\022\021\n\rRO" +
-      "AD_BUILDING\020\004\022\022\n\016YEAR_OF_PLENTY\020\005\022\r\n\tVP_" +
-      "CHAPEL\0202\022\021\n\rVP_GREAT_HALL\0203\022\016\n\nVP_LIBRAR" +
-      "Y\0204\022\r\n\tVP_MARKET\0205\022\021\n\rVP_UNIVERSITY\0206*\245\005" +
-      "\n\tGameState\022\007\n\003NEW\020\000\022\t\n\005READY\020\001\022\"\n\036READY" +
-      "_RESET_WAIT_ROBOT_DISMISS\020\004\022\013\n\007START1A\020\005" +
-      "\022\013\n\007START1B\020\006\022\013\n\007START2A\020\n\022)\n%STARTS_WAI" +
-      "TING_FOR_PICK_GOLD_RESOURCE\020\016\022\013\n\007START2B" +
-      "\020\013\022\013\n\007START3A\020\014\022\013\n\007START3B\020\r\022\020\n\014ROLL_OR_",
-      "CARD\020\017\022\t\n\005PLAY1\020\024\022\020\n\014PLACING_ROAD\020\036\022\026\n\022P" +
-      "LACING_SETTLEMENT\020\037\022\020\n\014PLACING_CITY\020 \022\022\n" +
-      "\016PLACING_ROBBER\020!\022\022\n\016PLACING_PIRATE\020\"\022\020\n" +
-      "\014PLACING_SHIP\020#\022\026\n\022PLACING_FREE_ROAD1\020(\022" +
-      "\026\n\022PLACING_FREE_ROAD2\020)\022\024\n\020PLACING_INV_I" +
-      "TEM\020*\022\030\n\024WAITING_FOR_DISCARDS\0202\022!\n\035WAITI" +
-      "NG_FOR_ROB_CHOOSE_PLAYER\0203\022\031\n\025WAITING_FO" +
-      "R_DISCOVERY\0204\022\030\n\024WAITING_FOR_MONOPOLY\0205\022" +
-      " \n\034WAITING_FOR_ROBBER_OR_PIRATE\0206\022%\n!WAI" +
-      "TING_FOR_ROB_CLOTH_OR_RESOURCE\0207\022\"\n\036WAIT",
-      "ING_FOR_PICK_GOLD_RESOURCE\0208\022\024\n\020SPECIAL_" +
-      "BUILDING\020d\022\t\n\004OVER\020\350\007\022\016\n\tRESET_OLD\020\351\007*=\n" +
-      "\rSeatLockState\022\014\n\010UNLOCKED\020\000\022\n\n\006LOCKED\020\001" +
-      "\022\022\n\016CLEAR_ON_RESET\020\002B\r\n\tsoc.protoH\001b\006pro" +
-      "to3"
+      "coord\030\003 \001(\0132\t.HexCoordH\000B\014\n\ncoord_type\"%" +
+      "\n\t_EdgeList\022\030\n\004edge\030\001 \003(\0132\n.EdgeCoord\"\"\n" +
+      "\010_HexList\022\026\n\003hex\030\001 \003(\0132\t.HexCoord\"%\n\t_No",
+      "deList\022\030\n\004node\030\001 \003(\0132\n.NodeCoord\"-\n\017_Boa" +
+      "rdCoordList\022\032\n\005coord\030\001 \003(\0132\013.BoardCoord\"" +
+      "\302\001\n\013ResourceSet\022\014\n\004clay\030\001 \001(\005\022\013\n\003ore\030\002 \001" +
+      "(\005\022\r\n\005sheep\030\003 \001(\005\022\r\n\005wheat\030\004 \001(\005\022\014\n\004wood" +
+      "\030\005 \001(\005\022*\n\006others\030\006 \003(\0132\032.ResourceSet.Oth" +
+      "erResource\032@\n\rOtherResource\022\037\n\010res_type\030" +
+      "\001 \001(\0162\r.ResourceType\022\016\n\006amount\030\002 \001(\005*a\n\014" +
+      "ResourceType\022\021\n\r_NOT_YET_USED\020\000\022\010\n\004CLAY\020" +
+      "\001\022\007\n\003ORE\020\002\022\t\n\005SHEEP\020\003\022\t\n\005WHEAT\020\004\022\010\n\004WOOD" +
+      "\020\005\022\013\n\007UNKNOWN\020\006*T\n\tPieceType\022\010\n\004ROAD\020\000\022\016",
+      "\n\nSETTLEMENT\020\001\022\010\n\004CITY\020\002\022\010\n\004SHIP\020\003\022\014\n\010FO" +
+      "RTRESS\020\004\022\013\n\007VILLAGE\020\005*I\n\021OtherPlayableIt" +
+      "em\022\030\n\024_UNSENT_DEFAULT_ITEM\020\000\022\014\n\010DEV_CARD" +
+      "\020\002\022\014\n\010INV_ITEM\020\003*\333\001\n\014DevCardValue\022 \n\034_UN" +
+      "SENT_DEFAULT_DEVCARDVALUE\020\000\022\024\n\020UNKNOWN_D" +
+      "EV_CARD\020\001\022\n\n\006KNIGHT\020\002\022\014\n\010MONOPOLY\020\003\022\021\n\rR" +
+      "OAD_BUILDING\020\004\022\022\n\016YEAR_OF_PLENTY\020\005\022\r\n\tVP" +
+      "_CHAPEL\0202\022\021\n\rVP_GREAT_HALL\0203\022\016\n\nVP_LIBRA" +
+      "RY\0204\022\r\n\tVP_MARKET\0205\022\021\n\rVP_UNIVERSITY\0206*\245" +
+      "\005\n\tGameState\022\007\n\003NEW\020\000\022\t\n\005READY\020\001\022\"\n\036READ",
+      "Y_RESET_WAIT_ROBOT_DISMISS\020\004\022\013\n\007START1A\020" +
+      "\005\022\013\n\007START1B\020\006\022\013\n\007START2A\020\n\022)\n%STARTS_WA" +
+      "ITING_FOR_PICK_GOLD_RESOURCE\020\016\022\013\n\007START2" +
+      "B\020\013\022\013\n\007START3A\020\014\022\013\n\007START3B\020\r\022\020\n\014ROLL_OR" +
+      "_CARD\020\017\022\t\n\005PLAY1\020\024\022\020\n\014PLACING_ROAD\020\036\022\026\n\022" +
+      "PLACING_SETTLEMENT\020\037\022\020\n\014PLACING_CITY\020 \022\022" +
+      "\n\016PLACING_ROBBER\020!\022\022\n\016PLACING_PIRATE\020\"\022\020" +
+      "\n\014PLACING_SHIP\020#\022\026\n\022PLACING_FREE_ROAD1\020(" +
+      "\022\026\n\022PLACING_FREE_ROAD2\020)\022\024\n\020PLACING_INV_" +
+      "ITEM\020*\022\030\n\024WAITING_FOR_DISCARDS\0202\022!\n\035WAIT",
+      "ING_FOR_ROB_CHOOSE_PLAYER\0203\022\031\n\025WAITING_F" +
+      "OR_DISCOVERY\0204\022\030\n\024WAITING_FOR_MONOPOLY\0205" +
+      "\022 \n\034WAITING_FOR_ROBBER_OR_PIRATE\0206\022%\n!WA" +
+      "ITING_FOR_ROB_CLOTH_OR_RESOURCE\0207\022\"\n\036WAI" +
+      "TING_FOR_PICK_GOLD_RESOURCE\0208\022\024\n\020SPECIAL" +
+      "_BUILDING\020d\022\t\n\004OVER\020\350\007\022\016\n\tRESET_OLD\020\351\007*=" +
+      "\n\rSeatLockState\022\014\n\010UNLOCKED\020\000\022\n\n\006LOCKED\020" +
+      "\001\022\022\n\016CLEAR_ON_RESET\020\002B\r\n\tsoc.protoH\001b\006pr" +
+      "oto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -7243,14 +10315,38 @@ public final class Data {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_HexCoord_descriptor,
         new java.lang.String[] { "Row", "Column", });
-    internal_static_PieceCoord_descriptor =
+    internal_static_BoardCoord_descriptor =
       getDescriptor().getMessageTypes().get(5);
-    internal_static_PieceCoord_fieldAccessorTable = new
+    internal_static_BoardCoord_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_PieceCoord_descriptor,
+        internal_static_BoardCoord_descriptor,
         new java.lang.String[] { "NodeCoord", "EdgeCoord", "HexCoord", "CoordType", });
-    internal_static_ResourceSet_descriptor =
+    internal_static__EdgeList_descriptor =
       getDescriptor().getMessageTypes().get(6);
+    internal_static__EdgeList_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static__EdgeList_descriptor,
+        new java.lang.String[] { "Edge", });
+    internal_static__HexList_descriptor =
+      getDescriptor().getMessageTypes().get(7);
+    internal_static__HexList_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static__HexList_descriptor,
+        new java.lang.String[] { "Hex", });
+    internal_static__NodeList_descriptor =
+      getDescriptor().getMessageTypes().get(8);
+    internal_static__NodeList_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static__NodeList_descriptor,
+        new java.lang.String[] { "Node", });
+    internal_static__BoardCoordList_descriptor =
+      getDescriptor().getMessageTypes().get(9);
+    internal_static__BoardCoordList_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static__BoardCoordList_descriptor,
+        new java.lang.String[] { "Coord", });
+    internal_static_ResourceSet_descriptor =
+      getDescriptor().getMessageTypes().get(10);
     internal_static_ResourceSet_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_ResourceSet_descriptor,

@@ -42,19 +42,45 @@ import public "data.proto";
 /* Board layout contents.
  * Sent when game starts or client joins a game in progress.
  * Applies to entire game (player_number field is unused).
- * TODO: Further docs on encoding_format, ref to list of part keynames, etc
+ * TODO: Ref to list of part keynames, etc
  */
 message BoardLayout
 {
+    /* Board layout encoding format versions, from {@link soc.game.SOCBoard#getBoardEncodingFormat()} */
+    enum _LayoutEncodingFormat {
+        /* Required for enum, but not sent */
+        _UNSENT_DEFAULT_ENCODING = 0;
+
+        /* Not supported in JSettlers v3.x.xx: "v1" Original format : hexadecimal 0x00 to 0xFF. */
+        BOARD_ENCODING_ORIGINAL = 1;
+
+        /* Not supported in JSettlers v3.x.xx: 6-player board, variant of original format:
+         * hexadecimal 0x00 to 0xFF.
+         * Added in v1.1.08.
+         */
+        BOARD_ENCODING_6PLAYER = 2;
+
+        /* Large sea board ({@link SOCBoardLarge}); minimum supported board encoding for v3.x.xx.
+         * Coordinate range for rows, columns is each 0 to 255 decimal.
+         * Arbitrary mix of land and water tiles. Activated with {@link SOCGameOption} "SBL".
+         * Added in v2.0.00.
+         */
+        BOARD_ENCODING_LARGE = 3;
+    };
+
     message _BoardLayoutPart {
         oneof val {
             int32 i_val = 1;    // signed integer value
             string s_val = 2;   // string value
             _IntArray i_arr = 3;  // signed integer array; negative values allowed but not frequently used
+            _BoardCoordList coordinate_list = 4;  // general board coordinate list
+            _EdgeList edge_list = 5;  // edge coordinate list
+            _HexList hex_list = 6;    // hex coordinate list
+            _NodeList node_list = 7;  // node coordinate list
         }
     }
 
-    uint32 encoding_format = 1;  // Board layout encoding version, from {@link SOCBoard#getBoardEncodingFormat()}
+    _LayoutEncodingFormat layout_encoding = 1;  // Board layout encoding format version
 
     map<string, _BoardLayoutPart> parts = 2;  // Layout Parts; some are optional depending on game options and scenario
 }
@@ -76,12 +102,12 @@ message BoardLayout
  */
 message PotentialSettlements {
     /* Potential settlement node coordinates for {@link #playerNumber}.
-     * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+     * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
      *   This player currently has no potential settlements.
      * - If this field is missing and {@code starting_land_area} is 0, use all land areas'
      *   legal nodes as the player's potential coordinates.
      */
-    repeated int32 ps_nodes = 1;
+    repeated NodeCoord ps_nodes = 1;
 
     /* How many Land Areas this board has; classic boards have 1 */
     uint32 area_count = 2;
@@ -97,7 +123,7 @@ message PotentialSettlements {
     /* Each land area's legal node coordinates; keys are 1 to {@link areaCount}.
      * Areas 0 and {@link #startingLandArea} are unused. Not sent if {@code areaCount} == 1.
      */
-    map<uint32, _IntArray> land_areas_legal_nodes = 4;
+    map<uint32, _NodeList> land_areas_legal_nodes = 4;
 
     /* legal sea edges per player for ships, if restricted.
      * Usually not sent, because all sea edges are legal except in scenario _SC_PIRI.
@@ -109,9 +135,9 @@ message PotentialSettlements {
      * A list of individual sea edge coordinates and/or ranges.
      * Ranges are designated by a pair of positive,negative numbers:
      * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: <tt>{ 0 }</tt>.
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: <tt>{ (r=0, c=0) }</tt>.
      */
-    repeated _SIntArray legal_sea_edges = 5;
+    repeated _EdgeList legal_sea_edges = 5;
 }
 
 /* This message from server updates the value field(s) of a piece on the board.
@@ -127,7 +153,7 @@ message PieceValue {
      * Client can ignore this field unless the game's scenario uses values on multiple piece types.
      */
     PieceType type = 1;
-    PieceCoord coordinates = 2;  // Coordinate of the piece
+    BoardCoord coordinates = 2;  // Coordinate of the piece
     sint32 piece_value1 = 3;  // New value for the piece
     sint32 piece_value2 = 4;  // New secondary value (if piece has 2 value fields)
 }
@@ -168,10 +194,10 @@ message BuildPiece {
     PieceType type = 1;
 
     /* The piece's edge, node, or hex coordinate.
-     * See data.PieceCoord doc for which types set which field
+     * See data.BoardCoord doc for which types set which field
      * (edge_coord or node_coord).
      */
-    PieceCoord coordinates = 2;
+    BoardCoord coordinates = 2;
 }
 
 /* This message from client means that the client player wants to buy a development card.
@@ -373,8 +399,8 @@ message CancelBuild {
 message MovePiece {
     /* Type of playing piece; only {@code SHIP} so far */
     PieceType type = 1;
-    PieceCoord from_coordinates = 2;
-    PieceCoord to_coordinates = 3;
+    BoardCoord from_coordinates = 2;
+    BoardCoord to_coordinates = 3;
 }
 
 /* This message from server announces a {@link soc.game.SOCShip} removed from the board.
@@ -387,7 +413,7 @@ message MovePiece {
 message RemovePiece {
     /* Type of playing piece; only {@code SHIP} so far */
     PieceType type = 1;
-    PieceCoord coordinates = 2;
+    BoardCoord coordinates = 2;
 }
 
 

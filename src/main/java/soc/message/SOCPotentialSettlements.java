@@ -576,20 +576,22 @@ public class SOCPotentialSettlements extends SOCMessage
 
         if (landAreasLegalNodes == null)
         {
-            b.addAllPsNodes(psNodes);
+            for (final int node : psNodes)
+                b.addPsNodes(ProtoMessageBuildHelper.toNodeCoord(node));
         } else {
-            final int pan = startingLandArea;
+            final int pan = startingLandArea;  // Player's Area Number
             final HashSet<Integer>[] lan = landAreasLegalNodes;
             final int L = lan.length;
 
             b.setAreaCount(L - 1);
 
-            if (landAreasLegalNodes[pan] != null)
+            if (lan[pan] != null)
             {
-                if (! landAreasLegalNodes[pan].isEmpty())
-                    b.addAllPsNodes(lan[pan]);
+                if (! lan[pan].isEmpty())
+                    for (final int node : lan[pan])
+                        b.addPsNodes(ProtoMessageBuildHelper.toNodeCoord(node));
                 else
-                    b.addPsNodes(0);
+                    b.addPsNodes(ProtoMessageBuildHelper.toNodeCoord(0));  // send as "empty", not as missing
             }
 
             for (int i = 1; i < L; ++i)
@@ -598,21 +600,21 @@ public class SOCPotentialSettlements extends SOCMessage
                     continue;  // don't re-send the potentials list
 
                 b.putLandAreasLegalNodes
-                    (i, Data._IntArray.newBuilder().addAllArr(lan[i]).build());
+                    (i, ProtoMessageBuildHelper.toNodeList(lan[i]).build());
             }
 
             if (legalSeaEdges != null)
             {
-                for (int i = 0; i < legalSeaEdges.length; ++i)
+                for (final int[] lse_i : legalSeaEdges)
                 {
-                    Data._SIntArray.Builder sib = Data._SIntArray.newBuilder();
-                    final int[] lse_i = legalSeaEdges[i];
-                    if (lse_i.length == 0)
-                        sib.addArr(0);  // pad for nonzero length
+                    final Data._EdgeList.Builder eb;
+                    if (lse_i.length != 0)
+                        eb = ProtoMessageBuildHelper.toEdgeList(DataUtils.toList(lse_i));
                     else
-                        sib.addAllArr(DataUtils.toList(lse_i));
+                        // pad for nonzero length
+                        eb = Data._EdgeList.newBuilder().addEdge(ProtoMessageBuildHelper.toEdgeCoord(0));
 
-                    b.addLegalSeaEdges(sib);
+                    b.addLegalSeaEdges(eb);
                 }
             }
         }

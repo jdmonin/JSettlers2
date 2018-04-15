@@ -217,7 +217,7 @@ public class SOCPutPiece extends SOCMessage
         GameMessage.BuildPiece.Builder b
             = GameMessage.BuildPiece.newBuilder();
         b.setTypeValue(pieceType)
-         .setCoordinates(ProtoMessageBuildHelper.toPieceCoord(coordinates, pieceType));
+         .setCoordinates(ProtoMessageBuildHelper.toBoardCoord(coordinates, pieceType));
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
         gb.setGameName(game).setPlayerNumber(playerNumber).setBuildPiece(b);

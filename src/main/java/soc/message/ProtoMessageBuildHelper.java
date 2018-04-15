@@ -19,6 +19,10 @@
  **/
 package soc.message;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import soc.game.SOCBoard;  // for javadocs
 import soc.game.SOCBoardLarge;  // for javadocs
 import soc.game.SOCDevCardConstants;
@@ -44,43 +48,46 @@ public abstract class ProtoMessageBuildHelper
 
     /**
      * Build a protobuf {@code Data.EdgeCoord.Builder} from this edge coordinate.
-     * @param ec  An edge coordinate encoded in the {@link SOCBoardLarge} coordinate system
+     * @param edge  An edge coordinate encoded in the {@link SOCBoardLarge} coordinate system
      *     ({@link SOCBoard#BOARD_ENCODING_LARGE}): 0xRRCC
-     * @return  A {@code Data.EdgeCoord.Builder} from {@code ec}
-     * @see #toPieceCoord(int, soc.proto.Data.PieceCoord.CoordTypeCase)
+     * @return  A {@code Data.EdgeCoord.Builder} from {@code edge}
+     * @see #toBoardCoord(int, soc.proto.Data.BoardCoord.CoordTypeCase)
+     * @see #toEdgeList(Collection)
      * @see #fromEdgeCoord(soc.proto.Data.EdgeCoord)
      */
-    public static final Data.EdgeCoord.Builder toEdgeCoord(final int nc)
+    public static final Data.EdgeCoord.Builder toEdgeCoord(final int edge)
     {
-        final int r = nc >> 8, c = nc & 0xFF;
+        final int r = edge >> 8, c = edge & 0xFF;
         return Data.EdgeCoord.newBuilder().setRow(r).setColumn(c);
     }
 
     /**
      * Build a protobuf {@code Data.HexCoord.Builder} from this hex coordinate.
-     * @param hc  A hex coordinate encoded in the {@link SOCBoardLarge} coordinate system
+     * @param hex  A hex coordinate encoded in the {@link SOCBoardLarge} coordinate system
      *     ({@link SOCBoard#BOARD_ENCODING_LARGE}): 0xRRCC
-     * @return  A {@code Data.HexCoord.Builder} from {@code hc}
-     * @see #toPieceCoord(int, soc.proto.Data.PieceCoord.CoordTypeCase)
+     * @return  A {@code Data.HexCoord.Builder} from {@code hex}
+     * @see #toBoardCoord(int, soc.proto.Data.BoardCoord.CoordTypeCase)
+     * @see #toHexList(Collection)
      * @see #fromHexCoord(soc.proto.Data.HexCoord)
      */
-    public static final Data.HexCoord.Builder toHexCoord(final int hc)
+    public static final Data.HexCoord.Builder toHexCoord(final int hex)
     {
-        final int r = hc >> 8, c = hc & 0xFF;
+        final int r = hex >> 8, c = hex & 0xFF;
         return Data.HexCoord.newBuilder().setRow(r).setColumn(c);
     }
 
     /**
      * Build a protobuf {@code Data.NodeCoord.Builder} from this node coordinate.
-     * @param nc  A node coordinate encoded in the {@link SOCBoardLarge} coordinate system
+     * @param node  A node coordinate encoded in the {@link SOCBoardLarge} coordinate system
      *     ({@link SOCBoard#BOARD_ENCODING_LARGE}): 0xRRCC
-     * @return  A {@code Data.NodeCoord.Builder} from {@code nc}
-     * @see #toPieceCoord(int, soc.proto.Data.PieceCoord.CoordTypeCase)
+     * @return  A {@code Data.NodeCoord.Builder} from {@code node}
+     * @see #toBoardCoord(int, soc.proto.Data.BoardCoord.CoordTypeCase)
+     * @see #toNodeList(Collection)
      * @see #fromNodeCoord(soc.proto.Data.NodeCoord)
      */
-    public static final Data.NodeCoord.Builder toNodeCoord(final int nc)
+    public static final Data.NodeCoord.Builder toNodeCoord(final int node)
     {
-        final int r = nc >> 8, c = nc & 0xFF;
+        final int r = node >> 8, c = node & 0xFF;
         return Data.NodeCoord.newBuilder().setRow(r).setColumn(c);
     }
 
@@ -124,59 +131,59 @@ public abstract class ProtoMessageBuildHelper
     }
 
     /**
-     * Build a protobuf {@code Data.PieceCoord.Builder} from this piece coordinate and type.
+     * Build a protobuf {@code Data.BoardCoord.Builder} from this piece coordinate and type.
      * @param coord  A piece coordinate encoded in the {@link SOCBoardLarge} coordinate system
      *     ({@link SOCBoard#BOARD_ENCODING_LARGE}): 0xRRCC
      * @param pieceType  Piece type, such as {@link soc.game.SOCPlayingPiece#CITY},
-     *     to choose which field to set in PieceCoord's {@code OneOf}:
+     *     to choose which field to set in BoardCoord's {@code OneOf}:
      *     {@code edge_coord} for roads and ships, {@code node_coord} for all other types.
-     * @return A {@code Data.PieceCoord.Builder} from {@code coord}
-     * @see #toPieceCoord(int, soc.proto.Data.PieceCoord.CoordTypeCase)
-     * @see #fromPieceCoord(soc.proto.Data.PieceCoord)
+     * @return A {@code Data.BoardCoord.Builder} from {@code coord}
+     * @see #toBoardCoord(int, soc.proto.Data.BoardCoord.CoordTypeCase)
+     * @see #fromBoardCoord(soc.proto.Data.BoardCoord)
      */
-    public static final Data.PieceCoord.Builder toPieceCoord
+    public static final Data.BoardCoord.Builder toBoardCoord
         (final int coord, final int pieceType)
         throws IllegalArgumentException
     {
-        final Data.PieceCoord.CoordTypeCase coordType;
+        final Data.BoardCoord.CoordTypeCase coordType;
         switch (pieceType)
         {
         case SOCPlayingPiece.ROAD:
             // fall through
 
         case SOCPlayingPiece.SHIP:
-            coordType = Data.PieceCoord.CoordTypeCase.EDGE_COORD;
+            coordType = Data.BoardCoord.CoordTypeCase.EDGE_COORD;
             break;
 
         default:
-            coordType = Data.PieceCoord.CoordTypeCase.NODE_COORD;
+            coordType = Data.BoardCoord.CoordTypeCase.NODE_COORD;
         }
 
-        return toPieceCoord(coord, coordType);
+        return toBoardCoord(coord, coordType);
     }
 
     /**
-     * Build a protobuf {@code Data.PieceCoord.Builder} from this piece coordinate.
+     * Build a protobuf {@code Data.BoardCoord.Builder} from this piece coordinate.
      * @param coord  A piece coordinate encoded in the {@link SOCBoardLarge} coordinate system
      *     ({@link SOCBoard#BOARD_ENCODING_LARGE}): 0xRRCC
-     * @param coordType  Type of coordinate, to choose which field to set in PieceCoord's {@code OneOf}:
-     *     {@link Data.PieceCoord.CoordCase#EDGE_COORD},
-     *     {@link Data.PieceCoord.CoordCase#HEX_COORD HEX_COORD},
-     *     or {@link Data.PieceCoord.CoordCase#NODE_COORD NODE_COORD}.
-     * @return A {@code Data.PieceCoord.Builder} from {@code coord}
+     * @param coordType  Type of coordinate, to choose which field to set in BoardCoord's {@code OneOf}:
+     *     {@link Data.BoardCoord.CoordCase#EDGE_COORD},
+     *     {@link Data.BoardCoord.CoordCase#HEX_COORD HEX_COORD},
+     *     or {@link Data.BoardCoord.CoordCase#NODE_COORD NODE_COORD}.
+     * @return A {@code Data.BoardCoord.Builder} from {@code coord}
      * @throws IllegalArgumentException if {@code coordType} is {@code null} or
      *     isn't one of the three allowed types
-     * @see #toPieceCoord(int, int)
-     * @see #fromPieceCoord(soc.proto.Data.PieceCoord)
+     * @see #toBoardCoord(int, int)
+     * @see #fromBoardCoord(soc.proto.Data.BoardCoord)
      */
-    public static final Data.PieceCoord.Builder toPieceCoord
-        (final int coord, final Data.PieceCoord.CoordTypeCase coordType)
+    public static final Data.BoardCoord.Builder toBoardCoord
+        (final int coord, final Data.BoardCoord.CoordTypeCase coordType)
         throws IllegalArgumentException
     {
         if (coordType == null)
             throw new IllegalArgumentException("coordType: null");
 
-        final Data.PieceCoord.Builder b = Data.PieceCoord.newBuilder();
+        final Data.BoardCoord.Builder b = Data.BoardCoord.newBuilder();
 
         switch (coordType)
         {
@@ -197,19 +204,19 @@ public abstract class ProtoMessageBuildHelper
     }
 
     /**
-     * Get the {@link SOCBoardLarge}-encoded coordinate of this protobuf {@link Data.PieceCoord}.
+     * Get the {@link SOCBoardLarge}-encoded coordinate of this protobuf {@link Data.BoardCoord}.
      * Its edge, node, or hex coordinate's row and column will be extracted from its
      * {@code OneOf} field and encoded together as an {@code int}.
-     * @param pc  A protobuf {@code PieceCoord}; not {@code null}
+     * @param pc  A protobuf {@code BoardCoord}; not {@code null}
      * @return  The piece coordinate, encoded in the {@link SOCBoardLarge} coordinate system
      *     ({@link SOCBoard#BOARD_ENCODING_LARGE}): 0xRRCC,
      *     or 0 if the coordinate type is unknown
      * @throws NullPointerException if {@code pc == null} or its
-     *     {@link Data.PieceCoord#getCoordTypeCase()} is {@code null}
-     * @see #toPieceCoord(int, soc.proto.Data.PieceCoord.CoordTypeCase)
-     * @see #toPieceCoord(int, int)
+     *     {@link Data.BoardCoord#getCoordTypeCase()} is {@code null}
+     * @see #toBoardCoord(int, soc.proto.Data.BoardCoord.CoordTypeCase)
+     * @see #toBoardCoord(int, int)
      */
-    public static final int fromPieceCoord(final Data.PieceCoord pc)
+    public static final int fromBoardCoord(final Data.BoardCoord pc)
         throws NullPointerException
     {
         int r = 0, c = 0;
@@ -254,6 +261,138 @@ public abstract class ProtoMessageBuildHelper
         }
 
         return (r << 8) | c;
+    }
+
+    /**
+     * Build a protobuf {@code Data._EdgeList.Builder} from these edge coordinates.
+     * @param edges  A collection of edge coordinates encoded in the
+     *     {@link SOCBoardLarge} coordinate system ({@link SOCBoard#BOARD_ENCODING_LARGE}): 0xRRCC.
+     *     Not {@code null}.
+     * @return  A protobuf edge list from {@code edges}
+     * @throws NullPointerException if {@code edges == null}
+     * @see #toEdgeCoord(int)
+     * @see #fromEdgeList(soc.proto.Data._EdgeList)
+     */
+    public static final Data._EdgeList.Builder toEdgeList(final Collection<Integer> edges)
+        throws NullPointerException
+    {
+        Data._EdgeList.Builder b = Data._EdgeList.newBuilder();
+
+        for (final int ec : edges)
+        {
+            final int r = ec >> 8, c = ec & 0xFF;
+            b.addEdge(Data.EdgeCoord.newBuilder().setRow(r).setColumn(c));
+        }
+
+        return b;
+    }
+
+    /**
+     * Build a protobuf {@code Data._HexList.Builder} from these hex coordinates.
+     * @param edges  A collection of hexes coordinates encoded in the
+     *     {@link SOCBoardLarge} coordinate system ({@link SOCBoard#BOARD_ENCODING_LARGE}): 0xRRCC.
+     *     Not {@code null}.
+     * @return  A protobuf hex list from {@code hexes}
+     * @throws NullPointerException if {@code hexes == null}
+     * @see #toHexCoord(int)
+     * @see #fromHexList(soc.proto.Data._HexList)
+     */
+    public static final Data._HexList.Builder toHexList(final Collection<Integer> hexes)
+        throws NullPointerException
+    {
+        Data._HexList.Builder b = Data._HexList.newBuilder();
+
+        for (final int hc : hexes)
+        {
+            final int r = hc >> 8, c = hc & 0xFF;
+            b.addHex(Data.HexCoord.newBuilder().setRow(r).setColumn(c));
+        }
+
+        return b;
+    }
+
+    /**
+     * Build a protobuf {@code Data._NodeList.Builder} from these node coordinates.
+     * @param nodes  A collection of nodes coordinates encoded in the
+     *     {@link SOCBoardLarge} coordinate system ({@link SOCBoard#BOARD_ENCODING_LARGE}): 0xRRCC.
+     *     Not {@code null}.
+     * @return  A protobuf node list from {@code nodes}
+     * @throws NullPointerException if {@code nodes == null}
+     * @see #toNodeCoord(int)
+     * @see #fromNodeList(soc.proto.Data._NodeList)
+     */
+    public static final Data._NodeList.Builder toNodeList(final Collection<Integer> nodes)
+        throws NullPointerException
+    {
+        Data._NodeList.Builder b = Data._NodeList.newBuilder();
+
+        for (final int nc : nodes)
+        {
+            final int r = nc >> 8, c = nc & 0xFF;
+            b.addNode(Data.NodeCoord.newBuilder().setRow(r).setColumn(c));
+        }
+
+        return b;
+    }
+
+    /**
+     * Make a List of {@link SOCBoardLarge}-encoded coordinates from this protobuf list of edges.
+     * @param edges  A protobuf edge list. Not {@code null}.
+     * @return  The coordinate list, encoded in the {@link SOCBoardLarge} coordinate system
+     *     ({@link SOCBoard#BOARD_ENCODING_LARGE}): 0xRRCC
+     * @throws NullPointerException if {@code edges == null}
+     * @see #toEdgeList(Collection)
+     * @see #fromEdgeCoord(soc.proto.Data.EdgeCoord)
+     */
+    public static final List<Integer> fromEdgeList(final Data._EdgeList edges)
+        throws NullPointerException
+    {
+        ArrayList<Integer> elist = new ArrayList<Integer>(edges.getEdgeCount());
+
+        for (final Data.EdgeCoord edge : edges.getEdgeList())
+            elist.add(fromEdgeCoord(edge));
+
+        return elist;
+    }
+
+    /**
+     * Make a List of {@link SOCBoardLarge}-encoded coordinates from this protobuf list of hexes.
+     * @param hexes  A protobuf hex list. Not {@code null}.
+     * @return  The coordinate list, encoded in the {@link SOCBoardLarge} coordinate system
+     *     ({@link SOCBoard#BOARD_ENCODING_LARGE}): 0xRRCC
+     * @throws NullPointerException if {@code hexes == null}
+     * @see #toHexList(Collection)
+     * @see #fromHexCoord(soc.proto.Data.HexCoord)
+     */
+    public static final List<Integer> fromHexList(final Data._HexList hexes)
+        throws NullPointerException
+    {
+        ArrayList<Integer> hlist = new ArrayList<Integer>(hexes.getHexCount());
+
+        for (final Data.HexCoord hex : hexes.getHexList())
+            hlist.add(fromHexCoord(hex));
+
+        return hlist;
+    }
+
+    /**
+     * Make a List of {@link SOCBoardLarge}-encoded coordinates from this protobuf list of nodes.
+     * @param hexes  A protobuf node list. Not {@code null}.
+     * @return  The coordinate list, encoded in the {@link SOCBoardLarge} coordinate system
+     *     ({@link SOCBoard#BOARD_ENCODING_LARGE}): 0xRRCC
+     * @throws NullPointerException if {@code nodes == null}
+     * @see #toNodeList(Collection)
+     * @see #fromNodeCoord(soc.proto.Data.NodeCoord)
+     */
+    public static final List<Integer> fromNodeList(final Data._NodeList nodes)
+        throws NullPointerException
+    {
+        ArrayList<Integer> nlist = new ArrayList<Integer>(nodes.getNodeCount());
+
+        for (final Data.NodeCoord node : nodes.getNodeList())
+            nlist.add(fromNodeCoord(node));
+
+        return nlist;
     }
 
     //

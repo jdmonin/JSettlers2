@@ -67,19 +67,31 @@ message HexCoord {
     int32 column = 2;
 }
 
-/* Coordinate type for general messages about multiple types of pieces
- * which may be located at a node, edge, or hex.
+/* Coordinate type to use in general messages about multiple types of pieces
+ * or other things which may be located at a node, edge, or hex.
  * Use edge_coord for roads and ships, node_coord for all other PieceTypes.
  * Currently no known PieceType uses hex_coord.
  * @see PieceType
  */
-message PieceCoord {
+message BoardCoord {
     oneof coord_type {
         NodeCoord node_coord = 1;
         EdgeCoord edge_coord = 2;
         HexCoord hex_coord = 3;
     }
 }
+
+/* Data type for list of EdgeCoord, since oneof and map can't directly contain a repeated field. */
+message _EdgeList { repeated EdgeCoord edge = 1; }
+
+/* Data type for list of HexCoord, since oneof and map can't directly contain a repeated field. */
+message _HexList { repeated HexCoord hex = 1; }
+
+/* Data type for list of NodeCoord, since oneof and map can't directly contain a repeated field. */
+message _NodeList { repeated NodeCoord node = 1; }
+
+/* Data type for list of BoardCoord, since oneof and map can't directly contain a repeated field. */
+message _BoardCoordList { repeated BoardCoord coord = 1; }
 
 /* Structs here are suffixed "Data" since we eventually want them used in the java code. Many struct names will then get
 the same name as its OO counterparts. As in Java OO is central, I choose to suffix the data.
@@ -120,7 +132,7 @@ message ResourceSet {
 /* Piece Types for {@link soc.game.SOCPlayingPiece}; same constant values as that class.
  * Used in {@link GameMessage.PutPiece}, {@link GameMessage.CancelBuild}, etc.
  * For the resources needed to build a piece type, see {@link soc.game.SOCPlayingPiece#getResourcesToBuild(int)}.
- * @see PieceCoord
+ * @see BoardCoord
  * @see OtherPlayableItem
  */
 enum PieceType {

@@ -1263,12 +1263,12 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case GameMessage.GameMessageFromClient.BUILD_PIECE_FIELD_NUMBER:
                 {
                     GameMessage.BuildPiece m = msg.getBuildPiece();
-                    final Data.PieceCoord pc = m.getCoordinates();
+                    final Data.BoardCoord pc = m.getCoordinates();
                     if (pc == null)
                         return null;
                     else
                         return new SOCPutPiece
-                            (gaName, -1, m.getTypeValue(), ProtoMessageBuildHelper.fromPieceCoord(pc));
+                            (gaName, -1, m.getTypeValue(), ProtoMessageBuildHelper.fromBoardCoord(pc));
                 }
 
             case GameMessage.GameMessageFromClient.CANCEL_BUILD_FIELD_NUMBER:
@@ -1280,14 +1280,14 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case GameMessage.GameMessageFromClient.MOVE_PIECE_FIELD_NUMBER:
                 {
                     GameMessage.MovePiece m = msg.getMovePiece();
-                    final Data.PieceCoord pcFrom = m.getFromCoordinates(), pcTo = m.getToCoordinates();
+                    final Data.BoardCoord pcFrom = m.getFromCoordinates(), pcTo = m.getToCoordinates();
                     if ((pcFrom == null) || (pcTo == null))
                         return null;
                     else
                         return new SOCMovePiece
                             (gaName, -1, m.getTypeValue(),
-                             ProtoMessageBuildHelper.fromPieceCoord(pcFrom),
-                             ProtoMessageBuildHelper.fromPieceCoord(pcTo));
+                             ProtoMessageBuildHelper.fromBoardCoord(pcFrom),
+                             ProtoMessageBuildHelper.fromBoardCoord(pcTo));
                 }
 
             case GameMessage.GameMessageFromClient.BUY_INVENTORY_ITEM_FIELD_NUMBER:

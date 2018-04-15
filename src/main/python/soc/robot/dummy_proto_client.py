@@ -280,14 +280,31 @@ class DummyProtoClient(object):
     # board layout and contents
 
     def _treat_ga_board_layout(self, ga_name, pn, msg):
-        print("  BoardLayout(game=" + repr(ga_name) + ", encoding=" + str(msg.encoding_format)
+        print("  BoardLayout(game=" + repr(ga_name) + ", encoding="
+              + game_message_pb2.BoardLayout._LayoutEncodingFormat.Name(msg.layout_encoding)
               + ", parts=" + repr(msg.parts) + ")")
 
     def _treat_ga_potential_settlements(self, ga_name, pn, msg):
         if pn is None:
             pn = 0
-        print("  PotentialSettlements(game=" + repr(ga_name) + ", pn=" + str(pn)
-              + ", ps_nodes=[" + ", ".join([format(c, '#05x') for c in msg.ps_nodes]) + "])")
+        s = "  PotentialSettlements(game=" + repr(ga_name) + ", pn=" + str(pn)
+        if msg.area_count:
+            s += ", area_count=" + str(msg.area_count)
+        if msg.starting_land_area:
+            s += ", starting_land_area=" + str(msg.starting_land_area)
+        s += ", ps_nodes=[" + ', '.join([self.format_proto_coord(c) for c in msg.ps_nodes]) + "]"
+        if msg.land_areas_legal_nodes:
+            s += ", land_areas_legal_nodes={"
+            for k, nlist in msg.land_areas_legal_nodes.items():
+                s += " " + str(k) + ": [" + ', '.join([self.format_proto_coord(c) for c in nlist.node]) + "]"
+            s += "}"
+        if msg.legal_sea_edges:
+            s += ", legal_sea_edges=["
+            for elist in msg.legal_sea_edges:
+                s += "{" + ', '.join([self.format_proto_coord(c) for c in elist.edge]) + "}"
+            s += "]"
+        s += ")"
+        print(s)
 
     def _treat_ga_build_piece(self, ga_name, pn, msg):
         if pn is None:
@@ -485,10 +502,10 @@ class DummyProtoClient(object):
     def format_proto_coord(self, coord):
         """
         Returns a string for this data.proto 2D board coordinate, formatted as: '(0xRR, 0xCC)'
-        coord can be a EdgeCoord, HexCoord, NodeCoord or PieceCoord.
-        If PieceCoord:
+        coord can be a EdgeCoord, HexCoord, NodeCoord or BoardCoord.
+        If BoardCoord:
             - Prepend 'edge_coord', 'hex_coord', or 'node_coord' to the '(0xRR, 0xCC)' returned.
-            - If none of those 3 coordinate type fields are provided, returns 'piece_coord(empty)'
+            - If none of those 3 coordinate type fields are provided, returns 'board_coord(empty)'
         If coord isn't one of those types or None, raises a ValueError trying to get the coord_type OneOf value.
         """
         if coord is None:
@@ -510,7 +527,7 @@ class DummyProtoClient(object):
                 # format and return coord.edge_coord, .hex_coord or .node_coord
                 return cf_name + self.format_proto_coord(getattr(coord, cf_name, None))
             else:
-                return 'piece_coord(empty)'
+                return 'board_coord(empty)'
 
 def main():
     """

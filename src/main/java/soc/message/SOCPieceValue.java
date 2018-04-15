@@ -101,7 +101,7 @@ public class SOCPieceValue extends SOCMessageTemplate4i
         GameMessage.PieceValue.Builder b
             = GameMessage.PieceValue.newBuilder();
         b.setTypeValue(p1)
-         .setCoordinates(ProtoMessageBuildHelper.toPieceCoord(p2, p1))
+         .setCoordinates(ProtoMessageBuildHelper.toBoardCoord(p2, p1))
          .setPieceValue1(p3)
          .setPieceValue2(p4);
         GameMessage.GameMessageFromServer.Builder gb

@@ -731,12 +731,20 @@ public final class GameMessage {
 
     /**
      * <pre>
-     * Board layout encoding version, from {&#64;link SOCBoard#getBoardEncodingFormat()}
+     * Board layout encoding format version
      * </pre>
      *
-     * <code>uint32 encoding_format = 1;</code>
+     * <code>.BoardLayout._LayoutEncodingFormat layout_encoding = 1;</code>
      */
-    int getEncodingFormat();
+    int getLayoutEncodingValue();
+    /**
+     * <pre>
+     * Board layout encoding format version
+     * </pre>
+     *
+     * <code>.BoardLayout._LayoutEncodingFormat layout_encoding = 1;</code>
+     */
+    soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat getLayoutEncoding();
 
     /**
      * <pre>
@@ -797,7 +805,7 @@ public final class GameMessage {
    * Board layout contents.
    * Sent when game starts or client joins a game in progress.
    * Applies to entire game (player_number field is unused).
-   * TODO: Further docs on encoding_format, ref to list of part keynames, etc
+   * TODO: Ref to list of part keynames, etc
    * </pre>
    *
    * Protobuf type {@code BoardLayout}
@@ -812,7 +820,7 @@ public final class GameMessage {
       super(builder);
     }
     private BoardLayout() {
-      encodingFormat_ = 0;
+      layoutEncoding_ = 0;
     }
 
     @java.lang.Override
@@ -844,8 +852,9 @@ public final class GameMessage {
               break;
             }
             case 8: {
+              int rawValue = input.readEnum();
 
-              encodingFormat_ = input.readUInt32();
+              layoutEncoding_ = rawValue;
               break;
             }
             case 18: {
@@ -894,6 +903,168 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_BoardLayout_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               soc.proto.GameMessage.BoardLayout.class, soc.proto.GameMessage.BoardLayout.Builder.class);
+    }
+
+    /**
+     * <pre>
+     * Board layout encoding format versions, from {&#64;link soc.game.SOCBoard#getBoardEncodingFormat()} 
+     * </pre>
+     *
+     * Protobuf enum {@code BoardLayout._LayoutEncodingFormat}
+     */
+    public enum _LayoutEncodingFormat
+        implements com.google.protobuf.ProtocolMessageEnum {
+      /**
+       * <pre>
+       * Required for enum, but not sent 
+       * </pre>
+       *
+       * <code>_UNSENT_DEFAULT_ENCODING = 0;</code>
+       */
+      _UNSENT_DEFAULT_ENCODING(0),
+      /**
+       * <pre>
+       * Not supported in JSettlers v3.x.xx: "v1" Original format : hexadecimal 0x00 to 0xFF. 
+       * </pre>
+       *
+       * <code>BOARD_ENCODING_ORIGINAL = 1;</code>
+       */
+      BOARD_ENCODING_ORIGINAL(1),
+      /**
+       * <pre>
+       * Not supported in JSettlers v3.x.xx: 6-player board, variant of original format:
+       * hexadecimal 0x00 to 0xFF.
+       * Added in v1.1.08.
+       * </pre>
+       *
+       * <code>BOARD_ENCODING_6PLAYER = 2;</code>
+       */
+      BOARD_ENCODING_6PLAYER(2),
+      /**
+       * <pre>
+       * Large sea board ({&#64;link SOCBoardLarge}); minimum supported board encoding for v3.x.xx.
+       * Coordinate range for rows, columns is each 0 to 255 decimal.
+       * Arbitrary mix of land and water tiles. Activated with {&#64;link SOCGameOption} "SBL".
+       * Added in v2.0.00.
+       * </pre>
+       *
+       * <code>BOARD_ENCODING_LARGE = 3;</code>
+       */
+      BOARD_ENCODING_LARGE(3),
+      UNRECOGNIZED(-1),
+      ;
+
+      /**
+       * <pre>
+       * Required for enum, but not sent 
+       * </pre>
+       *
+       * <code>_UNSENT_DEFAULT_ENCODING = 0;</code>
+       */
+      public static final int _UNSENT_DEFAULT_ENCODING_VALUE = 0;
+      /**
+       * <pre>
+       * Not supported in JSettlers v3.x.xx: "v1" Original format : hexadecimal 0x00 to 0xFF. 
+       * </pre>
+       *
+       * <code>BOARD_ENCODING_ORIGINAL = 1;</code>
+       */
+      public static final int BOARD_ENCODING_ORIGINAL_VALUE = 1;
+      /**
+       * <pre>
+       * Not supported in JSettlers v3.x.xx: 6-player board, variant of original format:
+       * hexadecimal 0x00 to 0xFF.
+       * Added in v1.1.08.
+       * </pre>
+       *
+       * <code>BOARD_ENCODING_6PLAYER = 2;</code>
+       */
+      public static final int BOARD_ENCODING_6PLAYER_VALUE = 2;
+      /**
+       * <pre>
+       * Large sea board ({&#64;link SOCBoardLarge}); minimum supported board encoding for v3.x.xx.
+       * Coordinate range for rows, columns is each 0 to 255 decimal.
+       * Arbitrary mix of land and water tiles. Activated with {&#64;link SOCGameOption} "SBL".
+       * Added in v2.0.00.
+       * </pre>
+       *
+       * <code>BOARD_ENCODING_LARGE = 3;</code>
+       */
+      public static final int BOARD_ENCODING_LARGE_VALUE = 3;
+
+
+      public final int getNumber() {
+        if (this == UNRECOGNIZED) {
+          throw new java.lang.IllegalArgumentException(
+              "Can't get the number of an unknown enum value.");
+        }
+        return value;
+      }
+
+      /**
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static _LayoutEncodingFormat valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static _LayoutEncodingFormat forNumber(int value) {
+        switch (value) {
+          case 0: return _UNSENT_DEFAULT_ENCODING;
+          case 1: return BOARD_ENCODING_ORIGINAL;
+          case 2: return BOARD_ENCODING_6PLAYER;
+          case 3: return BOARD_ENCODING_LARGE;
+          default: return null;
+        }
+      }
+
+      public static com.google.protobuf.Internal.EnumLiteMap<_LayoutEncodingFormat>
+          internalGetValueMap() {
+        return internalValueMap;
+      }
+      private static final com.google.protobuf.Internal.EnumLiteMap<
+          _LayoutEncodingFormat> internalValueMap =
+            new com.google.protobuf.Internal.EnumLiteMap<_LayoutEncodingFormat>() {
+              public _LayoutEncodingFormat findValueByNumber(int number) {
+                return _LayoutEncodingFormat.forNumber(number);
+              }
+            };
+
+      public final com.google.protobuf.Descriptors.EnumValueDescriptor
+          getValueDescriptor() {
+        return getDescriptor().getValues().get(ordinal());
+      }
+      public final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptorForType() {
+        return getDescriptor();
+      }
+      public static final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.BoardLayout.getDescriptor().getEnumTypes().get(0);
+      }
+
+      private static final _LayoutEncodingFormat[] VALUES = values();
+
+      public static _LayoutEncodingFormat valueOf(
+          com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        if (desc.getType() != getDescriptor()) {
+          throw new java.lang.IllegalArgumentException(
+            "EnumValueDescriptor is not for this type.");
+        }
+        if (desc.getIndex() == -1) {
+          return UNRECOGNIZED;
+        }
+        return VALUES[desc.getIndex()];
+      }
+
+      private final int value;
+
+      private _LayoutEncodingFormat(int value) {
+        this.value = value;
+      }
+
+      // @@protoc_insertion_point(enum_scope:BoardLayout._LayoutEncodingFormat)
     }
 
     public interface _BoardLayoutPartOrBuilder extends
@@ -951,6 +1122,106 @@ public final class GameMessage {
        * <code>._IntArray i_arr = 3;</code>
        */
       soc.proto.Data._IntArrayOrBuilder getIArrOrBuilder();
+
+      /**
+       * <pre>
+       * general board coordinate list
+       * </pre>
+       *
+       * <code>._BoardCoordList coordinate_list = 4;</code>
+       */
+      boolean hasCoordinateList();
+      /**
+       * <pre>
+       * general board coordinate list
+       * </pre>
+       *
+       * <code>._BoardCoordList coordinate_list = 4;</code>
+       */
+      soc.proto.Data._BoardCoordList getCoordinateList();
+      /**
+       * <pre>
+       * general board coordinate list
+       * </pre>
+       *
+       * <code>._BoardCoordList coordinate_list = 4;</code>
+       */
+      soc.proto.Data._BoardCoordListOrBuilder getCoordinateListOrBuilder();
+
+      /**
+       * <pre>
+       * edge coordinate list
+       * </pre>
+       *
+       * <code>._EdgeList edge_list = 5;</code>
+       */
+      boolean hasEdgeList();
+      /**
+       * <pre>
+       * edge coordinate list
+       * </pre>
+       *
+       * <code>._EdgeList edge_list = 5;</code>
+       */
+      soc.proto.Data._EdgeList getEdgeList();
+      /**
+       * <pre>
+       * edge coordinate list
+       * </pre>
+       *
+       * <code>._EdgeList edge_list = 5;</code>
+       */
+      soc.proto.Data._EdgeListOrBuilder getEdgeListOrBuilder();
+
+      /**
+       * <pre>
+       * hex coordinate list
+       * </pre>
+       *
+       * <code>._HexList hex_list = 6;</code>
+       */
+      boolean hasHexList();
+      /**
+       * <pre>
+       * hex coordinate list
+       * </pre>
+       *
+       * <code>._HexList hex_list = 6;</code>
+       */
+      soc.proto.Data._HexList getHexList();
+      /**
+       * <pre>
+       * hex coordinate list
+       * </pre>
+       *
+       * <code>._HexList hex_list = 6;</code>
+       */
+      soc.proto.Data._HexListOrBuilder getHexListOrBuilder();
+
+      /**
+       * <pre>
+       * node coordinate list
+       * </pre>
+       *
+       * <code>._NodeList node_list = 7;</code>
+       */
+      boolean hasNodeList();
+      /**
+       * <pre>
+       * node coordinate list
+       * </pre>
+       *
+       * <code>._NodeList node_list = 7;</code>
+       */
+      soc.proto.Data._NodeList getNodeList();
+      /**
+       * <pre>
+       * node coordinate list
+       * </pre>
+       *
+       * <code>._NodeList node_list = 7;</code>
+       */
+      soc.proto.Data._NodeListOrBuilder getNodeListOrBuilder();
 
       public soc.proto.GameMessage.BoardLayout._BoardLayoutPart.ValCase getValCase();
     }
@@ -1022,6 +1293,62 @@ public final class GameMessage {
                 valCase_ = 3;
                 break;
               }
+              case 34: {
+                soc.proto.Data._BoardCoordList.Builder subBuilder = null;
+                if (valCase_ == 4) {
+                  subBuilder = ((soc.proto.Data._BoardCoordList) val_).toBuilder();
+                }
+                val_ =
+                    input.readMessage(soc.proto.Data._BoardCoordList.parser(), extensionRegistry);
+                if (subBuilder != null) {
+                  subBuilder.mergeFrom((soc.proto.Data._BoardCoordList) val_);
+                  val_ = subBuilder.buildPartial();
+                }
+                valCase_ = 4;
+                break;
+              }
+              case 42: {
+                soc.proto.Data._EdgeList.Builder subBuilder = null;
+                if (valCase_ == 5) {
+                  subBuilder = ((soc.proto.Data._EdgeList) val_).toBuilder();
+                }
+                val_ =
+                    input.readMessage(soc.proto.Data._EdgeList.parser(), extensionRegistry);
+                if (subBuilder != null) {
+                  subBuilder.mergeFrom((soc.proto.Data._EdgeList) val_);
+                  val_ = subBuilder.buildPartial();
+                }
+                valCase_ = 5;
+                break;
+              }
+              case 50: {
+                soc.proto.Data._HexList.Builder subBuilder = null;
+                if (valCase_ == 6) {
+                  subBuilder = ((soc.proto.Data._HexList) val_).toBuilder();
+                }
+                val_ =
+                    input.readMessage(soc.proto.Data._HexList.parser(), extensionRegistry);
+                if (subBuilder != null) {
+                  subBuilder.mergeFrom((soc.proto.Data._HexList) val_);
+                  val_ = subBuilder.buildPartial();
+                }
+                valCase_ = 6;
+                break;
+              }
+              case 58: {
+                soc.proto.Data._NodeList.Builder subBuilder = null;
+                if (valCase_ == 7) {
+                  subBuilder = ((soc.proto.Data._NodeList) val_).toBuilder();
+                }
+                val_ =
+                    input.readMessage(soc.proto.Data._NodeList.parser(), extensionRegistry);
+                if (subBuilder != null) {
+                  subBuilder.mergeFrom((soc.proto.Data._NodeList) val_);
+                  val_ = subBuilder.buildPartial();
+                }
+                valCase_ = 7;
+                break;
+              }
             }
           }
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -1053,6 +1380,10 @@ public final class GameMessage {
         I_VAL(1),
         S_VAL(2),
         I_ARR(3),
+        COORDINATE_LIST(4),
+        EDGE_LIST(5),
+        HEX_LIST(6),
+        NODE_LIST(7),
         VAL_NOT_SET(0);
         private final int value;
         private ValCase(int value) {
@@ -1071,6 +1402,10 @@ public final class GameMessage {
             case 1: return I_VAL;
             case 2: return S_VAL;
             case 3: return I_ARR;
+            case 4: return COORDINATE_LIST;
+            case 5: return EDGE_LIST;
+            case 6: return HEX_LIST;
+            case 7: return NODE_LIST;
             case 0: return VAL_NOT_SET;
             default: return null;
           }
@@ -1190,6 +1525,158 @@ public final class GameMessage {
         return soc.proto.Data._IntArray.getDefaultInstance();
       }
 
+      public static final int COORDINATE_LIST_FIELD_NUMBER = 4;
+      /**
+       * <pre>
+       * general board coordinate list
+       * </pre>
+       *
+       * <code>._BoardCoordList coordinate_list = 4;</code>
+       */
+      public boolean hasCoordinateList() {
+        return valCase_ == 4;
+      }
+      /**
+       * <pre>
+       * general board coordinate list
+       * </pre>
+       *
+       * <code>._BoardCoordList coordinate_list = 4;</code>
+       */
+      public soc.proto.Data._BoardCoordList getCoordinateList() {
+        if (valCase_ == 4) {
+           return (soc.proto.Data._BoardCoordList) val_;
+        }
+        return soc.proto.Data._BoardCoordList.getDefaultInstance();
+      }
+      /**
+       * <pre>
+       * general board coordinate list
+       * </pre>
+       *
+       * <code>._BoardCoordList coordinate_list = 4;</code>
+       */
+      public soc.proto.Data._BoardCoordListOrBuilder getCoordinateListOrBuilder() {
+        if (valCase_ == 4) {
+           return (soc.proto.Data._BoardCoordList) val_;
+        }
+        return soc.proto.Data._BoardCoordList.getDefaultInstance();
+      }
+
+      public static final int EDGE_LIST_FIELD_NUMBER = 5;
+      /**
+       * <pre>
+       * edge coordinate list
+       * </pre>
+       *
+       * <code>._EdgeList edge_list = 5;</code>
+       */
+      public boolean hasEdgeList() {
+        return valCase_ == 5;
+      }
+      /**
+       * <pre>
+       * edge coordinate list
+       * </pre>
+       *
+       * <code>._EdgeList edge_list = 5;</code>
+       */
+      public soc.proto.Data._EdgeList getEdgeList() {
+        if (valCase_ == 5) {
+           return (soc.proto.Data._EdgeList) val_;
+        }
+        return soc.proto.Data._EdgeList.getDefaultInstance();
+      }
+      /**
+       * <pre>
+       * edge coordinate list
+       * </pre>
+       *
+       * <code>._EdgeList edge_list = 5;</code>
+       */
+      public soc.proto.Data._EdgeListOrBuilder getEdgeListOrBuilder() {
+        if (valCase_ == 5) {
+           return (soc.proto.Data._EdgeList) val_;
+        }
+        return soc.proto.Data._EdgeList.getDefaultInstance();
+      }
+
+      public static final int HEX_LIST_FIELD_NUMBER = 6;
+      /**
+       * <pre>
+       * hex coordinate list
+       * </pre>
+       *
+       * <code>._HexList hex_list = 6;</code>
+       */
+      public boolean hasHexList() {
+        return valCase_ == 6;
+      }
+      /**
+       * <pre>
+       * hex coordinate list
+       * </pre>
+       *
+       * <code>._HexList hex_list = 6;</code>
+       */
+      public soc.proto.Data._HexList getHexList() {
+        if (valCase_ == 6) {
+           return (soc.proto.Data._HexList) val_;
+        }
+        return soc.proto.Data._HexList.getDefaultInstance();
+      }
+      /**
+       * <pre>
+       * hex coordinate list
+       * </pre>
+       *
+       * <code>._HexList hex_list = 6;</code>
+       */
+      public soc.proto.Data._HexListOrBuilder getHexListOrBuilder() {
+        if (valCase_ == 6) {
+           return (soc.proto.Data._HexList) val_;
+        }
+        return soc.proto.Data._HexList.getDefaultInstance();
+      }
+
+      public static final int NODE_LIST_FIELD_NUMBER = 7;
+      /**
+       * <pre>
+       * node coordinate list
+       * </pre>
+       *
+       * <code>._NodeList node_list = 7;</code>
+       */
+      public boolean hasNodeList() {
+        return valCase_ == 7;
+      }
+      /**
+       * <pre>
+       * node coordinate list
+       * </pre>
+       *
+       * <code>._NodeList node_list = 7;</code>
+       */
+      public soc.proto.Data._NodeList getNodeList() {
+        if (valCase_ == 7) {
+           return (soc.proto.Data._NodeList) val_;
+        }
+        return soc.proto.Data._NodeList.getDefaultInstance();
+      }
+      /**
+       * <pre>
+       * node coordinate list
+       * </pre>
+       *
+       * <code>._NodeList node_list = 7;</code>
+       */
+      public soc.proto.Data._NodeListOrBuilder getNodeListOrBuilder() {
+        if (valCase_ == 7) {
+           return (soc.proto.Data._NodeList) val_;
+        }
+        return soc.proto.Data._NodeList.getDefaultInstance();
+      }
+
       private byte memoizedIsInitialized = -1;
       public final boolean isInitialized() {
         byte isInitialized = memoizedIsInitialized;
@@ -1212,6 +1699,18 @@ public final class GameMessage {
         if (valCase_ == 3) {
           output.writeMessage(3, (soc.proto.Data._IntArray) val_);
         }
+        if (valCase_ == 4) {
+          output.writeMessage(4, (soc.proto.Data._BoardCoordList) val_);
+        }
+        if (valCase_ == 5) {
+          output.writeMessage(5, (soc.proto.Data._EdgeList) val_);
+        }
+        if (valCase_ == 6) {
+          output.writeMessage(6, (soc.proto.Data._HexList) val_);
+        }
+        if (valCase_ == 7) {
+          output.writeMessage(7, (soc.proto.Data._NodeList) val_);
+        }
         unknownFields.writeTo(output);
       }
 
@@ -1231,6 +1730,22 @@ public final class GameMessage {
         if (valCase_ == 3) {
           size += com.google.protobuf.CodedOutputStream
             .computeMessageSize(3, (soc.proto.Data._IntArray) val_);
+        }
+        if (valCase_ == 4) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(4, (soc.proto.Data._BoardCoordList) val_);
+        }
+        if (valCase_ == 5) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(5, (soc.proto.Data._EdgeList) val_);
+        }
+        if (valCase_ == 6) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(6, (soc.proto.Data._HexList) val_);
+        }
+        if (valCase_ == 7) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(7, (soc.proto.Data._NodeList) val_);
         }
         size += unknownFields.getSerializedSize();
         memoizedSize = size;
@@ -1264,6 +1779,22 @@ public final class GameMessage {
             result = result && getIArr()
                 .equals(other.getIArr());
             break;
+          case 4:
+            result = result && getCoordinateList()
+                .equals(other.getCoordinateList());
+            break;
+          case 5:
+            result = result && getEdgeList()
+                .equals(other.getEdgeList());
+            break;
+          case 6:
+            result = result && getHexList()
+                .equals(other.getHexList());
+            break;
+          case 7:
+            result = result && getNodeList()
+                .equals(other.getNodeList());
+            break;
           case 0:
           default:
         }
@@ -1290,6 +1821,22 @@ public final class GameMessage {
           case 3:
             hash = (37 * hash) + I_ARR_FIELD_NUMBER;
             hash = (53 * hash) + getIArr().hashCode();
+            break;
+          case 4:
+            hash = (37 * hash) + COORDINATE_LIST_FIELD_NUMBER;
+            hash = (53 * hash) + getCoordinateList().hashCode();
+            break;
+          case 5:
+            hash = (37 * hash) + EDGE_LIST_FIELD_NUMBER;
+            hash = (53 * hash) + getEdgeList().hashCode();
+            break;
+          case 6:
+            hash = (37 * hash) + HEX_LIST_FIELD_NUMBER;
+            hash = (53 * hash) + getHexList().hashCode();
+            break;
+          case 7:
+            hash = (37 * hash) + NODE_LIST_FIELD_NUMBER;
+            hash = (53 * hash) + getNodeList().hashCode();
             break;
           case 0:
           default:
@@ -1460,6 +2007,34 @@ public final class GameMessage {
               result.val_ = iArrBuilder_.build();
             }
           }
+          if (valCase_ == 4) {
+            if (coordinateListBuilder_ == null) {
+              result.val_ = val_;
+            } else {
+              result.val_ = coordinateListBuilder_.build();
+            }
+          }
+          if (valCase_ == 5) {
+            if (edgeListBuilder_ == null) {
+              result.val_ = val_;
+            } else {
+              result.val_ = edgeListBuilder_.build();
+            }
+          }
+          if (valCase_ == 6) {
+            if (hexListBuilder_ == null) {
+              result.val_ = val_;
+            } else {
+              result.val_ = hexListBuilder_.build();
+            }
+          }
+          if (valCase_ == 7) {
+            if (nodeListBuilder_ == null) {
+              result.val_ = val_;
+            } else {
+              result.val_ = nodeListBuilder_.build();
+            }
+          }
           result.valCase_ = valCase_;
           onBuilt();
           return result;
@@ -1515,6 +2090,22 @@ public final class GameMessage {
             }
             case I_ARR: {
               mergeIArr(other.getIArr());
+              break;
+            }
+            case COORDINATE_LIST: {
+              mergeCoordinateList(other.getCoordinateList());
+              break;
+            }
+            case EDGE_LIST: {
+              mergeEdgeList(other.getEdgeList());
+              break;
+            }
+            case HEX_LIST: {
+              mergeHexList(other.getHexList());
+              break;
+            }
+            case NODE_LIST: {
+              mergeNodeList(other.getNodeList());
               break;
             }
             case VAL_NOT_SET: {
@@ -1876,6 +2467,694 @@ public final class GameMessage {
           onChanged();;
           return iArrBuilder_;
         }
+
+        private com.google.protobuf.SingleFieldBuilderV3<
+            soc.proto.Data._BoardCoordList, soc.proto.Data._BoardCoordList.Builder, soc.proto.Data._BoardCoordListOrBuilder> coordinateListBuilder_;
+        /**
+         * <pre>
+         * general board coordinate list
+         * </pre>
+         *
+         * <code>._BoardCoordList coordinate_list = 4;</code>
+         */
+        public boolean hasCoordinateList() {
+          return valCase_ == 4;
+        }
+        /**
+         * <pre>
+         * general board coordinate list
+         * </pre>
+         *
+         * <code>._BoardCoordList coordinate_list = 4;</code>
+         */
+        public soc.proto.Data._BoardCoordList getCoordinateList() {
+          if (coordinateListBuilder_ == null) {
+            if (valCase_ == 4) {
+              return (soc.proto.Data._BoardCoordList) val_;
+            }
+            return soc.proto.Data._BoardCoordList.getDefaultInstance();
+          } else {
+            if (valCase_ == 4) {
+              return coordinateListBuilder_.getMessage();
+            }
+            return soc.proto.Data._BoardCoordList.getDefaultInstance();
+          }
+        }
+        /**
+         * <pre>
+         * general board coordinate list
+         * </pre>
+         *
+         * <code>._BoardCoordList coordinate_list = 4;</code>
+         */
+        public Builder setCoordinateList(soc.proto.Data._BoardCoordList value) {
+          if (coordinateListBuilder_ == null) {
+            if (value == null) {
+              throw new NullPointerException();
+            }
+            val_ = value;
+            onChanged();
+          } else {
+            coordinateListBuilder_.setMessage(value);
+          }
+          valCase_ = 4;
+          return this;
+        }
+        /**
+         * <pre>
+         * general board coordinate list
+         * </pre>
+         *
+         * <code>._BoardCoordList coordinate_list = 4;</code>
+         */
+        public Builder setCoordinateList(
+            soc.proto.Data._BoardCoordList.Builder builderForValue) {
+          if (coordinateListBuilder_ == null) {
+            val_ = builderForValue.build();
+            onChanged();
+          } else {
+            coordinateListBuilder_.setMessage(builderForValue.build());
+          }
+          valCase_ = 4;
+          return this;
+        }
+        /**
+         * <pre>
+         * general board coordinate list
+         * </pre>
+         *
+         * <code>._BoardCoordList coordinate_list = 4;</code>
+         */
+        public Builder mergeCoordinateList(soc.proto.Data._BoardCoordList value) {
+          if (coordinateListBuilder_ == null) {
+            if (valCase_ == 4 &&
+                val_ != soc.proto.Data._BoardCoordList.getDefaultInstance()) {
+              val_ = soc.proto.Data._BoardCoordList.newBuilder((soc.proto.Data._BoardCoordList) val_)
+                  .mergeFrom(value).buildPartial();
+            } else {
+              val_ = value;
+            }
+            onChanged();
+          } else {
+            if (valCase_ == 4) {
+              coordinateListBuilder_.mergeFrom(value);
+            }
+            coordinateListBuilder_.setMessage(value);
+          }
+          valCase_ = 4;
+          return this;
+        }
+        /**
+         * <pre>
+         * general board coordinate list
+         * </pre>
+         *
+         * <code>._BoardCoordList coordinate_list = 4;</code>
+         */
+        public Builder clearCoordinateList() {
+          if (coordinateListBuilder_ == null) {
+            if (valCase_ == 4) {
+              valCase_ = 0;
+              val_ = null;
+              onChanged();
+            }
+          } else {
+            if (valCase_ == 4) {
+              valCase_ = 0;
+              val_ = null;
+            }
+            coordinateListBuilder_.clear();
+          }
+          return this;
+        }
+        /**
+         * <pre>
+         * general board coordinate list
+         * </pre>
+         *
+         * <code>._BoardCoordList coordinate_list = 4;</code>
+         */
+        public soc.proto.Data._BoardCoordList.Builder getCoordinateListBuilder() {
+          return getCoordinateListFieldBuilder().getBuilder();
+        }
+        /**
+         * <pre>
+         * general board coordinate list
+         * </pre>
+         *
+         * <code>._BoardCoordList coordinate_list = 4;</code>
+         */
+        public soc.proto.Data._BoardCoordListOrBuilder getCoordinateListOrBuilder() {
+          if ((valCase_ == 4) && (coordinateListBuilder_ != null)) {
+            return coordinateListBuilder_.getMessageOrBuilder();
+          } else {
+            if (valCase_ == 4) {
+              return (soc.proto.Data._BoardCoordList) val_;
+            }
+            return soc.proto.Data._BoardCoordList.getDefaultInstance();
+          }
+        }
+        /**
+         * <pre>
+         * general board coordinate list
+         * </pre>
+         *
+         * <code>._BoardCoordList coordinate_list = 4;</code>
+         */
+        private com.google.protobuf.SingleFieldBuilderV3<
+            soc.proto.Data._BoardCoordList, soc.proto.Data._BoardCoordList.Builder, soc.proto.Data._BoardCoordListOrBuilder> 
+            getCoordinateListFieldBuilder() {
+          if (coordinateListBuilder_ == null) {
+            if (!(valCase_ == 4)) {
+              val_ = soc.proto.Data._BoardCoordList.getDefaultInstance();
+            }
+            coordinateListBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+                soc.proto.Data._BoardCoordList, soc.proto.Data._BoardCoordList.Builder, soc.proto.Data._BoardCoordListOrBuilder>(
+                    (soc.proto.Data._BoardCoordList) val_,
+                    getParentForChildren(),
+                    isClean());
+            val_ = null;
+          }
+          valCase_ = 4;
+          onChanged();;
+          return coordinateListBuilder_;
+        }
+
+        private com.google.protobuf.SingleFieldBuilderV3<
+            soc.proto.Data._EdgeList, soc.proto.Data._EdgeList.Builder, soc.proto.Data._EdgeListOrBuilder> edgeListBuilder_;
+        /**
+         * <pre>
+         * edge coordinate list
+         * </pre>
+         *
+         * <code>._EdgeList edge_list = 5;</code>
+         */
+        public boolean hasEdgeList() {
+          return valCase_ == 5;
+        }
+        /**
+         * <pre>
+         * edge coordinate list
+         * </pre>
+         *
+         * <code>._EdgeList edge_list = 5;</code>
+         */
+        public soc.proto.Data._EdgeList getEdgeList() {
+          if (edgeListBuilder_ == null) {
+            if (valCase_ == 5) {
+              return (soc.proto.Data._EdgeList) val_;
+            }
+            return soc.proto.Data._EdgeList.getDefaultInstance();
+          } else {
+            if (valCase_ == 5) {
+              return edgeListBuilder_.getMessage();
+            }
+            return soc.proto.Data._EdgeList.getDefaultInstance();
+          }
+        }
+        /**
+         * <pre>
+         * edge coordinate list
+         * </pre>
+         *
+         * <code>._EdgeList edge_list = 5;</code>
+         */
+        public Builder setEdgeList(soc.proto.Data._EdgeList value) {
+          if (edgeListBuilder_ == null) {
+            if (value == null) {
+              throw new NullPointerException();
+            }
+            val_ = value;
+            onChanged();
+          } else {
+            edgeListBuilder_.setMessage(value);
+          }
+          valCase_ = 5;
+          return this;
+        }
+        /**
+         * <pre>
+         * edge coordinate list
+         * </pre>
+         *
+         * <code>._EdgeList edge_list = 5;</code>
+         */
+        public Builder setEdgeList(
+            soc.proto.Data._EdgeList.Builder builderForValue) {
+          if (edgeListBuilder_ == null) {
+            val_ = builderForValue.build();
+            onChanged();
+          } else {
+            edgeListBuilder_.setMessage(builderForValue.build());
+          }
+          valCase_ = 5;
+          return this;
+        }
+        /**
+         * <pre>
+         * edge coordinate list
+         * </pre>
+         *
+         * <code>._EdgeList edge_list = 5;</code>
+         */
+        public Builder mergeEdgeList(soc.proto.Data._EdgeList value) {
+          if (edgeListBuilder_ == null) {
+            if (valCase_ == 5 &&
+                val_ != soc.proto.Data._EdgeList.getDefaultInstance()) {
+              val_ = soc.proto.Data._EdgeList.newBuilder((soc.proto.Data._EdgeList) val_)
+                  .mergeFrom(value).buildPartial();
+            } else {
+              val_ = value;
+            }
+            onChanged();
+          } else {
+            if (valCase_ == 5) {
+              edgeListBuilder_.mergeFrom(value);
+            }
+            edgeListBuilder_.setMessage(value);
+          }
+          valCase_ = 5;
+          return this;
+        }
+        /**
+         * <pre>
+         * edge coordinate list
+         * </pre>
+         *
+         * <code>._EdgeList edge_list = 5;</code>
+         */
+        public Builder clearEdgeList() {
+          if (edgeListBuilder_ == null) {
+            if (valCase_ == 5) {
+              valCase_ = 0;
+              val_ = null;
+              onChanged();
+            }
+          } else {
+            if (valCase_ == 5) {
+              valCase_ = 0;
+              val_ = null;
+            }
+            edgeListBuilder_.clear();
+          }
+          return this;
+        }
+        /**
+         * <pre>
+         * edge coordinate list
+         * </pre>
+         *
+         * <code>._EdgeList edge_list = 5;</code>
+         */
+        public soc.proto.Data._EdgeList.Builder getEdgeListBuilder() {
+          return getEdgeListFieldBuilder().getBuilder();
+        }
+        /**
+         * <pre>
+         * edge coordinate list
+         * </pre>
+         *
+         * <code>._EdgeList edge_list = 5;</code>
+         */
+        public soc.proto.Data._EdgeListOrBuilder getEdgeListOrBuilder() {
+          if ((valCase_ == 5) && (edgeListBuilder_ != null)) {
+            return edgeListBuilder_.getMessageOrBuilder();
+          } else {
+            if (valCase_ == 5) {
+              return (soc.proto.Data._EdgeList) val_;
+            }
+            return soc.proto.Data._EdgeList.getDefaultInstance();
+          }
+        }
+        /**
+         * <pre>
+         * edge coordinate list
+         * </pre>
+         *
+         * <code>._EdgeList edge_list = 5;</code>
+         */
+        private com.google.protobuf.SingleFieldBuilderV3<
+            soc.proto.Data._EdgeList, soc.proto.Data._EdgeList.Builder, soc.proto.Data._EdgeListOrBuilder> 
+            getEdgeListFieldBuilder() {
+          if (edgeListBuilder_ == null) {
+            if (!(valCase_ == 5)) {
+              val_ = soc.proto.Data._EdgeList.getDefaultInstance();
+            }
+            edgeListBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+                soc.proto.Data._EdgeList, soc.proto.Data._EdgeList.Builder, soc.proto.Data._EdgeListOrBuilder>(
+                    (soc.proto.Data._EdgeList) val_,
+                    getParentForChildren(),
+                    isClean());
+            val_ = null;
+          }
+          valCase_ = 5;
+          onChanged();;
+          return edgeListBuilder_;
+        }
+
+        private com.google.protobuf.SingleFieldBuilderV3<
+            soc.proto.Data._HexList, soc.proto.Data._HexList.Builder, soc.proto.Data._HexListOrBuilder> hexListBuilder_;
+        /**
+         * <pre>
+         * hex coordinate list
+         * </pre>
+         *
+         * <code>._HexList hex_list = 6;</code>
+         */
+        public boolean hasHexList() {
+          return valCase_ == 6;
+        }
+        /**
+         * <pre>
+         * hex coordinate list
+         * </pre>
+         *
+         * <code>._HexList hex_list = 6;</code>
+         */
+        public soc.proto.Data._HexList getHexList() {
+          if (hexListBuilder_ == null) {
+            if (valCase_ == 6) {
+              return (soc.proto.Data._HexList) val_;
+            }
+            return soc.proto.Data._HexList.getDefaultInstance();
+          } else {
+            if (valCase_ == 6) {
+              return hexListBuilder_.getMessage();
+            }
+            return soc.proto.Data._HexList.getDefaultInstance();
+          }
+        }
+        /**
+         * <pre>
+         * hex coordinate list
+         * </pre>
+         *
+         * <code>._HexList hex_list = 6;</code>
+         */
+        public Builder setHexList(soc.proto.Data._HexList value) {
+          if (hexListBuilder_ == null) {
+            if (value == null) {
+              throw new NullPointerException();
+            }
+            val_ = value;
+            onChanged();
+          } else {
+            hexListBuilder_.setMessage(value);
+          }
+          valCase_ = 6;
+          return this;
+        }
+        /**
+         * <pre>
+         * hex coordinate list
+         * </pre>
+         *
+         * <code>._HexList hex_list = 6;</code>
+         */
+        public Builder setHexList(
+            soc.proto.Data._HexList.Builder builderForValue) {
+          if (hexListBuilder_ == null) {
+            val_ = builderForValue.build();
+            onChanged();
+          } else {
+            hexListBuilder_.setMessage(builderForValue.build());
+          }
+          valCase_ = 6;
+          return this;
+        }
+        /**
+         * <pre>
+         * hex coordinate list
+         * </pre>
+         *
+         * <code>._HexList hex_list = 6;</code>
+         */
+        public Builder mergeHexList(soc.proto.Data._HexList value) {
+          if (hexListBuilder_ == null) {
+            if (valCase_ == 6 &&
+                val_ != soc.proto.Data._HexList.getDefaultInstance()) {
+              val_ = soc.proto.Data._HexList.newBuilder((soc.proto.Data._HexList) val_)
+                  .mergeFrom(value).buildPartial();
+            } else {
+              val_ = value;
+            }
+            onChanged();
+          } else {
+            if (valCase_ == 6) {
+              hexListBuilder_.mergeFrom(value);
+            }
+            hexListBuilder_.setMessage(value);
+          }
+          valCase_ = 6;
+          return this;
+        }
+        /**
+         * <pre>
+         * hex coordinate list
+         * </pre>
+         *
+         * <code>._HexList hex_list = 6;</code>
+         */
+        public Builder clearHexList() {
+          if (hexListBuilder_ == null) {
+            if (valCase_ == 6) {
+              valCase_ = 0;
+              val_ = null;
+              onChanged();
+            }
+          } else {
+            if (valCase_ == 6) {
+              valCase_ = 0;
+              val_ = null;
+            }
+            hexListBuilder_.clear();
+          }
+          return this;
+        }
+        /**
+         * <pre>
+         * hex coordinate list
+         * </pre>
+         *
+         * <code>._HexList hex_list = 6;</code>
+         */
+        public soc.proto.Data._HexList.Builder getHexListBuilder() {
+          return getHexListFieldBuilder().getBuilder();
+        }
+        /**
+         * <pre>
+         * hex coordinate list
+         * </pre>
+         *
+         * <code>._HexList hex_list = 6;</code>
+         */
+        public soc.proto.Data._HexListOrBuilder getHexListOrBuilder() {
+          if ((valCase_ == 6) && (hexListBuilder_ != null)) {
+            return hexListBuilder_.getMessageOrBuilder();
+          } else {
+            if (valCase_ == 6) {
+              return (soc.proto.Data._HexList) val_;
+            }
+            return soc.proto.Data._HexList.getDefaultInstance();
+          }
+        }
+        /**
+         * <pre>
+         * hex coordinate list
+         * </pre>
+         *
+         * <code>._HexList hex_list = 6;</code>
+         */
+        private com.google.protobuf.SingleFieldBuilderV3<
+            soc.proto.Data._HexList, soc.proto.Data._HexList.Builder, soc.proto.Data._HexListOrBuilder> 
+            getHexListFieldBuilder() {
+          if (hexListBuilder_ == null) {
+            if (!(valCase_ == 6)) {
+              val_ = soc.proto.Data._HexList.getDefaultInstance();
+            }
+            hexListBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+                soc.proto.Data._HexList, soc.proto.Data._HexList.Builder, soc.proto.Data._HexListOrBuilder>(
+                    (soc.proto.Data._HexList) val_,
+                    getParentForChildren(),
+                    isClean());
+            val_ = null;
+          }
+          valCase_ = 6;
+          onChanged();;
+          return hexListBuilder_;
+        }
+
+        private com.google.protobuf.SingleFieldBuilderV3<
+            soc.proto.Data._NodeList, soc.proto.Data._NodeList.Builder, soc.proto.Data._NodeListOrBuilder> nodeListBuilder_;
+        /**
+         * <pre>
+         * node coordinate list
+         * </pre>
+         *
+         * <code>._NodeList node_list = 7;</code>
+         */
+        public boolean hasNodeList() {
+          return valCase_ == 7;
+        }
+        /**
+         * <pre>
+         * node coordinate list
+         * </pre>
+         *
+         * <code>._NodeList node_list = 7;</code>
+         */
+        public soc.proto.Data._NodeList getNodeList() {
+          if (nodeListBuilder_ == null) {
+            if (valCase_ == 7) {
+              return (soc.proto.Data._NodeList) val_;
+            }
+            return soc.proto.Data._NodeList.getDefaultInstance();
+          } else {
+            if (valCase_ == 7) {
+              return nodeListBuilder_.getMessage();
+            }
+            return soc.proto.Data._NodeList.getDefaultInstance();
+          }
+        }
+        /**
+         * <pre>
+         * node coordinate list
+         * </pre>
+         *
+         * <code>._NodeList node_list = 7;</code>
+         */
+        public Builder setNodeList(soc.proto.Data._NodeList value) {
+          if (nodeListBuilder_ == null) {
+            if (value == null) {
+              throw new NullPointerException();
+            }
+            val_ = value;
+            onChanged();
+          } else {
+            nodeListBuilder_.setMessage(value);
+          }
+          valCase_ = 7;
+          return this;
+        }
+        /**
+         * <pre>
+         * node coordinate list
+         * </pre>
+         *
+         * <code>._NodeList node_list = 7;</code>
+         */
+        public Builder setNodeList(
+            soc.proto.Data._NodeList.Builder builderForValue) {
+          if (nodeListBuilder_ == null) {
+            val_ = builderForValue.build();
+            onChanged();
+          } else {
+            nodeListBuilder_.setMessage(builderForValue.build());
+          }
+          valCase_ = 7;
+          return this;
+        }
+        /**
+         * <pre>
+         * node coordinate list
+         * </pre>
+         *
+         * <code>._NodeList node_list = 7;</code>
+         */
+        public Builder mergeNodeList(soc.proto.Data._NodeList value) {
+          if (nodeListBuilder_ == null) {
+            if (valCase_ == 7 &&
+                val_ != soc.proto.Data._NodeList.getDefaultInstance()) {
+              val_ = soc.proto.Data._NodeList.newBuilder((soc.proto.Data._NodeList) val_)
+                  .mergeFrom(value).buildPartial();
+            } else {
+              val_ = value;
+            }
+            onChanged();
+          } else {
+            if (valCase_ == 7) {
+              nodeListBuilder_.mergeFrom(value);
+            }
+            nodeListBuilder_.setMessage(value);
+          }
+          valCase_ = 7;
+          return this;
+        }
+        /**
+         * <pre>
+         * node coordinate list
+         * </pre>
+         *
+         * <code>._NodeList node_list = 7;</code>
+         */
+        public Builder clearNodeList() {
+          if (nodeListBuilder_ == null) {
+            if (valCase_ == 7) {
+              valCase_ = 0;
+              val_ = null;
+              onChanged();
+            }
+          } else {
+            if (valCase_ == 7) {
+              valCase_ = 0;
+              val_ = null;
+            }
+            nodeListBuilder_.clear();
+          }
+          return this;
+        }
+        /**
+         * <pre>
+         * node coordinate list
+         * </pre>
+         *
+         * <code>._NodeList node_list = 7;</code>
+         */
+        public soc.proto.Data._NodeList.Builder getNodeListBuilder() {
+          return getNodeListFieldBuilder().getBuilder();
+        }
+        /**
+         * <pre>
+         * node coordinate list
+         * </pre>
+         *
+         * <code>._NodeList node_list = 7;</code>
+         */
+        public soc.proto.Data._NodeListOrBuilder getNodeListOrBuilder() {
+          if ((valCase_ == 7) && (nodeListBuilder_ != null)) {
+            return nodeListBuilder_.getMessageOrBuilder();
+          } else {
+            if (valCase_ == 7) {
+              return (soc.proto.Data._NodeList) val_;
+            }
+            return soc.proto.Data._NodeList.getDefaultInstance();
+          }
+        }
+        /**
+         * <pre>
+         * node coordinate list
+         * </pre>
+         *
+         * <code>._NodeList node_list = 7;</code>
+         */
+        private com.google.protobuf.SingleFieldBuilderV3<
+            soc.proto.Data._NodeList, soc.proto.Data._NodeList.Builder, soc.proto.Data._NodeListOrBuilder> 
+            getNodeListFieldBuilder() {
+          if (nodeListBuilder_ == null) {
+            if (!(valCase_ == 7)) {
+              val_ = soc.proto.Data._NodeList.getDefaultInstance();
+            }
+            nodeListBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+                soc.proto.Data._NodeList, soc.proto.Data._NodeList.Builder, soc.proto.Data._NodeListOrBuilder>(
+                    (soc.proto.Data._NodeList) val_,
+                    getParentForChildren(),
+                    isClean());
+            val_ = null;
+          }
+          valCase_ = 7;
+          onChanged();;
+          return nodeListBuilder_;
+        }
         public final Builder setUnknownFields(
             final com.google.protobuf.UnknownFieldSet unknownFields) {
           return super.setUnknownFieldsProto3(unknownFields);
@@ -1926,17 +3205,28 @@ public final class GameMessage {
     }
 
     private int bitField0_;
-    public static final int ENCODING_FORMAT_FIELD_NUMBER = 1;
-    private int encodingFormat_;
+    public static final int LAYOUT_ENCODING_FIELD_NUMBER = 1;
+    private int layoutEncoding_;
     /**
      * <pre>
-     * Board layout encoding version, from {&#64;link SOCBoard#getBoardEncodingFormat()}
+     * Board layout encoding format version
      * </pre>
      *
-     * <code>uint32 encoding_format = 1;</code>
+     * <code>.BoardLayout._LayoutEncodingFormat layout_encoding = 1;</code>
      */
-    public int getEncodingFormat() {
-      return encodingFormat_;
+    public int getLayoutEncodingValue() {
+      return layoutEncoding_;
+    }
+    /**
+     * <pre>
+     * Board layout encoding format version
+     * </pre>
+     *
+     * <code>.BoardLayout._LayoutEncodingFormat layout_encoding = 1;</code>
+     */
+    public soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat getLayoutEncoding() {
+      soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat result = soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat.valueOf(layoutEncoding_);
+      return result == null ? soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat.UNRECOGNIZED : result;
     }
 
     public static final int PARTS_FIELD_NUMBER = 2;
@@ -2043,8 +3333,8 @@ public final class GameMessage {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (encodingFormat_ != 0) {
-        output.writeUInt32(1, encodingFormat_);
+      if (layoutEncoding_ != soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat._UNSENT_DEFAULT_ENCODING.getNumber()) {
+        output.writeEnum(1, layoutEncoding_);
       }
       com.google.protobuf.GeneratedMessageV3
         .serializeStringMapTo(
@@ -2060,9 +3350,9 @@ public final class GameMessage {
       if (size != -1) return size;
 
       size = 0;
-      if (encodingFormat_ != 0) {
+      if (layoutEncoding_ != soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat._UNSENT_DEFAULT_ENCODING.getNumber()) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(1, encodingFormat_);
+          .computeEnumSize(1, layoutEncoding_);
       }
       for (java.util.Map.Entry<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart> entry
            : internalGetParts().getMap().entrySet()) {
@@ -2090,8 +3380,7 @@ public final class GameMessage {
       soc.proto.GameMessage.BoardLayout other = (soc.proto.GameMessage.BoardLayout) obj;
 
       boolean result = true;
-      result = result && (getEncodingFormat()
-          == other.getEncodingFormat());
+      result = result && layoutEncoding_ == other.layoutEncoding_;
       result = result && internalGetParts().equals(
           other.internalGetParts());
       result = result && unknownFields.equals(other.unknownFields);
@@ -2105,8 +3394,8 @@ public final class GameMessage {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + ENCODING_FORMAT_FIELD_NUMBER;
-      hash = (53 * hash) + getEncodingFormat();
+      hash = (37 * hash) + LAYOUT_ENCODING_FIELD_NUMBER;
+      hash = (53 * hash) + layoutEncoding_;
       if (!internalGetParts().getMap().isEmpty()) {
         hash = (37 * hash) + PARTS_FIELD_NUMBER;
         hash = (53 * hash) + internalGetParts().hashCode();
@@ -2209,7 +3498,7 @@ public final class GameMessage {
      * Board layout contents.
      * Sent when game starts or client joins a game in progress.
      * Applies to entire game (player_number field is unused).
-     * TODO: Further docs on encoding_format, ref to list of part keynames, etc
+     * TODO: Ref to list of part keynames, etc
      * </pre>
      *
      * Protobuf type {@code BoardLayout}
@@ -2269,7 +3558,7 @@ public final class GameMessage {
       }
       public Builder clear() {
         super.clear();
-        encodingFormat_ = 0;
+        layoutEncoding_ = 0;
 
         internalGetMutableParts().clear();
         return this;
@@ -2296,7 +3585,7 @@ public final class GameMessage {
         soc.proto.GameMessage.BoardLayout result = new soc.proto.GameMessage.BoardLayout(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        result.encodingFormat_ = encodingFormat_;
+        result.layoutEncoding_ = layoutEncoding_;
         result.parts_ = internalGetParts();
         result.parts_.makeImmutable();
         result.bitField0_ = to_bitField0_;
@@ -2341,8 +3630,8 @@ public final class GameMessage {
 
       public Builder mergeFrom(soc.proto.GameMessage.BoardLayout other) {
         if (other == soc.proto.GameMessage.BoardLayout.getDefaultInstance()) return this;
-        if (other.getEncodingFormat() != 0) {
-          setEncodingFormat(other.getEncodingFormat());
+        if (other.layoutEncoding_ != 0) {
+          setLayoutEncodingValue(other.getLayoutEncodingValue());
         }
         internalGetMutableParts().mergeFrom(
             other.internalGetParts());
@@ -2374,40 +3663,66 @@ public final class GameMessage {
       }
       private int bitField0_;
 
-      private int encodingFormat_ ;
+      private int layoutEncoding_ = 0;
       /**
        * <pre>
-       * Board layout encoding version, from {&#64;link SOCBoard#getBoardEncodingFormat()}
+       * Board layout encoding format version
        * </pre>
        *
-       * <code>uint32 encoding_format = 1;</code>
+       * <code>.BoardLayout._LayoutEncodingFormat layout_encoding = 1;</code>
        */
-      public int getEncodingFormat() {
-        return encodingFormat_;
+      public int getLayoutEncodingValue() {
+        return layoutEncoding_;
       }
       /**
        * <pre>
-       * Board layout encoding version, from {&#64;link SOCBoard#getBoardEncodingFormat()}
+       * Board layout encoding format version
        * </pre>
        *
-       * <code>uint32 encoding_format = 1;</code>
+       * <code>.BoardLayout._LayoutEncodingFormat layout_encoding = 1;</code>
        */
-      public Builder setEncodingFormat(int value) {
-        
-        encodingFormat_ = value;
+      public Builder setLayoutEncodingValue(int value) {
+        layoutEncoding_ = value;
         onChanged();
         return this;
       }
       /**
        * <pre>
-       * Board layout encoding version, from {&#64;link SOCBoard#getBoardEncodingFormat()}
+       * Board layout encoding format version
        * </pre>
        *
-       * <code>uint32 encoding_format = 1;</code>
+       * <code>.BoardLayout._LayoutEncodingFormat layout_encoding = 1;</code>
        */
-      public Builder clearEncodingFormat() {
+      public soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat getLayoutEncoding() {
+        soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat result = soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat.valueOf(layoutEncoding_);
+        return result == null ? soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat.UNRECOGNIZED : result;
+      }
+      /**
+       * <pre>
+       * Board layout encoding format version
+       * </pre>
+       *
+       * <code>.BoardLayout._LayoutEncodingFormat layout_encoding = 1;</code>
+       */
+      public Builder setLayoutEncoding(soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
         
-        encodingFormat_ = 0;
+        layoutEncoding_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Board layout encoding format version
+       * </pre>
+       *
+       * <code>.BoardLayout._LayoutEncodingFormat layout_encoding = 1;</code>
+       */
+      public Builder clearLayoutEncoding() {
+        
+        layoutEncoding_ = 0;
         onChanged();
         return this;
       }
@@ -2618,39 +3933,66 @@ public final class GameMessage {
     /**
      * <pre>
      * Potential settlement node coordinates for {&#64;link #playerNumber}.
-     * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+     * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
      *   This player currently has no potential settlements.
      * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
      *   legal nodes as the player's potential coordinates.
      * </pre>
      *
-     * <code>repeated int32 ps_nodes = 1;</code>
+     * <code>repeated .NodeCoord ps_nodes = 1;</code>
      */
-    java.util.List<java.lang.Integer> getPsNodesList();
+    java.util.List<soc.proto.Data.NodeCoord> 
+        getPsNodesList();
     /**
      * <pre>
      * Potential settlement node coordinates for {&#64;link #playerNumber}.
-     * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+     * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
      *   This player currently has no potential settlements.
      * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
      *   legal nodes as the player's potential coordinates.
      * </pre>
      *
-     * <code>repeated int32 ps_nodes = 1;</code>
+     * <code>repeated .NodeCoord ps_nodes = 1;</code>
+     */
+    soc.proto.Data.NodeCoord getPsNodes(int index);
+    /**
+     * <pre>
+     * Potential settlement node coordinates for {&#64;link #playerNumber}.
+     * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
+     *   This player currently has no potential settlements.
+     * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+     *   legal nodes as the player's potential coordinates.
+     * </pre>
+     *
+     * <code>repeated .NodeCoord ps_nodes = 1;</code>
      */
     int getPsNodesCount();
     /**
      * <pre>
      * Potential settlement node coordinates for {&#64;link #playerNumber}.
-     * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+     * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
      *   This player currently has no potential settlements.
      * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
      *   legal nodes as the player's potential coordinates.
      * </pre>
      *
-     * <code>repeated int32 ps_nodes = 1;</code>
+     * <code>repeated .NodeCoord ps_nodes = 1;</code>
      */
-    int getPsNodes(int index);
+    java.util.List<? extends soc.proto.Data.NodeCoordOrBuilder> 
+        getPsNodesOrBuilderList();
+    /**
+     * <pre>
+     * Potential settlement node coordinates for {&#64;link #playerNumber}.
+     * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
+     *   This player currently has no potential settlements.
+     * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+     *   legal nodes as the player's potential coordinates.
+     * </pre>
+     *
+     * <code>repeated .NodeCoord ps_nodes = 1;</code>
+     */
+    soc.proto.Data.NodeCoordOrBuilder getPsNodesOrBuilder(
+        int index);
 
     /**
      * <pre>
@@ -2680,7 +4022,7 @@ public final class GameMessage {
      * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
      * </pre>
      *
-     * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 4;</code>
+     * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
      */
     int getLandAreasLegalNodesCount();
     /**
@@ -2689,7 +4031,7 @@ public final class GameMessage {
      * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
      * </pre>
      *
-     * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 4;</code>
+     * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
      */
     boolean containsLandAreasLegalNodes(
         int key);
@@ -2697,7 +4039,7 @@ public final class GameMessage {
      * Use {@link #getLandAreasLegalNodesMap()} instead.
      */
     @java.lang.Deprecated
-    java.util.Map<java.lang.Integer, soc.proto.Data._IntArray>
+    java.util.Map<java.lang.Integer, soc.proto.Data._NodeList>
     getLandAreasLegalNodes();
     /**
      * <pre>
@@ -2705,9 +4047,9 @@ public final class GameMessage {
      * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
      * </pre>
      *
-     * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 4;</code>
+     * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
      */
-    java.util.Map<java.lang.Integer, soc.proto.Data._IntArray>
+    java.util.Map<java.lang.Integer, soc.proto.Data._NodeList>
     getLandAreasLegalNodesMap();
     /**
      * <pre>
@@ -2715,22 +4057,22 @@ public final class GameMessage {
      * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
      * </pre>
      *
-     * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 4;</code>
+     * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
      */
 
-    soc.proto.Data._IntArray getLandAreasLegalNodesOrDefault(
+    soc.proto.Data._NodeList getLandAreasLegalNodesOrDefault(
         int key,
-        soc.proto.Data._IntArray defaultValue);
+        soc.proto.Data._NodeList defaultValue);
     /**
      * <pre>
      * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
      * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
      * </pre>
      *
-     * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 4;</code>
+     * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
      */
 
-    soc.proto.Data._IntArray getLandAreasLegalNodesOrThrow(
+    soc.proto.Data._NodeList getLandAreasLegalNodesOrThrow(
         int key);
 
     /**
@@ -2745,12 +4087,12 @@ public final class GameMessage {
      * A list of individual sea edge coordinates and/or ranges.
      * Ranges are designated by a pair of positive,negative numbers:
      * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
      * </pre>
      *
-     * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+     * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
      */
-    java.util.List<soc.proto.Data._SIntArray> 
+    java.util.List<soc.proto.Data._EdgeList> 
         getLegalSeaEdgesList();
     /**
      * <pre>
@@ -2764,12 +4106,12 @@ public final class GameMessage {
      * A list of individual sea edge coordinates and/or ranges.
      * Ranges are designated by a pair of positive,negative numbers:
      * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
      * </pre>
      *
-     * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+     * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
      */
-    soc.proto.Data._SIntArray getLegalSeaEdges(int index);
+    soc.proto.Data._EdgeList getLegalSeaEdges(int index);
     /**
      * <pre>
      * legal sea edges per player for ships, if restricted.
@@ -2782,10 +4124,10 @@ public final class GameMessage {
      * A list of individual sea edge coordinates and/or ranges.
      * Ranges are designated by a pair of positive,negative numbers:
      * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
      * </pre>
      *
-     * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+     * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
      */
     int getLegalSeaEdgesCount();
     /**
@@ -2800,12 +4142,12 @@ public final class GameMessage {
      * A list of individual sea edge coordinates and/or ranges.
      * Ranges are designated by a pair of positive,negative numbers:
      * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
      * </pre>
      *
-     * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+     * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
      */
-    java.util.List<? extends soc.proto.Data._SIntArrayOrBuilder> 
+    java.util.List<? extends soc.proto.Data._EdgeListOrBuilder> 
         getLegalSeaEdgesOrBuilderList();
     /**
      * <pre>
@@ -2819,12 +4161,12 @@ public final class GameMessage {
      * A list of individual sea edge coordinates and/or ranges.
      * Ranges are designated by a pair of positive,negative numbers:
      * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
      * </pre>
      *
-     * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+     * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
      */
-    soc.proto.Data._SIntArrayOrBuilder getLegalSeaEdgesOrBuilder(
+    soc.proto.Data._EdgeListOrBuilder getLegalSeaEdgesOrBuilder(
         int index);
   }
   /**
@@ -2891,25 +4233,13 @@ public final class GameMessage {
               }
               break;
             }
-            case 8: {
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-                psNodes_ = new java.util.ArrayList<java.lang.Integer>();
-                mutable_bitField0_ |= 0x00000001;
-              }
-              psNodes_.add(input.readInt32());
-              break;
-            }
             case 10: {
-              int length = input.readRawVarint32();
-              int limit = input.pushLimit(length);
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001) && input.getBytesUntilLimit() > 0) {
-                psNodes_ = new java.util.ArrayList<java.lang.Integer>();
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                psNodes_ = new java.util.ArrayList<soc.proto.Data.NodeCoord>();
                 mutable_bitField0_ |= 0x00000001;
               }
-              while (input.getBytesUntilLimit() > 0) {
-                psNodes_.add(input.readInt32());
-              }
-              input.popLimit(limit);
+              psNodes_.add(
+                  input.readMessage(soc.proto.Data.NodeCoord.parser(), extensionRegistry));
               break;
             }
             case 16: {
@@ -2928,7 +4258,7 @@ public final class GameMessage {
                     LandAreasLegalNodesDefaultEntryHolder.defaultEntry);
                 mutable_bitField0_ |= 0x00000008;
               }
-              com.google.protobuf.MapEntry<java.lang.Integer, soc.proto.Data._IntArray>
+              com.google.protobuf.MapEntry<java.lang.Integer, soc.proto.Data._NodeList>
               landAreasLegalNodes__ = input.readMessage(
                   LandAreasLegalNodesDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
               landAreasLegalNodes_.getMutableMap().put(
@@ -2937,11 +4267,11 @@ public final class GameMessage {
             }
             case 42: {
               if (!((mutable_bitField0_ & 0x00000010) == 0x00000010)) {
-                legalSeaEdges_ = new java.util.ArrayList<soc.proto.Data._SIntArray>();
+                legalSeaEdges_ = new java.util.ArrayList<soc.proto.Data._EdgeList>();
                 mutable_bitField0_ |= 0x00000010;
               }
               legalSeaEdges_.add(
-                  input.readMessage(soc.proto.Data._SIntArray.parser(), extensionRegistry));
+                  input.readMessage(soc.proto.Data._EdgeList.parser(), extensionRegistry));
               break;
             }
           }
@@ -2987,32 +4317,46 @@ public final class GameMessage {
 
     private int bitField0_;
     public static final int PS_NODES_FIELD_NUMBER = 1;
-    private java.util.List<java.lang.Integer> psNodes_;
+    private java.util.List<soc.proto.Data.NodeCoord> psNodes_;
     /**
      * <pre>
      * Potential settlement node coordinates for {&#64;link #playerNumber}.
-     * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+     * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
      *   This player currently has no potential settlements.
      * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
      *   legal nodes as the player's potential coordinates.
      * </pre>
      *
-     * <code>repeated int32 ps_nodes = 1;</code>
+     * <code>repeated .NodeCoord ps_nodes = 1;</code>
      */
-    public java.util.List<java.lang.Integer>
-        getPsNodesList() {
+    public java.util.List<soc.proto.Data.NodeCoord> getPsNodesList() {
       return psNodes_;
     }
     /**
      * <pre>
      * Potential settlement node coordinates for {&#64;link #playerNumber}.
-     * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+     * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
      *   This player currently has no potential settlements.
      * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
      *   legal nodes as the player's potential coordinates.
      * </pre>
      *
-     * <code>repeated int32 ps_nodes = 1;</code>
+     * <code>repeated .NodeCoord ps_nodes = 1;</code>
+     */
+    public java.util.List<? extends soc.proto.Data.NodeCoordOrBuilder> 
+        getPsNodesOrBuilderList() {
+      return psNodes_;
+    }
+    /**
+     * <pre>
+     * Potential settlement node coordinates for {&#64;link #playerNumber}.
+     * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
+     *   This player currently has no potential settlements.
+     * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+     *   legal nodes as the player's potential coordinates.
+     * </pre>
+     *
+     * <code>repeated .NodeCoord ps_nodes = 1;</code>
      */
     public int getPsNodesCount() {
       return psNodes_.size();
@@ -3020,18 +4364,32 @@ public final class GameMessage {
     /**
      * <pre>
      * Potential settlement node coordinates for {&#64;link #playerNumber}.
-     * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+     * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
      *   This player currently has no potential settlements.
      * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
      *   legal nodes as the player's potential coordinates.
      * </pre>
      *
-     * <code>repeated int32 ps_nodes = 1;</code>
+     * <code>repeated .NodeCoord ps_nodes = 1;</code>
      */
-    public int getPsNodes(int index) {
+    public soc.proto.Data.NodeCoord getPsNodes(int index) {
       return psNodes_.get(index);
     }
-    private int psNodesMemoizedSerializedSize = -1;
+    /**
+     * <pre>
+     * Potential settlement node coordinates for {&#64;link #playerNumber}.
+     * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
+     *   This player currently has no potential settlements.
+     * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+     *   legal nodes as the player's potential coordinates.
+     * </pre>
+     *
+     * <code>repeated .NodeCoord ps_nodes = 1;</code>
+     */
+    public soc.proto.Data.NodeCoordOrBuilder getPsNodesOrBuilder(
+        int index) {
+      return psNodes_.get(index);
+    }
 
     public static final int AREA_COUNT_FIELD_NUMBER = 2;
     private int areaCount_;
@@ -3066,18 +4424,18 @@ public final class GameMessage {
     public static final int LAND_AREAS_LEGAL_NODES_FIELD_NUMBER = 4;
     private static final class LandAreasLegalNodesDefaultEntryHolder {
       static final com.google.protobuf.MapEntry<
-          java.lang.Integer, soc.proto.Data._IntArray> defaultEntry =
+          java.lang.Integer, soc.proto.Data._NodeList> defaultEntry =
               com.google.protobuf.MapEntry
-              .<java.lang.Integer, soc.proto.Data._IntArray>newDefaultInstance(
+              .<java.lang.Integer, soc.proto.Data._NodeList>newDefaultInstance(
                   soc.proto.GameMessage.internal_static_PotentialSettlements_LandAreasLegalNodesEntry_descriptor, 
                   com.google.protobuf.WireFormat.FieldType.UINT32,
                   0,
                   com.google.protobuf.WireFormat.FieldType.MESSAGE,
-                  soc.proto.Data._IntArray.getDefaultInstance());
+                  soc.proto.Data._NodeList.getDefaultInstance());
     }
     private com.google.protobuf.MapField<
-        java.lang.Integer, soc.proto.Data._IntArray> landAreasLegalNodes_;
-    private com.google.protobuf.MapField<java.lang.Integer, soc.proto.Data._IntArray>
+        java.lang.Integer, soc.proto.Data._NodeList> landAreasLegalNodes_;
+    private com.google.protobuf.MapField<java.lang.Integer, soc.proto.Data._NodeList>
     internalGetLandAreasLegalNodes() {
       if (landAreasLegalNodes_ == null) {
         return com.google.protobuf.MapField.emptyMapField(
@@ -3095,7 +4453,7 @@ public final class GameMessage {
      * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
      * </pre>
      *
-     * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 4;</code>
+     * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
      */
 
     public boolean containsLandAreasLegalNodes(
@@ -3107,7 +4465,7 @@ public final class GameMessage {
      * Use {@link #getLandAreasLegalNodesMap()} instead.
      */
     @java.lang.Deprecated
-    public java.util.Map<java.lang.Integer, soc.proto.Data._IntArray> getLandAreasLegalNodes() {
+    public java.util.Map<java.lang.Integer, soc.proto.Data._NodeList> getLandAreasLegalNodes() {
       return getLandAreasLegalNodesMap();
     }
     /**
@@ -3116,10 +4474,10 @@ public final class GameMessage {
      * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
      * </pre>
      *
-     * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 4;</code>
+     * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
      */
 
-    public java.util.Map<java.lang.Integer, soc.proto.Data._IntArray> getLandAreasLegalNodesMap() {
+    public java.util.Map<java.lang.Integer, soc.proto.Data._NodeList> getLandAreasLegalNodesMap() {
       return internalGetLandAreasLegalNodes().getMap();
     }
     /**
@@ -3128,14 +4486,14 @@ public final class GameMessage {
      * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
      * </pre>
      *
-     * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 4;</code>
+     * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
      */
 
-    public soc.proto.Data._IntArray getLandAreasLegalNodesOrDefault(
+    public soc.proto.Data._NodeList getLandAreasLegalNodesOrDefault(
         int key,
-        soc.proto.Data._IntArray defaultValue) {
+        soc.proto.Data._NodeList defaultValue) {
       
-      java.util.Map<java.lang.Integer, soc.proto.Data._IntArray> map =
+      java.util.Map<java.lang.Integer, soc.proto.Data._NodeList> map =
           internalGetLandAreasLegalNodes().getMap();
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
@@ -3145,13 +4503,13 @@ public final class GameMessage {
      * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
      * </pre>
      *
-     * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 4;</code>
+     * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
      */
 
-    public soc.proto.Data._IntArray getLandAreasLegalNodesOrThrow(
+    public soc.proto.Data._NodeList getLandAreasLegalNodesOrThrow(
         int key) {
       
-      java.util.Map<java.lang.Integer, soc.proto.Data._IntArray> map =
+      java.util.Map<java.lang.Integer, soc.proto.Data._NodeList> map =
           internalGetLandAreasLegalNodes().getMap();
       if (!map.containsKey(key)) {
         throw new java.lang.IllegalArgumentException();
@@ -3160,7 +4518,7 @@ public final class GameMessage {
     }
 
     public static final int LEGAL_SEA_EDGES_FIELD_NUMBER = 5;
-    private java.util.List<soc.proto.Data._SIntArray> legalSeaEdges_;
+    private java.util.List<soc.proto.Data._EdgeList> legalSeaEdges_;
     /**
      * <pre>
      * legal sea edges per player for ships, if restricted.
@@ -3173,12 +4531,12 @@ public final class GameMessage {
      * A list of individual sea edge coordinates and/or ranges.
      * Ranges are designated by a pair of positive,negative numbers:
      * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
      * </pre>
      *
-     * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+     * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
      */
-    public java.util.List<soc.proto.Data._SIntArray> getLegalSeaEdgesList() {
+    public java.util.List<soc.proto.Data._EdgeList> getLegalSeaEdgesList() {
       return legalSeaEdges_;
     }
     /**
@@ -3193,12 +4551,12 @@ public final class GameMessage {
      * A list of individual sea edge coordinates and/or ranges.
      * Ranges are designated by a pair of positive,negative numbers:
      * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
      * </pre>
      *
-     * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+     * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
      */
-    public java.util.List<? extends soc.proto.Data._SIntArrayOrBuilder> 
+    public java.util.List<? extends soc.proto.Data._EdgeListOrBuilder> 
         getLegalSeaEdgesOrBuilderList() {
       return legalSeaEdges_;
     }
@@ -3214,10 +4572,10 @@ public final class GameMessage {
      * A list of individual sea edge coordinates and/or ranges.
      * Ranges are designated by a pair of positive,negative numbers:
      * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
      * </pre>
      *
-     * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+     * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
      */
     public int getLegalSeaEdgesCount() {
       return legalSeaEdges_.size();
@@ -3234,12 +4592,12 @@ public final class GameMessage {
      * A list of individual sea edge coordinates and/or ranges.
      * Ranges are designated by a pair of positive,negative numbers:
      * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
      * </pre>
      *
-     * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+     * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
      */
-    public soc.proto.Data._SIntArray getLegalSeaEdges(int index) {
+    public soc.proto.Data._EdgeList getLegalSeaEdges(int index) {
       return legalSeaEdges_.get(index);
     }
     /**
@@ -3254,12 +4612,12 @@ public final class GameMessage {
      * A list of individual sea edge coordinates and/or ranges.
      * Ranges are designated by a pair of positive,negative numbers:
      * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+     * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
      * </pre>
      *
-     * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+     * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
      */
-    public soc.proto.Data._SIntArrayOrBuilder getLegalSeaEdgesOrBuilder(
+    public soc.proto.Data._EdgeListOrBuilder getLegalSeaEdgesOrBuilder(
         int index) {
       return legalSeaEdges_.get(index);
     }
@@ -3276,13 +4634,8 @@ public final class GameMessage {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
-      if (getPsNodesList().size() > 0) {
-        output.writeUInt32NoTag(10);
-        output.writeUInt32NoTag(psNodesMemoizedSerializedSize);
-      }
       for (int i = 0; i < psNodes_.size(); i++) {
-        output.writeInt32NoTag(psNodes_.get(i));
+        output.writeMessage(1, psNodes_.get(i));
       }
       if (areaCount_ != 0) {
         output.writeUInt32(2, areaCount_);
@@ -3307,19 +4660,9 @@ public final class GameMessage {
       if (size != -1) return size;
 
       size = 0;
-      {
-        int dataSize = 0;
-        for (int i = 0; i < psNodes_.size(); i++) {
-          dataSize += com.google.protobuf.CodedOutputStream
-            .computeInt32SizeNoTag(psNodes_.get(i));
-        }
-        size += dataSize;
-        if (!getPsNodesList().isEmpty()) {
-          size += 1;
-          size += com.google.protobuf.CodedOutputStream
-              .computeInt32SizeNoTag(dataSize);
-        }
-        psNodesMemoizedSerializedSize = dataSize;
+      for (int i = 0; i < psNodes_.size(); i++) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, psNodes_.get(i));
       }
       if (areaCount_ != 0) {
         size += com.google.protobuf.CodedOutputStream
@@ -3329,9 +4672,9 @@ public final class GameMessage {
         size += com.google.protobuf.CodedOutputStream
           .computeUInt32Size(3, startingLandArea_);
       }
-      for (java.util.Map.Entry<java.lang.Integer, soc.proto.Data._IntArray> entry
+      for (java.util.Map.Entry<java.lang.Integer, soc.proto.Data._NodeList> entry
            : internalGetLandAreasLegalNodes().getMap().entrySet()) {
-        com.google.protobuf.MapEntry<java.lang.Integer, soc.proto.Data._IntArray>
+        com.google.protobuf.MapEntry<java.lang.Integer, soc.proto.Data._NodeList>
         landAreasLegalNodes__ = LandAreasLegalNodesDefaultEntryHolder.defaultEntry.newBuilderForType()
             .setKey(entry.getKey())
             .setValue(entry.getValue())
@@ -3560,13 +4903,18 @@ public final class GameMessage {
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessageV3
                 .alwaysUseFieldBuilders) {
+          getPsNodesFieldBuilder();
           getLegalSeaEdgesFieldBuilder();
         }
       }
       public Builder clear() {
         super.clear();
-        psNodes_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000001);
+        if (psNodesBuilder_ == null) {
+          psNodes_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000001);
+        } else {
+          psNodesBuilder_.clear();
+        }
         areaCount_ = 0;
 
         startingLandArea_ = 0;
@@ -3602,11 +4950,15 @@ public final class GameMessage {
         soc.proto.GameMessage.PotentialSettlements result = new soc.proto.GameMessage.PotentialSettlements(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((bitField0_ & 0x00000001) == 0x00000001)) {
-          psNodes_ = java.util.Collections.unmodifiableList(psNodes_);
-          bitField0_ = (bitField0_ & ~0x00000001);
+        if (psNodesBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) == 0x00000001)) {
+            psNodes_ = java.util.Collections.unmodifiableList(psNodes_);
+            bitField0_ = (bitField0_ & ~0x00000001);
+          }
+          result.psNodes_ = psNodes_;
+        } else {
+          result.psNodes_ = psNodesBuilder_.build();
         }
-        result.psNodes_ = psNodes_;
         result.areaCount_ = areaCount_;
         result.startingLandArea_ = startingLandArea_;
         result.landAreasLegalNodes_ = internalGetLandAreasLegalNodes();
@@ -3662,15 +5014,31 @@ public final class GameMessage {
 
       public Builder mergeFrom(soc.proto.GameMessage.PotentialSettlements other) {
         if (other == soc.proto.GameMessage.PotentialSettlements.getDefaultInstance()) return this;
-        if (!other.psNodes_.isEmpty()) {
-          if (psNodes_.isEmpty()) {
-            psNodes_ = other.psNodes_;
-            bitField0_ = (bitField0_ & ~0x00000001);
-          } else {
-            ensurePsNodesIsMutable();
-            psNodes_.addAll(other.psNodes_);
+        if (psNodesBuilder_ == null) {
+          if (!other.psNodes_.isEmpty()) {
+            if (psNodes_.isEmpty()) {
+              psNodes_ = other.psNodes_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+            } else {
+              ensurePsNodesIsMutable();
+              psNodes_.addAll(other.psNodes_);
+            }
+            onChanged();
           }
-          onChanged();
+        } else {
+          if (!other.psNodes_.isEmpty()) {
+            if (psNodesBuilder_.isEmpty()) {
+              psNodesBuilder_.dispose();
+              psNodesBuilder_ = null;
+              psNodes_ = other.psNodes_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+              psNodesBuilder_ = 
+                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                   getPsNodesFieldBuilder() : null;
+            } else {
+              psNodesBuilder_.addAllMessages(other.psNodes_);
+            }
+          }
         }
         if (other.getAreaCount() != 0) {
           setAreaCount(other.getAreaCount());
@@ -3734,126 +5102,388 @@ public final class GameMessage {
       }
       private int bitField0_;
 
-      private java.util.List<java.lang.Integer> psNodes_ = java.util.Collections.emptyList();
+      private java.util.List<soc.proto.Data.NodeCoord> psNodes_ =
+        java.util.Collections.emptyList();
       private void ensurePsNodesIsMutable() {
         if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-          psNodes_ = new java.util.ArrayList<java.lang.Integer>(psNodes_);
+          psNodes_ = new java.util.ArrayList<soc.proto.Data.NodeCoord>(psNodes_);
           bitField0_ |= 0x00000001;
          }
       }
+
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          soc.proto.Data.NodeCoord, soc.proto.Data.NodeCoord.Builder, soc.proto.Data.NodeCoordOrBuilder> psNodesBuilder_;
+
       /**
        * <pre>
        * Potential settlement node coordinates for {&#64;link #playerNumber}.
-       * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+       * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
        *   This player currently has no potential settlements.
        * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
        *   legal nodes as the player's potential coordinates.
        * </pre>
        *
-       * <code>repeated int32 ps_nodes = 1;</code>
+       * <code>repeated .NodeCoord ps_nodes = 1;</code>
        */
-      public java.util.List<java.lang.Integer>
-          getPsNodesList() {
-        return java.util.Collections.unmodifiableList(psNodes_);
+      public java.util.List<soc.proto.Data.NodeCoord> getPsNodesList() {
+        if (psNodesBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(psNodes_);
+        } else {
+          return psNodesBuilder_.getMessageList();
+        }
       }
       /**
        * <pre>
        * Potential settlement node coordinates for {&#64;link #playerNumber}.
-       * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+       * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
        *   This player currently has no potential settlements.
        * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
        *   legal nodes as the player's potential coordinates.
        * </pre>
        *
-       * <code>repeated int32 ps_nodes = 1;</code>
+       * <code>repeated .NodeCoord ps_nodes = 1;</code>
        */
       public int getPsNodesCount() {
-        return psNodes_.size();
+        if (psNodesBuilder_ == null) {
+          return psNodes_.size();
+        } else {
+          return psNodesBuilder_.getCount();
+        }
       }
       /**
        * <pre>
        * Potential settlement node coordinates for {&#64;link #playerNumber}.
-       * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+       * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
        *   This player currently has no potential settlements.
        * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
        *   legal nodes as the player's potential coordinates.
        * </pre>
        *
-       * <code>repeated int32 ps_nodes = 1;</code>
+       * <code>repeated .NodeCoord ps_nodes = 1;</code>
        */
-      public int getPsNodes(int index) {
-        return psNodes_.get(index);
+      public soc.proto.Data.NodeCoord getPsNodes(int index) {
+        if (psNodesBuilder_ == null) {
+          return psNodes_.get(index);
+        } else {
+          return psNodesBuilder_.getMessage(index);
+        }
       }
       /**
        * <pre>
        * Potential settlement node coordinates for {&#64;link #playerNumber}.
-       * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+       * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
        *   This player currently has no potential settlements.
        * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
        *   legal nodes as the player's potential coordinates.
        * </pre>
        *
-       * <code>repeated int32 ps_nodes = 1;</code>
+       * <code>repeated .NodeCoord ps_nodes = 1;</code>
        */
       public Builder setPsNodes(
-          int index, int value) {
-        ensurePsNodesIsMutable();
-        psNodes_.set(index, value);
-        onChanged();
+          int index, soc.proto.Data.NodeCoord value) {
+        if (psNodesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensurePsNodesIsMutable();
+          psNodes_.set(index, value);
+          onChanged();
+        } else {
+          psNodesBuilder_.setMessage(index, value);
+        }
         return this;
       }
       /**
        * <pre>
        * Potential settlement node coordinates for {&#64;link #playerNumber}.
-       * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+       * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
        *   This player currently has no potential settlements.
        * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
        *   legal nodes as the player's potential coordinates.
        * </pre>
        *
-       * <code>repeated int32 ps_nodes = 1;</code>
+       * <code>repeated .NodeCoord ps_nodes = 1;</code>
        */
-      public Builder addPsNodes(int value) {
-        ensurePsNodesIsMutable();
-        psNodes_.add(value);
-        onChanged();
+      public Builder setPsNodes(
+          int index, soc.proto.Data.NodeCoord.Builder builderForValue) {
+        if (psNodesBuilder_ == null) {
+          ensurePsNodesIsMutable();
+          psNodes_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          psNodesBuilder_.setMessage(index, builderForValue.build());
+        }
         return this;
       }
       /**
        * <pre>
        * Potential settlement node coordinates for {&#64;link #playerNumber}.
-       * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+       * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
        *   This player currently has no potential settlements.
        * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
        *   legal nodes as the player's potential coordinates.
        * </pre>
        *
-       * <code>repeated int32 ps_nodes = 1;</code>
+       * <code>repeated .NodeCoord ps_nodes = 1;</code>
+       */
+      public Builder addPsNodes(soc.proto.Data.NodeCoord value) {
+        if (psNodesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensurePsNodesIsMutable();
+          psNodes_.add(value);
+          onChanged();
+        } else {
+          psNodesBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Potential settlement node coordinates for {&#64;link #playerNumber}.
+       * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
+       *   This player currently has no potential settlements.
+       * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+       *   legal nodes as the player's potential coordinates.
+       * </pre>
+       *
+       * <code>repeated .NodeCoord ps_nodes = 1;</code>
+       */
+      public Builder addPsNodes(
+          int index, soc.proto.Data.NodeCoord value) {
+        if (psNodesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensurePsNodesIsMutable();
+          psNodes_.add(index, value);
+          onChanged();
+        } else {
+          psNodesBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Potential settlement node coordinates for {&#64;link #playerNumber}.
+       * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
+       *   This player currently has no potential settlements.
+       * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+       *   legal nodes as the player's potential coordinates.
+       * </pre>
+       *
+       * <code>repeated .NodeCoord ps_nodes = 1;</code>
+       */
+      public Builder addPsNodes(
+          soc.proto.Data.NodeCoord.Builder builderForValue) {
+        if (psNodesBuilder_ == null) {
+          ensurePsNodesIsMutable();
+          psNodes_.add(builderForValue.build());
+          onChanged();
+        } else {
+          psNodesBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Potential settlement node coordinates for {&#64;link #playerNumber}.
+       * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
+       *   This player currently has no potential settlements.
+       * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+       *   legal nodes as the player's potential coordinates.
+       * </pre>
+       *
+       * <code>repeated .NodeCoord ps_nodes = 1;</code>
+       */
+      public Builder addPsNodes(
+          int index, soc.proto.Data.NodeCoord.Builder builderForValue) {
+        if (psNodesBuilder_ == null) {
+          ensurePsNodesIsMutable();
+          psNodes_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          psNodesBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Potential settlement node coordinates for {&#64;link #playerNumber}.
+       * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
+       *   This player currently has no potential settlements.
+       * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+       *   legal nodes as the player's potential coordinates.
+       * </pre>
+       *
+       * <code>repeated .NodeCoord ps_nodes = 1;</code>
        */
       public Builder addAllPsNodes(
-          java.lang.Iterable<? extends java.lang.Integer> values) {
-        ensurePsNodesIsMutable();
-        com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, psNodes_);
-        onChanged();
+          java.lang.Iterable<? extends soc.proto.Data.NodeCoord> values) {
+        if (psNodesBuilder_ == null) {
+          ensurePsNodesIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, psNodes_);
+          onChanged();
+        } else {
+          psNodesBuilder_.addAllMessages(values);
+        }
         return this;
       }
       /**
        * <pre>
        * Potential settlement node coordinates for {&#64;link #playerNumber}.
-       * - If this field contains only a single 0 coordinate, treat it as empty (not as missing):
+       * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
        *   This player currently has no potential settlements.
        * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
        *   legal nodes as the player's potential coordinates.
        * </pre>
        *
-       * <code>repeated int32 ps_nodes = 1;</code>
+       * <code>repeated .NodeCoord ps_nodes = 1;</code>
        */
       public Builder clearPsNodes() {
-        psNodes_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
+        if (psNodesBuilder_ == null) {
+          psNodes_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000001);
+          onChanged();
+        } else {
+          psNodesBuilder_.clear();
+        }
         return this;
+      }
+      /**
+       * <pre>
+       * Potential settlement node coordinates for {&#64;link #playerNumber}.
+       * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
+       *   This player currently has no potential settlements.
+       * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+       *   legal nodes as the player's potential coordinates.
+       * </pre>
+       *
+       * <code>repeated .NodeCoord ps_nodes = 1;</code>
+       */
+      public Builder removePsNodes(int index) {
+        if (psNodesBuilder_ == null) {
+          ensurePsNodesIsMutable();
+          psNodes_.remove(index);
+          onChanged();
+        } else {
+          psNodesBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Potential settlement node coordinates for {&#64;link #playerNumber}.
+       * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
+       *   This player currently has no potential settlements.
+       * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+       *   legal nodes as the player's potential coordinates.
+       * </pre>
+       *
+       * <code>repeated .NodeCoord ps_nodes = 1;</code>
+       */
+      public soc.proto.Data.NodeCoord.Builder getPsNodesBuilder(
+          int index) {
+        return getPsNodesFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <pre>
+       * Potential settlement node coordinates for {&#64;link #playerNumber}.
+       * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
+       *   This player currently has no potential settlements.
+       * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+       *   legal nodes as the player's potential coordinates.
+       * </pre>
+       *
+       * <code>repeated .NodeCoord ps_nodes = 1;</code>
+       */
+      public soc.proto.Data.NodeCoordOrBuilder getPsNodesOrBuilder(
+          int index) {
+        if (psNodesBuilder_ == null) {
+          return psNodes_.get(index);  } else {
+          return psNodesBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <pre>
+       * Potential settlement node coordinates for {&#64;link #playerNumber}.
+       * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
+       *   This player currently has no potential settlements.
+       * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+       *   legal nodes as the player's potential coordinates.
+       * </pre>
+       *
+       * <code>repeated .NodeCoord ps_nodes = 1;</code>
+       */
+      public java.util.List<? extends soc.proto.Data.NodeCoordOrBuilder> 
+           getPsNodesOrBuilderList() {
+        if (psNodesBuilder_ != null) {
+          return psNodesBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(psNodes_);
+        }
+      }
+      /**
+       * <pre>
+       * Potential settlement node coordinates for {&#64;link #playerNumber}.
+       * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
+       *   This player currently has no potential settlements.
+       * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+       *   legal nodes as the player's potential coordinates.
+       * </pre>
+       *
+       * <code>repeated .NodeCoord ps_nodes = 1;</code>
+       */
+      public soc.proto.Data.NodeCoord.Builder addPsNodesBuilder() {
+        return getPsNodesFieldBuilder().addBuilder(
+            soc.proto.Data.NodeCoord.getDefaultInstance());
+      }
+      /**
+       * <pre>
+       * Potential settlement node coordinates for {&#64;link #playerNumber}.
+       * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
+       *   This player currently has no potential settlements.
+       * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+       *   legal nodes as the player's potential coordinates.
+       * </pre>
+       *
+       * <code>repeated .NodeCoord ps_nodes = 1;</code>
+       */
+      public soc.proto.Data.NodeCoord.Builder addPsNodesBuilder(
+          int index) {
+        return getPsNodesFieldBuilder().addBuilder(
+            index, soc.proto.Data.NodeCoord.getDefaultInstance());
+      }
+      /**
+       * <pre>
+       * Potential settlement node coordinates for {&#64;link #playerNumber}.
+       * - If this field contains only a single (r=0, c=0) coordinate, treat it as empty (not as missing):
+       *   This player currently has no potential settlements.
+       * - If this field is missing and {&#64;code starting_land_area} is 0, use all land areas'
+       *   legal nodes as the player's potential coordinates.
+       * </pre>
+       *
+       * <code>repeated .NodeCoord ps_nodes = 1;</code>
+       */
+      public java.util.List<soc.proto.Data.NodeCoord.Builder> 
+           getPsNodesBuilderList() {
+        return getPsNodesFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          soc.proto.Data.NodeCoord, soc.proto.Data.NodeCoord.Builder, soc.proto.Data.NodeCoordOrBuilder> 
+          getPsNodesFieldBuilder() {
+        if (psNodesBuilder_ == null) {
+          psNodesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+              soc.proto.Data.NodeCoord, soc.proto.Data.NodeCoord.Builder, soc.proto.Data.NodeCoordOrBuilder>(
+                  psNodes_,
+                  ((bitField0_ & 0x00000001) == 0x00000001),
+                  getParentForChildren(),
+                  isClean());
+          psNodes_ = null;
+        }
+        return psNodesBuilder_;
       }
 
       private int areaCount_ ;
@@ -3945,8 +5575,8 @@ public final class GameMessage {
       }
 
       private com.google.protobuf.MapField<
-          java.lang.Integer, soc.proto.Data._IntArray> landAreasLegalNodes_;
-      private com.google.protobuf.MapField<java.lang.Integer, soc.proto.Data._IntArray>
+          java.lang.Integer, soc.proto.Data._NodeList> landAreasLegalNodes_;
+      private com.google.protobuf.MapField<java.lang.Integer, soc.proto.Data._NodeList>
       internalGetLandAreasLegalNodes() {
         if (landAreasLegalNodes_ == null) {
           return com.google.protobuf.MapField.emptyMapField(
@@ -3954,7 +5584,7 @@ public final class GameMessage {
         }
         return landAreasLegalNodes_;
       }
-      private com.google.protobuf.MapField<java.lang.Integer, soc.proto.Data._IntArray>
+      private com.google.protobuf.MapField<java.lang.Integer, soc.proto.Data._NodeList>
       internalGetMutableLandAreasLegalNodes() {
         onChanged();;
         if (landAreasLegalNodes_ == null) {
@@ -3976,7 +5606,7 @@ public final class GameMessage {
        * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
        * </pre>
        *
-       * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 4;</code>
+       * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
        */
 
       public boolean containsLandAreasLegalNodes(
@@ -3988,7 +5618,7 @@ public final class GameMessage {
        * Use {@link #getLandAreasLegalNodesMap()} instead.
        */
       @java.lang.Deprecated
-      public java.util.Map<java.lang.Integer, soc.proto.Data._IntArray> getLandAreasLegalNodes() {
+      public java.util.Map<java.lang.Integer, soc.proto.Data._NodeList> getLandAreasLegalNodes() {
         return getLandAreasLegalNodesMap();
       }
       /**
@@ -3997,10 +5627,10 @@ public final class GameMessage {
        * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
        * </pre>
        *
-       * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 4;</code>
+       * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
        */
 
-      public java.util.Map<java.lang.Integer, soc.proto.Data._IntArray> getLandAreasLegalNodesMap() {
+      public java.util.Map<java.lang.Integer, soc.proto.Data._NodeList> getLandAreasLegalNodesMap() {
         return internalGetLandAreasLegalNodes().getMap();
       }
       /**
@@ -4009,14 +5639,14 @@ public final class GameMessage {
        * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
        * </pre>
        *
-       * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 4;</code>
+       * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
        */
 
-      public soc.proto.Data._IntArray getLandAreasLegalNodesOrDefault(
+      public soc.proto.Data._NodeList getLandAreasLegalNodesOrDefault(
           int key,
-          soc.proto.Data._IntArray defaultValue) {
+          soc.proto.Data._NodeList defaultValue) {
         
-        java.util.Map<java.lang.Integer, soc.proto.Data._IntArray> map =
+        java.util.Map<java.lang.Integer, soc.proto.Data._NodeList> map =
             internalGetLandAreasLegalNodes().getMap();
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
@@ -4026,13 +5656,13 @@ public final class GameMessage {
        * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
        * </pre>
        *
-       * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 4;</code>
+       * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
        */
 
-      public soc.proto.Data._IntArray getLandAreasLegalNodesOrThrow(
+      public soc.proto.Data._NodeList getLandAreasLegalNodesOrThrow(
           int key) {
         
-        java.util.Map<java.lang.Integer, soc.proto.Data._IntArray> map =
+        java.util.Map<java.lang.Integer, soc.proto.Data._NodeList> map =
             internalGetLandAreasLegalNodes().getMap();
         if (!map.containsKey(key)) {
           throw new java.lang.IllegalArgumentException();
@@ -4051,7 +5681,7 @@ public final class GameMessage {
        * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
        * </pre>
        *
-       * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 4;</code>
+       * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
        */
 
       public Builder removeLandAreasLegalNodes(
@@ -4065,7 +5695,7 @@ public final class GameMessage {
        * Use alternate mutation accessors instead.
        */
       @java.lang.Deprecated
-      public java.util.Map<java.lang.Integer, soc.proto.Data._IntArray>
+      public java.util.Map<java.lang.Integer, soc.proto.Data._NodeList>
       getMutableLandAreasLegalNodes() {
         return internalGetMutableLandAreasLegalNodes().getMutableMap();
       }
@@ -4075,11 +5705,11 @@ public final class GameMessage {
        * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
        * </pre>
        *
-       * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 4;</code>
+       * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
        */
       public Builder putLandAreasLegalNodes(
           int key,
-          soc.proto.Data._IntArray value) {
+          soc.proto.Data._NodeList value) {
         
         if (value == null) { throw new java.lang.NullPointerException(); }
         internalGetMutableLandAreasLegalNodes().getMutableMap()
@@ -4092,27 +5722,27 @@ public final class GameMessage {
        * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
        * </pre>
        *
-       * <code>map&lt;uint32, ._IntArray&gt; land_areas_legal_nodes = 4;</code>
+       * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
        */
 
       public Builder putAllLandAreasLegalNodes(
-          java.util.Map<java.lang.Integer, soc.proto.Data._IntArray> values) {
+          java.util.Map<java.lang.Integer, soc.proto.Data._NodeList> values) {
         internalGetMutableLandAreasLegalNodes().getMutableMap()
             .putAll(values);
         return this;
       }
 
-      private java.util.List<soc.proto.Data._SIntArray> legalSeaEdges_ =
+      private java.util.List<soc.proto.Data._EdgeList> legalSeaEdges_ =
         java.util.Collections.emptyList();
       private void ensureLegalSeaEdgesIsMutable() {
         if (!((bitField0_ & 0x00000010) == 0x00000010)) {
-          legalSeaEdges_ = new java.util.ArrayList<soc.proto.Data._SIntArray>(legalSeaEdges_);
+          legalSeaEdges_ = new java.util.ArrayList<soc.proto.Data._EdgeList>(legalSeaEdges_);
           bitField0_ |= 0x00000010;
          }
       }
 
       private com.google.protobuf.RepeatedFieldBuilderV3<
-          soc.proto.Data._SIntArray, soc.proto.Data._SIntArray.Builder, soc.proto.Data._SIntArrayOrBuilder> legalSeaEdgesBuilder_;
+          soc.proto.Data._EdgeList, soc.proto.Data._EdgeList.Builder, soc.proto.Data._EdgeListOrBuilder> legalSeaEdgesBuilder_;
 
       /**
        * <pre>
@@ -4126,12 +5756,12 @@ public final class GameMessage {
        * A list of individual sea edge coordinates and/or ranges.
        * Ranges are designated by a pair of positive,negative numbers:
        * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
        * </pre>
        *
-       * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+       * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
        */
-      public java.util.List<soc.proto.Data._SIntArray> getLegalSeaEdgesList() {
+      public java.util.List<soc.proto.Data._EdgeList> getLegalSeaEdgesList() {
         if (legalSeaEdgesBuilder_ == null) {
           return java.util.Collections.unmodifiableList(legalSeaEdges_);
         } else {
@@ -4150,10 +5780,10 @@ public final class GameMessage {
        * A list of individual sea edge coordinates and/or ranges.
        * Ranges are designated by a pair of positive,negative numbers:
        * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
        * </pre>
        *
-       * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+       * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
        */
       public int getLegalSeaEdgesCount() {
         if (legalSeaEdgesBuilder_ == null) {
@@ -4174,12 +5804,12 @@ public final class GameMessage {
        * A list of individual sea edge coordinates and/or ranges.
        * Ranges are designated by a pair of positive,negative numbers:
        * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
        * </pre>
        *
-       * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+       * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
        */
-      public soc.proto.Data._SIntArray getLegalSeaEdges(int index) {
+      public soc.proto.Data._EdgeList getLegalSeaEdges(int index) {
         if (legalSeaEdgesBuilder_ == null) {
           return legalSeaEdges_.get(index);
         } else {
@@ -4198,13 +5828,13 @@ public final class GameMessage {
        * A list of individual sea edge coordinates and/or ranges.
        * Ranges are designated by a pair of positive,negative numbers:
        * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
        * </pre>
        *
-       * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+       * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
        */
       public Builder setLegalSeaEdges(
-          int index, soc.proto.Data._SIntArray value) {
+          int index, soc.proto.Data._EdgeList value) {
         if (legalSeaEdgesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -4229,13 +5859,13 @@ public final class GameMessage {
        * A list of individual sea edge coordinates and/or ranges.
        * Ranges are designated by a pair of positive,negative numbers:
        * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
        * </pre>
        *
-       * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+       * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
        */
       public Builder setLegalSeaEdges(
-          int index, soc.proto.Data._SIntArray.Builder builderForValue) {
+          int index, soc.proto.Data._EdgeList.Builder builderForValue) {
         if (legalSeaEdgesBuilder_ == null) {
           ensureLegalSeaEdgesIsMutable();
           legalSeaEdges_.set(index, builderForValue.build());
@@ -4257,12 +5887,12 @@ public final class GameMessage {
        * A list of individual sea edge coordinates and/or ranges.
        * Ranges are designated by a pair of positive,negative numbers:
        * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
        * </pre>
        *
-       * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+       * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
        */
-      public Builder addLegalSeaEdges(soc.proto.Data._SIntArray value) {
+      public Builder addLegalSeaEdges(soc.proto.Data._EdgeList value) {
         if (legalSeaEdgesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -4287,13 +5917,13 @@ public final class GameMessage {
        * A list of individual sea edge coordinates and/or ranges.
        * Ranges are designated by a pair of positive,negative numbers:
        * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
        * </pre>
        *
-       * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+       * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
        */
       public Builder addLegalSeaEdges(
-          int index, soc.proto.Data._SIntArray value) {
+          int index, soc.proto.Data._EdgeList value) {
         if (legalSeaEdgesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -4318,13 +5948,13 @@ public final class GameMessage {
        * A list of individual sea edge coordinates and/or ranges.
        * Ranges are designated by a pair of positive,negative numbers:
        * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
        * </pre>
        *
-       * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+       * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
        */
       public Builder addLegalSeaEdges(
-          soc.proto.Data._SIntArray.Builder builderForValue) {
+          soc.proto.Data._EdgeList.Builder builderForValue) {
         if (legalSeaEdgesBuilder_ == null) {
           ensureLegalSeaEdgesIsMutable();
           legalSeaEdges_.add(builderForValue.build());
@@ -4346,13 +5976,13 @@ public final class GameMessage {
        * A list of individual sea edge coordinates and/or ranges.
        * Ranges are designated by a pair of positive,negative numbers:
        * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
        * </pre>
        *
-       * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+       * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
        */
       public Builder addLegalSeaEdges(
-          int index, soc.proto.Data._SIntArray.Builder builderForValue) {
+          int index, soc.proto.Data._EdgeList.Builder builderForValue) {
         if (legalSeaEdgesBuilder_ == null) {
           ensureLegalSeaEdgesIsMutable();
           legalSeaEdges_.add(index, builderForValue.build());
@@ -4374,13 +6004,13 @@ public final class GameMessage {
        * A list of individual sea edge coordinates and/or ranges.
        * Ranges are designated by a pair of positive,negative numbers:
        * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
        * </pre>
        *
-       * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+       * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
        */
       public Builder addAllLegalSeaEdges(
-          java.lang.Iterable<? extends soc.proto.Data._SIntArray> values) {
+          java.lang.Iterable<? extends soc.proto.Data._EdgeList> values) {
         if (legalSeaEdgesBuilder_ == null) {
           ensureLegalSeaEdgesIsMutable();
           com.google.protobuf.AbstractMessageLite.Builder.addAll(
@@ -4403,10 +6033,10 @@ public final class GameMessage {
        * A list of individual sea edge coordinates and/or ranges.
        * Ranges are designated by a pair of positive,negative numbers:
        * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
        * </pre>
        *
-       * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+       * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
        */
       public Builder clearLegalSeaEdges() {
         if (legalSeaEdgesBuilder_ == null) {
@@ -4430,10 +6060,10 @@ public final class GameMessage {
        * A list of individual sea edge coordinates and/or ranges.
        * Ranges are designated by a pair of positive,negative numbers:
        * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
        * </pre>
        *
-       * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+       * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
        */
       public Builder removeLegalSeaEdges(int index) {
         if (legalSeaEdgesBuilder_ == null) {
@@ -4457,12 +6087,12 @@ public final class GameMessage {
        * A list of individual sea edge coordinates and/or ranges.
        * Ranges are designated by a pair of positive,negative numbers:
        * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
        * </pre>
        *
-       * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+       * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
        */
-      public soc.proto.Data._SIntArray.Builder getLegalSeaEdgesBuilder(
+      public soc.proto.Data._EdgeList.Builder getLegalSeaEdgesBuilder(
           int index) {
         return getLegalSeaEdgesFieldBuilder().getBuilder(index);
       }
@@ -4478,12 +6108,12 @@ public final class GameMessage {
        * A list of individual sea edge coordinates and/or ranges.
        * Ranges are designated by a pair of positive,negative numbers:
        * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
        * </pre>
        *
-       * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+       * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
        */
-      public soc.proto.Data._SIntArrayOrBuilder getLegalSeaEdgesOrBuilder(
+      public soc.proto.Data._EdgeListOrBuilder getLegalSeaEdgesOrBuilder(
           int index) {
         if (legalSeaEdgesBuilder_ == null) {
           return legalSeaEdges_.get(index);  } else {
@@ -4502,12 +6132,12 @@ public final class GameMessage {
        * A list of individual sea edge coordinates and/or ranges.
        * Ranges are designated by a pair of positive,negative numbers:
        * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
        * </pre>
        *
-       * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+       * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
        */
-      public java.util.List<? extends soc.proto.Data._SIntArrayOrBuilder> 
+      public java.util.List<? extends soc.proto.Data._EdgeListOrBuilder> 
            getLegalSeaEdgesOrBuilderList() {
         if (legalSeaEdgesBuilder_ != null) {
           return legalSeaEdgesBuilder_.getMessageOrBuilderList();
@@ -4527,14 +6157,14 @@ public final class GameMessage {
        * A list of individual sea edge coordinates and/or ranges.
        * Ranges are designated by a pair of positive,negative numbers:
        * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
        * </pre>
        *
-       * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+       * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
        */
-      public soc.proto.Data._SIntArray.Builder addLegalSeaEdgesBuilder() {
+      public soc.proto.Data._EdgeList.Builder addLegalSeaEdgesBuilder() {
         return getLegalSeaEdgesFieldBuilder().addBuilder(
-            soc.proto.Data._SIntArray.getDefaultInstance());
+            soc.proto.Data._EdgeList.getDefaultInstance());
       }
       /**
        * <pre>
@@ -4548,15 +6178,15 @@ public final class GameMessage {
        * A list of individual sea edge coordinates and/or ranges.
        * Ranges are designated by a pair of positive,negative numbers:
        * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
        * </pre>
        *
-       * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+       * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
        */
-      public soc.proto.Data._SIntArray.Builder addLegalSeaEdgesBuilder(
+      public soc.proto.Data._EdgeList.Builder addLegalSeaEdgesBuilder(
           int index) {
         return getLegalSeaEdgesFieldBuilder().addBuilder(
-            index, soc.proto.Data._SIntArray.getDefaultInstance());
+            index, soc.proto.Data._EdgeList.getDefaultInstance());
       }
       /**
        * <pre>
@@ -4570,21 +6200,21 @@ public final class GameMessage {
        * A list of individual sea edge coordinates and/or ranges.
        * Ranges are designated by a pair of positive,negative numbers:
        * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
-       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ 0 }&lt;/tt&gt;.
+       * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: &lt;tt&gt;{ (r=0, c=0) }&lt;/tt&gt;.
        * </pre>
        *
-       * <code>repeated ._SIntArray legal_sea_edges = 5;</code>
+       * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
        */
-      public java.util.List<soc.proto.Data._SIntArray.Builder> 
+      public java.util.List<soc.proto.Data._EdgeList.Builder> 
            getLegalSeaEdgesBuilderList() {
         return getLegalSeaEdgesFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilderV3<
-          soc.proto.Data._SIntArray, soc.proto.Data._SIntArray.Builder, soc.proto.Data._SIntArrayOrBuilder> 
+          soc.proto.Data._EdgeList, soc.proto.Data._EdgeList.Builder, soc.proto.Data._EdgeListOrBuilder> 
           getLegalSeaEdgesFieldBuilder() {
         if (legalSeaEdgesBuilder_ == null) {
           legalSeaEdgesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
-              soc.proto.Data._SIntArray, soc.proto.Data._SIntArray.Builder, soc.proto.Data._SIntArrayOrBuilder>(
+              soc.proto.Data._EdgeList, soc.proto.Data._EdgeList.Builder, soc.proto.Data._EdgeListOrBuilder>(
                   legalSeaEdges_,
                   ((bitField0_ & 0x00000010) == 0x00000010),
                   getParentForChildren(),
@@ -4670,7 +6300,7 @@ public final class GameMessage {
      * Coordinate of the piece
      * </pre>
      *
-     * <code>.PieceCoord coordinates = 2;</code>
+     * <code>.BoardCoord coordinates = 2;</code>
      */
     boolean hasCoordinates();
     /**
@@ -4678,17 +6308,17 @@ public final class GameMessage {
      * Coordinate of the piece
      * </pre>
      *
-     * <code>.PieceCoord coordinates = 2;</code>
+     * <code>.BoardCoord coordinates = 2;</code>
      */
-    soc.proto.Data.PieceCoord getCoordinates();
+    soc.proto.Data.BoardCoord getCoordinates();
     /**
      * <pre>
      * Coordinate of the piece
      * </pre>
      *
-     * <code>.PieceCoord coordinates = 2;</code>
+     * <code>.BoardCoord coordinates = 2;</code>
      */
-    soc.proto.Data.PieceCoordOrBuilder getCoordinatesOrBuilder();
+    soc.proto.Data.BoardCoordOrBuilder getCoordinatesOrBuilder();
 
     /**
      * <pre>
@@ -4770,11 +6400,11 @@ public final class GameMessage {
               break;
             }
             case 18: {
-              soc.proto.Data.PieceCoord.Builder subBuilder = null;
+              soc.proto.Data.BoardCoord.Builder subBuilder = null;
               if (coordinates_ != null) {
                 subBuilder = coordinates_.toBuilder();
               }
-              coordinates_ = input.readMessage(soc.proto.Data.PieceCoord.parser(), extensionRegistry);
+              coordinates_ = input.readMessage(soc.proto.Data.BoardCoord.parser(), extensionRegistry);
               if (subBuilder != null) {
                 subBuilder.mergeFrom(coordinates_);
                 coordinates_ = subBuilder.buildPartial();
@@ -4843,13 +6473,13 @@ public final class GameMessage {
     }
 
     public static final int COORDINATES_FIELD_NUMBER = 2;
-    private soc.proto.Data.PieceCoord coordinates_;
+    private soc.proto.Data.BoardCoord coordinates_;
     /**
      * <pre>
      * Coordinate of the piece
      * </pre>
      *
-     * <code>.PieceCoord coordinates = 2;</code>
+     * <code>.BoardCoord coordinates = 2;</code>
      */
     public boolean hasCoordinates() {
       return coordinates_ != null;
@@ -4859,19 +6489,19 @@ public final class GameMessage {
      * Coordinate of the piece
      * </pre>
      *
-     * <code>.PieceCoord coordinates = 2;</code>
+     * <code>.BoardCoord coordinates = 2;</code>
      */
-    public soc.proto.Data.PieceCoord getCoordinates() {
-      return coordinates_ == null ? soc.proto.Data.PieceCoord.getDefaultInstance() : coordinates_;
+    public soc.proto.Data.BoardCoord getCoordinates() {
+      return coordinates_ == null ? soc.proto.Data.BoardCoord.getDefaultInstance() : coordinates_;
     }
     /**
      * <pre>
      * Coordinate of the piece
      * </pre>
      *
-     * <code>.PieceCoord coordinates = 2;</code>
+     * <code>.BoardCoord coordinates = 2;</code>
      */
-    public soc.proto.Data.PieceCoordOrBuilder getCoordinatesOrBuilder() {
+    public soc.proto.Data.BoardCoordOrBuilder getCoordinatesOrBuilder() {
       return getCoordinates();
     }
 
@@ -5325,15 +6955,15 @@ public final class GameMessage {
         return this;
       }
 
-      private soc.proto.Data.PieceCoord coordinates_ = null;
+      private soc.proto.Data.BoardCoord coordinates_ = null;
       private com.google.protobuf.SingleFieldBuilderV3<
-          soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder> coordinatesBuilder_;
+          soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder> coordinatesBuilder_;
       /**
        * <pre>
        * Coordinate of the piece
        * </pre>
        *
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
       public boolean hasCoordinates() {
         return coordinatesBuilder_ != null || coordinates_ != null;
@@ -5343,11 +6973,11 @@ public final class GameMessage {
        * Coordinate of the piece
        * </pre>
        *
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
-      public soc.proto.Data.PieceCoord getCoordinates() {
+      public soc.proto.Data.BoardCoord getCoordinates() {
         if (coordinatesBuilder_ == null) {
-          return coordinates_ == null ? soc.proto.Data.PieceCoord.getDefaultInstance() : coordinates_;
+          return coordinates_ == null ? soc.proto.Data.BoardCoord.getDefaultInstance() : coordinates_;
         } else {
           return coordinatesBuilder_.getMessage();
         }
@@ -5357,9 +6987,9 @@ public final class GameMessage {
        * Coordinate of the piece
        * </pre>
        *
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
-      public Builder setCoordinates(soc.proto.Data.PieceCoord value) {
+      public Builder setCoordinates(soc.proto.Data.BoardCoord value) {
         if (coordinatesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -5377,10 +7007,10 @@ public final class GameMessage {
        * Coordinate of the piece
        * </pre>
        *
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
       public Builder setCoordinates(
-          soc.proto.Data.PieceCoord.Builder builderForValue) {
+          soc.proto.Data.BoardCoord.Builder builderForValue) {
         if (coordinatesBuilder_ == null) {
           coordinates_ = builderForValue.build();
           onChanged();
@@ -5395,13 +7025,13 @@ public final class GameMessage {
        * Coordinate of the piece
        * </pre>
        *
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
-      public Builder mergeCoordinates(soc.proto.Data.PieceCoord value) {
+      public Builder mergeCoordinates(soc.proto.Data.BoardCoord value) {
         if (coordinatesBuilder_ == null) {
           if (coordinates_ != null) {
             coordinates_ =
-              soc.proto.Data.PieceCoord.newBuilder(coordinates_).mergeFrom(value).buildPartial();
+              soc.proto.Data.BoardCoord.newBuilder(coordinates_).mergeFrom(value).buildPartial();
           } else {
             coordinates_ = value;
           }
@@ -5417,7 +7047,7 @@ public final class GameMessage {
        * Coordinate of the piece
        * </pre>
        *
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
       public Builder clearCoordinates() {
         if (coordinatesBuilder_ == null) {
@@ -5435,9 +7065,9 @@ public final class GameMessage {
        * Coordinate of the piece
        * </pre>
        *
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
-      public soc.proto.Data.PieceCoord.Builder getCoordinatesBuilder() {
+      public soc.proto.Data.BoardCoord.Builder getCoordinatesBuilder() {
         
         onChanged();
         return getCoordinatesFieldBuilder().getBuilder();
@@ -5447,14 +7077,14 @@ public final class GameMessage {
        * Coordinate of the piece
        * </pre>
        *
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
-      public soc.proto.Data.PieceCoordOrBuilder getCoordinatesOrBuilder() {
+      public soc.proto.Data.BoardCoordOrBuilder getCoordinatesOrBuilder() {
         if (coordinatesBuilder_ != null) {
           return coordinatesBuilder_.getMessageOrBuilder();
         } else {
           return coordinates_ == null ?
-              soc.proto.Data.PieceCoord.getDefaultInstance() : coordinates_;
+              soc.proto.Data.BoardCoord.getDefaultInstance() : coordinates_;
         }
       }
       /**
@@ -5462,14 +7092,14 @@ public final class GameMessage {
        * Coordinate of the piece
        * </pre>
        *
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
-          soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder> 
+          soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder> 
           getCoordinatesFieldBuilder() {
         if (coordinatesBuilder_ == null) {
           coordinatesBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-              soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder>(
+              soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder>(
                   getCoordinates(),
                   getParentForChildren(),
                   isClean());
@@ -5618,33 +7248,33 @@ public final class GameMessage {
     /**
      * <pre>
      * The piece's edge, node, or hex coordinate.
-     * See data.PieceCoord doc for which types set which field
+     * See data.BoardCoord doc for which types set which field
      * (edge_coord or node_coord).
      * </pre>
      *
-     * <code>.PieceCoord coordinates = 2;</code>
+     * <code>.BoardCoord coordinates = 2;</code>
      */
     boolean hasCoordinates();
     /**
      * <pre>
      * The piece's edge, node, or hex coordinate.
-     * See data.PieceCoord doc for which types set which field
+     * See data.BoardCoord doc for which types set which field
      * (edge_coord or node_coord).
      * </pre>
      *
-     * <code>.PieceCoord coordinates = 2;</code>
+     * <code>.BoardCoord coordinates = 2;</code>
      */
-    soc.proto.Data.PieceCoord getCoordinates();
+    soc.proto.Data.BoardCoord getCoordinates();
     /**
      * <pre>
      * The piece's edge, node, or hex coordinate.
-     * See data.PieceCoord doc for which types set which field
+     * See data.BoardCoord doc for which types set which field
      * (edge_coord or node_coord).
      * </pre>
      *
-     * <code>.PieceCoord coordinates = 2;</code>
+     * <code>.BoardCoord coordinates = 2;</code>
      */
-    soc.proto.Data.PieceCoordOrBuilder getCoordinatesOrBuilder();
+    soc.proto.Data.BoardCoordOrBuilder getCoordinatesOrBuilder();
   }
   /**
    * <pre>
@@ -5730,11 +7360,11 @@ public final class GameMessage {
               break;
             }
             case 18: {
-              soc.proto.Data.PieceCoord.Builder subBuilder = null;
+              soc.proto.Data.BoardCoord.Builder subBuilder = null;
               if (coordinates_ != null) {
                 subBuilder = coordinates_.toBuilder();
               }
-              coordinates_ = input.readMessage(soc.proto.Data.PieceCoord.parser(), extensionRegistry);
+              coordinates_ = input.readMessage(soc.proto.Data.BoardCoord.parser(), extensionRegistry);
               if (subBuilder != null) {
                 subBuilder.mergeFrom(coordinates_);
                 coordinates_ = subBuilder.buildPartial();
@@ -5783,15 +7413,15 @@ public final class GameMessage {
     }
 
     public static final int COORDINATES_FIELD_NUMBER = 2;
-    private soc.proto.Data.PieceCoord coordinates_;
+    private soc.proto.Data.BoardCoord coordinates_;
     /**
      * <pre>
      * The piece's edge, node, or hex coordinate.
-     * See data.PieceCoord doc for which types set which field
+     * See data.BoardCoord doc for which types set which field
      * (edge_coord or node_coord).
      * </pre>
      *
-     * <code>.PieceCoord coordinates = 2;</code>
+     * <code>.BoardCoord coordinates = 2;</code>
      */
     public boolean hasCoordinates() {
       return coordinates_ != null;
@@ -5799,25 +7429,25 @@ public final class GameMessage {
     /**
      * <pre>
      * The piece's edge, node, or hex coordinate.
-     * See data.PieceCoord doc for which types set which field
+     * See data.BoardCoord doc for which types set which field
      * (edge_coord or node_coord).
      * </pre>
      *
-     * <code>.PieceCoord coordinates = 2;</code>
+     * <code>.BoardCoord coordinates = 2;</code>
      */
-    public soc.proto.Data.PieceCoord getCoordinates() {
-      return coordinates_ == null ? soc.proto.Data.PieceCoord.getDefaultInstance() : coordinates_;
+    public soc.proto.Data.BoardCoord getCoordinates() {
+      return coordinates_ == null ? soc.proto.Data.BoardCoord.getDefaultInstance() : coordinates_;
     }
     /**
      * <pre>
      * The piece's edge, node, or hex coordinate.
-     * See data.PieceCoord doc for which types set which field
+     * See data.BoardCoord doc for which types set which field
      * (edge_coord or node_coord).
      * </pre>
      *
-     * <code>.PieceCoord coordinates = 2;</code>
+     * <code>.BoardCoord coordinates = 2;</code>
      */
-    public soc.proto.Data.PieceCoordOrBuilder getCoordinatesOrBuilder() {
+    public soc.proto.Data.BoardCoordOrBuilder getCoordinatesOrBuilder() {
       return getCoordinates();
     }
 
@@ -6210,17 +7840,17 @@ public final class GameMessage {
         return this;
       }
 
-      private soc.proto.Data.PieceCoord coordinates_ = null;
+      private soc.proto.Data.BoardCoord coordinates_ = null;
       private com.google.protobuf.SingleFieldBuilderV3<
-          soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder> coordinatesBuilder_;
+          soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder> coordinatesBuilder_;
       /**
        * <pre>
        * The piece's edge, node, or hex coordinate.
-       * See data.PieceCoord doc for which types set which field
+       * See data.BoardCoord doc for which types set which field
        * (edge_coord or node_coord).
        * </pre>
        *
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
       public boolean hasCoordinates() {
         return coordinatesBuilder_ != null || coordinates_ != null;
@@ -6228,15 +7858,15 @@ public final class GameMessage {
       /**
        * <pre>
        * The piece's edge, node, or hex coordinate.
-       * See data.PieceCoord doc for which types set which field
+       * See data.BoardCoord doc for which types set which field
        * (edge_coord or node_coord).
        * </pre>
        *
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
-      public soc.proto.Data.PieceCoord getCoordinates() {
+      public soc.proto.Data.BoardCoord getCoordinates() {
         if (coordinatesBuilder_ == null) {
-          return coordinates_ == null ? soc.proto.Data.PieceCoord.getDefaultInstance() : coordinates_;
+          return coordinates_ == null ? soc.proto.Data.BoardCoord.getDefaultInstance() : coordinates_;
         } else {
           return coordinatesBuilder_.getMessage();
         }
@@ -6244,13 +7874,13 @@ public final class GameMessage {
       /**
        * <pre>
        * The piece's edge, node, or hex coordinate.
-       * See data.PieceCoord doc for which types set which field
+       * See data.BoardCoord doc for which types set which field
        * (edge_coord or node_coord).
        * </pre>
        *
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
-      public Builder setCoordinates(soc.proto.Data.PieceCoord value) {
+      public Builder setCoordinates(soc.proto.Data.BoardCoord value) {
         if (coordinatesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -6266,14 +7896,14 @@ public final class GameMessage {
       /**
        * <pre>
        * The piece's edge, node, or hex coordinate.
-       * See data.PieceCoord doc for which types set which field
+       * See data.BoardCoord doc for which types set which field
        * (edge_coord or node_coord).
        * </pre>
        *
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
       public Builder setCoordinates(
-          soc.proto.Data.PieceCoord.Builder builderForValue) {
+          soc.proto.Data.BoardCoord.Builder builderForValue) {
         if (coordinatesBuilder_ == null) {
           coordinates_ = builderForValue.build();
           onChanged();
@@ -6286,17 +7916,17 @@ public final class GameMessage {
       /**
        * <pre>
        * The piece's edge, node, or hex coordinate.
-       * See data.PieceCoord doc for which types set which field
+       * See data.BoardCoord doc for which types set which field
        * (edge_coord or node_coord).
        * </pre>
        *
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
-      public Builder mergeCoordinates(soc.proto.Data.PieceCoord value) {
+      public Builder mergeCoordinates(soc.proto.Data.BoardCoord value) {
         if (coordinatesBuilder_ == null) {
           if (coordinates_ != null) {
             coordinates_ =
-              soc.proto.Data.PieceCoord.newBuilder(coordinates_).mergeFrom(value).buildPartial();
+              soc.proto.Data.BoardCoord.newBuilder(coordinates_).mergeFrom(value).buildPartial();
           } else {
             coordinates_ = value;
           }
@@ -6310,11 +7940,11 @@ public final class GameMessage {
       /**
        * <pre>
        * The piece's edge, node, or hex coordinate.
-       * See data.PieceCoord doc for which types set which field
+       * See data.BoardCoord doc for which types set which field
        * (edge_coord or node_coord).
        * </pre>
        *
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
       public Builder clearCoordinates() {
         if (coordinatesBuilder_ == null) {
@@ -6330,13 +7960,13 @@ public final class GameMessage {
       /**
        * <pre>
        * The piece's edge, node, or hex coordinate.
-       * See data.PieceCoord doc for which types set which field
+       * See data.BoardCoord doc for which types set which field
        * (edge_coord or node_coord).
        * </pre>
        *
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
-      public soc.proto.Data.PieceCoord.Builder getCoordinatesBuilder() {
+      public soc.proto.Data.BoardCoord.Builder getCoordinatesBuilder() {
         
         onChanged();
         return getCoordinatesFieldBuilder().getBuilder();
@@ -6344,35 +7974,35 @@ public final class GameMessage {
       /**
        * <pre>
        * The piece's edge, node, or hex coordinate.
-       * See data.PieceCoord doc for which types set which field
+       * See data.BoardCoord doc for which types set which field
        * (edge_coord or node_coord).
        * </pre>
        *
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
-      public soc.proto.Data.PieceCoordOrBuilder getCoordinatesOrBuilder() {
+      public soc.proto.Data.BoardCoordOrBuilder getCoordinatesOrBuilder() {
         if (coordinatesBuilder_ != null) {
           return coordinatesBuilder_.getMessageOrBuilder();
         } else {
           return coordinates_ == null ?
-              soc.proto.Data.PieceCoord.getDefaultInstance() : coordinates_;
+              soc.proto.Data.BoardCoord.getDefaultInstance() : coordinates_;
         }
       }
       /**
        * <pre>
        * The piece's edge, node, or hex coordinate.
-       * See data.PieceCoord doc for which types set which field
+       * See data.BoardCoord doc for which types set which field
        * (edge_coord or node_coord).
        * </pre>
        *
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
-          soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder> 
+          soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder> 
           getCoordinatesFieldBuilder() {
         if (coordinatesBuilder_ == null) {
           coordinatesBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-              soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder>(
+              soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder>(
                   getCoordinates(),
                   getParentForChildren(),
                   isClean());
@@ -9333,30 +10963,30 @@ public final class GameMessage {
     soc.proto.Data.PieceType getType();
 
     /**
-     * <code>.PieceCoord from_coordinates = 2;</code>
+     * <code>.BoardCoord from_coordinates = 2;</code>
      */
     boolean hasFromCoordinates();
     /**
-     * <code>.PieceCoord from_coordinates = 2;</code>
+     * <code>.BoardCoord from_coordinates = 2;</code>
      */
-    soc.proto.Data.PieceCoord getFromCoordinates();
+    soc.proto.Data.BoardCoord getFromCoordinates();
     /**
-     * <code>.PieceCoord from_coordinates = 2;</code>
+     * <code>.BoardCoord from_coordinates = 2;</code>
      */
-    soc.proto.Data.PieceCoordOrBuilder getFromCoordinatesOrBuilder();
+    soc.proto.Data.BoardCoordOrBuilder getFromCoordinatesOrBuilder();
 
     /**
-     * <code>.PieceCoord to_coordinates = 3;</code>
+     * <code>.BoardCoord to_coordinates = 3;</code>
      */
     boolean hasToCoordinates();
     /**
-     * <code>.PieceCoord to_coordinates = 3;</code>
+     * <code>.BoardCoord to_coordinates = 3;</code>
      */
-    soc.proto.Data.PieceCoord getToCoordinates();
+    soc.proto.Data.BoardCoord getToCoordinates();
     /**
-     * <code>.PieceCoord to_coordinates = 3;</code>
+     * <code>.BoardCoord to_coordinates = 3;</code>
      */
-    soc.proto.Data.PieceCoordOrBuilder getToCoordinatesOrBuilder();
+    soc.proto.Data.BoardCoordOrBuilder getToCoordinatesOrBuilder();
   }
   /**
    * <pre>
@@ -9421,11 +11051,11 @@ public final class GameMessage {
               break;
             }
             case 18: {
-              soc.proto.Data.PieceCoord.Builder subBuilder = null;
+              soc.proto.Data.BoardCoord.Builder subBuilder = null;
               if (fromCoordinates_ != null) {
                 subBuilder = fromCoordinates_.toBuilder();
               }
-              fromCoordinates_ = input.readMessage(soc.proto.Data.PieceCoord.parser(), extensionRegistry);
+              fromCoordinates_ = input.readMessage(soc.proto.Data.BoardCoord.parser(), extensionRegistry);
               if (subBuilder != null) {
                 subBuilder.mergeFrom(fromCoordinates_);
                 fromCoordinates_ = subBuilder.buildPartial();
@@ -9434,11 +11064,11 @@ public final class GameMessage {
               break;
             }
             case 26: {
-              soc.proto.Data.PieceCoord.Builder subBuilder = null;
+              soc.proto.Data.BoardCoord.Builder subBuilder = null;
               if (toCoordinates_ != null) {
                 subBuilder = toCoordinates_.toBuilder();
               }
-              toCoordinates_ = input.readMessage(soc.proto.Data.PieceCoord.parser(), extensionRegistry);
+              toCoordinates_ = input.readMessage(soc.proto.Data.BoardCoord.parser(), extensionRegistry);
               if (subBuilder != null) {
                 subBuilder.mergeFrom(toCoordinates_);
                 toCoordinates_ = subBuilder.buildPartial();
@@ -9495,44 +11125,44 @@ public final class GameMessage {
     }
 
     public static final int FROM_COORDINATES_FIELD_NUMBER = 2;
-    private soc.proto.Data.PieceCoord fromCoordinates_;
+    private soc.proto.Data.BoardCoord fromCoordinates_;
     /**
-     * <code>.PieceCoord from_coordinates = 2;</code>
+     * <code>.BoardCoord from_coordinates = 2;</code>
      */
     public boolean hasFromCoordinates() {
       return fromCoordinates_ != null;
     }
     /**
-     * <code>.PieceCoord from_coordinates = 2;</code>
+     * <code>.BoardCoord from_coordinates = 2;</code>
      */
-    public soc.proto.Data.PieceCoord getFromCoordinates() {
-      return fromCoordinates_ == null ? soc.proto.Data.PieceCoord.getDefaultInstance() : fromCoordinates_;
+    public soc.proto.Data.BoardCoord getFromCoordinates() {
+      return fromCoordinates_ == null ? soc.proto.Data.BoardCoord.getDefaultInstance() : fromCoordinates_;
     }
     /**
-     * <code>.PieceCoord from_coordinates = 2;</code>
+     * <code>.BoardCoord from_coordinates = 2;</code>
      */
-    public soc.proto.Data.PieceCoordOrBuilder getFromCoordinatesOrBuilder() {
+    public soc.proto.Data.BoardCoordOrBuilder getFromCoordinatesOrBuilder() {
       return getFromCoordinates();
     }
 
     public static final int TO_COORDINATES_FIELD_NUMBER = 3;
-    private soc.proto.Data.PieceCoord toCoordinates_;
+    private soc.proto.Data.BoardCoord toCoordinates_;
     /**
-     * <code>.PieceCoord to_coordinates = 3;</code>
+     * <code>.BoardCoord to_coordinates = 3;</code>
      */
     public boolean hasToCoordinates() {
       return toCoordinates_ != null;
     }
     /**
-     * <code>.PieceCoord to_coordinates = 3;</code>
+     * <code>.BoardCoord to_coordinates = 3;</code>
      */
-    public soc.proto.Data.PieceCoord getToCoordinates() {
-      return toCoordinates_ == null ? soc.proto.Data.PieceCoord.getDefaultInstance() : toCoordinates_;
+    public soc.proto.Data.BoardCoord getToCoordinates() {
+      return toCoordinates_ == null ? soc.proto.Data.BoardCoord.getDefaultInstance() : toCoordinates_;
     }
     /**
-     * <code>.PieceCoord to_coordinates = 3;</code>
+     * <code>.BoardCoord to_coordinates = 3;</code>
      */
-    public soc.proto.Data.PieceCoordOrBuilder getToCoordinatesOrBuilder() {
+    public soc.proto.Data.BoardCoordOrBuilder getToCoordinatesOrBuilder() {
       return getToCoordinates();
     }
 
@@ -9954,29 +11584,29 @@ public final class GameMessage {
         return this;
       }
 
-      private soc.proto.Data.PieceCoord fromCoordinates_ = null;
+      private soc.proto.Data.BoardCoord fromCoordinates_ = null;
       private com.google.protobuf.SingleFieldBuilderV3<
-          soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder> fromCoordinatesBuilder_;
+          soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder> fromCoordinatesBuilder_;
       /**
-       * <code>.PieceCoord from_coordinates = 2;</code>
+       * <code>.BoardCoord from_coordinates = 2;</code>
        */
       public boolean hasFromCoordinates() {
         return fromCoordinatesBuilder_ != null || fromCoordinates_ != null;
       }
       /**
-       * <code>.PieceCoord from_coordinates = 2;</code>
+       * <code>.BoardCoord from_coordinates = 2;</code>
        */
-      public soc.proto.Data.PieceCoord getFromCoordinates() {
+      public soc.proto.Data.BoardCoord getFromCoordinates() {
         if (fromCoordinatesBuilder_ == null) {
-          return fromCoordinates_ == null ? soc.proto.Data.PieceCoord.getDefaultInstance() : fromCoordinates_;
+          return fromCoordinates_ == null ? soc.proto.Data.BoardCoord.getDefaultInstance() : fromCoordinates_;
         } else {
           return fromCoordinatesBuilder_.getMessage();
         }
       }
       /**
-       * <code>.PieceCoord from_coordinates = 2;</code>
+       * <code>.BoardCoord from_coordinates = 2;</code>
        */
-      public Builder setFromCoordinates(soc.proto.Data.PieceCoord value) {
+      public Builder setFromCoordinates(soc.proto.Data.BoardCoord value) {
         if (fromCoordinatesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -9990,10 +11620,10 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <code>.PieceCoord from_coordinates = 2;</code>
+       * <code>.BoardCoord from_coordinates = 2;</code>
        */
       public Builder setFromCoordinates(
-          soc.proto.Data.PieceCoord.Builder builderForValue) {
+          soc.proto.Data.BoardCoord.Builder builderForValue) {
         if (fromCoordinatesBuilder_ == null) {
           fromCoordinates_ = builderForValue.build();
           onChanged();
@@ -10004,13 +11634,13 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <code>.PieceCoord from_coordinates = 2;</code>
+       * <code>.BoardCoord from_coordinates = 2;</code>
        */
-      public Builder mergeFromCoordinates(soc.proto.Data.PieceCoord value) {
+      public Builder mergeFromCoordinates(soc.proto.Data.BoardCoord value) {
         if (fromCoordinatesBuilder_ == null) {
           if (fromCoordinates_ != null) {
             fromCoordinates_ =
-              soc.proto.Data.PieceCoord.newBuilder(fromCoordinates_).mergeFrom(value).buildPartial();
+              soc.proto.Data.BoardCoord.newBuilder(fromCoordinates_).mergeFrom(value).buildPartial();
           } else {
             fromCoordinates_ = value;
           }
@@ -10022,7 +11652,7 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <code>.PieceCoord from_coordinates = 2;</code>
+       * <code>.BoardCoord from_coordinates = 2;</code>
        */
       public Builder clearFromCoordinates() {
         if (fromCoordinatesBuilder_ == null) {
@@ -10036,33 +11666,33 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <code>.PieceCoord from_coordinates = 2;</code>
+       * <code>.BoardCoord from_coordinates = 2;</code>
        */
-      public soc.proto.Data.PieceCoord.Builder getFromCoordinatesBuilder() {
+      public soc.proto.Data.BoardCoord.Builder getFromCoordinatesBuilder() {
         
         onChanged();
         return getFromCoordinatesFieldBuilder().getBuilder();
       }
       /**
-       * <code>.PieceCoord from_coordinates = 2;</code>
+       * <code>.BoardCoord from_coordinates = 2;</code>
        */
-      public soc.proto.Data.PieceCoordOrBuilder getFromCoordinatesOrBuilder() {
+      public soc.proto.Data.BoardCoordOrBuilder getFromCoordinatesOrBuilder() {
         if (fromCoordinatesBuilder_ != null) {
           return fromCoordinatesBuilder_.getMessageOrBuilder();
         } else {
           return fromCoordinates_ == null ?
-              soc.proto.Data.PieceCoord.getDefaultInstance() : fromCoordinates_;
+              soc.proto.Data.BoardCoord.getDefaultInstance() : fromCoordinates_;
         }
       }
       /**
-       * <code>.PieceCoord from_coordinates = 2;</code>
+       * <code>.BoardCoord from_coordinates = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
-          soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder> 
+          soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder> 
           getFromCoordinatesFieldBuilder() {
         if (fromCoordinatesBuilder_ == null) {
           fromCoordinatesBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-              soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder>(
+              soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder>(
                   getFromCoordinates(),
                   getParentForChildren(),
                   isClean());
@@ -10071,29 +11701,29 @@ public final class GameMessage {
         return fromCoordinatesBuilder_;
       }
 
-      private soc.proto.Data.PieceCoord toCoordinates_ = null;
+      private soc.proto.Data.BoardCoord toCoordinates_ = null;
       private com.google.protobuf.SingleFieldBuilderV3<
-          soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder> toCoordinatesBuilder_;
+          soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder> toCoordinatesBuilder_;
       /**
-       * <code>.PieceCoord to_coordinates = 3;</code>
+       * <code>.BoardCoord to_coordinates = 3;</code>
        */
       public boolean hasToCoordinates() {
         return toCoordinatesBuilder_ != null || toCoordinates_ != null;
       }
       /**
-       * <code>.PieceCoord to_coordinates = 3;</code>
+       * <code>.BoardCoord to_coordinates = 3;</code>
        */
-      public soc.proto.Data.PieceCoord getToCoordinates() {
+      public soc.proto.Data.BoardCoord getToCoordinates() {
         if (toCoordinatesBuilder_ == null) {
-          return toCoordinates_ == null ? soc.proto.Data.PieceCoord.getDefaultInstance() : toCoordinates_;
+          return toCoordinates_ == null ? soc.proto.Data.BoardCoord.getDefaultInstance() : toCoordinates_;
         } else {
           return toCoordinatesBuilder_.getMessage();
         }
       }
       /**
-       * <code>.PieceCoord to_coordinates = 3;</code>
+       * <code>.BoardCoord to_coordinates = 3;</code>
        */
-      public Builder setToCoordinates(soc.proto.Data.PieceCoord value) {
+      public Builder setToCoordinates(soc.proto.Data.BoardCoord value) {
         if (toCoordinatesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -10107,10 +11737,10 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <code>.PieceCoord to_coordinates = 3;</code>
+       * <code>.BoardCoord to_coordinates = 3;</code>
        */
       public Builder setToCoordinates(
-          soc.proto.Data.PieceCoord.Builder builderForValue) {
+          soc.proto.Data.BoardCoord.Builder builderForValue) {
         if (toCoordinatesBuilder_ == null) {
           toCoordinates_ = builderForValue.build();
           onChanged();
@@ -10121,13 +11751,13 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <code>.PieceCoord to_coordinates = 3;</code>
+       * <code>.BoardCoord to_coordinates = 3;</code>
        */
-      public Builder mergeToCoordinates(soc.proto.Data.PieceCoord value) {
+      public Builder mergeToCoordinates(soc.proto.Data.BoardCoord value) {
         if (toCoordinatesBuilder_ == null) {
           if (toCoordinates_ != null) {
             toCoordinates_ =
-              soc.proto.Data.PieceCoord.newBuilder(toCoordinates_).mergeFrom(value).buildPartial();
+              soc.proto.Data.BoardCoord.newBuilder(toCoordinates_).mergeFrom(value).buildPartial();
           } else {
             toCoordinates_ = value;
           }
@@ -10139,7 +11769,7 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <code>.PieceCoord to_coordinates = 3;</code>
+       * <code>.BoardCoord to_coordinates = 3;</code>
        */
       public Builder clearToCoordinates() {
         if (toCoordinatesBuilder_ == null) {
@@ -10153,33 +11783,33 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <code>.PieceCoord to_coordinates = 3;</code>
+       * <code>.BoardCoord to_coordinates = 3;</code>
        */
-      public soc.proto.Data.PieceCoord.Builder getToCoordinatesBuilder() {
+      public soc.proto.Data.BoardCoord.Builder getToCoordinatesBuilder() {
         
         onChanged();
         return getToCoordinatesFieldBuilder().getBuilder();
       }
       /**
-       * <code>.PieceCoord to_coordinates = 3;</code>
+       * <code>.BoardCoord to_coordinates = 3;</code>
        */
-      public soc.proto.Data.PieceCoordOrBuilder getToCoordinatesOrBuilder() {
+      public soc.proto.Data.BoardCoordOrBuilder getToCoordinatesOrBuilder() {
         if (toCoordinatesBuilder_ != null) {
           return toCoordinatesBuilder_.getMessageOrBuilder();
         } else {
           return toCoordinates_ == null ?
-              soc.proto.Data.PieceCoord.getDefaultInstance() : toCoordinates_;
+              soc.proto.Data.BoardCoord.getDefaultInstance() : toCoordinates_;
         }
       }
       /**
-       * <code>.PieceCoord to_coordinates = 3;</code>
+       * <code>.BoardCoord to_coordinates = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
-          soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder> 
+          soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder> 
           getToCoordinatesFieldBuilder() {
         if (toCoordinatesBuilder_ == null) {
           toCoordinatesBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-              soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder>(
+              soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder>(
                   getToCoordinates(),
                   getParentForChildren(),
                   isClean());
@@ -10258,17 +11888,17 @@ public final class GameMessage {
     soc.proto.Data.PieceType getType();
 
     /**
-     * <code>.PieceCoord coordinates = 2;</code>
+     * <code>.BoardCoord coordinates = 2;</code>
      */
     boolean hasCoordinates();
     /**
-     * <code>.PieceCoord coordinates = 2;</code>
+     * <code>.BoardCoord coordinates = 2;</code>
      */
-    soc.proto.Data.PieceCoord getCoordinates();
+    soc.proto.Data.BoardCoord getCoordinates();
     /**
-     * <code>.PieceCoord coordinates = 2;</code>
+     * <code>.BoardCoord coordinates = 2;</code>
      */
-    soc.proto.Data.PieceCoordOrBuilder getCoordinatesOrBuilder();
+    soc.proto.Data.BoardCoordOrBuilder getCoordinatesOrBuilder();
   }
   /**
    * <pre>
@@ -10330,11 +11960,11 @@ public final class GameMessage {
               break;
             }
             case 18: {
-              soc.proto.Data.PieceCoord.Builder subBuilder = null;
+              soc.proto.Data.BoardCoord.Builder subBuilder = null;
               if (coordinates_ != null) {
                 subBuilder = coordinates_.toBuilder();
               }
-              coordinates_ = input.readMessage(soc.proto.Data.PieceCoord.parser(), extensionRegistry);
+              coordinates_ = input.readMessage(soc.proto.Data.BoardCoord.parser(), extensionRegistry);
               if (subBuilder != null) {
                 subBuilder.mergeFrom(coordinates_);
                 coordinates_ = subBuilder.buildPartial();
@@ -10391,23 +12021,23 @@ public final class GameMessage {
     }
 
     public static final int COORDINATES_FIELD_NUMBER = 2;
-    private soc.proto.Data.PieceCoord coordinates_;
+    private soc.proto.Data.BoardCoord coordinates_;
     /**
-     * <code>.PieceCoord coordinates = 2;</code>
+     * <code>.BoardCoord coordinates = 2;</code>
      */
     public boolean hasCoordinates() {
       return coordinates_ != null;
     }
     /**
-     * <code>.PieceCoord coordinates = 2;</code>
+     * <code>.BoardCoord coordinates = 2;</code>
      */
-    public soc.proto.Data.PieceCoord getCoordinates() {
-      return coordinates_ == null ? soc.proto.Data.PieceCoord.getDefaultInstance() : coordinates_;
+    public soc.proto.Data.BoardCoord getCoordinates() {
+      return coordinates_ == null ? soc.proto.Data.BoardCoord.getDefaultInstance() : coordinates_;
     }
     /**
-     * <code>.PieceCoord coordinates = 2;</code>
+     * <code>.BoardCoord coordinates = 2;</code>
      */
-    public soc.proto.Data.PieceCoordOrBuilder getCoordinatesOrBuilder() {
+    public soc.proto.Data.BoardCoordOrBuilder getCoordinatesOrBuilder() {
       return getCoordinates();
     }
 
@@ -10796,29 +12426,29 @@ public final class GameMessage {
         return this;
       }
 
-      private soc.proto.Data.PieceCoord coordinates_ = null;
+      private soc.proto.Data.BoardCoord coordinates_ = null;
       private com.google.protobuf.SingleFieldBuilderV3<
-          soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder> coordinatesBuilder_;
+          soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder> coordinatesBuilder_;
       /**
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
       public boolean hasCoordinates() {
         return coordinatesBuilder_ != null || coordinates_ != null;
       }
       /**
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
-      public soc.proto.Data.PieceCoord getCoordinates() {
+      public soc.proto.Data.BoardCoord getCoordinates() {
         if (coordinatesBuilder_ == null) {
-          return coordinates_ == null ? soc.proto.Data.PieceCoord.getDefaultInstance() : coordinates_;
+          return coordinates_ == null ? soc.proto.Data.BoardCoord.getDefaultInstance() : coordinates_;
         } else {
           return coordinatesBuilder_.getMessage();
         }
       }
       /**
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
-      public Builder setCoordinates(soc.proto.Data.PieceCoord value) {
+      public Builder setCoordinates(soc.proto.Data.BoardCoord value) {
         if (coordinatesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -10832,10 +12462,10 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
       public Builder setCoordinates(
-          soc.proto.Data.PieceCoord.Builder builderForValue) {
+          soc.proto.Data.BoardCoord.Builder builderForValue) {
         if (coordinatesBuilder_ == null) {
           coordinates_ = builderForValue.build();
           onChanged();
@@ -10846,13 +12476,13 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
-      public Builder mergeCoordinates(soc.proto.Data.PieceCoord value) {
+      public Builder mergeCoordinates(soc.proto.Data.BoardCoord value) {
         if (coordinatesBuilder_ == null) {
           if (coordinates_ != null) {
             coordinates_ =
-              soc.proto.Data.PieceCoord.newBuilder(coordinates_).mergeFrom(value).buildPartial();
+              soc.proto.Data.BoardCoord.newBuilder(coordinates_).mergeFrom(value).buildPartial();
           } else {
             coordinates_ = value;
           }
@@ -10864,7 +12494,7 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
       public Builder clearCoordinates() {
         if (coordinatesBuilder_ == null) {
@@ -10878,33 +12508,33 @@ public final class GameMessage {
         return this;
       }
       /**
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
-      public soc.proto.Data.PieceCoord.Builder getCoordinatesBuilder() {
+      public soc.proto.Data.BoardCoord.Builder getCoordinatesBuilder() {
         
         onChanged();
         return getCoordinatesFieldBuilder().getBuilder();
       }
       /**
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
-      public soc.proto.Data.PieceCoordOrBuilder getCoordinatesOrBuilder() {
+      public soc.proto.Data.BoardCoordOrBuilder getCoordinatesOrBuilder() {
         if (coordinatesBuilder_ != null) {
           return coordinatesBuilder_.getMessageOrBuilder();
         } else {
           return coordinates_ == null ?
-              soc.proto.Data.PieceCoord.getDefaultInstance() : coordinates_;
+              soc.proto.Data.BoardCoord.getDefaultInstance() : coordinates_;
         }
       }
       /**
-       * <code>.PieceCoord coordinates = 2;</code>
+       * <code>.BoardCoord coordinates = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
-          soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder> 
+          soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder> 
           getCoordinatesFieldBuilder() {
         if (coordinatesBuilder_ == null) {
           coordinatesBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-              soc.proto.Data.PieceCoord, soc.proto.Data.PieceCoord.Builder, soc.proto.Data.PieceCoordOrBuilder>(
+              soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder>(
                   getCoordinates(),
                   getParentForChildren(),
                   isClean());
@@ -31673,131 +33303,139 @@ public final class GameMessage {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\022game_message.proto\032\ndata.proto\"\365\001\n\013Boa" +
-      "rdLayout\022\027\n\017encoding_format\030\001 \001(\r\022&\n\005par" +
-      "ts\030\002 \003(\0132\027.BoardLayout.PartsEntry\032X\n\020_Bo" +
-      "ardLayoutPart\022\017\n\005i_val\030\001 \001(\005H\000\022\017\n\005s_val\030" +
-      "\002 \001(\tH\000\022\033\n\005i_arr\030\003 \001(\0132\n._IntArrayH\000B\005\n\003" +
-      "val\032K\n\nPartsEntry\022\013\n\003key\030\001 \001(\t\022,\n\005value\030" +
-      "\002 \001(\0132\035.BoardLayout._BoardLayoutPart:\0028\001" +
-      "\"\226\002\n\024PotentialSettlements\022\020\n\010ps_nodes\030\001 " +
-      "\003(\005\022\022\n\narea_count\030\002 \001(\r\022\032\n\022starting_land" +
-      "_area\030\003 \001(\r\022N\n\026land_areas_legal_nodes\030\004 ",
-      "\003(\0132..PotentialSettlements.LandAreasLega" +
-      "lNodesEntry\022$\n\017legal_sea_edges\030\005 \003(\0132\013._" +
-      "SIntArray\032F\n\030LandAreasLegalNodesEntry\022\013\n" +
-      "\003key\030\001 \001(\r\022\031\n\005value\030\002 \001(\0132\n._IntArray:\0028" +
-      "\001\"t\n\nPieceValue\022\030\n\004type\030\001 \001(\0162\n.PieceTyp" +
-      "e\022 \n\013coordinates\030\002 \001(\0132\013.PieceCoord\022\024\n\014p" +
-      "iece_value1\030\003 \001(\021\022\024\n\014piece_value2\030\004 \001(\021\"" +
-      "H\n\nBuildPiece\022\030\n\004type\030\001 \001(\0162\n.PieceType\022" +
-      " \n\013coordinates\030\002 \001(\0132\013.PieceCoord\"O\n\027Buy" +
-      "InventoryItemRequest\022\027\n\017is_not_dev_card\030",
-      "\001 \001(\010\022\033\n\023other_inv_item_type\030\002 \001(\021\"\202\003\n\023I" +
-      "nventoryItemAction\0225\n\013action_type\030\001 \001(\0162" +
-      " .InventoryItemAction._ActionType\022\'\n\016dev" +
-      "_card_value\030\002 \001(\0162\r.DevCardValueH\000\022\035\n\023ot" +
-      "her_inv_item_type\030\003 \001(\005H\000\022\023\n\013reason_code" +
-      "\030\025 \001(\021\022\023\n\013is_playable\030\026 \001(\010\022\017\n\007is_kept\030\027" +
-      " \001(\010\022\r\n\005is_VP\030\030 \001(\010\022\027\n\017can_cancel_play\030\031" +
-      " \001(\010\"{\n\013_ActionType\022\032\n\026_UNSENT_DEFAULT_A" +
-      "CTION\020\000\022\010\n\004DRAW\020\001\022\010\n\004PLAY\020\002\022\013\n\007ADD_NEW\020\003" +
-      "\022\013\n\007ADD_OLD\020\004\022\017\n\013CANNOT_PLAY\020\005\022\021\n\rPLACIN",
-      "G_EXTRA\020\006B\014\n\nitem_value\"g\n\013CancelBuild\022 " +
-      "\n\npiece_type\030\001 \001(\0162\n.PieceTypeH\000\022\'\n\titem" +
-      "_type\030\002 \001(\0162\022.OtherPlayableItemH\000B\r\n\013can" +
-      "cel_type\"q\n\tMovePiece\022\030\n\004type\030\001 \001(\0162\n.Pi" +
-      "eceType\022%\n\020from_coordinates\030\002 \001(\0132\013.Piec" +
-      "eCoord\022#\n\016to_coordinates\030\003 \001(\0132\013.PieceCo" +
-      "ord\"I\n\013RemovePiece\022\030\n\004type\030\001 \001(\0162\n.Piece" +
-      "Type\022 \n\013coordinates\030\002 \001(\0132\013.PieceCoord\"\"" +
-      "\n\005State\022\031\n\005state\030\001 \001(\0162\n.GameState\"\202\001\n\rP" +
-      "layerElement\022%\n\006action\030\001 \001(\0162\025._PlayerEl",
-      "ementAction\022)\n\014element_type\030\002 \001(\0162\023._Pla" +
-      "yerElementType\022\016\n\006amount\030\003 \001(\021\022\017\n\007is_new" +
-      "s\030\004 \001(\010\"t\n\016PlayerElements\022%\n\006action\030\001 \001(" +
-      "\0162\025._PlayerElementAction\022*\n\relement_type" +
-      "s\030\002 \003(\0162\023._PlayerElementType\022\017\n\007amounts\030" +
-      "\003 \003(\021\"\376\001\n\014GameElements\0221\n\relement_types\030" +
-      "\001 \003(\0162\032.GameElements._ElementType\022\016\n\006val" +
-      "ues\030\002 \003(\021\"\252\001\n\014_ElementType\022\035\n\031_UNSENT_DE" +
-      "FAULT_GAME_ELEM\020\000\022\017\n\013ROUND_COUNT\020\001\022\022\n\016DE" +
-      "V_CARD_COUNT\020\002\022\020\n\014FIRST_PLAYER\020\003\022\022\n\016CURR",
-      "ENT_PLAYER\020\004\022\027\n\023LARGEST_ARMY_PLAYER\020\005\022\027\n" +
-      "\023LONGEST_ROAD_PLAYER\020\006\"&\n\tStartGame\022\031\n\005s" +
-      "tate\030\001 \001(\0162\n.GameState\"!\n\004Turn\022\031\n\005state\030" +
-      "\001 \001(\0162\n.GameState\"\t\n\007SetTurn\"\021\n\017DiceRoll" +
-      "Request\" \n\nDiceResult\022\022\n\ndice_total\030\001 \001(" +
-      "\021\"\264\001\n\023DiceResultResources\022>\n\020player_reso" +
-      "urces\030\001 \003(\0132$.DiceResultResources.Player" +
-      "Resources\032]\n\017PlayerResources\022\025\n\rplayer_n" +
-      "umber\030\001 \001(\r\022 \n\nres_gained\030\002 \001(\0132\014.Resour" +
-      "ceSet\022\021\n\tres_total\030\003 \001(\r\"\t\n\007EndTurn\"F\n\rT",
-      "radeWithBank\022\032\n\004give\030\001 \001(\0132\014.ResourceSet" +
-      "\022\031\n\003get\030\002 \001(\0132\014.ResourceSet\"}\n\016TradeMake" +
-      "Offer\022\032\n\004give\030\001 \001(\0132\014.ResourceSet\022\031\n\003get" +
-      "\030\002 \001(\0132\014.ResourceSet\022\036\n\nto_players\030\003 \001(\013" +
-      "2\n._IntArray\022\024\n\014offer_serial\030\004 \001(\005\"\021\n\017Tr" +
-      "adeClearOffer\"\022\n\020TradeRejectOffer\"H\n\020Tra" +
-      "deAcceptOffer\022\036\n\026offering_player_number\030" +
-      "\001 \001(\005\022\024\n\014offer_serial\030\002 \001(\005\"\377\007\n\025GameMess" +
-      "ageFromServer\022\021\n\tgame_name\030\001 \001(\t\022\025\n\rplay" +
-      "er_number\030\002 \001(\021\022\034\n\ngame_state\030\003 \001(\0132\006.St",
-      "ateH\000\022(\n\016player_element\030\017 \001(\0132\016.PlayerEl" +
-      "ementH\000\022*\n\017player_elements\030\020 \001(\0132\017.Playe" +
-      "rElementsH\000\022&\n\rgame_elements\030\021 \001(\0132\r.Gam" +
-      "eElementsH\000\022$\n\014board_layout\030\036 \001(\0132\014.Boar" +
-      "dLayoutH\000\0226\n\025potential_settlements\030\037 \001(\013" +
-      "2\025.PotentialSettlementsH\000\022\"\n\013piece_value" +
-      "\030  \001(\0132\013.PieceValueH\000\022\"\n\013build_piece\030! \001" +
-      "(\0132\013.BuildPieceH\000\022$\n\014cancel_build\030\" \001(\0132" +
-      "\014.CancelBuildH\000\022 \n\nmove_piece\030# \001(\0132\n.Mo" +
-      "vePieceH\000\022$\n\014remove_piece\030$ \001(\0132\014.Remove",
-      "PieceH\000\022 \n\nstart_game\030d \001(\0132\n.StartGameH" +
-      "\000\022\025\n\004turn\030e \001(\0132\005.TurnH\000\022\034\n\010set_turn\030f \001" +
-      "(\0132\010.SetTurnH\000\022-\n\021dice_roll_request\030g \001(" +
-      "\0132\020.DiceRollRequestH\000\022\"\n\013dice_result\030h \001" +
-      "(\0132\013.DiceResultH\000\0225\n\025dice_result_resourc" +
-      "es\030i \001(\0132\024.DiceResultResourcesH\000\0226\n\025inve" +
-      "ntory_item_action\030\256\002 \001(\0132\024.InventoryItem" +
-      "ActionH\000\022*\n\017trade_with_bank\030\220\003 \001(\0132\016.Tra" +
-      "deWithBankH\000\022,\n\020trade_make_offer\030\221\003 \001(\0132" +
-      "\017.TradeMakeOfferH\000\022.\n\021trade_clear_offer\030",
-      "\222\003 \001(\0132\020.TradeClearOfferH\000\0220\n\022trade_reje" +
-      "ct_offer\030\223\003 \001(\0132\021.TradeRejectOfferH\000\0220\n\022" +
-      "trade_accept_offer\030\224\003 \001(\0132\021.TradeAcceptO" +
-      "fferH\000B\005\n\003msg\"\356\004\n\025GameMessageFromClient\022" +
-      "\021\n\tgame_name\030\001 \001(\t\022 \n\nstart_game\030d \001(\0132\n" +
-      ".StartGameH\000\022-\n\021dice_roll_request\030e \001(\0132" +
-      "\020.DiceRollRequestH\000\022\034\n\010end_turn\030f \001(\0132\010." +
-      "EndTurnH\000\022#\n\013build_piece\030\310\001 \001(\0132\013.BuildP" +
-      "ieceH\000\022%\n\014cancel_build\030\311\001 \001(\0132\014.CancelBu" +
-      "ildH\000\022!\n\nmove_piece\030\312\001 \001(\0132\n.MovePieceH\000",
-      "\0227\n\022buy_inventory_item\030\313\001 \001(\0132\030.BuyInven" +
-      "toryItemRequestH\000\0226\n\025inventory_item_acti" +
-      "on\030\314\001 \001(\0132\024.InventoryItemActionH\000\022*\n\017tra" +
-      "de_with_bank\030\220\003 \001(\0132\016.TradeWithBankH\000\022,\n" +
-      "\020trade_make_offer\030\221\003 \001(\0132\017.TradeMakeOffe" +
-      "rH\000\022.\n\021trade_clear_offer\030\222\003 \001(\0132\020.TradeC" +
-      "learOfferH\000\0220\n\022trade_reject_offer\030\223\003 \001(\013" +
-      "2\021.TradeRejectOfferH\000\0220\n\022trade_accept_of" +
-      "fer\030\224\003 \001(\0132\021.TradeAcceptOfferH\000B\005\n\003msg*O" +
-      "\n\024_PlayerElementAction\022\032\n\026_UNSENT_DEFAUL",
-      "T_ACTION\020\000\022\007\n\003SET\020\001\022\010\n\004GAIN\020\002\022\010\n\004LOSE\020\003*" +
-      "\206\004\n\022_PlayerElementType\022\037\n\033_UNSENT_DEFAUL" +
-      "T_PLAYER_ELEM\020\000\022\r\n\tELEM_CLAY\020\001\022\014\n\010ELEM_O" +
-      "RE\020\002\022\016\n\nELEM_SHEEP\020\003\022\016\n\nELEM_WHEAT\020\004\022\r\n\t" +
-      "ELEM_WOOD\020\005\022\031\n\025ELEM_UNKNOWN_RESOURCE\020\006\022\t" +
-      "\n\005ROADS\020\n\022\017\n\013SETTLEMENTS\020\013\022\n\n\006CITIES\020\014\022\t" +
-      "\n\005SHIPS\020\r\022\016\n\nNUMKNIGHTS\020\017\022\025\n\021ASK_SPECIAL" +
-      "_BUILD\020\020\022\022\n\016RESOURCE_COUNT\020\021\022\030\n\024LAST_SET" +
-      "TLEMENT_NODE\020\022\022\030\n\024PLAYED_DEV_CARD_FLAG\020\023" +
-      "\022\037\n\033NUM_PICK_GOLD_HEX_RESOURCES\020e\022\020\n\014SCE",
-      "NARIO_SVP\020f\022!\n\035SCENARIO_PLAYEREVENTS_BIT" +
-      "MASK\020g\022\"\n\036SCENARIO_SVP_LANDAREAS_BITMASK" +
-      "\020h\022\026\n\022STARTING_LANDAREAS\020i\022\030\n\024SCENARIO_C" +
-      "LOTH_COUNT\020j\022\032\n\026SCENARIO_WARSHIP_COUNT\020k" +
-      "B\r\n\tsoc.protoH\001P\000b\006proto3"
+      "\n\022game_message.proto\032\ndata.proto\"\263\004\n\013Boa" +
+      "rdLayout\022;\n\017layout_encoding\030\001 \001(\0162\".Boar" +
+      "dLayout._LayoutEncodingFormat\022&\n\005parts\030\002" +
+      " \003(\0132\027.BoardLayout.PartsEntry\032\346\001\n\020_Board" +
+      "LayoutPart\022\017\n\005i_val\030\001 \001(\005H\000\022\017\n\005s_val\030\002 \001" +
+      "(\tH\000\022\033\n\005i_arr\030\003 \001(\0132\n._IntArrayH\000\022+\n\017coo" +
+      "rdinate_list\030\004 \001(\0132\020._BoardCoordListH\000\022\037" +
+      "\n\tedge_list\030\005 \001(\0132\n._EdgeListH\000\022\035\n\010hex_l" +
+      "ist\030\006 \001(\0132\t._HexListH\000\022\037\n\tnode_list\030\007 \001(" +
+      "\0132\n._NodeListH\000B\005\n\003val\032K\n\nPartsEntry\022\013\n\003",
+      "key\030\001 \001(\t\022,\n\005value\030\002 \001(\0132\035.BoardLayout._" +
+      "BoardLayoutPart:\0028\001\"\210\001\n\025_LayoutEncodingF" +
+      "ormat\022\034\n\030_UNSENT_DEFAULT_ENCODING\020\000\022\033\n\027B" +
+      "OARD_ENCODING_ORIGINAL\020\001\022\032\n\026BOARD_ENCODI" +
+      "NG_6PLAYER\020\002\022\030\n\024BOARD_ENCODING_LARGE\020\003\"\241" +
+      "\002\n\024PotentialSettlements\022\034\n\010ps_nodes\030\001 \003(" +
+      "\0132\n.NodeCoord\022\022\n\narea_count\030\002 \001(\r\022\032\n\022sta" +
+      "rting_land_area\030\003 \001(\r\022N\n\026land_areas_lega" +
+      "l_nodes\030\004 \003(\0132..PotentialSettlements.Lan" +
+      "dAreasLegalNodesEntry\022#\n\017legal_sea_edges",
+      "\030\005 \003(\0132\n._EdgeList\032F\n\030LandAreasLegalNode" +
+      "sEntry\022\013\n\003key\030\001 \001(\r\022\031\n\005value\030\002 \001(\0132\n._No" +
+      "deList:\0028\001\"t\n\nPieceValue\022\030\n\004type\030\001 \001(\0162\n" +
+      ".PieceType\022 \n\013coordinates\030\002 \001(\0132\013.BoardC" +
+      "oord\022\024\n\014piece_value1\030\003 \001(\021\022\024\n\014piece_valu" +
+      "e2\030\004 \001(\021\"H\n\nBuildPiece\022\030\n\004type\030\001 \001(\0162\n.P" +
+      "ieceType\022 \n\013coordinates\030\002 \001(\0132\013.BoardCoo" +
+      "rd\"O\n\027BuyInventoryItemRequest\022\027\n\017is_not_" +
+      "dev_card\030\001 \001(\010\022\033\n\023other_inv_item_type\030\002 " +
+      "\001(\021\"\202\003\n\023InventoryItemAction\0225\n\013action_ty",
+      "pe\030\001 \001(\0162 .InventoryItemAction._ActionTy" +
+      "pe\022\'\n\016dev_card_value\030\002 \001(\0162\r.DevCardValu" +
+      "eH\000\022\035\n\023other_inv_item_type\030\003 \001(\005H\000\022\023\n\013re" +
+      "ason_code\030\025 \001(\021\022\023\n\013is_playable\030\026 \001(\010\022\017\n\007" +
+      "is_kept\030\027 \001(\010\022\r\n\005is_VP\030\030 \001(\010\022\027\n\017can_canc" +
+      "el_play\030\031 \001(\010\"{\n\013_ActionType\022\032\n\026_UNSENT_" +
+      "DEFAULT_ACTION\020\000\022\010\n\004DRAW\020\001\022\010\n\004PLAY\020\002\022\013\n\007" +
+      "ADD_NEW\020\003\022\013\n\007ADD_OLD\020\004\022\017\n\013CANNOT_PLAY\020\005\022" +
+      "\021\n\rPLACING_EXTRA\020\006B\014\n\nitem_value\"g\n\013Canc" +
+      "elBuild\022 \n\npiece_type\030\001 \001(\0162\n.PieceTypeH",
+      "\000\022\'\n\titem_type\030\002 \001(\0162\022.OtherPlayableItem" +
+      "H\000B\r\n\013cancel_type\"q\n\tMovePiece\022\030\n\004type\030\001" +
+      " \001(\0162\n.PieceType\022%\n\020from_coordinates\030\002 \001" +
+      "(\0132\013.BoardCoord\022#\n\016to_coordinates\030\003 \001(\0132" +
+      "\013.BoardCoord\"I\n\013RemovePiece\022\030\n\004type\030\001 \001(" +
+      "\0162\n.PieceType\022 \n\013coordinates\030\002 \001(\0132\013.Boa" +
+      "rdCoord\"\"\n\005State\022\031\n\005state\030\001 \001(\0162\n.GameSt" +
+      "ate\"\202\001\n\rPlayerElement\022%\n\006action\030\001 \001(\0162\025." +
+      "_PlayerElementAction\022)\n\014element_type\030\002 \001" +
+      "(\0162\023._PlayerElementType\022\016\n\006amount\030\003 \001(\021\022",
+      "\017\n\007is_news\030\004 \001(\010\"t\n\016PlayerElements\022%\n\006ac" +
+      "tion\030\001 \001(\0162\025._PlayerElementAction\022*\n\rele" +
+      "ment_types\030\002 \003(\0162\023._PlayerElementType\022\017\n" +
+      "\007amounts\030\003 \003(\021\"\376\001\n\014GameElements\0221\n\releme" +
+      "nt_types\030\001 \003(\0162\032.GameElements._ElementTy" +
+      "pe\022\016\n\006values\030\002 \003(\021\"\252\001\n\014_ElementType\022\035\n\031_" +
+      "UNSENT_DEFAULT_GAME_ELEM\020\000\022\017\n\013ROUND_COUN" +
+      "T\020\001\022\022\n\016DEV_CARD_COUNT\020\002\022\020\n\014FIRST_PLAYER\020" +
+      "\003\022\022\n\016CURRENT_PLAYER\020\004\022\027\n\023LARGEST_ARMY_PL" +
+      "AYER\020\005\022\027\n\023LONGEST_ROAD_PLAYER\020\006\"&\n\tStart",
+      "Game\022\031\n\005state\030\001 \001(\0162\n.GameState\"!\n\004Turn\022" +
+      "\031\n\005state\030\001 \001(\0162\n.GameState\"\t\n\007SetTurn\"\021\n" +
+      "\017DiceRollRequest\" \n\nDiceResult\022\022\n\ndice_t" +
+      "otal\030\001 \001(\021\"\264\001\n\023DiceResultResources\022>\n\020pl" +
+      "ayer_resources\030\001 \003(\0132$.DiceResultResourc" +
+      "es.PlayerResources\032]\n\017PlayerResources\022\025\n" +
+      "\rplayer_number\030\001 \001(\r\022 \n\nres_gained\030\002 \001(\013" +
+      "2\014.ResourceSet\022\021\n\tres_total\030\003 \001(\r\"\t\n\007End" +
+      "Turn\"F\n\rTradeWithBank\022\032\n\004give\030\001 \001(\0132\014.Re" +
+      "sourceSet\022\031\n\003get\030\002 \001(\0132\014.ResourceSet\"}\n\016",
+      "TradeMakeOffer\022\032\n\004give\030\001 \001(\0132\014.ResourceS" +
+      "et\022\031\n\003get\030\002 \001(\0132\014.ResourceSet\022\036\n\nto_play" +
+      "ers\030\003 \001(\0132\n._IntArray\022\024\n\014offer_serial\030\004 " +
+      "\001(\005\"\021\n\017TradeClearOffer\"\022\n\020TradeRejectOff" +
+      "er\"H\n\020TradeAcceptOffer\022\036\n\026offering_playe" +
+      "r_number\030\001 \001(\005\022\024\n\014offer_serial\030\002 \001(\005\"\377\007\n" +
+      "\025GameMessageFromServer\022\021\n\tgame_name\030\001 \001(" +
+      "\t\022\025\n\rplayer_number\030\002 \001(\021\022\034\n\ngame_state\030\003" +
+      " \001(\0132\006.StateH\000\022(\n\016player_element\030\017 \001(\0132\016" +
+      ".PlayerElementH\000\022*\n\017player_elements\030\020 \001(",
+      "\0132\017.PlayerElementsH\000\022&\n\rgame_elements\030\021 " +
+      "\001(\0132\r.GameElementsH\000\022$\n\014board_layout\030\036 \001" +
+      "(\0132\014.BoardLayoutH\000\0226\n\025potential_settleme" +
+      "nts\030\037 \001(\0132\025.PotentialSettlementsH\000\022\"\n\013pi" +
+      "ece_value\030  \001(\0132\013.PieceValueH\000\022\"\n\013build_" +
+      "piece\030! \001(\0132\013.BuildPieceH\000\022$\n\014cancel_bui" +
+      "ld\030\" \001(\0132\014.CancelBuildH\000\022 \n\nmove_piece\030#" +
+      " \001(\0132\n.MovePieceH\000\022$\n\014remove_piece\030$ \001(\013" +
+      "2\014.RemovePieceH\000\022 \n\nstart_game\030d \001(\0132\n.S" +
+      "tartGameH\000\022\025\n\004turn\030e \001(\0132\005.TurnH\000\022\034\n\010set",
+      "_turn\030f \001(\0132\010.SetTurnH\000\022-\n\021dice_roll_req" +
+      "uest\030g \001(\0132\020.DiceRollRequestH\000\022\"\n\013dice_r" +
+      "esult\030h \001(\0132\013.DiceResultH\000\0225\n\025dice_resul" +
+      "t_resources\030i \001(\0132\024.DiceResultResourcesH" +
+      "\000\0226\n\025inventory_item_action\030\256\002 \001(\0132\024.Inve" +
+      "ntoryItemActionH\000\022*\n\017trade_with_bank\030\220\003 " +
+      "\001(\0132\016.TradeWithBankH\000\022,\n\020trade_make_offe" +
+      "r\030\221\003 \001(\0132\017.TradeMakeOfferH\000\022.\n\021trade_cle" +
+      "ar_offer\030\222\003 \001(\0132\020.TradeClearOfferH\000\0220\n\022t" +
+      "rade_reject_offer\030\223\003 \001(\0132\021.TradeRejectOf",
+      "ferH\000\0220\n\022trade_accept_offer\030\224\003 \001(\0132\021.Tra" +
+      "deAcceptOfferH\000B\005\n\003msg\"\356\004\n\025GameMessageFr" +
+      "omClient\022\021\n\tgame_name\030\001 \001(\t\022 \n\nstart_gam" +
+      "e\030d \001(\0132\n.StartGameH\000\022-\n\021dice_roll_reque" +
+      "st\030e \001(\0132\020.DiceRollRequestH\000\022\034\n\010end_turn" +
+      "\030f \001(\0132\010.EndTurnH\000\022#\n\013build_piece\030\310\001 \001(\013" +
+      "2\013.BuildPieceH\000\022%\n\014cancel_build\030\311\001 \001(\0132\014" +
+      ".CancelBuildH\000\022!\n\nmove_piece\030\312\001 \001(\0132\n.Mo" +
+      "vePieceH\000\0227\n\022buy_inventory_item\030\313\001 \001(\0132\030" +
+      ".BuyInventoryItemRequestH\000\0226\n\025inventory_",
+      "item_action\030\314\001 \001(\0132\024.InventoryItemAction" +
+      "H\000\022*\n\017trade_with_bank\030\220\003 \001(\0132\016.TradeWith" +
+      "BankH\000\022,\n\020trade_make_offer\030\221\003 \001(\0132\017.Trad" +
+      "eMakeOfferH\000\022.\n\021trade_clear_offer\030\222\003 \001(\013" +
+      "2\020.TradeClearOfferH\000\0220\n\022trade_reject_off" +
+      "er\030\223\003 \001(\0132\021.TradeRejectOfferH\000\0220\n\022trade_" +
+      "accept_offer\030\224\003 \001(\0132\021.TradeAcceptOfferH\000" +
+      "B\005\n\003msg*O\n\024_PlayerElementAction\022\032\n\026_UNSE" +
+      "NT_DEFAULT_ACTION\020\000\022\007\n\003SET\020\001\022\010\n\004GAIN\020\002\022\010" +
+      "\n\004LOSE\020\003*\206\004\n\022_PlayerElementType\022\037\n\033_UNSE",
+      "NT_DEFAULT_PLAYER_ELEM\020\000\022\r\n\tELEM_CLAY\020\001\022" +
+      "\014\n\010ELEM_ORE\020\002\022\016\n\nELEM_SHEEP\020\003\022\016\n\nELEM_WH" +
+      "EAT\020\004\022\r\n\tELEM_WOOD\020\005\022\031\n\025ELEM_UNKNOWN_RES" +
+      "OURCE\020\006\022\t\n\005ROADS\020\n\022\017\n\013SETTLEMENTS\020\013\022\n\n\006C" +
+      "ITIES\020\014\022\t\n\005SHIPS\020\r\022\016\n\nNUMKNIGHTS\020\017\022\025\n\021AS" +
+      "K_SPECIAL_BUILD\020\020\022\022\n\016RESOURCE_COUNT\020\021\022\030\n" +
+      "\024LAST_SETTLEMENT_NODE\020\022\022\030\n\024PLAYED_DEV_CA" +
+      "RD_FLAG\020\023\022\037\n\033NUM_PICK_GOLD_HEX_RESOURCES" +
+      "\020e\022\020\n\014SCENARIO_SVP\020f\022!\n\035SCENARIO_PLAYERE" +
+      "VENTS_BITMASK\020g\022\"\n\036SCENARIO_SVP_LANDAREA",
+      "S_BITMASK\020h\022\026\n\022STARTING_LANDAREAS\020i\022\030\n\024S" +
+      "CENARIO_CLOTH_COUNT\020j\022\032\n\026SCENARIO_WARSHI" +
+      "P_COUNT\020kB\r\n\tsoc.protoH\001P\000b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -31817,13 +33455,13 @@ public final class GameMessage {
     internal_static_BoardLayout_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_BoardLayout_descriptor,
-        new java.lang.String[] { "EncodingFormat", "Parts", });
+        new java.lang.String[] { "LayoutEncoding", "Parts", });
     internal_static_BoardLayout__BoardLayoutPart_descriptor =
       internal_static_BoardLayout_descriptor.getNestedTypes().get(0);
     internal_static_BoardLayout__BoardLayoutPart_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_BoardLayout__BoardLayoutPart_descriptor,
-        new java.lang.String[] { "IVal", "SVal", "IArr", "Val", });
+        new java.lang.String[] { "IVal", "SVal", "IArr", "CoordinateList", "EdgeList", "HexList", "NodeList", "Val", });
     internal_static_BoardLayout_PartsEntry_descriptor =
       internal_static_BoardLayout_descriptor.getNestedTypes().get(1);
     internal_static_BoardLayout_PartsEntry_fieldAccessorTable = new

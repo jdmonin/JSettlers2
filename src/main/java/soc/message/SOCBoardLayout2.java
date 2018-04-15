@@ -474,7 +474,7 @@ public class SOCBoardLayout2 extends SOCMessage
     {
         GameMessage.BoardLayout.Builder b
             = GameMessage.BoardLayout.newBuilder();
-        b.setEncodingFormat(boardEncodingFormat);
+        b.setLayoutEncodingValue(boardEncodingFormat);
 
         GameMessage.BoardLayout._BoardLayoutPart.Builder pb
             = GameMessage.BoardLayout._BoardLayoutPart.newBuilder();
