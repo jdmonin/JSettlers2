@@ -42,6 +42,7 @@ import java.util.Vector;
 
 import soc.debug.D;
 import soc.game.*;
+import soc.message.SOCAcceptOffer;  // for javadocs only
 import soc.message.SOCBankTrade;
 import soc.message.SOCBoardLayout;
 import soc.message.SOCBoardLayout2;
@@ -3059,7 +3060,10 @@ public class SOCGameHandler extends GameHandler
                 String token = st.nextToken();
                 try
                 {
-                    resources[resourceType] = Integer.parseInt(token);
+                    int amt = Integer.parseInt(token);
+                    if (amt < 0)
+                        parseError = true;
+                    resources[resourceType] = amt;
                     resourceType++;
                 }
                 catch (NumberFormatException e)
@@ -3070,7 +3074,8 @@ public class SOCGameHandler extends GameHandler
             }
             else
             {
-                // get all the of the line, in case there's a space in the player name ("robot 7"),
+                // read entire remaining string, in case there's
+                //  a space in the player name ("robot 7"),
                 //  by choosing an unlikely separator character
                 name = st.nextToken(Character.toString( (char) 1 )).trim();
                 break;
@@ -3102,12 +3107,15 @@ public class SOCGameHandler extends GameHandler
              resourceType <= SOCResourceConstants.WOOD; ++resourceType)
         {
             final int amt = resources[resourceType];
-            rset.add(amt, resourceType);
             outTxt.append(' ');
             outTxt.append(amt);
+            if (amt == 0)
+                continue;
+
+            rset.add(amt, resourceType);
 
             // SOCResourceConstants.CLAY == SOCPlayerElement.CLAY
-            if (hasOldClients && (amt > 0))
+            if (hasOldClients)
                 srv.messageToGame
                     (gaName, new SOCPlayerElement(gaName, pnum, SOCPlayerElement.GAIN, resourceType, amt));
         }

@@ -85,8 +85,8 @@ public class SOCAcceptOffer extends SOCMessage
     }
 
     /**
-     * Get the player number accepting the trade offer
-     * from {@link #getOfferingNumber()}.
+     * Get the player number accepting the trade offered by
+     * {@link #getOfferingNumber()}.
      * @return the number of the accepting player from server,
      *     or any value sent from client (not used by server)
      */
