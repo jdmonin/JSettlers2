@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012-2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012-2014,2016-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -301,15 +301,25 @@ public class SOCStatusMessage extends SOCMessage
         = "A game with this name already exists, please choose a different name.";
 
     /**
-     * Text for server or client to present: New game requested,
+     * Text for server or client to present: New game or auth requested,
      * but game name or player name does not meet standards
+     * @see #MSG_SV_NEWGAME_NAME_REJECTED_DIGITS
      * @since 1.1.07
      */
     public static final String MSG_SV_NEWGAME_NAME_REJECTED
         = "This name is not permitted, please choose a different name.";
 
     /**
-     * Text for server or client to present: New game requested,
+     * Text for server or client to present: New game or auth requested,
+     * but game name or player name is only digits and does not meet standards
+     * @see #MSG_SV_NEWGAME_NAME_REJECTED
+     * @since 2.0.00
+     */
+    public static final String MSG_SV_NEWGAME_NAME_REJECTED_DIGITS
+        = "A name with only digits is not permitted, please add a letter.";
+
+    /**
+     * Text for server or client to present: New game or auth requested,
      * but game name or player name is too long.  Maximum permitted length
      * is appended to this message after the trailing ":".
      * @since 1.1.07

@@ -30,6 +30,7 @@ and backport minor new features until `2.0.00` is ready.
 - I18N framework in place, started by Luis A. Ramirez; thank you Luis. Jeremy wrote more I18N utilities (package net.nand.util.i18n).
 - Client sends server its locale, to support i18n localization
 - Client: On OSX, set app name to JSettlers in menu bar
+- Game names and user nicknames can't be a number: Must contain a non-digit character
 - Applet class is now `soc.client.SOCApplet`
 - Message traffic:
 	- When joining game in progress, server sends current round to update client's "*n* rounds left for No 7s" display

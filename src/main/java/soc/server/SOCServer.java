@@ -4388,7 +4388,7 @@ public class SOCServer extends Server
      * to join all games that the old connection is playing, as returned
      * by {@link SOCGameListAtServer#playerGamesMinVersion(Connection) gameList.playerGamesMinVersion}.
      *
-     * @param n  the name
+     * @param n  the name; check for max length before calling this method
      * @param newc  A new incoming connection, asking for this name
      * @param withPassword  Did the connection supply a password?
      * @param isBot  True if authenticating as robot, false if human
@@ -4405,14 +4405,14 @@ public class SOCServer extends Server
     private int checkNickname
         (String n, Connection newc, final boolean withPassword, final boolean isBot)
     {
-        if (n.equals(SERVERNAME))
+        if (n.equals(SERVERNAME) || ! SOCMessage.isSingleLineAndSafe(n))
         {
             return -2;
         }
 
-        if (! SOCMessage.isSingleLineAndSafe(n))
+        if (SOCGameList.REGEX_ALL_DIGITS.matcher(n).matches())
         {
-            return -2;
+            return -2;  // TODO distinct ret value, to send localized error to client
         }
 
         // check "debug" and bot name prefixes used in setupLocalRobots
@@ -5644,22 +5644,32 @@ public class SOCServer extends Server
         /**
          * Check that the game name is ok
          */
-        if ( (! SOCMessage.isSingleLineAndSafe(gameName))
-             || "*".equals(gameName))
-        {
-            c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
-                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
-              // "This game name is not permitted, please choose a different name."
-
-              return;  // <---- Early return ----
-        }
+        // TODO I18N
         if (gameName.length() > GAME_NAME_MAX_LENGTH)
         {
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
                      SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(GAME_NAME_MAX_LENGTH)));
             // Please choose a shorter name; maximum length: 30
+
+            return;  // <---- Early return ----
+        }
+        if ( (! SOCMessage.isSingleLineAndSafe(gameName))
+             || "*".equals(gameName))
+        {
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
+                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
+            // "This name is not permitted, please choose a different name."
+
+            return;  // <---- Early return ----
+        }
+        if (SOCGameList.REGEX_ALL_DIGITS.matcher(gameName).matches())
+        {
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
+                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED_DIGITS));
+            // "A name with only digits is not permitted, please add a letter."
 
             return;  // <---- Early return ----
         }
