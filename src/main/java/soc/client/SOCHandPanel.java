@@ -51,6 +51,7 @@ import java.awt.Panel;
 import java.awt.PopupMenu;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
@@ -459,9 +460,10 @@ public class SOCHandPanel extends Panel
     protected boolean doneButIsRestart;
 
     protected Button quitBut;
-    protected SOCPlayerInterface playerInterface;
-    protected SOCPlayerClient client;
-    protected SOCGame game;
+
+    protected final SOCPlayerInterface playerInterface;
+    protected final SOCPlayerClient client;
+    protected final SOCGame game;
 
     /**
      * Our player if: {@link #inPlay}, not null, and {@link SOCPlayer#getName()} not null.
@@ -561,42 +563,32 @@ public class SOCHandPanel extends Panel
      * When this flag is true, the panel is interactive.
      * If {@link #playerIsClient} true, implies interactive.
      */
-    protected boolean interactive;
+    protected final boolean interactive;
 
     /**
-     * make a new hand panel
+     * Construct a new hand panel.
+     * For details see {@link #SOCHandPanel(SOCPlayerInterface, SOCPlayer, boolean)}.
      *
      * @param pi  the interface that this panel is a part of
-     * @param pl  the player associated with this panel
-     * @param in  the interactive flag setting
+     * @param pl  the player associated with this panel; cannot be {@code null}
      */
-    public SOCHandPanel(SOCPlayerInterface pi, SOCPlayer pl, boolean in)
-    {
-        super(null);
-        creation(pi, pl, in);
-    }
-
-    /**
-     * make a new hand panel
-     *
-     * @param pi  the interface that this panel is a part of
-     * @param pl  the player associated with this panel
-     */
-    public SOCHandPanel(SOCPlayerInterface pi, SOCPlayer pl)
+    public SOCHandPanel(final SOCPlayerInterface pi, final SOCPlayer pl)
     {
         this(pi, pl, true);
     }
 
     /**
-     * Stuff to do when a SOCHandPanel is created.
-     *   Calls {@link #removePlayer()} as part of creation.
+     * Construct a new hand panel.
+     * Calls {@link #removePlayer()}.
      *
-     * @param pi   player interface
-     * @param pl   the player data, cannot be null
-     * @param in   the interactive flag setting
+     * @param pi  the interface that this panel is a part of
+     * @param pl  the player associated with this panel; cannot be {@code null}
+     * @param isInteractive  true if is or might become interactive, with a seated player
      */
-    protected void creation(SOCPlayerInterface pi, SOCPlayer pl, boolean in)
+    public SOCHandPanel(final SOCPlayerInterface pi, final SOCPlayer pl, final boolean isInteractive)
     {
+        super(null);
+
         playerInterface = pi;
         client = pi.getClient();
         game = pi.getGame();
@@ -604,7 +596,7 @@ public class SOCHandPanel extends Panel
         playerNumber = player.getPlayerNumber();
         playerIsCurrent = false;
         playerIsClient = false;  // confirmed by call to removePlayer() at end of method.
-        interactive = in;
+        interactive = isInteractive;
 
         // Note no AWT layout is used - custom layout, see doLayout().
 
@@ -756,6 +748,13 @@ public class SOCHandPanel extends Panel
             wonderLab = new JLabel("");  // Blank at wonder level 0; other levels' text set by updateValue(WonderLevel)
             wonderLab.setFont(DIALOG_PLAIN_10);  // same font as larmyLab, lroadLab
             add(wonderLab);
+            wonderLab.addMouseListener(new MouseAdapter()
+            {
+                public void mouseClicked(MouseEvent e)
+                {
+                    pi.buildingPanel.clickWondersButton();
+                }
+            });
         } else {
             // clothSq, clothLab, wonderLab already null
         }

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014,2016-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net> - GameStatisticsFrame
  *
  * This program is free software; you can redistribute it and/or
@@ -117,6 +117,7 @@ public class SOCBuildingPanel extends Panel
 
     /** For game scenario {@link SOCGameOption#K_SC_WOND _SC_WOND}, the
      *  "Wonders" button that brings up a dialog with info and Build buttons. Null otherwise.
+     *  @see #clickWondersButton()
      *  @since 2.0.00
      */
     private Button wondersBut;
@@ -717,11 +718,7 @@ public class SOCBuildingPanel extends Panel
         }
         else if (e.getSource() == wondersBut)
         {
-            final SOCSpecialItemDialog dia = new SOCSpecialItemDialog(pi, SOCGameOption.K_SC_WOND);
-            dia.setNonBlockingDialogDismissListener(pi);
-            pi.nbdForEvent = dia;
-            dia.pack();
-            dia.setVisible(true);  // is modal but other players' gameplay can continue (separate threads)
+            clickWondersButton();
 
             return;
         }
@@ -858,6 +855,26 @@ public class SOCBuildingPanel extends Panel
             client.getGameManager().buildRequest(game, sendBuildRequest);
             chp.disableBankUndoButton();
         }
+    }
+
+    /**
+     * For game scenario {@link SOCGameOption#K_SC_WOND _SC_WOND},
+     * show the Wonders dialog, as is done when the Wonders button is clicked.
+     * @throws IllegalStateException if this game doesn't have {@link SOCGameOption#K_SC_WOND}
+     *     and so doesn't have the Wonders button
+     * @since 2.0.00
+     */
+    public void clickWondersButton()
+        throws IllegalStateException
+    {
+        if (wondersBut == null)
+            throw new IllegalStateException("game not SC_WOND");
+
+        final SOCSpecialItemDialog dia = new SOCSpecialItemDialog(pi, SOCGameOption.K_SC_WOND);
+        dia.setNonBlockingDialogDismissListener(pi);
+        pi.nbdForEvent = dia;
+        dia.pack();
+        dia.setVisible(true);  // is modal but other players' gameplay can continue (separate threads)
     }
 
     /**
