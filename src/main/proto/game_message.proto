@@ -874,8 +874,74 @@ message TradeRejectOffer {
  */
 message TradeAcceptOffer {
     int32 offering_player_number = 1;  // player number offering the trade being accepted
-
     int32 offer_serial = 2;  // offer number from TradeMakeOffer, if not 0, in case of unexpected last-minute new offers
+}
+
+
+//
+// Player Actions: Resources and Robbing
+//
+
+
+/* A player picks which resources to discard or lose.
+ * - First sent to client as prompt with the amount to lose.
+ * - Client player responds with specific resources from their hand.
+ * - If they have those resources to lose, server announces the total amount lost
+ *   to the game as PlayerElement(ELEM_UNKNOWN_RESOURCE=n, is_news=true).
+ *   Otherwise server re-sends the prompt to client.
+ */
+message LoseResources {
+    int32 amount = 1;  // prompt or announcement from server: player must lose this many resources
+    ResourceSet lose = 2;  // from client: lose these resources
+}
+
+/* A player picks which resources to gain. (Year of Plenty, Gold hex, etc).
+ * - First sent to client as prompt with the amount to gain.
+ * - Client player responds with specific resources they want to gain.
+ * - Server announces the specific resources gained to the game.
+ */
+message GainResources {
+    int32 amount = 1;  // prompt from server: player must pick this many resources to gain
+    ResourceSet gain = 2;  // gain these resources
+}
+
+/* A player picks a resource type, typically for a Monopoly card.
+ * Sent by current player client in response to GameState(WAITING_FOR_MONOPOLY).
+ */
+message ChooseResourceType {
+    ResourceType type = 1;  // choose this resource type
+}
+
+/* A player chooses another player, typically to rob from. */
+message ChoosePlayer {
+    sint32 chosen_player_number = 1;  // from client: player number, or -1 for none
+    bool can_choose_none = 2;  // from server: If true, can make a choice of "no player"
+    repeated uint32 chooseable_player_number = 3;  // from server: List of player numbers who can be chosen
+}
+
+/* A player moves the robber, or the pirate ship on the sea board.
+ * - Server sends GameState(PLACING_ROBBER) or (PLACING_PIRATE)
+ * - Client player responds with a location to move to,
+ *   and either is_robber or is_pirate flag.
+ * - If player can move there, server announces the move to the game
+ *   and the new game state.
+ *   Otherwise server sends error text to the client and
+ *   game state remains PLACING_ROBBER or PLACING_PIRATE.
+ */
+message MoveRobber {
+    HexCoord move_to = 1;  // Move to this location
+
+    /* In server prompt, true if robber can be moved.
+     * From client or server announcement, true if robber was moved
+     * (won't also have is_pirate true).
+     */
+    bool is_robber = 2;
+
+    /* In server prompt, true if pirate ship can be moved.
+     * From client or server announcement, true if pirate ship was moved
+     * (won't also have is_robber true).
+     */
+    bool is_pirate = 3;
 }
 
 
@@ -933,6 +999,14 @@ message GameMessageFromServer {
         TradeClearOffer trade_clear_offer = 402;
         TradeRejectOffer trade_reject_offer = 403;
         TradeAcceptOffer trade_accept_offer = 404;
+
+        // player actions: resources and robbing
+        LoseResources lose_resources_prompt = 500;
+        LoseResources lose_resources = 501;
+        GainResources gain_resources_prompt = 502;
+        GainResources gain_resources = 503;
+        ChoosePlayer choose_player_prompt = 504;
+        MoveRobber move_robber = 505;
     }
 }
 
@@ -962,5 +1036,12 @@ message GameMessageFromClient {
         TradeClearOffer trade_clear_offer = 402;
         TradeRejectOffer trade_reject_offer = 403;
         TradeAcceptOffer trade_accept_offer = 404;
+
+        // player actions: resources and robbing
+        LoseResources lose_resources = 500;
+        GainResources gain_resources = 501;
+        ChooseResourceType choose_resource_type = 502;
+        ChoosePlayer choose_player = 503;
+        MoveRobber move_robber = 504;
     }
 }

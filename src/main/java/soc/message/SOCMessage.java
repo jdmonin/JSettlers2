@@ -1360,6 +1360,37 @@ public abstract class SOCMessage implements Serializable, Cloneable
                     // TODO also use offer_serial when that's supported
                 }
 
+            // player actions: resources and robbing
+
+            case GameMessage.GameMessageFromClient.LOSE_RESOURCES_FIELD_NUMBER:
+                return new SOCDiscard
+                    (gaName, -1, ProtoMessageBuildHelper.fromResourceSet(msg.getLoseResources().getLose()));
+
+            case GameMessage.GameMessageFromClient.GAIN_RESOURCES_FIELD_NUMBER:
+                return new SOCPickResources
+                    (gaName, ProtoMessageBuildHelper.fromResourceSet(msg.getGainResources().getGain()));
+
+            case GameMessage.GameMessageFromClient.CHOOSE_RESOURCE_TYPE_FIELD_NUMBER:
+                return new SOCPickResourceType
+                    (gaName, msg.getChooseResourceType().getTypeValue());
+
+            case GameMessage.GameMessageFromClient.CHOOSE_PLAYER_FIELD_NUMBER:
+                return new SOCChoosePlayer
+                    (gaName, msg.getChoosePlayer().getChosenPlayerNumber());
+
+            case GameMessage.GameMessageFromClient.MOVE_ROBBER_FIELD_NUMBER:
+                {
+                    GameMessage.MoveRobber m = msg.getMoveRobber();
+                    int hexCoord = ProtoMessageBuildHelper.fromHexCoord(m.getMoveTo());
+                    final boolean isPirate = m.getIsPirate();
+                    if (isPirate)
+                        return new SOCMoveRobber(gaName, -1, -hexCoord);
+                    else if (m.getIsRobber())
+                        return new SOCMoveRobber(gaName, -1, hexCoord);
+                    else
+                        return null;  // malformed
+                }
+
             default:
                 System.err.println("Unhandled GameMessageFromClient type in SOCMessage.toMsg: " + typ);
                 return null;

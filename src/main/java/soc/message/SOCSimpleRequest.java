@@ -23,6 +23,8 @@ import java.util.StringTokenizer;
 
 import soc.game.SOCGame;  // for javadocs only
 import soc.game.SOCGameOption;  // for javadocs only
+import soc.proto.GameMessage;
+import soc.proto.Message;
 
 /**
  * This generic message handles a simple request from a client player in a game,
@@ -90,6 +92,9 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
      * pirate fleet attack during a dice roll.
      *<P>
      * Same prompt/response pattern as {@link SOCDiscardRequest} / {@link SOCDiscard}.
+     *<P>
+     * v3 protobuf sends this prompt as {@link GameMessage.GainResources}.
+     *
      * @since 2.0.00
      */
     public static final int PROMPT_PICK_RESOURCES = 1;
@@ -252,6 +257,26 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
         }
 
         return new SOCSimpleRequest(ga, pn, rt, v1, v2);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        switch (p2)
+        {
+        case PROMPT_PICK_RESOURCES:
+            {
+                GameMessage.GainResources.Builder b
+                    = GameMessage.GainResources.newBuilder().setAmount(p3);
+                GameMessage.GameMessageFromServer.Builder gb
+                    = GameMessage.GameMessageFromServer.newBuilder();
+                gb.setGameName(game).setGainResourcesPrompt(b);
+                return Message.FromServer.newBuilder().setGameMessage(gb).build();
+            }
+
+        default:
+            return null;
+        }
     }
 
     /**

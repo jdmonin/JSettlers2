@@ -234,10 +234,10 @@ enum GameState {
     PLACING_FREE_ROAD1 = 40;
     PLACING_FREE_ROAD2 = 41;
     PLACING_INV_ITEM = 42;
-    WAITING_FOR_DISCARDS = 50;
-    WAITING_FOR_ROB_CHOOSE_PLAYER = 51;
-    WAITING_FOR_DISCOVERY = 52;
-    WAITING_FOR_MONOPOLY = 53;
+    WAITING_FOR_DISCARDS = 50;  // Current player must choose which resources to discard
+    WAITING_FOR_ROB_CHOOSE_PLAYER = 51;  // Current player must choose a player to rob
+    WAITING_FOR_DISCOVERY = 52;  // Current player must choose which 2 free resources to gain
+    WAITING_FOR_MONOPOLY = 53;  // Current player must choose a resource type to monopolize
     WAITING_FOR_ROBBER_OR_PIRATE = 54;
     WAITING_FOR_ROB_CLOTH_OR_RESOURCE = 55;
     WAITING_FOR_PICK_GOLD_RESOURCE = 56;

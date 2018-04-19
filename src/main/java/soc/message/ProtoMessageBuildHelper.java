@@ -167,9 +167,9 @@ public abstract class ProtoMessageBuildHelper
      * @param coord  A piece coordinate encoded in the {@link SOCBoardLarge} coordinate system
      *     ({@link SOCBoard#BOARD_ENCODING_LARGE}): 0xRRCC
      * @param coordType  Type of coordinate, to choose which field to set in BoardCoord's {@code OneOf}:
-     *     {@link Data.BoardCoord.CoordCase#EDGE_COORD},
-     *     {@link Data.BoardCoord.CoordCase#HEX_COORD HEX_COORD},
-     *     or {@link Data.BoardCoord.CoordCase#NODE_COORD NODE_COORD}.
+     *     {@link Data.BoardCoord.CoordTypeCase#EDGE_COORD},
+     *     {@link Data.BoardCoord.CoordTypeCase#HEX_COORD HEX_COORD},
+     *     or {@link Data.BoardCoord.CoordTypeCase#NODE_COORD NODE_COORD}.
      * @return A {@code Data.BoardCoord.Builder} from {@code coord}
      * @throws IllegalArgumentException if {@code coordType} is {@code null} or
      *     isn't one of the three allowed types

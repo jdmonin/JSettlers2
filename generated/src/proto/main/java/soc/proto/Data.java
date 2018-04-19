@@ -947,18 +947,34 @@ public final class Data {
      */
     PLACING_INV_ITEM(42),
     /**
+     * <pre>
+     * Current player must choose which resources to discard
+     * </pre>
+     *
      * <code>WAITING_FOR_DISCARDS = 50;</code>
      */
     WAITING_FOR_DISCARDS(50),
     /**
+     * <pre>
+     * Current player must choose a player to rob
+     * </pre>
+     *
      * <code>WAITING_FOR_ROB_CHOOSE_PLAYER = 51;</code>
      */
     WAITING_FOR_ROB_CHOOSE_PLAYER(51),
     /**
+     * <pre>
+     * Current player must choose which 2 free resources to gain
+     * </pre>
+     *
      * <code>WAITING_FOR_DISCOVERY = 52;</code>
      */
     WAITING_FOR_DISCOVERY(52),
     /**
+     * <pre>
+     * Current player must choose a resource type to monopolize
+     * </pre>
+     *
      * <code>WAITING_FOR_MONOPOLY = 53;</code>
      */
     WAITING_FOR_MONOPOLY(53),
@@ -1130,18 +1146,34 @@ public final class Data {
      */
     public static final int PLACING_INV_ITEM_VALUE = 42;
     /**
+     * <pre>
+     * Current player must choose which resources to discard
+     * </pre>
+     *
      * <code>WAITING_FOR_DISCARDS = 50;</code>
      */
     public static final int WAITING_FOR_DISCARDS_VALUE = 50;
     /**
+     * <pre>
+     * Current player must choose a player to rob
+     * </pre>
+     *
      * <code>WAITING_FOR_ROB_CHOOSE_PLAYER = 51;</code>
      */
     public static final int WAITING_FOR_ROB_CHOOSE_PLAYER_VALUE = 51;
     /**
+     * <pre>
+     * Current player must choose which 2 free resources to gain
+     * </pre>
+     *
      * <code>WAITING_FOR_DISCOVERY = 52;</code>
      */
     public static final int WAITING_FOR_DISCOVERY_VALUE = 52;
     /**
+     * <pre>
+     * Current player must choose a resource type to monopolize
+     * </pre>
+     *
      * <code>WAITING_FOR_MONOPOLY = 53;</code>
      */
     public static final int WAITING_FOR_MONOPOLY_VALUE = 53;

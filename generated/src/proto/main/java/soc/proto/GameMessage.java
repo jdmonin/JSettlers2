@@ -23480,6 +23480,3643 @@ public final class GameMessage {
 
   }
 
+  public interface LoseResourcesOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:LoseResources)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * prompt or announcement from server: player must lose this many resources
+     * </pre>
+     *
+     * <code>int32 amount = 1;</code>
+     */
+    int getAmount();
+
+    /**
+     * <pre>
+     * from client: lose these resources
+     * </pre>
+     *
+     * <code>.ResourceSet lose = 2;</code>
+     */
+    boolean hasLose();
+    /**
+     * <pre>
+     * from client: lose these resources
+     * </pre>
+     *
+     * <code>.ResourceSet lose = 2;</code>
+     */
+    soc.proto.Data.ResourceSet getLose();
+    /**
+     * <pre>
+     * from client: lose these resources
+     * </pre>
+     *
+     * <code>.ResourceSet lose = 2;</code>
+     */
+    soc.proto.Data.ResourceSetOrBuilder getLoseOrBuilder();
+  }
+  /**
+   * <pre>
+   * A player picks which resources to discard or lose.
+   * - First sent to client as prompt with the amount to lose.
+   * - Client player responds with specific resources from their hand.
+   * - If they have those resources to lose, server announces the total amount lost
+   *   to the game as PlayerElement(ELEM_UNKNOWN_RESOURCE=n, is_news=true).
+   *   Otherwise server re-sends the prompt to client.
+   * </pre>
+   *
+   * Protobuf type {@code LoseResources}
+   */
+  public  static final class LoseResources extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:LoseResources)
+      LoseResourcesOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use LoseResources.newBuilder() to construct.
+    private LoseResources(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private LoseResources() {
+      amount_ = 0;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private LoseResources(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+
+              amount_ = input.readInt32();
+              break;
+            }
+            case 18: {
+              soc.proto.Data.ResourceSet.Builder subBuilder = null;
+              if (lose_ != null) {
+                subBuilder = lose_.toBuilder();
+              }
+              lose_ = input.readMessage(soc.proto.Data.ResourceSet.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(lose_);
+                lose_ = subBuilder.buildPartial();
+              }
+
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_LoseResources_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_LoseResources_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.LoseResources.class, soc.proto.GameMessage.LoseResources.Builder.class);
+    }
+
+    public static final int AMOUNT_FIELD_NUMBER = 1;
+    private int amount_;
+    /**
+     * <pre>
+     * prompt or announcement from server: player must lose this many resources
+     * </pre>
+     *
+     * <code>int32 amount = 1;</code>
+     */
+    public int getAmount() {
+      return amount_;
+    }
+
+    public static final int LOSE_FIELD_NUMBER = 2;
+    private soc.proto.Data.ResourceSet lose_;
+    /**
+     * <pre>
+     * from client: lose these resources
+     * </pre>
+     *
+     * <code>.ResourceSet lose = 2;</code>
+     */
+    public boolean hasLose() {
+      return lose_ != null;
+    }
+    /**
+     * <pre>
+     * from client: lose these resources
+     * </pre>
+     *
+     * <code>.ResourceSet lose = 2;</code>
+     */
+    public soc.proto.Data.ResourceSet getLose() {
+      return lose_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : lose_;
+    }
+    /**
+     * <pre>
+     * from client: lose these resources
+     * </pre>
+     *
+     * <code>.ResourceSet lose = 2;</code>
+     */
+    public soc.proto.Data.ResourceSetOrBuilder getLoseOrBuilder() {
+      return getLose();
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (amount_ != 0) {
+        output.writeInt32(1, amount_);
+      }
+      if (lose_ != null) {
+        output.writeMessage(2, getLose());
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (amount_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(1, amount_);
+      }
+      if (lose_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, getLose());
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.LoseResources)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.LoseResources other = (soc.proto.GameMessage.LoseResources) obj;
+
+      boolean result = true;
+      result = result && (getAmount()
+          == other.getAmount());
+      result = result && (hasLose() == other.hasLose());
+      if (hasLose()) {
+        result = result && getLose()
+            .equals(other.getLose());
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + AMOUNT_FIELD_NUMBER;
+      hash = (53 * hash) + getAmount();
+      if (hasLose()) {
+        hash = (37 * hash) + LOSE_FIELD_NUMBER;
+        hash = (53 * hash) + getLose().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.LoseResources parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.LoseResources parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.LoseResources parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.LoseResources parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.LoseResources parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.LoseResources parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.LoseResources parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.LoseResources parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.LoseResources parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.LoseResources parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.LoseResources parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.LoseResources parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.LoseResources prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * A player picks which resources to discard or lose.
+     * - First sent to client as prompt with the amount to lose.
+     * - Client player responds with specific resources from their hand.
+     * - If they have those resources to lose, server announces the total amount lost
+     *   to the game as PlayerElement(ELEM_UNKNOWN_RESOURCE=n, is_news=true).
+     *   Otherwise server re-sends the prompt to client.
+     * </pre>
+     *
+     * Protobuf type {@code LoseResources}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:LoseResources)
+        soc.proto.GameMessage.LoseResourcesOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_LoseResources_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_LoseResources_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.LoseResources.class, soc.proto.GameMessage.LoseResources.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.LoseResources.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        amount_ = 0;
+
+        if (loseBuilder_ == null) {
+          lose_ = null;
+        } else {
+          lose_ = null;
+          loseBuilder_ = null;
+        }
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_LoseResources_descriptor;
+      }
+
+      public soc.proto.GameMessage.LoseResources getDefaultInstanceForType() {
+        return soc.proto.GameMessage.LoseResources.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.LoseResources build() {
+        soc.proto.GameMessage.LoseResources result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.LoseResources buildPartial() {
+        soc.proto.GameMessage.LoseResources result = new soc.proto.GameMessage.LoseResources(this);
+        result.amount_ = amount_;
+        if (loseBuilder_ == null) {
+          result.lose_ = lose_;
+        } else {
+          result.lose_ = loseBuilder_.build();
+        }
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.LoseResources) {
+          return mergeFrom((soc.proto.GameMessage.LoseResources)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.LoseResources other) {
+        if (other == soc.proto.GameMessage.LoseResources.getDefaultInstance()) return this;
+        if (other.getAmount() != 0) {
+          setAmount(other.getAmount());
+        }
+        if (other.hasLose()) {
+          mergeLose(other.getLose());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.LoseResources parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.LoseResources) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private int amount_ ;
+      /**
+       * <pre>
+       * prompt or announcement from server: player must lose this many resources
+       * </pre>
+       *
+       * <code>int32 amount = 1;</code>
+       */
+      public int getAmount() {
+        return amount_;
+      }
+      /**
+       * <pre>
+       * prompt or announcement from server: player must lose this many resources
+       * </pre>
+       *
+       * <code>int32 amount = 1;</code>
+       */
+      public Builder setAmount(int value) {
+        
+        amount_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * prompt or announcement from server: player must lose this many resources
+       * </pre>
+       *
+       * <code>int32 amount = 1;</code>
+       */
+      public Builder clearAmount() {
+        
+        amount_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private soc.proto.Data.ResourceSet lose_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> loseBuilder_;
+      /**
+       * <pre>
+       * from client: lose these resources
+       * </pre>
+       *
+       * <code>.ResourceSet lose = 2;</code>
+       */
+      public boolean hasLose() {
+        return loseBuilder_ != null || lose_ != null;
+      }
+      /**
+       * <pre>
+       * from client: lose these resources
+       * </pre>
+       *
+       * <code>.ResourceSet lose = 2;</code>
+       */
+      public soc.proto.Data.ResourceSet getLose() {
+        if (loseBuilder_ == null) {
+          return lose_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : lose_;
+        } else {
+          return loseBuilder_.getMessage();
+        }
+      }
+      /**
+       * <pre>
+       * from client: lose these resources
+       * </pre>
+       *
+       * <code>.ResourceSet lose = 2;</code>
+       */
+      public Builder setLose(soc.proto.Data.ResourceSet value) {
+        if (loseBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          lose_ = value;
+          onChanged();
+        } else {
+          loseBuilder_.setMessage(value);
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * from client: lose these resources
+       * </pre>
+       *
+       * <code>.ResourceSet lose = 2;</code>
+       */
+      public Builder setLose(
+          soc.proto.Data.ResourceSet.Builder builderForValue) {
+        if (loseBuilder_ == null) {
+          lose_ = builderForValue.build();
+          onChanged();
+        } else {
+          loseBuilder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * from client: lose these resources
+       * </pre>
+       *
+       * <code>.ResourceSet lose = 2;</code>
+       */
+      public Builder mergeLose(soc.proto.Data.ResourceSet value) {
+        if (loseBuilder_ == null) {
+          if (lose_ != null) {
+            lose_ =
+              soc.proto.Data.ResourceSet.newBuilder(lose_).mergeFrom(value).buildPartial();
+          } else {
+            lose_ = value;
+          }
+          onChanged();
+        } else {
+          loseBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * from client: lose these resources
+       * </pre>
+       *
+       * <code>.ResourceSet lose = 2;</code>
+       */
+      public Builder clearLose() {
+        if (loseBuilder_ == null) {
+          lose_ = null;
+          onChanged();
+        } else {
+          lose_ = null;
+          loseBuilder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * from client: lose these resources
+       * </pre>
+       *
+       * <code>.ResourceSet lose = 2;</code>
+       */
+      public soc.proto.Data.ResourceSet.Builder getLoseBuilder() {
+        
+        onChanged();
+        return getLoseFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * from client: lose these resources
+       * </pre>
+       *
+       * <code>.ResourceSet lose = 2;</code>
+       */
+      public soc.proto.Data.ResourceSetOrBuilder getLoseOrBuilder() {
+        if (loseBuilder_ != null) {
+          return loseBuilder_.getMessageOrBuilder();
+        } else {
+          return lose_ == null ?
+              soc.proto.Data.ResourceSet.getDefaultInstance() : lose_;
+        }
+      }
+      /**
+       * <pre>
+       * from client: lose these resources
+       * </pre>
+       *
+       * <code>.ResourceSet lose = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> 
+          getLoseFieldBuilder() {
+        if (loseBuilder_ == null) {
+          loseBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder>(
+                  getLose(),
+                  getParentForChildren(),
+                  isClean());
+          lose_ = null;
+        }
+        return loseBuilder_;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:LoseResources)
+    }
+
+    // @@protoc_insertion_point(class_scope:LoseResources)
+    private static final soc.proto.GameMessage.LoseResources DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.LoseResources();
+    }
+
+    public static soc.proto.GameMessage.LoseResources getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<LoseResources>
+        PARSER = new com.google.protobuf.AbstractParser<LoseResources>() {
+      public LoseResources parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new LoseResources(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<LoseResources> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<LoseResources> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.LoseResources getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface GainResourcesOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:GainResources)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * prompt from server: player must pick this many resources to gain
+     * </pre>
+     *
+     * <code>int32 amount = 1;</code>
+     */
+    int getAmount();
+
+    /**
+     * <pre>
+     * gain these resources
+     * </pre>
+     *
+     * <code>.ResourceSet gain = 2;</code>
+     */
+    boolean hasGain();
+    /**
+     * <pre>
+     * gain these resources
+     * </pre>
+     *
+     * <code>.ResourceSet gain = 2;</code>
+     */
+    soc.proto.Data.ResourceSet getGain();
+    /**
+     * <pre>
+     * gain these resources
+     * </pre>
+     *
+     * <code>.ResourceSet gain = 2;</code>
+     */
+    soc.proto.Data.ResourceSetOrBuilder getGainOrBuilder();
+  }
+  /**
+   * <pre>
+   * A player picks which resources to gain. (Year of Plenty, Gold hex, etc).
+   * - First sent to client as prompt with the amount to gain.
+   * - Client player responds with specific resources they want to gain.
+   * - Server announces the specific resources gained to the game.
+   * </pre>
+   *
+   * Protobuf type {@code GainResources}
+   */
+  public  static final class GainResources extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:GainResources)
+      GainResourcesOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use GainResources.newBuilder() to construct.
+    private GainResources(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private GainResources() {
+      amount_ = 0;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private GainResources(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+
+              amount_ = input.readInt32();
+              break;
+            }
+            case 18: {
+              soc.proto.Data.ResourceSet.Builder subBuilder = null;
+              if (gain_ != null) {
+                subBuilder = gain_.toBuilder();
+              }
+              gain_ = input.readMessage(soc.proto.Data.ResourceSet.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(gain_);
+                gain_ = subBuilder.buildPartial();
+              }
+
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_GainResources_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_GainResources_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.GainResources.class, soc.proto.GameMessage.GainResources.Builder.class);
+    }
+
+    public static final int AMOUNT_FIELD_NUMBER = 1;
+    private int amount_;
+    /**
+     * <pre>
+     * prompt from server: player must pick this many resources to gain
+     * </pre>
+     *
+     * <code>int32 amount = 1;</code>
+     */
+    public int getAmount() {
+      return amount_;
+    }
+
+    public static final int GAIN_FIELD_NUMBER = 2;
+    private soc.proto.Data.ResourceSet gain_;
+    /**
+     * <pre>
+     * gain these resources
+     * </pre>
+     *
+     * <code>.ResourceSet gain = 2;</code>
+     */
+    public boolean hasGain() {
+      return gain_ != null;
+    }
+    /**
+     * <pre>
+     * gain these resources
+     * </pre>
+     *
+     * <code>.ResourceSet gain = 2;</code>
+     */
+    public soc.proto.Data.ResourceSet getGain() {
+      return gain_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : gain_;
+    }
+    /**
+     * <pre>
+     * gain these resources
+     * </pre>
+     *
+     * <code>.ResourceSet gain = 2;</code>
+     */
+    public soc.proto.Data.ResourceSetOrBuilder getGainOrBuilder() {
+      return getGain();
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (amount_ != 0) {
+        output.writeInt32(1, amount_);
+      }
+      if (gain_ != null) {
+        output.writeMessage(2, getGain());
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (amount_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(1, amount_);
+      }
+      if (gain_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, getGain());
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.GainResources)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.GainResources other = (soc.proto.GameMessage.GainResources) obj;
+
+      boolean result = true;
+      result = result && (getAmount()
+          == other.getAmount());
+      result = result && (hasGain() == other.hasGain());
+      if (hasGain()) {
+        result = result && getGain()
+            .equals(other.getGain());
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + AMOUNT_FIELD_NUMBER;
+      hash = (53 * hash) + getAmount();
+      if (hasGain()) {
+        hash = (37 * hash) + GAIN_FIELD_NUMBER;
+        hash = (53 * hash) + getGain().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.GainResources parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.GainResources parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.GainResources parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.GainResources parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.GainResources parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.GainResources parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.GainResources parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.GainResources parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.GainResources parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.GainResources parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.GainResources parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.GainResources parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.GainResources prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * A player picks which resources to gain. (Year of Plenty, Gold hex, etc).
+     * - First sent to client as prompt with the amount to gain.
+     * - Client player responds with specific resources they want to gain.
+     * - Server announces the specific resources gained to the game.
+     * </pre>
+     *
+     * Protobuf type {@code GainResources}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:GainResources)
+        soc.proto.GameMessage.GainResourcesOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_GainResources_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_GainResources_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.GainResources.class, soc.proto.GameMessage.GainResources.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.GainResources.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        amount_ = 0;
+
+        if (gainBuilder_ == null) {
+          gain_ = null;
+        } else {
+          gain_ = null;
+          gainBuilder_ = null;
+        }
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_GainResources_descriptor;
+      }
+
+      public soc.proto.GameMessage.GainResources getDefaultInstanceForType() {
+        return soc.proto.GameMessage.GainResources.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.GainResources build() {
+        soc.proto.GameMessage.GainResources result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.GainResources buildPartial() {
+        soc.proto.GameMessage.GainResources result = new soc.proto.GameMessage.GainResources(this);
+        result.amount_ = amount_;
+        if (gainBuilder_ == null) {
+          result.gain_ = gain_;
+        } else {
+          result.gain_ = gainBuilder_.build();
+        }
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.GainResources) {
+          return mergeFrom((soc.proto.GameMessage.GainResources)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.GainResources other) {
+        if (other == soc.proto.GameMessage.GainResources.getDefaultInstance()) return this;
+        if (other.getAmount() != 0) {
+          setAmount(other.getAmount());
+        }
+        if (other.hasGain()) {
+          mergeGain(other.getGain());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.GainResources parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.GainResources) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private int amount_ ;
+      /**
+       * <pre>
+       * prompt from server: player must pick this many resources to gain
+       * </pre>
+       *
+       * <code>int32 amount = 1;</code>
+       */
+      public int getAmount() {
+        return amount_;
+      }
+      /**
+       * <pre>
+       * prompt from server: player must pick this many resources to gain
+       * </pre>
+       *
+       * <code>int32 amount = 1;</code>
+       */
+      public Builder setAmount(int value) {
+        
+        amount_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * prompt from server: player must pick this many resources to gain
+       * </pre>
+       *
+       * <code>int32 amount = 1;</code>
+       */
+      public Builder clearAmount() {
+        
+        amount_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private soc.proto.Data.ResourceSet gain_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> gainBuilder_;
+      /**
+       * <pre>
+       * gain these resources
+       * </pre>
+       *
+       * <code>.ResourceSet gain = 2;</code>
+       */
+      public boolean hasGain() {
+        return gainBuilder_ != null || gain_ != null;
+      }
+      /**
+       * <pre>
+       * gain these resources
+       * </pre>
+       *
+       * <code>.ResourceSet gain = 2;</code>
+       */
+      public soc.proto.Data.ResourceSet getGain() {
+        if (gainBuilder_ == null) {
+          return gain_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : gain_;
+        } else {
+          return gainBuilder_.getMessage();
+        }
+      }
+      /**
+       * <pre>
+       * gain these resources
+       * </pre>
+       *
+       * <code>.ResourceSet gain = 2;</code>
+       */
+      public Builder setGain(soc.proto.Data.ResourceSet value) {
+        if (gainBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          gain_ = value;
+          onChanged();
+        } else {
+          gainBuilder_.setMessage(value);
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * gain these resources
+       * </pre>
+       *
+       * <code>.ResourceSet gain = 2;</code>
+       */
+      public Builder setGain(
+          soc.proto.Data.ResourceSet.Builder builderForValue) {
+        if (gainBuilder_ == null) {
+          gain_ = builderForValue.build();
+          onChanged();
+        } else {
+          gainBuilder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * gain these resources
+       * </pre>
+       *
+       * <code>.ResourceSet gain = 2;</code>
+       */
+      public Builder mergeGain(soc.proto.Data.ResourceSet value) {
+        if (gainBuilder_ == null) {
+          if (gain_ != null) {
+            gain_ =
+              soc.proto.Data.ResourceSet.newBuilder(gain_).mergeFrom(value).buildPartial();
+          } else {
+            gain_ = value;
+          }
+          onChanged();
+        } else {
+          gainBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * gain these resources
+       * </pre>
+       *
+       * <code>.ResourceSet gain = 2;</code>
+       */
+      public Builder clearGain() {
+        if (gainBuilder_ == null) {
+          gain_ = null;
+          onChanged();
+        } else {
+          gain_ = null;
+          gainBuilder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * gain these resources
+       * </pre>
+       *
+       * <code>.ResourceSet gain = 2;</code>
+       */
+      public soc.proto.Data.ResourceSet.Builder getGainBuilder() {
+        
+        onChanged();
+        return getGainFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * gain these resources
+       * </pre>
+       *
+       * <code>.ResourceSet gain = 2;</code>
+       */
+      public soc.proto.Data.ResourceSetOrBuilder getGainOrBuilder() {
+        if (gainBuilder_ != null) {
+          return gainBuilder_.getMessageOrBuilder();
+        } else {
+          return gain_ == null ?
+              soc.proto.Data.ResourceSet.getDefaultInstance() : gain_;
+        }
+      }
+      /**
+       * <pre>
+       * gain these resources
+       * </pre>
+       *
+       * <code>.ResourceSet gain = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> 
+          getGainFieldBuilder() {
+        if (gainBuilder_ == null) {
+          gainBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder>(
+                  getGain(),
+                  getParentForChildren(),
+                  isClean());
+          gain_ = null;
+        }
+        return gainBuilder_;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:GainResources)
+    }
+
+    // @@protoc_insertion_point(class_scope:GainResources)
+    private static final soc.proto.GameMessage.GainResources DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.GainResources();
+    }
+
+    public static soc.proto.GameMessage.GainResources getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<GainResources>
+        PARSER = new com.google.protobuf.AbstractParser<GainResources>() {
+      public GainResources parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new GainResources(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<GainResources> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<GainResources> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.GainResources getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface ChooseResourceTypeOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:ChooseResourceType)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * choose this resource type
+     * </pre>
+     *
+     * <code>.ResourceType type = 1;</code>
+     */
+    int getTypeValue();
+    /**
+     * <pre>
+     * choose this resource type
+     * </pre>
+     *
+     * <code>.ResourceType type = 1;</code>
+     */
+    soc.proto.Data.ResourceType getType();
+  }
+  /**
+   * <pre>
+   * A player picks a resource type, typically for a Monopoly card.
+   * Sent by current player client in response to GameState(WAITING_FOR_MONOPOLY).
+   * </pre>
+   *
+   * Protobuf type {@code ChooseResourceType}
+   */
+  public  static final class ChooseResourceType extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:ChooseResourceType)
+      ChooseResourceTypeOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use ChooseResourceType.newBuilder() to construct.
+    private ChooseResourceType(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private ChooseResourceType() {
+      type_ = 0;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private ChooseResourceType(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              int rawValue = input.readEnum();
+
+              type_ = rawValue;
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_ChooseResourceType_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_ChooseResourceType_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.ChooseResourceType.class, soc.proto.GameMessage.ChooseResourceType.Builder.class);
+    }
+
+    public static final int TYPE_FIELD_NUMBER = 1;
+    private int type_;
+    /**
+     * <pre>
+     * choose this resource type
+     * </pre>
+     *
+     * <code>.ResourceType type = 1;</code>
+     */
+    public int getTypeValue() {
+      return type_;
+    }
+    /**
+     * <pre>
+     * choose this resource type
+     * </pre>
+     *
+     * <code>.ResourceType type = 1;</code>
+     */
+    public soc.proto.Data.ResourceType getType() {
+      soc.proto.Data.ResourceType result = soc.proto.Data.ResourceType.valueOf(type_);
+      return result == null ? soc.proto.Data.ResourceType.UNRECOGNIZED : result;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (type_ != soc.proto.Data.ResourceType._NOT_YET_USED.getNumber()) {
+        output.writeEnum(1, type_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (type_ != soc.proto.Data.ResourceType._NOT_YET_USED.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(1, type_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.ChooseResourceType)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.ChooseResourceType other = (soc.proto.GameMessage.ChooseResourceType) obj;
+
+      boolean result = true;
+      result = result && type_ == other.type_;
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + TYPE_FIELD_NUMBER;
+      hash = (53 * hash) + type_;
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.ChooseResourceType parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.ChooseResourceType parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ChooseResourceType parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.ChooseResourceType parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ChooseResourceType parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.ChooseResourceType parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ChooseResourceType parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.ChooseResourceType parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ChooseResourceType parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.ChooseResourceType parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ChooseResourceType parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.ChooseResourceType parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.ChooseResourceType prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * A player picks a resource type, typically for a Monopoly card.
+     * Sent by current player client in response to GameState(WAITING_FOR_MONOPOLY).
+     * </pre>
+     *
+     * Protobuf type {@code ChooseResourceType}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:ChooseResourceType)
+        soc.proto.GameMessage.ChooseResourceTypeOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_ChooseResourceType_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_ChooseResourceType_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.ChooseResourceType.class, soc.proto.GameMessage.ChooseResourceType.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.ChooseResourceType.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        type_ = 0;
+
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_ChooseResourceType_descriptor;
+      }
+
+      public soc.proto.GameMessage.ChooseResourceType getDefaultInstanceForType() {
+        return soc.proto.GameMessage.ChooseResourceType.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.ChooseResourceType build() {
+        soc.proto.GameMessage.ChooseResourceType result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.ChooseResourceType buildPartial() {
+        soc.proto.GameMessage.ChooseResourceType result = new soc.proto.GameMessage.ChooseResourceType(this);
+        result.type_ = type_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.ChooseResourceType) {
+          return mergeFrom((soc.proto.GameMessage.ChooseResourceType)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.ChooseResourceType other) {
+        if (other == soc.proto.GameMessage.ChooseResourceType.getDefaultInstance()) return this;
+        if (other.type_ != 0) {
+          setTypeValue(other.getTypeValue());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.ChooseResourceType parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.ChooseResourceType) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private int type_ = 0;
+      /**
+       * <pre>
+       * choose this resource type
+       * </pre>
+       *
+       * <code>.ResourceType type = 1;</code>
+       */
+      public int getTypeValue() {
+        return type_;
+      }
+      /**
+       * <pre>
+       * choose this resource type
+       * </pre>
+       *
+       * <code>.ResourceType type = 1;</code>
+       */
+      public Builder setTypeValue(int value) {
+        type_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * choose this resource type
+       * </pre>
+       *
+       * <code>.ResourceType type = 1;</code>
+       */
+      public soc.proto.Data.ResourceType getType() {
+        soc.proto.Data.ResourceType result = soc.proto.Data.ResourceType.valueOf(type_);
+        return result == null ? soc.proto.Data.ResourceType.UNRECOGNIZED : result;
+      }
+      /**
+       * <pre>
+       * choose this resource type
+       * </pre>
+       *
+       * <code>.ResourceType type = 1;</code>
+       */
+      public Builder setType(soc.proto.Data.ResourceType value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        
+        type_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * choose this resource type
+       * </pre>
+       *
+       * <code>.ResourceType type = 1;</code>
+       */
+      public Builder clearType() {
+        
+        type_ = 0;
+        onChanged();
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:ChooseResourceType)
+    }
+
+    // @@protoc_insertion_point(class_scope:ChooseResourceType)
+    private static final soc.proto.GameMessage.ChooseResourceType DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.ChooseResourceType();
+    }
+
+    public static soc.proto.GameMessage.ChooseResourceType getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ChooseResourceType>
+        PARSER = new com.google.protobuf.AbstractParser<ChooseResourceType>() {
+      public ChooseResourceType parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new ChooseResourceType(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<ChooseResourceType> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ChooseResourceType> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.ChooseResourceType getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface ChoosePlayerOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:ChoosePlayer)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * from client: player number, or -1 for none
+     * </pre>
+     *
+     * <code>sint32 chosen_player_number = 1;</code>
+     */
+    int getChosenPlayerNumber();
+
+    /**
+     * <pre>
+     * from server: If true, can make a choice of "no player"
+     * </pre>
+     *
+     * <code>bool can_choose_none = 2;</code>
+     */
+    boolean getCanChooseNone();
+
+    /**
+     * <pre>
+     * from server: List of player numbers who can be chosen
+     * </pre>
+     *
+     * <code>repeated uint32 chooseable_player_number = 3;</code>
+     */
+    java.util.List<java.lang.Integer> getChooseablePlayerNumberList();
+    /**
+     * <pre>
+     * from server: List of player numbers who can be chosen
+     * </pre>
+     *
+     * <code>repeated uint32 chooseable_player_number = 3;</code>
+     */
+    int getChooseablePlayerNumberCount();
+    /**
+     * <pre>
+     * from server: List of player numbers who can be chosen
+     * </pre>
+     *
+     * <code>repeated uint32 chooseable_player_number = 3;</code>
+     */
+    int getChooseablePlayerNumber(int index);
+  }
+  /**
+   * <pre>
+   * A player chooses another player, typically to rob from. 
+   * </pre>
+   *
+   * Protobuf type {@code ChoosePlayer}
+   */
+  public  static final class ChoosePlayer extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:ChoosePlayer)
+      ChoosePlayerOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use ChoosePlayer.newBuilder() to construct.
+    private ChoosePlayer(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private ChoosePlayer() {
+      chosenPlayerNumber_ = 0;
+      canChooseNone_ = false;
+      chooseablePlayerNumber_ = java.util.Collections.emptyList();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private ChoosePlayer(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+
+              chosenPlayerNumber_ = input.readSInt32();
+              break;
+            }
+            case 16: {
+
+              canChooseNone_ = input.readBool();
+              break;
+            }
+            case 24: {
+              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+                chooseablePlayerNumber_ = new java.util.ArrayList<java.lang.Integer>();
+                mutable_bitField0_ |= 0x00000004;
+              }
+              chooseablePlayerNumber_.add(input.readUInt32());
+              break;
+            }
+            case 26: {
+              int length = input.readRawVarint32();
+              int limit = input.pushLimit(length);
+              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004) && input.getBytesUntilLimit() > 0) {
+                chooseablePlayerNumber_ = new java.util.ArrayList<java.lang.Integer>();
+                mutable_bitField0_ |= 0x00000004;
+              }
+              while (input.getBytesUntilLimit() > 0) {
+                chooseablePlayerNumber_.add(input.readUInt32());
+              }
+              input.popLimit(limit);
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+          chooseablePlayerNumber_ = java.util.Collections.unmodifiableList(chooseablePlayerNumber_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_ChoosePlayer_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_ChoosePlayer_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.ChoosePlayer.class, soc.proto.GameMessage.ChoosePlayer.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int CHOSEN_PLAYER_NUMBER_FIELD_NUMBER = 1;
+    private int chosenPlayerNumber_;
+    /**
+     * <pre>
+     * from client: player number, or -1 for none
+     * </pre>
+     *
+     * <code>sint32 chosen_player_number = 1;</code>
+     */
+    public int getChosenPlayerNumber() {
+      return chosenPlayerNumber_;
+    }
+
+    public static final int CAN_CHOOSE_NONE_FIELD_NUMBER = 2;
+    private boolean canChooseNone_;
+    /**
+     * <pre>
+     * from server: If true, can make a choice of "no player"
+     * </pre>
+     *
+     * <code>bool can_choose_none = 2;</code>
+     */
+    public boolean getCanChooseNone() {
+      return canChooseNone_;
+    }
+
+    public static final int CHOOSEABLE_PLAYER_NUMBER_FIELD_NUMBER = 3;
+    private java.util.List<java.lang.Integer> chooseablePlayerNumber_;
+    /**
+     * <pre>
+     * from server: List of player numbers who can be chosen
+     * </pre>
+     *
+     * <code>repeated uint32 chooseable_player_number = 3;</code>
+     */
+    public java.util.List<java.lang.Integer>
+        getChooseablePlayerNumberList() {
+      return chooseablePlayerNumber_;
+    }
+    /**
+     * <pre>
+     * from server: List of player numbers who can be chosen
+     * </pre>
+     *
+     * <code>repeated uint32 chooseable_player_number = 3;</code>
+     */
+    public int getChooseablePlayerNumberCount() {
+      return chooseablePlayerNumber_.size();
+    }
+    /**
+     * <pre>
+     * from server: List of player numbers who can be chosen
+     * </pre>
+     *
+     * <code>repeated uint32 chooseable_player_number = 3;</code>
+     */
+    public int getChooseablePlayerNumber(int index) {
+      return chooseablePlayerNumber_.get(index);
+    }
+    private int chooseablePlayerNumberMemoizedSerializedSize = -1;
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (chosenPlayerNumber_ != 0) {
+        output.writeSInt32(1, chosenPlayerNumber_);
+      }
+      if (canChooseNone_ != false) {
+        output.writeBool(2, canChooseNone_);
+      }
+      if (getChooseablePlayerNumberList().size() > 0) {
+        output.writeUInt32NoTag(26);
+        output.writeUInt32NoTag(chooseablePlayerNumberMemoizedSerializedSize);
+      }
+      for (int i = 0; i < chooseablePlayerNumber_.size(); i++) {
+        output.writeUInt32NoTag(chooseablePlayerNumber_.get(i));
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (chosenPlayerNumber_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeSInt32Size(1, chosenPlayerNumber_);
+      }
+      if (canChooseNone_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(2, canChooseNone_);
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < chooseablePlayerNumber_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeUInt32SizeNoTag(chooseablePlayerNumber_.get(i));
+        }
+        size += dataSize;
+        if (!getChooseablePlayerNumberList().isEmpty()) {
+          size += 1;
+          size += com.google.protobuf.CodedOutputStream
+              .computeInt32SizeNoTag(dataSize);
+        }
+        chooseablePlayerNumberMemoizedSerializedSize = dataSize;
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.ChoosePlayer)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.ChoosePlayer other = (soc.proto.GameMessage.ChoosePlayer) obj;
+
+      boolean result = true;
+      result = result && (getChosenPlayerNumber()
+          == other.getChosenPlayerNumber());
+      result = result && (getCanChooseNone()
+          == other.getCanChooseNone());
+      result = result && getChooseablePlayerNumberList()
+          .equals(other.getChooseablePlayerNumberList());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + CHOSEN_PLAYER_NUMBER_FIELD_NUMBER;
+      hash = (53 * hash) + getChosenPlayerNumber();
+      hash = (37 * hash) + CAN_CHOOSE_NONE_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getCanChooseNone());
+      if (getChooseablePlayerNumberCount() > 0) {
+        hash = (37 * hash) + CHOOSEABLE_PLAYER_NUMBER_FIELD_NUMBER;
+        hash = (53 * hash) + getChooseablePlayerNumberList().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.ChoosePlayer parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.ChoosePlayer parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ChoosePlayer parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.ChoosePlayer parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ChoosePlayer parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.ChoosePlayer parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ChoosePlayer parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.ChoosePlayer parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ChoosePlayer parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.ChoosePlayer parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ChoosePlayer parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.ChoosePlayer parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.ChoosePlayer prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * A player chooses another player, typically to rob from. 
+     * </pre>
+     *
+     * Protobuf type {@code ChoosePlayer}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:ChoosePlayer)
+        soc.proto.GameMessage.ChoosePlayerOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_ChoosePlayer_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_ChoosePlayer_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.ChoosePlayer.class, soc.proto.GameMessage.ChoosePlayer.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.ChoosePlayer.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        chosenPlayerNumber_ = 0;
+
+        canChooseNone_ = false;
+
+        chooseablePlayerNumber_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_ChoosePlayer_descriptor;
+      }
+
+      public soc.proto.GameMessage.ChoosePlayer getDefaultInstanceForType() {
+        return soc.proto.GameMessage.ChoosePlayer.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.ChoosePlayer build() {
+        soc.proto.GameMessage.ChoosePlayer result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.ChoosePlayer buildPartial() {
+        soc.proto.GameMessage.ChoosePlayer result = new soc.proto.GameMessage.ChoosePlayer(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        result.chosenPlayerNumber_ = chosenPlayerNumber_;
+        result.canChooseNone_ = canChooseNone_;
+        if (((bitField0_ & 0x00000004) == 0x00000004)) {
+          chooseablePlayerNumber_ = java.util.Collections.unmodifiableList(chooseablePlayerNumber_);
+          bitField0_ = (bitField0_ & ~0x00000004);
+        }
+        result.chooseablePlayerNumber_ = chooseablePlayerNumber_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.ChoosePlayer) {
+          return mergeFrom((soc.proto.GameMessage.ChoosePlayer)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.ChoosePlayer other) {
+        if (other == soc.proto.GameMessage.ChoosePlayer.getDefaultInstance()) return this;
+        if (other.getChosenPlayerNumber() != 0) {
+          setChosenPlayerNumber(other.getChosenPlayerNumber());
+        }
+        if (other.getCanChooseNone() != false) {
+          setCanChooseNone(other.getCanChooseNone());
+        }
+        if (!other.chooseablePlayerNumber_.isEmpty()) {
+          if (chooseablePlayerNumber_.isEmpty()) {
+            chooseablePlayerNumber_ = other.chooseablePlayerNumber_;
+            bitField0_ = (bitField0_ & ~0x00000004);
+          } else {
+            ensureChooseablePlayerNumberIsMutable();
+            chooseablePlayerNumber_.addAll(other.chooseablePlayerNumber_);
+          }
+          onChanged();
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.ChoosePlayer parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.ChoosePlayer) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private int chosenPlayerNumber_ ;
+      /**
+       * <pre>
+       * from client: player number, or -1 for none
+       * </pre>
+       *
+       * <code>sint32 chosen_player_number = 1;</code>
+       */
+      public int getChosenPlayerNumber() {
+        return chosenPlayerNumber_;
+      }
+      /**
+       * <pre>
+       * from client: player number, or -1 for none
+       * </pre>
+       *
+       * <code>sint32 chosen_player_number = 1;</code>
+       */
+      public Builder setChosenPlayerNumber(int value) {
+        
+        chosenPlayerNumber_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * from client: player number, or -1 for none
+       * </pre>
+       *
+       * <code>sint32 chosen_player_number = 1;</code>
+       */
+      public Builder clearChosenPlayerNumber() {
+        
+        chosenPlayerNumber_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private boolean canChooseNone_ ;
+      /**
+       * <pre>
+       * from server: If true, can make a choice of "no player"
+       * </pre>
+       *
+       * <code>bool can_choose_none = 2;</code>
+       */
+      public boolean getCanChooseNone() {
+        return canChooseNone_;
+      }
+      /**
+       * <pre>
+       * from server: If true, can make a choice of "no player"
+       * </pre>
+       *
+       * <code>bool can_choose_none = 2;</code>
+       */
+      public Builder setCanChooseNone(boolean value) {
+        
+        canChooseNone_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * from server: If true, can make a choice of "no player"
+       * </pre>
+       *
+       * <code>bool can_choose_none = 2;</code>
+       */
+      public Builder clearCanChooseNone() {
+        
+        canChooseNone_ = false;
+        onChanged();
+        return this;
+      }
+
+      private java.util.List<java.lang.Integer> chooseablePlayerNumber_ = java.util.Collections.emptyList();
+      private void ensureChooseablePlayerNumberIsMutable() {
+        if (!((bitField0_ & 0x00000004) == 0x00000004)) {
+          chooseablePlayerNumber_ = new java.util.ArrayList<java.lang.Integer>(chooseablePlayerNumber_);
+          bitField0_ |= 0x00000004;
+         }
+      }
+      /**
+       * <pre>
+       * from server: List of player numbers who can be chosen
+       * </pre>
+       *
+       * <code>repeated uint32 chooseable_player_number = 3;</code>
+       */
+      public java.util.List<java.lang.Integer>
+          getChooseablePlayerNumberList() {
+        return java.util.Collections.unmodifiableList(chooseablePlayerNumber_);
+      }
+      /**
+       * <pre>
+       * from server: List of player numbers who can be chosen
+       * </pre>
+       *
+       * <code>repeated uint32 chooseable_player_number = 3;</code>
+       */
+      public int getChooseablePlayerNumberCount() {
+        return chooseablePlayerNumber_.size();
+      }
+      /**
+       * <pre>
+       * from server: List of player numbers who can be chosen
+       * </pre>
+       *
+       * <code>repeated uint32 chooseable_player_number = 3;</code>
+       */
+      public int getChooseablePlayerNumber(int index) {
+        return chooseablePlayerNumber_.get(index);
+      }
+      /**
+       * <pre>
+       * from server: List of player numbers who can be chosen
+       * </pre>
+       *
+       * <code>repeated uint32 chooseable_player_number = 3;</code>
+       */
+      public Builder setChooseablePlayerNumber(
+          int index, int value) {
+        ensureChooseablePlayerNumberIsMutable();
+        chooseablePlayerNumber_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * from server: List of player numbers who can be chosen
+       * </pre>
+       *
+       * <code>repeated uint32 chooseable_player_number = 3;</code>
+       */
+      public Builder addChooseablePlayerNumber(int value) {
+        ensureChooseablePlayerNumberIsMutable();
+        chooseablePlayerNumber_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * from server: List of player numbers who can be chosen
+       * </pre>
+       *
+       * <code>repeated uint32 chooseable_player_number = 3;</code>
+       */
+      public Builder addAllChooseablePlayerNumber(
+          java.lang.Iterable<? extends java.lang.Integer> values) {
+        ensureChooseablePlayerNumberIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, chooseablePlayerNumber_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * from server: List of player numbers who can be chosen
+       * </pre>
+       *
+       * <code>repeated uint32 chooseable_player_number = 3;</code>
+       */
+      public Builder clearChooseablePlayerNumber() {
+        chooseablePlayerNumber_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:ChoosePlayer)
+    }
+
+    // @@protoc_insertion_point(class_scope:ChoosePlayer)
+    private static final soc.proto.GameMessage.ChoosePlayer DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.ChoosePlayer();
+    }
+
+    public static soc.proto.GameMessage.ChoosePlayer getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ChoosePlayer>
+        PARSER = new com.google.protobuf.AbstractParser<ChoosePlayer>() {
+      public ChoosePlayer parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new ChoosePlayer(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<ChoosePlayer> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ChoosePlayer> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.ChoosePlayer getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface MoveRobberOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:MoveRobber)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * Move to this location
+     * </pre>
+     *
+     * <code>.HexCoord move_to = 1;</code>
+     */
+    boolean hasMoveTo();
+    /**
+     * <pre>
+     * Move to this location
+     * </pre>
+     *
+     * <code>.HexCoord move_to = 1;</code>
+     */
+    soc.proto.Data.HexCoord getMoveTo();
+    /**
+     * <pre>
+     * Move to this location
+     * </pre>
+     *
+     * <code>.HexCoord move_to = 1;</code>
+     */
+    soc.proto.Data.HexCoordOrBuilder getMoveToOrBuilder();
+
+    /**
+     * <pre>
+     * In server prompt, true if robber can be moved.
+     * From client or server announcement, true if robber was moved
+     * (won't also have is_pirate true).
+     * </pre>
+     *
+     * <code>bool is_robber = 2;</code>
+     */
+    boolean getIsRobber();
+
+    /**
+     * <pre>
+     * In server prompt, true if pirate ship can be moved.
+     * From client or server announcement, true if pirate ship was moved
+     * (won't also have is_robber true).
+     * </pre>
+     *
+     * <code>bool is_pirate = 3;</code>
+     */
+    boolean getIsPirate();
+  }
+  /**
+   * <pre>
+   * A player moves the robber, or the pirate ship on the sea board.
+   * - Server sends GameState(PLACING_ROBBER) or (PLACING_PIRATE)
+   * - Client player responds with a location to move to,
+   *   and either is_robber or is_pirate flag.
+   * - If player can move there, server announces the move to the game
+   *   and the new game state.
+   *   Otherwise server sends error text to the client and
+   *   game state remains PLACING_ROBBER or PLACING_PIRATE.
+   * </pre>
+   *
+   * Protobuf type {@code MoveRobber}
+   */
+  public  static final class MoveRobber extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:MoveRobber)
+      MoveRobberOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use MoveRobber.newBuilder() to construct.
+    private MoveRobber(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private MoveRobber() {
+      isRobber_ = false;
+      isPirate_ = false;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private MoveRobber(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              soc.proto.Data.HexCoord.Builder subBuilder = null;
+              if (moveTo_ != null) {
+                subBuilder = moveTo_.toBuilder();
+              }
+              moveTo_ = input.readMessage(soc.proto.Data.HexCoord.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(moveTo_);
+                moveTo_ = subBuilder.buildPartial();
+              }
+
+              break;
+            }
+            case 16: {
+
+              isRobber_ = input.readBool();
+              break;
+            }
+            case 24: {
+
+              isPirate_ = input.readBool();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_MoveRobber_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_MoveRobber_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.MoveRobber.class, soc.proto.GameMessage.MoveRobber.Builder.class);
+    }
+
+    public static final int MOVE_TO_FIELD_NUMBER = 1;
+    private soc.proto.Data.HexCoord moveTo_;
+    /**
+     * <pre>
+     * Move to this location
+     * </pre>
+     *
+     * <code>.HexCoord move_to = 1;</code>
+     */
+    public boolean hasMoveTo() {
+      return moveTo_ != null;
+    }
+    /**
+     * <pre>
+     * Move to this location
+     * </pre>
+     *
+     * <code>.HexCoord move_to = 1;</code>
+     */
+    public soc.proto.Data.HexCoord getMoveTo() {
+      return moveTo_ == null ? soc.proto.Data.HexCoord.getDefaultInstance() : moveTo_;
+    }
+    /**
+     * <pre>
+     * Move to this location
+     * </pre>
+     *
+     * <code>.HexCoord move_to = 1;</code>
+     */
+    public soc.proto.Data.HexCoordOrBuilder getMoveToOrBuilder() {
+      return getMoveTo();
+    }
+
+    public static final int IS_ROBBER_FIELD_NUMBER = 2;
+    private boolean isRobber_;
+    /**
+     * <pre>
+     * In server prompt, true if robber can be moved.
+     * From client or server announcement, true if robber was moved
+     * (won't also have is_pirate true).
+     * </pre>
+     *
+     * <code>bool is_robber = 2;</code>
+     */
+    public boolean getIsRobber() {
+      return isRobber_;
+    }
+
+    public static final int IS_PIRATE_FIELD_NUMBER = 3;
+    private boolean isPirate_;
+    /**
+     * <pre>
+     * In server prompt, true if pirate ship can be moved.
+     * From client or server announcement, true if pirate ship was moved
+     * (won't also have is_robber true).
+     * </pre>
+     *
+     * <code>bool is_pirate = 3;</code>
+     */
+    public boolean getIsPirate() {
+      return isPirate_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (moveTo_ != null) {
+        output.writeMessage(1, getMoveTo());
+      }
+      if (isRobber_ != false) {
+        output.writeBool(2, isRobber_);
+      }
+      if (isPirate_ != false) {
+        output.writeBool(3, isPirate_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (moveTo_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, getMoveTo());
+      }
+      if (isRobber_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(2, isRobber_);
+      }
+      if (isPirate_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(3, isPirate_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.MoveRobber)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.MoveRobber other = (soc.proto.GameMessage.MoveRobber) obj;
+
+      boolean result = true;
+      result = result && (hasMoveTo() == other.hasMoveTo());
+      if (hasMoveTo()) {
+        result = result && getMoveTo()
+            .equals(other.getMoveTo());
+      }
+      result = result && (getIsRobber()
+          == other.getIsRobber());
+      result = result && (getIsPirate()
+          == other.getIsPirate());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasMoveTo()) {
+        hash = (37 * hash) + MOVE_TO_FIELD_NUMBER;
+        hash = (53 * hash) + getMoveTo().hashCode();
+      }
+      hash = (37 * hash) + IS_ROBBER_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getIsRobber());
+      hash = (37 * hash) + IS_PIRATE_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getIsPirate());
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.MoveRobber parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.MoveRobber parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.MoveRobber parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.MoveRobber parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.MoveRobber parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.MoveRobber parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.MoveRobber parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.MoveRobber parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.MoveRobber parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.MoveRobber parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.MoveRobber parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.MoveRobber parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.MoveRobber prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * A player moves the robber, or the pirate ship on the sea board.
+     * - Server sends GameState(PLACING_ROBBER) or (PLACING_PIRATE)
+     * - Client player responds with a location to move to,
+     *   and either is_robber or is_pirate flag.
+     * - If player can move there, server announces the move to the game
+     *   and the new game state.
+     *   Otherwise server sends error text to the client and
+     *   game state remains PLACING_ROBBER or PLACING_PIRATE.
+     * </pre>
+     *
+     * Protobuf type {@code MoveRobber}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:MoveRobber)
+        soc.proto.GameMessage.MoveRobberOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_MoveRobber_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_MoveRobber_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.MoveRobber.class, soc.proto.GameMessage.MoveRobber.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.MoveRobber.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        if (moveToBuilder_ == null) {
+          moveTo_ = null;
+        } else {
+          moveTo_ = null;
+          moveToBuilder_ = null;
+        }
+        isRobber_ = false;
+
+        isPirate_ = false;
+
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_MoveRobber_descriptor;
+      }
+
+      public soc.proto.GameMessage.MoveRobber getDefaultInstanceForType() {
+        return soc.proto.GameMessage.MoveRobber.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.MoveRobber build() {
+        soc.proto.GameMessage.MoveRobber result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.MoveRobber buildPartial() {
+        soc.proto.GameMessage.MoveRobber result = new soc.proto.GameMessage.MoveRobber(this);
+        if (moveToBuilder_ == null) {
+          result.moveTo_ = moveTo_;
+        } else {
+          result.moveTo_ = moveToBuilder_.build();
+        }
+        result.isRobber_ = isRobber_;
+        result.isPirate_ = isPirate_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.MoveRobber) {
+          return mergeFrom((soc.proto.GameMessage.MoveRobber)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.MoveRobber other) {
+        if (other == soc.proto.GameMessage.MoveRobber.getDefaultInstance()) return this;
+        if (other.hasMoveTo()) {
+          mergeMoveTo(other.getMoveTo());
+        }
+        if (other.getIsRobber() != false) {
+          setIsRobber(other.getIsRobber());
+        }
+        if (other.getIsPirate() != false) {
+          setIsPirate(other.getIsPirate());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.MoveRobber parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.MoveRobber) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private soc.proto.Data.HexCoord moveTo_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.HexCoord, soc.proto.Data.HexCoord.Builder, soc.proto.Data.HexCoordOrBuilder> moveToBuilder_;
+      /**
+       * <pre>
+       * Move to this location
+       * </pre>
+       *
+       * <code>.HexCoord move_to = 1;</code>
+       */
+      public boolean hasMoveTo() {
+        return moveToBuilder_ != null || moveTo_ != null;
+      }
+      /**
+       * <pre>
+       * Move to this location
+       * </pre>
+       *
+       * <code>.HexCoord move_to = 1;</code>
+       */
+      public soc.proto.Data.HexCoord getMoveTo() {
+        if (moveToBuilder_ == null) {
+          return moveTo_ == null ? soc.proto.Data.HexCoord.getDefaultInstance() : moveTo_;
+        } else {
+          return moveToBuilder_.getMessage();
+        }
+      }
+      /**
+       * <pre>
+       * Move to this location
+       * </pre>
+       *
+       * <code>.HexCoord move_to = 1;</code>
+       */
+      public Builder setMoveTo(soc.proto.Data.HexCoord value) {
+        if (moveToBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          moveTo_ = value;
+          onChanged();
+        } else {
+          moveToBuilder_.setMessage(value);
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * Move to this location
+       * </pre>
+       *
+       * <code>.HexCoord move_to = 1;</code>
+       */
+      public Builder setMoveTo(
+          soc.proto.Data.HexCoord.Builder builderForValue) {
+        if (moveToBuilder_ == null) {
+          moveTo_ = builderForValue.build();
+          onChanged();
+        } else {
+          moveToBuilder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * Move to this location
+       * </pre>
+       *
+       * <code>.HexCoord move_to = 1;</code>
+       */
+      public Builder mergeMoveTo(soc.proto.Data.HexCoord value) {
+        if (moveToBuilder_ == null) {
+          if (moveTo_ != null) {
+            moveTo_ =
+              soc.proto.Data.HexCoord.newBuilder(moveTo_).mergeFrom(value).buildPartial();
+          } else {
+            moveTo_ = value;
+          }
+          onChanged();
+        } else {
+          moveToBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * Move to this location
+       * </pre>
+       *
+       * <code>.HexCoord move_to = 1;</code>
+       */
+      public Builder clearMoveTo() {
+        if (moveToBuilder_ == null) {
+          moveTo_ = null;
+          onChanged();
+        } else {
+          moveTo_ = null;
+          moveToBuilder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * Move to this location
+       * </pre>
+       *
+       * <code>.HexCoord move_to = 1;</code>
+       */
+      public soc.proto.Data.HexCoord.Builder getMoveToBuilder() {
+        
+        onChanged();
+        return getMoveToFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * Move to this location
+       * </pre>
+       *
+       * <code>.HexCoord move_to = 1;</code>
+       */
+      public soc.proto.Data.HexCoordOrBuilder getMoveToOrBuilder() {
+        if (moveToBuilder_ != null) {
+          return moveToBuilder_.getMessageOrBuilder();
+        } else {
+          return moveTo_ == null ?
+              soc.proto.Data.HexCoord.getDefaultInstance() : moveTo_;
+        }
+      }
+      /**
+       * <pre>
+       * Move to this location
+       * </pre>
+       *
+       * <code>.HexCoord move_to = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.HexCoord, soc.proto.Data.HexCoord.Builder, soc.proto.Data.HexCoordOrBuilder> 
+          getMoveToFieldBuilder() {
+        if (moveToBuilder_ == null) {
+          moveToBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.Data.HexCoord, soc.proto.Data.HexCoord.Builder, soc.proto.Data.HexCoordOrBuilder>(
+                  getMoveTo(),
+                  getParentForChildren(),
+                  isClean());
+          moveTo_ = null;
+        }
+        return moveToBuilder_;
+      }
+
+      private boolean isRobber_ ;
+      /**
+       * <pre>
+       * In server prompt, true if robber can be moved.
+       * From client or server announcement, true if robber was moved
+       * (won't also have is_pirate true).
+       * </pre>
+       *
+       * <code>bool is_robber = 2;</code>
+       */
+      public boolean getIsRobber() {
+        return isRobber_;
+      }
+      /**
+       * <pre>
+       * In server prompt, true if robber can be moved.
+       * From client or server announcement, true if robber was moved
+       * (won't also have is_pirate true).
+       * </pre>
+       *
+       * <code>bool is_robber = 2;</code>
+       */
+      public Builder setIsRobber(boolean value) {
+        
+        isRobber_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * In server prompt, true if robber can be moved.
+       * From client or server announcement, true if robber was moved
+       * (won't also have is_pirate true).
+       * </pre>
+       *
+       * <code>bool is_robber = 2;</code>
+       */
+      public Builder clearIsRobber() {
+        
+        isRobber_ = false;
+        onChanged();
+        return this;
+      }
+
+      private boolean isPirate_ ;
+      /**
+       * <pre>
+       * In server prompt, true if pirate ship can be moved.
+       * From client or server announcement, true if pirate ship was moved
+       * (won't also have is_robber true).
+       * </pre>
+       *
+       * <code>bool is_pirate = 3;</code>
+       */
+      public boolean getIsPirate() {
+        return isPirate_;
+      }
+      /**
+       * <pre>
+       * In server prompt, true if pirate ship can be moved.
+       * From client or server announcement, true if pirate ship was moved
+       * (won't also have is_robber true).
+       * </pre>
+       *
+       * <code>bool is_pirate = 3;</code>
+       */
+      public Builder setIsPirate(boolean value) {
+        
+        isPirate_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * In server prompt, true if pirate ship can be moved.
+       * From client or server announcement, true if pirate ship was moved
+       * (won't also have is_robber true).
+       * </pre>
+       *
+       * <code>bool is_pirate = 3;</code>
+       */
+      public Builder clearIsPirate() {
+        
+        isPirate_ = false;
+        onChanged();
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:MoveRobber)
+    }
+
+    // @@protoc_insertion_point(class_scope:MoveRobber)
+    private static final soc.proto.GameMessage.MoveRobber DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.MoveRobber();
+    }
+
+    public static soc.proto.GameMessage.MoveRobber getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<MoveRobber>
+        PARSER = new com.google.protobuf.AbstractParser<MoveRobber>() {
+      public MoveRobber parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new MoveRobber(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<MoveRobber> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<MoveRobber> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.MoveRobber getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface GameMessageFromServerOrBuilder extends
       // @@protoc_insertion_point(interface_extends:GameMessageFromServer)
       com.google.protobuf.MessageOrBuilder {
@@ -23882,6 +27519,96 @@ public final class GameMessage {
      */
     soc.proto.GameMessage.TradeAcceptOfferOrBuilder getTradeAcceptOfferOrBuilder();
 
+    /**
+     * <pre>
+     * player actions: resources and robbing
+     * </pre>
+     *
+     * <code>.LoseResources lose_resources_prompt = 500;</code>
+     */
+    boolean hasLoseResourcesPrompt();
+    /**
+     * <pre>
+     * player actions: resources and robbing
+     * </pre>
+     *
+     * <code>.LoseResources lose_resources_prompt = 500;</code>
+     */
+    soc.proto.GameMessage.LoseResources getLoseResourcesPrompt();
+    /**
+     * <pre>
+     * player actions: resources and robbing
+     * </pre>
+     *
+     * <code>.LoseResources lose_resources_prompt = 500;</code>
+     */
+    soc.proto.GameMessage.LoseResourcesOrBuilder getLoseResourcesPromptOrBuilder();
+
+    /**
+     * <code>.LoseResources lose_resources = 501;</code>
+     */
+    boolean hasLoseResources();
+    /**
+     * <code>.LoseResources lose_resources = 501;</code>
+     */
+    soc.proto.GameMessage.LoseResources getLoseResources();
+    /**
+     * <code>.LoseResources lose_resources = 501;</code>
+     */
+    soc.proto.GameMessage.LoseResourcesOrBuilder getLoseResourcesOrBuilder();
+
+    /**
+     * <code>.GainResources gain_resources_prompt = 502;</code>
+     */
+    boolean hasGainResourcesPrompt();
+    /**
+     * <code>.GainResources gain_resources_prompt = 502;</code>
+     */
+    soc.proto.GameMessage.GainResources getGainResourcesPrompt();
+    /**
+     * <code>.GainResources gain_resources_prompt = 502;</code>
+     */
+    soc.proto.GameMessage.GainResourcesOrBuilder getGainResourcesPromptOrBuilder();
+
+    /**
+     * <code>.GainResources gain_resources = 503;</code>
+     */
+    boolean hasGainResources();
+    /**
+     * <code>.GainResources gain_resources = 503;</code>
+     */
+    soc.proto.GameMessage.GainResources getGainResources();
+    /**
+     * <code>.GainResources gain_resources = 503;</code>
+     */
+    soc.proto.GameMessage.GainResourcesOrBuilder getGainResourcesOrBuilder();
+
+    /**
+     * <code>.ChoosePlayer choose_player_prompt = 504;</code>
+     */
+    boolean hasChoosePlayerPrompt();
+    /**
+     * <code>.ChoosePlayer choose_player_prompt = 504;</code>
+     */
+    soc.proto.GameMessage.ChoosePlayer getChoosePlayerPrompt();
+    /**
+     * <code>.ChoosePlayer choose_player_prompt = 504;</code>
+     */
+    soc.proto.GameMessage.ChoosePlayerOrBuilder getChoosePlayerPromptOrBuilder();
+
+    /**
+     * <code>.MoveRobber move_robber = 505;</code>
+     */
+    boolean hasMoveRobber();
+    /**
+     * <code>.MoveRobber move_robber = 505;</code>
+     */
+    soc.proto.GameMessage.MoveRobber getMoveRobber();
+    /**
+     * <code>.MoveRobber move_robber = 505;</code>
+     */
+    soc.proto.GameMessage.MoveRobberOrBuilder getMoveRobberOrBuilder();
+
     public soc.proto.GameMessage.GameMessageFromServer.MsgCase getMsgCase();
   }
   /**
@@ -24262,6 +27989,90 @@ public final class GameMessage {
               msgCase_ = 404;
               break;
             }
+            case 4002: {
+              soc.proto.GameMessage.LoseResources.Builder subBuilder = null;
+              if (msgCase_ == 500) {
+                subBuilder = ((soc.proto.GameMessage.LoseResources) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.LoseResources.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.LoseResources) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 500;
+              break;
+            }
+            case 4010: {
+              soc.proto.GameMessage.LoseResources.Builder subBuilder = null;
+              if (msgCase_ == 501) {
+                subBuilder = ((soc.proto.GameMessage.LoseResources) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.LoseResources.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.LoseResources) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 501;
+              break;
+            }
+            case 4018: {
+              soc.proto.GameMessage.GainResources.Builder subBuilder = null;
+              if (msgCase_ == 502) {
+                subBuilder = ((soc.proto.GameMessage.GainResources) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.GainResources.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.GainResources) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 502;
+              break;
+            }
+            case 4026: {
+              soc.proto.GameMessage.GainResources.Builder subBuilder = null;
+              if (msgCase_ == 503) {
+                subBuilder = ((soc.proto.GameMessage.GainResources) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.GainResources.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.GainResources) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 503;
+              break;
+            }
+            case 4034: {
+              soc.proto.GameMessage.ChoosePlayer.Builder subBuilder = null;
+              if (msgCase_ == 504) {
+                subBuilder = ((soc.proto.GameMessage.ChoosePlayer) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.ChoosePlayer.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.ChoosePlayer) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 504;
+              break;
+            }
+            case 4042: {
+              soc.proto.GameMessage.MoveRobber.Builder subBuilder = null;
+              if (msgCase_ == 505) {
+                subBuilder = ((soc.proto.GameMessage.MoveRobber) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.MoveRobber.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.MoveRobber) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 505;
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -24313,6 +28124,12 @@ public final class GameMessage {
       TRADE_CLEAR_OFFER(402),
       TRADE_REJECT_OFFER(403),
       TRADE_ACCEPT_OFFER(404),
+      LOSE_RESOURCES_PROMPT(500),
+      LOSE_RESOURCES(501),
+      GAIN_RESOURCES_PROMPT(502),
+      GAIN_RESOURCES(503),
+      CHOOSE_PLAYER_PROMPT(504),
+      MOVE_ROBBER(505),
       MSG_NOT_SET(0);
       private final int value;
       private MsgCase(int value) {
@@ -24351,6 +28168,12 @@ public final class GameMessage {
           case 402: return TRADE_CLEAR_OFFER;
           case 403: return TRADE_REJECT_OFFER;
           case 404: return TRADE_ACCEPT_OFFER;
+          case 500: return LOSE_RESOURCES_PROMPT;
+          case 501: return LOSE_RESOURCES;
+          case 502: return GAIN_RESOURCES_PROMPT;
+          case 503: return GAIN_RESOURCES;
+          case 504: return CHOOSE_PLAYER_PROMPT;
+          case 505: return MOVE_ROBBER;
           case 0: return MSG_NOT_SET;
           default: return null;
         }
@@ -25091,6 +28914,174 @@ public final class GameMessage {
       return soc.proto.GameMessage.TradeAcceptOffer.getDefaultInstance();
     }
 
+    public static final int LOSE_RESOURCES_PROMPT_FIELD_NUMBER = 500;
+    /**
+     * <pre>
+     * player actions: resources and robbing
+     * </pre>
+     *
+     * <code>.LoseResources lose_resources_prompt = 500;</code>
+     */
+    public boolean hasLoseResourcesPrompt() {
+      return msgCase_ == 500;
+    }
+    /**
+     * <pre>
+     * player actions: resources and robbing
+     * </pre>
+     *
+     * <code>.LoseResources lose_resources_prompt = 500;</code>
+     */
+    public soc.proto.GameMessage.LoseResources getLoseResourcesPrompt() {
+      if (msgCase_ == 500) {
+         return (soc.proto.GameMessage.LoseResources) msg_;
+      }
+      return soc.proto.GameMessage.LoseResources.getDefaultInstance();
+    }
+    /**
+     * <pre>
+     * player actions: resources and robbing
+     * </pre>
+     *
+     * <code>.LoseResources lose_resources_prompt = 500;</code>
+     */
+    public soc.proto.GameMessage.LoseResourcesOrBuilder getLoseResourcesPromptOrBuilder() {
+      if (msgCase_ == 500) {
+         return (soc.proto.GameMessage.LoseResources) msg_;
+      }
+      return soc.proto.GameMessage.LoseResources.getDefaultInstance();
+    }
+
+    public static final int LOSE_RESOURCES_FIELD_NUMBER = 501;
+    /**
+     * <code>.LoseResources lose_resources = 501;</code>
+     */
+    public boolean hasLoseResources() {
+      return msgCase_ == 501;
+    }
+    /**
+     * <code>.LoseResources lose_resources = 501;</code>
+     */
+    public soc.proto.GameMessage.LoseResources getLoseResources() {
+      if (msgCase_ == 501) {
+         return (soc.proto.GameMessage.LoseResources) msg_;
+      }
+      return soc.proto.GameMessage.LoseResources.getDefaultInstance();
+    }
+    /**
+     * <code>.LoseResources lose_resources = 501;</code>
+     */
+    public soc.proto.GameMessage.LoseResourcesOrBuilder getLoseResourcesOrBuilder() {
+      if (msgCase_ == 501) {
+         return (soc.proto.GameMessage.LoseResources) msg_;
+      }
+      return soc.proto.GameMessage.LoseResources.getDefaultInstance();
+    }
+
+    public static final int GAIN_RESOURCES_PROMPT_FIELD_NUMBER = 502;
+    /**
+     * <code>.GainResources gain_resources_prompt = 502;</code>
+     */
+    public boolean hasGainResourcesPrompt() {
+      return msgCase_ == 502;
+    }
+    /**
+     * <code>.GainResources gain_resources_prompt = 502;</code>
+     */
+    public soc.proto.GameMessage.GainResources getGainResourcesPrompt() {
+      if (msgCase_ == 502) {
+         return (soc.proto.GameMessage.GainResources) msg_;
+      }
+      return soc.proto.GameMessage.GainResources.getDefaultInstance();
+    }
+    /**
+     * <code>.GainResources gain_resources_prompt = 502;</code>
+     */
+    public soc.proto.GameMessage.GainResourcesOrBuilder getGainResourcesPromptOrBuilder() {
+      if (msgCase_ == 502) {
+         return (soc.proto.GameMessage.GainResources) msg_;
+      }
+      return soc.proto.GameMessage.GainResources.getDefaultInstance();
+    }
+
+    public static final int GAIN_RESOURCES_FIELD_NUMBER = 503;
+    /**
+     * <code>.GainResources gain_resources = 503;</code>
+     */
+    public boolean hasGainResources() {
+      return msgCase_ == 503;
+    }
+    /**
+     * <code>.GainResources gain_resources = 503;</code>
+     */
+    public soc.proto.GameMessage.GainResources getGainResources() {
+      if (msgCase_ == 503) {
+         return (soc.proto.GameMessage.GainResources) msg_;
+      }
+      return soc.proto.GameMessage.GainResources.getDefaultInstance();
+    }
+    /**
+     * <code>.GainResources gain_resources = 503;</code>
+     */
+    public soc.proto.GameMessage.GainResourcesOrBuilder getGainResourcesOrBuilder() {
+      if (msgCase_ == 503) {
+         return (soc.proto.GameMessage.GainResources) msg_;
+      }
+      return soc.proto.GameMessage.GainResources.getDefaultInstance();
+    }
+
+    public static final int CHOOSE_PLAYER_PROMPT_FIELD_NUMBER = 504;
+    /**
+     * <code>.ChoosePlayer choose_player_prompt = 504;</code>
+     */
+    public boolean hasChoosePlayerPrompt() {
+      return msgCase_ == 504;
+    }
+    /**
+     * <code>.ChoosePlayer choose_player_prompt = 504;</code>
+     */
+    public soc.proto.GameMessage.ChoosePlayer getChoosePlayerPrompt() {
+      if (msgCase_ == 504) {
+         return (soc.proto.GameMessage.ChoosePlayer) msg_;
+      }
+      return soc.proto.GameMessage.ChoosePlayer.getDefaultInstance();
+    }
+    /**
+     * <code>.ChoosePlayer choose_player_prompt = 504;</code>
+     */
+    public soc.proto.GameMessage.ChoosePlayerOrBuilder getChoosePlayerPromptOrBuilder() {
+      if (msgCase_ == 504) {
+         return (soc.proto.GameMessage.ChoosePlayer) msg_;
+      }
+      return soc.proto.GameMessage.ChoosePlayer.getDefaultInstance();
+    }
+
+    public static final int MOVE_ROBBER_FIELD_NUMBER = 505;
+    /**
+     * <code>.MoveRobber move_robber = 505;</code>
+     */
+    public boolean hasMoveRobber() {
+      return msgCase_ == 505;
+    }
+    /**
+     * <code>.MoveRobber move_robber = 505;</code>
+     */
+    public soc.proto.GameMessage.MoveRobber getMoveRobber() {
+      if (msgCase_ == 505) {
+         return (soc.proto.GameMessage.MoveRobber) msg_;
+      }
+      return soc.proto.GameMessage.MoveRobber.getDefaultInstance();
+    }
+    /**
+     * <code>.MoveRobber move_robber = 505;</code>
+     */
+    public soc.proto.GameMessage.MoveRobberOrBuilder getMoveRobberOrBuilder() {
+      if (msgCase_ == 505) {
+         return (soc.proto.GameMessage.MoveRobber) msg_;
+      }
+      return soc.proto.GameMessage.MoveRobber.getDefaultInstance();
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -25177,6 +29168,24 @@ public final class GameMessage {
       }
       if (msgCase_ == 404) {
         output.writeMessage(404, (soc.proto.GameMessage.TradeAcceptOffer) msg_);
+      }
+      if (msgCase_ == 500) {
+        output.writeMessage(500, (soc.proto.GameMessage.LoseResources) msg_);
+      }
+      if (msgCase_ == 501) {
+        output.writeMessage(501, (soc.proto.GameMessage.LoseResources) msg_);
+      }
+      if (msgCase_ == 502) {
+        output.writeMessage(502, (soc.proto.GameMessage.GainResources) msg_);
+      }
+      if (msgCase_ == 503) {
+        output.writeMessage(503, (soc.proto.GameMessage.GainResources) msg_);
+      }
+      if (msgCase_ == 504) {
+        output.writeMessage(504, (soc.proto.GameMessage.ChoosePlayer) msg_);
+      }
+      if (msgCase_ == 505) {
+        output.writeMessage(505, (soc.proto.GameMessage.MoveRobber) msg_);
       }
       unknownFields.writeTo(output);
     }
@@ -25284,6 +29293,30 @@ public final class GameMessage {
       if (msgCase_ == 404) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(404, (soc.proto.GameMessage.TradeAcceptOffer) msg_);
+      }
+      if (msgCase_ == 500) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(500, (soc.proto.GameMessage.LoseResources) msg_);
+      }
+      if (msgCase_ == 501) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(501, (soc.proto.GameMessage.LoseResources) msg_);
+      }
+      if (msgCase_ == 502) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(502, (soc.proto.GameMessage.GainResources) msg_);
+      }
+      if (msgCase_ == 503) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(503, (soc.proto.GameMessage.GainResources) msg_);
+      }
+      if (msgCase_ == 504) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(504, (soc.proto.GameMessage.ChoosePlayer) msg_);
+      }
+      if (msgCase_ == 505) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(505, (soc.proto.GameMessage.MoveRobber) msg_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -25401,6 +29434,30 @@ public final class GameMessage {
           result = result && getTradeAcceptOffer()
               .equals(other.getTradeAcceptOffer());
           break;
+        case 500:
+          result = result && getLoseResourcesPrompt()
+              .equals(other.getLoseResourcesPrompt());
+          break;
+        case 501:
+          result = result && getLoseResources()
+              .equals(other.getLoseResources());
+          break;
+        case 502:
+          result = result && getGainResourcesPrompt()
+              .equals(other.getGainResourcesPrompt());
+          break;
+        case 503:
+          result = result && getGainResources()
+              .equals(other.getGainResources());
+          break;
+        case 504:
+          result = result && getChoosePlayerPrompt()
+              .equals(other.getChoosePlayerPrompt());
+          break;
+        case 505:
+          result = result && getMoveRobber()
+              .equals(other.getMoveRobber());
+          break;
         case 0:
         default:
       }
@@ -25511,6 +29568,30 @@ public final class GameMessage {
         case 404:
           hash = (37 * hash) + TRADE_ACCEPT_OFFER_FIELD_NUMBER;
           hash = (53 * hash) + getTradeAcceptOffer().hashCode();
+          break;
+        case 500:
+          hash = (37 * hash) + LOSE_RESOURCES_PROMPT_FIELD_NUMBER;
+          hash = (53 * hash) + getLoseResourcesPrompt().hashCode();
+          break;
+        case 501:
+          hash = (37 * hash) + LOSE_RESOURCES_FIELD_NUMBER;
+          hash = (53 * hash) + getLoseResources().hashCode();
+          break;
+        case 502:
+          hash = (37 * hash) + GAIN_RESOURCES_PROMPT_FIELD_NUMBER;
+          hash = (53 * hash) + getGainResourcesPrompt().hashCode();
+          break;
+        case 503:
+          hash = (37 * hash) + GAIN_RESOURCES_FIELD_NUMBER;
+          hash = (53 * hash) + getGainResources().hashCode();
+          break;
+        case 504:
+          hash = (37 * hash) + CHOOSE_PLAYER_PROMPT_FIELD_NUMBER;
+          hash = (53 * hash) + getChoosePlayerPrompt().hashCode();
+          break;
+        case 505:
+          hash = (37 * hash) + MOVE_ROBBER_FIELD_NUMBER;
+          hash = (53 * hash) + getMoveRobber().hashCode();
           break;
         case 0:
         default:
@@ -25835,6 +29916,48 @@ public final class GameMessage {
             result.msg_ = tradeAcceptOfferBuilder_.build();
           }
         }
+        if (msgCase_ == 500) {
+          if (loseResourcesPromptBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = loseResourcesPromptBuilder_.build();
+          }
+        }
+        if (msgCase_ == 501) {
+          if (loseResourcesBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = loseResourcesBuilder_.build();
+          }
+        }
+        if (msgCase_ == 502) {
+          if (gainResourcesPromptBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = gainResourcesPromptBuilder_.build();
+          }
+        }
+        if (msgCase_ == 503) {
+          if (gainResourcesBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = gainResourcesBuilder_.build();
+          }
+        }
+        if (msgCase_ == 504) {
+          if (choosePlayerPromptBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = choosePlayerPromptBuilder_.build();
+          }
+        }
+        if (msgCase_ == 505) {
+          if (moveRobberBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = moveRobberBuilder_.build();
+          }
+        }
         result.msgCase_ = msgCase_;
         onBuilt();
         return result;
@@ -25975,6 +30098,30 @@ public final class GameMessage {
           }
           case TRADE_ACCEPT_OFFER: {
             mergeTradeAcceptOffer(other.getTradeAcceptOffer());
+            break;
+          }
+          case LOSE_RESOURCES_PROMPT: {
+            mergeLoseResourcesPrompt(other.getLoseResourcesPrompt());
+            break;
+          }
+          case LOSE_RESOURCES: {
+            mergeLoseResources(other.getLoseResources());
+            break;
+          }
+          case GAIN_RESOURCES_PROMPT: {
+            mergeGainResourcesPrompt(other.getGainResourcesPrompt());
+            break;
+          }
+          case GAIN_RESOURCES: {
+            mergeGainResources(other.getGainResources());
+            break;
+          }
+          case CHOOSE_PLAYER_PROMPT: {
+            mergeChoosePlayerPrompt(other.getChoosePlayerPrompt());
+            break;
+          }
+          case MOVE_ROBBER: {
+            mergeMoveRobber(other.getMoveRobber());
             break;
           }
           case MSG_NOT_SET: {
@@ -29497,6 +33644,858 @@ public final class GameMessage {
         onChanged();;
         return tradeAcceptOfferBuilder_;
       }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.LoseResources, soc.proto.GameMessage.LoseResources.Builder, soc.proto.GameMessage.LoseResourcesOrBuilder> loseResourcesPromptBuilder_;
+      /**
+       * <pre>
+       * player actions: resources and robbing
+       * </pre>
+       *
+       * <code>.LoseResources lose_resources_prompt = 500;</code>
+       */
+      public boolean hasLoseResourcesPrompt() {
+        return msgCase_ == 500;
+      }
+      /**
+       * <pre>
+       * player actions: resources and robbing
+       * </pre>
+       *
+       * <code>.LoseResources lose_resources_prompt = 500;</code>
+       */
+      public soc.proto.GameMessage.LoseResources getLoseResourcesPrompt() {
+        if (loseResourcesPromptBuilder_ == null) {
+          if (msgCase_ == 500) {
+            return (soc.proto.GameMessage.LoseResources) msg_;
+          }
+          return soc.proto.GameMessage.LoseResources.getDefaultInstance();
+        } else {
+          if (msgCase_ == 500) {
+            return loseResourcesPromptBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.LoseResources.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * player actions: resources and robbing
+       * </pre>
+       *
+       * <code>.LoseResources lose_resources_prompt = 500;</code>
+       */
+      public Builder setLoseResourcesPrompt(soc.proto.GameMessage.LoseResources value) {
+        if (loseResourcesPromptBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          loseResourcesPromptBuilder_.setMessage(value);
+        }
+        msgCase_ = 500;
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions: resources and robbing
+       * </pre>
+       *
+       * <code>.LoseResources lose_resources_prompt = 500;</code>
+       */
+      public Builder setLoseResourcesPrompt(
+          soc.proto.GameMessage.LoseResources.Builder builderForValue) {
+        if (loseResourcesPromptBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          loseResourcesPromptBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 500;
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions: resources and robbing
+       * </pre>
+       *
+       * <code>.LoseResources lose_resources_prompt = 500;</code>
+       */
+      public Builder mergeLoseResourcesPrompt(soc.proto.GameMessage.LoseResources value) {
+        if (loseResourcesPromptBuilder_ == null) {
+          if (msgCase_ == 500 &&
+              msg_ != soc.proto.GameMessage.LoseResources.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.LoseResources.newBuilder((soc.proto.GameMessage.LoseResources) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 500) {
+            loseResourcesPromptBuilder_.mergeFrom(value);
+          }
+          loseResourcesPromptBuilder_.setMessage(value);
+        }
+        msgCase_ = 500;
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions: resources and robbing
+       * </pre>
+       *
+       * <code>.LoseResources lose_resources_prompt = 500;</code>
+       */
+      public Builder clearLoseResourcesPrompt() {
+        if (loseResourcesPromptBuilder_ == null) {
+          if (msgCase_ == 500) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 500) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          loseResourcesPromptBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions: resources and robbing
+       * </pre>
+       *
+       * <code>.LoseResources lose_resources_prompt = 500;</code>
+       */
+      public soc.proto.GameMessage.LoseResources.Builder getLoseResourcesPromptBuilder() {
+        return getLoseResourcesPromptFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * player actions: resources and robbing
+       * </pre>
+       *
+       * <code>.LoseResources lose_resources_prompt = 500;</code>
+       */
+      public soc.proto.GameMessage.LoseResourcesOrBuilder getLoseResourcesPromptOrBuilder() {
+        if ((msgCase_ == 500) && (loseResourcesPromptBuilder_ != null)) {
+          return loseResourcesPromptBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 500) {
+            return (soc.proto.GameMessage.LoseResources) msg_;
+          }
+          return soc.proto.GameMessage.LoseResources.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * player actions: resources and robbing
+       * </pre>
+       *
+       * <code>.LoseResources lose_resources_prompt = 500;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.LoseResources, soc.proto.GameMessage.LoseResources.Builder, soc.proto.GameMessage.LoseResourcesOrBuilder> 
+          getLoseResourcesPromptFieldBuilder() {
+        if (loseResourcesPromptBuilder_ == null) {
+          if (!(msgCase_ == 500)) {
+            msg_ = soc.proto.GameMessage.LoseResources.getDefaultInstance();
+          }
+          loseResourcesPromptBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.LoseResources, soc.proto.GameMessage.LoseResources.Builder, soc.proto.GameMessage.LoseResourcesOrBuilder>(
+                  (soc.proto.GameMessage.LoseResources) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 500;
+        onChanged();;
+        return loseResourcesPromptBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.LoseResources, soc.proto.GameMessage.LoseResources.Builder, soc.proto.GameMessage.LoseResourcesOrBuilder> loseResourcesBuilder_;
+      /**
+       * <code>.LoseResources lose_resources = 501;</code>
+       */
+      public boolean hasLoseResources() {
+        return msgCase_ == 501;
+      }
+      /**
+       * <code>.LoseResources lose_resources = 501;</code>
+       */
+      public soc.proto.GameMessage.LoseResources getLoseResources() {
+        if (loseResourcesBuilder_ == null) {
+          if (msgCase_ == 501) {
+            return (soc.proto.GameMessage.LoseResources) msg_;
+          }
+          return soc.proto.GameMessage.LoseResources.getDefaultInstance();
+        } else {
+          if (msgCase_ == 501) {
+            return loseResourcesBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.LoseResources.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.LoseResources lose_resources = 501;</code>
+       */
+      public Builder setLoseResources(soc.proto.GameMessage.LoseResources value) {
+        if (loseResourcesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          loseResourcesBuilder_.setMessage(value);
+        }
+        msgCase_ = 501;
+        return this;
+      }
+      /**
+       * <code>.LoseResources lose_resources = 501;</code>
+       */
+      public Builder setLoseResources(
+          soc.proto.GameMessage.LoseResources.Builder builderForValue) {
+        if (loseResourcesBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          loseResourcesBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 501;
+        return this;
+      }
+      /**
+       * <code>.LoseResources lose_resources = 501;</code>
+       */
+      public Builder mergeLoseResources(soc.proto.GameMessage.LoseResources value) {
+        if (loseResourcesBuilder_ == null) {
+          if (msgCase_ == 501 &&
+              msg_ != soc.proto.GameMessage.LoseResources.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.LoseResources.newBuilder((soc.proto.GameMessage.LoseResources) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 501) {
+            loseResourcesBuilder_.mergeFrom(value);
+          }
+          loseResourcesBuilder_.setMessage(value);
+        }
+        msgCase_ = 501;
+        return this;
+      }
+      /**
+       * <code>.LoseResources lose_resources = 501;</code>
+       */
+      public Builder clearLoseResources() {
+        if (loseResourcesBuilder_ == null) {
+          if (msgCase_ == 501) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 501) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          loseResourcesBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.LoseResources lose_resources = 501;</code>
+       */
+      public soc.proto.GameMessage.LoseResources.Builder getLoseResourcesBuilder() {
+        return getLoseResourcesFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.LoseResources lose_resources = 501;</code>
+       */
+      public soc.proto.GameMessage.LoseResourcesOrBuilder getLoseResourcesOrBuilder() {
+        if ((msgCase_ == 501) && (loseResourcesBuilder_ != null)) {
+          return loseResourcesBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 501) {
+            return (soc.proto.GameMessage.LoseResources) msg_;
+          }
+          return soc.proto.GameMessage.LoseResources.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.LoseResources lose_resources = 501;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.LoseResources, soc.proto.GameMessage.LoseResources.Builder, soc.proto.GameMessage.LoseResourcesOrBuilder> 
+          getLoseResourcesFieldBuilder() {
+        if (loseResourcesBuilder_ == null) {
+          if (!(msgCase_ == 501)) {
+            msg_ = soc.proto.GameMessage.LoseResources.getDefaultInstance();
+          }
+          loseResourcesBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.LoseResources, soc.proto.GameMessage.LoseResources.Builder, soc.proto.GameMessage.LoseResourcesOrBuilder>(
+                  (soc.proto.GameMessage.LoseResources) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 501;
+        onChanged();;
+        return loseResourcesBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.GainResources, soc.proto.GameMessage.GainResources.Builder, soc.proto.GameMessage.GainResourcesOrBuilder> gainResourcesPromptBuilder_;
+      /**
+       * <code>.GainResources gain_resources_prompt = 502;</code>
+       */
+      public boolean hasGainResourcesPrompt() {
+        return msgCase_ == 502;
+      }
+      /**
+       * <code>.GainResources gain_resources_prompt = 502;</code>
+       */
+      public soc.proto.GameMessage.GainResources getGainResourcesPrompt() {
+        if (gainResourcesPromptBuilder_ == null) {
+          if (msgCase_ == 502) {
+            return (soc.proto.GameMessage.GainResources) msg_;
+          }
+          return soc.proto.GameMessage.GainResources.getDefaultInstance();
+        } else {
+          if (msgCase_ == 502) {
+            return gainResourcesPromptBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.GainResources.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.GainResources gain_resources_prompt = 502;</code>
+       */
+      public Builder setGainResourcesPrompt(soc.proto.GameMessage.GainResources value) {
+        if (gainResourcesPromptBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          gainResourcesPromptBuilder_.setMessage(value);
+        }
+        msgCase_ = 502;
+        return this;
+      }
+      /**
+       * <code>.GainResources gain_resources_prompt = 502;</code>
+       */
+      public Builder setGainResourcesPrompt(
+          soc.proto.GameMessage.GainResources.Builder builderForValue) {
+        if (gainResourcesPromptBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          gainResourcesPromptBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 502;
+        return this;
+      }
+      /**
+       * <code>.GainResources gain_resources_prompt = 502;</code>
+       */
+      public Builder mergeGainResourcesPrompt(soc.proto.GameMessage.GainResources value) {
+        if (gainResourcesPromptBuilder_ == null) {
+          if (msgCase_ == 502 &&
+              msg_ != soc.proto.GameMessage.GainResources.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.GainResources.newBuilder((soc.proto.GameMessage.GainResources) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 502) {
+            gainResourcesPromptBuilder_.mergeFrom(value);
+          }
+          gainResourcesPromptBuilder_.setMessage(value);
+        }
+        msgCase_ = 502;
+        return this;
+      }
+      /**
+       * <code>.GainResources gain_resources_prompt = 502;</code>
+       */
+      public Builder clearGainResourcesPrompt() {
+        if (gainResourcesPromptBuilder_ == null) {
+          if (msgCase_ == 502) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 502) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          gainResourcesPromptBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.GainResources gain_resources_prompt = 502;</code>
+       */
+      public soc.proto.GameMessage.GainResources.Builder getGainResourcesPromptBuilder() {
+        return getGainResourcesPromptFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.GainResources gain_resources_prompt = 502;</code>
+       */
+      public soc.proto.GameMessage.GainResourcesOrBuilder getGainResourcesPromptOrBuilder() {
+        if ((msgCase_ == 502) && (gainResourcesPromptBuilder_ != null)) {
+          return gainResourcesPromptBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 502) {
+            return (soc.proto.GameMessage.GainResources) msg_;
+          }
+          return soc.proto.GameMessage.GainResources.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.GainResources gain_resources_prompt = 502;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.GainResources, soc.proto.GameMessage.GainResources.Builder, soc.proto.GameMessage.GainResourcesOrBuilder> 
+          getGainResourcesPromptFieldBuilder() {
+        if (gainResourcesPromptBuilder_ == null) {
+          if (!(msgCase_ == 502)) {
+            msg_ = soc.proto.GameMessage.GainResources.getDefaultInstance();
+          }
+          gainResourcesPromptBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.GainResources, soc.proto.GameMessage.GainResources.Builder, soc.proto.GameMessage.GainResourcesOrBuilder>(
+                  (soc.proto.GameMessage.GainResources) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 502;
+        onChanged();;
+        return gainResourcesPromptBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.GainResources, soc.proto.GameMessage.GainResources.Builder, soc.proto.GameMessage.GainResourcesOrBuilder> gainResourcesBuilder_;
+      /**
+       * <code>.GainResources gain_resources = 503;</code>
+       */
+      public boolean hasGainResources() {
+        return msgCase_ == 503;
+      }
+      /**
+       * <code>.GainResources gain_resources = 503;</code>
+       */
+      public soc.proto.GameMessage.GainResources getGainResources() {
+        if (gainResourcesBuilder_ == null) {
+          if (msgCase_ == 503) {
+            return (soc.proto.GameMessage.GainResources) msg_;
+          }
+          return soc.proto.GameMessage.GainResources.getDefaultInstance();
+        } else {
+          if (msgCase_ == 503) {
+            return gainResourcesBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.GainResources.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.GainResources gain_resources = 503;</code>
+       */
+      public Builder setGainResources(soc.proto.GameMessage.GainResources value) {
+        if (gainResourcesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          gainResourcesBuilder_.setMessage(value);
+        }
+        msgCase_ = 503;
+        return this;
+      }
+      /**
+       * <code>.GainResources gain_resources = 503;</code>
+       */
+      public Builder setGainResources(
+          soc.proto.GameMessage.GainResources.Builder builderForValue) {
+        if (gainResourcesBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          gainResourcesBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 503;
+        return this;
+      }
+      /**
+       * <code>.GainResources gain_resources = 503;</code>
+       */
+      public Builder mergeGainResources(soc.proto.GameMessage.GainResources value) {
+        if (gainResourcesBuilder_ == null) {
+          if (msgCase_ == 503 &&
+              msg_ != soc.proto.GameMessage.GainResources.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.GainResources.newBuilder((soc.proto.GameMessage.GainResources) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 503) {
+            gainResourcesBuilder_.mergeFrom(value);
+          }
+          gainResourcesBuilder_.setMessage(value);
+        }
+        msgCase_ = 503;
+        return this;
+      }
+      /**
+       * <code>.GainResources gain_resources = 503;</code>
+       */
+      public Builder clearGainResources() {
+        if (gainResourcesBuilder_ == null) {
+          if (msgCase_ == 503) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 503) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          gainResourcesBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.GainResources gain_resources = 503;</code>
+       */
+      public soc.proto.GameMessage.GainResources.Builder getGainResourcesBuilder() {
+        return getGainResourcesFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.GainResources gain_resources = 503;</code>
+       */
+      public soc.proto.GameMessage.GainResourcesOrBuilder getGainResourcesOrBuilder() {
+        if ((msgCase_ == 503) && (gainResourcesBuilder_ != null)) {
+          return gainResourcesBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 503) {
+            return (soc.proto.GameMessage.GainResources) msg_;
+          }
+          return soc.proto.GameMessage.GainResources.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.GainResources gain_resources = 503;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.GainResources, soc.proto.GameMessage.GainResources.Builder, soc.proto.GameMessage.GainResourcesOrBuilder> 
+          getGainResourcesFieldBuilder() {
+        if (gainResourcesBuilder_ == null) {
+          if (!(msgCase_ == 503)) {
+            msg_ = soc.proto.GameMessage.GainResources.getDefaultInstance();
+          }
+          gainResourcesBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.GainResources, soc.proto.GameMessage.GainResources.Builder, soc.proto.GameMessage.GainResourcesOrBuilder>(
+                  (soc.proto.GameMessage.GainResources) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 503;
+        onChanged();;
+        return gainResourcesBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.ChoosePlayer, soc.proto.GameMessage.ChoosePlayer.Builder, soc.proto.GameMessage.ChoosePlayerOrBuilder> choosePlayerPromptBuilder_;
+      /**
+       * <code>.ChoosePlayer choose_player_prompt = 504;</code>
+       */
+      public boolean hasChoosePlayerPrompt() {
+        return msgCase_ == 504;
+      }
+      /**
+       * <code>.ChoosePlayer choose_player_prompt = 504;</code>
+       */
+      public soc.proto.GameMessage.ChoosePlayer getChoosePlayerPrompt() {
+        if (choosePlayerPromptBuilder_ == null) {
+          if (msgCase_ == 504) {
+            return (soc.proto.GameMessage.ChoosePlayer) msg_;
+          }
+          return soc.proto.GameMessage.ChoosePlayer.getDefaultInstance();
+        } else {
+          if (msgCase_ == 504) {
+            return choosePlayerPromptBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.ChoosePlayer.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.ChoosePlayer choose_player_prompt = 504;</code>
+       */
+      public Builder setChoosePlayerPrompt(soc.proto.GameMessage.ChoosePlayer value) {
+        if (choosePlayerPromptBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          choosePlayerPromptBuilder_.setMessage(value);
+        }
+        msgCase_ = 504;
+        return this;
+      }
+      /**
+       * <code>.ChoosePlayer choose_player_prompt = 504;</code>
+       */
+      public Builder setChoosePlayerPrompt(
+          soc.proto.GameMessage.ChoosePlayer.Builder builderForValue) {
+        if (choosePlayerPromptBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          choosePlayerPromptBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 504;
+        return this;
+      }
+      /**
+       * <code>.ChoosePlayer choose_player_prompt = 504;</code>
+       */
+      public Builder mergeChoosePlayerPrompt(soc.proto.GameMessage.ChoosePlayer value) {
+        if (choosePlayerPromptBuilder_ == null) {
+          if (msgCase_ == 504 &&
+              msg_ != soc.proto.GameMessage.ChoosePlayer.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.ChoosePlayer.newBuilder((soc.proto.GameMessage.ChoosePlayer) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 504) {
+            choosePlayerPromptBuilder_.mergeFrom(value);
+          }
+          choosePlayerPromptBuilder_.setMessage(value);
+        }
+        msgCase_ = 504;
+        return this;
+      }
+      /**
+       * <code>.ChoosePlayer choose_player_prompt = 504;</code>
+       */
+      public Builder clearChoosePlayerPrompt() {
+        if (choosePlayerPromptBuilder_ == null) {
+          if (msgCase_ == 504) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 504) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          choosePlayerPromptBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.ChoosePlayer choose_player_prompt = 504;</code>
+       */
+      public soc.proto.GameMessage.ChoosePlayer.Builder getChoosePlayerPromptBuilder() {
+        return getChoosePlayerPromptFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.ChoosePlayer choose_player_prompt = 504;</code>
+       */
+      public soc.proto.GameMessage.ChoosePlayerOrBuilder getChoosePlayerPromptOrBuilder() {
+        if ((msgCase_ == 504) && (choosePlayerPromptBuilder_ != null)) {
+          return choosePlayerPromptBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 504) {
+            return (soc.proto.GameMessage.ChoosePlayer) msg_;
+          }
+          return soc.proto.GameMessage.ChoosePlayer.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.ChoosePlayer choose_player_prompt = 504;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.ChoosePlayer, soc.proto.GameMessage.ChoosePlayer.Builder, soc.proto.GameMessage.ChoosePlayerOrBuilder> 
+          getChoosePlayerPromptFieldBuilder() {
+        if (choosePlayerPromptBuilder_ == null) {
+          if (!(msgCase_ == 504)) {
+            msg_ = soc.proto.GameMessage.ChoosePlayer.getDefaultInstance();
+          }
+          choosePlayerPromptBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.ChoosePlayer, soc.proto.GameMessage.ChoosePlayer.Builder, soc.proto.GameMessage.ChoosePlayerOrBuilder>(
+                  (soc.proto.GameMessage.ChoosePlayer) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 504;
+        onChanged();;
+        return choosePlayerPromptBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.MoveRobber, soc.proto.GameMessage.MoveRobber.Builder, soc.proto.GameMessage.MoveRobberOrBuilder> moveRobberBuilder_;
+      /**
+       * <code>.MoveRobber move_robber = 505;</code>
+       */
+      public boolean hasMoveRobber() {
+        return msgCase_ == 505;
+      }
+      /**
+       * <code>.MoveRobber move_robber = 505;</code>
+       */
+      public soc.proto.GameMessage.MoveRobber getMoveRobber() {
+        if (moveRobberBuilder_ == null) {
+          if (msgCase_ == 505) {
+            return (soc.proto.GameMessage.MoveRobber) msg_;
+          }
+          return soc.proto.GameMessage.MoveRobber.getDefaultInstance();
+        } else {
+          if (msgCase_ == 505) {
+            return moveRobberBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.MoveRobber.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.MoveRobber move_robber = 505;</code>
+       */
+      public Builder setMoveRobber(soc.proto.GameMessage.MoveRobber value) {
+        if (moveRobberBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          moveRobberBuilder_.setMessage(value);
+        }
+        msgCase_ = 505;
+        return this;
+      }
+      /**
+       * <code>.MoveRobber move_robber = 505;</code>
+       */
+      public Builder setMoveRobber(
+          soc.proto.GameMessage.MoveRobber.Builder builderForValue) {
+        if (moveRobberBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          moveRobberBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 505;
+        return this;
+      }
+      /**
+       * <code>.MoveRobber move_robber = 505;</code>
+       */
+      public Builder mergeMoveRobber(soc.proto.GameMessage.MoveRobber value) {
+        if (moveRobberBuilder_ == null) {
+          if (msgCase_ == 505 &&
+              msg_ != soc.proto.GameMessage.MoveRobber.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.MoveRobber.newBuilder((soc.proto.GameMessage.MoveRobber) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 505) {
+            moveRobberBuilder_.mergeFrom(value);
+          }
+          moveRobberBuilder_.setMessage(value);
+        }
+        msgCase_ = 505;
+        return this;
+      }
+      /**
+       * <code>.MoveRobber move_robber = 505;</code>
+       */
+      public Builder clearMoveRobber() {
+        if (moveRobberBuilder_ == null) {
+          if (msgCase_ == 505) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 505) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          moveRobberBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.MoveRobber move_robber = 505;</code>
+       */
+      public soc.proto.GameMessage.MoveRobber.Builder getMoveRobberBuilder() {
+        return getMoveRobberFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.MoveRobber move_robber = 505;</code>
+       */
+      public soc.proto.GameMessage.MoveRobberOrBuilder getMoveRobberOrBuilder() {
+        if ((msgCase_ == 505) && (moveRobberBuilder_ != null)) {
+          return moveRobberBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 505) {
+            return (soc.proto.GameMessage.MoveRobber) msg_;
+          }
+          return soc.proto.GameMessage.MoveRobber.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.MoveRobber move_robber = 505;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.MoveRobber, soc.proto.GameMessage.MoveRobber.Builder, soc.proto.GameMessage.MoveRobberOrBuilder> 
+          getMoveRobberFieldBuilder() {
+        if (moveRobberBuilder_ == null) {
+          if (!(msgCase_ == 505)) {
+            msg_ = soc.proto.GameMessage.MoveRobber.getDefaultInstance();
+          }
+          moveRobberBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.MoveRobber, soc.proto.GameMessage.MoveRobber.Builder, soc.proto.GameMessage.MoveRobberOrBuilder>(
+                  (soc.proto.GameMessage.MoveRobber) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 505;
+        onChanged();;
+        return moveRobberBuilder_;
+      }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFieldsProto3(unknownFields);
@@ -29765,6 +34764,83 @@ public final class GameMessage {
      */
     soc.proto.GameMessage.TradeAcceptOfferOrBuilder getTradeAcceptOfferOrBuilder();
 
+    /**
+     * <pre>
+     * player actions: resources and robbing
+     * </pre>
+     *
+     * <code>.LoseResources lose_resources = 500;</code>
+     */
+    boolean hasLoseResources();
+    /**
+     * <pre>
+     * player actions: resources and robbing
+     * </pre>
+     *
+     * <code>.LoseResources lose_resources = 500;</code>
+     */
+    soc.proto.GameMessage.LoseResources getLoseResources();
+    /**
+     * <pre>
+     * player actions: resources and robbing
+     * </pre>
+     *
+     * <code>.LoseResources lose_resources = 500;</code>
+     */
+    soc.proto.GameMessage.LoseResourcesOrBuilder getLoseResourcesOrBuilder();
+
+    /**
+     * <code>.GainResources gain_resources = 501;</code>
+     */
+    boolean hasGainResources();
+    /**
+     * <code>.GainResources gain_resources = 501;</code>
+     */
+    soc.proto.GameMessage.GainResources getGainResources();
+    /**
+     * <code>.GainResources gain_resources = 501;</code>
+     */
+    soc.proto.GameMessage.GainResourcesOrBuilder getGainResourcesOrBuilder();
+
+    /**
+     * <code>.ChooseResourceType choose_resource_type = 502;</code>
+     */
+    boolean hasChooseResourceType();
+    /**
+     * <code>.ChooseResourceType choose_resource_type = 502;</code>
+     */
+    soc.proto.GameMessage.ChooseResourceType getChooseResourceType();
+    /**
+     * <code>.ChooseResourceType choose_resource_type = 502;</code>
+     */
+    soc.proto.GameMessage.ChooseResourceTypeOrBuilder getChooseResourceTypeOrBuilder();
+
+    /**
+     * <code>.ChoosePlayer choose_player = 503;</code>
+     */
+    boolean hasChoosePlayer();
+    /**
+     * <code>.ChoosePlayer choose_player = 503;</code>
+     */
+    soc.proto.GameMessage.ChoosePlayer getChoosePlayer();
+    /**
+     * <code>.ChoosePlayer choose_player = 503;</code>
+     */
+    soc.proto.GameMessage.ChoosePlayerOrBuilder getChoosePlayerOrBuilder();
+
+    /**
+     * <code>.MoveRobber move_robber = 504;</code>
+     */
+    boolean hasMoveRobber();
+    /**
+     * <code>.MoveRobber move_robber = 504;</code>
+     */
+    soc.proto.GameMessage.MoveRobber getMoveRobber();
+    /**
+     * <code>.MoveRobber move_robber = 504;</code>
+     */
+    soc.proto.GameMessage.MoveRobberOrBuilder getMoveRobberOrBuilder();
+
     public soc.proto.GameMessage.GameMessageFromClient.MsgCase getMsgCase();
   }
   /**
@@ -29999,6 +35075,76 @@ public final class GameMessage {
               msgCase_ = 404;
               break;
             }
+            case 4002: {
+              soc.proto.GameMessage.LoseResources.Builder subBuilder = null;
+              if (msgCase_ == 500) {
+                subBuilder = ((soc.proto.GameMessage.LoseResources) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.LoseResources.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.LoseResources) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 500;
+              break;
+            }
+            case 4010: {
+              soc.proto.GameMessage.GainResources.Builder subBuilder = null;
+              if (msgCase_ == 501) {
+                subBuilder = ((soc.proto.GameMessage.GainResources) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.GainResources.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.GainResources) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 501;
+              break;
+            }
+            case 4018: {
+              soc.proto.GameMessage.ChooseResourceType.Builder subBuilder = null;
+              if (msgCase_ == 502) {
+                subBuilder = ((soc.proto.GameMessage.ChooseResourceType) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.ChooseResourceType.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.ChooseResourceType) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 502;
+              break;
+            }
+            case 4026: {
+              soc.proto.GameMessage.ChoosePlayer.Builder subBuilder = null;
+              if (msgCase_ == 503) {
+                subBuilder = ((soc.proto.GameMessage.ChoosePlayer) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.ChoosePlayer.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.ChoosePlayer) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 503;
+              break;
+            }
+            case 4034: {
+              soc.proto.GameMessage.MoveRobber.Builder subBuilder = null;
+              if (msgCase_ == 504) {
+                subBuilder = ((soc.proto.GameMessage.MoveRobber) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.MoveRobber.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.MoveRobber) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 504;
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -30040,6 +35186,11 @@ public final class GameMessage {
       TRADE_CLEAR_OFFER(402),
       TRADE_REJECT_OFFER(403),
       TRADE_ACCEPT_OFFER(404),
+      LOSE_RESOURCES(500),
+      GAIN_RESOURCES(501),
+      CHOOSE_RESOURCE_TYPE(502),
+      CHOOSE_PLAYER(503),
+      MOVE_ROBBER(504),
       MSG_NOT_SET(0);
       private final int value;
       private MsgCase(int value) {
@@ -30068,6 +35219,11 @@ public final class GameMessage {
           case 402: return TRADE_CLEAR_OFFER;
           case 403: return TRADE_REJECT_OFFER;
           case 404: return TRADE_ACCEPT_OFFER;
+          case 500: return LOSE_RESOURCES;
+          case 501: return GAIN_RESOURCES;
+          case 502: return CHOOSE_RESOURCE_TYPE;
+          case 503: return CHOOSE_PLAYER;
+          case 504: return MOVE_ROBBER;
           case 0: return MSG_NOT_SET;
           default: return null;
         }
@@ -30491,6 +35647,148 @@ public final class GameMessage {
       return soc.proto.GameMessage.TradeAcceptOffer.getDefaultInstance();
     }
 
+    public static final int LOSE_RESOURCES_FIELD_NUMBER = 500;
+    /**
+     * <pre>
+     * player actions: resources and robbing
+     * </pre>
+     *
+     * <code>.LoseResources lose_resources = 500;</code>
+     */
+    public boolean hasLoseResources() {
+      return msgCase_ == 500;
+    }
+    /**
+     * <pre>
+     * player actions: resources and robbing
+     * </pre>
+     *
+     * <code>.LoseResources lose_resources = 500;</code>
+     */
+    public soc.proto.GameMessage.LoseResources getLoseResources() {
+      if (msgCase_ == 500) {
+         return (soc.proto.GameMessage.LoseResources) msg_;
+      }
+      return soc.proto.GameMessage.LoseResources.getDefaultInstance();
+    }
+    /**
+     * <pre>
+     * player actions: resources and robbing
+     * </pre>
+     *
+     * <code>.LoseResources lose_resources = 500;</code>
+     */
+    public soc.proto.GameMessage.LoseResourcesOrBuilder getLoseResourcesOrBuilder() {
+      if (msgCase_ == 500) {
+         return (soc.proto.GameMessage.LoseResources) msg_;
+      }
+      return soc.proto.GameMessage.LoseResources.getDefaultInstance();
+    }
+
+    public static final int GAIN_RESOURCES_FIELD_NUMBER = 501;
+    /**
+     * <code>.GainResources gain_resources = 501;</code>
+     */
+    public boolean hasGainResources() {
+      return msgCase_ == 501;
+    }
+    /**
+     * <code>.GainResources gain_resources = 501;</code>
+     */
+    public soc.proto.GameMessage.GainResources getGainResources() {
+      if (msgCase_ == 501) {
+         return (soc.proto.GameMessage.GainResources) msg_;
+      }
+      return soc.proto.GameMessage.GainResources.getDefaultInstance();
+    }
+    /**
+     * <code>.GainResources gain_resources = 501;</code>
+     */
+    public soc.proto.GameMessage.GainResourcesOrBuilder getGainResourcesOrBuilder() {
+      if (msgCase_ == 501) {
+         return (soc.proto.GameMessage.GainResources) msg_;
+      }
+      return soc.proto.GameMessage.GainResources.getDefaultInstance();
+    }
+
+    public static final int CHOOSE_RESOURCE_TYPE_FIELD_NUMBER = 502;
+    /**
+     * <code>.ChooseResourceType choose_resource_type = 502;</code>
+     */
+    public boolean hasChooseResourceType() {
+      return msgCase_ == 502;
+    }
+    /**
+     * <code>.ChooseResourceType choose_resource_type = 502;</code>
+     */
+    public soc.proto.GameMessage.ChooseResourceType getChooseResourceType() {
+      if (msgCase_ == 502) {
+         return (soc.proto.GameMessage.ChooseResourceType) msg_;
+      }
+      return soc.proto.GameMessage.ChooseResourceType.getDefaultInstance();
+    }
+    /**
+     * <code>.ChooseResourceType choose_resource_type = 502;</code>
+     */
+    public soc.proto.GameMessage.ChooseResourceTypeOrBuilder getChooseResourceTypeOrBuilder() {
+      if (msgCase_ == 502) {
+         return (soc.proto.GameMessage.ChooseResourceType) msg_;
+      }
+      return soc.proto.GameMessage.ChooseResourceType.getDefaultInstance();
+    }
+
+    public static final int CHOOSE_PLAYER_FIELD_NUMBER = 503;
+    /**
+     * <code>.ChoosePlayer choose_player = 503;</code>
+     */
+    public boolean hasChoosePlayer() {
+      return msgCase_ == 503;
+    }
+    /**
+     * <code>.ChoosePlayer choose_player = 503;</code>
+     */
+    public soc.proto.GameMessage.ChoosePlayer getChoosePlayer() {
+      if (msgCase_ == 503) {
+         return (soc.proto.GameMessage.ChoosePlayer) msg_;
+      }
+      return soc.proto.GameMessage.ChoosePlayer.getDefaultInstance();
+    }
+    /**
+     * <code>.ChoosePlayer choose_player = 503;</code>
+     */
+    public soc.proto.GameMessage.ChoosePlayerOrBuilder getChoosePlayerOrBuilder() {
+      if (msgCase_ == 503) {
+         return (soc.proto.GameMessage.ChoosePlayer) msg_;
+      }
+      return soc.proto.GameMessage.ChoosePlayer.getDefaultInstance();
+    }
+
+    public static final int MOVE_ROBBER_FIELD_NUMBER = 504;
+    /**
+     * <code>.MoveRobber move_robber = 504;</code>
+     */
+    public boolean hasMoveRobber() {
+      return msgCase_ == 504;
+    }
+    /**
+     * <code>.MoveRobber move_robber = 504;</code>
+     */
+    public soc.proto.GameMessage.MoveRobber getMoveRobber() {
+      if (msgCase_ == 504) {
+         return (soc.proto.GameMessage.MoveRobber) msg_;
+      }
+      return soc.proto.GameMessage.MoveRobber.getDefaultInstance();
+    }
+    /**
+     * <code>.MoveRobber move_robber = 504;</code>
+     */
+    public soc.proto.GameMessage.MoveRobberOrBuilder getMoveRobberOrBuilder() {
+      if (msgCase_ == 504) {
+         return (soc.proto.GameMessage.MoveRobber) msg_;
+      }
+      return soc.proto.GameMessage.MoveRobber.getDefaultInstance();
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -30544,6 +35842,21 @@ public final class GameMessage {
       }
       if (msgCase_ == 404) {
         output.writeMessage(404, (soc.proto.GameMessage.TradeAcceptOffer) msg_);
+      }
+      if (msgCase_ == 500) {
+        output.writeMessage(500, (soc.proto.GameMessage.LoseResources) msg_);
+      }
+      if (msgCase_ == 501) {
+        output.writeMessage(501, (soc.proto.GameMessage.GainResources) msg_);
+      }
+      if (msgCase_ == 502) {
+        output.writeMessage(502, (soc.proto.GameMessage.ChooseResourceType) msg_);
+      }
+      if (msgCase_ == 503) {
+        output.writeMessage(503, (soc.proto.GameMessage.ChoosePlayer) msg_);
+      }
+      if (msgCase_ == 504) {
+        output.writeMessage(504, (soc.proto.GameMessage.MoveRobber) msg_);
       }
       unknownFields.writeTo(output);
     }
@@ -30607,6 +35920,26 @@ public final class GameMessage {
       if (msgCase_ == 404) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(404, (soc.proto.GameMessage.TradeAcceptOffer) msg_);
+      }
+      if (msgCase_ == 500) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(500, (soc.proto.GameMessage.LoseResources) msg_);
+      }
+      if (msgCase_ == 501) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(501, (soc.proto.GameMessage.GainResources) msg_);
+      }
+      if (msgCase_ == 502) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(502, (soc.proto.GameMessage.ChooseResourceType) msg_);
+      }
+      if (msgCase_ == 503) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(503, (soc.proto.GameMessage.ChoosePlayer) msg_);
+      }
+      if (msgCase_ == 504) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(504, (soc.proto.GameMessage.MoveRobber) msg_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -30682,6 +36015,26 @@ public final class GameMessage {
           result = result && getTradeAcceptOffer()
               .equals(other.getTradeAcceptOffer());
           break;
+        case 500:
+          result = result && getLoseResources()
+              .equals(other.getLoseResources());
+          break;
+        case 501:
+          result = result && getGainResources()
+              .equals(other.getGainResources());
+          break;
+        case 502:
+          result = result && getChooseResourceType()
+              .equals(other.getChooseResourceType());
+          break;
+        case 503:
+          result = result && getChoosePlayer()
+              .equals(other.getChoosePlayer());
+          break;
+        case 504:
+          result = result && getMoveRobber()
+              .equals(other.getMoveRobber());
+          break;
         case 0:
         default:
       }
@@ -30750,6 +36103,26 @@ public final class GameMessage {
         case 404:
           hash = (37 * hash) + TRADE_ACCEPT_OFFER_FIELD_NUMBER;
           hash = (53 * hash) + getTradeAcceptOffer().hashCode();
+          break;
+        case 500:
+          hash = (37 * hash) + LOSE_RESOURCES_FIELD_NUMBER;
+          hash = (53 * hash) + getLoseResources().hashCode();
+          break;
+        case 501:
+          hash = (37 * hash) + GAIN_RESOURCES_FIELD_NUMBER;
+          hash = (53 * hash) + getGainResources().hashCode();
+          break;
+        case 502:
+          hash = (37 * hash) + CHOOSE_RESOURCE_TYPE_FIELD_NUMBER;
+          hash = (53 * hash) + getChooseResourceType().hashCode();
+          break;
+        case 503:
+          hash = (37 * hash) + CHOOSE_PLAYER_FIELD_NUMBER;
+          hash = (53 * hash) + getChoosePlayer().hashCode();
+          break;
+        case 504:
+          hash = (37 * hash) + MOVE_ROBBER_FIELD_NUMBER;
+          hash = (53 * hash) + getMoveRobber().hashCode();
           break;
         case 0:
         default:
@@ -31001,6 +36374,41 @@ public final class GameMessage {
             result.msg_ = tradeAcceptOfferBuilder_.build();
           }
         }
+        if (msgCase_ == 500) {
+          if (loseResourcesBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = loseResourcesBuilder_.build();
+          }
+        }
+        if (msgCase_ == 501) {
+          if (gainResourcesBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = gainResourcesBuilder_.build();
+          }
+        }
+        if (msgCase_ == 502) {
+          if (chooseResourceTypeBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = chooseResourceTypeBuilder_.build();
+          }
+        }
+        if (msgCase_ == 503) {
+          if (choosePlayerBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = choosePlayerBuilder_.build();
+          }
+        }
+        if (msgCase_ == 504) {
+          if (moveRobberBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = moveRobberBuilder_.build();
+          }
+        }
         result.msgCase_ = msgCase_;
         onBuilt();
         return result;
@@ -31098,6 +36506,26 @@ public final class GameMessage {
           }
           case TRADE_ACCEPT_OFFER: {
             mergeTradeAcceptOffer(other.getTradeAcceptOffer());
+            break;
+          }
+          case LOSE_RESOURCES: {
+            mergeLoseResources(other.getLoseResources());
+            break;
+          }
+          case GAIN_RESOURCES: {
+            mergeGainResources(other.getGainResources());
+            break;
+          }
+          case CHOOSE_RESOURCE_TYPE: {
+            mergeChooseResourceType(other.getChooseResourceType());
+            break;
+          }
+          case CHOOSE_PLAYER: {
+            mergeChoosePlayer(other.getChoosePlayer());
+            break;
+          }
+          case MOVE_ROBBER: {
+            mergeMoveRobber(other.getMoveRobber());
             break;
           }
           case MSG_NOT_SET: {
@@ -33090,6 +38518,722 @@ public final class GameMessage {
         onChanged();;
         return tradeAcceptOfferBuilder_;
       }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.LoseResources, soc.proto.GameMessage.LoseResources.Builder, soc.proto.GameMessage.LoseResourcesOrBuilder> loseResourcesBuilder_;
+      /**
+       * <pre>
+       * player actions: resources and robbing
+       * </pre>
+       *
+       * <code>.LoseResources lose_resources = 500;</code>
+       */
+      public boolean hasLoseResources() {
+        return msgCase_ == 500;
+      }
+      /**
+       * <pre>
+       * player actions: resources and robbing
+       * </pre>
+       *
+       * <code>.LoseResources lose_resources = 500;</code>
+       */
+      public soc.proto.GameMessage.LoseResources getLoseResources() {
+        if (loseResourcesBuilder_ == null) {
+          if (msgCase_ == 500) {
+            return (soc.proto.GameMessage.LoseResources) msg_;
+          }
+          return soc.proto.GameMessage.LoseResources.getDefaultInstance();
+        } else {
+          if (msgCase_ == 500) {
+            return loseResourcesBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.LoseResources.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * player actions: resources and robbing
+       * </pre>
+       *
+       * <code>.LoseResources lose_resources = 500;</code>
+       */
+      public Builder setLoseResources(soc.proto.GameMessage.LoseResources value) {
+        if (loseResourcesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          loseResourcesBuilder_.setMessage(value);
+        }
+        msgCase_ = 500;
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions: resources and robbing
+       * </pre>
+       *
+       * <code>.LoseResources lose_resources = 500;</code>
+       */
+      public Builder setLoseResources(
+          soc.proto.GameMessage.LoseResources.Builder builderForValue) {
+        if (loseResourcesBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          loseResourcesBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 500;
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions: resources and robbing
+       * </pre>
+       *
+       * <code>.LoseResources lose_resources = 500;</code>
+       */
+      public Builder mergeLoseResources(soc.proto.GameMessage.LoseResources value) {
+        if (loseResourcesBuilder_ == null) {
+          if (msgCase_ == 500 &&
+              msg_ != soc.proto.GameMessage.LoseResources.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.LoseResources.newBuilder((soc.proto.GameMessage.LoseResources) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 500) {
+            loseResourcesBuilder_.mergeFrom(value);
+          }
+          loseResourcesBuilder_.setMessage(value);
+        }
+        msgCase_ = 500;
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions: resources and robbing
+       * </pre>
+       *
+       * <code>.LoseResources lose_resources = 500;</code>
+       */
+      public Builder clearLoseResources() {
+        if (loseResourcesBuilder_ == null) {
+          if (msgCase_ == 500) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 500) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          loseResourcesBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * player actions: resources and robbing
+       * </pre>
+       *
+       * <code>.LoseResources lose_resources = 500;</code>
+       */
+      public soc.proto.GameMessage.LoseResources.Builder getLoseResourcesBuilder() {
+        return getLoseResourcesFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * player actions: resources and robbing
+       * </pre>
+       *
+       * <code>.LoseResources lose_resources = 500;</code>
+       */
+      public soc.proto.GameMessage.LoseResourcesOrBuilder getLoseResourcesOrBuilder() {
+        if ((msgCase_ == 500) && (loseResourcesBuilder_ != null)) {
+          return loseResourcesBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 500) {
+            return (soc.proto.GameMessage.LoseResources) msg_;
+          }
+          return soc.proto.GameMessage.LoseResources.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * player actions: resources and robbing
+       * </pre>
+       *
+       * <code>.LoseResources lose_resources = 500;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.LoseResources, soc.proto.GameMessage.LoseResources.Builder, soc.proto.GameMessage.LoseResourcesOrBuilder> 
+          getLoseResourcesFieldBuilder() {
+        if (loseResourcesBuilder_ == null) {
+          if (!(msgCase_ == 500)) {
+            msg_ = soc.proto.GameMessage.LoseResources.getDefaultInstance();
+          }
+          loseResourcesBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.LoseResources, soc.proto.GameMessage.LoseResources.Builder, soc.proto.GameMessage.LoseResourcesOrBuilder>(
+                  (soc.proto.GameMessage.LoseResources) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 500;
+        onChanged();;
+        return loseResourcesBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.GainResources, soc.proto.GameMessage.GainResources.Builder, soc.proto.GameMessage.GainResourcesOrBuilder> gainResourcesBuilder_;
+      /**
+       * <code>.GainResources gain_resources = 501;</code>
+       */
+      public boolean hasGainResources() {
+        return msgCase_ == 501;
+      }
+      /**
+       * <code>.GainResources gain_resources = 501;</code>
+       */
+      public soc.proto.GameMessage.GainResources getGainResources() {
+        if (gainResourcesBuilder_ == null) {
+          if (msgCase_ == 501) {
+            return (soc.proto.GameMessage.GainResources) msg_;
+          }
+          return soc.proto.GameMessage.GainResources.getDefaultInstance();
+        } else {
+          if (msgCase_ == 501) {
+            return gainResourcesBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.GainResources.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.GainResources gain_resources = 501;</code>
+       */
+      public Builder setGainResources(soc.proto.GameMessage.GainResources value) {
+        if (gainResourcesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          gainResourcesBuilder_.setMessage(value);
+        }
+        msgCase_ = 501;
+        return this;
+      }
+      /**
+       * <code>.GainResources gain_resources = 501;</code>
+       */
+      public Builder setGainResources(
+          soc.proto.GameMessage.GainResources.Builder builderForValue) {
+        if (gainResourcesBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          gainResourcesBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 501;
+        return this;
+      }
+      /**
+       * <code>.GainResources gain_resources = 501;</code>
+       */
+      public Builder mergeGainResources(soc.proto.GameMessage.GainResources value) {
+        if (gainResourcesBuilder_ == null) {
+          if (msgCase_ == 501 &&
+              msg_ != soc.proto.GameMessage.GainResources.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.GainResources.newBuilder((soc.proto.GameMessage.GainResources) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 501) {
+            gainResourcesBuilder_.mergeFrom(value);
+          }
+          gainResourcesBuilder_.setMessage(value);
+        }
+        msgCase_ = 501;
+        return this;
+      }
+      /**
+       * <code>.GainResources gain_resources = 501;</code>
+       */
+      public Builder clearGainResources() {
+        if (gainResourcesBuilder_ == null) {
+          if (msgCase_ == 501) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 501) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          gainResourcesBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.GainResources gain_resources = 501;</code>
+       */
+      public soc.proto.GameMessage.GainResources.Builder getGainResourcesBuilder() {
+        return getGainResourcesFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.GainResources gain_resources = 501;</code>
+       */
+      public soc.proto.GameMessage.GainResourcesOrBuilder getGainResourcesOrBuilder() {
+        if ((msgCase_ == 501) && (gainResourcesBuilder_ != null)) {
+          return gainResourcesBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 501) {
+            return (soc.proto.GameMessage.GainResources) msg_;
+          }
+          return soc.proto.GameMessage.GainResources.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.GainResources gain_resources = 501;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.GainResources, soc.proto.GameMessage.GainResources.Builder, soc.proto.GameMessage.GainResourcesOrBuilder> 
+          getGainResourcesFieldBuilder() {
+        if (gainResourcesBuilder_ == null) {
+          if (!(msgCase_ == 501)) {
+            msg_ = soc.proto.GameMessage.GainResources.getDefaultInstance();
+          }
+          gainResourcesBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.GainResources, soc.proto.GameMessage.GainResources.Builder, soc.proto.GameMessage.GainResourcesOrBuilder>(
+                  (soc.proto.GameMessage.GainResources) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 501;
+        onChanged();;
+        return gainResourcesBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.ChooseResourceType, soc.proto.GameMessage.ChooseResourceType.Builder, soc.proto.GameMessage.ChooseResourceTypeOrBuilder> chooseResourceTypeBuilder_;
+      /**
+       * <code>.ChooseResourceType choose_resource_type = 502;</code>
+       */
+      public boolean hasChooseResourceType() {
+        return msgCase_ == 502;
+      }
+      /**
+       * <code>.ChooseResourceType choose_resource_type = 502;</code>
+       */
+      public soc.proto.GameMessage.ChooseResourceType getChooseResourceType() {
+        if (chooseResourceTypeBuilder_ == null) {
+          if (msgCase_ == 502) {
+            return (soc.proto.GameMessage.ChooseResourceType) msg_;
+          }
+          return soc.proto.GameMessage.ChooseResourceType.getDefaultInstance();
+        } else {
+          if (msgCase_ == 502) {
+            return chooseResourceTypeBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.ChooseResourceType.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.ChooseResourceType choose_resource_type = 502;</code>
+       */
+      public Builder setChooseResourceType(soc.proto.GameMessage.ChooseResourceType value) {
+        if (chooseResourceTypeBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          chooseResourceTypeBuilder_.setMessage(value);
+        }
+        msgCase_ = 502;
+        return this;
+      }
+      /**
+       * <code>.ChooseResourceType choose_resource_type = 502;</code>
+       */
+      public Builder setChooseResourceType(
+          soc.proto.GameMessage.ChooseResourceType.Builder builderForValue) {
+        if (chooseResourceTypeBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          chooseResourceTypeBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 502;
+        return this;
+      }
+      /**
+       * <code>.ChooseResourceType choose_resource_type = 502;</code>
+       */
+      public Builder mergeChooseResourceType(soc.proto.GameMessage.ChooseResourceType value) {
+        if (chooseResourceTypeBuilder_ == null) {
+          if (msgCase_ == 502 &&
+              msg_ != soc.proto.GameMessage.ChooseResourceType.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.ChooseResourceType.newBuilder((soc.proto.GameMessage.ChooseResourceType) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 502) {
+            chooseResourceTypeBuilder_.mergeFrom(value);
+          }
+          chooseResourceTypeBuilder_.setMessage(value);
+        }
+        msgCase_ = 502;
+        return this;
+      }
+      /**
+       * <code>.ChooseResourceType choose_resource_type = 502;</code>
+       */
+      public Builder clearChooseResourceType() {
+        if (chooseResourceTypeBuilder_ == null) {
+          if (msgCase_ == 502) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 502) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          chooseResourceTypeBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.ChooseResourceType choose_resource_type = 502;</code>
+       */
+      public soc.proto.GameMessage.ChooseResourceType.Builder getChooseResourceTypeBuilder() {
+        return getChooseResourceTypeFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.ChooseResourceType choose_resource_type = 502;</code>
+       */
+      public soc.proto.GameMessage.ChooseResourceTypeOrBuilder getChooseResourceTypeOrBuilder() {
+        if ((msgCase_ == 502) && (chooseResourceTypeBuilder_ != null)) {
+          return chooseResourceTypeBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 502) {
+            return (soc.proto.GameMessage.ChooseResourceType) msg_;
+          }
+          return soc.proto.GameMessage.ChooseResourceType.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.ChooseResourceType choose_resource_type = 502;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.ChooseResourceType, soc.proto.GameMessage.ChooseResourceType.Builder, soc.proto.GameMessage.ChooseResourceTypeOrBuilder> 
+          getChooseResourceTypeFieldBuilder() {
+        if (chooseResourceTypeBuilder_ == null) {
+          if (!(msgCase_ == 502)) {
+            msg_ = soc.proto.GameMessage.ChooseResourceType.getDefaultInstance();
+          }
+          chooseResourceTypeBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.ChooseResourceType, soc.proto.GameMessage.ChooseResourceType.Builder, soc.proto.GameMessage.ChooseResourceTypeOrBuilder>(
+                  (soc.proto.GameMessage.ChooseResourceType) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 502;
+        onChanged();;
+        return chooseResourceTypeBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.ChoosePlayer, soc.proto.GameMessage.ChoosePlayer.Builder, soc.proto.GameMessage.ChoosePlayerOrBuilder> choosePlayerBuilder_;
+      /**
+       * <code>.ChoosePlayer choose_player = 503;</code>
+       */
+      public boolean hasChoosePlayer() {
+        return msgCase_ == 503;
+      }
+      /**
+       * <code>.ChoosePlayer choose_player = 503;</code>
+       */
+      public soc.proto.GameMessage.ChoosePlayer getChoosePlayer() {
+        if (choosePlayerBuilder_ == null) {
+          if (msgCase_ == 503) {
+            return (soc.proto.GameMessage.ChoosePlayer) msg_;
+          }
+          return soc.proto.GameMessage.ChoosePlayer.getDefaultInstance();
+        } else {
+          if (msgCase_ == 503) {
+            return choosePlayerBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.ChoosePlayer.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.ChoosePlayer choose_player = 503;</code>
+       */
+      public Builder setChoosePlayer(soc.proto.GameMessage.ChoosePlayer value) {
+        if (choosePlayerBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          choosePlayerBuilder_.setMessage(value);
+        }
+        msgCase_ = 503;
+        return this;
+      }
+      /**
+       * <code>.ChoosePlayer choose_player = 503;</code>
+       */
+      public Builder setChoosePlayer(
+          soc.proto.GameMessage.ChoosePlayer.Builder builderForValue) {
+        if (choosePlayerBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          choosePlayerBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 503;
+        return this;
+      }
+      /**
+       * <code>.ChoosePlayer choose_player = 503;</code>
+       */
+      public Builder mergeChoosePlayer(soc.proto.GameMessage.ChoosePlayer value) {
+        if (choosePlayerBuilder_ == null) {
+          if (msgCase_ == 503 &&
+              msg_ != soc.proto.GameMessage.ChoosePlayer.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.ChoosePlayer.newBuilder((soc.proto.GameMessage.ChoosePlayer) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 503) {
+            choosePlayerBuilder_.mergeFrom(value);
+          }
+          choosePlayerBuilder_.setMessage(value);
+        }
+        msgCase_ = 503;
+        return this;
+      }
+      /**
+       * <code>.ChoosePlayer choose_player = 503;</code>
+       */
+      public Builder clearChoosePlayer() {
+        if (choosePlayerBuilder_ == null) {
+          if (msgCase_ == 503) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 503) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          choosePlayerBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.ChoosePlayer choose_player = 503;</code>
+       */
+      public soc.proto.GameMessage.ChoosePlayer.Builder getChoosePlayerBuilder() {
+        return getChoosePlayerFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.ChoosePlayer choose_player = 503;</code>
+       */
+      public soc.proto.GameMessage.ChoosePlayerOrBuilder getChoosePlayerOrBuilder() {
+        if ((msgCase_ == 503) && (choosePlayerBuilder_ != null)) {
+          return choosePlayerBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 503) {
+            return (soc.proto.GameMessage.ChoosePlayer) msg_;
+          }
+          return soc.proto.GameMessage.ChoosePlayer.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.ChoosePlayer choose_player = 503;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.ChoosePlayer, soc.proto.GameMessage.ChoosePlayer.Builder, soc.proto.GameMessage.ChoosePlayerOrBuilder> 
+          getChoosePlayerFieldBuilder() {
+        if (choosePlayerBuilder_ == null) {
+          if (!(msgCase_ == 503)) {
+            msg_ = soc.proto.GameMessage.ChoosePlayer.getDefaultInstance();
+          }
+          choosePlayerBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.ChoosePlayer, soc.proto.GameMessage.ChoosePlayer.Builder, soc.proto.GameMessage.ChoosePlayerOrBuilder>(
+                  (soc.proto.GameMessage.ChoosePlayer) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 503;
+        onChanged();;
+        return choosePlayerBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.MoveRobber, soc.proto.GameMessage.MoveRobber.Builder, soc.proto.GameMessage.MoveRobberOrBuilder> moveRobberBuilder_;
+      /**
+       * <code>.MoveRobber move_robber = 504;</code>
+       */
+      public boolean hasMoveRobber() {
+        return msgCase_ == 504;
+      }
+      /**
+       * <code>.MoveRobber move_robber = 504;</code>
+       */
+      public soc.proto.GameMessage.MoveRobber getMoveRobber() {
+        if (moveRobberBuilder_ == null) {
+          if (msgCase_ == 504) {
+            return (soc.proto.GameMessage.MoveRobber) msg_;
+          }
+          return soc.proto.GameMessage.MoveRobber.getDefaultInstance();
+        } else {
+          if (msgCase_ == 504) {
+            return moveRobberBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.MoveRobber.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.MoveRobber move_robber = 504;</code>
+       */
+      public Builder setMoveRobber(soc.proto.GameMessage.MoveRobber value) {
+        if (moveRobberBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          moveRobberBuilder_.setMessage(value);
+        }
+        msgCase_ = 504;
+        return this;
+      }
+      /**
+       * <code>.MoveRobber move_robber = 504;</code>
+       */
+      public Builder setMoveRobber(
+          soc.proto.GameMessage.MoveRobber.Builder builderForValue) {
+        if (moveRobberBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          moveRobberBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 504;
+        return this;
+      }
+      /**
+       * <code>.MoveRobber move_robber = 504;</code>
+       */
+      public Builder mergeMoveRobber(soc.proto.GameMessage.MoveRobber value) {
+        if (moveRobberBuilder_ == null) {
+          if (msgCase_ == 504 &&
+              msg_ != soc.proto.GameMessage.MoveRobber.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.MoveRobber.newBuilder((soc.proto.GameMessage.MoveRobber) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 504) {
+            moveRobberBuilder_.mergeFrom(value);
+          }
+          moveRobberBuilder_.setMessage(value);
+        }
+        msgCase_ = 504;
+        return this;
+      }
+      /**
+       * <code>.MoveRobber move_robber = 504;</code>
+       */
+      public Builder clearMoveRobber() {
+        if (moveRobberBuilder_ == null) {
+          if (msgCase_ == 504) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 504) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          moveRobberBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.MoveRobber move_robber = 504;</code>
+       */
+      public soc.proto.GameMessage.MoveRobber.Builder getMoveRobberBuilder() {
+        return getMoveRobberFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.MoveRobber move_robber = 504;</code>
+       */
+      public soc.proto.GameMessage.MoveRobberOrBuilder getMoveRobberOrBuilder() {
+        if ((msgCase_ == 504) && (moveRobberBuilder_ != null)) {
+          return moveRobberBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 504) {
+            return (soc.proto.GameMessage.MoveRobber) msg_;
+          }
+          return soc.proto.GameMessage.MoveRobber.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.MoveRobber move_robber = 504;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.MoveRobber, soc.proto.GameMessage.MoveRobber.Builder, soc.proto.GameMessage.MoveRobberOrBuilder> 
+          getMoveRobberFieldBuilder() {
+        if (moveRobberBuilder_ == null) {
+          if (!(msgCase_ == 504)) {
+            msg_ = soc.proto.GameMessage.MoveRobber.getDefaultInstance();
+          }
+          moveRobberBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.MoveRobber, soc.proto.GameMessage.MoveRobber.Builder, soc.proto.GameMessage.MoveRobberOrBuilder>(
+                  (soc.proto.GameMessage.MoveRobber) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 504;
+        onChanged();;
+        return moveRobberBuilder_;
+      }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFieldsProto3(unknownFields);
@@ -33285,6 +39429,31 @@ public final class GameMessage {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_TradeAcceptOffer_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_LoseResources_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_LoseResources_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_GainResources_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_GainResources_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_ChooseResourceType_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_ChooseResourceType_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_ChoosePlayer_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_ChoosePlayer_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_MoveRobber_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_MoveRobber_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_GameMessageFromServer_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -33378,64 +39547,86 @@ public final class GameMessage {
       "ers\030\003 \001(\0132\n._IntArray\022\024\n\014offer_serial\030\004 " +
       "\001(\005\"\021\n\017TradeClearOffer\"\022\n\020TradeRejectOff" +
       "er\"H\n\020TradeAcceptOffer\022\036\n\026offering_playe" +
-      "r_number\030\001 \001(\005\022\024\n\014offer_serial\030\002 \001(\005\"\377\007\n" +
-      "\025GameMessageFromServer\022\021\n\tgame_name\030\001 \001(" +
-      "\t\022\025\n\rplayer_number\030\002 \001(\021\022\034\n\ngame_state\030\003" +
-      " \001(\0132\006.StateH\000\022(\n\016player_element\030\017 \001(\0132\016" +
-      ".PlayerElementH\000\022*\n\017player_elements\030\020 \001(",
-      "\0132\017.PlayerElementsH\000\022&\n\rgame_elements\030\021 " +
-      "\001(\0132\r.GameElementsH\000\022$\n\014board_layout\030\036 \001" +
-      "(\0132\014.BoardLayoutH\000\0226\n\025potential_settleme" +
-      "nts\030\037 \001(\0132\025.PotentialSettlementsH\000\022\"\n\013pi" +
-      "ece_value\030  \001(\0132\013.PieceValueH\000\022\"\n\013build_" +
-      "piece\030! \001(\0132\013.BuildPieceH\000\022$\n\014cancel_bui" +
-      "ld\030\" \001(\0132\014.CancelBuildH\000\022 \n\nmove_piece\030#" +
-      " \001(\0132\n.MovePieceH\000\022$\n\014remove_piece\030$ \001(\013" +
-      "2\014.RemovePieceH\000\022 \n\nstart_game\030d \001(\0132\n.S" +
-      "tartGameH\000\022\025\n\004turn\030e \001(\0132\005.TurnH\000\022\034\n\010set",
-      "_turn\030f \001(\0132\010.SetTurnH\000\022-\n\021dice_roll_req" +
-      "uest\030g \001(\0132\020.DiceRollRequestH\000\022\"\n\013dice_r" +
-      "esult\030h \001(\0132\013.DiceResultH\000\0225\n\025dice_resul" +
-      "t_resources\030i \001(\0132\024.DiceResultResourcesH" +
-      "\000\0226\n\025inventory_item_action\030\256\002 \001(\0132\024.Inve" +
-      "ntoryItemActionH\000\022*\n\017trade_with_bank\030\220\003 " +
-      "\001(\0132\016.TradeWithBankH\000\022,\n\020trade_make_offe" +
-      "r\030\221\003 \001(\0132\017.TradeMakeOfferH\000\022.\n\021trade_cle" +
-      "ar_offer\030\222\003 \001(\0132\020.TradeClearOfferH\000\0220\n\022t" +
-      "rade_reject_offer\030\223\003 \001(\0132\021.TradeRejectOf",
-      "ferH\000\0220\n\022trade_accept_offer\030\224\003 \001(\0132\021.Tra" +
-      "deAcceptOfferH\000B\005\n\003msg\"\356\004\n\025GameMessageFr" +
-      "omClient\022\021\n\tgame_name\030\001 \001(\t\022 \n\nstart_gam" +
-      "e\030d \001(\0132\n.StartGameH\000\022-\n\021dice_roll_reque" +
-      "st\030e \001(\0132\020.DiceRollRequestH\000\022\034\n\010end_turn" +
-      "\030f \001(\0132\010.EndTurnH\000\022#\n\013build_piece\030\310\001 \001(\013" +
-      "2\013.BuildPieceH\000\022%\n\014cancel_build\030\311\001 \001(\0132\014" +
-      ".CancelBuildH\000\022!\n\nmove_piece\030\312\001 \001(\0132\n.Mo" +
-      "vePieceH\000\0227\n\022buy_inventory_item\030\313\001 \001(\0132\030" +
-      ".BuyInventoryItemRequestH\000\0226\n\025inventory_",
-      "item_action\030\314\001 \001(\0132\024.InventoryItemAction" +
-      "H\000\022*\n\017trade_with_bank\030\220\003 \001(\0132\016.TradeWith" +
-      "BankH\000\022,\n\020trade_make_offer\030\221\003 \001(\0132\017.Trad" +
-      "eMakeOfferH\000\022.\n\021trade_clear_offer\030\222\003 \001(\013" +
-      "2\020.TradeClearOfferH\000\0220\n\022trade_reject_off" +
-      "er\030\223\003 \001(\0132\021.TradeRejectOfferH\000\0220\n\022trade_" +
-      "accept_offer\030\224\003 \001(\0132\021.TradeAcceptOfferH\000" +
-      "B\005\n\003msg*O\n\024_PlayerElementAction\022\032\n\026_UNSE" +
-      "NT_DEFAULT_ACTION\020\000\022\007\n\003SET\020\001\022\010\n\004GAIN\020\002\022\010" +
-      "\n\004LOSE\020\003*\206\004\n\022_PlayerElementType\022\037\n\033_UNSE",
-      "NT_DEFAULT_PLAYER_ELEM\020\000\022\r\n\tELEM_CLAY\020\001\022" +
-      "\014\n\010ELEM_ORE\020\002\022\016\n\nELEM_SHEEP\020\003\022\016\n\nELEM_WH" +
-      "EAT\020\004\022\r\n\tELEM_WOOD\020\005\022\031\n\025ELEM_UNKNOWN_RES" +
-      "OURCE\020\006\022\t\n\005ROADS\020\n\022\017\n\013SETTLEMENTS\020\013\022\n\n\006C" +
-      "ITIES\020\014\022\t\n\005SHIPS\020\r\022\016\n\nNUMKNIGHTS\020\017\022\025\n\021AS" +
-      "K_SPECIAL_BUILD\020\020\022\022\n\016RESOURCE_COUNT\020\021\022\030\n" +
-      "\024LAST_SETTLEMENT_NODE\020\022\022\030\n\024PLAYED_DEV_CA" +
-      "RD_FLAG\020\023\022\037\n\033NUM_PICK_GOLD_HEX_RESOURCES" +
-      "\020e\022\020\n\014SCENARIO_SVP\020f\022!\n\035SCENARIO_PLAYERE" +
-      "VENTS_BITMASK\020g\022\"\n\036SCENARIO_SVP_LANDAREA",
-      "S_BITMASK\020h\022\026\n\022STARTING_LANDAREAS\020i\022\030\n\024S" +
-      "CENARIO_CLOTH_COUNT\020j\022\032\n\026SCENARIO_WARSHI" +
-      "P_COUNT\020kB\r\n\tsoc.protoH\001P\000b\006proto3"
+      "r_number\030\001 \001(\005\022\024\n\014offer_serial\030\002 \001(\005\";\n\r" +
+      "LoseResources\022\016\n\006amount\030\001 \001(\005\022\032\n\004lose\030\002 " +
+      "\001(\0132\014.ResourceSet\";\n\rGainResources\022\016\n\006am" +
+      "ount\030\001 \001(\005\022\032\n\004gain\030\002 \001(\0132\014.ResourceSet\"1" +
+      "\n\022ChooseResourceType\022\033\n\004type\030\001 \001(\0162\r.Res",
+      "ourceType\"g\n\014ChoosePlayer\022\034\n\024chosen_play" +
+      "er_number\030\001 \001(\021\022\027\n\017can_choose_none\030\002 \001(\010" +
+      "\022 \n\030chooseable_player_number\030\003 \003(\r\"N\n\nMo" +
+      "veRobber\022\032\n\007move_to\030\001 \001(\0132\t.HexCoord\022\021\n\t" +
+      "is_robber\030\002 \001(\010\022\021\n\tis_pirate\030\003 \001(\010\"\216\n\n\025G" +
+      "ameMessageFromServer\022\021\n\tgame_name\030\001 \001(\t\022" +
+      "\025\n\rplayer_number\030\002 \001(\021\022\034\n\ngame_state\030\003 \001" +
+      "(\0132\006.StateH\000\022(\n\016player_element\030\017 \001(\0132\016.P" +
+      "layerElementH\000\022*\n\017player_elements\030\020 \001(\0132" +
+      "\017.PlayerElementsH\000\022&\n\rgame_elements\030\021 \001(",
+      "\0132\r.GameElementsH\000\022$\n\014board_layout\030\036 \001(\013" +
+      "2\014.BoardLayoutH\000\0226\n\025potential_settlement" +
+      "s\030\037 \001(\0132\025.PotentialSettlementsH\000\022\"\n\013piec" +
+      "e_value\030  \001(\0132\013.PieceValueH\000\022\"\n\013build_pi" +
+      "ece\030! \001(\0132\013.BuildPieceH\000\022$\n\014cancel_build" +
+      "\030\" \001(\0132\014.CancelBuildH\000\022 \n\nmove_piece\030# \001" +
+      "(\0132\n.MovePieceH\000\022$\n\014remove_piece\030$ \001(\0132\014" +
+      ".RemovePieceH\000\022 \n\nstart_game\030d \001(\0132\n.Sta" +
+      "rtGameH\000\022\025\n\004turn\030e \001(\0132\005.TurnH\000\022\034\n\010set_t" +
+      "urn\030f \001(\0132\010.SetTurnH\000\022-\n\021dice_roll_reque",
+      "st\030g \001(\0132\020.DiceRollRequestH\000\022\"\n\013dice_res" +
+      "ult\030h \001(\0132\013.DiceResultH\000\0225\n\025dice_result_" +
+      "resources\030i \001(\0132\024.DiceResultResourcesH\000\022" +
+      "6\n\025inventory_item_action\030\256\002 \001(\0132\024.Invent" +
+      "oryItemActionH\000\022*\n\017trade_with_bank\030\220\003 \001(" +
+      "\0132\016.TradeWithBankH\000\022,\n\020trade_make_offer\030" +
+      "\221\003 \001(\0132\017.TradeMakeOfferH\000\022.\n\021trade_clear" +
+      "_offer\030\222\003 \001(\0132\020.TradeClearOfferH\000\0220\n\022tra" +
+      "de_reject_offer\030\223\003 \001(\0132\021.TradeRejectOffe" +
+      "rH\000\0220\n\022trade_accept_offer\030\224\003 \001(\0132\021.Trade",
+      "AcceptOfferH\000\0220\n\025lose_resources_prompt\030\364" +
+      "\003 \001(\0132\016.LoseResourcesH\000\022)\n\016lose_resource" +
+      "s\030\365\003 \001(\0132\016.LoseResourcesH\000\0220\n\025gain_resou" +
+      "rces_prompt\030\366\003 \001(\0132\016.GainResourcesH\000\022)\n\016" +
+      "gain_resources\030\367\003 \001(\0132\016.GainResourcesH\000\022" +
+      ".\n\024choose_player_prompt\030\370\003 \001(\0132\r.ChooseP" +
+      "layerH\000\022#\n\013move_robber\030\371\003 \001(\0132\013.MoveRobb" +
+      "erH\000B\005\n\003msg\"\310\006\n\025GameMessageFromClient\022\021\n" +
+      "\tgame_name\030\001 \001(\t\022 \n\nstart_game\030d \001(\0132\n.S" +
+      "tartGameH\000\022-\n\021dice_roll_request\030e \001(\0132\020.",
+      "DiceRollRequestH\000\022\034\n\010end_turn\030f \001(\0132\010.En" +
+      "dTurnH\000\022#\n\013build_piece\030\310\001 \001(\0132\013.BuildPie" +
+      "ceH\000\022%\n\014cancel_build\030\311\001 \001(\0132\014.CancelBuil" +
+      "dH\000\022!\n\nmove_piece\030\312\001 \001(\0132\n.MovePieceH\000\0227" +
+      "\n\022buy_inventory_item\030\313\001 \001(\0132\030.BuyInvento" +
+      "ryItemRequestH\000\0226\n\025inventory_item_action" +
+      "\030\314\001 \001(\0132\024.InventoryItemActionH\000\022*\n\017trade" +
+      "_with_bank\030\220\003 \001(\0132\016.TradeWithBankH\000\022,\n\020t" +
+      "rade_make_offer\030\221\003 \001(\0132\017.TradeMakeOfferH" +
+      "\000\022.\n\021trade_clear_offer\030\222\003 \001(\0132\020.TradeCle",
+      "arOfferH\000\0220\n\022trade_reject_offer\030\223\003 \001(\0132\021" +
+      ".TradeRejectOfferH\000\0220\n\022trade_accept_offe" +
+      "r\030\224\003 \001(\0132\021.TradeAcceptOfferH\000\022)\n\016lose_re" +
+      "sources\030\364\003 \001(\0132\016.LoseResourcesH\000\022)\n\016gain" +
+      "_resources\030\365\003 \001(\0132\016.GainResourcesH\000\0224\n\024c" +
+      "hoose_resource_type\030\366\003 \001(\0132\023.ChooseResou" +
+      "rceTypeH\000\022\'\n\rchoose_player\030\367\003 \001(\0132\r.Choo" +
+      "sePlayerH\000\022#\n\013move_robber\030\370\003 \001(\0132\013.MoveR" +
+      "obberH\000B\005\n\003msg*O\n\024_PlayerElementAction\022\032" +
+      "\n\026_UNSENT_DEFAULT_ACTION\020\000\022\007\n\003SET\020\001\022\010\n\004G",
+      "AIN\020\002\022\010\n\004LOSE\020\003*\206\004\n\022_PlayerElementType\022\037" +
+      "\n\033_UNSENT_DEFAULT_PLAYER_ELEM\020\000\022\r\n\tELEM_" +
+      "CLAY\020\001\022\014\n\010ELEM_ORE\020\002\022\016\n\nELEM_SHEEP\020\003\022\016\n\n" +
+      "ELEM_WHEAT\020\004\022\r\n\tELEM_WOOD\020\005\022\031\n\025ELEM_UNKN" +
+      "OWN_RESOURCE\020\006\022\t\n\005ROADS\020\n\022\017\n\013SETTLEMENTS" +
+      "\020\013\022\n\n\006CITIES\020\014\022\t\n\005SHIPS\020\r\022\016\n\nNUMKNIGHTS\020" +
+      "\017\022\025\n\021ASK_SPECIAL_BUILD\020\020\022\022\n\016RESOURCE_COU" +
+      "NT\020\021\022\030\n\024LAST_SETTLEMENT_NODE\020\022\022\030\n\024PLAYED" +
+      "_DEV_CARD_FLAG\020\023\022\037\n\033NUM_PICK_GOLD_HEX_RE" +
+      "SOURCES\020e\022\020\n\014SCENARIO_SVP\020f\022!\n\035SCENARIO_",
+      "PLAYEREVENTS_BITMASK\020g\022\"\n\036SCENARIO_SVP_L" +
+      "ANDAREAS_BITMASK\020h\022\026\n\022STARTING_LANDAREAS" +
+      "\020i\022\030\n\024SCENARIO_CLOTH_COUNT\020j\022\032\n\026SCENARIO" +
+      "_WARSHIP_COUNT\020kB\r\n\tsoc.protoH\001P\000b\006proto" +
+      "3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -33624,18 +39815,48 @@ public final class GameMessage {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_TradeAcceptOffer_descriptor,
         new java.lang.String[] { "OfferingPlayerNumber", "OfferSerial", });
-    internal_static_GameMessageFromServer_descriptor =
+    internal_static_LoseResources_descriptor =
       getDescriptor().getMessageTypes().get(25);
+    internal_static_LoseResources_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_LoseResources_descriptor,
+        new java.lang.String[] { "Amount", "Lose", });
+    internal_static_GainResources_descriptor =
+      getDescriptor().getMessageTypes().get(26);
+    internal_static_GainResources_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_GainResources_descriptor,
+        new java.lang.String[] { "Amount", "Gain", });
+    internal_static_ChooseResourceType_descriptor =
+      getDescriptor().getMessageTypes().get(27);
+    internal_static_ChooseResourceType_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_ChooseResourceType_descriptor,
+        new java.lang.String[] { "Type", });
+    internal_static_ChoosePlayer_descriptor =
+      getDescriptor().getMessageTypes().get(28);
+    internal_static_ChoosePlayer_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_ChoosePlayer_descriptor,
+        new java.lang.String[] { "ChosenPlayerNumber", "CanChooseNone", "ChooseablePlayerNumber", });
+    internal_static_MoveRobber_descriptor =
+      getDescriptor().getMessageTypes().get(29);
+    internal_static_MoveRobber_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_MoveRobber_descriptor,
+        new java.lang.String[] { "MoveTo", "IsRobber", "IsPirate", });
+    internal_static_GameMessageFromServer_descriptor =
+      getDescriptor().getMessageTypes().get(30);
     internal_static_GameMessageFromServer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_GameMessageFromServer_descriptor,
-        new java.lang.String[] { "GameName", "PlayerNumber", "GameState", "PlayerElement", "PlayerElements", "GameElements", "BoardLayout", "PotentialSettlements", "PieceValue", "BuildPiece", "CancelBuild", "MovePiece", "RemovePiece", "StartGame", "Turn", "SetTurn", "DiceRollRequest", "DiceResult", "DiceResultResources", "InventoryItemAction", "TradeWithBank", "TradeMakeOffer", "TradeClearOffer", "TradeRejectOffer", "TradeAcceptOffer", "Msg", });
+        new java.lang.String[] { "GameName", "PlayerNumber", "GameState", "PlayerElement", "PlayerElements", "GameElements", "BoardLayout", "PotentialSettlements", "PieceValue", "BuildPiece", "CancelBuild", "MovePiece", "RemovePiece", "StartGame", "Turn", "SetTurn", "DiceRollRequest", "DiceResult", "DiceResultResources", "InventoryItemAction", "TradeWithBank", "TradeMakeOffer", "TradeClearOffer", "TradeRejectOffer", "TradeAcceptOffer", "LoseResourcesPrompt", "LoseResources", "GainResourcesPrompt", "GainResources", "ChoosePlayerPrompt", "MoveRobber", "Msg", });
     internal_static_GameMessageFromClient_descriptor =
-      getDescriptor().getMessageTypes().get(26);
+      getDescriptor().getMessageTypes().get(31);
     internal_static_GameMessageFromClient_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_GameMessageFromClient_descriptor,
-        new java.lang.String[] { "GameName", "StartGame", "DiceRollRequest", "EndTurn", "BuildPiece", "CancelBuild", "MovePiece", "BuyInventoryItem", "InventoryItemAction", "TradeWithBank", "TradeMakeOffer", "TradeClearOffer", "TradeRejectOffer", "TradeAcceptOffer", "Msg", });
+        new java.lang.String[] { "GameName", "StartGame", "DiceRollRequest", "EndTurn", "BuildPiece", "CancelBuild", "MovePiece", "BuyInventoryItem", "InventoryItemAction", "TradeWithBank", "TradeMakeOffer", "TradeClearOffer", "TradeRejectOffer", "TradeAcceptOffer", "LoseResources", "GainResources", "ChooseResourceType", "ChoosePlayer", "MoveRobber", "Msg", });
     soc.proto.Data.getDescriptor();
   }
 

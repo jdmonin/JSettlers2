@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010-2011,2013-2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2011,2013-2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,6 +21,9 @@
 package soc.message;
 
 import java.util.StringTokenizer;
+
+import soc.proto.GameMessage;
+import soc.proto.Message;
 
 
 /**
@@ -157,6 +160,26 @@ public class SOCMoveRobber extends SOCMessage
         }
 
         return new SOCMoveRobber(na, pn, co);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.MoveRobber.Builder b
+            = GameMessage.MoveRobber.newBuilder();
+        int hexCoord = coordinates;
+        if (hexCoord >= 0)
+        {
+            b.setIsRobber(true);
+        } else {
+            b.setIsPirate(true);
+            hexCoord = - hexCoord;
+        }
+        b.setMoveTo(ProtoMessageBuildHelper.toHexCoord(hexCoord));
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGameName(game).setMoveRobber(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
     /**

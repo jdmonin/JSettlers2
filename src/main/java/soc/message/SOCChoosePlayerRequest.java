@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2010,2012,2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2010,2012,2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,6 +21,9 @@
 package soc.message;
 
 import java.util.StringTokenizer;
+
+import soc.proto.GameMessage;
+import soc.proto.Message;
 
 
 /**
@@ -158,6 +161,20 @@ public class SOCChoosePlayerRequest extends SOCMessage
         }
 
         return new SOCChoosePlayerRequest(ga, ch);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.ChoosePlayer.Builder b
+            = GameMessage.ChoosePlayer.newBuilder();
+        for (int pn = 0; pn < choices.length; ++pn)
+            if (choices[pn])
+                b.addChooseablePlayerNumber(pn);
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGameName(game).setChoosePlayerPrompt(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
     /**

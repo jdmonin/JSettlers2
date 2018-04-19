@@ -22,7 +22,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='game_message.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x12game_message.proto\x1a\ndata.proto\"\xb3\x04\n\x0b\x42oardLayout\x12;\n\x0flayout_encoding\x18\x01 \x01(\x0e\x32\".BoardLayout._LayoutEncodingFormat\x12&\n\x05parts\x18\x02 \x03(\x0b\x32\x17.BoardLayout.PartsEntry\x1a\xe6\x01\n\x10_BoardLayoutPart\x12\x0f\n\x05i_val\x18\x01 \x01(\x05H\x00\x12\x0f\n\x05s_val\x18\x02 \x01(\tH\x00\x12\x1b\n\x05i_arr\x18\x03 \x01(\x0b\x32\n._IntArrayH\x00\x12+\n\x0f\x63oordinate_list\x18\x04 \x01(\x0b\x32\x10._BoardCoordListH\x00\x12\x1f\n\tedge_list\x18\x05 \x01(\x0b\x32\n._EdgeListH\x00\x12\x1d\n\x08hex_list\x18\x06 \x01(\x0b\x32\t._HexListH\x00\x12\x1f\n\tnode_list\x18\x07 \x01(\x0b\x32\n._NodeListH\x00\x42\x05\n\x03val\x1aK\n\nPartsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12,\n\x05value\x18\x02 \x01(\x0b\x32\x1d.BoardLayout._BoardLayoutPart:\x02\x38\x01\"\x88\x01\n\x15_LayoutEncodingFormat\x12\x1c\n\x18_UNSENT_DEFAULT_ENCODING\x10\x00\x12\x1b\n\x17\x42OARD_ENCODING_ORIGINAL\x10\x01\x12\x1a\n\x16\x42OARD_ENCODING_6PLAYER\x10\x02\x12\x18\n\x14\x42OARD_ENCODING_LARGE\x10\x03\"\xa1\x02\n\x14PotentialSettlements\x12\x1c\n\x08ps_nodes\x18\x01 \x03(\x0b\x32\n.NodeCoord\x12\x12\n\narea_count\x18\x02 \x01(\r\x12\x1a\n\x12starting_land_area\x18\x03 \x01(\r\x12N\n\x16land_areas_legal_nodes\x18\x04 \x03(\x0b\x32..PotentialSettlements.LandAreasLegalNodesEntry\x12#\n\x0flegal_sea_edges\x18\x05 \x03(\x0b\x32\n._EdgeList\x1a\x46\n\x18LandAreasLegalNodesEntry\x12\x0b\n\x03key\x18\x01 \x01(\r\x12\x19\n\x05value\x18\x02 \x01(\x0b\x32\n._NodeList:\x02\x38\x01\"t\n\nPieceValue\x12\x18\n\x04type\x18\x01 \x01(\x0e\x32\n.PieceType\x12 \n\x0b\x63oordinates\x18\x02 \x01(\x0b\x32\x0b.BoardCoord\x12\x14\n\x0cpiece_value1\x18\x03 \x01(\x11\x12\x14\n\x0cpiece_value2\x18\x04 \x01(\x11\"H\n\nBuildPiece\x12\x18\n\x04type\x18\x01 \x01(\x0e\x32\n.PieceType\x12 \n\x0b\x63oordinates\x18\x02 \x01(\x0b\x32\x0b.BoardCoord\"O\n\x17\x42uyInventoryItemRequest\x12\x17\n\x0fis_not_dev_card\x18\x01 \x01(\x08\x12\x1b\n\x13other_inv_item_type\x18\x02 \x01(\x11\"\x82\x03\n\x13InventoryItemAction\x12\x35\n\x0b\x61\x63tion_type\x18\x01 \x01(\x0e\x32 .InventoryItemAction._ActionType\x12\'\n\x0e\x64\x65v_card_value\x18\x02 \x01(\x0e\x32\r.DevCardValueH\x00\x12\x1d\n\x13other_inv_item_type\x18\x03 \x01(\x05H\x00\x12\x13\n\x0breason_code\x18\x15 \x01(\x11\x12\x13\n\x0bis_playable\x18\x16 \x01(\x08\x12\x0f\n\x07is_kept\x18\x17 \x01(\x08\x12\r\n\x05is_VP\x18\x18 \x01(\x08\x12\x17\n\x0f\x63\x61n_cancel_play\x18\x19 \x01(\x08\"{\n\x0b_ActionType\x12\x1a\n\x16_UNSENT_DEFAULT_ACTION\x10\x00\x12\x08\n\x04\x44RAW\x10\x01\x12\x08\n\x04PLAY\x10\x02\x12\x0b\n\x07\x41\x44\x44_NEW\x10\x03\x12\x0b\n\x07\x41\x44\x44_OLD\x10\x04\x12\x0f\n\x0b\x43\x41NNOT_PLAY\x10\x05\x12\x11\n\rPLACING_EXTRA\x10\x06\x42\x0c\n\nitem_value\"g\n\x0b\x43\x61ncelBuild\x12 \n\npiece_type\x18\x01 \x01(\x0e\x32\n.PieceTypeH\x00\x12\'\n\titem_type\x18\x02 \x01(\x0e\x32\x12.OtherPlayableItemH\x00\x42\r\n\x0b\x63\x61ncel_type\"q\n\tMovePiece\x12\x18\n\x04type\x18\x01 \x01(\x0e\x32\n.PieceType\x12%\n\x10\x66rom_coordinates\x18\x02 \x01(\x0b\x32\x0b.BoardCoord\x12#\n\x0eto_coordinates\x18\x03 \x01(\x0b\x32\x0b.BoardCoord\"I\n\x0bRemovePiece\x12\x18\n\x04type\x18\x01 \x01(\x0e\x32\n.PieceType\x12 \n\x0b\x63oordinates\x18\x02 \x01(\x0b\x32\x0b.BoardCoord\"\"\n\x05State\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"\x82\x01\n\rPlayerElement\x12%\n\x06\x61\x63tion\x18\x01 \x01(\x0e\x32\x15._PlayerElementAction\x12)\n\x0c\x65lement_type\x18\x02 \x01(\x0e\x32\x13._PlayerElementType\x12\x0e\n\x06\x61mount\x18\x03 \x01(\x11\x12\x0f\n\x07is_news\x18\x04 \x01(\x08\"t\n\x0ePlayerElements\x12%\n\x06\x61\x63tion\x18\x01 \x01(\x0e\x32\x15._PlayerElementAction\x12*\n\relement_types\x18\x02 \x03(\x0e\x32\x13._PlayerElementType\x12\x0f\n\x07\x61mounts\x18\x03 \x03(\x11\"\xfe\x01\n\x0cGameElements\x12\x31\n\relement_types\x18\x01 \x03(\x0e\x32\x1a.GameElements._ElementType\x12\x0e\n\x06values\x18\x02 \x03(\x11\"\xaa\x01\n\x0c_ElementType\x12\x1d\n\x19_UNSENT_DEFAULT_GAME_ELEM\x10\x00\x12\x0f\n\x0bROUND_COUNT\x10\x01\x12\x12\n\x0e\x44\x45V_CARD_COUNT\x10\x02\x12\x10\n\x0c\x46IRST_PLAYER\x10\x03\x12\x12\n\x0e\x43URRENT_PLAYER\x10\x04\x12\x17\n\x13LARGEST_ARMY_PLAYER\x10\x05\x12\x17\n\x13LONGEST_ROAD_PLAYER\x10\x06\"&\n\tStartGame\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"!\n\x04Turn\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"\t\n\x07SetTurn\"\x11\n\x0f\x44iceRollRequest\" \n\nDiceResult\x12\x12\n\ndice_total\x18\x01 \x01(\x11\"\xb4\x01\n\x13\x44iceResultResources\x12>\n\x10player_resources\x18\x01 \x03(\x0b\x32$.DiceResultResources.PlayerResources\x1a]\n\x0fPlayerResources\x12\x15\n\rplayer_number\x18\x01 \x01(\r\x12 \n\nres_gained\x18\x02 \x01(\x0b\x32\x0c.ResourceSet\x12\x11\n\tres_total\x18\x03 \x01(\r\"\t\n\x07\x45ndTurn\"F\n\rTradeWithBank\x12\x1a\n\x04give\x18\x01 \x01(\x0b\x32\x0c.ResourceSet\x12\x19\n\x03get\x18\x02 \x01(\x0b\x32\x0c.ResourceSet\"}\n\x0eTradeMakeOffer\x12\x1a\n\x04give\x18\x01 \x01(\x0b\x32\x0c.ResourceSet\x12\x19\n\x03get\x18\x02 \x01(\x0b\x32\x0c.ResourceSet\x12\x1e\n\nto_players\x18\x03 \x01(\x0b\x32\n._IntArray\x12\x14\n\x0coffer_serial\x18\x04 \x01(\x05\"\x11\n\x0fTradeClearOffer\"\x12\n\x10TradeRejectOffer\"H\n\x10TradeAcceptOffer\x12\x1e\n\x16offering_player_number\x18\x01 \x01(\x05\x12\x14\n\x0coffer_serial\x18\x02 \x01(\x05\"\xff\x07\n\x15GameMessageFromServer\x12\x11\n\tgame_name\x18\x01 \x01(\t\x12\x15\n\rplayer_number\x18\x02 \x01(\x11\x12\x1c\n\ngame_state\x18\x03 \x01(\x0b\x32\x06.StateH\x00\x12(\n\x0eplayer_element\x18\x0f \x01(\x0b\x32\x0e.PlayerElementH\x00\x12*\n\x0fplayer_elements\x18\x10 \x01(\x0b\x32\x0f.PlayerElementsH\x00\x12&\n\rgame_elements\x18\x11 \x01(\x0b\x32\r.GameElementsH\x00\x12$\n\x0c\x62oard_layout\x18\x1e \x01(\x0b\x32\x0c.BoardLayoutH\x00\x12\x36\n\x15potential_settlements\x18\x1f \x01(\x0b\x32\x15.PotentialSettlementsH\x00\x12\"\n\x0bpiece_value\x18  \x01(\x0b\x32\x0b.PieceValueH\x00\x12\"\n\x0b\x62uild_piece\x18! \x01(\x0b\x32\x0b.BuildPieceH\x00\x12$\n\x0c\x63\x61ncel_build\x18\" \x01(\x0b\x32\x0c.CancelBuildH\x00\x12 \n\nmove_piece\x18# \x01(\x0b\x32\n.MovePieceH\x00\x12$\n\x0cremove_piece\x18$ \x01(\x0b\x32\x0c.RemovePieceH\x00\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12\x15\n\x04turn\x18\x65 \x01(\x0b\x32\x05.TurnH\x00\x12\x1c\n\x08set_turn\x18\x66 \x01(\x0b\x32\x08.SetTurnH\x00\x12-\n\x11\x64ice_roll_request\x18g \x01(\x0b\x32\x10.DiceRollRequestH\x00\x12\"\n\x0b\x64ice_result\x18h \x01(\x0b\x32\x0b.DiceResultH\x00\x12\x35\n\x15\x64ice_result_resources\x18i \x01(\x0b\x32\x14.DiceResultResourcesH\x00\x12\x36\n\x15inventory_item_action\x18\xae\x02 \x01(\x0b\x32\x14.InventoryItemActionH\x00\x12*\n\x0ftrade_with_bank\x18\x90\x03 \x01(\x0b\x32\x0e.TradeWithBankH\x00\x12,\n\x10trade_make_offer\x18\x91\x03 \x01(\x0b\x32\x0f.TradeMakeOfferH\x00\x12.\n\x11trade_clear_offer\x18\x92\x03 \x01(\x0b\x32\x10.TradeClearOfferH\x00\x12\x30\n\x12trade_reject_offer\x18\x93\x03 \x01(\x0b\x32\x11.TradeRejectOfferH\x00\x12\x30\n\x12trade_accept_offer\x18\x94\x03 \x01(\x0b\x32\x11.TradeAcceptOfferH\x00\x42\x05\n\x03msg\"\xee\x04\n\x15GameMessageFromClient\x12\x11\n\tgame_name\x18\x01 \x01(\t\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12-\n\x11\x64ice_roll_request\x18\x65 \x01(\x0b\x32\x10.DiceRollRequestH\x00\x12\x1c\n\x08\x65nd_turn\x18\x66 \x01(\x0b\x32\x08.EndTurnH\x00\x12#\n\x0b\x62uild_piece\x18\xc8\x01 \x01(\x0b\x32\x0b.BuildPieceH\x00\x12%\n\x0c\x63\x61ncel_build\x18\xc9\x01 \x01(\x0b\x32\x0c.CancelBuildH\x00\x12!\n\nmove_piece\x18\xca\x01 \x01(\x0b\x32\n.MovePieceH\x00\x12\x37\n\x12\x62uy_inventory_item\x18\xcb\x01 \x01(\x0b\x32\x18.BuyInventoryItemRequestH\x00\x12\x36\n\x15inventory_item_action\x18\xcc\x01 \x01(\x0b\x32\x14.InventoryItemActionH\x00\x12*\n\x0ftrade_with_bank\x18\x90\x03 \x01(\x0b\x32\x0e.TradeWithBankH\x00\x12,\n\x10trade_make_offer\x18\x91\x03 \x01(\x0b\x32\x0f.TradeMakeOfferH\x00\x12.\n\x11trade_clear_offer\x18\x92\x03 \x01(\x0b\x32\x10.TradeClearOfferH\x00\x12\x30\n\x12trade_reject_offer\x18\x93\x03 \x01(\x0b\x32\x11.TradeRejectOfferH\x00\x12\x30\n\x12trade_accept_offer\x18\x94\x03 \x01(\x0b\x32\x11.TradeAcceptOfferH\x00\x42\x05\n\x03msg*O\n\x14_PlayerElementAction\x12\x1a\n\x16_UNSENT_DEFAULT_ACTION\x10\x00\x12\x07\n\x03SET\x10\x01\x12\x08\n\x04GAIN\x10\x02\x12\x08\n\x04LOSE\x10\x03*\x86\x04\n\x12_PlayerElementType\x12\x1f\n\x1b_UNSENT_DEFAULT_PLAYER_ELEM\x10\x00\x12\r\n\tELEM_CLAY\x10\x01\x12\x0c\n\x08\x45LEM_ORE\x10\x02\x12\x0e\n\nELEM_SHEEP\x10\x03\x12\x0e\n\nELEM_WHEAT\x10\x04\x12\r\n\tELEM_WOOD\x10\x05\x12\x19\n\x15\x45LEM_UNKNOWN_RESOURCE\x10\x06\x12\t\n\x05ROADS\x10\n\x12\x0f\n\x0bSETTLEMENTS\x10\x0b\x12\n\n\x06\x43ITIES\x10\x0c\x12\t\n\x05SHIPS\x10\r\x12\x0e\n\nNUMKNIGHTS\x10\x0f\x12\x15\n\x11\x41SK_SPECIAL_BUILD\x10\x10\x12\x12\n\x0eRESOURCE_COUNT\x10\x11\x12\x18\n\x14LAST_SETTLEMENT_NODE\x10\x12\x12\x18\n\x14PLAYED_DEV_CARD_FLAG\x10\x13\x12\x1f\n\x1bNUM_PICK_GOLD_HEX_RESOURCES\x10\x65\x12\x10\n\x0cSCENARIO_SVP\x10\x66\x12!\n\x1dSCENARIO_PLAYEREVENTS_BITMASK\x10g\x12\"\n\x1eSCENARIO_SVP_LANDAREAS_BITMASK\x10h\x12\x16\n\x12STARTING_LANDAREAS\x10i\x12\x18\n\x14SCENARIO_CLOTH_COUNT\x10j\x12\x1a\n\x16SCENARIO_WARSHIP_COUNT\x10kB\r\n\tsoc.protoH\x01P\x00\x62\x06proto3')
+  serialized_pb=_b('\n\x12game_message.proto\x1a\ndata.proto\"\xb3\x04\n\x0b\x42oardLayout\x12;\n\x0flayout_encoding\x18\x01 \x01(\x0e\x32\".BoardLayout._LayoutEncodingFormat\x12&\n\x05parts\x18\x02 \x03(\x0b\x32\x17.BoardLayout.PartsEntry\x1a\xe6\x01\n\x10_BoardLayoutPart\x12\x0f\n\x05i_val\x18\x01 \x01(\x05H\x00\x12\x0f\n\x05s_val\x18\x02 \x01(\tH\x00\x12\x1b\n\x05i_arr\x18\x03 \x01(\x0b\x32\n._IntArrayH\x00\x12+\n\x0f\x63oordinate_list\x18\x04 \x01(\x0b\x32\x10._BoardCoordListH\x00\x12\x1f\n\tedge_list\x18\x05 \x01(\x0b\x32\n._EdgeListH\x00\x12\x1d\n\x08hex_list\x18\x06 \x01(\x0b\x32\t._HexListH\x00\x12\x1f\n\tnode_list\x18\x07 \x01(\x0b\x32\n._NodeListH\x00\x42\x05\n\x03val\x1aK\n\nPartsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12,\n\x05value\x18\x02 \x01(\x0b\x32\x1d.BoardLayout._BoardLayoutPart:\x02\x38\x01\"\x88\x01\n\x15_LayoutEncodingFormat\x12\x1c\n\x18_UNSENT_DEFAULT_ENCODING\x10\x00\x12\x1b\n\x17\x42OARD_ENCODING_ORIGINAL\x10\x01\x12\x1a\n\x16\x42OARD_ENCODING_6PLAYER\x10\x02\x12\x18\n\x14\x42OARD_ENCODING_LARGE\x10\x03\"\xa1\x02\n\x14PotentialSettlements\x12\x1c\n\x08ps_nodes\x18\x01 \x03(\x0b\x32\n.NodeCoord\x12\x12\n\narea_count\x18\x02 \x01(\r\x12\x1a\n\x12starting_land_area\x18\x03 \x01(\r\x12N\n\x16land_areas_legal_nodes\x18\x04 \x03(\x0b\x32..PotentialSettlements.LandAreasLegalNodesEntry\x12#\n\x0flegal_sea_edges\x18\x05 \x03(\x0b\x32\n._EdgeList\x1a\x46\n\x18LandAreasLegalNodesEntry\x12\x0b\n\x03key\x18\x01 \x01(\r\x12\x19\n\x05value\x18\x02 \x01(\x0b\x32\n._NodeList:\x02\x38\x01\"t\n\nPieceValue\x12\x18\n\x04type\x18\x01 \x01(\x0e\x32\n.PieceType\x12 \n\x0b\x63oordinates\x18\x02 \x01(\x0b\x32\x0b.BoardCoord\x12\x14\n\x0cpiece_value1\x18\x03 \x01(\x11\x12\x14\n\x0cpiece_value2\x18\x04 \x01(\x11\"H\n\nBuildPiece\x12\x18\n\x04type\x18\x01 \x01(\x0e\x32\n.PieceType\x12 \n\x0b\x63oordinates\x18\x02 \x01(\x0b\x32\x0b.BoardCoord\"O\n\x17\x42uyInventoryItemRequest\x12\x17\n\x0fis_not_dev_card\x18\x01 \x01(\x08\x12\x1b\n\x13other_inv_item_type\x18\x02 \x01(\x11\"\x82\x03\n\x13InventoryItemAction\x12\x35\n\x0b\x61\x63tion_type\x18\x01 \x01(\x0e\x32 .InventoryItemAction._ActionType\x12\'\n\x0e\x64\x65v_card_value\x18\x02 \x01(\x0e\x32\r.DevCardValueH\x00\x12\x1d\n\x13other_inv_item_type\x18\x03 \x01(\x05H\x00\x12\x13\n\x0breason_code\x18\x15 \x01(\x11\x12\x13\n\x0bis_playable\x18\x16 \x01(\x08\x12\x0f\n\x07is_kept\x18\x17 \x01(\x08\x12\r\n\x05is_VP\x18\x18 \x01(\x08\x12\x17\n\x0f\x63\x61n_cancel_play\x18\x19 \x01(\x08\"{\n\x0b_ActionType\x12\x1a\n\x16_UNSENT_DEFAULT_ACTION\x10\x00\x12\x08\n\x04\x44RAW\x10\x01\x12\x08\n\x04PLAY\x10\x02\x12\x0b\n\x07\x41\x44\x44_NEW\x10\x03\x12\x0b\n\x07\x41\x44\x44_OLD\x10\x04\x12\x0f\n\x0b\x43\x41NNOT_PLAY\x10\x05\x12\x11\n\rPLACING_EXTRA\x10\x06\x42\x0c\n\nitem_value\"g\n\x0b\x43\x61ncelBuild\x12 \n\npiece_type\x18\x01 \x01(\x0e\x32\n.PieceTypeH\x00\x12\'\n\titem_type\x18\x02 \x01(\x0e\x32\x12.OtherPlayableItemH\x00\x42\r\n\x0b\x63\x61ncel_type\"q\n\tMovePiece\x12\x18\n\x04type\x18\x01 \x01(\x0e\x32\n.PieceType\x12%\n\x10\x66rom_coordinates\x18\x02 \x01(\x0b\x32\x0b.BoardCoord\x12#\n\x0eto_coordinates\x18\x03 \x01(\x0b\x32\x0b.BoardCoord\"I\n\x0bRemovePiece\x12\x18\n\x04type\x18\x01 \x01(\x0e\x32\n.PieceType\x12 \n\x0b\x63oordinates\x18\x02 \x01(\x0b\x32\x0b.BoardCoord\"\"\n\x05State\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"\x82\x01\n\rPlayerElement\x12%\n\x06\x61\x63tion\x18\x01 \x01(\x0e\x32\x15._PlayerElementAction\x12)\n\x0c\x65lement_type\x18\x02 \x01(\x0e\x32\x13._PlayerElementType\x12\x0e\n\x06\x61mount\x18\x03 \x01(\x11\x12\x0f\n\x07is_news\x18\x04 \x01(\x08\"t\n\x0ePlayerElements\x12%\n\x06\x61\x63tion\x18\x01 \x01(\x0e\x32\x15._PlayerElementAction\x12*\n\relement_types\x18\x02 \x03(\x0e\x32\x13._PlayerElementType\x12\x0f\n\x07\x61mounts\x18\x03 \x03(\x11\"\xfe\x01\n\x0cGameElements\x12\x31\n\relement_types\x18\x01 \x03(\x0e\x32\x1a.GameElements._ElementType\x12\x0e\n\x06values\x18\x02 \x03(\x11\"\xaa\x01\n\x0c_ElementType\x12\x1d\n\x19_UNSENT_DEFAULT_GAME_ELEM\x10\x00\x12\x0f\n\x0bROUND_COUNT\x10\x01\x12\x12\n\x0e\x44\x45V_CARD_COUNT\x10\x02\x12\x10\n\x0c\x46IRST_PLAYER\x10\x03\x12\x12\n\x0e\x43URRENT_PLAYER\x10\x04\x12\x17\n\x13LARGEST_ARMY_PLAYER\x10\x05\x12\x17\n\x13LONGEST_ROAD_PLAYER\x10\x06\"&\n\tStartGame\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"!\n\x04Turn\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"\t\n\x07SetTurn\"\x11\n\x0f\x44iceRollRequest\" \n\nDiceResult\x12\x12\n\ndice_total\x18\x01 \x01(\x11\"\xb4\x01\n\x13\x44iceResultResources\x12>\n\x10player_resources\x18\x01 \x03(\x0b\x32$.DiceResultResources.PlayerResources\x1a]\n\x0fPlayerResources\x12\x15\n\rplayer_number\x18\x01 \x01(\r\x12 \n\nres_gained\x18\x02 \x01(\x0b\x32\x0c.ResourceSet\x12\x11\n\tres_total\x18\x03 \x01(\r\"\t\n\x07\x45ndTurn\"F\n\rTradeWithBank\x12\x1a\n\x04give\x18\x01 \x01(\x0b\x32\x0c.ResourceSet\x12\x19\n\x03get\x18\x02 \x01(\x0b\x32\x0c.ResourceSet\"}\n\x0eTradeMakeOffer\x12\x1a\n\x04give\x18\x01 \x01(\x0b\x32\x0c.ResourceSet\x12\x19\n\x03get\x18\x02 \x01(\x0b\x32\x0c.ResourceSet\x12\x1e\n\nto_players\x18\x03 \x01(\x0b\x32\n._IntArray\x12\x14\n\x0coffer_serial\x18\x04 \x01(\x05\"\x11\n\x0fTradeClearOffer\"\x12\n\x10TradeRejectOffer\"H\n\x10TradeAcceptOffer\x12\x1e\n\x16offering_player_number\x18\x01 \x01(\x05\x12\x14\n\x0coffer_serial\x18\x02 \x01(\x05\";\n\rLoseResources\x12\x0e\n\x06\x61mount\x18\x01 \x01(\x05\x12\x1a\n\x04lose\x18\x02 \x01(\x0b\x32\x0c.ResourceSet\";\n\rGainResources\x12\x0e\n\x06\x61mount\x18\x01 \x01(\x05\x12\x1a\n\x04gain\x18\x02 \x01(\x0b\x32\x0c.ResourceSet\"1\n\x12\x43hooseResourceType\x12\x1b\n\x04type\x18\x01 \x01(\x0e\x32\r.ResourceType\"g\n\x0c\x43hoosePlayer\x12\x1c\n\x14\x63hosen_player_number\x18\x01 \x01(\x11\x12\x17\n\x0f\x63\x61n_choose_none\x18\x02 \x01(\x08\x12 \n\x18\x63hooseable_player_number\x18\x03 \x03(\r\"N\n\nMoveRobber\x12\x1a\n\x07move_to\x18\x01 \x01(\x0b\x32\t.HexCoord\x12\x11\n\tis_robber\x18\x02 \x01(\x08\x12\x11\n\tis_pirate\x18\x03 \x01(\x08\"\x8e\n\n\x15GameMessageFromServer\x12\x11\n\tgame_name\x18\x01 \x01(\t\x12\x15\n\rplayer_number\x18\x02 \x01(\x11\x12\x1c\n\ngame_state\x18\x03 \x01(\x0b\x32\x06.StateH\x00\x12(\n\x0eplayer_element\x18\x0f \x01(\x0b\x32\x0e.PlayerElementH\x00\x12*\n\x0fplayer_elements\x18\x10 \x01(\x0b\x32\x0f.PlayerElementsH\x00\x12&\n\rgame_elements\x18\x11 \x01(\x0b\x32\r.GameElementsH\x00\x12$\n\x0c\x62oard_layout\x18\x1e \x01(\x0b\x32\x0c.BoardLayoutH\x00\x12\x36\n\x15potential_settlements\x18\x1f \x01(\x0b\x32\x15.PotentialSettlementsH\x00\x12\"\n\x0bpiece_value\x18  \x01(\x0b\x32\x0b.PieceValueH\x00\x12\"\n\x0b\x62uild_piece\x18! \x01(\x0b\x32\x0b.BuildPieceH\x00\x12$\n\x0c\x63\x61ncel_build\x18\" \x01(\x0b\x32\x0c.CancelBuildH\x00\x12 \n\nmove_piece\x18# \x01(\x0b\x32\n.MovePieceH\x00\x12$\n\x0cremove_piece\x18$ \x01(\x0b\x32\x0c.RemovePieceH\x00\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12\x15\n\x04turn\x18\x65 \x01(\x0b\x32\x05.TurnH\x00\x12\x1c\n\x08set_turn\x18\x66 \x01(\x0b\x32\x08.SetTurnH\x00\x12-\n\x11\x64ice_roll_request\x18g \x01(\x0b\x32\x10.DiceRollRequestH\x00\x12\"\n\x0b\x64ice_result\x18h \x01(\x0b\x32\x0b.DiceResultH\x00\x12\x35\n\x15\x64ice_result_resources\x18i \x01(\x0b\x32\x14.DiceResultResourcesH\x00\x12\x36\n\x15inventory_item_action\x18\xae\x02 \x01(\x0b\x32\x14.InventoryItemActionH\x00\x12*\n\x0ftrade_with_bank\x18\x90\x03 \x01(\x0b\x32\x0e.TradeWithBankH\x00\x12,\n\x10trade_make_offer\x18\x91\x03 \x01(\x0b\x32\x0f.TradeMakeOfferH\x00\x12.\n\x11trade_clear_offer\x18\x92\x03 \x01(\x0b\x32\x10.TradeClearOfferH\x00\x12\x30\n\x12trade_reject_offer\x18\x93\x03 \x01(\x0b\x32\x11.TradeRejectOfferH\x00\x12\x30\n\x12trade_accept_offer\x18\x94\x03 \x01(\x0b\x32\x11.TradeAcceptOfferH\x00\x12\x30\n\x15lose_resources_prompt\x18\xf4\x03 \x01(\x0b\x32\x0e.LoseResourcesH\x00\x12)\n\x0elose_resources\x18\xf5\x03 \x01(\x0b\x32\x0e.LoseResourcesH\x00\x12\x30\n\x15gain_resources_prompt\x18\xf6\x03 \x01(\x0b\x32\x0e.GainResourcesH\x00\x12)\n\x0egain_resources\x18\xf7\x03 \x01(\x0b\x32\x0e.GainResourcesH\x00\x12.\n\x14\x63hoose_player_prompt\x18\xf8\x03 \x01(\x0b\x32\r.ChoosePlayerH\x00\x12#\n\x0bmove_robber\x18\xf9\x03 \x01(\x0b\x32\x0b.MoveRobberH\x00\x42\x05\n\x03msg\"\xc8\x06\n\x15GameMessageFromClient\x12\x11\n\tgame_name\x18\x01 \x01(\t\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12-\n\x11\x64ice_roll_request\x18\x65 \x01(\x0b\x32\x10.DiceRollRequestH\x00\x12\x1c\n\x08\x65nd_turn\x18\x66 \x01(\x0b\x32\x08.EndTurnH\x00\x12#\n\x0b\x62uild_piece\x18\xc8\x01 \x01(\x0b\x32\x0b.BuildPieceH\x00\x12%\n\x0c\x63\x61ncel_build\x18\xc9\x01 \x01(\x0b\x32\x0c.CancelBuildH\x00\x12!\n\nmove_piece\x18\xca\x01 \x01(\x0b\x32\n.MovePieceH\x00\x12\x37\n\x12\x62uy_inventory_item\x18\xcb\x01 \x01(\x0b\x32\x18.BuyInventoryItemRequestH\x00\x12\x36\n\x15inventory_item_action\x18\xcc\x01 \x01(\x0b\x32\x14.InventoryItemActionH\x00\x12*\n\x0ftrade_with_bank\x18\x90\x03 \x01(\x0b\x32\x0e.TradeWithBankH\x00\x12,\n\x10trade_make_offer\x18\x91\x03 \x01(\x0b\x32\x0f.TradeMakeOfferH\x00\x12.\n\x11trade_clear_offer\x18\x92\x03 \x01(\x0b\x32\x10.TradeClearOfferH\x00\x12\x30\n\x12trade_reject_offer\x18\x93\x03 \x01(\x0b\x32\x11.TradeRejectOfferH\x00\x12\x30\n\x12trade_accept_offer\x18\x94\x03 \x01(\x0b\x32\x11.TradeAcceptOfferH\x00\x12)\n\x0elose_resources\x18\xf4\x03 \x01(\x0b\x32\x0e.LoseResourcesH\x00\x12)\n\x0egain_resources\x18\xf5\x03 \x01(\x0b\x32\x0e.GainResourcesH\x00\x12\x34\n\x14\x63hoose_resource_type\x18\xf6\x03 \x01(\x0b\x32\x13.ChooseResourceTypeH\x00\x12\'\n\rchoose_player\x18\xf7\x03 \x01(\x0b\x32\r.ChoosePlayerH\x00\x12#\n\x0bmove_robber\x18\xf8\x03 \x01(\x0b\x32\x0b.MoveRobberH\x00\x42\x05\n\x03msg*O\n\x14_PlayerElementAction\x12\x1a\n\x16_UNSENT_DEFAULT_ACTION\x10\x00\x12\x07\n\x03SET\x10\x01\x12\x08\n\x04GAIN\x10\x02\x12\x08\n\x04LOSE\x10\x03*\x86\x04\n\x12_PlayerElementType\x12\x1f\n\x1b_UNSENT_DEFAULT_PLAYER_ELEM\x10\x00\x12\r\n\tELEM_CLAY\x10\x01\x12\x0c\n\x08\x45LEM_ORE\x10\x02\x12\x0e\n\nELEM_SHEEP\x10\x03\x12\x0e\n\nELEM_WHEAT\x10\x04\x12\r\n\tELEM_WOOD\x10\x05\x12\x19\n\x15\x45LEM_UNKNOWN_RESOURCE\x10\x06\x12\t\n\x05ROADS\x10\n\x12\x0f\n\x0bSETTLEMENTS\x10\x0b\x12\n\n\x06\x43ITIES\x10\x0c\x12\t\n\x05SHIPS\x10\r\x12\x0e\n\nNUMKNIGHTS\x10\x0f\x12\x15\n\x11\x41SK_SPECIAL_BUILD\x10\x10\x12\x12\n\x0eRESOURCE_COUNT\x10\x11\x12\x18\n\x14LAST_SETTLEMENT_NODE\x10\x12\x12\x18\n\x14PLAYED_DEV_CARD_FLAG\x10\x13\x12\x1f\n\x1bNUM_PICK_GOLD_HEX_RESOURCES\x10\x65\x12\x10\n\x0cSCENARIO_SVP\x10\x66\x12!\n\x1dSCENARIO_PLAYEREVENTS_BITMASK\x10g\x12\"\n\x1eSCENARIO_SVP_LANDAREAS_BITMASK\x10h\x12\x16\n\x12STARTING_LANDAREAS\x10i\x12\x18\n\x14SCENARIO_CLOTH_COUNT\x10j\x12\x1a\n\x16SCENARIO_WARSHIP_COUNT\x10kB\r\n\tsoc.protoH\x01P\x00\x62\x06proto3')
   ,
   dependencies=[data__pb2.DESCRIPTOR,],
   public_dependencies=[data__pb2.DESCRIPTOR,])
@@ -52,8 +52,8 @@ __PLAYERELEMENTACTION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=4689,
-  serialized_end=4768,
+  serialized_start=5536,
+  serialized_end=5615,
 )
 _sym_db.RegisterEnumDescriptor(__PLAYERELEMENTACTION)
 
@@ -159,8 +159,8 @@ __PLAYERELEMENTTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=4771,
-  serialized_end=5289,
+  serialized_start=5618,
+  serialized_end=6136,
 )
 _sym_db.RegisterEnumDescriptor(__PLAYERELEMENTTYPE)
 
@@ -1475,6 +1475,203 @@ _TRADEACCEPTOFFER = _descriptor.Descriptor(
 )
 
 
+_LOSERESOURCES = _descriptor.Descriptor(
+  name='LoseResources',
+  full_name='LoseResources',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='amount', full_name='LoseResources.amount', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='lose', full_name='LoseResources.lose', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=3038,
+  serialized_end=3097,
+)
+
+
+_GAINRESOURCES = _descriptor.Descriptor(
+  name='GainResources',
+  full_name='GainResources',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='amount', full_name='GainResources.amount', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='gain', full_name='GainResources.gain', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=3099,
+  serialized_end=3158,
+)
+
+
+_CHOOSERESOURCETYPE = _descriptor.Descriptor(
+  name='ChooseResourceType',
+  full_name='ChooseResourceType',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='type', full_name='ChooseResourceType.type', index=0,
+      number=1, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=3160,
+  serialized_end=3209,
+)
+
+
+_CHOOSEPLAYER = _descriptor.Descriptor(
+  name='ChoosePlayer',
+  full_name='ChoosePlayer',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='chosen_player_number', full_name='ChoosePlayer.chosen_player_number', index=0,
+      number=1, type=17, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='can_choose_none', full_name='ChoosePlayer.can_choose_none', index=1,
+      number=2, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='chooseable_player_number', full_name='ChoosePlayer.chooseable_player_number', index=2,
+      number=3, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=3211,
+  serialized_end=3314,
+)
+
+
+_MOVEROBBER = _descriptor.Descriptor(
+  name='MoveRobber',
+  full_name='MoveRobber',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='move_to', full_name='MoveRobber.move_to', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='is_robber', full_name='MoveRobber.is_robber', index=1,
+      number=2, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='is_pirate', full_name='MoveRobber.is_pirate', index=2,
+      number=3, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=3316,
+  serialized_end=3394,
+)
+
+
 _GAMEMESSAGEFROMSERVER = _descriptor.Descriptor(
   name='GameMessageFromServer',
   full_name='GameMessageFromServer',
@@ -1657,6 +1854,48 @@ _GAMEMESSAGEFROMSERVER = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='lose_resources_prompt', full_name='GameMessageFromServer.lose_resources_prompt', index=25,
+      number=500, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='lose_resources', full_name='GameMessageFromServer.lose_resources', index=26,
+      number=501, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='gain_resources_prompt', full_name='GameMessageFromServer.gain_resources_prompt', index=27,
+      number=502, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='gain_resources', full_name='GameMessageFromServer.gain_resources', index=28,
+      number=503, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='choose_player_prompt', full_name='GameMessageFromServer.choose_player_prompt', index=29,
+      number=504, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='move_robber', full_name='GameMessageFromServer.move_robber', index=30,
+      number=505, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -1672,8 +1911,8 @@ _GAMEMESSAGEFROMSERVER = _descriptor.Descriptor(
       name='msg', full_name='GameMessageFromServer.msg',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=3039,
-  serialized_end=4062,
+  serialized_start=3397,
+  serialized_end=4691,
 )
 
 
@@ -1782,6 +2021,41 @@ _GAMEMESSAGEFROMCLIENT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='lose_resources', full_name='GameMessageFromClient.lose_resources', index=14,
+      number=500, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='gain_resources', full_name='GameMessageFromClient.gain_resources', index=15,
+      number=501, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='choose_resource_type', full_name='GameMessageFromClient.choose_resource_type', index=16,
+      number=502, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='choose_player', full_name='GameMessageFromClient.choose_player', index=17,
+      number=503, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='move_robber', full_name='GameMessageFromClient.move_robber', index=18,
+      number=504, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -1797,8 +2071,8 @@ _GAMEMESSAGEFROMCLIENT = _descriptor.Descriptor(
       name='msg', full_name='GameMessageFromClient.msg',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=4065,
-  serialized_end=4687,
+  serialized_start=4694,
+  serialized_end=5534,
 )
 
 _BOARDLAYOUT__BOARDLAYOUTPART.fields_by_name['i_arr'].message_type = data__pb2.__INTARRAY
@@ -1881,6 +2155,10 @@ _TRADEWITHBANK.fields_by_name['get'].message_type = data__pb2._RESOURCESET
 _TRADEMAKEOFFER.fields_by_name['give'].message_type = data__pb2._RESOURCESET
 _TRADEMAKEOFFER.fields_by_name['get'].message_type = data__pb2._RESOURCESET
 _TRADEMAKEOFFER.fields_by_name['to_players'].message_type = data__pb2.__INTARRAY
+_LOSERESOURCES.fields_by_name['lose'].message_type = data__pb2._RESOURCESET
+_GAINRESOURCES.fields_by_name['gain'].message_type = data__pb2._RESOURCESET
+_CHOOSERESOURCETYPE.fields_by_name['type'].enum_type = data__pb2._RESOURCETYPE
+_MOVEROBBER.fields_by_name['move_to'].message_type = data__pb2._HEXCOORD
 _GAMEMESSAGEFROMSERVER.fields_by_name['game_state'].message_type = _STATE
 _GAMEMESSAGEFROMSERVER.fields_by_name['player_element'].message_type = _PLAYERELEMENT
 _GAMEMESSAGEFROMSERVER.fields_by_name['player_elements'].message_type = _PLAYERELEMENTS
@@ -1904,6 +2182,12 @@ _GAMEMESSAGEFROMSERVER.fields_by_name['trade_make_offer'].message_type = _TRADEM
 _GAMEMESSAGEFROMSERVER.fields_by_name['trade_clear_offer'].message_type = _TRADECLEAROFFER
 _GAMEMESSAGEFROMSERVER.fields_by_name['trade_reject_offer'].message_type = _TRADEREJECTOFFER
 _GAMEMESSAGEFROMSERVER.fields_by_name['trade_accept_offer'].message_type = _TRADEACCEPTOFFER
+_GAMEMESSAGEFROMSERVER.fields_by_name['lose_resources_prompt'].message_type = _LOSERESOURCES
+_GAMEMESSAGEFROMSERVER.fields_by_name['lose_resources'].message_type = _LOSERESOURCES
+_GAMEMESSAGEFROMSERVER.fields_by_name['gain_resources_prompt'].message_type = _GAINRESOURCES
+_GAMEMESSAGEFROMSERVER.fields_by_name['gain_resources'].message_type = _GAINRESOURCES
+_GAMEMESSAGEFROMSERVER.fields_by_name['choose_player_prompt'].message_type = _CHOOSEPLAYER
+_GAMEMESSAGEFROMSERVER.fields_by_name['move_robber'].message_type = _MOVEROBBER
 _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
   _GAMEMESSAGEFROMSERVER.fields_by_name['game_state'])
 _GAMEMESSAGEFROMSERVER.fields_by_name['game_state'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
@@ -1973,6 +2257,24 @@ _GAMEMESSAGEFROMSERVER.fields_by_name['trade_reject_offer'].containing_oneof = _
 _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
   _GAMEMESSAGEFROMSERVER.fields_by_name['trade_accept_offer'])
 _GAMEMESSAGEFROMSERVER.fields_by_name['trade_accept_offer'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
+_GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
+  _GAMEMESSAGEFROMSERVER.fields_by_name['lose_resources_prompt'])
+_GAMEMESSAGEFROMSERVER.fields_by_name['lose_resources_prompt'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
+_GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
+  _GAMEMESSAGEFROMSERVER.fields_by_name['lose_resources'])
+_GAMEMESSAGEFROMSERVER.fields_by_name['lose_resources'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
+_GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
+  _GAMEMESSAGEFROMSERVER.fields_by_name['gain_resources_prompt'])
+_GAMEMESSAGEFROMSERVER.fields_by_name['gain_resources_prompt'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
+_GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
+  _GAMEMESSAGEFROMSERVER.fields_by_name['gain_resources'])
+_GAMEMESSAGEFROMSERVER.fields_by_name['gain_resources'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
+_GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
+  _GAMEMESSAGEFROMSERVER.fields_by_name['choose_player_prompt'])
+_GAMEMESSAGEFROMSERVER.fields_by_name['choose_player_prompt'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
+_GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
+  _GAMEMESSAGEFROMSERVER.fields_by_name['move_robber'])
+_GAMEMESSAGEFROMSERVER.fields_by_name['move_robber'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
 _GAMEMESSAGEFROMCLIENT.fields_by_name['start_game'].message_type = _STARTGAME
 _GAMEMESSAGEFROMCLIENT.fields_by_name['dice_roll_request'].message_type = _DICEROLLREQUEST
 _GAMEMESSAGEFROMCLIENT.fields_by_name['end_turn'].message_type = _ENDTURN
@@ -1986,6 +2288,11 @@ _GAMEMESSAGEFROMCLIENT.fields_by_name['trade_make_offer'].message_type = _TRADEM
 _GAMEMESSAGEFROMCLIENT.fields_by_name['trade_clear_offer'].message_type = _TRADECLEAROFFER
 _GAMEMESSAGEFROMCLIENT.fields_by_name['trade_reject_offer'].message_type = _TRADEREJECTOFFER
 _GAMEMESSAGEFROMCLIENT.fields_by_name['trade_accept_offer'].message_type = _TRADEACCEPTOFFER
+_GAMEMESSAGEFROMCLIENT.fields_by_name['lose_resources'].message_type = _LOSERESOURCES
+_GAMEMESSAGEFROMCLIENT.fields_by_name['gain_resources'].message_type = _GAINRESOURCES
+_GAMEMESSAGEFROMCLIENT.fields_by_name['choose_resource_type'].message_type = _CHOOSERESOURCETYPE
+_GAMEMESSAGEFROMCLIENT.fields_by_name['choose_player'].message_type = _CHOOSEPLAYER
+_GAMEMESSAGEFROMCLIENT.fields_by_name['move_robber'].message_type = _MOVEROBBER
 _GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg'].fields.append(
   _GAMEMESSAGEFROMCLIENT.fields_by_name['start_game'])
 _GAMEMESSAGEFROMCLIENT.fields_by_name['start_game'].containing_oneof = _GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg']
@@ -2025,6 +2332,21 @@ _GAMEMESSAGEFROMCLIENT.fields_by_name['trade_reject_offer'].containing_oneof = _
 _GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg'].fields.append(
   _GAMEMESSAGEFROMCLIENT.fields_by_name['trade_accept_offer'])
 _GAMEMESSAGEFROMCLIENT.fields_by_name['trade_accept_offer'].containing_oneof = _GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg']
+_GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg'].fields.append(
+  _GAMEMESSAGEFROMCLIENT.fields_by_name['lose_resources'])
+_GAMEMESSAGEFROMCLIENT.fields_by_name['lose_resources'].containing_oneof = _GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg']
+_GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg'].fields.append(
+  _GAMEMESSAGEFROMCLIENT.fields_by_name['gain_resources'])
+_GAMEMESSAGEFROMCLIENT.fields_by_name['gain_resources'].containing_oneof = _GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg']
+_GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg'].fields.append(
+  _GAMEMESSAGEFROMCLIENT.fields_by_name['choose_resource_type'])
+_GAMEMESSAGEFROMCLIENT.fields_by_name['choose_resource_type'].containing_oneof = _GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg']
+_GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg'].fields.append(
+  _GAMEMESSAGEFROMCLIENT.fields_by_name['choose_player'])
+_GAMEMESSAGEFROMCLIENT.fields_by_name['choose_player'].containing_oneof = _GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg']
+_GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg'].fields.append(
+  _GAMEMESSAGEFROMCLIENT.fields_by_name['move_robber'])
+_GAMEMESSAGEFROMCLIENT.fields_by_name['move_robber'].containing_oneof = _GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg']
 DESCRIPTOR.message_types_by_name['BoardLayout'] = _BOARDLAYOUT
 DESCRIPTOR.message_types_by_name['PotentialSettlements'] = _POTENTIALSETTLEMENTS
 DESCRIPTOR.message_types_by_name['PieceValue'] = _PIECEVALUE
@@ -2050,6 +2372,11 @@ DESCRIPTOR.message_types_by_name['TradeMakeOffer'] = _TRADEMAKEOFFER
 DESCRIPTOR.message_types_by_name['TradeClearOffer'] = _TRADECLEAROFFER
 DESCRIPTOR.message_types_by_name['TradeRejectOffer'] = _TRADEREJECTOFFER
 DESCRIPTOR.message_types_by_name['TradeAcceptOffer'] = _TRADEACCEPTOFFER
+DESCRIPTOR.message_types_by_name['LoseResources'] = _LOSERESOURCES
+DESCRIPTOR.message_types_by_name['GainResources'] = _GAINRESOURCES
+DESCRIPTOR.message_types_by_name['ChooseResourceType'] = _CHOOSERESOURCETYPE
+DESCRIPTOR.message_types_by_name['ChoosePlayer'] = _CHOOSEPLAYER
+DESCRIPTOR.message_types_by_name['MoveRobber'] = _MOVEROBBER
 DESCRIPTOR.message_types_by_name['GameMessageFromServer'] = _GAMEMESSAGEFROMSERVER
 DESCRIPTOR.message_types_by_name['GameMessageFromClient'] = _GAMEMESSAGEFROMCLIENT
 DESCRIPTOR.enum_types_by_name['_PlayerElementAction'] = __PLAYERELEMENTACTION
@@ -2262,6 +2589,41 @@ TradeAcceptOffer = _reflection.GeneratedProtocolMessageType('TradeAcceptOffer', 
   # @@protoc_insertion_point(class_scope:TradeAcceptOffer)
   ))
 _sym_db.RegisterMessage(TradeAcceptOffer)
+
+LoseResources = _reflection.GeneratedProtocolMessageType('LoseResources', (_message.Message,), dict(
+  DESCRIPTOR = _LOSERESOURCES,
+  __module__ = 'game_message_pb2'
+  # @@protoc_insertion_point(class_scope:LoseResources)
+  ))
+_sym_db.RegisterMessage(LoseResources)
+
+GainResources = _reflection.GeneratedProtocolMessageType('GainResources', (_message.Message,), dict(
+  DESCRIPTOR = _GAINRESOURCES,
+  __module__ = 'game_message_pb2'
+  # @@protoc_insertion_point(class_scope:GainResources)
+  ))
+_sym_db.RegisterMessage(GainResources)
+
+ChooseResourceType = _reflection.GeneratedProtocolMessageType('ChooseResourceType', (_message.Message,), dict(
+  DESCRIPTOR = _CHOOSERESOURCETYPE,
+  __module__ = 'game_message_pb2'
+  # @@protoc_insertion_point(class_scope:ChooseResourceType)
+  ))
+_sym_db.RegisterMessage(ChooseResourceType)
+
+ChoosePlayer = _reflection.GeneratedProtocolMessageType('ChoosePlayer', (_message.Message,), dict(
+  DESCRIPTOR = _CHOOSEPLAYER,
+  __module__ = 'game_message_pb2'
+  # @@protoc_insertion_point(class_scope:ChoosePlayer)
+  ))
+_sym_db.RegisterMessage(ChoosePlayer)
+
+MoveRobber = _reflection.GeneratedProtocolMessageType('MoveRobber', (_message.Message,), dict(
+  DESCRIPTOR = _MOVEROBBER,
+  __module__ = 'game_message_pb2'
+  # @@protoc_insertion_point(class_scope:MoveRobber)
+  ))
+_sym_db.RegisterMessage(MoveRobber)
 
 GameMessageFromServer = _reflection.GeneratedProtocolMessageType('GameMessageFromServer', (_message.Message,), dict(
   DESCRIPTOR = _GAMEMESSAGEFROMSERVER,
