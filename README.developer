@@ -128,7 +128,18 @@ Setup instructions for JSettlers as an Eclipse project
 - Browse to jsettlers-1.x.xx-src/build.xml, select the "javac" task in target "compile"
 - Check the box "Link to the buildfile in the file system"
 - Hit Finish.
-- Project -> Properties: Resource: Text file encoding: UTF-8 -> OK
+- Project -> Properties
+    - Resource: Text file encoding: UTF-8
+    - Java Compiler: JDK compliance
+    	- Compliance level: 1.5
+    - Java Compiler: Errors/Warnings  [only for stable-1.x.xx branch]
+    	- Potential programming problems: Serializable class without serialVersionUID: Ignore
+    	- Deprecated and restricted API: Deprecated API: Ignore
+    	- Generic Types:
+            - Unchecked generic type operation: Ignore
+            - Usage of a raw type: Ignore
+    - OK
+    	- If eclipse asks "Build the project now?", hit Yes
 - You'll need to run the "build" target once before you run JSettlers, to create
   version.info from resources/version.info.in. This is true even if you're running
   SOCServer or SOCPlayerClient as Java apps within Eclipse,
