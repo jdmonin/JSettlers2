@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011,2013-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2011,2013-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -2434,6 +2434,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
                 bh = boardPanel.getHeight();
                 hw = (dim.width - bw - 16) / 2;
                 tah = dim.height - bh - buildph - tfh - 16;
+                boardPanel.setLocation(i.left + hw + 8, i.top + tfh + tah + 8);
             }
         }
         boardIsScaled = canScaleBoard;  // set field, now that we know if it works
