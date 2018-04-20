@@ -3842,7 +3842,7 @@ public class SOCPlayerClient extends Applet
             SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
             SOCTradeOffer offer = mes.getOffer();
             ga.getPlayer(offer.getFrom()).setCurrentOffer(offer);
-            pi.getPlayerHandPanel(offer.getFrom()).updateCurrentOffer(false);
+            pi.getPlayerHandPanel(offer.getFrom()).updateCurrentOffer(true, false);
         }
     }
 
@@ -3861,12 +3861,12 @@ public class SOCPlayerClient extends Applet
             if (pn != -1)
             {
                 ga.getPlayer(pn).setCurrentOffer(null);
-                pi.getPlayerHandPanel(pn).updateCurrentOffer(false);
+                pi.getPlayerHandPanel(pn).updateCurrentOffer(false, false);
             } else {
                 for (int i = 0; i < ga.maxPlayers; ++i)
                 {
                     ga.getPlayer(i).setCurrentOffer(null);
-                    pi.getPlayerHandPanel(i).updateCurrentOffer(false);
+                    pi.getPlayerHandPanel(i).updateCurrentOffer(false, false);
                 }
             }
         }

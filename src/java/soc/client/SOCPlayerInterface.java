@@ -519,6 +519,13 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     static byte[] SOUND_RSRC_LOST;
 
     /**
+     * Sound prompt when trade is offered to client player.
+     * Generated at first call to constructor.
+     * @since 1.2.01
+     */
+    static byte[] SOUND_OFFERED_TRADE;
+
+    /**
      * Thread executor to queue and play {@link #playSound(byte[])} using {@link PIPlaySound}s.
      * @since 1.2.00
      */
@@ -739,6 +746,11 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
                     int i = Sounds.genChime(Sounds.NOTE_E4_HZ, 120, .9, buf, 0, false);
                     Sounds.genChime(Sounds.NOTE_C4_HZ, 90, .9, buf, i, false);
                     SOUND_RSRC_LOST = buf;
+
+                    buf = new byte[Sounds.bufferLen(120 + 120)];
+                    i = Sounds.genChime(Sounds.NOTE_B5_HZ, 120, .4, buf, 0, false);
+                    Sounds.genChime(Sounds.NOTE_B5_HZ, 120, .4, buf, i, false);
+                    SOUND_OFFERED_TRADE = buf;
                 }
             });
 
@@ -1973,7 +1985,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             if (i == clientHandPlayerNum)
                 continue;
 
-            hands[i].updateCurrentOffer(true);
+            hands[i].updateCurrentOffer(false, true);
         }
 
         // If bad news from unexpectedly lost resources, let the player know

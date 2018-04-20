@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2009,2011,2012,2015,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2011,2012,2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1110,6 +1110,7 @@ public class TradeOfferPanel extends Panel
      * call {@link #clearOffer()}.
      *
      * @param  currentOffer the trade being proposed
+     * @see #isOfferToClientPlayer()
      */
     public void setOffer(SOCTradeOffer currentOffer)
     {
@@ -1158,6 +1159,17 @@ public class TradeOfferPanel extends Panel
     public boolean isCounterOfferMode()
     {
         return offerPanel.counterOfferMode;
+    }
+
+    /**
+     * Is panel in offer mode and is its current offer made to the client player?
+     * @return  True only if {@link #isVisible()} in {@link #OFFER_MODE} and current offer's "made to" players list
+     *     includes the client player, if any.
+     * @since 1.2.01
+     */
+    public boolean isOfferToClientPlayer()
+    {
+        return isVisible() && mode.equals(OFFER_MODE) && offerPanel.offered;
     }
 
     /**

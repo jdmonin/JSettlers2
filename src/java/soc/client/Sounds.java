@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2014 Réal Gagnon <real@rgagnon.com>
  * (genTone method, which has a BSD-like license: "There is no restriction to use
  *  individual How-To in a development (compiled/source) but a mention is appreciated.")
@@ -62,6 +62,12 @@ public class Sounds
 
     /** Musical note A5, 880 Hz */
     public static final int NOTE_A5_HZ = 880;
+
+    /**
+     * Musical note B5, 988 Hz (987.77)
+     * @since 1.2.01
+     */
+    public static final int NOTE_B5_HZ = 988;
 
     private static final double PI_X_2 = 2.0 * Math.PI;
 

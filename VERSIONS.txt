@@ -14,6 +14,7 @@ and backport minor new features until 2.0.00 is ready.
 
     > 1.2.01 (build OV201805xx)
 - Client: Game window bugfix: Join Game hangs on Windows Java 9 (SnippingTextArea peer NoSuchMethodError)
+- Sound prompt when client player is offered a trade
 - Game windows: Render board with antialiasing
 - If new game options require a certain version, don't warn unless the required version
      is newer than 1.1.20 (released October 2016).
