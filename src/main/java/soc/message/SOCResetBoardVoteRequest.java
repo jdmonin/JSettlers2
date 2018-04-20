@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008,2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008,2014,2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,6 +20,9 @@
 package soc.message;
 
 import java.util.StringTokenizer;
+
+import soc.proto.GameMessage;
+import soc.proto.Message;
 
 /**
  * This message from server informs the client that in a game they're playing,
@@ -90,6 +93,17 @@ public class SOCResetBoardVoteRequest extends SOCMessageTemplate1i
         }
 
         return new SOCResetBoardVoteRequest(ga, reqpn);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.ResetBoardVote.Builder b
+            = GameMessage.ResetBoardVote.newBuilder();
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGameName(game).setResetBoardVotePrompt(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
     /**

@@ -1382,14 +1382,22 @@ public abstract class SOCMessage implements Serializable, Cloneable
                 {
                     GameMessage.MoveRobber m = msg.getMoveRobber();
                     int hexCoord = ProtoMessageBuildHelper.fromHexCoord(m.getMoveTo());
-                    final boolean isPirate = m.getIsPirate();
-                    if (isPirate)
+                    if (m.getIsPirate())
                         return new SOCMoveRobber(gaName, -1, -hexCoord);
                     else if (m.getIsRobber())
                         return new SOCMoveRobber(gaName, -1, hexCoord);
                     else
                         return null;  // malformed
                 }
+
+            // game lifecycle: reset board & voting
+
+            case GameMessage.GameMessageFromClient.RESET_BOARD_REQUEST_FIELD_NUMBER:
+                return new SOCResetBoardRequest(gaName);
+
+            case GameMessage.GameMessageFromClient.RESET_BOARD_VOTE_FIELD_NUMBER:
+                return new SOCResetBoardVote
+                    (gaName, -1, msg.getResetBoardVote().getIsYes());
 
             default:
                 System.err.println("Unhandled GameMessageFromClient type in SOCMessage.toMsg: " + typ);

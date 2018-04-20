@@ -2894,7 +2894,7 @@ public class SOCPlayerInterface extends Frame
      * Most GUI panels are destroyed and re-created.  Player chat text is kept.
      *
      * @param newGame New game object
-     * @param rejoinPlayerNumber Sanity check - must be our correct player number in this game
+     * @param rejoinPlayerNumber Sanity check - must be our correct player number in this game, or -1
      * @param requesterNumber Player who requested the board reset
      *
      * @see soc.server.SOCServer#resetBoardAndNotify(String, int)
@@ -2904,7 +2904,7 @@ public class SOCPlayerInterface extends Frame
     {
         if (clientHand == null)
             return;
-        if (clientHandPlayerNum != rejoinPlayerNumber)
+        if ((rejoinPlayerNumber != -1) && (clientHandPlayerNum != rejoinPlayerNumber))
             return;
         if (newGame == null)
             throw new IllegalArgumentException("newGame is null");

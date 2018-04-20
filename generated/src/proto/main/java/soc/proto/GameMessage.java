@@ -27117,6 +27117,1394 @@ public final class GameMessage {
 
   }
 
+  public interface ResetBoardRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:ResetBoardRequest)
+      com.google.protobuf.MessageOrBuilder {
+  }
+  /**
+   * <pre>
+   * A request from a player to reset the game board.
+   * - Player client sends this to server
+   * - If can't reset game at this time, server replies with ResetBoardResult(was_rejected=true)
+   * - If there are no other human players, server replies with ResetBoardResult(was_rejected=false) to reset the board
+   * - If there are other human players:
+   *   - Server announces this ResetBoardRequest to all human players, including requesting player
+   *   - Other human players are sent a ResetBoardVote prompt
+   *   - For next steps after that, see ResetBoardVote docs
+   * </pre>
+   *
+   * Protobuf type {@code ResetBoardRequest}
+   */
+  public  static final class ResetBoardRequest extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:ResetBoardRequest)
+      ResetBoardRequestOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use ResetBoardRequest.newBuilder() to construct.
+    private ResetBoardRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private ResetBoardRequest() {
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private ResetBoardRequest(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_ResetBoardRequest_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_ResetBoardRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.ResetBoardRequest.class, soc.proto.GameMessage.ResetBoardRequest.Builder.class);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.ResetBoardRequest)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.ResetBoardRequest other = (soc.proto.GameMessage.ResetBoardRequest) obj;
+
+      boolean result = true;
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.ResetBoardRequest parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.ResetBoardRequest parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ResetBoardRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.ResetBoardRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ResetBoardRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.ResetBoardRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ResetBoardRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.ResetBoardRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ResetBoardRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.ResetBoardRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ResetBoardRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.ResetBoardRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.ResetBoardRequest prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * A request from a player to reset the game board.
+     * - Player client sends this to server
+     * - If can't reset game at this time, server replies with ResetBoardResult(was_rejected=true)
+     * - If there are no other human players, server replies with ResetBoardResult(was_rejected=false) to reset the board
+     * - If there are other human players:
+     *   - Server announces this ResetBoardRequest to all human players, including requesting player
+     *   - Other human players are sent a ResetBoardVote prompt
+     *   - For next steps after that, see ResetBoardVote docs
+     * </pre>
+     *
+     * Protobuf type {@code ResetBoardRequest}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:ResetBoardRequest)
+        soc.proto.GameMessage.ResetBoardRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_ResetBoardRequest_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_ResetBoardRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.ResetBoardRequest.class, soc.proto.GameMessage.ResetBoardRequest.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.ResetBoardRequest.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_ResetBoardRequest_descriptor;
+      }
+
+      public soc.proto.GameMessage.ResetBoardRequest getDefaultInstanceForType() {
+        return soc.proto.GameMessage.ResetBoardRequest.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.ResetBoardRequest build() {
+        soc.proto.GameMessage.ResetBoardRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.ResetBoardRequest buildPartial() {
+        soc.proto.GameMessage.ResetBoardRequest result = new soc.proto.GameMessage.ResetBoardRequest(this);
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.ResetBoardRequest) {
+          return mergeFrom((soc.proto.GameMessage.ResetBoardRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.ResetBoardRequest other) {
+        if (other == soc.proto.GameMessage.ResetBoardRequest.getDefaultInstance()) return this;
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.ResetBoardRequest parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.ResetBoardRequest) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:ResetBoardRequest)
+    }
+
+    // @@protoc_insertion_point(class_scope:ResetBoardRequest)
+    private static final soc.proto.GameMessage.ResetBoardRequest DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.ResetBoardRequest();
+    }
+
+    public static soc.proto.GameMessage.ResetBoardRequest getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ResetBoardRequest>
+        PARSER = new com.google.protobuf.AbstractParser<ResetBoardRequest>() {
+      public ResetBoardRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new ResetBoardRequest(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<ResetBoardRequest> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ResetBoardRequest> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.ResetBoardRequest getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface ResetBoardVoteOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:ResetBoardVote)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * True if this client player is voting Yes to reset the board
+     * </pre>
+     *
+     * <code>bool is_yes = 1;</code>
+     */
+    boolean getIsYes();
+  }
+  /**
+   * <pre>
+   * A human player's vote on whether to reset this game board.
+   * - First sent to client as prompt to vote yes or no
+   * - Client player responds with their vote
+   * - Server announces each vote to the entire game
+   * - Once all human players have voted, server announces the ResetBoardResult
+   *&lt;P&gt;
+   * Before v3.0.00 this message was SOCResetBoardVoteRequest and SOCResetBoardVote.
+   * </pre>
+   *
+   * Protobuf type {@code ResetBoardVote}
+   */
+  public  static final class ResetBoardVote extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:ResetBoardVote)
+      ResetBoardVoteOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use ResetBoardVote.newBuilder() to construct.
+    private ResetBoardVote(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private ResetBoardVote() {
+      isYes_ = false;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private ResetBoardVote(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+
+              isYes_ = input.readBool();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_ResetBoardVote_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_ResetBoardVote_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.ResetBoardVote.class, soc.proto.GameMessage.ResetBoardVote.Builder.class);
+    }
+
+    public static final int IS_YES_FIELD_NUMBER = 1;
+    private boolean isYes_;
+    /**
+     * <pre>
+     * True if this client player is voting Yes to reset the board
+     * </pre>
+     *
+     * <code>bool is_yes = 1;</code>
+     */
+    public boolean getIsYes() {
+      return isYes_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (isYes_ != false) {
+        output.writeBool(1, isYes_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (isYes_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(1, isYes_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.ResetBoardVote)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.ResetBoardVote other = (soc.proto.GameMessage.ResetBoardVote) obj;
+
+      boolean result = true;
+      result = result && (getIsYes()
+          == other.getIsYes());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + IS_YES_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getIsYes());
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.ResetBoardVote parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.ResetBoardVote parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ResetBoardVote parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.ResetBoardVote parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ResetBoardVote parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.ResetBoardVote parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ResetBoardVote parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.ResetBoardVote parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ResetBoardVote parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.ResetBoardVote parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ResetBoardVote parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.ResetBoardVote parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.ResetBoardVote prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * A human player's vote on whether to reset this game board.
+     * - First sent to client as prompt to vote yes or no
+     * - Client player responds with their vote
+     * - Server announces each vote to the entire game
+     * - Once all human players have voted, server announces the ResetBoardResult
+     *&lt;P&gt;
+     * Before v3.0.00 this message was SOCResetBoardVoteRequest and SOCResetBoardVote.
+     * </pre>
+     *
+     * Protobuf type {@code ResetBoardVote}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:ResetBoardVote)
+        soc.proto.GameMessage.ResetBoardVoteOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_ResetBoardVote_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_ResetBoardVote_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.ResetBoardVote.class, soc.proto.GameMessage.ResetBoardVote.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.ResetBoardVote.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        isYes_ = false;
+
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_ResetBoardVote_descriptor;
+      }
+
+      public soc.proto.GameMessage.ResetBoardVote getDefaultInstanceForType() {
+        return soc.proto.GameMessage.ResetBoardVote.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.ResetBoardVote build() {
+        soc.proto.GameMessage.ResetBoardVote result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.ResetBoardVote buildPartial() {
+        soc.proto.GameMessage.ResetBoardVote result = new soc.proto.GameMessage.ResetBoardVote(this);
+        result.isYes_ = isYes_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.ResetBoardVote) {
+          return mergeFrom((soc.proto.GameMessage.ResetBoardVote)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.ResetBoardVote other) {
+        if (other == soc.proto.GameMessage.ResetBoardVote.getDefaultInstance()) return this;
+        if (other.getIsYes() != false) {
+          setIsYes(other.getIsYes());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.ResetBoardVote parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.ResetBoardVote) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private boolean isYes_ ;
+      /**
+       * <pre>
+       * True if this client player is voting Yes to reset the board
+       * </pre>
+       *
+       * <code>bool is_yes = 1;</code>
+       */
+      public boolean getIsYes() {
+        return isYes_;
+      }
+      /**
+       * <pre>
+       * True if this client player is voting Yes to reset the board
+       * </pre>
+       *
+       * <code>bool is_yes = 1;</code>
+       */
+      public Builder setIsYes(boolean value) {
+        
+        isYes_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * True if this client player is voting Yes to reset the board
+       * </pre>
+       *
+       * <code>bool is_yes = 1;</code>
+       */
+      public Builder clearIsYes() {
+        
+        isYes_ = false;
+        onChanged();
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:ResetBoardVote)
+    }
+
+    // @@protoc_insertion_point(class_scope:ResetBoardVote)
+    private static final soc.proto.GameMessage.ResetBoardVote DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.ResetBoardVote();
+    }
+
+    public static soc.proto.GameMessage.ResetBoardVote getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ResetBoardVote>
+        PARSER = new com.google.protobuf.AbstractParser<ResetBoardVote>() {
+      public ResetBoardVote parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new ResetBoardVote(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<ResetBoardVote> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ResetBoardVote> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.ResetBoardVote getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface ResetBoardResultOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:ResetBoardResult)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * True if reset was rejected or voted down, false if the reset is starting now
+     * </pre>
+     *
+     * <code>bool was_rejected = 1;</code>
+     */
+    boolean getWasRejected();
+  }
+  /**
+   * <pre>
+   * Result announcement from server for a board reset request/vote.
+   * For a successful reset request (wasn't rejected):
+   * - GameMessageFromServer.player_number is the player who asked for the reset.
+   * - For human players, this message replaces the JoinGame message seen when joining a brand-new game;
+   *   the reset message will be followed with others which will fill in the game state.
+   * - Robots must instead discard game state and ask to re-join.
+   *   Robot clients must treat this message as a BotJoinGameRequest to join the new game.
+   *&lt;P&gt;
+   * Before v3.0.00 this message was SOCResetBoardAuth and SOCResetBoardReject.
+   * </pre>
+   *
+   * Protobuf type {@code ResetBoardResult}
+   */
+  public  static final class ResetBoardResult extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:ResetBoardResult)
+      ResetBoardResultOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use ResetBoardResult.newBuilder() to construct.
+    private ResetBoardResult(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private ResetBoardResult() {
+      wasRejected_ = false;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private ResetBoardResult(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+
+              wasRejected_ = input.readBool();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return soc.proto.GameMessage.internal_static_ResetBoardResult_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return soc.proto.GameMessage.internal_static_ResetBoardResult_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              soc.proto.GameMessage.ResetBoardResult.class, soc.proto.GameMessage.ResetBoardResult.Builder.class);
+    }
+
+    public static final int WAS_REJECTED_FIELD_NUMBER = 1;
+    private boolean wasRejected_;
+    /**
+     * <pre>
+     * True if reset was rejected or voted down, false if the reset is starting now
+     * </pre>
+     *
+     * <code>bool was_rejected = 1;</code>
+     */
+    public boolean getWasRejected() {
+      return wasRejected_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (wasRejected_ != false) {
+        output.writeBool(1, wasRejected_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (wasRejected_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(1, wasRejected_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof soc.proto.GameMessage.ResetBoardResult)) {
+        return super.equals(obj);
+      }
+      soc.proto.GameMessage.ResetBoardResult other = (soc.proto.GameMessage.ResetBoardResult) obj;
+
+      boolean result = true;
+      result = result && (getWasRejected()
+          == other.getWasRejected());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + WAS_REJECTED_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getWasRejected());
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static soc.proto.GameMessage.ResetBoardResult parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.ResetBoardResult parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ResetBoardResult parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.ResetBoardResult parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ResetBoardResult parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static soc.proto.GameMessage.ResetBoardResult parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ResetBoardResult parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.ResetBoardResult parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ResetBoardResult parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.ResetBoardResult parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static soc.proto.GameMessage.ResetBoardResult parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static soc.proto.GameMessage.ResetBoardResult parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.GameMessage.ResetBoardResult prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * Result announcement from server for a board reset request/vote.
+     * For a successful reset request (wasn't rejected):
+     * - GameMessageFromServer.player_number is the player who asked for the reset.
+     * - For human players, this message replaces the JoinGame message seen when joining a brand-new game;
+     *   the reset message will be followed with others which will fill in the game state.
+     * - Robots must instead discard game state and ask to re-join.
+     *   Robot clients must treat this message as a BotJoinGameRequest to join the new game.
+     *&lt;P&gt;
+     * Before v3.0.00 this message was SOCResetBoardAuth and SOCResetBoardReject.
+     * </pre>
+     *
+     * Protobuf type {@code ResetBoardResult}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:ResetBoardResult)
+        soc.proto.GameMessage.ResetBoardResultOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.internal_static_ResetBoardResult_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return soc.proto.GameMessage.internal_static_ResetBoardResult_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                soc.proto.GameMessage.ResetBoardResult.class, soc.proto.GameMessage.ResetBoardResult.Builder.class);
+      }
+
+      // Construct using soc.proto.GameMessage.ResetBoardResult.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        wasRejected_ = false;
+
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return soc.proto.GameMessage.internal_static_ResetBoardResult_descriptor;
+      }
+
+      public soc.proto.GameMessage.ResetBoardResult getDefaultInstanceForType() {
+        return soc.proto.GameMessage.ResetBoardResult.getDefaultInstance();
+      }
+
+      public soc.proto.GameMessage.ResetBoardResult build() {
+        soc.proto.GameMessage.ResetBoardResult result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public soc.proto.GameMessage.ResetBoardResult buildPartial() {
+        soc.proto.GameMessage.ResetBoardResult result = new soc.proto.GameMessage.ResetBoardResult(this);
+        result.wasRejected_ = wasRejected_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof soc.proto.GameMessage.ResetBoardResult) {
+          return mergeFrom((soc.proto.GameMessage.ResetBoardResult)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(soc.proto.GameMessage.ResetBoardResult other) {
+        if (other == soc.proto.GameMessage.ResetBoardResult.getDefaultInstance()) return this;
+        if (other.getWasRejected() != false) {
+          setWasRejected(other.getWasRejected());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        soc.proto.GameMessage.ResetBoardResult parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (soc.proto.GameMessage.ResetBoardResult) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private boolean wasRejected_ ;
+      /**
+       * <pre>
+       * True if reset was rejected or voted down, false if the reset is starting now
+       * </pre>
+       *
+       * <code>bool was_rejected = 1;</code>
+       */
+      public boolean getWasRejected() {
+        return wasRejected_;
+      }
+      /**
+       * <pre>
+       * True if reset was rejected or voted down, false if the reset is starting now
+       * </pre>
+       *
+       * <code>bool was_rejected = 1;</code>
+       */
+      public Builder setWasRejected(boolean value) {
+        
+        wasRejected_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * True if reset was rejected or voted down, false if the reset is starting now
+       * </pre>
+       *
+       * <code>bool was_rejected = 1;</code>
+       */
+      public Builder clearWasRejected() {
+        
+        wasRejected_ = false;
+        onChanged();
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:ResetBoardResult)
+    }
+
+    // @@protoc_insertion_point(class_scope:ResetBoardResult)
+    private static final soc.proto.GameMessage.ResetBoardResult DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new soc.proto.GameMessage.ResetBoardResult();
+    }
+
+    public static soc.proto.GameMessage.ResetBoardResult getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ResetBoardResult>
+        PARSER = new com.google.protobuf.AbstractParser<ResetBoardResult>() {
+      public ResetBoardResult parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new ResetBoardResult(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<ResetBoardResult> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ResetBoardResult> getParserForType() {
+      return PARSER;
+    }
+
+    public soc.proto.GameMessage.ResetBoardResult getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface GameMessageFromServerOrBuilder extends
       // @@protoc_insertion_point(interface_extends:GameMessageFromServer)
       com.google.protobuf.MessageOrBuilder {
@@ -27609,6 +28997,70 @@ public final class GameMessage {
      */
     soc.proto.GameMessage.MoveRobberOrBuilder getMoveRobberOrBuilder();
 
+    /**
+     * <pre>
+     * game lifecycle: reset board &amp; voting
+     * </pre>
+     *
+     * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+     */
+    boolean hasResetBoardRequest();
+    /**
+     * <pre>
+     * game lifecycle: reset board &amp; voting
+     * </pre>
+     *
+     * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+     */
+    soc.proto.GameMessage.ResetBoardRequest getResetBoardRequest();
+    /**
+     * <pre>
+     * game lifecycle: reset board &amp; voting
+     * </pre>
+     *
+     * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+     */
+    soc.proto.GameMessage.ResetBoardRequestOrBuilder getResetBoardRequestOrBuilder();
+
+    /**
+     * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
+     */
+    boolean hasResetBoardVotePrompt();
+    /**
+     * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
+     */
+    soc.proto.GameMessage.ResetBoardVote getResetBoardVotePrompt();
+    /**
+     * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
+     */
+    soc.proto.GameMessage.ResetBoardVoteOrBuilder getResetBoardVotePromptOrBuilder();
+
+    /**
+     * <code>.ResetBoardVote reset_board_vote = 1002;</code>
+     */
+    boolean hasResetBoardVote();
+    /**
+     * <code>.ResetBoardVote reset_board_vote = 1002;</code>
+     */
+    soc.proto.GameMessage.ResetBoardVote getResetBoardVote();
+    /**
+     * <code>.ResetBoardVote reset_board_vote = 1002;</code>
+     */
+    soc.proto.GameMessage.ResetBoardVoteOrBuilder getResetBoardVoteOrBuilder();
+
+    /**
+     * <code>.ResetBoardResult reset_board_result = 1003;</code>
+     */
+    boolean hasResetBoardResult();
+    /**
+     * <code>.ResetBoardResult reset_board_result = 1003;</code>
+     */
+    soc.proto.GameMessage.ResetBoardResult getResetBoardResult();
+    /**
+     * <code>.ResetBoardResult reset_board_result = 1003;</code>
+     */
+    soc.proto.GameMessage.ResetBoardResultOrBuilder getResetBoardResultOrBuilder();
+
     public soc.proto.GameMessage.GameMessageFromServer.MsgCase getMsgCase();
   }
   /**
@@ -27639,6 +29091,7 @@ public final class GameMessage {
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
       int mutable_bitField0_ = 0;
+      int mutable_bitField1_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -28073,6 +29526,62 @@ public final class GameMessage {
               msgCase_ = 505;
               break;
             }
+            case 8002: {
+              soc.proto.GameMessage.ResetBoardRequest.Builder subBuilder = null;
+              if (msgCase_ == 1000) {
+                subBuilder = ((soc.proto.GameMessage.ResetBoardRequest) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.ResetBoardRequest.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.ResetBoardRequest) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 1000;
+              break;
+            }
+            case 8010: {
+              soc.proto.GameMessage.ResetBoardVote.Builder subBuilder = null;
+              if (msgCase_ == 1001) {
+                subBuilder = ((soc.proto.GameMessage.ResetBoardVote) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.ResetBoardVote.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.ResetBoardVote) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 1001;
+              break;
+            }
+            case 8018: {
+              soc.proto.GameMessage.ResetBoardVote.Builder subBuilder = null;
+              if (msgCase_ == 1002) {
+                subBuilder = ((soc.proto.GameMessage.ResetBoardVote) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.ResetBoardVote.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.ResetBoardVote) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 1002;
+              break;
+            }
+            case 8026: {
+              soc.proto.GameMessage.ResetBoardResult.Builder subBuilder = null;
+              if (msgCase_ == 1003) {
+                subBuilder = ((soc.proto.GameMessage.ResetBoardResult) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.ResetBoardResult.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.ResetBoardResult) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 1003;
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -28130,6 +29639,10 @@ public final class GameMessage {
       GAIN_RESOURCES(503),
       CHOOSE_PLAYER_PROMPT(504),
       MOVE_ROBBER(505),
+      RESET_BOARD_REQUEST(1000),
+      RESET_BOARD_VOTE_PROMPT(1001),
+      RESET_BOARD_VOTE(1002),
+      RESET_BOARD_RESULT(1003),
       MSG_NOT_SET(0);
       private final int value;
       private MsgCase(int value) {
@@ -28174,6 +29687,10 @@ public final class GameMessage {
           case 503: return GAIN_RESOURCES;
           case 504: return CHOOSE_PLAYER_PROMPT;
           case 505: return MOVE_ROBBER;
+          case 1000: return RESET_BOARD_REQUEST;
+          case 1001: return RESET_BOARD_VOTE_PROMPT;
+          case 1002: return RESET_BOARD_VOTE;
+          case 1003: return RESET_BOARD_RESULT;
           case 0: return MSG_NOT_SET;
           default: return null;
         }
@@ -29082,6 +30599,122 @@ public final class GameMessage {
       return soc.proto.GameMessage.MoveRobber.getDefaultInstance();
     }
 
+    public static final int RESET_BOARD_REQUEST_FIELD_NUMBER = 1000;
+    /**
+     * <pre>
+     * game lifecycle: reset board &amp; voting
+     * </pre>
+     *
+     * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+     */
+    public boolean hasResetBoardRequest() {
+      return msgCase_ == 1000;
+    }
+    /**
+     * <pre>
+     * game lifecycle: reset board &amp; voting
+     * </pre>
+     *
+     * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+     */
+    public soc.proto.GameMessage.ResetBoardRequest getResetBoardRequest() {
+      if (msgCase_ == 1000) {
+         return (soc.proto.GameMessage.ResetBoardRequest) msg_;
+      }
+      return soc.proto.GameMessage.ResetBoardRequest.getDefaultInstance();
+    }
+    /**
+     * <pre>
+     * game lifecycle: reset board &amp; voting
+     * </pre>
+     *
+     * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+     */
+    public soc.proto.GameMessage.ResetBoardRequestOrBuilder getResetBoardRequestOrBuilder() {
+      if (msgCase_ == 1000) {
+         return (soc.proto.GameMessage.ResetBoardRequest) msg_;
+      }
+      return soc.proto.GameMessage.ResetBoardRequest.getDefaultInstance();
+    }
+
+    public static final int RESET_BOARD_VOTE_PROMPT_FIELD_NUMBER = 1001;
+    /**
+     * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
+     */
+    public boolean hasResetBoardVotePrompt() {
+      return msgCase_ == 1001;
+    }
+    /**
+     * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
+     */
+    public soc.proto.GameMessage.ResetBoardVote getResetBoardVotePrompt() {
+      if (msgCase_ == 1001) {
+         return (soc.proto.GameMessage.ResetBoardVote) msg_;
+      }
+      return soc.proto.GameMessage.ResetBoardVote.getDefaultInstance();
+    }
+    /**
+     * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
+     */
+    public soc.proto.GameMessage.ResetBoardVoteOrBuilder getResetBoardVotePromptOrBuilder() {
+      if (msgCase_ == 1001) {
+         return (soc.proto.GameMessage.ResetBoardVote) msg_;
+      }
+      return soc.proto.GameMessage.ResetBoardVote.getDefaultInstance();
+    }
+
+    public static final int RESET_BOARD_VOTE_FIELD_NUMBER = 1002;
+    /**
+     * <code>.ResetBoardVote reset_board_vote = 1002;</code>
+     */
+    public boolean hasResetBoardVote() {
+      return msgCase_ == 1002;
+    }
+    /**
+     * <code>.ResetBoardVote reset_board_vote = 1002;</code>
+     */
+    public soc.proto.GameMessage.ResetBoardVote getResetBoardVote() {
+      if (msgCase_ == 1002) {
+         return (soc.proto.GameMessage.ResetBoardVote) msg_;
+      }
+      return soc.proto.GameMessage.ResetBoardVote.getDefaultInstance();
+    }
+    /**
+     * <code>.ResetBoardVote reset_board_vote = 1002;</code>
+     */
+    public soc.proto.GameMessage.ResetBoardVoteOrBuilder getResetBoardVoteOrBuilder() {
+      if (msgCase_ == 1002) {
+         return (soc.proto.GameMessage.ResetBoardVote) msg_;
+      }
+      return soc.proto.GameMessage.ResetBoardVote.getDefaultInstance();
+    }
+
+    public static final int RESET_BOARD_RESULT_FIELD_NUMBER = 1003;
+    /**
+     * <code>.ResetBoardResult reset_board_result = 1003;</code>
+     */
+    public boolean hasResetBoardResult() {
+      return msgCase_ == 1003;
+    }
+    /**
+     * <code>.ResetBoardResult reset_board_result = 1003;</code>
+     */
+    public soc.proto.GameMessage.ResetBoardResult getResetBoardResult() {
+      if (msgCase_ == 1003) {
+         return (soc.proto.GameMessage.ResetBoardResult) msg_;
+      }
+      return soc.proto.GameMessage.ResetBoardResult.getDefaultInstance();
+    }
+    /**
+     * <code>.ResetBoardResult reset_board_result = 1003;</code>
+     */
+    public soc.proto.GameMessage.ResetBoardResultOrBuilder getResetBoardResultOrBuilder() {
+      if (msgCase_ == 1003) {
+         return (soc.proto.GameMessage.ResetBoardResult) msg_;
+      }
+      return soc.proto.GameMessage.ResetBoardResult.getDefaultInstance();
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -29186,6 +30819,18 @@ public final class GameMessage {
       }
       if (msgCase_ == 505) {
         output.writeMessage(505, (soc.proto.GameMessage.MoveRobber) msg_);
+      }
+      if (msgCase_ == 1000) {
+        output.writeMessage(1000, (soc.proto.GameMessage.ResetBoardRequest) msg_);
+      }
+      if (msgCase_ == 1001) {
+        output.writeMessage(1001, (soc.proto.GameMessage.ResetBoardVote) msg_);
+      }
+      if (msgCase_ == 1002) {
+        output.writeMessage(1002, (soc.proto.GameMessage.ResetBoardVote) msg_);
+      }
+      if (msgCase_ == 1003) {
+        output.writeMessage(1003, (soc.proto.GameMessage.ResetBoardResult) msg_);
       }
       unknownFields.writeTo(output);
     }
@@ -29317,6 +30962,22 @@ public final class GameMessage {
       if (msgCase_ == 505) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(505, (soc.proto.GameMessage.MoveRobber) msg_);
+      }
+      if (msgCase_ == 1000) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1000, (soc.proto.GameMessage.ResetBoardRequest) msg_);
+      }
+      if (msgCase_ == 1001) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1001, (soc.proto.GameMessage.ResetBoardVote) msg_);
+      }
+      if (msgCase_ == 1002) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1002, (soc.proto.GameMessage.ResetBoardVote) msg_);
+      }
+      if (msgCase_ == 1003) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1003, (soc.proto.GameMessage.ResetBoardResult) msg_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -29458,6 +31119,22 @@ public final class GameMessage {
           result = result && getMoveRobber()
               .equals(other.getMoveRobber());
           break;
+        case 1000:
+          result = result && getResetBoardRequest()
+              .equals(other.getResetBoardRequest());
+          break;
+        case 1001:
+          result = result && getResetBoardVotePrompt()
+              .equals(other.getResetBoardVotePrompt());
+          break;
+        case 1002:
+          result = result && getResetBoardVote()
+              .equals(other.getResetBoardVote());
+          break;
+        case 1003:
+          result = result && getResetBoardResult()
+              .equals(other.getResetBoardResult());
+          break;
         case 0:
         default:
       }
@@ -29592,6 +31269,22 @@ public final class GameMessage {
         case 505:
           hash = (37 * hash) + MOVE_ROBBER_FIELD_NUMBER;
           hash = (53 * hash) + getMoveRobber().hashCode();
+          break;
+        case 1000:
+          hash = (37 * hash) + RESET_BOARD_REQUEST_FIELD_NUMBER;
+          hash = (53 * hash) + getResetBoardRequest().hashCode();
+          break;
+        case 1001:
+          hash = (37 * hash) + RESET_BOARD_VOTE_PROMPT_FIELD_NUMBER;
+          hash = (53 * hash) + getResetBoardVotePrompt().hashCode();
+          break;
+        case 1002:
+          hash = (37 * hash) + RESET_BOARD_VOTE_FIELD_NUMBER;
+          hash = (53 * hash) + getResetBoardVote().hashCode();
+          break;
+        case 1003:
+          hash = (37 * hash) + RESET_BOARD_RESULT_FIELD_NUMBER;
+          hash = (53 * hash) + getResetBoardResult().hashCode();
           break;
         case 0:
         default:
@@ -29958,6 +31651,34 @@ public final class GameMessage {
             result.msg_ = moveRobberBuilder_.build();
           }
         }
+        if (msgCase_ == 1000) {
+          if (resetBoardRequestBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = resetBoardRequestBuilder_.build();
+          }
+        }
+        if (msgCase_ == 1001) {
+          if (resetBoardVotePromptBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = resetBoardVotePromptBuilder_.build();
+          }
+        }
+        if (msgCase_ == 1002) {
+          if (resetBoardVoteBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = resetBoardVoteBuilder_.build();
+          }
+        }
+        if (msgCase_ == 1003) {
+          if (resetBoardResultBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = resetBoardResultBuilder_.build();
+          }
+        }
         result.msgCase_ = msgCase_;
         onBuilt();
         return result;
@@ -30122,6 +31843,22 @@ public final class GameMessage {
           }
           case MOVE_ROBBER: {
             mergeMoveRobber(other.getMoveRobber());
+            break;
+          }
+          case RESET_BOARD_REQUEST: {
+            mergeResetBoardRequest(other.getResetBoardRequest());
+            break;
+          }
+          case RESET_BOARD_VOTE_PROMPT: {
+            mergeResetBoardVotePrompt(other.getResetBoardVotePrompt());
+            break;
+          }
+          case RESET_BOARD_VOTE: {
+            mergeResetBoardVote(other.getResetBoardVote());
+            break;
+          }
+          case RESET_BOARD_RESULT: {
+            mergeResetBoardResult(other.getResetBoardResult());
             break;
           }
           case MSG_NOT_SET: {
@@ -34496,6 +36233,586 @@ public final class GameMessage {
         onChanged();;
         return moveRobberBuilder_;
       }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.ResetBoardRequest, soc.proto.GameMessage.ResetBoardRequest.Builder, soc.proto.GameMessage.ResetBoardRequestOrBuilder> resetBoardRequestBuilder_;
+      /**
+       * <pre>
+       * game lifecycle: reset board &amp; voting
+       * </pre>
+       *
+       * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+       */
+      public boolean hasResetBoardRequest() {
+        return msgCase_ == 1000;
+      }
+      /**
+       * <pre>
+       * game lifecycle: reset board &amp; voting
+       * </pre>
+       *
+       * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+       */
+      public soc.proto.GameMessage.ResetBoardRequest getResetBoardRequest() {
+        if (resetBoardRequestBuilder_ == null) {
+          if (msgCase_ == 1000) {
+            return (soc.proto.GameMessage.ResetBoardRequest) msg_;
+          }
+          return soc.proto.GameMessage.ResetBoardRequest.getDefaultInstance();
+        } else {
+          if (msgCase_ == 1000) {
+            return resetBoardRequestBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.ResetBoardRequest.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * game lifecycle: reset board &amp; voting
+       * </pre>
+       *
+       * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+       */
+      public Builder setResetBoardRequest(soc.proto.GameMessage.ResetBoardRequest value) {
+        if (resetBoardRequestBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          resetBoardRequestBuilder_.setMessage(value);
+        }
+        msgCase_ = 1000;
+        return this;
+      }
+      /**
+       * <pre>
+       * game lifecycle: reset board &amp; voting
+       * </pre>
+       *
+       * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+       */
+      public Builder setResetBoardRequest(
+          soc.proto.GameMessage.ResetBoardRequest.Builder builderForValue) {
+        if (resetBoardRequestBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          resetBoardRequestBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 1000;
+        return this;
+      }
+      /**
+       * <pre>
+       * game lifecycle: reset board &amp; voting
+       * </pre>
+       *
+       * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+       */
+      public Builder mergeResetBoardRequest(soc.proto.GameMessage.ResetBoardRequest value) {
+        if (resetBoardRequestBuilder_ == null) {
+          if (msgCase_ == 1000 &&
+              msg_ != soc.proto.GameMessage.ResetBoardRequest.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.ResetBoardRequest.newBuilder((soc.proto.GameMessage.ResetBoardRequest) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 1000) {
+            resetBoardRequestBuilder_.mergeFrom(value);
+          }
+          resetBoardRequestBuilder_.setMessage(value);
+        }
+        msgCase_ = 1000;
+        return this;
+      }
+      /**
+       * <pre>
+       * game lifecycle: reset board &amp; voting
+       * </pre>
+       *
+       * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+       */
+      public Builder clearResetBoardRequest() {
+        if (resetBoardRequestBuilder_ == null) {
+          if (msgCase_ == 1000) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 1000) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          resetBoardRequestBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * game lifecycle: reset board &amp; voting
+       * </pre>
+       *
+       * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+       */
+      public soc.proto.GameMessage.ResetBoardRequest.Builder getResetBoardRequestBuilder() {
+        return getResetBoardRequestFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * game lifecycle: reset board &amp; voting
+       * </pre>
+       *
+       * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+       */
+      public soc.proto.GameMessage.ResetBoardRequestOrBuilder getResetBoardRequestOrBuilder() {
+        if ((msgCase_ == 1000) && (resetBoardRequestBuilder_ != null)) {
+          return resetBoardRequestBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 1000) {
+            return (soc.proto.GameMessage.ResetBoardRequest) msg_;
+          }
+          return soc.proto.GameMessage.ResetBoardRequest.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * game lifecycle: reset board &amp; voting
+       * </pre>
+       *
+       * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.ResetBoardRequest, soc.proto.GameMessage.ResetBoardRequest.Builder, soc.proto.GameMessage.ResetBoardRequestOrBuilder> 
+          getResetBoardRequestFieldBuilder() {
+        if (resetBoardRequestBuilder_ == null) {
+          if (!(msgCase_ == 1000)) {
+            msg_ = soc.proto.GameMessage.ResetBoardRequest.getDefaultInstance();
+          }
+          resetBoardRequestBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.ResetBoardRequest, soc.proto.GameMessage.ResetBoardRequest.Builder, soc.proto.GameMessage.ResetBoardRequestOrBuilder>(
+                  (soc.proto.GameMessage.ResetBoardRequest) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 1000;
+        onChanged();;
+        return resetBoardRequestBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.ResetBoardVote, soc.proto.GameMessage.ResetBoardVote.Builder, soc.proto.GameMessage.ResetBoardVoteOrBuilder> resetBoardVotePromptBuilder_;
+      /**
+       * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
+       */
+      public boolean hasResetBoardVotePrompt() {
+        return msgCase_ == 1001;
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
+       */
+      public soc.proto.GameMessage.ResetBoardVote getResetBoardVotePrompt() {
+        if (resetBoardVotePromptBuilder_ == null) {
+          if (msgCase_ == 1001) {
+            return (soc.proto.GameMessage.ResetBoardVote) msg_;
+          }
+          return soc.proto.GameMessage.ResetBoardVote.getDefaultInstance();
+        } else {
+          if (msgCase_ == 1001) {
+            return resetBoardVotePromptBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.ResetBoardVote.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
+       */
+      public Builder setResetBoardVotePrompt(soc.proto.GameMessage.ResetBoardVote value) {
+        if (resetBoardVotePromptBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          resetBoardVotePromptBuilder_.setMessage(value);
+        }
+        msgCase_ = 1001;
+        return this;
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
+       */
+      public Builder setResetBoardVotePrompt(
+          soc.proto.GameMessage.ResetBoardVote.Builder builderForValue) {
+        if (resetBoardVotePromptBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          resetBoardVotePromptBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 1001;
+        return this;
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
+       */
+      public Builder mergeResetBoardVotePrompt(soc.proto.GameMessage.ResetBoardVote value) {
+        if (resetBoardVotePromptBuilder_ == null) {
+          if (msgCase_ == 1001 &&
+              msg_ != soc.proto.GameMessage.ResetBoardVote.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.ResetBoardVote.newBuilder((soc.proto.GameMessage.ResetBoardVote) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 1001) {
+            resetBoardVotePromptBuilder_.mergeFrom(value);
+          }
+          resetBoardVotePromptBuilder_.setMessage(value);
+        }
+        msgCase_ = 1001;
+        return this;
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
+       */
+      public Builder clearResetBoardVotePrompt() {
+        if (resetBoardVotePromptBuilder_ == null) {
+          if (msgCase_ == 1001) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 1001) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          resetBoardVotePromptBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
+       */
+      public soc.proto.GameMessage.ResetBoardVote.Builder getResetBoardVotePromptBuilder() {
+        return getResetBoardVotePromptFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
+       */
+      public soc.proto.GameMessage.ResetBoardVoteOrBuilder getResetBoardVotePromptOrBuilder() {
+        if ((msgCase_ == 1001) && (resetBoardVotePromptBuilder_ != null)) {
+          return resetBoardVotePromptBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 1001) {
+            return (soc.proto.GameMessage.ResetBoardVote) msg_;
+          }
+          return soc.proto.GameMessage.ResetBoardVote.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.ResetBoardVote, soc.proto.GameMessage.ResetBoardVote.Builder, soc.proto.GameMessage.ResetBoardVoteOrBuilder> 
+          getResetBoardVotePromptFieldBuilder() {
+        if (resetBoardVotePromptBuilder_ == null) {
+          if (!(msgCase_ == 1001)) {
+            msg_ = soc.proto.GameMessage.ResetBoardVote.getDefaultInstance();
+          }
+          resetBoardVotePromptBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.ResetBoardVote, soc.proto.GameMessage.ResetBoardVote.Builder, soc.proto.GameMessage.ResetBoardVoteOrBuilder>(
+                  (soc.proto.GameMessage.ResetBoardVote) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 1001;
+        onChanged();;
+        return resetBoardVotePromptBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.ResetBoardVote, soc.proto.GameMessage.ResetBoardVote.Builder, soc.proto.GameMessage.ResetBoardVoteOrBuilder> resetBoardVoteBuilder_;
+      /**
+       * <code>.ResetBoardVote reset_board_vote = 1002;</code>
+       */
+      public boolean hasResetBoardVote() {
+        return msgCase_ == 1002;
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote = 1002;</code>
+       */
+      public soc.proto.GameMessage.ResetBoardVote getResetBoardVote() {
+        if (resetBoardVoteBuilder_ == null) {
+          if (msgCase_ == 1002) {
+            return (soc.proto.GameMessage.ResetBoardVote) msg_;
+          }
+          return soc.proto.GameMessage.ResetBoardVote.getDefaultInstance();
+        } else {
+          if (msgCase_ == 1002) {
+            return resetBoardVoteBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.ResetBoardVote.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote = 1002;</code>
+       */
+      public Builder setResetBoardVote(soc.proto.GameMessage.ResetBoardVote value) {
+        if (resetBoardVoteBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          resetBoardVoteBuilder_.setMessage(value);
+        }
+        msgCase_ = 1002;
+        return this;
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote = 1002;</code>
+       */
+      public Builder setResetBoardVote(
+          soc.proto.GameMessage.ResetBoardVote.Builder builderForValue) {
+        if (resetBoardVoteBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          resetBoardVoteBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 1002;
+        return this;
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote = 1002;</code>
+       */
+      public Builder mergeResetBoardVote(soc.proto.GameMessage.ResetBoardVote value) {
+        if (resetBoardVoteBuilder_ == null) {
+          if (msgCase_ == 1002 &&
+              msg_ != soc.proto.GameMessage.ResetBoardVote.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.ResetBoardVote.newBuilder((soc.proto.GameMessage.ResetBoardVote) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 1002) {
+            resetBoardVoteBuilder_.mergeFrom(value);
+          }
+          resetBoardVoteBuilder_.setMessage(value);
+        }
+        msgCase_ = 1002;
+        return this;
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote = 1002;</code>
+       */
+      public Builder clearResetBoardVote() {
+        if (resetBoardVoteBuilder_ == null) {
+          if (msgCase_ == 1002) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 1002) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          resetBoardVoteBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote = 1002;</code>
+       */
+      public soc.proto.GameMessage.ResetBoardVote.Builder getResetBoardVoteBuilder() {
+        return getResetBoardVoteFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote = 1002;</code>
+       */
+      public soc.proto.GameMessage.ResetBoardVoteOrBuilder getResetBoardVoteOrBuilder() {
+        if ((msgCase_ == 1002) && (resetBoardVoteBuilder_ != null)) {
+          return resetBoardVoteBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 1002) {
+            return (soc.proto.GameMessage.ResetBoardVote) msg_;
+          }
+          return soc.proto.GameMessage.ResetBoardVote.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote = 1002;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.ResetBoardVote, soc.proto.GameMessage.ResetBoardVote.Builder, soc.proto.GameMessage.ResetBoardVoteOrBuilder> 
+          getResetBoardVoteFieldBuilder() {
+        if (resetBoardVoteBuilder_ == null) {
+          if (!(msgCase_ == 1002)) {
+            msg_ = soc.proto.GameMessage.ResetBoardVote.getDefaultInstance();
+          }
+          resetBoardVoteBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.ResetBoardVote, soc.proto.GameMessage.ResetBoardVote.Builder, soc.proto.GameMessage.ResetBoardVoteOrBuilder>(
+                  (soc.proto.GameMessage.ResetBoardVote) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 1002;
+        onChanged();;
+        return resetBoardVoteBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.ResetBoardResult, soc.proto.GameMessage.ResetBoardResult.Builder, soc.proto.GameMessage.ResetBoardResultOrBuilder> resetBoardResultBuilder_;
+      /**
+       * <code>.ResetBoardResult reset_board_result = 1003;</code>
+       */
+      public boolean hasResetBoardResult() {
+        return msgCase_ == 1003;
+      }
+      /**
+       * <code>.ResetBoardResult reset_board_result = 1003;</code>
+       */
+      public soc.proto.GameMessage.ResetBoardResult getResetBoardResult() {
+        if (resetBoardResultBuilder_ == null) {
+          if (msgCase_ == 1003) {
+            return (soc.proto.GameMessage.ResetBoardResult) msg_;
+          }
+          return soc.proto.GameMessage.ResetBoardResult.getDefaultInstance();
+        } else {
+          if (msgCase_ == 1003) {
+            return resetBoardResultBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.ResetBoardResult.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.ResetBoardResult reset_board_result = 1003;</code>
+       */
+      public Builder setResetBoardResult(soc.proto.GameMessage.ResetBoardResult value) {
+        if (resetBoardResultBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          resetBoardResultBuilder_.setMessage(value);
+        }
+        msgCase_ = 1003;
+        return this;
+      }
+      /**
+       * <code>.ResetBoardResult reset_board_result = 1003;</code>
+       */
+      public Builder setResetBoardResult(
+          soc.proto.GameMessage.ResetBoardResult.Builder builderForValue) {
+        if (resetBoardResultBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          resetBoardResultBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 1003;
+        return this;
+      }
+      /**
+       * <code>.ResetBoardResult reset_board_result = 1003;</code>
+       */
+      public Builder mergeResetBoardResult(soc.proto.GameMessage.ResetBoardResult value) {
+        if (resetBoardResultBuilder_ == null) {
+          if (msgCase_ == 1003 &&
+              msg_ != soc.proto.GameMessage.ResetBoardResult.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.ResetBoardResult.newBuilder((soc.proto.GameMessage.ResetBoardResult) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 1003) {
+            resetBoardResultBuilder_.mergeFrom(value);
+          }
+          resetBoardResultBuilder_.setMessage(value);
+        }
+        msgCase_ = 1003;
+        return this;
+      }
+      /**
+       * <code>.ResetBoardResult reset_board_result = 1003;</code>
+       */
+      public Builder clearResetBoardResult() {
+        if (resetBoardResultBuilder_ == null) {
+          if (msgCase_ == 1003) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 1003) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          resetBoardResultBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.ResetBoardResult reset_board_result = 1003;</code>
+       */
+      public soc.proto.GameMessage.ResetBoardResult.Builder getResetBoardResultBuilder() {
+        return getResetBoardResultFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.ResetBoardResult reset_board_result = 1003;</code>
+       */
+      public soc.proto.GameMessage.ResetBoardResultOrBuilder getResetBoardResultOrBuilder() {
+        if ((msgCase_ == 1003) && (resetBoardResultBuilder_ != null)) {
+          return resetBoardResultBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 1003) {
+            return (soc.proto.GameMessage.ResetBoardResult) msg_;
+          }
+          return soc.proto.GameMessage.ResetBoardResult.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.ResetBoardResult reset_board_result = 1003;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.ResetBoardResult, soc.proto.GameMessage.ResetBoardResult.Builder, soc.proto.GameMessage.ResetBoardResultOrBuilder> 
+          getResetBoardResultFieldBuilder() {
+        if (resetBoardResultBuilder_ == null) {
+          if (!(msgCase_ == 1003)) {
+            msg_ = soc.proto.GameMessage.ResetBoardResult.getDefaultInstance();
+          }
+          resetBoardResultBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.ResetBoardResult, soc.proto.GameMessage.ResetBoardResult.Builder, soc.proto.GameMessage.ResetBoardResultOrBuilder>(
+                  (soc.proto.GameMessage.ResetBoardResult) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 1003;
+        onChanged();;
+        return resetBoardResultBuilder_;
+      }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFieldsProto3(unknownFields);
@@ -34841,6 +37158,44 @@ public final class GameMessage {
      */
     soc.proto.GameMessage.MoveRobberOrBuilder getMoveRobberOrBuilder();
 
+    /**
+     * <pre>
+     * game lifecycle: reset board &amp; voting
+     * </pre>
+     *
+     * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+     */
+    boolean hasResetBoardRequest();
+    /**
+     * <pre>
+     * game lifecycle: reset board &amp; voting
+     * </pre>
+     *
+     * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+     */
+    soc.proto.GameMessage.ResetBoardRequest getResetBoardRequest();
+    /**
+     * <pre>
+     * game lifecycle: reset board &amp; voting
+     * </pre>
+     *
+     * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+     */
+    soc.proto.GameMessage.ResetBoardRequestOrBuilder getResetBoardRequestOrBuilder();
+
+    /**
+     * <code>.ResetBoardVote reset_board_vote = 1001;</code>
+     */
+    boolean hasResetBoardVote();
+    /**
+     * <code>.ResetBoardVote reset_board_vote = 1001;</code>
+     */
+    soc.proto.GameMessage.ResetBoardVote getResetBoardVote();
+    /**
+     * <code>.ResetBoardVote reset_board_vote = 1001;</code>
+     */
+    soc.proto.GameMessage.ResetBoardVoteOrBuilder getResetBoardVoteOrBuilder();
+
     public soc.proto.GameMessage.GameMessageFromClient.MsgCase getMsgCase();
   }
   /**
@@ -35145,6 +37500,34 @@ public final class GameMessage {
               msgCase_ = 504;
               break;
             }
+            case 8002: {
+              soc.proto.GameMessage.ResetBoardRequest.Builder subBuilder = null;
+              if (msgCase_ == 1000) {
+                subBuilder = ((soc.proto.GameMessage.ResetBoardRequest) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.ResetBoardRequest.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.ResetBoardRequest) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 1000;
+              break;
+            }
+            case 8010: {
+              soc.proto.GameMessage.ResetBoardVote.Builder subBuilder = null;
+              if (msgCase_ == 1001) {
+                subBuilder = ((soc.proto.GameMessage.ResetBoardVote) msg_).toBuilder();
+              }
+              msg_ =
+                  input.readMessage(soc.proto.GameMessage.ResetBoardVote.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((soc.proto.GameMessage.ResetBoardVote) msg_);
+                msg_ = subBuilder.buildPartial();
+              }
+              msgCase_ = 1001;
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -35191,6 +37574,8 @@ public final class GameMessage {
       CHOOSE_RESOURCE_TYPE(502),
       CHOOSE_PLAYER(503),
       MOVE_ROBBER(504),
+      RESET_BOARD_REQUEST(1000),
+      RESET_BOARD_VOTE(1001),
       MSG_NOT_SET(0);
       private final int value;
       private MsgCase(int value) {
@@ -35224,6 +37609,8 @@ public final class GameMessage {
           case 502: return CHOOSE_RESOURCE_TYPE;
           case 503: return CHOOSE_PLAYER;
           case 504: return MOVE_ROBBER;
+          case 1000: return RESET_BOARD_REQUEST;
+          case 1001: return RESET_BOARD_VOTE;
           case 0: return MSG_NOT_SET;
           default: return null;
         }
@@ -35789,6 +38176,70 @@ public final class GameMessage {
       return soc.proto.GameMessage.MoveRobber.getDefaultInstance();
     }
 
+    public static final int RESET_BOARD_REQUEST_FIELD_NUMBER = 1000;
+    /**
+     * <pre>
+     * game lifecycle: reset board &amp; voting
+     * </pre>
+     *
+     * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+     */
+    public boolean hasResetBoardRequest() {
+      return msgCase_ == 1000;
+    }
+    /**
+     * <pre>
+     * game lifecycle: reset board &amp; voting
+     * </pre>
+     *
+     * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+     */
+    public soc.proto.GameMessage.ResetBoardRequest getResetBoardRequest() {
+      if (msgCase_ == 1000) {
+         return (soc.proto.GameMessage.ResetBoardRequest) msg_;
+      }
+      return soc.proto.GameMessage.ResetBoardRequest.getDefaultInstance();
+    }
+    /**
+     * <pre>
+     * game lifecycle: reset board &amp; voting
+     * </pre>
+     *
+     * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+     */
+    public soc.proto.GameMessage.ResetBoardRequestOrBuilder getResetBoardRequestOrBuilder() {
+      if (msgCase_ == 1000) {
+         return (soc.proto.GameMessage.ResetBoardRequest) msg_;
+      }
+      return soc.proto.GameMessage.ResetBoardRequest.getDefaultInstance();
+    }
+
+    public static final int RESET_BOARD_VOTE_FIELD_NUMBER = 1001;
+    /**
+     * <code>.ResetBoardVote reset_board_vote = 1001;</code>
+     */
+    public boolean hasResetBoardVote() {
+      return msgCase_ == 1001;
+    }
+    /**
+     * <code>.ResetBoardVote reset_board_vote = 1001;</code>
+     */
+    public soc.proto.GameMessage.ResetBoardVote getResetBoardVote() {
+      if (msgCase_ == 1001) {
+         return (soc.proto.GameMessage.ResetBoardVote) msg_;
+      }
+      return soc.proto.GameMessage.ResetBoardVote.getDefaultInstance();
+    }
+    /**
+     * <code>.ResetBoardVote reset_board_vote = 1001;</code>
+     */
+    public soc.proto.GameMessage.ResetBoardVoteOrBuilder getResetBoardVoteOrBuilder() {
+      if (msgCase_ == 1001) {
+         return (soc.proto.GameMessage.ResetBoardVote) msg_;
+      }
+      return soc.proto.GameMessage.ResetBoardVote.getDefaultInstance();
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -35857,6 +38308,12 @@ public final class GameMessage {
       }
       if (msgCase_ == 504) {
         output.writeMessage(504, (soc.proto.GameMessage.MoveRobber) msg_);
+      }
+      if (msgCase_ == 1000) {
+        output.writeMessage(1000, (soc.proto.GameMessage.ResetBoardRequest) msg_);
+      }
+      if (msgCase_ == 1001) {
+        output.writeMessage(1001, (soc.proto.GameMessage.ResetBoardVote) msg_);
       }
       unknownFields.writeTo(output);
     }
@@ -35940,6 +38397,14 @@ public final class GameMessage {
       if (msgCase_ == 504) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(504, (soc.proto.GameMessage.MoveRobber) msg_);
+      }
+      if (msgCase_ == 1000) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1000, (soc.proto.GameMessage.ResetBoardRequest) msg_);
+      }
+      if (msgCase_ == 1001) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1001, (soc.proto.GameMessage.ResetBoardVote) msg_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -36035,6 +38500,14 @@ public final class GameMessage {
           result = result && getMoveRobber()
               .equals(other.getMoveRobber());
           break;
+        case 1000:
+          result = result && getResetBoardRequest()
+              .equals(other.getResetBoardRequest());
+          break;
+        case 1001:
+          result = result && getResetBoardVote()
+              .equals(other.getResetBoardVote());
+          break;
         case 0:
         default:
       }
@@ -36123,6 +38596,14 @@ public final class GameMessage {
         case 504:
           hash = (37 * hash) + MOVE_ROBBER_FIELD_NUMBER;
           hash = (53 * hash) + getMoveRobber().hashCode();
+          break;
+        case 1000:
+          hash = (37 * hash) + RESET_BOARD_REQUEST_FIELD_NUMBER;
+          hash = (53 * hash) + getResetBoardRequest().hashCode();
+          break;
+        case 1001:
+          hash = (37 * hash) + RESET_BOARD_VOTE_FIELD_NUMBER;
+          hash = (53 * hash) + getResetBoardVote().hashCode();
           break;
         case 0:
         default:
@@ -36409,6 +38890,20 @@ public final class GameMessage {
             result.msg_ = moveRobberBuilder_.build();
           }
         }
+        if (msgCase_ == 1000) {
+          if (resetBoardRequestBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = resetBoardRequestBuilder_.build();
+          }
+        }
+        if (msgCase_ == 1001) {
+          if (resetBoardVoteBuilder_ == null) {
+            result.msg_ = msg_;
+          } else {
+            result.msg_ = resetBoardVoteBuilder_.build();
+          }
+        }
         result.msgCase_ = msgCase_;
         onBuilt();
         return result;
@@ -36526,6 +39021,14 @@ public final class GameMessage {
           }
           case MOVE_ROBBER: {
             mergeMoveRobber(other.getMoveRobber());
+            break;
+          }
+          case RESET_BOARD_REQUEST: {
+            mergeResetBoardRequest(other.getResetBoardRequest());
+            break;
+          }
+          case RESET_BOARD_VOTE: {
+            mergeResetBoardVote(other.getResetBoardVote());
             break;
           }
           case MSG_NOT_SET: {
@@ -39234,6 +41737,314 @@ public final class GameMessage {
         onChanged();;
         return moveRobberBuilder_;
       }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.ResetBoardRequest, soc.proto.GameMessage.ResetBoardRequest.Builder, soc.proto.GameMessage.ResetBoardRequestOrBuilder> resetBoardRequestBuilder_;
+      /**
+       * <pre>
+       * game lifecycle: reset board &amp; voting
+       * </pre>
+       *
+       * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+       */
+      public boolean hasResetBoardRequest() {
+        return msgCase_ == 1000;
+      }
+      /**
+       * <pre>
+       * game lifecycle: reset board &amp; voting
+       * </pre>
+       *
+       * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+       */
+      public soc.proto.GameMessage.ResetBoardRequest getResetBoardRequest() {
+        if (resetBoardRequestBuilder_ == null) {
+          if (msgCase_ == 1000) {
+            return (soc.proto.GameMessage.ResetBoardRequest) msg_;
+          }
+          return soc.proto.GameMessage.ResetBoardRequest.getDefaultInstance();
+        } else {
+          if (msgCase_ == 1000) {
+            return resetBoardRequestBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.ResetBoardRequest.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * game lifecycle: reset board &amp; voting
+       * </pre>
+       *
+       * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+       */
+      public Builder setResetBoardRequest(soc.proto.GameMessage.ResetBoardRequest value) {
+        if (resetBoardRequestBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          resetBoardRequestBuilder_.setMessage(value);
+        }
+        msgCase_ = 1000;
+        return this;
+      }
+      /**
+       * <pre>
+       * game lifecycle: reset board &amp; voting
+       * </pre>
+       *
+       * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+       */
+      public Builder setResetBoardRequest(
+          soc.proto.GameMessage.ResetBoardRequest.Builder builderForValue) {
+        if (resetBoardRequestBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          resetBoardRequestBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 1000;
+        return this;
+      }
+      /**
+       * <pre>
+       * game lifecycle: reset board &amp; voting
+       * </pre>
+       *
+       * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+       */
+      public Builder mergeResetBoardRequest(soc.proto.GameMessage.ResetBoardRequest value) {
+        if (resetBoardRequestBuilder_ == null) {
+          if (msgCase_ == 1000 &&
+              msg_ != soc.proto.GameMessage.ResetBoardRequest.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.ResetBoardRequest.newBuilder((soc.proto.GameMessage.ResetBoardRequest) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 1000) {
+            resetBoardRequestBuilder_.mergeFrom(value);
+          }
+          resetBoardRequestBuilder_.setMessage(value);
+        }
+        msgCase_ = 1000;
+        return this;
+      }
+      /**
+       * <pre>
+       * game lifecycle: reset board &amp; voting
+       * </pre>
+       *
+       * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+       */
+      public Builder clearResetBoardRequest() {
+        if (resetBoardRequestBuilder_ == null) {
+          if (msgCase_ == 1000) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 1000) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          resetBoardRequestBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * game lifecycle: reset board &amp; voting
+       * </pre>
+       *
+       * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+       */
+      public soc.proto.GameMessage.ResetBoardRequest.Builder getResetBoardRequestBuilder() {
+        return getResetBoardRequestFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * game lifecycle: reset board &amp; voting
+       * </pre>
+       *
+       * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+       */
+      public soc.proto.GameMessage.ResetBoardRequestOrBuilder getResetBoardRequestOrBuilder() {
+        if ((msgCase_ == 1000) && (resetBoardRequestBuilder_ != null)) {
+          return resetBoardRequestBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 1000) {
+            return (soc.proto.GameMessage.ResetBoardRequest) msg_;
+          }
+          return soc.proto.GameMessage.ResetBoardRequest.getDefaultInstance();
+        }
+      }
+      /**
+       * <pre>
+       * game lifecycle: reset board &amp; voting
+       * </pre>
+       *
+       * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.ResetBoardRequest, soc.proto.GameMessage.ResetBoardRequest.Builder, soc.proto.GameMessage.ResetBoardRequestOrBuilder> 
+          getResetBoardRequestFieldBuilder() {
+        if (resetBoardRequestBuilder_ == null) {
+          if (!(msgCase_ == 1000)) {
+            msg_ = soc.proto.GameMessage.ResetBoardRequest.getDefaultInstance();
+          }
+          resetBoardRequestBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.ResetBoardRequest, soc.proto.GameMessage.ResetBoardRequest.Builder, soc.proto.GameMessage.ResetBoardRequestOrBuilder>(
+                  (soc.proto.GameMessage.ResetBoardRequest) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 1000;
+        onChanged();;
+        return resetBoardRequestBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.ResetBoardVote, soc.proto.GameMessage.ResetBoardVote.Builder, soc.proto.GameMessage.ResetBoardVoteOrBuilder> resetBoardVoteBuilder_;
+      /**
+       * <code>.ResetBoardVote reset_board_vote = 1001;</code>
+       */
+      public boolean hasResetBoardVote() {
+        return msgCase_ == 1001;
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote = 1001;</code>
+       */
+      public soc.proto.GameMessage.ResetBoardVote getResetBoardVote() {
+        if (resetBoardVoteBuilder_ == null) {
+          if (msgCase_ == 1001) {
+            return (soc.proto.GameMessage.ResetBoardVote) msg_;
+          }
+          return soc.proto.GameMessage.ResetBoardVote.getDefaultInstance();
+        } else {
+          if (msgCase_ == 1001) {
+            return resetBoardVoteBuilder_.getMessage();
+          }
+          return soc.proto.GameMessage.ResetBoardVote.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote = 1001;</code>
+       */
+      public Builder setResetBoardVote(soc.proto.GameMessage.ResetBoardVote value) {
+        if (resetBoardVoteBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          msg_ = value;
+          onChanged();
+        } else {
+          resetBoardVoteBuilder_.setMessage(value);
+        }
+        msgCase_ = 1001;
+        return this;
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote = 1001;</code>
+       */
+      public Builder setResetBoardVote(
+          soc.proto.GameMessage.ResetBoardVote.Builder builderForValue) {
+        if (resetBoardVoteBuilder_ == null) {
+          msg_ = builderForValue.build();
+          onChanged();
+        } else {
+          resetBoardVoteBuilder_.setMessage(builderForValue.build());
+        }
+        msgCase_ = 1001;
+        return this;
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote = 1001;</code>
+       */
+      public Builder mergeResetBoardVote(soc.proto.GameMessage.ResetBoardVote value) {
+        if (resetBoardVoteBuilder_ == null) {
+          if (msgCase_ == 1001 &&
+              msg_ != soc.proto.GameMessage.ResetBoardVote.getDefaultInstance()) {
+            msg_ = soc.proto.GameMessage.ResetBoardVote.newBuilder((soc.proto.GameMessage.ResetBoardVote) msg_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            msg_ = value;
+          }
+          onChanged();
+        } else {
+          if (msgCase_ == 1001) {
+            resetBoardVoteBuilder_.mergeFrom(value);
+          }
+          resetBoardVoteBuilder_.setMessage(value);
+        }
+        msgCase_ = 1001;
+        return this;
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote = 1001;</code>
+       */
+      public Builder clearResetBoardVote() {
+        if (resetBoardVoteBuilder_ == null) {
+          if (msgCase_ == 1001) {
+            msgCase_ = 0;
+            msg_ = null;
+            onChanged();
+          }
+        } else {
+          if (msgCase_ == 1001) {
+            msgCase_ = 0;
+            msg_ = null;
+          }
+          resetBoardVoteBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote = 1001;</code>
+       */
+      public soc.proto.GameMessage.ResetBoardVote.Builder getResetBoardVoteBuilder() {
+        return getResetBoardVoteFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote = 1001;</code>
+       */
+      public soc.proto.GameMessage.ResetBoardVoteOrBuilder getResetBoardVoteOrBuilder() {
+        if ((msgCase_ == 1001) && (resetBoardVoteBuilder_ != null)) {
+          return resetBoardVoteBuilder_.getMessageOrBuilder();
+        } else {
+          if (msgCase_ == 1001) {
+            return (soc.proto.GameMessage.ResetBoardVote) msg_;
+          }
+          return soc.proto.GameMessage.ResetBoardVote.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.ResetBoardVote reset_board_vote = 1001;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.GameMessage.ResetBoardVote, soc.proto.GameMessage.ResetBoardVote.Builder, soc.proto.GameMessage.ResetBoardVoteOrBuilder> 
+          getResetBoardVoteFieldBuilder() {
+        if (resetBoardVoteBuilder_ == null) {
+          if (!(msgCase_ == 1001)) {
+            msg_ = soc.proto.GameMessage.ResetBoardVote.getDefaultInstance();
+          }
+          resetBoardVoteBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.GameMessage.ResetBoardVote, soc.proto.GameMessage.ResetBoardVote.Builder, soc.proto.GameMessage.ResetBoardVoteOrBuilder>(
+                  (soc.proto.GameMessage.ResetBoardVote) msg_,
+                  getParentForChildren(),
+                  isClean());
+          msg_ = null;
+        }
+        msgCase_ = 1001;
+        onChanged();;
+        return resetBoardVoteBuilder_;
+      }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFieldsProto3(unknownFields);
@@ -39454,6 +42265,21 @@ public final class GameMessage {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_MoveRobber_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_ResetBoardRequest_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_ResetBoardRequest_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_ResetBoardVote_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_ResetBoardVote_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_ResetBoardResult_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_ResetBoardResult_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_GameMessageFromServer_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -39556,77 +42382,86 @@ public final class GameMessage {
       "er_number\030\001 \001(\021\022\027\n\017can_choose_none\030\002 \001(\010" +
       "\022 \n\030chooseable_player_number\030\003 \003(\r\"N\n\nMo" +
       "veRobber\022\032\n\007move_to\030\001 \001(\0132\t.HexCoord\022\021\n\t" +
-      "is_robber\030\002 \001(\010\022\021\n\tis_pirate\030\003 \001(\010\"\216\n\n\025G" +
-      "ameMessageFromServer\022\021\n\tgame_name\030\001 \001(\t\022" +
-      "\025\n\rplayer_number\030\002 \001(\021\022\034\n\ngame_state\030\003 \001" +
-      "(\0132\006.StateH\000\022(\n\016player_element\030\017 \001(\0132\016.P" +
-      "layerElementH\000\022*\n\017player_elements\030\020 \001(\0132" +
-      "\017.PlayerElementsH\000\022&\n\rgame_elements\030\021 \001(",
-      "\0132\r.GameElementsH\000\022$\n\014board_layout\030\036 \001(\013" +
-      "2\014.BoardLayoutH\000\0226\n\025potential_settlement" +
-      "s\030\037 \001(\0132\025.PotentialSettlementsH\000\022\"\n\013piec" +
-      "e_value\030  \001(\0132\013.PieceValueH\000\022\"\n\013build_pi" +
-      "ece\030! \001(\0132\013.BuildPieceH\000\022$\n\014cancel_build" +
-      "\030\" \001(\0132\014.CancelBuildH\000\022 \n\nmove_piece\030# \001" +
-      "(\0132\n.MovePieceH\000\022$\n\014remove_piece\030$ \001(\0132\014" +
-      ".RemovePieceH\000\022 \n\nstart_game\030d \001(\0132\n.Sta" +
-      "rtGameH\000\022\025\n\004turn\030e \001(\0132\005.TurnH\000\022\034\n\010set_t" +
-      "urn\030f \001(\0132\010.SetTurnH\000\022-\n\021dice_roll_reque",
-      "st\030g \001(\0132\020.DiceRollRequestH\000\022\"\n\013dice_res" +
-      "ult\030h \001(\0132\013.DiceResultH\000\0225\n\025dice_result_" +
-      "resources\030i \001(\0132\024.DiceResultResourcesH\000\022" +
-      "6\n\025inventory_item_action\030\256\002 \001(\0132\024.Invent" +
-      "oryItemActionH\000\022*\n\017trade_with_bank\030\220\003 \001(" +
-      "\0132\016.TradeWithBankH\000\022,\n\020trade_make_offer\030" +
-      "\221\003 \001(\0132\017.TradeMakeOfferH\000\022.\n\021trade_clear" +
-      "_offer\030\222\003 \001(\0132\020.TradeClearOfferH\000\0220\n\022tra" +
-      "de_reject_offer\030\223\003 \001(\0132\021.TradeRejectOffe" +
-      "rH\000\0220\n\022trade_accept_offer\030\224\003 \001(\0132\021.Trade",
-      "AcceptOfferH\000\0220\n\025lose_resources_prompt\030\364" +
-      "\003 \001(\0132\016.LoseResourcesH\000\022)\n\016lose_resource" +
-      "s\030\365\003 \001(\0132\016.LoseResourcesH\000\0220\n\025gain_resou" +
-      "rces_prompt\030\366\003 \001(\0132\016.GainResourcesH\000\022)\n\016" +
-      "gain_resources\030\367\003 \001(\0132\016.GainResourcesH\000\022" +
-      ".\n\024choose_player_prompt\030\370\003 \001(\0132\r.ChooseP" +
-      "layerH\000\022#\n\013move_robber\030\371\003 \001(\0132\013.MoveRobb" +
-      "erH\000B\005\n\003msg\"\310\006\n\025GameMessageFromClient\022\021\n" +
-      "\tgame_name\030\001 \001(\t\022 \n\nstart_game\030d \001(\0132\n.S" +
-      "tartGameH\000\022-\n\021dice_roll_request\030e \001(\0132\020.",
-      "DiceRollRequestH\000\022\034\n\010end_turn\030f \001(\0132\010.En" +
-      "dTurnH\000\022#\n\013build_piece\030\310\001 \001(\0132\013.BuildPie" +
-      "ceH\000\022%\n\014cancel_build\030\311\001 \001(\0132\014.CancelBuil" +
-      "dH\000\022!\n\nmove_piece\030\312\001 \001(\0132\n.MovePieceH\000\0227" +
-      "\n\022buy_inventory_item\030\313\001 \001(\0132\030.BuyInvento" +
-      "ryItemRequestH\000\0226\n\025inventory_item_action" +
-      "\030\314\001 \001(\0132\024.InventoryItemActionH\000\022*\n\017trade" +
-      "_with_bank\030\220\003 \001(\0132\016.TradeWithBankH\000\022,\n\020t" +
-      "rade_make_offer\030\221\003 \001(\0132\017.TradeMakeOfferH" +
-      "\000\022.\n\021trade_clear_offer\030\222\003 \001(\0132\020.TradeCle",
-      "arOfferH\000\0220\n\022trade_reject_offer\030\223\003 \001(\0132\021" +
-      ".TradeRejectOfferH\000\0220\n\022trade_accept_offe" +
-      "r\030\224\003 \001(\0132\021.TradeAcceptOfferH\000\022)\n\016lose_re" +
-      "sources\030\364\003 \001(\0132\016.LoseResourcesH\000\022)\n\016gain" +
-      "_resources\030\365\003 \001(\0132\016.GainResourcesH\000\0224\n\024c" +
-      "hoose_resource_type\030\366\003 \001(\0132\023.ChooseResou" +
-      "rceTypeH\000\022\'\n\rchoose_player\030\367\003 \001(\0132\r.Choo" +
-      "sePlayerH\000\022#\n\013move_robber\030\370\003 \001(\0132\013.MoveR" +
-      "obberH\000B\005\n\003msg*O\n\024_PlayerElementAction\022\032" +
-      "\n\026_UNSENT_DEFAULT_ACTION\020\000\022\007\n\003SET\020\001\022\010\n\004G",
-      "AIN\020\002\022\010\n\004LOSE\020\003*\206\004\n\022_PlayerElementType\022\037" +
-      "\n\033_UNSENT_DEFAULT_PLAYER_ELEM\020\000\022\r\n\tELEM_" +
-      "CLAY\020\001\022\014\n\010ELEM_ORE\020\002\022\016\n\nELEM_SHEEP\020\003\022\016\n\n" +
-      "ELEM_WHEAT\020\004\022\r\n\tELEM_WOOD\020\005\022\031\n\025ELEM_UNKN" +
-      "OWN_RESOURCE\020\006\022\t\n\005ROADS\020\n\022\017\n\013SETTLEMENTS" +
-      "\020\013\022\n\n\006CITIES\020\014\022\t\n\005SHIPS\020\r\022\016\n\nNUMKNIGHTS\020" +
-      "\017\022\025\n\021ASK_SPECIAL_BUILD\020\020\022\022\n\016RESOURCE_COU" +
-      "NT\020\021\022\030\n\024LAST_SETTLEMENT_NODE\020\022\022\030\n\024PLAYED" +
-      "_DEV_CARD_FLAG\020\023\022\037\n\033NUM_PICK_GOLD_HEX_RE" +
-      "SOURCES\020e\022\020\n\014SCENARIO_SVP\020f\022!\n\035SCENARIO_",
-      "PLAYEREVENTS_BITMASK\020g\022\"\n\036SCENARIO_SVP_L" +
-      "ANDAREAS_BITMASK\020h\022\026\n\022STARTING_LANDAREAS" +
-      "\020i\022\030\n\024SCENARIO_CLOTH_COUNT\020j\022\032\n\026SCENARIO" +
-      "_WARSHIP_COUNT\020kB\r\n\tsoc.protoH\001P\000b\006proto" +
-      "3"
+      "is_robber\030\002 \001(\010\022\021\n\tis_pirate\030\003 \001(\010\"\023\n\021Re" +
+      "setBoardRequest\" \n\016ResetBoardVote\022\016\n\006is_" +
+      "yes\030\001 \001(\010\"(\n\020ResetBoardResult\022\024\n\014was_rej" +
+      "ected\030\001 \001(\010\"\327\013\n\025GameMessageFromServer\022\021\n" +
+      "\tgame_name\030\001 \001(\t\022\025\n\rplayer_number\030\002 \001(\021\022" +
+      "\034\n\ngame_state\030\003 \001(\0132\006.StateH\000\022(\n\016player_",
+      "element\030\017 \001(\0132\016.PlayerElementH\000\022*\n\017playe" +
+      "r_elements\030\020 \001(\0132\017.PlayerElementsH\000\022&\n\rg" +
+      "ame_elements\030\021 \001(\0132\r.GameElementsH\000\022$\n\014b" +
+      "oard_layout\030\036 \001(\0132\014.BoardLayoutH\000\0226\n\025pot" +
+      "ential_settlements\030\037 \001(\0132\025.PotentialSett" +
+      "lementsH\000\022\"\n\013piece_value\030  \001(\0132\013.PieceVa" +
+      "lueH\000\022\"\n\013build_piece\030! \001(\0132\013.BuildPieceH" +
+      "\000\022$\n\014cancel_build\030\" \001(\0132\014.CancelBuildH\000\022" +
+      " \n\nmove_piece\030# \001(\0132\n.MovePieceH\000\022$\n\014rem" +
+      "ove_piece\030$ \001(\0132\014.RemovePieceH\000\022 \n\nstart",
+      "_game\030d \001(\0132\n.StartGameH\000\022\025\n\004turn\030e \001(\0132" +
+      "\005.TurnH\000\022\034\n\010set_turn\030f \001(\0132\010.SetTurnH\000\022-" +
+      "\n\021dice_roll_request\030g \001(\0132\020.DiceRollRequ" +
+      "estH\000\022\"\n\013dice_result\030h \001(\0132\013.DiceResultH" +
+      "\000\0225\n\025dice_result_resources\030i \001(\0132\024.DiceR" +
+      "esultResourcesH\000\0226\n\025inventory_item_actio" +
+      "n\030\256\002 \001(\0132\024.InventoryItemActionH\000\022*\n\017trad" +
+      "e_with_bank\030\220\003 \001(\0132\016.TradeWithBankH\000\022,\n\020" +
+      "trade_make_offer\030\221\003 \001(\0132\017.TradeMakeOffer" +
+      "H\000\022.\n\021trade_clear_offer\030\222\003 \001(\0132\020.TradeCl",
+      "earOfferH\000\0220\n\022trade_reject_offer\030\223\003 \001(\0132" +
+      "\021.TradeRejectOfferH\000\0220\n\022trade_accept_off" +
+      "er\030\224\003 \001(\0132\021.TradeAcceptOfferH\000\0220\n\025lose_r" +
+      "esources_prompt\030\364\003 \001(\0132\016.LoseResourcesH\000" +
+      "\022)\n\016lose_resources\030\365\003 \001(\0132\016.LoseResource" +
+      "sH\000\0220\n\025gain_resources_prompt\030\366\003 \001(\0132\016.Ga" +
+      "inResourcesH\000\022)\n\016gain_resources\030\367\003 \001(\0132\016" +
+      ".GainResourcesH\000\022.\n\024choose_player_prompt" +
+      "\030\370\003 \001(\0132\r.ChoosePlayerH\000\022#\n\013move_robber\030" +
+      "\371\003 \001(\0132\013.MoveRobberH\000\0222\n\023reset_board_req",
+      "uest\030\350\007 \001(\0132\022.ResetBoardRequestH\000\0223\n\027res" +
+      "et_board_vote_prompt\030\351\007 \001(\0132\017.ResetBoard" +
+      "VoteH\000\022,\n\020reset_board_vote\030\352\007 \001(\0132\017.Rese" +
+      "tBoardVoteH\000\0220\n\022reset_board_result\030\353\007 \001(" +
+      "\0132\021.ResetBoardResultH\000B\005\n\003msg\"\252\007\n\025GameMe" +
+      "ssageFromClient\022\021\n\tgame_name\030\001 \001(\t\022 \n\nst" +
+      "art_game\030d \001(\0132\n.StartGameH\000\022-\n\021dice_rol" +
+      "l_request\030e \001(\0132\020.DiceRollRequestH\000\022\034\n\010e" +
+      "nd_turn\030f \001(\0132\010.EndTurnH\000\022#\n\013build_piece" +
+      "\030\310\001 \001(\0132\013.BuildPieceH\000\022%\n\014cancel_build\030\311",
+      "\001 \001(\0132\014.CancelBuildH\000\022!\n\nmove_piece\030\312\001 \001" +
+      "(\0132\n.MovePieceH\000\0227\n\022buy_inventory_item\030\313" +
+      "\001 \001(\0132\030.BuyInventoryItemRequestH\000\0226\n\025inv" +
+      "entory_item_action\030\314\001 \001(\0132\024.InventoryIte" +
+      "mActionH\000\022*\n\017trade_with_bank\030\220\003 \001(\0132\016.Tr" +
+      "adeWithBankH\000\022,\n\020trade_make_offer\030\221\003 \001(\013" +
+      "2\017.TradeMakeOfferH\000\022.\n\021trade_clear_offer" +
+      "\030\222\003 \001(\0132\020.TradeClearOfferH\000\0220\n\022trade_rej" +
+      "ect_offer\030\223\003 \001(\0132\021.TradeRejectOfferH\000\0220\n" +
+      "\022trade_accept_offer\030\224\003 \001(\0132\021.TradeAccept",
+      "OfferH\000\022)\n\016lose_resources\030\364\003 \001(\0132\016.LoseR" +
+      "esourcesH\000\022)\n\016gain_resources\030\365\003 \001(\0132\016.Ga" +
+      "inResourcesH\000\0224\n\024choose_resource_type\030\366\003" +
+      " \001(\0132\023.ChooseResourceTypeH\000\022\'\n\rchoose_pl" +
+      "ayer\030\367\003 \001(\0132\r.ChoosePlayerH\000\022#\n\013move_rob" +
+      "ber\030\370\003 \001(\0132\013.MoveRobberH\000\0222\n\023reset_board" +
+      "_request\030\350\007 \001(\0132\022.ResetBoardRequestH\000\022,\n" +
+      "\020reset_board_vote\030\351\007 \001(\0132\017.ResetBoardVot" +
+      "eH\000B\005\n\003msg*O\n\024_PlayerElementAction\022\032\n\026_U" +
+      "NSENT_DEFAULT_ACTION\020\000\022\007\n\003SET\020\001\022\010\n\004GAIN\020",
+      "\002\022\010\n\004LOSE\020\003*\206\004\n\022_PlayerElementType\022\037\n\033_U" +
+      "NSENT_DEFAULT_PLAYER_ELEM\020\000\022\r\n\tELEM_CLAY" +
+      "\020\001\022\014\n\010ELEM_ORE\020\002\022\016\n\nELEM_SHEEP\020\003\022\016\n\nELEM" +
+      "_WHEAT\020\004\022\r\n\tELEM_WOOD\020\005\022\031\n\025ELEM_UNKNOWN_" +
+      "RESOURCE\020\006\022\t\n\005ROADS\020\n\022\017\n\013SETTLEMENTS\020\013\022\n" +
+      "\n\006CITIES\020\014\022\t\n\005SHIPS\020\r\022\016\n\nNUMKNIGHTS\020\017\022\025\n" +
+      "\021ASK_SPECIAL_BUILD\020\020\022\022\n\016RESOURCE_COUNT\020\021" +
+      "\022\030\n\024LAST_SETTLEMENT_NODE\020\022\022\030\n\024PLAYED_DEV" +
+      "_CARD_FLAG\020\023\022\037\n\033NUM_PICK_GOLD_HEX_RESOUR" +
+      "CES\020e\022\020\n\014SCENARIO_SVP\020f\022!\n\035SCENARIO_PLAY",
+      "EREVENTS_BITMASK\020g\022\"\n\036SCENARIO_SVP_LANDA" +
+      "REAS_BITMASK\020h\022\026\n\022STARTING_LANDAREAS\020i\022\030" +
+      "\n\024SCENARIO_CLOTH_COUNT\020j\022\032\n\026SCENARIO_WAR" +
+      "SHIP_COUNT\020kB\r\n\tsoc.protoH\001P\000b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -39845,18 +42680,36 @@ public final class GameMessage {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_MoveRobber_descriptor,
         new java.lang.String[] { "MoveTo", "IsRobber", "IsPirate", });
-    internal_static_GameMessageFromServer_descriptor =
+    internal_static_ResetBoardRequest_descriptor =
       getDescriptor().getMessageTypes().get(30);
+    internal_static_ResetBoardRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_ResetBoardRequest_descriptor,
+        new java.lang.String[] { });
+    internal_static_ResetBoardVote_descriptor =
+      getDescriptor().getMessageTypes().get(31);
+    internal_static_ResetBoardVote_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_ResetBoardVote_descriptor,
+        new java.lang.String[] { "IsYes", });
+    internal_static_ResetBoardResult_descriptor =
+      getDescriptor().getMessageTypes().get(32);
+    internal_static_ResetBoardResult_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_ResetBoardResult_descriptor,
+        new java.lang.String[] { "WasRejected", });
+    internal_static_GameMessageFromServer_descriptor =
+      getDescriptor().getMessageTypes().get(33);
     internal_static_GameMessageFromServer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_GameMessageFromServer_descriptor,
-        new java.lang.String[] { "GameName", "PlayerNumber", "GameState", "PlayerElement", "PlayerElements", "GameElements", "BoardLayout", "PotentialSettlements", "PieceValue", "BuildPiece", "CancelBuild", "MovePiece", "RemovePiece", "StartGame", "Turn", "SetTurn", "DiceRollRequest", "DiceResult", "DiceResultResources", "InventoryItemAction", "TradeWithBank", "TradeMakeOffer", "TradeClearOffer", "TradeRejectOffer", "TradeAcceptOffer", "LoseResourcesPrompt", "LoseResources", "GainResourcesPrompt", "GainResources", "ChoosePlayerPrompt", "MoveRobber", "Msg", });
+        new java.lang.String[] { "GameName", "PlayerNumber", "GameState", "PlayerElement", "PlayerElements", "GameElements", "BoardLayout", "PotentialSettlements", "PieceValue", "BuildPiece", "CancelBuild", "MovePiece", "RemovePiece", "StartGame", "Turn", "SetTurn", "DiceRollRequest", "DiceResult", "DiceResultResources", "InventoryItemAction", "TradeWithBank", "TradeMakeOffer", "TradeClearOffer", "TradeRejectOffer", "TradeAcceptOffer", "LoseResourcesPrompt", "LoseResources", "GainResourcesPrompt", "GainResources", "ChoosePlayerPrompt", "MoveRobber", "ResetBoardRequest", "ResetBoardVotePrompt", "ResetBoardVote", "ResetBoardResult", "Msg", });
     internal_static_GameMessageFromClient_descriptor =
-      getDescriptor().getMessageTypes().get(31);
+      getDescriptor().getMessageTypes().get(34);
     internal_static_GameMessageFromClient_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_GameMessageFromClient_descriptor,
-        new java.lang.String[] { "GameName", "StartGame", "DiceRollRequest", "EndTurn", "BuildPiece", "CancelBuild", "MovePiece", "BuyInventoryItem", "InventoryItemAction", "TradeWithBank", "TradeMakeOffer", "TradeClearOffer", "TradeRejectOffer", "TradeAcceptOffer", "LoseResources", "GainResources", "ChooseResourceType", "ChoosePlayer", "MoveRobber", "Msg", });
+        new java.lang.String[] { "GameName", "StartGame", "DiceRollRequest", "EndTurn", "BuildPiece", "CancelBuild", "MovePiece", "BuyInventoryItem", "InventoryItemAction", "TradeWithBank", "TradeMakeOffer", "TradeClearOffer", "TradeRejectOffer", "TradeAcceptOffer", "LoseResources", "GainResources", "ChooseResourceType", "ChoosePlayer", "MoveRobber", "ResetBoardRequest", "ResetBoardVote", "Msg", });
     soc.proto.Data.getDescriptor();
   }
 

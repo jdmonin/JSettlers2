@@ -946,6 +946,51 @@ message MoveRobber {
 
 
 //
+// Game Lifecycle: Reset Board & Voting
+//
+
+
+/* A request from a player to reset the game board.
+ * - Player client sends this to server
+ * - If can't reset game at this time, server replies with ResetBoardResult(was_rejected=true)
+ * - If there are no other human players, server replies with ResetBoardResult(was_rejected=false) to reset the board
+ * - If there are other human players:
+ *   - Server announces this ResetBoardRequest to all human players, including requesting player
+ *   - Other human players are sent a ResetBoardVote prompt
+ *   - For next steps after that, see ResetBoardVote docs
+ */
+message ResetBoardRequest {
+    // No detail fields are needed beyond GameMessageFromServer.player_number
+}
+
+/* A human player's vote on whether to reset this game board.
+ * - First sent to client as prompt to vote yes or no
+ * - Client player responds with their vote
+ * - Server announces each vote to the entire game
+ * - Once all human players have voted, server announces the ResetBoardResult
+ *<P>
+ * Before v3.0.00 this message was SOCResetBoardVoteRequest and SOCResetBoardVote.
+ */
+message ResetBoardVote {
+    bool is_yes = 1;  // True if this client player is voting Yes to reset the board
+}
+
+/* Result announcement from server for a board reset request/vote.
+ * For a successful reset request (wasn't rejected):
+ * - GameMessageFromServer.player_number is the player who asked for the reset.
+ * - For human players, this message replaces the JoinGame message seen when joining a brand-new game;
+ *   the reset message will be followed with others which will fill in the game state.
+ * - Robots must instead discard game state and ask to re-join.
+ *   Robot clients must treat this message as a BotJoinGameRequest to join the new game.
+ *<P>
+ * Before v3.0.00 this message was SOCResetBoardAuth and SOCResetBoardReject.
+ */
+message ResetBoardResult {
+    bool was_rejected = 1;  // True if reset was rejected or voted down, false if the reset is starting now
+}
+
+
+//
 // GameMessageFromServer, GameMessageFromClient: For encode/decode, a GameMessage type
 // containing all other message types using OneOf. These main GameMessageFromServer
 // and FromClient types are sent as a OneOf in the main Message.FromServer and FromClient.
@@ -1007,6 +1052,12 @@ message GameMessageFromServer {
         GainResources gain_resources = 503;
         ChoosePlayer choose_player_prompt = 504;
         MoveRobber move_robber = 505;
+
+        // game lifecycle: reset board & voting
+        ResetBoardRequest reset_board_request = 1000;
+        ResetBoardVote reset_board_vote_prompt = 1001;
+        ResetBoardVote reset_board_vote = 1002;
+        ResetBoardResult reset_board_result = 1003;
     }
 }
 
@@ -1043,5 +1094,9 @@ message GameMessageFromClient {
         ChooseResourceType choose_resource_type = 502;
         ChoosePlayer choose_player = 503;
         MoveRobber move_robber = 504;
+
+        // game lifecycle: reset board & voting
+        ResetBoardRequest reset_board_request = 1000;
+        ResetBoardVote reset_board_vote = 1001;
     }
 }

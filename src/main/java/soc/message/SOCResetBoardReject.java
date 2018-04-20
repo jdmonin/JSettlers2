@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008,2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008,2014,2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,6 +18,9 @@
  * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
+
+import soc.proto.GameMessage;
+import soc.proto.Message;
 
 /**
  * This message from server informs all clients that voting has ended,
@@ -53,6 +56,17 @@ public class SOCResetBoardReject extends SOCMessageTemplate0
     {
         // s is just the game name
         return new SOCResetBoardReject(s);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.ResetBoardResult.Builder b
+            = GameMessage.ResetBoardResult.newBuilder().setWasRejected(true);
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGameName(game).setResetBoardResult(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
     /**

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008-2009,2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2009,2014,2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,6 +20,9 @@
 package soc.message;
 
 import java.util.StringTokenizer;
+
+import soc.proto.GameMessage;
+import soc.proto.Message;
 
 /**
  * This bi-directional message gives the client's vote on a "board reset",
@@ -110,6 +113,17 @@ public class SOCResetBoardVote extends SOCMessageTemplate2i
         }
 
         return new SOCResetBoardVote(ga, pn, vy != 0);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.ResetBoardVote.Builder b
+            = GameMessage.ResetBoardVote.newBuilder().setIsYes(getPlayerVote());
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder();
+        gb.setGameName(game).setPlayerNumber(getPlayerNumber()).setResetBoardVote(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
     /**
