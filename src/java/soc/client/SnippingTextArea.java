@@ -2,7 +2,8 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * This file appears (by its comments) to be (C) 1999 Brian Davies
- * Portions of this file Copyright (C) 2009,2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2012,2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -176,23 +177,26 @@ public class SnippingTextArea extends TextArea
         if (isJavaOnOSX105)
             return;
 
-        while (lines > maximumLines)
+        try
         {
-            String s = getText();
-            int nextLine = s.indexOf('\n') + 1;
+	        while (lines > maximumLines)
+	        {
+	            String s = getText();
+	            int nextLine = s.indexOf('\n') + 1;
 
-            if (isJava142) // see comment for isJava142
-                super.setText(s.substring(nextLine));
-            else
-                super.replaceRange("", 0, nextLine);
+	            if (isJava142) // see comment for isJava142
+	                super.setText(s.substring(nextLine));
+	            else
+	                super.replaceRange("", 0, nextLine);
 
-            lines--;
-        }
-        // java 1.2 deprecated getPeer, adding isDisplayable()
+	            lines--;
+	        }
 
-        if (getPeer() != null)
-        {
-            setCaretPosition(getText().length());
+	        if (isDisplayable())
+	            setCaretPosition(getText().length());
+        } catch (Throwable th) {
+        	System.out.println("snipText ERROR - " + th.getMessage());
+        	th.printStackTrace();
         }
     }
 
