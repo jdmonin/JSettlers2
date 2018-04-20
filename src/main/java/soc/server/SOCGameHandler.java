@@ -2084,26 +2084,18 @@ public class SOCGameHandler extends GameHandler
 
         case SOCGame.WAITING_FOR_ROB_CHOOSE_PLAYER:
             /**
-             * get the choices from the game
-             */
-            final boolean canStealNone = ga.isGameOptionSet(SOCGameOption.K_SC_PIRI);
-            boolean[] choices = new boolean[ga.maxPlayers + (canStealNone ? 1 : 0)];
-            Arrays.fill(choices, false);
-            if (canStealNone)
-                choices[ga.maxPlayers] = true;
-
-            for (SOCPlayer pl : ga.getPossibleVictims())
-                choices[pl.getPlayerNumber()] = true;
-
-            /**
              * ask the current player to choose a player to steal from
              */
             Connection con = srv.getConnection(ga.getPlayer(cpn).getName());
             if (con != null)
             {
-                con.put(SOCChoosePlayerRequest.toCmd(gname, choices));
-            }
+                final boolean canChooseNone = ga.isGameOptionSet(SOCGameOption.K_SC_PIRI);
+                boolean[] choices = new boolean[ga.maxPlayers];
+                for (SOCPlayer pl : ga.getPossibleVictims())
+                    choices[pl.getPlayerNumber()] = true;
 
+                con.put(SOCChoosePlayerRequest.toCmd(gname, choices, canChooseNone));
+            }
             break;
 
         case SOCGame.OVER:

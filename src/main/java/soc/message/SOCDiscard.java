@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012,2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012,2014,2016-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -105,10 +105,7 @@ public class SOCDiscard extends SOCMessage
      */
     public String toCmd()
     {
-        return toCmd
-            (game, resources.getAmount(SOCResourceConstants.CLAY), resources.getAmount(SOCResourceConstants.ORE),
-             resources.getAmount(SOCResourceConstants.SHEEP), resources.getAmount(SOCResourceConstants.WHEAT),
-             resources.getAmount(SOCResourceConstants.WOOD), resources.getAmount(SOCResourceConstants.UNKNOWN));
+        return toCmd(game, resources);
     }
 
     /**
@@ -121,28 +118,13 @@ public class SOCDiscard extends SOCMessage
      */
     public static String toCmd(String ga, SOCResourceSet rs)
     {
-        return toCmd
-            (ga, rs.getAmount(SOCResourceConstants.CLAY), rs.getAmount(SOCResourceConstants.ORE),
-             rs.getAmount(SOCResourceConstants.SHEEP), rs.getAmount(SOCResourceConstants.WHEAT),
-             rs.getAmount(SOCResourceConstants.WOOD), rs.getAmount(SOCResourceConstants.UNKNOWN));
-    }
-
-    /**
-     * DISCARD sep game sep2 clay sep2 ore sep2 sheep sep2
-     * wheat sep2 wood sep2 unknown
-     *
-     * @param ga  the name of the game
-     * @param cl  the amount of clay being discarded
-     * @param or  the amount of ore being discarded
-     * @param sh  the amount of sheep being discarded
-     * @param wh  the amount of wheat being discarded
-     * @param wo  the amount of wood being discarded
-     * @param uk  the amount of unknown resources being discarded
-     * @return the command string
-     */
-    public static String toCmd(String ga, int cl, int or, int sh, int wh, int wo, int uk)
-    {
-        return DISCARD + sep + ga + sep2 + cl + sep2 + or + sep2 + sh + sep2 + wh + sep2 + wo + sep2 + uk;
+        return DISCARD + sep + ga + sep2
+            + rs.getAmount(SOCResourceConstants.CLAY) + sep2
+            + rs.getAmount(SOCResourceConstants.ORE) + sep2
+            + rs.getAmount(SOCResourceConstants.SHEEP) + sep2
+            + rs.getAmount(SOCResourceConstants.WHEAT) + sep2
+            + rs.getAmount(SOCResourceConstants.WOOD) + sep2
+            + rs.getAmount(SOCResourceConstants.UNKNOWN);
     }
 
     /**

@@ -4985,7 +4985,6 @@ public class SOCPlayerClient
         SOCGame game = games.get(mes.getGame());
         final int maxPl = game.maxPlayers;
         final boolean[] ch = mes.getChoices();
-        final boolean allowChooseNone = ((ch.length > maxPl) && ch[maxPl]);  // for scenario SC_PIRI
 
         List<SOCPlayer> choices = new ArrayList<SOCPlayer>();
         for (int i = 0; i < maxPl; i++)
@@ -4998,7 +4997,7 @@ public class SOCPlayerClient
         }
 
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
-        pcl.requestedChoosePlayer(choices, allowChooseNone);
+        pcl.requestedChoosePlayer(choices, mes.canChooseNone());
     }
 
     /**
@@ -6160,7 +6159,7 @@ public class SOCPlayerClient
      *
      * @param ga  the game
      * @param pl  the player
-     * @param coord  edge where the player wants the robber, or negative edge for the pirate ship
+     * @param coord  hex where the player wants the robber, or negative hex for the pirate ship
      */
     public void moveRobber(SOCGame ga, SOCPlayer pl, int coord)
     {
