@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011,2013,2015-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2011,2013,2015-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - removeConnection bugfix
  *
  * This program is free software; you can redistribute it and/or
@@ -269,9 +269,13 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     /**
      * Minor init tasks from both constructors.
      * Set up the recurring schedule of {@link #cliVersionsConnected} here.
+     * If <tt>{@link #error} != null</tt> already, do nothing.
      */
     private void initMisc()
     {
+        if (error != null)
+            return;
+
         // recurring schedule the version set's consistency-chk
         ConnVersionSetCheckerTask cvChkTask = new ConnVersionSetCheckerTask(this);
         utilTimer.schedule(cvChkTask, 0L, SOCServer.CLI_VERSION_SET_CONSIS_CHECK_MINUTES * 60 * 1000);
