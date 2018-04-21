@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2013,2015-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013,2015-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1124,9 +1124,11 @@ public class SOCGame implements Serializable, Cloneable
         {
             for (int i = 0; i < maxPlayers; i++)
             {
-                if ((! isSeatVacant(i)) && nn.equals(players[i].getName()))
+                if (! isSeatVacant(i))
                 {
-                    return players[i];
+                    final SOCPlayer pl = players[i];  // may be null during end-of-game cleanup or reset
+                    if ((pl != null) && nn.equals(pl.getName()))
+                        return pl;
                 }
             }
         }
