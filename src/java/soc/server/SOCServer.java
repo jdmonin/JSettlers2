@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2005 Chadwick A McHenry <mchenryc@acm.org>
- * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -5010,7 +5010,8 @@ public class SOCServer extends Server
 
     /**
      * Set client's version, and check against minimum required version {@link #CLI_VERSION_MIN}.
-     * If version is too low, send {@link SOCRejectConnection REJECTCONNECTION}.
+     * If version is too low, send {@link SOCRejectConnection REJECTCONNECTION}
+     * and call {@link #removeConnection(StringConnection)}.
      * If we haven't yet sent the game list, send now.
      * If we've already sent the game list, send changes based on true version.
      *<P>
@@ -5078,7 +5079,9 @@ public class SOCServer extends Server
             c.put(new SOCRejectConnection(rejectMsg).toCmd());
             c.disconnectSoft();
             System.out.println(rejectLogMsg);
-            return false;
+            removeConnection(c);
+
+            return false;  // <--- Early return: Rejected client ---
         }
 
         // Send game list?
@@ -5316,6 +5319,8 @@ public class SOCServer extends Server
      * Their version is checked here, must equal server's version.
      * For stability and control, the cookie in this message must
      * match this server's {@link #robotCookie}.
+     * Otherwise the bot is rejected and they're disconnected by calling
+     * {@link #removeConnection(StringConnection)}.
      *<P>
      * Bot tuning parameters are sent here to the bot.
      * Its {@link SOCClientData#isRobot} flag is set.
@@ -5340,7 +5345,7 @@ public class SOCServer extends Server
             if (c.getData() != null)
             {
                 c.put(new SOCRejectConnection("Client has already authorized.").toCmd());
-                c.disconnectSoft();
+                removeConnection(c);
                 System.out.println("Rejected robot " + botName + ": Client sent authorize already");
 
                 return;  // <--- Early return: Already authenticated ---
@@ -5353,7 +5358,7 @@ public class SOCServer extends Server
             {
                 final String rejectMsg = "Cookie contents do not match the running server.";
                 c.put(new SOCRejectConnection(rejectMsg).toCmd());
-                c.disconnectSoft();
+                removeConnection(c);
                 System.out.println("Rejected robot " + botName + ": Wrong cookie");
 
                 return;  // <--- Early return: Robot client didn't send our cookie value ---
@@ -5374,7 +5379,7 @@ public class SOCServer extends Server
                     String rejectMsg = "Sorry, robot client version does not match, version number "
                         + Version.version(srvVers) + " is required.";
                     c.put(new SOCRejectConnection(rejectMsg).toCmd());
-                    c.disconnectSoft();
+                    removeConnection(c);
                     System.out.println("Rejected robot " + botName + ": Version "
                         + cliVers + " does not match server version");
 
@@ -5398,8 +5403,7 @@ public class SOCServer extends Server
                 c.put(rcCommand.toCmd());
                 printAuditMessage
                     (null, "Robot login attempt, name already in use or bad", botName, null, c.host());
-                // c.disconnect();
-                c.disconnectSoft();
+                removeConnection(c);
 
                 return;
             }
