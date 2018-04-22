@@ -1995,23 +1995,19 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
 
     /**
      * Set or clear the chat text input's initial prompt.
-     * Sets its status, foreground color, and the prompt text if true.
+     * If {@code setToInitial} true, sets its status, foreground color, and the prompt text
+     * unless player already sent chat text ({@link #textInputHasSent}).
      *
      * @param setToInitial If false, clear initial-prompt status, and
      *    clear contents (if they are the initial-prompt message);
      *    If true, set initial-prompt status, and set the prompt
      *    (if contents are blank when trimmed).
-     *
-     * @throws IllegalStateException if setInitial true, but player
-     *    already sent chat text (textInputHasSent).
-     *
      * @see #TEXTINPUT_INITIAL_PROMPT_MSG
      */
     protected void textInputSetToInitialPrompt(boolean setToInitial)
-        throws IllegalStateException
     {
         if (setToInitial && textInputHasSent)
-            throw new IllegalStateException("Already sent text, can't re-initial");
+            return;  // Already sent text, won't re-prompt
 
         // Always change text before changing flag,
         // so TextListener doesn't fight this action.
