@@ -5572,18 +5572,26 @@ public class SOCServer extends Server
                 messageToPlayer(c, gaName, "This game is over, cannot extend its time.");
             } else {
                 // check game time currently remaining: if already more than
-                // the original GAME_TIME_EXPIRE_MINUTES, don't add more now.
+                // the original GAME_EXPIRE_MINUTES + GAME_TIME_EXPIRE_ADDTIME_MINUTES,
+                // don't add more now.
                 final long now = System.currentTimeMillis();
                 long exp = ga.getExpiration();
+                final int gameMaxMins = SOCGameListAtServer.GAME_EXPIRE_MINUTES
+                    + SOCServer.GAME_TIME_EXPIRE_ADDTIME_MINUTES;
                 int minRemain = (int) ((exp - now) / (60 * 1000));
 
-                if (minRemain > SOCGameListAtServer.GAME_EXPIRE_MINUTES)
+                if (minRemain > gameMaxMins - 4)
                 {
                     messageToPlayer(c, gaName,
                         "Ask again later: This game does not expire soon, it has " + minRemain + " minutes remaining.");
+                    // This check time subtracts 4 minutes to keep too-frequent addtime requests
+                    // from spamming all game members with announcements
                 } else {
-                    exp += (GAME_TIME_EXPIRE_ADDTIME_MINUTES * 60 * 1000);
-                    minRemain += GAME_TIME_EXPIRE_ADDTIME_MINUTES;
+                    int minAdd = GAME_TIME_EXPIRE_ADDTIME_MINUTES;
+                    if (minRemain + minAdd > gameMaxMins)
+                        minAdd = gameMaxMins - minRemain;
+                    exp += (minAdd * 60 * 1000);
+                    minRemain += minAdd;
 
                     ga.setExpiration(exp);
                     messageToGameUrgent(gaName, ">>> Game time has been extended.");
