@@ -13,6 +13,12 @@ and backport minor new features until 2.0.00 is ready.
 
 
     > 1.2.01 (build OV201805xx)
+- Game expiration:
+    - Initial game length increased: Now 2 hours, was 90 minutes
+    - Warns 5 or 6 minutes earlier
+    - Ensure at least 1 warning before ending game:
+      Local-server games won't immediately expire when a sleeping laptop wakes
+      (Practice games haven't expired since v1.1.09)
 - Client:
     - Game window bugfix: Join Game hangs on Windows Java 9 (SnippingTextArea peer NoSuchMethodError)
     - Sound prompt when client player is offered a trade

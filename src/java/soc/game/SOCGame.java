@@ -55,6 +55,12 @@ import java.util.Vector;
  * For the board <b>coordinate system and terms</b> (hex, node, edge), see the
  * {@link SOCBoard} class javadoc.
  *<P>
+ * Games are created at the server in {@link soc.server.SOCGameListAtServer} and given an
+ * expiration time 120 minutes away
+ * ({@link soc.server.SOCGameListAtServer#GAME_EXPIRE_MINUTES SOCGameListAtServer.GAME_EXPIRE_MINUTES}).
+ * Players then choose their seats, optionally locking empty seats against joining robots,
+ * and any player can click the Start Game button.
+ *<P>
  * {@link #putPiece(SOCPlayingPiece)} and other game-action methods update <tt>gameState</tt>.
  * {@link #updateAtTurn()}, <tt>putPiece</tt> and some other game-action methods update {@link #lastActionTime}.
  *<P>
@@ -610,15 +616,28 @@ public class SOCGame implements Serializable, Cloneable
     boolean allOriginalPlayers;
 
     /**
-     * when this game was created
+     * Time when this game was created, or null if not {@link #active} when created.
+     * @see #lastActionTime
+     * @see #expiration
      */
     Date startTime;
 
     /**
-     * expiration time for this game in milliseconds.
+     * Expiration time for this game in milliseconds
+     * (system clock time, not a duration from {@link #startTime});
      * Same format as {@link System#currentTimeMillis()}.
+     * @see #startTime
+     * @see #hasWarnedExpir
      */
     long expiration;
+
+    /**
+     * Has the server warned game's member clients that this game will expire soon?
+     * See {@link #hasWarnedExpiration()} for details.
+     * @see #expiration
+     * @since 1.2.01
+     */
+    private boolean hasWarnedExpir;
 
     /**
      * The last time a game action happened; can be used to check for game inactivity.
@@ -634,6 +653,8 @@ public class SOCGame implements Serializable, Cloneable
      * in order to remove it from the {@link soc.server.SOCGameTimeoutChecker}
      * run loop.
      *
+     * @see #getStartTime()
+     * @see #getExpiration()
      * @since 1.1.11
      */
     public long lastActionTime;
@@ -875,7 +896,8 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * @return the start time for this game, or null if inactive
+     * @return the start time for this game, or null if not active when created
+     * @see #getExpiration()
      */
     public Date getStartTime()
     {
@@ -883,8 +905,15 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * @return the expiration time in milliseconds,
-     *            same epoch as {@link java.util.Date#getTime()}
+     * Get the expiration time at which this game will be destroyed.
+     * Used only at server.
+     * @return the absolute expiration time in milliseconds
+     *         (system clock time, not a duration from {@link #startTime});
+     *         same epoch as {@link java.util.Date#getTime()}.
+     *         Not used at client, returns 0.
+     * @see #getStartTime()
+     * @see #setExpiration(long)
+     * @see #hasWarnedExpiration()
      */
     public long getExpiration()
     {
@@ -892,14 +921,46 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * set the expiration time
+     * Set the expiration time at which this game will be destroyed.
+     * Also clears the {@link #hasWarnedExpiration()} flag, for use when extending the game,
+     * so server can warn again near the new expiration time.
+     *<P>
+     * Called at server, not client.
      *
      * @param ex  the expiration time in milliseconds,
      *            same epoch as {@link java.util.Date#getTime()}
+     * @see #getExpiration()
      */
     public void setExpiration(long ex)
     {
         expiration = ex;
+        hasWarnedExpir = false;
+    }
+
+    /**
+     * Has the server warned game's member clients that this game will expire soon?
+     * All games get at least 1 warning before expiring. Otherwise a local-server game
+     * might immediately expire when a sleeping laptop wakes.
+     *<P>
+     * Used only at server, which calls {@link #setWarnedExpiration()}.
+     * @return true if this warning flag is set.
+     *     Not used at client, returns false.
+     * @see #getExpiration()
+     * @since 1.2.01
+     */
+    public boolean hasWarnedExpiration()
+    {
+        return hasWarnedExpir;
+    }
+
+    /**
+     * Set the {@link #hasWarnedExpiration()} flag.
+     * To clear this flag, call {@link #setExpiration(long)} to change the expiration time.
+     * @since 1.2.01
+     */
+    public void setWarnedExpiration()
+    {
+        hasWarnedExpir = true;
     }
 
     /**

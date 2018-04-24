@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2012,2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2012,2014,2016-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  *
  * This program is free software; you can redistribute it and/or
@@ -48,12 +48,15 @@ public class SOCGameListAtServer extends SOCGameList
 {
     /**
      * Number of minutes after which a game (created on the list) is expired.
-     * Default is 90.
+     * Default is 120.
+     *<P>
+     * Before v1.2.01 the default was 90.
      *
      * @see #createGame(String, String, Hashtable)
+     * @see SOCGame#setExpiration(long)
      * @see SOCServer#checkForExpiredGames(long)
      */
-    public static int GAME_EXPIRE_MINUTES = 90;
+    public static int GAME_EXPIRE_MINUTES = 120;
 
     /** map of game names to Vector of game members ({@link StringConnection}s) */
     protected Hashtable gameMembers;

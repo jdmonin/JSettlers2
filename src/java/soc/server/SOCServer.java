@@ -368,26 +368,29 @@ public class SOCServer extends Server
     public static final int CLI_VERSION_TIMER_FIRE_MS = 1200;
 
     /**
-     * If game will expire in this or fewer minutes, warn the players. Default is 10.
+     * If game will expire in this or fewer minutes, warn the players. Default is 15.
      * Must be at least twice the sleep-time in {@link SOCGameTimeoutChecker#run()}.
      * The game expiry time is set at game creation in {@link SOCGameListAtServer#createGame(String, String, Hashtable)}.
      *<P>
      * If you update this field, also update {@link #GAME_TIME_EXPIRE_CHECK_MINUTES}.
+     *<P>
+     * Before v1.2.01 the default was 10.
      *
      * @see #checkForExpiredGames(long)
      * @see SOCGameTimeoutChecker#run()
      * @see SOCGameListAtServer#GAME_EXPIRE_MINUTES
      * @see #GAME_TIME_EXPIRE_ADDTIME_MINUTES
      */
-    public static int GAME_EXPIRE_WARN_MINUTES = 10;
+    public static int GAME_EXPIRE_WARN_MINUTES = 15;
 
     /**
      * Sleep time (minutes) between checks for expired games in {@link SOCGameTimeoutChecker#run()}.
      * Default is 5 minutes. Must be at most half of {@link #GAME_EXPIRE_WARN_MINUTES}
      * so the user has time to react after seeing the warning.
+     * @see SOCGameListAtServer#GAME_EXPIRE_MINUTES
      * @since 1.2.00
      */
-    public static int GAME_TIME_EXPIRE_CHECK_MINUTES = GAME_EXPIRE_WARN_MINUTES / 2;
+    public static int GAME_TIME_EXPIRE_CHECK_MINUTES = 5;
 
     /**
      * Amount of time to add (30 minutes) when the <tt>*ADDTIME*</tt> command is used by a player.
@@ -11051,6 +11054,7 @@ public class SOCServer extends Server
      *
      * @param currentTimeMillis  The time when called, from {@link System#currentTimeMillis()}
      * @see #GAME_EXPIRE_WARN_MINUTES
+     * @see SOCGameListAtServer#GAME_EXPIRE_MINUTES
      * @see #checkForExpiredTurns(long)
      */
     public void checkForExpiredGames(final long currentTimeMillis)
@@ -11059,8 +11063,8 @@ public class SOCServer extends Server
         // expiring-soon games, then release it.
         ArrayList expiredGameNames = new ArrayList(), expiringSoonGames = new ArrayList(), pingIdle = new ArrayList();
 
-        // Add 2 minutes because of coarse 5-minute granularity in SOCGameTimeoutChecker.run()
-        long warn_ms = (2 + GAME_EXPIRE_WARN_MINUTES) * 60L * 1000L; 
+        // Warn 3 minutes earlier, because of coarse 5-minute granularity in SOCGameTimeoutChecker.run()
+        long warn_ms = (3 + GAME_EXPIRE_WARN_MINUTES) * 60L * 1000L;
 
         gameList.takeMonitor();
 
@@ -11073,8 +11077,9 @@ public class SOCServer extends Server
                     continue;  // <--- Skip practice games, they don't expire ---
 
                 long gameExpir = gameData.getExpiration();
+                final boolean hasWarned = gameData.hasWarnedExpiration();
 
-                if (gameExpir <= currentTimeMillis)
+                if (hasWarned && (gameExpir <= currentTimeMillis))
                     expiredGameNames.add(gameData.getName());
                 else if ((gameExpir - warn_ms) <= currentTimeMillis)
                     expiringSoonGames.add(gameData);
@@ -11107,6 +11112,9 @@ public class SOCServer extends Server
 
                 messageToGameUrgent(gameData.getName(), ">>> Less than "
                     + minutes + " minutes remaining.  Type *ADDTIME* to extend this game another 30 minutes.");
+
+                if (! gameData.hasWarnedExpiration())
+                    gameData.setWarnedExpiration();
             }
         }
 
@@ -11124,6 +11132,7 @@ public class SOCServer extends Server
 
         //
         // destroy the expired games
+        //    Assumes the list will be short, so the game list monitor take/release overhead will be acceptable.
         //
         if (expiredGameNames.isEmpty())
         {

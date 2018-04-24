@@ -539,6 +539,8 @@ When preparing to release a new version, testing should include:
         - In your IDE, pause the debugged client to simulate network connection loss
         - Start a new client and connect as that same username; should allow after appropriate number of seconds
     - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
+    - Leave a non-practice game idle for hours; should warn 10-15 minutes before 2-hour limit,
+      should let you add time in 30-minute intervals up to original limit + 30 minutes
 - Platform-specific: Recent and less-recent OSX and Windows; oldest JRE (1.5) and new JRE
     - Keyboard shortcuts including game-reset dialog's esc/enter keys, FaceChooserFrame arrow keys
     - Sound, including 2 clients in same game for overlapping piece-place sound
