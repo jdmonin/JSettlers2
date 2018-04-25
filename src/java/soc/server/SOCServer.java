@@ -10590,37 +10590,41 @@ public class SOCServer extends Server
             ga.startGame();
             gameList.takeMonitorForGame(gaName);
 
-            /**
-             * send the board layout
-             */
-            messageToGameWithMon(gaName, getBoardLayoutMessage(ga));
-
-            /**
-             * send the player info
-             */            
-            for (int i = 0; i < ga.maxPlayers; i++)
+            try
             {
-                if (! ga.isSeatVacant(i))
+                /**
+                 * send the board layout
+                 */
+                messageToGameWithMon(gaName, getBoardLayoutMessage(ga));
+
+                /**
+                 * send the player info
+                 */
+                for (int i = 0; i < ga.maxPlayers; i++)
                 {
+                    if (ga.isSeatVacant(i))
+                        continue;
+
                     SOCPlayer pl = ga.getPlayer(i);
                     messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.ROADS, pl.getNumPieces(SOCPlayingPiece.ROAD)));
                     messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.SETTLEMENTS, pl.getNumPieces(SOCPlayingPiece.SETTLEMENT)));
                     messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.CITIES, pl.getNumPieces(SOCPlayingPiece.CITY)));
                     messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, i, false));
                 }
+
+                /**
+                 * send the number of dev cards
+                 */
+                messageToGameWithMon(gaName, new SOCDevCardCount(gaName, ga.getNumDevCards()));
+
+                /**
+                 * ga.startGame() picks who goes first, but feedback is nice
+                 */
+                messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, "Randomly picking a starting player..."));
+
+            } finally {
+                gameList.releaseMonitorForGame(gaName);
             }
-
-            /**
-             * send the number of dev cards
-             */
-            messageToGameWithMon(gaName, new SOCDevCardCount(gaName, ga.getNumDevCards()));
-
-            /**
-             * ga.startGame() picks who goes first, but feedback is nice
-             */
-            messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, "Randomly picking a starting player..."));
-
-            gameList.releaseMonitorForGame(gaName);
 
             /**
              * send the game state
