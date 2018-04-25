@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2010,2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2010,2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -342,7 +342,15 @@ public class SOCPlayerElement extends SOCMessage
      */
     public String toString()
     {
-        String s = "SOCPlayerElement:game=" + game + "|playerNum=" + playerNumber + "|actionType=" + actionType
+        final String act;
+        switch (actionType)
+        {
+        case SET:  act = "SET";  break;
+        case GAIN: act = "GAIN"; break;
+        case LOSE: act = "LOSE"; break;
+        default:   act = Integer.toString(actionType);
+        }
+        String s = "SOCPlayerElement:game=" + game + "|playerNum=" + playerNumber + "|actionType=" + act
             + "|elementType=" + elementType + "|value=" + value + ((news) ? "|news=Y" : "");
 
         return s;
