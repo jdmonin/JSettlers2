@@ -8275,6 +8275,7 @@ public class SOCServer extends Server
                         final SOCPlayer player = ga.getPlayer(c.getData());
                         final int pn = player.getPlayerNumber();
                         final int gstate = ga.getGameState();
+                        boolean noAction = false;  // If true, there was nothing cancelable: Don't call sendGameState
 
                         switch (mes.getPieceType())
                         {
@@ -8290,11 +8291,11 @@ public class SOCServer extends Server
                                 } else {
                                     messageToGame(gaName, player.getName() + " skipped placing the second road.");
                                 }
-                                sendGameState(ga);
                             }
                             else
                             {
                                 messageToPlayer(c, gaName, "You didn't buy a road.");
+                                noAction = true;
                             }
 
                             break;
@@ -8310,7 +8311,6 @@ public class SOCServer extends Server
                                 messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WHEAT, 1));
                                 messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
                                 gameList.releaseMonitorForGame(gaName);
-                                sendGameState(ga);
                             }
                             else if ((gstate == SOCGame.START1B) || (gstate == SOCGame.START2B))
                             {
@@ -8319,11 +8319,12 @@ public class SOCServer extends Server
                                 messageToGame(gaName, mes);  // Re-send to all clients to announce it
                                     // (Safe since we've validated all message parameters)
                                 messageToGame(gaName, player.getName() + " cancelled this settlement placement.");
-                                sendGameState(ga);  // This send is redundant, if client reaction changes game state
+                                // The sendGameState below is redundant if client reaction changes game state
                             }
                             else
                             {
                                 messageToPlayer(c, gaName, "You didn't buy a settlement.");
+                                noAction = true;
                             }
 
                             break;
@@ -8335,17 +8336,27 @@ public class SOCServer extends Server
                                 ga.cancelBuildCity(pn);
                                 messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.ORE, 3));
                                 messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WHEAT, 2));
-                                sendGameState(ga);
                             }
                             else
                             {
                                 messageToPlayer(c, gaName, "You didn't buy a city.");
+                                noAction = true;
                             }
 
                             break;
 
                         default:
                             throw new IllegalArgumentException("Unknown piece type " + mes.getPieceType());
+                        }
+
+                        if (! noAction)
+                            sendGameState(ga);
+                        else
+                        {
+                            // bot is waiting for a gamestate reply, not text
+                            final SOCClientData scd = (SOCClientData) c.getAppData();
+                            if ((scd != null) && scd.isRobot)
+                                c.put(SOCGameState.toCmd(gaName, gstate));
                         }
                     }
                     else
