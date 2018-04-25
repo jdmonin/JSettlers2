@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012,2014-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012,2014-2015,2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -536,7 +536,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * @return the name of the player
+     * @return the name of the player; may be {@code null} if this Player is an unoccupied seat in the game
      */
     public String getName()
     {
@@ -1048,13 +1048,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * set the current offer for this player
+     * Set or clear the current offer made by this player.
      *
-     * @param of        the offer, or null to clear
+     * @param offer   the offer, or {@code null} to clear.
+     *     Doesn't validate that {@link SOCTradeOffer#getFrom() offer.getFrom()}
+     *     is this player; server must do so.
      */
-    public void setCurrentOffer(SOCTradeOffer of)
+    public void setCurrentOffer(final SOCTradeOffer offer)
     {
-        currentOffer = of;
+        currentOffer = offer;
     }
 
     /**

@@ -198,7 +198,9 @@ public class SOCHandPanel extends Panel implements ActionListener
      */
     protected SOCFaceButton faceImg;
 
+    /** Player name if {@link #inPlay}, otherwise blank or text like "Locked" */
     protected Label pname;
+
     protected Label vpLab;
     protected ColorSquare vpSq;
     /** Largest Army label, usually invisible; placed to left of {@link #lroadLab} */
@@ -346,6 +348,11 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected SOCPlayerInterface playerInterface;
     protected SOCPlayerClient client;
     protected SOCGame game;
+
+    /**
+     * Our player if: {@link #inPlay}, not null, and {@link SOCPlayer#getName()} not null.
+     * @see #playerNumber
+     */
     protected SOCPlayer player;
 
     /**
@@ -361,7 +368,11 @@ public class SOCHandPanel extends Panel implements ActionListener
     /** Is this panel's player the game's current player?  Used for hilight - set in updateAtTurn() */
     protected boolean playerIsCurrent;
 
-    /** Do we have any seated player? Set by {@link #addPlayer(String)}, cleared by {@link #removePlayer()}. */
+    /**
+     * Do we have any seated player? Set by {@link #addPlayer(String)}, cleared by {@link #removePlayer()}.
+     * @see #player
+     * @see #playerNumber
+     */
     protected boolean inPlay;
 
     // More Trading interface/message balloon fields:
@@ -1254,6 +1265,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         vpSq.setVisible(false);
         faceImg.setVisible(false);
         pname.setVisible(false);
+        pname.setText("");
         roadSq.setVisible(false);
         roadLab.setVisible(false);
         settlementLab.setVisible(false);
@@ -2038,11 +2050,9 @@ public class SOCHandPanel extends Panel implements ActionListener
     {
         if (playerIsClient)
             return;
-        if (player.isRobot())
-        {
-            if (! game.hasTradeOffers())
-                return;
-        }
+        if (player.isRobot() && ! game.hasTradeOffers())
+            return;
+
         offer.setMessage("No thanks.");
         if (offerHidesControls)
             hideTradeMsgShowOthers(false);
@@ -2227,6 +2237,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     {
         if (playerIsClient)
             return;
+
         if (message != null)
         {
             offerIsMessageWasTrade = (offer.isVisible() && (offer.getMode() == TradeOfferPanel.OFFER_MODE));
@@ -2235,9 +2246,7 @@ public class SOCHandPanel extends Panel implements ActionListener
                 hideTradeMsgShowOthers(false);
             offer.setVisible(true);
             repaint();
-        }
-        else
-        {
+        } else {
             // restore previous state of offer panel
             offerIsDiscardMessage = false;
             offerIsResetMessage = false;
@@ -2261,6 +2270,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             return;
         if (offerIsDiscardMessage)
             throw new IllegalStateException("Cannot call resetmessage when discard msg");
+
         tradeSetMessage(message);
         offerIsResetMessage = (message != null);
     }
@@ -2282,6 +2292,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             return false;
         if (offerIsResetMessage)
             return false;
+
         tradeSetMessage(TRADEMSG_DISCARD);
         offerIsDiscardMessage = true;
         return true;
@@ -2297,6 +2308,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     {
         if (! offerIsDiscardMessage)
             return;
+
         tradeSetMessage(null);
         offerIsDiscardMessage = false;
     }
@@ -2311,9 +2323,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             (game.getCurrentPlayerNumber() != playerNumber))
         {
             takeOverBut.setLabel(TAKEOVER);
-        }
-        else
-        {
+        } else {
             takeOverBut.setLabel("* Seat Locked *");
         }
     }
@@ -2737,25 +2747,29 @@ public class SOCHandPanel extends Panel implements ActionListener
 
         final FontMetrics fm = this.getFontMetrics(this.getFont());
         final int lineH = ColorSquare.HEIGHT;  // layout's basic line height; most rows have a ColorSquare 
-        final int faceW = 40;  // face icon width
-        final int pnameW = dim.width - (inset + faceW + inset + inset);  // player name width, to right of face
 
-        if (!inPlay)
+        if (! inPlay)
         {
             /* just show the 'sit' button */
             /* and the 'robot' button     */
-            /* and the pname label        */
-            sitBut.setBounds((dim.width - 60) / 2, (dim.height - 82) / 2, 60, 40);
-            pname.setBounds(inset + faceW + inset, inset, pnameW, lineH);
+            /* and pname label, centered  */
+
+            sitBut.setBounds((dim.width - 70) / 2, (dim.height - 82) / 2, 70, 40);
+            pname.setAlignment(Label.CENTER);
+            pname.setBounds(inset, inset, dim.width - (2*inset), lineH);
         }
         else
         {
+            final int faceW = 40;  // face icon width
+            final int pnameW = dim.width - (inset + faceW + inset + inset);  // player name width, to right of face
+
             final int stlmtsW = fm.stringWidth("Stlmts:_");  // Bug in stringWidth does not give correct size for ' '
             final int knightsW = fm.stringWidth("Soldiers:") + 2;  // +2 because Label text is inset from column 0
             // (for item count labels, either Settlements or Soldiers/Knights is widest text)
 
-            // Top of panel: Face icon, player name to right
+            // Top of panel: Face icon, player name to right (left-aligned)
             faceImg.setBounds(inset, inset, faceW, faceW);
+            pname.setAlignment(Label.LEFT);
             pname.setBounds(inset + faceW + inset, inset, pnameW, lineH);
 
             // To right of face, below player name:
