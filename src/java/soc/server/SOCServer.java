@@ -5479,15 +5479,15 @@ public class SOCServer extends Server
      */
     private void handleTEXTMSG(final StringConnection c, final SOCTextMsg mes)
     {
-        final String chName = mes.getChannel();
+        final String chName = mes.getChannel(), mName = c.getData(), txt = mes.getText();
 
-        if (allowDebugUser && c.getData().equals("debug"))
+        if (allowDebugUser && mName.equals("debug"))
         {
-            if (mes.getText().startsWith("*KILLCHANNEL*"))
+            if (txt.startsWith("*KILLCHANNEL*"))
             {
                 messageToChannel(chName, new SOCTextMsg
                     (chName, SERVERNAME,
-                     "********** " + c.getData() + " KILLED THE CHANNEL **********"));
+                     "********** " + mName + " KILLED THE CHANNEL **********"));
 
                 channelList.takeMonitor();
                 try
@@ -5511,9 +5511,10 @@ public class SOCServer extends Server
 
         /**
          * Send the message to the members of the channel
+         * (don't send all message fields received from client)
          */
         if (channelList.isMember(c, chName))
-            messageToChannel(chName, mes);
+            messageToChannel(chName, new SOCTextMsg(chName, mName, txt));
     }
 
     /**
