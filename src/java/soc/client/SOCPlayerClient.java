@@ -115,6 +115,9 @@ import java.util.prefs.Preferences;
  *</UL>
  * At most, the client is connected to the practice server and one TCP server.
  * Each game's {@link SOCGame#isPractice} flag determines which connection to use.
+ *<P>
+ * If network trouble or applet shutdown occurs, calls {@link #shutdownFromNetwork()};
+ * may still be able to play practice games locally.
  *
  * @author Robert S Thomas
  */
@@ -294,10 +297,16 @@ public class SOCPlayerClient extends Applet
     /**
      * Any network error received while connecting or sending messages in {@link #putNet(String)}.
      * If <tt>ex != null</tt>, putNet will refuse to send.
-     * {@link #destroy()} displays any message stored in <tt>ex</tt>.
+     * {@link #shutdownFromNetwork()} displays any message stored in <tt>ex</tt>.
+     * @see #ex_L
      */
     protected Exception ex = null;    // Network errors (TCP communication)
-    protected Exception ex_L = null;  // Local errors (stringport pipes)
+
+    /**
+     * Practice-server error (stringport pipes), or null.
+     * @see #ex
+     */
+    protected Exception ex_L = null;
 
     /**
      * Are we connected to a TCP server (remote or {@link #localTCPServer})?
@@ -1975,6 +1984,8 @@ public class SOCPlayerClient extends Applet
     /**
      * continuously read from the net in a separate thread;
      * not used for talking to the practice server.
+     * If disconnected or an {@link IOException} occurs,
+     * calls {@link #shutdownFromNetwork()}.
      */
     public void run()
     {
@@ -1994,7 +2005,7 @@ public class SOCPlayerClient extends Applet
             {
                 ex = e;
                 System.out.println("could not read from the net: " + ex);
-                destroy();
+                shutdownFromNetwork();
             }
         }
     }
@@ -2023,7 +2034,7 @@ public class SOCPlayerClient extends Applet
      * returns false without attempting to send the message.
      *<P>
      * If an IOException occurs while sending, sets {@link #ex}
-     * and calls {@link #destroy()} to show the error message.
+     * and calls {@link #shutdownFromNetwork()} to show the error message.
      *
      * @param s  the message
      * @return true if the message was sent, false if not
@@ -2049,7 +2060,7 @@ public class SOCPlayerClient extends Applet
         {
             ex = e;
             System.err.println("could not write to the net: " + ex);
-            destroy();
+            shutdownFromNetwork();
 
             return false;
         }
@@ -3137,8 +3148,14 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleDELETEGAME(SOCDeleteGame mes, final boolean isPractice)
     {
-        if (! deleteFromGameList(mes.getGame(), isPractice))
-            deleteFromGameList(GAMENAME_PREFIX_CANNOT_JOIN + mes.getGame(), isPractice);
+        final String gaName = mes.getGame();
+
+        if (! deleteFromGameList(gaName, isPractice))
+            deleteFromGameList(GAMENAME_PREFIX_CANNOT_JOIN + gaName, isPractice);
+
+        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gaName);
+        if (pi != null)
+            pi.over(true, null);
     }
 
     /**
@@ -3311,7 +3328,10 @@ public class SOCPlayerClient extends Applet
 
     /**
      * echo the server ping, to ensure we're still connected.
-     * (ignored before version 1.1.08)
+     * Ping may be a keepalive check or an attempt to kick by another
+     * client with the same nickname; may call {@link #shutdownFromNetwork()} if so.
+     *<P>
+     * (message ignored before v1.1.08)
      * @since 1.1.08
      */
     private void handleSERVERPING(SOCServerPing mes, final boolean isPractice)
@@ -3322,7 +3342,7 @@ public class SOCPlayerClient extends Applet
             put(mes.toCmd(), isPractice);
         } else {
             ex = new RuntimeException("Kicked by player with same name.");
-            destroy();
+            shutdownFromNetwork();
         }
     }
 
@@ -5725,10 +5745,23 @@ public class SOCPlayerClient extends Applet
     }
 
     /**
-     * network trouble; if possible, ask if they want to play locally (robots).
-     * Otherwise, go ahead and destroy the applet.
+     * If running as an applet not an app: When applet is destroyed, calls {@link #shutdownFromNetwork()}.
      */
-    public void destroy()
+    public final void destroy()
+    {
+        shutdownFromNetwork();
+    }
+
+    /**
+     * network trouble; if possible, ask if they want to play locally (robots).
+     * Otherwise, go ahead and shut down. Either way, calls {@link #showErrorPanel(String, boolean)}
+     * to show an error message or network exception detail.
+     *<P>
+     * "If possible" is determined from return value of {@link SOCPlayerClient.ClientNetwork#putLeaveAll()}.
+     *<P>
+     * Before v1.2.01 this method was {@code destroy()}.
+     */
+    public void shutdownFromNetwork()
     {
         final boolean canPractice = putLeaveAll();  // Can we still start a practice game?
 
@@ -5748,14 +5781,13 @@ public class SOCPlayerClient extends Applet
 
         for (Enumeration e = playerInterfaces.elements(); e.hasMoreElements();)
         {
-            // Stop network games.
-            // Local practice games can continue.
+            // Stop network games; continue Practice games if possible.
 
             SOCPlayerInterface pi = ((SOCPlayerInterface) e.nextElement());
-            if (! (canPractice && pi.getGame().isPractice))
-            {
-                pi.over(err);
-            }
+            SOCGame game = pi.getGame();
+            boolean isPractice = canPractice && (game != null) && game.isPractice;
+            if (! isPractice)
+                pi.over(false, err);
         }
         
         disconnect();
@@ -6049,7 +6081,9 @@ public class SOCPlayerClient extends Applet
         }
 
         /**
-         * continuously read from the local string server in a separate thread
+         * Continuously read from the practice string server in a separate thread.
+         * If disconnected or an {@link IOException} occurs, calls
+         * {@link #shutdownFromNetwork()}.
          */
         public void run()
         {
@@ -6069,7 +6103,7 @@ public class SOCPlayerClient extends Applet
                 {
                     ex_L = e;
                     System.out.println("could not read from string localnet: " + ex_L);
-                    destroy();
+                    shutdownFromNetwork();
                 }
             }
         }

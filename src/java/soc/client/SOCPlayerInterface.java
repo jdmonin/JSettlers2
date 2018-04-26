@@ -385,6 +385,13 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     protected boolean gameIsStarting;
 
     /**
+     * Flag to set true if game has been deleted while we're observing it,
+     * or was stopped by a server or network error. Is set in {@link #over(boolean, String)}.
+     * @since 1.2.01
+     */
+    protected boolean gameHasErrorOrDeletion;
+
+    /**
      * this other player has requested a board reset; voting is under way.
      * Null if no board reset vote is under way.
      *
@@ -1741,20 +1748,33 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     }
 
     /**
-     * an error occurred, stop playing
+     * Game was deleted or a server/network error occurred; stop playing.
      *
-     * @param s  an error message
+     * @param wasDeleted  True if game was deleted, isn't from an error;
+     *     this can happen while observing a game
+     * @param errorMessage  Error message if any, or {@code null}
      */
-    public void over(String s)
+    public void over(final boolean wasDeleted, final String errorMessage)
     {
+        gameHasErrorOrDeletion = true;
+
         if (textInputIsInitial)
             textInputSetToInitialPrompt(false);  // Clear, set foreground color
         textInput.setEditable(false);
-        textInput.setText(s);
-        textDisplay.append("* Sorry, lost connection to the server.\n");
-        textDisplay.append("*** Game stopped. ***\n");
+        if (errorMessage != null)
+            textInput.setText(errorMessage);
+        if (wasDeleted)
+        {
+            textDisplay.append("*** Game has been deleted. ***\n");
+        } else {
+            textDisplay.append("* Sorry, lost connection to the server.\n");
+            textDisplay.append("*** Game stopped. ***\n");
+        }
+
         game.setCurrentPlayerNumber(-1);
         boardPanel.repaint();
+        for (int i = 0; i < game.maxPlayers; i++)
+            hands[i].gameDisconnected();
     }
 
     /**

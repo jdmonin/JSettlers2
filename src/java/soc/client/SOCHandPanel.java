@@ -1371,11 +1371,30 @@ public class SOCHandPanel extends Panel implements ActionListener
     /**
      * Remove elements to clean up this panel.
      * Calls removePlayer() as part of cleanup.
+     * @see #gameDisconnected()
      */
     public void destroy()
     {
         removePlayer();
         removeAll();
+    }
+
+    /**
+     * Game was deleted or a server/network error occurred;
+     * disable all buttons to stop playing.
+     * @see #destroy()
+     * @since 1.2.01
+     */
+    public void gameDisconnected()
+    {
+        removeSitBut();
+        removeTakeOverBut();
+
+        Button[] inPlayButtons
+            = new Button[] { playCardBut, offerBut, bankBut, bankUndoBut, rollBut, doneBut, sittingRobotLockBut };
+        for (Button b : inPlayButtons)
+            if ((b != null) && b.isVisible() && b.isEnabled())
+                b.setEnabled(false);
     }
 
     /**

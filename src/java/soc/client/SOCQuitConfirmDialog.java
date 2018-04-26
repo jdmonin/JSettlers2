@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2007,2008,2010,2013 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007,2008,2010,2013,2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -43,7 +43,7 @@ class SOCQuitConfirmDialog extends AskDialog
         if ((cli == null) || (gamePI == null))
             throw new IllegalArgumentException("no nulls");
         SOCGame ga = gamePI.getGame();
-        boolean gaOver = (ga.getGameState() >= SOCGame.OVER);
+        boolean gaOver = (ga.getGameState() >= SOCGame.OVER) || gamePI.gameHasErrorOrDeletion;
 
         SOCQuitConfirmDialog qcd = new SOCQuitConfirmDialog(cli, gamePI, gaOver);
         qcd.show();      
@@ -55,9 +55,10 @@ class SOCQuitConfirmDialog extends AskDialog
      *
      * @param cli      Player client interface
      * @param gamePI   Current game's player interface
-     * @param gameIsOver The game is over - "Quit" button should be default (if not over, Continue is default)
+     * @param gameIsOver The game is over - "Quit" button should be default (if not over, Continue is default).
+     *     Must be {@code true} if {@link SOCPlayerInterface#gameHasErrorOrDeletion}.
      */
-    protected SOCQuitConfirmDialog(SOCPlayerClient cli, SOCPlayerInterface gamePI, boolean gameIsOver)
+    private SOCQuitConfirmDialog(SOCPlayerClient cli, SOCPlayerInterface gamePI, boolean gameIsOver)
     {
         super(cli, gamePI, "Really quit game "
                 + gamePI.getGame().getName() + "?",
@@ -68,7 +69,7 @@ class SOCQuitConfirmDialog extends AskDialog
             (gameIsOver
                 ? "Don't quit"
                 : "Continue playing"),
-            ((gamePI.getGame().getGameState() != SOCGame.NEW)
+            (((gamePI.getGame().getGameState() != SOCGame.NEW) && ! gamePI.gameHasErrorOrDeletion)
                 ? "Reset board"
                 : null),
             (gameIsOver ? 1 : 2));
