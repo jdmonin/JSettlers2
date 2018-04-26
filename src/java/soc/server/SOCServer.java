@@ -1974,16 +1974,17 @@ public class SOCServer extends Server
     /**
      * the connection c leaves the game gm.  Clean up; if needed, call {@link #forceEndGameTurn(SOCGame, String)}.
      *<P>
-     * If the game becomes empty after removing <tt>c</tt>, this method can destroy it if both of these
-     * conditions are true:
-     * <UL>
-     *  <LI> <tt>c</tt> was the last non-robot player
-     *  <LI> No one was watching/observing
-     * </UL>
+     * If the game becomes empty after removing <tt>c</tt>, this method can destroy it if
+     * <tt>c</tt> was the last non-robot player.
      *<P>
      * <B>Locks:</B> Has {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gm)}
      * when calling this method; should not have {@link SOCGame#takeMonitor()}.
      * May or may not have {@link SOCGameList#takeMonitor()}, see <tt>gameListLock</tt> parameter.
+     *<P>
+     * Before v1.2.01, games where all players were bots would continue playing if at least one client was
+     * watching/observing. In v2.0.00 and newer, such games can continue only if bot-development property
+     * jsettlers.bots.botgames.total != 0 and there is an observer. (v1.2.xx does not have that property,
+     * and will destroy the game.)
      *
      * @param c  the connection; if c is being dropped because of an error,
      *           this method assumes that {@link StringConnection#disconnect()}
@@ -2019,7 +2020,6 @@ public class SOCServer extends Server
         }
 
         boolean gameHasHumanPlayer = false;
-        boolean gameHasObserver = false;
         boolean gameVotingActiveDuringStart = false;
 
         final int gameState = ga.getGameState();
@@ -2092,52 +2092,18 @@ public class SOCServer extends Server
         //D.ebugPrintln("*** gameHasHumanPlayer = "+gameHasHumanPlayer+" for "+gm);
 
         /**
-         * if no human players, check if there is at least one person watching the game
-         */
-        if (!gameHasHumanPlayer && !gameList.isGameEmpty(gm))
-        {
-            Enumeration membersEnum = gameList.getMembers(gm).elements();
-
-            while (membersEnum.hasMoreElements())
-            {
-                StringConnection member = (StringConnection) membersEnum.nextElement();
-
-                //D.ebugPrintln("*** "+member.data+" is a member of "+gm);
-                boolean nameMatch = false;
-
-                for (int pn = 0; pn < ga.maxPlayers; pn++)
-                {
-                    SOCPlayer player = ga.getPlayer(pn);
-
-                    if ((player != null) && (player.getName() != null) && (player.getName().equals(member.getData())))
-                    {
-                        nameMatch = true;
-                        break;
-                    }
-                }
-
-                if (!nameMatch)
-                {
-                    gameHasObserver = true;
-                    break;
-                }
-            }
-        }
-        //D.ebugPrintln("*** gameHasObserver = "+gameHasObserver+" for "+gm);
-
-        /**
          * if the leaving member was playing the game, and
          * the game isn't over, then decide:
          * - Do we need to force-end the current turn?
          * - Do we need to cancel their initial settlement placement?
          * - Should we replace the leaving player with a robot?
          */
-        if (isPlayer && (gameHasHumanPlayer || gameHasObserver)
+        if (isPlayer && gameHasHumanPlayer
                 && ((ga.getPlayer(playerNumber).getPublicVP() > 0)
                     || (gameState == SOCGame.START1A)
                     || (gameState == SOCGame.START1B))
                 && (gameState < SOCGame.OVER)
-                && !(gameState < SOCGame.START1A))
+                && ! (gameState < SOCGame.START1A))
         {
             boolean foundNoRobots;
 
@@ -2282,7 +2248,6 @@ public class SOCServer extends Server
                 {
                     // force game destruction below
                     gameHasHumanPlayer = false;
-                    gameHasObserver = false;
                 }
             }
         }
@@ -2293,7 +2258,7 @@ public class SOCServer extends Server
          */
         final boolean emptyGame = gameList.isGameEmpty(gm);
 
-        gameDestroyed = (emptyGame || ! (gameHasHumanPlayer || gameHasObserver));
+        gameDestroyed = (emptyGame || ! gameHasHumanPlayer);
         if (gameDestroyed && destroyIfEmpty)
         {
             if (gameListLock)
