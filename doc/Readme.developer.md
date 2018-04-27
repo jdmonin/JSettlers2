@@ -220,7 +220,12 @@ other IDEs.
 - Browse to jsettlers-2.x.xx-src/build.xml, select the "javac" task in target "compile".
 - Check the box "Link to the buildfile in the file system"
 - Hit Finish.
-- Project -> Properties: Resource: Text file encoding: UTF-8 -> OK
+- Project -> Properties
+    - Resource: Text file encoding: UTF-8
+    - Java Compiler: JDK compliance
+    	- Compliance level: 1.5
+    - OK
+    	- If eclipse asks "Build the project now?", hit Yes
 - To add the `resources` directory:
      - In the Package Explorer tree right-click the project name -> New ->
        Folder. In that dialog click Advanced, select the radio button
@@ -723,9 +728,6 @@ You will also want this to have this, which disables auto-reindenting:
     print margin column: 120
     [x] show whitespace characters
         configure visibility -> trailing space, trailing ideographic space, trailing tab
-
-    project properties -> java compiler -> configure workspace settings
-        compiler compliance level: 1.5
 
     prefs -> java -> code style -> formatter
         Click "Enable Project Specific Settings", then New
