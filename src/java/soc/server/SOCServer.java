@@ -8001,9 +8001,11 @@ public class SOCServer extends Server
                             gameList.releaseMonitorForGame(gaName);
 
                             /**
-                             * send a message to the bots that the offer was accepted
+                             * announce the accepted offer to game for bots;
+                             * won't re-send mes from client because its
+                             * acceptingNumber isn't required or sanitized
                              */
-                            messageToGame(gaName, mes);
+                            messageToGame(gaName, new SOCAcceptOffer(gaName, acceptingNumber, offeringNumber));
                         }
                         else
                         {
