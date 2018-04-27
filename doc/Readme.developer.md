@@ -285,18 +285,19 @@ fail with this error:
 
 In my IDE's JSettlers project, I've created these debug/run configurations:
 
-    Java applet: soc.client.SOCApplet
+    Java applet: soc.client.SOCApplet   [optional, rarely used]
         width 700, height 500
         parameters: PORT = 8880
 
     Java applications:
         cli-noargs: soc.client.SOCPlayerClient
+            vm arguments: -Djsettlers.debug.traffic=Y
 
         socserver: soc.server.SOCServer
             arguments: -o N7=t7 -o RD=y -Djsettlers.startrobots=7
                 -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
 
-        socserver-sqlite (_optional_): soc.server.SOCServer
+        socserver-sqlite: soc.server.SOCServer   [optional]
             arguments: -o N7=t7 -o RD=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite
                 -Djsettlers.startrobots=7 -Djsettlers.allow.debug=Y
                 -Djsettlers.accounts.admins=adm 8880 20 dbuser dbpass
