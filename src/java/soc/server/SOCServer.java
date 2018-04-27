@@ -9757,32 +9757,25 @@ public class SOCServer extends Server
                     requests = null;  // Game already has all players from old game
                 }
 
-                if (requests != null)
-                {
-                    /**
-                     * if the request list is empty and the game hasn't started yet,
-                     * then start the game
-                     */
-                    if (requests.isEmpty() && (ga.getGameState() < SOCGame.START1A))
-                    {
-                        startGame(ga);
-                    }
+                /**
+                 * if the request list is empty and the game hasn't started yet,
+                 * we will start the game here after sending private info.
+                 */
+                final boolean willStartGame = (requests != null) && requests.isEmpty()
+                    && (ga.getGameState() < SOCGame.START1A);
 
-                    /**
-                     * if the request list is empty, remove the empty list
-                     */
-                    if (requests.isEmpty())
-                    {
-                        robotJoinRequests.remove(gaName);
-                    }
-                }
+                /**
+                 * if the request list is now empty, remove it from request tracking
+                 */
+                if ((requests != null) && requests.isEmpty())
+                    robotJoinRequests.remove(gaName);
 
                 broadcastGameStats(ga);
 
-                /**
-                 * send all the private information
-                 */
                 sitDown_sendPrivateInfo(ga, c, pn, gaName);
+
+                if (willStartGame)
+                    startGame(ga);    // <--- Everyone's here, start the game ---
             }
             catch (Throwable e)
             {
