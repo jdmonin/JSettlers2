@@ -577,7 +577,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * Sound prompt when trade is offered to client player.
      * Generated at first call to constructor.
-     * @since 2.0.00
+     * @since 1.2.01
      */
     static byte[] SOUND_OFFERED_TRADE;
 

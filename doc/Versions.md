@@ -19,14 +19,13 @@ and backport minor new features until `2.0.00` is ready.
 - Large board (sea board) support
 - Game Scenario and special-rules support
 - Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard's dialog)
-- Sound prompt when client player is offered a trade
 - Game expiration:
     - Initial game length increased: Now 2 hours, was 90 minutes
     - Warns 5 or 6 minutes earlier
     - Ensure at least 1 warning before ending game:
       Local-server games won't immediately expire when a sleeping laptop wakes
       (Practice games haven't expired since v1.1.09)
-- Game windows: Render board with antialiasing; player name labels sans-serif for cleaner look
+- Game windows: Player name labels sans-serif for cleaner look
 - I18N framework in place, started by Luis A. Ramirez; thank you Luis. Jeremy wrote more I18N utilities (package net.nand.util.i18n).
 - Client sends server its locale, to support i18n localization
 - Client: On OSX, set app name to JSettlers in menu bar
@@ -84,6 +83,13 @@ and backport minor new features until `2.0.00` is ready.
 - READMEs and VERSIONS.txt converted to Markdown (thank you Ruud Poutsma),
     merged old-updates-rsthomas.html into Versions.md
 
+
+## `1.2.01` (build OV201805xx)
+- Client: Game window bugfix: Join Game hangs on Windows Java 9 (SnippingTextArea peer NoSuchMethodError)
+- Sound prompt when client player is offered a trade
+- Game windows: Render board with antialiasing
+- If new game options require a certain version, don't warn unless the required version
+  is newer than `1.1.20` (released October 2016).
 
 ## `1.2.00` (build OV20171005)
 - Simple sound effects for game events: Start of client player's turn, resource stolen by robber, etc

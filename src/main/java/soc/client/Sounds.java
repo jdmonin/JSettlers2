@@ -65,7 +65,7 @@ public class Sounds
 
     /**
      * Musical note B5, 988 Hz (987.77)
-     * @since 2.0.00
+     * @since 1.2.01
      */
     public static final int NOTE_B5_HZ = 988;
 
