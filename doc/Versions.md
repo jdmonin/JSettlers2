@@ -89,6 +89,7 @@ and backport minor new features until `2.0.00` is ready.
     - Game windows: Render board with antialiasing
 - Server game cleanup: If the last human exits a game with bots and observers, don't
   continue that game as bots-only unless property `jsettlers.bots.botgames.total` != 0
+- Server console: During startup, don't print connect messages for built-in robots
 - Server closes connections to rejected clients or bots
 - If new game options require a certain version, don't warn unless the required version
   is newer than `1.1.20` (released October 2016).
