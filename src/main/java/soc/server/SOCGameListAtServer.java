@@ -55,8 +55,8 @@ public class SOCGameListAtServer extends SOCGameList
      * Number of minutes after which a game (created on the list) is expired.
      * Default is 120.
      *<P>
-     * Before v2.0.00 this field was named {@code GAME_EXPIRE_MINUTES}
-     * and the default was 90.
+     * Before v2.0.00 this field was named {@code GAME_EXPIRE_MINUTES}. <BR>
+     * Before v1.2.01 the default was 90.
      *
      * @see #createGame(String, String, String, Map, GameHandler)
      * @see SOCGame#setExpiration(long)
@@ -330,7 +330,6 @@ public class SOCGameListAtServer extends SOCGameList
         if (gaOwner != null)
             game.setOwner(gaOwner, gaLocaleStr);
 
-        // set the expiration to 90 min. from now
         game.setExpiration(game.getStartTime().getTime() + (60 * 1000 * GAME_TIME_EXPIRE_MINUTES));
 
         gameInfo.put(gaName, new GameInfoAtServer(game.getGameOptions(), handler));  // also creates MutexFlag
@@ -380,7 +379,7 @@ public class SOCGameListAtServer extends SOCGameList
             reset = new SOCGameBoardReset(oldGame, getMembers(gaName));
             SOCGame rgame = reset.newGame;
 
-            // As in createGame, set expiration timer to 90 min. from now
+            // As in createGame, set expiration timer
             rgame.setExpiration(System.currentTimeMillis() + (60 * 1000 * GAME_TIME_EXPIRE_MINUTES));
 
             // Adjust game-list

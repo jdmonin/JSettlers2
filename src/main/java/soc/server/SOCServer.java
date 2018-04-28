@@ -510,7 +510,8 @@ public class SOCServer extends Server
      *<P>
      * If you update this field, also update {@link #GAME_TIME_EXPIRE_CHECK_MINUTES}.
      *<P>
-     * Before v2.0.00 this field was named {@code GAME_EXPIRE_WARN_MINUTES} and its default was 10.
+     * Before v2.0.00 this field was named {@code GAME_EXPIRE_WARN_MINUTES}. <BR>
+     * Before v1.2.01 the default was 10.
      *
      * @see #checkForExpiredGames(long)
      * @see SOCGameTimeoutChecker#run()
@@ -1748,7 +1749,7 @@ public class SOCServer extends Server
      * Callback to take care of things when server comes up, after the server socket
      * is bound and listening, in the server's main thread.
      *<P>
-     * Unlss {@link #PROP_JSETTLERS_STARTROBOTS} is 0, starts those {@link SOCRobotClient}s now
+     * Unless {@link #PROP_JSETTLERS_STARTROBOTS} is 0, starts those {@link SOCRobotClient}s now
      * by calling {@link #setupLocalRobots(int, int)}. If {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL}
      * is specified, waits briefly and then calls {@link #startRobotOnlyGames(boolean)}.
      *<P>
@@ -2333,6 +2334,11 @@ public class SOCServer extends Server
      * <B>Locks:</B> Has {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gm)}
      * when calling this method; should not have {@link SOCGame#takeMonitor()}.
      * May or may not have {@link SOCGameList#takeMonitor()}, see {@code gameListLock} parameter.
+     *<P>
+     * Before v1.2.01, games where all players were bots would continue playing if at least one client was
+     * watching/observing. In v2.0.00 and newer, such games can continue only if bot-development property
+     * {@code jsettlers.bots.botgames.total} != 0 and there is an observer. (v1.2.xx does not have that property,
+     * and will destroy the game.)
      *
      * @param c  the connection; if c is being dropped because of an error,
      *           this method assumes that {@link Connection#disconnect()}
@@ -6788,7 +6794,7 @@ public class SOCServer extends Server
                 requestedBots = null;  // Game already has all players from old game
             }
 
-            boolean willStartGame = (requestedBots != null) && requestedBots.isEmpty()
+            final boolean willStartGame = (requestedBots != null) && requestedBots.isEmpty()
                 && (ga.getGameState() < SOCGame.START1A);
 
             /**
