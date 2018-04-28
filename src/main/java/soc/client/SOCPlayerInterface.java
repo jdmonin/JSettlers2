@@ -442,9 +442,9 @@ public class SOCPlayerInterface extends Frame
     protected boolean gameIsStarting;
 
     /**
-     * Flag to set true either if game has been deleted while we're observing it,
+     * Flag to set true if game has been deleted while we're observing it,
      * or was stopped by a server or network error. Is set in {@link #over(boolean, String)}.
-     * @since 2.0.00
+     * @since 1.2.01
      */
     protected boolean gameHasErrorOrDeletion;
 

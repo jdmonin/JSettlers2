@@ -4376,7 +4376,8 @@ public class SOCPlayerClient
      * Ping may be a keepalive check or an attempt to kick by another
      * client with the same nickname; may call
      * {@link SOCPlayerClient#shutdownFromNetwork()} if so.
-     * (ignored before version 1.1.08)
+     *<P>
+     * (message ignored before v1.1.08)
      * @since 1.1.08
      */
     private void handleSERVERPING(SOCServerPing mes, final boolean isPractice)
@@ -6697,7 +6698,7 @@ public class SOCPlayerClient
      *<P>
      * "If possible" is determined from return value of {@link SOCPlayerClient.ClientNetwork#putLeaveAll()}.
      *<P>
-     * Before v2.0.00 this method was {@code dispose()}.
+     * Before v1.2.01 this method was {@code destroy()}.
      */
     public void shutdownFromNetwork()
     {
@@ -6720,8 +6721,8 @@ public class SOCPlayerClient
         {
             String gameName = e.getKey();
             SOCGame game = games.get(gameName);
-            boolean isPractice = (game != null) && game.isPractice;
-            if (! (canPractice && isPractice))
+            boolean isPractice = canPractice && (game != null) && game.isPractice;
+            if (! isPractice)
                 e.getValue().gameDisconnected(false, err);
         }
 
@@ -6871,6 +6872,8 @@ public class SOCPlayerClient
 
         /**
          * Practice-server error (stringport pipes), or null.
+         *<P>
+         * Before v2.0.00 this field was {@code ex_L}.
          * @see #ex
          */
         Exception ex_P = null;

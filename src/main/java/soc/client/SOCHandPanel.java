@@ -1767,7 +1767,7 @@ public class SOCHandPanel extends Panel
      * Game was deleted or a server/network error occurred;
      * disable all buttons to stop playing.
      * @see #destroy()
-     * @since 2.0.00
+     * @since 1.2.01
      */
     public void gameDisconnected()
     {
