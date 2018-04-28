@@ -240,7 +240,9 @@ other IDEs.
 - You'll need to run the `build` target once before you run JSettlers,
   to copy resources into `target` from `src/main/resources/`.
 
-Continue reading to see how to set up the builds and the coding style in Eclipse.
+Continue reading to see how to set up the builds and the run configs in Eclipse.
+A later section walks through the coding style expected for pull requests or
+patch submissions.
 
 
 ## Build Setup and Results
@@ -317,11 +319,13 @@ For automated functional testing, the project also includes the script
 you are developing anything related to game options or jsettlers properties.
 
 
-## To configure a sqlite database for testing
+## To configure a sqlite database for testing (optional)
 
-These instructions are written for Eclipse 3.6. See also the "Developing with a
-database (JDBC)" section of this readme. JSettlers+sqlite works with standard
-Eclipse; the j2ee eclipse also has a convenient data browser. Note that
+This is optional. See also the "Developing with a database (JDBC)" section
+of this readme.
+
+These instructions are written for Eclipse 3.6. JSettlers+sqlite works with
+standard Eclipse; the j2ee Eclipse adds a convenient data browser. Note that
 [Readme.md](../Readme.md) mentions a command-line option
 `-Djsettlers.db.jar=driverfile.jar`; that's needed only while running the
 jsettlers JAR from the command line, not running inside the IDE.
@@ -728,7 +732,7 @@ You will also want this to have this, which disables auto-reindenting:
     [x] show print margin
     print margin column: 120
     [x] show whitespace characters
-        configure visibility -> trailing space, trailing ideographic space, trailing tab
+        configure visibility -> trailing space, trailing ideographic space, leading tab, trailing tab
 
     prefs -> java -> code style -> formatter
         Click "Enable Project Specific Settings", then New
