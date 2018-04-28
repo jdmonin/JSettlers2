@@ -2825,7 +2825,9 @@ public class SOCHandPanel extends Panel
         final int gs = game.getGameState();
         rollBut.setEnabled(gs == SOCGame.ROLL_OR_CARD);
         doneBut.setEnabled((gs == SOCGame.PLAY1) || (gs == SOCGame.SPECIAL_BUILDING)
-            || (gs <= SOCGame.START3B) || doneButIsRestart);
+            || (gs <= SOCGame.START3B) || doneButIsRestart
+            || (((gs == SOCGame.PLACING_FREE_ROAD1) || (gs == SOCGame.PLACING_FREE_ROAD2))
+                && (game.getCurrentDice() != 0)));
         bankBut.setEnabled(gs == SOCGame.PLAY1);
 
         if (game.hasSeaBoard)

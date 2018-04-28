@@ -992,10 +992,12 @@ public class SOCGameMessageHandler
 
         ga.takeMonitor();
 
+        final int gaState = ga.getGameState();
+
         try
         {
             final String plName = c.getData();
-            if (ga.getGameState() == SOCGame.OVER)
+            if (gaState == SOCGame.OVER)
             {
                 // Should not happen; is here just in case.
                 SOCPlayer pl = ga.getPlayer(plName);
@@ -1010,7 +1012,16 @@ public class SOCGameMessageHandler
             } else if (handler.checkTurn(c, ga)) {
                 SOCPlayer pl = ga.getPlayer(plName);
                 if ((pl != null) && ga.canEndTurn(pl.getPlayerNumber()))
+                {
+                    if (gaState == SOCGame.PLACING_FREE_ROAD1)
+                        srv.messageToGameKeyed(ga, true, "action.card.roadbuilding.cancel", pl.getName());
+                            // "{0} cancelled the Road Building card."
+                    else if (gaState == SOCGame.PLACING_FREE_ROAD2)
+                        srv.messageToGameKeyed(ga, true, "action.card.roadbuilding.skip.r", pl.getName());
+                            // "{0} skipped placing the second road."
+
                     handler.endGameTurn(ga, pl, true);
+                }
                 else
                     srv.messageToPlayer(c, gname, "You can't end your turn yet.");
             } else {

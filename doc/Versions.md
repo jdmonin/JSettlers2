@@ -77,6 +77,8 @@ and backport minor new features until `2.0.00` is ready.
 
 
 ## `1.2.01` (build OV201805xx)
+- Players can end their turn during Free Road placement if dice were rolled before playing the card.
+  Even if no free roads were placed, the Road Building card is not returned to their hand.
 - Game expiration:
     - Initial game length increased: Now 2 hours, was 90 minutes
     - Warns 5 or 6 minutes earlier
