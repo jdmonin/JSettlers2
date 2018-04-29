@@ -4603,6 +4603,12 @@ public class SOCGame implements Serializable, Cloneable
             }
 
         case PLACING_FREE_ROAD1:
+            gameState = PLAY1;
+            itemCard = new SOCDevCard(SOCDevCardConstants.ROADS, false);
+            players[currentPlayerNumber].getInventory().addItem(itemCard);
+            return new SOCForceEndTurnResult
+                (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE, itemCard);
+
         case PLACING_FREE_ROAD2:
             gameState = PLAY1;
             return new SOCForceEndTurnResult

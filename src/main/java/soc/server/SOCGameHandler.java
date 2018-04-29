@@ -3397,7 +3397,7 @@ public class SOCGameHandler extends GameHandler
                 srv.messageToGameWithMon(gaName, new SOCCancelBuildRequest(gaName, SOCSettlement.SETTLEMENT));
             }
 
-            if (ga.canEndTurn(plNumber))
+            if (ga.canEndTurn(plNumber) && (gameState != SOCGame.PLACING_FREE_ROAD1))
             {
                 srv.gameList.releaseMonitorForGame(gaName);
                 ga.takeMonitor();
@@ -3412,6 +3412,8 @@ public class SOCGameHandler extends GameHandler
                  * of forceEndGameTurn and game.forceEndTurn.
                  * All start phases are covered here (START1A..START2B)
                  * because canEndTurn returns false in those gameStates.
+                 * Also includes PLACING_FREE_ROAD1 so the dev card is returned to player
+                 * (unlike when a player actively decides to end their turn in that state).
                  */
                 srv.gameList.releaseMonitorForGame(gaName);
                 ga.takeMonitor();

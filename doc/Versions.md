@@ -89,6 +89,8 @@ and backport minor new features until `2.0.00` is ready.
     - Game window bugfix: Join Game hangs on Windows Java 9 (SnippingTextArea peer NoSuchMethodError)
     - Sound prompt when client player is offered a trade
     - Game windows: Render board with antialiasing
+- When force-ending a turn (or connection lost) after playing Road Building but before placing
+  the first free road, the Road Building card is returned to player's hand
 - Server game cleanup: If the last human exits a game with bots and observers, don't
   continue that game as bots-only unless property `jsettlers.bots.botgames.total` != 0
 - Server console: During startup, don't print connect messages for built-in robots
