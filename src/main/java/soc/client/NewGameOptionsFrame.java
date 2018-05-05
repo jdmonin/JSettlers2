@@ -68,6 +68,7 @@ import soc.game.SOCScenario;
 import soc.game.SOCVersionedItem;
 import soc.message.SOCMessage;
 import soc.message.SOCStatusMessage;
+import soc.util.SOCGameList;
 import soc.util.SOCStringManager;
 import soc.util.Version;
 
@@ -1244,9 +1245,21 @@ public class NewGameOptionsFrame extends Frame
         {
             return;  // Should not happen (button disabled by TextListener)
         }
+
+        String errMsg = null;
         if (! SOCMessage.isSingleLineAndSafe(gmName))
         {
-            msgText.setText(SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED);
+            errMsg = SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED;
+                // "This name is not permitted, please choose a different name."  TODO I18N
+        }
+        else if (SOCGameList.REGEX_ALL_DIGITS.matcher(gmName).matches())
+        {
+            errMsg = SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED_DIGITS;
+                // "A name with only digits is not permitted, please add a letter."  TODO I18N
+        }
+        if (errMsg != null)
+        {
+            msgText.setText(errMsg);
             gameName.requestFocusInWindow();
             return;  // Not a valid game name
         }
