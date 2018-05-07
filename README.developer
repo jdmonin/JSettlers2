@@ -153,16 +153,21 @@ Recommended debug/run configurations for testing
 ------------------------------------------------
 In my IDE's JSettlers project, I've created these debug/run configurations for testing:
 
-Java applet: soc.client.SOCPlayerClient
+Java applet [optional, rarely used]:
+   soc.client.SOCPlayerClient
    width 600, height 340
    parameters: PORT = 8880
 
 Java applications:
-  cli-noargs  soc.client.SOCPlayerClient
-  socserver   soc.server.SOCServer
+  cli-noargs
+     soc.client.SOCPlayerClient
+     vm arguments: -Djsettlers.debug.traffic=Y
+  socserver
+     soc.server.SOCServer
      arguments: -o N7=t7 -o RD=y -Djsettlers.startrobots=7
                 -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
-  socserver-sqlite  soc.server.SOCServer
+  socserver-sqlite [optional]
+     soc.server.SOCServer
      arguments: -o N7=t7 -o RD=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite
                 -Djsettlers.startrobots=7 -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
 
