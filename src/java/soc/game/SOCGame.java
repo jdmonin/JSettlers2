@@ -649,7 +649,7 @@ public class SOCGame implements Serializable, Cloneable
      * otherwise the value should be a recent time.
      *<P>
      * At the end of a game, the server may increase this value by
-     * 90 minutes ({@link soc.server.SOCGameListAtServer#GAME_EXPIRE_MINUTES})
+     * {@link soc.server.SOCGameListAtServer#GAME_EXPIRE_MINUTES}
      * in order to remove it from the {@link soc.server.SOCGameTimeoutChecker}
      * run loop.
      *
@@ -1532,7 +1532,11 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Get the current dice total from the most recent roll.
+     * -1 at start of game, 0 during player's turn before roll (state {@link #PLAY}).
      * @return the current dice result
+     * @see #rollDice()
+     * @see #getResourcesGainedFromRoll(SOCPlayer, int)
      */
     public int getCurrentDice()
     {
@@ -3061,6 +3065,10 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * roll the dice.  Distribute resources, or (for 7) set gamestate to
      * move robber or to wait for players to discard.
+     *<P>
+     * For dice roll total, see returned {@link IntPair} or call {@link #getCurrentDice()} afterwards.
+     * For each player, {@link #getResourcesGainedFromRoll(SOCPlayer, int)} will show their resources gained, if any.
+     *<P>
      * Checks game option N7: Roll no 7s during first # rounds
      */
     public IntPair rollDice()

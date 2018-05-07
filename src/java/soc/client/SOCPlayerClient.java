@@ -2140,7 +2140,7 @@ public class SOCPlayerClient extends Applet
 
             /**
              * echo the server ping, to ensure we're still connected.
-             * (ignored before version 1.1.08)
+             * (message ignored before v1.1.08)
              */
             case SOCMessage.SERVERPING:
                 handleSERVERPING((SOCServerPing) mes, isPractice);
@@ -5757,7 +5757,7 @@ public class SOCPlayerClient extends Applet
      * Otherwise, go ahead and shut down. Either way, calls {@link #showErrorPanel(String, boolean)}
      * to show an error message or network exception detail.
      *<P>
-     * "If possible" is determined from return value of {@link SOCPlayerClient.ClientNetwork#putLeaveAll()}.
+     * "If possible" is determined from return value of {@link SOCPlayerClient#putLeaveAll()}.
      *<P>
      * Before v1.2.01 this method was {@code destroy()}.
      */

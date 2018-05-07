@@ -275,7 +275,6 @@ public class SOCGameListAtServer extends SOCGameList
         if (gaOwner != null)
             game.setOwner(gaOwner);
 
-        // set the expiration to 90 min. from now
         game.setExpiration(game.getStartTime().getTime() + (60 * 1000 * GAME_EXPIRE_MINUTES));
 
         gameInfo.put(gaName, new GameInfo(true, game.getGameOptions()));  // also creates MutexFlag
@@ -325,7 +324,7 @@ public class SOCGameListAtServer extends SOCGameList
             reset = new SOCGameBoardReset(oldGame, getMembers(gaName));
             SOCGame rgame = reset.newGame;
 
-            // As in createGame, set expiration timer to 90 min. from now
+            // As in createGame, set expiration timer
             rgame.setExpiration(System.currentTimeMillis() + (60 * 1000 * GAME_EXPIRE_MINUTES));
 
             // Adjust game-list

@@ -1983,7 +1983,7 @@ public class SOCServer extends Server
      *<P>
      * Before v1.2.01, games where all players were bots would continue playing if at least one client was
      * watching/observing. In v2.0.00 and newer, such games can continue only if bot-development property
-     * jsettlers.bots.botgames.total != 0 and there is an observer. (v1.2.xx does not have that property,
+     * {@code jsettlers.bots.botgames.total != 0} and there is an observer. (v1.2.xx does not have that property,
      * and will destroy the game.)
      *
      * @param c  the connection; if c is being dropped because of an error,
