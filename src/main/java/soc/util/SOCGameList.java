@@ -55,6 +55,17 @@ import java.util.regex.Pattern;
 public class SOCGameList
 {
     /**
+     * Maximum permitted game name length, default 30 characters.
+     *<P>
+     * Before v1.1.13, the default maximum was 20 characters.<BR>
+     * From v1.1.07 until 2.0.00, this field was {@code SOCServer.GAME_NAME_MAX_LENGTH}.
+     *
+     * @see soc.server.SOCServer#createOrJoinGameIfUserOK(soc.server.genericServer.Connection, String, String, String, Map)
+     * @since 2.0.00
+     */
+    public static final int GAME_NAME_MAX_LENGTH = 30;
+
+    /**
      * Regex pattern to match a string which is entirely digits:
      * 0-9 or unicode class {@code Nd} ({@link Character#isDigit(int)}).
      * Useful for checking validity of a new game name at client or server.
