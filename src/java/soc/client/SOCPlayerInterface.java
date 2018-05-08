@@ -2088,19 +2088,11 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         monopolyDialog.setVisible(true);
     }
 
-    /** 
-     * Client is current player; state changed from PLAY to PLAY1.
-     * (Dice has been rolled, or card played.)
-     * Update interface accordingly.
-     */
-    public void updateAtPlay1()
-    {
-        if (clientHand != null)
-            clientHand.updateAtPlay1();
-    }
-
     /**
      * Update interface after game state has changed.
+     * For example, if the client is current player, and state changed from PLAY to PLAY1
+     * (dice have been rolled, or card played), enable the player's Done and Bank buttons.
+     *<P>
      * Please call {@link SOCGame#setGameState(int)} first.
      * If the game is now starting, please call in this order:
      *<code><pre>
@@ -2163,24 +2155,23 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         }
 
         // React if we are current player
-        if (clientHand != null)
-        {            
-            SOCPlayer ourPlayerData = clientHand.getPlayer();
-            if (ourPlayerData.getPlayerNumber() == game.getCurrentPlayerNumber())
-            {
-                if (gs == SOCGame.WAITING_FOR_DISCOVERY)
-                {
-                    showDiscoveryDialog();
-                }
-                else if (gs == SOCGame.WAITING_FOR_MONOPOLY)
-                {
-                    showMonopolyDialog();
-                }
-                else if (gs == SOCGame.PLAY1)
-                {
-                    updateAtPlay1();
-                }
-            }
+        if ((clientHand == null) || (clientHandPlayerNum != game.getCurrentPlayerNumber()))
+        {
+            return;  // <--- Early return: not current player ---
+        }
+
+        switch (gs)
+        {
+        case SOCGame.WAITING_FOR_DISCOVERY:
+            showDiscoveryDialog();
+            break;
+
+        case SOCGame.WAITING_FOR_MONOPOLY:
+            showMonopolyDialog();
+            break;
+
+        default:
+            clientHand.updateAtOurGameState();
         }
     }
 
