@@ -2366,8 +2366,8 @@ public class SOCHandPanel extends Panel implements ActionListener
     {
         final int gs = game.getGameState();
         rollBut.setEnabled(gs == SOCGame.PLAY);
-        doneBut.setEnabled((gs == SOCGame.PLAY1) || (gs == SOCGame.SPECIAL_BUILDING)
-            || (gs <= SOCGame.START2B) || doneButIsRestart);
+        doneBut.setEnabled
+            ((gs <= SOCGame.START2B) || doneButIsRestart || game.canEndTurn(playerNumber));
         bankBut.setEnabled(gs == SOCGame.PLAY1);
     }
 

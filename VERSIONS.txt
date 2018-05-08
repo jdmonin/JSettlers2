@@ -23,6 +23,8 @@ and backport minor new features until 2.0.00 is ready.
     - Game window bugfix: Join Game hangs on Windows Java 9 (SnippingTextArea peer NoSuchMethodError)
     - Sound prompt when client player is offered a trade
     - Game windows: Render board with antialiasing
+- Players can end their turn during Free Road placement if dice were rolled before playing the card.
+  Even if no free roads were placed, the Road Building card is not returned to their hand.
 - Server game cleanup: If the last human exits a game with bots and observers,
   don't continue that game as bots-only
 - Server closes connections to rejected clients or bots

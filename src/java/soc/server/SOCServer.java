@@ -7506,10 +7506,12 @@ public class SOCServer extends Server
 
         ga.takeMonitor();
 
+        final int gaState = ga.getGameState();
+
         try
         {
             final String plName = c.getData();
-            if (ga.getGameState() == SOCGame.OVER)
+            if (gaState == SOCGame.OVER)
             {
                 // Should not happen; is here just in case.
                 SOCPlayer pl = ga.getPlayer(plName);
@@ -7527,6 +7529,11 @@ public class SOCServer extends Server
                 SOCPlayer pl = ga.getPlayer(plName);
                 if ((pl != null) && ga.canEndTurn(pl.getPlayerNumber()))
                 {
+                    if (gaState == SOCGame.PLACING_FREE_ROAD1)
+                        messageToGame(gname, plName + " cancelled the Road Building card.");
+                    else if (gaState == SOCGame.PLACING_FREE_ROAD2)
+                        messageToGame(gname, plName + " skipped placing the second road.");
+
                     endGameTurn(ga, pl);
                 }
                 else
