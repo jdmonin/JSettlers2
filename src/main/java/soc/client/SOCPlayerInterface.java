@@ -2473,8 +2473,8 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Update interface after game state has changed.
-     * For example, if the client is current player, and state changed from ROLL_OR_CARD to PLAY1,
-     * (Dice has been rolled, or card played), enable the player's Done and Bank buttons.
+     * For example, if the client is current player, and state changed from ROLL_OR_CARD to PLAY1
+     * (Dice have been rolled, or card played), enable the player's Done and Bank buttons.
      * Or, if the player must discard resources or pick free resources from the gold hex,
      * calls {@link #discardOrPickTimerSet(boolean)}.
      *<P>

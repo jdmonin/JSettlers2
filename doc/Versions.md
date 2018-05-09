@@ -77,8 +77,6 @@ and backport minor new features until `2.0.00` is ready.
 
 
 ## `1.2.01` (build OV201805xx)
-- Players can end their turn during Free Road placement if dice were rolled before playing the card.
-  Even if no free roads were placed, the Road Building card is not returned to their hand.
 - Game expiration:
     - Initial game length increased: Now 2 hours, was 90 minutes
     - Warns 5 or 6 minutes earlier
@@ -89,6 +87,8 @@ and backport minor new features until `2.0.00` is ready.
     - Game window bugfix: Join Game hangs on Windows Java 9 (SnippingTextArea peer NoSuchMethodError)
     - Sound prompt when client player is offered a trade
     - Game windows: Render board with antialiasing
+- Players can end their turn during Free Road placement if dice were rolled before playing the card.
+  Even if no free roads were placed, the Road Building card is not returned to their hand.
 - When force-ending a turn (or connection lost) after playing Road Building but before placing
   the first free road, the Road Building card is returned to player's hand
 - Server game cleanup: If the last human exits a game with bots and observers, don't

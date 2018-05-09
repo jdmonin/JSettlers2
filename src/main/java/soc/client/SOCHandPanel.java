@@ -2133,7 +2133,8 @@ public class SOCHandPanel extends Panel
      * Should not be called except by client's playerinterface.
      * Call only when if player is client and is current player.
      *<P>
-     * Before 2.0.00, this was updateAtPlay1().
+     * Before v1.2.01 this method was {@code updateAtPlay1()}.
+     *
      * @since 1.1.00
      */
     void updateAtOurGameState()
@@ -2817,6 +2818,8 @@ public class SOCHandPanel extends Panel
      * an item on the board.  They can hit Cancel to return the item to their inventory instead.
      * (Checks the flag set in {@link #setCanCancelInvItemPlay(boolean)}.)
      * Once that state is over, button and inventory return to normal.
+     *<P>
+     * Before v1.2.01 this method was {@code updateRollButton()}.
      *
      * @since 1.1.00
      */
@@ -2824,10 +2827,8 @@ public class SOCHandPanel extends Panel
     {
         final int gs = game.getGameState();
         rollBut.setEnabled(gs == SOCGame.ROLL_OR_CARD);
-        doneBut.setEnabled((gs == SOCGame.PLAY1) || (gs == SOCGame.SPECIAL_BUILDING)
-            || (gs <= SOCGame.START3B) || doneButIsRestart
-            || (((gs == SOCGame.PLACING_FREE_ROAD1) || (gs == SOCGame.PLACING_FREE_ROAD2))
-                && (game.getCurrentDice() != 0)));
+        doneBut.setEnabled
+            ((gs <= SOCGame.START3B) || doneButIsRestart || game.canEndTurn(playerNumber));
         bankBut.setEnabled(gs == SOCGame.PLAY1);
 
         if (game.hasSeaBoard)

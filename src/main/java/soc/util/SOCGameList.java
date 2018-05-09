@@ -58,10 +58,10 @@ public class SOCGameList
      * Maximum permitted game name length, default 30 characters.
      *<P>
      * Before v1.1.13, the default maximum was 20 characters.<BR>
-     * From v1.1.07 until 2.0.00, this field was {@code SOCServer.GAME_NAME_MAX_LENGTH}.
+     * From v1.1.07 through 1.2.00, this field was {@code SOCServer.GAME_NAME_MAX_LENGTH}.
      *
      * @see soc.server.SOCServer#createOrJoinGameIfUserOK(soc.server.genericServer.Connection, String, String, String, Map)
-     * @since 2.0.00
+     * @since 1.2.01
      */
     public static final int GAME_NAME_MAX_LENGTH = 30;
 
