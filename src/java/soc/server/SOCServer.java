@@ -12404,6 +12404,8 @@ public class SOCServer extends Server
                 rcli = new SOCRobotClient(strSocketName, rname, "pw", cookie);
             else
                 rcli = new SOCRobotClient("localhost", port, rname, "pw", cookie);
+            rcli.printedInitialWelcome = true;  // don't clutter the server console
+
             Thread rth = new Thread(new SOCPlayerLocalRobotRunner(rcli));
             rth.setDaemon(true);
             rth.start();  // run() will add to robotClients

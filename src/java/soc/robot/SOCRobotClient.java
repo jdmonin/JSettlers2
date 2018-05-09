@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -50,7 +50,12 @@ import java.util.Vector;
 
 
 /**
- * This is a client that can play Settlers of Catan.
+ * This is a robot client that can play Settlers of Catan.
+ *<P>
+ * When ready, call {@link #init()} to start the bot's threads and connect to the server.
+ * (Built-in bots should set {@link #printedInitialWelcome} beforehand to reduce console clutter.)
+ * Once connected, messages from the server are processed in {@link #treat(SOCMessage)}.
+ * For each game this robot client plays, there is a {@link SOCRobotBrain}.
  *
  * @author Robert S Thomas
  */
@@ -190,14 +195,19 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     SOCRobotResetThread resetThread;
 
     /**
-     * Have we printed the initial welcome msg from server?
+     * Have we printed the initial welcome message from server?
      * Suppress further ones (disconnect-reconnect).
+     *<P>
+     * Can also set this {@code true} before calling {@link #init()}
+     * to avoid printing the initial welcome.
+     *
      * @since 1.1.06
      */
-    boolean printedInitialWelcome = false;
+    public boolean printedInitialWelcome = false;
 
     /**
-     * Constructor for connecting to the specified host, on the specified port
+     * Constructor for a robot which will connect to the specified host, on the specified port.
+     * Does not actually connect: Call {@link #init()} when ready.
      *
      * @param h  host
      * @param p  port
@@ -221,7 +231,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     }
 
     /**
-     * Constructor for connecting to a local game (practice) on a local stringport.
+     * Constructor for a robot which will connect to a practice game on a local stringport.
+     * Does not actually connect: Call {@link #init()} when ready.
      *
      * @param s    the stringport that the server listens on
      * @param nn   nickname for robot
