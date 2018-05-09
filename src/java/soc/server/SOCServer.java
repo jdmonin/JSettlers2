@@ -418,19 +418,11 @@ public class SOCServer extends Server
     public static int ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS = 60;
 
     /**
-     * Maximum permitted game name length, default 30 characters.
-     * Before 1.1.13, the default maximum was 20 characters.
-     *
-     * @see #createOrJoinGameIfUserOK(StringConnection, String, String, String, Hashtable)
-     * @since 1.1.07
-     */
-    public static int GAME_NAME_MAX_LENGTH = 30;
-
-    /**
      * Maximum permitted player name length, default 20 characters.
      * The client already truncates to 20 characters in SOCPlayerClient.getValidNickname.
      *
      * @see #createOrJoinGameIfUserOK(StringConnection, String, String, String, Hashtable)
+     * @see SOCGameList#GAME_NAME_MAX_LENGTH
      * @since 1.1.07
      */
     public static int PLAYER_NAME_MAX_LENGTH = 20;
@@ -6213,7 +6205,7 @@ public class SOCServer extends Server
      *                  Calls {@link String#trim() msgUser.trim()} before checking length.
      * @param msgPass password of client in message; will be {@link String#trim() trim()med}.
      * @param gameName  name of game to create/join. Must pass {@link SOCMessage#isSingleLineAndSafe(String)}
-     *                  and be at most {@link #GAME_NAME_MAX_LENGTH} characters.
+     *                  and be at most {@link SOCGameList#GAME_NAME_MAX_LENGTH} characters.
      *                  Calls {@link String#trim() gameName.trim()} before checking length.
      *                  Game name <tt>"*"</tt> is also rejected to avoid conflicts with admin commands.
      * @param gameOpts  if game has options, contains {@link SOCGameOption} to create new game; if not null, will not join an existing game.
@@ -6278,11 +6270,11 @@ public class SOCServer extends Server
 
               return;  // <---- Early return ----
         }
-        if (gameName.length() > GAME_NAME_MAX_LENGTH)
+        if (gameName.length() > SOCGameList.GAME_NAME_MAX_LENGTH)
         {
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
-                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(GAME_NAME_MAX_LENGTH)));
+                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + SOCGameList.GAME_NAME_MAX_LENGTH));
             // Please choose a shorter name; maximum length: 30
 
             return;  // <---- Early return ----

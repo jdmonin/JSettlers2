@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2009-2011,2013-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009-2011,2013-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -59,6 +59,7 @@ import javax.swing.border.EmptyBorder;
 import soc.game.SOCGameOption;
 import soc.message.SOCMessage;
 import soc.message.SOCStatusMessage;
+import soc.util.SOCGameList;
 import soc.util.Version;
 
 /**
@@ -1022,13 +1023,25 @@ public class NewGameOptionsFrame extends Frame
     private void clickCreate(final boolean checkOptionsMinVers)
     {
         String gmName = gameName.getText().trim();
-        if (gmName.length() == 0)
+        final int L = gmName.length();
+        if (L == 0)
         {
             return;  // Should not happen (button disabled by TextListener)
         }
-        if (! SOCMessage.isSingleLineAndSafe(gmName))
+
+        String errMsg = null;
+        if (L > SOCGameList.GAME_NAME_MAX_LENGTH)
         {
-            msgText.setText(SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED);
+            errMsg = SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + SOCGameList.GAME_NAME_MAX_LENGTH;
+                // "Please choose a shorter name; maximum length: 30"
+        }
+        else if (! SOCMessage.isSingleLineAndSafe(gmName))
+        {
+            errMsg = SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED;
+        }
+        if (errMsg != null)
+        {
+            msgText.setText(errMsg);
             gameName.requestFocusInWindow();
             return;  // Not a valid game name
         }

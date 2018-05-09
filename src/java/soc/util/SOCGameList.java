@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2008-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2012,2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -50,6 +50,17 @@ import java.util.Hashtable;
  */
 public class SOCGameList
 {
+    /**
+     * Maximum permitted game name length, default 30 characters.
+     *<P>
+     * Before v1.1.13, the default maximum was 20 characters.<BR>
+     * From v1.1.07 through 1.2.00, this field was {@code SOCServer.GAME_NAME_MAX_LENGTH}.
+     *
+     * @see soc.server.SOCServer#createOrJoinGameIfUserOK(soc.server.genericServer.StringConnection, String, String, String, Hashtable)
+     * @since 1.2.01
+     */
+    public static final int GAME_NAME_MAX_LENGTH = 30;
+
     /** key = String, value = {@link GameInfo}; includes mutexes to synchronize game state access,
      *  game options, and other per-game info
      */
