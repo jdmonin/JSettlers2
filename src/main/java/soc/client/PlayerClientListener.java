@@ -251,9 +251,15 @@ public interface PlayerClientListener
     void requestedTrade(SOCPlayer offerer);
 
     /**
+     * Clear any trade offer to other players, and reset all trade resource square values to 0.
+     * May also be called after a successful bank trade, to reset those resources.
      * @param offerer May be {@code null} to clear all seats
+     * @param isBankTrade  If true, is being called after a successful bank trade.
+     *     If bank trade wasn't sent from player's Trade Panel, should do nothing:
+     *     Don't reset square values to 0.
      */
-    void requestedTradeClear(SOCPlayer offerer);
+    void requestedTradeClear(SOCPlayer offerer, final boolean isBankTrade);
+
     void requestedTradeRejection(SOCPlayer rejecter);
 
     /**

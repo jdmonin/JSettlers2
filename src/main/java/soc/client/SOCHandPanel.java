@@ -406,7 +406,13 @@ public class SOCHandPanel extends Panel
     /** Clear the current trade offer at client and server */
     protected Button clearOfferBut;
 
-    /** Trade resources with the bank or port */
+    /**
+     * Trade resources with the bank or port.
+     * @see #bankGive
+     * @see #bankGet
+     * @see #bankUndoBut
+     * @see SOCPlayerInterface#bankTradeWasFromTradePanel
+     */
     protected Button bankBut;
 
     /**
@@ -418,6 +424,7 @@ public class SOCHandPanel extends Panel
 
     /**
      * Undo previous trade with the bank or port
+     * @see #bankBut
      * @since 1.1.13
      */
     protected Button bankUndoBut;
@@ -1060,8 +1067,7 @@ public class SOCHandPanel extends Panel
                 int[] give = new int[5];
                 int[] get = new int[5];
                 sqPanel.getValues(give, get);
-                client.getGameManager().clearOffer(game);
-                createSendBankTradeRequest(game, give, get);
+                createSendBankTradeRequest(game, give, get, true);
             }
             else if (gstate == SOCGame.OVER)
             {
@@ -1076,7 +1082,7 @@ public class SOCHandPanel extends Panel
         {
             if ((bankGive != null) && (bankGet != null))
             {
-                client.getGameManager().bankTrade(game, bankGet, bankGive);  // reverse the previous order to undo it
+                client.getGameManager().bankTrade(game, bankGet, bankGive);  // undo by reversing previous request
                 bankGive = null;
                 bankGet = null;
                 bankUndoBut.setEnabled(false);
@@ -1224,35 +1230,69 @@ public class SOCHandPanel extends Panel
     /**
      * Create and send a bank/port trade request.
      * Remember the resources for the "undo" button.
+     * If {@code isFromTradePanel} and we're also offering that trade to other players, clear the offer.
      * @param game  Our game
      * @param give  Resources to give, same format as {@link SOCResourceSet#SOCResourceSet(int[])}
      * @param get   Resources to get, same format as {@link SOCResourceSet#SOCResourceSet(int[])}
+     * @param isFromTradePanel   If true, this bank/port trade request was sent from handpanel's Trade Offer panel.
+     *     Otherwise was from some other UI element like a context menu.
+     * @see #enableBankUndoButton()
      * @since 1.1.13
      */
     private void createSendBankTradeRequest
-        (SOCGame game, final int[] give, final int[] get)
+        (SOCGame game, final int[] give, final int[] get, final boolean isFromTradePanel)
     {
+        final boolean isOldServer = (client.getServerVersion(game) < SOCStringManager.VERSION_FOR_I18N);
+            // old server version won't send SOCBankTrade if successful:
+            // must take some actions now instead of when that message is received
+
+        if (isFromTradePanel && (isOldServer || (player.getCurrentOffer() != null)))
+            client.getGameManager().clearOffer(game);
+
         SOCResourceSet giveSet = new SOCResourceSet(give);
         SOCResourceSet getSet = new SOCResourceSet(get);
-        getClient().getGameManager().bankTrade(game, giveSet, getSet);
+        client.getGameManager().bankTrade(game, giveSet, getSet);
 
         bankGive = giveSet;
         bankGet = getSet;
-        bankUndoBut.setEnabled(true);  // TODO what if trade is not allowed
+        if (isOldServer)
+            bankUndoBut.setEnabled(true);
+
+        playerInterface.bankTradeWasFromTradePanel = isFromTradePanel;
     }
 
     /**
      * Disable the bank/port trade undo button.
      * Call when a non-trade game action is sent by the client.
+     * @see #enableBankUndoButton()
      * @since 1.1.13
      */
     public void disableBankUndoButton()
     {
         if (bankGive == null)
             return;
+
         bankGive = null;
         bankGet = null;
         bankUndoBut.setEnabled(false);
+    }
+
+    /**
+     * Enable the bank/port trade undo button.
+     * Call when server has announced a successful bank/port trade.
+     * Will not enable if the give/get resource fields weren't initialized during send
+     * ({@link #createSendBankTradeRequest(SOCGame, int[], int[], boolean)} does so):
+     * To use the undo button, the give/get resources must be known.
+     *
+     * @see #disableBankUndoButton()
+     * @since 2.0.00
+     */
+    public void enableBankUndoButton()
+    {
+        if (bankGive == null)
+            return;
+
+        bankUndoBut.setEnabled(true);
     }
 
     /**
@@ -3895,7 +3935,7 @@ public class SOCHandPanel extends Panel
             int[] get = new int[5];
             give[tradeFrom - 1] = tradeNum;
             get[tradeTo - 1] = 1;
-            hp.createSendBankTradeRequest(game, give, get);
+            hp.createSendBankTradeRequest(game, give, get, false);
         }
 
     }  // ResourceTradeMenuItem

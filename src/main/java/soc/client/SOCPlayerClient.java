@@ -5078,7 +5078,7 @@ public class SOCPlayerClient
             }
 
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            pcl.requestedTradeClear(player);
+            pcl.requestedTradeClear(player, false);
         }
     }
 
@@ -6380,7 +6380,7 @@ public class SOCPlayerClient
     }
 
     /**
-     * the user is making an offer to trade with another player.
+     * the user is making an offer to trade with other players.
      *
      * @param ga    the game
      * @param offer the trade offer

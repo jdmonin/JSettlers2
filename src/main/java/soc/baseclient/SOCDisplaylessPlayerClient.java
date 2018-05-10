@@ -2859,7 +2859,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * the user is making an offer to trade with another player.
+     * the user is making an offer to trade with other players.
      *
      * @param ga    the game
      * @param offer the trade offer

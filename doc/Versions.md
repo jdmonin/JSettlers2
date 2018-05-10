@@ -18,11 +18,13 @@ and backport minor new features until `2.0.00` is ready.
 ## `2.0.00` (build JM2018xxxx)
 - Large board (sea board) support
 - Game Scenario and special-rules support
-- Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard's dialog)
-- Game windows: Player name labels sans-serif for cleaner look
+- Client:
+	- Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard dialog)
+	- Bank trades: If server declines trade, don't enable Undo Trade button or clear Give/Get resources to 0
+	- Game windows: Player name labels sans-serif for cleaner look
+	- On OSX, set app name to JSettlers in menu bar
+	- Popups (AskDialog, etc) layout fine-tuned, can wrap multi-line text
 - I18N framework in place, started by Luis A. Ramirez; thank you Luis. Jeremy wrote more I18N utilities (package net.nand.util.i18n).
-- Client sends server its locale, to support i18n localization
-- Client: On OSX, set app name to JSettlers in menu bar
 - Game names and user nicknames can't be a number: Must contain a non-digit character
 - Applet class is now `soc.client.SOCApplet`
 - Message traffic:
@@ -69,7 +71,6 @@ and backport minor new features until `2.0.00` is ready.
     LocalStringConnection -> StringConnection, etc
 - Game state renamed for clarity: SOCGame.PLAY -> ROLL_OR_CARD; PLAY1 not renamed; SOCRobotBrain.expectPLAY -> expectROLL_OR_CARD
 - Minor refactoring
-- Popups (AskDialog, etc) layout fine-tuned, can wrap multi-line text
 - Project dir structure converted to maven layout
 - To simplify build process, move version and copyright info from `build.xml` to `version.info`
 - READMEs and VERSIONS.txt converted to Markdown (thank you Ruud Poutsma),
@@ -130,7 +131,7 @@ and backport minor new features until `2.0.00` is ready.
        (The postgresql and sqlite DB scripts have always created the DB as unicode.)
      - If using postgresql: Tables are created by socuser, not postgres system user
 - Game window during debug: Reset "current player" indicator when exiting `*FREEPLACE*` debug mode
-- Client debug, bot debug: Print network message contents if system property jsettlers.debug.traffic is set
+- Client debug, bot debug: Print network message contents if system property `jsettlers.debug.traffic=Y` is set
 - Startup: Show error if can't read own JSettlers version info
 
 

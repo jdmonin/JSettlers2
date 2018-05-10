@@ -394,6 +394,7 @@ public class SOCPlayerInterface extends Frame
      * by calling {@link #setClientHand(SOCHandPanel)}.
      * @see #clientHandPlayerNum
      * @see #clientIsCurrentPlayer()
+     * @see #bankTradeWasFromTradePanel
      * @since 1.1.00
      */
     protected SOCHandPanel clientHand;
@@ -408,6 +409,14 @@ public class SOCPlayerInterface extends Frame
     private int clientHandPlayerNum;  // the field for this in some other packages is called ourPN or ourPlayerNumber
 
     /**
+     * If true, client player's most recent bank/port trade request was sent from their handpanel's
+     * Trade Offer panel. So if trade is approved by server, should clear that panel's values to 0.
+     * If false, that request was sent from another interface element.
+     * @since 2.0.00
+     */
+    boolean bankTradeWasFromTradePanel;  // package-level access for SOCHandPanel
+
+    /**
      * the player colors. Indexes from 0 to {@link SOCGame#maxPlayers} - 1.
      * Initialized in constructor.
      * @see #getPlayerColor(int, boolean)
@@ -418,6 +427,7 @@ public class SOCPlayerInterface extends Frame
      * the display that spawned us
      */
     protected GameAwtDisplay gameDisplay;
+
     protected SOCPlayerClient client;
 
     /**
@@ -1880,6 +1890,9 @@ public class SOCPlayerInterface extends Frame
     /**
      * Print game text to announce either a bank/port trade, a player's new trade offer,
      * or an accepted and completed trade offer between two players.
+     *<P>
+     * For a bank/port trade, also enables client player's Undo Trade button.
+     *
      * @param plFrom  Player making the trade offer or the bank/port/player trade
      * @param give  {@code plFrom} gives these resources
      * @param get   {@code plFrom} gets these resources
@@ -1924,6 +1937,9 @@ public class SOCPlayerInterface extends Frame
             }
 
             printKeyedSpecial(msgKey, plName, give, get, tradeFrom);
+
+            if (clientHand != null)
+                clientHand.enableBankUndoButton();
         }
     }
 
@@ -2280,6 +2296,8 @@ public class SOCPlayerInterface extends Frame
         }
 
         buildingPanel.updateButtonStatus();
+
+        bankTradeWasFromTradePanel = false;
 
         // play Begin Turn sound here, not updateAtRollPrompt() which
         // isn't called for first player during initial placement
@@ -4188,6 +4206,7 @@ public class SOCPlayerInterface extends Frame
 
         public void playerBankTrade(final SOCPlayer player, final SOCResourceSet give, final SOCResourceSet get)
         {
+            requestedTradeClear(player, true);
             pi.printTradeResources(player, give, get, false, null);
         }
 
@@ -4199,8 +4218,11 @@ public class SOCPlayerInterface extends Frame
                 pi.printTradeResources(offerer, offer.getGiveSet(), offer.getGetSet(), true, null);
         }
 
-        public void requestedTradeClear(SOCPlayer offerer)
+        public void requestedTradeClear(final SOCPlayer offerer, final boolean isBankTrade)
         {
+            if (isBankTrade && ! pi.bankTradeWasFromTradePanel)
+                return;
+
             if (offerer != null)
                 pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(false, false);
             else
