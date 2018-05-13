@@ -873,7 +873,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         {
             if ((bankGive != null) && (bankGet != null))
             {
-                client.bankTrade(game, bankGet, bankGive);  // reverse the previous order to undo it
+                client.bankTrade(game, bankGet, bankGive);  // undo by reversing previous request
                 bankGive = null;
                 bankGet = null;
                 bankUndoBut.setEnabled(false);
@@ -992,6 +992,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     {
         if (bankGive == null)
             return;
+
         bankGive = null;
         bankGet = null;
         bankUndoBut.setEnabled(false);

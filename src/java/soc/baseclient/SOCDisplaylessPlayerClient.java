@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012,2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012,2014,2016-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -2018,7 +2018,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * the user wants to trade with the bank
+     * the user wants to trade with the bank or a port.
      *
      * @param ga    the game
      * @param give  what is being offered
@@ -2030,7 +2030,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * the user is making an offer to trade
+     * the user is making an offer to trade with other players.
      *
      * @param ga    the game
      * @param offer the trade offer

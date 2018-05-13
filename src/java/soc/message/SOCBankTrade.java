@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010-2011 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2010-2011,2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
 
@@ -27,9 +27,9 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message means that a player wants to trade with the bank.
+ * This message means that a player wants to trade with the bank or a port.
  *<P>
- * To undo a bank trade in version 1.1.13 or higher, the player's client should
+ * To undo a bank trade in version 1.1.13 or higher, the player's client can
  * send another BANKTRADE message with the same resources but give/get swapped.
  * For instance, if they gave 3 sheep to get 1 brick, send a BANKTRADE
  * to give 1 brick to get 3 sheep.
@@ -45,12 +45,12 @@ public class SOCBankTrade extends SOCMessage
     private String game;
 
     /**
-     * The set of resources being given to the bank
+     * The set of resources being given to the bank/port
      */
     private SOCResourceSet give;
 
     /**
-     * The set of resources being taken from the bank
+     * The set of resources being taken from the bank/port
      */
     private SOCResourceSet get;
 
@@ -58,8 +58,8 @@ public class SOCBankTrade extends SOCMessage
      * Create a BankTrade message.
      *
      * @param ga   the name of the game
-     * @param give the set of resources being given to the bank
-     * @param get  the set of resources being taken from the bank
+     * @param give the set of resources being given to the bank/port
+     * @param get  the set of resources being taken from the bank/port
      */
     public SOCBankTrade(String ga, SOCResourceSet give, SOCResourceSet get)
     {
@@ -78,7 +78,7 @@ public class SOCBankTrade extends SOCMessage
     }
 
     /**
-     * @return the set of resources being given to the bank
+     * @return the set of resources being given to the bank/port
      */
     public SOCResourceSet getGiveSet()
     {
@@ -86,7 +86,7 @@ public class SOCBankTrade extends SOCMessage
     }
 
     /**
-     * @return the set of resources being taken from the bank
+     * @return the set of resources being taken from the bank/port
      */
     public SOCResourceSet getGetSet()
     {
@@ -105,8 +105,8 @@ public class SOCBankTrade extends SOCMessage
      * @return the command string
      *
      * @param ga  the name of the game
-     * @param give the set of resources being given to the bank
-     * @param get  the set of resources being taken from the bank
+     * @param give the set of resources being given to the bank/port
+     * @param get  the set of resources being taken from the bank/port
      */
     public static String toCmd(String ga, SOCResourceSet give, SOCResourceSet get)
     {
@@ -136,8 +136,8 @@ public class SOCBankTrade extends SOCMessage
     public static SOCBankTrade parseDataStr(String s)
     {
         String ga; // the game name
-        SOCResourceSet give; // the set of resources being given to the bank
-        SOCResourceSet get; // the set of resources being taken from the bank
+        SOCResourceSet give;  // the set of resources being given to the bank/port
+        SOCResourceSet get;   // the set of resources being taken from the bank/port
 
         give = new SOCResourceSet();
         get = new SOCResourceSet();
