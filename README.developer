@@ -146,7 +146,9 @@ Setup instructions for JSettlers as an Eclipse project
   otherwise startup will fail with this error:
 	Packaging error: Cannot determine JSettlers version
 
-Continue reading to see how to set up the builds and the coding style in Eclipse.
+Continue reading to see how to set up the builds and the run configs in Eclipse.
+A later section walks through the coding style expected for pull requests or
+patch submissions.
 
 
 Recommended debug/run configurations for testing
@@ -164,8 +166,7 @@ Java applications:
      vm arguments: -Djsettlers.debug.traffic=Y
   socserver
      soc.server.SOCServer
-     arguments: -o N7=t7 -o RD=y -Djsettlers.startrobots=7
-                -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
+     arguments: -o N7=t7 -Djsettlers.startrobots=7 -Djsettlers.allow.debug=Y
   socserver-sqlite [optional]
      soc.server.SOCServer
      arguments: -o N7=t7 -o RD=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite
@@ -214,11 +215,13 @@ test/bin/test_func_srv_startup_params.py; run and update this script if
 you are developing anything related to game options or jsettlers properties.
 
 
-If you want to configure a sqlite database for testing
+If you want to configure a sqlite database for testing (optional)
 ------------------------------------------------------
-  These instructions are written for Eclipse 3.6.
-  See also the "Developing with a database (JDBC)" section of this readme.
-  JSettlers+sqlite works with standard Eclipse; the j2ee eclipse also has a convenient data browser.
+  This is optional. See also the "Developing with a database (JDBC)" section
+  of this readme.
+
+  These instructions are written for Eclipse 3.6. JSettlers+sqlite works with
+  standard Eclipse; the j2ee Eclipse adds a convenient data browser.
   Note that README.txt mentions a command-line option -Djsettlers.db.jar=driverfile.jar ; that's
   needed only while running the jsettlers JAR from the command line, not running inside the IDE.
 
@@ -353,7 +356,7 @@ Here's how to set up the coding style in Eclipse:
 	[x] show print margin
 	print margin column: 120
 	[x] show whitespace characters
-		configure visibility -> trailing space, trailing ideographic space, trailing tab
+		configure visibility -> trailing space, trailing ideographic space, leading tab, trailing tab
 
 	project properties -> java compiler -> configure workspace settings
 	  compiler compliance level: 1.5
