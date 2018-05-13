@@ -296,8 +296,7 @@ In my IDE's JSettlers project, I've created these debug/run configurations:
             vm arguments: -Djsettlers.debug.traffic=Y
 
         socserver: soc.server.SOCServer
-            arguments: -o N7=t7 -o RD=y -Djsettlers.startrobots=7
-                -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
+            arguments: -o N7=t7 -Djsettlers.startrobots=7 -Djsettlers.allow.debug=Y
 
         socserver-sqlite: soc.server.SOCServer   [optional]
             arguments: -o N7=t7 -o RD=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite
