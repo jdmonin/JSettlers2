@@ -5089,8 +5089,6 @@ public class SOCServer extends Server
 
             int cliVers = c.getVersion();
             final String chName = mes.getChannel().trim();
-            final String msgUser = mes.getNickname().trim();  // trim before db query calls
-            final String msgPass = mes.getPassword();
 
             /**
              * Check the reported version; if none, assume 1000 (1.0.00)
@@ -5104,11 +5102,14 @@ public class SOCServer extends Server
 
             if (c.getData() != null)
             {
-                handleJOIN_postAuth(c, msgUser, chName, cliVers, AUTH_OR_REJECT__OK);
+                handleJOIN_postAuth(c, chName, cliVers, AUTH_OR_REJECT__OK);
             } else {
                 /**
                  * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
                  */
+                final String msgUser = mes.getNickname().trim();  // trim before db query calls
+                final String msgPass = mes.getPassword();
+
                 final int cv = cliVers;
                 authOrRejectClientUser
                     (c, msgUser, msgPass, cv, true, false,
@@ -5116,7 +5117,7 @@ public class SOCServer extends Server
                      {
                          public void success(final StringConnection c, final int authResult)
                          {
-                             handleJOIN_postAuth(c, msgUser, chName, cv, authResult);
+                             handleJOIN_postAuth(c, chName, cv, authResult);
                          }
                      });
             }
@@ -5129,11 +5130,11 @@ public class SOCServer extends Server
      * @since 1.2.00
      */
     private void handleJOIN_postAuth
-        (final StringConnection c, String msgUser, final String ch, final int cliVers, final int authResult)
+        (final StringConnection c, final String ch, final int cliVers, final int authResult)
     {
         final boolean mustSetUsername = (0 != (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME));
-        if (mustSetUsername)
-            msgUser = c.getData();  // set to original case, from db case-insensitive search
+        final String msgUser = c.getData();
+            // if mustSetUsername, will tell client to set nickname to original case from db case-insensitive search
 
         /**
          * Check that the channel name is ok
@@ -5173,14 +5174,14 @@ public class SOCServer extends Server
         /**
          * Tell the client that everything is good to go
          */
-        c.put(SOCJoinAuth.toCmd(msgUser, ch));
         final String txt = "Welcome to Java Settlers of Catan!";
         if (! mustSetUsername)
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_OK, txt));
         else
             c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_OK_SET_NICKNAME, c.getData() + SOCMessage.sep2_char + txt));
+                    (SOCStatusMessage.SV_OK_SET_NICKNAME, msgUser + SOCMessage.sep2_char + txt));
+        c.put(SOCJoinAuth.toCmd(msgUser, ch));
 
         /**
          * Add the StringConnection to the channel
@@ -5208,7 +5209,7 @@ public class SOCServer extends Server
 
             try
             {
-                channelList.createChannel(ch, c.getData());
+                channelList.createChannel(ch, msgUser);
                 ((SOCClientData) c.getAppData()).createdChannel();
             }
             catch (Exception e)
@@ -5220,7 +5221,7 @@ public class SOCServer extends Server
             broadcast(SOCNewChannel.toCmd(ch));
             c.put(SOCMembers.toCmd(ch, channelList.getMembers(ch)));
             if (D.ebugOn)
-                D.ebugPrintln("*** " + c.getData() + " joined the channel " + ch + " at "
+                D.ebugPrintln("*** " + msgUser + " joined new channel " + ch + " at "
                     + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
             channelList.takeMonitorForChannel(ch);
 
@@ -6218,10 +6219,6 @@ public class SOCServer extends Server
     private void createOrJoinGameIfUserOK
         (StringConnection c, String msgUser, String msgPass, String gameName, final Hashtable gameOpts)
     {
-        if (msgUser != null)
-            msgUser = msgUser.trim();
-        if (msgPass != null)
-            msgPass = msgPass.trim();
         if (gameName != null)
             gameName = gameName.trim();
         final int cliVers = c.getVersion();
@@ -6233,6 +6230,11 @@ public class SOCServer extends Server
             /**
              * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
              */
+            if (msgUser != null)
+                msgUser = msgUser.trim();
+            if (msgPass != null)
+                msgPass = msgPass.trim();
+
             final String gName = gameName;
             authOrRejectClientUser
                 (c, msgUser, msgPass, cliVers, true, true,
