@@ -5600,10 +5600,6 @@ public class SOCServer extends Server
          String gameName, final Map<String, SOCGameOption> gameOpts)
     {
         System.err.println("L4885 createOrJoinGameIfUserOK at " + System.currentTimeMillis());
-        if (msgUser != null)
-            msgUser = msgUser.trim();
-        if (msgPass != null)
-            msgPass = msgPass.trim();
         if (gameName != null)
             gameName = gameName.trim();
         final int cliVers = c.getVersion();
@@ -5615,6 +5611,11 @@ public class SOCServer extends Server
             /**
              * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
              */
+            if (msgUser != null)
+                msgUser = msgUser.trim();
+            if (msgPass != null)
+                msgPass = msgPass.trim();
+
             final String gName = gameName;
             authOrRejectClientUser
                 (c, msgUser, msgPass, cliVers, true, true,

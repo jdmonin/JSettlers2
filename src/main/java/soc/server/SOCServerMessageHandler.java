@@ -1387,8 +1387,6 @@ public class SOCServerMessageHandler
             D.ebugPrintln("handleJOINCHANNEL: " + mes);
 
         int cliVers = c.getVersion();
-        final String msgUser = mes.getNickname().trim();  // trim before db query calls
-        final String msgPass = mes.getPassword();
 
         /**
          * Check the reported version; if none, assume 1000 (1.0.00)
@@ -1409,6 +1407,9 @@ public class SOCServerMessageHandler
             /**
              * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
              */
+            final String msgUser = mes.getNickname().trim();  // trim before db query calls
+            final String msgPass = mes.getPassword();
+
             final int cv = cliVers;
             srv.authOrRejectClientUser
                 (c, msgUser, msgPass, cliVers, true, false,
@@ -1431,7 +1432,8 @@ public class SOCServerMessageHandler
         (final Connection c, final String ch, final int cliVers, final int authResult)
     {
         final boolean mustSetUsername = (0 != (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME));
-        final String msgUser = c.getData();  // if mustSetUsername, sets to original case from db case-insensitive search
+        final String msgUser = c.getData();
+            // if mustSetUsername, will tell client to set nickname to original case from db case-insensitive search
 
         /**
          * Check that the channel name is ok
