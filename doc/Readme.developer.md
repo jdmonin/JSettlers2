@@ -331,7 +331,7 @@ jsettlers JAR from the command line, not running inside the IDE.
 
 - See the `socserver-sqlite` IDE Run Configuration in the previous section;
   this config includes the sqlite database you're about to configure.
-- Download the driver from https://bitbucket.org/xerial/sqlite-jdbc.
+- Download the driver from https://bitbucket.org/xerial/sqlite-jdbc/downloads/ .
   The downloaded JAR might have a name like `sqlite-jdbc-3.15.1.jar`.
   These instructions use a generic name `sqlite-jdbc-3.xx.y`.
 - Project properties -> Java build path -> Libraries -> Add External JARs ->
