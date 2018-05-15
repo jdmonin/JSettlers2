@@ -229,7 +229,7 @@ If you want to configure a sqlite database for testing (optional)
 	this is an IDE Run Configuration for a jsettlers server which
 	includes the sqlite database you're about to configure.
 
-  - Download the driver from https://bitbucket.org/xerial/sqlite-jdbc
+  - Download the driver from https://bitbucket.org/xerial/sqlite-jdbc/downloads/
 
   - Eclipse menu -> prefs -> data mgmt -> connectivity -> driver definitions -> add
 	  [this menu path will be available only under eclipse j2ee, not the basic eclipse]
