@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2013-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2013-2014,2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,17 +25,18 @@ import java.util.StringTokenizer;
 
 /**
  * This message tells the server that the client is a robot.
+ * If server accepts this bot, it responds with {@link SOCUpdateRobotParams}.
  *<P>
- * The server is distributed with the original robot AI, and this
- * permits optimized communications and server simplifications.
+ * The server is distributed together with the built-in {@code soc.robot} AI,
+ * which enables optimized communications and server simplifications.
  * So, the server requires that robot clients are the same version as the server.
  *<P>
- * In 1.1.09 and later, 3rd-party robots can connect and be treated as robots.
+ * In 1.1.09 and later, 3rd-party robots can connect and are treated like built-in bots.
  * (For example, games where all humans leave, but robots remain, are stopped.)
- * The 3rd-party robots can report any version, just like human player clients.
+ * The 3rd-party robots can report any compatible version, just like human player clients.
  *<P>
  * The IMAROBOT message includes a {@link #getRBClass()} parameter to indicate
- * whether the robot is 3rd-party or is {@link #RBCLASS_BUILTIN the original built-in AI}.
+ * whether the robot is 3rd-party or is the original built-in AI ({@link #RBCLASS_BUILTIN}).
  *<P>
  * In 1.1.19 and later, the IMAROBOT message includes a shared secret cookie
  * to authenticate the bot to the server.
@@ -52,11 +53,11 @@ public class SOCImARobot extends SOCMessage
     private static final long serialVersionUID = 1119L;
 
     /**
-     * Name of built-in robot brain class.
+     * Name of built-in robot brain class: {@code "soc.robot.SOCRobotBrain"}.
      * This robot is the original robot, distributed with the JSettlers server,
      * which permits some optimized communications.
      * Other (3rd-party) robots must use a different class in their IMAROBOT messages.
-     * See the class javadoc for more details.
+     * See the {@link SOCImARobot class javadoc} for more details.
      * @since 1.1.09
      */
     public static final String RBCLASS_BUILTIN = "soc.robot.SOCRobotBrain";

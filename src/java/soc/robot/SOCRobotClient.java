@@ -844,6 +844,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     protected void handleUPDATEROBOTPARAMS(SOCUpdateRobotParams mes)
     {
         currentRobotParameters = new SOCRobotParameters(mes.getRobotParameters());
+
+        if (! printedInitialWelcome)
+        {
+            // Needed only if server didn't send StatusMessage during initial connect.
+            // Server won't send status unless its Debug Mode is on.
+            System.err.println("Robot " + getNickname() + ": Authenticated to server.");
+            printedInitialWelcome = true;
+        }
         if (D.ebugIsEnabled())
             D.ebugPrintln("*** current robot parameters = " + currentRobotParameters);
     }
