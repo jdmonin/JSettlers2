@@ -96,6 +96,7 @@ and backport minor new features until `2.0.00` is ready.
   continue that game as bots-only unless property `jsettlers.bots.botgames.total` != 0
 - Server console: During startup, don't print connect messages for built-in robots
 - Server closes connections to rejected clients or bots
+- When member leaves a channel, don't send hostname to all members
 - If new game options require a certain version, don't warn unless the required version
   is newer than `1.1.20` (released October 2016).
 

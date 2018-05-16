@@ -1923,16 +1923,17 @@ public class SOCServer extends Server
         if (c == null)
             return false;
 
-        D.ebugPrintln("leaveChannel: " + c.getData() + " " + ch + " " + channelListLock);
+        final String mName = c.getData();
+        D.ebugPrintln("leaveChannel: " + mName + " " + ch + " " + channelListLock);
 
         if (channelList.isMember(c, ch))
         {
             channelList.removeMember(c, ch);
 
-            SOCLeaveChannel leaveMessage = new SOCLeaveChannel(c.getData(), c.host(), ch);
+            SOCLeaveChannel leaveMessage = new SOCLeaveChannel(mName, "-", ch);
             messageToChannelWithMon(ch, leaveMessage);
             if (D.ebugOn)
-                D.ebugPrintln("*** " + c.getData() + " left the channel " + ch + " at "
+                D.ebugPrintln("*** " + mName + " left the channel " + ch + " at "
                     + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
         }
 

@@ -1558,23 +1558,25 @@ public class SOCServerMessageHandler
         if (c == null)
             return;
 
+        final String chName = mes.getChannel();
+
         boolean destroyedChannel = false;
-        channelList.takeMonitorForChannel(mes.getChannel());
+        channelList.takeMonitorForChannel(chName);
 
         try
         {
-            destroyedChannel = srv.leaveChannel(c, mes.getChannel(), true, false);
+            destroyedChannel = srv.leaveChannel(c, chName, true, false);
         }
         catch (Exception e)
         {
             D.ebugPrintStackTrace(e, "Exception in handleLEAVECHANNEL");
         }
 
-        channelList.releaseMonitorForChannel(mes.getChannel());
+        channelList.releaseMonitorForChannel(chName);
 
         if (destroyedChannel)
         {
-            srv.broadcast(SOCDeleteChannel.toCmd(mes.getChannel()));
+            srv.broadcast(SOCDeleteChannel.toCmd(chName));
         }
     }
 
