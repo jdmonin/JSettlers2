@@ -317,7 +317,19 @@ public interface PlayerClientListener
     void pieceValueUpdated(SOCPlayingPiece piece);
 
     void boardPotentialsUpdated();
+
+    /**
+     * Handle board reset (new game with same players, same game name).
+     * Most GUI panels are destroyed and re-created.  Player chat text is kept.
+     *
+     * @param newGame New game object
+     * @param newSeatNumber  Our player number in {@code newGame},
+     *     which is always the same as in the pre-reset game,
+     *     or -1 if server didn't send a player number
+     * @param requestingPlayerNumber Player who requested the board reset
+     */
     void boardReset(SOCGame newGame, int newSeatNumber, int requestingPlayerNumber);
+
     void boardResetVoteRequested(SOCPlayer requestor);
     void boardResetVoteCast(SOCPlayer voter, boolean vote);
     void boardResetVoteRejected();

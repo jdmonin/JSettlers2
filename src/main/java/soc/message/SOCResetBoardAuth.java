@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008,2013-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008,2013-2014,2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,8 +26,8 @@ import java.util.StringTokenizer;
  * has been "reset" to a new game (with same name and players, new layout),
  * and they should join at the given position.
  *<P>
- * For human players, this message replaces the {@link SOCJoinGameAuth} seen when joining a brand-new game; the reset message will be followed
- * with others which will fill in the game state.
+ * For human players, this message replaces the {@link SOCJoinGameAuth} seen when joining a brand-new game;
+ * the reset message will be followed with others which will fill in the game state.
  *<P>
  * For robots, they must discard game state and ask to re-join.
  * Robot client treats as a {@link SOCBotJoinGameRequest}: Asks to join the new game.
@@ -45,10 +45,18 @@ public class SOCResetBoardAuth extends SOCMessageTemplate2i
     private static final long serialVersionUID = 1100L;  // last structural change v1.1.00
 
     /**
+     * In version 2.0.00 and above, {@link #getRejoinPlayerNumber()} can be -1.
+     * See that method for details.
+     * @since 2.0.00
+     */
+    public static final int VERSION_FOR_BLANK_PLAYERNUM = 2000;
+
+    /**
      * Create a ResetBoardAuth message.
      *
      * @param ga  the name of the game
-     * @param joinpn  the player position number at which to join
+     * @param joinpn  the player position number at which to join, or -1:
+     *     See {@link #getRejoinPlayerNumber()}
      * @param reqpn  player number who requested the reset
      */
     public SOCResetBoardAuth(String ga, int joinpn, int reqpn)
@@ -57,7 +65,12 @@ public class SOCResetBoardAuth extends SOCMessageTemplate2i
     }
 
     /**
-     * @return the player position number at which to rejoin
+     * Get the player position number (player number/seat number) at which client player should rejoin.
+     * This has always been the same player number they had before the reset,
+     * so it's redundant: Client v2.0.00 and newer accepts -1 instead.
+     * Check client version against {@link #VERSION_FOR_BLANK_PLAYERNUM}.
+     *
+     * @return the player position number at which to rejoin, or -1
      */
     public int getRejoinPlayerNumber()
     {

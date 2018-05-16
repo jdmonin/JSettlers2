@@ -6903,11 +6903,19 @@ public class SOCServer extends Server
          *    Humans will reset their copy of the game.
          *    Robots will leave the game, and soon will be requested to re-join.
          */
+        final SOCResetBoardAuth resetMsg = new SOCResetBoardAuth(gaName, -1, requestingPlayer);
+        final boolean hasOldClients = (reGame.clientVersionLowest < SOCResetBoardAuth.VERSION_FOR_BLANK_PLAYERNUM);
         for (int pn = 0; pn < reGame.maxPlayers; ++pn)
         {
-            SOCResetBoardAuth resetMsg = new SOCResetBoardAuth(gaName, pn, requestingPlayer);
             if (huConns[pn] != null)
-                messageToPlayer(huConns[pn], resetMsg);
+            {
+                final SOCResetBoardAuth rMsg;
+                if (hasOldClients && (huConns[pn].getVersion() < SOCResetBoardAuth.VERSION_FOR_BLANK_PLAYERNUM))
+                    rMsg = new SOCResetBoardAuth(gaName, pn, requestingPlayer);
+                else
+                    rMsg = resetMsg;
+                messageToPlayer(huConns[pn], rMsg);
+            }
             else if (roConns[pn] != null)
             {
                 if (! resetWithShuffledBots)
