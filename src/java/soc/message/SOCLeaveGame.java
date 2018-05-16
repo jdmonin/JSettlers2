@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012,2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,12 +29,13 @@ import java.util.StringTokenizer;
  * then sent from server out to all clients in game.
  *
  * @author Robert S Thomas
+ * @see SOCLeave
  */
 public class SOCLeaveGame extends SOCMessage
     implements SOCMessageForGame
 {
     /**
-     * Nickname of the leaving member
+     * Nickname of the leaving member; ignored from client, can send "-" but not blank
      */
     private String nickname;
 
@@ -44,7 +45,7 @@ public class SOCLeaveGame extends SOCMessage
     private String game;
 
     /**
-     * Host name of server hosting game, when sent from client.
+     * Optional host name of server hosting game, or "-", when sent from client.
      * Unused ("-") when sent from server.
      */
     private String host;
@@ -52,8 +53,8 @@ public class SOCLeaveGame extends SOCMessage
     /**
      * Create a LeaveGame message.
      *
-     * @param nn  nickname
-     * @param hn  host name, or "-" if sending from server to all players.
+     * @param nn  nickname; ignored from client, can send "-" but not blank
+     * @param hn  optional host name, or "-" if unused or if sending from server to all players.
      *            (Length 0 would fail {@link #parseDataStr(String)} at the receiver)
      * @param ga  name of game
      */
@@ -66,7 +67,7 @@ public class SOCLeaveGame extends SOCMessage
     }
 
     /**
-     * @return the nickname
+     * @return the nickname; can be "-" but not blank when sent from client
      */
     public String getNickname()
     {
@@ -74,8 +75,8 @@ public class SOCLeaveGame extends SOCMessage
     }
 
     /**
-     * Get the host name of the server hosting game, when sent from client.
-     * Unused ("-") when sent from server.
+     * Get the optional host name of the server hosting game, or "-", when sent from client.
+     * Unused ("-") when sent from server v1.1.17 or newer.
      * @return the host name, or "-"
      */
     public String getHost()
@@ -104,8 +105,8 @@ public class SOCLeaveGame extends SOCMessage
     /**
      * LEAVEGAME sep nickname sep2 host sep2 game
      *
-     * @param nn  the neckname
-     * @param hn  the host name
+     * @param nn  the nickname; ignored from client, can send "-" but not blank
+     * @param hn  the optional host name, or "-"
      * @param ga  the name of the game
      * @return    the command string
      */

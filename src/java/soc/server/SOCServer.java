@@ -1622,7 +1622,8 @@ public class SOCServer extends Server
     public boolean leaveChannel
         (final StringConnection c, final String ch, final boolean destroyIfEmpty, boolean channelListLock)
     {
-        D.ebugPrintln("leaveChannel: " + c.getData() + " " + ch + " " + channelListLock);
+        final String mName = c.getData();
+        D.ebugPrintln("leaveChannel: " + mName + " " + ch + " " + channelListLock);
 
         if (c != null)
         {
@@ -1630,10 +1631,10 @@ public class SOCServer extends Server
             {
                 channelList.removeMember(c, ch);
 
-                SOCLeave leaveMessage = new SOCLeave(c.getData(), c.host(), ch);
+                SOCLeave leaveMessage = new SOCLeave(mName, "-", ch);
                 messageToChannelWithMon(ch, leaveMessage);
                 if (D.ebugOn)
-                    D.ebugPrintln("*** " + c.getData() + " left the channel " + ch + " at "
+                    D.ebugPrintln("*** " + mName + " left the channel " + ch + " at "
                         + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
             }
 
@@ -5255,23 +5256,25 @@ public class SOCServer extends Server
 
         if (c != null)
         {
+            final String chName = mes.getChannel();
+
             boolean destroyedChannel = false;
-            channelList.takeMonitorForChannel(mes.getChannel());
+            channelList.takeMonitorForChannel(chName);
 
             try
             {
-                destroyedChannel = leaveChannel(c, mes.getChannel(), true, false);
+                destroyedChannel = leaveChannel(c, chName, true, false);
             }
             catch (Exception e)
             {
                 D.ebugPrintStackTrace(e, "Exception in handleLEAVE");
             }
 
-            channelList.releaseMonitorForChannel(mes.getChannel());
+            channelList.releaseMonitorForChannel(chName);
 
             if (destroyedChannel)
             {
-                broadcast(SOCDeleteChannel.toCmd(mes.getChannel()));
+                broadcast(SOCDeleteChannel.toCmd(chName));
             }
         }
     }

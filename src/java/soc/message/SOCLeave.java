@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
 
@@ -23,14 +24,17 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message means that someone is leaveing a channel
+ * From a client, this message tells the server the client is leaving a chat channel.
+ * From server, it announces to all members of a channel that someone has left it.
  *
  * @author Robert S Thomas
+ * @see SOCLeaveAll
+ * @see SOCLeaveGame
  */
 public class SOCLeave extends SOCMessage
 {
     /**
-     * Nickname of the leaveing member
+     * Nickname of the leaving member; ignored from client, can send "-" but not blank
      */
     private String nickname;
 
@@ -40,15 +44,15 @@ public class SOCLeave extends SOCMessage
     private String channel;
 
     /**
-     * Host name
+     * Optional host name, or "-". Unused ("-") when sent from server.
      */
     private String host;
 
     /**
      * Create a Leave message.
      *
-     * @param nn  nickname
-     * @param hn  host name
+     * @param nn  nickname; ignored from client, can send "-" but not blank for this field
+     * @param hn  optional host name, or "-"
      * @param ch  name of chat channel
      */
     public SOCLeave(String nn, String hn, String ch)
@@ -68,7 +72,7 @@ public class SOCLeave extends SOCMessage
     }
 
     /**
-     * @return the host name
+     * @return the optional host name, or "-". Unused ("-") when sent from server v1.2.01 or newer.
      */
     public String getHost()
     {
@@ -96,9 +100,9 @@ public class SOCLeave extends SOCMessage
     /**
      * <LEAVE> sep <nickname> sep2 <host> sep2 <channel>
      *
-     * @param nn  the neckname
-     * @param hn  the host name
-     * @param ch  the new channel name
+     * @param nn  the nickname; ignored from client, can send "-" but not blank
+     * @param hn  the optional host name, or "-"
+     * @param ch  the name of chat channel
      * @return    the command string
      */
     public static String toCmd(String nn, String hn, String ch)
