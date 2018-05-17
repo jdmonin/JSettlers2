@@ -1987,21 +1987,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * handle the "choose player request" message
      * @param mes  the message
      */
-    protected void handleCHOOSEPLAYERREQUEST(SOCChoosePlayerRequest mes)
-    {
-        boolean[] ch = mes.getChoices();
-        int[] choices = new int[ch.length];  // == SOCGame.maxPlayers
-        int count = 0;
-
-        for (int i = 0; i < ch.length; i++)
-        {
-            if (ch[i])
-            {
-                choices[count] = i;
-                count++;
-            }
-        }
-    }
+    protected void handleCHOOSEPLAYERREQUEST(SOCChoosePlayerRequest mes) {}
 
     /**
      * handle the "make offer" message
@@ -2678,11 +2664,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * the player wants to move the robber
+     * the player wants to move the robber or the pirate ship.
      *
      * @param ga  the game
      * @param pl  the player
-     * @param coord  where the player wants the robber
+     * @param coord  hex where the player wants the robber, or negative hex for the pirate ship
      */
     public void moveRobber(SOCGame ga, SOCPlayer pl, int coord)
     {
@@ -2880,7 +2866,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * the user is making an offer to trade with another player.
+     * the user is making an offer to trade with other players.
      *
      * @param ga    the game
      * @param offer the trade offer

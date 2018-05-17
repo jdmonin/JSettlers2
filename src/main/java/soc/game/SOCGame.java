@@ -67,7 +67,7 @@ import java.util.Vector;
  * {@link SOCBoard} class javadoc.
  *<P>
  * Games are created at the server in {@link soc.server.SOCGameListAtServer} and given an
- * expiration time 90 minutes away
+ * expiration time 120 minutes away
  * ({@link soc.server.SOCGameListAtServer#GAME_TIME_EXPIRE_MINUTES SOCGameListAtServer.GAME_TIME_EXPIRE_MINUTES}).
  * Players then choose their seats, optionally locking empty seats against joining robots,
  * and any player can click the Start Game button.
@@ -324,12 +324,16 @@ public class SOCGame implements Serializable, Cloneable
     public static final int PLACING_SHIP = 35;
 
     /**
-     * Player is placing first free road/ship
+     * Player is placing their first free road/ship.
+     * If {@link #getCurrentDice()} == 0, the Road Building card was
+     * played before rolling the dice.
      */
     public static final int PLACING_FREE_ROAD1 = 40;
 
     /**
-     * Player is placing second free road/ship
+     * Player is placing their second free road/ship.
+     * If {@link #getCurrentDice()} == 0, the Road Building card was
+     * played before rolling the dice.
      */
     public static final int PLACING_FREE_ROAD2 = 41;
 
@@ -820,6 +824,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * the players; never contains a null element, use {@link #isSeatVacant(int)}
      * to see if a position is occupied.  Length is {@link #maxPlayers}.
+     * @see #currentPlayerNumber
      */
     private SOCPlayer[] players;
 
@@ -834,7 +839,8 @@ public class SOCGame implements Serializable, Cloneable
     private SeatLockState[] seatLocks;
 
     /**
-     * the number of the current player
+     * The seat number of the current player within {@link #players}[],
+     * or -1 if the game isn't started yet.
      */
     private int currentPlayerNumber;
 
@@ -1069,7 +1075,7 @@ public class SOCGame implements Serializable, Cloneable
      * otherwise the value should be a recent time.
      *<P>
      * At the end of a game, the server may increase this value by
-     * 90 minutes ({@link soc.server.SOCGameListAtServer#GAME_TIME_EXPIRE_MINUTES})
+     * {@link soc.server.SOCGameListAtServer#GAME_TIME_EXPIRE_MINUTES}
      * in order to remove it from the {@link soc.server.SOCGameTimeoutChecker}
      * run loop.
      *
@@ -1705,9 +1711,9 @@ public class SOCGame implements Serializable, Cloneable
             {
                 if (! isSeatVacant(i))
                 {
-                    SOCPlayer pl = players[i];  // may be null during end-of-game cleanup or reset
+                    final SOCPlayer pl = players[i];  // may be null during end-of-game cleanup or reset
                     if ((pl != null) && nn.equals(pl.getName()))
-                        return players[i];
+                        return pl;
                 }
             }
         }
@@ -4149,10 +4155,19 @@ public class SOCGame implements Serializable, Cloneable
      * In some states, the current player can't end their turn yet
      * (such as needing to move the robber, or choose resources for a
      *  year-of-plenty card, or discard if a 7 is rolled).
+     *<P>
+     * v1.2.01 and newer allow player to end their turn during
+     * {@link #PLACING_FREE_ROAD1} and {@link #PLACING_FREE_ROAD2}
+     * if they rolled the dice before playing the Road Building card:
+     * In some situations or scenarios, player may not want to or be able to
+     * place both free roads. They also can call {@link #cancelBuildRoad(int)}
+     * to continue their turn without placing the second free road.
      *
      * @param pn  player number of the player who wants to end the turn
      * @return true if okay for this player to end the turn
-     *    (They are current player, game state is {@link #PLAY1} or {@link #SPECIAL_BUILDING})
+     *    (They are current player; game state is {@link #PLAY1} or {@link #SPECIAL_BUILDING};
+     *    or is {@link #PLACING_FREE_ROAD1} or {@link #PLACING_FREE_ROAD2} and
+     *    {@link #getCurrentDice()} != 0).
      *
      * @see #endTurn()
      * @see #forceEndTurn()
@@ -4163,13 +4178,21 @@ public class SOCGame implements Serializable, Cloneable
         {
             return false;
         }
-        else if ((gameState != PLAY1) && (gameState != SPECIAL_BUILDING))
+
+        switch (gameState)
         {
-            return false;
-        }
-        else
-        {
+        case PLAY1:
+            // fall through
+        case SPECIAL_BUILDING:
             return true;
+
+        case PLACING_FREE_ROAD1:
+            // fall through
+        case PLACING_FREE_ROAD2:
+            return (currentDice != 0);
+
+        default:
+            return false;
         }
     }
 
@@ -4574,6 +4597,12 @@ public class SOCGame implements Serializable, Cloneable
             }
 
         case PLACING_FREE_ROAD1:
+            gameState = PLAY1;
+            itemCard = new SOCDevCard(SOCDevCardConstants.ROADS, false);
+            players[currentPlayerNumber].getInventory().addItem(itemCard);
+            return new SOCForceEndTurnResult
+                (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE, itemCard);
+
         case PLACING_FREE_ROAD2:
             gameState = PLAY1;
             return new SOCForceEndTurnResult
@@ -7008,7 +7037,9 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * In version 1.1.17 and newer ({@link #VERSION_FOR_CANCEL_FREE_ROAD2}),
      * can also use to skip placing the second free road in {@link #PLACING_FREE_ROAD2};
-     * sets gameState to ROLL_OR_CARD or PLAY1 as if the free road was placed.
+     * sets gameState to ROLL_OR_CARD or PLAY1 as if the free road was placed.<BR>
+     * In v1.2.01 and newer, player can also end their turn from state
+     * {@link #PLACING_FREE_ROAD1} or {@link #PLACING_FREE_ROAD2}.<BR>
      * In v2.0.00 and newer, can similarly call {@link #cancelBuildShip(int)} in that state.
      *
      * @param pn  the number of the player
@@ -7029,6 +7060,7 @@ public class SOCGame implements Serializable, Cloneable
             gameState = PLAY1;
         else
             gameState = SPECIAL_BUILDING;
+
         return true;
     }
 

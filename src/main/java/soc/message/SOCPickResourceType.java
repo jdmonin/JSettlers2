@@ -22,6 +22,7 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.game.SOCGame;  // for javadocs only
 import soc.game.SOCResourceConstants;  // for javadocs only
 
 
@@ -29,7 +30,8 @@ import soc.game.SOCResourceConstants;  // for javadocs only
  * This message says which resource type the current player wants to
  * pick for a game action, such as using a Monopoly development card.
  *<P>
- * Sent from client as a request.
+ * Sent as a request from current player's client, in response to server's
+ * {@link SOCGameState}({@link SOCGame#WAITING_FOR_MONOPOLY WAITING_FOR_MONOPOLY}).
  *<P>
  * For a Monopoly card, the server responds by announcing {@link SOCSimpleAction}
  * ({@link SOCSimpleAction#RSRC_TYPE_MONOPOLIZED RSRC_TYPE_MONOPOLIZED}).

@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
- * Portions of this file copyright (C) 2009,2011,2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2011,2012,2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -178,18 +178,18 @@ public class RobberStrategy
    }
 
    /**
-    * choose a robber victim
-    *<P>
-    * In some game scenarios (such as <tt>SC_PIRI</tt>), the robot may have the
-    * option to choose to not rob anyone. This strategy will ignore that and
-    * always choose a victim to rob.
+    * Choose a robber victim.
     *
     * @param choices  a boolean array representing which players are possible victims;
     *                 1 element per player number (0 to <tt>game.maxPlayers</tt> - 1).
-    * @return  Player number to rob
+    * @param canChooseNone   In some game scenarios (such as <tt>SC_PIRI</tt>),
+    *     the robot may have the option to choose to not rob anyone. This strategy
+    *     ignores that and always chooses a victim to rob.
+    * @return  Player number to rob, or -1 if none could be decided
     */
    public static int chooseRobberVictim
-       (boolean[] choices, SOCGame game, HashMap<Integer, SOCPlayerTracker> playerTrackers)
+       (final boolean[] choices, final boolean canChooseNone,
+        final SOCGame game, final HashMap<Integer, SOCPlayerTracker> playerTrackers)
    {
        int choice = -1;
 

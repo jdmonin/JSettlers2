@@ -4378,7 +4378,8 @@ public class SOCPlayerClient
      * Ping may be a keepalive check or an attempt to kick by another
      * client with the same nickname; may call
      * {@link SOCPlayerClient#shutdownFromNetwork()} if so.
-     * (ignored before version 1.1.08)
+     *<P>
+     * (message ignored before v1.1.08)
      * @since 1.1.08
      */
     private void handleSERVERPING(SOCServerPing mes, final boolean isPractice)
@@ -4986,7 +4987,6 @@ public class SOCPlayerClient
         SOCGame game = games.get(mes.getGame());
         final int maxPl = game.maxPlayers;
         final boolean[] ch = mes.getChoices();
-        final boolean allowChooseNone = ((ch.length > maxPl) && ch[maxPl]);  // for scenario SC_PIRI
 
         List<SOCPlayer> choices = new ArrayList<SOCPlayer>();
         for (int i = 0; i < maxPl; i++)
@@ -4999,7 +4999,7 @@ public class SOCPlayerClient
         }
 
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
-        pcl.requestedChoosePlayer(choices, allowChooseNone);
+        pcl.requestedChoosePlayer(choices, mes.canChooseNone());
     }
 
     /**
@@ -5079,7 +5079,7 @@ public class SOCPlayerClient
             }
 
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            pcl.requestedTradeClear(player);
+            pcl.requestedTradeClear(player, false);
         }
     }
 
@@ -6161,7 +6161,7 @@ public class SOCPlayerClient
      *
      * @param ga  the game
      * @param pl  the player
-     * @param coord  edge where the player wants the robber, or negative edge for the pirate ship
+     * @param coord  hex where the player wants the robber, or negative hex for the pirate ship
      */
     public void moveRobber(SOCGame ga, SOCPlayer pl, int coord)
     {
@@ -6381,7 +6381,7 @@ public class SOCPlayerClient
     }
 
     /**
-     * the user is making an offer to trade with another player.
+     * the user is making an offer to trade with other players.
      *
      * @param ga    the game
      * @param offer the trade offer
@@ -6699,7 +6699,7 @@ public class SOCPlayerClient
      *<P>
      * "If possible" is determined from return value of {@link SOCPlayerClient.ClientNetwork#putLeaveAll()}.
      *<P>
-     * Before v2.0.00 this method was {@code dispose()}.
+     * Before v1.2.01 this method was {@code destroy()}.
      */
     public void shutdownFromNetwork()
     {
@@ -6722,8 +6722,8 @@ public class SOCPlayerClient
         {
             String gameName = e.getKey();
             SOCGame game = games.get(gameName);
-            boolean isPractice = (game != null) && game.isPractice;
-            if (! (canPractice && isPractice))
+            boolean isPractice = canPractice && (game != null) && game.isPractice;
+            if (! isPractice)
                 e.getValue().gameDisconnected(false, err);
         }
 
@@ -6873,6 +6873,8 @@ public class SOCPlayerClient
 
         /**
          * Practice-server error (stringport pipes), or null.
+         *<P>
+         * Before v2.0.00 this field was {@code ex_L}.
          * @see #ex
          */
         Exception ex_P = null;

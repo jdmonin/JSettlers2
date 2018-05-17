@@ -180,9 +180,14 @@ This will create a `jsettlers.sqlite` file containing the empty tables.
 This script will fail if the file and tables already exist.
 
 Later when you start your JSettlers server, remember to specify the sqlite DB
-using the same `-Djsettlers.db.url` and `-Djsettlers.db.jar` values.
+using the same `-Djsettlers.db.url` and `-Djsettlers.db.jar` values. Do not
+specify `jsettlers.db.script.setup`, which is used only during setup.
 
 #### JSettlers Server startup after DB Creation:
+
+Every time you start your JSettlers server, remember to use the DB parameters/properties
+detailed in the DB Creation section. These can either be given on the command line or
+in a `jsserver.properties` file, whichever is easier for you.
 
 When you start JSettlersServer and connect to the new database, you should see:
 
@@ -219,11 +224,11 @@ as long as they aren't using a nickname which has a password in the database.
 To create player accounts, for security you must set the account admins list
 property (`jsettlers.accounts.admins`) unless your server is in "open
 registration" mode where anyone can create accounts. Set the property in your
-`jsserver.properties` file or the server startup command line. See below for
-more details on listing admin usernames in that property.
+`jsserver.properties` file or the server startup command line. For more details
+see section "Security, Admin Users, Admin Commands" below.
 
-To create player accounts, run the simple account creation client with the
-following command:
+Once your server is running with the `jsettlers.accounts.admins` property,
+run the simple account creation client with the following command:
 
 	java -cp JSettlers.jar soc.client.SOCAccountClient yourserver.example.com 8880
 
@@ -312,6 +317,9 @@ If you're upgrading from an earlier version of JSettlers, check
 [Versions.md](Versions.md) for new features, bug fixes, and config changes.
 Before starting the upgrade, read this section and also the
 "Upgrading from an earlier version" section of [Readme.md](../Readme.md).
+
+Most versions won't have any DB schema changes or require a DB upgrade.
+In [Versions.md](Versions.md) look for the word "schema" in the list of changes.
 
 ### Before starting the upgrade:
 - Make a DB backup or export its contents. JSettlers **1.2.00** is the first

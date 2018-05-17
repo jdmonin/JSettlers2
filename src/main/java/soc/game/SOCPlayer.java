@@ -877,7 +877,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * @return the name of the player
+     * @return the name of the player; may be {@code null} if this Player is an unoccupied seat in the game
      */
     public String getName()
     {
@@ -2378,13 +2378,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * set the current offer for this player
+     * Set or clear the current offer made by this player.
      *
-     * @param of        the offer, or null to clear
+     * @param offer   the offer, or {@code null} to clear.
+     *     Doesn't validate that {@link SOCTradeOffer#getFrom() offer.getFrom()}
+     *     is this player; server must do so.
      */
-    public void setCurrentOffer(SOCTradeOffer of)
+    public void setCurrentOffer(final SOCTradeOffer offer)
     {
-        currentOffer = of;
+        currentOffer = offer;
     }
 
     /**

@@ -42,6 +42,7 @@ import java.util.Vector;
 
 import soc.debug.D;
 import soc.game.*;
+import soc.message.SOCAcceptOffer;  // for javadocs only
 import soc.message.SOCBankTrade;
 import soc.message.SOCBoardLayout;
 import soc.message.SOCBoardLayout2;
@@ -2085,26 +2086,18 @@ public class SOCGameHandler extends GameHandler
 
         case SOCGame.WAITING_FOR_ROB_CHOOSE_PLAYER:
             /**
-             * get the choices from the game
-             */
-            final boolean canStealNone = ga.isGameOptionSet(SOCGameOption.K_SC_PIRI);
-            boolean[] choices = new boolean[ga.maxPlayers + (canStealNone ? 1 : 0)];
-            Arrays.fill(choices, false);
-            if (canStealNone)
-                choices[ga.maxPlayers] = true;
-
-            for (SOCPlayer pl : ga.getPossibleVictims())
-                choices[pl.getPlayerNumber()] = true;
-
-            /**
              * ask the current player to choose a player to steal from
              */
             Connection con = srv.getConnection(ga.getPlayer(cpn).getName());
             if (con != null)
             {
-                con.put(new SOCChoosePlayerRequest(gname, choices));
-            }
+                final boolean canChooseNone = ga.isGameOptionSet(SOCGameOption.K_SC_PIRI);
+                boolean[] choices = new boolean[ga.maxPlayers];
+                for (SOCPlayer pl : ga.getPossibleVictims())
+                    choices[pl.getPlayerNumber()] = true;
 
+                con.put(new SOCChoosePlayerRequest(gname, choices, canChooseNone));
+            }
             break;
 
         case SOCGame.OVER:
@@ -3058,7 +3051,10 @@ public class SOCGameHandler extends GameHandler
                 String token = st.nextToken();
                 try
                 {
-                    resources[resourceType] = Integer.parseInt(token);
+                    int amt = Integer.parseInt(token);
+                    if (amt < 0)
+                        parseError = true;
+                    resources[resourceType] = amt;
                     resourceType++;
                 }
                 catch (NumberFormatException e)
@@ -3069,7 +3065,8 @@ public class SOCGameHandler extends GameHandler
             }
             else
             {
-                // get all the of the line, in case there's a space in the player name ("robot 7"),
+                // read entire remaining string, in case there's
+                //  a space in the player name ("robot 7"),
                 //  by choosing an unlikely separator character
                 name = st.nextToken(Character.toString( (char) 1 )).trim();
                 break;
@@ -3101,12 +3098,15 @@ public class SOCGameHandler extends GameHandler
              resourceType <= Data.ResourceType.WOOD_VALUE; ++resourceType)
         {
             final int amt = resources[resourceType];
-            rset.add(amt, resourceType);
             outTxt.append(' ');
             outTxt.append(amt);
+            if (amt == 0)
+                continue;
+
+            rset.add(amt, resourceType);
 
             // SOCResourceConstants.CLAY == SOCPlayerElement.CLAY
-            if (hasOldClients && (amt > 0))
+            if (hasOldClients)
                 srv.messageToGame
                     (gaName, new SOCPlayerElement(gaName, pnum, SOCPlayerElement.GAIN, resourceType, amt));
         }
@@ -3396,7 +3396,7 @@ public class SOCGameHandler extends GameHandler
                 srv.messageToGameWithMon(gaName, new SOCCancelBuildRequest(gaName, SOCSettlement.SETTLEMENT));
             }
 
-            if (ga.canEndTurn(plNumber))
+            if (ga.canEndTurn(plNumber) && (gameState != SOCGame.PLACING_FREE_ROAD1))
             {
                 srv.gameList.releaseMonitorForGame(gaName);
                 ga.takeMonitor();
@@ -3411,6 +3411,8 @@ public class SOCGameHandler extends GameHandler
                  * of forceEndGameTurn and game.forceEndTurn.
                  * All start phases are covered here (START1A..START2B)
                  * because canEndTurn returns false in those gameStates.
+                 * Also includes PLACING_FREE_ROAD1 so the dev card is returned to player
+                 * (unlike when a player actively decides to end their turn in that state).
                  */
                 srv.gameList.releaseMonitorForGame(gaName);
                 ga.takeMonitor();

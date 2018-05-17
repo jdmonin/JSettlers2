@@ -513,7 +513,8 @@ public class SOCServer extends Server
      *<P>
      * If you update this field, also update {@link #GAME_TIME_EXPIRE_CHECK_MINUTES}.
      *<P>
-     * Before v2.0.00 this field was named {@code GAME_EXPIRE_WARN_MINUTES} and its default was 10.
+     * Before v2.0.00 this field was named {@code GAME_EXPIRE_WARN_MINUTES}. <BR>
+     * Before v1.2.01 the default was 10.
      *
      * @see #checkForExpiredGames(long)
      * @see SOCGameTimeoutChecker#run()
@@ -554,19 +555,11 @@ public class SOCServer extends Server
         // comments in /src/main/bin/jsserver.properties.sample.
 
     /**
-     * Maximum permitted game name length, default 30 characters.
-     * Before 1.1.13, the default maximum was 20 characters.
-     *
-     * @see #createOrJoinGameIfUserOK(Connection, String, String, String, Map)
-     * @since 1.1.07
-     */
-    public static int GAME_NAME_MAX_LENGTH = 30;
-
-    /**
      * Maximum permitted player name length, default 20 characters.
      * The client already truncates to 20 characters in SOCPlayerClient.getValidNickname.
      *
      * @see #createOrJoinGameIfUserOK(Connection, String, String, String, Map)
+     * @see SOCGameList#GAME_NAME_MAX_LENGTH
      * @since 1.1.07
      */
     public static int PLAYER_NAME_MAX_LENGTH = 20;
@@ -1755,7 +1748,7 @@ public class SOCServer extends Server
      * Callback to take care of things when server comes up, after the server socket
      * is bound and listening, in the server's main thread.
      *<P>
-     * Unlss {@link #PROP_JSETTLERS_STARTROBOTS} is 0, starts those {@link SOCRobotClient}s now
+     * Unless {@link #PROP_JSETTLERS_STARTROBOTS} is 0, starts those {@link SOCRobotClient}s now
      * by calling {@link #setupLocalRobots(int, int)}. If {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL}
      * is specified, waits briefly and then calls {@link #startRobotOnlyGames(boolean)}.
      *<P>
@@ -1937,16 +1930,17 @@ public class SOCServer extends Server
         if (c == null)
             return false;
 
-        D.ebugPrintln("leaveChannel: " + c.getData() + " " + ch + " " + channelListLock);
+        final String mName = c.getData();
+        D.ebugPrintln("leaveChannel: " + mName + " " + ch + " " + channelListLock);
 
         if (channelList.isMember(c, ch))
         {
             channelList.removeMember(c, ch);
 
-            SOCLeaveChannel leaveMessage = new SOCLeaveChannel(c.getData(), c.host(), ch);
+            SOCLeaveChannel leaveMessage = new SOCLeaveChannel(mName, "-", ch);
             messageToChannelWithMon(ch, leaveMessage);
             if (D.ebugOn)
-                D.ebugPrintln("*** " + c.getData() + " left the channel " + ch + " at "
+                D.ebugPrintln("*** " + mName + " left the channel " + ch + " at "
                     + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
         }
 
@@ -2340,6 +2334,11 @@ public class SOCServer extends Server
      * <B>Locks:</B> Has {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gm)}
      * when calling this method; should not have {@link SOCGame#takeMonitor()}.
      * May or may not have {@link SOCGameList#takeMonitor()}, see {@code gameListLock} parameter.
+     *<P>
+     * Before v1.2.01, games where all players were bots would continue playing if at least one client was
+     * watching/observing. In v2.0.00 and newer, such games can continue only if bot-development property
+     * {@code jsettlers.bots.botgames.total} != 0 and there is an observer. (v1.2.xx does not have that property,
+     * and will destroy the game.)
      *
      * @param c  the connection; if c is being dropped because of an error,
      *           this method assumes that {@link Connection#disconnect()}
@@ -4387,7 +4386,7 @@ public class SOCServer extends Server
      * to join all games that the old connection is playing, as returned
      * by {@link SOCGameListAtServer#playerGamesMinVersion(Connection) gameList.playerGamesMinVersion}.
      *
-     * @param n  the name
+     * @param n  the name; check for max length before calling this method
      * @param newc  A new incoming connection, asking for this name
      * @param withPassword  Did the connection supply a password?
      * @param isBot  True if authenticating as robot, false if human
@@ -4404,14 +4403,14 @@ public class SOCServer extends Server
     private int checkNickname
         (String n, Connection newc, final boolean withPassword, final boolean isBot)
     {
-        if (n.equals(SERVERNAME))
+        if (n.equals(SERVERNAME) || ! SOCMessage.isSingleLineAndSafe(n))
         {
             return -2;
         }
 
-        if (! SOCMessage.isSingleLineAndSafe(n))
+        if (SOCGameList.REGEX_ALL_DIGITS.matcher(n).matches())
         {
-            return -2;
+            return -2;  // TODO distinct ret value, to send localized error to client
         }
 
         // check "debug" and bot name prefixes used in setupLocalRobots
@@ -5586,7 +5585,7 @@ public class SOCServer extends Server
      *                  Calls {@link String#trim() msgUser.trim()} before checking length.
      * @param msgPass password of client in message; will be {@link String#trim() trim()med}.
      * @param gameName  name of game to create/join. Must pass {@link SOCMessage#isSingleLineAndSafe(String)}
-     *                  and be at most {@link #GAME_NAME_MAX_LENGTH} characters.
+     *                  and be at most {@link SOCGameList#GAME_NAME_MAX_LENGTH} characters.
      *                  Calls {@link String#trim() gameName.trim()} before checking length.
      *                  Game name {@code "*"} is also rejected to avoid conflicts with admin commands.
      * @param gameOpts  if game has options, contains {@link SOCGameOption} to create new game; if not null, will not join an existing game.
@@ -5601,10 +5600,6 @@ public class SOCServer extends Server
          String gameName, final Map<String, SOCGameOption> gameOpts)
     {
         System.err.println("L4885 createOrJoinGameIfUserOK at " + System.currentTimeMillis());
-        if (msgUser != null)
-            msgUser = msgUser.trim();
-        if (msgPass != null)
-            msgPass = msgPass.trim();
         if (gameName != null)
             gameName = gameName.trim();
         final int cliVers = c.getVersion();
@@ -5616,6 +5611,11 @@ public class SOCServer extends Server
             /**
              * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
              */
+            if (msgUser != null)
+                msgUser = msgUser.trim();
+            if (msgPass != null)
+                msgPass = msgPass.trim();
+
             final String gName = gameName;
             authOrRejectClientUser
                 (c, msgUser, msgPass, cliVers, true, true,
@@ -5643,22 +5643,32 @@ public class SOCServer extends Server
         /**
          * Check that the game name is ok
          */
+        // TODO I18N
+        if (gameName.length() > SOCGameList.GAME_NAME_MAX_LENGTH)
+        {
+            c.put(new SOCStatusMessage
+                    (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
+                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + SOCGameList.GAME_NAME_MAX_LENGTH));
+            // Please choose a shorter name; maximum length: 30
+
+            return;  // <---- Early return ----
+        }
         if ( (! SOCMessage.isSingleLineAndSafe(gameName))
              || "*".equals(gameName))
         {
             c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
                      SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
-              // "This game name is not permitted, please choose a different name."
+            // "This name is not permitted, please choose a different name."
 
-              return;  // <---- Early return ----
+            return;  // <---- Early return ----
         }
-        if (gameName.length() > GAME_NAME_MAX_LENGTH)
+        if (SOCGameList.REGEX_ALL_DIGITS.matcher(gameName).matches())
         {
             c.put(new SOCStatusMessage
-                    (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
-                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(GAME_NAME_MAX_LENGTH)));
-            // Please choose a shorter name; maximum length: 30
+                    (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
+                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED_DIGITS));
+            // "A name with only digits is not permitted, please add a letter."
 
             return;  // <---- Early return ----
         }
@@ -6777,7 +6787,7 @@ public class SOCServer extends Server
                 requestedBots = null;  // Game already has all players from old game
             }
 
-            boolean willStartGame = (requestedBots != null) && requestedBots.isEmpty()
+            final boolean willStartGame = (requestedBots != null) && requestedBots.isEmpty()
                 && (ga.getGameState() < SOCGame.START1A);
 
             /**
@@ -6892,11 +6902,19 @@ public class SOCServer extends Server
          *    Humans will reset their copy of the game.
          *    Robots will leave the game, and soon will be requested to re-join.
          */
+        final SOCResetBoardAuth resetMsg = new SOCResetBoardAuth(gaName, -1, requestingPlayer);
+        final boolean hasOldClients = (reGame.clientVersionLowest < SOCResetBoardAuth.VERSION_FOR_BLANK_PLAYERNUM);
         for (int pn = 0; pn < reGame.maxPlayers; ++pn)
         {
-            SOCResetBoardAuth resetMsg = new SOCResetBoardAuth(gaName, pn, requestingPlayer);
             if (huConns[pn] != null)
-                messageToPlayer(huConns[pn], resetMsg);
+            {
+                final SOCResetBoardAuth rMsg;
+                if (hasOldClients && (huConns[pn].getVersion() < SOCResetBoardAuth.VERSION_FOR_BLANK_PLAYERNUM))
+                    rMsg = new SOCResetBoardAuth(gaName, pn, requestingPlayer);
+                else
+                    rMsg = resetMsg;
+                messageToPlayer(huConns[pn], rMsg);
+            }
             else if (roConns[pn] != null)
             {
                 if (! resetWithShuffledBots)

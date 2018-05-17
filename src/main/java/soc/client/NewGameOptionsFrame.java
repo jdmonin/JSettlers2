@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2009-2015,2017 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009-2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -68,6 +68,7 @@ import soc.game.SOCScenario;
 import soc.game.SOCVersionedItem;
 import soc.message.SOCMessage;
 import soc.message.SOCStatusMessage;
+import soc.util.SOCGameList;
 import soc.util.SOCStringManager;
 import soc.util.Version;
 
@@ -1240,13 +1241,31 @@ public class NewGameOptionsFrame extends Frame
     private void clickCreate(final boolean checkOptionsMinVers)
     {
         String gmName = gameName.getText().trim();
-        if (gmName.length() == 0)
+        final int L = gmName.length();
+        if (L == 0)
         {
             return;  // Should not happen (button disabled by TextListener)
         }
-        if (! SOCMessage.isSingleLineAndSafe(gmName))
+
+        String errMsg = null;
+        if (L > SOCGameList.GAME_NAME_MAX_LENGTH)
         {
-            msgText.setText(SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED);
+            errMsg = SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + SOCGameList.GAME_NAME_MAX_LENGTH;
+                // "Please choose a shorter name; maximum length: "  TODO I18N
+        }
+        else if (! SOCMessage.isSingleLineAndSafe(gmName))
+        {
+            errMsg = SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED;
+                // "This name is not permitted, please choose a different name."  TODO I18N
+        }
+        else if (SOCGameList.REGEX_ALL_DIGITS.matcher(gmName).matches())
+        {
+            errMsg = SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED_DIGITS;
+                // "A name with only digits is not permitted, please add a letter."  TODO I18N
+        }
+        if (errMsg != null)
+        {
+            msgText.setText(errMsg);
             gameName.requestFocusInWindow();
             return;  // Not a valid game name
         }

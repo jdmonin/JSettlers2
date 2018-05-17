@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012-2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012-2014,2016-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -83,7 +83,7 @@ public class SOCLeaveGame extends SOCMessage
 
     /**
      * Get the optional host name of the server hosting game, or "-", when sent from client.
-     * Unused ("-") when sent from server.
+     * Unused ("-") when sent from server v1.1.17 or newer.
      * @return the host name, or "-"
      */
     public String getHost()

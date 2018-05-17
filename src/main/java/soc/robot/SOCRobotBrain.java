@@ -1943,8 +1943,9 @@ public class SOCRobotBrain extends Thread
 
                     case SOCMessage.CHOOSEPLAYERREQUEST:
                         {
+                            final SOCChoosePlayerRequest msg = (SOCChoosePlayerRequest) mes;
                             final int choicePl = RobberStrategy.chooseRobberVictim
-                                (((SOCChoosePlayerRequest) mes).getChoices(), game, playerTrackers);
+                                (msg.getChoices(), msg.canChooseNone(), game, playerTrackers);
                             counter = 0;
                             client.choosePlayer(game, choicePl);
                         }
@@ -4230,7 +4231,7 @@ public class SOCRobotBrain extends Thread
      * <LI> In other gamestates, assumes requested piece placement location was illegal.
      *   Will call {@link #cancelWrongPiecePlacementLocal(SOCPlayingPiece)}
      *   so we don't try again to build there.
-     * <LI> Either way, sends a {@link CancelBuildRequest} message to the server.
+     * <LI> Either way, sends a {@code CancelBuildRequest} message to the server.
      *</UL>
      *
      * @param mes  Cancel message from server, including piece type

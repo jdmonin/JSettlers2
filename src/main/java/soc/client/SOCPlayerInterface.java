@@ -394,6 +394,7 @@ public class SOCPlayerInterface extends Frame
      * by calling {@link #setClientHand(SOCHandPanel)}.
      * @see #clientHandPlayerNum
      * @see #clientIsCurrentPlayer()
+     * @see #bankTradeWasFromTradePanel
      * @since 1.1.00
      */
     protected SOCHandPanel clientHand;
@@ -408,6 +409,14 @@ public class SOCPlayerInterface extends Frame
     private int clientHandPlayerNum;  // the field for this in some other packages is called ourPN or ourPlayerNumber
 
     /**
+     * If true, client player's most recent bank/port trade request was sent from their handpanel's
+     * Trade Offer panel. So if trade is approved by server, should clear that panel's values to 0.
+     * If false, that request was sent from another interface element.
+     * @since 2.0.00
+     */
+    boolean bankTradeWasFromTradePanel;  // package-level access for SOCHandPanel
+
+    /**
      * the player colors. Indexes from 0 to {@link SOCGame#maxPlayers} - 1.
      * Initialized in constructor.
      * @see #getPlayerColor(int, boolean)
@@ -418,6 +427,7 @@ public class SOCPlayerInterface extends Frame
      * the display that spawned us
      */
     protected GameAwtDisplay gameDisplay;
+
     protected SOCPlayerClient client;
 
     /**
@@ -442,9 +452,9 @@ public class SOCPlayerInterface extends Frame
     protected boolean gameIsStarting;
 
     /**
-     * Flag to set true either if game has been deleted while we're observing it,
+     * Flag to set true if game has been deleted while we're observing it,
      * or was stopped by a server or network error. Is set in {@link #over(boolean, String)}.
-     * @since 2.0.00
+     * @since 1.2.01
      */
     protected boolean gameHasErrorOrDeletion;
 
@@ -577,7 +587,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * Sound prompt when trade is offered to client player.
      * Generated at first call to constructor.
-     * @since 2.0.00
+     * @since 1.2.01
      */
     static byte[] SOUND_OFFERED_TRADE;
 
@@ -1880,6 +1890,9 @@ public class SOCPlayerInterface extends Frame
     /**
      * Print game text to announce either a bank/port trade, a player's new trade offer,
      * or an accepted and completed trade offer between two players.
+     *<P>
+     * For a bank/port trade, also enables client player's Undo Trade button.
+     *
      * @param plFrom  Player making the trade offer or the bank/port/player trade
      * @param give  {@code plFrom} gives these resources
      * @param get   {@code plFrom} gets these resources
@@ -1924,6 +1937,9 @@ public class SOCPlayerInterface extends Frame
             }
 
             printKeyedSpecial(msgKey, plName, give, get, tradeFrom);
+
+            if (clientHand != null)
+                clientHand.enableBankUndoButton();
         }
     }
 
@@ -2281,6 +2297,8 @@ public class SOCPlayerInterface extends Frame
 
         buildingPanel.updateButtonStatus();
 
+        bankTradeWasFromTradePanel = false;
+
         // play Begin Turn sound here, not updateAtRollPrompt() which
         // isn't called for first player during initial placement
         if (clientIsCurrentPlayer())
@@ -2349,24 +2367,20 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Set or clear the chat text input's initial prompt.
-     * Sets its status, foreground color, and the prompt text if true.
+     * If {@code setToInitial} true, sets its status, foreground color, and the prompt text
+     * unless player already sent chat text ({@link #textInputHasSent}).
      *
      * @param setToInitial If false, clear initial-prompt status, and
      *    clear contents (if they are the initial-prompt message);
      *    If true, set initial-prompt status, and set the prompt
      *    (if contents are blank when trimmed).
-     *
-     * @throws IllegalStateException if setInitial true, but player
-     *    already sent chat text (textInputHasSent).
-     *
      * @see #TEXTINPUT_INITIAL_PROMPT_MSG
      * @since 1.1.00
      */
     protected void textInputSetToInitialPrompt(boolean setToInitial)
-        throws IllegalStateException
     {
         if (setToInitial && textInputHasSent)
-            throw new IllegalStateException("Already sent text, can't re-initial");
+            return;  // Already sent text, won't re-prompt
 
         // Always change text before changing flag,
         // so TextListener doesn't fight this action.
@@ -2477,8 +2491,8 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Update interface after game state has changed.
-     * For example, if the client is current player, and state changed from ROLL_OR_CARD to PLAY1,
-     * (Dice has been rolled, or card played), enable the player's Done and Bank buttons.
+     * For example, if the client is current player, and state changed from ROLL_OR_CARD to PLAY1
+     * (Dice have been rolled, or card played), enable the player's Done and Bank buttons.
      * Or, if the player must discard resources or pick free resources from the gold hex,
      * calls {@link #discardOrPickTimerSet(boolean)}.
      *<P>
@@ -2894,17 +2908,19 @@ public class SOCPlayerInterface extends Frame
      * Most GUI panels are destroyed and re-created.  Player chat text is kept.
      *
      * @param newGame New game object
-     * @param rejoinPlayerNumber Sanity check - must be our correct player number in this game, or -1
+     * @param rejoinPlayerNumber Sanity check - must be our correct player number in this game,
+     *     or -1 if server didn't send a player number
      * @param requesterNumber Player who requested the board reset
      *
      * @see soc.server.SOCServer#resetBoardAndNotify(String, int)
      * @since 1.1.00
      */
-    public void resetBoard(SOCGame newGame, int rejoinPlayerNumber, int requesterNumber)
+    public void resetBoard
+        (final SOCGame newGame, final int rejoinPlayerNumber, final int requesterNumber)
     {
         if (clientHand == null)
             return;
-        if ((rejoinPlayerNumber != -1) && (clientHandPlayerNum != rejoinPlayerNumber))
+        if ((rejoinPlayerNumber != -1) && (rejoinPlayerNumber != clientHandPlayerNum))
             return;
         if (newGame == null)
             throw new IllegalArgumentException("newGame is null");
@@ -4192,6 +4208,7 @@ public class SOCPlayerInterface extends Frame
 
         public void playerBankTrade(final SOCPlayer player, final SOCResourceSet give, final SOCResourceSet get)
         {
+            requestedTradeClear(player, true);
             pi.printTradeResources(player, give, get, false, null);
         }
 
@@ -4203,8 +4220,11 @@ public class SOCPlayerInterface extends Frame
                 pi.printTradeResources(offerer, offer.getGiveSet(), offer.getGetSet(), true, null);
         }
 
-        public void requestedTradeClear(SOCPlayer offerer)
+        public void requestedTradeClear(final SOCPlayer offerer, final boolean isBankTrade)
         {
+            if (isBankTrade && ! pi.bankTradeWasFromTradePanel)
+                return;
+
             if (offerer != null)
                 pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(false, false);
             else

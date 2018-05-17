@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -327,8 +327,8 @@ class SOCSpecialItemDialog
             cpane.add(L);
         }
 
-        // Cancel button at bottom
-        bClose = new JButton(strings.get("base.cancel"));
+        // Close button at bottom
+        bClose = new JButton(strings.get("base.close"));
         bClose.addActionListener(this);
         JPanel bPan = new JPanel(new FlowLayout(FlowLayout.CENTER));  // easy way to center and not stretch width
         bPan.add(bClose);

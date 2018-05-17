@@ -298,7 +298,7 @@ public class SOCScenario
      * are placed and sent to clients while game state is still &lt; {@link SOCGame#START1A START1A}.
      *<P>
      * The pirate fleet moves with every dice roll. When a 7 is rolled, the fleet moves and any
-     * battle is resolved before the usual discards.
+     * battle is resolved before the usual discards. Players may choose to not rob from anyone on 7.
      */
     public static final String K_SC_PIRI = "SC_PIRI";
 

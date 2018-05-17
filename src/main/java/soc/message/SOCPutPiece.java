@@ -22,6 +22,7 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.game.SOCGame;  // for javadocs only
 import soc.game.SOCPlayingPiece;  // for javadocs only
 import soc.proto.GameMessage;
 import soc.proto.Message;
@@ -42,7 +43,7 @@ import soc.proto.Message;
  *<P>
  * Some scenarios like {@link soc.game.SOCScenario#K_SC_PIRI SC_PIRI} include some pieces
  * as part of the initial board layout while the game is starting. These will all be sent to
- * the clients while game state is &lt; {@link soc.game.SOCGame#START1A START1A} and before
+ * the clients while game state is &lt; {@link SOCGame#START1A START1A} and before
  * sending them {@link SOCStartGame}. Scenario {@link soc.game.SOCScenario#K_SC_CLVI SC_CLVI}
  * sends its neutral villages before {@code START1A} but as part {@code "CV"} of the board layout
  * message, not as {@code SOCPutPiece}s.
@@ -53,13 +54,13 @@ import soc.proto.Message;
  * disallowed it, the current {@link SOCGameState} and then a {@link SOCCancelBuildRequest}.
  *<P>
  * In v2.0.00 and newer: On their own turn, player clients can optionally request PutPiece in gamestate
- * {@link soc.game.SOCGame#PLAY1 PLAY1} or {@link soc.game.SOCGame#SPECIAL_BUILDING SPECIAL_BUILDING}
+ * {@link SOCGame#PLAY1 PLAY1} or {@link SOCGame#SPECIAL_BUILDING SPECIAL_BUILDING}
  * which implies a {@link SOCBuildRequest} for that piece type, without needing to first send that
  * {@code SOCBuildRequest} and wait for a gamestate response. If request is allowed, the server
  * announces {@link SOCPlayerElement} messages for the resources spent, and then its usual
  * response to a successful {@code SOCPutPiece}. Otherwise the rejection response is sent as
  * described above, and after rejection the gamestate may be a placement state such as
- * {@link soc.game.SOCGame#PLACING_ROAD PLACING_ROAD}.
+ * {@link SOCGame#PLACING_ROAD PLACING_ROAD}.
  *
  * @author Robert S Thomas
  */
@@ -74,12 +75,12 @@ public class SOCPutPiece extends SOCMessage
     private String game;
 
     /**
-     * the type of piece being placed, such as {@link soc.game.SOCPlayingPiece#CITY}
+     * the type of piece being placed, such as {@link SOCPlayingPiece#CITY}
      */
     private int pieceType;
 
     /**
-     * the player number who played the piece, or -1 for non-player-owned {@link soc.game.SOCPlayingPiece#VILLAGE}.
+     * the player number who played the piece, or -1 for non-player-owned {@link SOCPlayingPiece#VILLAGE}.
      * Sent from server, ignored if sent from client.
      */
     private int playerNumber;
@@ -93,8 +94,8 @@ public class SOCPutPiece extends SOCMessage
      * create a PutPiece message
      *
      * @param na  name of the game
-     * @param pt  type of playing piece, such as {@link soc.game.SOCPlayingPiece#CITY}; must be >= 0
-     * @param pn  player number, or -1 for non-player-owned {@link soc.game.SOCPlayingPiece#VILLAGE}.
+     * @param pt  type of playing piece, such as {@link SOCPlayingPiece#CITY}; must be >= 0
+     * @param pn  player number, or -1 for non-player-owned {@link SOCPlayingPiece#VILLAGE}.
      *     Sent from server, ignored if sent from client.
      * @param co  coordinates; must be >= 0
      * @throws IllegalArgumentException if {@code pt} &lt; 0 or {@code co} &lt; 0
@@ -123,7 +124,7 @@ public class SOCPutPiece extends SOCMessage
     }
 
     /**
-     * @return the type of playing piece, such as {@link soc.game.SOCPlayingPiece#CITY}
+     * @return the type of playing piece, such as {@link SOCPlayingPiece#CITY}
      */
     public int getPieceType()
     {
@@ -164,8 +165,8 @@ public class SOCPutPiece extends SOCMessage
      * PUTPIECE sep game sep2 playerNumber sep2 pieceType sep2 coordinates
      *
      * @param ga  the name of the game
-     * @param pn  player number, or -1 for non-player-owned {@link soc.game.SOCPlayingPiece#VILLAGE}
-     * @param pt  type of playing piece, such as {@link soc.game.SOCPlayingPiece#CITY}; must be >= 0
+     * @param pn  player number, or -1 for non-player-owned {@link SOCPlayingPiece#VILLAGE}
+     * @param pt  type of playing piece, such as {@link SOCPlayingPiece#CITY}; must be >= 0
      * @param co  coordinates; must be >= 0
      * @return the command string
      * @throws IllegalArgumentException if {@code pt} &lt; 0 or {@code co} &lt; 0

@@ -20,20 +20,22 @@
  **/
 package soc.message;
 
+import java.util.Arrays;
 import java.util.StringTokenizer;
 
 import soc.proto.GameMessage;
 import soc.proto.Message;
+import soc.game.SOCGameOption;  // for javadocs only
 
 
 /**
- * This message from server to client asks a player to choose a player to
- * steal from.  The client responds with {@link SOCChoosePlayer}.
+ * This message from server to a client prompts that player to choose another
+ * player to steal from.  The client responds with {@link SOCChoosePlayer}.
  *<P>
- * In some game scenarios in version 2.0.00 or newer,
- * the player might have the option to steal from no one.
- * See {@link #getChoices()} for details.  If the player
- * makes that choice, the response is {@link SOCChoosePlayer}
+ * In some game scenarios like {@link SOCGameOption#K_SC_PIRI SC_PIRI},
+ * the player might have the option to not steal from anyone: Message will
+ * have its {@link #canChooseNone()} flag set.
+ * If the player makes that choice, their response to server is {@link SOCChoosePlayer}
  * ({@link SOCChoosePlayer#CHOICE_NO_PLAYER CHOICE_NO_PLAYER}).
  *
  * @author Robert S. Thomas
@@ -41,40 +43,44 @@ import soc.proto.Message;
 public class SOCChoosePlayerRequest extends SOCMessage
     implements SOCMessageForGame
 {
-    private static final long serialVersionUID = 1111L;  // last structural change v1.1.11
+    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /**
      * Name of game
      */
-    private String game;
+    private final String game;
+
+    /**
+     * True if can choose to not steal from anyone.
+     * @see #canChooseNone()
+     * @see #choices
+     * @since 2.0.00
+     */
+    private final boolean allowChooseNone;
 
     /**
      * The possible choices; an array with 1 element per player number
      * (0 to <tt>game.maxPlayers - 1</tt>).
-     * True means that the player with a matching index is a
-     * possible choice.
-     *<P>
-     * In version 2.0.00+, this array may sometimes have an extra element <tt>choices[game.maxPlayers]</tt>.
-     * If that element is true, the player may choose to steal from no one.
+     * True means that the player with a matching index is a possible choice.
+     * @see #allowChooseNone
      */
-    private boolean[] choices;
+    private final boolean[] choices;
 
     /**
      * Create a ChoosePlayerRequest message.
      *
      * @param ga  the name of the game
      * @param ch  the possible choices; an array with 1 element per player number
-     * (0 to <tt>game.maxPlayers - 1</tt>).
-     *<P>
-     * In version 2.0.00+, this array may sometimes have an extra element <tt>choices[game.maxPlayers]</tt>.
-     * If that element is true, the player may choose to steal from no one.
-     * This is used with some game scenarios; all scenarios require version 2.0.00 or newer.
+     *     (0 to <tt>game.maxPlayers - 1</tt>)
+     * @param canChooseNone  true if can choose to not steal from anyone.
+     *     This is used with some game scenarios; all scenarios require version 2.0.00 or newer.
      */
-    public SOCChoosePlayerRequest(String ga, boolean[] ch)
+    public SOCChoosePlayerRequest(final String ga, final boolean[] ch, final boolean canChooseNone)
     {
         messageType = CHOOSEPLAYERREQUEST;
         game = ga;
         choices = ch;
+        allowChooseNone = canChooseNone;
     }
 
     /**
@@ -86,12 +92,8 @@ public class SOCChoosePlayerRequest extends SOCMessage
     }
 
     /**
-     * @return the choices; an array with 1 element per player number
-     * (0 to <tt>game.maxPlayers - 1</tt>).
-     *<P>
-     * In version 2.0.00+, this array may sometimes have an extra element <tt>choices[game.maxPlayers]</tt>.
-     * If that element is true, the player may choose to steal from no one.
-     * This is used with some game scenarios; all scenarios require version 2.0.00 or newer.
+     * @return the choices; an array with 1 element per player number (0 to <tt>game.maxPlayers - 1</tt>)
+     * @see #canChooseNone()
      */
     public boolean[] getChoices()
     {
@@ -99,34 +101,55 @@ public class SOCChoosePlayerRequest extends SOCMessage
     }
 
     /**
-     * CHOOSEPLAYERREQUEST sep game sep2 choices[0] sep2 choices[1] ...
+     * Can the player choose to not steal from anyone?
+     * This is used with some game scenarios; all scenarios require version 2.0.00 or newer.
+     * @return true if can make that choice
+     * @see #getChoices()
+     * @since 2.0.00
+     */
+    public boolean canChooseNone()
+    {
+        return allowChooseNone;
+    }
+
+    /**
+     * CHOOSEPLAYERREQUEST sep game sep2 [ "NONE" sep2 ] choices[0] sep2 choices[1] ...
+     *<BR>
+     * Each {@code choices} element is lowercase "true" or "false".
      *
      * @return the command string
      */
     public String toCmd()
     {
-        return toCmd(game, choices);
+        return toCmd(game, choices, allowChooseNone);
     }
 
     /**
-     * CHOOSEPLAYERREQUEST sep game sep2 choices[0] sep2 choices[1] ...
+     * CHOOSEPLAYERREQUEST sep game sep2 [ "NONE" sep2 ] choices[0] sep2 choices[1] ...
+     *<BR>
+     * Each {@code choices} element is lowercase "true" or "false".
      *
      * @param ga  the name of the game
      * @param ch  the choices; an array with 1 element per player number
-     *     (0 to <tt>game.maxPlayers - 1</tt>).
-     *     May be longer in v2.0.00 scenarios; see {@link #getChoices()}.
+     *     (0 to <tt>game.maxPlayers - 1</tt>)
+     * @param canChooseNone  true if can choose to not steal from anyone.
+     *     This is used with some game scenarios; all scenarios require version 2.0.00 or newer.
      * @return the command string
      */
-    public static String toCmd(String ga, boolean[] ch)
+    public static String toCmd(final String ga, final boolean[] ch, final boolean canChooseNone)
     {
-        String mes = CHOOSEPLAYERREQUEST + sep + ga;
+        StringBuilder mes = new StringBuilder(CHOOSEPLAYERREQUEST + sep + ga);
+
+        if (canChooseNone)
+            mes.append(sep2 + "NONE");
 
         for (int i = 0; i < ch.length; i++)
         {
-            mes += (sep2 + ch[i]);
+            mes.append(sep2_char);
+            mes.append(ch[i] ? "true" : "false");
         }
 
-        return mes;
+        return mes.toString();
     }
 
     /**
@@ -138,6 +161,7 @@ public class SOCChoosePlayerRequest extends SOCMessage
     public static SOCChoosePlayerRequest parseDataStr(String s)
     {
         String ga; // the game name
+        boolean canChooseNone = false;
         boolean[] ch; // the choices
 
         StringTokenizer st = new StringTokenizer(s, sep2);
@@ -146,13 +170,27 @@ public class SOCChoosePlayerRequest extends SOCMessage
         {
             ga = st.nextToken();
 
-            ch = new boolean[st.countTokens()];
-            int count = 0;
+            int n = st.countTokens();
+            if (n == 0)
+                return null;
 
-            while (st.hasMoreTokens())
+            String tok = st.nextToken();
+            if (tok.equals("NONE"))
             {
-                ch[count] = (Boolean.valueOf(st.nextToken())).booleanValue();
-                count++;
+                canChooseNone = true;
+                --n;
+                if (n == 0)
+                    return null;
+                tok = st.nextToken();
+            }
+
+            ch = new boolean[n];
+            for (int count = 0; ; ++count)
+            {
+                ch[count] = (tok.equals("true"));
+                if (! st.hasMoreTokens())
+                    break;
+                tok = st.nextToken();
             }
         }
         catch (Exception e)
@@ -160,7 +198,7 @@ public class SOCChoosePlayerRequest extends SOCMessage
             return null;
         }
 
-        return new SOCChoosePlayerRequest(ga, ch);
+        return new SOCChoosePlayerRequest(ga, ch, canChooseNone);
     }
 
     @Override
@@ -182,13 +220,11 @@ public class SOCChoosePlayerRequest extends SOCMessage
      */
     public String toString()
     {
-        String mes = "SOCChoosePlayerRequest:game=" + game + "|choices=" + choices[0];
-
-        for (int i = 1; i < choices.length; i++)
-        {
-            mes += (", " + choices[i]);
-        }
-
-        return mes;
+        StringBuilder sb = new StringBuilder("SOCChoosePlayerRequest:game=" + game);
+        if (canChooseNone())
+            sb.append("|canChooseNone=true");
+        sb.append("|choices=" + Arrays.toString(choices));  // "[true, false, ...]"
+        return sb.toString();
     }
+
 }

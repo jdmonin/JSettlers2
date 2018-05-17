@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2008-2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2014,2016-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - getGameNames, parameterize types
  *
  * This program is free software; you can redistribute it and/or
@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 
 /**
@@ -46,13 +47,33 @@ import java.util.Set;
  * If the game name has this prefix, its {@link GameInfo#canJoin} flag is set to false,
  * as queried by {@link #isUnjoinableGame(String)}.  The prefix is stripped within addGame,
  * and not stored as part of the game name in this list.
- * Besides addGame, never supply this prefix to a SOCGameList method taking a game name;
+ * Except to {@code addGame}, never supply this prefix to a SOCGameList method taking a game name;
  * supply the game name without the prefix.
  *
  * @author Robert S. Thomas
  */
 public class SOCGameList
 {
+    /**
+     * Maximum permitted game name length, default 30 characters.
+     *<P>
+     * Before v1.1.13, the default maximum was 20 characters.<BR>
+     * From v1.1.07 through 1.2.00, this field was {@code SOCServer.GAME_NAME_MAX_LENGTH}.
+     *
+     * @see soc.server.SOCServer#createOrJoinGameIfUserOK(soc.server.genericServer.Connection, String, String, String, Map)
+     * @since 1.2.01
+     */
+    public static final int GAME_NAME_MAX_LENGTH = 30;
+
+    /**
+     * Regex pattern to match a string which is entirely digits:
+     * 0-9 or unicode class {@code Nd} ({@link Character#isDigit(int)}).
+     * Useful for checking validity of a new game name at client or server.
+     * @since 2.0.00
+     */
+    public static final Pattern REGEX_ALL_DIGITS = Pattern.compile("^\\p{Nd}+$");
+        // \d won't capture unicode digits without using (?U) not available before java 7 (UNICODE_CHARACTER_CLASS)
+
     /** key = String, value = {@link GameInfo}; includes mutexes to synchronize game state access,
      *  game options, and other per-game info
      */
@@ -363,6 +384,7 @@ public class SOCGameList
      *
      * @param gaName Name of added game; may be marked with the prefix
      *         {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
+     *         Not validated here for length or naming rules.
      * @param gaOpts Map of {@link SOCGameOption game options} of added game, or null
      * @param gaOptsStr set of {@link SOCGameOption}s as packed by
      *         {@link SOCGameOption#packOptionsToString(Map, boolean)}, or null.

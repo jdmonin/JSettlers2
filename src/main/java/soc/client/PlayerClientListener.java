@@ -251,9 +251,15 @@ public interface PlayerClientListener
     void requestedTrade(SOCPlayer offerer);
 
     /**
+     * Clear any trade offer to other players, and reset all trade resource square values to 0.
+     * May also be called after a successful bank trade, to reset those resources.
      * @param offerer May be {@code null} to clear all seats
+     * @param isBankTrade  If true, is being called after a successful bank trade.
+     *     If bank trade wasn't sent from player's Trade Panel, should do nothing:
+     *     Don't reset square values to 0.
      */
-    void requestedTradeClear(SOCPlayer offerer);
+    void requestedTradeClear(SOCPlayer offerer, final boolean isBankTrade);
+
     void requestedTradeRejection(SOCPlayer rejecter);
 
     /**
@@ -311,7 +317,19 @@ public interface PlayerClientListener
     void pieceValueUpdated(SOCPlayingPiece piece);
 
     void boardPotentialsUpdated();
+
+    /**
+     * Handle board reset (new game with same players, same game name).
+     * Most GUI panels are destroyed and re-created.  Player chat text is kept.
+     *
+     * @param newGame New game object
+     * @param newSeatNumber  Our player number in {@code newGame},
+     *     which is always the same as in the pre-reset game,
+     *     or -1 if server didn't send a player number
+     * @param requestingPlayerNumber Player who requested the board reset
+     */
     void boardReset(SOCGame newGame, int newSeatNumber, int requestingPlayerNumber);
+
     void boardResetVoteRequested(SOCPlayer requestor);
     void boardResetVoteCast(SOCPlayer voter, boolean vote);
     void boardResetVoteRejected();

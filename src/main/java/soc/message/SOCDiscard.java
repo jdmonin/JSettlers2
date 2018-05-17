@@ -107,10 +107,7 @@ public class SOCDiscard extends SOCMessage
      */
     public String toCmd()
     {
-        return toCmd
-            (game, resources.getAmount(Data.ResourceType.CLAY_VALUE), resources.getAmount(Data.ResourceType.ORE_VALUE),
-             resources.getAmount(Data.ResourceType.SHEEP_VALUE), resources.getAmount(Data.ResourceType.WHEAT_VALUE),
-             resources.getAmount(Data.ResourceType.WOOD_VALUE), resources.getAmount(Data.ResourceType.UNKNOWN_VALUE));
+        return toCmd(game, resources);
     }
 
     /**
@@ -123,28 +120,13 @@ public class SOCDiscard extends SOCMessage
      */
     public static String toCmd(String ga, SOCResourceSet rs)
     {
-        return toCmd
-            (ga, rs.getAmount(Data.ResourceType.CLAY_VALUE), rs.getAmount(Data.ResourceType.ORE_VALUE),
-             rs.getAmount(Data.ResourceType.SHEEP_VALUE), rs.getAmount(Data.ResourceType.WHEAT_VALUE),
-             rs.getAmount(Data.ResourceType.WOOD_VALUE), rs.getAmount(Data.ResourceType.UNKNOWN_VALUE));
-    }
-
-    /**
-     * DISCARD sep game sep2 clay sep2 ore sep2 sheep sep2
-     * wheat sep2 wood sep2 unknown
-     *
-     * @param ga  the name of the game
-     * @param cl  the amount of clay being discarded
-     * @param or  the amount of ore being discarded
-     * @param sh  the amount of sheep being discarded
-     * @param wh  the amount of wheat being discarded
-     * @param wo  the amount of wood being discarded
-     * @param uk  the amount of unknown resources being discarded
-     * @return the command string
-     */
-    public static String toCmd(String ga, int cl, int or, int sh, int wh, int wo, int uk)
-    {
-        return DISCARD + sep + ga + sep2 + cl + sep2 + or + sep2 + sh + sep2 + wh + sep2 + wo + sep2 + uk;
+        return DISCARD + sep + ga + sep2
+            + rs.getAmount(Data.ResourceType.CLAY_VALUE) + sep2
+            + rs.getAmount(Data.ResourceType.ORE_VALUE) + sep2
+            + rs.getAmount(Data.ResourceType.SHEEP_VALUE) + sep2
+            + rs.getAmount(Data.ResourceType.WHEAT_VALUE) + sep2
+            + rs.getAmount(Data.ResourceType.WOOD_VALUE) + sep2
+            + rs.getAmount(Data.ResourceType.UNKNOWN_VALUE);
     }
 
     /**

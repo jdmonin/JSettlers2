@@ -22,25 +22,19 @@ and backport minor new features until `2.0.00` is ready.
 ## `2.0.00` (build JM2018xxxx)
 - Large board (sea board) support
 - Game Scenario and special-rules support
-- Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard's dialog)
-- Sound prompt when client player is offered a trade
-- Game expiration:
-    - Initial game length increased: Now 2 hours, was 90 minutes
-    - Warns 5 or 6 minutes earlier
-    - Ensure at least 1 warning before ending game:
-      Local-server games won't immediately expire when a sleeping laptop wakes
-      (Practice games haven't expired since v1.1.09)
-- Game windows: Render board with antialiasing; player name labels sans-serif for cleaner look
+- Client:
+	- Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard dialog)
+	- Bank trades: If server declines trade, don't enable Undo Trade button or clear Give/Get resources to 0
+	- Game windows: Player name labels sans-serif for cleaner look
+	- On OSX, set app name to JSettlers in menu bar
+	- Popups (AskDialog, etc) layout fine-tuned, can wrap multi-line text
 - I18N framework in place, started by Luis A. Ramirez; thank you Luis. Jeremy wrote more I18N utilities (package net.nand.util.i18n).
-- Client sends server its locale, to support i18n localization
-- Client: On OSX, set app name to JSettlers in menu bar
+- Game names and user nicknames can't be a number: Must contain a non-digit character
 - Applet class is now `soc.client.SOCApplet`
 - Message traffic:
 	- When joining game in progress, server sends current round to update client's "*n* rounds left for No 7s" display
 	- More efficient game-setup messages over network
 	- SOCBuildRequest now optional before client's SOCPutPiece request
-- Server game cleanup: If the last human exits a game with bots and observers, don't
-  continue that game as bots-only unless property `jsettlers.bots.botgames.total` != 0
 - Server Config Validation mode: Test the current config and exit, with new startup option:
 	`-t` or `--test-config`
 - Game option key names can now be longer (8 characters)
@@ -81,12 +75,35 @@ and backport minor new features until `2.0.00` is ready.
     LocalStringConnection -> StringConnection, etc
 - Game state renamed for clarity: SOCGame.PLAY -> ROLL_OR_CARD; PLAY1 not renamed; SOCRobotBrain.expectPLAY -> expectROLL_OR_CARD
 - Minor refactoring
-- Popups (AskDialog, etc) layout fine-tuned, can wrap multi-line text
 - Project dir structure converted to maven layout
 - To simplify build process, move version and copyright info from `build.xml` to `version.info`
 - READMEs and VERSIONS.txt converted to Markdown (thank you Ruud Poutsma),
     merged old-updates-rsthomas.html into Versions.md
 
+
+## `1.2.01` (build OV201805xx)
+- Game expiration:
+    - Initial game length increased: Now 2 hours, was 90 minutes
+    - Warns 5 or 6 minutes earlier
+    - Ensure at least 1 warning before ending game:
+      Local-server games won't immediately expire when a sleeping laptop wakes
+      (Practice games haven't expired since v1.1.09)
+- Client:
+    - Game window bugfix: Join Game hangs on Windows Java 9 (SnippingTextArea peer NoSuchMethodError)
+    - Sound prompt when client player is offered a trade
+    - Game windows: Render board with antialiasing
+- Players can end their turn during Free Road placement if dice were rolled before playing the card.
+  Even if no free roads were placed, the Road Building card is not returned to their hand.
+- When force-ending a turn (or connection lost) after playing Road Building but before placing
+  the first free road, the Road Building card is returned to player's hand
+- Server game cleanup: If the last human exits a game with bots and observers, don't
+  continue that game as bots-only unless property `jsettlers.bots.botgames.total` != 0
+- Server console: During startup, don't print connect messages for built-in robots
+- Server closes connections to rejected clients or bots
+- When member leaves a channel, don't send hostname to all members
+- Standalone robot client: Print message at successful auth, instead of no output
+- If new game options require a certain version, don't warn unless the required version
+  is newer than `1.1.20` (released October 2016).
 
 ## `1.2.00` (build OV20171005)
 - Simple sound effects for game events: Start of client player's turn, resource stolen by robber, etc
@@ -120,7 +137,7 @@ and backport minor new features until `2.0.00` is ready.
        (The postgresql and sqlite DB scripts have always created the DB as unicode.)
      - If using postgresql: Tables are created by socuser, not postgres system user
 - Game window during debug: Reset "current player" indicator when exiting `*FREEPLACE*` debug mode
-- Client debug, bot debug: Print network message contents if system property jsettlers.debug.traffic is set
+- Client debug, bot debug: Print network message contents if system property `jsettlers.debug.traffic=Y` is set
 - Startup: Show error if can't read own JSettlers version info
 
 

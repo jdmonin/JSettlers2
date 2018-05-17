@@ -24,12 +24,17 @@ import java.util.StringTokenizer;
 
 import soc.proto.GameMessage;
 import soc.proto.Message;
+import soc.game.SOCGame;  // for javadocs only
 
 
 /**
  * This message (from client to server) means that a client player wants to
  * move the robber or pirate ship, or (from server to all players) a player
  * has moved the robber or pirate ship.
+ *<P>
+ * From current player's client, is sent in response to server's
+ * {@link SOCGameState}({@link SOCGame#PLACING_ROBBER PLACING_ROBBER}
+ * or {@link SOCGame#PLACING_PIRATE PLACING_PIRATE}).
  *<P>
  * From the server, the message will be followed by other messages
  * about gaining/losing resources.  So for this message, the client
@@ -72,7 +77,7 @@ public class SOCMoveRobber extends SOCMessage
      *
      * @param na  name of the game
      * @param pn  player number
-     * @param co  hex coordinates: positive for robber, negative for pirate
+     * @param co  hex coordinates: positive for robber, negative or 0 for pirate
      */
     public SOCMoveRobber(String na, int pn, int co)
     {
@@ -126,7 +131,7 @@ public class SOCMoveRobber extends SOCMessage
      *
      * @param na  the name of the game
      * @param pn  player number
-     * @param co  coordinates
+     * @param co  hex coordinates: positive for robber, negative or 0 for pirate
      * @return the command string
      */
     public static String toCmd(String na, int pn, int co)

@@ -1198,7 +1198,7 @@ public class TradeOfferPanel extends Panel
      * Is panel in offer mode and is its current offer made to the client player?
      * @return  True only if {@link #isVisible()} in {@link #OFFER_MODE} and current offer's "made to" players list
      *     includes the client player, if any.
-     * @since 2.0.00
+     * @since 1.2.01
      */
     public boolean isOfferToClientPlayer()
     {
