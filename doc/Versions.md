@@ -54,6 +54,8 @@ and backport minor new features until `2.0.00` is ready.
 	  To pause only 10% as long as in normal games, use  
 	  `-Djsettlers.bots.fast_pause_percent=10`
 	- New debug command `*STARTBOTGAME* [maxBots]` to begin current game as bots-only
+    - If the last human player leaves a game with bots and observers, server continues that game as bots-only
+	  if property `jsettlers.bots.botgames.total` != 0
 	- Standalone bot clients shut down properly if they can't reconnect to server after 3 retries
 	- Example `soc.robot.sample3p.Sample3PBrain extending SOCRobotBrain`, `Sample3PClient extending SOCRobotClient`
 	- Some private SOCRobotClient fields made protected for use by bot developer 3rd-party subclasses
@@ -92,8 +94,8 @@ and backport minor new features until `2.0.00` is ready.
   Even if no free roads were placed, the Road Building card is not returned to their hand.
 - When force-ending a turn (or connection lost) after playing Road Building but before placing
   the first free road, the Road Building card is returned to player's hand
-- Server game cleanup: If the last human exits a game with bots and observers, don't
-  continue that game as bots-only unless property `jsettlers.bots.botgames.total` != 0
+- Server game cleanup: If the last human player leaves a game with bots and observers,
+  don't continue that game as bots-only
 - Server console: During startup, don't print connect messages for built-in robots
 - Server closes connections to rejected clients or bots
 - When member leaves a channel, don't send hostname to all members
