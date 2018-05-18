@@ -209,6 +209,8 @@ public class SOCChoosePlayerRequest extends SOCMessage
         for (int pn = 0; pn < choices.length; ++pn)
             if (choices[pn])
                 b.addChooseablePlayerNumber(pn);
+        if (allowChooseNone)
+            b.setCanChooseNone(true);
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
         gb.setGameName(game).setChoosePlayerPrompt(b);

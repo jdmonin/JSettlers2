@@ -24981,6 +24981,8 @@ public final class GameMessage {
    * <pre>
    * A player picks a resource type, typically for a Monopoly card.
    * Sent by current player client in response to GameState(WAITING_FOR_MONOPOLY).
+   *&lt;P&gt;
+   * Before v3.0.00 this message type was SOCPickResourceType.
    * </pre>
    *
    * Protobuf type {@code ChooseResourceType}
@@ -25234,6 +25236,8 @@ public final class GameMessage {
      * <pre>
      * A player picks a resource type, typically for a Monopoly card.
      * Sent by current player client in response to GameState(WAITING_FOR_MONOPOLY).
+     *&lt;P&gt;
+     * Before v3.0.00 this message type was SOCPickResourceType.
      * </pre>
      *
      * Protobuf type {@code ChooseResourceType}
@@ -25528,7 +25532,9 @@ public final class GameMessage {
   }
   /**
    * <pre>
-   * A player chooses another player, typically to rob from. 
+   * A player chooses another player, typically to rob from.
+   * This message type is used for the prompt from server,
+   * and the response from client player.
    * </pre>
    *
    * Protobuf type {@code ChoosePlayer}
@@ -25889,7 +25895,9 @@ public final class GameMessage {
     }
     /**
      * <pre>
-     * A player chooses another player, typically to rob from. 
+     * A player chooses another player, typically to rob from.
+     * This message type is used for the prompt from server,
+     * and the response from client player.
      * </pre>
      *
      * Protobuf type {@code ChoosePlayer}
@@ -26323,10 +26331,10 @@ public final class GameMessage {
    * <pre>
    * A player moves the robber, or the pirate ship on the sea board.
    * - Server sends GameState(PLACING_ROBBER) or (PLACING_PIRATE)
-   * - Client player responds with a location to move to,
+   * - Client player responds with MoveRobber with a location to move to,
    *   and either is_robber or is_pirate flag.
    * - If player can move there, server announces the move to the game
-   *   and the new game state.
+   *   with MoveRobber and the new game state.
    *   Otherwise server sends error text to the client and
    *   game state remains PLACING_ROBBER or PLACING_PIRATE.
    * </pre>
@@ -26669,10 +26677,10 @@ public final class GameMessage {
      * <pre>
      * A player moves the robber, or the pirate ship on the sea board.
      * - Server sends GameState(PLACING_ROBBER) or (PLACING_PIRATE)
-     * - Client player responds with a location to move to,
+     * - Client player responds with MoveRobber with a location to move to,
      *   and either is_robber or is_pirate flag.
      * - If player can move there, server announces the move to the game
-     *   and the new game state.
+     *   with MoveRobber and the new game state.
      *   Otherwise server sends error text to the client and
      *   game state remains PLACING_ROBBER or PLACING_PIRATE.
      * </pre>

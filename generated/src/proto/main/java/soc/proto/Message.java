@@ -4229,8 +4229,8 @@ public final class Message {
        *&lt;P&gt;
        * {&#64;code detail} field contains the exact-case username to use.
        *&lt;P&gt;
-       * When joining a game or chat channel, server sends the message with this status before {&#64;link JoinGame}
-       * or (for v2.0.00 and newer) {&#64;link JoinChannel}. In reply to client's {&#64;link AuthRequest} this
+       * When joining a game or chat channel, server sends the message with this status before
+       * {&#64;link JoinGame} or {&#64;link JoinChannel}. In reply to client's {&#64;link AuthRequest} this
        * status is sent instead of a message with status {&#64;link #SV_OK}.
        *&lt;P&gt;
        * &lt;B&gt;Bots:&lt;/B&gt; Server and client code assume that only human player clients, not bots or
@@ -4506,8 +4506,8 @@ public final class Message {
        *&lt;P&gt;
        * {&#64;code detail} field contains the exact-case username to use.
        *&lt;P&gt;
-       * When joining a game or chat channel, server sends the message with this status before {&#64;link JoinGame}
-       * or (for v2.0.00 and newer) {&#64;link JoinChannel}. In reply to client's {&#64;link AuthRequest} this
+       * When joining a game or chat channel, server sends the message with this status before
+       * {&#64;link JoinGame} or {&#64;link JoinChannel}. In reply to client's {&#64;link AuthRequest} this
        * status is sent instead of a message with status {&#64;link #SV_OK}.
        *&lt;P&gt;
        * &lt;B&gt;Bots:&lt;/B&gt; Server and client code assume that only human player clients, not bots or
