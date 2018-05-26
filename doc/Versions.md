@@ -185,7 +185,7 @@ and backport minor new features until `2.0.00` is ready.
 - User account admin client:
      - After creating new user, clear password fields in form
      - Auto-authenticate when creating first admin account in new db
-     - Minimum server version `1.1.19`; for older servers, please download and use the older version's account client
+     - Minimum server version `1.1.19`; for older servers, please download the older version's Full JAR and use its account client
      - Server requires minimum client version `1.1.19`, to authenticate before creating users
 - User account DB schema: For new installs, require user passwords (existing DBs don't need to make this change).
   Passwords were already required in earlier versions; this only formalizes it in the database.
