@@ -58,6 +58,7 @@ public class SOCGameBoardReset
      * Were there robots in the old game?
      * If so, this reset object's constructor set new game's {@link SOCGame#boardResetOngoingInfo} field,
      * and set its state to {@link SOCGame#READY_RESET_WAIT_ROBOT_DISMISS}.
+     * When our {@link #oldRobotCount} is 0, {@link #newGame} can begin.
      * @see #hasRobots
      */
     public final boolean hadRobots;
@@ -72,6 +73,7 @@ public class SOCGameBoardReset
     public final boolean hasRobots;
 
     /** Are we still waiting for robots to leave the old game?
+     * @see #hadRobots
      * @since 1.1.07
      */
     public int oldRobotCount;
@@ -80,11 +82,11 @@ public class SOCGameBoardReset
      * Human and robot connections; both arrays null at vacant seats.
      * {@link soc.game.SOCGame#resetAsCopy()} will duplicate human players
      * in the new game, but not robot players.
-     * Indexed 0 to SOCGame.MAXPLAYERS-1
+     * Indexed 0 to {@link SOCGame#maxPlayers newGame.maxPlayers} - 1.
      */
     public Connection[] humanConns, robotConns;
 
-    /** Was this player position a robot? Indexed 0 to SOCGame.MAXPLAYERS-1 */
+    /** Was this player position a robot? Indexed 0 to {@link SOCGame#maxPlayers newGame.maxPlayers} - 1 */
     public boolean[] wasRobot;
 
     /** Create a SOCGameReset: Extract data, reset the old game, and gather new data.
@@ -118,8 +120,8 @@ public class SOCGameBoardReset
                     hasBots = true;
             }
         }
-        this.hadRobots = hadBots;
-        this.hasRobots = hasBots;
+        hadRobots = hadBots;
+        hasRobots = hasBots;
 
         /**
          * Reset the game
