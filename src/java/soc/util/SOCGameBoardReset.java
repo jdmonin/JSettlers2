@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008-2010,2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2010,2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -43,17 +43,34 @@ import soc.server.genericServer.StringConnection;
 public class SOCGameBoardReset
 {
     /** The new game, created from an old game by {@link soc.game.SOCGame#resetAsCopy()} */ 
-    public SOCGame newGame;
+    public final SOCGame newGame;
 
     /** gamestate of old game at reset time
      * @since 1.1.06
      */
-    final public int oldGameState;
+    public final int oldGameState;
 
-    /** Were there robots in the old game? */
-    public boolean hadRobots;
+    /**
+     * Were there robots in the old game?
+     * If so, this reset object's constructor set new game's {@link SOCGame#boardResetOngoingInfo} field,
+     * and set its state to {@link SOCGame#READY_RESET_WAIT_ROBOT_DISMISS}.
+     * When our {@link #oldRobotCount} is 0, {@link #newGame} can begin.
+     * @see #hasRobots
+     */
+    public final boolean hadRobots;
 
-    /** Are we still waiting for robots to leave the old game?
+    /**
+     * Will there be robots in the new game?
+     * If so, this reset object's constructor and set its state to {@link SOCGame#READY}
+     * until they have all joined.
+     * @see #hadRobots
+     * @since 1.2.01
+     */
+    public final boolean hasRobots;
+
+    /**
+     * Are we still waiting for robots to leave the old game?
+     * @see #hadRobots
      * @since 1.1.07
      */
     public int oldRobotCount;
@@ -66,7 +83,7 @@ public class SOCGameBoardReset
      */
     public StringConnection[] humanConns, robotConns;
 
-    /** Was this player position a robot? Indexed 0 to SOCGame.MAXPLAYERS-1 */
+    /** Was this player position a robot? Indexed 0 to {@link SOCGame#maxPlayers newGame.maxPlayers} - 1 */
     public boolean[] wasRobot;
 
     /** Create a SOCGameReset: Extract data, reset the old game, and gather new data.
@@ -83,9 +100,10 @@ public class SOCGameBoardReset
     public SOCGameBoardReset (SOCGame oldGame, Vector memberConns)
     {
         oldGameState = oldGame.getGameState();
-        hadRobots = false;
         oldRobotCount = 0;
         wasRobot = new boolean[oldGame.maxPlayers];
+
+        boolean hadBots = false, hasBots = false;
         for (int i = 0; i < oldGame.maxPlayers; ++i)
         {
             SOCPlayer pl = oldGame.getPlayer(i);
@@ -93,10 +111,14 @@ public class SOCGameBoardReset
             wasRobot[i] = isRobot;
             if (isRobot)
             {
-                hadRobots = true;
+                hadBots = true;
                 ++oldRobotCount;
+                if (! oldGame.isSeatLocked(i))
+                    hasBots = true;
             }
         }
+        hadRobots = hadBots;
+        hasRobots = hasBots;
 
         /**
          * Reset the game

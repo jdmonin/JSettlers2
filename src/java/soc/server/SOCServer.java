@@ -10753,10 +10753,10 @@ public class SOCServer extends Server
         }
 
         /**
-         * 5a. If no robots, send to game as if someone else has
+         * 5a. If no robots in new game, send to game as if someone else has
          *     clicked "start game", and set up state to begin game play.
          */
-        if (! reBoard.hadRobots)
+        if (! reBoard.hasRobots)
         {
             startGame (reGame);
         }
