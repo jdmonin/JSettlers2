@@ -28,6 +28,7 @@ When preparing to release a new version, testing should include:
     - New client joins and replaces bot; verify all of player info is sent
     - On own turn, leave again, bot takes over
     - Lock 1 bot seat and reset game: that seat should remain empty, no bot
+    - Lock the only remaining bot seat and reset game: no bots in new game, it begins immediately
 - Game play: (as debug user or in practice game)
     - Get and play all non-VP dev card types, and give 1 VP card, with debug commands
 

@@ -8532,6 +8532,7 @@ public class SOCGame implements Serializable, Cloneable
         /** Seat is locked.
          *  If game is forming, a bot will not sit here when the game starts.
          *  If game is active, a newly-joining player can't take over a bot in this seat.
+         *  @see #CLEAR_ON_RESET
          */
         LOCKED,
 
@@ -8539,8 +8540,8 @@ public class SOCGame implements Serializable, Cloneable
          *  Useful for resetting a game to play again with fewer robots, if a robot is currently sitting here.
          *  Not a valid seat lock state if game is still forming.
          *<P>
-         *  This feature was added in v2.0.00; before that version, the seat lock state was
-         *  boolean (UNLOCKED or LOCKED).  Game resets included all robots unless their seat
+         *  That feature was added in v2.0.00; before that version, the seat lock state was
+         *  boolean ({@link #UNLOCKED} or {@link #LOCKED}).  Game resets included all robots unless their seat
          *  was LOCKED at the time of reset.
          */
         CLEAR_ON_RESET
