@@ -29,6 +29,7 @@ When preparing to release a new version, testing should include:
     - On own turn, leave again, bot takes over
     - Lock 1 bot seat and reset game: that seat should remain empty, no bot
     - Lock the only remaining bot seat and reset game: no bots in new game, it begins immediately
+        - Use v2.0.xx lock button's new "Marked" state for this test
 - Game play: (as debug user or in practice game)
     - Get and play all non-VP dev card types, and give 1 VP card, with debug commands
 
@@ -41,7 +42,8 @@ When preparing to release a new version, testing should include:
             dev: 1 playername
 
       Should see "You may place your 1 remaining road." & be able to do other actions afterwards
-    - 6-player board: On server game with a player and observer, request and use Special Building Phase
+    - 6-player board: On server game with a player and observer, request and use Special Building Phase (SBP)
+        - Observer sees request for SBP; then during player's SBP, observer sees yellow turn arrow for your player
 - Basic GUI functions:
     - Board resizes with window
     - Sound works
@@ -65,6 +67,7 @@ When preparing to release a new version, testing should include:
     - Trade offer, rejection, counter-offer accept/rejection
     - Can play dev card before dice roll
     - Can win only on your own turn
+	    - This can be tested using the 6-player board's Special Building Phase
 - Game reset voting, with: 1 human 2 bots, 2 humans 1 bot, 2 humans 0 bots:
   Humans can vote No to reject bots auto-vote Yes; test No and Yes
 - Fog Hex reveal gives resources, during initial placement and normal game play:
@@ -72,18 +75,26 @@ When preparing to release a new version, testing should include:
      - Start and test a game with the Use Sea Board option; place an initial settlement at a fog hex
      - Start and test a game with the Fog Islands scenario
 - Version compatibility testing
-    - Other versions to use: **1.1.06** before Game Options; **1.1.11** with 6-player board and client bugfixes;
+    - Other versions to use: **1.1.06** (before Game Options); **1.1.11** (has 6-player option and client bugfixes);
       latest **1.x.xx**; latest **2.0.xx**
     - New client, old server
     - New server, old client
     - Test these specific things for each version:
-        - With a 1.x.xx client connected to a 2.0.xx server, available new-game options
-          should be the same as a 1.x.xx server (adapts to older client version)
-        - Create and start playing a 4-player game, and a 6-player game; allow trading in one of them
+        - With an older client connected to a newer server, available new-game options
+          should adapt to the older client version.  
+          With a newer client connected to an older server, available new-game options
+          should adapt to the older server version.  
+          This is especially visible when testing 1.x.xx against 2.0.xx.
+        - Create and start playing a 4-player game with no options (this uses an older message type)
+        - Create and start playing a 4-player game with No Trading option
+        - Create and start playing a 6-player game
         - In the 6-player game, request and use the Special Building Phase
-        - Create and start playing a 4-player game with no options (this uses a different message type)
-        - In any of those games, lock a bot seat and game reset; make sure that works
-          (seatlockstate changes between 1.x.xx and 2.0.xx)
+        - Connect with a second client (same version as first client) and take over for a robot
+            - Should see all info for the player (resources, cards, etc)
+            - Play at least 2 rounds; build something, buy a card, or trade
+        - When testing a 2.0.xx client and 1.x.xx server: In any game, test robot seat-lock button
+            - Click its lock button multiple times: Should only show Locked or Unlocked, never Marked
+            - Lock a bot seat and reset the game: Seat should be empty in new game
         - On a 2.0.xx server, have 2.0.xx client create game with a scenario (1.x.xx can't join),
           1.x.xx client should see it in gamelist with "(cannot join)" prefix.
           Start another 1.x.xx client and connect, should see in list with that same prefix
@@ -153,7 +164,7 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
 - Run SOCPlayerClient: Nonexistent usernames with a password specified should have a pause before returning
   status from server, as if they were found but password was wrong
 - SOCPlayerClient: Log in with a case-insensitive account nickname (use all-caps or all-lowercase)
-- SOCPlayerClient: Log in as non-admin user, create game: `*who*` works (not an admin command) works,
+- SOCPlayerClient: Log in as non-admin user, create game: `*who*` works (not an admin command),
   `*who* testgame` and `*who* *` shouldn't ; `*help*` shouldn't show any admin commands
 - Test SOCServer parameter `--pw-reset username`  
   SOCPlayerClient: Log in afterwards with new password and start a game
@@ -164,7 +175,7 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
 - Test creating as old schema (before v1.2.00) and upgrading
     - Get the old schema SQL files you'll need from the git repo by using any pre-1.2.00 release tag, for example:
 
-          git show release-1.1.20:src/bin/sql/jsettlers-tables.sql > ../tmp/jsettlers-tables-1120.sql
+          git show release-1.1.19:src/bin/sql/jsettlers-tables.sql > ../tmp/jsettlers-tables-1119.sql
 
       - Files for mysql: jsettlers-create-mysql.sql, jsettlers-tables.sql
       - For postgres: jsettlers-create-postgres.sql, jsettlers-tables.sql, jsettlers-sec-postgres.sql
