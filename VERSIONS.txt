@@ -12,7 +12,7 @@ stable branch for further 1.x.xx version releases to bring out bugfixes
 and backport minor new features until 2.0.00 is ready.
 
 
-    > 1.2.01 (build OV201805xx)
+    > 1.2.01 (build OV20180526)
 - Game reset no longer hangs when game had bot(s) and someone locked all bots' seats
 - Game expiration:
     - Initial game length increased: Now 2 hours, was 90 minutes
