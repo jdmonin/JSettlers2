@@ -17,7 +17,7 @@ CONTENTS
 - Recommended debug/run configurations for testing
 - Build setup and results
 - If you want to configure a sqlite database for testing
-- Current TODO list -> See README.developer in the master branch (2.0.00).
+- Current TODO list -> See Readme.developer.md in the master branch (2.0.00).
 - Developing with a database (JDBC)
 - Coding Style
 - Release Testing
@@ -272,7 +272,7 @@ If you want to configure a sqlite database for testing (optional)
 
 Current TODO list
 -----------------
-See README.developer in the master branch (version 2.0.xx) for the project TODO list.
+See Readme.developer.md in the master branch (version 2.0.xx) for the project TODO list.
 
 
 Developing with a database (JDBC)
