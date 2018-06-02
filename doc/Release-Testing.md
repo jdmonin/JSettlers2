@@ -67,7 +67,7 @@ When preparing to release a new version, testing should include:
     - Trade offer, rejection, counter-offer accept/rejection
     - Can play dev card before dice roll
     - Can win only on your own turn
-	    - This can be tested using the 6-player board's Special Building Phase
+        - This can be tested using the 6-player board's Special Building Phase
 - Game reset voting, with: 1 human 2 bots, 2 humans 1 bot, 2 humans 0 bots:
   Humans can vote No to reject bots auto-vote Yes; test No and Yes
 - Fog Hex reveal gives resources, during initial placement and normal game play:
@@ -106,14 +106,14 @@ When preparing to release a new version, testing should include:
       `robot 3 leaving at JoinGameRequest('g', 3): jsettlers.bots.test.quit_at_joinreq`  
       `srv.leaveConnection('robot 3') found waiting ga: 'g' (3)`  
       If not, start another game and try again
-- v2.0.00+: StatusMessage "status value" fallback at older versions
+- StatusMessage "status value" fallback at older versions
     - Start a 2.0.00 or newer server with `-Djsettlers.allow.debug=Y`
     - Start a 2.0.00 client with vm property `-Djsettlers.debug.traffic=Y`
     - That client's initial connection to the server should see at console: `SOCStatusMessage:sv=21`  
       (which is `SV_OK_DEBUG_MODE_ON` added in 2.0.00)
     - Start a 1.2.00 client with same vm property `-Djsettlers.debug.traffic=Y`
     - That client's initial connection should get sv == 0, should see at console: `SOCStatusMessage:status=Debugging is On`
-- v2.0.00+: SOCScenario info sync/negotiation when server and client are different versions
+- SOCScenario info sync/negotiation when server and client are different versions
     - Test client newer than server:
         - Build server JAR and start a server from it  
           (or, turn off code hot-replace within IDE and start server there)
