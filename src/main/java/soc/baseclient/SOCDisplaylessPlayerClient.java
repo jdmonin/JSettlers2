@@ -47,7 +47,7 @@ import soc.message.*;
 
 import soc.robot.SOCRobotClient;
 import soc.server.genericServer.StringConnection;
-import soc.util.SOCServerFeatures;
+import soc.util.SOCFeatureSet;
 import soc.util.Version;
 
 import java.io.DataInputStream;
@@ -130,7 +130,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * {@link #sLocalFeatures} goes with our locally hosted server, if any.
      * @since 1.1.19
      */
-    protected SOCServerFeatures sFeatures, sLocalFeatures;
+    protected SOCFeatureSet sFeatures, sLocalFeatures;
 
     protected Thread reader = null;
     protected Exception ex = null;
@@ -926,10 +926,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
     {
         D.ebugPrintln("handleVERSION: " + mes);
         int vers = mes.getVersionNumber();
-        final SOCServerFeatures feats =
-            (vers >= SOCServerFeatures.VERSION_FOR_SERVERFEATURES)
-            ? new SOCServerFeatures(mes.localeOrFeats)
-            : new SOCServerFeatures(true);
+        final SOCFeatureSet feats =
+            (vers >= SOCFeatureSet.VERSION_FOR_SERVERFEATURES)
+            ? new SOCFeatureSet(mes.localeOrFeats)
+            : new SOCFeatureSet(true);
 
         if (isLocal)
         {

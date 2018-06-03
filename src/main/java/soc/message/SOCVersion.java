@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008-2009,2012-2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2009,2012-2015,2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
-import soc.util.SOCServerFeatures;  // for javadocs only
+import soc.util.SOCFeatureSet;  // for javadocs only
 
 
 /**
@@ -36,7 +36,7 @@ import soc.util.SOCServerFeatures;  // for javadocs only
  * robot client's locale to {@code null} at the server.
  *<P>
  * Before 1.1.19, the server did not send its active optional features; new clients of older servers
- * should use the {@link SOCServerFeatures#SOCServerFeatures(boolean) SOCServerFeatures(true)} constructor
+ * should use the {@link SOCFeatureSet#SOCFeatureSet(boolean) SOCFeatureSet(true)} constructor
  * to set the default features active.
  *<P>
  * Before 1.1.06, in SOCPlayerClient, this was sent first from server to client, then client responded.
@@ -67,7 +67,7 @@ public class SOCVersion extends SOCMessage
 
     /**
      * Dual-purpose field: Client's JVM locale, or null, as in {@link java.util.Locale#toString()};
-     * Or server's active optional features, or null, as in {@link SOCServerFeatures#getEncodedList()}.
+     * Or server's active optional features, or null, as in {@link SOCFeatureSet#getEncodedList()}.
      * Locale not sent from server or from jsettlers clients older than 2.0.00.
      * Features not sent from servers older than 1.1.19. (In v1.1.19 this field is called {@code feats}.)
      * See class javadoc for handling older clients or servers when this field is null.
@@ -84,7 +84,7 @@ public class SOCVersion extends SOCMessage
      * @param verlocaleOrFeats The client's JVM locale, or null, as in {@link java.util.Locale#toString()};
      *                  not sent by jsettlers clients older than 2.0.00.
      *                  Or the server's active optional features, or null, as in
-     *                  {@link SOCServerFeatures#getEncodedList()}; not sent by servers older than 1.1.19.
+     *                  {@link SOCFeatureSet#getEncodedList()}; not sent by servers older than 1.1.19.
      *                  Server can send this to a client older than 1.1.19, it is safely ignored.
      * @throws IllegalArgumentException if {@code verBuild} is null and {@code verlocaleOrFeats} != null;
      *     not supported by message encoding.
@@ -145,7 +145,7 @@ public class SOCVersion extends SOCMessage
      * @param verlocaleOrFeats The client's JVM locale, or null, as in {@link java.util.Locale#toString()};
      *                  not sent by jsettlers clients older than 2.0.00.
      *                  Or the server's active optional features, or null, as in
-     *                  {@link SOCServerFeatures#getEncodedList()}; not sent by servers older than 1.1.19.
+     *                  {@link SOCFeatureSet#getEncodedList()}; not sent by servers older than 1.1.19.
      *                  Server can send this to a client older than 1.1.19, it is safely ignored.
      * @return    the command string
      * @throws IllegalArgumentException if {@code verBuild} is null and {@code verlocaleOrFeats} != null;

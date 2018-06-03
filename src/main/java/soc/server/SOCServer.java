@@ -38,10 +38,10 @@ import soc.server.genericServer.Server;
 import soc.server.genericServer.StringConnection;
 
 import soc.util.I18n;
+import soc.util.SOCFeatureSet;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;  // used in javadoc
 import soc.util.SOCRobotParameters;
-import soc.util.SOCServerFeatures;
 import soc.util.SOCStringManager;
 import soc.util.Triple;
 import soc.util.Version;
@@ -312,7 +312,7 @@ public class SOCServer extends Server
      * To require that all players have accounts in the database, see {@link #PROP_JSETTLERS_ACCOUNTS_REQUIRED}.
      *<P>
      * If this field is Y when the server is initialized, the server calls
-     * {@link SOCServerFeatures#add(String) features.add}({@link SOCServerFeatures#FEAT_OPEN_REG}).
+     * {@link SOCFeatureSet#add(String) features.add}({@link SOCFeatureSet#SERVER_OPEN_REG}).
      * @since 1.1.19
      */
     public static final String PROP_JSETTLERS_ACCOUNTS_OPEN = "jsettlers.accounts.open";
@@ -322,7 +322,7 @@ public class SOCServer extends Server
      * If this property is Y, a jdbc database is required and all users must have an account and password
      * in the database. If a client tries to join or create a game or channel without providing a password,
      * they will be sent {@link SOCStatusMessage#SV_PW_REQUIRED}.
-     * This property implies {@link SOCServerFeatures#FEAT_ACCTS}.
+     * This property implies {@link SOCFeatureSet#SERVER_ACCOUNTS}.
      *<P>
      * The default is N.
      *<P>
@@ -380,7 +380,7 @@ public class SOCServer extends Server
      * Set this to -1 to disable it; 0 will disallow any chat channel creation.
      * @since 1.1.10
      * @see #CLIENT_MAX_CREATE_CHANNELS
-     * @see SOCServerFeatures#FEAT_CHANNELS
+     * @see SOCFeatureSet#SERVER_CHANNELS
      */
     public static final String PROP_JSETTLERS_CLI_MAXCREATECHANNELS = "jsettlers.client.maxcreatechannels";
 
@@ -577,9 +577,9 @@ public class SOCServer extends Server
      * Set this to -1 to disable it; 0 will disallow any chat channel creation.
      *<P>
      * If this field is nonzero when the server is initialized, the server calls
-     * {@link SOCServerFeatures#add(String) features.add}({@link SOCServerFeatures#FEAT_CHANNELS}).
+     * {@link SOCFeatureSet#add(String) features.add}({@link SOCFeatureSet#SERVER_CHANNELS}).
      * If the field value is changed afterwards, that affects new clients joining the server
-     * but does not clear {@code FEAT_CHANNELS} from the {@code features} list.
+     * but does not clear {@code SERVER_CHANNELS} from the {@code features} list.
      *
      * @since 1.1.10
      * @see #PROP_JSETTLERS_CLI_MAXCREATECHANNELS
@@ -668,11 +668,11 @@ public class SOCServer extends Server
     private String utilityModeMessage;
 
     /**
-     * Active optional server features, if any; see {@link SOCServerFeatures} constants for currently defined features.
+     * Active optional server features, if any; see {@link SOCFeatureSet} constants for currently defined features.
      * Features are activated through the command line or {@link #props}.
      * @since 1.1.19
      */
-    private SOCServerFeatures features = new SOCServerFeatures(false);
+    private SOCFeatureSet features = new SOCFeatureSet(false);
 
     /**
      * Game type handler, currently shared by all game instances.
@@ -685,13 +685,13 @@ public class SOCServer extends Server
     /**
      * Server internal flag to indicate that user accounts are active, and authentication
      * is required to create accounts, and there aren't any accounts in the database yet.
-     * (Server's active features include {@link SOCServerFeatures#FEAT_ACCTS} but not
-     * {@link SOCServerFeatures#FEAT_OPEN_REG}.) This flag is set at startup, instead of
+     * (Server's active features include {@link SOCFeatureSet#SERVER_ACCOUNTS} but not
+     * {@link SOCFeatureSet#SERVER_OPEN_REG}.) This flag is set at startup, instead of
      * querying {@link SOCDBHelper#countUsers()} every time a client connects.
      *<P>
      * Used for signaling to {@code SOCAccountClient} that it shouldn't ask for a
      * password when connecting to create the first account, by sending the client
-     * {@link SOCServerFeatures#FEAT_OPEN_REG} along with the actually active features.
+     * {@link SOCFeatureSet#SERVER_OPEN_REG} along with the actually active features.
      *<P>
      * The first successful account creation will clear this flag.
      *<P>
@@ -1030,7 +1030,7 @@ public class SOCServer extends Server
 
     /**
      * User admins list, from {@link #PROP_JSETTLERS_ACCOUNTS_ADMINS}, or {@code null} if not specified.
-     * Unless {@link SOCServerFeatures#FEAT_OPEN_REG} is active, only usernames on this list
+     * Unless {@link SOCFeatureSet#SERVER_OPEN_REG} is active, only usernames on this list
      * can create user accounts in {@link #createAccount(String, String, String, Connection)}.
      *<P>
      * If DB schema &gt;= {@link SOCDBHelper#SCHEMA_VERSION_1200}, this list is
@@ -1358,7 +1358,7 @@ public class SOCServer extends Server
         try
         {
             SOCDBHelper.initialize(databaseUserName, databasePassword, props);
-            features.add(SOCServerFeatures.FEAT_ACCTS);
+            features.add(SOCFeatureSet.SERVER_ACCOUNTS);
             System.err.println("User database initialized.");
 
             if (props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP) != null)
@@ -1588,7 +1588,7 @@ public class SOCServer extends Server
         }
 
         if (CLIENT_MAX_CREATE_CHANNELS != 0)
-            features.add(SOCServerFeatures.FEAT_CHANNELS);
+            features.add(SOCFeatureSet.SERVER_CHANNELS);
 
         /**
          * Start various threads.
@@ -1660,7 +1660,7 @@ public class SOCServer extends Server
     /**
      * Set some DB-related SOCServer fields and features:
      * {@link #databaseUserAdmins} from {@link #PROP_JSETTLERS_ACCOUNTS_ADMINS},
-     * {@link #features}({@link SOCServerFeatures#FEAT_OPEN_REG}) and {@link #acctsNotOpenRegButNoUsers}
+     * {@link #features}({@link SOCFeatureSet#SERVER_OPEN_REG}) and {@link #acctsNotOpenRegButNoUsers}
      * from {@link #PROP_JSETTLERS_ACCOUNTS_OPEN}.
      *<P>
      * Prints some status messages and any problems to {@link System#err}.
@@ -1681,7 +1681,7 @@ public class SOCServer extends Server
         // open reg for user accounts?  if not, see if we have any yet
         if (getConfigBoolProperty(PROP_JSETTLERS_ACCOUNTS_OPEN, false))
         {
-            features.add(SOCServerFeatures.FEAT_OPEN_REG);
+            features.add(SOCFeatureSet.SERVER_OPEN_REG);
             if (! hasUtilityModeProp)
                 System.err.println("User database Open Registration is active, anyone can create accounts.");
         } else {
@@ -1697,7 +1697,7 @@ public class SOCServer extends Server
             if (userAdmins.length() == 0)
             {
                 errmsg = "* Property " + PROP_JSETTLERS_ACCOUNTS_ADMINS + " cannot be an empty string.";
-            } else if (features.isActive(SOCServerFeatures.FEAT_OPEN_REG)) {
+            } else if (features.isActive(SOCFeatureSet.SERVER_OPEN_REG)) {
                 errmsg = "* Cannot use Open Registration with User Account Admins List.";
             } else {
                 final boolean downcase = (SOCDBHelper.getSchemaVersion() >= SOCDBHelper.SCHEMA_VERSION_1200);
@@ -4024,11 +4024,11 @@ public class SOCServer extends Server
         c.setAppData(cdata);
 
         // VERSION of server
-        SOCServerFeatures feats = features;
+        SOCFeatureSet feats = features;
         if (acctsNotOpenRegButNoUsers)
         {
-            feats = new SOCServerFeatures(features);
-            feats.add(SOCServerFeatures.FEAT_OPEN_REG);  // no accounts: don't require a password from SOCAccountClient
+            feats = new SOCFeatureSet(features);
+            feats.add(SOCFeatureSet.SERVER_OPEN_REG);  // no accounts: don't require a password from SOCAccountClient
         }
         c.put(SOCVersion.toCmd
             (Version.versionNumber(), Version.version(), Version.buildnum(), feats.getEncodedList()));
@@ -6467,7 +6467,7 @@ public class SOCServer extends Server
      * or rejecting the request. If called when ! {@link SOCDBHelper#isInitialized()},
      * rejects with {@link SOCStatusMessage#SV_ACCT_NOT_CREATED_ERR}.
      * Will check if the requesting connection {@code c} is authorized to create accounts
-     * or if {@link SOCServerFeatures#FEAT_OPEN_REG} is active.
+     * or if {@link SOCFeatureSet#SERVER_OPEN_REG} is active.
      * Sends {@link SOCStatusMessage} to {@code c} to report results.
      *<P>
      * Before v2.0.00, this method was {@code handleCREATEACCOUNT}.
@@ -6497,7 +6497,7 @@ public class SOCServer extends Server
 
         final String requester = c.getData();  // null if client isn't authenticated
         final Date currentTime = new Date();
-        final boolean isOpenReg = features.isActive(SOCServerFeatures.FEAT_OPEN_REG);
+        final boolean isOpenReg = features.isActive(SOCFeatureSet.SERVER_OPEN_REG);
 
         if ((databaseUserAdmins == null) && ! isOpenReg)
         {
@@ -6514,14 +6514,14 @@ public class SOCServer extends Server
         }
 
         boolean isDBCountedEmpty = false;  // with null requester, did we query and find the users table is empty?
-            // Not set if FEAT_OPEN_REG is active.
+            // Not set if SERVER_OPEN_REG is active.
 
         // If client is not authenticated, does this server have open registration
         // or is an account required to create user accounts?
         if ((requester == null) && ! isOpenReg)
         {
             // SOCAccountClients older than v1.1.19 (VERSION_FOR_AUTHREQUEST, VERSION_FOR_SERVERFEATURES)
-            // can't authenticate; all their user creation requests are anonymous (FEAT_OPEN_REG).
+            // can't authenticate; all their user creation requests are anonymous (SERVER_OPEN_REG).
             // They can't be declined when SOCAccountClient connects, because v1.1.19 is when
             // SOCAuthRequest(ROLE_USER_ADMIN) message was added; we don't know why an older client
             // has connected until they try to create or join a game or channel or create a user.
@@ -6535,7 +6535,7 @@ public class SOCServer extends Server
                         (SOCStatusMessage.SV_CANT_JOIN_GAME_VERSION,  // cli knows this status value: defined in 1.1.06
                          cliVers, c.getLocalized
                              ("account.create.client_version_minimum",
-                              Version.version(SOCServerFeatures.VERSION_FOR_SERVERFEATURES))));
+                              Version.version(SOCFeatureSet.VERSION_FOR_SERVERFEATURES))));
                               // "To create accounts, use client version {1} or newer."
                 return;
             }
@@ -6584,10 +6584,10 @@ public class SOCServer extends Server
         //
         // Check if requester is on the user admins list; this check is also in isUserDBUserAdmin.
         //
-        // If databaseUserAdmins != null, then requester != null because FEAT_OPEN_REG can't also be active.
+        // If databaseUserAdmins != null, then requester != null because SERVER_OPEN_REG can't also be active.
         // If requester is null because db is empty, check new userName instead of requester name:
         // The first account created must be on the list in order to create further accounts.
-        // If the db is empty when account client connects, server sends it FEAT_OPEN_REG so it won't require
+        // If the db is empty when account client connects, server sends it SERVER_OPEN_REG so it won't require
         // user/password auth to create that first account; then requester == null, covered by isDBCountedEmpty.
         //
         if (databaseUserAdmins != null)

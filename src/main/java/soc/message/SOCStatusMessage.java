@@ -20,7 +20,7 @@
  **/
 package soc.message;
 
-import soc.util.SOCServerFeatures;  // for javadocs only
+import soc.util.SOCFeatureSet;  // for javadocs only
 
 
 /**
@@ -145,7 +145,7 @@ public class SOCStatusMessage extends SOCMessage
      * being created, or server doesn't use accounts, = 8.
      *<P>
      * To see whether a server v1.1.19 or newer uses accounts and passwords, check
-     * whether {@link SOCServerFeatures#FEAT_ACCTS} is sent when the client connects.
+     * whether {@link SOCFeatureSet#SERVER_ACCOUNTS} is sent when the client connects.
      * @since 1.1.06
      * @see #SV_ACCT_NOT_CREATED_DENIED
      */
@@ -234,7 +234,7 @@ public class SOCStatusMessage extends SOCMessage
      * This separate code is provided to let the client know they
      * must authenticate before creating any other accounts.
      *<P>
-     * This status is not sent if the server is in Open Registration mode ({@link SOCServerFeatures#FEAT_OPEN_REG}),
+     * This status is not sent if the server is in Open Registration mode ({@link SOCFeatureSet#SERVER_OPEN_REG}),
      * because in that mode there's nothing special about the first account and no need to authenticate
      * before creating others.
      *<P>

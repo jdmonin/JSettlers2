@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2009-2011,2013-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2011,2013-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,7 +32,7 @@ import soc.message.SOCStatusMessage;
 import soc.message.SOCVersion;
 
 import soc.util.I18n;
-import soc.util.SOCServerFeatures;
+import soc.util.SOCFeatureSet;
 import soc.util.Version;
 
 import java.applet.Applet;
@@ -70,7 +70,7 @@ import java.util.Locale;
  *<P>
  * This account-management client will connect to server version v1.1.19 and higher
  * ({@link #SRV_VERSION_MIN}). The required minimum version simplifies logic and
- * assumptions about available {@link SOCServerFeatures}. If needed to manage older servers,
+ * assumptions about available {@link SOCFeatureSet}. If needed to manage older servers,
  * older client JARs can be downloaded or built from git release tags.
  *<P>
  * To connect the applet to a non-default server port, you must specify it as the
@@ -88,10 +88,10 @@ public class SOCAccountClient extends Applet
      * see class javadoc.
      *<P>
      * Same format as {@link soc.util.Version#versionNumber()}.
-     * Same value as {@link SOCServerFeatures#VERSION_FOR_SERVERFEATURES}.
+     * Same value as {@link SOCFeatureSet#VERSION_FOR_SERVERFEATURES}.
      * @since 1.1.20
      */
-    public static final int SRV_VERSION_MIN = SOCServerFeatures.VERSION_FOR_SERVERFEATURES;  // v1.1.19 (1119)
+    public static final int SRV_VERSION_MIN = SOCFeatureSet.VERSION_FOR_SERVERFEATURES;  // v1.1.19 (1119)
 
     /**
      * CardLayout string for the main panel while connected to a server:
@@ -188,7 +188,7 @@ public class SOCAccountClient extends Applet
      * Server's active optional features, sent soon after connect, or null if unknown.
      * @since 1.1.19
      */
-    protected SOCServerFeatures sFeatures;
+    protected SOCFeatureSet sFeatures;
 
     /**
      * the nickname
@@ -418,7 +418,7 @@ public class SOCAccountClient extends Applet
 
     /**
      * Connect setup for username and password authentication: {@link #connPanel} / {@link #CONN_PANEL}.
-     * Called if server doesn't have {@link SOCServerFeatures#FEAT_OPEN_REG}.
+     * Called if server doesn't have {@link SOCFeatureSet#SERVER_OPEN_REG}.
      * Calls {@link #validate()} and {@link #conn_user}.{@link java.awt.Component#requestFocus() requestFocus()}.
      * @since 1.1.19
      * @see #initVisualElements()
@@ -540,7 +540,7 @@ public class SOCAccountClient extends Applet
      */
     private void updateLabelsIfNotOpenReg()
     {
-        if (sFeatures.isActive(SOCServerFeatures.FEAT_OPEN_REG))
+        if (sFeatures.isActive(SOCFeatureSet.SERVER_OPEN_REG))
             return;
 
         promptLabel.setText(strings.get("account.create.prompt.enter_its_info"));
@@ -923,11 +923,11 @@ public class SOCAccountClient extends Applet
         }
 
         sFeatures =
-            (sVersion >= SOCServerFeatures.VERSION_FOR_SERVERFEATURES)
-            ? new SOCServerFeatures(mes.localeOrFeats)
-            : new SOCServerFeatures(true);
+            (sVersion >= SOCFeatureSet.VERSION_FOR_SERVERFEATURES)
+            ? new SOCFeatureSet(mes.localeOrFeats)
+            : new SOCFeatureSet(true);
 
-        if (! sFeatures.isActive(SOCServerFeatures.FEAT_ACCTS))
+        if (! sFeatures.isActive(SOCFeatureSet.SERVER_ACCOUNTS))
         {
             disconnect();
 
@@ -937,7 +937,7 @@ public class SOCAccountClient extends Applet
             return;
         }
 
-        if (! sFeatures.isActive(SOCServerFeatures.FEAT_OPEN_REG))
+        if (! sFeatures.isActive(SOCFeatureSet.SERVER_OPEN_REG))
         {
             initInterface_conn();  // adds connPanel, sets it active, calls validate()
             updateLabelsIfNotOpenReg();  // update account-info label texts for use after authentication

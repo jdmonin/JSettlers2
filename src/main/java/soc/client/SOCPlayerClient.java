@@ -99,8 +99,8 @@ import soc.server.genericServer.StringConnection;
 import soc.server.genericServer.StringServerSocket;
 
 import soc.util.I18n;
+import soc.util.SOCFeatureSet;
 import soc.util.SOCGameList;
-import soc.util.SOCServerFeatures;
 import soc.util.SOCStringManager;
 import soc.util.Version;
 
@@ -270,7 +270,7 @@ public class SOCPlayerClient
      * @see #tcpServGameOpts
      * @since 1.1.19
      */
-    protected SOCServerFeatures sFeatures;
+    protected SOCFeatureSet sFeatures;
 
     /**
      * Track the game options available at the remote server, at the practice server.
@@ -403,10 +403,10 @@ public class SOCPlayerClient
     {
         /**
          * Init the visual elements.  Done before connecting to server,
-         * so we don't know its version or active {@link SOCServerFeatures}.
+         * so we don't know its version or active {@link SOCFeatureSet}.
          * So, most of the Main Panel elements are initialized here but not
          * laid out or made visible until a later call to
-         * {@link #showVersion(int, String, String, SOCServerFeatures)}
+         * {@link #showVersion(int, String, String, SOCFeatureSet)}
          * when the version and features are known.
          */
         void initVisualElements();
@@ -460,17 +460,17 @@ public class SOCPlayerClient
 
         /**
          * After connecting, display the remote server's version on main panel,
-         * and update display based on its active {@link SOCServerFeatures}.
+         * and update display based on its active {@link SOCFeatureSet}.
          * Not called for practice server.
          * If we're running a server, display its listening port # instead.
          * @param versionNumber  Version number, like 1119, from server's {@link soc.util.Version#versionNumber()}
          * @param versionString  Version string, like "1.1.19", from server's {@link soc.util.Version#version()}
          * @param buildString  Build number, from server's {@link soc.util.Version#buildnum()}
          * @param feats  Active optional server features; never null. If server is older than v1.1.19, use the
-         *            {@link SOCServerFeatures#SOCServerFeatures(boolean) SOCServerFeatures(true)} constructor.
+         *        {@link SOCFeatureSet#SOCFeatureSet(boolean) SOCFeatureSet(true)} constructor.
          */
         void showVersion
-            (final int versionNumber, final String versionString, final String buildString, final SOCServerFeatures feats);
+            (final int versionNumber, final String versionString, final String buildString, final SOCFeatureSet feats);
 
         /**
          * Show server welcome banner or status text.
@@ -833,13 +833,13 @@ public class SOCPlayerClient
 
         /**
          * MainPanel GUI, initialized in {@link #initVisualElements()}
-         * and {@link #initMainPanelLayout(boolean, SOCServerFeatures)}.
+         * and {@link #initMainPanelLayout(boolean, SOCFeatureSet)}.
          *<P>
          * {@code mainPane}, {@link #mainGBL}, and {@link #mainGBC} are fields not locals so that
          * the layout can be changed after initialization if needed.  Most of the Main Panel
          * elements are initialized in {@link #initVisualElements()} but not laid out or made visible
-         * until a later call to {@link #initMainPanelLayout(boolean, SOCServerFeatures)} (from
-         * ({@link #showVersion(int, String, String, SOCServerFeatures) showVersion(....)})
+         * until a later call to {@link #initMainPanelLayout(boolean, SOCFeatureSet)} (from
+         * ({@link #showVersion(int, String, String, SOCFeatureSet) showVersion(....)})
          * when the version and features are known.
          * @since 1.1.19
          */
@@ -853,7 +853,7 @@ public class SOCPlayerClient
 
         /**
          * Flags for tracking {@link #mainPane} layout status, in case
-         * {@link #initMainPanelLayout(boolean, SOCServerFeatures)} is
+         * {@link #initMainPanelLayout(boolean, SOCFeatureSet)} is
          * called again after losing connection and then connecting to
          * another server or starting a hosted tcp server.
          * @since 1.1.19
@@ -871,7 +871,7 @@ public class SOCPlayerClient
 
         /**
          * Chat channel name to create or join with {@link #jc} button.
-         * Hidden in v1.1.19+ if server is missing {@link SOCServerFeatures#FEAT_CHANNELS}.
+         * Hidden in v1.1.19+ if server is missing {@link SOCFeatureSet#SERVER_CHANNELS}.
          */
         protected TextField channel;
 
@@ -879,7 +879,7 @@ public class SOCPlayerClient
 
         /**
          * List of chat channels that can be joined with {@link #jc} button or by double-click.
-         * Hidden in v1.1.19+ if server is missing {@link SOCServerFeatures#FEAT_CHANNELS}.
+         * Hidden in v1.1.19+ if server is missing {@link SOCFeatureSet#SERVER_CHANNELS}.
          */
         protected java.awt.List chlist;
 
@@ -900,7 +900,7 @@ public class SOCPlayerClient
         /**
          * "Join Channel" button, for channel currently highlighted in {@link #chlist},
          * or create new channel named in {@link #channel}. Hidden in v1.1.19+ if server
-         * is missing {@link SOCServerFeatures#FEAT_CHANNELS}.
+         * is missing {@link SOCFeatureSet#SERVER_CHANNELS}.
          */
         protected Button jc;
 
@@ -1179,12 +1179,12 @@ public class SOCPlayerClient
          * @param isStatusRow  If true, this is an initial call and only the status row should be laid out.
          *     If false, assumes status was already done and adds the rest of the rows.
          * @param feats  Active optional server features, for second call with {@code isStatusRow == false}.
-         *     Null when {@code isStatusRow == true}.  See {@link #showVersion(int, String, String, SOCServerFeatures)}
+         *     Null when {@code isStatusRow == true}.  See {@link #showVersion(int, String, String, SOCFeatureSet)}
          *     javadoc for expected contents when an older server does not report features.
          * @since 1.1.19
          * @throws IllegalArgumentException if {@code feats} is null but {@code isStatusRow} is false
          */
-        private void initMainPanelLayout(final boolean isStatusRow, final SOCServerFeatures feats)
+        private void initMainPanelLayout(final boolean isStatusRow, final SOCFeatureSet feats)
             throws IllegalArgumentException
         {
             if ((feats == null) && ! isStatusRow)
@@ -1218,7 +1218,7 @@ public class SOCPlayerClient
             // Reminder: Everything here and below is the delayed second call.
             // So, any fields must be initialized in initVisualElements(), not here.
 
-            final boolean hasChannels = feats.isActive(SOCServerFeatures.FEAT_CHANNELS);
+            final boolean hasChannels = feats.isActive(SOCFeatureSet.SERVER_CHANNELS);
 
             if (mainPaneLayoutIsDone)
             {
@@ -1825,13 +1825,13 @@ public class SOCPlayerClient
                 if (stat.equals(NEED_NICKNAME_BEFORE_JOIN) || stat.equals(NEED_NICKNAME_BEFORE_JOIN_G))
                     // Send stronger hint message
                     status.setText
-                        ((client.sFeatures.isActive(SOCServerFeatures.FEAT_CHANNELS))
+                        ((client.sFeatures.isActive(SOCFeatureSet.SERVER_CHANNELS))
                          ? NEED_NICKNAME_BEFORE_JOIN_2
                          : NEED_NICKNAME_BEFORE_JOIN_G2 );
                 else
                     // Send first hint message (or re-send first if they've seen _2)
                     status.setText
-                        ((client.sFeatures.isActive(SOCServerFeatures.FEAT_CHANNELS))
+                        ((client.sFeatures.isActive(SOCFeatureSet.SERVER_CHANNELS))
                          ? NEED_NICKNAME_BEFORE_JOIN
                          : NEED_NICKNAME_BEFORE_JOIN_G );
 
@@ -2246,11 +2246,11 @@ public class SOCPlayerClient
          * {@inheritDoc}
          *<P>
          * {@code showVersion} calls
-         * {@link #initMainPanelLayout(boolean, SOCServerFeatures) initMainPanelLayout(false, feats)}
+         * {@link #initMainPanelLayout(boolean, SOCFeatureSet) initMainPanelLayout(false, feats)}
          * to complete layout of the Main Panel with the server's version and active features.
          */
         public void showVersion
-            (final int vers, final String versionString, final String buildString, final SOCServerFeatures feats)
+            (final int vers, final String versionString, final String buildString, final SOCFeatureSet feats)
         {
             if (null == client.net.localTCPServer)
             {
@@ -2439,7 +2439,7 @@ public class SOCPlayerClient
                 validate();
 
                 status.setText
-                    ((client.sFeatures.isActive(SOCServerFeatures.FEAT_CHANNELS))
+                    ((client.sFeatures.isActive(SOCFeatureSet.SERVER_CHANNELS))
                      ? NEED_NICKNAME_BEFORE_JOIN    // "First enter a nickname, then join a game or channel."
                      : NEED_NICKNAME_BEFORE_JOIN_G  // "First enter a nickname, then join a game."
                      );
@@ -3807,9 +3807,9 @@ public class SOCPlayerClient
         if (! isPractice)
         {
             sVersion = vers;
-            sFeatures = (vers >= SOCServerFeatures.VERSION_FOR_SERVERFEATURES)
-                ? new SOCServerFeatures(mes.localeOrFeats)
-                : new SOCServerFeatures(true);
+            sFeatures = (vers >= SOCFeatureSet.VERSION_FOR_SERVERFEATURES)
+                ? new SOCFeatureSet(mes.localeOrFeats)
+                : new SOCFeatureSet(true);
 
             gameDisplay.showVersion(vers, mes.getVersionString(), mes.getBuild(), sFeatures);
         }
@@ -4043,7 +4043,7 @@ public class SOCPlayerClient
     /**
      * handle the "list of channels" message; this message indicates that
      * we're newly connected to the server, and is sent even if the server
-     * isn't using {@link SOCServerFeatures#FEAT_CHANNELS}: Server connection is complete.
+     * isn't using {@link SOCFeatureSet#SERVER_CHANNELS}: Server connection is complete.
      * Unless {@code isPractice}, show {@link #MAIN_PANEL}.
      * @param mes  the message
      * @param isPractice is the server actually {@link ClientNetwork#practiceServer} (practice game)?

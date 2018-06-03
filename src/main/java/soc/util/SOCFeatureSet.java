@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,59 +20,73 @@
 package soc.util;
 
 /**
- * Set of optional server features that are currently active.
- * Sent from server to client during connect via {@link soc.message.SOCVersion} message fields.
+ * Set of optional server features or client features that are currently active.
+ * Sent during connect via {@link soc.message.SOCVersion} message fields.
  *<P>
  * Added in v1.1.19 ({@link #VERSION_FOR_SERVERFEATURES}); earlier clients assume the server is using the
- * features defined in 1.1.19. Use the {@link #SOCServerFeatures(boolean) SOCServerFeatures(true)} constructor
+ * features defined in 1.1.19. Use the {@link #SOCFeatureSet(boolean, boolean) SOCFeatureSet(true, true)} constructor
  * when connecting to a server older than 1.1.19. See that constructor's javadoc for the list of features
  * always assumed active before 1.1.19.
  *<P>
  * Feature names are kept simple (lowercase alphanumerics, underscore, dash) for encoding into network message fields.
  *<P>
  * <b>Locks:</b> Not thread-safe.  Caller must guard against potential multi-threaded modifications or access.
+ *<P>
+ * Before v2.0.00 this class was {@code SOCServerFeatures}.
  *
  * @since 1.1.19
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
-public class SOCServerFeatures
+public class SOCFeatureSet
 {
     /** Minimum version (1.1.19) of client/server which send and recognize server features */
     public static final int VERSION_FOR_SERVERFEATURES = 1119;
 
     /**
-     * User accounts defined in a persistent database.
+     * Minimum version (2.0.00) of client/server which send and recognize client features
+     * @since 2.0.00
+     */
+    public static final int VERSION_FOR_CLIENTFEATURES = 2000;
+
+    /**
+     * Server feature User accounts defined in a persistent database.
      * If this feature is active, nicknames and passwords are authenticated.
-     * Otherwise there are no passwords defined ({@link #FEAT_OPEN_REG}).
+     * Otherwise there are no passwords defined ({@link #SERVER_OPEN_REG}).
      *<P>
      * When this feature is active but the db is empty (new install),
-     * the server will tell clients that {@link #FEAT_OPEN_REG} is active;
+     * the server will tell clients that {@link #SERVER_OPEN_REG} is active;
      * see that feature's javadoc for details.
      *<P>
      * The server can optionally be configured to require accounts,
      * see {@link soc.server.SOCServer#PROP_JSETTLERS_ACCOUNTS_REQUIRED}.
+     *<P>
+     * Before v2.0.00 this constant was {@code FEAT_ACCTS}.
      */
-    public static final String FEAT_ACCTS = "accts";
+    public static final String SERVER_ACCOUNTS = "accts";
 
     /**
-     * Chat channels.
+     * Server feature Chat channels.
      * If this feature is active, users are allowed to create chat channels.
      * Otherwise no channels are allowed.
+     *<P>
+     * Before v2.0.00 this constant was {@code FEAT_CHANNELS}.
      */
-    public static final String FEAT_CHANNELS = "ch";
+    public static final String SERVER_CHANNELS = "ch";
 
     /**
-     * Open registration.
+     * Server feature Open registration.
      * If this feature is active, anyone can create their own user accounts.
-     * Otherwise only existing users can create new accounts ({@link #FEAT_ACCTS}).
+     * Otherwise only existing users can create new accounts ({@link #SERVER_ACCOUNTS}).
      *
-     *<H5>Special case during {@code FEAT_ACCTS} server install:</H5>
+     *<H5>Special case during {@code SERVER_ACCOUNTS} server install:</H5>
      * When a newly installed server requires authentication to create new accounts,
      * but no accounts exist in the database yet, the server tells clients that
-     * {@code FEAT_OPEN_REG} is active so that {@code SOCAccountClient} won't
+     * {@code SERVER_OPEN_REG} is active so that {@code SOCAccountClient} won't
      * ask for a username and password.
+     *<P>
+     * Before v2.0.00 this constant was {@code FEAT_OPEN_REG}.
      */
-    public static final String FEAT_OPEN_REG = "oreg";
+    public static final String SERVER_OPEN_REG = "oreg";
 
     /**
      * Separator character ';' between features in {@link #featureList}.
@@ -87,29 +101,30 @@ public class SOCServerFeatures
     private String featureList = null;
 
     /**
-     * Create a new empty SOCServerFeatures, with none active or defaults active.
+     * Create a new empty SOCFeatureSet, with none active or defaults active.
      * After construction, use {@link #add(String)} to add active features.
      * @param withOldDefaults  If false, nothing is active. If true, include the default features
      *     which were assumed always active in servers older than v1.1.19 ({@link #VERSION_FOR_SERVERFEATURES}):
-     *     {@link #FEAT_ACCTS}, {@link #FEAT_CHANNELS}, {@link #FEAT_OPEN_REG}.
+     *     {@link #SERVER_ACCOUNTS}, {@link #SERVER_CHANNELS}, {@link #SERVER_OPEN_REG}.
      */
-    public SOCServerFeatures(final boolean withOldDefaults)
+    public SOCFeatureSet(final boolean withOldDefaults)
     {
         if (withOldDefaults)
         {
-            featureList = SEP_CHAR + FEAT_ACCTS + SEP_CHAR + FEAT_CHANNELS + SEP_CHAR + FEAT_OPEN_REG + SEP_CHAR;
+            featureList = SEP_CHAR + SERVER_ACCOUNTS + SEP_CHAR + SERVER_CHANNELS
+                + SEP_CHAR + SERVER_OPEN_REG + SEP_CHAR;
         } else {
             // featureList is already empty (null)
         }
     }
 
     /**
-     * Create a new SOCServerFeatures from an encoded list; useful at client.
+     * Create a new SOCFeatureSet from an encoded list; useful at client.
      * @param encodedList  List from {@link #getEncodedList()}, or null or "" for none
      * @throws IllegalArgumentException if {@code encodedList} is not empty but
      *     doesn't start and end with the separator character
      */
-    public SOCServerFeatures(String encodedList)
+    public SOCFeatureSet(String encodedList)
         throws IllegalArgumentException
     {
         if (encodedList != null)
@@ -125,11 +140,11 @@ public class SOCServerFeatures
     }
 
     /**
-     * Create a new SOCServerFeatures by copying another.
-     * @param feats  Copy from this to create the new SOCServerFeatures
+     * Create a new SOCFeatureSet by copying another.
+     * @param feats  Copy from this to create the new SOCFeatureSet
      * @throws NullPointerException if {@code feats} == null
      */
-    public SOCServerFeatures(SOCServerFeatures feats)
+    public SOCFeatureSet(SOCFeatureSet feats)
         throws NullPointerException
     {
         super();
@@ -138,7 +153,7 @@ public class SOCServerFeatures
 
     /**
      * Is this feature active?
-     * @param featureName  A defined feature name, such as {@link #FEAT_ACCTS}
+     * @param featureName  A defined feature name, such as {@link #SERVER_ACCOUNTS}
      * @return  True if {@code featureName} is in the features list
      * @throws IllegalArgumentException if {@code featureName} is null or ""
      */
@@ -156,7 +171,7 @@ public class SOCServerFeatures
 
     /**
      * Add this active feature.
-     * @param featureName  A defined feature name, such as {@link #FEAT_ACCTS}
+     * @param featureName  A defined feature name, such as {@link #SERVER_ACCOUNTS}
      * @throws IllegalArgumentException if {@code featureName} is null or ""
      */
     public void add(final String featureName)
@@ -172,7 +187,8 @@ public class SOCServerFeatures
     }
 
     /**
-     * Get the encoded list of all active features, to send to a client for {@link #SOCServerFeatures(String)}.
+     * Get the encoded list of all active features, to send to a
+     * client or server for {@link #SOCFeatureSet(String)}.
      * @return The active features list, or null if none
      */
     public String getEncodedList()
@@ -184,8 +200,8 @@ public class SOCServerFeatures
      * Human-readable representation of active features.
      * Based on super.toString + featureList. Possible Formats:
      *<UL>
-     * <LI> soc.util.SOCServerFeatures@86c347{;accts;ch;}
-     * <LI> soc.util.SOCServerFeatures@f7e6a96{(empty)}
+     * <LI> soc.util.SOCFeatureSet@86c347{;accts;ch;}
+     * <LI> soc.util.SOCFeatureSet@f7e6a96{(empty)}
      *</UL>
      */
     @Override
