@@ -323,7 +323,7 @@ public class SOCServerMessageHandler
         if (c == null)
             return;
 
-        srv.setClientVersSendGamesOrReject(c, mes.getVersionNumber(), mes.localeOrFeats, true);
+        srv.setClientVersSendGamesOrReject(c, mes.getVersionNumber(), mes.feats, mes.cliLocale, true);
     }
 
     /**
@@ -1393,7 +1393,7 @@ public class SOCServerMessageHandler
          */
         if (cliVers == -1)
         {
-            if (! srv.setClientVersSendGamesOrReject(c, SOCServer.CLI_VERSION_ASSUMED_GUESS, null, false))
+            if (! srv.setClientVersSendGamesOrReject(c, SOCServer.CLI_VERSION_ASSUMED_GUESS, null, null, false))
                 return;  // <--- Discon and Early return: Client too old ---
 
             cliVers = c.getVersion();
@@ -1630,7 +1630,7 @@ public class SOCServerMessageHandler
          */
         if (c.getVersion() == -1)
         {
-            if (! srv.setClientVersSendGamesOrReject(c, SOCServer.CLI_VERSION_ASSUMED_GUESS, null, false))
+            if (! srv.setClientVersSendGamesOrReject(c, SOCServer.CLI_VERSION_ASSUMED_GUESS, null, null, false))
                 return;  // <--- Early return: Client too old ---
         }
 

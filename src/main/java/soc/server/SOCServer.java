@@ -4031,7 +4031,7 @@ public class SOCServer extends Server
             feats.add(SOCFeatureSet.SERVER_OPEN_REG);  // no accounts: don't require a password from SOCAccountClient
         }
         c.put(SOCVersion.toCmd
-            (Version.versionNumber(), Version.version(), Version.buildnum(), feats.getEncodedList()));
+            (Version.versionNumber(), Version.version(), Version.buildnum(), feats.getEncodedList(), null));
 
         // CHANNELS
         Vector<String> cl = new Vector<String>();
@@ -5274,20 +5274,24 @@ public class SOCServer extends Server
      *
      * @param c     Client's connection
      * @param cvers Version reported by client, or assumed version if no report
-     * @param clocale  Locale reported by client, or null if none given (was added to {@link SOCVersion} in 2.0.00)
+     * @param cfeats  Optional features reported by client, or null if none given
+     *     (was added to {@link SOCVersion} message in 2.0.00)
+     * @param clocale  Locale reported by client, or null if none given
+     *     (was added to {@link SOCVersion} message in 2.0.00)
      * @param isKnown Is this the client's definite version, or just an assumed one?
-     *                Affects {@link Connection#isVersionKnown() c.isVersionKnown}.
-     *                Can set the client's known version only once; a second "known" call with
-     *                a different cvers will be rejected.
+     *     Affects {@link Connection#isVersionKnown() c.isVersionKnown}.
+     *     Can set the client's known version only once; a second "known" call with
+     *     a different cvers will be rejected.
      * @return True if OK, false if rejected
      */
     boolean setClientVersSendGamesOrReject
-        (Connection c, final int cvers, String clocale, final boolean isKnown)
+        (Connection c, final int cvers, final String cfeats, String clocale, final boolean isKnown)
     {
         final int prevVers = c.getVersion();
         final boolean wasKnown = c.isVersionKnown();
 
         SOCClientData scd = (SOCClientData) c.getAppData();
+        scd.feats = cfeats;
 
         // Message to send/log if client must be disconnected
         String rejectMsg = null;

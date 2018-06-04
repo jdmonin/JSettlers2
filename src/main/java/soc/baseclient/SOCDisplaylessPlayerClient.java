@@ -928,7 +928,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         int vers = mes.getVersionNumber();
         final SOCFeatureSet feats =
             (vers >= SOCFeatureSet.VERSION_FOR_SERVERFEATURES)
-            ? new SOCFeatureSet(mes.localeOrFeats)
+            ? new SOCFeatureSet(mes.feats)
             : new SOCFeatureSet(true);
 
         if (isLocal)

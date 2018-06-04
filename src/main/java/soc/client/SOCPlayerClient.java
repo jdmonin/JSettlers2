@@ -3808,7 +3808,7 @@ public class SOCPlayerClient
         {
             sVersion = vers;
             sFeatures = (vers >= SOCFeatureSet.VERSION_FOR_SERVERFEATURES)
-                ? new SOCFeatureSet(mes.localeOrFeats)
+                ? new SOCFeatureSet(mes.feats)
                 : new SOCFeatureSet(true);
 
             gameDisplay.showVersion(vers, mes.getVersionString(), mes.getBuild(), sFeatures);
@@ -6958,13 +6958,14 @@ public class SOCPlayerClient
                 try
                 {
                     prCli = StringServerSocket.connectTo(SOCServer.PRACTICE_STRINGPORT);
-                    new SOCPlayerLocalStringReader(prCli);
-                    // Reader will start its own thread.
+                    new SOCPlayerLocalStringReader(prCli);  // Reader will start its own thread
+
                     // Send VERSION right away (1.1.06 and later)
                     putPractice(SOCVersion.toCmd
-                        (Version.versionNumber(), Version.version(), Version.buildnum(), client.cliLocale.toString()));
+                        (Version.versionNumber(), Version.version(), Version.buildnum(),
+                         null, client.cliLocale.toString()));
 
-                    // practice server will support per-game options
+                    // Practice server will support per-game options
                     client.gameDisplay.enableOptions();
                 }
                 catch (ConnectException e)
@@ -7105,9 +7106,9 @@ public class SOCPlayerClient
                 connected = true;
                 (reader = new Thread(new NetReadTask(client, this))).start();
                 // send VERSION right away (1.1.06 and later)
-                // Version msg includes locale in 2.0.00 and later clients; v1.x.xx servers will ignore that token.
+                // Version msg includes features and locale in 2.0.00 and later clients; v1.x.xx servers will ignore them
                 putNet(SOCVersion.toCmd
-                    (Version.versionNumber(), Version.version(), Version.buildnum(), client.cliLocale.toString()));
+                    (Version.versionNumber(), Version.version(), Version.buildnum(), null, client.cliLocale.toString()));
             }
             catch (Exception e)
             {

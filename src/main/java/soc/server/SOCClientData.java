@@ -25,6 +25,7 @@ import java.util.TimerTask;
 import soc.message.SOCGameOptionGetInfos;  // for javadoc
 import soc.message.SOCMessage;  // for javadoc
 import soc.server.genericServer.Connection;
+import soc.util.SOCFeatureSet;  // for javadoc
 import soc.util.SOCGameList;
 import soc.util.SOCStringManager;  // for javadoc
 
@@ -41,6 +42,13 @@ public class SOCClientData
 {
     /** Number of games won and lost since client connected */
     private int wins, losses;
+
+    /**
+     * Client's reported optional features, or {@code null}, as in {@link SOCFeatureSet#getEncodedList()}.
+     * Sent as part of the SOCVersion message from clients 2.0.00 or newer.
+     * @since 2.0.00
+     */
+    public String feats;
 
     /**
      * Client's reported JVM locale, or {@code null}, as in {@link java.util.Locale#getDefault()}.
@@ -443,7 +451,7 @@ public class SOCClientData
             cliData.cliVersionTask = null;  // Clear reference to this soon-to-expire obj
             if (! cliConn.isVersionKnown())
             {
-                srv.setClientVersSendGamesOrReject(cliConn, SOCServer.CLI_VERSION_ASSUMED_GUESS, null, false);
+                srv.setClientVersSendGamesOrReject(cliConn, SOCServer.CLI_VERSION_ASSUMED_GUESS, null, null, false);
                 // will also send game list.
                 // if cli vers already known, it's already sent the list.
             }
