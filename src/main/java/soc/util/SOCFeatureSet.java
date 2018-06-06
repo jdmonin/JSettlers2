@@ -22,13 +22,18 @@ package soc.util;
 /**
  * Set of optional server features or client features that are currently active.
  * Sent during connect via {@link soc.message.SOCVersion} message fields.
+ * Each feature can be a flag (active or not) or, in v2.0.00 and newer, integer-valued.
  *<P>
  * Added in v1.1.19 ({@link #VERSION_FOR_SERVERFEATURES}); earlier clients assume the server is using the
  * features defined in 1.1.19. Use the {@link #SOCFeatureSet(boolean, boolean) SOCFeatureSet(true, true)} constructor
  * when connecting to a server older than 1.1.19. See that constructor's javadoc for the list of features
  * always assumed active before 1.1.19.
  *<P>
- * Feature names are kept simple (lowercase alphanumerics, underscore, dash) for encoding into network message fields.
+ * Feature name constants defined here are kept simple (lowercase alphanumerics, underscore, dash)
+ * for encoding into network message fields.
+ *<P>
+ * Check active features with {@link #isActive(String)} and/or {@link #getValue(String, int)}.
+ * Add a feature with {@link #add(String)} or {@link #add(String, int)}.
  *<P>
  * <b>Locks:</b> Not thread-safe.  Caller must guard against potential multi-threaded modifications or access.
  *<P>
@@ -39,6 +44,8 @@ package soc.util;
  */
 public class SOCFeatureSet
 {
+    // When updating this class, also update unit tests if needed: soctest.util.TestFeatureSet
+
     /** Minimum version (1.1.19) of client/server which send and recognize server features */
     public static final int VERSION_FOR_SERVERFEATURES = 1119;
 
@@ -154,8 +161,9 @@ public class SOCFeatureSet
     /**
      * Is this feature active?
      * @param featureName  A defined feature name, such as {@link #SERVER_ACCOUNTS}
-     * @return  True if {@code featureName} is in the features list
+     * @return  True if {@code featureName} is in the features list, as either a flag or an int-valued feature
      * @throws IllegalArgumentException if {@code featureName} is null or ""
+     * @see #getValue(String, int)
      */
     public boolean isActive(final String featureName)
         throws IllegalArgumentException
@@ -166,13 +174,50 @@ public class SOCFeatureSet
         if (featureList == null)
             return false;
 
-        return featureList.contains(SEP_CHAR + featureName + SEP_CHAR);
+        return featureList.contains(SEP_CHAR + featureName + SEP_CHAR)
+            || featureList.contains(SEP_CHAR + featureName + '=');
     }
 
     /**
-     * Add this active feature.
-     * @param featureName  A defined feature name, such as {@link #SERVER_ACCOUNTS}
+     * Get the int value of this feature, if active.
+     * @param featureName  A defined int-valued feature name
+     * @param dflt  Default value if feature isn't found or is a boolean flag.
+     *     If value can't be parsed as an integer, returns {@code dflt}.
+     * @return  Feature's int value or {@code dflt}
+     * @see #isActive(String)
+     */
+    public int getValue(final String featureName, final int dflt)
+    {
+        if ((featureName == null) || (featureName.length() == 0))
+            throw new IllegalArgumentException("featureName: " + featureName);
+
+        if (featureList == null)
+            return dflt;
+
+        int iStart = featureList.indexOf(SEP_CHAR + featureName + '=');
+        if (iStart == -1)
+            return dflt;
+        iStart += featureName.length() + 2;  // move past SEP_CHAR + featureName + '='
+
+        int iEnd = featureList.indexOf(SEP_CHAR, iStart);
+        if (iEnd == -1)
+            iEnd = featureList.length();  // just in case; shouldn't occur if well-formed
+
+        try
+        {
+            return Integer.parseInt(featureList.substring(iStart, iEnd));
+        } catch (RuntimeException e) {
+            // IndexOutOfBoundsException, NumberFormatException; shouldn't occur if well-formed
+            return dflt;
+        }
+    }
+
+    /**
+     * Add this active feature flag.
+     * Must not already be in the set: Does not check for duplicates.
+     * @param featureName  A defined feature flag name, such as {@link #SERVER_ACCOUNTS}
      * @throws IllegalArgumentException if {@code featureName} is null or ""
+     * @see #add(String, int)
      */
     public void add(final String featureName)
         throws IllegalArgumentException
@@ -184,6 +229,26 @@ public class SOCFeatureSet
             featureList = SEP_CHAR + featureName + SEP_CHAR;
         else
             featureList = featureList.concat(featureName + SEP_CHAR);
+    }
+
+    /**
+     * Add this int-valued active feature.
+     * Must not already be in the set: Does not check for duplicates.
+     * @param featureName  A defined int-valued feature name
+     * @throws IllegalArgumentException if {@code featureName} is null or ""
+     * @see #add(String)
+     * @since 2.0.00
+     */
+    public void add(final String featureName, final int val)
+        throws IllegalArgumentException
+    {
+        if ((featureName == null) || (featureName.length() == 0))
+            throw new IllegalArgumentException("featureName: " + featureName);
+
+        if (featureList == null)
+            featureList = SEP_CHAR + featureName + "=" + val + SEP_CHAR;
+        else
+            featureList = featureList.concat(featureName + "=" + val + SEP_CHAR);
     }
 
     /**
