@@ -24,10 +24,15 @@ package soc.util;
  * Sent during connect via {@link soc.message.SOCVersion} message fields.
  * Each feature can be a flag (active or not) or, in v2.0.00 and newer, integer-valued.
  *<P>
- * Added in v1.1.19 ({@link #VERSION_FOR_SERVERFEATURES}); earlier clients assume the server is using the
- * features defined in 1.1.19. Use the {@link #SOCFeatureSet(boolean, boolean) SOCFeatureSet(true, true)} constructor
- * when connecting to a server older than 1.1.19. See that constructor's javadoc for the list of features
- * always assumed active before 1.1.19.
+ * Server features were added in v1.1.19 ({@link #VERSION_FOR_SERVERFEATURES}); earlier clients assume the server is
+ * using the features defined in 1.1.19. Use the {@link #SOCFeatureSet(boolean, boolean) SOCFeatureSet(true, true)}
+ * constructor when connecting to a server older than 1.1.19. See that constructor's javadoc for the list of
+ * server features always assumed active before 1.1.19.
+ *<P>
+ * Client features were added in v2.0.00 ({@link #VERSION_FOR_CLIENTFEATURES}); earlier servers assume the client is
+ * using the features that standard JSettlers implements. Use the
+ * {@link #SOCFeatureSet(boolean, boolean) SOCFeatureSet(true, false)} constructor when connecting to a client older
+ * than 2.0.00. See that constructor's javadoc for the list of client features always assumed active before 2.0.00.
  *<P>
  * Feature name constants defined here are kept simple (lowercase alphanumerics, underscore, dash)
  * for encoding into network message fields.
@@ -54,6 +59,10 @@ public class SOCFeatureSet
      * @since 2.0.00
      */
     public static final int VERSION_FOR_CLIENTFEATURES = 2000;
+
+    // When adding a feature, also add it to TestFeatureSet.testConstantsUnchanged()
+
+    // Server Features
 
     /**
      * Server feature User accounts defined in a persistent database.
@@ -95,11 +104,39 @@ public class SOCFeatureSet
      */
     public static final String SERVER_OPEN_REG = "oreg";
 
+    // Client Features
+
+    /**
+     * Client feature flag for 6-player games.
+     * If not set, client can only play 4-player games,
+     * not those where game option {@code PL > 4}.
+     * @since 2.0.00
+     */
+    public static final String CLIENT_6_PLAYERS = "6pl";
+
+    /**
+     * Client feature flag for sea board layouts.
+     * If not set, client can only play the "classic" boards,
+     * not games where game option {@code SBL} is set.
+     * @since 2.0.00
+     */
+    public static final String CLIENT_SEA_BOARD = "sb";
+
+    /**
+     * Client numeric feature for scenarios.
+     * If not set, client doesn't support scenarios or game option {@code SC}.
+     * Clients supporting scenarios should set this feature's value to the JSettlers version
+     * having all scenarios they support: For example if the client supports all scenarios
+     * included in JSettlers 2.0.01, the value would be 2001.
+     * @since 2.0.00
+     */
+    public static final String CLIENT_SCENARIO_VERSION = "sc";
+
     /**
      * Separator character ';' between features in {@link #featureList}.
      * Chosen to avoid the {@code sep_char} and {@code sep2_char} separators defined in {@code SOCMessage}.
      */
-    private static char SEP_CHAR = ';';
+    public static final char SEP_CHAR = ';';
 
     /**
      * Active feature list, or null if none.
@@ -111,15 +148,27 @@ public class SOCFeatureSet
      * Create a new empty SOCFeatureSet, with none active or defaults active.
      * After construction, use {@link #add(String)} to add active features.
      * @param withOldDefaults  If false, nothing is active. If true, include the default features
-     *     which were assumed always active in servers older than v1.1.19 ({@link #VERSION_FOR_SERVERFEATURES}):
-     *     {@link #SERVER_ACCOUNTS}, {@link #SERVER_CHANNELS}, {@link #SERVER_OPEN_REG}.
+     *     assumed active in servers or clients older than {@link SOCFeatureSet} support;
+     *     see {@code withOldDefaultsForServer}
+     * @param withOldDefaultsForServer  Include features for an old server, not old client:
+     *     <UL>
+     *     <LI> If true, include features which were assumed always active in servers older than v1.1.19
+     *         ({@link #VERSION_FOR_SERVERFEATURES}): {@link #SERVER_ACCOUNTS}, {@link #SERVER_CHANNELS},
+     *         {@link #SERVER_OPEN_REG}.
+     *     <LI> If false, include feature which was assumed always active in clients older than v2.0.00
+     *         ({@link #VERSION_FOR_CLIENTFEATURES}): {@link #CLIENT_6_PLAYERS}.
+     *     <LI> Ignored unless {@code withOldDefaults} is set.
+     *     </UL>
      */
-    public SOCFeatureSet(final boolean withOldDefaults)
+    public SOCFeatureSet(final boolean withOldDefaults, final boolean withOldDefaultsForServer)
     {
         if (withOldDefaults)
         {
-            featureList = SEP_CHAR + SERVER_ACCOUNTS + SEP_CHAR + SERVER_CHANNELS
-                + SEP_CHAR + SERVER_OPEN_REG + SEP_CHAR;
+            if (withOldDefaultsForServer)
+                featureList = SEP_CHAR + SERVER_ACCOUNTS + SEP_CHAR + SERVER_CHANNELS
+                    + SEP_CHAR + SERVER_OPEN_REG + SEP_CHAR;
+            else
+                featureList = SEP_CHAR + CLIENT_6_PLAYERS + SEP_CHAR;
         } else {
             // featureList is already empty (null)
         }

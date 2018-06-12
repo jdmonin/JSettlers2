@@ -648,7 +648,7 @@ public class SOCAccountClient extends Applet
             // send VERSION right away (1.1.07 and later)
             // Version msg includes locale in 2.0.00 and later clients; v1.x.xx servers will ignore that token.
             put(SOCVersion.toCmd
-                (Version.versionNumber(), Version.version(), Version.buildnum(), cliLocale.toString(), null));
+                (Version.versionNumber(), Version.version(), Version.buildnum(), null, cliLocale.toString()));
         }
         catch (Exception e)
         {
@@ -925,7 +925,7 @@ public class SOCAccountClient extends Applet
         sFeatures =
             (sVersion >= SOCFeatureSet.VERSION_FOR_SERVERFEATURES)
             ? new SOCFeatureSet(mes.feats)
-            : new SOCFeatureSet(true);
+            : new SOCFeatureSet(true, true);
 
         if (! sFeatures.isActive(SOCFeatureSet.SERVER_ACCOUNTS))
         {

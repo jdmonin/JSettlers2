@@ -36,7 +36,7 @@ import soc.util.SOCFeatureSet;  // for javadocs only
  * sending a {@link SOCImARobot} message will clear the robot client's locale to {@code null} at the server.
  *<P>
  * Before 1.1.19, the server did not send its active optional features; new clients of older servers
- * should use the {@link SOCFeatureSet#SOCFeatureSet(boolean) SOCFeatureSet(true)} constructor
+ * should use the {@link SOCFeatureSet#SOCFeatureSet(boolean, boolean) SOCFeatureSet(true, true)} constructor
  * to set the default features active.
  *<P>
  * Before 1.1.06, in SOCPlayerClient, this was sent first from server to client, then client responded.

@@ -467,7 +467,7 @@ public class SOCPlayerClient
          * @param versionString  Version string, like "1.1.19", from server's {@link soc.util.Version#version()}
          * @param buildString  Build number, from server's {@link soc.util.Version#buildnum()}
          * @param feats  Active optional server features; never null. If server is older than v1.1.19, use the
-         *        {@link SOCFeatureSet#SOCFeatureSet(boolean) SOCFeatureSet(true)} constructor.
+         *        {@link SOCFeatureSet#SOCFeatureSet(boolean, boolean) SOCFeatureSet(true, true)} constructor.
          */
         void showVersion
             (final int versionNumber, final String versionString, final String buildString, final SOCFeatureSet feats);
@@ -3809,7 +3809,7 @@ public class SOCPlayerClient
             sVersion = vers;
             sFeatures = (vers >= SOCFeatureSet.VERSION_FOR_SERVERFEATURES)
                 ? new SOCFeatureSet(mes.feats)
-                : new SOCFeatureSet(true);
+                : new SOCFeatureSet(true, true);
 
             gameDisplay.showVersion(vers, mes.getVersionString(), mes.getBuild(), sFeatures);
         }
@@ -6858,6 +6858,18 @@ public class SOCPlayerClient
         Thread reader = null;
 
         /**
+         * Features supported by this built-in JSettlers client.
+         * @since 2.0.00
+         */
+        private final SOCFeatureSet cliFeats;
+        {
+            cliFeats = new SOCFeatureSet(false, false);
+            cliFeats.add(SOCFeatureSet.CLIENT_6_PLAYERS);
+            cliFeats.add(SOCFeatureSet.CLIENT_SEA_BOARD);
+            cliFeats.add(SOCFeatureSet.CLIENT_SCENARIO_VERSION, Version.versionNumber());
+        }
+
+        /**
          * Any network error (TCP communication) received while connecting
          * or sending messages in {@link #putNet(String)}, or null.
          * If {@code ex != null}, putNet will refuse to send.
@@ -6963,7 +6975,7 @@ public class SOCPlayerClient
                     // Send VERSION right away (1.1.06 and later)
                     putPractice(SOCVersion.toCmd
                         (Version.versionNumber(), Version.version(), Version.buildnum(),
-                         null, client.cliLocale.toString()));
+                         cliFeats.getEncodedList(), client.cliLocale.toString()));
 
                     // Practice server will support per-game options
                     client.gameDisplay.enableOptions();
@@ -7108,7 +7120,8 @@ public class SOCPlayerClient
                 // send VERSION right away (1.1.06 and later)
                 // Version msg includes features and locale in 2.0.00 and later clients; v1.x.xx servers will ignore them
                 putNet(SOCVersion.toCmd
-                    (Version.versionNumber(), Version.version(), Version.buildnum(), null, client.cliLocale.toString()));
+                    (Version.versionNumber(), Version.version(), Version.buildnum(),
+                     cliFeats.getEncodedList(), client.cliLocale.toString()));
             }
             catch (Exception e)
             {

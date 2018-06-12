@@ -100,4 +100,47 @@ public class TestFeatureSet
         assertEquals(77, fs.getValue("abc", 77));
     }
 
+    @Test
+    public void testClientOldDefaults()
+    {
+        SOCFeatureSet fs = new SOCFeatureSet(true, false);
+        assertTrue(fs.isActive(SOCFeatureSet.CLIENT_6_PLAYERS));
+        assertTrue(fs.getEncodedList().equals(';' + SOCFeatureSet.CLIENT_6_PLAYERS + ';'));
+    }
+
+    @Test
+    public void testServerOldDefaults()
+    {
+        SOCFeatureSet fs = new SOCFeatureSet(true, true);
+        assertTrue(fs.isActive(SOCFeatureSet.SERVER_ACCOUNTS));
+        assertTrue(fs.isActive(SOCFeatureSet.SERVER_CHANNELS));
+        assertTrue(fs.isActive(SOCFeatureSet.SERVER_OPEN_REG));
+        assertTrue(fs.getEncodedList().equals
+            (';' + SOCFeatureSet.SERVER_ACCOUNTS + ';' + SOCFeatureSet.SERVER_CHANNELS
+             + ';' + SOCFeatureSet.SERVER_OPEN_REG + ';'));
+    }
+
+    @Test
+    public void testWithoutOldDefaults()
+    {
+        SOCFeatureSet fs = new SOCFeatureSet(false, false);
+        assertNull(fs.getEncodedList());
+
+        fs = new SOCFeatureSet(false, true);  // should ignore 2nd param
+        assertNull(fs.getEncodedList());
+    }
+
+    /** Constants are sent between servers and clients, so their values shouldn't change between versions. */
+    @Test
+    public void testConstantsUnchanged()
+    {
+        assertTrue(SOCFeatureSet.CLIENT_6_PLAYERS.equals("6pl"));
+        assertTrue(SOCFeatureSet.CLIENT_SEA_BOARD.equals("sb"));
+        assertTrue(SOCFeatureSet.CLIENT_SCENARIO_VERSION.equals("sc"));
+
+        assertTrue(SOCFeatureSet.SERVER_ACCOUNTS.equals("accts"));
+        assertTrue(SOCFeatureSet.SERVER_CHANNELS.equals("ch"));
+        assertTrue(SOCFeatureSet.SERVER_OPEN_REG.equals("oreg"));
+    }
+
 }

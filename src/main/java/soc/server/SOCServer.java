@@ -672,7 +672,7 @@ public class SOCServer extends Server
      * Features are activated through the command line or {@link #props}.
      * @since 1.1.19
      */
-    private SOCFeatureSet features = new SOCFeatureSet(false);
+    private SOCFeatureSet features = new SOCFeatureSet(false, false);
 
     /**
      * Game type handler, currently shared by all game instances.
@@ -5285,11 +5285,13 @@ public class SOCServer extends Server
      * @return True if OK, false if rejected
      */
     boolean setClientVersSendGamesOrReject
-        (Connection c, final int cvers, final String cfeats, String clocale, final boolean isKnown)
+        (Connection c, final int cvers, String cfeats, String clocale, final boolean isKnown)
     {
         final int prevVers = c.getVersion();
         final boolean wasKnown = c.isVersionKnown();
 
+        if ((cfeats == null) && (cvers < SOCFeatureSet.VERSION_FOR_CLIENTFEATURES))
+            cfeats = new SOCFeatureSet(true, false).getEncodedList();  // default features for 1.x.xx client
         SOCClientData scd = (SOCClientData) c.getAppData();
         scd.feats = cfeats;
 

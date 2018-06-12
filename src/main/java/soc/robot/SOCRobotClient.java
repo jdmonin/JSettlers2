@@ -35,6 +35,7 @@ import soc.server.genericServer.StringServerSocket;
 
 import soc.util.CappedQueue;
 import soc.util.CutoffExceededException;
+import soc.util.SOCFeatureSet;
 import soc.util.SOCRobotParameters;
 import soc.util.Version;
 
@@ -185,6 +186,13 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * @since 2.0.00
      */
     protected String rbclass = SOCImARobot.RBCLASS_BUILTIN;
+
+    /**
+     * Features supported by this built-in JSettlers robot client.
+     * Initialized in {@link #init()}.
+     * @since 2.0.00
+     */
+    private SOCFeatureSet cliFeats;
 
     /**
      * The security cookie value; required by server v1.1.19 and higher.
@@ -342,9 +350,18 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             readerRobot = new Thread(this);
             readerRobot.start();
 
+            if (cliFeats == null)
+            {
+                cliFeats = new SOCFeatureSet(false, false);
+                cliFeats.add(SOCFeatureSet.CLIENT_6_PLAYERS);
+                cliFeats.add(SOCFeatureSet.CLIENT_SEA_BOARD);
+                cliFeats.add(SOCFeatureSet.CLIENT_SCENARIO_VERSION, Version.versionNumber());
+            }
+
             //resetThread = new SOCRobotResetThread(this);
             //resetThread.start();
-            put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum(), null, null));
+            put(SOCVersion.toCmd
+                (Version.versionNumber(), Version.version(), Version.buildnum(), cliFeats.getEncodedList(), null));
             put(SOCImARobot.toCmd(nickname, cookie, rbclass));
         }
         catch (Exception e)
@@ -387,7 +404,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
                 //resetThread = new SOCRobotResetThread(this);
                 //resetThread.start();
-                put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum(), null, null));
+                put(SOCVersion.toCmd
+                    (Version.versionNumber(), Version.version(), Version.buildnum(), cliFeats.getEncodedList(), null));
                 put(SOCImARobot.toCmd(nickname, cookie, SOCImARobot.RBCLASS_BUILTIN));
 
                 break;  // <--- Exit attempt-loop ---
