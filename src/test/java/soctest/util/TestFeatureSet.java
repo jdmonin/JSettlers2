@@ -130,6 +130,56 @@ public class TestFeatureSet
         assertNull(fs.getEncodedList());
     }
 
+    @Test
+    public void testHasAllOf()
+    {
+        final String[] emptys = { null, "", ";", ";;" };
+
+        // no features in self and subset
+        for (String selfStr : emptys)
+        {
+            SOCFeatureSet fs = new SOCFeatureSet(selfStr);
+            for (String subStr : emptys)
+                assertTrue(fs.hasAllOf(new SOCFeatureSet(subStr)));
+            assertFalse(fs.hasAllOf(new SOCFeatureSet(";xyz;")));
+        }
+
+        // single feature, overall parsing
+        SOCFeatureSet fs = new SOCFeatureSet(";xyz=2002;");
+        assertTrue(fs.hasAllOf(null));
+        assertTrue(fs.hasAllOf(new SOCFeatureSet("")));
+        assertTrue(fs.hasAllOf(new SOCFeatureSet(";")));
+        assertTrue(fs.hasAllOf(new SOCFeatureSet(";;")));
+        assertTrue(fs.hasAllOf(new SOCFeatureSet(";xyz;")));  // subset's feature as boolean without int value
+        assertTrue(fs.hasAllOf(new SOCFeatureSet(";xyz=;")));  // almost malformed: parse no value as 0
+        assertTrue(fs.hasAllOf(new SOCFeatureSet(";xyz=0;")));
+        assertTrue(fs.hasAllOf(new SOCFeatureSet(";xyz=-5;")));  // negative value
+        assertTrue(fs.hasAllOf(new SOCFeatureSet(";xyz=2001;")));  // lower value
+        assertTrue(fs.hasAllOf(new SOCFeatureSet(";xyz=2002;")));  // same value
+        assertFalse(fs.hasAllOf(new SOCFeatureSet(";xyz=2003;")));  // higher value
+        assertFalse(fs.hasAllOf(new SOCFeatureSet(";xyz=n;")));  // purposefully malformed
+        assertFalse(fs.hasAllOf(new SOCFeatureSet(";=7;")));  // purposefully malformed
+
+        // more negative-value tests
+        fs = new SOCFeatureSet(";abc=-5;");
+        assertTrue(fs.hasAllOf(new SOCFeatureSet(";abc=-6;")));
+        assertTrue(fs.hasAllOf(new SOCFeatureSet(";abc=-5;")));
+        assertFalse(fs.hasAllOf(new SOCFeatureSet(";abc=-4;")));
+        assertFalse(fs.hasAllOf(new SOCFeatureSet(";abc=0;")));
+
+        // multiple features
+        fs = new SOCFeatureSet(";a;b;cd=11;");
+        assertTrue(fs.hasAllOf(new SOCFeatureSet(";a;")));
+        assertFalse(fs.hasAllOf(new SOCFeatureSet(";a=7;")));  // subset's feature has int value, but ours is boolean
+        assertTrue(fs.hasAllOf(new SOCFeatureSet(";a;b;")));
+        assertTrue(fs.hasAllOf(new SOCFeatureSet(";b;a;")));
+        assertFalse(fs.hasAllOf(new SOCFeatureSet(";b;a;f;")));  // f not in our set
+        assertTrue(fs.hasAllOf(new SOCFeatureSet(";cd;a;b;")));  // subset's feature as boolean without int value
+        assertTrue(fs.hasAllOf(new SOCFeatureSet(";cd=7;b;a;")));  // lower value
+        assertTrue(fs.hasAllOf(new SOCFeatureSet(";cd=11;b;a;")));  // same value
+        assertFalse(fs.hasAllOf(new SOCFeatureSet(";cd=12;b;a;")));  // higher value
+    }
+
     /** Constants are sent between servers and clients, so their values shouldn't change between versions. */
     @Test
     public void testConstantsUnchanged()

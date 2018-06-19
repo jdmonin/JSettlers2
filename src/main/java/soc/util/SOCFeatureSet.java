@@ -123,11 +123,15 @@ public class SOCFeatureSet
     public static final String CLIENT_SEA_BOARD = "sb";
 
     /**
-     * Client numeric feature for scenarios.
+     * Client scenario version (numeric feature).
      * If not set, client doesn't support scenarios or game option {@code SC}.
      * Clients supporting scenarios should set this feature's value to the JSettlers version
      * having all scenarios they support: For example if the client supports all scenarios
      * included in JSettlers 2.0.01, the value would be 2001.
+     *<P>
+     * Should not be newer (larger) than the client's reported version.
+     * If this value is newer than the client version, it will be reduced
+     * to match that.
      * @since 2.0.00
      */
     public static final String CLIENT_SCENARIO_VERSION = "sc";
@@ -298,6 +302,66 @@ public class SOCFeatureSet
             featureList = SEP_CHAR + featureName + "=" + val + SEP_CHAR;
         else
             featureList = featureList.concat(featureName + "=" + val + SEP_CHAR);
+    }
+
+    /**
+     * Does this set contain all of the features of another set?
+     * For features with an int value, value in {@code this} set must be &gt;=
+     * the feature's value in {@code feats}. If somehow the feature is boolean in
+     * one set and int-valued in the other, 0 is used as the boolean feature's int value.
+     * @param feats  Set to compare against, or {@code null}
+     * @return true if this set is a superset containing all features in {@code feats},
+     *     or if {@code feats} is {@code null}
+     * @since 2.0.00
+     */
+    public boolean hasAllOf(SOCFeatureSet feats)
+    {
+        if ((feats == null) || (feats.featureList == null))
+            return true;
+
+        final String fList = feats.featureList;
+        final int L = fList.length();
+        if (L < 2)
+            return true;
+
+        // loop through fList, checking our own list
+        for (int i = fList.indexOf(SEP_CHAR, 1), iprev = 0;  // assumes fList is well-formed and starts with ';'
+             ;
+             iprev = i, i = fList.indexOf(SEP_CHAR, i+1))
+        {
+            if (i == -1)
+                i = L;
+
+            if (i - iprev > 1)
+            {
+                String f = fList.substring(iprev + 1, i);
+                int ieq = f.indexOf('=');
+                if (ieq == -1)
+                {
+                    if (! isActive(f))
+                        return false;
+                } else if (ieq == 0) {
+                    return false;  // malformed
+                } else {
+                    String name = f.substring(0, ieq), val = f.substring(ieq + 1);
+                    int ival = 0;
+                    if (val.length() > 0)
+                        try {
+                            ival = Integer.parseInt(val);
+                        } catch (NumberFormatException e) {
+                            return false;
+                        }
+                    int ourval = getValue(name, ival - 1);
+                    if (ourval < ival)
+                        return false;
+                }
+            }
+
+            if (i >= (L-1))
+                break;
+        }
+
+        return true;
     }
 
     /**
