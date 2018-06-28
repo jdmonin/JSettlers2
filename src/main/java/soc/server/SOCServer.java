@@ -5290,10 +5290,20 @@ public class SOCServer extends Server
         final int prevVers = c.getVersion();
         final boolean wasKnown = c.isVersionKnown();
 
+        final SOCFeatureSet cfeatSet;
         if ((cfeats == null) && (cvers < SOCFeatureSet.VERSION_FOR_CLIENTFEATURES))
-            cfeats = new SOCFeatureSet(true, false).getEncodedList();  // default features for 1.x.xx client
+            cfeatSet = new SOCFeatureSet(true, false);  // default features for 1.x.xx client
+        else
+            cfeatSet = (cfeats != null) ? new SOCFeatureSet(cfeats) : null;
+
+        int scenVers = (cfeatSet != null) ? cfeatSet.getValue(SOCFeatureSet.CLIENT_SCENARIO_VERSION, 0) : 0;
+        if (scenVers > cvers)
+            scenVers = cvers;
+
+        // Store this client's features
         SOCClientData scd = (SOCClientData) c.getAppData();
-        scd.feats = cfeats;
+        scd.feats = cfeatSet;
+        scd.scenVersion = scenVers;
 
         // Message to send/log if client must be disconnected
         String rejectMsg = null;
@@ -6370,13 +6380,13 @@ public class SOCServer extends Server
             return;  // <--- Already checked, nothing left to send ---
         }
 
-        final int cliVers = c.getVersion();
+        final int cliVers = scd.scenVersion;
         if (cliVers < SOCScenario.VERSION_FOR_SCENARIOS)
         {
             scd.sentAllScenarioStrings = true;
             scd.sentAllScenarioInfo = true;
 
-            return;  // <--- Client is too old ---
+            return;  // <--- Client is too old or doesn't support scenarios ---
         }
 
         // Have we already sent this scenario's info or strings?

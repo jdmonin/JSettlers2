@@ -792,7 +792,9 @@ public class SOCServerMessageHandler
 
         // Calculate and respond; be sure to include any requested scKeys from params
 
-        final int cliVers = c.getVersion();
+        final SOCClientData scd = (SOCClientData) c.getAppData();
+        final int cliVers = scd.scenVersion;
+
         Map<String, SOCScenario> knownScens = null;  // caches SOCScenario.getAllKnownScenarios() if called
 
         List<SOCScenario> changes = null;
@@ -826,8 +828,6 @@ public class SOCServerMessageHandler
                     srv.sendGameScenarioInfo(null, sc, c, false);
                 else
                     c.put(new SOCScenarioInfo(sc.key, true).toCmd());
-
-        final SOCClientData scd = (SOCClientData) c.getAppData();
 
         if (hasAnyChangedMarker && scd.wantsI18N && ! scd.sentAllScenarioStrings)
         {

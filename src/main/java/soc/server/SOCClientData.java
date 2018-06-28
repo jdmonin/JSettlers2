@@ -25,14 +25,14 @@ import java.util.TimerTask;
 import soc.message.SOCGameOptionGetInfos;  // for javadoc
 import soc.message.SOCMessage;  // for javadoc
 import soc.server.genericServer.Connection;
-import soc.util.SOCFeatureSet;  // for javadoc
+import soc.util.SOCFeatureSet;
 import soc.util.SOCGameList;
 import soc.util.SOCStringManager;  // for javadoc
 
 /**
  * The server's place to track client-specific information across games.
  * The win-loss count is kept here.
- * Not tied to any database; information here is only for the current
+ * Not tied to the optional database; information here is only for the current
  * session, not persistent across disconnects/reconnects by clients.
  *
  * @author Jeremy D Monin <jeremy@nand.net>
@@ -44,11 +44,15 @@ public class SOCClientData
     private int wins, losses;
 
     /**
-     * Client's reported optional features, or {@code null}, as in {@link SOCFeatureSet#getEncodedList()}.
-     * Sent as part of the SOCVersion message from clients 2.0.00 or newer.
+     * Client's reported optional features, or {@code null}.
+     * Sent as an optional part of the SOCVersion message from clients 2.0.00 or newer;
+     * third-party clients or simple bots may have no features.
+     * For older 1.x.xx clients, this field has the default features from
+     * {@link SOCFeatureSet#SOCFeatureSet(boolean, boolean) new SOCFeatureSet(true, false)}.
+     * @see #scenVersion
      * @since 2.0.00
      */
-    public String feats;
+    public SOCFeatureSet feats;
 
     /**
      * Client's reported JVM locale, or {@code null}, as in {@link java.util.Locale#getDefault()}.
@@ -219,6 +223,13 @@ public class SOCClientData
      * @since 1.1.09
      */
     public String robot3rdPartyBrainClass;
+
+    /**
+     * Version of {@link soc.game.SOCScenario}s implemented by this client, or 0;
+     * from {@link SOCFeatureSet#CLIENT_SCENARIO_VERSION} reported in {@link #feats}.
+     * @since 2.0.00
+     */
+    public int scenVersion;
 
     /**
      * Are we considering a request to disconnect this client?
