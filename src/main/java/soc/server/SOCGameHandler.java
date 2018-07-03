@@ -100,6 +100,7 @@ import soc.message.SOCStatusMessage;
 import soc.message.SOCTurn;
 import soc.server.genericServer.Connection;
 import soc.util.IntPair;
+import soc.util.SOCFeatureSet;
 import soc.util.SOCGameList;
 import soc.util.SOCStringManager;
 import soc.util.Version;
@@ -535,6 +536,37 @@ public class SOCGameHandler extends GameHandler
         } else {
             srv.messageToPlayer(c, gaName, "Unknown debug command: " + subCmd);
         }
+    }
+
+    final public void calcGameClientFeaturesRequired(SOCGame ga)
+    {
+        SOCFeatureSet fs = null;
+
+        if (ga.isGameOptionSet("SBL"))
+        {
+            fs = new SOCFeatureSet((String) null);
+            fs.add(SOCFeatureSet.CLIENT_SEA_BOARD);
+        }
+
+        if (ga.maxPlayers > 4)
+        {
+            if (fs == null)
+                fs = new SOCFeatureSet((String) null);
+            fs.add(SOCFeatureSet.CLIENT_6_PLAYERS);
+        }
+
+        String scKey = ga.getGameOptionStringValue("SC");
+        if (scKey != null)
+        {
+            if (fs == null)
+                fs = new SOCFeatureSet((String) null);
+            SOCScenario sc = SOCScenario.getScenario(scKey);
+            int scVers = (sc != null) ? sc.minVersion : Integer.MAX_VALUE;
+            fs.add(SOCFeatureSet.CLIENT_SCENARIO_VERSION, scVers);
+        }
+
+        if (fs != null)
+            ga.setClientFeaturesRequired(fs);
     }
 
     /**

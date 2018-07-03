@@ -101,6 +101,14 @@ public abstract class GameHandler
     public abstract String[] getDebugCommandsHelp();
 
     /**
+     * When creating a new game at the server, check its options and
+     * if any of them require any optional client features, calculate
+     * the required features and call {@link SOCGame#setClientFeaturesRequired(soc.util.SOCFeatureSet)}.
+     * @param ga  Game to check features; not {@code null}
+     */
+    public abstract void calcGameClientFeaturesRequired(SOCGame ga);
+
+    /**
      * Client has been approved to join game; send JOINGAMEAUTH and the entire state of the game to client.
      * Unless <tt>isTakingOver</tt>, announce {@link SOCJoinGame} client join event to other players.
      * Assumes NEWGAME (or NEWGAMEWITHOPTIONS) has already been sent out.

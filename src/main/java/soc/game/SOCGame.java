@@ -27,6 +27,7 @@ import soc.disableDebug.D;
 
 import soc.message.SOCMessage;  // For static calls only; SOCGame does not interact with network messages
 import soc.util.IntPair;
+import soc.util.SOCFeatureSet;
 import soc.util.SOCGameBoardReset;
 
 import java.io.Serializable;
@@ -741,8 +742,17 @@ public class SOCGame implements Serializable, Cloneable
      * Calculated by {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
      * Format is the internal integer format, see {@link soc.util.Version#versionNumber()}.
      * Value may sometimes be too low at client, see {@link #getClientVersionMinRequired()} for details.
+     * @see #clientFeaturesRequired
      */
     private int clientVersionMinRequired;
+
+    /**
+     * For use at server; optional client features needed to connect to this game,
+     * or {@code null} if none.
+     * @see #clientVersionMinRequired
+     * @since 2.0.00
+     */
+    private SOCFeatureSet clientFeaturesRequired;
 
     /**
      * For use at server for i18n; does this game have any members (players or observers)
@@ -1942,11 +1952,35 @@ public class SOCGame implements Serializable, Cloneable
      * to options.
      *
      * @return game version, in same format as {@link soc.util.Version#versionNumber()}.
+     * @see #getClientFeaturesRequired()
      * @since 1.1.06
      */
     public int getClientVersionMinRequired()
     {
         return clientVersionMinRequired;
+    }
+
+    /**
+     * At server, get the optional client features needed to connect to this game, if any.
+     * Those features are optional for clients to implement, but required for them to join this game.
+     * @return this game's required client features, or {@code null} if none
+     * @see #getClientVersionMinRequired()
+     * @see #setClientFeaturesRequired(SOCFeatureSet)
+     * @since 2.0.00
+     */
+    public SOCFeatureSet getClientFeaturesRequired()
+    {
+        return clientFeaturesRequired;
+    }
+
+    /**
+     * At server, set the required client features returned by {@link #getClientFeaturesRequired()}, if any.
+     * @param feats  New feature set, or {@code null}
+     * @since 2.0.00
+     */
+    public void setClientFeaturesRequired(SOCFeatureSet feats)
+    {
+        clientFeaturesRequired = feats;
     }
 
     /**

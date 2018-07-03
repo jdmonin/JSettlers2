@@ -332,6 +332,7 @@ public class SOCGameListAtServer extends SOCGameList
 
         game.setExpiration(game.getStartTime().getTime() + (60 * 1000 * GAME_TIME_EXPIRE_MINUTES));
 
+        handler.calcGameClientFeaturesRequired(game);
         gameInfo.put(gaName, new GameInfoAtServer(game.getGameOptions(), handler));  // also creates MutexFlag
         gameData.put(gaName, game);
 
@@ -522,7 +523,7 @@ public class SOCGameListAtServer extends SOCGameList
          * @throws IllegalArgumentException  if {@code handler} is null
          */
         public GameInfoAtServer
-            (final Map<String,SOCGameOption> gameOpts, final GameHandler typeHandler)
+            (final Map<String, SOCGameOption> gameOpts, final GameHandler typeHandler)
             throws IllegalArgumentException
         {
             super(true, gameOpts);
