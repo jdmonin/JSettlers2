@@ -49,10 +49,19 @@ public class SOCClientData
      * third-party clients or simple bots may have no features.
      * For older 1.x.xx clients, this field has the default features from
      * {@link SOCFeatureSet#SOCFeatureSet(boolean, boolean) new SOCFeatureSet(true, false)}.
+     * @see #hasLimitedFeats
      * @see #scenVersion
      * @since 2.0.00
      */
     public SOCFeatureSet feats;
+
+    /**
+     * If true, client is missing some optional features that the server expects
+     * the built-in client to have. This client might not be able to join some games.
+     * @see #feats
+     * @since 2.0.00
+     */
+    public boolean hasLimitedFeats;
 
     /**
      * Client's reported JVM locale, or {@code null}, as in {@link java.util.Locale#getDefault()}.

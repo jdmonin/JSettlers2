@@ -87,7 +87,17 @@ public class SOCScenario
      * All scenarios here have their {@link SOCVersionedItem#isKnown isKnown} flag set true.
      * To add or change a scenario, see {@link #initAllScenarios()}.
      */
-    private static Map<String, SOCScenario> allScenarios = initAllScenarios();
+    private static final Map<String, SOCScenario> allScenarios = initAllScenarios();
+
+    /**
+     * The highest {@link SOCVersionedItem#minVersion} of all scenarios in {@link #getAllKnownScenarios()}, or 0.
+     * Value may change when a new JSettlers server version is released.
+     *<P>
+     * This is meant for use at the server, so its value won't be changed by calls to
+     * {@link #addKnownScenario(SOCScenario)} or {@link #removeUnknownScenario(String)};
+     * those methods aren't used at the server.
+     */
+    public static final int ALL_KNOWN_SCENARIOS_MIN_VERSION = findAllScenariosGreatestMinVersion();
 
     /**
      * Create a set of the known scenarios.
@@ -117,7 +127,7 @@ public class SOCScenario
      *<LI> Add the scenario's key to the list of "game scenario keynames"
      *   as a public static final String, such as {@link #K_SC_FOG}.
      *   Put a short description in the javadoc there and in {@link #getAllKnownScenarios()} javadoc's scenario list.
-     *<LI> Create the scenario by calling {@code allSc.put} here in initAllScenarios.
+     *<LI> Create the scenario by calling {@code allSc.put} here in {@code initAllScenarios()}.
      *   Use the current version for the "last modified" field.
      *<LI> Create the board layout; see {@link soc.server.SOCBoardAtServer} javadoc.
      *<LI> Within {@link SOCGame}, don't change any code based on the scenario name;
@@ -245,6 +255,18 @@ public class SOCScenario
 
         // OBSOLETE SCENARIOS, REMOVED SCENARIOS - Move its allSc.put down here, commented out,
         //       including the version, date, and reason of the removal.
+    }
+
+    /** Find max(minVersion) among {@link #allScenarios} for {@link #ALL_KNOWN_SCENARIOS_MIN_VERSION} init. */
+    private static final int findAllScenariosGreatestMinVersion()
+    {
+        int min = 0;
+
+        for (SOCScenario sc : allScenarios.values())
+            if (sc.minVersion > min)
+                min = sc.minVersion;
+
+        return min;
     }
 
     // Game scenario keynames.
@@ -527,6 +549,10 @@ public class SOCScenario
     /**
      * Add a new known scenario (received from a server having a newer or older version),
      * or update the scenario's information.
+     *<P>
+     * Because this method is client-only, it won't update the {@link #ALL_KNOWN_SCENARIOS_MIN_VERSION}
+     * field used at the server.
+     *
      * @param scNew New scenario, or a changed version of one we already know.
      * @return true if it's new, false if we already had that key and it was updated
      * @see #getAllKnownScenarios()
@@ -546,6 +572,10 @@ public class SOCScenario
     /**
      * Remove a scenario from known scenarios, based on info received from a server having an older or newer version.
      * If {@code scKey} isn't a known scenario, does nothing.
+     *<P>
+     * Because this method is client-only, it won't update the {@link #ALL_KNOWN_SCENARIOS_MIN_VERSION}
+     * field used at the server.
+     *
      * @param scKey  Scenario key marked as unknown by the server
      * @see #getAllKnownScenarios()
      * @see #addKnownScenario(SOCScenario)

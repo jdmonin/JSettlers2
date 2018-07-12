@@ -747,6 +747,17 @@ public class SOCServer extends Server
     protected Vector<Connection> robots3p = new Vector<Connection>();
 
     /**
+     * The limited-feature clients' connections: Those with the {@link SOCClientData#hasLimitedFeatures} flag set.
+     * These may be named or unnamed.
+     *<BR>
+     * <B>Locks:</B> All adding/removing of connections synchronizes on {@link Server#unnamedConns}.
+     * @see Server#conns
+     * @see Server#unnamedConns
+     * @since 2.0.00
+     */
+    protected HashSet<Connection> limitedConns = new HashSet<Connection>();
+
+    /**
      * Robot default parameters; copied for each newly connecting robot.
      * Changing this will not change parameters of any robots already connected.
      *
@@ -2290,11 +2301,8 @@ public class SOCServer extends Server
                     // To older clients who can't join, announce game with cant-join prefix
                     if (cversMin <= newgameSimpleMsgCantJoinVers)
                     {
-                        StringBuffer sb = new StringBuffer();
-                        sb.append(SOCGames.MARKER_THIS_GAME_UNJOINABLE);
-                        sb.append(gaName);
                         broadcastToVers
-                            (SOCNewGame.toCmd(sb.toString()),
+                            (SOCNewGame.toCmd(SOCGames.MARKER_THIS_GAME_UNJOINABLE + gaName),
                              SOCGames.VERSION_FOR_UNJOINABLE, newgameSimpleMsgCantJoinVers);
                     }
                 }
@@ -5296,14 +5304,40 @@ public class SOCServer extends Server
         else
             cfeatSet = (cfeats != null) ? new SOCFeatureSet(cfeats) : null;
 
+        // Check for limited features
+        boolean hasLimitedFeats = false;
         int scenVers = (cfeatSet != null) ? cfeatSet.getValue(SOCFeatureSet.CLIENT_SCENARIO_VERSION, 0) : 0;
         if (scenVers > cvers)
             scenVers = cvers;
 
+        if (cfeatSet == null)
+        {
+            hasLimitedFeats = true;
+        }
+        else if (! (cfeatSet.isActive(SOCFeatureSet.CLIENT_6_PLAYERS)
+                    && cfeatSet.isActive(SOCFeatureSet.CLIENT_SEA_BOARD)))
+        {
+            hasLimitedFeats = true;
+        }
+        else
+        {
+            hasLimitedFeats = (scenVers != cvers) && (scenVers < SOCScenario.ALL_KNOWN_SCENARIOS_MIN_VERSION);
+            // If scenVers >= that MIN_VERSION, there should be no new scenario-related info missing from it
+        }
+
         // Store this client's features
         SOCClientData scd = (SOCClientData) c.getAppData();
         scd.feats = cfeatSet;
+        scd.hasLimitedFeats = hasLimitedFeats;
         scd.scenVersion = scenVers;
+
+        if (hasLimitedFeats)
+        {
+            synchronized(unnamedConns)
+            {
+                limitedConns.add(c);
+            }
+        }
 
         // Message to send/log if client must be disconnected
         String rejectMsg = null;
@@ -5557,6 +5591,28 @@ public class SOCServer extends Server
         super.nameConnection(c, false);
 
         return null;  // accepted: no rejection reason string
+    }
+
+    /**
+     * Remove a connection from the system.
+     *<P>
+     * After calling parent method {@link Server#removeConnection(Connection, boolean)},
+     * cleans up any {@code SOCServer}-specific connection list info.
+     *<P>
+     * Description from parent method:
+     *<BR>
+     * {@inheritDoc}
+     * @since 2.0.00
+     */
+    @Override
+    public void removeConnection(final Connection c, final boolean doCleanup)
+    {
+        super.removeConnection(c, doCleanup);
+
+        synchronized(unnamedConns)
+        {
+            limitedConns.remove(c);
+        }
     }
 
     /**
