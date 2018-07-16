@@ -260,6 +260,9 @@ public class SOCGameListAtServer extends SOCGameList
 
     /**
      * Replace member from all games, with a new connection with same name (after a network problem).
+     *<P>
+     * Assumes {@link #playerGamesMinVersion(Connection)} has already been called to validate {@code newConn} can join
+     * all of {@code oldConn}'s games.
      *
      * @param  oldConn  the member's old connection
      * @param  newConn  the member's new connection
@@ -439,6 +442,7 @@ public class SOCGameListAtServer extends SOCGameList
      * @param  plConn   the previous connection of the player, which might be taken over
      * @return Minimum version, in same format as {@link SOCGame#getClientVersionMinRequired()},
      *         or 0 if player isn't in any games.
+     * @see #replaceMemberAllGames(Connection, Connection)
      * @since 1.1.08
      */
     public int playerGamesMinVersion(Connection plConn)
@@ -554,6 +558,7 @@ public class SOCGameListAtServer extends SOCGameList
     public void sendGameList(Connection c, int prevVers)
     {
         final int cliVers = c.getVersion();   // Need to know this before sending
+        final SOCClientData scd = (SOCClientData) c.getAppData();
 
         // Before send list of games, try for a client version.
         // Give client 1.2 seconds to send it, before we assume it's old
@@ -566,7 +571,6 @@ public class SOCGameListAtServer extends SOCGameList
         // Based on version:
         // If client is too old (< 1.1.06), it can't be told names of games
         // that it isn't capable of joining.
-
         boolean cliCanKnow = (cliVers >= SOCGames.VERSION_FOR_UNJOINABLE);
         final boolean cliCouldKnow = (prevVers >= SOCGames.VERSION_FOR_UNJOINABLE);
 
@@ -576,7 +580,7 @@ public class SOCGameListAtServer extends SOCGameList
         takeMonitor();
 
         // Note this flag now, while gamelist monitor is held
-        final boolean alreadySent = ((SOCClientData) c.getAppData()).hasSentGameList();
+        final boolean alreadySent = scd.hasSentGameList();
         boolean cliVersionChange = alreadySent && (cliVers > prevVers);
 
         if (alreadySent && ! cliVersionChange)
@@ -588,7 +592,7 @@ public class SOCGameListAtServer extends SOCGameList
 
         if (! alreadySent)
         {
-            ((SOCClientData) c.getAppData()).setSentGameList();  // Set while gamelist monitor is held
+            scd.setSentGameList();  // Set while gamelist monitor is held
         }
 
         /**
@@ -677,35 +681,9 @@ public class SOCGameListAtServer extends SOCGameList
         }
         catch (Exception e)
         {
-            D.ebugPrintStackTrace(e, "Exception in newConnection(sendgamelist)");
+            D.ebugPrintStackTrace(e, "Exception in GLAS.sendGameList");
         }
-
-        /*
-           gaEnum = gameList.getGames();
-           int scores[] = new int[SOCGame.MAXPLAYERS];
-           boolean robots[] = new boolean[SOCGame.MAXPLAYERS];
-           while (gaEnum.hasMoreElements()) {
-           String gameName = (String)gaEnum.nextElement();
-           SOCGame theGame = gameList.getGameData(gameName);
-           for (int i = 0; i < SOCGame.MAXPLAYERS; i++) {
-           SOCPlayer player = theGame.getPlayer(i);
-           if (player != null) {
-           if (theGame.isSeatVacant(i)) {
-           scores[i] = -1;
-           robots[i] = false;
-           } else {
-           scores[i] = player.getPublicVP();
-           robots[i] = player.isRobot();
-           }
-           } else {
-           scores[i] = 0;
-           }
-           }
-           c.put(SOCGameStats.toCmd(gameName, scores, robots));
-           }
-         */
-
-    }  // sendGameList
+    }
 
     /**
      * Game info including server-side information, such as the game type's {@link GameHandler}
