@@ -9,7 +9,7 @@ project.versionnum=2000
 # "no-warn" version to avoid unnecessary warning dialogs.
 project.versionnumMaxNoWarn=2000
 project.copyright=2001-2004 Robb Thomas, portions (C) 2007-2018 Jeremy D Monin and contributors
-project.buildnum=JM20180711
+project.buildnum=JM20180716
 project.jre.min.major=1
 project.jre.min.minor=5
 project.jre.min.edit=0

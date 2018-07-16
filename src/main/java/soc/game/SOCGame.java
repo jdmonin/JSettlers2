@@ -1975,12 +1975,34 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * At server, set the required client features returned by {@link #getClientFeaturesRequired()}, if any.
-     * @param feats  New feature set, or {@code null}
+     * @param feats  New feature set, or {@code null} if no features are required;
+     *     do not pass in an empty {@link SOCFeatureSet}
      * @since 2.0.00
      */
     public void setClientFeaturesRequired(SOCFeatureSet feats)
     {
         clientFeaturesRequired = feats;
+    }
+
+    /**
+     * Given its features, can a client join this game?
+     * Assumes client's {@link soc.server.SOCClientData#hasLimitedFeats} flag is true,
+     * otherwise they could join any game.
+     * @param cliFeats  Client's limited subset of optional features,
+     *     from {@link soc.server.SOCClientData#feats}, or {@code null} if none
+     * @return  True if client can join.
+     *     Always true if {@link #getClientFeaturesRequired()}.
+     * @since 2.0.00
+     */
+    public boolean canClientJoin(SOCFeatureSet cliFeats)
+    {
+        if (clientFeaturesRequired == null)
+            return true;  // anyone can join
+
+        if (cliFeats == null)
+            return false;  // cli has no features, this game requires some
+
+        return cliFeats.hasAllOf(clientFeaturesRequired);
     }
 
     /**

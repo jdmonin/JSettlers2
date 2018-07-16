@@ -37,6 +37,7 @@ import soc.message.SOCGamesWithOptions;
 import soc.message.SOCNewGame;
 import soc.message.SOCNewGameWithOptions;
 import soc.server.genericServer.Connection;
+import soc.util.SOCFeatureSet;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;
 import soc.util.Version;
@@ -574,6 +575,8 @@ public class SOCGameListAtServer extends SOCGameList
         boolean cliCanKnow = (cliVers >= SOCGames.VERSION_FOR_UNJOINABLE);
         final boolean cliCouldKnow = (prevVers >= SOCGames.VERSION_FOR_UNJOINABLE);
 
+        final SOCFeatureSet cliLimitedFeats = (scd.hasLimitedFeats) ? scd.feats : null;
+
         ArrayList<Object> gl = new ArrayList<Object>();  // contains Strings and/or SOCGames;
                                    // strings are names of unjoinable games,
                                    // with the UNJOINABLE prefix.
@@ -630,7 +633,8 @@ public class SOCGameListAtServer extends SOCGameList
                                // could join it with lower (prev-assumed) version
                 }
 
-                if (cliVers >= gameVers)
+                if ((cliVers >= gameVers)
+                    && ((cliLimitedFeats == null) || g.canClientJoin(cliLimitedFeats)))
                 {
                     gl.add(g);  // Can join
                 } else if (cliCanKnow)
