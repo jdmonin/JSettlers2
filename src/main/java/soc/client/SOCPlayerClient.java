@@ -150,6 +150,17 @@ public class SOCPlayerClient
     public static final String PROP_JSETTLERS_DEBUG_CLEAR__PREFS = "jsettlers.debug.clear_prefs";
 
     /**
+     * String property {@code jsettlers.debug.client.features} to support server testing and debugging:
+     * When present, client will report these Client Features to server in its {@code Version} message
+     * instead of its actual features from <tt>{@link SOCFeatureSet}.CLIENT_*</tt>.
+     *<P>
+     * Format: Empty for none, or string of semicolon-surrounded client features: <tt>";6pl;sb;"</tt><BR>
+     * Same format as {@link SOCFeatureSet#getEncodedList()}.
+     * @since 2.0.00
+     */
+    public static final String PROP_JSETTLERS_DEBUG_CLIENT_FEATURES = "jsettlers.debug.client.features";
+
+    /**
      * Integer persistent {@link Preferences} key for width of a {@link SOCPlayerInterface} window frame,
      * based on most recent resizing by user. Used with {@link #PREF_PI__HEIGHT}.
      *<P>
@@ -6973,9 +6984,7 @@ public class SOCPlayerClient
                     new SOCPlayerLocalStringReader(prCli);  // Reader will start its own thread
 
                     // Send VERSION right away (1.1.06 and later)
-                    putPractice(SOCVersion.toCmd
-                        (Version.versionNumber(), Version.version(), Version.buildnum(),
-                         cliFeats.getEncodedList(), client.cliLocale.toString()));
+                    sendVersion(true);
 
                     // Practice server will support per-game options
                     client.gameDisplay.enableOptions();
@@ -7118,10 +7127,7 @@ public class SOCPlayerClient
                 connected = true;
                 (reader = new Thread(new NetReadTask(client, this))).start();
                 // send VERSION right away (1.1.06 and later)
-                // Version msg includes features and locale in 2.0.00 and later clients; v1.x.xx servers will ignore them
-                putNet(SOCVersion.toCmd
-                    (Version.versionNumber(), Version.version(), Version.buildnum(),
-                     cliFeats.getEncodedList(), client.cliLocale.toString()));
+                sendVersion(false);
             }
             catch (Exception e)
             {
@@ -7169,6 +7175,35 @@ public class SOCPlayerClient
             {
                 ex = e;
             }
+        }
+
+        /**
+         * Construct and send a {@link SOCVersion} message during initial connection to a server.
+         * Version message includes features and locale in 2.0.00 and later clients; v1.x.xx servers will ignore them.
+         *<P>
+         * If debug property {@link SOCPlayerClient#PROP_JSETTLERS_DEBUG_CLIENT_FEATURES PROP_JSETTLERS_DEBUG_CLIENT_FEATURES}
+         * is set, its value is sent instead of {@link #cliFeats}.{@link SOCFeatureSet#getEncodedList() getEncodedList()}.
+         *
+         * @param isPractice  True if sending to client's practice server with {@link #putPractice(String)},
+         *     false if to a TCP server with {@link #putNet(String)}.
+         * @since 2.0.00
+         */
+        private void sendVersion(final boolean isPractice)
+        {
+            String feats = System.getProperty(PROP_JSETTLERS_DEBUG_CLIENT_FEATURES);
+            if (feats == null)
+                feats = cliFeats.getEncodedList();
+            else if (feats.length() == 0)
+                feats = null;
+
+            final String msg = SOCVersion.toCmd
+                (Version.versionNumber(), Version.version(), Version.buildnum(),
+                 feats, client.cliLocale.toString());
+
+            if (isPractice)
+                putPractice(msg);
+            else
+                putNet(msg);
         }
 
         /**

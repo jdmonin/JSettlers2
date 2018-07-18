@@ -208,6 +208,10 @@ parameters (before the SOCPlayerClient class name, not after):
 - `-Djsettlers.debug.traffic=Y` - Print network traffic; see above for details
 - `-Djsettlers.debug.clear_prefs=PI_width,PI_height` - Remove these persistent
   preferences at startup. See SOCPlayerClient PREF_* fields for all name keys.
+- `-Djsettlers.debug.client.features=;6pl;sb;` - Pretend to not support some
+  of the optional client features from `SOCFeatureSet`. (To see all the
+  standard features, omit this property but use `jsettlers.debug.traffic`, then
+  look for semicolons within the Version message sent to the server.)
 
 
 ## Setup instructions for JSettlers as an Eclipse project
@@ -631,6 +635,13 @@ The experimental `v3` branch replaces the homegrown SOCMessage protocol with
 Protobuf, optionally encapsulated in JSON over HTTP. Proof-of-concept bots
 are included. To write bots or clients using those well-known protocols,
 check out that branch and read its `Readme.developer`.
+
+If you're writing a third-party client or robot, some features of the standard
+client are optional. When each client connects, it sends the server a
+`SOCVersion` message which includes its version, locale, and features from
+`SOCFeatureSet`. If your client hasn't implemented 6-player games, Seafarers
+boards, or scenarios, don't include those client features in the `SOCVersion`
+message you send.
 
 
 ## Coding Style

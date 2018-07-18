@@ -182,7 +182,7 @@ public class SOCFeatureSet
      * Create a new SOCFeatureSet from an encoded list; useful at client.
      * @param encodedList  List from {@link #getEncodedList()}, or null or "" for none
      * @throws IllegalArgumentException if {@code encodedList} is not empty but
-     *     doesn't start and end with the separator character
+     *     doesn't start and end with {@link #SEP_CHAR}
      */
     public SOCFeatureSet(String encodedList)
         throws IllegalArgumentException
@@ -367,6 +367,11 @@ public class SOCFeatureSet
     /**
      * Get the encoded list of all active features, to send to a
      * client or server for {@link #SOCFeatureSet(String)}.
+     *<P>
+     * Features are separated by {@link #SEP_CHAR}. Integer-valued features are encoded as <tt>featurename=value</tt>.
+     * If not null or empty, the list starts and ends with {@link #SEP_CHAR} for ease of search.
+     *<P>
+     * Example: <tt>";6pl;sb;sc=2000;"</tt>
      * @return The active features list, or null if none
      */
     public String getEncodedList()
