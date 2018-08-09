@@ -122,6 +122,12 @@ public class SOCStatusMessage extends SOCMessage
      * Server v1.1.20 and newer also send this value to {@code SOCAccountClient}
      * if client is too old to create accounts at the server's version
      * because of a required logon auth or other message added since that client's version.
+     *<P>
+     * Server v2.0.00 and newer also send this value if client wants to join or create a game
+     * but is missing a Client Feature (from {@link SOCFeatureSet}) required by the game.
+     * This situation doesn't need its own Status Value because the server announces such games
+     * to the client with the "Cannot Join" flag prefix, and the client shouldn't have UI options
+     * to create a game with features it doesn't have.
      *
      * @since 1.1.06
      */

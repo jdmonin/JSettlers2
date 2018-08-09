@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011,2013-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011,2013-2014,2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -41,8 +41,9 @@ import soc.game.SOCGameOption;
  * This marker will be retained within the game name returned by
  * {@link #getGame()}.
  *<P>
- * Just like {@link SOCNewGame NEWGAME}, robot clients don't need to
- * know about or handle this message type.
+ * Just like {@link SOCNewGame NEWGAME}, robot clients don't need to handle
+ * this message type. Bots ignore new-game announcements and are asked to
+ * join specific games.
  *
  * @author Jeremy D. Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
@@ -92,6 +93,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      * @param minVers Minimum client version for this game, or -1.
      *                Ignored if sent from client to server. Calculated at
      *                server and sent out to all clients.
+     * @see #SOCNewGameWithOptions(String, Map, int, int)
      */
     public SOCNewGameWithOptions(final String ga, final Map<String,SOCGameOption> opts, final int minVers)
     {
@@ -101,9 +103,33 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
     }
 
     /**
+     * Create a SOCNewGameWithOptions message, optionally for a specific client version.
+     * This constructor may adjust encoded option values for backwards compatibility with the client version;
+     * contents of the referenced {@code opts} map aren't changed: Calls
+     * {@link SOCGameOption#packOptionsToString(Map, boolean, int) SOCGameOption.packOptionsToString(opts, false, cliVers)}.
+     *
+     * @param ga  the name of the game; the game name may have
+     *            the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
+     * @param opts Requested game options, as a map of {@link soc.game.SOCGameOption}
+     * @param gameMinVers Minimum client version required, or -1
+     * @param cliVers  Client version, if any game's options need adjustment for an older client.
+     *            Use -2 if the client version doesn't matter, or if adjustment should not be done.
+     * @see #SOCNewGameWithOptions(String, Map, int)
+     * @since 2.0.00
+     */
+    public SOCNewGameWithOptions
+        (final String ga, final Map<String,SOCGameOption> opts, final int minVers, final int cliVers)
+    {
+        this(ga, SOCGameOption.packOptionsToString(opts, false, cliVers), minVers);
+        // p1 = minVers
+        // p2 = optstr, adjusted if necessary
+    }
+
+    /**
+     * Get the encoded game options, if any.
      * @return the options for the new game, in the format returned by
-     *         {@link soc.game.SOCGameOption#packOptionsToString(Map, boolean) SOCGameOption.packOptionsToString(opts, false)},
-     *         or null if no options
+     *     {@link soc.game.SOCGameOption#packOptionsToString(Map, boolean) SOCGameOption.packOptionsToString(opts, false)},
+     *     or null if no options
      */
     public String getOptionsString()
     {

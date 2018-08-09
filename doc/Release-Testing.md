@@ -137,17 +137,18 @@ When preparing to release a new version, testing should include:
         - Within that game, second client's "Game Info" dialog should show scenario info
 - Client Feature handling
     - Start a server (dedicated or client-hosted)
-	- Launch a SOCPlayerClient which reports limited features, using vm property `-Djsettlers.debug.client.features=;6pl;sb;`
-	  and connect to server. Don't give a Nickname or create any game from this client.
+	- Launch a pair of SOCPlayerClients which report limited features, using vm property `-Djsettlers.debug.client.features=;6pl;sb;`
+	  and connect to server. Don't give a Nickname or create any game from these clients.  
+      (A pair let us test more than the code which handles the server's first limited client.)
 	- Launch a standard client, connect to server, create a game having any Scenario (New Shores, etc)
-	- Limited client's game list should show that game as "(cannot join)"
-	- Launch another SOCPlayerClient which reports no features, using vm property `-Djsettlers.debug.client.features=`
+	- Limited client pair's game list should show that game as "(cannot join)"
+	- Launch another pair of SOCPlayerClients which report no features, using vm property `-Djsettlers.debug.client.features=`
 	  (empty value) and connect to server
-    - In that second limited client, give a Nickname and create any game on the server, in order to authenticate.
-	  Leave that new game, to delete it.
+    - In each client of that second limited pair, give a Nickname and create any game on the server, in order to authenticate.
+	  Leave those new games, to delete them.
 	- In standard client, create a game having 6 players but no scenario
-	- First limited client should connect to that game
-	- Second limited client's game list should show that game as "(cannot join)"
+	- First pair of limited clients should connect to that game
+	- Second pair of limited clients' game list should show that game as "(cannot join)"
 - Command line and jsserver.properties
     - Server and client: `-h` / `--help` / `-?`, `--version`
     - Server: Unknown args `-x -z` should print both, then not continue startup
