@@ -574,8 +574,8 @@ public class SOCGameListAtServer extends SOCGameList
         // that it isn't capable of joining.
         boolean cliCanKnow = (cliVers >= SOCGames.VERSION_FOR_UNJOINABLE);
         final boolean cliCouldKnow = (prevVers >= SOCGames.VERSION_FOR_UNJOINABLE);
-
-        final SOCFeatureSet cliLimitedFeats = (scd.hasLimitedFeats) ? scd.feats : null;
+        final boolean cliNotLimitedFeats = ! scd.hasLimitedFeats;
+        final SOCFeatureSet cliLimitedFeats = cliNotLimitedFeats ? null : scd.feats;
 
         ArrayList<Object> gl = new ArrayList<Object>();  // contains Strings and/or SOCGames;
                                    // strings are names of unjoinable games,
@@ -634,7 +634,7 @@ public class SOCGameListAtServer extends SOCGameList
                 }
 
                 if ((cliVers >= gameVers)
-                    && ((cliLimitedFeats == null) || g.canClientJoin(cliLimitedFeats)))
+                    && (cliNotLimitedFeats || g.canClientJoin(cliLimitedFeats)))
                 {
                     gl.add(g);  // Can join
                 } else if (cliCanKnow)
