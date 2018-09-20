@@ -2314,68 +2314,94 @@ public class SOCServer extends Server
                     // 1 if older than VERSION_FOR_NEWGAMEWITHOPTIONS;
                     // -1 if older than that and can't join
 
-                // TODO synchronize on unnamedConns?  broadcast method doesn't synch.
-                for (Connection c : conns.values())   // TODO loop for unnamedConns too [new method w/ this loop taking conn collection]
+                synchronized (unnamedConns)
                 {
-                    if (cliLimited != null)
-                    {
-                        if (c == cliLimited)
-                            continue;  // already sent
-
-                        if (limitedConns.contains(c)
-                            && ! newGame.canClientJoin(((SOCClientData) c.getAppData()).feats))
-                        {
-                            if (cannotJoinMsg == null)
-                                cannotJoinMsg = SOCNewGame.toCmd(SOCGames.MARKER_THIS_GAME_UNJOINABLE + gaName);
-                            c.put(cannotJoinMsg);
-
-                            continue;  // can't join
-                        }
-                    }
-
-                    int cvers = c.getVersion();
-                    if (cvers < gVers)
-                        cvers = -1;
-                    else if ((gaOpts == null) || (cvers < SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
-                        cvers = 1;
-                    final Integer cversKey = Integer.valueOf(cvers);
-
-                    String cacheMsg = msgCacheForVersion.get(cversKey);
-                    if (cacheMsg != null)
-                    {
-                        c.put(cacheMsg);
-                        continue;
-                    }
-
-                    // Based on client's version, determine the message to send
-                    if (cvers == -1)
-                    {
-                        // Older clients who can't join: announce game with cant-join prefix
-                        cacheMsg = new SOCNewGame(SOCGames.MARKER_THIS_GAME_UNJOINABLE + gaName).toCmd();
-                    }
-                    else if (cvers == 1)
-                    {
-                        // No game options, or older client who can join: announce game without its options/version
-                        cacheMsg = new SOCNewGame(gaName).toCmd();
-                    }
-                    else
-                    {
-                        // Client's version is new enough for game options:
-                        // Some clients' versions are too old to understand these game
-                        // option values without change; send them an altered set for
-                        // compatibility with those clients.
-
-                        if (cvers >= gVersMinGameOptsNoChange)
-                            cacheMsg = new SOCNewGameWithOptions(gaName, gaOpts, gVers, -2).toCmd();
-                        else
-                            // needs value changes
-                            cacheMsg = new SOCNewGameWithOptions(gaName, gaOpts, gVers, cvers).toCmd();
-                    }
-
-                    msgCacheForVersion.put(cversKey, cacheMsg);
-                    c.put(cacheMsg);
+                    broadcastNewGame_toConns
+                        (newGame, gaOpts, gVers, gVersMinGameOptsNoChange,
+                         conns.values(), cliLimited, msgCacheForVersion, cannotJoinMsg);
+                    broadcastNewGame_toConns
+                        (newGame, gaOpts, gVers, gVersMinGameOptsNoChange,
+                         unnamedConns, cliLimited, msgCacheForVersion, cannotJoinMsg);
                 }
             }
+        }
+    }
+
+    /**
+     * Utility method to loop through {@link #conns} or {@link #unnamedConns} during
+     * {@link #broadcastNewGame(SOCGame, String, Map, int)}.
+     *<P>
+     * For parameter meanings, see source of {@code broadcastNewGame(..)}.
+     * @since 2.0.00
+     */
+    private void broadcastNewGame_toConns
+        (final SOCGame newGame, final Map<String, SOCGameOption> gaOpts, final int gVers,
+         final int gVersMinGameOptsNoChange, Collection<Connection> connSet, Connection cliLimited,
+         final HashMap<Integer, String> msgCacheForVersion, String cannotJoinMsg)
+    {
+        final String gaName = newGame.getName();
+
+        for (Connection c : connSet)
+        {
+            if (cliLimited != null)
+            {
+                if (c == cliLimited)
+                    continue;  // already sent
+
+                if (limitedConns.contains(c)
+                    && ! newGame.canClientJoin(((SOCClientData) c.getAppData()).feats))
+                {
+                    if (cannotJoinMsg == null)
+                        cannotJoinMsg = SOCNewGame.toCmd(SOCGames.MARKER_THIS_GAME_UNJOINABLE + gaName);
+                        // cannotJoinMsg will be used during this loop, but discarded between first and
+                        // second call to this method; second call will create it again, which is OK
+                    c.put(cannotJoinMsg);
+
+                    continue;  // can't join
+                }
+            }
+
+            int cvers = c.getVersion();
+            if (cvers < gVers)
+                cvers = -1;
+            else if ((gaOpts == null) || (cvers < SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
+                cvers = 1;
+            final Integer cversKey = Integer.valueOf(cvers);
+
+            String cacheMsg = msgCacheForVersion.get(cversKey);
+            if (cacheMsg != null)
+            {
+                c.put(cacheMsg);
+                continue;
+            }
+
+            // Based on client's version, determine the message to send
+            if (cvers == -1)
+            {
+                // Older clients who can't join: announce game with cant-join prefix
+                cacheMsg = new SOCNewGame(SOCGames.MARKER_THIS_GAME_UNJOINABLE + gaName).toCmd();
+            }
+            else if (cvers == 1)
+            {
+                // No game options, or older client who can join: announce game without its options/version
+                cacheMsg = new SOCNewGame(gaName).toCmd();
+            }
+            else
+            {
+                // Client's version is new enough for game options:
+                // Some clients' versions are too old to understand these game
+                // option values without change; send them an altered set for
+                // compatibility with those clients.
+
+                if (cvers >= gVersMinGameOptsNoChange)
+                    cacheMsg = new SOCNewGameWithOptions(gaName, gaOpts, gVers, -2).toCmd();
+                else
+                    // needs value changes
+                    cacheMsg = new SOCNewGameWithOptions(gaName, gaOpts, gVers, cvers).toCmd();
+            }
+
+            msgCacheForVersion.put(cversKey, cacheMsg);
+            c.put(cacheMsg);
         }
     }
 
