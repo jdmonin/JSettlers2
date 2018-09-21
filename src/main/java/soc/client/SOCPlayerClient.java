@@ -599,9 +599,12 @@ public class SOCPlayerClient
          *
          * @param gameName  the game to remove
          * @param isPractice   Game is practice, not at tcp server?
+         * @param withUnjoinablePrefix  True if game's display name starts with
+         *     {@link SOCPlayerClient#GAMENAME_PREFIX_CANNOT_JOIN};
+         *     {@code gameName} should not include this prefix
          * @return true if deleted, false if not found in list
          */
-        boolean deleteFromGameList(String gameName, final boolean isPractice);
+        boolean deleteFromGameList(String gameName, final boolean isPractice, final boolean withUnjoinablePrefix);
 
     }  // public interface GameDisplay
 
@@ -2687,10 +2690,10 @@ public class SOCPlayerClient
             }
         }
 
-        public boolean deleteFromGameList(String gameName, final boolean isPractice)
+        public boolean deleteFromGameList(String gameName, final boolean isPractice, final boolean withUnjoinablePrefix)
         {
             //String testString = gameName + STATSPREFEX;
-            String testString = gameName;
+            String testString = withUnjoinablePrefix ? (GAMENAME_PREFIX_CANNOT_JOIN + gameName) : gameName;
 
             if (gmlist.getItemCount() == 1)
             {
@@ -4238,8 +4241,8 @@ public class SOCPlayerClient
     {
         final String gaName = mes.getGame();
 
-        if (! gameDisplay.deleteFromGameList(gaName, isPractice))
-            gameDisplay.deleteFromGameList(GAMENAME_PREFIX_CANNOT_JOIN + gaName, isPractice);
+        if (! gameDisplay.deleteFromGameList(gaName, isPractice, false))
+            gameDisplay.deleteFromGameList(gaName, isPractice, true);
 
         PlayerClientListener pcl = clientListeners.get(gaName);
         if (pcl != null)

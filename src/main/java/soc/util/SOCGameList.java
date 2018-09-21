@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 /**
  * A class for creating and tracking the games;
  * contains each game's name, {@link SOCGameOption game options},
- * {@link SOCGame} object, and mutex for synchronization.
+ * {@link SOCGame} object if stored, and mutex for synchronization.
  *<P>
  * In 1.1.07, moved from soc.server to soc.util package for client's use.
  * Some methods moved to new subclass {@link soc.server.SOCGameListAtServer}.
@@ -74,12 +74,18 @@ public class SOCGameList
     public static final Pattern REGEX_ALL_DIGITS = Pattern.compile("^\\p{Nd}+$");
         // \d won't capture unicode digits without using (?U) not available before java 7 (UNICODE_CHARACTER_CLASS)
 
-    /** key = String, value = {@link GameInfo}; includes mutexes to synchronize game state access,
-     *  game options, and other per-game info
+    /**
+     * Info about every game in this {@code SOCGameList}.
+     * key = String, value = {@link GameInfo}; includes mutexes to synchronize game state access,
+     * game options, and other per-game info
+     * @see #gameData
      */
     protected Hashtable<String, GameInfo> gameInfo;
 
-    /** synchronized map of game names to {@link SOCGame} objects */
+    /**
+     * Synchronized map of game names to {@link SOCGame} objects.
+     * @see #gameInfo
+     */
     protected Hashtable<String, SOCGame> gameData;
 
     /** used with gamelist's monitor */
@@ -515,7 +521,6 @@ public class SOCGameList
         D.ebugPrintln("SOCGameList : deleteGame(" + gaName + ")");
 
         SOCGame game = gameData.get(gaName);
-
         if (game != null)
         {
             game.destroyGame();
@@ -523,6 +528,10 @@ public class SOCGameList
         }
 
         GameInfo info = gameInfo.get(gaName);
+        if (info == null)
+        {
+            return;  // game wasn't in this SOCGameList
+        }
         info.gameDestroyed = true;
         gameInfo.remove(gaName);
         synchronized (info.mutex)
