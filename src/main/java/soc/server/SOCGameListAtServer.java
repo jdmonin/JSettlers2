@@ -71,6 +71,14 @@ public class SOCGameListAtServer extends SOCGameList
      */
     public static int GAME_TIME_EXPIRE_MINUTES = 120;
 
+    /**
+     * Synchronized map of game names to {@link SOCGame} objects.
+     *<P>
+     * Before v2.0.00 this field was in parent class {@link SOCGameList} but only the Server used it.
+     * @see SOCGameList#gameInfo
+     */
+    private Hashtable<String, SOCGame> gameData;
+
     /** synchronized map of game names to Vector of game members ({@link Connection}s) */
     protected Hashtable<String, Vector<Connection>> gameMembers;
 
@@ -80,6 +88,7 @@ public class SOCGameListAtServer extends SOCGameList
     public SOCGameListAtServer()
     {
         super();
+        gameData = new Hashtable<String, SOCGame>();
         gameMembers = new Hashtable<String, Vector<Connection>>();
     }
 
@@ -105,6 +114,37 @@ public class SOCGameListAtServer extends SOCGameList
         }
 
         return result;
+    }
+
+    /**
+     * Get a game's SOCGame, if we've stored that.
+     *<P>
+     * Before v2.0.00 this method was in parent class {@link SOCGameList}.
+     *
+     * @param gaName  game name
+     * @return the game object data, or null
+     * @see #getGamesData()
+     */
+    public SOCGame getGameData(String gaName)
+    {
+        return gameData.get(gaName);
+    }
+
+    /**
+     * Get all the {@link SOCGame} data available; some of the games in {@link SOCGameList#getGameNames()}
+     * may not have associated SOCGame data, so this enumeration may have fewer
+     * elements than {@code SOCGameList#getGameNames()} or even 0 elements.
+     *<P>
+     * Before v2.0.00 this method was in parent class {@link SOCGameList}.
+     *
+     * @return an enumeration of game data ({@code SOCGame}s)
+     * @see SOCGameList#getGameNames()
+     * @see #getGameData(String)
+     * @since 1.1.06
+     */
+    public Collection<SOCGame> getGamesData()
+    {
+        return gameData.values();
     }
 
     /**
@@ -412,16 +452,38 @@ public class SOCGameListAtServer extends SOCGameList
         return reset;  // null if error during reset
     }
 
+    @Override
+    public synchronized void addGames(SOCGameList gl, final int ourVersion)
+    {
+        if (gl == null)
+            return;
+
+        if (gl instanceof SOCGameListAtServer)
+        {
+            Hashtable<String, SOCGame> gdata = ((SOCGameListAtServer) gl).gameData;
+            if (gdata != null)
+                addGames(gdata.values(), ourVersion);
+        }
+
+        super.addGames(gl, ourVersion);
+    }
+
     /**
-     * remove the game from the list
-     * and call {@link SOCGame#destroyGame()} via {@link SOCGameList#deleteGame(String)}.
+     * Call {@link SOCGame#destroyGame()} and remove the game from the list.
      *
      * @param gaName  the name of the game
      */
     @Override
     public synchronized void deleteGame(String gaName)
     {
-        // delete from super first, to destroy game and set its gameDestroyed flag
+        SOCGame game = gameData.get(gaName);
+        if (game != null)
+        {
+            game.destroyGame();
+            gameData.remove(gaName);
+        }
+
+        // delete from super to destroy GameInfo and set its gameDestroyed flag
         // (Removes game from list before dealing with members, in case of locks)
         super.deleteGame(gaName);
 
