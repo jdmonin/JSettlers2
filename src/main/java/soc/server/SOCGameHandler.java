@@ -1712,7 +1712,8 @@ public class SOCGameHandler extends GameHandler
 
         /**
          * if no human players, check if there is at least one person watching the game (observing).
-         * Even with observers, end it unless ga.isBotsOnly or PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL != 0.
+         * Even with observers, end it unless ga.isBotsOnly or PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL != 0
+         * or game is still forming (no one has sat yet, but they probably want to sit soon).
          */
         if ( (! gameHasHumanPlayer) && ! srv.gameList.isGameEmpty(gm))
         {
@@ -1743,7 +1744,7 @@ public class SOCGameHandler extends GameHandler
                 }
             }
 
-            if (gameHasObserver && ! ga.isBotsOnly)
+            if (gameHasObserver && ! ((gameState == SOCGame.NEW) || ga.isBotsOnly))
             {
                 if (0 == srv.getConfigIntProperty(SOCServer.PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0))
                     gameHasObserver = false;
