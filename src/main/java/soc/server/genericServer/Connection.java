@@ -1,6 +1,6 @@
 /**
  * JSettlers network message system.
- * This file Copyright (C) 2007-2009,2013,2015-2017 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2007-2009,2013,2015-2018 Jeremy D Monin <jeremy@nand.net>.
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
  * This program is free software; you can redistribute it and/or
@@ -50,6 +50,10 @@ import soc.util.SOCStringManager;
  *                       For I18N, add {@link #setI18NStringManager(SOCStringManager, String)} and
  *                       {@link #getLocalized(String)}.
  *</PRE>
+ *<P>
+ * Implementation note: {@code Connection} is used as a key in the server's client-management collections.
+ * Because each Connection object is a unique connected client, we don't override {@link Object#hashCode()}
+ * or {@link Object#equals(Object)} because there's no need to compare Connection field contents.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @version 2.0.0
