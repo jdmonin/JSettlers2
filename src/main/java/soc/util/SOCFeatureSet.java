@@ -269,13 +269,16 @@ public class SOCFeatureSet
      * Add this active feature flag.
      * Must not already be in the set: Does not check for duplicates.
      * @param featureName  A defined feature flag name, such as {@link #SERVER_ACCOUNTS}
+     *     or {@link #CLIENT_SEA_BOARD}
      * @throws IllegalArgumentException if {@code featureName} is null or ""
+     *     or contains '=' or ';' ({@link #SEP_CHAR})
      * @see #add(String, int)
      */
     public void add(final String featureName)
         throws IllegalArgumentException
     {
-        if ((featureName == null) || (featureName.length() == 0))
+        if ((featureName == null) || (featureName.length() == 0)
+            || (-1 != featureName.indexOf(SEP_CHAR)) || (-1 != featureName.indexOf('=')))
             throw new IllegalArgumentException("featureName: " + featureName);
 
         if (featureList == null)
@@ -287,15 +290,18 @@ public class SOCFeatureSet
     /**
      * Add this int-valued active feature.
      * Must not already be in the set: Does not check for duplicates.
-     * @param featureName  A defined int-valued feature name
+     * @param featureName  A defined int-valued feature name, such as {@link #CLIENT_SCENARIO_VERSION}
+     * @param val  Feature's value; any integer
      * @throws IllegalArgumentException if {@code featureName} is null or ""
+     *     or contains '=' or ';' ({@link #SEP_CHAR})
      * @see #add(String)
      * @since 2.0.00
      */
     public void add(final String featureName, final int val)
         throws IllegalArgumentException
     {
-        if ((featureName == null) || (featureName.length() == 0))
+        if ((featureName == null) || (featureName.length() == 0)
+            || (-1 != featureName.indexOf(SEP_CHAR)) || (-1 != featureName.indexOf('=')))
             throw new IllegalArgumentException("featureName: " + featureName);
 
         if (featureList == null)

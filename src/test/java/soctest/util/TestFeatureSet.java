@@ -101,6 +101,30 @@ public class TestFeatureSet
     }
 
     @Test
+    public void testMalformedName()
+    {
+        final String[] bads = { null, "", "x=", "x" + SOCFeatureSet.SEP_CHAR, "=x", SOCFeatureSet.SEP_CHAR + "x" };
+        final SOCFeatureSet fs = new SOCFeatureSet((String) null);
+
+        for (String s : bads)
+        {
+            try
+            {
+                fs.add(s);
+                fail("add(s) should have thrown exception for name: " + s);
+            }
+            catch (IllegalArgumentException e) {}
+
+            try
+            {
+                fs.add(s, 1);
+                fail("add(s,1) should have thrown exception for name: " + s);
+            }
+            catch (IllegalArgumentException e) {}
+        }
+    }
+
+    @Test
     public void testClientOldDefaults()
     {
         SOCFeatureSet fs = new SOCFeatureSet(true, false);
