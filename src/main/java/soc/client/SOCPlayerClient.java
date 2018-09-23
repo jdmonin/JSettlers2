@@ -894,6 +894,8 @@ public class SOCPlayerClient
         /**
          * List of chat channels that can be joined with {@link #jc} button or by double-click.
          * Hidden in v1.1.19+ if server is missing {@link SOCFeatureSet#SERVER_CHANNELS}.
+         *<P>
+         * When there are no channels, this list contains a single blank item (" ").
          */
         protected java.awt.List chlist;
 
@@ -902,6 +904,8 @@ public class SOCPlayerClient
          * or detail info displayed with {@link #gi} button.
          * Contains all games on server if connected, and any Practice Games
          * created with {@link #pg} button.
+         *<P>
+         * When there are no games, this list contains a single blank item (" ").
          */
         protected java.awt.List gmlist;
 
@@ -2408,7 +2412,9 @@ public class SOCPlayerClient
         }
 
         /**
-         * delete a group
+         * Delete a list item.
+         * Recreate "blank" item if list becomes empty.
+         * Otherwise select a remaining item.
          *
          * @param thing   the thing to remove
          * @param lst     the list
@@ -2419,24 +2425,24 @@ public class SOCPlayerClient
             {
                 if (lst.getItem(0).equals(thing))
                 {
-                    lst.replaceItem(" ", 0);
+                    lst.replaceItem(" ", 0);  // keep blank item
                     lst.deselect(0);
                 }
 
                 return;
             }
 
-            for (int i = lst.getItemCount() - 1; i >= 0; i--)
+            try
             {
-                if (lst.getItem(i).equals(thing))
-                {
-                    lst.remove(i);
-                }
+                lst.remove(thing);
             }
+            catch (IllegalArgumentException e) {}
 
             if (lst.getSelectedIndex() == -1)
             {
-                lst.select(lst.getItemCount() - 1);
+                final int c = lst.getItemCount();
+                if (c > 0)
+                    lst.select(c - 1);
             }
         }
 
@@ -2697,9 +2703,9 @@ public class SOCPlayerClient
 
             if (gmlist.getItemCount() == 1)
             {
-                if (gmlist.getItem(0).startsWith(testString))
+                if (gmlist.getItem(0).equals(testString))
                 {
-                    gmlist.replaceItem(" ", 0);
+                    gmlist.replaceItem(" ", 0);  // keep blank item
                     gmlist.deselect(0);
 
                     if ((! isPractice) && (client.serverGames != null))
@@ -2716,19 +2722,18 @@ public class SOCPlayerClient
             }
 
             boolean found = false;
-
-            for (int i = gmlist.getItemCount() - 1; i >= 0; i--)
+            try
             {
-                if (gmlist.getItem(i).startsWith(testString))
-                {
-                    gmlist.remove(i);
-                    found = true;
-                }
+                gmlist.remove(testString);
+                found = true;
             }
+            catch (IllegalArgumentException e) {}
 
             if (gmlist.getSelectedIndex() == -1)
             {
-                gmlist.select(gmlist.getItemCount() - 1);
+                final int c = gmlist.getItemCount();
+                if (c > 0)
+                    gmlist.select(c - 1);  // one of the remaining games, or blank item if none
             }
 
             if (found && (! isPractice) && (client.serverGames != null))
