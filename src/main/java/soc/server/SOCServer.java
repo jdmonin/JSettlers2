@@ -5601,7 +5601,7 @@ public class SOCServer extends Server
         final boolean isTakingOver = (0 != (authResult & AUTH_OR_REJECT__TAKING_OVER));
 
         /**
-         * Check that the game name is ok
+         * Check that the game name length is ok
          */
         // TODO I18N
         if (gameName.length() > SOCGameList.GAME_NAME_MAX_LENGTH)
@@ -5613,43 +5613,47 @@ public class SOCServer extends Server
 
             return;  // <---- Early return ----
         }
-        if ( (! SOCMessage.isSingleLineAndSafe(gameName))
-             || "*".equals(gameName))
-        {
-            c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
-                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
-            // "This name is not permitted, please choose a different name."
-
-            return;  // <---- Early return ----
-        }
-        if (SOCGameList.REGEX_ALL_DIGITS.matcher(gameName).matches())
-        {
-            c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
-                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED_DIGITS));
-            // "A name with only digits is not permitted, please add a letter."
-
-            return;  // <---- Early return ----
-        }
-
         System.err.println("L4965 past user,pw check at " + System.currentTimeMillis());
 
         /**
-         * If creating a new game, ensure they are below their max game count.
+         * If creating a new game, check game name format
+         * and ensure they are below their max game count.
          * (Don't limit max games on the practice server.)
          */
-        if ((! gameList.isGame(gameName))
-            && ((strSocketName == null) || ! strSocketName.equals(PRACTICE_STRINGPORT))
-            && (CLIENT_MAX_CREATE_GAMES >= 0)
-            && (CLIENT_MAX_CREATE_GAMES <= ((SOCClientData) c.getAppData()).getCurrentCreatedGames()))
+        if (! gameList.isGame(gameName))
         {
-            c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_NEWGAME_TOO_MANY_CREATED, cliVers,
-                     SOCStatusMessage.MSG_SV_NEWGAME_TOO_MANY_CREATED + Integer.toString(CLIENT_MAX_CREATE_GAMES)));
-            // Too many of your games still active; maximum: 5
+            if (((strSocketName == null) || ! strSocketName.equals(PRACTICE_STRINGPORT))
+                && (CLIENT_MAX_CREATE_GAMES >= 0)
+                && (CLIENT_MAX_CREATE_GAMES <= ((SOCClientData) c.getAppData()).getCurrentCreatedGames()))
+            {
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_NEWGAME_TOO_MANY_CREATED, cliVers,
+                         SOCStatusMessage.MSG_SV_NEWGAME_TOO_MANY_CREATED + Integer.toString(CLIENT_MAX_CREATE_GAMES)));
+                // Too many of your games still active; maximum: 5
 
-            return;  // <---- Early return ----
+                return;  // <---- Early return ----
+            }
+
+            if ( (! SOCMessage.isSingleLineAndSafe(gameName))
+                 || "*".equals(gameName))
+            {
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
+                         SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
+                // "This name is not permitted, please choose a different name."
+
+                return;  // <---- Early return ----
+            }
+
+            if (SOCGameList.REGEX_ALL_DIGITS.matcher(gameName).matches())
+            {
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
+                         SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED_DIGITS));
+                // "A name with only digits is not permitted, please add a letter."
+
+                return;  // <---- Early return ----
+            }
         }
 
         /**
