@@ -475,14 +475,14 @@ public class SOCServer extends Server
      * Minimum required client version, to connect and play a game.
      * Same format as {@link soc.util.Version#versionNumber()}.
      * Currently there is no enforced minimum (0000).
-     * @see #setClientVersSendGamesOrReject(Connection, int, String, boolean)
+     * @see #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)
      */
     public static final int CLI_VERSION_MIN = 0000;
 
     /**
      * Minimum required client version, in "display" form, like "1.0.00".
      * Currently there is no minimum.
-     * @see #setClientVersSendGamesOrReject(Connection, int, String, boolean)
+     * @see #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)
      */
     public static final String CLI_VERSION_MIN_DISPLAY = "0.0.00";
 
@@ -953,7 +953,7 @@ public class SOCServer extends Server
 
     /**
      * Client version count stats since startup (includes bots).
-     * Incremented from {@link #setClientVersSendGamesOrReject(Connection, int, String, boolean)};
+     * Incremented from {@link #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)};
      * currently assumes single-threaded access to this map.
      *<P>
      * Key = version number, Value = client count.
@@ -5229,6 +5229,8 @@ public class SOCServer extends Server
         // Message to send/log if client must be disconnected
         String rejectMsg = null;
         String rejectLogMsg = null;
+        // Message to warn user, localized if possible, but continue the connection
+        String warnMsg = null;
 
         if (clocale == null)
             clocale = "en_US";  // backwards compatibility with clients older than v2.0.00
@@ -5249,8 +5251,9 @@ public class SOCServer extends Server
         {
             scd.locale = I18n.parseLocale(clocale);
         } catch (IllegalArgumentException e) {
-            rejectMsg = "Sorry, cannot parse your locale.";
-            rejectLogMsg = "Rejected client: Cannot parse locale";  // unsanitized data, don't print clocale to log
+            warnMsg = "Sorry, cannot parse your locale.";  // i18n OK: We don't know client locale
+            scd.localeStr = "en_US";  // fallback
+            scd.locale = Locale.US;
         }
         c.setI18NStringManager(SOCStringManager.getServerManagerForClient(scd.locale), clocale);
 
@@ -5313,9 +5316,18 @@ public class SOCServer extends Server
         // Warn if debug commands are allowed.
         // This will be displayed in the client's status line (v1.1.17 and newer).
         if (allowDebugUser)
+        {
+            String txt = (warnMsg != null)
+                ? ("Debugging is On. " + warnMsg)  // TODO i18n: "Debugging" prefix
+                : c.getLocalized("member.welcome.debug");  // "Debugging is On.  Welcome to Java Settlers of Catan!"
             c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_OK_DEBUG_MODE_ON, cvers,
-                     c.getLocalized("member.welcome.debug")));  // "Debugging is On.  Welcome to Java Settlers of Catan!"
+                    (SOCStatusMessage.SV_OK_DEBUG_MODE_ON, cvers, txt));
+        }
+        else if (warnMsg != null)
+        {
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_OK, cvers, warnMsg));
+        }
 
         // Increment version stats; currently assumes single-threaded access to the map.
         // We don't know yet if client is a bot, so bots are included in the stats.
