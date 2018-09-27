@@ -5317,11 +5317,16 @@ public class SOCServer extends Server
         // This will be displayed in the client's status line (v1.1.17 and newer).
         if (allowDebugUser)
         {
-            String txt = (warnMsg != null)
-                ? ("Debugging is On. " + warnMsg)  // TODO i18n: "Debugging" prefix
-                : c.getLocalized("member.welcome.debug");  // "Debugging is On.  Welcome to Java Settlers of Catan!"
+            StringBuilder txt = new StringBuilder(c.getLocalized("member.welcome.debug"));  // "Debugging is On."
+            txt.append(' ');
+            if (warnMsg != null)
+            {
+                txt.append(warnMsg);
+                txt.append(' ');
+            }
+            txt.append(c.getLocalized("member.welcome"));  // "Welcome to Java Settlers of Catan!"
             c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_OK_DEBUG_MODE_ON, cvers, txt));
+                    (SOCStatusMessage.SV_OK_DEBUG_MODE_ON, cvers, txt.toString()));
         }
         else if (warnMsg != null)
         {
