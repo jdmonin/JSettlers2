@@ -1,6 +1,6 @@
 /*
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,11 +24,14 @@ import soc.message.SOCMessage;
 import soc.robot.SOCRobotBrain;
 import soc.robot.SOCRobotClient;
 import soc.util.CappedQueue;
+import soc.util.SOCFeatureSet;
 import soc.util.SOCRobotParameters;
 
 /**
  * Sample of a trivially simple "third-party" subclass of {@link SOCRobotClient}
- * using {@link Sample3PBrain}.
+ * using {@link Sample3PBrain}. See that brain class's javadoc for what's different
+ * from standard behavior. Also demonstrate how to tell the server this bot isn't
+ * programmed to handle seafarers scenarios ({@link SOCFeatureSet#CLIENT_SCENARIO_VERSION}).
  *
  *<H5>Connecting to the Server:</H5>
  * Since this bot isn't started up as part of the SOCServer,
@@ -36,7 +39,7 @@ import soc.util.SOCRobotParameters;
  *<UL>
  * <LI> Start the server with command-line parameter {@code -Djsettlers.bots.showcookie=Y}
  *      or a specific value like {@code -Djsettlers.bots.cookie=bottest97481483}
- * <LI> Start your bot client(s) with command lines such as:<pre>
+ * <LI> Start your bot client(s) with command line parameters like:<pre>
  *      localhost 8880 samplebot1 x bottest97481483
  *      localhost 8880 samplebot2 x bottest97481483
  *      localhost 8880 samplebot3 x bottest97481483</pre>
@@ -80,6 +83,22 @@ public class Sample3PClient extends SOCRobotClient
         super(h, p, nn, pw, co);
 
         rbclass = RBCLASSNAME_SAMPLE;
+    }
+
+    /**
+     * Build the set of optional client features this bot supports, to send to the server.
+     * This sample client omits SOCScenario support ({@link SOCFeatureSet#CLIENT_SCENARIO_VERSION})
+     * as an example.
+     */
+    @Override
+    protected SOCFeatureSet buildClientFeats()
+    {
+        SOCFeatureSet feats = new SOCFeatureSet(false, false);
+        feats.add(SOCFeatureSet.CLIENT_6_PLAYERS);
+        feats.add(SOCFeatureSet.CLIENT_SEA_BOARD);
+        // omits CLIENT_SCENARIO_VERSION
+
+        return feats;
     }
 
     /**

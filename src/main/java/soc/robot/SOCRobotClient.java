@@ -85,6 +85,7 @@ import java.util.Vector;
  * <LI> Update {@link #rbclass} value before calling {@link #init()}
  * <LI> Override {@link #createBrain(SOCRobotParameters, SOCGame, CappedQueue)}
  *      to provide your subclass of {@link SOCRobotBrain}
+ * <LI> Override {@link #buildClientFeats()} if your bot's optional client features differ from the standard bot
  *</UL>
  * See {@link soc.robot.sample3p.Sample3PClient} for a trivial example subclass.
  *
@@ -328,8 +329,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     }
 
     /**
-     * Initialize the robot player; connect to server, send first messages
-     * including our version and {@link #rbclass}.
+     * Initialize the robot player; connect to server and send first messages
+     * including our version, features from {@link #buildClientFeats()}, and {@link #rbclass}.
      */
     public void init()
     {
@@ -352,10 +353,10 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
             if (cliFeats == null)
             {
-                cliFeats = new SOCFeatureSet(false, false);
-                cliFeats.add(SOCFeatureSet.CLIENT_6_PLAYERS);
-                cliFeats.add(SOCFeatureSet.CLIENT_SEA_BOARD);
-                cliFeats.add(SOCFeatureSet.CLIENT_SCENARIO_VERSION, Version.versionNumber());
+                cliFeats = buildClientFeats();
+                // subclass or third-party bot may override: must check result
+                if (cliFeats == null)
+                    throw new IllegalStateException("buildClientFeats() must not return null");
             }
 
             //resetThread = new SOCRobotResetThread(this);
@@ -372,7 +373,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     }
 
     /**
-     * Disconnect and then try to reconnect.
+     * Disconnect and then try to reconnect. Sends the same messages as {@link #init()}.
      * If the reconnect fails, will retry a maximum of 3 times.
      * If those attempts all fail, {@link #ex} is set. Otherwise {@code ex} is null when method returns.
      */
@@ -425,6 +426,34 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             for (SOCRobotBrain rb : robotBrains.values())
                 rb.kill();
         }
+    }
+
+    /**
+     * Build the set of optional client features this bot supports, to send to the server.
+     * ({@link SOCFeatureSet#CLIENT_6_PLAYERS}, etc.)
+     *<P>
+     * Third-party subclasses should override this if their features are different.
+     *<P>
+     * The built-in robots' client features are currently:
+     *<UL>
+     * <LI>{@link SOCFeatureSet#CLIENT_6_PLAYERS}
+     * <LI>{@link SOCFeatureSet#CLIENT_SEA_BOARD}
+     * <LI>{@link SOCFeatureSet#CLIENT_SCENARIO_VERSION} = {@link Version#versionNumber()}
+     *</UL>
+     *<P>
+     * Called from {@link #init()}.
+     *
+     * @return  This bot's set of implemented optional client features, if any, or an empty set (not {@code null})
+     * @since 2.0.00
+     */
+    protected SOCFeatureSet buildClientFeats()
+    {
+        SOCFeatureSet feats = new SOCFeatureSet(false, false);
+        feats.add(SOCFeatureSet.CLIENT_6_PLAYERS);
+        feats.add(SOCFeatureSet.CLIENT_SEA_BOARD);
+        feats.add(SOCFeatureSet.CLIENT_SCENARIO_VERSION, Version.versionNumber());
+
+        return feats;
     }
 
     /**

@@ -1,6 +1,6 @@
 /*
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -58,11 +58,11 @@ public class Sample3PBrain extends SOCRobotBrain
      * {@inheritDoc}
      *<P>
      * After the standard actions of {@link SOCRobotBrain#setOurPlayerData()},
-     * sends a "hello" chat message as a sample action.
+     * sends a "hello" chat message as a sample action using {@link SOCRobotClient#sendText(SOCGame, String)}.
      *<P>
-     *<B>I18N Note:</B> Robots don't know what languages the human players can read:
+     *<B>I18N Note:</B> Robots don't know what languages or locales the human players can read:
      * It would be unfair for a bot to ever send text that the players must understand
-     * for gameplay.
+     * for gameplay. So this sample bot's "hello" is not localized.
      */
     @Override
     public void setOurPlayerData()
