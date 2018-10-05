@@ -375,7 +375,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     /**
      * Disconnect and then try to reconnect. Sends the same messages as {@link #init()}.
      * If the reconnect fails, will retry a maximum of 3 times.
-     * If those attempts all fail, {@link #ex} is set. Otherwise {@code ex} is null when method returns.
+     * If those attempts all fail, {@link #connected} will be false and {@link #ex} will be set.
+     * Otherwise when method returns, {@link #connected} is true and {@code ex} is null.
      */
     public void disconnectReconnect()
     {
@@ -422,6 +423,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         if (! connected)
         {
+            System.err.println("-> Giving up");
+
             // Couldn't reconnect. Shut down active games' brains.
             for (SOCRobotBrain rb : robotBrains.values())
                 rb.kill();
