@@ -304,6 +304,11 @@ public class SOCGameListAtServer extends SOCGameList
      *<P>
      * Assumes {@link #playerGamesMinVersion(Connection)} has already been called to validate {@code newConn} can join
      * all of {@code oldConn}'s games.
+     *<P>
+     * The newly joining client is almost always using the same release as the old client. It's possible but
+     * very unlikely that the new client is different software with more limited client features. This method checks
+     * {@code newConn}'s {@link SOCClientData#hasLimitedFeats} and each game's {@link SOCGame#canClientJoin(SOCFeatureSet)}
+     * just in case. If {@code newConn} can't join a game because of this, {@code oldConn} is removed from it silently.
      *
      * @param  oldConn  the member's old connection
      * @param  newConn  the member's new connection
@@ -321,12 +326,26 @@ public class SOCGameListAtServer extends SOCGameList
 
         System.err.println("L212: replaceMemberAllGames(" + oldConn + ", " + newConn + ")");  // JM TEMP
         final boolean sameVersion = (oldConn.getVersion() == newConn.getVersion());
+        final SOCClientData scd = (SOCClientData) newConn.getAppData();
+        final boolean cliHasLimitedFeats = scd.hasLimitedFeats;
         for (String gaName : getGameNames())
         {
             Vector<Connection> members = gameMembers.get(gaName);
             if ((members != null) && members.contains(oldConn))
             {
                 System.err.println("L221: for game " + gaName + ":");  // JM TEMP
+
+                if (cliHasLimitedFeats)
+                {
+                    SOCGame ga = getGameData(gaName);
+                    if ((ga != null) && ! ga.canClientJoin(scd.feats))
+                    {
+                        // new client can't join this game (unlikely)
+                        members.remove(oldConn);
+                        continue;
+                    }
+                }
+
                 if (sameVersion)
                 {
                     if (members.remove(oldConn))
