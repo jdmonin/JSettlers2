@@ -136,19 +136,37 @@ When preparing to release a new version, testing should include:
         - Connect to server, join that game
         - Within that game, second client's "Game Info" dialog should show scenario info
 - Client Feature handling
-    - Start a server (dedicated or client-hosted)
-	- Launch a pair of SOCPlayerClients which report limited features, using vm property `-Djsettlers.debug.client.features=;6pl;sb;`
-	  and connect to server. Don't give a Nickname or create any game from these clients.  
-      (A pair let us test more than the code which handles the server's first limited client.)
-	- Launch a standard client, connect to server, create a game having any Scenario (New Shores, etc)
-	- Limited client pair's game list should show that game as "(cannot join)"
-	- Launch another pair of SOCPlayerClients which report no features, using vm property `-Djsettlers.debug.client.features=`
-	  (empty value) and connect to server
-    - In each client of that second limited pair, give a Nickname and create any game on the server, in order to authenticate.
-	  Leave those new games, to delete them.
-	- In standard client, create a game having 6 players but no scenario
-	- First pair of limited clients should connect to that game
-	- Second pair of limited clients' game list should show that game as "(cannot join)"
+    - For human players:
+        - Start a server (dedicated or client-hosted)
+    	- Launch a pair of SOCPlayerClients which report limited features, using vm property `-Djsettlers.debug.client.features=;6pl;sb;`
+    	  and connect to server. Don't give a Nickname or create any game from these clients.  
+          (A pair let us test more than the code which handles the server's first limited client.)
+    	- Launch a standard client, connect to server, create a game having any Scenario (New Shores, etc)
+    	- Limited client pair's game list should show that game as "(cannot join)"
+    	- Launch another pair of SOCPlayerClients which report no features, using vm property `-Djsettlers.debug.client.features=`
+          (empty value) and connect to server
+        - In each client of that second limited pair, give a Nickname and create any game on the server, in order to authenticate.
+	      Leave those new games, to delete them.
+    	- In standard client, create a game having 6 players but no scenario
+        - First pair of limited clients should connect to that game
+        - Second pair of limited clients' game list should show that game as "(cannot join)"
+	- For robot clients, which are invited to games:
+        - Start a server which expects third-party bots, with these command-line parameters:
+          `-Djsettlers.bots.cookie=foo  -Djsettlers.bots.percent3p=50`
+        - Start the `soc.robot.sample3p.Sample3PClient` "third-party" bot, which does not have the Game Scenarios client feature, with these command-line parameters:
+          `localhost 8880 samplebot x foo`
+        - Start another Sample3PClient:
+          `localhost 8880 samplebot2 x foo`
+    	- Launch a standard client, connect to server
+    	- Create and start a 4-player game: Some samplebots should join (no features required) along with the built-in bots
+    	- Create and start a 6-player game: Some samplebots should join (requires a feature which they have) along with the built-in bots
+    	- Create and start a game having any Scenario (New Shores, etc): No samplebots should join, only built-in bots
+    	- Quit the standard client and stop the server
+        - Start a server which expects third-party bots and has no built-in bots, with these command-line parameters:
+          `-Djsettlers.bots.cookie=foo  -Djsettlers.bots.percent3p=50  -Djsettlers.startrobots=0`
+        - Start two Sample3PClients, same way as above
+    	- Launch a standard client, connect to server
+    	- Create and start a game having any Scenario: No samplebots should join, server should tell game-starting client to add more players
 - Command line and jsserver.properties
     - Server and client: `-h` / `--help` / `-?`, `--version`
     - Server: Unknown args `-x -z` should print both, then not continue startup

@@ -2066,24 +2066,37 @@ public class SOCServerMessageHandler
 
                             /**
                              * Fill all the unlocked empty seats with robots.
-                             * Build a Vector of Connections of robots asked
+                             * Build a hash of Connections of robots asked
                              * to join, and add it to the robotJoinRequests table.
                              */
+                            boolean invitedBots = false;
+                            IllegalStateException e = null;
                             try
                             {
-                                srv.readyGameAskRobotsJoin(ga, null, numEmpty);
+                                invitedBots = srv.readyGameAskRobotsJoin(ga, null, numEmpty);
                             }
-                            catch (IllegalStateException e)
+                            catch (IllegalStateException ex)
                             {
-                                System.err.println("Robot-join problem in game " + gn + ": " + e);
+                                e = ex;
+                            }
+
+                            if (! invitedBots)
+                            {
+                                System.err.println
+                                    ("Robot-join problem in game " + gn + ": "
+                                     + ((e != null) ? e : " no matching bots available"));
 
                                 // recover, so that human players can still start a game
                                 ga.setGameState(SOCGame.NEW);
                                 allowStart = false;
 
                                 gameList.takeMonitorForGame(gn);
-                                srv.messageToGameKeyed(ga, false, "start.robots.cannot.join.problem", e.getMessage());
-                                    // "Sorry, robots cannot join this game: {0}"
+                                if (e != null)
+                                    srv.messageToGameKeyed(ga, false, "start.robots.cannot.join.problem", e.getMessage());
+                                        // "Sorry, robots cannot join this game: {0}"
+                                else
+                                    srv.messageToGameKeyed(ga, false, "start.robots.cannot.join.options");
+                                        // "Sorry, robots cannot join this game because of its options."
                                 srv.messageToGameKeyed(ga, false, "start.to.start.without.robots");
                                     // "To start the game without robots, lock all empty seats."
                                 gameList.releaseMonitorForGame(gn);
