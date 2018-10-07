@@ -166,7 +166,11 @@ When preparing to release a new version, testing should include:
           `-Djsettlers.bots.cookie=foo  -Djsettlers.bots.percent3p=50  -Djsettlers.startrobots=0`
         - Start two Sample3PClients, same way as above
     	- Launch a standard client, connect to server
-    	- Create and start a game having any Scenario: No samplebots should join, server should tell game-starting client to add more players
+    	- Create and start a game having any Scenario: No samplebots should join, server should tell game-starting client to lock all empty seats
+    	- Start a second standard client, connect, join that game and sit down
+    	- Start that game (with the two human players)
+    	- After initial placement, have one player leave
+    	- Server should tell game it can't find a robot
 - Command line and jsserver.properties
     - Server and client: `-h` / `--help` / `-?`, `--version`
     - Server: Unknown args `-x -z` should print both, then not continue startup

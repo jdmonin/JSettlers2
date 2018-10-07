@@ -1851,6 +1851,7 @@ public class SOCGameHandler extends GameHandler
         Connection robotConn = null;  // the bot selected to join
         boolean nameMatch = true;  // false if can select a bot that isn't already playing in or requested in this game
         final String gaName = ga.getName();
+        final boolean gameHasLimitedFeats = (ga.getClientFeaturesRequired() != null);
         Hashtable<Connection, Object> requestedBots = srv.robotJoinRequests.get(gaName);
 
         if (! (seatNumberObj instanceof Integer))  // should not happen; check just in case
@@ -1888,7 +1889,12 @@ public class SOCGameHandler extends GameHandler
                     nameMatch = requestedBots.containsKey(robotConn);
 
                 if (! nameMatch)
-                    break;
+                {
+                    if (gameHasLimitedFeats && ! ga.canClientJoin((((SOCClientData) (robotConn.getAppData())).feats)))
+                        nameMatch = true;  // try the next bot instead
+                    else
+                        break;
+                }
             }
         }
 
