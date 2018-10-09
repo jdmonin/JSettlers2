@@ -150,6 +150,17 @@ When preparing to release a new version, testing should include:
     	- In standard client, create a game having 6 players but no scenario
         - First pair of limited clients should connect to that game
         - Second pair of limited clients' game list should show that game as "(cannot join)"
+    - For reconnecting disconnected clients:
+        - Start a server without any options
+        - Start a standard client under your IDE's debugger, connect to server
+        - Create & start 3 games (against bots): standard 4-player (no options); on sea board; with any Scenario
+        - Start each game, go through initial placement and into normal game play
+        - In your IDE, pause the debugged client to simulate network connection loss
+        - Start a new client using vm property `-Djsettlers.debug.client.features=;6pl;sb;` and connect as that same username
+		- In the new client, double-click the standard or non-scenario sea game to rejoin
+        - Should allow connect after appropriate number of seconds, and automatically rejoin the first 2 games but
+		  not the game with scenario
+        - Game with scenario should disappear from game list, because there were no other human players
 	- For robot clients, which are invited to games:
         - Start a server which expects third-party bots, with these command-line parameters:
           `-Djsettlers.bots.cookie=foo  -Djsettlers.bots.percent3p=50`
@@ -234,7 +245,7 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
     - Start a second client under your IDE's debugger & join that game
     - Start game, go through initial placement and into normal game play
     - In your IDE, pause the debugged client to simulate network connection loss
-    - Start a new client and connect as that same username; should allow after appropriate number of seconds
+    - Start a new client and connect as that same username; should allow connect after appropriate number of seconds
 - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
 - Leave a non-practice game idle for hours; should warn 10-15 minutes before 2-hour limit,
   should let you add time in 30-minute intervals up to original limit + 30 minutes

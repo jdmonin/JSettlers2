@@ -308,21 +308,26 @@ public class SOCGameListAtServer extends SOCGameList
      * The newly joining client is almost always using the same release as the old client. It's possible but
      * very unlikely that the new client is different software with more limited client features. This method checks
      * {@code newConn}'s {@link SOCClientData#hasLimitedFeats} and each game's {@link SOCGame#canClientJoin(SOCFeatureSet)}
-     * just in case. If {@code newConn} can't join a game because of this, {@code oldConn} is removed from it silently.
+     * just in case. If {@code newConn} can't join a game because of this, the game is added to the list returned from
+     * this method.
      *
      * @param  oldConn  the member's old connection
      * @param  newConn  the member's new connection
+     * @return  {@code null} if replacement was done in all games; otherwise those games having {@code oldConn} which
+     *            {@code newConn} can't join because of its more limited client features (this is unlikely to occur)
      * @throws IllegalArgumentException  if oldConn's keyname (via {@link Connection#getData()})
      *            differs from newConn's keyname
      *
      * @see #memberGames(Connection, String)
      * @since 1.1.08
      */
-    public synchronized void replaceMemberAllGames(Connection oldConn, Connection newConn)
+    public synchronized List<SOCGame> replaceMemberAllGames(Connection oldConn, Connection newConn)
         throws IllegalArgumentException
     {
         if (! oldConn.getData().equals(newConn.getData()))
             throw new IllegalArgumentException("keyname data");
+
+        List<SOCGame> unjoinables = new ArrayList<SOCGame>();
 
         System.err.println("L212: replaceMemberAllGames(" + oldConn + ", " + newConn + ")");  // JM TEMP
         final boolean sameVersion = (oldConn.getVersion() == newConn.getVersion());
@@ -341,7 +346,7 @@ public class SOCGameListAtServer extends SOCGameList
                     if ((ga != null) && ! ga.canClientJoin(scd.feats))
                     {
                         // new client can't join this game (unlikely)
-                        members.remove(oldConn);
+                        unjoinables.add(ga);
                         continue;
                     }
                 }
@@ -359,6 +364,8 @@ public class SOCGameListAtServer extends SOCGameList
                 }
             }
         }
+
+        return (unjoinables.isEmpty()) ? null : unjoinables;
     }
 
     /**

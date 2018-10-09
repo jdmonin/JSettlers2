@@ -2430,29 +2430,43 @@ public class SOCServer extends Server
      *           has already been called.  This method won't exclude c from
      *           any communication about leaving the game, in case they are
      *           still connected and in other games.
-     * @param gm the game
+     * @param ga  game to leave, if already known from {@link SOCGameListAtServer#getGameData(String)}
+     * @param gm  game name, if {@code ga} object not already known
      * @param destroyIfEmpty  if true, this method will destroy the game if it's now empty.
      *           If false, the caller must call {@link #destroyGame(String)}
      *           before calling {@link SOCGameList#releaseMonitor()}.
      * @param gameListLock  true if we have the {@link SOCGameList#takeMonitor()} lock when called;
      *           false if it must be acquired and released within this method
      * @return true if the game was destroyed, or if it would have been destroyed but {@code destroyIfEmpty} is false.
+     * @throws IllegalArgumentException if both {@code ga} and {@code gm} are null
      */
-    public boolean leaveGame(Connection c, String gm, final boolean destroyIfEmpty, final boolean gameListLock)
+    public boolean leaveGame
+        (Connection c, SOCGame ga, String gm, final boolean destroyIfEmpty, final boolean gameListLock)
+        throws IllegalArgumentException
     {
         if (c == null)
         {
             return false;  // <---- Early return: no connection ----
         }
 
+        if (gm == null)
+        {
+            if (ga == null)
+                throw new IllegalArgumentException("both null");
+
+            gm = ga.getName();
+        }
+
         boolean gameDestroyed = false;
 
         gameList.removeMember(c, gm);
 
-        SOCGame ga = gameList.getGameData(gm);
         if (ga == null)
         {
-            return false;  // <---- Early return: no game ----
+            ga = gameList.getGameData(gm);
+
+            if (ga == null)
+                return false;  // <---- Early return: no game ----
         }
 
         GameHandler hand = gameList.getGameTypeHandler(gm);
@@ -2493,6 +2507,107 @@ public class SOCServer extends Server
 
         //D.ebugPrintln("*** gameDestroyed = "+gameDestroyed+" for "+gm);
         return gameDestroyed;
+    }
+
+    /**
+     * Handle a member leaving the game:
+     *<UL>
+     * <LI> Manages game list locks
+     * <LI> Calls {@link #leaveGame(Connection, SOCGame, String, boolean, boolean)}
+     * <LI> If game now destroyed, announces game deletion
+     * <LI> If leaving member was a bot, remove it from {@link #robotDismissRequests} for this game.
+     *      Calls {@link #sitDown(SOCGame, Connection, int, boolean, boolean)} if a human player
+     *      is replacing the bot.
+     *</UL>
+     * Before v2.0.00 this method was {@code handleLEAVEGAME_member} called only from
+     * {@link SOCServerMessageHandler#handleLEAVEGAME(Connection, SOCLeaveGame)}.
+     *
+     * @param c  the connection leaving the game
+     * @param game  game to leave, if already known from {@link SOCGameListAtServer#getGameData(String)}
+     * @param gaName  game name, if {@code game} object not already known
+     * @throws IllegalArgumentException if both {@code game} and {@code gaName} are null
+     * @since 1.1.07
+     */
+    void leaveGameMemberAndCleanup(Connection c, SOCGame game, String gaName)
+        throws IllegalArgumentException
+    {
+        if (gaName == null)
+        {
+            if (game == null)
+                throw new IllegalArgumentException("both null");
+
+            gaName = game.getName();
+        }
+
+        boolean gameDestroyed = false;
+        if (! gameList.takeMonitorForGame(gaName))
+        {
+            return;  // <--- Early return: game not in gamelist ---
+        }
+
+        try
+        {
+            gameDestroyed = leaveGame(c, game, gaName, true, false);
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in handleLEAVEGAME (leaveGame)");
+        }
+
+        gameList.releaseMonitorForGame(gaName);
+
+        if (gameDestroyed)
+        {
+            broadcast(SOCDeleteGame.toCmd(gaName));
+        }
+        else
+        {
+            /*
+               SOCLeaveGame leaveMessage = new SOCLeaveGame(c.getData(), c.host(), gaName);
+               messageToGame(gaName, leaveMessage);
+               recordGameEvent(gaName, leaveMessage);
+             */
+        }
+
+        /**
+         * if it's a robot, remove it from the request list
+         */
+        Vector<SOCReplaceRequest> requests = robotDismissRequests.get(gaName);
+
+        if (requests != null)
+        {
+            Enumeration<SOCReplaceRequest> reqEnum = requests.elements();
+            SOCReplaceRequest req = null;
+
+            while (reqEnum.hasMoreElements())
+            {
+                SOCReplaceRequest tempReq = reqEnum.nextElement();
+
+                if (tempReq.getLeaving() == c)
+                {
+                    req = tempReq;
+                    break;
+                }
+            }
+
+            if (req != null)
+            {
+                requests.removeElement(req);
+
+                /**
+                 * Taking over a robot spot: let the person replacing the robot sit down
+                 */
+                if (game == null)
+                    game = gameList.getGameData(gaName);
+                final int pn = req.getSitDownMessage().getPlayerNumber();
+                final boolean isRobot = req.getSitDownMessage().isRobot();
+                if (! isRobot)
+                {
+                    game.getPlayer(pn).setFaceId(1);  // Don't keep the robot face icon
+                }
+                sitDown(game, req.getArriving(), pn, isRobot, false);
+            }
+        }
     }
 
     /**
@@ -2597,7 +2712,7 @@ public class SOCServer extends Server
      * before calling this method.
      *
      * @param gm  Name of the game to destroy
-     * @see #leaveGame(Connection, String, boolean, boolean)
+     * @see #leaveGame(Connection, SOCGame, String, boolean, boolean)
      * @see #destroyGameAndBroadcast(String, String)
      */
     public void destroyGame(String gm)
@@ -2916,7 +3031,7 @@ public class SOCServer extends Server
 
                     try
                     {
-                        thisGameDestroyed = leaveGame(c, ga, false, true);
+                        thisGameDestroyed = leaveGame(c, null, ga, false, true);
                     }
                     catch (Exception e)
                     {
@@ -4206,7 +4321,7 @@ public class SOCServer extends Server
 
         if (isReplacing)
         {
-            gameList.replaceMemberAllGames(oldConn, c);
+            final List<SOCGame> cannotReplace = gameList.replaceMemberAllGames(oldConn, c);
             channelList.replaceMemberAllChannels(oldConn, c);
 
             SOCClientData scdNew = (SOCClientData) (c.getAppData());
@@ -4218,6 +4333,12 @@ public class SOCServer extends Server
             // in case it ever does get its connection back.
             if (oldConn.getVersion() >= 1108)
                 oldConn.put(SOCServerPing.toCmd(-1));
+
+            // If oldConn was in some games which c can't join because of limited client features,
+            // remove oldConn from those now. This is unlikely: see GLAS.replaceMemberAllGames javadoc.
+            if (cannotReplace != null)
+                for (SOCGame ga : cannotReplace)
+                    leaveGameMemberAndCleanup(oldConn, ga, null);
         }
 
         numberOfUsers++;

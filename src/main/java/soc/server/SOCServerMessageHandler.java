@@ -1670,94 +1670,18 @@ public class SOCServerMessageHandler
 
         if (isMember)
         {
-            handleLEAVEGAME_member(c, gaName);
+            srv.leaveGameMemberAndCleanup(c, null, gaName);
         }
         else if (((SOCClientData) c.getAppData()).isRobot)
         {
             handleLEAVEGAME_maybeGameReset_oldRobot(gaName);
+
             // During a game reset, this robot player
             // will not be found among cg's players
             // (isMember is false), because it's
             // attached to the old game object
             // instead of the new one.
             // So, check game state and update game's reset data.
-        }
-    }
-
-    /**
-     * Handle a member leaving the game, from
-     * {@link #handleLEAVEGAME(Connection, SOCLeaveGame)}.
-     * @since 1.1.07
-     */
-    private void handleLEAVEGAME_member(Connection c, final String gaName)
-    {
-        boolean gameDestroyed = false;
-        if (! gameList.takeMonitorForGame(gaName))
-        {
-            return;  // <--- Early return: game not in gamelist ---
-        }
-
-        try
-        {
-            gameDestroyed = srv.leaveGame(c, gaName, true, false);
-        }
-        catch (Exception e)
-        {
-            D.ebugPrintStackTrace(e, "Exception in handleLEAVEGAME (leaveGame)");
-        }
-
-        gameList.releaseMonitorForGame(gaName);
-
-        if (gameDestroyed)
-        {
-            srv.broadcast(SOCDeleteGame.toCmd(gaName));
-        }
-        else
-        {
-            /*
-               SOCLeaveGame leaveMessage = new SOCLeaveGame(c.getData(), c.host(), gaName);
-               messageToGame(gaName, leaveMessage);
-               recordGameEvent(gaName, leaveMessage);
-             */
-        }
-
-        /**
-         * if it's a robot, remove it from the request list
-         */
-        Vector<SOCReplaceRequest> requests = srv.robotDismissRequests.get(gaName);
-
-        if (requests != null)
-        {
-            Enumeration<SOCReplaceRequest> reqEnum = requests.elements();
-            SOCReplaceRequest req = null;
-
-            while (reqEnum.hasMoreElements())
-            {
-                SOCReplaceRequest tempReq = reqEnum.nextElement();
-
-                if (tempReq.getLeaving() == c)
-                {
-                    req = tempReq;
-                    break;
-                }
-            }
-
-            if (req != null)
-            {
-                requests.removeElement(req);
-
-                /**
-                 * Taking over a robot spot: let the person replacing the robot sit down
-                 */
-                SOCGame ga = gameList.getGameData(gaName);
-                final int pn = req.getSitDownMessage().getPlayerNumber();
-                final boolean isRobot = req.getSitDownMessage().isRobot();
-                if (! isRobot)
-                {
-                    ga.getPlayer(pn).setFaceId(1);  // Don't keep the robot face icon
-                }
-                srv.sitDown(ga, req.getArriving(), pn, isRobot, false);
-            }
         }
     }
 
