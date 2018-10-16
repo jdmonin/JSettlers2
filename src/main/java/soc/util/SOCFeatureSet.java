@@ -19,6 +19,8 @@
  **/
 package soc.util;
 
+import soc.game.SOCGameOption;  // for javadocs only
+
 /**
  * Set of optional server features or client features that are currently active.
  * Sent during connect via {@link soc.message.SOCVersion} message fields.
@@ -128,6 +130,10 @@ public class SOCFeatureSet
      * Clients supporting scenarios should set this feature's value to the JSettlers version
      * having all scenarios they support: For example if the client supports all scenarios
      * included in JSettlers 2.0.01, the value would be 2001.
+     *<P>
+     * If client doesn't have this feature, server also assumes it doesn't support
+     * any scenario-related {@link SOCGameOption}s (the options starting with {@code _SC_*},
+     * like {@link SOCGameOption#K_SC_3IP _SC_3IP}).
      *<P>
      * Should not be newer (larger) than the client's reported version.
      * If this value is newer than the client version, it will be reduced
