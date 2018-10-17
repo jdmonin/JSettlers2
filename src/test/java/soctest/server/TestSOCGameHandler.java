@@ -43,8 +43,8 @@ public class TestSOCGameHandler
         /**
          * Game opts and expected resulting client features.
          * When one client feature is expected, will test with String.equals.
-         * When multiple client features are expected, will test with featsObj.hasAllOf(featsStr),
-         * which unfortunately also returns true if an int-valued feature > its value in featsStr.
+         * When multiple client features are expected, will test with featsObj.findMissingAgainst(otherFeatsSet),
+         * which unfortunately also returns true if an int-valued feature > its value in otherFeatsSet.
          */
         final String[][] gameoptFeatPairs =
             {
@@ -75,7 +75,7 @@ public class TestSOCGameHandler
             } else {
                 final boolean hasMulti = (featsStr.indexOf(';', 2) < (featsStr.length() - 1));
                 final boolean passed = (hasMulti)
-                    ? cliFeats.hasAllOf(new SOCFeatureSet(featsStr))
+                    ? (null == cliFeats.findMissingAgainst(new SOCFeatureSet(featsStr)))
                     : featsStr.equals(cliFeats.getEncodedList());
                 if (! passed)
                     fail("For gameopts " + gameopts + " expected cli feats " + featsStr

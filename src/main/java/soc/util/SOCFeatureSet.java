@@ -317,26 +317,29 @@ public class SOCFeatureSet
     }
 
     /**
-     * Does this set contain all of the features of another set?
+     * Compare this set against another; does it contain all the features of the other?
      * For features with an int value, value in {@code this} set must be &gt;=
-     * the feature's value in {@code feats}. If somehow the feature is boolean in
+     * the feature's value in {@code otherSet}. If somehow the feature is boolean in
      * one set and int-valued in the other, 0 is used as the boolean feature's int value.
-     * @param feats  Set to compare against, or {@code null}
-     * @return true if this set is a superset containing all features in {@code feats},
-     *     or if {@code feats} is {@code null}
+     * @param otherSet  Feature set to compare against, or {@code null}
+     * @return {@code null} if this set is a superset containing all features in {@code otherSet},
+     *     or if {@code otherSet} is {@code null}.<BR>
+     *     Otherwise, the list of "missing" features which are in {@code otherSet} but not this set,
+     *     separated by {@link #SEP_CHAR} but not preceded/followed by it like {@link #getEncodedList()} does.
      * @since 2.0.00
      */
-    public boolean hasAllOf(SOCFeatureSet feats)
+    public String findMissingAgainst(SOCFeatureSet otherSet)
     {
-        if ((feats == null) || (feats.featureList == null))
-            return true;
+        if ((otherSet == null) || (otherSet.featureList == null))
+            return null;
 
-        final String fList = feats.featureList;
+        final String fList = otherSet.featureList;
         final int L = fList.length();
         if (L < 2)
-            return true;
+            return null;
 
         // loop through fList, checking our own list
+        StringBuilder missingList = null;
         for (int i = fList.indexOf(SEP_CHAR, 1), iprev = 0;  // assumes fList is well-formed and starts with ';'
              ;
              iprev = i, i = fList.indexOf(SEP_CHAR, i+1))
@@ -346,26 +349,39 @@ public class SOCFeatureSet
 
             if (i - iprev > 1)
             {
+                String missingItem = null;
                 String f = fList.substring(iprev + 1, i);
                 int ieq = f.indexOf('=');
                 if (ieq == -1)
                 {
                     if (! isActive(f))
-                        return false;
+                    {
+                        missingItem = f;
+                    }
                 } else if (ieq == 0) {
-                    return false;  // malformed
+                    missingItem = "?";  // malformed
                 } else {
                     String name = f.substring(0, ieq), val = f.substring(ieq + 1);
                     int ival = 0;
                     if (val.length() > 0)
                         try {
                             ival = Integer.parseInt(val);
+                            int ourval = getValue(name, ival - 1);
+                            if (ourval < ival)
+                                missingItem = f;  // name + "=" + val
                         } catch (NumberFormatException e) {
-                            return false;
+                            missingItem = name;
                         }
-                    int ourval = getValue(name, ival - 1);
-                    if (ourval < ival)
-                        return false;
+                }
+
+                if (missingItem != null)
+                {
+                    if (missingList == null)
+                        missingList = new StringBuilder();
+                    else
+                        missingList.append(',');
+
+                    missingList.append(missingItem);
                 }
             }
 
@@ -373,7 +389,7 @@ public class SOCFeatureSet
                 break;
         }
 
-        return true;
+        return (missingList != null) ? missingList.toString() : null;
     }
 
     /**

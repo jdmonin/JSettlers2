@@ -1985,24 +1985,47 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Given its features, can a client join this game?
-     * Assumes client's {@link soc.server.SOCClientData#hasLimitedFeats} flag is true,
-     * otherwise they could join any game.
+     * Given its features, can a client join this game? Assumes client's
+     * {@link soc.server.SOCClientData#hasLimitedFeats} flag is true, otherwise they could join any game.
+     * Calls {@link #checkClientFeatures(SOCFeatureSet, boolean) checkClientFeatures(cliFeats, true)}.
      * @param cliFeats  Client's limited subset of optional features,
      *     from {@link soc.server.SOCClientData#feats}, or {@code null} if none
-     * @return  True if client can join.
-     *     Always true if {@link #getClientFeaturesRequired()}.
+     * @return  True if client can join, false otherwise.
+     *     Always true if {@link #getClientFeaturesRequired()} is {@code null}.
      * @since 2.0.00
      */
-    public boolean canClientJoin(SOCFeatureSet cliFeats)
+    public boolean canClientJoin(final SOCFeatureSet cliFeats)
+    {
+        return (null == checkClientFeatures(cliFeats, true));
+    }
+
+    // TODO impl stopIfAnyFound
+    /**
+     * Check whether a client can join this game, given its feature set.
+     * Assumes client's {@link soc.server.SOCClientData#hasLimitedFeats} flag is true,
+     * otherwise they could join any game. If this game requires any client features, calls
+     * {@link SOCFeatureSet#findMissingAgainst(SOCFeatureSet) cliFeats.findMissingAgainst(gameFeats)}.
+     * @param cliFeats  Client's limited subset of optional features,
+     *     from {@link soc.server.SOCClientData#feats}, or {@code null} if none
+     * @param stopIfAnyFound  True if caller needs to know only if any features are missing,
+     *     but doesn't need the full list. If game's features and {@code cliFeats} are both not null,
+     *     will stop checking after finding any missing feature.
+     * @return  Null if client can join, otherwise the list of features which
+     *     this game requires but are not included in {@code cliFeats}.
+     *     Always null if {@link #getClientFeaturesRequired()} is {@code null}.
+     *     If {@code stopIfAnyFound}, might return one missing feature instead of the full list.
+     * @see #canClientJoin(SOCFeatureSet)
+     * @since 2.0.00
+     */
+    public String checkClientFeatures(final SOCFeatureSet cliFeats, final boolean stopIfAnyFound)
     {
         if (clientFeaturesRequired == null)
-            return true;  // anyone can join
+            return null;  // anyone can join
 
         if (cliFeats == null)
-            return false;  // cli has no features, this game requires some
+            return clientFeaturesRequired.getEncodedList();  // cli has no features, this game requires some
 
-        return cliFeats.hasAllOf(clientFeaturesRequired);
+        return cliFeats.findMissingAgainst(clientFeaturesRequired);
     }
 
     /**
