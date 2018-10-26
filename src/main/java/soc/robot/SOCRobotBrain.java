@@ -196,21 +196,23 @@ public class SOCRobotBrain extends Thread
     protected SOCRobotClient client;
 
     /**
-     * The game we are playing
+     * The game we are playing. Set in constructor, unlike {@link #ourPlayerData}.
+     * @see #gameIs6Player
      */
     protected SOCGame game;
 
     /**
-     * The {@link #game} we're playing is on the 6-player board.
+     * If true, the {@link #game} we're playing is on the 6-player board.
      * @since 1.1.08
      */
     final private boolean gameIs6Player;
 
     /**
-     * Our player data
+     * Our player data.
      * Set in {@link #setOurPlayerData()}
      * @see #ourPlayerNumber
      * @see #ourPlayerName
+     * @see #game
      */
     protected SOCPlayer ourPlayerData;
 
@@ -914,7 +916,7 @@ public class SOCRobotBrain extends Thread
      * find our player data using our nickname.
      * Called from {@link SOCRobotClient} when the
      * server sends a {@link SOCSitDown} message.
-     * Initializes our game and player data,
+     * Initializes our game and {@link #ourPlayerData},
      * {@link SOCRobotDM}, {@link SOCRobotNegotiator},
      * strategy fields, {@link SOCPlayerTracker}s, etc.
      */
