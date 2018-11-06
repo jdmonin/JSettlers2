@@ -75,7 +75,7 @@ public class TestSOCGameHandler
             } else {
                 final boolean hasMulti = (featsStr.indexOf(';', 2) < (featsStr.length() - 1));
                 final boolean passed = (hasMulti)
-                    ? (null == cliFeats.findMissingAgainst(new SOCFeatureSet(featsStr)))
+                    ? (null == cliFeats.findMissingAgainst(new SOCFeatureSet(featsStr), true))
                     : featsStr.equals(cliFeats.getEncodedList());
                 if (! passed)
                     fail("For gameopts " + gameopts + " expected cli feats " + featsStr

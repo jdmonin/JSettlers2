@@ -1999,25 +1999,24 @@ public class SOCGame implements Serializable, Cloneable
         return (null == checkClientFeatures(cliFeats, true));
     }
 
-    // TODO impl stopIfAnyFound
     /**
      * Check whether a client can join this game, given its feature set.
      * Assumes client's {@link soc.server.SOCClientData#hasLimitedFeats} flag is true,
      * otherwise they could join any game. If this game requires any client features, calls
-     * {@link SOCFeatureSet#findMissingAgainst(SOCFeatureSet) cliFeats.findMissingAgainst(gameFeats)}.
+     * {@link SOCFeatureSet#findMissingAgainst(SOCFeatureSet, boolean) cliFeats.findMissingAgainst(gameFeats, stopAtFirstFound)}.
      * @param cliFeats  Client's limited subset of optional features,
      *     from {@link soc.server.SOCClientData#feats}, or {@code null} if none
-     * @param stopIfAnyFound  True if caller needs to know only if any features are missing,
+     * @param stopAtFirstFound  True if caller needs to know only if any features are missing,
      *     but doesn't need the full list. If game's features and {@code cliFeats} are both not null,
      *     will stop checking after finding any missing feature.
      * @return  Null if client can join, otherwise the list of features which
      *     this game requires but are not included in {@code cliFeats}.
      *     Always null if {@link #getClientFeaturesRequired()} is {@code null}.
-     *     If {@code stopIfAnyFound}, might return one missing feature instead of the full list.
+     *     If {@code stopAtFirstFound}, might return one missing feature instead of the full list.
      * @see #canClientJoin(SOCFeatureSet)
      * @since 2.0.00
      */
-    public String checkClientFeatures(final SOCFeatureSet cliFeats, final boolean stopIfAnyFound)
+    public String checkClientFeatures(final SOCFeatureSet cliFeats, final boolean stopAtFirstFound)
     {
         if (clientFeaturesRequired == null)
             return null;  // anyone can join
@@ -2025,7 +2024,7 @@ public class SOCGame implements Serializable, Cloneable
         if (cliFeats == null)
             return clientFeaturesRequired.getEncodedList();  // cli has no features, this game requires some
 
-        return cliFeats.findMissingAgainst(clientFeaturesRequired);
+        return cliFeats.findMissingAgainst(clientFeaturesRequired, stopAtFirstFound);
     }
 
     /**

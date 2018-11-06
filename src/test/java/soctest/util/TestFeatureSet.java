@@ -164,44 +164,52 @@ public class TestFeatureSet
         {
             SOCFeatureSet fs = new SOCFeatureSet(selfStr);
             for (String subStr : emptys)
-                assertNull(fs.findMissingAgainst(new SOCFeatureSet(subStr)));
-            assertNotNull(fs.findMissingAgainst(new SOCFeatureSet(";xyz;")));
+                assertNull(fs.findMissingAgainst(new SOCFeatureSet(subStr), false));
+            assertNotNull(fs.findMissingAgainst(new SOCFeatureSet(";xyz;"), false));
         }
 
-        // single feature, overall parsing
+        // single feature, test overall parsing
         SOCFeatureSet fs = new SOCFeatureSet(";xyz=2002;");
-        assertNull(fs.findMissingAgainst(null));
-        assertNull(fs.findMissingAgainst(new SOCFeatureSet("")));
-        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";")));
-        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";;")));
-        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";xyz;")));  // subset's feature as boolean without int value
-        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";xyz=;")));  // almost malformed: parse no value as 0
-        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";xyz=0;")));
-        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";xyz=-5;")));  // negative value
-        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";xyz=2001;")));  // lower value
-        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";xyz=2002;")));  // same value
-        assertNotNull(fs.findMissingAgainst(new SOCFeatureSet(";xyz=2003;")));  // higher value
-        assertNotNull(fs.findMissingAgainst(new SOCFeatureSet(";xyz=n;")));  // purposefully malformed
-        assertNotNull(fs.findMissingAgainst(new SOCFeatureSet(";=7;")));  // purposefully malformed
+        assertNull(fs.findMissingAgainst(null, false));
+        assertNull(fs.findMissingAgainst(new SOCFeatureSet(""), false));
+        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";"), false));
+        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";;"), false));
+        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";xyz;"), false));  // subset's feature as boolean without int value
+        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";xyz=;"), false));  // almost malformed: should parse no-value as 0
+        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";xyz=0;"), false));
+        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";xyz=-5;"), false));  // negative value
+        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";xyz=2001;"), false));  // lower value
+        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";xyz=2002;"), false));  // same value
+        assertEquals(fs.findMissingAgainst(new SOCFeatureSet(";xyz=2003;"), false), "xyz=2003");  // higher value
+        assertEquals(fs.findMissingAgainst(new SOCFeatureSet(";xyz=n;"), false), "xyz");  // value purposefully malformed
+        assertEquals(fs.findMissingAgainst(new SOCFeatureSet(";=7;"), false), "?");  // purposefully malformed
 
         // more negative-value tests
         fs = new SOCFeatureSet(";abc=-5;");
-        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";abc=-6;")));
-        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";abc=-5;")));
-        assertNotNull(fs.findMissingAgainst(new SOCFeatureSet(";abc=-4;")));
-        assertNotNull(fs.findMissingAgainst(new SOCFeatureSet(";abc=0;")));
+        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";abc=-6;"), false));
+        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";abc=-5;"), false));
+        assertEquals(fs.findMissingAgainst(new SOCFeatureSet(";abc=-4;"), false), "abc=-4");
+        assertEquals(fs.findMissingAgainst(new SOCFeatureSet(";abc=0;"), false), "abc=0");
 
         // multiple features
         fs = new SOCFeatureSet(";a;b;cd=11;");
-        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";a;")));
-        assertNotNull(fs.findMissingAgainst(new SOCFeatureSet(";a=7;")));  // subset's feature has int value, but ours is boolean
-        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";a;b;")));
-        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";b;a;")));
-        assertNotNull(fs.findMissingAgainst(new SOCFeatureSet(";b;a;f;")));  // f not in our set
-        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";cd;a;b;")));  // subset's feature as boolean without int value
-        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";cd=7;b;a;")));  // lower value
-        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";cd=11;b;a;")));  // same value
-        assertNotNull(fs.findMissingAgainst(new SOCFeatureSet(";cd=12;b;a;")));  // higher value
+        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";a;"), false));
+        assertEquals(fs.findMissingAgainst(new SOCFeatureSet(";a=7;"), false), "a=7");  // subset's feature has int value, but ours is boolean
+        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";a;b;"), false));
+        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";b;a;"), false));
+        assertEquals(fs.findMissingAgainst(new SOCFeatureSet(";b;a;f;"), false), "f");  // f not in our set
+        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";cd;a;b;"), false));  // subset's feature as boolean without int value
+        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";cd=7;b;a;"), false));  // lower value
+        assertNull(fs.findMissingAgainst(new SOCFeatureSet(";cd=11;b;a;"), false));  // same value
+        assertEquals(fs.findMissingAgainst(new SOCFeatureSet(";cd=12;b;a;"), false), "cd=12");  // higher value
+
+        // multiple missing features
+        assertEquals(fs.findMissingAgainst(new SOCFeatureSet(";f;a;cz;"), false), "f;cz");
+        assertEquals(fs.findMissingAgainst(new SOCFeatureSet(";cd=12;f;a;"), false), "cd=12;f");  // value differs
+
+        // stopAtFirstFound, using same test cases as "multiple missing" above
+        assertEquals(fs.findMissingAgainst(new SOCFeatureSet(";f;a;cz;"), true), "f");
+        assertEquals(fs.findMissingAgainst(new SOCFeatureSet(";cd=12;f;a;"), true), "cd=12");  // value differs
     }
 
     /** Constants are sent between servers and clients, so their values shouldn't change between versions. */

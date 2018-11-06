@@ -322,13 +322,18 @@ public class SOCFeatureSet
      * the feature's value in {@code otherSet}. If somehow the feature is boolean in
      * one set and int-valued in the other, 0 is used as the boolean feature's int value.
      * @param otherSet  Feature set to compare against, or {@code null}
+     * @param stopAtFirstFound  True if caller needs to know only if any features are missing,
+     *     but doesn't need the full list. Will stop checking after finding any missing feature.
      * @return {@code null} if this set is a superset containing all features in {@code otherSet},
      *     or if {@code otherSet} is {@code null}.<BR>
      *     Otherwise, the list of "missing" features which are in {@code otherSet} but not this set,
      *     separated by {@link #SEP_CHAR} but not preceded/followed by it like {@link #getEncodedList()} does.
+     *     Within the returned list, items will be in the same order as in
+     *     {@link SOCFeatureSet#getEncodedList() otherSet.getEncodedList()}.
+     *     If {@code stopAtFirstFound}, might return one missing feature instead of the full list.
      * @since 2.0.00
      */
-    public String findMissingAgainst(SOCFeatureSet otherSet)
+    public String findMissingAgainst(SOCFeatureSet otherSet, final boolean stopAtFirstFound)
     {
         if ((otherSet == null) || (otherSet.featureList == null))
             return null;
@@ -376,10 +381,13 @@ public class SOCFeatureSet
 
                 if (missingItem != null)
                 {
+                    if (stopAtFirstFound)
+                        return missingItem;  // <--- Early return ---
+
                     if (missingList == null)
                         missingList = new StringBuilder();
                     else
-                        missingList.append(',');
+                        missingList.append(SOCFeatureSet.SEP_CHAR);
 
                     missingList.append(missingItem);
                 }
