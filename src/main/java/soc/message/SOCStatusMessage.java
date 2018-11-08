@@ -176,6 +176,7 @@ public class SOCStatusMessage extends SOCMessage
      *   {@link SOCMessage#sep2 SEP2} option keyname with problem (if more than one)
      *   ...
      * @see soc.server.SOCServerMessageHandler#handleNEWGAMEWITHOPTIONSREQUEST
+     * @see #SV_GAME_CLIENT_FEATURES_NEEDED
      * @since 1.1.07
      */
     public static final int SV_NEWGAME_OPTION_VALUE_TOONEW = 10;
@@ -294,9 +295,28 @@ public class SOCStatusMessage extends SOCMessage
      */
     public static final int SV_OK_DEBUG_MODE_ON = 21;
 
+    /**
+     * Client has requested joining or creating a game whose options require some optional client features,
+     * but at least one of those features or its value is too new for the client to handle = 22
+     *<P>
+     * Format of this status text is: <BR>
+     * Status string with error message <BR>
+     *   {@link SOCMessage#sep2 SEP2} game name <BR>
+     *   {@link SOCMessage#sep2 SEP2} optional feature(s) required by game but not implemented in client,
+     *       in format returned by {@link soc.game.SOCGame#checkClientFeatures(SOCFeatureSet, boolean)}
+     *<P>
+     * This is sent when client tries to join or create a game: If sent for joining, the game name will be
+     * in the client's list of all games; if game name isn't there, this status was sent for a game creation
+     * request.
+     * @see #SV_NEWGAME_OPTION_VALUE_TOONEW
+     * @since 2.0.00
+     */
+    public static final int SV_GAME_CLIENT_FEATURES_NEEDED = 22;
+
     // IF YOU ADD A STATUS VALUE:
     // Do not change or remove the numeric values of earlier ones.
-    // Be sure to update statusValidAtVersion().
+    // Be sure to update statusValidAtVersion() and statusFallbackForVersion().
+    // If the message text is structured or delimited, explain its format in the new value's javadoc.
 
     /**
      * Text for server or client to present: New game requested,
@@ -454,6 +474,7 @@ public class SOCStatusMessage extends SOCMessage
      * <LI> {@link #SV_OK_DEBUG_MODE_ON} falls back to {@link #SV_OK}
      * <LI> {@link #SV_PW_REQUIRED} falls back to {@link #SV_PW_WRONG}
      * <LI> {@link #SV_ACCT_CREATED_OK_FIRST_ONE} falls back to {@link #SV_ACCT_CREATED_OK}
+     * <LI> {@link #SV_GAME_CLIENT_FEATURES_NEEDED} falls back to {@link #SV_NEWGAME_OPTION_VALUE_TOONEW}
      * <LI> {@link #SV_OK_SET_NICKNAME} has no successful fallback, the client must be
      *      sent {@link #SV_NAME_NOT_FOUND} and must reauthenticate; throws {@link IllegalArgumentException}
      * <LI> All others fall back to {@link #SV_NOT_OK_GENERIC}
@@ -524,11 +545,11 @@ public class SOCStatusMessage extends SOCMessage
                 return (statusValue == 0);
             else if (cliVersion < 1119)  // for 1111 - 1118 inclusive
                 return (statusValue < SV_PW_REQUIRED);
-            else if (cliVersion < 2000)
+            else if (cliVersion < 2000)  // for 1201 - 1999 inclusive
                 return (statusValue < SV_OK_DEBUG_MODE_ON);
             else
                 // our version or newer; check vs highest constant that we know
-                return (statusValue <= SV_OK_DEBUG_MODE_ON);
+                return (statusValue <= SV_GAME_CLIENT_FEATURES_NEEDED);
             }
         }
     }
@@ -564,6 +585,13 @@ public class SOCStatusMessage extends SOCMessage
             case SV_OK_SET_NICKNAME:
                 reject = true;
                 break;
+            case SV_GAME_CLIENT_FEATURES_NEEDED:
+                if (cliVersion >= 1107)
+                {
+                    sv = SV_NEWGAME_OPTION_VALUE_TOONEW;
+                    break;
+                }
+                // else fall through
             default:
                 if (cliVersion >= 1106)
                     sv = SV_NOT_OK_GENERIC;

@@ -2025,7 +2025,8 @@ public class SOCServer extends Server
      *           (this exception was added in 1.1.07)
      * @throws MissingResourceException if client has {@link SOCClientData#hasLimitedFeats} and
      *           <tt>! {@link SOCGame#canClientJoin(SOCFeatureSet)}</tt>.
-     *           The missing feature(s) are not listed in the exception.
+     *           The missing feature(s) are in the {@link MissingResourceException#getKey()} field,
+     *           in the format returned by {@link SOCGame#checkClientFeatures(SOCFeatureSet, boolean)}.
      *           (this exception was added in 2.0.00)
      * @throws IllegalArgumentException if client's version is too low to join for any
      *           other reason. (this exception was added in 1.1.06)
@@ -2060,7 +2061,8 @@ public class SOCServer extends Server
 
         if (gameExists)
         {
-            boolean cliVersOld = false, cliMissingFeats = false;
+            boolean cliVersOld = false;
+            String cliMissingFeats = null;  // if non-null, list of optional features not in client but needed by game
 
             gameList.takeMonitorForGame(gaName);
             SOCGame ga = gameList.getGameData(gaName);
@@ -2078,10 +2080,11 @@ public class SOCServer extends Server
                         cliVersOld = true;
                     } else {
                         SOCClientData scd = (SOCClientData) c.getAppData();
-                        if (scd.hasLimitedFeats && ! ga.canClientJoin(scd.feats))
+                        if (scd.hasLimitedFeats)
                         {
-                            cliVersOld = true;
-                            cliMissingFeats = true;
+                            cliMissingFeats = ga.checkClientFeatures(scd.feats, false);
+                            if (cliMissingFeats != null)
+                                cliVersOld = true;
                         }
                     }
 
@@ -2098,8 +2101,8 @@ public class SOCServer extends Server
             }
 
             gameList.releaseMonitorForGame(gaName);
-            if (cliMissingFeats)
-                throw new MissingResourceException("Client missing a feature", "unused", "unused");
+            if (cliMissingFeats != null)
+                throw new MissingResourceException("Client missing a feature", "unused", cliMissingFeats);
             if (cliVersOld)
                 throw new IllegalArgumentException("Client version");
 
@@ -5893,11 +5896,17 @@ public class SOCServer extends Server
                 + SOCMessage.sep2_char + e.problemOptionsList()));
         } catch (MissingResourceException e)
         {
-            // Let them know they can't join or create it
-            final String verb = (gameList.isGame(gameName)) ? "join" : "create";  // TODO I18N
+            // Let them know they can't join or create it because
+            // client is missing an optional feature the game needs.
+            // Does not need I18N, because client v2.0.00 and newer will parse this text and
+            // show a localized message instead of the raw status text.
+            final String verb = (gameList.isGame(gameName)) ? "join" : "create";  // I18N OK
+            final String feats = e.getKey();  // semicolon-separated (';')
             c.put(SOCStatusMessage.toCmd
-              (SOCStatusMessage.SV_CANT_JOIN_GAME_VERSION, cliVers,
-                "Cannot " + verb + "; this client is incompatible with features of the game: " + gameName));
+              (SOCStatusMessage.SV_GAME_CLIENT_FEATURES_NEEDED, cliVers,
+                "Cannot " + verb + "; this client is incompatible with features of the game"
+                + SOCMessage.sep2_char + gameName
+                + SOCMessage.sep2_char + feats));
         } catch (IllegalArgumentException e)
         {
             SOCGame game = gameList.getGameData(gameName);

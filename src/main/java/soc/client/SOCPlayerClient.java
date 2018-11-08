@@ -579,6 +579,8 @@ public class SOCPlayerClient
          * @param gameOptsStr String of packed {@link SOCGameOption game options}, or null
          * @param addToSrvList Should this game be added to the list of remote-server games?
          *            Practice games should not be added.
+         * @see SOCPlayerClient#addToGameList(String, String, boolean)
+         * @see #deleteFromGameList(String, boolean, boolean)
          */
         void addToGameList(final boolean cannotJoin, String gameName, String gameOptsStr, final boolean addToSrvList);
 
@@ -595,7 +597,7 @@ public class SOCPlayerClient
 
         /**
          * Delete a game from the list.
-         * If it's on the list, also remove from {@link #serverGames}.
+         * If it's on the {@link SOCPlayerClient#serverGames} list, also remove from there.
          *
          * @param gameName  the game to remove
          * @param isPractice   Game is practice, not at tcp server?
@@ -603,6 +605,7 @@ public class SOCPlayerClient
          *     {@link SOCPlayerClient#GAMENAME_PREFIX_CANNOT_JOIN};
          *     {@code gameName} should not include this prefix
          * @return true if deleted, false if not found in list
+         * @see #addToGameList(boolean, String, String, boolean)
          */
         boolean deleteFromGameList(String gameName, final boolean isPractice, final boolean withUnjoinablePrefix);
 
@@ -4019,6 +4022,33 @@ public class SOCPlayerClient
                 gameDisplay.showErrorDialog(errMsg, strings.get("base.cancel"));
             }
             break;
+
+        case SOCStatusMessage.SV_GAME_CLIENT_FEATURES_NEEDED:
+            {
+                // Extract game name and missing client feature keynames,
+                // and pop up an error message window.
+                String errMsg;
+                StringTokenizer st = new StringTokenizer(statusText, SOCMessage.sep2);
+                try
+                {
+                    errMsg = st.nextToken();
+                    final String gameName = st.nextToken();
+                    final String featsList = (st.hasMoreTokens()) ? st.nextToken() : "?";
+                    final String msgKey = (doesGameExist(gameName, true))
+                        ? "pcli.gamelist.client_feats.cannot_join"
+                            // "Cannot create game {0}\nThis client does not have required feature(s): {1}"
+                        : "pcli.gamelist.client_feats.cannot_create";
+                            // "Cannot join game {0}\nThis client does not have required feature(s): {1}"
+                    errMsg = strings.get(msgKey, gameName, featsList);
+                }
+                catch (Throwable t)
+                {
+                    errMsg = statusText;  // fallback, not expected to happen
+                }
+
+                gameDisplay.showErrorDialog(errMsg, strings.get("base.cancel"));
+            }
+            break;
         }
     }
 
@@ -5986,6 +6016,25 @@ public class SOCPlayerClient
     }
 
     /**
+     * Does a game with this name exist, either at the remote server or our Practice Server (if one is running)?
+     * @param gameName  Game name to check. Should not have the prefix {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
+     * @param checkPractice  True if should also check list of practice games, false to ignore practice games.
+     *     It's safe to use {@code true} even when the practice server isn't running.
+     * @return  True if game exists in client's practice server or remote server game lists
+     * @since 2.0.00
+     */
+    public boolean doesGameExist(final String gameName, final boolean checkPractice)
+    {
+        boolean gameExists = (checkPractice)
+            ? ((net.practiceServer != null) && (-1 != net.practiceServer.getGameState(gameName)))
+            : false;
+        if ((! gameExists) && (serverGames != null))
+            gameExists = gameExists || serverGames.isGame(gameName);
+
+        return gameExists;
+    }
+
+    /**
      * Add a new game to the initial window's list of games, and possibly
      * to the {@link #serverGames server games list}.
      *
@@ -5995,6 +6044,7 @@ public class SOCPlayerClient
      * @param addToSrvList Should this game be added to the list of remote-server games?
      *            Practice games should not be added.
      *            The {@link #serverGames} list also has a flag for cannotJoin.
+     * @see #doesGameExist(String, boolean)
      * @see GameDisplay#addToGameList(boolean, String, String, boolean)
      */
     public void addToGameList(String gameName, String gameOptsStr, final boolean addToSrvList)

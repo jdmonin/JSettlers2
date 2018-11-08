@@ -150,6 +150,8 @@ When preparing to release a new version, testing should include:
     	- In standard client, create a game having 6 players but no scenario
         - First pair of limited clients should connect to that game
         - Second pair of limited clients' game list should show that game as "(cannot join)"
+        - In one of the second pair, double-click that game in game list; should show a popup "Client is incompatible with features of this game".  
+          Double-click game again; should try to join, then show a popup with server's reply naming the missing required feature: `6pl`
     - For reconnecting disconnected clients:
         - Start a server without any options
         - Start a standard client under your IDE's debugger, connect to server

@@ -1277,14 +1277,7 @@ public class NewGameOptionsFrame extends Frame
          * Always check remote server for the requested game name.
          * Check practice game names only if creating another practice game.
          */
-        boolean gameExists;
-        if (forPractice)
-            gameExists = (cl.getNet().practiceServer != null) && (-1 != cl.getNet().practiceServer.getGameState(gmName));
-        else
-            gameExists = false;
-        if (cl.serverGames != null)
-            gameExists = gameExists || cl.serverGames.isGame(gmName);
-        if (gameExists)
+        if (cl.doesGameExist(gmName, forPractice))
         {
             NotifyDialog.createAndShow(gameDisplay, this, SOCStatusMessage.MSG_SV_NEWGAME_ALREADY_EXISTS, null, true);
             return;
