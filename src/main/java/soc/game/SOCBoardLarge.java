@@ -60,7 +60,7 @@ import soc.util.IntPair;
  * In some game scenarios, players and the robber can be
  * {@link #getPlayerExcludedLandAreas() excluded} from placing in some land areas.
  *<P>
- * Server and client must be 2.0.00 or newer ({@link #VERSION_FOR_ENCODING_LARGE}).
+ * Server and client must be v2.0.00 or newer ({@link #MIN_VERSION}).
  * The board layout is sent using {@link #getLandHexLayout()} and {@link #getPortsLayout()},
  * followed by the robber hex and pirate hex (if they're &gt; 0),
  * and then (a separate message) the legal settlement/city nodes and land areas.
@@ -235,6 +235,9 @@ public class SOCBoardLarge extends SOCBoard
 {
     /** SOCBoardLarge serial, to suppress warning. SOCBoardLarge isn't sent over the network as a serialized object. */
     private static final long serialVersionUID = 2000L;
+
+    /** Minimum client and server version required: v2.0.00. */
+    public static final int MIN_VERSION = 2000;
 
     /**
      * Hex type for the Gold Hex, where the adjacent players

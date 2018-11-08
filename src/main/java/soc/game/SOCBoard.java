@@ -333,7 +333,8 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *<P>
      * Activated with {@link SOCGameOption} {@code "SBL"}.
      *<P>
-     * Although this is encoding "v3", it was added to JSettlers in v2.0.00.
+     * Although this is encoding "v3", it was added to JSettlers in v2.0.00
+     * ({@link SOCBoardLarge#MIN_VERSION}).
      * @since 2.0.00
      */
     public static final int BOARD_ENCODING_LARGE = 3;
