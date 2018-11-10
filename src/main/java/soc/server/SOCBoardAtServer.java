@@ -1403,7 +1403,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
         // Before anything else, check for frequent gold hexes and
         // swap their numbers with random other hexes in landPath
-        // which are less-frequent dice numbers (<= 4 or >= 10).
+        // which are less-frequent dice numbers (< 6 or > 8).
         {
             ArrayList<Integer> frequentGold = new ArrayList<Integer>();
             for (Integer hexCoord : redHexes)
@@ -1412,22 +1412,28 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
             if (! frequentGold.isEmpty())
             {
+                int iterRemain = 100;
                 for (int hex : frequentGold)
                 {
                     int swapHex, diceNum;
                     do {
-                        swapHex = landPath[Math.abs(rand.nextInt() % (landPath.length - 1))];
+                        swapHex = landPath[Math.abs(rand.nextInt()) % landPath.length];
                         diceNum = getNumberOnHexFromCoord(swapHex);
-                    } while ((swapHex == hex)
-                             || (diceNum == 0) || ((diceNum > 4) && (diceNum < 10))
-                             || (getHexTypeFromCoord(swapHex) == GOLD_HEX));
+                        --iterRemain;
+                    } while (((swapHex == hex)
+                              || (diceNum == 0) || ((diceNum >= 6) && (diceNum <= 8))
+                              || (getHexTypeFromCoord(swapHex) == GOLD_HEX))
+                             && (iterRemain > 0));
+
+                    if (iterRemain == 0)
+                        break;  // good enough effort
 
                     int hr = hex >> 8,
                         hc = hex & 0xFF,
                         sr = swapHex >> 8,
                         sc = swapHex & 0xFF;
                     numberLayoutLg[sr][sc] = numberLayoutLg[hr][hc];  // gets 6 or 8
-                    numberLayoutLg[hr][hc] = diceNum;  // gets 2, 3, 4, 10, 11, or 12
+                    numberLayoutLg[hr][hc] = diceNum;  // gets 2, 3, 4, 5, 9, 10, 11, or 12
 
                     redHexes.remove(Integer.valueOf(hex));
                     redHexes.add(swapHex);
