@@ -965,8 +965,8 @@ public class SOCBoardAtServer extends SOCBoardLarge
         }
 
         // Shuffle, place, then check layout for clumps:
-
-        do   // will re-do placement until clumpsNotOK is false
+        int iterRemain = 20;
+        do   // will re-do placement until clumpsNotOK is false or iterRemain == 0
         {
             if (shuffleLandHexes)
             {
@@ -1087,7 +1087,8 @@ public class SOCBoardAtServer extends SOCBoardLarge
                 makeNewBoard_placeHexes_moveFrequentNumbers(landPath, redHexes, maxPl, scen);
             }
 
-        } while (clumpsNotOK);
+            --iterRemain;
+        } while (clumpsNotOK && (iterRemain > 0));
 
         // Now that we know this layout is okay,
         // add the hex coordinates to landHexLayout,
