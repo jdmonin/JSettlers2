@@ -251,6 +251,33 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
 - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
 - Leave a non-practice game idle for hours; should warn 10-15 minutes before 2-hour limit,
   should let you add time in 30-minute intervals up to original limit + 30 minutes
+- Board layout generator stability:
+    - This is a scripted test to set up, start, and run in the background.
+    - The board layout generator is complicated, to flexibly handle the sea scenario layouts.
+      This test ensures it won't hang, time out, or crash while making a new board or resetting a board,
+      by repeatedly running a unit test and collecting any failure output for debugging.
+    - Locate where `junit.jar` and its dependency `hamcrest.core.jar` are on your system
+         - Their filenames might contain version numbers
+         - They may be within the IDE install, or the gradle cache
+         - Note the full path to each one, like `/Applications/eclipse/plugins/org.hamcrest.core_1.1.0.v20090501071000.jar`
+    - Open a bash shell
+    - `cd` to the git repo's root directory (containing src, test, build, and other subdirs)
+    - `gradle build`    # generate test classes
+    - Set up a CLASSPATH which has junit, hamcrest.core, and the built jsettlers classes. Example:  
+      `export CLASSPATH="/Applications/eclipse/plugins/org.junit_4.10.0.v4_10_0_v20120426-0900/junit.jar:/Applications/eclipse/plugins/org.hamcrest.core_1.1.0.v20090501071000.jar:./build/classes/main:./build/classes/test"`
+    - Loop for at least 2500 iterations of `soctest.game.TestBoardLayouts`:
+
+            rm -f /tmp/jsettlers-testout.txt
+            fails=0; echo "" > /tmp/jsettlers-testboardlayouts-fails.txt
+            for (( i=0; i<2500; ++i)); do
+              /bin/echo -n "$i "
+              if ! java soctest.game.TestBoardLayouts >/tmp/jsettlers-testout.txt ; then
+                fails=$((fails+1))
+                cat /tmp/jsettlers-testout.txt >> /tmp/jsettlers-testboardlayouts-fails.txt
+              fi
+            done; echo "-> Failure count: $fails"
+
+    - If any failures occur, debug using the contents of `/tmp/jsettlers-testboardlayouts-fails.txt`
 
 ## Platform-specific
 

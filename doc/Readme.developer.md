@@ -376,7 +376,6 @@ jsettlers JAR from the command line, not running inside the IDE.
   - AI in SC_FOG may want more work to react to reveals and encourage exploration
 - Game/scenario framework:
   - Review scenarios' description text
-  - Further board generation testing; possibly automate that
   - Other expansions should be possible to add later within the framework
     released with 2.0.00
 - Network message system:
