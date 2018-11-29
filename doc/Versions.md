@@ -32,6 +32,7 @@ and backport minor new features until `2.0.00` is ready.
 - Message traffic:
 	- When joining game in progress, server sends current round to update client's "*n* rounds left for No 7s" display
 	- More efficient game-setup messages over network
+		- If new game request has VP option but with a false boolean part, remove that VP option
 	- SOCBuildRequest now optional before client's SOCPutPiece request
 - Server Config Validation mode: Test the current config and exit, with new startup option:
 	`-t` or `--test-config`

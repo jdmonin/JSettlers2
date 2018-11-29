@@ -5817,6 +5817,8 @@ public class SOCServer extends Server
 
             // Make sure all options are known.  If has game opt "SC" for scenarios,
             // also adds that scenario's options into gameOpts.
+            // If has game opt "VP" but boolean part is false, use server default instead.
+
             final StringBuilder optProblems = SOCGameOption.adjustOptionsToKnown(gameOpts, null, true);
             if (optProblems != null)
             {

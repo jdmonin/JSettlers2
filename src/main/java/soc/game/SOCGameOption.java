@@ -2126,8 +2126,13 @@ public class SOCGameOption
                 }
             }
 
+            // If has "VP" but boolean part is false, use server default instead
+            SOCGameOption opt = newOpts.get("VP");
+            if ((opt != null) && ! opt.boolValue)
+                newOpts.remove("VP");
+
             // Apply scenario options, if any
-            SOCGameOption opt = newOpts.get("SC");
+            opt = newOpts.get("SC");
             if (opt != null)
             {
                 final String scKey = opt.getStringValue();
@@ -2143,8 +2148,6 @@ public class SOCGameOption
                         // opts if already in newOpts, except
                         // keep VP if specified.
                         opt = newOpts.get("VP");
-                        if ((opt != null) && ! opt.boolValue)
-                            opt = null;
 
                         final Map<String, SOCGameOption> scOpts = parseOptionsToMap(sc.scOpts);
                         if (scOpts.containsKey("VP") && (opt != null))
