@@ -22,20 +22,30 @@ package soc.client;
 
 import java.awt.Button;
 import java.awt.Color;
-import java.awt.Dialog;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.Label;
+import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JRootPane;
+
 
 @SuppressWarnings("serial")
-class SOCMonopolyDialog extends Dialog implements ActionListener, Runnable
+class SOCMonopolyDialog extends JDialog implements ActionListener, Runnable
 {
-    Button[] rsrcBut;
+    final JButton[] rsrcBut;
     /** Prompt message. Text alignment is centered. */
-    Label msg;
-    SOCPlayerInterface pi;
+    final JLabel msg;
+    final SOCPlayerInterface pi;
 
     /** i18n text strings; will use same locale as SOCPlayerClient's string manager.
      *  @since 2.0.00 */
@@ -51,30 +61,38 @@ class SOCMonopolyDialog extends Dialog implements ActionListener, Runnable
         super(pi, strings.get("spec.dcards.monopoly"), true);  // "Monopoly"
 
         this.pi = pi;
-        setBackground(new Color(255, 230, 162));
-        setForeground(Color.black);
-        setFont(new Font("SansSerif", Font.PLAIN, 12));
-        setLayout(null);
-        addNotify();
-        setSize(280, 160);
 
-        msg = new Label(strings.get("dialog.mono.please.pick.resource"), Label.CENTER);
+        final JRootPane rpane = getRootPane();
+        final Container cpane = getContentPane();
+
+        rpane.setBorder(BorderFactory.createEmptyBorder(5, 20, 20, 20));
+        rpane.setBackground(new Color(255, 230, 162));
+        rpane.setForeground(Color.black);
+        cpane.setBackground(null);  // inherit from parent
+        cpane.setForeground(null);
+
+        cpane.setLayout(new GridLayout(6, 1, 10, 10));  // label + 1 row per button
+
+        msg = new JLabel(strings.get("dialog.mono.please.pick.resource"), JLabel.CENTER);
             // "Please pick a resource to monopolize."
         add(msg);
 
-        rsrcBut = new Button[5];
+        rsrcBut = new JButton[5];
 
-        rsrcBut[0] = new Button(strings.get("resources.clay"));   // "Clay"
-        rsrcBut[1] = new Button(strings.get("resources.ore"));    // "Ore"
-        rsrcBut[2] = new Button(strings.get("resources.sheep"));  // "Sheep"
-        rsrcBut[3] = new Button(strings.get("resources.wheat"));  // "Wheat"
-        rsrcBut[4] = new Button(strings.get("resources.wood"));   // "Wood"
+        rsrcBut[0] = new JButton(strings.get("resources.clay"));   // "Clay"
+        rsrcBut[1] = new JButton(strings.get("resources.ore"));    // "Ore"
+        rsrcBut[2] = new JButton(strings.get("resources.sheep"));  // "Sheep"
+        rsrcBut[3] = new JButton(strings.get("resources.wheat"));  // "Wheat"
+        rsrcBut[4] = new JButton(strings.get("resources.wood"));   // "Wood"
 
         for (int i = 0; i < 5; i++)
         {
             add(rsrcBut[i]);
             rsrcBut[i].addActionListener(this);
         }
+
+        pack();
+        setLocationRelativeTo(pi);  // will center dialog in game window
     }
 
     /**
@@ -86,40 +104,6 @@ class SOCMonopolyDialog extends Dialog implements ActionListener, Runnable
 
         if (b)
             rsrcBut[0].requestFocus();
-    }
-
-    /**
-     * Do our dialog's custom layout: Prompt message, row of 2 resource buttons, of 3 resource buttons.
-     * Put the dialog in the center of the parent game window.
-     */
-    public void doLayout()
-    {
-        int width = getSize().width - getInsets().left - getInsets().right;
-        int height = getSize().height - getInsets().top - getInsets().bottom;
-        int space = 5;
-
-        int pix = pi.getInsets().left;
-        int piy = pi.getInsets().top;
-        int piwidth = pi.getSize().width - pi.getInsets().left - pi.getInsets().right;
-        int piheight = pi.getSize().height - pi.getInsets().top - pi.getInsets().bottom;
-
-        int buttonW = 60;
-        int button2X = (width - ((2 * buttonW) + space)) / 2;
-        int button3X = (width - ((3 * buttonW) + (2 * space))) / 2;
-
-        /* put the dialog in the center of the game window */
-        setLocation(pix + ((piwidth - width) / 2), piy + ((piheight - height) / 2));
-
-        try
-        {
-            msg.setBounds(getInsets().left, getInsets().top, width, 20);
-            rsrcBut[0].setBounds(button2X, (getInsets().bottom + height) - (50 + (2 * space)), buttonW, 25);
-            rsrcBut[1].setBounds(button2X + buttonW + space, (getInsets().bottom + height) - (50 + (2 * space)), buttonW, 25);
-            rsrcBut[2].setBounds(button3X, (getInsets().bottom + height) - (25 + space), buttonW, 25);
-            rsrcBut[3].setBounds(button3X + space + buttonW, (getInsets().bottom + height) - (25 + space), buttonW, 25);
-            rsrcBut[4].setBounds(button3X + (2 * (space + buttonW)), (getInsets().bottom + height) - (25 + space), buttonW, 25);
-        }
-        catch (NullPointerException e) {}
     }
 
     /**
