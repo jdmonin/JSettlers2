@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012,2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -78,7 +78,7 @@ public class ColorSquare extends Canvas implements MouseListener
 
     /**
      * Array of resource colors.
-     * 0 is {@link #CLAY}, 1 is {@link #ORE}, SHEEP, WHEAT, 4 is {@link #ORE}.
+     * 0 is {@link #CLAY}, 1 is {@link #ORE}, {@link #SHEEP}, {@link #WHEAT}, 4 is {@link #WOOD}.
      *<P>
      * Because this array has the resource types a player can hold or trade,
      * it does not contain {@link #GOLD}.
@@ -92,6 +92,7 @@ public class ColorSquare extends Canvas implements MouseListener
     public final static int CHECKBOX = 2;
     public final static int BOUNDED_INC = 3;
     public final static int BOUNDED_DEC = 4;
+
     /**
      * Colorsquare type TEXT displays a short message.
      * You will have to change the colorsquare's size yourself.
@@ -124,7 +125,7 @@ public class ColorSquare extends Canvas implements MouseListener
     int kind;
     int upperBound;
     int lowerBound;
-    boolean interactive;
+    final boolean interactive;
 
     /** Border color, BLACK by default
      * @since 1.1.13
@@ -164,8 +165,10 @@ public class ColorSquare extends Canvas implements MouseListener
 
     /**
      * Creates a new grey ColorSquare object without a visible value.
+     * Uses type {@link #NUMBER}, non-interactive, with lower and upper limits both 0.
      *
      * @see #ColorSquare(int, boolean, Color, int, int)
+     * @see #ColorSquare(Color)
      */
     public ColorSquare()
     {
@@ -174,29 +177,31 @@ public class ColorSquare extends Canvas implements MouseListener
     }
 
     /**
-     * Creates a new ColorSquare object with specified background color. Type
-     * <code>NUMBER</code>, non-interactive, upper=99, lower=0.
+     * Creates a new ColorSquare object with specified background color and without a visible value.
+     * Non-interactive. Uses type {@link #CHECKBOX}.
      *<P>
-     * A tooltip with the resource name is created if c is one of the
-     * resource colors defined in ColorSquare (CLAY, WHEAT, etc).
+     * A tooltip with the resource name is created if {@code c} is one of the
+     * resource colors defined in ColorSquare ({@link #CLAY}, {@link #WHEAT}, etc,
+     * or an element of {@link #RESOURCE_COLORS}).
      *
-     * @param c background color
+     * @param c background color; creates resource-name tooltip if is a resource color
      * @see #ColorSquare(int, boolean, Color, int, int)
      */
     public ColorSquare(Color c)
     {
-        this(NUMBER, false, c, 99, 0);
+        this(CHECKBOX, false, c, 99, 0);
     }
 
     /**
      * Creates a new ColorSquare object with specified background color and
-     * initial value. Type <code>NUMBER</code>, non-interactive, upper=99,
+     * initial value. Type {@link #NUMBER}, non-interactive, upper=99,
      * lower=0.
      *<P>
-     * A tooltip with the resource name is created if c is one of the
-     * resource colors defined in ColorSquare (CLAY, WHEAT, etc).
+     * A tooltip with the resource name is created if {@code c} is one of the
+     * resource colors defined in ColorSquare ({@link #CLAY}, {@link #WHEAT}, etc,
+     * or an element of {@link #RESOURCE_COLORS}).
      *
-     * @param c background color
+     * @param c background color; creates resource-name tooltip if is a resource color
      * @param v initial int value
      * @see #ColorSquare(int, boolean, Color, int, int)
      */
@@ -215,10 +220,11 @@ public class ColorSquare extends Canvas implements MouseListener
      * {@link #setBounds(int, int, int, int) setBounds} to make the square
      * large enough to display your text.
      *<P>
-     * A tooltip with the resource name is created if c is one of the
-     * resource colors defined in ColorSquare (CLAY, WHEAT, etc).
+     * A tooltip with the resource name is created if {@code c} is one of the
+     * resource colors defined in ColorSquare ({@link #CLAY}, {@link #WHEAT}, etc,
+     * or an element of {@link #RESOURCE_COLORS}).
      *
-     * @param c background color
+     * @param c background color; creates resource-name tooltip if is a resource color
      * @param v initial string value
      *
      * @since 1.1.06
@@ -233,12 +239,13 @@ public class ColorSquare extends Canvas implements MouseListener
      * Creates a new ColorSquare of the specified kind and background
      * color. Possibly interactive. For kind = NUMBER, upper=99, lower=0.
      *<P>
-     * A tooltip with the resource name is created if c is one of the
-     * resource colors defined in ColorSquare (CLAY, WHEAT, etc).
+     * A tooltip with the resource name is created if {@code c} is one of the
+     * resource colors defined in ColorSquare ({@link #CLAY}, {@link #WHEAT}, etc,
+     * or an element of {@link #RESOURCE_COLORS}).
      *
      * @param k Kind: {@link #NUMBER}, YES_NO, CHECKBOX, BOUNDED_INC, BOUNDED_DEC
      * @param in interactive flag allowing user interaction
-     * @param c background color
+     * @param c background color; creates resource-name tooltip if is a resource color
      * @see #ColorSquare(int, boolean, Color, int, int)
      */
     public ColorSquare(int k, boolean in, Color c)
@@ -251,12 +258,13 @@ public class ColorSquare extends Canvas implements MouseListener
      * color. Possibly interactive, with upper and lower bounds specified for
      * NUMBER kinds.
      *<P>
-     * A tooltip with the resource name is created if c is one of the
-     * resource colors defined in ColorSquare (CLAY, WHEAT, etc).
+     * A tooltip with the resource name is created if {@code c} is one of the
+     * resource colors defined in ColorSquare ({@link #CLAY}, {@link #WHEAT}, etc,
+     * or an element of {@link #RESOURCE_COLORS}).
      *
      * @param k Kind: NUMBER, YES_NO, CHECKBOX, BOUNDED_INC, BOUNDED_DEC
      * @param in interactive flag allowing user interaction
-     * @param c background color
+     * @param c background color; creates resource-name tooltip if is a resource color
      * @param upper upper bound if k == NUMBER
      * @param lower lower bound if k == NUMBER
      */
@@ -339,7 +347,8 @@ public class ColorSquare extends Canvas implements MouseListener
         else if (c == WOOD)
             ttip = new AWTToolTip (strings.get("resources.wood"), this);
 
-        this.addMouseListener(this);
+        if (in)
+            addMouseListener(this);
     }
 
     /**
@@ -391,10 +400,10 @@ public class ColorSquare extends Canvas implements MouseListener
      */
     public void setSize(int w, int h)
     {
-        super.setSize(w, h);
         squareW = w;
         squareH = h;
         squareSize = new Dimension(w, h);
+        super.setSize(w, h);
     }
 
     /**
