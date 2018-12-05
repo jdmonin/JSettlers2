@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012,2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012,2014,2016-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,6 +23,7 @@ package soc.message;
 import java.util.StringTokenizer;
 
 import soc.game.SOCBoard;
+import soc.game.SOCGame;  // for javadocs
 import soc.util.DataUtils;
 
 
@@ -47,12 +48,26 @@ import soc.util.DataUtils;
  * this is mapped in the constructor, sent over the network, and unmapped in
  * {@link #getHexLayout()}, for backwards compatibility with older clients.
  *
+ *<H4>Optimization:</H4>
+ * For v2.0.00 and newer servers and clients ({@link #VERSION_FOR_OMIT_IF_EMPTY_NEW_GAME}):
+ *<P>
+ * If the game is still forming (state {@link SOCGame#NEW}),
+ * client already has data for the empty board. If so, no board layout message
+ * is sent to the client.
+ *
  * @author Robert S. Thomas
  */
 public class SOCBoardLayout extends SOCMessage
     implements SOCMessageForGame
 {
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
+
+    /**
+     * First version number (2.0.00) where client isn't sent this message
+     * when joining a {@link SOCGame#NEW} game, because the board is empty
+     * and client already has data for an empty board.
+     */
+    public static final int VERSION_FOR_OMIT_IF_EMPTY_NEW_GAME = 2000;
 
     /**
      * Map of dice rolls to values in {@link #numberLayout}. Formerly in SOCBoard.

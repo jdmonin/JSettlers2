@@ -973,10 +973,21 @@ public class SOCGameHandler extends GameHandler
                 srv.messageToPlayer(c, new SOCSetSeatLock(gameName, i, SOCGame.SeatLockState.LOCKED));  // old client
         }
 
-        c.put(getBoardLayoutMessage(gameData).toCmd());
-        //    No need to catch IllegalArgumentException:
-        //    Since game is already started, getBoardLayoutMessage has previously
-        //    been called for the creating player, and the board encoding is OK.
+        /**
+         * Send board layout info.
+         * Optimization: For original 4- and 6-player board layouts (not sea board), and if
+         * the game is still forming, client already has data for the empty board.
+         * Sea Board must be sent, to set the VS layout part and other data useful for initial rendering.
+         */
+        if ((gameData.getGameState() != SOCGame.NEW)
+            || (c.getVersion() < SOCBoardLayout.VERSION_FOR_OMIT_IF_EMPTY_NEW_GAME)
+            || (gameData.getBoard().getBoardEncodingFormat() >= SOCBoard.BOARD_ENCODING_LARGE))
+        {
+            c.put(getBoardLayoutMessage(gameData).toCmd());
+            //    No need to catch IllegalArgumentException:
+            //    Since game is already started, getBoardLayoutMessage has previously
+            //    been called for the creating player, and the board encoding is OK.
+        }
 
         /**
          * if game hasn't started yet, each player's potentialSettlements are

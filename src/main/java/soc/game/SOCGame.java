@@ -106,7 +106,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Game states.  {@link #NEW} is a brand-new game, not yet ready to start playing.
      * Players are choosing where to sit, or have all sat but no one has yet clicked
-     * the "start game" button.
+     * the "start game" button. The board is empty sea, with no land hexes yet.
      * Next state from NEW is {@link #READY} if robots, or {@link #START1A} if only humans
      * are playing.
      *<P>
