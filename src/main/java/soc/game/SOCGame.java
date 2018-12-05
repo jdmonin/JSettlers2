@@ -843,7 +843,7 @@ public class SOCGame implements Serializable, Cloneable
     private int[] seats;
 
     /**
-     * the states of the locks for the player's seats
+     * The lock state for each player number's seat. Length is {@link #maxPlayers}.
      */
     private SeatLockState[] seatLocks;
 
@@ -1652,11 +1652,23 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Get a seat's lock state.
      * @param pn the number of the seat
+     * @see #getSeatLocks()
      * @since 2.0.00
      */
     public SeatLockState getSeatLock(final int pn)
     {
         return seatLocks[pn];
+    }
+
+    /**
+     * Get all seats' lock states.
+     * @return all seats' lock states; an array indexed by player number, containing all seats in this game
+     * @see #getSeatLock(int)
+     * @since 2.0.00
+     */
+    public SeatLockState[] getSeatLocks()
+    {
+        return seatLocks;
     }
 
     /**
@@ -1676,6 +1688,7 @@ public class SOCGame implements Serializable, Cloneable
      * @throws IllegalStateException if the game is still forming
      *     but {@code sl} is {@link SeatLockState#CLEAR_ON_RESET},
      *     or if {@link #getResetVoteActive()}
+     * @see #setSeatLocks(SeatLockState[])
      * @since 2.0.00
      */
     public void setSeatLock(final int pn, final SeatLockState sl)
@@ -1687,6 +1700,27 @@ public class SOCGame implements Serializable, Cloneable
             throw new IllegalStateException();
 
         seatLocks[pn] = sl;
+    }
+
+    /**
+     * At client, set all seats' locked or unlocked status. Sent from server while joining a game.
+     *<P>
+     * Since this is client-only, does not perform the server-side state check that
+     * {@link #setSeatLock(int, SeatLockState)} does.
+     *
+     * @param sls  All seats' lock states; an array indexed by player number, containing all seats in this game
+     * @throws IllegalArgumentException if {@code sls.length} is not {@link #maxPlayers}
+     * @see {@link #setSeatLock(int, SeatLockState)}
+     * @since 2.0.00
+     */
+    public void setSeatLocks(final SeatLockState[] sls)
+        throws IllegalArgumentException
+    {
+        if (sls.length != maxPlayers)
+            throw new IllegalArgumentException("length");
+
+        for (int pn = 0; pn < sls.length; ++pn)
+            seatLocks[pn] = sls[pn];
     }
 
     /**

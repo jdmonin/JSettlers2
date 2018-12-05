@@ -2258,10 +2258,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
     {
         SOCGame ga = games.get(mes.getGame());
 
-        if (ga != null)
-        {
+        if (ga == null)
+            return;
+
+        final SOCGame.SeatLockState[] sls = mes.getLockStates();
+        if (sls == null)
             ga.setSeatLock(mes.getPlayerNumber(), mes.getLockState());
-        }
+        else
+            ga.setSeatLocks(sls);
     }
 
     /**

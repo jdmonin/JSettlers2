@@ -964,14 +964,20 @@ public class SOCGameHandler extends GameHandler
             }
 
             /**
-             * send the seat lock information
+             * send the seat lock information, if client needs per-seat messages
              */
-            final SOCGame.SeatLockState sl = gameData.getSeatLock(i);
-            if ((sl != SOCGame.SeatLockState.CLEAR_ON_RESET) || (c.getVersion() >= 2000))
-                srv.messageToPlayer(c, new SOCSetSeatLock(gameName, i, sl));
-            else
-                srv.messageToPlayer(c, new SOCSetSeatLock(gameName, i, SOCGame.SeatLockState.LOCKED));  // old client
+            if (c.getVersion() < SOCSetSeatLock.VERSION_FOR_ALL_SEATS)
+            {
+                final SOCGame.SeatLockState sl = gameData.getSeatLock(i);
+                // old client doesn't have CLEAR_ON_RESET
+                srv.messageToPlayer(c, new SOCSetSeatLock
+                    (gameName, i,
+                     (sl != SOCGame.SeatLockState.CLEAR_ON_RESET) ? sl : SOCGame.SeatLockState.LOCKED));
+            }
         }
+
+        if (c.getVersion() >= SOCSetSeatLock.VERSION_FOR_ALL_SEATS)
+            srv.messageToPlayer(c, new SOCSetSeatLock(gameName, gameData.getSeatLocks()));
 
         /**
          * Send board layout info.

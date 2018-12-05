@@ -342,6 +342,8 @@ public interface PlayerClientListener
     void robberMoved(int newHex, boolean isPirate);
 
     void devCardDeckUpdated();
+
+    /** One or all player seats' Seat Lock Status have been updated in game data; refresh all players' displays. */
     void seatLockUpdated();
 
     // This javadoc also appears in SOCPlayerInterface; please also update there if it changes.

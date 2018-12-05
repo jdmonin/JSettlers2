@@ -5297,14 +5297,19 @@ public class SOCPlayerClient
      */
     protected void handleSETSEATLOCK(SOCSetSeatLock mes)
     {
-        SOCGame ga = games.get(mes.getGame());
+        final String gaName = mes.getGame();
+        SOCGame ga = games.get(gaName);
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
+        final SOCGame.SeatLockState[] sls = mes.getLockStates();
+        if (sls == null)
             ga.setSeatLock(mes.getPlayerNumber(), mes.getLockState());
-            PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            pcl.seatLockUpdated();
-        }
+        else
+            ga.setSeatLocks(sls);
+
+        PlayerClientListener pcl = clientListeners.get(gaName);
+        pcl.seatLockUpdated();
     }
 
     /**
