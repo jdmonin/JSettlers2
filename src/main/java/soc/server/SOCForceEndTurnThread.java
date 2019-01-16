@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015,2019 Jeremy D Monin <jeremy@nand.net>
  * This class was created in 2010 within SOCServer; reading SOCServer.java's
  * commit history led to this notice when the class was split out in 2013 to its own file:
  * Portions of this file Copyright (C) 2010-2013 Jeremy D Monin.
@@ -34,6 +34,8 @@ import soc.server.genericServer.Connection;
  * Done in a separate thread in case of deadlocks; see {@link #run()} for more details.
  * Created from {@link SOCGameHandler#endTurnIfInactive(SOCGame, long)}
  * when that's called from {@link SOCGameTimeoutChecker#run()}.
+ *<P>
+ * Also calls {@link SOCPlayer#addForcedEndTurn()} to track "stubborn" slow/buggy robots.
  *<P>
  * Before 2.0.00, this class was SOCServer.SOCForceEndTurnThread;
  * split out in 2.0.00 to its own top-level class.
@@ -85,11 +87,14 @@ class SOCForceEndTurnThread extends Thread
         System.err.println
             ("For robot " + rname
              + ((notCurrentPlayer) ? ": force discard/pick" : ": force end turn")
-             + " in game " + ga.getName() + " pn=" + plNum + " state " + gs);
+             + " in game " + ga.getName() + " pn=" + plNum + " state " + gs
+             + (pl.isStubbornRobot() ? " (stubborn)" : ""));
         if (gs == SOCGame.WAITING_FOR_DISCARDS)
             System.err.println("  srv card count = " + pl.getResources().getTotal());
         else if (gs == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
             System.err.println("  pl's gold pick count = " + pl.getNeedToPickGoldHexResources());
+
+        pl.addForcedEndTurn();
 
         if (rconn == null)
         {

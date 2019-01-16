@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2018 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2013-2019 Jeremy D Monin <jeremy@nand.net>.
  * Contents were formerly part of SOCServer.java;
  * portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
@@ -3546,6 +3546,9 @@ public class SOCGameHandler extends GameHandler
      * Discards if {@link SOCGame#getGameState() cg.getGameState()} == {@link SOCGame#WAITING_FOR_DISCARDS},
      * otherwise picks enough random resources for {@link SOCPlayer#getNeedToPickGoldHexResources()}.
      *<P>
+     * Also calls {@code pn}'s {@link SOCPlayer#addForcedEndTurn()} because we're forcing an action they
+     * should have taken on their own.
+     *<P>
      * Assumes, as {@link #endGameTurn(SOCGame, SOCPlayer, boolean)} does:
      * <UL>
      * <LI> ga.takeMonitor already called (not the same as {@link SOCGameList#takeMonitorForGame(String)})
@@ -3567,6 +3570,8 @@ public class SOCGameHandler extends GameHandler
         final boolean isDiscard = (cg.getGameState() == SOCGame.WAITING_FOR_DISCARDS);
 
         final SOCResourceSet rset = cg.playerDiscardOrGainRandom(pn, isDiscard);
+
+        cg.getPlayer(pn).addForcedEndTurn();
 
         // Report resources lost or gained; see also forceEndGameTurn for same reporting code.
 

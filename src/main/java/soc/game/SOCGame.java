@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
@@ -833,6 +833,10 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * the players; never contains a null element, use {@link #isSeatVacant(int)}
      * to see if a position is occupied.  Length is {@link #maxPlayers}.
+     *<P>
+     * If the game is reset or restarted by {@link #resetAsCopy()},
+     * the new game gets new player objects, not the ones in this array.
+     *
      * @see #currentPlayerNumber
      */
     private SOCPlayer[] players;
@@ -1764,6 +1768,16 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         return null;
+    }
+
+    /**
+     * Is the current player a robot which has been slow or buggy enough ("stubborn")
+     * that their turn has been forced to end several times?
+     * @return true if there's a current player and their {@link SOCPlayer#isStubbornRobot()} is true
+     */
+    public boolean isCurrentPlayerStubbornRobot()
+    {
+        return (currentPlayerNumber >= 0) && players[currentPlayerNumber].isStubbornRobot();
     }
 
     /**

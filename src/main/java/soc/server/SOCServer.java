@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2005 Chadwick A McHenry <mchenryc@acm.org>
- * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -541,8 +541,14 @@ public class SOCServer extends Server
     /**
      * Force robot to end their turn after this many seconds of inactivity.
      * Keeps the game moving if bot is stuck or indecisive because of a bug.
-     * Default is 8. Can override this for third-party bots by setting
+     * Default is 8.
+     *<P>
+     * Can override this for third-party bots by setting
      * {@link #PROP_JSETTLERS_BOTS_TIMEOUT_TURN}.
+     *<P>
+     * After a bot is forced several times to end its turn, it's considered "stubborn" and
+     * given a shorter timeout ({@link #ROBOT_FORCE_ENDTURN_STUBBORN_SECONDS})
+     * so human players won't always have to wait so long.
      *
      * @see #checkForExpiredTurns(long)
      * @since 1.1.11
@@ -550,6 +556,17 @@ public class SOCServer extends Server
     public static int ROBOT_FORCE_ENDTURN_SECONDS = 8;
         // If this value is changed, also update the jsettlers.bots.timeout.turn
         // comments in /src/main/bin/jsserver.properties.sample.
+
+    /**
+     * Force a particularly slow or buggy ("stubborn") robot to end their turn after this many seconds of inactivity.
+     * Must be shorter than {@link #ROBOT_FORCE_ENDTURN_SECONDS}. Default is 4. Sets frequency of
+     * {@link SOCGameTimeoutChecker}'s checks for expired turns.
+     *
+     * @see SOCPlayer#isStubbornRobot()
+     * @see SOCPlayer#STUBBORN_ROBOT_FORCE_END_TURN_THRESHOLD
+     * @since 2.0.00
+     */
+    public static int ROBOT_FORCE_ENDTURN_STUBBORN_SECONDS = 4;
 
     /**
      * Maximum permitted player name length, default 20 characters.
@@ -7399,7 +7416,8 @@ public class SOCServer extends Server
         // we shouldn't need to worry about locking.
         // So, we don't need gameList.takeMonitor().
 
-        final long inactiveTime = currentTimeMillis - (ROBOT_FORCE_ENDTURN_SECONDS * 1000L);
+        final long inactiveTime = currentTimeMillis - (ROBOT_FORCE_ENDTURN_SECONDS * 1000L),
+                   inactiveTimeStubborn = currentTimeMillis - (ROBOT_FORCE_ENDTURN_STUBBORN_SECONDS * 1000L);
         final long inactiveTime3p;  // if set, longer time for 3rd-party bot players
         {
             final int timeout3p = getConfigIntProperty(PROP_JSETTLERS_BOTS_TIMEOUT_TURN, 0);
@@ -7414,7 +7432,7 @@ public class SOCServer extends Server
             {
                 // lastActionTime is a recent time, or might be 0 to force end
                 long lastActionTime = ga.lastActionTime;
-                if (lastActionTime > inactiveTime)
+                if (lastActionTime > ((ga.isCurrentPlayerStubbornRobot() ? inactiveTimeStubborn : inactiveTime)))
                     continue;
 
                 if (ga.getGameState() >= SOCGame.OVER)

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -168,13 +168,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * When {@link #debugRandomPause} is true but not {@link #debugRandomPauseActive},
      * frequency of activating it; checked for each non-{@link SOCGameTextMsg}
      * and non-{@link SOCGameServerText} message received during our own turn.
+     * Default is 0.04 (4%).
      * @since 1.1.11
      */
     private static final double DEBUGRANDOMPAUSE_FREQ = .04;  // 4%
 
     /**
      * When {@link #debugRandomPauseActive} is activated, pause this many seconds
-     * before continuing.
+     * before continuing. Default is 12.
      * @see #debugRandomPauseUntil
      */
     private static final int DEBUGRANDOMPAUSE_SECONDS = 12;

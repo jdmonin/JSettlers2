@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010,2015-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2015-2017,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,12 +20,14 @@ package soc.server;
 
 
 /**
- * Wakes up every few seconds to check for turns that have expired
+ * Wakes up every few seconds* to check for turns that have expired
  * by calling {@link SOCServer#checkForExpiredTurns(long)},
  * and every 5 minutes to check for games that have expired
  * with {@link SOCServer#checkForExpiredGames(long)}.
  *<P>
  * Keeps the game moving if a robot is stuck or indecisive because of a bug.
+ *<P>
+ * * "Every few seconds" is roughly {@link SOCServer#ROBOT_FORCE_ENDTURN_STUBBORN_SECONDS}.
  *
  * @author Robert S Thomas
  * @see SOCServer#ROBOT_FORCE_ENDTURN_SECONDS
@@ -56,8 +58,9 @@ public class SOCGameTimeoutChecker extends Thread
      */
     public void run()
     {
-        // check every few seconds; should be about half of ROBOT_FORCE_ENDTURN_SECONDS
-        final int sleepMillis = SOCServer.ROBOT_FORCE_ENDTURN_SECONDS * 600;
+        // check every few seconds; should be about ROBOT_FORCE_ENDTURN_STUBBORN_SECONDS
+        // (about half as long as ROBOT_FORCE_ENDTURN_SECONDS)
+        final int sleepMillis = SOCServer.ROBOT_FORCE_ENDTURN_STUBBORN_SECONDS * 1100;
 
         // Holds time of next check for game expiry, not just turn expiry
         long gameExpireCheckTime = 0L;

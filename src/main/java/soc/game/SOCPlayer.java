@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -91,6 +91,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @since 2.0.00
      */
     public static final int SHIP_COUNT = 15;
+
+    /**
+     * If a robot player's turn must be ended this many times,
+     * consider it "stubborn" and give it less time to act on its own
+     * in future turns. Default is 2.
+     * @see #isStubbornRobot()
+     * @since 2.0.00
+     */
+    public static int STUBBORN_ROBOT_FORCE_END_TURN_THRESHOLD = 2;
 
     /**
      * the name of the player
@@ -217,6 +226,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @since 1.1.13
      */
     SOCResourceSet lastActionBankTrade_give, lastActionBankTrade_get;
+
+    /**
+     * For use at server, this player's count of forced end turns this game.
+     * Useful for keeping track of buggy/slow ("stubborn") robots.
+     * Is incremented by {@link #addForcedEndTurn()} and reset to 0 by {@link #setName(String)}.
+     * @see #isStubbornRobot()
+     * @since 2.0.00
+     */
+    int forcedEndTurnCount;
 
     /**
      * server-only total count of how many of each known resource the player has received this game
@@ -866,7 +884,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * set the name of the player
+     * Set the name of the player.
+     *<P>
+     * Also resets the player's forced-end-turn count to 0,
+     * because this is called from {@link SOCGame#addPlayer(String, int)}
+     * when a player has been replaced with someone else.
      *
      * @param na    the player's new name, or null.
      *           For network message safety, must not contain
@@ -881,7 +903,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     {
         if ((na != null) && ! SOCMessage.isSingleLineAndSafe(na))
             throw new IllegalArgumentException("na");
+
         name = na;
+        forcedEndTurnCount = 0;
     }
 
     /**
@@ -1075,6 +1099,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Is this player a robot AI (built-in or 3rd-party)?
      * @return the value of the robot flag
      * @see #isBuiltInRobot()
+     * @see #isStubbornRobot()
      */
     public boolean isRobot()
     {
@@ -1092,6 +1117,29 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public boolean isBuiltInRobot()
     {
         return builtInRobotFlag;
+    }
+
+    /**
+     * Is this robot player "stubborn": Slow or buggy enough that their turn has been forced to end several times?
+     * That counter is incremented by {@link #addForcedEndTurn()} and reset by {@link #setName(String)}.
+     * @return true if {@link #isRobot()} and forced-end-turn count &gt;= {@link #STUBBORN_ROBOT_FORCE_END_TURN_THRESHOLD}
+     * @since 2.0.00
+     */
+    public boolean isStubbornRobot()
+    {
+        return robotFlag && (forcedEndTurnCount >= STUBBORN_ROBOT_FORCE_END_TURN_THRESHOLD);
+    }
+
+    /**
+     * Increment the forced-end-turn count that's checked by {@link #isStubbornRobot()}.
+     *<P>
+     * This method is not named {@code forceEndTurn()} because all turn-forcing actions are done in
+     * {@link soc.server.SOCGameHandler}.
+     * @since 2.0.00
+     */
+    public void addForcedEndTurn()
+    {
+        forcedEndTurnCount++;
     }
 
     /**
