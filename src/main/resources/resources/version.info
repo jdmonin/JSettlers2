@@ -8,7 +8,7 @@ project.versionnum=2000
 # Special case: New major version v2.0.00 has itself as this
 # "no-warn" version to avoid unnecessary warning dialogs.
 project.versionnumMaxNoWarn=2000
-project.copyright=2001-2004 Robb Thomas, portions (C) 2007-2018 Jeremy D Monin and contributors
+project.copyright=2001-2004 Robb Thomas, portions (C) 2007-2019 Jeremy D Monin and contributors
 project.buildnum=JM20190116
 project.jre.min.major=1
 project.jre.min.minor=5
