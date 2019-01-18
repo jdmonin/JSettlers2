@@ -1774,6 +1774,7 @@ public class SOCGame implements Serializable, Cloneable
      * Is the current player a robot which has been slow or buggy enough ("stubborn")
      * that their turn has been forced to end several times?
      * @return true if there's a current player and their {@link SOCPlayer#isStubbornRobot()} is true
+     * @since 2.0.00
      */
     public boolean isCurrentPlayerStubbornRobot()
     {

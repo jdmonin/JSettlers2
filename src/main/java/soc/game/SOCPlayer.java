@@ -86,7 +86,28 @@ import java.util.Vector;
 public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 {
     /**
-     * Number of ships a player can build (15) if {@link SOCGame#hasSeaBoard}.
+     * Number of {@link SOCRoad}s a player can build (15).
+     * @see #getNumPieces(int)
+     * @since 2.0.00
+     */
+    public static final int ROAD_COUNT = 15;
+
+    /**
+     * Number of {@link SOCSettlement}s a player can build (5).
+     * @see #getNumPieces(int)
+     * @since 2.0.00
+     */
+    public static final int SETTLEMENT_COUNT = 5;
+
+    /**
+     * Number of {@link SOCCity}s a player can build (4).
+     * @see #getNumPieces(int)
+     * @since 2.0.00
+     */
+    public static final int CITY_COUNT = 4;
+
+    /**
+     * Number of {@link SOCShip}s a player can build (15) if {@link SOCGame#hasSeaBoard}.
      * @see #getNumPieces(int)
      * @since 2.0.00
      */
@@ -117,12 +138,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private SOCGame game;
 
     /**
-     * the number of pieces not in play.
-     * Indexes match SOCPlayingPiece constants:
+     * The number of pieces not in play, available to build.
+     * Indexes are SOCPlayingPiece constants:
      * {@link SOCPlayingPiece#ROAD},
      * {@link SOCPlayingPiece#SETTLEMENT},
      * {@link SOCPlayingPiece#CITY},
      * {@link SOCPlayingPiece#SHIP}.
+     * Initially {@link #ROAD_COUNT}, {@link #SETTLEMENT_COUNT}, etc.
      */
     private int[] numPieces;
 
@@ -750,9 +772,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         game = ga;
         playerNumber = pn;
         numPieces = new int[SOCPlayingPiece.MAXPLUSONE];
-        numPieces[SOCPlayingPiece.ROAD] = 15;
-        numPieces[SOCPlayingPiece.SETTLEMENT] = 5;
-        numPieces[SOCPlayingPiece.CITY] = 4;
+        numPieces[SOCPlayingPiece.ROAD] = ROAD_COUNT;
+        numPieces[SOCPlayingPiece.SETTLEMENT] = SETTLEMENT_COUNT;
+        numPieces[SOCPlayingPiece.CITY] = CITY_COUNT;
         if (ga.hasSeaBoard)
             numPieces[SOCPlayingPiece.SHIP] = SHIP_COUNT;
         else
@@ -761,10 +783,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
             --numPieces[SOCPlayingPiece.SETTLEMENT];  // Pirate Fortress is a captured settlement
 
-        pieces = new Vector<SOCPlayingPiece>(24);
-        roadsAndShips = new Vector<SOCRoutePiece>(15);
-        settlements = new Vector<SOCSettlement>(5);
-        cities = new Vector<SOCCity>(4);
+        pieces = new Vector<SOCPlayingPiece>(ROAD_COUNT + SETTLEMENT_COUNT + CITY_COUNT);
+        roadsAndShips = new Vector<SOCRoutePiece>(ROAD_COUNT);
+        settlements = new Vector<SOCSettlement>(SETTLEMENT_COUNT);
+        cities = new Vector<SOCCity>(CITY_COUNT);
         spItems = new HashMap<String, ArrayList<SOCSpecialItem>>();
         longestRoadLength = 0;
         lrPaths = new Vector<SOCLRPathData>();
@@ -1170,13 +1192,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * Get the number of one piece type not in play and available to place.
-     * At the start of the game, for example, <tt>getNumPieces({@link SOCPlayingPiece#CITY})</tt> == 4.
-     * On the sea board, each player starts with {@link #SHIP_COUNT} ships.
+     * Get the number of one piece type available to place (not already in play).
+     * At the start of the game, for example, <tt>getNumPieces({@link SOCPlayingPiece#CITY})</tt> == {@link #CITY_COUNT}.
+     * On the sea board, each player also starts with {@link #SHIP_COUNT} ships.
      *
-     * @return the number of pieces not in play for a particular type of piece
-     * @param ptype the type of piece; matches SOCPlayingPiece constants,
-     *   such as {@link SOCPlayingPiece#ROAD}, {@link SOCPlayingPiece#SETTLEMENT}.
+     * @return the number of pieces available for a particular piece type
+     * @param ptype the type of piece; a SOCPlayingPiece constant
+     *   like {@link SOCPlayingPiece#ROAD} or {@link SOCPlayingPiece#SETTLEMENT}.
      * @see #getPieces()
      * @see #getNumWarships()
      * @throws ArrayIndexOutOfBoundsException if piece type is invalid
@@ -1188,11 +1210,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * set the amount of pieces not in play
-     * for a particular type of piece
+     * Set the amount of pieces available to place (not already in play)
+     * for a particular piece type.
      *
-     * @param ptype the type of piece; matches SOCPlayingPiece constants,
-     *   such as {@link SOCPlayingPiece#ROAD}, {@link SOCPlayingPiece#SETTLEMENT}.
+     * @param ptype the type of piece; a SOCPlayingPiece constant
+     *   like {@link SOCPlayingPiece#ROAD} or {@link SOCPlayingPiece#SETTLEMENT}.
      * @param amt                 the amount
      * @see #setNumWarships(int)
      */
