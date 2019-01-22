@@ -140,6 +140,10 @@ hides them during game setup.  If you want to show them:
 
 The values you set may still be overridden by the server in SOCGameOption.adjustOptionsToKnown.
 
+If you're testing and need the client to create a game no one else can join,
+find and uncomment the `DEBUGNOJOIN` option in `soc.game.SOCGameOption`
+before starting the server.
+
 To use the "Free Placement" debug mode, type this debug command on your turn:
 
 	*FREEPLACE* 1

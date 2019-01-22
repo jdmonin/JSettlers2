@@ -2136,9 +2136,11 @@ public class SOCServer extends Server
                 gVers = -1;
             } else {
                 gVers = SOCVersionedItem.itemsMinimumVersion(gaOpts);
-                if (gVers > cliVers)
+                if ((gVers > cliVers) && (gVers < Integer.MAX_VALUE))
                 {
                     // Which requested option(s) are too new for client?
+                    // (Ignored if gVers was MAX_VALUE, which is used
+                    //  only by test-gameopt DEBUGNOJOIN.)
                     List<SOCGameOption> optsValuesTooNew = SOCGameOption.optionsNewerThanVersion
                         (cliVers, true, false, gaOpts);
                     throw new SOCGameOptionVersionException(gVers, cliVers, optsValuesTooNew);
