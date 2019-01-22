@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, nested class refactoring, parameterize types
  *
@@ -38,8 +38,6 @@ import java.awt.Panel;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.TextEvent;
@@ -69,6 +67,13 @@ import java.util.TimerTask;
 import java.util.Vector;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
+
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
+import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import soc.baseclient.SOCDisplaylessPlayerClient;
 import soc.disableDebug.D;
@@ -578,7 +583,7 @@ public class SOCPlayerClient
          *            must not have the prefix {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
          * @param gameOptsStr String of packed {@link SOCGameOption game options}, or null
          * @param addToSrvList Should this game be added to the list of remote-server games?
-         *            Practice games should not be added.
+         *            True except for practice games, which should not be added.
          * @see SOCPlayerClient#addToGameList(String, String, boolean)
          * @see #deleteFromGameList(String, boolean, boolean)
          */
@@ -900,7 +905,7 @@ public class SOCPlayerClient
          *<P>
          * When there are no channels, this list contains a single blank item (" ").
          */
-        protected java.awt.List chlist;
+        protected JList<String> chlist;
 
         /**
          * List of games that can be joined with {@link #jg} button or by double-click,
@@ -910,7 +915,7 @@ public class SOCPlayerClient
          *<P>
          * When there are no games, this list contains a single blank item (" ").
          */
-        protected java.awt.List gmlist;
+        protected JList<String> gmlist;
 
         /**
          * "New Game..." button, brings up {@link NewGameOptionsFrame} window
@@ -1063,10 +1068,19 @@ public class SOCPlayerClient
             status = new TextField(20);
             status.setEditable(false);
             channel = new TextField(20);
-            chlist = new java.awt.List(10, false);
-            chlist.add(" ");
-            gmlist = new java.awt.List(10, false);
-            gmlist.add(" ");
+
+            DefaultListModel<String> lm = new DefaultListModel<String>();
+            chlist = new JList<String>(lm);
+            chlist.setVisibleRowCount(10);
+            chlist.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            lm.addElement(" ");
+
+            lm = new DefaultListModel<String>();
+            gmlist = new JList<String>(lm);
+            gmlist.setVisibleRowCount(10);
+            gmlist.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            lm.addElement(" ");
+
             ng = new Button(strings.get("pcli.main.newgame"));       // "New Game..."
             jc = new Button(strings.get("pcli.main.join.channel"));  // "Join Channel"
             jg = new Button(strings.get("pcli.main.join.game"));     // "Join Game"
@@ -1126,23 +1140,41 @@ public class SOCPlayerClient
             nick.addActionListener(actionListener);  // hit Enter to go to next field
             pass.addActionListener(actionListener);
             channel.addActionListener(actionListener);
-            chlist.addActionListener(actionListener);
-            gmlist.addActionListener(actionListener);
-            gmlist.addItemListener(new ItemListener()
+            chlist.addMouseListener(new MouseAdapter() {
+                public void mouseClicked(MouseEvent e)
+                {
+                    if (e.getClickCount() < 2)
+                        return;
+                    e.consume();
+                    guardedActionPerform_channels(chlist);
+                }
+            });
+            gmlist.addMouseListener(new MouseAdapter()
+            {
+                public void mouseClicked(MouseEvent e)
+                {
+                    if (e.getClickCount() < 2)
+                        return;
+                    e.consume();
+                    guardedActionPerform_games(gmlist);
+                }
+            });
+            gmlist.getSelectionModel().addListSelectionListener(new ListSelectionListener()
             {
                 /**
-                 * When a game is selected/deselected, enable/disable buttons as appropriate. ({@link ItemListener})
+                 * When a game is selected/deselected, enable/disable buttons as appropriate. ({@link ListSelectionListener})
                  * @param e textevent from {@link #gmlist}
                  * @since 1.1.07
                  */
-                public void itemStateChanged(ItemEvent e)
+                public void valueChanged(ListSelectionEvent e)
                 {
-                    boolean wasSel = (e.getStateChange() == ItemEvent.SELECTED);
+                    boolean wasSel = ! (((ListSelectionModel) (e.getSource())).isSelectionEmpty());
                     if (wasSel != jg.isEnabled())
                     {
                         jg.setEnabled(wasSel);
                         gi.setEnabled(wasSel &&
-                            ((client.net.practiceServer != null) || (client.sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)));
+                            ((client.net.practiceServer != null)
+                             || (client.sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)));
                     }
                 }
             });
@@ -1428,8 +1460,9 @@ public class SOCPlayerClient
             {
                 c.gridwidth = 2;
                 c.gridheight = GridBagConstraints.REMAINDER;
-                gbl.setConstraints(chlist, c);
-                mainPane.add(chlist);
+                JScrollPane sp = new JScrollPane(chlist);
+                gbl.setConstraints(sp, c);
+                mainPane.add(sp);
 
                 l = new Label();
                 c.gridwidth = 1;
@@ -1438,8 +1471,9 @@ public class SOCPlayerClient
             }
 
             c.gridwidth = GridBagConstraints.REMAINDER;
-            gbl.setConstraints(gmlist, c);
-            mainPane.add(gmlist);
+            JScrollPane sp = new JScrollPane(gmlist);
+            gbl.setConstraints(sp, c);
+            mainPane.add(sp);
 
             mainPaneLayoutIsDone_hasChannels = hasChannels;
             mainPaneLayoutIsDone = true;
@@ -1511,7 +1545,9 @@ public class SOCPlayerClient
         }
 
         /**
-         * GuardedActionPerform when a channels-related button or field is clicked
+         * GuardedActionPerform when a channels-related button or field is clicked.
+         * If target is {@link #chlist} itself, will call {@link JList#getSelectedValue()}
+         * to get which channel name was clicked.
          * @param target Target as in actionPerformed
          * @return True if OK, false if caller needs to show popup "cannot join"
          * @since 1.1.06
@@ -1528,7 +1564,7 @@ public class SOCPlayerClient
                 {
                     try
                     {
-                        ch = chlist.getSelectedItem().trim();
+                        ch = chlist.getSelectedValue().trim();
                     }
                     catch (NullPointerException ex)
                     {
@@ -1544,7 +1580,7 @@ public class SOCPlayerClient
             {
                 try
                 {
-                    ch = chlist.getSelectedItem().trim();
+                    ch = chlist.getSelectedValue().trim();
                 }
                 catch (NullPointerException ex)
                 {
@@ -1612,7 +1648,9 @@ public class SOCPlayerClient
         }
 
         /**
-         * GuardedActionPerform when a games-related button or field is clicked
+         * GuardedActionPerform when a games-related button or field is clicked.
+         * If target is {@link #gmlist} itself, will call {@link JList#getSelectedValue()}
+         * to get which game name was clicked.
          * @param target Target as in actionPerformed
          * @return True if OK, false if caller needs to show popup "cannot join"
          * @since 1.1.06
@@ -1646,7 +1684,7 @@ public class SOCPlayerClient
             {
                 try
                 {
-                    gm = gmlist.getSelectedItem().trim();  // may be length 0
+                    gm = gmlist.getSelectedValue().trim();  // may be length 0
                 }
                 catch (NullPointerException ex)
                 {
@@ -1658,7 +1696,7 @@ public class SOCPlayerClient
                 // game list
                 try
                 {
-                    gm = gmlist.getSelectedItem().trim();
+                    gm = gmlist.getSelectedValue().trim();
                 }
                 catch (NullPointerException ex)
                 {
@@ -2391,26 +2429,16 @@ public class SOCPlayerClient
          * @param thing  the thing to add to the list
          * @param lst    the list
          */
-        public void addToList(String thing, java.awt.List lst)
+        public void addToList(String thing, JList<String> lst)
         {
-            if (lst.getItem(0).equals(" "))
-            {
-                lst.replaceItem(thing, 0);
-                lst.select(0);
-            }
-            else
-            {
-                lst.add(thing, 0);
+            final DefaultListModel<String> lm = (DefaultListModel<String>) lst.getModel();
 
-                /*
-                   int i;
-                   for(i=lst.getItemCount()-1;i>=0;i--)
-                   if(lst.getItem(i).compareTo(thing)<0)
-                   break;
-                   lst.add(thing, i+1);
-                   if(lst.getSelectedIndex()==-1)
-                   lst.select(0);
-                 */
+            if (lm.get(0).equals(" "))
+            {
+                lm.set(0, thing);
+                lst.setSelectedIndex(0);
+            } else {
+                lm.add(0, thing);
             }
         }
 
@@ -2422,30 +2450,28 @@ public class SOCPlayerClient
          * @param thing   the thing to remove
          * @param lst     the list
          */
-        public void deleteFromList(String thing, java.awt.List lst)
+        public void deleteFromList(String thing, JList<String> lst)
         {
-            if (lst.getItemCount() == 1)
+            final DefaultListModel<String> lm = (DefaultListModel<String>) lst.getModel();
+
+            if (lm.size() == 1)
             {
-                if (lst.getItem(0).equals(thing))
+                if (lm.get(0).equals(thing))
                 {
-                    lst.replaceItem(" ", 0);  // keep blank item
-                    lst.deselect(0);
+                    lm.set(0, " ");  // keep blank item
+                    lst.clearSelection();
                 }
 
                 return;
             }
 
-            try
-            {
-                lst.remove(thing);
-            }
-            catch (IllegalArgumentException e) {}
+            lm.removeElement(thing);
 
             if (lst.getSelectedIndex() == -1)
             {
-                final int c = lst.getItemCount();
+                final int c = lm.size();
                 if (c > 0)
-                    lst.select(c - 1);
+                    lst.setSelectedIndex(c - 1);
             }
         }
 
@@ -2627,17 +2653,17 @@ public class SOCPlayerClient
 
             // String gameName = thing + STATSPREFEX + "-- -- -- --]";
 
-            if ((gmlist.getItemCount() > 0) && (gmlist.getItem(0).equals(" ")))
+            final DefaultListModel<String> lm = (DefaultListModel<String>) gmlist.getModel();
+
+            if ((! lm.isEmpty()) && (lm.get(0).equals(" ")))
             {
-                gmlist.replaceItem(gameName, 0);
-                gmlist.select(0);
+                lm.set(0, gameName);
+                gmlist.setSelectedIndex(0);
                 jg.setEnabled(true);
                 gi.setEnabled((client.net.practiceServer != null)
                     || (client.sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS));
-            }
-            else
-            {
-                gmlist.add(gameName, 0);
+            } else {
+                lm.add(0, gameName);
             }
         }
 
@@ -2647,9 +2673,11 @@ public class SOCPlayerClient
             //TODO i18n how to?
             String testString = gameName + STATSPREFEX;
 
-            for (int i = 0; i < gmlist.getItemCount(); i++)
+            final DefaultListModel<String> lm = (DefaultListModel<String>) gmlist.getModel();
+
+            for (int i = 0; i < lm.size(); i++)
             {
-                if (gmlist.getItem(i).startsWith(testString))
+                if (lm.get(i).startsWith(testString))
                 {
                     String updatedString = gameName + STATSPREFEX;
 
@@ -2692,7 +2720,7 @@ public class SOCPlayerClient
                         updatedString += "--]";
                     }
 
-                    gmlist.replaceItem(updatedString, i);
+                    lm.set(i, updatedString);
 
                     break;
                 }
@@ -2704,12 +2732,14 @@ public class SOCPlayerClient
             //String testString = gameName + STATSPREFEX;
             String testString = withUnjoinablePrefix ? (GAMENAME_PREFIX_CANNOT_JOIN + gameName) : gameName;
 
-            if (gmlist.getItemCount() == 1)
+            final DefaultListModel<String> lm = (DefaultListModel<String>) gmlist.getModel();
+
+            if (lm.size() == 1)
             {
-                if (gmlist.getItem(0).equals(testString))
+                if (lm.get(0).equals(testString))
                 {
-                    gmlist.replaceItem(" ", 0);  // keep blank item
-                    gmlist.deselect(0);
+                    lm.set(0, " ");  // keep blank item
+                    gmlist.clearSelection();
 
                     if ((! isPractice) && (client.serverGames != null))
                     {
@@ -2724,19 +2754,13 @@ public class SOCPlayerClient
                 return false;
             }
 
-            boolean found = false;
-            try
-            {
-                gmlist.remove(testString);
-                found = true;
-            }
-            catch (IllegalArgumentException e) {}
+            boolean found = lm.removeElement(testString);
 
             if (gmlist.getSelectedIndex() == -1)
             {
-                final int c = gmlist.getItemCount();
+                final int c = lm.size();
                 if (c > 0)
-                    gmlist.select(c - 1);  // one of the remaining games, or blank item if none
+                    gmlist.setSelectedIndex(c - 1);  // one of the remaining games, or blank item if none
             }
 
             if (found && (! isPractice) && (client.serverGames != null))
