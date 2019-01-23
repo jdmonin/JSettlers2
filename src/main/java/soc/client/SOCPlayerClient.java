@@ -33,6 +33,7 @@ import java.awt.Font;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Label;
 import java.awt.Panel;
 import java.awt.TextField;
@@ -355,7 +356,8 @@ public class SOCPlayerClient
     protected int lastFaceChange;
 
     /**
-     * the games we're currently playing
+     * The games we're currently playing.
+     * Accessed from GUI thread and network MessageTreater thread.
      */
     protected Hashtable<String, SOCGame> games = new Hashtable<String, SOCGame>();
 
@@ -379,10 +381,10 @@ public class SOCPlayerClient
      * the unjoinable game names from {@link #serverGames} that player has asked to join,
      * and been told they can't.  If they click again, try to connect.
      * (This is a failsafe against bugs in server or client version-recognition.)
-     * Both key and value are the game name, without the UNJOINABLE prefix.
+     * Both key and value are the game name, without the {@link #GAMENAME_PREFIX_CANNOT_JOIN} prefix.
      * @since 1.1.06
      */
-    protected Map<String,String> gamesUnjoinableOverride = new Hashtable<String,String>();
+    protected Map<String,String> gamesUnjoinableOverride = new HashMap<String,String>();
 
     /**
      * Map from game-name to the listener for that game.
@@ -772,7 +774,8 @@ public class SOCPlayerClient
         private SOCPlayerClient client;
 
         /**
-         * the player interfaces for the games
+         * The player interfaces for the {@link SOCPlayerClient#games} we're playing.
+         * Accessed from GUI thread and network MessageTreater thread.
          */
         private final Map<String, SOCPlayerInterface> playerInterfaces = new Hashtable<String, SOCPlayerInterface>();
 
@@ -966,7 +969,8 @@ public class SOCPlayerClient
         protected CardLayout cardLayout;
 
         /**
-         * the channels we've joined
+         * The channels we've joined.
+         * Accessed from GUI thread and network MessageTreater thread.
          */
         protected Hashtable<String, ChannelFrame> channels = new Hashtable<String, ChannelFrame>();
 
@@ -1375,16 +1379,11 @@ public class SOCPlayerClient
             gbl.setConstraints(l, c);
             mainPane.add(l);
 
-            // Row 4 (spacer)
+            // Row 4 (spacer/localTCP label)
 
-            c.gridwidth = 2;
+            c.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(localTCPServerLabel, c);
             mainPane.add(localTCPServerLabel);
-
-            l = new Label();
-            c.gridwidth = GridBagConstraints.REMAINDER;
-            gbl.setConstraints(l, c);
-            mainPane.add(l);
 
             // Row 5 (version/port# label, join channel btn, show-options btn, join game btn)
 
@@ -1444,12 +1443,18 @@ public class SOCPlayerClient
 
             // Row 7
 
+            c.weighty = 1;  // Stretch to fill remainder of extra height
+
+            final Insets defaultInsets = c.insets;
+            Insets spaceBelowList = new Insets(0, 0, 4, 0);
+
             if (hasChannels)
             {
                 c.gridwidth = 2;
-                c.gridheight = GridBagConstraints.REMAINDER;
+                c.insets = spaceBelowList;
                 JScrollPane sp = new JScrollPane(chlist);
                 gbl.setConstraints(sp, c);
+                c.insets = defaultInsets;
                 mainPane.add(sp);
 
                 l = new Label();
@@ -1459,8 +1464,10 @@ public class SOCPlayerClient
             }
 
             c.gridwidth = GridBagConstraints.REMAINDER;
+            c.insets = spaceBelowList;
             JScrollPane sp = new JScrollPane(gmlist);
             gbl.setConstraints(sp, c);
+            c.insets = defaultInsets;
             mainPane.add(sp);
 
             mainPaneLayoutIsDone_hasChannels = hasChannels;
