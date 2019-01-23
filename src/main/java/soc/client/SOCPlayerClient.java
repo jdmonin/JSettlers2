@@ -222,7 +222,7 @@ public class SOCPlayerClient
      * Non-final for localization. Localize before calling {@link GameAwtDisplay.JoinableListItem#toString()}.
      * @since 1.1.06
      */
-    protected static final String GAMENAME_PREFIX_CANNOT_JOIN = "(cannot join) ";
+    protected static String GAMENAME_PREFIX_CANNOT_JOIN = "(cannot join) ";
 
     /**
      * For use in password fields, and possibly by other places, detect if we're running on
@@ -646,6 +646,7 @@ public class SOCPlayerClient
 
         strings = soc.util.SOCStringManager.getClientManager(cliLocale);
         DEFAULT_PRACTICE_GAMENAME = strings.get("default.name.practice.game");
+        GAMENAME_PREFIX_CANNOT_JOIN = strings.get("pcli.gamelist.cannot_join.parens") + ' ';  // "(cannot join) "
 
         String debug_clearPrefs = System.getProperty(PROP_JSETTLERS_DEBUG_CLEAR__PREFS);
         if (debug_clearPrefs != null)
@@ -3033,7 +3034,7 @@ public class SOCPlayerClient
         private static class JoinableListItem
         {
             /** Blank dummy item; {@link #name} is 1 space " " */
-            public static JoinableListItem BLANK = new JoinableListItem(" ", false);
+            public static final JoinableListItem BLANK = new JoinableListItem(" ", false);
 
             public final String name;
             public final boolean isUnjoinable;
