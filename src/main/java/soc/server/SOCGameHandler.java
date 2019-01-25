@@ -2568,6 +2568,8 @@ public class SOCGameHandler extends GameHandler
         reportRsrcGainLoss(gaName, getSet, false, false, offering, accepting, null, null);
         if (ga.clientVersionLowest < SOCStringManager.VERSION_FOR_I18N)
         {
+            // v2.0.00 and newer clients will announce this with localized text;
+            // older clients need it sent from the server.
             // I18N OK: Pre-2.0.00 clients always use english
             final String txt = SOCStringManager.getFallbackServerManagerForClient().formatSpecial
                 (ga, "{0} gave {1,rsrcs} for {2,rsrcs} from {3}.",
@@ -2626,6 +2628,8 @@ public class SOCGameHandler extends GameHandler
             if (isUndo)
                 fmt.append(" (Undo previous trade)");
 
+            // v2.0.00 and newer clients will announce this with localized text;
+            // older clients need it sent from the server.
             // I18N OK: Pre-2.0.00 clients always use english
             final String txt = SOCStringManager.getFallbackServerManagerForClient().formatSpecial
                 (ga, fmt.toString(), ga.getPlayer(cpn).getName(), give, get);

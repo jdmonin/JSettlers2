@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2013 Luis A. Ramirez <lartkma@gmail.com>
- * Some parts of this file Copyright (C) 2013,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Some parts of this file Copyright (C) 2013,2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -41,6 +41,9 @@ import soc.game.SOCResourceSet;
  * String Manager for retrieving I18N localized text from {@code .properties} bundle files
  * with special methods for formatting JSettlers objects.
  *<P>
+ * For backwards compatibility, text sent to v1.x.xx clients will always use {@code en_US} regardless of
+ * the server's own locale. The empty file {@code toClient_en.properties} exists to support this fallback.
+ *<P>
  * See comments at the top of {@code .properties} files for more details on key-value formatting and message parameters.
  * Remember that {@code .properties} bundle files are encoded not in {@code UTF-8} but in {@code ISO-8859-1}:
  *<UL>
@@ -48,6 +51,12 @@ import soc.game.SOCResourceSet;
  *       >java.util.Properties</A> (Java 1.5)
  * <LI> <A href="http://stackoverflow.com/questions/4659929/how-to-use-utf-8-in-resource-properties-with-resourcebundle"
  *       >Stack Overflow: How to use UTF-8 in resource properties with ResourceBundle</A> (asked on 2011-01-11)
+ * <LI> Java 9 supports UTF-8 properties files, but JSettlers must also be able to run on older java versions
+ *     <UL>
+ *       <LI> <A href="http://openjdk.java.net/jeps/226">JEP 226: UTF-8 Property Resource Bundles</A>
+ *       <LI> <A href="https://docs.oracle.com/javase/9/intl/internationalization-enhancements-jdk-9.htm"
+ *            >Internationalization Enhancements in JDK 9</A>
+ *     </UL>
  *</UL>
  * Introduced in v2.0.00; network messages sending localized text should check the receiver's version
  * against {@link #VERSION_FOR_I18N}.
@@ -401,13 +410,14 @@ public class SOCStringManager extends StringManager
 
     /**
      * Create or retrieve the server's string manager to send text to a clients with a certain locale.
-     * @param loc  Locale to use, or {@code null} to use {@link Locale#getDefault()}
+     * @param loc  Locale to use, or {@code null} to fall back to {@link Locale#US} ({@code en_US}) to
+     *     localize server announcement text for v1.x.xx clients.
      * @return  The server manager for that client locale
      */
     public static SOCStringManager getServerManagerForClient(Locale loc)
     {
         if (loc == null)
-            loc = Locale.getDefault();
+            loc = Locale.US;  // not null; fall back to en_US regardless of server's own locale
 
         final String lstr = loc.toString();
         SOCStringManager smc = serverManagerForClientLocale.get(lstr);
@@ -423,7 +433,9 @@ public class SOCStringManager extends StringManager
     /**
      * Create or retrieve the server's string manager for fallback to send text to clients with unknown locale.
      * Can be used for messages while a client hasn't yet sent their locale.
-     * @return  The server string manager with default locale
+     * Text sent to v1.x.xx clients will always use {@code en_US} regardless of the server's own locale.
+     *
+     * @return  The server string manager with {@code en_US} locale
      *     from {@link #getServerManagerForClient(Locale) getServerManagerForClient(null)}
      */
     public static SOCStringManager getFallbackServerManagerForClient()
