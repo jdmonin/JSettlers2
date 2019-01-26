@@ -905,12 +905,12 @@ public class NewGameOptionsFrame extends Frame
             (bp, gbl, gbc, null,
              strings.get("game.options.sound.all"),  // "Sound effects (All games)"
              true, false,
-             SOCPlayerClient.GameAwtDisplay.getUserPreference(SOCPlayerClient.PREF_SOUND_ON, true), 0,
+             SOCPlayerClient.UserPreferences.getPref(SOCPlayerClient.PREF_SOUND_ON, true), 0,
              new PrefCheckboxListener()
              {
                  public void stateChanged(boolean check)
                  {
-                     SOCPlayerClient.GameAwtDisplay.putUserPreference
+                     SOCPlayerClient.UserPreferences.putPref
                          (SOCPlayerClient.PREF_SOUND_ON, check);
                  }
              });
@@ -941,7 +941,7 @@ public class NewGameOptionsFrame extends Frame
 
             int ival = (pi != null)
                 ? pi.getBotTradeRejectSec()
-                : SOCPlayerClient.GameAwtDisplay.getUserPreference(SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC, -8);
+                : SOCPlayerClient.UserPreferences.getPref(SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC, -8);
             localPrefs.put(SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC, Integer.valueOf(ival));
             bval = (ival > 0);
             if (! bval)
@@ -1385,7 +1385,7 @@ public class NewGameOptionsFrame extends Frame
             if (pi != null)
                 pi.setBotTradeRejectSec(iv);
             if (iv != 0)
-                SOCPlayerClient.GameAwtDisplay.putUserPreference(k, iv);
+                SOCPlayerClient.UserPreferences.putPref(k, iv);
         }
     }
 

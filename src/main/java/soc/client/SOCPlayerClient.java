@@ -115,13 +115,13 @@ import soc.util.Version;
 
 /**
  * Standalone client for connecting to the SOCServer. (For applet see {@link SOCApplet}.)
- * Nested class {@link GameAwtDisplay} prompts for name and password, then connects and
+ * Nested class {@link SwingGameDisplay} prompts for name and password, then connects and
  * displays the lists of games and channels available.
  * The actual game is played in a separate {@link SOCPlayerInterface} window.
  *<P>
  * If you want another connection port, you have to specify it as the "port"
  * argument in the html source. If you run this as a stand-alone, the port can be
- * specified on the command line or typed into {@code GameAwtDisplay}'s connect dialog.
+ * specified on the command line or typed into {@code SwingGameDisplay}'s connect dialog.
  *<P>
  * At startup or init, will try to connect to server via {@link SOCPlayerClient.ClientNetwork#connect(String, int)}.
  * See that method for more details.
@@ -150,7 +150,7 @@ public class SOCPlayerClient
     /**
      * String property {@code jsettlers.debug.clear_prefs} to support testing and debugging:
      * When present, at startup this list of persistent client {@link Preferences} keys will be removed:
-     * The {@code SOCPlayerClient} constructor will call {@link GameAwtDisplay#clearUserPreferences(String)}.
+     * The {@code SOCPlayerClient} constructor will call {@link UserPreferences#clear(String)}.
      *<P>
      * Format: String of comma-separated preference key names: {@link #PREF_PI__WIDTH}, {@link #PREF_SOUND_ON},
      * {@link #PREF_BOT_TRADE_REJECT_SEC}, etc.
@@ -193,7 +193,7 @@ public class SOCPlayerClient
      * To set this value for a new {@link SOCPlayerInterface}, use
      * {@link SOCPlayerInterface#PREF_SOUND_MUTE} as the key within
      * its {@code localPrefs} map.
-     * @see GameAwtDisplay#getUserPreference(String, boolean)
+     * @see UserPreferences#getPref(String, boolean)
      * @see SOCPlayerInterface#isSoundMuted()
      * @since 1.2.00
      */
@@ -209,7 +209,7 @@ public class SOCPlayerClient
      * This key name can be used with the {@link SOCPlayerInterface} constructor's {@code localPrefs} map
      * during game setup. If negative there, auto-reject will be disabled until turned on from that {@code PI}'s
      * "Options" button.
-     * @see GameAwtDisplay#getUserPreference(String, int)
+     * @see UserPreferences#getPref(String, int)
      * @see SOCPlayerInterface#getBotTradeRejectSec()
      * @since 1.2.00
      */
@@ -218,7 +218,7 @@ public class SOCPlayerClient
     /**
      * The classic JSettlers green background color; green tone #61AF71.
      * Typically used with foreground color {@link Color#BLACK},
-     * like in {@link SOCPlayerClient.GameAwtDisplay}'s main panel.
+     * like in {@link SOCPlayerClient.SwingGameDisplay}'s main panel.
      * @since 2.0.00
      */
     public static final Color JSETTLERS_BG_GREEN = new Color(97, 175, 113);
@@ -231,7 +231,7 @@ public class SOCPlayerClient
 
     /**
      * Prefix text to indicate a game this client cannot join: "(cannot join) "<BR>
-     * Non-final for localization. Localize before calling {@link GameAwtDisplay.JoinableListItem#toString()}.
+     * Non-final for localization. Localize before calling {@link SwingGameDisplay.JoinableListItem#toString()}.
      * @since 1.1.06
      */
     protected static String GAMENAME_PREFIX_CANNOT_JOIN = "(cannot join) ";
@@ -303,7 +303,7 @@ public class SOCPlayerClient
 
     /**
      * Track the game options available at the remote server, at the practice server.
-     * Initialized by {@link SOCPlayerClient.GameAwtDisplay#gameWithOptionsBeginSetup(boolean, boolean)}
+     * Initialized by {@link SOCPlayerClient.SwingGameDisplay#gameWithOptionsBeginSetup(boolean, boolean)}
      * and/or {@link MessageTreater#handleVERSION(boolean, SOCVersion)}.
      * These fields are never null, even if the respective server is not connected or not running.
      *<P>
@@ -327,7 +327,7 @@ public class SOCPlayerClient
 
     /**
      * the nickname; null until validated and set by
-     * {@link SOCPlayerClient.GameAwtDisplay#getValidNickname(boolean) getValidNickname(true)}
+     * {@link SOCPlayerClient.SwingGameDisplay#getValidNickname(boolean) getValidNickname(true)}
      */
     protected String nickname = null;
 
@@ -754,7 +754,7 @@ public class SOCPlayerClient
 
         String debug_clearPrefs = System.getProperty(PROP_JSETTLERS_DEBUG_CLEAR__PREFS);
         if (debug_clearPrefs != null)
-            GameAwtDisplay.clearUserPreferences(debug_clearPrefs);
+            UserPreferences.clear(debug_clearPrefs);
 
         net = new ClientNetwork(this);
         gameManager = new GameManager(this);
@@ -789,7 +789,7 @@ public class SOCPlayerClient
 
     /**
      * @return the nickname of this user
-     * @see SOCPlayerClient.GameAwtDisplay#getValidNickname(boolean)
+     * @see SOCPlayerClient.SwingGameDisplay#getValidNickname(boolean)
      */
     public String getNickname()
     {
@@ -813,7 +813,7 @@ public class SOCPlayerClient
      * Also converted from AWT to Swing in v2.0.00.
      * @since 2.0.00
      */
-    public static class GameAwtDisplay extends JPanel implements GameDisplay
+    public static class SwingGameDisplay extends JPanel implements GameDisplay
     {
         /** main panel, in cardlayout */
         private static final String MAIN_PANEL = "main";
@@ -930,20 +930,6 @@ public class SOCPlayerClient
          * @since 1.1.07
          */
         public NewGameOptionsFrame newGameOptsFrame = null;
-
-        /**
-         * Persistent user preferences like {@link #PREF_SOUND_ON}, or {@code null} if none could be loaded.
-         * @since 1.2.00
-         */
-        private static Preferences userPrefs;
-        static
-        {
-            try
-            {
-                userPrefs = Preferences.userNodeForPackage(SOCPlayerInterface.class);
-            }
-            catch (Exception e) {}
-        }
 
         // MainPanel GUI elements:
 
@@ -1086,7 +1072,7 @@ public class SOCPlayerClient
         protected Timer eventTimer = new Timer(true);  // use daemon thread
 
         /**
-         * Create a new GameAwtDisplay for this client.
+         * Create a new SwingGameDisplay for this client.
          * Must call {@link #initVisualElements()} after this constructor.
          * @param hasConnectOrPractice  True if should initially display {@link SOCConnectOrPracticePanel}
          *     and ask for a server to connect to, false if the server is known
@@ -1094,7 +1080,7 @@ public class SOCPlayerClient
          * @param client  Client using this display; {@link SOCPlayerClient#strings client.strings} must not be null
          * @throws IllegalArgumentException if {@code client} is null
          */
-        public GameAwtDisplay(boolean hasConnectOrPractice, final SOCPlayerClient client)
+        public SwingGameDisplay(boolean hasConnectOrPractice, final SOCPlayerClient client)
             throws IllegalArgumentException
         {
             if (client == null)
@@ -1150,7 +1136,7 @@ public class SOCPlayerClient
         /**
          * {@inheritDoc}
          *<P>
-         * Uses {@link NotifyDialog#createAndShow(GameAwtDisplay, Frame, String, String, boolean)}
+         * Uses {@link NotifyDialog#createAndShow(SwingGameDisplay, Frame, String, String, boolean)}
          * which calls {@link EventQueue#invokeLater(Runnable)} to ensure it displays from the proper thread.
          */
         public void showErrorDialog(final String errMessage, final String buttonText)
@@ -2546,7 +2532,7 @@ public class SOCPlayerClient
         {
             if (! isPractice)
             {
-                cardLayout.show(GameAwtDisplay.this, MAIN_PANEL);
+                cardLayout.show(SwingGameDisplay.this, MAIN_PANEL);
                 validate();
 
                 status.setText
@@ -2613,7 +2599,7 @@ public class SOCPlayerClient
                 hasJoinedServer = true;
             }
 
-            SOCPlayerInterface pi = new SOCPlayerInterface(game.getName(), GameAwtDisplay.this, game, localPrefs);
+            SOCPlayerInterface pi = new SOCPlayerInterface(game.getName(), SwingGameDisplay.this, game, localPrefs);
             System.err.println("L2325 new pi at " + System.currentTimeMillis());
             pi.setVisible(true);
             System.err.println("L2328 visible at " + System.currentTimeMillis());
@@ -2659,7 +2645,7 @@ public class SOCPlayerClient
         {
             gameOptionsCancelTimeoutTask();
             newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                (null, GameAwtDisplay.this, (String) null, opts.optionSet, isPractice, false);
+                (null, SwingGameDisplay.this, (String) null, opts.optionSet, isPractice, false);
         }
 
         public void optionsReceived(ServerGametypeInfo opts, boolean isPractice, boolean isDash, boolean hasAllNow)
@@ -2687,7 +2673,7 @@ public class SOCPlayerClient
                     if (! isPractice)
                         client.checkGameoptsForUnknownScenario(gameOpts);
                     newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                        (playerInterfaces.get(gameInfoWaiting), GameAwtDisplay.this,
+                        (playerInterfaces.get(gameInfoWaiting), SwingGameDisplay.this,
                          gameInfoWaiting, gameOpts, isPractice, true);
                 }
                 else if (newGameWaiting)
@@ -2697,7 +2683,7 @@ public class SOCPlayerClient
                         opts.newGameWaitingForOpts = false;
                     }
                     newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                        (null, GameAwtDisplay.this, (String) null, opts.optionSet, isPractice, false);
+                        (null, SwingGameDisplay.this, (String) null, opts.optionSet, isPractice, false);
                 }
             }
         }
@@ -2897,7 +2883,7 @@ public class SOCPlayerClient
                 public void mouseClicked(MouseEvent e)
                 {
                     NotifyDialog.createAndShow
-                        (GameAwtDisplay.this,
+                        (SwingGameDisplay.this,
                          null,
                          strings.get("pcli.localserver.dialog", tportStr),
                          /*      "Other players connecting to your server\n" +
@@ -2982,160 +2968,9 @@ public class SOCPlayerClient
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         }
 
-        /**
-         * Get a boolean persistent user preference if available, or the default value.
-         * @param prefKey  Preference name key, such as {@link #PREF_SOUND_ON}
-         * @param dflt  Default value to get if no preference, or if {@code prefKey} is null
-         * @return  Preference value or {@code dflt}
-         * @see #putUserPreference(String, boolean)
-         * @see #getUserPreference(String, int)
-         * @since 1.2.00
-         */
-        public static boolean getUserPreference(final String prefKey, final boolean dflt)
-        {
-            if (userPrefs == null)
-                return dflt;
-
-            try
-            {
-                return userPrefs.getBoolean(prefKey, dflt);
-            } catch (RuntimeException e) {
-                return dflt;
-            }
-        }
 
         /**
-         * Get an int persistent user preference if available, or the default value.
-         * @param prefKey  Preference name key, such as {@link #PREF_BOT_TRADE_REJECT_SEC}
-         * @param dflt  Default value to get if no preference, or if {@code prefKey} is null
-         * @return  Preference value or {@code dflt}
-         * @see #putUserPreference(String, int)
-         * @see #getUserPreference(String, boolean)
-         * @since 1.2.00
-         */
-        public static int getUserPreference(final String prefKey, final int dflt)
-        {
-            if (userPrefs == null)
-                return dflt;
-
-            try
-            {
-                return userPrefs.getInt(prefKey, dflt);
-            } catch (RuntimeException e) {
-                return dflt;
-            }
-        }
-
-        /**
-         * Set a boolean persistent user preference, if available.
-         * Asynchronously calls {@link Preferences#flush()}.
-         * @param prefKey  Preference name key, such as {@link #PREF_SOUND_ON}
-         * @param val  Value to set
-         * @throws NullPointerException if {@code prefKey} is null
-         * @throws IllegalArgumentException if {@code prefKey} is longer than {@link Preferences#MAX_KEY_LENGTH}
-         * @see #getUserPreference(String, boolean)
-         * @see #putUserPreference(String, int)
-         * @see #clearUserPreferences(String)
-         * @since 1.2.00
-         */
-        public static void putUserPreference(final String prefKey, final boolean val)
-            throws NullPointerException, IllegalArgumentException
-        {
-            if (userPrefs == null)
-                return;
-
-            try
-            {
-                userPrefs.putBoolean(prefKey, val);
-            }
-            catch (IllegalStateException e) {}  // unlikely
-
-            EventQueue.invokeLater(new Runnable()
-            {
-                public void run()
-                {
-                    try
-                    {
-                        userPrefs.flush();
-                    }
-                    catch (BackingStoreException e) {}
-                }
-            });
-        }
-
-        /**
-         * Set an int persistent user preference, if available.
-         * Asynchronously calls {@link Preferences#flush()}.
-         * @param prefKey  Preference name key, such as {@link #PREF_BOT_TRADE_REJECT_SEC}
-         * @param val  Value to set
-         * @throws NullPointerException if {@code prefKey} is null
-         * @throws IllegalArgumentException if {@code prefKey} is longer than {@link Preferences#MAX_KEY_LENGTH}
-         * @see #getUserPreference(String, int)
-         * @see #putUserPreference(String, boolean)
-         * @see #clearUserPreferences(String)
-         * @since 1.2.00
-         */
-        public static void putUserPreference(final String prefKey, final int val)
-            throws NullPointerException, IllegalArgumentException
-        {
-            if (userPrefs == null)
-                return;
-
-            try
-            {
-                userPrefs.putInt(prefKey, val);
-            }
-            catch (IllegalStateException e) {}  // unlikely
-
-            EventQueue.invokeLater(new Runnable()
-            {
-                public void run()
-                {
-                    try
-                    {
-                        userPrefs.flush();
-                    }
-                    catch (BackingStoreException e) {}
-                }
-            });
-        }
-
-        /**
-         * Clear some user preferences by removing the value stored for their key(s).
-         * (Calls {@link Preferences#remove(String)}, not {@link Preferences#clear()}).
-         * Calls {@link Preferences#flush()} afterwards. Prints a "Cleared" message
-         * to {@link System#err} with {@code prefKeyList}.
-         * @param prefKeyList  Preference name key(s) to clear, same format
-         *     as {@link SOCPlayerClient#PROP_JSETTLERS_DEBUG_CLEAR__PREFS}.
-         *     Does nothing if {@code null} or "". Keys on this list do not
-         *     all have to exist with a value; key name typos will not throw
-         *     an exception.
-         * @since 1.2.00
-         */
-        public static final void clearUserPreferences(final String prefKeyList)
-        {
-            if ((prefKeyList == null) || (prefKeyList.length() == 0) || (userPrefs == null))
-                return;
-
-            for (String key : prefKeyList.split(","))
-            {
-                try
-                {
-                    userPrefs.remove(key);
-                } catch (IllegalStateException e) {}
-            }
-
-            try
-            {
-                userPrefs.flush();
-            }
-            catch (BackingStoreException e) {}
-
-            System.err.println("Cleared user preferences: " + prefKeyList);
-        }
-
-        /**
-         * A game or channel in the displayed {@link GameAwtDisplay#gmlist} or {@link GameAwtDisplay#chlist}.
+         * A game or channel in the displayed {@link SwingGameDisplay#gmlist} or {@link SwingGameDisplay#chlist}.
          * Client may or may not be able to join this game or channel.
          *<P>
          * <B>I18N:</B> {@link #toString()} uses {@link SOCPlayerClient#GAMENAME_PREFIX_CANNOT_JOIN}
@@ -3192,7 +3027,206 @@ public class SOCPlayerClient
             }
         }   // JoinableListItem
 
-    }  // GameAwtDisplay
+    }  // SwingGameDisplay
+
+
+    /**
+     * Gathered methods to use persistent user preferences if available, or defaults if not.
+     *<P>
+     * Before v2.0.00 these methods were in {@code SOCPlayerClient} itself.
+     * Method names are simplifed to prevent redundancy:
+     * v1.x {@code getUserPreference(..)} -> v2.x {@code UserPreferences.getPref(..)}, etc.
+     *<P>
+     * Because the user preference storage namespace is based on the {@code soc.client} package
+     * and not a class name, preferences are shared among v1.x.xx, v2.0, and higher versions.
+     *
+     * @author jdmonin
+     * @since 2.0.00
+     */
+    public static class UserPreferences
+    {
+        /**
+         * Persistent user preferences like {@link #PREF_SOUND_ON}, or {@code null} if none could be loaded.
+         * @since 1.2.00
+         */
+        private static Preferences userPrefs;
+        static
+        {
+            try
+            {
+                userPrefs = Preferences.userNodeForPackage(SOCPlayerInterface.class);
+            }
+            catch (Exception e) {}
+        }
+
+        /**
+         * Get a boolean persistent user preference if available, or the default value.
+         *<P>
+         * Before v2.0.00 this method was {@code getUserPreference}.
+         *
+         * @param prefKey  Preference name key, such as {@link #PREF_SOUND_ON}
+         * @param dflt  Default value to get if no preference, or if {@code prefKey} is null
+         * @return  Preference value or {@code dflt}
+         * @see #putPref(String, boolean)
+         * @see #getPref(String, int)
+         * @since 1.2.00
+         */
+        public static boolean getPref(final String prefKey, final boolean dflt)
+        {
+            if (userPrefs == null)
+                return dflt;
+
+            try
+            {
+                return userPrefs.getBoolean(prefKey, dflt);
+            } catch (RuntimeException e) {
+                return dflt;
+            }
+        }
+
+        /**
+         * Get an int persistent user preference if available, or the default value.
+         *<P>
+         * Before v2.0.00 this method was {@code getUserPreference}.
+         *
+         * @param prefKey  Preference name key, such as {@link #PREF_BOT_TRADE_REJECT_SEC}
+         * @param dflt  Default value to get if no preference, or if {@code prefKey} is null
+         * @return  Preference value or {@code dflt}
+         * @see #putPref(String, int)
+         * @see #getPref(String, boolean)
+         * @since 1.2.00
+         */
+        public static int getPref(final String prefKey, final int dflt)
+        {
+            if (userPrefs == null)
+                return dflt;
+
+            try
+            {
+                return userPrefs.getInt(prefKey, dflt);
+            } catch (RuntimeException e) {
+                return dflt;
+            }
+        }
+
+        /**
+         * Set a boolean persistent user preference, if available.
+         * Asynchronously calls {@link Preferences#flush()}.
+         *<P>
+         * Before v2.0.00 this method was {@code putUserPreference}.
+         *
+         * @param prefKey  Preference name key, such as {@link #PREF_SOUND_ON}
+         * @param val  Value to set
+         * @throws NullPointerException if {@code prefKey} is null
+         * @throws IllegalArgumentException if {@code prefKey} is longer than {@link Preferences#MAX_KEY_LENGTH}
+         * @see #getPref(String, boolean)
+         * @see #putPref(String, int)
+         * @see #clear(String)
+         * @since 1.2.00
+         */
+        public static void putPref(final String prefKey, final boolean val)
+            throws NullPointerException, IllegalArgumentException
+        {
+            if (userPrefs == null)
+                return;
+
+            try
+            {
+                userPrefs.putBoolean(prefKey, val);
+            }
+            catch (IllegalStateException e) {}  // unlikely
+
+            EventQueue.invokeLater(new Runnable()
+            {
+                public void run()
+                {
+                    try
+                    {
+                        userPrefs.flush();
+                    }
+                    catch (BackingStoreException e) {}
+                }
+            });
+        }
+
+        /**
+         * Set an int persistent user preference, if available.
+         * Asynchronously calls {@link Preferences#flush()}.
+         *<P>
+         * Before v2.0.00 this method was {@code putUserPreference}.
+         *
+         * @param prefKey  Preference name key, such as {@link #PREF_BOT_TRADE_REJECT_SEC}
+         * @param val  Value to set
+         * @throws NullPointerException if {@code prefKey} is null
+         * @throws IllegalArgumentException if {@code prefKey} is longer than {@link Preferences#MAX_KEY_LENGTH}
+         * @see #getPref(String, int)
+         * @see #putPref(String, boolean)
+         * @see #clear(String)
+         * @since 1.2.00
+         */
+        public static void putPref(final String prefKey, final int val)
+            throws NullPointerException, IllegalArgumentException
+        {
+            if (userPrefs == null)
+                return;
+
+            try
+            {
+                userPrefs.putInt(prefKey, val);
+            }
+            catch (IllegalStateException e) {}  // unlikely
+
+            EventQueue.invokeLater(new Runnable()
+            {
+                public void run()
+                {
+                    try
+                    {
+                        userPrefs.flush();
+                    }
+                    catch (BackingStoreException e) {}
+                }
+            });
+        }
+
+        /**
+         * Clear some user preferences by removing the value stored for their key(s).
+         * (Calls {@link Preferences#remove(String)}, not {@link Preferences#clear()}).
+         * Calls {@link Preferences#flush()} afterwards. Prints a "Cleared" message
+         * to {@link System#err} with {@code prefKeyList}.
+         *<P>
+         * Before v2.0.00 this method was {@code clearUserPreferences}.
+         *
+         * @param prefKeyList  Preference name key(s) to clear, same format
+         *     as {@link SOCPlayerClient#PROP_JSETTLERS_DEBUG_CLEAR__PREFS}.
+         *     Does nothing if {@code null} or "". Keys on this list do not
+         *     all have to exist with a value; key name typos will not throw
+         *     an exception.
+         * @since 1.2.00
+         */
+        public static final void clear(final String prefKeyList)
+        {
+            if ((prefKeyList == null) || (prefKeyList.length() == 0) || (userPrefs == null))
+                return;
+
+            for (String key : prefKeyList.split(","))
+            {
+                try
+                {
+                    userPrefs.remove(key);
+                } catch (IllegalStateException e) {}
+            }
+
+            try
+            {
+                userPrefs.flush();
+            }
+            catch (BackingStoreException e) {}
+
+            System.err.println("Cleared user preferences: " + prefKeyList);
+        }
+
+    }  // UserPreferences
 
 
     /**
@@ -6771,7 +6805,7 @@ public class SOCPlayerClient
 
     /**
      * Create a game name, and start a practice game.
-     * Assumes {@link GameAwtDisplay#MAIN_PANEL} is initialized.
+     * Assumes {@link SwingGameDisplay#MAIN_PANEL} is initialized.
      * See {@link #startPracticeGame(String, Map, boolean)} for details.
      * @return True if the practice game request was sent, false if there was a problem
      *         starting the practice server or client
@@ -6886,7 +6920,7 @@ public class SOCPlayerClient
      */
     public static void main(String[] args)
     {
-        GameAwtDisplay gameDisplay = null;
+        SwingGameDisplay gameDisplay = null;
         SOCPlayerClient client = null;
 
         String host = null;  // from args, if not empty
@@ -6913,7 +6947,7 @@ public class SOCPlayerClient
         }
 
         client = new SOCPlayerClient();
-        gameDisplay = new GameAwtDisplay((args.length == 0), client);
+        gameDisplay = new SwingGameDisplay((args.length == 0), client);
         client.setGameDisplay(gameDisplay);
 
         JFrame frame = new JFrame(client.strings.get("pcli.main.title", Version.version()));  // "JSettlers client {0}"
@@ -6988,7 +7022,7 @@ public class SOCPlayerClient
         /**
          * Client-hosted TCP server. If client is running this server, it's also connected
          * as a client, instead of being client of a remote server.
-         * Started via {@link SOCPlayerClient.GameAwtDisplay#startLocalTCPServer(int)}.
+         * Started via {@link SOCPlayerClient.SwingGameDisplay#startLocalTCPServer(int)}.
          * {@link #practiceServer} may still be activated at the user's request.
          * Note that {@link SOCGame#isPractice} is false for localTCPServer's games.
          */
@@ -7249,7 +7283,7 @@ public class SOCPlayerClient
                 if (client.gotPassword)
                 {
                     client.gameDisplay.setPassword(client.password);
-                        // when ! gotPassword, GameAwtDisplay.getPassword() will read pw from there
+                        // when ! gotPassword, SwingGameDisplay.getPassword() will read pw from there
                     client.gotPassword = false;
                 }
                 s = new Socket(host, port);
@@ -7351,7 +7385,7 @@ public class SOCPlayerClient
          * Look for active games that we're hosting (state >= START1A, not yet OVER).
          *
          * @return If any hosted games of ours are active
-         * @see SOCPlayerClient.GameAwtDisplay#findAnyActiveGame(boolean)
+         * @see SOCPlayerClient.SwingGameDisplay#findAnyActiveGame(boolean)
          */
         public boolean anyHostedActiveGames()
         {
@@ -7600,12 +7634,12 @@ public class SOCPlayerClient
     }  // nested class ClientNetwork
 
 
-    /** React to windowOpened, windowClosing events for GameAwtDisplay's Frame. */
+    /** React to windowOpened, windowClosing events for SwingGameDisplay's Frame. */
     private static class ClientWindowAdapter extends WindowAdapter
     {
-        private final GameAwtDisplay cli;
+        private final SwingGameDisplay cli;
 
-        public ClientWindowAdapter(GameAwtDisplay c)
+        public ClientWindowAdapter(SwingGameDisplay c)
         {
             cli = c;
         }
@@ -7684,10 +7718,10 @@ public class SOCPlayerClient
      */
     private static class GameOptionsTimeoutTask extends TimerTask
     {
-        public GameAwtDisplay pcli;
+        public SwingGameDisplay pcli;
         public ServerGametypeInfo srvOpts;
 
-        public GameOptionsTimeoutTask (GameAwtDisplay c, ServerGametypeInfo opts)
+        public GameOptionsTimeoutTask (SwingGameDisplay c, ServerGametypeInfo opts)
         {
             pcli = c;
             srvOpts = opts;
@@ -7713,7 +7747,7 @@ public class SOCPlayerClient
      * {@link SOCGameOption game option defaults}.
      * (in case of slow connection or server bug).
      * Set up when sending {@link SOCGameOptionGetDefaults GAMEOPTIONGETDEFAULTS}
-     * in {@link SOCPlayerClient.GameAwtDisplay#gameWithOptionsBeginSetup(boolean, boolean)}.
+     * in {@link SOCPlayerClient.SwingGameDisplay#gameWithOptionsBeginSetup(boolean, boolean)}.
      *<P>
      * When timer fires, assume no defaults will be received.
      * Display the new-game dialog.
@@ -7722,11 +7756,11 @@ public class SOCPlayerClient
      */
     private static class GameOptionDefaultsTimeoutTask extends TimerTask
     {
-        public GameAwtDisplay pcli;
+        public SwingGameDisplay pcli;
         public ServerGametypeInfo srvOpts;
         public boolean forPracticeServer;
 
-        public GameOptionDefaultsTimeoutTask (GameAwtDisplay c, ServerGametypeInfo opts, boolean forPractice)
+        public GameOptionDefaultsTimeoutTask (SwingGameDisplay c, ServerGametypeInfo opts, boolean forPractice)
         {
             pcli = c;
             srvOpts = opts;

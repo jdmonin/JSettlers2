@@ -535,7 +535,7 @@ public class SOCPlayerInterface extends Frame
      * Another value can be specified in our constructor's {@code localPrefs} param.
      * @since 1.2.00
      */
-    private int botTradeRejectSec = SOCPlayerClient.GameAwtDisplay.getUserPreference
+    private int botTradeRejectSec = SOCPlayerClient.UserPreferences.getPref
         (SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC, -8);
 
     /**
@@ -733,9 +733,9 @@ public class SOCPlayerInterface extends Frame
 
         // check window frame size preference if set
         {
-            int prefWidth = SOCPlayerClient.GameAwtDisplay.getUserPreference(SOCPlayerClient.PREF_PI__WIDTH, -1);
+            int prefWidth = SOCPlayerClient.UserPreferences.getPref(SOCPlayerClient.PREF_PI__WIDTH, -1);
             int prefHeight = (prefWidth != -1)
-                ? SOCPlayerClient.GameAwtDisplay.getUserPreference(SOCPlayerClient.PREF_PI__HEIGHT, HEIGHT_MIN_4PL)
+                ? SOCPlayerClient.UserPreferences.getPref(SOCPlayerClient.PREF_PI__HEIGHT, HEIGHT_MIN_4PL)
                 : 0;
             if (prefWidth != -1)
             {
@@ -1247,8 +1247,8 @@ public class SOCPlayerInterface extends Frame
         if ((w < 100) || (h < 100))
             return;  // sanity check
 
-        SOCPlayerClient.GameAwtDisplay.putUserPreference(SOCPlayerClient.PREF_PI__WIDTH, w);
-        SOCPlayerClient.GameAwtDisplay.putUserPreference(SOCPlayerClient.PREF_PI__HEIGHT, h);
+        SOCPlayerClient.UserPreferences.putPref(SOCPlayerClient.PREF_PI__WIDTH, w);
+        SOCPlayerClient.UserPreferences.putPref(SOCPlayerClient.PREF_PI__HEIGHT, h);
     }
 
     /**
@@ -1660,7 +1660,7 @@ public class SOCPlayerInterface extends Frame
      * @param cmd  Local client command string, which starts with \
      * @return true if a command was handled
      * @since 2.0.00
-     * @see SOCPlayerClient.GameAwtDisplay#doLocalCommand(String, String)
+     * @see SOCPlayerClient.SwingGameDisplay#doLocalCommand(String, String)
      */
     private boolean doLocalCommand(String cmd)
     {
@@ -4792,7 +4792,7 @@ public class SOCPlayerInterface extends Frame
 
         public void run()
         {
-            if (soundMuted || ! SOCPlayerClient.GameAwtDisplay.getUserPreference(SOCPlayerClient.PREF_SOUND_ON, true))
+            if (soundMuted || ! SOCPlayerClient.UserPreferences.getPref(SOCPlayerClient.PREF_SOUND_ON, true))
                 return;
 
             try
