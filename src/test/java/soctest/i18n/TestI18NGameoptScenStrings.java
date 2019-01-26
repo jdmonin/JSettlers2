@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -84,7 +84,7 @@ public class TestI18NGameoptScenStrings
                               missingKeys  = new TreeSet<String>();
         for (final SOCGameOption opt : allOpts.values())
         {
-            // "Hidden" gameopts starting with "_" don't need to be in sm,
+            // "Hidden" gameopts starting with "_" don't need to be in sm, nor do temporary DEBUG options,
             // but if present there the description strings do need to match.
             try
             {
@@ -92,7 +92,7 @@ public class TestI18NGameoptScenStrings
                 if (! opt.getDesc().equals(smDesc))
                     mismatchKeys.add(opt.key);
             } catch (MissingResourceException e) {
-                if (opt.key.charAt(0) != '_')
+                if ((opt.key.charAt(0) != '_') && ! opt.key.startsWith("DEBUG"))
                     missingKeys.add(opt.key);
             }
         }
