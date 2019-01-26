@@ -193,7 +193,7 @@ public class NewGameOptionsFrame extends Frame
      * to update {@code "SC"} within {@link #opts} and enable/disable {@link #scenInfo}.
      * @since 2.0.00
      */
-    private JComboBox scenDropdown;
+    private JComboBox<?> scenDropdown;
 
     /**
      * Scenario Info button, for info window about {@link #scenDropdown}'s selected scenario, or null.
@@ -568,7 +568,7 @@ public class NewGameOptionsFrame extends Frame
 
             int i = 0, sel = 0;
 
-            JComboBox jcb = new JComboBox();
+            JComboBox<Object> jcb = new JComboBox<Object>();  // for scenDropdown: holds SOCScenarios and a String
             jcb.addItem(strings.get("base.none.parens"));  // "(none)" is item 0 in dropdown
 
             Collection<SOCScenario> scens = allSc.values();
@@ -784,7 +784,7 @@ public class NewGameOptionsFrame extends Frame
                 }
                 else if (oc instanceof JComboBox)
                 {
-                    ((JComboBox) oc).addActionListener(this);  // for related cb, and op.ChangeListener and userChanged
+                    ((JComboBox<?>) oc).addActionListener(this);  // for related cb, and op.ChangeListener and userChanged
                 }
             }
         }
@@ -1752,7 +1752,7 @@ public class NewGameOptionsFrame extends Frame
             if (ctrl instanceof Choice)
                 chIdx = ((Choice) ctrl).getSelectedIndex();  // 0 to n-1
             else
-                chIdx = ((JComboBox) ctrl).getSelectedIndex();
+                chIdx = ((JComboBox<?>) ctrl).getSelectedIndex();
 
             if (chIdx != -1)
             {
