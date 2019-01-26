@@ -217,6 +217,8 @@ public class SOCPlayerClient
 
     /**
      * The classic JSettlers green background color; green tone #61AF71.
+     * Typically used with foreground color {@link Color#BLACK},
+     * like in {@link SOCPlayerClient.GameAwtDisplay}'s main panel.
      * @since 2.0.00
      */
     public static final Color JSETTLERS_BG_GREEN = new Color(97, 175, 113);
@@ -429,6 +431,18 @@ public class SOCPlayerClient
      */
     public interface GameDisplay
     {
+        /** Returns the overall Client. */
+        SOCPlayerClient getClient();
+
+        /** Returns this client's GameManager. */
+        GameManager getGameManager();
+
+        /**
+         * Returns this display's top-level GUI element: Panel, JPanel, etc.
+         * Not necessarily a Frame or JFrame.
+         */
+        Container getGUIContainer();
+
         /**
          * Init the visual elements.  Done before connecting to server,
          * so we don't know its version or active {@link SOCFeatureSet}.
@@ -453,6 +467,52 @@ public class SOCPlayerClient
          * @param cuser User nickname text to put into that TextField
          */
         void connect(String cpass, String cuser);
+
+        /**
+         * Setup for locally hosting a TCP server.
+         * If needed, a {@link ClientNetwork#localTCPServer local server} and robots are started, and client
+         * connects to it, then visually indicate we are in Server Mode and port number.
+         * If the {@link ClientNetwork#localTCPServer} is already created, does nothing.
+         * If {@link ClientNetwork#connected connected} already, does nothing.
+         *
+         * @param tport  TCP port number to host on
+         * @throws IllegalArgumentException If port is 0 or negative
+         * @throws IllegalStateException  if already connected to a server
+         */
+        void startLocalTCPServer(final int tport)
+            throws IllegalArgumentException, IllegalStateException;
+
+        /**
+         * Read and validate username and password GUI fields into client's data fields.
+         * If username is invalid or empty, or we aren't ready to connect in some other way,
+         * let the user know what to change.
+         * @return true if OK, false if blank or not ready
+         * @see #askStartGameWithOptions(String, boolean, Map, Map)
+         */
+        boolean readValidNicknameAndPassword();
+
+        /**
+         * Ask server to start a game with options.
+         * If it's practice, will call {@link #startPracticeGame(String, Map, boolean)}.
+         * Otherwise, ask tcp server, and also set {@code WAIT_CURSOR} and status line ("Talking to server...").
+         *<P>
+         * Assumes we're already connected to server, and that nickname, password, hostname are already validated.
+         *
+         * @param gmName Game name; for practice, null is allowed
+         * @param forPracticeServer Is this for a new game on the practice (not tcp) server?
+         * @param opts Set of {@link SOCGameOption game options} to use, or null
+         * @param localPrefs Set of per-game local preferences to pass to {@link SOCPlayerInterface} constructor, or null
+         * @see #readValidNicknameAndPassword()
+         */
+        void askStartGameWithOptions
+            (final String gmName, final boolean forPracticeServer,
+             final Map<String, SOCGameOption> opts, final Map<String, Object> localPrefs);
+
+        /**
+         * Clear any visual indicators that we are waiting for the network or other action, like {@code WAIT_CURSOR}.
+         * @param clearStatus  If true, also clear any text out of the status line.
+         */
+        void clearWaitingStatus(final boolean clearStatus);
 
         /**
          * Act as if the "practice game" button has been clicked.
@@ -509,13 +569,13 @@ public class SOCPlayerClient
         void showStatus(String statusText, boolean debugWarn);
 
         /** Set the contents of the nickname field. */
-        public void setNickname(final String nm);
+        void setNickname(final String nm);
 
         /** If the password field is currently visible, focus the cursor there for the user to type something. */
-        public void focusPassword();
+        void focusPassword();
 
         /** Set the contents of the password field. */
-        public void setPassword(final String pw);
+        void setPassword(final String pw);
 
         void channelJoined(String channelName);
         void channelJoined(String channelName, String nickname);
@@ -536,8 +596,28 @@ public class SOCPlayerClient
         void channelDeleted(String channelName);
         void channelsClosed(String message);
 
+        /**
+         * Send a text message to a channel,
+         * or perform a local command like \ignore or \&shy;unignore.
+         *
+         * @param chName   the name of the channel
+         * @param mes  the message text or local command
+         * @see SOCPlayerClient.GameManager#sendText(SOCGame, String)
+         */
+        void sendToChannel(String chName, String mes);
+
+        /** Print contents of the current chat ignorelist into a playerinterface's chat window. */
+        void printIgnoreList(SOCPlayerInterface pi);
+
         void messageBroadcast(String message);
         void messageReceived(String channelName, String nickname, String message);
+
+        /**
+         * Callback for when a {@link NewGameOptionsFrame} is closed, to clear any reference to it here.
+         * For example, the "New Game..." button might create and show an NGOF, and keep such a reference
+         * to use if that button is clicked again instead of creating another NGOf and having both visible.
+         */
+        void dialogClosed(NewGameOptionsFrame ngof);
 
         PlayerClientListener gameJoined(SOCGame game, Map<String, Object> localPrefs);
 
@@ -586,6 +666,12 @@ public class SOCPlayerClient
         void optionsReceived(ServerGametypeInfo opts, boolean isPractice, boolean isDash, boolean hasAllNow);
 
         /**
+         * Callback for when the client player leaves a game and closes its {@link SOCPlayerInterface}.
+         * Remove that game from list of our PlayerInterfaces, do any other needed cleanup.
+         */
+        void leaveGame(SOCGame game);
+
+        /**
          * Add a new game to the initial window's list of games.
          * If client can't join, makes sure the game is marked as unjoinable
          * in the {@link SOCPlayerClient#serverGames} list.
@@ -615,6 +701,13 @@ public class SOCPlayerClient
          */
         boolean deleteFromGameList(String gameName, final boolean isPractice, final boolean withUnjoinablePrefix);
 
+        /**
+         * Utility for time-driven events in the client.
+         * For some users, see where-used of this and of {@link SOCPlayerInterface#getEventTimer()}.
+         * @return the timer
+         */
+        Timer getEventTimer();
+
     }  // public interface GameDisplay
 
 
@@ -629,7 +722,7 @@ public class SOCPlayerClient
      *<P>
      * Must then call {@link #connect(String, int, String, String)} or {@link ClientNetwork#connect(String, int)}
      * to join a TCP server, or {@link GameDisplay#clickPracticeButton()}
-     * or {@link GameAwtDisplay#startLocalTCPServer(int)} to start a server locally.
+     * or {@link GameDisplay#startLocalTCPServer(int)} to start a server locally.
      */
     public SOCPlayerClient()
     {
@@ -986,8 +1079,8 @@ public class SOCPlayerClient
 
         /**
          * Utility for time-driven events in the display.
-         * For users, search for where-used of this field
-         * and of {@link #getEventTimer()}.
+         * To find users: Search for where-used of this field, {@link GameDisplay#getEventTimer()},
+         * and {@link SOCPlayerInterface#getEventTimer()}.
          * @since 1.1.07
          */
         protected Timer eventTimer = new Timer(true);  // use daemon thread
@@ -1023,8 +1116,10 @@ public class SOCPlayerClient
             STATUS_CANNOT_JOIN_THIS_GAME = client.strings.get("pcli.main.join.cannot");
                 // "Cannot join, this client is incompatible with features of this game."
 
+            // Set colors; easier than troubleshooting color-inherit from JFrame or applet tag
             setOpaque(true);
-            setBackground(JSETTLERS_BG_GREEN);  // easier than troubleshooting color-inherit from JFrame or applet tag
+            setBackground(JSETTLERS_BG_GREEN);
+            setForeground(Color.BLACK);
         }
 
         public SOCPlayerClient getClient()
@@ -1035,6 +1130,11 @@ public class SOCPlayerClient
         public GameManager getGameManager()
         {
             return client.getGameManager();
+        }
+
+        public final Container getGUIContainer()
+        {
+            return this;
         }
 
         public WindowAdapter createWindowAdapter()
@@ -1616,10 +1716,10 @@ public class SOCPlayerClient
         }
 
         /**
-         * Read and validate username and password GUI fields into client's data fields.
+         * {@inheritDoc}
+         *<P>
          * This method may set status bar to a hint message if username is empty,
          * such as {@link #NEED_NICKNAME_BEFORE_JOIN}.
-         * @return true if OK, false if blank or not ready
          * @see #getValidNickname(boolean)
          * @since 1.1.07
          */
@@ -1907,9 +2007,7 @@ public class SOCPlayerClient
         }
 
         /**
-         * Utility for time-driven events in the client.
-         * For some users, see where-used of this and of {@link SOCPlayerInterface#getEventTimer()}.
-         * @return the timer
+         * {@inheritDoc}
          * @since 1.1.07
          */
         public Timer getEventTimer()
@@ -2105,19 +2203,12 @@ public class SOCPlayerClient
         }
 
         /**
-         * Ask server to start a game with options.
-         * If it's practice, will call {@link #startPracticeGame(String, Map, boolean)}.
-         * Otherwise, ask tcp server, and also set WAIT_CURSOR and status line ("Talking to server...").
+         * {@inheritDoc}
          *<P>
          * Assumes {@link #getValidNickname(boolean) getValidNickname(true)}, {@link #getPassword()}, {@link ClientNetwork#host},
          * and {@link #gotPassword} are already called and valid.
          *
-         * @param gmName Game name; for practice, null is allowed
-         * @param forPracticeServer Is this for a new game on the practice (not tcp) server?
-         * @param opts Set of {@link SOCGameOption game options} to use, or null
-         * @param localPrefs Set of per-game local preferences to pass to {@link SOCPlayerInterface} constructor, or null
          * @since 1.1.07
-         * @see #readValidNicknameAndPassword()
          */
         public void askStartGameWithOptions
             (final String gmName, final boolean forPracticeServer,
@@ -2146,6 +2237,13 @@ public class SOCPlayerClient
                 System.err.println("L1320 askStartGameWithOptions done at " + System.currentTimeMillis());
                 System.err.println("      sent: " + client.net.lastMessage_N);
             }
+        }
+
+        public void clearWaitingStatus(final boolean clearStatus)
+        {
+            setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            if (clearStatus)
+                status.setText("");  // clear "Talking to server...", etc
         }
 
         /**
@@ -2481,11 +2579,17 @@ public class SOCPlayerClient
 
             if (fr != null)
             {
-                if (!client.onIgnoreList(nickname))
+                if (! client.onIgnoreList(nickname))
                 {
                     fr.print(nickname + ": " + message);
                 }
             }
+        }
+
+        public void dialogClosed(final NewGameOptionsFrame ngof)
+        {
+            if (ngof == newGameOptsFrame)
+                newGameOptsFrame = null;
         }
 
         public void leaveGame(SOCGame game)
@@ -2665,15 +2769,13 @@ public class SOCPlayerClient
         }
 
         /**
-         * send a text message to a channel
-         *
-         * @param ch   the name of the channel
-         * @param mes  the message
-         * @see SOCPlayerClient.GameManager#sendText(SOCGame, String)
+         * {@inheritDoc}
+         *<P>
+         * Before v2.0.00 this method was {@code chSend}.
          */
-        public void chSend(String ch, String mes)
+        public void sendToChannel(String ch, String mes)
         {
-            if (!doLocalCommand(ch, mes))
+            if (! doLocalCommand(ch, mes))
             {
                 client.net.putNet(SOCChannelTextMsg.toCmd(ch, client.nickname, mes));
             }
@@ -2725,8 +2827,7 @@ public class SOCPlayerClient
             }
         }
 
-        /** Print the current chat ignorelist in a playerinterface. */
-        protected void printIgnoreList(SOCPlayerInterface pi)
+        public void printIgnoreList(SOCPlayerInterface pi)
         {
             pi.print("* "+/*I*/"Ignore list:"/*18N*/);
 
@@ -2747,16 +2848,10 @@ public class SOCPlayerClient
         }
 
         /**
-         * Setup for locally hosting a TCP server.
-         * If needed, a {@link ClientNetwork#localTCPServer local server} and robots are started, and client connects to it.
-         * If parent is a Frame, set titlebar to show "server" and port#.
-         * Show port number in {@link #versionOrlocalTCPPortLabel}.
-         * If the {@link ClientNetwork#localTCPServer} is already created, does nothing.
-         * If {@link ClientNetwork#connected connected} already, does nothing.
-         *
-         * @param tport Port number to host on; must be greater than zero.
-         * @throws IllegalArgumentException If port is 0 or negative
-         * @throws IllegalStateException  if already connected to a server
+         * {@inheritDoc}
+         *<P>
+         * If parent is a Frame, sets titlebar to show "server" and port number.
+         * Shows port number in {@link #versionOrlocalTCPPortLabel}.
          */
         public void startLocalTCPServer(final int tport)
             throws IllegalArgumentException, IllegalStateException
@@ -6258,7 +6353,7 @@ public class SOCPlayerClient
      *
      * @param ga   the game
      * @param me   the message
-     * @see SOCPlayerClient.GameAwtDisplay#chSend(String, String)
+     * @see SOCPlayerClient.GameDisplay#sendToChannel(String, String)
      */
     public void sendText(SOCGame ga, String me)
     {
@@ -6650,12 +6745,13 @@ public class SOCPlayerClient
      * add this name to the ignore list
      *
      * @param name the name to add
+     * @see #removeFromIgnoreList(String)
      */
     protected void addToIgnoreList(String name)
     {
         name = name.trim();
 
-        if (!onIgnoreList(name))
+        if (! onIgnoreList(name))
         {
             ignoreList.addElement(name);
         }
@@ -6665,6 +6761,7 @@ public class SOCPlayerClient
      * remove this name from the ignore list
      *
      * @param name  the name to remove
+     * @see #addToIgnoreList(String)
      */
     protected void removeFromIgnoreList(String name)
     {

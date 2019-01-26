@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2009-2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009-2015,2017-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -61,7 +61,6 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.border.EmptyBorder;
 
-import soc.client.SOCPlayerClient.GameAwtDisplay;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCScenario;
@@ -77,7 +76,7 @@ import soc.util.Version;
  * user preferences such as {@link SOCPlayerClient#PREF_SOUND_ON}
  * and per-game preferences such as {@link SOCPlayerInterface#PREF_SOUND_MUTE}.
  * When "Create" button is clicked, validates fields and calls
- * {@link SOCPlayerClient.GameAwtDisplay#askStartGameWithOptions(String, boolean, Map, Map)}.
+ * {@link SOCPlayerClient.GameDisplay#askStartGameWithOptions(String, boolean, Map, Map)}.
  *<P>
  * Also used for showing a game's options (read-only) during game play.
  *<P>
@@ -94,7 +93,7 @@ import soc.util.Version;
  * This class also contains the "Scenario Info" popup window, called from
  * this dialog's Scenario Info button, and from {@link SOCPlayerInterface}
  * when first joining a game with a scenario.
- * See {@link #showScenarioInfoDialog(SOCScenario, Map, int, SOCPlayerClient.GameAwtDisplay, Frame)}.
+ * See {@link #showScenarioInfoDialog(SOCScenario, Map, int, SOCPlayerClient.GameDisplay, Frame)}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
@@ -122,7 +121,7 @@ public class NewGameOptionsFrame extends Frame
      */
     private final SOCPlayerInterface pi;
 
-    private final SOCPlayerClient.GameAwtDisplay gameDisplay;
+    private final SOCPlayerClient.GameDisplay gameDisplay;
 
     /** should this be sent to the remote tcp server, or local practice server? */
     private final boolean forPractice;
@@ -228,7 +227,7 @@ public class NewGameOptionsFrame extends Frame
      * Once created, resets the mouse cursor from hourglass to normal, and clears main panel's status text.
      *<P>
      * See also convenience method
-     * {@link #createAndShow(SOCPlayerInterface, GameAwtDisplay, String, Map, boolean, boolean)}.
+     * {@link #createAndShow(SOCPlayerInterface, SOCPlayerClient.GameDisplay, String, Map, boolean, boolean)}.
      *
      * @param pi  Interface of existing game, or {@code null} for a new game.
      *     Used for updating settings like {@link SOCPlayerInterface#isSoundMuted()}.
@@ -247,7 +246,7 @@ public class NewGameOptionsFrame extends Frame
      * @param readOnly    Is this display-only (for use during a game), or can it be changed (making a new game)?
      */
     public NewGameOptionsFrame
-        (final SOCPlayerInterface pi, GameAwtDisplay gd, String gaName,
+        (final SOCPlayerInterface pi, SOCPlayerClient.GameDisplay gd, String gaName,
          Map<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
     {
         super( readOnly
@@ -298,14 +297,13 @@ public class NewGameOptionsFrame extends Frame
          * setup is complete; reset mouse cursor from hourglass to normal
          * (was set to hourglass before calling this constructor)
          */
-        gd.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-        gd.status.setText("");  // clear "Talking to server..."
+        gd.clearWaitingStatus(true);
     }
 
     /**
      * Creates and shows a new NewGameOptionsFrame.
      * Once created, resets the mouse cursor from hourglass to normal, and clears main panel's status text.
-     * See {@link #NewGameOptionsFrame(SOCPlayerInterface, SOCPlayerClient.GameAwtDisplay, String, Map, boolean, boolean) constructor}
+     * See {@link #NewGameOptionsFrame(SOCPlayerInterface, SOCPlayerClient.GameDisplay, String, Map, boolean, boolean) constructor}
      * for notes about <tt>opts</tt> and other parameters.
      * @param pi  Interface of existing game, or {@code null} for a new game; see constructor
      * @param gaName  Name of existing game, or {@code null} to show options for a new game;
@@ -313,7 +311,7 @@ public class NewGameOptionsFrame extends Frame
      * @return the new frame
      */
     public static NewGameOptionsFrame createAndShow
-        (SOCPlayerInterface pi, GameAwtDisplay cli, String gaName,
+        (SOCPlayerInterface pi, SOCPlayerClient.GameDisplay cli, String gaName,
          Map<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
     {
         NewGameOptionsFrame ngof = new NewGameOptionsFrame(pi, cli, gaName, opts, forPractice, readOnly);
@@ -448,7 +446,8 @@ public class NewGameOptionsFrame extends Frame
      */
     private void initInterface_Options(JPanel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
-        final boolean hideUnderscoreOpts = (! readOnly) && (! gameDisplay.nick.getText().equalsIgnoreCase("debug"));
+        final boolean hideUnderscoreOpts = (! readOnly)
+            && (! gameDisplay.getClient().getNickname().equalsIgnoreCase("debug"));
 
         Label L;
 
@@ -1319,7 +1318,7 @@ public class NewGameOptionsFrame extends Frame
     /**
      * The "Scenario Info" button was clicked.
      * Reads the current scenario, if any, from {@link #scenDropdown}.
-     * Calls {@link #showScenarioInfoDialog(SOCScenario, Map, int, SOCPlayerClient.GameAwtDisplay, Frame)}.
+     * Calls {@link #showScenarioInfoDialog(SOCScenario, Map, int, SOCPlayerClient.GameDisplay, Frame)}.
      * @since 2.0.00
      */
     private void clickScenarioInfo()
@@ -1356,15 +1355,14 @@ public class NewGameOptionsFrame extends Frame
         showScenarioInfoDialog(scen, null, vpWinner, gameDisplay, this);
     }
 
-    /** Dismiss the frame, and clear client's {@link GameAwtDisplay#newGameOptsFrame}
-     *  reference to null if it's to this frame.
+    /**
+     * Dismiss the frame, and if client's {@link SOCPlayerClient.GameDisplay} has a reference to this frame,
+     * clear it to null there.
      */
     @Override
     public void dispose()
     {
-        if (this == gameDisplay.newGameOptsFrame)
-            gameDisplay.newGameOptsFrame = null;
-
+        gameDisplay.dialogClosed(this);
         super.dispose();
     }
 
@@ -1910,7 +1908,7 @@ public class NewGameOptionsFrame extends Frame
      * @since 2.0.00
      */
     public static void showScenarioInfoDialog
-        (final SOCGame ga, final GameAwtDisplay cli, final Frame parent)
+        (final SOCGame ga, final SOCPlayerClient.GameDisplay cli, final Frame parent)
     {
         final String scKey = ga.getGameOptionStringValue("SC");
         if (scKey == null)
@@ -1936,7 +1934,7 @@ public class NewGameOptionsFrame extends Frame
      */
     public static void showScenarioInfoDialog
         (final SOCScenario sc, Map<String, SOCGameOption> gameOpts, final int vpWinner,
-         final GameAwtDisplay cli, final Frame parent)
+         final SOCPlayerClient.GameDisplay cli, final Frame parent)
     {
         if (sc == null)
             return;

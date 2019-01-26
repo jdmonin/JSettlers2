@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file copyright (C) 2008-2009,2012-2013,2017 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008-2009,2012-2013,2017,2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -39,7 +39,7 @@ import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 
 import soc.client.SOCPlayerClient.ClientNetwork;
-import soc.client.SOCPlayerClient.GameAwtDisplay;
+import soc.client.SOCPlayerClient.GameDisplay;
 import soc.util.SOCStringManager;
 import soc.util.Version;
 
@@ -55,7 +55,7 @@ import soc.util.Version;
 public class SOCConnectOrPracticePanel extends Panel
     implements ActionListener, KeyListener
 {
-    private final GameAwtDisplay gd;
+    private final GameDisplay gd;
     private final ClientNetwork clientNetwork;
 
     /** Welcome message, or error after disconnect */
@@ -98,7 +98,7 @@ public class SOCConnectOrPracticePanel extends Panel
      *
      * @param gd      Player client display
      */
-    public SOCConnectOrPracticePanel(GameAwtDisplay gd)
+    public SOCConnectOrPracticePanel(GameDisplay gd)
     {
         super(new BorderLayout());
 
@@ -421,7 +421,7 @@ public class SOCConnectOrPracticePanel extends Panel
     /**
      * A local server has been started; disable other options ("Connect", etc) but
      * not Practice.  Called from client, once the server is started in
-     * {@link SOCPlayerClient.GameAwtDisplay#startLocalTCPServer(int)}.
+     * {@link SOCPlayerClient.GameDisplay#startLocalTCPServer(int)}.
      */
     public void startedLocalServer()
     {

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, type parameterization, GUI API updates, etc
  *
@@ -22,7 +22,6 @@
  **/
 package soc.client;
 
-import soc.client.SOCPlayerClient.GameAwtDisplay;
 import soc.client.stats.SOCGameStatistics;
 import soc.debug.D;  // JM
 
@@ -107,7 +106,7 @@ import javax.sound.sampled.LineUnavailableException;
  *<P>
  * <B>Local preferences:</B>
  * For optional per-game preferences like {@link #PREF_SOUND_MUTE}, see {@code localPrefs} parameter in
- * the {@link #SOCPlayerInterface(String, GameAwtDisplay, SOCGame, Map)} constructor javadoc.
+ * the {@link #SOCPlayerInterface(String, SOCPlayerClient.GameDisplay, SOCGame, Map)} constructor javadoc.
  * The current game's prefs are shown and changed with {@link NewGameOptionsFrame}.
  * Local prefs are not saved persistently like client preferences
  * ({@link SOCPlayerClient#PREF_SOUND_ON} etc) are.
@@ -426,7 +425,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * the display that spawned us
      */
-    protected GameAwtDisplay gameDisplay;
+    protected SOCPlayerClient.GameDisplay gameDisplay;
 
     protected SOCPlayerClient client;
 
@@ -633,10 +632,11 @@ public class SOCPlayerInterface extends Frame
      * @throws IllegalArgumentException if a {@code localPrefs} value isn't the expected type
      *     ({@link Integer} or {@link Boolean}) based on its key's javadoc.
      */
-    public SOCPlayerInterface(String title, GameAwtDisplay gd, SOCGame ga, final Map<String, Object> localPrefs)
+    public SOCPlayerInterface(String title, SOCPlayerClient.GameDisplay gd, SOCGame ga, final Map<String, Object> localPrefs)
         throws IllegalArgumentException
     {
-        super(strings.get("interface.title.game", title) + (ga.isPractice ? "" : " [" + gd.getNickname() + "]"));
+        super(strings.get("interface.title.game", title)
+              + (ga.isPractice ? "" : " [" + gd.getClient().getNickname() + "]"));
             // "Settlers of Catan Game: {0}"
 
         layoutNotReadyYet = true;  // will set to false at end of doLayout
@@ -1102,7 +1102,7 @@ public class SOCPlayerInterface extends Frame
      * @return the game display associated with this interface
      * @since 2.0.00
      */
-    public GameAwtDisplay getGameDisplay()
+    public SOCPlayerClient.GameDisplay getGameDisplay()
     {
         return gameDisplay;
     }
@@ -1216,7 +1216,8 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * @return the timer for time-driven events in the interface
+     * Get the timer for time-driven events in the interface.
+     * Same timer as {@link SOCPlayerClient.GameDisplay#getEventTimer()}.
      *
      * @see SOCHandPanel#autoRollSetupTimer()
      * @see SOCBoardPanel#popupSetBuildRequest(int, int)
@@ -3330,7 +3331,7 @@ public class SOCPlayerInterface extends Frame
          */
         if (layoutNotReadyYet)
         {
-            gameDisplay.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            gameDisplay.clearWaitingStatus(false);
             layoutNotReadyYet = false;
             repaint();
         }
@@ -4284,7 +4285,8 @@ public class SOCPlayerInterface extends Frame
          * @param requester  Name of player requesting the reset
          * @param gameIsOver The game is over - "Reset" button should be default (if not over, "Continue" is default)
          */
-        protected ResetBoardVoteDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI, String requester, boolean gameIsOver)
+        protected ResetBoardVoteDialog
+            (SOCPlayerClient.GameDisplay cli, SOCPlayerInterface gamePI, String requester, boolean gameIsOver)
         {
             super(cli, gamePI, strings.get("reset.board.for.game", gamePI.getGame().getName()),  // "Reset board for game {0}?"
                 (gameIsOver
@@ -4471,7 +4473,7 @@ public class SOCPlayerInterface extends Frame
          * @param cli      Player client interface
          * @param gamePI   Current game's player interface
          */
-        private ResetBoardConfirmDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI)
+        private ResetBoardConfirmDialog(SOCPlayerClient.GameDisplay cli, SOCPlayerInterface gamePI)
         {
             super(cli, gamePI, strings.get("reset.restart.game"),  // "Restart game?"
                 strings.get("reset.board.new"),  // "Reset the board and start a new game?"
@@ -4511,10 +4513,10 @@ public class SOCPlayerInterface extends Frame
      */
     private static class PIWindowAdapter extends WindowAdapter
     {
-        private final GameAwtDisplay gd;
+        private final SOCPlayerClient.GameDisplay gd;
         private final SOCPlayerInterface pi;
 
-        public PIWindowAdapter(GameAwtDisplay gd, SOCPlayerInterface spi)
+        public PIWindowAdapter(SOCPlayerClient.GameDisplay gd, SOCPlayerInterface spi)
         {
             this.gd = gd;
             pi = spi;
@@ -4659,7 +4661,7 @@ public class SOCPlayerInterface extends Frame
         /**
          * Create a new SOCPIDiscardOrPickMsgTask.
          * After creating, you must schedule it
-         * with {@link SOCPlayerClient.GameAwtDisplay#getEventTimer()}.{@link Timer#schedule(TimerTask, long) schedule(msgTask,delay)} .
+         * with {@link SOCPlayerClient.GameDisplay#getEventTimer()}.{@link Timer#schedule(TimerTask, long) schedule(msgTask,delay)} .
          * @param spi  Our player interface
          * @param forDiscard  True for discard, false for picking gold-hex resources
          */

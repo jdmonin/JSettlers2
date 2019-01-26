@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2012-2013,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012-2013,2017,2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -43,8 +43,6 @@ import java.awt.event.WindowEvent;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import soc.client.SOCPlayerClient.GameAwtDisplay;
-
 
 /** The chat channel window
  *  @version 2.0 (no GridbagLayout) with textwrapping and customized window
@@ -59,7 +57,7 @@ public class ChannelFrame extends Frame
     public Canvas cnvs;
     public int ncols;
     public int npix = 1;
-    GameAwtDisplay cc;
+    SOCPlayerClient.GameDisplay cc;
     String cname;
     Vector<String> history = new Vector<String>();
     int historyCounter = 1;
@@ -69,11 +67,11 @@ public class ChannelFrame extends Frame
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
     /** Build a frame with the given title, belonging to the given frame/applet */
-    public ChannelFrame(String t, GameAwtDisplay ccp)
+    public ChannelFrame(String t, SOCPlayerClient.GameDisplay ccp)
     {
         super(strings.get("channel.channel", t));
-        setBackground(ccp.getBackground());
-        setForeground(ccp.getForeground());
+        setBackground(SOCPlayerClient.JSETTLERS_BG_GREEN);
+        setForeground(Color.BLACK);
 
         ta = new SnippingTextArea("", 100);
         tf = new TextField(strings.get("base.please.wait"));  // "Please wait..."
@@ -197,7 +195,7 @@ public class ChannelFrame extends Frame
             if (s.length() > 0)
             {
                 tf.setText("");
-                cc.chSend(cname, s + "\n");
+                cc.sendToChannel(cname, s + "\n");
 
                 history.setElementAt(s, history.size() - 1);
                 history.addElement("");

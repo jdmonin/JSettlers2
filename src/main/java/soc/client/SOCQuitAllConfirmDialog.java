@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2008,2010,2013-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008,2010,2013-2014,2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -20,8 +20,6 @@
 package soc.client;
 
 import java.awt.Frame;
-
-import soc.client.SOCPlayerClient.GameAwtDisplay;
 
 
 /**
@@ -51,7 +49,7 @@ class SOCQuitAllConfirmDialog extends AskDialog
      *                 if we're hosting a local server but not actively playing
      * @throws IllegalArgumentException If cli or gameOrSelf is null
      */
-    public static void createAndShow(GameAwtDisplay cli, Frame gamePIOrSelf)
+    public static void createAndShow(SOCPlayerClient.GameDisplay cli, Frame gamePIOrSelf)
         throws IllegalArgumentException
     {
         if ((cli == null) || (gamePIOrSelf == null))
@@ -72,7 +70,7 @@ class SOCQuitAllConfirmDialog extends AskDialog
      * @param hostedServerActive Is client hosting a local server with games active?
      *                 Call {@link SOCPlayerClient.ClientNetwork#anyHostedActiveGames()} to determine.
      */
-    protected SOCQuitAllConfirmDialog(GameAwtDisplay cli, Frame gamePIOrSelf, boolean hostedServerActive)
+    protected SOCQuitAllConfirmDialog(SOCPlayerClient.GameDisplay cli, Frame gamePIOrSelf, boolean hostedServerActive)
     {
         super(cli, gamePIOrSelf,
             strings.get(hostedServerActive ? "dialog.quitall.shut.srv" : "dialog.quitall.really"),
@@ -83,6 +81,7 @@ class SOCQuitAllConfirmDialog extends AskDialog
             strings.get(hostedServerActive ? "dialog.quitall.cont.srv" : "dialog.quitall.cont.play"),
                 // "Continue serving" / "Continue playing"
             false, true);
+
         this.hostedServerActive = hostedServerActive;
     }
 

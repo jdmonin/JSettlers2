@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2007-2010,2013-2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007-2010,2013-2014,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -47,8 +47,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 
-import soc.client.SOCPlayerClient.GameAwtDisplay;
-
 /**
  * This is the generic modal dialog to ask players a two- or three-choice question;
  * to present a one-button message, see {@link NotifyDialog}.
@@ -82,7 +80,7 @@ public abstract class AskDialog extends Dialog
     private static final int MSG_BORDER = 5;
 
     /** Player client; passed to constructor, not null; used for actions in subclasses when dialog buttons are chosen */
-    protected final GameAwtDisplay pcli;
+    protected final SOCPlayerClient.GameDisplay pcli;
 
     /**
      * Player interface; passed to constructor; may be null if the
@@ -168,7 +166,7 @@ public abstract class AskDialog extends Dialog
      * @throws IllegalArgumentException If both default1 and default2 are true,
      *    or if any of these is null: cli, gamePI, prompt, choice1, choice2.
      */
-    public AskDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI,
+    public AskDialog(SOCPlayerClient.GameDisplay cli, SOCPlayerInterface gamePI,
         String titlebar, String prompt, String choice1, String choice2,
         boolean default1, boolean default2)
         throws IllegalArgumentException
@@ -188,7 +186,7 @@ public abstract class AskDialog extends Dialog
      * parentFr cannot be null; use {@link #getParentFrame(Component)} to find it.
      * @since 1.1.06
      */
-    protected AskDialog(GameAwtDisplay cli, Frame parentFr,
+    protected AskDialog(SOCPlayerClient.GameDisplay cli, Frame parentFr,
         String titlebar, String prompt, String btnText,
         boolean hasDefault)
         throws IllegalArgumentException
@@ -217,7 +215,7 @@ public abstract class AskDialog extends Dialog
      * @throws IllegalArgumentException If both default1 and default2 are true,
      *    or if any of these is null: cli, gamePI, prompt, choice1, choice2.
      */
-    public AskDialog(GameAwtDisplay cli, Frame parentFr,
+    public AskDialog(SOCPlayerClient.GameDisplay cli, Frame parentFr,
         String titlebar, String prompt, String choice1, String choice2,
         boolean default1, boolean default2)
         throws IllegalArgumentException
@@ -248,7 +246,7 @@ public abstract class AskDialog extends Dialog
      *    or if any of these is null: cli, gamePI, prompt, choice1, choice2,
      *    or if choice3 is null and defaultChoice is 3.
      */
-    public AskDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI,
+    public AskDialog(SOCPlayerClient.GameDisplay cli, SOCPlayerInterface gamePI,
         String titlebar, String prompt, String choice1, String choice2, String choice3,
         int defaultChoice)
         throws IllegalArgumentException
@@ -281,7 +279,7 @@ public abstract class AskDialog extends Dialog
      *    or if any of these is null: cli, parentFr, prompt, choice1, choice2,
      *    or if choice3 is null and defaultChoice is 3.
      */
-    public AskDialog(GameAwtDisplay cli, Frame parentFr,
+    public AskDialog(SOCPlayerClient.GameDisplay cli, Frame parentFr,
         String titlebar, String prompt, String choice1, String choice2, String choice3,
         int defaultChoice)
         throws IllegalArgumentException
