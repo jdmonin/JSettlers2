@@ -23,7 +23,6 @@
 package soc.client;
 
 import java.awt.BorderLayout;
-import java.awt.Button;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Container;
@@ -33,16 +32,10 @@ import java.awt.Font;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.Label;
-import java.awt.Panel;
-import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.TextEvent;
-import java.awt.event.TextListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -69,10 +62,20 @@ import java.util.Vector;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -211,6 +214,12 @@ public class SOCPlayerClient
      * @since 1.2.00
      */
     public static final String PREF_BOT_TRADE_REJECT_SEC = "botTradeRejectSec";
+
+    /**
+     * The classic JSettlers green background color; green tone #61AF71.
+     * @since 2.0.00
+     */
+    public static final Color JSETTLERS_BG_GREEN = new Color(97, 175, 113);
 
     /**
      * i18n text strings in our {@link #cliLocale}.
@@ -696,7 +705,7 @@ public class SOCPlayerClient
 
 
     /**
-     * A {@link GameDisplay} implementation for AWT.
+     * A {@link GameDisplay} implementation for Swing.
      * Uses {@link CardLayout} to display an appropriate interface:
      *<UL>
      * <LI> Initial "Connect or Practice" panel to connect to a server
@@ -708,9 +717,10 @@ public class SOCPlayerClient
      * and channels use {@link ChannelFrame}.
      *<P>
      * Before v2.0.00, most of these fields and methods were part of the main {@link SOCPlayerClient} class.
+     * Also converted from AWT to Swing in v2.0.00.
      * @since 2.0.00
      */
-    public static class GameAwtDisplay extends Panel implements GameDisplay
+    public static class GameAwtDisplay extends JPanel implements GameDisplay
     {
         /** main panel, in cardlayout */
         private static final String MAIN_PANEL = "main";
@@ -856,7 +866,7 @@ public class SOCPlayerClient
          * when the version and features are known.
          * @since 1.1.19
          */
-        private Panel mainPane;
+        private JPanel mainPane;
 
         /** Layout for {@link #mainPane} */
         private GridBagLayout mainGBL;
@@ -874,19 +884,19 @@ public class SOCPlayerClient
         private boolean mainPaneLayoutIsDone, mainPaneLayoutIsDone_hasChannels;
 
         /** Nickname (username) to connect to server and use in games */
-        protected TextField nick;
+        protected JTextField nick;
 
         /** Password for {@link #nick} while connecting to server, or blank */
-        protected TextField pass;
+        protected JPasswordField pass;
 
         /** Status from server, or progress/error message updated by client */
-        protected TextField status;
+        protected JTextField status;
 
         /**
          * Chat channel name to create or join with {@link #jc} button.
          * Hidden in v1.1.19+ if server is missing {@link SOCFeatureSet#SERVER_CHANNELS}.
          */
-        protected TextField channel;
+        protected JTextField channel;
 
         // protected TextField game;  // removed 1.1.07 - NewGameOptionsFrame instead
 
@@ -912,24 +922,24 @@ public class SOCPlayerClient
          * "New Game..." button, brings up {@link NewGameOptionsFrame} window
          * @since 1.1.07
          */
-        protected Button ng;  // new game
+        protected JButton ng;  // new game
 
         /**
          * "Join Channel" button, for channel currently highlighted in {@link #chlist},
          * or create new channel named in {@link #channel}. Hidden in v1.1.19+ if server
          * is missing {@link SOCFeatureSet#SERVER_CHANNELS}.
          */
-        protected Button jc;
+        protected JButton jc;
 
         /** "Join Game" button */
-        protected Button jg;
+        protected JButton jg;
 
         /**
          * Practice Game button: Create game to play against
          * {@link SOCPlayerClient.ClientNetwork#practiceServer practiceServer},
          * not {@link SOCPlayerClient.ClientNetwork#localTCPServer localTCPServer}.
          */
-        protected Button pg;
+        protected JButton pg;
 
         /**
          * "Game Info" button, shows a game's {@link SOCGameOption}s.
@@ -937,14 +947,14 @@ public class SOCPlayerClient
          * Renamed in 2.0.00 to 'gi'; previously 'so' Show Options.
          * @since 1.1.07
          */
-        protected Button gi;
+        protected JButton gi;
 
         /**
          * Local Server indicator in main panel: blank, or 'server is running' if
          * {@link SOCPlayerClient.ClientNetwork#localTCPServer localTCPServer} has been started.
          * If so, localTCPServer's port number is shown in {@link #versionOrlocalTCPPortLabel}.
          */
-        private Label localTCPServerLabel;
+        private JLabel localTCPServerLabel;
 
         /**
          * When connected to a remote server, shows its version number.
@@ -952,11 +962,11 @@ public class SOCPlayerClient
          * shows that server's port number (see also {@link #localTCPServerLabel}).
          * In either mode, has a tooltip with more info.
          */
-        private Label versionOrlocalTCPPortLabel;
+        private JLabel versionOrlocalTCPPortLabel;
 
-        protected Label messageLabel;  // error message for messagepanel
-        protected Label messageLabel_top;   // secondary message
-        protected Button pgm;  // practice game on messagepanel
+        protected JLabel messageLabel;  // error message for messagepanel
+        protected JLabel messageLabel_top;   // secondary message
+        protected JButton pgm;  // practice game on messagepanel
 
         /**
          * This class displays one of several panels to the user:
@@ -1012,6 +1022,9 @@ public class SOCPlayerClient
                 // "You must enter a nickname before you can join a game."
             STATUS_CANNOT_JOIN_THIS_GAME = client.strings.get("pcli.main.join.cannot");
                 // "Cannot join, this client is incompatible with features of this game."
+
+            setOpaque(true);
+            setBackground(JSETTLERS_BG_GREEN);  // easier than troubleshooting color-inherit from JFrame or applet tag
         }
 
         public SOCPlayerClient getClient()
@@ -1051,15 +1064,11 @@ public class SOCPlayerClient
 
             setFont(new Font("SansSerif", Font.PLAIN, 12));
 
-            nick = new TextField(20);
-            pass = new TextField(20);
-            if (isJavaOnOSX)
-                pass.setEchoChar('\u2022');  // round bullet (option-8)
-            else
-                pass.setEchoChar('*');
-            status = new TextField(20);
+            nick = new JTextField(20);
+            pass = new JPasswordField(20);
+            status = new JTextField(20);
             status.setEditable(false);
-            channel = new TextField(20);
+            channel = new JTextField(20);
 
             DefaultListModel<JoinableListItem> lm = new DefaultListModel<JoinableListItem>();
             chlist = new JList<JoinableListItem>(lm);
@@ -1073,13 +1082,13 @@ public class SOCPlayerClient
             gmlist.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
             lm.addElement(JoinableListItem.BLANK);
 
-            ng = new Button(strings.get("pcli.main.newgame"));       // "New Game..."
-            jc = new Button(strings.get("pcli.main.join.channel"));  // "Join Channel"
-            jg = new Button(strings.get("pcli.main.join.game"));     // "Join Game"
-            pg = new Button(strings.get("pcli.main.practice"));      // "Practice" -- "practice game" text is too wide
-            gi = new Button(strings.get("pcli.main.game.info"));     // "Game Info" -- show game options
-            versionOrlocalTCPPortLabel = new Label();
-            localTCPServerLabel = new Label();
+            ng = new JButton(strings.get("pcli.main.newgame"));       // "New Game..."
+            jc = new JButton(strings.get("pcli.main.join.channel"));  // "Join Channel"
+            jg = new JButton(strings.get("pcli.main.join.game"));     // "Join Game"
+            pg = new JButton(strings.get("pcli.main.practice"));      // "Practice" -- "practice game" text is too wide
+            gi = new JButton(strings.get("pcli.main.game.info"));     // "Game Info" -- show game options
+            versionOrlocalTCPPortLabel = new JLabel();
+            localTCPServerLabel = new JLabel();
 
             // Username not entered yet: can't click buttons
             ng.setEnabled(false);
@@ -1089,14 +1098,17 @@ public class SOCPlayerClient
             jg.setEnabled(false);
             gi.setEnabled(false);
 
-            nick.addTextListener(new TextListener()
+            nick.getDocument().addDocumentListener(new DocumentListener()
             {
+                public void removeUpdate(DocumentEvent e)  { textValueChanged(); }
+                public void insertUpdate(DocumentEvent e)  { textValueChanged(); }
+                public void changedUpdate(DocumentEvent e) { textValueChanged(); }
+
                 /**
-                 * When nickname contents change, enable/disable buttons as appropriate. ({@link TextListener})
-                 * @param e textevent from {@link #nick}
+                 * When nickname contents change, enable/disable buttons as appropriate.
                  * @since 1.1.07
                  */
-                public void textValueChanged(TextEvent e)
+                private void textValueChanged()
                 {
                     boolean notEmpty = (nick.getText().trim().length() > 0);
                     if (notEmpty != ng.isEnabled())
@@ -1178,20 +1190,20 @@ public class SOCPlayerClient
 
             initMainPanelLayout(true, null);  // status line only, until later call to showVersion
 
-            Panel messagePane = new Panel(new BorderLayout());
+            JPanel messagePane = new JPanel(new BorderLayout());
 
             // secondary message at top of message pane, used with pgm button.
-            messageLabel_top = new Label("", Label.CENTER);
+            messageLabel_top = new JLabel("", SwingConstants.CENTER);
             messageLabel_top.setVisible(false);
             messagePane.add(messageLabel_top, BorderLayout.NORTH);
 
             // message label that takes up the whole pane
-            messageLabel = new Label("", Label.CENTER);
+            messageLabel = new JLabel("", SwingConstants.CENTER);
             messageLabel.setForeground(new Color(252, 251, 243)); // off-white
             messagePane.add(messageLabel, BorderLayout.CENTER);
 
             // bottom of message pane: practice-game button
-            pgm = new Button(strings.get("pcli.message.practicebutton"));  // "Practice Game (against robots)"
+            pgm = new JButton(strings.get("pcli.message.practicebutton"));  // "Practice Game (against robots)"
             pgm.setVisible(false);
             messagePane.add(pgm, BorderLayout.SOUTH);
             pgm.addActionListener(actionListener);
@@ -1242,7 +1254,12 @@ public class SOCPlayerClient
             if (mainGBC == null)
                 mainGBC = new GridBagConstraints();
             if (mainPane == null)
-                mainPane = new Panel(mainGBL);
+            {
+                mainPane = new JPanel(mainGBL);
+                mainPane.setBackground(null);
+                mainPane.setOpaque(false);
+                mainPane.setBorder(BorderFactory.createEmptyBorder(0, 4, 4, 4));
+            }
             else if (mainPane.getLayout() == null)
                 mainPane.setLayout(mainGBL);
 
@@ -1290,21 +1307,21 @@ public class SOCPlayerClient
             chlist.setVisible(hasChannels);
             jc.setVisible(hasChannels);
 
-            Label l;
+            JLabel l;
 
             // Layout is 6 columns wide (item, item, middle spacer, item, spacer, item).
             // If ! hasChannels, channel-related items won't be laid out; adjust spacing to compensate.
 
             // Row 1 (spacer)
 
-            l = new Label();
+            l = new JLabel();
             c.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(l, c);
             mainPane.add(l);
 
             // Row 2
 
-            l = new Label(strings.get("pcli.main.label.yournickname"));  // "Your Nickname:"
+            l = new JLabel(strings.get("pcli.main.label.yournickname"));  // "Your Nickname:"
             c.gridwidth = 1;
             gbl.setConstraints(l, c);
             mainPane.add(l);
@@ -1313,17 +1330,17 @@ public class SOCPlayerClient
             gbl.setConstraints(nick, c);
             mainPane.add(nick);
 
-            l = new Label();
+            l = new JLabel(" ");
             c.gridwidth = 1;
             gbl.setConstraints(l, c);
             mainPane.add(l);
 
-            l = new Label(strings.get("pcli.main.label.optionalpw"));  // "Optional Password:"
+            l = new JLabel(strings.get("pcli.main.label.optionalpw"));  // "Optional Password:"
             c.gridwidth = 1;
             gbl.setConstraints(l, c);
             mainPane.add(l);
 
-            l = new Label();
+            l = new JLabel(" ");
             c.gridwidth = 1;
             gbl.setConstraints(l, c);
             mainPane.add(l);
@@ -1332,12 +1349,12 @@ public class SOCPlayerClient
             gbl.setConstraints(pass, c);
             mainPane.add(pass);
 
-            l = new Label();
+            l = new JLabel();
             c.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(l, c);
             mainPane.add(l);
 
-            l = new Label();
+            l = new JLabel();
             c.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(l, c);
             mainPane.add(l);
@@ -1346,7 +1363,7 @@ public class SOCPlayerClient
 
             if (hasChannels)
             {
-                l = new Label(strings.get("pcli.main.label.newchannel"));  // "New Channel:"
+                l = new JLabel(strings.get("pcli.main.label.newchannel"));  // "New Channel:"
                 c.gridwidth = 1;
                 gbl.setConstraints(l, c);
                 mainPane.add(l);
@@ -1356,7 +1373,7 @@ public class SOCPlayerClient
                 mainPane.add(channel);
             }
 
-            l = new Label();
+            l = new JLabel();
             c.gridwidth = (hasChannels) ? 1 : 3;
             gbl.setConstraints(l, c);
             mainPane.add(l);
@@ -1365,7 +1382,7 @@ public class SOCPlayerClient
             gbl.setConstraints(pg, c);
             mainPane.add(pg);  // "Practice"
 
-            l = new Label();
+            l = new JLabel();
             c.gridwidth = 1;
             gbl.setConstraints(l, c);
             mainPane.add(l);
@@ -1374,7 +1391,7 @@ public class SOCPlayerClient
             gbl.setConstraints(ng, c);
             mainPane.add(ng);  // "New Game..."
 
-            l = new Label();
+            l = new JLabel();
             c.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(l, c);
             mainPane.add(l);
@@ -1398,7 +1415,7 @@ public class SOCPlayerClient
                 mainPane.add(jc);  // "Join Channel"
             }
 
-            l = new Label();
+            l = new JLabel(" ");
             c.gridwidth = 1;
             gbl.setConstraints(l, c);
             mainPane.add(l);
@@ -1407,7 +1424,7 @@ public class SOCPlayerClient
             gbl.setConstraints(gi, c);
             mainPane.add(gi);  // "Game Info"
 
-            l = new Label();
+            l = new JLabel();
             c.gridwidth = 1;
             gbl.setConstraints(l, c);
             mainPane.add(l);
@@ -1416,7 +1433,7 @@ public class SOCPlayerClient
             gbl.setConstraints(jg, c);
             mainPane.add(jg);  // "Join Game"
 
-            l = new Label();
+            l = new JLabel();
             c.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(l, c);
             mainPane.add(l);
@@ -1425,18 +1442,18 @@ public class SOCPlayerClient
 
             if (hasChannels)
             {
-                l = new Label(strings.get("pcli.main.label.channels"));  // "Channels"
+                l = new JLabel(strings.get("pcli.main.label.channels"));  // "Channels"
                 c.gridwidth = 2;
                 gbl.setConstraints(l, c);
                 mainPane.add(l);
 
-                l = new Label();
+                l = new JLabel(" ");
                 c.gridwidth = 1;
                 gbl.setConstraints(l, c);
                 mainPane.add(l);
             }
 
-            l = new Label(strings.get("pcli.main.label.games"));  // "Games"
+            l = new JLabel(strings.get("pcli.main.label.games"));  // "Games"
             c.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(l, c);
             mainPane.add(l);
@@ -1445,29 +1462,22 @@ public class SOCPlayerClient
 
             c.weighty = 1;  // Stretch to fill remainder of extra height
 
-            final Insets defaultInsets = c.insets;
-            Insets spaceBelowList = new Insets(0, 0, 4, 0);
-
             if (hasChannels)
             {
                 c.gridwidth = 2;
-                c.insets = spaceBelowList;
                 JScrollPane sp = new JScrollPane(chlist);
                 gbl.setConstraints(sp, c);
-                c.insets = defaultInsets;
                 mainPane.add(sp);
 
-                l = new Label();
+                l = new JLabel();
                 c.gridwidth = 1;
                 gbl.setConstraints(l, c);
                 mainPane.add(l);
             }
 
             c.gridwidth = GridBagConstraints.REMAINDER;
-            c.insets = spaceBelowList;
             JScrollPane sp = new JScrollPane(gmlist);
             gbl.setConstraints(sp, c);
-            c.insets = defaultInsets;
             mainPane.add(sp);
 
             mainPaneLayoutIsDone_hasChannels = hasChannels;
@@ -1527,7 +1537,7 @@ public class SOCPlayerClient
             {
                 status.setText(STATUS_CANNOT_JOIN_THIS_GAME);
                 // popup
-                NotifyDialog.createAndShow(this, (Frame) null,
+                NotifyDialog.createAndShow(this, (JFrame) null,
                     STATUS_CANNOT_JOIN_THIS_GAME,
                     client.strings.get("base.cancel"), true);
 
@@ -1881,6 +1891,7 @@ public class SOCPlayerClient
             if (client.gotPassword)
                 return client.password;
 
+            @SuppressWarnings("deprecation")
             String p = pass.getText().trim();
 
             if (p.length() > SOCAuthRequest.PASSWORD_LEN_MAX)
@@ -2268,11 +2279,10 @@ public class SOCPlayerClient
             {
                 versionOrlocalTCPPortLabel.setForeground(new Color(252, 251, 243)); // off-white
                 versionOrlocalTCPPortLabel.setText(client.strings.get("pcli.main.version", versionString));  // "v {0}"
-                new AWTToolTip
+                versionOrlocalTCPPortLabel.setToolTipText
                     (client.strings.get("pcli.main.version.tip", versionString, buildString,
-                         Version.version(), Version.buildnum()),
+                         Version.version(), Version.buildnum()));
                          // "Server version is {0} build {1}; client is {2} bld {3}"
-                     versionOrlocalTCPPortLabel);
             }
 
             initMainPanelLayout(false, feats);  // complete the layout as appropriate for server
@@ -2833,10 +2843,9 @@ public class SOCPlayerClient
             localTCPServerLabel.setFont(getFont().deriveFont(Font.BOLD));
             localTCPServerLabel.addMouseListener(mouseListener);
             versionOrlocalTCPPortLabel.setText(strings.get("pcli.localserver.port", tportStr));  // "Port: {0}"
-            new AWTToolTip
-                (strings.get("pcli.localserver.running.tip", tportStr, Version.version(), Version.buildnum()),
+            versionOrlocalTCPPortLabel.setToolTipText
+                (strings.get("pcli.localserver.running.tip", tportStr, Version.version(), Version.buildnum()));
                     // "You are running a server on TCP port {0}. Version {1} bld {2}"
-                versionOrlocalTCPPortLabel);
             versionOrlocalTCPPortLabel.addMouseListener(mouseListener);
 
             // Set titlebar, if present
@@ -6810,8 +6819,8 @@ public class SOCPlayerClient
         gameDisplay = new GameAwtDisplay((args.length == 0), client);
         client.setGameDisplay(gameDisplay);
 
-        Frame frame = new Frame(client.strings.get("pcli.main.title", Version.version()));  // "JSettlers client {0}"
-        frame.setBackground(new Color(97, 175, 113));  // green tone #61AF71
+        JFrame frame = new JFrame(client.strings.get("pcli.main.title", Version.version()));  // "JSettlers client {0}"
+        frame.setBackground(JSETTLERS_BG_GREEN);
         frame.setForeground(Color.black);
         // Add a listener for the close event
         frame.addWindowListener(gameDisplay.createWindowAdapter());
@@ -6820,7 +6829,7 @@ public class SOCPlayerClient
 
         frame.add(gameDisplay, BorderLayout.CENTER);
         frame.setLocationByPlatform(true);
-        frame.setSize(620, 400);
+        frame.setSize(650, 400);
         frame.setVisible(true);
 
         if (Version.versionNumber() == 0)
