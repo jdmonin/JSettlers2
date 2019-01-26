@@ -26,7 +26,6 @@ package soc.server;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -920,12 +919,12 @@ public class SOCGameHandler extends GameHandler
      * @see SOCServer#connectToGame(Connection, String, Map)
      * @see SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, Map)
      */
-    @SuppressWarnings("unchecked")
-    public void joinGame(SOCGame gameData, Connection c, final boolean isReset, final boolean isTakingOver)
+    @SuppressWarnings("unchecked")  // for new ArrayList<SOCSpecialItem>[]
+    public void joinGame(final SOCGame gameData, final Connection c, final boolean isReset, final boolean isTakingOver)
     {
         boolean hasRobot = false;  // If game's already started, true if any bot is seated (can be taken over)
-        String gameName = gameData.getName();
-        final String cliName = c.getData();
+        final String gameName = gameData.getName(), cliName = c.getData();
+        final int gameState = gameData.getGameState(), cliVers = c.getVersion();
 
         if (! isReset)
         {
@@ -966,7 +965,7 @@ public class SOCGameHandler extends GameHandler
             /**
              * send the seat lock information, if client needs per-seat messages
              */
-            if (c.getVersion() < SOCSetSeatLock.VERSION_FOR_ALL_SEATS)
+            if (cliVers < SOCSetSeatLock.VERSION_FOR_ALL_SEATS)
             {
                 final SOCGame.SeatLockState sl = gameData.getSeatLock(i);
                 // old client doesn't have CLEAR_ON_RESET
@@ -976,7 +975,7 @@ public class SOCGameHandler extends GameHandler
             }
         }
 
-        if (c.getVersion() >= SOCSetSeatLock.VERSION_FOR_ALL_SEATS)
+        if (cliVers >= SOCSetSeatLock.VERSION_FOR_ALL_SEATS)
             srv.messageToPlayer(c, new SOCSetSeatLock(gameName, gameData.getSeatLocks()));
 
         /**
@@ -985,8 +984,8 @@ public class SOCGameHandler extends GameHandler
          * the game is still forming, client already has data for the empty board.
          * Sea Board must be sent, to set the VS layout part and other data useful for initial rendering.
          */
-        if ((gameData.getGameState() != SOCGame.NEW)
-            || (c.getVersion() < SOCBoardLayout.VERSION_FOR_OMIT_IF_EMPTY_NEW_GAME)
+        if ((gameState != SOCGame.NEW)
+            || (cliVers < SOCBoardLayout.VERSION_FOR_OMIT_IF_EMPTY_NEW_GAME)
             || (gameData.getBoard().getBoardEncodingFormat() >= SOCBoard.BOARD_ENCODING_LARGE))
         {
             c.put(getBoardLayoutMessage(gameData).toCmd());
@@ -1001,8 +1000,8 @@ public class SOCGameHandler extends GameHandler
          * Otherwise send each player's unique potential settlement list,
          * to populate legal sets before sending any of their PutPieces.
          */
-        if ((gameData.getGameState() < SOCGame.START1A)
-            && (c.getVersion() >= SOCPotentialSettlements.VERSION_FOR_PLAYERNUM_ALL))
+        if ((gameState < SOCGame.START1A)
+            && (cliVers >= SOCPotentialSettlements.VERSION_FOR_PLAYERNUM_ALL))
         {
             final HashSet<Integer> psList = gameData.getPlayer(0).getPotentialSettlements();
 
@@ -1081,7 +1080,7 @@ public class SOCGameHandler extends GameHandler
          * _SC_CLVI: Send updated Cloth counts for any changed villages.
          * _SC_FTRI: Send any changed Special Edges.
          */
-        if (gameData.hasSeaBoard && (gameData.getGameState() >= SOCGame.ROLL_OR_CARD))
+        if (gameData.hasSeaBoard && (gameState >= SOCGame.ROLL_OR_CARD))
         {
             final SOCBoardLarge bl = (SOCBoardLarge) gameData.getBoard();
 
@@ -1121,7 +1120,7 @@ public class SOCGameHandler extends GameHandler
          * just before SOCGameState and the "joined the game" text.
          * This earlier send has been tested against 1.1.07 (released 2009-10-31).
          */
-        if (c.getVersion() >= SOCGameElements.MIN_VERSION)
+        if (cliVers >= SOCGameElements.MIN_VERSION)
             c.put(new SOCGameElements
                 (gameName, SOCGameElements.CURRENT_PLAYER, gameData.getCurrentPlayerNumber()).toCmd());
         else
@@ -1131,7 +1130,7 @@ public class SOCGameHandler extends GameHandler
          * Send the game's Special Item info, if any, if game has started:
          */
         final String[] gameSITypes;
-        if (gameData.getGameState() >= SOCGame.START1A)
+        if (gameState >= SOCGame.START1A)
         {
             Set<String> ty = gameData.getSpecialItemTypes();
             gameSITypes = (ty != null) ? ty.toArray(new String[ty.size()]) : null;
@@ -1312,7 +1311,7 @@ public class SOCGameHandler extends GameHandler
             counts[5] = pl.getNumPieces(SOCPlayingPiece.CITY);
             if (gameData.hasSeaBoard)
                 counts[6] = pl.getNumPieces(SOCPlayingPiece.SHIP);
-            if (c.getVersion() >= SOCPlayerElements.MIN_VERSION)
+            if (cliVers >= SOCPlayerElements.MIN_VERSION)
             {
                 c.put(new SOCPlayerElements
                     (gameName, i, SOCPlayerElement.SET,
@@ -1328,7 +1327,7 @@ public class SOCGameHandler extends GameHandler
 
             final int numDevCards = pl.getInventory().getTotal();
             final int unknownType;
-            if (c.getVersion() >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
+            if (cliVers >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
                 unknownType = SOCDevCardConstants.UNKNOWN;
             else
                 unknownType = SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X;
@@ -1372,7 +1371,7 @@ public class SOCGameHandler extends GameHandler
                 }
             }
 
-            if ((i == 0) && (c.getVersion() < SOCGameElements.MIN_VERSION))
+            if ((i == 0) && (cliVers < SOCGameElements.MIN_VERSION))
             {
                 // per-game data, send once; send here only if client is
                 // too old to send together with other game elements,
@@ -1400,7 +1399,7 @@ public class SOCGameHandler extends GameHandler
                         laPlayer = gameData.getPlayerWithLargestArmy();
         final int lrPlayerNum = (lrPlayer != null) ? lrPlayer.getPlayerNumber() : -1,
                   laPlayerNum = (laPlayer != null) ? laPlayer.getPlayerNumber() : -1;
-        if (c.getVersion() < SOCGameElements.MIN_VERSION)
+        if (cliVers < SOCGameElements.MIN_VERSION)
         {
             c.put(SOCLongestRoad.toCmd(gameName, lrPlayerNum));
             c.put(SOCLargestArmy.toCmd(gameName, laPlayerNum));
@@ -1450,7 +1449,7 @@ public class SOCGameHandler extends GameHandler
             c.put(membersCommand);
         // before v2.0.00, current player number (SETTURN) was sent here,
         // between membersCommand and GAMESTATE.
-        c.put(SOCGameState.toCmd(gameName, gameData.getGameState()));
+        c.put(SOCGameState.toCmd(gameName, gameState));
         if (D.ebugOn)
             D.ebugPrintln("*** " + cliName + " joined the game " + gameName + " at "
                 + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
@@ -1465,7 +1464,7 @@ public class SOCGameHandler extends GameHandler
         }
         srv.messageToGame(gameName, new SOCJoinGame(cliName, "", "dummyhost", gameName));
 
-        if ((! isReset) && gameData.getGameState() >= SOCGame.START2A)
+        if ((! isReset) && gameState >= SOCGame.START2A)
         {
             srv.messageToPlayerKeyed
                 (c, gameName,
