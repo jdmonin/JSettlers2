@@ -1354,11 +1354,14 @@ public class SOCPlayerClient
 
             c.fill = GridBagConstraints.BOTH;
             c.gridwidth = GridBagConstraints.REMAINDER;
+            c.anchor = GridBagConstraints.LINE_START;  // for buttons (don't use fill)
 
             if (isStatusRow)
             {
+                c.weightx = 1;  // fill width, stretch with frame resize
                 gbl.setConstraints(status, c);
                 mainPane.add(status);
+                c.weightx = 0;
 
                 return;  // <---- Early return: Call later to lay out the rest ----
             }
@@ -1396,6 +1399,7 @@ public class SOCPlayerClient
             JLabel l;
 
             // Layout is 6 columns wide (item, item, middle spacer, item, spacer, item).
+            // Text fields in column 2 and 6 are stretched to together fill available width (weightx 0.5).
             // If ! hasChannels, channel-related items won't be laid out; adjust spacing to compensate.
 
             // Row 1 (spacer)
@@ -1413,8 +1417,10 @@ public class SOCPlayerClient
             mainPane.add(l);
 
             c.gridwidth = 1;
+            c.weightx = .5;
             gbl.setConstraints(nick, c);
             mainPane.add(nick);
+            c.weightx = 0;
 
             l = new JLabel(" ");
             c.gridwidth = 1;
@@ -1432,8 +1438,10 @@ public class SOCPlayerClient
             mainPane.add(l);
 
             c.gridwidth = 1;
+            c.weightx = .5;
             gbl.setConstraints(pass, c);
             mainPane.add(pass);
+            c.weightx = 0;
 
             l = new JLabel();
             c.gridwidth = GridBagConstraints.REMAINDER;
@@ -1455,8 +1463,10 @@ public class SOCPlayerClient
                 mainPane.add(l);
 
                 c.gridwidth = 1;
+                c.weightx = .5;
                 gbl.setConstraints(channel, c);
                 mainPane.add(channel);
+                c.weightx = 0;
             }
 
             l = new JLabel();
@@ -1466,7 +1476,7 @@ public class SOCPlayerClient
 
             c.gridwidth = 1;  // this position was "New Game:" label before 1.1.07
             gbl.setConstraints(pg, c);
-            mainPane.add(pg);  // "Practice"
+            mainPane.add(pg);  // "Practice"; stretched to same width as "Game Info"
 
             l = new JLabel();
             c.gridwidth = 1;
@@ -1474,8 +1484,10 @@ public class SOCPlayerClient
             mainPane.add(l);
 
             c.gridwidth = 1;
+            c.fill = GridBagConstraints.NONE;
             gbl.setConstraints(ng, c);
             mainPane.add(ng);  // "New Game..."
+            c.fill = GridBagConstraints.BOTH;
 
             l = new JLabel();
             c.gridwidth = GridBagConstraints.REMAINDER;
@@ -1496,9 +1508,11 @@ public class SOCPlayerClient
 
             if (hasChannels)
             {
+                c.fill = GridBagConstraints.NONE;
                 c.gridwidth = 1;
                 gbl.setConstraints(jc, c);
                 mainPane.add(jc);  // "Join Channel"
+                c.fill = GridBagConstraints.BOTH;
             }
 
             l = new JLabel(" ");
@@ -1508,7 +1522,7 @@ public class SOCPlayerClient
 
             c.gridwidth = 1;
             gbl.setConstraints(gi, c);
-            mainPane.add(gi);  // "Game Info"
+            mainPane.add(gi);  // "Game Info"; stretched to same width as "Practice"
 
             l = new JLabel();
             c.gridwidth = 1;
@@ -1516,8 +1530,10 @@ public class SOCPlayerClient
             mainPane.add(l);
 
             c.gridwidth = 1;
+            c.fill = GridBagConstraints.NONE;
             gbl.setConstraints(jg, c);
             mainPane.add(jg);  // "Join Game"
+            c.fill = GridBagConstraints.BOTH;
 
             l = new JLabel();
             c.gridwidth = GridBagConstraints.REMAINDER;
