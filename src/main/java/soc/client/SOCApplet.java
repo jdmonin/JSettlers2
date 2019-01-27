@@ -26,6 +26,8 @@ package soc.client;
 import java.applet.Applet;
 import java.awt.Color;
 
+import javax.swing.UIManager;
+
 import soc.client.SOCPlayerClient.ClientNetwork;
 import soc.client.SOCPlayerClient.SwingGameDisplay;
 import soc.util.Version;
@@ -64,6 +66,7 @@ public class SOCApplet extends Applet
         {
             System.err.println("Invalid " + name + ": " + value);
         }
+
         return iValue;
     }
 
@@ -73,7 +76,7 @@ public class SOCApplet extends Applet
     @Override
     public void start()
     {
-        if (!gameDisplay.hasConnectOrPractice)
+        if (! gameDisplay.hasConnectOrPractice)
             gameDisplay.nick.requestFocus();
     }
 
@@ -87,6 +90,10 @@ public class SOCApplet extends Applet
     @Override
     public synchronized void init()
     {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {}
+
         client = new SOCPlayerClient();
         gameDisplay = new SwingGameDisplay(false, client);
         client.setGameDisplay(gameDisplay);

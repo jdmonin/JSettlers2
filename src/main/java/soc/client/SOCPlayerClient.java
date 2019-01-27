@@ -74,6 +74,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
@@ -1212,18 +1213,7 @@ public class SOCPlayerClient
                  */
                 public void actionPerformed(ActionEvent e)
                 {
-                    try
-                    {
-                        Object target = e.getSource();
-                        guardedActionPerform(target);
-                    }
-                    catch (Throwable thr)
-                    {
-                        System.err.println("-- Error caught in AWT event thread: " + thr + " --");
-                        thr.printStackTrace(); // will print causal chain, no need to manually iterate
-                        System.err.println("-- Error stack trace end --");
-                        System.err.println();
-                    }
+                    guardedActionPerform(e.getSource());
                 }
             };
 
@@ -1614,44 +1604,54 @@ public class SOCPlayerClient
         }
 
         /**
-         * Wrapped version of actionPerformed() for easier encapsulation.
+         * Handle mouse clicks and keyboard: Wrapped version of actionPerformed() for easier encapsulation.
          * If appropriate, calls {@link #guardedActionPerform_games(Object)}
          * or {@link #guardedActionPerform_channels(Object)} and shows the "cannot join" popup if needed.
+         *<P>
+         * To help debugging, catches any thrown exceptions and prints them to {@link System#err}.
+         *
          * @param target Action source, from ActionEvent.getSource(),
          *     such as {@link #jg}, {@link #ng}, {@link #chlist}, or {@link #gmlist}.
          * @since 1.1.00
          */
         private void guardedActionPerform(Object target)
         {
-            boolean showPopupCannotJoin = false;
-
-            if ((target == jc) || (target == channel) || (target == chlist)) // Join channel stuff
+            try
             {
-                showPopupCannotJoin = ! guardedActionPerform_channels(target);
-            }
-            else if ((target == jg) || (target == ng) || (target == gmlist)
-                    || (target == pg) || (target == pgm) || (target == gi)) // Join game stuff
-            {
-                showPopupCannotJoin = ! guardedActionPerform_games(target);
-            }
+                boolean showPopupCannotJoin = false;
 
-            if (showPopupCannotJoin)
-            {
-                status.setText(STATUS_CANNOT_JOIN_THIS_GAME);
-                // popup
-                NotifyDialog.createAndShow(this, (JFrame) null,
-                    STATUS_CANNOT_JOIN_THIS_GAME,
-                    client.strings.get("base.cancel"), true);
+                if ((target == jc) || (target == channel) || (target == chlist)) // Join channel stuff
+                {
+                    showPopupCannotJoin = ! guardedActionPerform_channels(target);
+                }
+                else if ((target == jg) || (target == ng) || (target == gmlist)
+                        || (target == pg) || (target == pgm) || (target == gi)) // Join game stuff
+                {
+                    showPopupCannotJoin = ! guardedActionPerform_games(target);
+                }
 
-                return;
+                if (showPopupCannotJoin)
+                {
+                    status.setText(STATUS_CANNOT_JOIN_THIS_GAME);
+                    // popup
+                    NotifyDialog.createAndShow(this, (JFrame) null,
+                        STATUS_CANNOT_JOIN_THIS_GAME,
+                        client.strings.get("base.cancel"), true);
+
+                    return;
+                }
+
+                if (target == nick)
+                { // Nickname TextField
+                    nick.transferFocus();
+                }
+
+            } catch (Throwable thr) {
+                System.err.println("-- Error caught in AWT event thread: " + thr + " --");
+                thr.printStackTrace(); // will print causal chain, no need to manually iterate
+                System.err.println("-- Error stack trace end --");
+                System.err.println();
             }
-
-            if (target == nick)
-            { // Nickname TextField
-                nick.transferFocus();
-            }
-
-            return;
         }
 
         /**
@@ -6963,6 +6963,10 @@ public class SOCPlayerClient
                 System.exit(1);
             }
         }
+
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {}
 
         client = new SOCPlayerClient();
         gameDisplay = new SwingGameDisplay((args.length == 0), client);
