@@ -3964,18 +3964,20 @@ public class SOCPlayerClient
         // Server's responses will add, remove or change our "known options".
         // In v2.0.00 and later, also checks for game option localized descriptions.
         final int cliVersion = Version.versionNumber();
+        final boolean sameVersion = (sVersion == cliVersion);
         final boolean withTokenI18n =
             (cliLocale != null) && (isPractice || (sVersion >= SOCStringManager.VERSION_FOR_I18N))
             && ! ("en".equals(cliLocale.getLanguage()) && "US".equals(cliLocale.getCountry()));
 
         if ( ((! isPractice) && (sVersion > cliVersion))
-            || (withTokenI18n && (isPractice || (sVersion == cliVersion))))
+            || (withTokenI18n && (isPractice || sameVersion)))
         {
             // Newer server: Ask it to list any options we don't know about yet.
-            // Same version: Ask for all options with localized descs if available.
+            // Same version: Ask for all localized option descs if available.
             if (! isPractice)
                 gameDisplay.optionsRequested();
-            gmgr.put(SOCGameOptionGetInfos.toCmd(null, withTokenI18n), isPractice);  // sends "-"
+            gmgr.put(SOCGameOptionGetInfos.toCmd(null, withTokenI18n, withTokenI18n && sameVersion), isPractice);
+                // sends "-" and/or "?I18N"
         }
         else if ((sVersion < cliVersion) && ! isPractice)
         {
@@ -4010,13 +4012,13 @@ public class SOCPlayerClient
                 {
                     if (! isPractice)
                         gameDisplay.optionsRequested();
-                    gmgr.put(SOCGameOptionGetInfos.toCmd(tooNewOpts, withTokenI18n), isPractice);
+                    gmgr.put(SOCGameOptionGetInfos.toCmd(tooNewOpts, withTokenI18n, false), isPractice);
                 }
                 else if (withTokenI18n && ! isPractice)
                 {
                     // server is older than client but understands i18n: request gameopt localized strings
 
-                    gmgr.put(SOCGameOptionGetInfos.toCmd(null, true), false);  // sends opt list "-,?I18N"
+                    gmgr.put(SOCGameOptionGetInfos.toCmd(null, true, false), false);  // sends opt list "-,?I18N"
                 }
             } else {
                 // server is too old to understand options. Can't happen with local practice srv,
@@ -5558,7 +5560,7 @@ public class SOCPlayerClient
             if (! isPractice)
                 gameDisplay.optionsRequested();
 
-            gmgr.put(SOCGameOptionGetInfos.toCmd(unknowns, wantsI18nStrings(isPractice)), isPractice);
+            gmgr.put(SOCGameOptionGetInfos.toCmd(unknowns, wantsI18nStrings(isPractice), false), isPractice);
         } else {
             opts.newGameWaitingForOpts = false;
             gameDisplay.optionsReceived(opts, isPractice);

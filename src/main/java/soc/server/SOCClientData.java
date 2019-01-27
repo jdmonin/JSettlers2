@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2008-2010,2013,2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008-2010,2013,2015,2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -92,14 +92,14 @@ public class SOCClientData
     /**
      * If this flag is set, client has determined it wants localized strings (I18N),
      * and asked for them early in the connect process by sending a message
-     * that had {@link SOCGameOptionGetInfos#hasTokenGetI18nDescs()} true.
+     * that had {@link SOCGameOptionGetInfos#hasTokenGetI18nDescs} true.
      * Server can later check this flag to see if responses to various client request
      * messages should include localized strings.
      *<P>
      * Set this flag only if:
      * <UL>
      *  <LI> Client has sent a {@link SOCGameOptionGetInfos} request with
-     *     {@link SOCGameOptionGetInfos#hasTokenGetI18nDescs() msg.hasTokenGetI18nDescs()}
+     *     {@link SOCGameOptionGetInfos#hasTokenGetI18nDescs msg.hasTokenGetI18nDescs}
      *  <LI> {@link Connection#getI18NLocale() c.getI18NLocale()} != {@code null}
      *  <LI> {@link Connection#getVersion() c.getVersion()} &gt;= {@link SOCStringManager#VERSION_FOR_I18N};
      *     this is already implied by the client sending a message with {@code hasTokenGetI18nDescs}.

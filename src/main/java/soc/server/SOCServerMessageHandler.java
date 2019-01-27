@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2016-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2016-2019 Jeremy D Monin <jeremy@nand.net>
  * Some contents were formerly part of SOCServer.java;
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
@@ -628,13 +628,13 @@ public class SOCServerMessageHandler
         final int cliVers = c.getVersion();
         final SOCClientData scd = (SOCClientData) c.getAppData();
         boolean alreadyTrimmedEnums = false;
-        Vector<String> okeys = mes.getOptionKeys();
+        Vector<String> okeys = mes.optionKeys;
         List<SOCGameOption> opts = null;  // opts to send as SOCGameOptionInfo
         final Map<String, SOCGameOption> optsToLocal;  // opts to send in a SOCLocalizedStrings instead
 
         // check for request for i18n localized descriptions (client v2.0.00 or newer);
         // if we don't have game opt localization for client's locale, ignore that request flag.
-        if (mes.hasTokenGetI18nDescs() && (c.getI18NLocale() != null))
+        if (mes.hasTokenGetI18nDescs && (c.getI18NLocale() != null))
             scd.wantsI18N = true;
         final boolean wantsLocalDescs =
             scd.wantsI18N
@@ -652,7 +652,7 @@ public class SOCServerMessageHandler
         }
 
         // Gather requested game option info:
-        if (okeys == null)
+        if ((okeys == null) && ! mes.hasOnlyTokenI18n)
         {
             // received "-", look for newer options (cli is older than us).
             // opts will be null if there are no newer ones.
