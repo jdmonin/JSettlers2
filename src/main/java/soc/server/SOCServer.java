@@ -4263,7 +4263,7 @@ public class SOCServer extends Server
             (Version.versionNumber(), Version.version(), Version.buildnum(), feats.getEncodedList(), null));
 
         // CHANNELS
-        Vector<String> cl = new Vector<String>();
+        List<String> cl = new ArrayList<String>();
         channelList.takeMonitor();
 
         try
@@ -4271,9 +4271,7 @@ public class SOCServer extends Server
             Enumeration<String> clEnum = channelList.getChannels();
 
             while (clEnum.hasMoreElements())
-            {
-                cl.addElement(clEnum.nextElement());
-            }
+                cl.add(clEnum.nextElement());
         }
         catch (Exception e)
         {

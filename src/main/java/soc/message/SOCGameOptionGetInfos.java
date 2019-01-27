@@ -21,9 +21,9 @@
  **/
 package soc.message;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
-import java.util.Vector;
 
 import soc.game.SOCGameOption;
 import soc.util.DataUtils;
@@ -101,7 +101,7 @@ public class SOCGameOptionGetInfos extends SOCMessage
      *<P>
      * Before v2.0.00 this was private field {@code optkeys}, with public getter {@code getOptionKeys()}.
      */
-    public final Vector<String> optionKeys;
+    public final List<String> optionKeys;
 
     /**
      * True if client is also asking server for localized game option descriptions (v2.0.00 and
@@ -135,7 +135,7 @@ public class SOCGameOptionGetInfos extends SOCMessage
      * @throws IllegalArgumentException if {@code withOnlyTokenI18n}, but {@code okeys != null}
      */
     public SOCGameOptionGetInfos
-        (final Vector<String> okeys, final boolean withTokenI18nDescs, final boolean withOnlyTokenI18n)
+        (final List<String> okeys, final boolean withTokenI18nDescs, final boolean withOnlyTokenI18n)
         throws IllegalArgumentException
     {
         if (withOnlyTokenI18n && (okeys != null))
@@ -239,7 +239,7 @@ public class SOCGameOptionGetInfos extends SOCMessage
      */
     public static SOCGameOptionGetInfos parseDataStr(String s)
     {
-        Vector<String> okey = new Vector<String>();
+        List<String> okey = new ArrayList<String>();
         StringTokenizer st = new StringTokenizer(s, sep2);
         boolean hasDash = false, hasTokenI18n = false;
 
@@ -255,7 +255,7 @@ public class SOCGameOptionGetInfos extends SOCMessage
                     continue;  // not an optkey, don't add it to list
                 }
 
-                okey.addElement(ntok);
+                okey.add(ntok);
                 if (ntok.equals("-"))
                     hasDash = true;  // should be sole element of list
             }
@@ -287,14 +287,14 @@ public class SOCGameOptionGetInfos extends SOCMessage
     @Override
     public String toString()
     {
-        StringBuffer sb = new StringBuffer("SOCGameOptionGetInfos:options=");
+        StringBuilder sb = new StringBuilder("SOCGameOptionGetInfos:options=");
 
         if (optionKeys == null)
         {
             if (! hasOnlyTokenI18n)
                 sb.append('-');
         } else {
-            DataUtils.enumIntoStringBuf(optionKeys.elements(), sb);
+            DataUtils.listIntoStringBuilder(optionKeys, sb);
         }
 
         if (hasTokenGetI18nDescs)

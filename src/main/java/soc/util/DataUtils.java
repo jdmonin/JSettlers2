@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,7 +19,7 @@
  **/
 package soc.util;
 
-import java.util.Enumeration;
+import java.util.Collection;
 
 /**
  * Common helper functions for data and conversions.
@@ -68,32 +68,31 @@ public abstract class DataUtils
     }
 
     /**
-     * For use in toString: Append string enum contents to stringbuffer,
+     * For use in toString: Append string collection's contents to a StringBuilder,
      * formatted as "a,b,c,d,e".
-     * @param se  Enum of String to append. 0 length is allowed, null is not allowed.
-     * @param sb  StringBuffer to which <tt>se</tt> will be appended, as "a,b,c,d,e"
-     * @throws ClassCastException if <tt>se.nextElement()</tt> returns non-String
-     * @throws NullPointerException if <tt>se</tt> or <tt>sb</tt> is null
+     *<P>
+     * Before v2.0.00 this method was {@code enumIntoStringBuf}.
+     *
+     * @param sc  Collection of Strings to append. 0 length is allowed, null is not allowed.
+     * @param sb  StringBuilder to which {@code sc} will be appended as "a,b,c,d,e"
+     * @throws NullPointerException if {@code sc} or {@code sb} is null
      * @since 1.1.09
      */
-    public static final void enumIntoStringBuf(final Enumeration<String> se, StringBuffer sb)
-        throws ClassCastException, NullPointerException
+    public static final void listIntoStringBuilder(final Collection<String> sc, final StringBuilder sb)
+        throws NullPointerException
     {
-        if (! se.hasMoreElements())
+        if (sc.isEmpty())
             return;
 
-        try
+        boolean any = false;
+        for (String s : sc)
         {
-            sb.append (se.nextElement());
-
-            while (se.hasMoreElements())
-            {
+            if (any)
                 sb.append(',');
-                sb.append(se.nextElement());
-            }
+            else
+                any = true;
+            sb.append(s);
         }
-        catch (ClassCastException cce) { throw cce; }
-        catch (Exception e) {}
     }
 
 }

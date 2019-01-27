@@ -628,7 +628,7 @@ public class SOCServerMessageHandler
         final int cliVers = c.getVersion();
         final SOCClientData scd = (SOCClientData) c.getAppData();
         boolean alreadyTrimmedEnums = false;
-        Vector<String> okeys = mes.optionKeys;
+        final List<String> okeys = mes.optionKeys;
         List<SOCGameOption> opts = null;  // opts to send as SOCGameOptionInfo
         final Map<String, SOCGameOption> optsToLocal;  // opts to send in a SOCLocalizedStrings instead
 
@@ -701,7 +701,7 @@ public class SOCServerMessageHandler
                         } catch (MissingResourceException e) {}
                     }
                 } else {
-                    final String okey = okeys.elementAt(i);
+                    final String okey = okeys.get(i);
                     opt = SOCGameOption.getOption(okey, false);
 
                     if ((opt == null) || (opt.minVersion > cliVers))  // Don't use dynamic opt.getMinVersion(Map) here

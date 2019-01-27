@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -21,9 +21,9 @@
  **/
 package soc.message;
 
-import java.util.Enumeration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
-import java.util.Vector;
 
 import soc.util.DataUtils;
 
@@ -48,14 +48,14 @@ public class SOCChannels extends SOCMessage
     /**
      * List of channels
      */
-    private Vector<String> channels;
+    private final List<String> channels;
 
     /**
      * Create a Channels Message.
      *
      * @param cl  list of channels
      */
-    public SOCChannels(Vector<String> cl)
+    public SOCChannels(final List<String> cl)
     {
         messageType = CHANNELS;
         channels = cl;
@@ -64,7 +64,7 @@ public class SOCChannels extends SOCMessage
     /**
      * @return the list of channels
      */
-    public Vector<String> getChannels()
+    public List<String> getChannels()
     {
         return channels;
     }
@@ -86,23 +86,21 @@ public class SOCChannels extends SOCMessage
      * @param cl  the list of channels
      * @return    the command string
      */
-    public static String toCmd(Vector<String> cl)
+    public static String toCmd(final List<String> cl)
     {
-        String cmd = CHANNELS + sep;
+        StringBuilder cmd = new StringBuilder(CHANNELS + sep);
 
-        try
+        boolean any = false;
+        for (String chan : cl)
         {
-            Enumeration<String> clEnum = cl.elements();
-            cmd += clEnum.nextElement();
-
-            while (clEnum.hasMoreElements())
-            {
-                cmd += (sep2 + clEnum.nextElement());
-            }
+            if (any)
+                cmd.append(sep2);
+            else
+                any = true;
+            cmd.append(chan);
         }
-        catch (Exception e) {}
 
-        return cmd;
+        return cmd.toString();
     }
 
     /**
@@ -113,15 +111,13 @@ public class SOCChannels extends SOCMessage
      */
     public static SOCChannels parseDataStr(String s)
     {
-        Vector<String> cl = new Vector<String>();
+        List<String> cl = new ArrayList<String>();
         StringTokenizer st = new StringTokenizer(s, sep2);
 
         try
         {
             while (st.hasMoreTokens())
-            {
-                cl.addElement(st.nextToken());
-            }
+                cl.add(st.nextToken());
         }
         catch (Exception e)
         {
@@ -139,9 +135,10 @@ public class SOCChannels extends SOCMessage
     @Override
     public String toString()
     {
-        StringBuffer sb = new StringBuffer("SOCChannels:channels=");
+        StringBuilder sb = new StringBuilder("SOCChannels:channels=");
         if (channels != null)
-            DataUtils.enumIntoStringBuf(channels.elements(), sb);
+            DataUtils.listIntoStringBuilder(channels, sb);
+
         return sb.toString();
     }
 
