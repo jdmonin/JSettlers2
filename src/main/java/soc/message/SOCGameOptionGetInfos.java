@@ -50,9 +50,9 @@ import soc.util.DataUtils;
  * {@link SOCLocalizedStrings}({@link SOCLocalizedStrings#TYPE_GAMEOPT TYPE_GAMEOPT})
  * with any unchanged but localized game options.
  *<P>
- * The keyname list sent by the client would be:
+ * The keyname list sent by a client asking for localization would be:
  *<UL>
- * <LI> If older than server, or same version: "-", {@link #OPTKEY_GET_I18N_DESCS}
+ * <LI> If older than server: "-", {@link #OPTKEY_GET_I18N_DESCS}
  * <LI> If same version: only {@link #OPTKEY_GET_I18N_DESCS}
  * <LI> If newer than server: Each newer option name, then {@link #OPTKEY_GET_I18N_DESCS}
  *</UL>
