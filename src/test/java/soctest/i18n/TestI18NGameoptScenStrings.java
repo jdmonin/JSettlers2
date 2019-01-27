@@ -111,7 +111,7 @@ public class TestI18NGameoptScenStrings
                 ("Game opts missing from toClient.properties gameopt.* strings: " + missingKeys);
         }
 
-        assertTrue("SOCGameOption i18n strings", allOK);
+        assertTrue("SOCGameOption i18n strings; see standard output for details", allOK);
     }
 
     /**
@@ -166,7 +166,7 @@ public class TestI18NGameoptScenStrings
                 ("SOCScenario keys missing from toClient.properties gamescen.* strings: " + missingKeys);
         }
 
-        assertTrue("SOCScenario i18n strings", allOK);
+        assertTrue("SOCScenario i18n strings; see standard output for details", allOK);
     }
 
     /**

@@ -652,8 +652,6 @@ public class SOCGameOption
                  SOCGameOption.FLAG_DROP_IF_UNUSED, "Cannot join this game"));
         */
 
-        return opt;
-
         /*
             // A commented-out debug option is kept here for each option type's testing convenience.
             // OTYPE_* - Add a commented-out debug of the new type, for testing the new type.
@@ -674,8 +672,9 @@ public class SOCGameOption
                 ("DEBUGSTR", 1107, 1107, 20, false, SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option str"));
         opt.put("DEBUGSTRHIDE", new SOCGameOption
                 ("DEBUGSTRHIDE", 1107, 1107, 20, true, SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option strhide"));
-
         */
+
+        return opt;
 
         /*
             // TEST CODE: simple callback for each option, that just echoes old/new value
@@ -1355,6 +1354,7 @@ public class SOCGameOption
     }
 
     /**
+     * Make and return a copy of all known objects. Calls {@link #cloneOptions(Map)}.
      * @return a deep copy of all known option objects
      * @see #addKnownOption(SOCGameOption)
      */
@@ -1450,8 +1450,10 @@ public class SOCGameOption
 
     /**
      * Make a deep copy of a group of options.
+     * Iterates over {@link Map#entrySet() opts.entrySet()} (ignores map keys).
      * @param opts  a map of SOCGameOptions, or null; method synchronizes on {@code opts}
-     * @return a deep copy of all option objects within opts, or null if opts is null
+     * @return a deep copy of all option objects within opts, or null if opts is null.
+     *    Each item's map key will be its {@link SOCVersionedItem#key}.
      */
     public static Map<String, SOCGameOption> cloneOptions(final Map<String, SOCGameOption> opts)
     {

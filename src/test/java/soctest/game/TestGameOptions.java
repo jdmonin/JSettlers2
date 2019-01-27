@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2018-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,6 +37,26 @@ import soc.game.SOCGameOption;
  */
 public class TestGameOptions
 {
+    /**
+     * Test that keys of {@link SOCGameOption#initAllOptions()} and {@link SOCGameOption#getAllKnownOptions()}
+     * are consistent internally and with each other. Each option's map key must be its option key.
+     */
+    @Test
+    public void testKnownOptionMapKeysConsistent()
+    {
+        final Map<String, SOCGameOption> allOpts = SOCGameOption.initAllOptions(),
+            knownOpts = SOCGameOption.getAllKnownOptions();  // sanitized copy of initAllOptions()
+
+        for (String okey : allOpts.keySet())
+        {
+            SOCGameOption opt = allOpts.get(okey);
+            assertEquals("getAllKnownOptions: map key != opt.key", okey, opt.key);
+            assertTrue
+                ("key " + okey + " in initAllOptions() but missing from getAllKnownOptions()",
+                 knownOpts.containsKey(okey));
+        }
+    }
+
     /**
      * Test that when the client sends a new-game request whose opts contains {@code "VP"} with boolean part false,
      * that {@code "VP"} will be removed from the set of options by
