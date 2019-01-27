@@ -139,7 +139,7 @@ public class SOCGameOptionGetInfos extends SOCMessage
         throws IllegalArgumentException
     {
         if (withOnlyTokenI18n && (okeys != null))
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException(okeys.toString());
 
         messageType = GAMEOPTIONGETINFOS;
         optionKeys = okeys;
@@ -189,10 +189,15 @@ public class SOCGameOptionGetInfos extends SOCMessage
      *            localized game option descriptions; will send {@link #OPTKEY_GET_I18N_DESCS} but not "-".
      *            See {@code withTokenI18nDescs} for version requirements.
      * @return  the command string
+     * @throws IllegalArgumentException if {@code withOnlyTokenI18n}, but {@code opts != null}
      */
     public static String toCmd
         (final List<?> opts, final boolean withTokenI18nDescs, final boolean withOnlyTokenI18n)
+        throws IllegalArgumentException
     {
+        if (withOnlyTokenI18n && (opts != null))
+            throw new IllegalArgumentException(opts.toString());
+
         StringBuffer cmd = new StringBuffer(Integer.toString(GAMEOPTIONGETINFOS));
         cmd.append(sep);
 
@@ -278,7 +283,7 @@ public class SOCGameOptionGetInfos extends SOCMessage
                 okey = null;
         }
 
-        return new SOCGameOptionGetInfos(okey, hasTokenI18n, hasTokenI18n && (okey == null));
+        return new SOCGameOptionGetInfos(okey, hasTokenI18n, hasTokenI18n && (okey == null) && ! hasDash);
     }
 
     /**
