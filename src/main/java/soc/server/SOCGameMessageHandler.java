@@ -3,7 +3,7 @@
  * This file Copyright (C) 2016 Alessandro D'Ottavio
  * Some contents were formerly part of SOCServer.java and SOCGameHandler.java;
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -719,40 +719,47 @@ public class SOCGameMessageHandler
                 throw new IllegalArgumentException("player not found in game");
             }
 
-            if (ga.canDiscard(pn, mes.getResources()))
+            final SOCResourceSet res = mes.getResources();
+            if (ga.canDiscard(pn, res))
             {
-                ga.discard(pn, mes.getResources());  // discard, change gameState
+                ga.discard(pn, res);  // discard, maybe change gameState
 
                 // Same resource-loss messages are sent in handleROLLDICE after a pirate fleet attack (_SC_PIRI).
 
                 /**
                  * tell the player client that the player discarded the resources
                  */
-                handler.reportRsrcGainLoss(gn, mes.getResources(), true, false, pn, -1, null, c);
+                handler.reportRsrcGainLoss(gn, res, true, false, pn, -1, null, c);
 
                 /**
                  * tell everyone else that the player discarded unknown resources
                  */
+                final int numRes = res.getTotal();
                 srv.messageToGameExcept
                     (gn, c, new SOCPlayerElement
-                        (gn, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, mes.getResources().getTotal(), true),
+                        (gn, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, numRes, true),
                      true);
-                srv.messageToGameKeyed(ga, true, "action.discarded", c.getData(), mes.getResources().getTotal());
+                srv.messageToGameKeyed(ga, true, "action.discarded", player.getName(), numRes);
                     // "{0} discarded {1} resources."
 
                 /**
                  * send the new state, or end turn if was marked earlier as forced
                  */
-                if ((ga.getGameState() != SOCGame.PLAY1) || ! ga.isForcingEndTurn())
+                final int gstate = ga.getGameState();
+                if ((gstate != SOCGame.PLAY1) || ! ga.isForcingEndTurn())
                 {
-                    handler.sendGameState(ga);
-                        // if state is WAITING_FOR_ROB_CHOOSE_PLAYER (_SC_PIRI), also sends CHOOSEPLAYERREQUEST
+                    if (gstate == SOCGame.WAITING_FOR_DISCARDS)
+                        handler.sendGameState(ga, true, false);  // send only text prompt, not redundant GAMESTATE
+                    else
+                        handler.sendGameState(ga);
+                            // if state is WAITING_FOR_ROB_CHOOSE_PLAYER (_SC_PIRI), also sends CHOOSEPLAYERREQUEST
                 } else {
                     handler.endGameTurn(ga, player, true);  // already did ga.takeMonitor()
                 }
             } else {
                 /**
-                 * (TODO) there could be a better feedback message here
+                 * (TODO) client knows how many discards are needed and should prevent this,
+                 * but there could be a better feedback message here
                  */
                 srv.messageToPlayer(c, gn, "You can't discard that many cards.");
             }

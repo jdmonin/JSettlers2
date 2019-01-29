@@ -1989,7 +1989,8 @@ public class SOCGameHandler extends GameHandler
      * to say that.
      *<P>
      * State {@link SOCGame#WAITING_FOR_DISCARDS}:
-     * If a 7 is rolled, will also say who must discard (in a GAMETEXTMSG).
+     * If a 7 is rolled, will also say who must discard (in a GAMESERVERTEXT).
+     * Can use {@code omitGameStateMessage} to send only that GAMESERVERTEXT.
      *<P>
      * State {@link SOCGame#WAITING_FOR_ROB_CHOOSE_PLAYER}:
      * If current player must choose which player to rob,

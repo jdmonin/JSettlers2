@@ -37,6 +37,9 @@ and backport minor new features until `2.0.00` is ready.
 		- When forming a new game with a classic non-sea board, don't send the empty board layout:
 		  Client already has data for an empty board
 	- SOCBuildRequest now optional before client's SOCPutPiece request
+	- After a player discards, but others still must pick their discards: Don't send redundant SOCGameState,
+	  only the text prompt. This also prevents client from redisplaying "Discarding..." for players who've
+	  discarded but still have more than 7 resources
 - Server Config Validation mode: Test the current config and exit, with new startup option:
 	`-t` or `--test-config`
 - Game option key names can now be longer (8 characters)
