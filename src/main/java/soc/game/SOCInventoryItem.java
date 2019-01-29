@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2016,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,7 +29,8 @@ import soc.util.SOCStringManager;
  *<P>
  * To see if a player can currently play an inventory item, use {@link SOCGame#canPlayInventoryItem(int, int)}.
  * Inventory items' lifecycle and play rules differ by scenario. In {@link SOCGameOption#K_SC_FTRI SC_FTRI}
- * for example, the items are "gift" trade ports which can be played immediately.
+ * for example, the items are "gift" trade ports which can be played immediately (cannot cancel during placement)
+ * or if nowhere to place, saved for placement later (that placement can be canceled).
  *<P>
  * Inventory items must be {@link Cloneable} for use in set copy constructors,
  * see {@link #clone()} for details.
@@ -43,9 +44,13 @@ import soc.util.SOCStringManager;
  * <LI> Decide how and when the new kind of item will be played
  * <LI> Decide which scenario {@link SOCGameOption} will use the new kind of item;
  *      all code and javadoc updates will check for or mention the option
+ * <LI> Update the scenario's SGO keyname javadoc (like {@link SOCGameOption#K_SC_FTRI})
+ *      to mention {@link SOCInventoryItem}
  * <LI> Update {@link #getItemName(SOCGame, boolean, SOCStringManager)}
  * <LI> Update {@link SOCGame#canPlayInventoryItem(int, int)}
  * <LI> Update {@link SOCGame#playInventoryItem(int)}
+ * <LI> Decide whether to update {@link #createForScenario(SOCGame, int, boolean, boolean, boolean, boolean)}
+ *      because of nonstandard field values or method calls during construction
  * <LI> Decide if the server will communicate item-related actions using {@code SOCSimpleRequest}, {@code SOCSimpleAction}
  *      or {@code SOCInventoryItemAction} messages, or more specific message types.  Update those message handlers at
  *      clients and at server's SOCGameHandler; search where-used for the message classes that will be used.

@@ -134,6 +134,7 @@ public class SOCGame implements Serializable, Cloneable
      * <LI> {@link #forceEndTurn()}
      * <LI> {@link soc.robot.SOCRobotBrain#run()}
      * <LI> {@link soc.server.SOCGameHandler#sendGameState(SOCGame)}
+     * <LI> {@link soc.message.SOCGameState} javadoc list of states with related messages and client responses
      *</UL>
      * Also, if your state is similar to an existing state, do a where-used search
      * for that state, and decide where both states should be reacted to.

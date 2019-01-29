@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010-2012,2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2012,2014,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -94,8 +94,9 @@ public class SOCChoosePlayer extends SOCMessage
      *   or {@link #CHOICE_MOVE_ROBBER} to move the robber
      *   or {@link #CHOICE_MOVE_PIRATE} to move the pirate ship.
      *<br>
-     * For <tt>WAITING_FOR_ROB_CLOTH_OR_RESOURCE</tt>, use <tt>ch</tt> = playerNumber
-     * to rob a resource; to rob cloth, use <tt>ch</tt> = -(playerNumber + 1).
+     * For {@link soc.game.SOCGame#WAITING_FOR_ROB_CLOTH_OR_RESOURCE WAITING_FOR_ROB_CLOTH_OR_RESOURCE},
+     * use {@code ch} = playerNumber to rob a resource from that player;
+     * to rob cloth, use {@code ch} = -(playerNumber + 1).
      */
     public SOCChoosePlayer(String ga, int ch)
     {
@@ -118,9 +119,10 @@ public class SOCChoosePlayer extends SOCMessage
      *   or {@link #CHOICE_MOVE_ROBBER} to move the robber
      *   or {@link #CHOICE_MOVE_PIRATE} to move the pirate ship.
      *<br>
-     * For <tt>WAITING_FOR_ROB_CLOTH_OR_RESOURCE</tt>, <tt>getChoice()</tt> &gt;= 0
-     * means rob a resource from that player number, and <tt>getChoice()</tt> &lt; 0
-     * means rob cloth from player number (<tt>-getChoice()</tt>) - 1.
+     * For {@link soc.game.SOCGame#WAITING_FOR_ROB_CLOTH_OR_RESOURCE WAITING_FOR_ROB_CLOTH_OR_RESOURCE},
+     * {@code getChoice()} &gt;= 0
+     * means rob a resource from that player number, and {@code getChoice()} &lt; 0
+     * means rob cloth from player number {@code (-getChoice()) - 1}.
      *
      */
     public int getChoice()

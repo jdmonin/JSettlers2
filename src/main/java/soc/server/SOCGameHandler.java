@@ -1978,9 +1978,13 @@ public class SOCGameHandler extends GameHandler
 
     /**
      * Send all game members the current state of the game with a message.
-     * May also send other messages to the current player.
+     * May also send other messages to the game and/or specific players.
      * Note that the current (or new) player number is not sent here.
-     * If game is now OVER, sends appropriate messages.
+     *<P>
+     * See {@link SOCGameState} for complete list of game states,
+     * related messages sent, and expected client responses.
+     *<P>
+     * Summarized here:
      *<P>
      * State {@link SOCGame#ROLL_OR_CARD}:
      * If {@code sendRollPrompt}, send game a {@code RollDicePrompt} announcement.
@@ -1990,7 +1994,10 @@ public class SOCGameHandler extends GameHandler
      *<P>
      * State {@link SOCGame#WAITING_FOR_DISCARDS}:
      * If a 7 is rolled, will also say who must discard (in a GAMESERVERTEXT).
-     * Can use {@code omitGameStateMessage} to send only that GAMESERVERTEXT.
+     * Can use {@code omitGameStateMessage} to send only that GAMESERVERTEXT
+     * if responding to a player's discard.<BR>
+     * <B>Note:</B> This method sends only the prompt text, not the {@link SOCDiscardRequest}s
+     * sent by {@link #sendGameState_sendDiscardRequests(SOCGame, String)}.
      *<P>
      * State {@link SOCGame#WAITING_FOR_ROB_CHOOSE_PLAYER}:
      * If current player must choose which player to rob,
@@ -2006,7 +2013,9 @@ public class SOCGameHandler extends GameHandler
      * {@link #sendGameState_sendGoldPickAnnounceText(SOCGame, String, Connection, SOCGame.RollResult)}
      * after sending the resource gain text ("x gets 1 sheep").
      *<P>
-     * <b>Note:</b> If game is now {@link SOCGame#OVER OVER} and the {@link SOCGame#isBotsOnly} flag is set,
+     * State {@link SOCGame#OVER OVER}: Announces winner, each player's total VP, and related game and player stats.
+     *<P>
+     * <b>Note:</b> If game is now {@code OVER} and the {@link SOCGame#isBotsOnly} flag is set,
      * {@link #sendGameStateOVER(SOCGame)} will call {@link SOCServer#destroyGameAndBroadcast(String, String)}.
      * Be sure that callers to {@code sendGameState} don't assume the game will still exist after calling this method.
      * Also, {@code destroyGame} might create more {@link SOCGame#isBotsOnly} games, depending on server settings.
