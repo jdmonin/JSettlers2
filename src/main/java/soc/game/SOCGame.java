@@ -339,8 +339,8 @@ public class SOCGame implements Serializable, Cloneable
     public static final int PLACING_FREE_ROAD2 = 41;
 
     /**
-     * Player is placing the special {@link SOCInventoryItem} held in {@link #getPlacingItem()}.
-     * For some kinds of item, placement can be canceled by calling {@link #cancelPlaceInventoryItem(boolean)}.
+     * Player is placing the special {@link SOCInventoryItem} held in {@link #getPlacingItem()}. For some kinds
+     * of item, placement can sometimes be canceled by calling {@link #cancelPlaceInventoryItem(boolean)}.
      *<P>
      * The placement method depends on the scenario and item type; for example,
      * {@link SOCGameOption#K_SC_FTRI _SC_FTRI} has trading port items and would
@@ -4641,7 +4641,7 @@ public class SOCGame implements Serializable, Cloneable
             throw new IllegalStateException("Game not active: state " + gameState);
 
         forcingEndTurn = true;
-        SOCInventoryItem itemCard = null;  // card/inventory item returned to player, if any
+        SOCInventoryItem itemCard = null;  // card/inventory item being returned to player, if any
 
         if (gameState == WAITING_FOR_ROBBER_OR_PIRATE)
             chooseMovePirate(false);  // gameState becomes PLACING_ROBBER, which is in the switch
@@ -7514,7 +7514,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Can this player play this special {@link SOCInventoryItem} now? Checks the game state, scenario options, and
-     * player's inventory. Returns 0 or the reason why they can't play it right now.
+     * player's inventory. Returns 0 if OK to play, or the reason why they can't play it right now.
      *<P>
      * Assumes server or client player is calling, and thus player has no unknown dev cards (itype == 0).
      * If calling at client for another player, and the scenario allows special items of type 0, these

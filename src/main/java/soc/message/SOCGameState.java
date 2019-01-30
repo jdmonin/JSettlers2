@@ -58,6 +58,8 @@ import soc.game.SOCGame;  // for javadoc's use
  * <LI>{@link SOCGame#START3B START3B}: Current player: Place a road
  * <LI>{@link SOCGame#STARTS_WAITING_FOR_PICK_GOLD_RESOURCE STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}:
  *     Server sends game a "x, y, and z need to pick resources from the gold hex" prompt text.
+ *     Sends the game
+ *     {@link SOCPlayerElement}({@link SOCPlayerElement#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES}).
  *     Sends specific player(s) {@link SOCSimpleRequest}({@link SOCSimpleRequest#PROMPT_PICK_RESOURCES PROMPT_PICK_RESOURCES}).
  * <LI>{@link SOCGame#ROLL_OR_CARD ROLL_OR_CARD}: Server sends game {@link SOCRollDicePrompt} with current player number.
  *     Current player: Send {@link SOCRollDice} or {@link SOCPlayDevCardRequest}
@@ -85,6 +87,7 @@ import soc.game.SOCGame;  // for javadoc's use
  *     respond with {@link SOCDiscard}. After each client response, if still waiting for other players to discard,
  *     server sends game another prompt text. Otherwise sends game its new {@link SOCGameState}
  * <LI>{@link SOCGame#WAITING_FOR_ROB_CHOOSE_PLAYER WAITING_FOR_ROB_CHOOSE_PLAYER}:
+ *     Server sends current player {@link SOCChoosePlayerRequest} listing possible victims.
  *     Current player: Choose a victim to rob, send {@link SOCChoosePlayer}
  * <LI>{@link SOCGame#WAITING_FOR_DISCOVERY WAITING_FOR_DISCOVERY}:
  *     Current player: Choose 2 resources and send {@link SOCPickResources}
