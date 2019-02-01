@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2013-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2013-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -402,7 +402,10 @@ public interface PlayerClientListener
 
     /**
      * A game text message was received from server, or a chat message from another player.
-     * @param nickname  Player's nickname, or {@code null} for messages from the server itself
+     * @param nickname  Player's nickname, {@code null} for messages from the server itself,
+     *     or {@code ":"} for server messages which should appear in the chat area (recap, etc).
+     *     For {@code ":"}, the message text will probably end with " ::" because the original client would
+     *     begin the text line with ":: " from {@code nickname + ": "}.
      * @param message  Message text
      */
     void messageSent(String nickname, String message);

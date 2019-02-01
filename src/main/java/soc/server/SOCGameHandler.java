@@ -893,6 +893,8 @@ public class SOCGameHandler extends GameHandler
      * Does not add the client to the game's or server's list of players,
      * that should be done before calling this method.
      *<P>
+     * Assumes {@link SOCServer#connectToGame(Connection, String, Map)} was already called.
+     *<P>
      * Assumes NEWGAME (or NEWGAMEWITHOPTIONS) has already been sent out.
      * The game's first message<B>*</B> sent to the connecting client is JOINGAMEAUTH, unless isReset.
      *<P>
@@ -916,7 +918,6 @@ public class SOCGameHandler extends GameHandler
      *                      is defunct because of a network problem.
      *                      If <tt>isTakingOver</tt>, don't send anything to other players.
      *
-     * @see SOCServer#connectToGame(Connection, String, Map)
      * @see SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, Map)
      */
     @SuppressWarnings("unchecked")  // for new ArrayList<SOCSpecialItem>[]
@@ -1423,6 +1424,27 @@ public class SOCGameHandler extends GameHandler
                 int pn = cliPl.getPlayerNumber();
                 if ((pn != -1) && ! gameData.isSeatVacant(pn))
                     sitDown_sendPrivateInfo(gameData, c, pn);
+            }
+        }
+
+        final SOCChatRecentBuffer buf = srv.gameList.getChatBuffer(gameName);
+        if (buf != null)
+        {
+            List<SOCChatRecentBuffer.Entry> recents;
+            synchronized(buf)
+            {
+                recents = buf.getAll();
+            }
+            if (! recents.isEmpty())
+            {
+                c.put(new SOCGameTextMsg(gameName, SOCGameTextMsg.SERVER_FOR_CHAT,
+                       c.getLocalized("member.join.game.recap_begin")).toCmd());
+                          // [:: ]"Recap of recent chat ::"
+                for (SOCChatRecentBuffer.Entry e : recents)
+                    c.put(new SOCGameTextMsg(gameName, e.nickname, e.text).toCmd());
+                c.put(new SOCGameTextMsg(gameName, SOCGameTextMsg.SERVER_FOR_CHAT,
+                       c.getLocalized("member.join.game.recap_end")).toCmd());
+                          // [:: ]"Recap ends ::"
             }
         }
 

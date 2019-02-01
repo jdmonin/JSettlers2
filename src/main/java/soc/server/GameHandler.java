@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -111,6 +111,8 @@ public abstract class GameHandler
     /**
      * Client has been approved to join game; send JOINGAMEAUTH and the entire state of the game to client.
      * Unless <tt>isTakingOver</tt>, announce {@link SOCJoinGame} client join event to other players.
+     *<P>
+     * Assumes {@link SOCServer#connectToGame(Connection, String, java.util.Map)} was already called.
      * Assumes NEWGAME (or NEWGAMEWITHOPTIONS) has already been sent out.
      * First message sent to connecting client is JOINGAMEAUTH, unless isReset.
      *<P>
@@ -132,7 +134,6 @@ public abstract class GameHandler
      *                      is defunct because of a network problem.
      *                      If <tt>isTakingOver</tt>, don't send anything to other players.
      *
-     * @see SOCServer#connectToGame(Connection, String, java.util.Map)
      * @see SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, java.util.Map)
      */
     public abstract void joinGame(SOCGame gameData, Connection c, boolean isReset, boolean isTakingOver);

@@ -1157,10 +1157,19 @@ public class SOCServerMessageHandler
                 boolean isCmd = userIsDebug && srv.processDebugCommand(c, ga.getName(), cmdText, cmdTxtUC);
 
                 if (! isCmd)
+                {
                     //
                     // Send the message to the members of the game
                     //
                     srv.messageToGame(gaName, new SOCGameTextMsg(gaName, plName, cmdText));
+
+                    final SOCChatRecentBuffer buf = gameList.getChatBuffer(gaName);
+                    if (buf != null)
+                        synchronized(buf)
+                        {
+                            buf.add(plName, cmdText);
+                        }
+                }
             }
         }
 

@@ -2020,9 +2020,11 @@ public class SOCServer extends Server
      * Adds a connection to a game, unless they're already a member.
      * If the game doesn't yet exist, creates it and announces the new game to all clients
      * by calling {@link #createGameAndBroadcast(Connection, String, Map, int, boolean, boolean)}.
+     * After this method returns, caller must call {@link #joinGame(SOCGame, Connection, boolean, boolean)}
+     * to send game state to the player/observer.
      *<P>
-     * After this, human players are free to join, until someone clicks "Start Game".
-     * At that point, server will look for robots to fill empty seats.
+     * If this method creates a new game: After it returns, other human players may join until
+     * someone clicks "Start Game". At that point, server will look for robots to fill empty seats.
      *
      * @param c    the Connection to be added to the game; its name, version, and locale should already be set.
      * @param gaName  the name of the game.  Not validated or trimmed, see
@@ -3317,6 +3319,7 @@ public class SOCServer extends Server
 
     /**
      * Send a message to the given game.
+     * Also record the message in that game's {@link SOCChatRecentBuffer}.
      *<P>
      * <b>Locks:</b> Takes, releases {@link SOCGameList#takeMonitorForGame(String)}.
      *

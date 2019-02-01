@@ -21,6 +21,7 @@ and backport minor new features until `2.0.00` is ready.
 - Client:
 	- Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard dialog)
 	- Bank trades: If server declines trade, don't enable Undo Trade button or clear Give/Get resources to 0
+	- When joining a game in progress, server sends the most recent several lines of chat text
 	- Game windows: Player name labels sans-serif for cleaner look
 	- On OSX, set app name to JSettlers in menu bar
 	- Popups (AskDialog, etc) layout fine-tuned, can wrap multi-line text
