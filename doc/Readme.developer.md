@@ -100,6 +100,13 @@ For security, please use sqlite or another database and make a "debug" account w
 a password (see [Readme.md](../Readme.md) section "Database Setup").  Except for
 practice games, no other username can use debug commands.
 
+`D.ebugPrintln` is turned on or off for each java class by the import at the top of the file.
+For example if you wanted to see D.ebugPrintln output for soc.game.SOCPlayer,
+in SOCPlayer.java you would change the line  
+`import soc.disableDebug.D;`  
+to  
+`import soc.debug.D;`
+
 To print the contents of messages sent between the server and client, start the
 client with vm argument `-Djsettlers.debug.traffic=Y` (this goes before `-jar` if using
 the command line). This works for the player client and the robot client, including
