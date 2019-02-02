@@ -3930,7 +3930,7 @@ public class SOCPlayerInterface extends Frame
             pi.chatPrint("::: " + msg + " :::");
         }
 
-        public void messageSent(String nickname, String message)
+        public void messageReceived(String nickname, String message)
         {
             if (nickname == null)
             {

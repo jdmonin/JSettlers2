@@ -984,7 +984,15 @@ public class SOCServerMessageHandler
          * (don't send all message fields received from client)
          */
         if (srv.channelList.isMember(c, chName))
+        {
             srv.messageToChannel(chName, new SOCChannelTextMsg(chName, mName, txt));
+
+            final SOCChatRecentBuffer buf = srv.channelList.getChatBuffer(chName);
+            synchronized(buf)
+            {
+                buf.add(mName, txt);
+            }
+        }
     }
 
     /**
@@ -1550,6 +1558,27 @@ public class SOCServerMessageHandler
          * let everyone know about the change
          */
         srv.messageToChannel(ch, new SOCJoinChannel(msgUser, "", "dummyhost", ch));
+
+        /**
+         * Send recap; same sequence is in SOCGameHandler.joinGame with different message type
+         */
+        final SOCChatRecentBuffer buf = channelList.getChatBuffer(ch);
+        {
+            List<SOCChatRecentBuffer.Entry> recents;
+            synchronized(buf)
+            {
+                recents = buf.getAll();
+            }
+            if (! recents.isEmpty())
+            {
+                c.put(new SOCChannelTextMsg(ch, SOCGameTextMsg.SERVER_FOR_CHAT,
+                        c.getLocalized("member.join.recap_begin")).toCmd());  // [:: ]"Recap of recent chat ::"
+                for (SOCChatRecentBuffer.Entry e : recents)
+                    c.put(new SOCChannelTextMsg(ch, e.nickname, e.text).toCmd());
+                c.put(new SOCChannelTextMsg(ch, SOCGameTextMsg.SERVER_FOR_CHAT,
+                        c.getLocalized("member.join.recap_end")).toCmd());    // [:: ]"Recap ends ::"
+            }
+        }
     }
 
     /**

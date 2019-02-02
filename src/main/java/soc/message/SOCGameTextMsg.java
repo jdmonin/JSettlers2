@@ -62,6 +62,8 @@ public class SOCGameTextMsg extends SOCMessage
      *<P>
      * When this "nickname" is used, the message text should end with " ::" because the original client would
      * begin the text line with ":: " from {@code nickname + ": "}.
+     *<P>
+     * Also used in {@link SOCChannelTextMsg}.
      * @since 2.0.00
      */
     public static final String SERVER_FOR_CHAT = ":";
@@ -82,7 +84,7 @@ public class SOCGameTextMsg extends SOCMessage
     public static final int VERSION_FOR_DICE_RESULT_INSTEAD = 2000;
 
     /**
-     * our token separator; not the normal {@link SOCMessage#sep2}
+     * Our token separator; to avoid collision with any possible text from user, not the normal {@link SOCMessage#sep2}
      */
     private static String sep2 = "" + (char) 0;
 
@@ -100,7 +102,7 @@ public class SOCGameTextMsg extends SOCMessage
 
     /**
      * Text message.
-     * For expected format when {@link #SERVER_FOR_CHAT} is used, see that nickname constant's javadoc.
+     * For expected format when {@link #nickname} is {@link #SERVER_FOR_CHAT}, see that nickname constant's javadoc.
      */
     private String text;
 

@@ -398,6 +398,11 @@ public interface PlayerClientListener
      */
     void gameDisconnected(boolean wasDeleted, String errorMessage);
 
+    /**
+     * Print a broadcast message into this display's chat area.
+     * @param message  Message text
+     * @see SOCPlayerClient.GameDisplay#chatMessageBroadcast(String)
+     */
     void messageBroadcast(String message);
 
     /**
@@ -407,8 +412,9 @@ public interface PlayerClientListener
      *     For {@code ":"}, the message text will probably end with " ::" because the original client would
      *     begin the text line with ":: " from {@code nickname + ": "}.
      * @param message  Message text
+     * @see SOCPlayerClient.GameDisplay#chatMessageReceived(String, String, String)
      */
-    void messageSent(String nickname, String message);
+    void messageReceived(String nickname, String message);
 
     /**
      * A player's {@link soc.message.SOCSimpleRequest "simple request"} has been sent to the entire game, or the server

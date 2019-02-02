@@ -46,13 +46,15 @@ import soc.util.Version;
 /**
  * A class for creating and tracking the games;
  * contains each game's name, {@link SOCGameOption game options},
- * {@link SOCGame} object, and member client {@link Connection}s.
+ * {@link SOCGame} object, member client {@link Connection}s, and
+ * {@link SOCChatRecentBuffer}.
  *<P>
  * In 1.1.07, parent class SOCGameList was refactored, with
  * some methods moved to this new subclass, such as
  * {@link #createGame(String, String, String, Map, GameHandler) createGame}.
  *
  * @see SOCBoardAtServer
+ * @see SOCChannelList
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
  */
@@ -77,16 +79,16 @@ public class SOCGameListAtServer extends SOCGameList
      * Before v2.0.00 this field was in parent class {@link SOCGameList} but only the Server used it.
      * @see SOCGameList#gameInfo
      */
-    private Hashtable<String, SOCGame> gameData;
+    private final Hashtable<String, SOCGame> gameData;
 
     /** synchronized map of game names to Vector of game members ({@link Connection}s) */
-    protected Hashtable<String, Vector<Connection>> gameMembers;
+    protected final Hashtable<String, Vector<Connection>> gameMembers;
 
     /**
-     * Synchronized buffer of each game's recent chat text.
+     * Each game's buffer of recent chat text.
      * @since 2.0.00
      */
-    protected Hashtable<String, SOCChatRecentBuffer> gameChatBuffer;
+    protected final Hashtable<String, SOCChatRecentBuffer> gameChatBuffer;
 
     /**
      * constructor
@@ -539,7 +541,7 @@ public class SOCGameListAtServer extends SOCGameList
             members.removeAllElements();
         }
 
-        SOCChatRecentBuffer buf = gameChatBuffer.get(gaName);
+        SOCChatRecentBuffer buf = gameChatBuffer.remove(gaName);
         if (buf != null)
             buf.clear();
     }

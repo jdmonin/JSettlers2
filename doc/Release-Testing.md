@@ -17,15 +17,18 @@ When preparing to release a new version, testing should include:
     - Create and start playing a practice game with 1 locked space & 2 bots, past initial placement
       into normal play (roll dice, etc) with default options
     - Create and start playing a practice game on the 6-player board (5 bots), with options like Roll No 7s for First 7 Turns
-    - JSettlersServer.jar: Start a dedicated server on another ("remote") machine's text-only console
+    - `JSettlersServer.jar`: Start a dedicated server on another ("remote") machine's text-only console
     - Join that remote server & play a full game, then reset board and start another game
         - `*STATS*` command should include the finished game
         - Bots should rejoin and play
-    - JSettlers.jar: Start a local server and a game, start another client, join and start playing game
-      (will have 2 human clients & 2 bots)
+    - `JSettlers.jar`: Start a Server (non-default port # like 8080), start a game
+    - In the new game's chat, say a few lines ("x", "y", "z" etc)
+    - Start another client, join first client's local server and that game
+    - Joining client should see "recap" of the game chat ("x", "y", "z")
+    - Start the game (will have 2 human clients & 2 bots)
     - Ensure the 2 clients can talk to each other in the game's chat area
-    - Client leaves game (not on their turn): bot should join to replace them & then plays their turn (not unresponsive)
-    - New client joins and replaces bot; verify all of player info is sent
+    - Client leaves game (not on their turn): A bot should join to replace them & play their next turn (not unresponsive)
+    - Have new client join and replace bot; verify all of player info is sent
     - On own turn, leave again, bot takes over
     - Lock 1 bot seat and reset game: that seat should remain empty, no bot
     - Lock the only remaining bot seat and reset game: no bots in new game, it begins immediately
@@ -48,7 +51,12 @@ When preparing to release a new version, testing should include:
     - Board resizes with window
     - Sound works
     - Bots' face icons match their name (Robots smarter than Droids)
-- 2 clients: While both connected to a server, start and join a chat channel and talk to each other there
+- Chat channels:
+    - While connected to a server, start 2 chat channels
+    - In one of those channels, say a few lines ("x", "y", "z" etc)
+    - Connect with a second client and join both channels
+    - Joining client should see "recap" of the one channel's chat ("x", "y", "z"), no recap in the other chat
+    - The 2 clients should each be able to chat, and see each other's text in the correct channel
 
 ## New features
 
@@ -250,7 +258,7 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
     - Start a new client and connect as that same username; should allow connect after appropriate number of seconds
 - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
 - Leave a non-practice game idle for hours; should warn 10-15 minutes before 2-hour limit,
-  should let you add time in 30-minute intervals up to original limit + 30 minutes
+  should let you add time in 30-minute intervals up to original limit + 30 minutes remaining
 - Board layout generator stability:
     - This is a scripted test to set up, start, and run in the background.
     - The board layout generator is complicated, to flexibly handle the sea scenario layouts.

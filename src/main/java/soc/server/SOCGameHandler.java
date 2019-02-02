@@ -1427,8 +1427,11 @@ public class SOCGameHandler extends GameHandler
             }
         }
 
+        /**
+         * Send chat recap; same sequence is in SOCServerMessageHandler.handleJOINCHANNEL_postAuth with
+         * different message type
+         */
         final SOCChatRecentBuffer buf = srv.gameList.getChatBuffer(gameName);
-        if (buf != null)
         {
             List<SOCChatRecentBuffer.Entry> recents;
             synchronized(buf)
@@ -1438,13 +1441,11 @@ public class SOCGameHandler extends GameHandler
             if (! recents.isEmpty())
             {
                 c.put(new SOCGameTextMsg(gameName, SOCGameTextMsg.SERVER_FOR_CHAT,
-                       c.getLocalized("member.join.game.recap_begin")).toCmd());
-                          // [:: ]"Recap of recent chat ::"
+                        c.getLocalized("member.join.recap_begin")).toCmd());  // [:: ]"Recap of recent chat ::"
                 for (SOCChatRecentBuffer.Entry e : recents)
                     c.put(new SOCGameTextMsg(gameName, e.nickname, e.text).toCmd());
                 c.put(new SOCGameTextMsg(gameName, SOCGameTextMsg.SERVER_FOR_CHAT,
-                       c.getLocalized("member.join.game.recap_end")).toCmd());
-                          // [:: ]"Recap ends ::"
+                        c.getLocalized("member.join.recap_end")).toCmd());    // [:: ]"Recap ends ::"
             }
         }
 

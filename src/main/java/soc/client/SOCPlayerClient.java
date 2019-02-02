@@ -598,7 +598,7 @@ public class SOCPlayerClient
         void channelsClosed(String message);
 
         /**
-         * Send a text message to a channel,
+         * Send a text message to a channel on the server,
          * or perform a local command like \ignore or \&shy;unignore.
          *
          * @param chName   the name of the channel
@@ -610,8 +610,24 @@ public class SOCPlayerClient
         /** Print contents of the current chat ignorelist into a playerinterface's chat window. */
         void printIgnoreList(SOCPlayerInterface pi);
 
-        void messageBroadcast(String message);
-        void messageReceived(String channelName, String nickname, String message);
+        /**
+         * Print a broadcast message into all chat channel windows.
+         * @param message  the message text
+         * @see PlayerClientListener#messageBroadcast(String)
+         */
+        void chatMessageBroadcast(String message);
+
+        /**
+         * For a chat channel, print a received message into that channel's window.
+         * @param channelName  the name of the channel
+         * @param nickname  nickname of user sending the message,
+         *     or {@code ":"} for server messages which should appear in the chat area (recap, etc).
+         *     For {@code ":"}, the message text will probably end with " ::" because the original client would
+         *     begin the text line with ":: " from {@code nickname + ": "}.
+         * @param message  the message text
+         * @see PlayerClientListener#messageReceived(String, String)
+         */
+        void chatMessageReceived(String channelName, String nickname, String message);
 
         /**
          * Callback for when a {@link NewGameOptionsFrame} is closed, to clear any reference to it here.
@@ -2567,7 +2583,7 @@ public class SOCPlayerClient
                 nick.requestFocus();
         }
 
-        public void messageBroadcast(String message)
+        public void chatMessageBroadcast(String message)
         {
             for (ChannelFrame fr : channels.values())
             {
@@ -2575,7 +2591,7 @@ public class SOCPlayerClient
             }
         }
 
-        public void messageReceived(String channelName, String nickname, String message)
+        public void chatMessageReceived(String channelName, String nickname, String message)
         {
             ChannelFrame fr = channels.get(channelName);
 
@@ -4229,7 +4245,7 @@ public class SOCPlayerClient
      */
     protected void handleBCASTTEXTMSG(SOCBCastTextMsg mes)
     {
-        gameDisplay.messageBroadcast(mes.getText());
+        gameDisplay.chatMessageBroadcast(mes.getText());
 
         for (PlayerClientListener pcl : clientListeners.values())
         {
@@ -4244,7 +4260,7 @@ public class SOCPlayerClient
      */
     protected void handleCHANNELTEXTMSG(SOCChannelTextMsg mes)
     {
-        gameDisplay.messageReceived(mes.getChannel(), mes.getNickname(), mes.getText());
+        gameDisplay.chatMessageReceived(mes.getChannel(), mes.getNickname(), mes.getText());
     }
 
     /**
@@ -4450,7 +4466,7 @@ public class SOCPlayerClient
         String fromNickname = mes.getNickname();
         if (fromNickname.equals(SOCGameTextMsg.SERVERNAME))  // for pre-2.0.00 servers not using SOCGameServerText
             fromNickname = null;
-        pcl.messageSent(fromNickname, mes.getText());
+        pcl.messageReceived(fromNickname, mes.getText());
     }
 
     /**
@@ -5827,7 +5843,7 @@ public class SOCPlayerClient
         if (pcl == null)
             return;
 
-        pcl.messageSent(null, mes.getText());
+        pcl.messageReceived(null, mes.getText());
     }
 
     /**
