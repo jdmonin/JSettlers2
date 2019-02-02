@@ -8427,6 +8427,7 @@ public class SOCServer extends Server
             System.err.println("       -t or --test-config: validate server and DB config, then exit");
             System.err.println("       -o or --option name=value : set per-game options' default values");
             System.err.println("       -D name=value : set properties such as " + SOCDBHelper.PROP_JSETTLERS_DB_USER);
+            System.err.println("       --pw-reset uname   : reset password in DB for user uname, then exit");
             System.err.println("-- Recognized properties: --");
             for (int i = 0; i < PROPS_LIST.length; ++i)
             {
