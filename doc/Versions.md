@@ -27,7 +27,7 @@ and backport minor new features until `2.0.00` is ready.
 	- Popups (AskDialog, etc) layout fine-tuned, can wrap multi-line text
 	- When deleting a game, remove from game list using exact match, not startsWith
 - If a new game is created but no one has sat down, then someone joins and leaves it, don't delete that game
-- If a bot is slow and its turn has been ended several times, shorten its timeout so other players won't have to wait so long
+- If a bot is slow and its turn has been ended several times, shorten its timeout so other players won't have to wait so long (KotCzarny idea)
 - I18N framework in place, started by Luis A. Ramirez; thank you Luis. Jeremy wrote more I18N utilities (package net.nand.util.i18n).
 - Game names and user nicknames can't be a number: Must contain a non-digit character
 - Applet class is now `soc.client.SOCApplet`
