@@ -4448,7 +4448,7 @@ public class SOCServer extends Server
             return -2;
         }
 
-        if (SOCGameList.REGEX_ALL_DIGITS.matcher(n).matches())
+        if (SOCGameList.REGEX_ALL_DIGITS_OR_PUNCT.matcher(n).matches())
         {
             return -2;  // TODO distinct ret value, to send localized error to client
         }
@@ -5806,12 +5806,12 @@ public class SOCServer extends Server
                 return;  // <---- Early return ----
             }
 
-            if (SOCGameList.REGEX_ALL_DIGITS.matcher(gameName).matches())
+            if (SOCGameList.REGEX_ALL_DIGITS_OR_PUNCT.matcher(gameName).matches())
             {
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
-                         SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED_DIGITS));
-                // "A name with only digits is not permitted, please add a letter."
+                         SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED_DIGITS_OR_PUNCT));
+                // "A name with only digits or punctuation is not permitted, please add a letter."
 
                 return;  // <---- Early return ----
             }

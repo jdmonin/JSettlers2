@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2008-2014,2016-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2014,2016-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - getGameNames, parameterize types
  *
  * This program is free software; you can redistribute it and/or
@@ -66,13 +66,19 @@ public class SOCGameList
     public static final int GAME_NAME_MAX_LENGTH = 30;
 
     /**
-     * Regex pattern to match a string which is entirely digits:
-     * 0-9 or unicode class {@code Nd} ({@link Character#isDigit(int)}).
+     * Regex pattern to match a string which is entirely digits or punctuation:
+     * 0-9 or unicode class {@code Nd} ({@link Character#isDigit(int)})
+     * or <tt>\p{Punct}</tt> or <tt>\p{IsPunctuation}</tt>.
      * Useful for checking validity of a new game name at client or server.
      * @since 2.0.00
      */
-    public static final Pattern REGEX_ALL_DIGITS = Pattern.compile("^\\p{Nd}+$");
-        // \d won't capture unicode digits without using (?U) not available before java 7 (UNICODE_CHARACTER_CLASS)
+    public static final Pattern REGEX_ALL_DIGITS_OR_PUNCT =
+        Pattern.compile("^[\\p{Nd}\\p{Punct}\\p{IsPunctuation}]+$");
+        // \d won't capture unicode digits without using (?U) not available before java 7 (UNICODE_CHARACTER_CLASS).
+        // \p{IsPunctuation} matches 632 unicode chars, but only \p{Punct} includes $, +, <, =, >, ^, `, |, and ~
+        //    -- https://stackoverflow.com/questions/13925454/check-if-string-is-a-punctuation-character
+        //       answer by hans-brende 2018-03-15
+        // If you adjust this regex, also update soctest.util.TestGameList method testRegexAllDigitsOrPunct().
 
     /**
      * Info about every game in this {@code SOCGameList}.

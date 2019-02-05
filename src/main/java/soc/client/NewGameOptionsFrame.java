@@ -1257,10 +1257,10 @@ public class NewGameOptionsFrame extends Frame
             errMsg = SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED;
                 // "This name is not permitted, please choose a different name."  TODO I18N
         }
-        else if (SOCGameList.REGEX_ALL_DIGITS.matcher(gmName).matches())
+        else if (SOCGameList.REGEX_ALL_DIGITS_OR_PUNCT.matcher(gmName).matches())
         {
-            errMsg = SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED_DIGITS;
-                // "A name with only digits is not permitted, please add a letter."  TODO I18N
+            errMsg = SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED_DIGITS_OR_PUNCT;
+                // "A name with only digits or punctuation is not permitted, please add a letter."  TODO I18N
         }
         if (errMsg != null)
         {
