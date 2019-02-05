@@ -50,6 +50,9 @@ import soc.message.SOCMessage;  // strictly for isSingleLineAndSafe
  * their meaning is type-specific.
  *<P>
  * <H5>Non-Networked Fields:</H5>
+ * During game setup, {@link #makeKnownItem(String, int)} can be called for convenience at both the
+ * server and client from {@link SOCGame#updateAtBoardLayout()}:
+ *<P>
  * The cost and requirement fields are initialized at the server and at the client, not sent over the network.
  * Because of their limited and known use, it's easier to set them up in a factory method here than to create,
  * send, and parse messages with all details of the game's Special Items.  If a new Special Item type is created
@@ -192,6 +195,8 @@ public class SOCSpecialItem
      */
     public static final SOCSpecialItem makeKnownItem(final String typeKey, final int idx)
     {
+        // If you update this method or add a scenario here, update soctest.game.TestSpecialItem method testMakeKnownItem.
+
         if (! typeKey.equals(SOCGameOption.K_SC_WOND))
         {
             return new SOCSpecialItem(null, -1, null, null);  // <--- Early return: Unknown typeKey ---
