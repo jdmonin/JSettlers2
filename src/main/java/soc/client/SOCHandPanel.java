@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -2586,17 +2586,19 @@ public class SOCHandPanel extends Panel
     }
 
     /**
-     * If handpanel isn't tall enough, when the {@link #offer}
-     * message panel is showing, we must hide other controls.
+     * If non-client player's handpanel isn't tall enough, when
+     * the {@link #offer} message panel is showing, we must hide
+     * other controls like {@link #knightsLab} and {@link #resourceSq}.
      *<P>
      * This method does <b>not</b> hide/show the trade offer;
-     * other methods do that, and then call this method to show/hide
-     * the controls that would be obscured by it.
+     * other methods do that, and then if {@link #offerHidesControls},
+     * call this method to show/hide the controls that would be obscured by it.
      *<P>
      * If {@link #offerCounterHidesFace}, will check {@link TradeOfferPanel#isCounterOfferMode()}
      * and redo layout (to hide/move) if needed.
      *
-     * @param hideTradeMsg Are we hiding, or showing, the trade offer message panel?
+     * @param hideTradeMsg True if hiding the trade offer message panel and should show other controls;
+     *     false if showing trade offer and should hide others
      * @see #tradeSetMessage(String)
      * @see #clearTradeMsg()
      * @see #offerHidesControls
