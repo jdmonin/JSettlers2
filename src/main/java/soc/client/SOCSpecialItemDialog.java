@@ -212,6 +212,8 @@ class SOCSpecialItemDialog
         for (int i = 0; i < numWonders; ++i)
         {
             SOCSpecialItem itm = ga.getSpecialItem(typeKey, i+1);
+            if (itm == null)
+                continue;  // shouldn't ever happen, unless SOCSpecialItem.makeKnownItem has failed
 
             // GBL Layout rows for a Wonder:
             // [Build] wonder name [sq][sq][sq][sq][sq] (cost) - requirements

@@ -1733,8 +1733,11 @@ public class SOCGame implements Serializable, Cloneable
      * <B>Does not check for vacant seats:</B>
      * Even if a seat is vacant, its unused {@link SOCPlayer} will be returned.
      * Call {@link #isSeatVacant(int)} to check for vacant seats.
-     * @return the player object for a player id; never null if pn is in range
+     *
      * @param pn  the player number, in range 0 to {@link #maxPlayers}-1
+     * @return the player object for a player id; never null if {@code pn} is in range.
+     *     If a player leaves the game and another human or bot sits down at the
+     *     now-vacant {@code pn}, the same {@code SOCPlayer} object is reused for the new player.
      * @throws ArrayIndexOutOfBoundsException if {@code pn} is out of range
      * @see #getPlayer(String)
      * @see #getPlayers()
