@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -784,7 +784,7 @@ public class SOCHandPanel extends Panel
         add(developmentLab);
         developmentSq = new ColorSquare(ColorSquare.GREY, 0);
         add(developmentSq);
-        developmentSq.setTooltipText(strings.get("hpan.amounthand"));
+        developmentSq.setTooltipText(strings.get("hpan.amounthand"));  // "Amount in hand"
 
         sittingRobotLockBut = new Button(ROBOTLOCKBUT_U);  // button text will change soon in updateSeatLockButton()
         sittingRobotLockBut.addActionListener(this);
@@ -2586,17 +2586,19 @@ public class SOCHandPanel extends Panel
     }
 
     /**
-     * If handpanel isn't tall enough, when the {@link #offer}
-     * message panel is showing, we must hide other controls.
+     * If non-client player's handpanel isn't tall enough, when
+     * the {@link #offer} message panel is showing, we must hide
+     * other controls like {@link #knightsLab} and {@link #resourceSq}.
      *<P>
      * This method does <b>not</b> hide/show the trade offer;
-     * other methods do that, and then call this method to show/hide
-     * the controls that would be obscured by it.
+     * other methods do that, and then if {@link #offerHidesControls},
+     * call this method to show/hide the controls that would be obscured by it.
      *<P>
      * If {@link #offerCounterHidesFace}, will check {@link TradeOfferPanel#isCounterOfferMode()}
      * and redo layout (to hide/move) if needed.
      *
-     * @param hideTradeMsg Are we hiding, or showing, the trade offer message panel?
+     * @param hideTradeMsg True if hiding the trade offer message panel and should show other controls;
+     *     false if showing trade offer and should hide others
      * @see #tradeSetMessage(String)
      * @see #clearTradeMsg()
      * @see #offerHidesControls
@@ -3459,10 +3461,6 @@ public class SOCHandPanel extends Panel
             final int faceW = 40;  // face icon width
             final int pnameW = dim.width - (inset + faceW + inset + inset);  // player name width, to right of face
 
-            final int stlmtsW = fm.stringWidth(settlementLab.getText()) + 6;  // +6 for spacing afterwards
-            final int knightsW = fm.stringWidth(knightsLab.getText()) + 2;  // +2 because Label text is inset from column 0
-            // (for item count labels, either Settlements or Soldiers/Knights is widest text)
-
             // Top of panel: Face icon, player name to right (left-aligned)
             faceImg.setBounds(inset, inset, faceW, faceW);
             pname.setAlignment(Label.LEFT);
@@ -3602,6 +3600,28 @@ public class SOCHandPanel extends Panel
                     }
                 }
 
+                // Calc knightsW minimum width needed from label texts
+                final int knightsW;
+                {
+                    int wmax = 0;
+                    JLabel[] labs = new JLabel[]{clothLab, knightsLab, roadLab, settlementLab, cityLab, shipLab};
+                    for (JLabel L : labs)
+                    {
+                        if (L == null)
+                            continue;
+                        int w = fm.stringWidth(L.getText());
+                        if (w > wmax)
+                            wmax = w;
+                    }
+                    wmax += 2;  // +2 because Label text is inset from column 0
+
+                    // make sure not more than half panel width
+                    if (wmax > ((dim.width - ColorSquare.WIDTH - 8) / 2))
+                        wmax = (dim.width - ColorSquare.WIDTH - 8) / 2;
+
+                    knightsW = wmax;
+                }
+
                 // Various item counts, to the right of give/get/offer/trade area
                 if (clothSq != null)
                 {
@@ -3683,28 +3703,27 @@ public class SOCHandPanel extends Panel
                 int balloonH = dim.height - (inset + (4 * (lineH + space)) + inset);  // offer-message panel
                 if (offer.offerPanel.wantsRejectCountdown())
                     balloonH += TradeOfferPanel.LABEL_LINE_HEIGHT;
-                final int dcardsW = fm.stringWidth("Dev._Cards:_");  //Bug in stringWidth does not give correct size for ' '
-
+                boolean hasTakeoverBut = false, hasSittingRobotLockBut = false;
                 if (player.isRobot())
                 {
+                    // "Take Over" button if client is observer (not seated at this game),
+                    // otherwise Lock/Unlock button during play (sittingRobotLockBut):
+                    // Just above the lower-left, lower-right columns of item counts
+
                     int lowerY = dim.height - ((4 * (lineH + space)) + inset);
+                    int yb = lowerY - 5;
+                    if (game.hasSeaBoard)
+                        yb -= (lineH + space);
 
                     if (game.getPlayer(client.getNickname()) == null)
                     {
-                        // If client not seated at this game, show "Take Over" button
-                        // just above the lower-left, lower-right columns of item counts
-                        int yb = lowerY - 10;
-                        if (game.hasSeaBoard)
-                            yb -= (lineH + space);
-                        takeOverBut.setBounds(10, yb, dim.width - 20, 20);
+                        takeOverBut.setBounds(9, yb, dim.width - 18, lineH + space);
+                        hasTakeoverBut = true;
                     }
                     else if (sittingRobotLockBut.isVisible())
                     {
-                        //seatLockBut.setBounds(10, inset+balloonH-10, dim.width-20, 20);
-                        // Lock button during play: Bottom of panel, between the 2 columns of item counts
-                        sittingRobotLockBut.setBounds
-                            (inset + dcardsW + space + ColorSquare.WIDTH + space, lowerY + (lineH + space) + (lineH / 2),
-                             (dim.width - (2 * (inset + ColorSquare.WIDTH + (2 * space))) - stlmtsW - dcardsW), 2 * (lineH + space));
+                        sittingRobotLockBut.setBounds(9, yb, dim.width - 18, lineH + space);
+                        hasSittingRobotLockBut = true;
                     }
                 }
 
@@ -3715,8 +3734,9 @@ public class SOCHandPanel extends Panel
                     - TradeOfferPanel.OFFER_BUTTONS_HEIGHT;
                 if (offer.offerPanel.wantsRejectCountdown())
                     offerMinHeight += TradeOfferPanel.LABEL_LINE_HEIGHT;
-                offerHidesControls =
-                    (dim.height - (inset + faceW + space) - (4 * (lineH + space))) < offerMinHeight;
+                final int numBottomLines = (hasTakeoverBut || hasSittingRobotLockBut) ? 5 : 4;
+                offerHidesControls = offerHidingControls
+                    || ((dim.height - (inset + faceW + space) - (numBottomLines * (lineH + space))) < offerMinHeight);
                 if (offerHidesControls)
                 {
                     // This flag is set here based on newly calculated layout,
@@ -3740,6 +3760,58 @@ public class SOCHandPanel extends Panel
                     offerCounterHidesFace = false;
                 }
                 offer.doLayout();
+
+                // Calc stlmtsW, dcardsW minimum widths needed from label texts
+                final int stlmtsW;
+                {
+                    int wmax = 0, w;
+                    JLabel[] labs = new JLabel[]{shipLab, roadLab, settlementLab, cityLab};
+                    for (JLabel L : labs)
+                    {
+                        if (L == null)
+                            continue;
+                        w = fm.stringWidth(L.getText());
+                        if (w > wmax)
+                            wmax = w;
+                    }
+
+                    wmax += 10;  // for inset before and spacing after label
+
+                    // make sure not more than half panel width
+                    if (wmax > ((dim.width - ColorSquare.WIDTH - 8) / 2))
+                        wmax = (dim.width - ColorSquare.WIDTH - 8) / 2;
+
+                    stlmtsW = wmax;
+                }
+                final int dcardsW;
+                {
+                    // developmentLab
+
+                    int wmax = 0, w;
+                    JLabel[] labs = new JLabel[]{clothLab, knightsLab};
+                    for (JLabel L : labs)
+                    {
+                        if (L == null)
+                            continue;
+                        w = fm.stringWidth(L.getText());
+                        if (w > wmax)
+                            wmax = w;
+                    }
+                    w = fm.stringWidth(resourceLab.getText());  // is Label, not JLabel like the labs above
+                    if (w > wmax)
+                        wmax = w;
+                    w = fm.stringWidth(developmentLab.getText());
+                    if (w > wmax)
+                        wmax = w;
+
+                    wmax += 2;  // for insets within label
+
+                    // make sure not more than half panel width
+                    if (wmax > ((dim.width - ColorSquare.WIDTH - 8) / 2))
+                        wmax = (dim.width - ColorSquare.WIDTH - 8) / 2;
+
+                    dcardsW = wmax;
+                }
 
                 final int lowerY = dim.height - ((4 * (lineH + space)) + inset);
 
