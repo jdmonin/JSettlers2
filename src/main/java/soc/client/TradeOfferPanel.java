@@ -384,7 +384,10 @@ public class TradeOfferPanel extends Panel
         ShadowedBox offerBox;
 
         Label counterOfferToWhom;
+
+        /** Have we set prompt to include opponent name? Is set true by first call to {@link #update(SOCTradeOffer)}. */
         boolean counterOffer_playerInit = false;
+
         /** Counter-offer's resources; the main offer is {@link #squares}. */
         SquaresPanel counterOfferSquares;
 
@@ -503,6 +506,7 @@ public class TradeOfferPanel extends Panel
 
             counterOfferToWhom = new Label();
             counterOfferToWhom.setVisible(false);
+            counterOfferToWhom.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
             add(counterOfferToWhom);
 
             sendBut = new Button(strings.get("base.send"));  // "Send"
@@ -529,16 +533,18 @@ public class TradeOfferPanel extends Panel
 
             theyGetLab2 = new Label(strings.get("trade.they.get"));  // "They Get:"
             theyGetLab2.setVisible(false);
+            theyGetLab2.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
+
             add(theyGetLab2);
             new AWTToolTip(strings.get("trade.give.to.opponent"), theyGetLab2);  // "Give to opponent"
 
             givesYouLab2 = new Label(strings.get("trade.gives.you"));  // "Gives You:"
             givesYouLab2.setVisible(false);
+            givesYouLab2.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
             add(givesYouLab2);
             new AWTToolTip(strings.get("trade.opponent.gives"), givesYouLab2);  // "Opponent gives to you"
 
-            // correct the interior when we can get our player color
-            offerBox = new ShadowedBox(pi.getPlayerColor(from), Color.white);
+            offerBox = new ShadowedBox(pi.getPlayerColor(from), SOCPlayerInterface.DIALOG_BG_GOLDENROD);
             offerBox.setVisible(false);
             add(offerBox);
 
@@ -567,13 +573,7 @@ public class TradeOfferPanel extends Panel
             {
                 if (! counterOffer_playerInit)
                 {
-                    // do we have to fill in opponent's name for 1st time,
-                    // and set up colors?
-                    Color ourPlayerColor = pi.getPlayerColor(player.getPlayerNumber());
-                    theyGetLab2.setBackground(ourPlayerColor);
-                    givesYouLab2.setBackground(ourPlayerColor);
-                    counterOfferToWhom.setBackground(ourPlayerColor);
-                    offerBox.setInterior(ourPlayerColor);
+                    // do we have to fill in opponent's name for 1st time?
                     counterOfferToWhom.setText
                         (strings.get("trade.counter.to.x", hp.getPlayer().getName()));  // "Counter to {0}:"
 

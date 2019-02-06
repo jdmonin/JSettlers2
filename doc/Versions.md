@@ -20,6 +20,7 @@ and backport minor new features until `2.0.00` is ready.
 - Game Scenario and special-rules support
 - Client:
 	- Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard dialog)
+	- Trade counter-offer: For legibility use light background color, not player color
 	- Bank trades: If server declines trade, don't enable Undo Trade button or clear Give/Get resources to 0
 	- When joining a game or chat channel, server sends a "recap" of recent player chat
 	- Game windows: Player name labels sans-serif for cleaner look
