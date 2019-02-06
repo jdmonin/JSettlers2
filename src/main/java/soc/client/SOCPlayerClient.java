@@ -220,9 +220,18 @@ public class SOCPlayerClient
      * The classic JSettlers green background color; green tone #61AF71.
      * Typically used with foreground color {@link Color#BLACK},
      * like in {@link SOCPlayerClient.SwingGameDisplay}'s main panel.
+     * Occasionally used with {@link #MISC_LABEL_FG_OFF_WHITE}.
      * @since 2.0.00
+     * @see SOCPlayerInterface#DIALOG_BG_GOLDENROD
      */
     public static final Color JSETTLERS_BG_GREEN = new Color(97, 175, 113);
+
+    /**
+     * For miscellaneous labels, off-white foreground color #FCFBF3.
+     * Typically used on {@link #JSETTLERS_BG_GREEN}.
+     * @since 2.0.00
+     */
+    public static final Color MISC_LABEL_FG_OFF_WHITE = new Color(252, 251, 243);
 
     /**
      * i18n text strings in our {@link #cliLocale}.
@@ -1291,7 +1300,7 @@ public class SOCPlayerClient
 
             // message label that takes up the whole pane
             messageLabel = new JLabel("", SwingConstants.CENTER);
-            messageLabel.setForeground(new Color(252, 251, 243)); // off-white
+            messageLabel.setForeground(MISC_LABEL_FG_OFF_WHITE);
             messagePane.add(messageLabel, BorderLayout.CENTER);
 
             // bottom of message pane: practice-game button
@@ -2393,7 +2402,7 @@ public class SOCPlayerClient
         {
             if (null == client.net.localTCPServer)
             {
-                versionOrlocalTCPPortLabel.setForeground(new Color(252, 251, 243)); // off-white
+                versionOrlocalTCPPortLabel.setForeground(MISC_LABEL_FG_OFF_WHITE);
                 versionOrlocalTCPPortLabel.setText(client.strings.get("pcli.main.version", versionString));  // "v {0}"
                 versionOrlocalTCPPortLabel.setToolTipText
                     (client.strings.get("pcli.main.version.tip", versionString, buildString,

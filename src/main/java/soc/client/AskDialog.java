@@ -301,8 +301,8 @@ public abstract class AskDialog extends Dialog
 
         pcli = cli;
         pi = null;
-        setBackground(new Color(255, 230, 162));
-        setForeground(Color.black);
+        setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
+        setForeground(Color.BLACK);
         setFont(new Font("Dialog", Font.PLAIN, 12));
 
         choice1But = new Button(choice1);

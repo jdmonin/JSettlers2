@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file copyright (C) 2007,2013,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007,2013,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -130,8 +130,8 @@ public class FaceChooserFrame
         faceWidthPx = faceWidth;
         stillAvailable = true;
 
-        setBackground(new Color(255, 230, 162));  // Actual face-icon backgrounds will match player.
-        setForeground(Color.black);
+        setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);  // Actual face-icon backgrounds will match player.
+        setForeground(Color.BLACK);
         setFont(new Font("Dialog", Font.PLAIN, 12));
 
         changeFaceBut = new Button(strings.get("base.change"));

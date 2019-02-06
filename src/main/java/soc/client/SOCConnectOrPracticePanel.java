@@ -108,8 +108,8 @@ public class SOCConnectOrPracticePanel extends Panel
         canLaunchServer = checkCanLaunchServer();
 
         // same Frame setup as in SOCPlayerClient.main
-        setBackground(new Color(97, 175, 113));  // green tone #61AF71
-        setForeground(Color.black);
+        setBackground(SOCPlayerClient.JSETTLERS_BG_GREEN);
+        setForeground(Color.BLACK);
 
         addKeyListener(this);
         initInterfaceElements();
@@ -244,7 +244,7 @@ public class SOCConnectOrPracticePanel extends Panel
         Label verl = new Label(strings.get("pcli.cpp.jsettlers.versionbuild", Version.version(), Version.buildnum()));
             // "JSettlers " + Version.version() + " build " + Version.buildnum()
         verl.setAlignment(Label.CENTER);
-        verl.setForeground(new Color(252, 251, 243)); // off-white
+        verl.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
         add(verl, BorderLayout.SOUTH);
     }
 

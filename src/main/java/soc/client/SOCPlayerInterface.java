@@ -125,6 +125,15 @@ public class SOCPlayerInterface extends Frame
     PlayerClientListener.NonBlockingDialogDismissListener
 {
     /**
+     * The classic JSettlers goldenrod dialog background color; pale yellow-orange tint #FFE6A2.
+     * Typically used with foreground {@link Color#BLACK}, like in game/chat text areas,
+     * {@link TradeOfferPanel}, and {@link AskDialog}.
+     * @since 2.0.00
+     * @see SOCPlayerClient#JSETTLERS_BG_GREEN
+     */
+    public static final Color DIALOG_BG_GOLDENROD = new Color(255, 230, 162);
+
+    /**
      * Boolean per-game preference to mute all sound effects in this game.
      * For use with constructor's {@code localPrefs} parameter. Default value is {@code false}.
      * @see #isSoundMuted()
@@ -685,7 +694,7 @@ public class SOCPlayerInterface extends Frame
         playerColors[3] = new Color(249, 128,  29); // orange
         if (is6player)
         {
-            playerColors[4] = new Color(97, 151, 113); // almost same green as playerclient bg (97, 175, 113 #61AF71)
+            playerColors[4] = new Color(97, 151, 113); // almost same green as playerclient.JSETTLERS_BG_GREEN #61AF71
             playerColors[5] = playerColors[3];  // orange
             playerColors[3] = new Color(166, 88, 201);  // violet
         }
@@ -899,8 +908,8 @@ public class SOCPlayerInterface extends Frame
 
         textDisplay = new SnippingTextArea("", 40, 80, TextArea.SCROLLBARS_VERTICAL_ONLY, 80);
         textDisplay.setFont(new Font("SansSerif", Font.PLAIN, 10));
-        textDisplay.setBackground(new Color(255, 230, 162));
-        textDisplay.setForeground(Color.black);
+        textDisplay.setBackground(DIALOG_BG_GOLDENROD);
+        textDisplay.setForeground(Color.BLACK);
         textDisplay.setEditable(false);
         add(textDisplay);
         if (is6player)
@@ -908,8 +917,8 @@ public class SOCPlayerInterface extends Frame
 
         chatDisplay = new SnippingTextArea("", 40, 80, TextArea.SCROLLBARS_VERTICAL_ONLY, 100);
         chatDisplay.setFont(new Font("SansSerif", Font.PLAIN, 10));
-        chatDisplay.setBackground(new Color(255, 230, 162));
-        chatDisplay.setForeground(Color.black);
+        chatDisplay.setBackground(DIALOG_BG_GOLDENROD);
+        chatDisplay.setForeground(Color.BLACK);
         chatDisplay.setEditable(false);
         if (is6player)
             chatDisplay.addMouseListener(this);
@@ -926,8 +935,8 @@ public class SOCPlayerInterface extends Frame
 
         FontMetrics fm = this.getFontMetrics(textInput.getFont());
         textInput.setSize(SOCBoardPanel.PANELX, fm.getHeight() + 4);
-        textInput.setBackground(Color.white);  // new Color(255, 230, 162));
-        textInput.setForeground(Color.black);
+        textInput.setBackground(Color.WHITE);  // before v1.1.00 was new Color(255, 230, 162) aka DIALOG_BG_GOLDENROD
+        textInput.setForeground(Color.BLACK);
         textInput.setEditable(false);
         textInputIsInitial = false;  // due to "please wait"
         textInput.setText(strings.get("base.please.wait"));  // "Please wait..."

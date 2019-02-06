@@ -211,7 +211,6 @@ public class NewGameOptionsFrame extends Frame
     private TextField msgText;
 
     // // TODO refactor; these are from connectorprac panel
-    private static final Color NGOF_BG = new Color(97, 175, 113);  // green tone #61AF71
     private static final Color HEADER_LABEL_BG = new Color(220,255,220);
     private static final Color HEADER_LABEL_FG = Color.BLACK;
 
@@ -280,7 +279,7 @@ public class NewGameOptionsFrame extends Frame
         }
 
         // same Frame setup as in SOCPlayerClient.main
-        setBackground(NGOF_BG);
+        setBackground(SOCPlayerClient.JSETTLERS_BG_GREEN);
         setForeground(Color.black);
         setLocationByPlatform(true);
 
@@ -334,7 +333,7 @@ public class NewGameOptionsFrame extends Frame
         final JPanel bp = new JPanel(gbl);  // Actual button panel
         bp.setBorder(new EmptyBorder(4, 4, 4, 4));  // need padding around edges, because panel fills the frame
         bp.setForeground(getForeground());
-        bp.setBackground(NGOF_BG);  // If this is omitted, firefox 3.5+ applet uses themed bg-color (seen OS X)
+        bp.setBackground(SOCPlayerClient.JSETTLERS_BG_GREEN);  // If this is omitted, firefox 3.5+ applet uses themed bg-color (seen OS X)
 
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -344,7 +343,7 @@ public class NewGameOptionsFrame extends Frame
         {
             msgText = new TextField(strings.get("game.options.prompt"));  // "Choose options for the new game."
             msgText.setEditable(false);
-            msgText.setForeground(LABEL_TXT_COLOR);
+            msgText.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
             msgText.setBackground(getBackground());
             add(msgText, BorderLayout.NORTH);
         }
@@ -420,8 +419,6 @@ public class NewGameOptionsFrame extends Frame
         add(bp, BorderLayout.CENTER);
     }
 
-    private final static Color LABEL_TXT_COLOR = new Color(252, 251, 243); // off-white
-
     /**
      * Interface setup: {@link SOCGameOption}s, user's client preferences, per-game local preferences.
      * One row per option, except for 3-letter options which group with 2-letter ones.
@@ -454,7 +451,7 @@ public class NewGameOptionsFrame extends Frame
         if (opts == null)
         {
             L = new Label(strings.get("game.options.not"));  // "This server version does not support game options."
-            L.setForeground(LABEL_TXT_COLOR);
+            L.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
             gbc.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(L, gbc);
             bp.add(L);
@@ -756,7 +753,7 @@ public class NewGameOptionsFrame extends Frame
         if (placeholderIdx > 0)
         {
             L = new Label(opDesc.substring(0, placeholderIdx));
-            L.setForeground(LABEL_TXT_COLOR);
+            L.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
             optp.add(L);
             if (hasCB && ! readOnly)
             {
@@ -796,7 +793,7 @@ public class NewGameOptionsFrame extends Frame
         if (placeholderIdx + 1 < opDesc.length())
         {
             L = new Label(opDesc.substring(placeholderIdx + 1));
-            L.setForeground(LABEL_TXT_COLOR);
+            L.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
             optp.add(L);
             if (hasCB && ! readOnly)
             {
@@ -1058,7 +1055,7 @@ public class NewGameOptionsFrame extends Frame
         if (placeholderIdx > 0)
         {
             Label L = new Label(desc.substring(0, placeholderIdx));
-            L.setForeground(LABEL_TXT_COLOR);
+            L.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
             prefp.add(L);
             L.addMouseListener(ml);
         }
@@ -1108,7 +1105,7 @@ public class NewGameOptionsFrame extends Frame
         if (placeholderIdx + 1 < desc.length())
         {
             Label L = new Label(desc.substring(placeholderIdx + 1));
-            L.setForeground(LABEL_TXT_COLOR);
+            L.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
             if (prefp != null)
             {
                 prefp.add(L);

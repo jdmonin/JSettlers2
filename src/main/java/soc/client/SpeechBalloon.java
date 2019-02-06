@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2012,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2012,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -54,7 +54,7 @@ public class SpeechBalloon extends Canvas
      */
     public static final int SHADOW_SIZE = 5;
 
-    private static Color balloonColor = new Color(255, 230, 162);
+    private static Color balloonColor = SOCPlayerInterface.DIALOG_BG_GOLDENROD;
     int height;
     int width;
 
@@ -67,7 +67,7 @@ public class SpeechBalloon extends Canvas
     /**
      * constructor
      *
-     * @param bg  the background color of the panel
+     * @param bg  the background color of the panel; foreground will be {@link Color#BLACK}
      */
     public SpeechBalloon(Color bg)
     {
@@ -75,7 +75,7 @@ public class SpeechBalloon extends Canvas
         height = 50;
         width = 50;
         setBackground(bg);
-        setForeground(Color.black);
+        setForeground(Color.BLACK);
         balloonPoint = true;
     }
 
@@ -141,12 +141,12 @@ public class SpeechBalloon extends Canvas
             int[] yPoints = { h / 8, h / 8, 0, h / 8, h / 8, h - ym, h - ym, h / 8 };
 
             g.fillPolygon(xPoints, yPoints, 8);
-            g.setColor(Color.black);
+            g.setColor(Color.BLACK);
             g.drawPolygon(xPoints, yPoints, 8);
         } else {
             final int hdiv8 = h / 8;
             g.fillRect(0, hdiv8, w - xm, h - ym - hdiv8);
-            g.setColor(Color.black);
+            g.setColor(Color.BLACK);
             g.drawRect(0, hdiv8, w - xm, h - ym - hdiv8);
         }
 
@@ -154,4 +154,5 @@ public class SpeechBalloon extends Canvas
         g.fillRect(ym, h - xm, w, h - 1);
         g.fillRect(w - ym, (h / 6) + xm, w - 1, h);
     }
+
 }
