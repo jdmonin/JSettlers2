@@ -349,17 +349,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Fortress polygon for scenario <tt>SC_PIRI</tt>.
-     * X is -13 to +13; Y is -11 to +11.
+     * X is -14 to +14; Y is -11 to +11.
      * @since 2.0.00
      */
     private static final int[] fortressX =
         //  left side        //  crenellations
-        // right side        // entrance portal
-        { -13,-13, -7, -7,   -5, -5, -1, -1, 1,  1,  5, 5,
-          7,  7, 13, 13,     3, 3, 1, -1, -3, -3 },
+        // right side        // bottom of towers and of main mass
+        { -14,-14, -7, -7,   -5, -5, -1, -1, 1,  1,  5, 5,
+          7,  7, 14, 14,      7, 7, -7, -7 },
                                fortressY =
-        {  11,-11,-11, -7,   -7,-10,-10, -7,-7,-10,-10,-7,
-         -7,-11,-11, 11,     11,8, 6,  6,  8, 11 };
+        {  11,-11,-11, -7,   -7, -9, -9, -7,-7, -9, -9,-7,
+         -7,-11,-11, 11,     11, 9,  9, 11 };
 
     /**
      * village polygon. X is -13 to +13; Y is -9 to +9.
@@ -930,7 +930,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     boolean[] debugShowPotentials;
 
     /**
-     * Font of dice-number circles appearing on hexes, and dice numbers on cloth villages.
+     * Font of dice-number circles appearing on hexes, dice numbers on cloth villages,
+     * and strength on fortresses.
      * @since 1.1.08
      */
     private Font diceNumberCircleFont;
@@ -3706,7 +3707,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // strength
         final String numstr = Integer.toString(fo.getStrength());
         int x = -diceNumberCircleFM.stringWidth(numstr) / 2;
-        int y = (diceNumberCircleFM.getAscent() - diceNumberCircleFM.getDescent()) / 2;
+        int y = (diceNumberCircleFM.getAscent() - diceNumberCircleFM.getDescent()) * 2 / 3;  // slightly below centered
         g.setFont(diceNumberCircleFont);
         g.drawString(numstr, x, y);
 
