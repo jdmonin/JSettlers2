@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,7 +27,6 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import soc.game.SOCGame;
-import soc.game.SOCGameOption;
 import soc.game.SOCScenario;
 import soc.server.SOCGameHandler;
 import soc.server.SOCGameListAtServer;
@@ -65,17 +64,9 @@ public class TestBoardLayouts
      */
     public final boolean testSingleLayout(final SOCScenario sc, final int pl)
     {
-        final Map<String, SOCGameOption> gaOpts = SOCGameOption.parseOptionsToMap
-            ("PL=" + pl + ((sc != null) ? ",SC=" + sc.key : ""));
-        if (gaOpts != null)
-            assertNull("Unexpected problems with scenario options",
-                SOCGameOption.adjustOptionsToKnown(gaOpts, null, true));
-                    // this same pre-check is done by TestScenarioOpts.testAllScenarios()
-
         final String gaName = ((sc != null) ? sc.key : "classic") + ":" + pl;
-        gl.createGame(gaName, "test", "en_US", gaOpts, sgh);
-        final SOCGame ga = gl.getGameData(gaName);
-        assertNotNull("Game not created", ga);
+        final SOCGame ga = GameUtils.createGame
+            (pl, ((sc != null) ? sc.key : null), null, gaName, gl, sgh);
 
         // Create the board. Adapted from SOCGameHandler.startGame,
         // which has a reminder comment to keep sync'd with this test method
