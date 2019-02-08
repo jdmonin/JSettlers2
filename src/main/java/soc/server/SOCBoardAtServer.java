@@ -178,7 +178,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
     /**
      * For game scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
-     * move the pirate fleet's position along its path.
+     * move the pirate fleet's position along its path. Updates board's internal index along the path.
      * Calls {@link SOCBoardLarge#setPirateHex(int, boolean) setPirateHex(newHex, true)}.
      *<P>
      * If the pirate fleet is already defeated (all fortresses recaptured), returns 0.

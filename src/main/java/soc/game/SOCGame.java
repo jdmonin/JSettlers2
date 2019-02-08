@@ -5932,8 +5932,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Move the pirate, optionally with a pirate fleet strength, and do a robbery/fleet battle if needed.
-     * The pirate fleet is used by {@link #rollDice()} in scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
-     * see details below.
+     * Called only at server, by {@link #rollDice()} in scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
      *<P>
      * See {@link #movePirate(int, int)} for method javadocs in "normal" operation (not {@code _SC_PIRI}).
      *<P>
@@ -5967,7 +5966,7 @@ public class SOCGame implements Serializable, Cloneable
      * @throws IllegalArgumentException if {@code ph} &lt; 0
      * @since 2.0.00
      */
-    private SOCMoveRobberResult movePirate(final int pn, final int ph, final int pirFleetStrength)
+    public SOCMoveRobberResult movePirate(final int pn, final int ph, final int pirFleetStrength)
         throws IllegalArgumentException
     {
         if (robberResult == null)

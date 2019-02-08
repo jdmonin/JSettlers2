@@ -81,4 +81,22 @@ public abstract class GameUtils
         return ga;
     }
 
+    /**
+     * Does an array contain a given value?
+     * @param arr  Unsorted array to search, or {@code null}
+     * @param val  Value to find
+     * @return  True if {@code val} found in {@code arr}, false otherwise
+     */
+    public static boolean contains(final int[] arr, final int val)
+    {
+        if (arr == null)
+            return false;
+
+        for (int i : arr)
+            if (i == val)
+                return true;
+
+        return false;
+    }
+
 }

@@ -416,6 +416,7 @@ ideas.
 - Show # VP when choosing where to sit, if game is in progress
 - Keyboard shortcuts for "roll", "done" buttons
 - Occasionally the board does not re-scale at game reset
+- Add more scenarios' unit tests to `soctest.game.TestScenarioRules`
 - Kick robots if inactive but current player in game, assume they're buggy (use forceEndTurn)
 - Control the speed of robots in practice games
   - Adjust `SOCRobotBrain.pause`, `ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS`, etc
