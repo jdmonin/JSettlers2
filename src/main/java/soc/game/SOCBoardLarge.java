@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -642,8 +642,9 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * the hex coordinate that the pirate is in, or 0; placed in {@link #makeNewBoard(Map)}.
-     * Once the pirate is placed on the board, it cannot be removed (cannot become 0 again) except
-     * in scenario {@link SOCGameOption#K_SC_PIRI}.
+     * Once the pirate is placed on the board it can't be removed (cannot become 0 again),
+     * except in scenario {@link SOCGameOption#K_SC_PIRI} when the pirate fleet is defeated
+     * (see {@link soc.server.SOCBoardAtServer#movePirateHexAlongPath(int)}).
      */
     protected int pirateHex;
 
@@ -1414,7 +1415,7 @@ public class SOCBoardLarge extends SOCBoard
      * move the pirate fleet's position along its path.
      *<P>
      * This is called at server, but not at client; client instead calls {@link #setPirateHex(int, boolean)}.
-     * Call {@code SOCBoardAtServer.movePirateHexAlongPath} instead of this stub super method.
+     * <B>See {@link soc.server.SOCBoardAtServer#movePirateHexAlongPath(int)}</B> instead of this stub super method.
      * @param numSteps  Number of steps to move along the path
      * @return  new pirate hex coordinate
      * @throws UnsupportedOperationException if called at client

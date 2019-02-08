@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2011,2012,2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2011-2012,2018-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -43,7 +43,7 @@ public class SOCMoveRobberResult
 
     /**
      * When the pirate fleet moves in game scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
-     * the resources stolen from victim.  Otherwise null and ignored.
+     * the resources stolen from victim; may be empty. Otherwise null and ignored.
      * When {@link #sc_piri_loot} is set, the other {@link #loot} field is -1.
      * When {@link #victims} is empty, ignore this field.
      * @see SOCGame#stealFromPlayerPirateFleet(int, int)

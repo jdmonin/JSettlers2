@@ -6251,7 +6251,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         // do we have an adjacent settlement/city?
                         boolean cliAdjacent = false;
                         {
-                            for (SOCPlayer pl : game.getPlayersOnHex(hilight))
+                            for (SOCPlayer pl : game.getPlayersOnHex(hilight, null))
                             {
                                 if (pl.getPlayerNumber() == playerNumber)
                                 {

@@ -5146,14 +5146,12 @@ public class SOCGame implements Serializable, Cloneable
      * and N7C: Roll no 7s until a city is built.
      *<P>
      * For scenario option {@link SOCGameOption#K_SC_CLVI}, calls
-     * {@link SOCBoardLarge#distributeClothFromRoll(SOCGame, int)}.
-     * Cloth are worth VP, so check for game state {@link #OVER}
-     * if results include {@link RollResult#cloth}.
+     * {@link SOCBoardLarge#distributeClothFromRoll(SOCGame, int)}:
+     * Cloth are worth VP, so check for game state {@link #OVER} if results include {@link RollResult#cloth}.
      *<P>
-     * For scenario option {@link SOCGameOption#K_SC_PIRI}, calls
-     * {@link SOCBoardLarge#movePirateHexAlongPath(int)}.
-     * Check {@link RollResult#sc_piri_fleetAttackVictim}
-     * and {@link RollResult#sc_piri_fleetAttackRsrcs}.
+     * For scenario option {@link SOCGameOption#K_SC_PIRI}, calls {@link SOCBoardLarge#movePirateHexAlongPath(int)}
+     * and then {@link #movePirate(int, int, int)}:
+     * Check {@link RollResult#sc_piri_fleetAttackVictim} and {@link RollResult#sc_piri_fleetAttackRsrcs}.
      * Note that if player's warships are stronger than the pirate fleet, <tt>sc_piri_loot</tt> will contain
      * {@link SOCResourceConstants#GOLD_LOCAL}, and that player's {@link SOCPlayer#setNeedToPickGoldHexResources(int)}
      * will be set to include the free pick.
@@ -5934,18 +5932,24 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Move the pirate, optionally with a pirate fleet strength.
-     * The fleet strength is used by {@link #rollDice()} in scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     * Move the pirate, optionally with a pirate fleet strength, and do a robbery/fleet battle if needed.
+     * The pirate fleet is used by {@link #rollDice()} in scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * see details below.
      *<P>
      * See {@link #movePirate(int, int)} for method javadocs in "normal" operation (not {@code _SC_PIRI}).
      *<P>
      * In <b>game scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI},</b> the pirate is moved not by the player,
-     * but by the game at every dice roll.  See {@link SOCBoardLarge#movePirateHexAlongPath(int)}
-     * and {@link #stealFromPlayerPirateFleet(int, int)} for details.
+     * but by the game at every dice roll.  See {@link SOCBoardLarge#movePirateHexAlongPath(int)},
+     * {@link #getPossibleVictims()}, and {@link #stealFromPlayerPirateFleet(int, int)} for details.
+     *
+     *<H5>Results:</H5>
      *<UL>
      * <LI> {@link SOCMoveRobberResult#victims} will be the player(s) having a settlement/city adjacent to
-     *      the new pirate hex
-     * <LI> If there is 1 victim, {@link SOCMoveRobberResult#sc_piri_loot} will be set to the robbed resource(s), if any
+     *      the new pirate hex, or {@code null} or an empty list.<BR>
+     *      <B>SC_PIRI:</B> See {@link #getPossibleVictims()}: Is empty if multiple players
+     *      or {@link SOCPlayer#getAddedLegalSettlement()} locations are adjacent to the pirate.
+     * <LI> If there is 1 victim, {@link SOCMoveRobberResult#sc_piri_loot} will be set to the robbed resource(s) if any,
+     *      or empty if nothing to rob
      * <LI> If player's warship strength equals the pirate fleet's, nothing is stolen or gained
      * <LI> If player's warships are stronger than the pirate fleet:
      *    <UL>
@@ -5959,7 +5963,8 @@ public class SOCGame implements Serializable, Cloneable
      * @param pn  the number of the player that is moving the pirate ship
      * @param ph  the pirate's new hex coordinate; should be a water hex
      * @param pirFleetStrength  Pirate fleet strength, or -1 if not scenario _SC_PIRI
-     * @return  see {@link #movePirate(int, int)}
+     * @return  see above and {@link #movePirate(int, int)} return value;
+     *     also sets {@link #robberResult} to the reported results
      * @throws IllegalArgumentException if {@code ph} &lt; 0
      * @since 2.0.00
      */
@@ -6303,16 +6308,18 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Get the players who have settlements or cities on this hex.
-     * @return a list of {@link SOCPlayer players} touching a hex
-     *   with settlements/cities, or an empty Vector if none.
+     * @return a list of players touching a hex
+     *   with their settlements/cities, or an empty list if none.
      *   Any player with multiple settlements/cities on the hex
      *   will be in the list just once, not once per piece.
      *
      * @param hex  the coordinates of the hex; not checked for validity
+     * @param collectAdjacentPieces  optional set to use to return all players' settlements and cities
+     *     adjacent to {@code hex}, or {@code null}
      */
-    public Vector<SOCPlayer> getPlayersOnHex(final int hex)
+    public List<SOCPlayer> getPlayersOnHex(final int hex, final Set<SOCPlayingPiece> collectAdjacentPieces)
     {
-        Vector<SOCPlayer> playerList = new Vector<SOCPlayer>(3);
+        final List<SOCPlayer> playerList = new ArrayList<SOCPlayer>(3);
 
         final int[] nodes = board.getAdjacentNodesToHex_arr(hex);
 
@@ -6321,11 +6328,9 @@ public class SOCGame implements Serializable, Cloneable
             if (isSeatVacant(i))
                 continue;
 
-            Vector<SOCSettlement> settlements = players[i].getSettlements();
-            Vector<SOCCity> cities = players[i].getCities();
             boolean touching = false;
 
-            for (SOCSettlement ss : settlements)
+            for (SOCSettlement ss : players[i].getSettlements())
             {
                 final int seCoord = ss.getCoordinates();
                 for (int d = 0; d < 6; ++d)
@@ -6333,14 +6338,19 @@ public class SOCGame implements Serializable, Cloneable
                     if (seCoord == nodes[d])
                     {
                         touching = true;
+                        if (collectAdjacentPieces != null)
+                            collectAdjacentPieces.add(ss);
                         break;
                     }
                 }
+
+                if (touching && (collectAdjacentPieces == null))
+                    break;
             }
 
-            if (!touching)
+            if ((! touching) || (collectAdjacentPieces != null))
             {
-                for (SOCCity ci : cities)
+                for (SOCCity ci : players[i].getCities())
                 {
                     final int ciCoord = ci.getCoordinates();
                     for (int d = 0; d < 6; ++d)
@@ -6348,14 +6358,19 @@ public class SOCGame implements Serializable, Cloneable
                         if (ciCoord == nodes[d])
                         {
                             touching = true;
+                            if (collectAdjacentPieces != null)
+                                collectAdjacentPieces.add(ci);
                             break;
                         }
                     }
+
+                    if (touching && (collectAdjacentPieces == null))
+                        break;
                 }
             }
 
             if (touching)
-                playerList.addElement(players[i]);
+                playerList.add(players[i]);
         }
 
         return playerList;
@@ -6447,13 +6462,17 @@ public class SOCGame implements Serializable, Cloneable
      * Victims are players with resources; for scenario option
      * {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, also players with cloth
      * when robbing with the pirate.
-     *<P>
-     * For scenario option {@link SOCGameOption#K_SC_PIRI}, this is called
-     * after a 7 is rolled, or after the game moves the pirate ship (fleet).
+     *
+     *<H3>For scenario option {@link SOCGameOption#K_SC_PIRI}:</H3>
+     * This is called after a 7 is rolled, or after the game moves the pirate ship (fleet).
      * When a 7 is rolled, the current player may rob from any player with resources.
      * When the pirate ship is moved (at every dice roll), the player with a
-     * port settlement/city adjacent to the pirate ship's hex is attacked,
-     * unless there are multiple adjacent players (nothing happens).
+     * port settlement/city adjacent to the pirate ship's hex is attacked.
+     *<P>
+     * If there are multiple adjacent players, there is no battle and no robbery victim:
+     * returns an empty list. This also applies to the hex in the middle of the 6-player board
+     * that's adjacent to 2 players' {@link SOCPlayer#getAddedLegalSettlement()} locations,
+     * even if they haven't both built there.
      *
      * @return a list of possible players to rob, or an empty list
      * @see #canChoosePlayer(int)
@@ -6484,9 +6503,55 @@ public class SOCGame implements Serializable, Cloneable
                 final int ph = ((SOCBoardLarge) board).getPirateHex();
                 if (ph != 0)
                 {
-                    candidates = getPlayersOnHex(ph);
-                    if (candidates.size() > 1)
+                    Set<SOCPlayingPiece> adjacPieces = new HashSet<SOCPlayingPiece>();
+                    candidates = getPlayersOnHex(ph, adjacPieces);
+                    final int nCandidates = candidates.size();
+                    if (nCandidates > 1)
+                    {
                         candidates.clear();
+                    } else if (nCandidates == 1) {
+                        // Check adjacPieces for victim's getAddedLegalSettlement
+                        // and if found, check for other players'.
+                        final SOCPlayer victim = candidates.get(0);
+                        final int victimSettleNode = victim.getAddedLegalSettlement();
+                        boolean atAdded = false;
+                        for (SOCPlayingPiece pp : adjacPieces)
+                        {
+                            if (victimSettleNode == pp.getCoordinates())
+                            {
+                                atAdded = true;
+                                break;
+                            }
+                        }
+                        if (atAdded)
+                        {
+                            // See if any other player's getAddedLegalSettlement is also adjacent to this hex.
+                            // If so, should not rob at this hex per SC_PIRI scenairo rules.
+                            final int[] pirateAdjacNodes = board.getAdjacentNodesToHex_arr(ph);
+                            boolean hasOtherPlayer = false;
+                            outerLoop:
+                            for (int pn = 0; pn < maxPlayers; ++pn)
+                            {
+                                if (isSeatVacant(pn))
+                                    continue;
+                                final SOCPlayer pl = players[pn];
+                                if (pl == victim)
+                                    continue;
+                                final int plSettleNode = pl.getAddedLegalSettlement();
+                                for (final int node : pirateAdjacNodes)
+                                {
+                                    if (node == plSettleNode)
+                                    {
+                                        hasOtherPlayer = true;
+                                        break outerLoop;
+                                    }
+                                }
+                            }
+
+                            if (hasOtherPlayer)
+                                candidates.clear();
+                        }
+                    }
                 } else {
                     candidates = new ArrayList<SOCPlayer>();
                 }
@@ -6506,7 +6571,7 @@ public class SOCGame implements Serializable, Cloneable
         {
             candidates = getPlayersShipsOnHex(((SOCBoardLarge) board).getPirateHex());
         } else {
-            candidates = getPlayersOnHex(board.getRobberHex());
+            candidates = getPlayersOnHex(board.getRobberHex(), null);
         }
 
         List<SOCPlayer> victims = new ArrayList<SOCPlayer>();
@@ -6599,21 +6664,23 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * In game scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, the pirate fleet is moved every
-     * dice roll, and may steal from the single player with an adjacent settlement or city.
+     * In game scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, after the pirate fleet is moved,
+     * have the pirate fleet attack the victim player with an adjacent settlement or city.
      * If pirate fleet is stronger than player's fleet ({@link SOCPlayer#getNumWarships()}),
-     * perform the robbery.  Number of resources stolen are 1 + victim's number of cities.
+     * performs the robbery.  Number of resources stolen are 1 + victim's number of cities.
      * The stolen resources are discarded, no player gets them.
+     * If player's fleet is stronger, "victim" player gets to pick a free resource.
+     *<P>
      * Does not change gameState.
      *<P>
-     * Results will be reported back through {@link #robberResult}:
+     * Results are reported back through {@link #robberResult}:
      *<UL>
-     * <LI> Will set {@link SOCMoveRobberResult#sc_piri_loot} to the resource(s) stolen, if any
-     * <LI> If player had no resources, {@code sc_piri_loot.getTotal()} will be 0
+     * <LI> {@link SOCMoveRobberResult#sc_piri_loot} are the resource(s) stolen, if any, or an empty set
+     * <LI> If player had no resources, {@code sc_piri_loot.getTotal()} is 0
      * <LI> If player's strength is tied with {@code pirFleetStrength}, nothing is gained or lost
      * <LI> If player is stronger than the pirate fleet, they get to pick a free resource:
-     *      {@code sc_piri_loot} will contain 1 {@link SOCResourceConstants#GOLD_LOCAL}
-     *      Caller must set {@link SOCPlayer#setNeedToPickGoldHexResources(int)}, not set here.
+     *      {@code sc_piri_loot} contains 1 {@link SOCResourceConstants#GOLD_LOCAL}.
+     *      Caller must set {@link SOCPlayer#setNeedToPickGoldHexResources(int)}, isn't set here.
      *</UL>
      * Assumes proper game state and scenario, does not validate those or {@code pn}.
      *
