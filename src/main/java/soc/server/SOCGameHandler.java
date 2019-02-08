@@ -2809,20 +2809,9 @@ public class SOCGameHandler extends GameHandler
 
         final int[][] legalSeaEdges;  // used on sea board; if null, all are legal
         if (ga.hasSeaBoard)
-        {
-            legalSeaEdges = SOCBoardAtServer.getLegalSeaEdges(ga, -1);
-            if (legalSeaEdges != null)
-                for (int pn = 0; pn < ga.maxPlayers; ++pn)
-                    ga.getPlayer(pn).setRestrictedLegalShips(legalSeaEdges[pn]);
-
-            if (ga.isGameOptionSet(SOCGameOption.K_SC_FTRI) || ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
-            {
-                // scenario has initial pieces
-                ((SOCBoardAtServer) (ga.getBoard())).startGame_putInitPieces(ga);
-            }
-        } else {
+            legalSeaEdges = SOCBoardAtServer.startGame_scenarioSetup(ga);
+        else
             legalSeaEdges = null;
-        }
 
         srv.gameList.takeMonitorForGame(gaName);
 

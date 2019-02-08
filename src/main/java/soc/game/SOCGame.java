@@ -4100,8 +4100,7 @@ public class SOCGame implements Serializable, Cloneable
      * call them in this order before any other board or game methods:
      *<UL>
      * <LI> This method {@code startGame()}
-     * <LI> If appropriate, each player's {@link SOCPlayer#setRestrictedLegalShips(int[])}
-     * <LI> If appropriate, {@code SOCBoardAtServer.startGame_putInitPieces(SOCGame)}
+     * <LI> If appropriate, {@link soc.server.SOCBoardAtServer#startGame_scenarioSetup(SOCGame)}
      *</UL>
      */
     public void startGame()

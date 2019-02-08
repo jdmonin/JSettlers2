@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -196,11 +196,13 @@ public class SOCBoardAtServer extends SOCBoardLarge
             throw new IllegalStateException();
         if (pirateHex == 0)
             return 0;  // fleet already defeated (all fortresses recaptured)
+
         int i = piratePathIndex + numSteps;
         while (i >= path.length)
             i -= path.length;
         piratePathIndex = i;
         final int ph = path[i];
+
         setPirateHex(ph, true);
         return ph;
     }
@@ -2629,6 +2631,45 @@ public class SOCBoardAtServer extends SOCBoardLarge
     }
 
     /**
+     * For a game that's starting, now that the board layout is known,
+     * do any extra setup required by certain scenarios.
+     *<P>
+     * If ! {@link SOCGame#hasSeaBoard ga.hasSeaBoard}, does nothing and returns {@code null}.
+     *<P>
+     * In this order:
+     *<UL>
+     * <LI> Calls {@link #getLegalSeaEdges(SOCGame, int) getLegalSeaEdges(ga, -1)}:
+     *      In scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, that will return non-{@code null} because
+     *      ship placement is restricted. If so, calls each player's {@link SOCPlayer#setRestrictedLegalShips(int[])}.
+     * <LI> Calls {@link #startGame_putInitPieces(SOCGame)}:
+     *      Used in {@link SOCGameOption#K_SC_PIRI _SC_PIRI} and {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.
+     *</UL>
+     *
+     * @param ga  Game to set up; assumes {@link SOCGame#startGame()} has just been called
+     * @return  this board layout's {@link #getLegalSeaEdges(SOCGame, int) getLegalSeaEdges(ga, -1)}
+     *     if placement is restricted, or {@code null}
+     */
+    public static int[][] startGame_scenarioSetup(final SOCGame ga)
+    {
+        if (! ga.hasSeaBoard)
+            return null;  // just in case; such a game shouldn't be using this class anyway
+
+        final int[][] legalSeaEdges;  // used on sea board; if null, all are legal
+        legalSeaEdges = getLegalSeaEdges(ga, -1);
+        if (legalSeaEdges != null)
+            for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                ga.getPlayer(pn).setRestrictedLegalShips(legalSeaEdges[pn]);
+
+        if (ga.isGameOptionSet(SOCGameOption.K_SC_FTRI) || ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        {
+            // scenario has initial pieces
+            ((SOCBoardAtServer) (ga.getBoard())).startGame_putInitPieces(ga);
+        }
+
+        return legalSeaEdges;
+    }
+
+    /**
      * For scenario game option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
      * place each player's initial pieces.  For {@link SOCGameOption#K_SC_FTRI _SC_FTRI},
      * set aside some dev cards to be claimed later at Special Edges.
@@ -2641,7 +2682,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * Called only at server. For a method called during game start
      * at server and clients, see {@link SOCGame#updateAtBoardLayout()}.
      *<P>
-     * Called from {@link SOCGameHandler#startGame(SOCGame)} for those
+     * Called from {@link #startGame_scenarioSetup(SOCGame)} for those
      * scenario game options; if you need it called for your game, add
      * a check there for your scenario's {@link SOCGameOption}.
      *<P>
