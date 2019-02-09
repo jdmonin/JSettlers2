@@ -44,6 +44,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import java.net.ConnectException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import java.util.ArrayList;
@@ -807,10 +808,19 @@ public class SOCPlayerClient
      * @param cuser User nickname
      * @param cpass User optional password
      */
-    public void connect(String chost, int cport, String cuser, String cpass)
+    public void connect(final String chost, final int cport, final String cuser, final String cpass)
     {
         gameDisplay.connect(cpass, cuser);
-        net.connect(chost, cport);
+
+        // TODO don't do net connect attempt on UI thread
+        // Meanwhile: To ensure the UI repaints before starting net connect:
+        EventQueue.invokeLater(new Runnable()
+        {
+            public void run()
+            {
+                net.connect(chost, cport);
+            }
+        });
     }
 
     /**
@@ -1292,6 +1302,8 @@ public class SOCPlayerClient
             initMainPanelLayout(true, null);  // status line only, until later call to showVersion
 
             JPanel messagePane = new JPanel(new BorderLayout());
+            messagePane.setBackground(null);  // inherit from parent
+            messagePane.setForeground(null);
 
             // secondary message at top of message pane, used with pgm button.
             messageLabel_top = new JLabel("", SwingConstants.CENTER);
@@ -1321,7 +1333,7 @@ public class SOCPlayerClient
             add(messagePane, MESSAGE_PANEL); // shown first unless cpPane
             add(mainPane, MAIN_PANEL);
 
-            messageLabel.setText(strings.get("pcli.message.waiting"));  // "Waiting to connect."
+            messageLabel.setText(strings.get("pcli.message.connecting.serv"));  // "Connecting to server..."
             validate();
         }
 
@@ -1358,6 +1370,7 @@ public class SOCPlayerClient
             {
                 mainPane = new JPanel(mainGBL);
                 mainPane.setBackground(null);
+                mainPane.setForeground(null);
                 mainPane.setOpaque(false);
                 mainPane.setBorder(BorderFactory.createEmptyBorder(0, 4, 4, 4));
             }
@@ -7054,6 +7067,11 @@ public class SOCPlayerClient
          */
         public static final int SOC_PORT_DEFAULT = 8880;
 
+        /**
+         * Timeout for initial connection to server; default is 6000 milliseconds.
+         */
+        public static int CONNECT_TIMEOUT_MS = 6000;
+
         final SOCPlayerClient client;
 
         /**
@@ -7333,7 +7351,8 @@ public class SOCPlayerClient
                         // when ! gotPassword, SwingGameDisplay.getPassword() will read pw from there
                     client.gotPassword = false;
                 }
-                s = new Socket(host, port);
+                s = new Socket();
+                s.connect(new InetSocketAddress(host, port), CONNECT_TIMEOUT_MS);
                 in = new DataInputStream(s.getInputStream());
                 out = new DataOutputStream(s.getOutputStream());
                 connected = true;
