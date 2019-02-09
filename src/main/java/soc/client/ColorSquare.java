@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2012,2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012,2018-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,7 +34,7 @@ import java.awt.event.MouseListener;
  * interactive, or non-interactive.  The possible
  * colors of the box correspond to resources in SoC.
  *<P>
- * Default size is {@link #WIDTH} by {@link #HEIGHT} pixels.
+ * Default size is {@link #WIDTH} by {@link #HEIGHT} pixels; call {@link #setSize(int, int)} to change.
  * Most colorsquares in JSettlers are actually
  * {@link ColorSquareLarger} instances.
  * This was easier than changing the values of {@link #WIDTH} and {@link #HEIGHT},
@@ -395,9 +395,11 @@ public class ColorSquare extends Canvas implements MouseListener
     /**
      * Set the width and height of this ColorSquare.
      * Does not need to be a square (w != h is OK).
+     * This size will also be returned by {@link #getPreferredSize()} and {@link #getMinimumSize()}.
      * @param w width in pixels
      * @param h height in pixels
      */
+    @Override
     public void setSize(int w, int h)
     {
         squareW = w;
@@ -738,20 +740,20 @@ public class ColorSquare extends Canvas implements MouseListener
     }
 
     /**
-     * DOCUMENT ME!
-     *
-     * @return DOCUMENT ME!
+     * Get our preferred size:
+     * Default from constructor, or any value passed to {@link #setSize(int, int)}.
      */
+    @Override
     public Dimension getPreferredSize()
     {
         return squareSize;
     }
 
     /**
-     * DOCUMENT ME!
-     *
-     * @return DOCUMENT ME!
+     * Get our minimum size:
+     * Default from constructor, or any value passed to {@link #setSize(int, int)}.
      */
+    @Override
     public Dimension getMinimumSize()
     {
         return squareSize;
