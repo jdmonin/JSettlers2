@@ -24,7 +24,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -90,7 +91,9 @@ class SOCMonopolyDialog extends JDialog implements ActionListener, Runnable
         btnsContainer.setForeground(null);
 
         // In center of btnContainer, the stack of resource buttons:
-        final JPanel btnsPane = new JPanel()
+        final GridBagLayout gbl = new GridBagLayout();
+        final GridBagConstraints gbc = new GridBagConstraints();
+        final JPanel btnsPane = new JPanel(gbl)
         {
             /**
              * Override to prevent some unwanted extra width, because default max is 32767 x 32767
@@ -99,11 +102,11 @@ class SOCMonopolyDialog extends JDialog implements ActionListener, Runnable
              */
             public Dimension getMaximumSize() { return getPreferredSize(); }
         };
-        btnsPane.setLayout(new BoxLayout(btnsPane, BoxLayout.Y_AXIS));
         btnsPane.setBackground(null);
         btnsPane.setForeground(null);
         btnsPane.setAlignmentX(CENTER_ALIGNMENT);  // center btnsPane within entire content pane
-        btnsPane.add(Box.createRigidArea(new Dimension(9, 9)));  // space between prompt label and resource rows
+        btnsPane.setBorder
+            (BorderFactory.createEmptyBorder(9, 0, 0, 0));  // space between prompt label and resource rows
 
         rsrcBut = new JButton[5];
         final String[] rsrcStr
@@ -122,14 +125,19 @@ class SOCMonopolyDialog extends JDialog implements ActionListener, Runnable
             b.addActionListener(this);
             rsrcBut[i] = b;
 
-            JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            row.setBackground(null);
-            row.setForeground(null);
-            row.setAlignmentY(CENTER_ALIGNMENT);
+            // add to layout; stretch buttons so they all have the same width, but don't stretch colorsquare
 
-            row.add(sq);
-            row.add(b);
-            btnsPane.add(row);
+            gbc.anchor = GridBagConstraints.CENTER;
+            gbc.fill = GridBagConstraints.NONE;
+            gbc.gridwidth = 1;
+            gbl.setConstraints(sq, gbc);
+            btnsPane.add(sq);
+
+            gbc.anchor = GridBagConstraints.LINE_START;
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            gbc.gridwidth = GridBagConstraints.REMAINDER;
+            gbl.setConstraints(b, gbc);
+            btnsPane.add(b);
         }
 
         btnsContainer.add(Box.createHorizontalGlue());
