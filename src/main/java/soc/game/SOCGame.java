@@ -2354,6 +2354,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Get the number of development cards remaining to be bought.
      * @return the number of dev cards in the deck
+     * @see #setNumDevCards(int)
      */
     public int getNumDevCards()
     {
@@ -2361,9 +2362,10 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * set the number of dev cards in the deck
+     * At client, set the number of dev cards remaining in the deck.
      *
      * @param  nd  the number of dev cards in the deck
+     * @see #getNumDevCards()
      */
     public void setNumDevCards(final int nd)
     {
@@ -3251,9 +3253,9 @@ public class SOCGame implements Serializable, Cloneable
         final int coord = pp.getCoordinates();
 
         /**
-         * on large board, look for fog and reveal its hex if we're
+         * FOG_HEX: On large board, look for fog and reveal its hex if we're
          * placing a road or ship touching the fog hex's corner.
-         * During initial placement, a settlement could reveal up to 3.
+         * During initial placement, a settlement could reveal up to 3 hexes.
          * Current player gets a resource from each revealed hex.
          */
         if (hasSeaBoard && isAtServer && ! (pp instanceof SOCVillage))
@@ -3264,7 +3266,7 @@ public class SOCGame implements Serializable, Cloneable
                 final int[] endHexes = ((SOCBoardLarge) board).getAdjacentHexesToEdgeEnds(coord);
                 putPieceCommon_checkFogHexes(endHexes, false);
             }
-            else if (isInitialPlacement() && (pp instanceof SOCSettlement))
+            else if ((pp instanceof SOCSettlement) && isInitialPlacement())
             {
                 // settlements
                 final Collection<Integer> hexColl = board.getAdjacentHexesToNode(coord);
