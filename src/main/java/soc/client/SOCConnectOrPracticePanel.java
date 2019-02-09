@@ -22,14 +22,10 @@
 package soc.client;
 
 import java.awt.BorderLayout;
-import java.awt.Button;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Label;
-import java.awt.Panel;
-import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -37,6 +33,13 @@ import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
+
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
 import soc.client.SOCPlayerClient.ClientNetwork;
 import soc.client.SOCPlayerClient.GameDisplay;
@@ -52,31 +55,32 @@ import soc.util.Version;
  * @author Jeremy D Monin <jeremy@nand.net>
  */
 @SuppressWarnings("serial")
-public class SOCConnectOrPracticePanel extends Panel
+public class SOCConnectOrPracticePanel extends JPanel
     implements ActionListener, KeyListener
 {
     private final GameDisplay gd;
     private final ClientNetwork clientNetwork;
 
     /** Welcome message, or error after disconnect */
-    private Label topText;
+    private JLabel topText;
 
     /** "Practice" */
-    private Button prac;
+    private JButton prac;
 
     /** "Connect to server" */
-    private Button connserv;
+    private JButton connserv;
     /** Contains GUI elements for details in {@link #connserv} */
-    private Panel panel_conn;
-    private TextField conn_servhost, conn_servport, conn_user, conn_pass;
-    private Button conn_connect, conn_cancel;
+    private JPanel panel_conn;
+    private JTextField conn_servhost, conn_servport, conn_user;
+    private JPasswordField conn_pass;
+    private JButton conn_connect, conn_cancel;
 
     /** "Start a server" */
-    private Button runserv;
+    private JButton runserv;
     /** Contains GUI elements for details in {@link #runserv}, or null if can't run. */
-    private Panel panel_run;
-    private TextField run_servport;
-    private Button run_startserv, run_cancel;
+    private JPanel panel_run;
+    private JTextField run_servport;
+    private JButton run_startserv, run_cancel;
 
     /**
      * Do we have security to run a TCP server?
@@ -184,13 +188,16 @@ public class SOCConnectOrPracticePanel extends Panel
     {
         GridBagLayout gbl = new GridBagLayout();
         GridBagConstraints gbc = new GridBagConstraints();
-        Panel bp = new Panel(gbl);  // Actual button panel
+        JPanel bp = new JPanel(gbl);  // Actual button panel
+
+        bp.setBackground(null);  // inherit from parent
+        bp.setForeground(null);
 
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
 
-        topText = new Label(strings.get("pcli.cpp.welcomeheading"));  // "Welcome to JSettlers!  Please choose an option."
-        topText.setAlignment(Label.CENTER);
+        topText = new JLabel(strings.get("pcli.cpp.welcomeheading"), SwingConstants.CENTER);
+            // "Welcome to JSettlers!  Please choose an option."
         gbl.setConstraints(topText, gbc);
         bp.add(topText);
 
@@ -198,7 +205,7 @@ public class SOCConnectOrPracticePanel extends Panel
          * Interface setup: Connect to a Server
          */
 
-        connserv = new Button(strings.get("pcli.cpp.connecttoaserv"));  // "Connect to a Server"
+        connserv = new JButton(strings.get("pcli.cpp.connecttoaserv"));  // "Connect to a Server"
         gbl.setConstraints(connserv, gbc);
         bp.add(connserv);
         connserv.addActionListener(this);
@@ -206,7 +213,7 @@ public class SOCConnectOrPracticePanel extends Panel
         /**
          * Interface setup: Practice
          */
-        prac = new Button(strings.get("pcli.main.practice"));  // "Practice" - same as SOCPlayerClient button
+        prac = new JButton(strings.get("pcli.main.practice"));  // "Practice" - same as SOCPlayerClient button
         gbl.setConstraints(prac, gbc);
         bp.add(prac);
         prac.addActionListener(this);
@@ -214,7 +221,7 @@ public class SOCConnectOrPracticePanel extends Panel
         /**
          * Interface setup: Start a Server
          */
-        runserv = new Button(strings.get("pcli.cpp.startserv"));  // "Start a Server"
+        runserv = new JButton(strings.get("pcli.cpp.startserv"));  // "Start a Server"
         gbl.setConstraints(runserv, gbc);
         if (! canLaunchServer)
             runserv.setEnabled(false);
@@ -241,58 +248,55 @@ public class SOCConnectOrPracticePanel extends Panel
 
         // Final assembly setup
         add(bp, BorderLayout.CENTER);
-        Label verl = new Label(strings.get("pcli.cpp.jsettlers.versionbuild", Version.version(), Version.buildnum()));
+        JLabel verl = new JLabel
+            (strings.get("pcli.cpp.jsettlers.versionbuild", Version.version(), Version.buildnum()), SwingConstants.CENTER);
             // "JSettlers " + Version.version() + " build " + Version.buildnum()
-        verl.setAlignment(Label.CENTER);
         verl.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
         add(verl, BorderLayout.SOUTH);
     }
 
     /** panel_conn setup */
-    private Panel initInterface_conn()
+    private JPanel initInterface_conn()
     {
-        Panel pconn = new Panel();
-        Label L;
-
         GridBagLayout gbl = new GridBagLayout();
         GridBagConstraints gbc = new GridBagConstraints();
-        pconn.setLayout(gbl);
-        gbc.fill = GridBagConstraints.BOTH;
+        JPanel pconn = new JPanel(gbl);
+
+        pconn.setBackground(Color.LIGHT_GRAY);  // TMP ; inherit from parent
+        pconn.setForeground(null);
+
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JLabel L;
 
         // heading row
-        L = new Label(strings.get("pcli.cpp.connecttoserv"));  // "Connect to Server"
-        L.setAlignment(Label.CENTER);
+
+        L = new JLabel(strings.get("pcli.cpp.connecttoserv"), SwingConstants.CENTER);  // "Connect to Server"
         L.setBackground(HEADER_LABEL_BG);
         L.setForeground(HEADER_LABEL_FG);
-        gbc.gridwidth = 4;
-        gbl.setConstraints(L, gbc);
-        pconn.add(L);
-        L = new Label(" ");  // Spacing for rest of form's rows
         gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.ipady = 8;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
+        gbc.ipady = 0;
 
-        // blank row
-        L = new Label();
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbl.setConstraints(L, gbc);
-        pconn.add(L);
+        // field rows
 
-        L = new Label(strings.get("pcli.cpp.server"));
+        L = new JLabel(strings.get("pcli.cpp.server"));
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
-        conn_servhost = new TextField(20);
+        conn_servhost = new JTextField(20);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(conn_servhost, gbc);
         conn_servhost.addKeyListener(this);   // for ESC/ENTER
         pconn.add(conn_servhost);
 
-        L = new Label(strings.get("pcli.cpp.port"));
+        L = new JLabel(strings.get("pcli.cpp.port"));
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
-        conn_servport = new TextField(20);
+        conn_servport = new JTextField(20);
         {
             String svp = Integer.toString(clientNetwork.getPort());
             conn_servport.setText(svp);
@@ -304,86 +308,89 @@ public class SOCConnectOrPracticePanel extends Panel
         conn_servport.addKeyListener(this);   // for ESC/ENTER
         pconn.add(conn_servport);
 
-        L = new Label(strings.get("pcli.cpp.nickname"));
+        L = new JLabel(strings.get("pcli.cpp.nickname"));
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
-        conn_user = new TextField(20);
+        conn_user = new JTextField(20);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(conn_user, gbc);
         conn_user.addKeyListener(this);
         pconn.add(conn_user);
 
-        L = new Label(strings.get("pcli.cpp.password"));
+        L = new JLabel(strings.get("pcli.cpp.password"));
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
-        conn_pass = new TextField(20);
-        if (SOCPlayerClient.isJavaOnOSX)
-            conn_pass.setEchoChar('\u2022');  // round bullet (option-8)
-        else
-            conn_pass.setEchoChar('*');
+        conn_pass = new JPasswordField(20);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(conn_pass, gbc);
         conn_pass.addKeyListener(this);
         pconn.add(conn_pass);
 
-        L = new Label(" ");
+        // button row
+
+        L = new JLabel("");
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
-        conn_connect = new Button(strings.get("pcli.cpp.connect"));
+        conn_connect = new JButton(strings.get("pcli.cpp.connect"));
         conn_connect.addActionListener(this);
         conn_connect.addKeyListener(this);  // for win32 keyboard-focus
+        gbc.weightx = 0.5;
         gbl.setConstraints(conn_connect, gbc);
         pconn.add(conn_connect);
 
-        conn_cancel = new Button(strings.get("base.cancel"));
+        conn_cancel = new JButton(strings.get("base.cancel"));
         conn_cancel.addActionListener(this);
         conn_cancel.addKeyListener(this);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbl.setConstraints(conn_cancel, gbc);
+        gbl.setConstraints(conn_cancel, gbc);  // still with weightx = 0.5
         pconn.add(conn_cancel);
 
         return pconn;
     }
 
     /** panel_run setup */
-    private Panel initInterface_run()
+    private JPanel initInterface_run()
     {
-        Panel prun = new Panel();
-        Label L;
-
         GridBagLayout gbl = new GridBagLayout();
         GridBagConstraints gbc = new GridBagConstraints();
-        prun.setLayout(gbl);
+        JPanel prun = new JPanel(gbl);
+
+        prun.setBackground(null);  // inherit from parent
+        prun.setForeground(null);
+
         gbc.fill = GridBagConstraints.BOTH;
 
+        JLabel L;
+
         // heading row
-        L = new Label(strings.get("pcli.cpp.startserv"));  // "Start a Server"
-        L.setAlignment(Label.CENTER);
+        L = new JLabel(strings.get("pcli.cpp.startserv"), SwingConstants.CENTER);  // "Start a Server"
         L.setBackground(HEADER_LABEL_BG);
         L.setForeground(HEADER_LABEL_FG);
         gbc.gridwidth = 4;
+        gbc.weightx = 1;
         gbl.setConstraints(L, gbc);
         prun.add(L);
-        L = new Label(" ");  // Spacing for rest of form's rows
+        L = new JLabel(" ");  // Spacing for rest of form's rows
         gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.weightx = 0;
         gbl.setConstraints(L, gbc);
         prun.add(L);
 
         // blank row
-        L = new Label();
+        L = new JLabel();
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(L, gbc);
         prun.add(L);
 
         // Port#
-        L = new Label(strings.get("pcli.cpp.port"));
+        L = new JLabel(strings.get("pcli.cpp.port"));
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         prun.add(L);
-        run_servport = new TextField(15);
+        run_servport = new JTextField(10);
         {
             String svp = Integer.toString(clientNetwork.getPort());
             run_servport.setText(svp);
@@ -394,25 +401,26 @@ public class SOCConnectOrPracticePanel extends Panel
         gbl.setConstraints(run_servport, gbc);
         run_servport.addKeyListener(this);  // for ESC/ENTER
         prun.add(run_servport);
-        L = new Label(" ");  // Spacing for rest of form's rows
+        L = new JLabel(" ");  // Spacing for rest of form's rows
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(L, gbc);
         prun.add(L);
 
-        L = new Label(" ");
+        L = new JLabel(" ");
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         prun.add(L);
-        run_startserv = new Button(" " + strings.get("pcli.cpp.start") + " ");
+        run_startserv = new JButton(" " + strings.get("pcli.cpp.start") + " ");
         run_startserv.addActionListener(this);
         run_startserv.addKeyListener(this);  // for win32 keyboard-focus
+        gbc.weightx = 0.5;
         gbl.setConstraints(run_startserv, gbc);
         prun.add(run_startserv);
 
-        run_cancel = new Button(strings.get("base.cancel"));
+        run_cancel = new JButton(strings.get("base.cancel"));
         run_cancel.addActionListener(this);
         run_cancel.addKeyListener(this);
-        gbl.setConstraints(run_cancel, gbc);
+        gbl.setConstraints(run_cancel, gbc);  // still with weightx = 0.5
         prun.add(run_cancel);
 
         return prun;
@@ -452,7 +460,7 @@ public class SOCConnectOrPracticePanel extends Panel
      *         or 0 if cannot be parsed or if outside the valid range 1-65535
      * @since 1.1.19
      */
-    private final int parsePortNumberOrDefault(final TextField tf)
+    private final int parsePortNumberOrDefault(final JTextField tf)
     {
         int srport;
         try {
@@ -572,6 +580,7 @@ public class SOCConnectOrPracticePanel extends Panel
     }
 
     /** "Connect..." from connect setup; check fields, set WAIT_CURSOR, ask cli to connect  */
+    @SuppressWarnings("deprecation")  // TODO replace conn_pass.getText()
     private void clickConnConnect()
     {
         // TODO Check contents of fields
