@@ -79,7 +79,7 @@ class SOCMonopolyDialog extends JDialog implements ActionListener, Runnable
         add(msg, BorderLayout.PAGE_START);  // NORTH
 
         // The actual content of this dialog is btnsPane, a narrow stack of 5 rows, 1 per resource type.
-        // Each row is a JPanel with 1 resource type's color and button.
+        // Each row has 1 resource type's colorsquare and a button with its name.
         // This stack of rows is centered horizontally in the larger container,
         // and doesn't fill the entire width. Since the content pane's BorderLayout wants to
         // stretch things to fill its center, to leave space on the left and right
@@ -97,7 +97,7 @@ class SOCMonopolyDialog extends JDialog implements ActionListener, Runnable
         {
             /**
              * Override to prevent some unwanted extra width, because default max is 32767 x 32767
-             * and BoxLayout adds some proportion of that, based on its overall container width
+             * and parent's BoxLayout adds some proportion of that, based on its overall container width
              * beyond btnsPane's minimum/preferred width.
              */
             public Dimension getMaximumSize() { return getPreferredSize(); }

@@ -24,8 +24,10 @@ package soc.client;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -34,6 +36,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -181,17 +185,36 @@ public class SOCConnectOrPracticePanel extends JPanel
 
     /**
      * Interface setup for constructor.
-     * Most elements are part of a sub-panel occupying most of this Panel, and using FlowLayout.
-     * The exception is a Label at bottom with the version and build number.
+     * Most elements are part of a sub-panel occupying most of this Panel, using a vertical BoxLayout.
+     * There's also a label at bottom with the version and build number.
      */
     private void initInterfaceElements()
     {
-        GridBagLayout gbl = new GridBagLayout();
-        GridBagConstraints gbc = new GridBagConstraints();
-        JPanel bp = new JPanel(gbl);  // Actual button panel
+        // The actual content of this dialog is bp, a narrow stack of buttons and other UI elements.
+        // This stack is centered horizontally in the larger container, and doesn't fill the entire width.
+        // Since the content pane's BorderLayout wants to stretch things to fill its center,
+        // to leave space on the left and right we wrap bp in a larger bpContainer ordered horizontally.
 
-        bp.setBackground(null);  // inherit from parent
+        final JPanel bpContainer = new JPanel();
+        bpContainer.setLayout(new BoxLayout(bpContainer, BoxLayout.X_AXIS));
+        bpContainer.setBackground(null);  // inherit from parent
+        bpContainer.setForeground(null);
+
+        // In center of bpContainer, bp holds the narrow UI stack:
+        final JPanel bp = new BoxedJPanel();
+        bp.setLayout(new BoxLayout(bp, BoxLayout.Y_AXIS));
+        bp.setBackground(null);
         bp.setForeground(null);
+        bp.setAlignmentX(CENTER_ALIGNMENT);  // center bp within entire content pane
+
+        // The welcome label and 3 buttons should be the same width,
+        // so they get a sub-panel of their own using GBL:
+
+        final GridBagLayout gbl = new GridBagLayout();
+        final GridBagConstraints gbc = new GridBagConstraints();
+        final JPanel modeButtonsContainer = new BoxedJPanel(gbl);
+        modeButtonsContainer.setBackground(null);
+        modeButtonsContainer.setForeground(null);
 
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -199,7 +222,7 @@ public class SOCConnectOrPracticePanel extends JPanel
         topText = new JLabel(strings.get("pcli.cpp.welcomeheading"), SwingConstants.CENTER);
             // "Welcome to JSettlers!  Please choose an option."
         gbl.setConstraints(topText, gbc);
-        bp.add(topText);
+        modeButtonsContainer.add(topText);
 
         /**
          * Interface setup: Connect to a Server
@@ -207,7 +230,7 @@ public class SOCConnectOrPracticePanel extends JPanel
 
         connserv = new JButton(strings.get("pcli.cpp.connecttoaserv"));  // "Connect to a Server"
         gbl.setConstraints(connserv, gbc);
-        bp.add(connserv);
+        modeButtonsContainer.add(connserv);
         connserv.addActionListener(this);
 
         /**
@@ -215,7 +238,7 @@ public class SOCConnectOrPracticePanel extends JPanel
          */
         prac = new JButton(strings.get("pcli.main.practice"));  // "Practice" - same as SOCPlayerClient button
         gbl.setConstraints(prac, gbc);
-        bp.add(prac);
+        modeButtonsContainer.add(prac);
         prac.addActionListener(this);
 
         /**
@@ -225,14 +248,15 @@ public class SOCConnectOrPracticePanel extends JPanel
         gbl.setConstraints(runserv, gbc);
         if (! canLaunchServer)
             runserv.setEnabled(false);
-        bp.add(runserv);
+        modeButtonsContainer.add(runserv);
+
+        bp.add(modeButtonsContainer);
 
         /**
          * Interface setup: sub-panels (not initially visible)
          */
         panel_conn = initInterface_conn();  // panel_conn setup
         panel_conn.setVisible(false);
-        gbl.setConstraints(panel_conn, gbc);
         bp.add (panel_conn);
 
         if (canLaunchServer)
@@ -240,14 +264,17 @@ public class SOCConnectOrPracticePanel extends JPanel
             runserv.addActionListener(this);
             panel_run = initInterface_run();  // panel_run setup
             panel_run.setVisible(false);
-            gbl.setConstraints(panel_run, gbc);
             bp.add (panel_run);
         } else {
             panel_run = null;
         }
 
         // Final assembly setup
-        add(bp, BorderLayout.CENTER);
+        bpContainer.add(Box.createHorizontalGlue());
+        bpContainer.add(bp);
+        bpContainer.add(Box.createHorizontalGlue());
+
+        add(bpContainer, BorderLayout.CENTER);
         JLabel verl = new JLabel
             (strings.get("pcli.cpp.jsettlers.versionbuild", Version.version(), Version.buildnum()), SwingConstants.CENTER);
             // "JSettlers " + Version.version() + " build " + Version.buildnum()
@@ -260,9 +287,9 @@ public class SOCConnectOrPracticePanel extends JPanel
     {
         GridBagLayout gbl = new GridBagLayout();
         GridBagConstraints gbc = new GridBagConstraints();
-        JPanel pconn = new JPanel(gbl);
+        JPanel pconn = new BoxedJPanel(gbl);
 
-        pconn.setBackground(Color.LIGHT_GRAY);  // TMP ; inherit from parent
+        pconn.setBackground(null);  // inherit from parent
         pconn.setForeground(null);
 
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -274,6 +301,7 @@ public class SOCConnectOrPracticePanel extends JPanel
         L = new JLabel(strings.get("pcli.cpp.connecttoserv"), SwingConstants.CENTER);  // "Connect to Server"
         L.setBackground(HEADER_LABEL_BG);
         L.setForeground(HEADER_LABEL_FG);
+        L.setOpaque(true);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbc.ipady = 8;
         gbl.setConstraints(L, gbc);
@@ -356,12 +384,12 @@ public class SOCConnectOrPracticePanel extends JPanel
     {
         GridBagLayout gbl = new GridBagLayout();
         GridBagConstraints gbc = new GridBagConstraints();
-        JPanel prun = new JPanel(gbl);
+        JPanel prun = new BoxedJPanel(gbl);
 
         prun.setBackground(null);  // inherit from parent
         prun.setForeground(null);
 
-        gbc.fill = GridBagConstraints.BOTH;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
         JLabel L;
 
@@ -369,10 +397,16 @@ public class SOCConnectOrPracticePanel extends JPanel
         L = new JLabel(strings.get("pcli.cpp.startserv"), SwingConstants.CENTER);  // "Start a Server"
         L.setBackground(HEADER_LABEL_BG);
         L.setForeground(HEADER_LABEL_FG);
+        L.setOpaque(true);
         gbc.gridwidth = 4;
         gbc.weightx = 1;
+        gbc.ipadx = 4;
+        gbc.ipady = 4;
         gbl.setConstraints(L, gbc);
         prun.add(L);
+        gbc.ipadx = 0;
+        gbc.ipady = 0;
+
         L = new JLabel(" ");  // Spacing for rest of form's rows
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbc.weightx = 0;
@@ -673,5 +707,23 @@ public class SOCConnectOrPracticePanel extends JPanel
 
     /** Stub required by KeyListener */
     public void keyTyped(KeyEvent arg0) { }
+
+    /**
+     * {@link JPanel} for use in {@link BoxLayout}; overrides {@link #getMaximumSize()}
+     * to prevent some unwanted extra width. JPanel's default max is 32767 x 32767
+     * and our container's BoxLayout adds some proportion of that,
+     * based on its overall container width beyond our minimum/preferred width.
+     *
+     * @author jdmonin
+     * @since 2.0.00
+     */
+    static final class BoxedJPanel extends JPanel
+    {
+        public BoxedJPanel() { super(); }
+        public BoxedJPanel(LayoutManager m) { super(m); }
+
+        @Override
+        public Dimension getMaximumSize() { return getPreferredSize(); }
+    };
 
 }
