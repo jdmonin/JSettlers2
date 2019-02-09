@@ -46,7 +46,8 @@ public abstract class GameUtils
      * Next steps for caller to use this game:
      *<UL>
      * <LI> Call {@link SOCGame#addPlayer(String, int)} for at least one player seat number
-     * <LI> Call {@link SOCGame#startGame()}. This will also call {@link SOCBoardAtServer#makeNewBoard(Map)}
+     * <LI> Call {@link SOCGame#startGame()}, which will also call {@link SOCBoardAtServer#makeNewBoard(Map)}
+     * <LI> Call {@link SOCBoardAtServer#startGame_scenarioSetup(SOCGame)}
      * <LI> Test as needed.
      * <LI> When done, call {@link SOCGameListAtServer#deleteGame(String) gl.deleteGame(ga.getName())}
      *</UL>
@@ -77,7 +78,8 @@ public abstract class GameUtils
 
         gl.createGame(gaName, "test", "en_US", gaOpts, sgh);
         final SOCGame ga = gl.getGameData(gaName);
-        assertNotNull("Game not created", ga);
+        assertNotNull("Game not created: " + gaName, ga);
+
         return ga;
     }
 

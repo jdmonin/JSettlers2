@@ -22,6 +22,7 @@ package soctest.game;
 
 import java.util.List;
 
+import soc.game.SOCCity;
 import soc.game.SOCGame;
 import soc.game.SOCMoveRobberResult;
 import soc.game.SOCPlayer;
@@ -129,8 +130,41 @@ public class TestScenarioRules
         assertEquals(1, robResult.sc_piri_loot.getTotal());
         List<SOCPlayer> v = robResult.getVictims();
         assertEquals(1, v.size());
-        assertEquals(v.get(0), pl0);
+        assertEquals(pl0, v.get(0));
         // cleanup:
+        robResult.sc_piri_loot.clear();
+        robResult.getVictims().clear();
+
+        // - Has city there: player still loses battle; with 1 city they lose 2 resources
+        ga.setGameState(SOCGame.PLACING_CITY);
+        ga.putPiece(new SOCCity(pl0, player0Settle, board));
+        ga.setGameState(SOCGame.ROLL_OR_CARD);
+        robResult = ga.movePirate(0, pirHexAdjacP0, 6);
+        assertEquals(2, robResult.sc_piri_loot.getTotal());
+        v = robResult.getVictims();
+        assertEquals(1, v.size());
+        assertEquals(pl0, v.get(0));
+        // cleanup:
+        robResult.sc_piri_loot.clear();
+        robResult.getVictims().clear();
+
+        // - Two players on nodes adjacent to same hex: No battle or robbery
+        ga.setCurrentPlayerNumber(3);
+        ga.setGameState(SOCGame.PLACING_SETTLEMENT);
+        assertEquals(1, pl3.getSettlements().size());  // before tmpSett placement
+        SOCSettlement tmpSett = new SOCSettlement(pl3, player0Settle + 0x0002, board);
+            // player 3 can't really place there, but legal-coord checker is skipped in this test
+        ga.putPiece(tmpSett);
+        assertEquals(2, pl3.getSettlements().size());
+        ga.setCurrentPlayerNumber(0);
+        ga.setGameState(SOCGame.ROLL_OR_CARD);
+        robResult = ga.movePirate(0, pirHexAdjacP0, 6);
+        assertTrue((robResult.sc_piri_loot == null) || (robResult.sc_piri_loot.getTotal() == 0));
+        assertTrue(robResult.getVictims().isEmpty());
+        // cleanup:
+        board.removePiece(tmpSett);
+        pl3.removePiece(tmpSett, null);
+        assertEquals(1, pl3.getSettlements().size());  // after tmpSett cleanup
         robResult.sc_piri_loot.clear();
         robResult.getVictims().clear();
 
@@ -142,7 +176,7 @@ public class TestScenarioRules
         assertEquals(1, robResult.sc_piri_loot.getAmount(SOCResourceConstants.GOLD_LOCAL));
         v = robResult.getVictims();
         assertEquals(1, v.size());
-        assertEquals(v.get(0), pl0);
+        assertEquals(pl0, v.get(0));
         // cleanup:
         robResult.sc_piri_loot.clear();
         robResult.getVictims().clear();
