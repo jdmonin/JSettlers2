@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -43,6 +43,11 @@ import public "data.proto";
  * Sent when game starts or client joins a game in progress.
  * Applies to entire game (player_number field is unused).
  * TODO: Ref to list of part keynames, etc
+ *
+ *<H4>Optimization:</H4>
+ * If the game is still forming (state NEW), client already has data for the empty board.
+ * The layout message must still be sent, to set the "VS" part and other data useful for initial rendering.
+ * Such an empty-board message is compact, omitting the sea hexes.
  */
 message BoardLayout
 {
@@ -179,7 +184,7 @@ message PieceValue {
  * message, not as {@code BuildPiece}s.
  *<P>
  * If this is a placement request from a client player: If successful, server announces
- * {@link SOCPlayerElement} messages to the game for the resources spent, {@code BuildPiece},
+ * {@link PlayerElement} messages to the game for the resources spent, {@code BuildPiece},
  * and the new {@link State}. Otherwise server responds with an explanatory {@link GameServerText} and,
  * if the gamestate allowed placement but resources or requested coordinates
  * disallowed it, the current {@link State} and then a {@link CancelBuild}.
@@ -349,6 +354,7 @@ message InventoryItemAction {
  *   <P>
  *   The special inventory items in PLACING_INV_ITEM each have a different placement message, but if item placement
  *   can be canceled, use this common message type, with {@code item_type} == ({@link Data.OtherPlayableItem#INV_ITEM}).
+ *   See {@link soc.game.SOCInventoryItem} for when this is allowed.
  *   If placement can't be canceled, server will reply with {@link GameServerText}.
  *
  *<LI> While placing the second free road or ship (PLACING_FREE_ROAD2), means
@@ -434,9 +440,82 @@ message RemovePiece {
  * {@link Data.GameState#WAITING_FOR_DISCOVERY} or
  * {@link Data.GameState#WAITING_FOR_ROBBER_OR_PIRATE}, sending this
  * State message implies that the player must decide and respond.
+ * See the state list below for details.
  *<P>
- * For {@link Data.GameState#WAITING_FOR_ROBBER_OR_PIRATE}, the player should
- * respond with {@link ChoosePlayer}; see that message's javadoc.
+ * States sent by this message, and messages sent afterwards/client response expected:
+ *<UL>
+ * <LI>{@code NEW}: -
+ * <LI>{@code READY}: -
+ * <LI>{@code READY_RESET_WAIT_ROBOT_DISMISS}: -
+ * <LI>{@code START1A}: Current player: Place a settlement
+ *     (all placement requests from clients are sent using {@link BuildPiece})
+ * <LI>{@code START1B}: Current player: Place a road
+ * <LI>{@code START2A}: Current player: Place a settlement
+ * <LI>{@code START2B}: Current player: Place a road
+ * <LI>{@code START3A}: Current player: Place a settlement
+ * <LI>{@code START3B}: Current player: Place a road
+ * <LI>{@code STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}:
+ *     Server sends game a "x, y, and z need to pick resources from the gold hex" prompt text.
+ *     Sends the game
+ *     {@link PlayerElement}({@link _PlayerElementType#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES}).
+ *     Sends specific player(s) {@link SimpleRequest}({@link SimpleRequest#PROMPT_PICK_RESOURCES PROMPT_PICK_RESOURCES}).
+ * <LI>{@code ROLL_OR_CARD}: Server sends game {@link DiceRollRequest} with current player number.
+ *     Current player: Send {@link DiceRollRequest} or {@link SOCPlayDevCardRequest}
+ * <LI>{@code PLAY1}: Current player: Build, play and buy cards, trade, etc.
+ *     When done with turn, send {@link EndTurn}
+ * <LI>{@code PLACING_ROAD}: Current player: Place a road
+ * <LI>{@code PLACING_SETTLEMENT}: Current player: Place a settlement
+ * <LI>{@code PLACING_CITY}: Current player: Place a city
+ * <LI>{@code PLACING_ROBBER}: Current player: Choose a new robber hex and send {@link MoveRobber}
+ * <LI>{@code PLACING_PIRATE}: Current player: Choose a new pirate hex and send {@link MoveRobber}
+ * <LI>{@code PLACING_SHIP}: Current player: Place a ship
+ * <LI>{@code PLACING_FREE_ROAD1}: Current player: Place a road
+ * <LI>{@code PLACING_FREE_ROAD2}: Current player: Place a road
+ * <LI>{@code PLACING_INV_ITEM}: Current player: Place the previously-designated
+ *     {@link soc.game.SOCInventoryItem}. Their placement message to server depends on the scenario and item type,
+ *     documented at {@link InventoryItemAction}. For example, in scenario SC_FTRI the player sends a
+ *     {@link SimpleRequest}({@link SimpleRequest#TRADE_PORT_PLACE TRADE_PORT_PLACE})
+ *     with the requested edge coordinate; the messages responding to that are documented
+ *     at {@link SimpleRequest#TRADE_PORT_PLACE}.
+ *     <BR>
+ *     Placement of some item types can sometimes be cancelled by sending
+ *     {@link CancelBuild} with an item_type field instead.
+ * <LI>{@code WAITING_FOR_DISCARDS}: Server sends game a "x, y, and z need to discard"
+ *     prompt text. Players who must discard are sent a {@link LoseResources} request and must
+ *     respond with {@link LoseResources}. After each client response, if still waiting for other players to discard,
+ *     server sends game another prompt text. Otherwise sends game its new {@link State}
+ * <LI>{@code WAITING_FOR_ROB_CHOOSE_PLAYER}:
+ *     Server sends current player {@link ChoosePlayer} listing possible victims.
+ *     Current player: Choose a victim to rob, send {@link ChoosePlayer}
+ * <LI>{@code WAITING_FOR_DISCOVERY}:
+ *     Current player: Choose 2 resources and send {@link GainResources}
+ * <LI>{@code WAITING_FOR_MONOPOLY}:
+ *     Current player: Choose a resource type and send {@link ChooseResourceType}
+ * <LI>{@code WAITING_FOR_ROBBER_OR_PIRATE}:
+ *     Current player: Choose whether to move the Robber or the Pirate,
+ *     send {@link ChoosePlayer}({@link ChoosePlayer#CHOICE_MOVE_ROBBER CHOICE_MOVE_ROBBER} or
+ *     {@link ChoosePlayer#CHOICE_MOVE_PIRATE CHOICE_MOVE_PIRATE})
+ * <LI>{@code WAITING_FOR_ROB_CLOTH_OR_RESOURCE}:
+ *     Current player: Choose a victim to rob and whether to take a resource or cloth, send {@link ChoosePlayer}.
+ *     See that message's javadoc for how to encode both choices
+ * <LI>{@code WAITING_FOR_PICK_GOLD_RESOURCE}:
+ *     Same message flow as {@code WAITING_FOR_DISCARDS}: Server sends game a
+ *     "x, y, and z need to pick resources from the gold hex" prompt text. For each player who must pick, the game is sent
+ *     {@link PlayerElement}({@link _PlayerElementType#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES})
+ *     and the player is sent
+ *     {@link SimpleRequest}({@link SimpleRequest#PROMPT_PICK_RESOURCES PROMPT_PICK_RESOURCES}).
+ *     They must choose resource(s) and send {@link GainResources}.
+ *     After each client response, server sends game its {@link State}; if multiple players had to pick,
+ *     that state is still {@code WAITING_FOR_PICK_GOLD_RESOURCE} and another "need to pick" prompt text is also sent.
+ * <LI>{@code SPECIAL_BUILDING}: Current player: Build, buy cards, etc. When done, send {@link EndTurn}
+ * <LI>{@code OVER}: Server announces the winner with
+ *     {@link GameElements}({@link GameElements#CURRENT_PLAYER CURRENT_PLAYER}), and sends text messages reporting
+ *     winner's name, final score, each player's victory-point cards, game length, and a {@link GameStats}.
+ *     Each player is sent text with their resource roll totals. win-loss count for this session, and
+ *     how long they've been connected.
+ *</UL>
+ * This list doesn't mention some informational/cosmetic text messages, such as the {@code START1A}
+ * prompt "It's Joe's turn to build a settlement" or {@code PLACING_ROBBER}'s "Lily will move the robber".
  *<P>
  * Before v3.0.00 this message was {@code GameState}.
  */
@@ -889,6 +968,9 @@ message TradeAcceptOffer {
  * - If they have those resources to lose, server announces the total amount lost
  *   to the game as PlayerElement(ELEM_UNKNOWN_RESOURCE=n, is_news=true).
  *   Otherwise server re-sends the prompt to client.
+ * - If no other players need to discard, server will then send the new {@link GameState}.
+ *   Or if waiting for others to discard, server sends the game a {@link GameServerText} that lists
+ *   who we're still waiting for.
  */
 message LoseResources {
     int32 amount = 1;  // prompt or announcement from server: player must lose this many resources
@@ -919,7 +1001,13 @@ message ChooseResourceType {
  * and the response from client player.
  */
 message ChoosePlayer {
-    sint32 chosen_player_number = 1;  // from client: player number, or -1 for none
+    /* From client: player number to choose, or -1 for none if allowed.
+     *<P>
+     * From client during game state {@link Data.GameState.WAITING_FOR_ROB_CLOTH_OR_RESOURCE}:
+     * To rob a resource set this field to playerNumber as usual, to rob cloth set it to -(playerNumber + 1).
+     */
+    sint32 chosen_player_number = 1;
+
     bool can_choose_none = 2;  // from server: If true, can make a choice of "no player"
     repeated uint32 chooseable_player_number = 3;  // from server: List of player numbers who can be chosen
 }

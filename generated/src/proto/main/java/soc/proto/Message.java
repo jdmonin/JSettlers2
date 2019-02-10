@@ -4049,6 +4049,12 @@ public final class Message {
        * Server v1.1.20 and newer also send this value to {&#64;code SOCAccountClient}
        * if client is too old to create accounts at the server's version
        * because of a required logon auth or other message added since that client's version.
+       *&lt;P&gt;
+       * Server v2.0.00 and newer also send this value if client wants to join or create a game
+       * but is missing a Client Feature (from {&#64;link SOCFeatureSet}) required by the game.
+       * This situation doesn't need its own Status Value because the server announces such games
+       * to the client with the "Cannot Join" flag prefix, and the client shouldn't have UI options
+       * to create a game with features it doesn't have.
        * &#64;since 1.1.06
        * </pre>
        *
@@ -4109,6 +4115,7 @@ public final class Message {
        * - option keyname with problem
        * - option keyname with problem (if more than one)
        * - ...
+       * &#64;see #GAME_CLIENT_FEATURES_NEEDED
        * &#64;see soc.server.SOCServerMessageHandler#handleNEWGAMEWITHOPTIONSREQUEST
        * &#64;since 1.1.07
        * </pre>
@@ -4250,6 +4257,27 @@ public final class Message {
        * <code>OK_DEBUG_MODE_ON = 21;</code>
        */
       OK_DEBUG_MODE_ON(21),
+      /**
+       * <pre>
+       * Client has requested joining or creating a game whose options require some optional client features,
+       * but at least one of those features or its value is too new for the client to handle.
+       *&lt;P&gt;
+       * Format of this status text is: &lt;BR&gt;
+       * Status string with error message &lt;BR&gt;
+       *   {&#64;link SOCMessage#sep2 SEP2} game name &lt;BR&gt;
+       *   {&#64;link SOCMessage#sep2 SEP2} optional feature(s) required by game but not implemented in client,
+       *       in format returned by {&#64;link soc.game.SOCGame#checkClientFeatures(SOCFeatureSet, boolean)}
+       *&lt;P&gt;
+       * This is sent when client tries to join or create a game: If sent for joining, the game name will be
+       * in the client's list of all games; if game name isn't there, this status was sent for a game creation
+       * request.
+       * &#64;see #NEWGAME_OPTION_VALUE_TOONEW
+       * &#64;since 2.0.00
+       * </pre>
+       *
+       * <code>GAME_CLIENT_FEATURES_NEEDED = 22;</code>
+       */
+      GAME_CLIENT_FEATURES_NEEDED(22),
       UNRECOGNIZED(-1),
       ;
 
@@ -4326,6 +4354,12 @@ public final class Message {
        * Server v1.1.20 and newer also send this value to {&#64;code SOCAccountClient}
        * if client is too old to create accounts at the server's version
        * because of a required logon auth or other message added since that client's version.
+       *&lt;P&gt;
+       * Server v2.0.00 and newer also send this value if client wants to join or create a game
+       * but is missing a Client Feature (from {&#64;link SOCFeatureSet}) required by the game.
+       * This situation doesn't need its own Status Value because the server announces such games
+       * to the client with the "Cannot Join" flag prefix, and the client shouldn't have UI options
+       * to create a game with features it doesn't have.
        * &#64;since 1.1.06
        * </pre>
        *
@@ -4386,6 +4420,7 @@ public final class Message {
        * - option keyname with problem
        * - option keyname with problem (if more than one)
        * - ...
+       * &#64;see #GAME_CLIENT_FEATURES_NEEDED
        * &#64;see soc.server.SOCServerMessageHandler#handleNEWGAMEWITHOPTIONSREQUEST
        * &#64;since 1.1.07
        * </pre>
@@ -4527,6 +4562,27 @@ public final class Message {
        * <code>OK_DEBUG_MODE_ON = 21;</code>
        */
       public static final int OK_DEBUG_MODE_ON_VALUE = 21;
+      /**
+       * <pre>
+       * Client has requested joining or creating a game whose options require some optional client features,
+       * but at least one of those features or its value is too new for the client to handle.
+       *&lt;P&gt;
+       * Format of this status text is: &lt;BR&gt;
+       * Status string with error message &lt;BR&gt;
+       *   {&#64;link SOCMessage#sep2 SEP2} game name &lt;BR&gt;
+       *   {&#64;link SOCMessage#sep2 SEP2} optional feature(s) required by game but not implemented in client,
+       *       in format returned by {&#64;link soc.game.SOCGame#checkClientFeatures(SOCFeatureSet, boolean)}
+       *&lt;P&gt;
+       * This is sent when client tries to join or create a game: If sent for joining, the game name will be
+       * in the client's list of all games; if game name isn't there, this status was sent for a game creation
+       * request.
+       * &#64;see #NEWGAME_OPTION_VALUE_TOONEW
+       * &#64;since 2.0.00
+       * </pre>
+       *
+       * <code>GAME_CLIENT_FEATURES_NEEDED = 22;</code>
+       */
+      public static final int GAME_CLIENT_FEATURES_NEEDED_VALUE = 22;
 
 
       public final int getNumber() {
@@ -4569,6 +4625,7 @@ public final class Message {
           case 19: return NAME_NOT_ALLOWED;
           case 20: return OK_SET_NICKNAME;
           case 21: return OK_DEBUG_MODE_ON;
+          case 22: return GAME_CLIENT_FEATURES_NEEDED;
           default: return null;
         }
       }
@@ -10874,7 +10931,10 @@ public final class Message {
 
     /**
      * <pre>
-     * channel member nickname (should be "" for client -&gt; server)
+     * Sent from this channel member nickname. Should be "" for client -&gt; server.
+     * From server, can be ":" for server messages which should appear in the chat area
+     * (recent-chat recap, etc). In that case, the message text should end with " ::"
+     * because the original client would begin the text line with ":: ".
      * </pre>
      *
      * <code>string member_name = 2;</code>
@@ -10882,7 +10942,10 @@ public final class Message {
     java.lang.String getMemberName();
     /**
      * <pre>
-     * channel member nickname (should be "" for client -&gt; server)
+     * Sent from this channel member nickname. Should be "" for client -&gt; server.
+     * From server, can be ":" for server messages which should appear in the chat area
+     * (recent-chat recap, etc). In that case, the message text should end with " ::"
+     * because the original client would begin the text line with ":: ".
      * </pre>
      *
      * <code>string member_name = 2;</code>
@@ -10891,10 +10954,20 @@ public final class Message {
         getMemberNameBytes();
 
     /**
+     * <pre>
+     * Text message.
+     * For expected format when member_name is ":", see that field's doc.
+     * </pre>
+     *
      * <code>string text = 3;</code>
      */
     java.lang.String getText();
     /**
+     * <pre>
+     * Text message.
+     * For expected format when member_name is ":", see that field's doc.
+     * </pre>
+     *
      * <code>string text = 3;</code>
      */
     com.google.protobuf.ByteString
@@ -11042,7 +11115,10 @@ public final class Message {
     private volatile java.lang.Object memberName_;
     /**
      * <pre>
-     * channel member nickname (should be "" for client -&gt; server)
+     * Sent from this channel member nickname. Should be "" for client -&gt; server.
+     * From server, can be ":" for server messages which should appear in the chat area
+     * (recent-chat recap, etc). In that case, the message text should end with " ::"
+     * because the original client would begin the text line with ":: ".
      * </pre>
      *
      * <code>string member_name = 2;</code>
@@ -11061,7 +11137,10 @@ public final class Message {
     }
     /**
      * <pre>
-     * channel member nickname (should be "" for client -&gt; server)
+     * Sent from this channel member nickname. Should be "" for client -&gt; server.
+     * From server, can be ":" for server messages which should appear in the chat area
+     * (recent-chat recap, etc). In that case, the message text should end with " ::"
+     * because the original client would begin the text line with ":: ".
      * </pre>
      *
      * <code>string member_name = 2;</code>
@@ -11083,6 +11162,11 @@ public final class Message {
     public static final int TEXT_FIELD_NUMBER = 3;
     private volatile java.lang.Object text_;
     /**
+     * <pre>
+     * Text message.
+     * For expected format when member_name is ":", see that field's doc.
+     * </pre>
+     *
      * <code>string text = 3;</code>
      */
     public java.lang.String getText() {
@@ -11098,6 +11182,11 @@ public final class Message {
       }
     }
     /**
+     * <pre>
+     * Text message.
+     * For expected format when member_name is ":", see that field's doc.
+     * </pre>
+     *
      * <code>string text = 3;</code>
      */
     public com.google.protobuf.ByteString
@@ -11531,7 +11620,10 @@ public final class Message {
       private java.lang.Object memberName_ = "";
       /**
        * <pre>
-       * channel member nickname (should be "" for client -&gt; server)
+       * Sent from this channel member nickname. Should be "" for client -&gt; server.
+       * From server, can be ":" for server messages which should appear in the chat area
+       * (recent-chat recap, etc). In that case, the message text should end with " ::"
+       * because the original client would begin the text line with ":: ".
        * </pre>
        *
        * <code>string member_name = 2;</code>
@@ -11550,7 +11642,10 @@ public final class Message {
       }
       /**
        * <pre>
-       * channel member nickname (should be "" for client -&gt; server)
+       * Sent from this channel member nickname. Should be "" for client -&gt; server.
+       * From server, can be ":" for server messages which should appear in the chat area
+       * (recent-chat recap, etc). In that case, the message text should end with " ::"
+       * because the original client would begin the text line with ":: ".
        * </pre>
        *
        * <code>string member_name = 2;</code>
@@ -11570,7 +11665,10 @@ public final class Message {
       }
       /**
        * <pre>
-       * channel member nickname (should be "" for client -&gt; server)
+       * Sent from this channel member nickname. Should be "" for client -&gt; server.
+       * From server, can be ":" for server messages which should appear in the chat area
+       * (recent-chat recap, etc). In that case, the message text should end with " ::"
+       * because the original client would begin the text line with ":: ".
        * </pre>
        *
        * <code>string member_name = 2;</code>
@@ -11587,7 +11685,10 @@ public final class Message {
       }
       /**
        * <pre>
-       * channel member nickname (should be "" for client -&gt; server)
+       * Sent from this channel member nickname. Should be "" for client -&gt; server.
+       * From server, can be ":" for server messages which should appear in the chat area
+       * (recent-chat recap, etc). In that case, the message text should end with " ::"
+       * because the original client would begin the text line with ":: ".
        * </pre>
        *
        * <code>string member_name = 2;</code>
@@ -11600,7 +11701,10 @@ public final class Message {
       }
       /**
        * <pre>
-       * channel member nickname (should be "" for client -&gt; server)
+       * Sent from this channel member nickname. Should be "" for client -&gt; server.
+       * From server, can be ":" for server messages which should appear in the chat area
+       * (recent-chat recap, etc). In that case, the message text should end with " ::"
+       * because the original client would begin the text line with ":: ".
        * </pre>
        *
        * <code>string member_name = 2;</code>
@@ -11619,6 +11723,11 @@ public final class Message {
 
       private java.lang.Object text_ = "";
       /**
+       * <pre>
+       * Text message.
+       * For expected format when member_name is ":", see that field's doc.
+       * </pre>
+       *
        * <code>string text = 3;</code>
        */
       public java.lang.String getText() {
@@ -11634,6 +11743,11 @@ public final class Message {
         }
       }
       /**
+       * <pre>
+       * Text message.
+       * For expected format when member_name is ":", see that field's doc.
+       * </pre>
+       *
        * <code>string text = 3;</code>
        */
       public com.google.protobuf.ByteString
@@ -11650,6 +11764,11 @@ public final class Message {
         }
       }
       /**
+       * <pre>
+       * Text message.
+       * For expected format when member_name is ":", see that field's doc.
+       * </pre>
+       *
        * <code>string text = 3;</code>
        */
       public Builder setText(
@@ -11663,6 +11782,11 @@ public final class Message {
         return this;
       }
       /**
+       * <pre>
+       * Text message.
+       * For expected format when member_name is ":", see that field's doc.
+       * </pre>
+       *
        * <code>string text = 3;</code>
        */
       public Builder clearText() {
@@ -11672,6 +11796,11 @@ public final class Message {
         return this;
       }
       /**
+       * <pre>
+       * Text message.
+       * For expected format when member_name is ":", see that field's doc.
+       * </pre>
+       *
        * <code>string text = 3;</code>
        */
       public Builder setTextBytes(
@@ -18458,31 +18587,60 @@ public final class Message {
         getGaNameBytes();
 
     /**
+     * <pre>
+     * Seat number; omitted/not used if message is for all seats
+     * </pre>
+     *
      * <code>uint32 seat_number = 2;</code>
      */
     int getSeatNumber();
 
     /**
      * <pre>
-     * New state
+     * New state; if from server, can have 1 or either 4 or 6 values, one for each seat
      * </pre>
      *
-     * <code>.SeatLockState state = 3;</code>
+     * <code>repeated .SeatLockState state = 3;</code>
      */
-    int getStateValue();
+    java.util.List<soc.proto.Data.SeatLockState> getStateList();
     /**
      * <pre>
-     * New state
+     * New state; if from server, can have 1 or either 4 or 6 values, one for each seat
      * </pre>
      *
-     * <code>.SeatLockState state = 3;</code>
+     * <code>repeated .SeatLockState state = 3;</code>
      */
-    soc.proto.Data.SeatLockState getState();
+    int getStateCount();
+    /**
+     * <pre>
+     * New state; if from server, can have 1 or either 4 or 6 values, one for each seat
+     * </pre>
+     *
+     * <code>repeated .SeatLockState state = 3;</code>
+     */
+    soc.proto.Data.SeatLockState getState(int index);
+    /**
+     * <pre>
+     * New state; if from server, can have 1 or either 4 or 6 values, one for each seat
+     * </pre>
+     *
+     * <code>repeated .SeatLockState state = 3;</code>
+     */
+    java.util.List<java.lang.Integer>
+    getStateValueList();
+    /**
+     * <pre>
+     * New state; if from server, can have 1 or either 4 or 6 values, one for each seat
+     * </pre>
+     *
+     * <code>repeated .SeatLockState state = 3;</code>
+     */
+    int getStateValue(int index);
   }
   /**
    * <pre>
    * From client, request to lock or unlock a seat.
-   * From server, announcement of a seat lock status change.
+   * From server, announcement of a seat lock status change to one or all seats.
    * </pre>
    *
    * Protobuf type {@code SetSeatLock}
@@ -18499,7 +18657,7 @@ public final class Message {
     private SetSeatLock() {
       gaName_ = "";
       seatNumber_ = 0;
-      state_ = 0;
+      state_ = java.util.Collections.emptyList();
     }
 
     @java.lang.Override
@@ -18543,8 +18701,25 @@ public final class Message {
             }
             case 24: {
               int rawValue = input.readEnum();
-
-              state_ = rawValue;
+              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+                state_ = new java.util.ArrayList<java.lang.Integer>();
+                mutable_bitField0_ |= 0x00000004;
+              }
+              state_.add(rawValue);
+              break;
+            }
+            case 26: {
+              int length = input.readRawVarint32();
+              int oldLimit = input.pushLimit(length);
+              while(input.getBytesUntilLimit() > 0) {
+                int rawValue = input.readEnum();
+                if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+                  state_ = new java.util.ArrayList<java.lang.Integer>();
+                  mutable_bitField0_ |= 0x00000004;
+                }
+                state_.add(rawValue);
+              }
+              input.popLimit(oldLimit);
               break;
             }
           }
@@ -18555,6 +18730,9 @@ public final class Message {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
+        if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+          state_ = java.util.Collections.unmodifiableList(state_);
+        }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
       }
@@ -18571,6 +18749,7 @@ public final class Message {
               soc.proto.Message.SetSeatLock.class, soc.proto.Message.SetSeatLock.Builder.class);
     }
 
+    private int bitField0_;
     public static final int GA_NAME_FIELD_NUMBER = 1;
     private volatile java.lang.Object gaName_;
     /**
@@ -18616,6 +18795,10 @@ public final class Message {
     public static final int SEAT_NUMBER_FIELD_NUMBER = 2;
     private int seatNumber_;
     /**
+     * <pre>
+     * Seat number; omitted/not used if message is for all seats
+     * </pre>
+     *
      * <code>uint32 seat_number = 2;</code>
      */
     public int getSeatNumber() {
@@ -18623,28 +18806,69 @@ public final class Message {
     }
 
     public static final int STATE_FIELD_NUMBER = 3;
-    private int state_;
+    private java.util.List<java.lang.Integer> state_;
+    private static final com.google.protobuf.Internal.ListAdapter.Converter<
+        java.lang.Integer, soc.proto.Data.SeatLockState> state_converter_ =
+            new com.google.protobuf.Internal.ListAdapter.Converter<
+                java.lang.Integer, soc.proto.Data.SeatLockState>() {
+              public soc.proto.Data.SeatLockState convert(java.lang.Integer from) {
+                soc.proto.Data.SeatLockState result = soc.proto.Data.SeatLockState.valueOf(from);
+                return result == null ? soc.proto.Data.SeatLockState.UNRECOGNIZED : result;
+              }
+            };
     /**
      * <pre>
-     * New state
+     * New state; if from server, can have 1 or either 4 or 6 values, one for each seat
      * </pre>
      *
-     * <code>.SeatLockState state = 3;</code>
+     * <code>repeated .SeatLockState state = 3;</code>
      */
-    public int getStateValue() {
+    public java.util.List<soc.proto.Data.SeatLockState> getStateList() {
+      return new com.google.protobuf.Internal.ListAdapter<
+          java.lang.Integer, soc.proto.Data.SeatLockState>(state_, state_converter_);
+    }
+    /**
+     * <pre>
+     * New state; if from server, can have 1 or either 4 or 6 values, one for each seat
+     * </pre>
+     *
+     * <code>repeated .SeatLockState state = 3;</code>
+     */
+    public int getStateCount() {
+      return state_.size();
+    }
+    /**
+     * <pre>
+     * New state; if from server, can have 1 or either 4 or 6 values, one for each seat
+     * </pre>
+     *
+     * <code>repeated .SeatLockState state = 3;</code>
+     */
+    public soc.proto.Data.SeatLockState getState(int index) {
+      return state_converter_.convert(state_.get(index));
+    }
+    /**
+     * <pre>
+     * New state; if from server, can have 1 or either 4 or 6 values, one for each seat
+     * </pre>
+     *
+     * <code>repeated .SeatLockState state = 3;</code>
+     */
+    public java.util.List<java.lang.Integer>
+    getStateValueList() {
       return state_;
     }
     /**
      * <pre>
-     * New state
+     * New state; if from server, can have 1 or either 4 or 6 values, one for each seat
      * </pre>
      *
-     * <code>.SeatLockState state = 3;</code>
+     * <code>repeated .SeatLockState state = 3;</code>
      */
-    public soc.proto.Data.SeatLockState getState() {
-      soc.proto.Data.SeatLockState result = soc.proto.Data.SeatLockState.valueOf(state_);
-      return result == null ? soc.proto.Data.SeatLockState.UNRECOGNIZED : result;
+    public int getStateValue(int index) {
+      return state_.get(index);
     }
+    private int stateMemoizedSerializedSize;
 
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -18658,14 +18882,19 @@ public final class Message {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (!getGaNameBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, gaName_);
       }
       if (seatNumber_ != 0) {
         output.writeUInt32(2, seatNumber_);
       }
-      if (state_ != soc.proto.Data.SeatLockState.UNLOCKED.getNumber()) {
-        output.writeEnum(3, state_);
+      if (getStateList().size() > 0) {
+        output.writeUInt32NoTag(26);
+        output.writeUInt32NoTag(stateMemoizedSerializedSize);
+      }
+      for (int i = 0; i < state_.size(); i++) {
+        output.writeEnumNoTag(state_.get(i));
       }
       unknownFields.writeTo(output);
     }
@@ -18682,9 +18911,17 @@ public final class Message {
         size += com.google.protobuf.CodedOutputStream
           .computeUInt32Size(2, seatNumber_);
       }
-      if (state_ != soc.proto.Data.SeatLockState.UNLOCKED.getNumber()) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(3, state_);
+      {
+        int dataSize = 0;
+        for (int i = 0; i < state_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeEnumSizeNoTag(state_.get(i));
+        }
+        size += dataSize;
+        if (!getStateList().isEmpty()) {  size += 1;
+          size += com.google.protobuf.CodedOutputStream
+            .computeUInt32SizeNoTag(dataSize);
+        }stateMemoizedSerializedSize = dataSize;
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -18706,7 +18943,7 @@ public final class Message {
           .equals(other.getGaName());
       result = result && (getSeatNumber()
           == other.getSeatNumber());
-      result = result && state_ == other.state_;
+      result = result && state_.equals(other.state_);
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -18722,8 +18959,10 @@ public final class Message {
       hash = (53 * hash) + getGaName().hashCode();
       hash = (37 * hash) + SEAT_NUMBER_FIELD_NUMBER;
       hash = (53 * hash) + getSeatNumber();
-      hash = (37 * hash) + STATE_FIELD_NUMBER;
-      hash = (53 * hash) + state_;
+      if (getStateCount() > 0) {
+        hash = (37 * hash) + STATE_FIELD_NUMBER;
+        hash = (53 * hash) + state_.hashCode();
+      }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -18820,7 +19059,7 @@ public final class Message {
     /**
      * <pre>
      * From client, request to lock or unlock a seat.
-     * From server, announcement of a seat lock status change.
+     * From server, announcement of a seat lock status change to one or all seats.
      * </pre>
      *
      * Protobuf type {@code SetSeatLock}
@@ -18862,8 +19101,8 @@ public final class Message {
 
         seatNumber_ = 0;
 
-        state_ = 0;
-
+        state_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
 
@@ -18886,9 +19125,16 @@ public final class Message {
 
       public soc.proto.Message.SetSeatLock buildPartial() {
         soc.proto.Message.SetSeatLock result = new soc.proto.Message.SetSeatLock(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
         result.gaName_ = gaName_;
         result.seatNumber_ = seatNumber_;
+        if (((bitField0_ & 0x00000004) == 0x00000004)) {
+          state_ = java.util.Collections.unmodifiableList(state_);
+          bitField0_ = (bitField0_ & ~0x00000004);
+        }
         result.state_ = state_;
+        result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
@@ -18937,8 +19183,15 @@ public final class Message {
         if (other.getSeatNumber() != 0) {
           setSeatNumber(other.getSeatNumber());
         }
-        if (other.state_ != 0) {
-          setStateValue(other.getStateValue());
+        if (!other.state_.isEmpty()) {
+          if (state_.isEmpty()) {
+            state_ = other.state_;
+            bitField0_ = (bitField0_ & ~0x00000004);
+          } else {
+            ensureStateIsMutable();
+            state_.addAll(other.state_);
+          }
+          onChanged();
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -18966,6 +19219,7 @@ public final class Message {
         }
         return this;
       }
+      private int bitField0_;
 
       private java.lang.Object gaName_ = "";
       /**
@@ -19058,12 +19312,20 @@ public final class Message {
 
       private int seatNumber_ ;
       /**
+       * <pre>
+       * Seat number; omitted/not used if message is for all seats
+       * </pre>
+       *
        * <code>uint32 seat_number = 2;</code>
        */
       public int getSeatNumber() {
         return seatNumber_;
       }
       /**
+       * <pre>
+       * Seat number; omitted/not used if message is for all seats
+       * </pre>
+       *
        * <code>uint32 seat_number = 2;</code>
        */
       public Builder setSeatNumber(int value) {
@@ -19073,6 +19335,10 @@ public final class Message {
         return this;
       }
       /**
+       * <pre>
+       * Seat number; omitted/not used if message is for all seats
+       * </pre>
+       *
        * <code>uint32 seat_number = 2;</code>
        */
       public Builder clearSeatNumber() {
@@ -19082,66 +19348,168 @@ public final class Message {
         return this;
       }
 
-      private int state_ = 0;
-      /**
-       * <pre>
-       * New state
-       * </pre>
-       *
-       * <code>.SeatLockState state = 3;</code>
-       */
-      public int getStateValue() {
-        return state_;
+      private java.util.List<java.lang.Integer> state_ =
+        java.util.Collections.emptyList();
+      private void ensureStateIsMutable() {
+        if (!((bitField0_ & 0x00000004) == 0x00000004)) {
+          state_ = new java.util.ArrayList<java.lang.Integer>(state_);
+          bitField0_ |= 0x00000004;
+        }
       }
       /**
        * <pre>
-       * New state
+       * New state; if from server, can have 1 or either 4 or 6 values, one for each seat
        * </pre>
        *
-       * <code>.SeatLockState state = 3;</code>
+       * <code>repeated .SeatLockState state = 3;</code>
        */
-      public Builder setStateValue(int value) {
-        state_ = value;
-        onChanged();
-        return this;
+      public java.util.List<soc.proto.Data.SeatLockState> getStateList() {
+        return new com.google.protobuf.Internal.ListAdapter<
+            java.lang.Integer, soc.proto.Data.SeatLockState>(state_, state_converter_);
       }
       /**
        * <pre>
-       * New state
+       * New state; if from server, can have 1 or either 4 or 6 values, one for each seat
        * </pre>
        *
-       * <code>.SeatLockState state = 3;</code>
+       * <code>repeated .SeatLockState state = 3;</code>
        */
-      public soc.proto.Data.SeatLockState getState() {
-        soc.proto.Data.SeatLockState result = soc.proto.Data.SeatLockState.valueOf(state_);
-        return result == null ? soc.proto.Data.SeatLockState.UNRECOGNIZED : result;
+      public int getStateCount() {
+        return state_.size();
       }
       /**
        * <pre>
-       * New state
+       * New state; if from server, can have 1 or either 4 or 6 values, one for each seat
        * </pre>
        *
-       * <code>.SeatLockState state = 3;</code>
+       * <code>repeated .SeatLockState state = 3;</code>
        */
-      public Builder setState(soc.proto.Data.SeatLockState value) {
+      public soc.proto.Data.SeatLockState getState(int index) {
+        return state_converter_.convert(state_.get(index));
+      }
+      /**
+       * <pre>
+       * New state; if from server, can have 1 or either 4 or 6 values, one for each seat
+       * </pre>
+       *
+       * <code>repeated .SeatLockState state = 3;</code>
+       */
+      public Builder setState(
+          int index, soc.proto.Data.SeatLockState value) {
         if (value == null) {
           throw new NullPointerException();
         }
-        
-        state_ = value.getNumber();
+        ensureStateIsMutable();
+        state_.set(index, value.getNumber());
         onChanged();
         return this;
       }
       /**
        * <pre>
-       * New state
+       * New state; if from server, can have 1 or either 4 or 6 values, one for each seat
        * </pre>
        *
-       * <code>.SeatLockState state = 3;</code>
+       * <code>repeated .SeatLockState state = 3;</code>
+       */
+      public Builder addState(soc.proto.Data.SeatLockState value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureStateIsMutable();
+        state_.add(value.getNumber());
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * New state; if from server, can have 1 or either 4 or 6 values, one for each seat
+       * </pre>
+       *
+       * <code>repeated .SeatLockState state = 3;</code>
+       */
+      public Builder addAllState(
+          java.lang.Iterable<? extends soc.proto.Data.SeatLockState> values) {
+        ensureStateIsMutable();
+        for (soc.proto.Data.SeatLockState value : values) {
+          state_.add(value.getNumber());
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * New state; if from server, can have 1 or either 4 or 6 values, one for each seat
+       * </pre>
+       *
+       * <code>repeated .SeatLockState state = 3;</code>
        */
       public Builder clearState() {
-        
-        state_ = 0;
+        state_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * New state; if from server, can have 1 or either 4 or 6 values, one for each seat
+       * </pre>
+       *
+       * <code>repeated .SeatLockState state = 3;</code>
+       */
+      public java.util.List<java.lang.Integer>
+      getStateValueList() {
+        return java.util.Collections.unmodifiableList(state_);
+      }
+      /**
+       * <pre>
+       * New state; if from server, can have 1 or either 4 or 6 values, one for each seat
+       * </pre>
+       *
+       * <code>repeated .SeatLockState state = 3;</code>
+       */
+      public int getStateValue(int index) {
+        return state_.get(index);
+      }
+      /**
+       * <pre>
+       * New state; if from server, can have 1 or either 4 or 6 values, one for each seat
+       * </pre>
+       *
+       * <code>repeated .SeatLockState state = 3;</code>
+       */
+      public Builder setStateValue(
+          int index, int value) {
+        ensureStateIsMutable();
+        state_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * New state; if from server, can have 1 or either 4 or 6 values, one for each seat
+       * </pre>
+       *
+       * <code>repeated .SeatLockState state = 3;</code>
+       */
+      public Builder addStateValue(int value) {
+        ensureStateIsMutable();
+        state_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * New state; if from server, can have 1 or either 4 or 6 values, one for each seat
+       * </pre>
+       *
+       * <code>repeated .SeatLockState state = 3;</code>
+       */
+      public Builder addAllStateValue(
+          java.lang.Iterable<java.lang.Integer> values) {
+        ensureStateIsMutable();
+        for (int value : values) {
+          state_.add(value);
+        }
         onChanged();
         return this;
       }
@@ -19911,7 +20279,10 @@ public final class Message {
 
     /**
      * <pre>
-     * sent from this game member nickname (should be "" for client -&gt; server)
+     * Sent from this game member nickname. Should be "" for client -&gt; server.
+     * From server, can be ":" for server messages which should appear in the chat area
+     * (recent-chat recap, etc). In that case, the message text should end with " ::"
+     * because the original client would begin the text line with ":: ".
      * </pre>
      *
      * <code>string member_name = 2;</code>
@@ -19919,7 +20290,10 @@ public final class Message {
     java.lang.String getMemberName();
     /**
      * <pre>
-     * sent from this game member nickname (should be "" for client -&gt; server)
+     * Sent from this game member nickname. Should be "" for client -&gt; server.
+     * From server, can be ":" for server messages which should appear in the chat area
+     * (recent-chat recap, etc). In that case, the message text should end with " ::"
+     * because the original client would begin the text line with ":: ".
      * </pre>
      *
      * <code>string member_name = 2;</code>
@@ -19928,10 +20302,20 @@ public final class Message {
         getMemberNameBytes();
 
     /**
+     * <pre>
+     * Text message.
+     * For expected format when member_name is ":", see that field's doc.
+     * </pre>
+     *
      * <code>string text = 3;</code>
      */
     java.lang.String getText();
     /**
+     * <pre>
+     * Text message.
+     * For expected format when member_name is ":", see that field's doc.
+     * </pre>
+     *
      * <code>string text = 3;</code>
      */
     com.google.protobuf.ByteString
@@ -20080,7 +20464,10 @@ public final class Message {
     private volatile java.lang.Object memberName_;
     /**
      * <pre>
-     * sent from this game member nickname (should be "" for client -&gt; server)
+     * Sent from this game member nickname. Should be "" for client -&gt; server.
+     * From server, can be ":" for server messages which should appear in the chat area
+     * (recent-chat recap, etc). In that case, the message text should end with " ::"
+     * because the original client would begin the text line with ":: ".
      * </pre>
      *
      * <code>string member_name = 2;</code>
@@ -20099,7 +20486,10 @@ public final class Message {
     }
     /**
      * <pre>
-     * sent from this game member nickname (should be "" for client -&gt; server)
+     * Sent from this game member nickname. Should be "" for client -&gt; server.
+     * From server, can be ":" for server messages which should appear in the chat area
+     * (recent-chat recap, etc). In that case, the message text should end with " ::"
+     * because the original client would begin the text line with ":: ".
      * </pre>
      *
      * <code>string member_name = 2;</code>
@@ -20121,6 +20511,11 @@ public final class Message {
     public static final int TEXT_FIELD_NUMBER = 3;
     private volatile java.lang.Object text_;
     /**
+     * <pre>
+     * Text message.
+     * For expected format when member_name is ":", see that field's doc.
+     * </pre>
+     *
      * <code>string text = 3;</code>
      */
     public java.lang.String getText() {
@@ -20136,6 +20531,11 @@ public final class Message {
       }
     }
     /**
+     * <pre>
+     * Text message.
+     * For expected format when member_name is ":", see that field's doc.
+     * </pre>
+     *
      * <code>string text = 3;</code>
      */
     public com.google.protobuf.ByteString
@@ -20558,7 +20958,10 @@ public final class Message {
       private java.lang.Object memberName_ = "";
       /**
        * <pre>
-       * sent from this game member nickname (should be "" for client -&gt; server)
+       * Sent from this game member nickname. Should be "" for client -&gt; server.
+       * From server, can be ":" for server messages which should appear in the chat area
+       * (recent-chat recap, etc). In that case, the message text should end with " ::"
+       * because the original client would begin the text line with ":: ".
        * </pre>
        *
        * <code>string member_name = 2;</code>
@@ -20577,7 +20980,10 @@ public final class Message {
       }
       /**
        * <pre>
-       * sent from this game member nickname (should be "" for client -&gt; server)
+       * Sent from this game member nickname. Should be "" for client -&gt; server.
+       * From server, can be ":" for server messages which should appear in the chat area
+       * (recent-chat recap, etc). In that case, the message text should end with " ::"
+       * because the original client would begin the text line with ":: ".
        * </pre>
        *
        * <code>string member_name = 2;</code>
@@ -20597,7 +21003,10 @@ public final class Message {
       }
       /**
        * <pre>
-       * sent from this game member nickname (should be "" for client -&gt; server)
+       * Sent from this game member nickname. Should be "" for client -&gt; server.
+       * From server, can be ":" for server messages which should appear in the chat area
+       * (recent-chat recap, etc). In that case, the message text should end with " ::"
+       * because the original client would begin the text line with ":: ".
        * </pre>
        *
        * <code>string member_name = 2;</code>
@@ -20614,7 +21023,10 @@ public final class Message {
       }
       /**
        * <pre>
-       * sent from this game member nickname (should be "" for client -&gt; server)
+       * Sent from this game member nickname. Should be "" for client -&gt; server.
+       * From server, can be ":" for server messages which should appear in the chat area
+       * (recent-chat recap, etc). In that case, the message text should end with " ::"
+       * because the original client would begin the text line with ":: ".
        * </pre>
        *
        * <code>string member_name = 2;</code>
@@ -20627,7 +21039,10 @@ public final class Message {
       }
       /**
        * <pre>
-       * sent from this game member nickname (should be "" for client -&gt; server)
+       * Sent from this game member nickname. Should be "" for client -&gt; server.
+       * From server, can be ":" for server messages which should appear in the chat area
+       * (recent-chat recap, etc). In that case, the message text should end with " ::"
+       * because the original client would begin the text line with ":: ".
        * </pre>
        *
        * <code>string member_name = 2;</code>
@@ -20646,6 +21061,11 @@ public final class Message {
 
       private java.lang.Object text_ = "";
       /**
+       * <pre>
+       * Text message.
+       * For expected format when member_name is ":", see that field's doc.
+       * </pre>
+       *
        * <code>string text = 3;</code>
        */
       public java.lang.String getText() {
@@ -20661,6 +21081,11 @@ public final class Message {
         }
       }
       /**
+       * <pre>
+       * Text message.
+       * For expected format when member_name is ":", see that field's doc.
+       * </pre>
+       *
        * <code>string text = 3;</code>
        */
       public com.google.protobuf.ByteString
@@ -20677,6 +21102,11 @@ public final class Message {
         }
       }
       /**
+       * <pre>
+       * Text message.
+       * For expected format when member_name is ":", see that field's doc.
+       * </pre>
+       *
        * <code>string text = 3;</code>
        */
       public Builder setText(
@@ -20690,6 +21120,11 @@ public final class Message {
         return this;
       }
       /**
+       * <pre>
+       * Text message.
+       * For expected format when member_name is ":", see that field's doc.
+       * </pre>
+       *
        * <code>string text = 3;</code>
        */
       public Builder clearText() {
@@ -20699,6 +21134,11 @@ public final class Message {
         return this;
       }
       /**
+       * <pre>
+       * Text message.
+       * For expected format when member_name is ":", see that field's doc.
+       * </pre>
+       *
        * <code>string text = 3;</code>
        */
       public Builder setTextBytes(
@@ -34791,10 +35231,10 @@ public final class Message {
       "Role\022\023\n\017_UNSENT_DEFAULT\020\000\022\017\n\013GAME_PLAYER",
       "\020\001\022\016\n\nUSER_ADMIN\020\002\"7\n\nAuthScheme\022\023\n\017_UNU" +
       "SED_DEFAULT\020\000\022\024\n\020CLIENT_PLAINTEXT\020\001\"\'\n\020R" +
-      "ejectConnection\022\023\n\013reason_text\030\001 \001(\t\"\367\004\n" +
+      "ejectConnection\022\023\n\013reason_text\030\001 \001(\t\"\230\005\n" +
       "\020ServerStatusText\022\014\n\004text\030\001 \001(\t\022)\n\002sv\030\002 " +
       "\001(\0162\035.ServerStatusText.StatusValue\022\017\n\007de" +
-      "tails\030\003 \003(\t\"\230\004\n\013StatusValue\022\006\n\002OK\020\000\022\022\n\016N" +
+      "tails\030\003 \003(\t\"\271\004\n\013StatusValue\022\006\n\002OK\020\000\022\022\n\016N" +
       "OT_OK_GENERIC\020\001\022\022\n\016NAME_NOT_FOUND\020\002\022\014\n\010P" +
       "W_WRONG\020\003\022\017\n\013NAME_IN_USE\020\004\022\032\n\026CANT_JOIN_" +
       "GAME_VERSION\020\005\022\023\n\017PROBLEM_WITH_DB\020\006\022\023\n\017A" +
@@ -34807,86 +35247,87 @@ public final class Message {
       "REATED\020\017\022\017\n\013PW_REQUIRED\020\020\022\033\n\027ACCT_NOT_CR" +
       "EATED_DENIED\020\021\022\035\n\031ACCT_CREATED_OK_FIRST_" +
       "ONE\020\022\022\024\n\020NAME_NOT_ALLOWED\020\023\022\023\n\017OK_SET_NI" +
-      "CKNAME\020\024\022\024\n\020OK_DEBUG_MODE_ON\020\025\"\035\n\rBroadc" +
-      "astText\022\014\n\004text\030\001 \001(\t\"\n\n\010LeaveAll\" \n\nSer",
-      "verPing\022\022\n\nsleep_time\030\001 \001(\005\"\367\001\n\017BotUpdat" +
-      "eParams\022\027\n\017max_game_length\030\001 \001(\r\022\017\n\007max_" +
-      "eta\030\002 \001(\r\022\030\n\020eta_bonus_factor\030\003 \001(\002\022\032\n\022a" +
-      "dversarial_factor\030\004 \001(\002\022!\n\031leader_advers" +
-      "arial_factor\030\005 \001(\002\022\033\n\023dev_card_multiplie" +
-      "r\030\006 \001(\002\022\031\n\021threat_multiplier\030\007 \001(\002\022\025\n\rst" +
-      "rategy_type\030\010 \001(\r\022\022\n\ntrade_flag\030\t \001(\010\"\017\n" +
-      "\rBotAdminReset\"\031\n\010Channels\022\r\n\005names\030\001 \003(" +
-      "\t\"\035\n\nNewChannel\022\017\n\007ch_name\030\001 \001(\t\"3\n\013Join" +
-      "Channel\022\017\n\007ch_name\030\001 \001(\t\022\023\n\013member_name\030",
-      "\002 \001(\t\"2\n\016ChannelMembers\022\017\n\007ch_name\030\001 \001(\t" +
-      "\022\017\n\007members\030\002 \003(\t\"A\n\013ChannelText\022\017\n\007ch_n" +
-      "ame\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\022\014\n\004text\030\003" +
-      " \001(\t\"4\n\014LeaveChannel\022\017\n\007ch_name\030\001 \001(\t\022\023\n" +
-      "\013member_name\030\002 \001(\t\" \n\rDeleteChannel\022\017\n\007c" +
-      "h_name\030\001 \001(\t\"E\n\020_GameWithOptions\022\017\n\007ga_n" +
-      "ame\030\001 \001(\t\022\014\n\004opts\030\002 \001(\t\022\022\n\nunjoinable\030\003 " +
-      "\001(\010\"(\n\005Games\022\037\n\004game\030\001 \003(\0132\021._GameWithOp" +
-      "tions\"?\n\007NewGame\022\037\n\004game\030\001 \001(\0132\021._GameWi" +
-      "thOptions\022\023\n\013min_version\030\002 \001(\r\"J\n\022BotJoi",
-      "nGameRequest\022\037\n\004game\030\001 \001(\0132\021._GameWithOp" +
-      "tions\022\023\n\013seat_number\030\002 \001(\r\"0\n\010JoinGame\022\017" +
-      "\n\007ga_name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\"/\n\013" +
-      "GameMembers\022\017\n\007ga_name\030\001 \001(\t\022\017\n\007members\030" +
-      "\002 \003(\t\"R\n\007SitDown\022\017\n\007ga_name\030\001 \001(\t\022\017\n\007pl_" +
-      "name\030\002 \001(\t\022\023\n\013seat_number\030\003 \001(\r\022\020\n\010is_ro" +
-      "bot\030\004 \001(\010\"R\n\013SetSeatLock\022\017\n\007ga_name\030\001 \001(" +
-      "\t\022\023\n\013seat_number\030\002 \001(\r\022\035\n\005state\030\003 \001(\0162\016." +
-      "SeatLockState\"/\n\016GameServerText\022\017\n\007ga_na" +
-      "me\030\001 \001(\t\022\014\n\004text\030\002 \001(\t\"D\n\016GamePlayerText",
-      "\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\022\014" +
-      "\n\004text\030\003 \001(\t\" \n\rBotTimingPing\022\017\n\007ga_name" +
-      "\030\001 \001(\t\"\037\n\014BotAdminPing\022\017\n\007ga_name\030\001 \001(\t\"" +
-      "\035\n\nBotDismiss\022\017\n\007ga_name\030\001 \001(\t\"1\n\tLeaveG" +
-      "ame\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(" +
-      "\t\"\035\n\nDeleteGame\022\017\n\007ga_name\030\001 \001(\t\"\322\010\n\nFro" +
-      "mServer\022\030\n\004vers\030\001 \001(\0132\010.VersionH\000\022.\n\021rej" +
-      "ect_connection\030\002 \001(\0132\021.RejectConnectionH" +
-      "\000\022(\n\013status_text\030\003 \001(\0132\021.ServerStatusTex" +
-      "tH\000\022(\n\016broadcast_text\030\004 \001(\0132\016.BroadcastT",
-      "extH\000\022\"\n\013server_ping\030\005 \001(\0132\013.ServerPingH" +
-      "\000\022.\n\014game_message\030\017 \001(\0132\026.GameMessageFro" +
-      "mServerH\000\022-\n\021bot_update_params\030\024 \001(\0132\020.B" +
-      "otUpdateParamsH\000\022)\n\017bot_admin_reset\030\025 \001(" +
-      "\0132\016.BotAdminResetH\000\022\035\n\010channels\030d \001(\0132\t." +
-      "ChannelsH\000\022\035\n\006ch_new\030e \001(\0132\013.NewChannelH" +
-      "\000\022\037\n\007ch_join\030f \001(\0132\014.JoinChannelH\000\022%\n\nch" +
-      "_members\030g \001(\0132\017.ChannelMembersH\000\022\037\n\007ch_" +
-      "text\030h \001(\0132\014.ChannelTextH\000\022!\n\010ch_leave\030i" +
-      " \001(\0132\r.LeaveChannelH\000\022#\n\tch_delete\030j \001(\013",
-      "2\016.DeleteChannelH\000\022\030\n\005games\030\310\001 \001(\0132\006.Gam" +
-      "esH\000\022\033\n\006ga_new\030\311\001 \001(\0132\010.NewGameH\000\022\035\n\007ga_" +
-      "join\030\312\001 \001(\0132\t.JoinGameH\000\022,\n\014bot_join_req" +
-      "\030\313\001 \001(\0132\023.BotJoinGameRequestH\000\022#\n\nga_mem" +
-      "bers\030\314\001 \001(\0132\014.GameMembersH\000\022\035\n\010sit_down\030" +
-      "\315\001 \001(\0132\010.SitDownH\000\022&\n\rset_seat_lock\030\316\001 \001" +
-      "(\0132\014.SetSeatLockH\000\022\'\n\013server_text\030\317\001 \001(\013" +
-      "2\017.GameServerTextH\000\022*\n\016ga_player_text\030\320\001" +
-      " \001(\0132\017.GamePlayerTextH\000\022*\n\017bot_timing_pi" +
-      "ng\030\321\001 \001(\0132\016.BotTimingPingH\000\022(\n\016bot_admin",
-      "_ping\030\322\001 \001(\0132\r.BotAdminPingH\000\022#\n\013bot_dis" +
-      "miss\030\323\001 \001(\0132\013.BotDismissH\000\022\037\n\010ga_leave\030\324" +
-      "\001 \001(\0132\n.LeaveGameH\000\022!\n\tga_delete\030\325\001 \001(\0132" +
-      "\013.DeleteGameH\000B\005\n\003msg\"\231\004\n\nFromClient\022\030\n\004" +
-      "vers\030\001 \001(\0132\010.VersionH\000\022 \n\010auth_req\030\002 \001(\013" +
-      "2\014.AuthRequestH\000\022\037\n\nim_a_robot\030\003 \001(\0132\t.I" +
-      "mARobotH\000\022\"\n\013server_ping\030\004 \001(\0132\013.ServerP" +
-      "ingH\000\022\036\n\tleave_all\030\005 \001(\0132\t.LeaveAllH\000\022.\n" +
-      "\014game_message\030\017 \001(\0132\026.GameMessageFromCli" +
-      "entH\000\022\037\n\007ch_join\030d \001(\0132\014.JoinChannelH\000\022\037",
-      "\n\007ch_text\030e \001(\0132\014.ChannelTextH\000\022!\n\010ch_le" +
-      "ave\030f \001(\0132\r.LeaveChannelH\000\022\033\n\006ga_new\030\310\001 " +
-      "\001(\0132\010.NewGameH\000\022\035\n\007ga_join\030\311\001 \001(\0132\t.Join" +
-      "GameH\000\022\035\n\010sit_down\030\312\001 \001(\0132\010.SitDownH\000\022&\n" +
-      "\rset_seat_lock\030\313\001 \001(\0132\014.SetSeatLockH\000\022*\n" +
-      "\016ga_player_text\030\314\001 \001(\0132\017.GamePlayerTextH" +
-      "\000\022\037\n\010ga_leave\030\315\001 \001(\0132\n.LeaveGameH\000B\005\n\003ms" +
-      "gB\r\n\tsoc.protoH\001P\000P\001b\006proto3"
+      "CKNAME\020\024\022\024\n\020OK_DEBUG_MODE_ON\020\025\022\037\n\033GAME_C" +
+      "LIENT_FEATURES_NEEDED\020\026\"\035\n\rBroadcastText",
+      "\022\014\n\004text\030\001 \001(\t\"\n\n\010LeaveAll\" \n\nServerPing" +
+      "\022\022\n\nsleep_time\030\001 \001(\005\"\367\001\n\017BotUpdateParams" +
+      "\022\027\n\017max_game_length\030\001 \001(\r\022\017\n\007max_eta\030\002 \001" +
+      "(\r\022\030\n\020eta_bonus_factor\030\003 \001(\002\022\032\n\022adversar" +
+      "ial_factor\030\004 \001(\002\022!\n\031leader_adversarial_f" +
+      "actor\030\005 \001(\002\022\033\n\023dev_card_multiplier\030\006 \001(\002" +
+      "\022\031\n\021threat_multiplier\030\007 \001(\002\022\025\n\rstrategy_" +
+      "type\030\010 \001(\r\022\022\n\ntrade_flag\030\t \001(\010\"\017\n\rBotAdm" +
+      "inReset\"\031\n\010Channels\022\r\n\005names\030\001 \003(\t\"\035\n\nNe" +
+      "wChannel\022\017\n\007ch_name\030\001 \001(\t\"3\n\013JoinChannel",
+      "\022\017\n\007ch_name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\"2" +
+      "\n\016ChannelMembers\022\017\n\007ch_name\030\001 \001(\t\022\017\n\007mem" +
+      "bers\030\002 \003(\t\"A\n\013ChannelText\022\017\n\007ch_name\030\001 \001" +
+      "(\t\022\023\n\013member_name\030\002 \001(\t\022\014\n\004text\030\003 \001(\t\"4\n" +
+      "\014LeaveChannel\022\017\n\007ch_name\030\001 \001(\t\022\023\n\013member" +
+      "_name\030\002 \001(\t\" \n\rDeleteChannel\022\017\n\007ch_name\030" +
+      "\001 \001(\t\"E\n\020_GameWithOptions\022\017\n\007ga_name\030\001 \001" +
+      "(\t\022\014\n\004opts\030\002 \001(\t\022\022\n\nunjoinable\030\003 \001(\010\"(\n\005" +
+      "Games\022\037\n\004game\030\001 \003(\0132\021._GameWithOptions\"?" +
+      "\n\007NewGame\022\037\n\004game\030\001 \001(\0132\021._GameWithOptio",
+      "ns\022\023\n\013min_version\030\002 \001(\r\"J\n\022BotJoinGameRe" +
+      "quest\022\037\n\004game\030\001 \001(\0132\021._GameWithOptions\022\023" +
+      "\n\013seat_number\030\002 \001(\r\"0\n\010JoinGame\022\017\n\007ga_na" +
+      "me\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\"/\n\013GameMem" +
+      "bers\022\017\n\007ga_name\030\001 \001(\t\022\017\n\007members\030\002 \003(\t\"R" +
+      "\n\007SitDown\022\017\n\007ga_name\030\001 \001(\t\022\017\n\007pl_name\030\002 " +
+      "\001(\t\022\023\n\013seat_number\030\003 \001(\r\022\020\n\010is_robot\030\004 \001" +
+      "(\010\"R\n\013SetSeatLock\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013se" +
+      "at_number\030\002 \001(\r\022\035\n\005state\030\003 \003(\0162\016.SeatLoc" +
+      "kState\"/\n\016GameServerText\022\017\n\007ga_name\030\001 \001(",
+      "\t\022\014\n\004text\030\002 \001(\t\"D\n\016GamePlayerText\022\017\n\007ga_" +
+      "name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\022\014\n\004text\030" +
+      "\003 \001(\t\" \n\rBotTimingPing\022\017\n\007ga_name\030\001 \001(\t\"" +
+      "\037\n\014BotAdminPing\022\017\n\007ga_name\030\001 \001(\t\"\035\n\nBotD" +
+      "ismiss\022\017\n\007ga_name\030\001 \001(\t\"1\n\tLeaveGame\022\017\n\007" +
+      "ga_name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\"\035\n\nDe" +
+      "leteGame\022\017\n\007ga_name\030\001 \001(\t\"\322\010\n\nFromServer" +
+      "\022\030\n\004vers\030\001 \001(\0132\010.VersionH\000\022.\n\021reject_con" +
+      "nection\030\002 \001(\0132\021.RejectConnectionH\000\022(\n\013st" +
+      "atus_text\030\003 \001(\0132\021.ServerStatusTextH\000\022(\n\016",
+      "broadcast_text\030\004 \001(\0132\016.BroadcastTextH\000\022\"" +
+      "\n\013server_ping\030\005 \001(\0132\013.ServerPingH\000\022.\n\014ga" +
+      "me_message\030\017 \001(\0132\026.GameMessageFromServer" +
+      "H\000\022-\n\021bot_update_params\030\024 \001(\0132\020.BotUpdat" +
+      "eParamsH\000\022)\n\017bot_admin_reset\030\025 \001(\0132\016.Bot" +
+      "AdminResetH\000\022\035\n\010channels\030d \001(\0132\t.Channel" +
+      "sH\000\022\035\n\006ch_new\030e \001(\0132\013.NewChannelH\000\022\037\n\007ch" +
+      "_join\030f \001(\0132\014.JoinChannelH\000\022%\n\nch_member" +
+      "s\030g \001(\0132\017.ChannelMembersH\000\022\037\n\007ch_text\030h " +
+      "\001(\0132\014.ChannelTextH\000\022!\n\010ch_leave\030i \001(\0132\r.",
+      "LeaveChannelH\000\022#\n\tch_delete\030j \001(\0132\016.Dele" +
+      "teChannelH\000\022\030\n\005games\030\310\001 \001(\0132\006.GamesH\000\022\033\n" +
+      "\006ga_new\030\311\001 \001(\0132\010.NewGameH\000\022\035\n\007ga_join\030\312\001" +
+      " \001(\0132\t.JoinGameH\000\022,\n\014bot_join_req\030\313\001 \001(\013" +
+      "2\023.BotJoinGameRequestH\000\022#\n\nga_members\030\314\001" +
+      " \001(\0132\014.GameMembersH\000\022\035\n\010sit_down\030\315\001 \001(\0132" +
+      "\010.SitDownH\000\022&\n\rset_seat_lock\030\316\001 \001(\0132\014.Se" +
+      "tSeatLockH\000\022\'\n\013server_text\030\317\001 \001(\0132\017.Game" +
+      "ServerTextH\000\022*\n\016ga_player_text\030\320\001 \001(\0132\017." +
+      "GamePlayerTextH\000\022*\n\017bot_timing_ping\030\321\001 \001",
+      "(\0132\016.BotTimingPingH\000\022(\n\016bot_admin_ping\030\322" +
+      "\001 \001(\0132\r.BotAdminPingH\000\022#\n\013bot_dismiss\030\323\001" +
+      " \001(\0132\013.BotDismissH\000\022\037\n\010ga_leave\030\324\001 \001(\0132\n" +
+      ".LeaveGameH\000\022!\n\tga_delete\030\325\001 \001(\0132\013.Delet" +
+      "eGameH\000B\005\n\003msg\"\231\004\n\nFromClient\022\030\n\004vers\030\001 " +
+      "\001(\0132\010.VersionH\000\022 \n\010auth_req\030\002 \001(\0132\014.Auth" +
+      "RequestH\000\022\037\n\nim_a_robot\030\003 \001(\0132\t.ImARobot" +
+      "H\000\022\"\n\013server_ping\030\004 \001(\0132\013.ServerPingH\000\022\036" +
+      "\n\tleave_all\030\005 \001(\0132\t.LeaveAllH\000\022.\n\014game_m" +
+      "essage\030\017 \001(\0132\026.GameMessageFromClientH\000\022\037",
+      "\n\007ch_join\030d \001(\0132\014.JoinChannelH\000\022\037\n\007ch_te" +
+      "xt\030e \001(\0132\014.ChannelTextH\000\022!\n\010ch_leave\030f \001" +
+      "(\0132\r.LeaveChannelH\000\022\033\n\006ga_new\030\310\001 \001(\0132\010.N" +
+      "ewGameH\000\022\035\n\007ga_join\030\311\001 \001(\0132\t.JoinGameH\000\022" +
+      "\035\n\010sit_down\030\312\001 \001(\0132\010.SitDownH\000\022&\n\rset_se" +
+      "at_lock\030\313\001 \001(\0132\014.SetSeatLockH\000\022*\n\016ga_pla" +
+      "yer_text\030\314\001 \001(\0132\017.GamePlayerTextH\000\022\037\n\010ga" +
+      "_leave\030\315\001 \001(\0132\n.LeaveGameH\000B\005\n\003msgB\r\n\tso" +
+      "c.protoH\001P\000P\001b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

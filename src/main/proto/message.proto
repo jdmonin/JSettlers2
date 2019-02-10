@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -178,6 +178,12 @@ message ServerStatusText {
          * Server v1.1.20 and newer also send this value to {@code SOCAccountClient}
          * if client is too old to create accounts at the server's version
          * because of a required logon auth or other message added since that client's version.
+         *<P>
+         * Server v2.0.00 and newer also send this value if client wants to join or create a game
+         * but is missing a Client Feature (from {@link SOCFeatureSet}) required by the game.
+         * This situation doesn't need its own Status Value because the server announces such games
+         * to the client with the "Cannot Join" flag prefix, and the client shouldn't have UI options
+         * to create a game with features it doesn't have.
          *
          * @since 1.1.06
          */
@@ -219,6 +225,7 @@ message ServerStatusText {
          * - option keyname with problem
          * - option keyname with problem (if more than one)
          * - ...
+         * @see #GAME_CLIENT_FEATURES_NEEDED
          * @see soc.server.SOCServerMessageHandler#handleNEWGAMEWITHOPTIONSREQUEST
          * @since 1.1.07
          */
@@ -314,9 +321,27 @@ message ServerStatusText {
          */
         OK_DEBUG_MODE_ON = 21;
 
+        /* Client has requested joining or creating a game whose options require some optional client features,
+         * but at least one of those features or its value is too new for the client to handle.
+         *<P>
+         * Format of this status text is: <BR>
+         * Status string with error message <BR>
+         *   {@link SOCMessage#sep2 SEP2} game name <BR>
+         *   {@link SOCMessage#sep2 SEP2} optional feature(s) required by game but not implemented in client,
+         *       in format returned by {@link soc.game.SOCGame#checkClientFeatures(SOCFeatureSet, boolean)}
+         *<P>
+         * This is sent when client tries to join or create a game: If sent for joining, the game name will be
+         * in the client's list of all games; if game name isn't there, this status was sent for a game creation
+         * request.
+         * @see #NEWGAME_OPTION_VALUE_TOONEW
+         * @since 2.0.00
+         */
+        GAME_CLIENT_FEATURES_NEEDED = 22;
+
         // IF YOU ADD A STATUS VALUE:
         // Do not change or remove the numeric values of earlier ones.
-        // Be sure to update server's statusValidAtVersion().
+        // Be sure to update server's statusValidAtVersion() and statusFallbackForVersion().
+        // If the message text is structured or delimited, explain its format in the new value's javadoc.
 
     }
 
@@ -457,7 +482,17 @@ message ChannelMembers {
  */
 message ChannelText {
     string ch_name = 1;   // channel name
-    string member_name = 2;  // channel member nickname (should be "" for client -> server)
+
+    /* Sent from this channel member nickname. Should be "" for client -> server.
+     * From server, can be ":" for server messages which should appear in the chat area
+     * (recent-chat recap, etc). In that case, the message text should end with " ::"
+     * because the original client would begin the text line with ":: ".
+     */
+    string member_name = 2;
+
+    /* Text message.
+     * For expected format when member_name is ":", see that field's doc.
+     */
     string text = 3;
 }
 
@@ -588,12 +623,12 @@ message SitDown {
 }
 
 /* From client, request to lock or unlock a seat.
- * From server, announcement of a seat lock status change.
+ * From server, announcement of a seat lock status change to one or all seats.
  */
 message SetSeatLock {
     string ga_name = 1;  // Name of game having this seat
-    uint32 seat_number = 2;
-    SeatLockState state = 3;  // New state
+    uint32 seat_number = 2;  // Seat number; omitted/not used if message is for all seats
+    repeated SeatLockState state = 3;  // New state; if from server, can have 1 or either 4 or 6 values, one for each seat
 }
 
 /* This message contains a text message or announcement from the server
@@ -638,7 +673,17 @@ message GameServerText {
  */
 message GamePlayerText {
     string ga_name = 1;
-    string member_name = 2;  // sent from this game member nickname (should be "" for client -> server)
+
+    /* Sent from this game member nickname. Should be "" for client -> server.
+     * From server, can be ":" for server messages which should appear in the chat area
+     * (recent-chat recap, etc). In that case, the message text should end with " ::"
+     * because the original client would begin the text line with ":: ".
+     */
+    string member_name = 2;
+
+    /* Text message.
+     * For expected format when member_name is ":", see that field's doc.
+     */
     string text = 3;
 }
 

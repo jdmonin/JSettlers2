@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2013-2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2013-2014,2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -282,8 +282,15 @@ public class SOCSetSeatLock extends SOCMessage
     protected Message.FromServer toProtoFromServer()
     {
         Message.SetSeatLock.Builder b = Message.SetSeatLock.newBuilder();
-        b.setGaName(game).setSeatNumber(playerNumber)
-            .setState(ProtoMessageBuildHelper.toMsgSeatLockState(state));
+        b.setGaName(game);
+        if (states == null)
+        {
+            b.setSeatNumber(playerNumber)
+                .addState(ProtoMessageBuildHelper.toMsgSeatLockState(state));
+        } else {
+            for (int pn = 0; pn < states.length; ++pn)
+                b.addState(ProtoMessageBuildHelper.toMsgSeatLockState(states[pn]));
+        }
         return Message.FromServer.newBuilder().setSetSeatLock(b).build();
     }
 

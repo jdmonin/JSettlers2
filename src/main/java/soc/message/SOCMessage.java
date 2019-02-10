@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1080,7 +1080,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * @param msg  Message to convert
      * @return  {@code msg} converted to a SOCMessage,
      *     or {@code null} if the message is an unknown command id
-     *     or invalid data causes an error constructing the SOCMessage
+     *     or if invalid data causes an error constructing the SOCMessage
      * @since 3.0.00
      * @see #toMsg(String)
      */
@@ -1185,8 +1185,10 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case Message.FromClient.SET_SEAT_LOCK_FIELD_NUMBER:
                 {
                     Message.SetSeatLock m = msg.getSetSeatLock();
+                    if (m.getStateCount() != 1)
+                        return null;
                     SOCGame.SeatLockState st;
-                    switch (m.getState())
+                    switch (m.getState(0))
                     {
                     case LOCKED:
                         st = SOCGame.SeatLockState.LOCKED;  break;
