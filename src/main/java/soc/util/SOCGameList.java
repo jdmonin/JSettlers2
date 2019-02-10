@@ -73,11 +73,12 @@ public class SOCGameList
      * @since 2.0.00
      */
     public static final Pattern REGEX_ALL_DIGITS_OR_PUNCT =
-        Pattern.compile("^[\\p{Nd}\\p{Punct}\\p{IsPunctuation}]+$");
+        Pattern.compile("^[\\p{Nd}\\p{Punct}\\p{P}]+$");
         // \d won't capture unicode digits without using (?U) not available before java 7 (UNICODE_CHARACTER_CLASS).
-        // \p{IsPunctuation} matches 632 unicode chars, but only \p{Punct} includes $, +, <, =, >, ^, `, |, and ~
+        // \p{P} (IsPunctuation) matches 632 unicode chars, but only \p{Punct} includes $, +, <, =, >, ^, `, |, and ~
         //    -- https://stackoverflow.com/questions/13925454/check-if-string-is-a-punctuation-character
         //       answer by hans-brende 2018-03-15
+        // Replaced \p{IsPunctuation} with \p{P} for java 1.5 compat.
         // If you adjust this regex, also update soctest.util.TestGameList method testRegexAllDigitsOrPunct().
 
     /**
