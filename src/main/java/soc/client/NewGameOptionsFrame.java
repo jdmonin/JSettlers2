@@ -393,8 +393,12 @@ public class NewGameOptionsFrame extends JFrame
         /**
          * Interface setup: Buttons
          * Bottom row, centered in middle
+         * This sub-panel was added in 1.2.00, so the button row's background color
+         * was green in all 1.1.xx, default-gray in 1.2.xx, back to green for all 2.x.xx
          */
         JPanel btnPan = new JPanel();
+        btnPan.setBackground(null);
+        btnPan.setForeground(null);
         btnPan.setBorder(new EmptyBorder(4, 2, 0, 2));  // padding between option rows, buttons
 
         if (readOnly)
@@ -406,13 +410,13 @@ public class NewGameOptionsFrame extends JFrame
             cancel.addKeyListener(this);  // for win32 keyboard-focus
         }
         cancel.addActionListener(this);
+        cancel.setBackground(null);  // needed on win32 to avoid gray corners
         btnPan.add(cancel);
 
         if (! readOnly)
         {
             create = new JButton(strings.get("game.options.oknew"));  // "Create Game"
-            getRootPane().setDefaultButton(create);
-            //AskDialog.styleAsDefault(create);  // TODO test L&F: call probably not still needed
+            create.setBackground(null);
             create.addActionListener(this);
             create.addKeyListener(this);
             create.setEnabled(! readOnly);
@@ -420,6 +424,8 @@ public class NewGameOptionsFrame extends JFrame
                 create.setEnabled(false);  // Will enable when gameName not empty
             btnPan.add(create);
         }
+
+        getRootPane().setDefaultButton(readOnly ? cancel : create);
 
         add(btnPan, BorderLayout.SOUTH);
 
@@ -623,6 +629,7 @@ public class NewGameOptionsFrame extends JFrame
                 gbl.setConstraints(blank, gbc);
                 bp.add(blank);
                 scenInfo = new JButton(strings.get("game.options.scenario.info_btn"));  // "Scenario Info..."
+                scenInfo.setBackground(null);  // inherit from parent; needed on win32 to avoid gray corners
                 scenInfo.addActionListener(this);
                 scenInfo.addKeyListener(this);
                 scenInfo.setEnabled(sel != 0);  // disable if "(none)" is selected scenario option
@@ -729,6 +736,8 @@ public class NewGameOptionsFrame extends JFrame
             controlsOpts.put(cb, op);
             cb.setSelected(op.getBoolValue());
             cb.setEnabled(! readOnly);
+            cb.setBackground(null);  // needed on win32 to avoid gray border
+            cb.setForeground(null);
             gbl.setConstraints(cb, gbc);
             bp.add(cb);
             if (! readOnly)
@@ -1001,6 +1010,8 @@ public class NewGameOptionsFrame extends JFrame
             gbc.gridwidth = 1;
             gbc.weightx = 0;
             gbl.setConstraints(cb, gbc);
+            cb.setBackground(null);  // needed on win32 to avoid gray border
+            cb.setForeground(null);
             bp.add(cb);
 
             ml = new MouseAdapter()
