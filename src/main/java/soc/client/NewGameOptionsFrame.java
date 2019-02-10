@@ -58,6 +58,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -286,6 +287,7 @@ public class NewGameOptionsFrame extends JFrame
         getRootPane().setBackground(null);  // inherit from overall frame
         getContentPane().setBackground(null);
         setLocationByPlatform(true);
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
         addKeyListener(this);
 
@@ -1206,6 +1208,7 @@ public class NewGameOptionsFrame extends JFrame
             else if (src == cancel)
             {
                 if (readOnly && (pi != null))
+                    // remember changes, since this is the "OK" button during game play
                     persistLocalPrefs();
 
                 clickCancel();

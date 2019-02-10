@@ -44,8 +44,10 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import java.net.ConnectException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -76,6 +78,7 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
+import javax.swing.WindowConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
@@ -7023,6 +7026,7 @@ public class SOCPlayerClient
         frame.setBackground(JSETTLERS_BG_GREEN);
         frame.setForeground(Color.black);
         // Add a listener for the close event
+        frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         frame.addWindowListener(gameDisplay.createWindowAdapter());
 
         gameDisplay.initVisualElements(); // after the background is set
@@ -7360,8 +7364,15 @@ public class SOCPlayerClient
                         // when ! gotPassword, SwingGameDisplay.getPassword() will read pw from there
                     client.gotPassword = false;
                 }
+
+                final SocketAddress srvAddr;
+                if (host != null)
+                    srvAddr = new InetSocketAddress(host, port);
+                else
+                    srvAddr = new InetSocketAddress(InetAddress.getByName(null), port);  // loopback
+
                 s = new Socket();
-                s.connect(new InetSocketAddress(host, port), CONNECT_TIMEOUT_MS);
+                s.connect(srvAddr, CONNECT_TIMEOUT_MS);
                 in = new DataInputStream(s.getInputStream());
                 out = new DataOutputStream(s.getOutputStream());
                 connected = true;
