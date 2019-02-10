@@ -19,10 +19,8 @@
  **/
 package soc.client;
 
-import java.awt.Button;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -40,7 +38,9 @@ import java.util.StringTokenizer;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -71,7 +71,7 @@ import javax.swing.SwingConstants;
  * @since 1.1.00
  */
 @SuppressWarnings("serial")
-public abstract class AskDialog extends Dialog
+public abstract class AskDialog extends JDialog
     implements ActionListener, WindowListener, KeyListener, MouseListener, Runnable
 {
     /**
@@ -122,19 +122,19 @@ public abstract class AskDialog extends Dialog
      *
      * @see #button1Chosen()
      */
-    protected final Button choice1But;
+    protected final JButton choice1But;
 
     /** Button for second choice, or null.
      *
      * @see #button2Chosen()
      */
-    protected final Button choice2But;
+    protected final JButton choice2But;
 
     /** Optional button for third choice, or null.
      *
      * @see #button3Chosen()
      */
-    protected Button choice3But;
+    protected JButton choice3But;
 
     /** Default button (0 for none, or button 1, 2, or 3) */
     protected final int choiceDefault;
@@ -305,20 +305,28 @@ public abstract class AskDialog extends Dialog
         setForeground(Color.BLACK);
         setFont(new Font("Dialog", Font.PLAIN, 12));
 
-        choice1But = new Button(choice1);
+        getRootPane().setBackground(null);  // inherit
+        getContentPane().setBackground(null);
+
+        choice1But = new JButton(choice1);
+        choice1But.setBackground(null);  // needed on win32 to avoid gray corners
         if (choice2 != null)
         {
-            choice2But = new Button(choice2);
+            choice2But = new JButton(choice2);
+            choice2But.setBackground(null);
             if (choice3 != null)
-                choice3But = new Button(choice3);
-            else
+            {
+                choice3But = new JButton(choice3);
+                choice3But.setBackground(null);
+            } else {
                 choice3But = null;
+            }
         } else {
             choice2But = null;
             choice3But = null;
         }
         choiceDefault = defaultChoice;
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
 
         int promptMultiLine = prompt.indexOf('\n');
         if (promptMultiLine == 0)
@@ -362,9 +370,15 @@ public abstract class AskDialog extends Dialog
 
                 JTextArea pmsg = new JTextArea(prompt);
                 pmsg.setEditable(false);
+                // override fixed-width font in JFrame on win32
+                if (ourfont != null)
+                    pmsg.setFont(ourfont);
+                else
+                    pmsg.setFont(new Font("Dialog", Font.PLAIN, 12));
                 pmsg.setLineWrap(true);
                 pmsg.setWrapStyleWord(true);
-                pmsg.setBackground(getBackground());  // setOpaque(false) still gives white bg
+                pmsg.setBackground(getBackground());  // avoid white background
+                pmsg.setForeground(null);
                 JScrollPane pScroll = new JScrollPane(pmsg);
                 pScroll.setOpaque(false);
                 msg = pScroll;
@@ -403,7 +417,7 @@ public abstract class AskDialog extends Dialog
 
         pBtns = new JPanel();
         pBtns.setOpaque(true);
-        pBtns.setBackground(getBackground());  // setOpaque(false) would still give gray bg on win32
+        pBtns.setBackground(null);  // avoid gray bg on win32
         pBtns.setLayout(new FlowLayout(FlowLayout.CENTER, 3, 0));  // horiz border 3 pixels
         final int pbboarder = ColorSquare.HEIGHT / 2;
         pBtns.setBorder
@@ -428,20 +442,20 @@ public abstract class AskDialog extends Dialog
 
         // Now that we've added buttons to the dialog layout,
         // we can get their font and adjust style of default button.
+        final JButton dfltB;
         switch (choiceDefault)
         {
         case 1:
-            styleAsDefault(choice1But);
-            break;
+            dfltB = choice1But;  break;
         case 2:
-            styleAsDefault(choice2But);
-            break;
+            dfltB = choice2But;  break;
         case 3:
-            styleAsDefault(choice3But);
-            break;
+            dfltB = choice3But;  break;
         default:
             // 0, no button is default
+            dfltB = null;
         }
+        getRootPane().setDefaultButton(dfltB);
 
         addWindowListener(this);  // To handle close-button
         addMouseListener(this);   // for mouseEntered size-check
@@ -505,7 +519,7 @@ public abstract class AskDialog extends Dialog
      * @param b  Button to style visually as default.  Please add button to
      *           dialog layout before calling, so we can query the font.
      */
-    public static void styleAsDefault(Button b)
+    public static void styleAsDefault(java.awt.Button b)
     {
         try
         {
