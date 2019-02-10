@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
@@ -28,6 +28,7 @@ import soc.disableDebug.D;
 import soc.message.SOCMessage;  // For static calls only; SOCGame does not interact with network messages
 import soc.proto.Data;
 import soc.util.IntPair;
+import soc.util.SOCFeatureSet;
 import soc.util.SOCGameBoardReset;
 
 import java.io.Serializable;
@@ -106,7 +107,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Game states.  {@link #NEW} is a brand-new game, not yet ready to start playing.
      * Players are choosing where to sit, or have all sat but no one has yet clicked
-     * the "start game" button.
+     * the "start game" button. The board is empty sea, with no land hexes yet.
      * Next state from NEW is {@link #READY} if robots, or {@link #START1A} if only humans
      * are playing.
      *<P>
@@ -134,6 +135,7 @@ public class SOCGame implements Serializable, Cloneable
      * <LI> {@link #forceEndTurn()}
      * <LI> {@link soc.robot.SOCRobotBrain#run()}
      * <LI> {@link soc.server.SOCGameHandler#sendGameState(SOCGame)}
+     * <LI> {@link soc.message.SOCGameState} javadoc list of states with related messages and client responses
      *</UL>
      * Also, if your state is similar to an existing state, do a where-used search
      * for that state, and decide where both states should be reacted to.
@@ -338,8 +340,8 @@ public class SOCGame implements Serializable, Cloneable
     public static final int PLACING_FREE_ROAD2 = 41;
 
     /**
-     * Player is placing the special {@link SOCInventoryItem} held in {@link #getPlacingItem()}.
-     * For some kinds of item, placement can be canceled by calling {@link #cancelPlaceInventoryItem(boolean)}.
+     * Player is placing the special {@link SOCInventoryItem} held in {@link #getPlacingItem()}. For some kinds
+     * of item, placement can sometimes be canceled by calling {@link #cancelPlaceInventoryItem(boolean)}.
      *<P>
      * The placement method depends on the scenario and item type; for example,
      * {@link SOCGameOption#K_SC_FTRI _SC_FTRI} has trading port items and would
@@ -742,8 +744,17 @@ public class SOCGame implements Serializable, Cloneable
      * Calculated by {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
      * Format is the internal integer format, see {@link soc.util.Version#versionNumber()}.
      * Value may sometimes be too low at client, see {@link #getClientVersionMinRequired()} for details.
+     * @see #clientFeaturesRequired
      */
     private int clientVersionMinRequired;
+
+    /**
+     * For use at server; optional client features needed to connect to this game,
+     * or {@code null} if none.
+     * @see #clientVersionMinRequired
+     * @since 2.0.00
+     */
+    private SOCFeatureSet clientFeaturesRequired;
 
     /**
      * For use at server for i18n; does this game have any members (players or observers)
@@ -824,6 +835,10 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * the players; never contains a null element, use {@link #isSeatVacant(int)}
      * to see if a position is occupied.  Length is {@link #maxPlayers}.
+     *<P>
+     * If the game is reset or restarted by {@link #resetAsCopy()},
+     * the new game gets new player objects, not the ones in this array.
+     *
      * @see #currentPlayerNumber
      */
     private SOCPlayer[] players;
@@ -834,7 +849,7 @@ public class SOCGame implements Serializable, Cloneable
     private int[] seats;
 
     /**
-     * the states of the locks for the player's seats
+     * The lock state for each player number's seat. Length is {@link #maxPlayers}.
      */
     private SeatLockState[] seatLocks;
 
@@ -1641,11 +1656,23 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Get a seat's lock state.
      * @param pn the number of the seat
+     * @see #getSeatLocks()
      * @since 2.0.00
      */
     public SeatLockState getSeatLock(final int pn)
     {
         return seatLocks[pn];
+    }
+
+    /**
+     * Get all seats' lock states.
+     * @return all seats' lock states; an array indexed by player number, containing all seats in this game
+     * @see #getSeatLock(int)
+     * @since 2.0.00
+     */
+    public SeatLockState[] getSeatLocks()
+    {
+        return seatLocks;
     }
 
     /**
@@ -1665,6 +1692,7 @@ public class SOCGame implements Serializable, Cloneable
      * @throws IllegalStateException if the game is still forming
      *     but {@code sl} is {@link SeatLockState#CLEAR_ON_RESET},
      *     or if {@link #getResetVoteActive()}
+     * @see #setSeatLocks(SeatLockState[])
      * @since 2.0.00
      */
     public void setSeatLock(final int pn, final SeatLockState sl)
@@ -1679,12 +1707,36 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * At client, set all seats' locked or unlocked status. Sent from server while joining a game.
+     *<P>
+     * Since this is client-only, does not perform the server-side state check that
+     * {@link #setSeatLock(int, SeatLockState)} does.
+     *
+     * @param sls  All seats' lock states; an array indexed by player number, containing all seats in this game
+     * @throws IllegalArgumentException if {@code sls.length} is not {@link #maxPlayers}
+     * @see {@link #setSeatLock(int, SeatLockState)}
+     * @since 2.0.00
+     */
+    public void setSeatLocks(final SeatLockState[] sls)
+        throws IllegalArgumentException
+    {
+        if (sls.length != maxPlayers)
+            throw new IllegalArgumentException("length");
+
+        for (int pn = 0; pn < sls.length; ++pn)
+            seatLocks[pn] = sls[pn];
+    }
+
+    /**
      * Get the player object sitting at this position.
      * <B>Does not check for vacant seats:</B>
      * Even if a seat is vacant, its unused {@link SOCPlayer} will be returned.
      * Call {@link #isSeatVacant(int)} to check for vacant seats.
-     * @return the player object for a player id; never null if pn is in range
+     *
      * @param pn  the player number, in range 0 to {@link #maxPlayers}-1
+     * @return the player object for a player id; never null if {@code pn} is in range.
+     *     If a player leaves the game and another human or bot sits down at the
+     *     now-vacant {@code pn}, the same {@code SOCPlayer} object is reused for the new player.
      * @throws ArrayIndexOutOfBoundsException if {@code pn} is out of range
      * @see #getPlayer(String)
      * @see #getPlayers()
@@ -1719,6 +1771,17 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         return null;
+    }
+
+    /**
+     * Is the current player a robot which has been slow or buggy enough ("stubborn")
+     * that their turn has been forced to end several times?
+     * @return true if there's a current player and their {@link SOCPlayer#isStubbornRobot()} is true
+     * @since 2.0.00
+     */
+    public boolean isCurrentPlayerStubbornRobot()
+    {
+        return (currentPlayerNumber >= 0) && players[currentPlayerNumber].isStubbornRobot();
     }
 
     /**
@@ -1941,11 +2004,79 @@ public class SOCGame implements Serializable, Cloneable
      * to options.
      *
      * @return game version, in same format as {@link soc.util.Version#versionNumber()}.
+     * @see #getClientFeaturesRequired()
      * @since 1.1.06
      */
     public int getClientVersionMinRequired()
     {
         return clientVersionMinRequired;
+    }
+
+    /**
+     * At server, get the optional client features needed to connect to this game, if any.
+     * Those features are optional for clients to implement, but required for them to join this game.
+     * @return this game's required client features, or {@code null} if none
+     * @see #getClientVersionMinRequired()
+     * @see #setClientFeaturesRequired(SOCFeatureSet)
+     * @since 2.0.00
+     */
+    public SOCFeatureSet getClientFeaturesRequired()
+    {
+        return clientFeaturesRequired;
+    }
+
+    /**
+     * At server, set the required client features returned by {@link #getClientFeaturesRequired()}, if any.
+     * @param feats  New feature set, or {@code null} if no features are required;
+     *     do not pass in an empty {@link SOCFeatureSet}
+     * @since 2.0.00
+     */
+    public void setClientFeaturesRequired(SOCFeatureSet feats)
+    {
+        clientFeaturesRequired = feats;
+    }
+
+    /**
+     * Given its features, can a client join this game? Assumes client's
+     * {@link soc.server.SOCClientData#hasLimitedFeats} flag is true, otherwise they could join any game.
+     * Calls {@link #checkClientFeatures(SOCFeatureSet, boolean) checkClientFeatures(cliFeats, true)}.
+     * @param cliFeats  Client's limited subset of optional features,
+     *     from {@link soc.server.SOCClientData#feats}, or {@code null} if none
+     * @return  True if client can join, false otherwise.
+     *     Always true if {@link #getClientFeaturesRequired()} is {@code null}.
+     * @since 2.0.00
+     */
+    public boolean canClientJoin(final SOCFeatureSet cliFeats)
+    {
+        return (null == checkClientFeatures(cliFeats, true));
+    }
+
+    /**
+     * Check whether a client can join this game, given its feature set.
+     * Assumes client's {@link soc.server.SOCClientData#hasLimitedFeats} flag is true,
+     * otherwise they could join any game. If this game requires any client features, calls
+     * {@link SOCFeatureSet#findMissingAgainst(SOCFeatureSet, boolean) cliFeats.findMissingAgainst(gameFeats, stopAtFirstFound)}.
+     * @param cliFeats  Client's limited subset of optional features,
+     *     from {@link soc.server.SOCClientData#feats}, or {@code null} if none
+     * @param stopAtFirstFound  True if caller needs to know only if any features are missing,
+     *     but doesn't need the full list. If game's features and {@code cliFeats} are both not null,
+     *     will stop checking after finding any missing feature.
+     * @return  Null if client can join, otherwise the list of features which
+     *     this game requires but are not included in {@code cliFeats}.
+     *     Always null if {@link #getClientFeaturesRequired()} is {@code null}.
+     *     If {@code stopAtFirstFound}, might return one missing feature instead of the full list.
+     * @see #canClientJoin(SOCFeatureSet)
+     * @since 2.0.00
+     */
+    public String checkClientFeatures(final SOCFeatureSet cliFeats, final boolean stopAtFirstFound)
+    {
+        if (clientFeaturesRequired == null)
+            return null;  // anyone can join
+
+        if (cliFeats == null)
+            return clientFeaturesRequired.getEncodedList();  // cli has no features, this game requires some
+
+        return cliFeats.findMissingAgainst(clientFeaturesRequired, stopAtFirstFound);
     }
 
     /**
@@ -2221,6 +2352,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Get the number of development cards remaining to be bought.
      * @return the number of dev cards in the deck
+     * @see #setNumDevCards(int)
      */
     public int getNumDevCards()
     {
@@ -2228,9 +2360,10 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * set the number of dev cards in the deck
+     * At client, set the number of dev cards remaining in the deck.
      *
      * @param  nd  the number of dev cards in the deck
+     * @see #getNumDevCards()
      */
     public void setNumDevCards(final int nd)
     {
@@ -3119,9 +3252,9 @@ public class SOCGame implements Serializable, Cloneable
         final int coord = pp.getCoordinates();
 
         /**
-         * on large board, look for fog and reveal its hex if we're
+         * FOG_HEX: On large board, look for fog and reveal its hex if we're
          * placing a road or ship touching the fog hex's corner.
-         * During initial placement, a settlement could reveal up to 3.
+         * During initial placement, a settlement could reveal up to 3 hexes.
          * Current player gets a resource from each revealed hex.
          */
         if (hasSeaBoard && isAtServer && ! (pp instanceof SOCVillage))
@@ -3132,7 +3265,7 @@ public class SOCGame implements Serializable, Cloneable
                 final int[] endHexes = ((SOCBoardLarge) board).getAdjacentHexesToEdgeEnds(coord);
                 putPieceCommon_checkFogHexes(endHexes, false);
             }
-            else if (isInitialPlacement() && (pp instanceof SOCSettlement))
+            else if ((pp instanceof SOCSettlement) && isInitialPlacement())
             {
                 // settlements
                 final Collection<Integer> hexColl = board.getAdjacentHexesToNode(coord);
@@ -3968,8 +4101,7 @@ public class SOCGame implements Serializable, Cloneable
      * call them in this order before any other board or game methods:
      *<UL>
      * <LI> This method {@code startGame()}
-     * <LI> If appropriate, each player's {@link SOCPlayer#setRestrictedLegalShips(int[])}
-     * <LI> If appropriate, {@code SOCBoardAtServer.startGame_putInitPieces(SOCGame)}
+     * <LI> If appropriate, {@link soc.server.SOCBoardAtServer#startGame_scenarioSetup(SOCGame)}
      *</UL>
      */
     public void startGame()
@@ -4507,7 +4639,7 @@ public class SOCGame implements Serializable, Cloneable
             throw new IllegalStateException("Game not active: state " + gameState);
 
         forcingEndTurn = true;
-        SOCInventoryItem itemCard = null;  // card/inventory item returned to player, if any
+        SOCInventoryItem itemCard = null;  // card/inventory item being returned to player, if any
 
         if (gameState == WAITING_FOR_ROBBER_OR_PIRATE)
             chooseMovePirate(false);  // gameState becomes PLACING_ROBBER, which is in the switch
@@ -5009,14 +5141,12 @@ public class SOCGame implements Serializable, Cloneable
      * and N7C: Roll no 7s until a city is built.
      *<P>
      * For scenario option {@link SOCGameOption#K_SC_CLVI}, calls
-     * {@link SOCBoardLarge#distributeClothFromRoll(SOCGame, int)}.
-     * Cloth are worth VP, so check for game state {@link #OVER}
-     * if results include {@link RollResult#cloth}.
+     * {@link SOCBoardLarge#distributeClothFromRoll(SOCGame, int)}:
+     * Cloth are worth VP, so check for game state {@link #OVER} if results include {@link RollResult#cloth}.
      *<P>
-     * For scenario option {@link SOCGameOption#K_SC_PIRI}, calls
-     * {@link SOCBoardLarge#movePirateHexAlongPath(int)}.
-     * Check {@link RollResult#sc_piri_fleetAttackVictim}
-     * and {@link RollResult#sc_piri_fleetAttackRsrcs}.
+     * For scenario option {@link SOCGameOption#K_SC_PIRI}, calls {@link SOCBoardLarge#movePirateHexAlongPath(int)}
+     * and then {@link #movePirate(int, int, int)}:
+     * Check {@link RollResult#sc_piri_fleetAttackVictim} and {@link RollResult#sc_piri_fleetAttackRsrcs}.
      * Note that if player's warships are stronger than the pirate fleet, <tt>sc_piri_loot</tt> will contain
      * {@link SOCResourceConstants#GOLD_LOCAL}, and that player's {@link SOCPlayer#setNeedToPickGoldHexResources(int)}
      * will be set to include the free pick.
@@ -5797,18 +5927,23 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Move the pirate, optionally with a pirate fleet strength.
-     * The fleet strength is used by {@link #rollDice()} in scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     * Move the pirate, optionally with a pirate fleet strength, and do a robbery/fleet battle if needed.
+     * Called only at server, by {@link #rollDice()} in scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
      *<P>
      * See {@link #movePirate(int, int)} for method javadocs in "normal" operation (not {@code _SC_PIRI}).
      *<P>
      * In <b>game scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI},</b> the pirate is moved not by the player,
-     * but by the game at every dice roll.  See {@link SOCBoardLarge#movePirateHexAlongPath(int)}
-     * and {@link #stealFromPlayerPirateFleet(int, int)} for details.
+     * but by the game at every dice roll.  See {@link SOCBoardLarge#movePirateHexAlongPath(int)},
+     * {@link #getPossibleVictims()}, and {@link #stealFromPlayerPirateFleet(int, int)} for details.
+     *
+     *<H5>Results:</H5>
      *<UL>
      * <LI> {@link SOCMoveRobberResult#victims} will be the player(s) having a settlement/city adjacent to
-     *      the new pirate hex
-     * <LI> If there is 1 victim, {@link SOCMoveRobberResult#sc_piri_loot} will be set to the robbed resource(s), if any
+     *      the new pirate hex, or {@code null} or an empty list.<BR>
+     *      <B>SC_PIRI:</B> See {@link #getPossibleVictims()}: Is empty if multiple players
+     *      or {@link SOCPlayer#getAddedLegalSettlement()} locations are adjacent to the pirate.
+     * <LI> If there is 1 victim, {@link SOCMoveRobberResult#sc_piri_loot} will be set to the robbed resource(s) if any,
+     *      or empty if nothing to rob
      * <LI> If player's warship strength equals the pirate fleet's, nothing is stolen or gained
      * <LI> If player's warships are stronger than the pirate fleet:
      *    <UL>
@@ -5822,11 +5957,12 @@ public class SOCGame implements Serializable, Cloneable
      * @param pn  the number of the player that is moving the pirate ship
      * @param ph  the pirate's new hex coordinate; should be a water hex
      * @param pirFleetStrength  Pirate fleet strength, or -1 if not scenario _SC_PIRI
-     * @return  see {@link #movePirate(int, int)}
+     * @return  see above and {@link #movePirate(int, int)} return value;
+     *     also sets {@link #robberResult} to the reported results
      * @throws IllegalArgumentException if {@code ph} &lt; 0
      * @since 2.0.00
      */
-    private SOCMoveRobberResult movePirate(final int pn, final int ph, final int pirFleetStrength)
+    public SOCMoveRobberResult movePirate(final int pn, final int ph, final int pirFleetStrength)
         throws IllegalArgumentException
     {
         if (robberResult == null)
@@ -6166,16 +6302,18 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Get the players who have settlements or cities on this hex.
-     * @return a list of {@link SOCPlayer players} touching a hex
-     *   with settlements/cities, or an empty Vector if none.
+     * @return a list of players touching a hex
+     *   with their settlements/cities, or an empty list if none.
      *   Any player with multiple settlements/cities on the hex
      *   will be in the list just once, not once per piece.
      *
      * @param hex  the coordinates of the hex; not checked for validity
+     * @param collectAdjacentPieces  optional set to use to return all players' settlements and cities
+     *     adjacent to {@code hex}, or {@code null}
      */
-    public Vector<SOCPlayer> getPlayersOnHex(final int hex)
+    public List<SOCPlayer> getPlayersOnHex(final int hex, final Set<SOCPlayingPiece> collectAdjacentPieces)
     {
-        Vector<SOCPlayer> playerList = new Vector<SOCPlayer>(3);
+        final List<SOCPlayer> playerList = new ArrayList<SOCPlayer>(3);
 
         final int[] nodes = board.getAdjacentNodesToHex_arr(hex);
 
@@ -6184,11 +6322,9 @@ public class SOCGame implements Serializable, Cloneable
             if (isSeatVacant(i))
                 continue;
 
-            Vector<SOCSettlement> settlements = players[i].getSettlements();
-            Vector<SOCCity> cities = players[i].getCities();
             boolean touching = false;
 
-            for (SOCSettlement ss : settlements)
+            for (SOCSettlement ss : players[i].getSettlements())
             {
                 final int seCoord = ss.getCoordinates();
                 for (int d = 0; d < 6; ++d)
@@ -6196,14 +6332,19 @@ public class SOCGame implements Serializable, Cloneable
                     if (seCoord == nodes[d])
                     {
                         touching = true;
+                        if (collectAdjacentPieces != null)
+                            collectAdjacentPieces.add(ss);
                         break;
                     }
                 }
+
+                if (touching && (collectAdjacentPieces == null))
+                    break;
             }
 
-            if (!touching)
+            if ((! touching) || (collectAdjacentPieces != null))
             {
-                for (SOCCity ci : cities)
+                for (SOCCity ci : players[i].getCities())
                 {
                     final int ciCoord = ci.getCoordinates();
                     for (int d = 0; d < 6; ++d)
@@ -6211,14 +6352,19 @@ public class SOCGame implements Serializable, Cloneable
                         if (ciCoord == nodes[d])
                         {
                             touching = true;
+                            if (collectAdjacentPieces != null)
+                                collectAdjacentPieces.add(ci);
                             break;
                         }
                     }
+
+                    if (touching && (collectAdjacentPieces == null))
+                        break;
                 }
             }
 
             if (touching)
-                playerList.addElement(players[i]);
+                playerList.add(players[i]);
         }
 
         return playerList;
@@ -6310,13 +6456,17 @@ public class SOCGame implements Serializable, Cloneable
      * Victims are players with resources; for scenario option
      * {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, also players with cloth
      * when robbing with the pirate.
-     *<P>
-     * For scenario option {@link SOCGameOption#K_SC_PIRI}, this is called
-     * after a 7 is rolled, or after the game moves the pirate ship (fleet).
+     *
+     *<H3>For scenario option {@link SOCGameOption#K_SC_PIRI}:</H3>
+     * This is called after a 7 is rolled, or after the game moves the pirate ship (fleet).
      * When a 7 is rolled, the current player may rob from any player with resources.
      * When the pirate ship is moved (at every dice roll), the player with a
-     * port settlement/city adjacent to the pirate ship's hex is attacked,
-     * unless there are multiple adjacent players (nothing happens).
+     * port settlement/city adjacent to the pirate ship's hex is attacked.
+     *<P>
+     * If there are multiple adjacent players, there is no battle and no robbery victim:
+     * returns an empty list. This also applies to the hex in the middle of the 6-player board
+     * that's adjacent to 2 players' {@link SOCPlayer#getAddedLegalSettlement()} locations,
+     * even if they haven't both built there.
      *
      * @return a list of possible players to rob, or an empty list
      * @see #canChoosePlayer(int)
@@ -6347,9 +6497,55 @@ public class SOCGame implements Serializable, Cloneable
                 final int ph = ((SOCBoardLarge) board).getPirateHex();
                 if (ph != 0)
                 {
-                    candidates = getPlayersOnHex(ph);
-                    if (candidates.size() > 1)
+                    Set<SOCPlayingPiece> adjacPieces = new HashSet<SOCPlayingPiece>();
+                    candidates = getPlayersOnHex(ph, adjacPieces);
+                    final int nCandidates = candidates.size();
+                    if (nCandidates > 1)
+                    {
                         candidates.clear();
+                    } else if (nCandidates == 1) {
+                        // Check adjacPieces for victim's getAddedLegalSettlement
+                        // and if found, check for other players'.
+                        final SOCPlayer victim = candidates.get(0);
+                        final int victimSettleNode = victim.getAddedLegalSettlement();
+                        boolean atAdded = false;
+                        for (SOCPlayingPiece pp : adjacPieces)
+                        {
+                            if (victimSettleNode == pp.getCoordinates())
+                            {
+                                atAdded = true;
+                                break;
+                            }
+                        }
+                        if (atAdded)
+                        {
+                            // See if any other player's getAddedLegalSettlement is also adjacent to this hex.
+                            // If so, should not rob at this hex per SC_PIRI scenairo rules.
+                            final int[] pirateAdjacNodes = board.getAdjacentNodesToHex_arr(ph);
+                            boolean hasOtherPlayer = false;
+                            outerLoop:
+                            for (int pn = 0; pn < maxPlayers; ++pn)
+                            {
+                                if (isSeatVacant(pn))
+                                    continue;
+                                final SOCPlayer pl = players[pn];
+                                if (pl == victim)
+                                    continue;
+                                final int plSettleNode = pl.getAddedLegalSettlement();
+                                for (final int node : pirateAdjacNodes)
+                                {
+                                    if (node == plSettleNode)
+                                    {
+                                        hasOtherPlayer = true;
+                                        break outerLoop;
+                                    }
+                                }
+                            }
+
+                            if (hasOtherPlayer)
+                                candidates.clear();
+                        }
+                    }
                 } else {
                     candidates = new ArrayList<SOCPlayer>();
                 }
@@ -6369,7 +6565,7 @@ public class SOCGame implements Serializable, Cloneable
         {
             candidates = getPlayersShipsOnHex(((SOCBoardLarge) board).getPirateHex());
         } else {
-            candidates = getPlayersOnHex(board.getRobberHex());
+            candidates = getPlayersOnHex(board.getRobberHex(), null);
         }
 
         List<SOCPlayer> victims = new ArrayList<SOCPlayer>();
@@ -6462,21 +6658,23 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * In game scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, the pirate fleet is moved every
-     * dice roll, and may steal from the single player with an adjacent settlement or city.
+     * In game scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, after the pirate fleet is moved,
+     * have the pirate fleet attack the victim player with an adjacent settlement or city.
      * If pirate fleet is stronger than player's fleet ({@link SOCPlayer#getNumWarships()}),
-     * perform the robbery.  Number of resources stolen are 1 + victim's number of cities.
+     * performs the robbery.  Number of resources stolen are 1 + victim's number of cities.
      * The stolen resources are discarded, no player gets them.
+     * If player's fleet is stronger, "victim" player gets to pick a free resource.
+     *<P>
      * Does not change gameState.
      *<P>
-     * Results will be reported back through {@link #robberResult}:
+     * Results are reported back through {@link #robberResult}:
      *<UL>
-     * <LI> Will set {@link SOCMoveRobberResult#sc_piri_loot} to the resource(s) stolen, if any
-     * <LI> If player had no resources, {@code sc_piri_loot.getTotal()} will be 0
+     * <LI> {@link SOCMoveRobberResult#sc_piri_loot} are the resource(s) stolen, if any, or an empty set
+     * <LI> If player had no resources, {@code sc_piri_loot.getTotal()} is 0
      * <LI> If player's strength is tied with {@code pirFleetStrength}, nothing is gained or lost
      * <LI> If player is stronger than the pirate fleet, they get to pick a free resource:
-     *      {@code sc_piri_loot} will contain 1 {@link SOCResourceConstants#GOLD_LOCAL}
-     *      Caller must set {@link SOCPlayer#setNeedToPickGoldHexResources(int)}, not set here.
+     *      {@code sc_piri_loot} contains 1 {@link SOCResourceConstants#GOLD_LOCAL}.
+     *      Caller must set {@link SOCPlayer#setNeedToPickGoldHexResources(int)}, isn't set here.
      *</UL>
      * Assumes proper game state and scenario, does not validate those or {@code pn}.
      *
@@ -7382,7 +7580,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Can this player play this special {@link SOCInventoryItem} now? Checks the game state, scenario options, and
-     * player's inventory. Returns 0 or the reason why they can't play it right now.
+     * player's inventory. Returns 0 if OK to play, or the reason why they can't play it right now.
      *<P>
      * Assumes server or client player is calling, and thus player has no unknown dev cards (itype == 0).
      * If calling at client for another player, and the scenario allows special items of type 0, these
@@ -8528,6 +8726,7 @@ public class SOCGame implements Serializable, Cloneable
         /** Seat is locked.
          *  If game is forming, a bot will not sit here when the game starts.
          *  If game is active, a newly-joining player can't take over a bot in this seat.
+         *  @see #CLEAR_ON_RESET
          */
         LOCKED,
 
@@ -8535,8 +8734,8 @@ public class SOCGame implements Serializable, Cloneable
          *  Useful for resetting a game to play again with fewer robots, if a robot is currently sitting here.
          *  Not a valid seat lock state if game is still forming.
          *<P>
-         *  This feature was added in v2.0.00; before that version, the seat lock state was
-         *  boolean (UNLOCKED or LOCKED).  Game resets included all robots unless their seat
+         *  That feature was added in v2.0.00; before that version, the seat lock state was
+         *  boolean ({@link #UNLOCKED} or {@link #LOCKED}).  Game resets included all robots unless their seat
          *  was LOCKED at the time of reset.
          */
         CLEAR_ON_RESET

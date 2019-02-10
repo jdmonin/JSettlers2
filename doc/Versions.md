@@ -19,22 +19,33 @@ and backport minor new features until `2.0.00` is ready.
 - Build requires Java 7 or newer
 
 
-## `2.0.00` (build JM2018xxxx)
+## `2.0.00` (build JM2019xxxx)
 - Large board (sea board) support
 - Game Scenario and special-rules support
 - Client:
 	- Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard dialog)
+	- Trade counter-offer: For legibility use light background color, not player color
 	- Bank trades: If server declines trade, don't enable Undo Trade button or clear Give/Get resources to 0
+	- When joining a game or chat channel, server sends a "recap" of recent player chat
 	- Game windows: Player name labels sans-serif for cleaner look
 	- On OSX, set app name to JSettlers in menu bar
 	- Popups (AskDialog, etc) layout fine-tuned, can wrap multi-line text
+	- When deleting a game, remove from game list using exact match, not startsWith
+- If a new game is created but no one has sat down, then someone joins and leaves it, don't delete that game
+- If a bot is slow and its turn has been ended several times, shorten its timeout so other players won't have to wait so long (KotCzarny idea)
 - I18N framework in place, started by Luis A. Ramirez; thank you Luis. Jeremy wrote more I18N utilities (package net.nand.util.i18n).
-- Game names and user nicknames can't be a number: Must contain a non-digit character
+- Game names and user nicknames can't be a number or punctuation: Must contain a non-digit, non-punctuation character
 - Applet class is now `soc.client.SOCApplet`
 - Message traffic:
 	- When joining game in progress, server sends current round to update client's "*n* rounds left for No 7s" display
 	- More efficient game-setup messages over network
+		- If new game request has VP option but with a false boolean part, remove that VP option
+		- When forming a new game with a classic non-sea board, don't send the empty board layout:
+		  Client already has data for an empty board
 	- SOCBuildRequest now optional before client's SOCPutPiece request
+	- After a player discards, but others still must pick their discards: Don't send redundant SOCGameState,
+	  only the text prompt. This also prevents client from redisplaying "Discarding..." for players who've
+	  discarded but still have more than 7 resources
 - Server Config Validation mode: Test the current config and exit, with new startup option:
 	`-t` or `--test-config`
 - Game option key names can now be longer (8 characters)
@@ -58,6 +69,8 @@ and backport minor new features until `2.0.00` is ready.
 	  To pause only 10% as long as in normal games, use  
 	  `-Djsettlers.bots.fast_pause_percent=10`
 	- New debug command `*STARTBOTGAME* [maxBots]` to begin current game as bots-only
+    - If the last human player leaves a game with bots and observers, server continues that game as bots-only
+	  if property `jsettlers.bots.botgames.total` != 0
 	- Standalone bot clients shut down properly if they can't reconnect to server after 3 retries
 	- Example `soc.robot.sample3p.Sample3PBrain extending SOCRobotBrain`, `Sample3PClient extending SOCRobotClient`
 	- Some private SOCRobotClient fields made protected for use by bot developer 3rd-party subclasses
@@ -81,7 +94,8 @@ and backport minor new features until `2.0.00` is ready.
     merged old-updates-rsthomas.html into Versions.md
 
 
-## `1.2.01` (build OV201805xx)
+## `1.2.01` (build OV20180526)
+- Game reset no longer hangs when game had bot(s) and someone locked all bots' seats
 - Game expiration:
     - Initial game length increased: Now 2 hours, was 90 minutes
     - Warns 5 or 6 minutes earlier
@@ -96,8 +110,8 @@ and backport minor new features until `2.0.00` is ready.
   Even if no free roads were placed, the Road Building card is not returned to their hand.
 - When force-ending a turn (or connection lost) after playing Road Building but before placing
   the first free road, the Road Building card is returned to player's hand
-- Server game cleanup: If the last human exits a game with bots and observers, don't
-  continue that game as bots-only unless property `jsettlers.bots.botgames.total` != 0
+- Server game cleanup: If the last human player leaves a game with bots and observers,
+  don't continue that game as bots-only
 - Server console: During startup, don't print connect messages for built-in robots
 - Server closes connections to rejected clients or bots
 - When member leaves a channel, don't send hostname to all members
@@ -186,7 +200,7 @@ and backport minor new features until `2.0.00` is ready.
 - User account admin client:
      - After creating new user, clear password fields in form
      - Auto-authenticate when creating first admin account in new db
-     - Minimum server version `1.1.19`; for older servers, please download and use the older version's account client
+     - Minimum server version `1.1.19`; for older servers, please download the older version's Full JAR and use its account client
      - Server requires minimum client version `1.1.19`, to authenticate before creating users
 - User account DB schema: For new installs, require user passwords (existing DBs don't need to make this change).
   Passwords were already required in earlier versions; this only formalizes it in the database.

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2016-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2016-2019 Jeremy D Monin <jeremy@nand.net>
  * Some contents were formerly part of SOCServer.java;
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
@@ -323,7 +323,7 @@ public class SOCServerMessageHandler
         if (c == null)
             return;
 
-        srv.setClientVersSendGamesOrReject(c, mes.getVersionNumber(), mes.localeOrFeats, true);
+        srv.setClientVersSendGamesOrReject(c, mes.getVersionNumber(), mes.feats, mes.cliLocale, true);
     }
 
     /**
@@ -628,13 +628,13 @@ public class SOCServerMessageHandler
         final int cliVers = c.getVersion();
         final SOCClientData scd = (SOCClientData) c.getAppData();
         boolean alreadyTrimmedEnums = false;
-        Vector<String> okeys = mes.getOptionKeys();
+        final List<String> okeys = mes.optionKeys;
         List<SOCGameOption> opts = null;  // opts to send as SOCGameOptionInfo
         final Map<String, SOCGameOption> optsToLocal;  // opts to send in a SOCLocalizedStrings instead
 
         // check for request for i18n localized descriptions (client v2.0.00 or newer);
         // if we don't have game opt localization for client's locale, ignore that request flag.
-        if (mes.hasTokenGetI18nDescs() && (c.getI18NLocale() != null))
+        if (mes.hasTokenGetI18nDescs && (c.getI18NLocale() != null))
             scd.wantsI18N = true;
         final boolean wantsLocalDescs =
             scd.wantsI18N
@@ -652,7 +652,7 @@ public class SOCServerMessageHandler
         }
 
         // Gather requested game option info:
-        if (okeys == null)
+        if ((okeys == null) && ! mes.hasOnlyTokenI18n)
         {
             // received "-", look for newer options (cli is older than us).
             // opts will be null if there are no newer ones.
@@ -701,7 +701,7 @@ public class SOCServerMessageHandler
                         } catch (MissingResourceException e) {}
                     }
                 } else {
-                    final String okey = okeys.elementAt(i);
+                    final String okey = okeys.get(i);
                     opt = SOCGameOption.getOption(okey, false);
 
                     if ((opt == null) || (opt.minVersion > cliVers))  // Don't use dynamic opt.getMinVersion(Map) here
@@ -792,7 +792,9 @@ public class SOCServerMessageHandler
 
         // Calculate and respond; be sure to include any requested scKeys from params
 
-        final int cliVers = c.getVersion();
+        final SOCClientData scd = (SOCClientData) c.getAppData();
+        final int cliVers = scd.scenVersion;
+
         Map<String, SOCScenario> knownScens = null;  // caches SOCScenario.getAllKnownScenarios() if called
 
         List<SOCScenario> changes = null;
@@ -826,8 +828,6 @@ public class SOCServerMessageHandler
                     srv.sendGameScenarioInfo(null, sc, c, false);
                 else
                     c.put(new SOCScenarioInfo(sc.key, true));
-
-        final SOCClientData scd = (SOCClientData) c.getAppData();
 
         if (hasAnyChangedMarker && scd.wantsI18N && ! scd.sentAllScenarioStrings)
         {
@@ -984,7 +984,15 @@ public class SOCServerMessageHandler
          * (don't send all message fields received from client)
          */
         if (srv.channelList.isMember(c, chName))
+        {
             srv.messageToChannel(chName, new SOCChannelTextMsg(chName, mName, txt));
+
+            final SOCChatRecentBuffer buf = srv.channelList.getChatBuffer(chName);
+            synchronized(buf)
+            {
+                buf.add(mName, txt);
+            }
+        }
     }
 
     /**
@@ -1157,10 +1165,19 @@ public class SOCServerMessageHandler
                 boolean isCmd = userIsDebug && srv.processDebugCommand(c, ga.getName(), cmdText, cmdTxtUC);
 
                 if (! isCmd)
+                {
                     //
                     // Send the message to the members of the game
                     //
                     srv.messageToGame(gaName, new SOCGameTextMsg(gaName, plName, cmdText));
+
+                    final SOCChatRecentBuffer buf = gameList.getChatBuffer(gaName);
+                    if (buf != null)
+                        synchronized(buf)
+                        {
+                            buf.add(plName, cmdText);
+                        }
+                }
             }
         }
 
@@ -1393,7 +1410,7 @@ public class SOCServerMessageHandler
          */
         if (cliVers == -1)
         {
-            if (! srv.setClientVersSendGamesOrReject(c, SOCServer.CLI_VERSION_ASSUMED_GUESS, null, false))
+            if (! srv.setClientVersSendGamesOrReject(c, SOCServer.CLI_VERSION_ASSUMED_GUESS, null, null, false))
                 return;  // <--- Discon and Early return: Client too old ---
 
             cliVers = c.getVersion();
@@ -1541,6 +1558,27 @@ public class SOCServerMessageHandler
          * let everyone know about the change
          */
         srv.messageToChannel(ch, new SOCJoinChannel(msgUser, "", "dummyhost", ch));
+
+        /**
+         * Send recap; same sequence is in SOCGameHandler.joinGame with different message type
+         */
+        final SOCChatRecentBuffer buf = channelList.getChatBuffer(ch);
+        {
+            List<SOCChatRecentBuffer.Entry> recents;
+            synchronized(buf)
+            {
+                recents = buf.getAll();
+            }
+            if (! recents.isEmpty())
+            {
+                c.put(new SOCChannelTextMsg(ch, SOCGameTextMsg.SERVER_FOR_CHAT,
+                        c.getLocalized("member.join.recap_begin")));  // [:: ]"Recap of recent chat ::"
+                for (SOCChatRecentBuffer.Entry e : recents)
+                    c.put(new SOCChannelTextMsg(ch, e.nickname, e.text));
+                c.put(new SOCChannelTextMsg(ch, SOCGameTextMsg.SERVER_FOR_CHAT,
+                        c.getLocalized("member.join.recap_end")));    // [:: ]"Recap ends ::"
+            }
+        }
     }
 
     /**
@@ -1630,7 +1668,7 @@ public class SOCServerMessageHandler
          */
         if (c.getVersion() == -1)
         {
-            if (! srv.setClientVersSendGamesOrReject(c, SOCServer.CLI_VERSION_ASSUMED_GUESS, null, false))
+            if (! srv.setClientVersSendGamesOrReject(c, SOCServer.CLI_VERSION_ASSUMED_GUESS, null, null, false))
                 return;  // <--- Early return: Client too old ---
         }
 
@@ -1670,94 +1708,18 @@ public class SOCServerMessageHandler
 
         if (isMember)
         {
-            handleLEAVEGAME_member(c, gaName);
+            srv.leaveGameMemberAndCleanup(c, null, gaName);
         }
         else if (((SOCClientData) c.getAppData()).isRobot)
         {
             handleLEAVEGAME_maybeGameReset_oldRobot(gaName);
+
             // During a game reset, this robot player
             // will not be found among cg's players
             // (isMember is false), because it's
             // attached to the old game object
             // instead of the new one.
             // So, check game state and update game's reset data.
-        }
-    }
-
-    /**
-     * Handle a member leaving the game, from
-     * {@link #handleLEAVEGAME(Connection, SOCLeaveGame)}.
-     * @since 1.1.07
-     */
-    private void handleLEAVEGAME_member(Connection c, final String gaName)
-    {
-        boolean gameDestroyed = false;
-        if (! gameList.takeMonitorForGame(gaName))
-        {
-            return;  // <--- Early return: game not in gamelist ---
-        }
-
-        try
-        {
-            gameDestroyed = srv.leaveGame(c, gaName, true, false);
-        }
-        catch (Exception e)
-        {
-            D.ebugPrintStackTrace(e, "Exception in handleLEAVEGAME (leaveGame)");
-        }
-
-        gameList.releaseMonitorForGame(gaName);
-
-        if (gameDestroyed)
-        {
-            srv.broadcast(new SOCDeleteGame(gaName));
-        }
-        else
-        {
-            /*
-               SOCLeaveGame leaveMessage = new SOCLeaveGame(c.getData(), c.host(), gaName);
-               messageToGame(gaName, leaveMessage);
-               recordGameEvent(gaName, leaveMessage);
-             */
-        }
-
-        /**
-         * if it's a robot, remove it from the request list
-         */
-        Vector<SOCReplaceRequest> requests = srv.robotDismissRequests.get(gaName);
-
-        if (requests != null)
-        {
-            Enumeration<SOCReplaceRequest> reqEnum = requests.elements();
-            SOCReplaceRequest req = null;
-
-            while (reqEnum.hasMoreElements())
-            {
-                SOCReplaceRequest tempReq = reqEnum.nextElement();
-
-                if (tempReq.getLeaving() == c)
-                {
-                    req = tempReq;
-                    break;
-                }
-            }
-
-            if (req != null)
-            {
-                requests.removeElement(req);
-
-                /**
-                 * Taking over a robot spot: let the person replacing the robot sit down
-                 */
-                SOCGame ga = gameList.getGameData(gaName);
-                final int pn = req.getSitDownMessage().getPlayerNumber();
-                final boolean isRobot = req.getSitDownMessage().isRobot();
-                if (! isRobot)
-                {
-                    ga.getPlayer(pn).setFaceId(1);  // Don't keep the robot face icon
-                }
-                srv.sitDown(ga, req.getArriving(), pn, isRobot, false);
-            }
         }
     }
 
@@ -2066,24 +2028,37 @@ public class SOCServerMessageHandler
 
                             /**
                              * Fill all the unlocked empty seats with robots.
-                             * Build a Vector of Connections of robots asked
+                             * Build a hash of Connections of robots asked
                              * to join, and add it to the robotJoinRequests table.
                              */
+                            boolean invitedBots = false;
+                            IllegalStateException e = null;
                             try
                             {
-                                srv.readyGameAskRobotsJoin(ga, null, numEmpty);
+                                invitedBots = srv.readyGameAskRobotsJoin(ga, null, numEmpty);
                             }
-                            catch (IllegalStateException e)
+                            catch (IllegalStateException ex)
                             {
-                                System.err.println("Robot-join problem in game " + gn + ": " + e);
+                                e = ex;
+                            }
+
+                            if (! invitedBots)
+                            {
+                                System.err.println
+                                    ("Robot-join problem in game " + gn + ": "
+                                     + ((e != null) ? e : " no matching bots available"));
 
                                 // recover, so that human players can still start a game
                                 ga.setGameState(SOCGame.NEW);
                                 allowStart = false;
 
                                 gameList.takeMonitorForGame(gn);
-                                srv.messageToGameKeyed(ga, false, "start.robots.cannot.join.problem", e.getMessage());
-                                    // "Sorry, robots cannot join this game: {0}"
+                                if (e != null)
+                                    srv.messageToGameKeyed(ga, false, "start.robots.cannot.join.problem", e.getMessage());
+                                        // "Sorry, robots cannot join this game: {0}"
+                                else
+                                    srv.messageToGameKeyed(ga, false, "start.robots.cannot.join.options");
+                                        // "Sorry, robots cannot join this game because of its options."
                                 srv.messageToGameKeyed(ga, false, "start.to.start.without.robots");
                                     // "To start the game without robots, lock all empty seats."
                                 gameList.releaseMonitorForGame(gn);

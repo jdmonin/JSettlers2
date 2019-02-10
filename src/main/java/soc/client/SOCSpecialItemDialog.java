@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -212,6 +212,8 @@ class SOCSpecialItemDialog
         for (int i = 0; i < numWonders; ++i)
         {
             SOCSpecialItem itm = ga.getSpecialItem(typeKey, i+1);
+            if (itm == null)
+                continue;  // shouldn't ever happen, unless SOCSpecialItem.makeKnownItem has failed
 
             // GBL Layout rows for a Wonder:
             // [Build] wonder name [sq][sq][sq][sq][sq] (cost) - requirements
@@ -226,6 +228,7 @@ class SOCSpecialItemDialog
             final boolean playerOwnsThis = playerOwnsWonder && (owner == cliPlayer);
             final boolean playerCanBuildThis =
                 (ga.getGameState() >= SOCGame.PLAY1)
+                && (ga.getGameState() < SOCGame.OVER)
                 && (playerOwnsWonder)
                     ? (playerOwnsThis && itm.checkCost(cliPlayer))
                     : ((owner == null) && itm.checkRequirements(cliPlayer, true));

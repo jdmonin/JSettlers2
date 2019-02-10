@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014-2017,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -50,6 +50,9 @@ import soc.message.SOCMessage;  // strictly for isSingleLineAndSafe
  * their meaning is type-specific.
  *<P>
  * <H5>Non-Networked Fields:</H5>
+ * During game setup, {@link #makeKnownItem(String, int)} can be called for convenience at both the
+ * server and client from {@link SOCGame#updateAtBoardLayout()}:
+ *<P>
  * The cost and requirement fields are initialized at the server and at the client, not sent over the network.
  * Because of their limited and known use, it's easier to set them up in a factory method here than to create,
  * send, and parse messages with all details of the game's Special Items.  If a new Special Item type is created
@@ -192,6 +195,8 @@ public class SOCSpecialItem
      */
     public static final SOCSpecialItem makeKnownItem(final String typeKey, final int idx)
     {
+        // If you update this method or add a scenario here, update soctest.game.TestSpecialItem method testMakeKnownItem.
+
         if (! typeKey.equals(SOCGameOption.K_SC_WOND))
         {
             return new SOCSpecialItem(null, -1, null, null);  // <--- Early return: Unknown typeKey ---
@@ -590,8 +595,8 @@ public class SOCSpecialItem
             {
                 // check for location requirement:
 
-                if (req.atPort && (req.reqType == 'S'))
-                    throw new UnsupportedOperationException("atPort reqType S not implemented");
+                if (req.atPort && (req.reqType != 'C'))
+                    throw new UnsupportedOperationException("atPort reqType " + req.reqType + " not implemented");
 
                 if (req.atCoordList != null)
                 {
@@ -658,7 +663,7 @@ public class SOCSpecialItem
      * Comparison method:
      * <UL>
      * <LI> If other is null, false.
-     * <LI> If other is not a SOCSpecialItem, use our super.equals to compare.
+     * <LI> If other is not a SOCSpecialItem, false.
      * <LI> SOCSpecialItem are equal with the same coordinate, player, and level.
      * </UL>
      *
@@ -667,10 +672,8 @@ public class SOCSpecialItem
     @Override
     public boolean equals(Object other)
     {
-        if (other == null)
+        if ((other == null) || ! (other instanceof SOCSpecialItem))
             return false;
-        if (! (other instanceof SOCSpecialItem))
-            return super.equals(other);
 
         return ((coord == ((SOCSpecialItem) other).coord)
             &&  (player == ((SOCSpecialItem) other).player)
@@ -709,16 +712,24 @@ public class SOCSpecialItem
      */
     public static final class Requirement
     {
-        /** 'S' for settlement, 'C' for city, 'V' for victory points, 'L' for length of player's longest route */
+        /**
+         * 'S' for settlement, 'C' for city, 'V' for victory points, 'L' for length of player's longest route.
+         * If {@link #atPort} is true, must be 'C'.
+         */
         public final char reqType;
 
-        /** Number of pieces, victory points, or length of route required */
+        /**
+         * Number of pieces, victory points, or length of route required. Default is 1.
+         * If {@link #atPort} or {@link #atCoordList} is specified, at least 1 of the pieces (not all)
+         * must be at a port or a listed coordinate.
+         */
         public final int count;
 
         /**
          * If true, a {@code reqType} piece must be at a 3:1 or 2:1 port.
-         * Currently, only {@code reqType} C (City) is supported here,
-         * because no current scenario justified the extra coding for S-or-C.
+         * See notes for {@link #count}. Currently supports only {@code reqType} C (City),
+         * not S, because no current scenario justified the extra coding for a combined set of
+         * Settlements and Cities.
          */
         public final boolean atPort;
 
@@ -735,12 +746,15 @@ public class SOCSpecialItem
          * [count] itemType [@ location]
          *<UL>
          * <LI> Count is an optional integer, otherwise 1 is the default
-         * <LI> itemType is a letter for the requirement type:
-         *    C for Cities, S for Settlements, V for total Victory Points,
-         *    or L for length of player's longest trade route.
-         * <LI> Location is an optional location that one of the player's {@code itemType} pieces must be at:
-         *    P for any 3:1 or 2:1 trade port, or N1 through N9 for a Node List in the board layout
-         *    ({@link SOCBoardLarge#getAddedLayoutPart(String) board.getAddedLayoutPart("N1")} etc).
+         * <LI> ItemType is a letter for the requirement type:
+         *    C for Cities, S for Settlements (those upgraded to cities don't count),
+         *    V for total Victory Points, or L for length of player's longest trade route.
+         * <LI> Location is an optional location that at least one of the player's {@code ItemType} pieces must be at:
+         *  <UL>
+         *   <LI> P for any 3:1 or 2:1 trade port; ItemType must be C (cities).
+         *   <LI> N1 through N9 for a Node List in the board layout
+         *      ({@link SOCBoardLarge#getAddedLayoutPart(String) board.getAddedLayoutPart("N1")} etc).
+         *  </UL>
          *</UL>
          *
          * <H5>Examples:</H5>
@@ -748,7 +762,7 @@ public class SOCSpecialItem
          * <LI>{@code 3S} = 3 settlements
          * <LI>{@code 2C,8V} = 2 cities, 8 victory points
          * <LI>{@code 6L} = trade route length 6
-         * <LI>{@code S@P} = settlement at any port
+         * <LI>{@code C@P} = city at any port
          * <LI>{@code 2C@N2} = 2 cities, at least one of which is in node list 2 ({@code "N2"}) in the board layout
          *</UL>
          *
@@ -872,14 +886,25 @@ public class SOCSpecialItem
         /**
          * Create a Requirement item with these field values.
          * See each field's javadoc for meaning of parameter named from that field.
-         * Parameter values are not validated here.
+         * Except for {@code atPort} interactions, parameter values are not validated here.
          * @param reqType  See {@link #reqType}
          * @param count    See {@link #count}
          * @param atPort   See {@link #atPort}
          * @param atCoordList  See {@link #atCoordList}
+         * @throws IllegalArgumentException if {@code atPort} and either {@code reqType != 'C'}
+         *     or {@code atCoordList != null}
          */
         public Requirement(final char reqType, final int count, final boolean atPort, final String atCoordList)
+            throws IllegalArgumentException
         {
+            if (atPort)
+            {
+                if (reqType != 'C')
+                    throw new IllegalArgumentException("atPort not implemented for reqType " + reqType);
+                if (atCoordList != null)
+                    throw new IllegalArgumentException("can't have atPort and atCoordList");
+            }
+
             this.reqType = reqType;
             this.count = count;
             this.atPort = atPort;
@@ -898,7 +923,7 @@ public class SOCSpecialItem
                 sb.append('@');
                 if (atPort)
                     sb.append('P');
-                else if (atCoordList != null)
+                else
                     sb.append(atCoordList);
             }
 

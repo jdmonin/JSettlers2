@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2016,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,26 +29,41 @@ import soc.util.SOCStringManager;
  *<P>
  * To see if a player can currently play an inventory item, use {@link SOCGame#canPlayInventoryItem(int, int)}.
  * Inventory items' lifecycle and play rules differ by scenario. In {@link SOCGameOption#K_SC_FTRI SC_FTRI}
- * for example, the items are "gift" trade ports which can be played immediately.
- *<P>
- * Inventory items must be {@link Cloneable} for use in set copy constructors,
- * see {@link #clone()} for details.
- *<P>
- * This class provides the methods needed for game logic.  For user-visible item names, you must
- * provide i18n keys and possibly override {@link #getItemName(SOCGame, boolean, SOCStringManager)};
- * see that method for details.
- *<P>
- * When adding a new kind of inventory item:
+ * for example, the items are "gift" trade ports which can be played immediately (cannot cancel during placement)
+ * or if nowhere to place, saved for placement later (that placement can be canceled).
+ *
+ *<H3>The scenario-specific inventory items:</H3>
+ *<UL>
+ * <LI> {@link SOCGameOption#K_SC_FTRI SC_FTRI}: Trade ports received as gifts,
+ *      to be played and placed immediately if possible, or saved for later.
+ *</UL>
+ * For details on how a specific item is used, see its javadocs at {@link SOCGame#canPlayInventoryItem(int, int)}
+ * and {@link SOCGame#playInventoryItem(int)}. For its network messages see {@link soc.message.SOCInventoryItemAction}.
+ *
+ *<H3>When adding a new kind of inventory item:</H3>
  *<UL>
  * <LI> Decide how and when the new kind of item will be played
- * <LI> Decide which scenario {@link SOCGameOption} will use the new kind of item;
- *      all code and javadoc updates will check for or mention the option
- * <LI> Update {@link #getItemName(SOCGame, boolean, SOCStringManager)}
- * <LI> Update {@link SOCGame#canPlayInventoryItem(int, int)}
- * <LI> Update {@link SOCGame#playInventoryItem(int)}
+ * <LI> Decide which scenario {@link SOCGameOption} will use the new kind of item
+ *      (like {@link SOCGameOption#K_SC_FTRI}): All code and javadoc updates will check for
+ *      or mention that game option. Update its javadoc to mention {@link SOCInventoryItem}
+ * <LI> For user-visible item names, make and localize i18n key(s) and pass them into your constructor.
+ *      Possibly update (or for a new subclass, override) {@link #getItemName(SOCGame, boolean, SOCStringManager)};
+ *      see that method for details
+ * <LI> Update {@link SOCGame#canPlayInventoryItem(int, int)} and add the new item to the list in its javadoc
+ * <LI> Update {@link SOCGame#playInventoryItem(int)} and add the new item to the list in its javadoc
+ * <LI> Note: Inventory items are typically created by game methods called at the server, which use game rules
+ *      to set the right values for fields like {@link #isPlayable()}, {@link #itype}, and {@link #canCancelPlay}.
+ *      Items are created through either the constructor, or the {@code createForScenario} factory method
+ *      (details below). The values of all fields are then sent to the client; the client does not decide its
+ *      own values for fields like {@link #canCancelPlay}.
+ * <LI> Decide whether to update {@link #createForScenario(SOCGame, int, boolean, boolean, boolean, boolean)}
+ *      because of nonstandard field values or method calls during construction. Remember that server-side code
+ *      can be easier to update later than client code, which needs the user to download the new version
  * <LI> Decide if the server will communicate item-related actions using {@code SOCSimpleRequest}, {@code SOCSimpleAction}
- *      or {@code SOCInventoryItemAction} messages, or more specific message types.  Update those message handlers at
- *      clients and at server's SOCGameHandler; search where-used for the message classes that will be used.
+ *      or {@link soc.message.SOCInventoryItemAction SOCInventoryItemAction} messages, or more specific message types.
+ *      Update those message handlers at clients and at server's SOCGameHandler; search where-used for each of the
+ *      message classes that will be used. Document those message flows in the list of inventory items
+ *      at {@link soc.message.SOCInventoryItemAction}.
  * <LI> Not all items are placed on the board, and not all of those allow placement to be canceled: check and update
  *      {@link #isPlayForPlacement(SOCGame, int)}, {@link SOCGame#cancelPlaceInventoryItem(boolean)}, SOCGame's javadocs
  *      for {@code gameState}, {@code oldGameState}, and {@link SOCGame#PLACING_INV_ITEM PLACING_INV_ITEM}.
@@ -56,9 +71,16 @@ import soc.util.SOCStringManager;
  * <LI> If the item is playable, update {@link SOCGame#forceEndTurn()} and
  *      {@link soc.server.SOCGameHandler#forceEndGameTurn(SOCGame, String)} to return it to the player's inventory if
  *      their turn must be ended; search where-used for {@link SOCForceEndTurnResult#getReturnedInvItem()}.
+ * <LI> If the item is playable or placeable and robots might do so, update
+ *      {@link soc.robot.SOCRobotBrain#considerScenarioTurnFinalActions()}
+ *      and/or {@link soc.robot.SOCRobotBrain#planAndPlaceInvItem()}
+ * <LI> Consider adding debug commands about this kind of item to
+ *      {@link soc.server.SOCGameHandler#processDebugCommand_scenario(soc.server.genericServer.Connection, String, String)}
  * <LI> If there's already a similar kind of item, search where-used for its SOCGameOption or related constants,
- *      and decide if your new kind should be checked at the same places in the code.
+ *      and decide if your new kind should be checked at the same places in the code
  *</UL>
+ * Inventory items must be {@link Cloneable} for use in set copy constructors,
+ * see {@link #clone()} for details.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -258,7 +280,8 @@ public class SOCInventoryItem
      * Called at server and at client, so any i18n name keys used must be in properties files at server and client.
      *<P>
      * SOCInventoryItem's implementation just calls {@link SOCStringManager#get(String) strings.get(key)} with the
-     * string keys passed to the constructor.  If you need something more dynamic, override this in your subclass.
+     * string keys passed to the constructor: {@link #strKey}, {@link #aStrKey}.
+     * If you need something more dynamic, override this in your subclass.
      *
      * @param game  Game data, or {@code null}; some game options might change an item name.
      *               For example, {@link SOCGameOption#K_SC_PIRI _SC_PIRI} renames "Knight" to "Warship".
@@ -273,7 +296,7 @@ public class SOCInventoryItem
     }
 
     /**
-     * For use in set copy constructors, create and return a clone of this {@link SOCInventoryItem}.
+     * For use in set copy constructors, create and return a deep copy of this {@link SOCInventoryItem}.
      * The {@code SOCInventoryItem} implementation just calls {@code super.clone()}.
      * @throws CloneNotSupportedException  Declared from super.clone(), should not occur
      *     since SOCInventoryItem implements Cloneable.

@@ -17,17 +17,22 @@ When preparing to release a new version, testing should include:
     - Create and start playing a practice game with 1 locked space & 2 bots, past initial placement
       into normal play (roll dice, etc) with default options
     - Create and start playing a practice game on the 6-player board (5 bots), with options like Roll No 7s for First 7 Turns
-    - JSettlersServer.jar: Start a dedicated server on another ("remote") machine's text-only console
+    - `JSettlersServer.jar`: Start a dedicated server on another ("remote") machine's text-only console
     - Join that remote server & play a full game, then reset board and start another game
         - `*STATS*` command should include the finished game
         - Bots should rejoin and play
-    - JSettlers.jar: Start a local server and a game, start another client, join and start playing game
-      (will have 2 human clients & 2 bots)
+    - `JSettlers.jar`: Start a Server (non-default port # like 8080), start a game
+    - In the new game's chat, say a few lines ("x", "y", "z" etc)
+    - Start another client, join first client's local server and that game
+    - Joining client should see "recap" of the game chat ("x", "y", "z")
+    - Start the game (will have 2 human clients & 2 bots)
     - Ensure the 2 clients can talk to each other in the game's chat area
-    - Client leaves game (not on their turn): bot should join to replace them & then plays their turn (not unresponsive)
-    - New client joins and replaces bot; verify all of player info is sent
+    - Client leaves game (not on their turn): A bot should join to replace them & play their next turn (not unresponsive)
+    - Have new client join and replace bot; verify all of player info is sent
     - On own turn, leave again, bot takes over
     - Lock 1 bot seat and reset game: that seat should remain empty, no bot
+    - Lock the only remaining bot seat and reset game: no bots in new game, it begins immediately
+        - Use v2.0.xx lock button's new "Marked" state for this test
 - Game play: (as debug user or in practice game)
     - Get and play all non-VP dev card types, and give 1 VP card, with debug commands
 
@@ -40,12 +45,18 @@ When preparing to release a new version, testing should include:
             dev: 1 playername
 
       Should see "You may place your 1 remaining road." & be able to do other actions afterwards
-    - 6-player board: On server game with a player and observer, request and use Special Building Phase
+    - 6-player board: On server game with a player and observer, request and use Special Building Phase (SBP)
+        - Observer sees request for SBP; then during player's SBP, observer sees yellow turn arrow for your player
 - Basic GUI functions:
     - Board resizes with window
     - Sound works
     - Bots' face icons match their name (Robots smarter than Droids)
-- 2 clients: While both connected to a server, start and join a chat channel and talk to each other there
+- Chat channels:
+    - While connected to a server, start 2 chat channels
+    - In one of those channels, say a few lines ("x", "y", "z" etc)
+    - Connect with a second client and join both channels
+    - Joining client should see "recap" of the one channel's chat ("x", "y", "z"), no recap in the other chat
+    - The 2 clients should each be able to chat, and see each other's text in the correct channel
 
 ## New features
 
@@ -64,6 +75,7 @@ When preparing to release a new version, testing should include:
     - Trade offer, rejection, counter-offer accept/rejection
     - Can play dev card before dice roll
     - Can win only on your own turn
+        - This can be tested using the 6-player board's Special Building Phase
 - Game reset voting, with: 1 human 2 bots, 2 humans 1 bot, 2 humans 0 bots:
   Humans can vote No to reject bots auto-vote Yes; test No and Yes
 - Fog Hex reveal gives resources, during initial placement and normal game play:
@@ -71,18 +83,26 @@ When preparing to release a new version, testing should include:
      - Start and test a game with the Use Sea Board option; place an initial settlement at a fog hex
      - Start and test a game with the Fog Islands scenario
 - Version compatibility testing
-    - Other versions to use: **1.1.06** before Game Options; **1.1.11** with 6-player board and client bugfixes;
+    - Other versions to use: **1.1.06** (before Game Options); **1.1.11** (has 6-player option and client bugfixes);
       latest **1.x.xx**; latest **2.0.xx**
     - New client, old server
     - New server, old client
     - Test these specific things for each version:
-        - With a 1.x.xx client connected to a 2.0.xx server, available new-game options
-          should be the same as a 1.x.xx server (adapts to older client version)
-        - Create and start playing a 4-player game, and a 6-player game; allow trading in one of them
+        - With an older client connected to a newer server, available new-game options
+          should adapt to the older client version.  
+          With a newer client connected to an older server, available new-game options
+          should adapt to the older server version.  
+          This is especially visible when testing 1.x.xx against 2.0.xx.
+        - Create and start playing a 4-player game with no options (this uses an older message type)
+        - Create and start playing a 4-player game with No Trading option
+        - Create and start playing a 6-player game
         - In the 6-player game, request and use the Special Building Phase
-        - Create and start playing a 4-player game with no options (this uses a different message type)
-        - In any of those games, lock a bot seat and game reset; make sure that works
-          (seatlockstate changes between 1.x.xx and 2.0.xx)
+        - Connect with a second client (same version as first client) and take over for a robot
+            - Should see all info for the player (resources, cards, etc)
+            - Play at least 2 rounds; build something, buy a card, or trade
+        - When testing a 2.0.xx client and 1.x.xx server: In any game, test robot seat-lock button
+            - Click its lock button multiple times: Should only show Locked or Unlocked, never Marked
+            - Lock a bot seat and reset the game: Seat should be empty in new game
         - On a 2.0.xx server, have 2.0.xx client create game with a scenario (1.x.xx can't join),
           1.x.xx client should see it in gamelist with "(cannot join)" prefix.
           Start another 1.x.xx client and connect, should see in list with that same prefix
@@ -94,14 +114,14 @@ When preparing to release a new version, testing should include:
       `robot 3 leaving at JoinGameRequest('g', 3): jsettlers.bots.test.quit_at_joinreq`  
       `srv.leaveConnection('robot 3') found waiting ga: 'g' (3)`  
       If not, start another game and try again
-- v2.0.00+: StatusMessage "status value" fallback at older versions
+- StatusMessage "status value" fallback at older versions
     - Start a 2.0.00 or newer server with `-Djsettlers.allow.debug=Y`
     - Start a 2.0.00 client with vm property `-Djsettlers.debug.traffic=Y`
     - That client's initial connection to the server should see at console: `SOCStatusMessage:sv=21`  
       (which is `SV_OK_DEBUG_MODE_ON` added in 2.0.00)
     - Start a 1.2.00 client with same vm property `-Djsettlers.debug.traffic=Y`
     - That client's initial connection should get sv == 0, should see at console: `SOCStatusMessage:status=Debugging is On`
-- v2.0.00+: SOCScenario info sync/negotiation when server and client are different versions
+- SOCScenario info sync/negotiation when server and client are different versions
     - Test client newer than server:
         - Build server JAR and start a server from it  
           (or, turn off code hot-replace within IDE and start server there)
@@ -123,6 +143,55 @@ When preparing to release a new version, testing should include:
         - Launch a second client
         - Connect to server, join that game
         - Within that game, second client's "Game Info" dialog should show scenario info
+- Client Feature handling
+    - For human players:
+        - Start a server (dedicated or client-hosted)
+    	- Launch a pair of SOCPlayerClients which report limited features, using vm property `-Djsettlers.debug.client.features=;6pl;sb;`
+    	  and connect to server. Don't give a Nickname or create any game from these clients.  
+          (A pair let us test more than the code which handles the server's first limited client.)
+    	- Launch a standard client, connect to server, create a game having any Scenario (New Shores, etc)
+    	- Limited client pair's game list should show that game as "(cannot join)"
+    	- Launch another pair of SOCPlayerClients which report no features, using vm property `-Djsettlers.debug.client.features=`
+          (empty value) and connect to server
+        - In each client of that second limited pair, give a Nickname and create any game on the server, in order to authenticate.
+	      Leave those new games, to delete them.
+    	- In standard client, create a game having 6 players but no scenario
+        - First pair of limited clients should connect to that game
+        - Second pair of limited clients' game list should show that game as "(cannot join)"
+        - In one of the second pair, double-click that game in game list; should show a popup "Client is incompatible with features of this game".  
+          Double-click game again; should try to join, then show a popup with server's reply naming the missing required feature: `6pl`
+    - For reconnecting disconnected clients:
+        - Start a server without any options
+        - Start a standard client under your IDE's debugger, connect to server
+        - Create & start 3 games (against bots): standard 4-player (no options); on sea board; with any Scenario
+        - Start each game, go through initial placement and into normal game play
+        - In your IDE, pause the debugged client to simulate network connection loss
+        - Start a new client using vm property `-Djsettlers.debug.client.features=;6pl;sb;` and connect as that same username
+		- In the new client, double-click the standard or non-scenario sea game to rejoin
+        - Should allow connect after appropriate number of seconds, and automatically rejoin the first 2 games but
+		  not the game with scenario
+        - Game with scenario should disappear from game list, because there were no other human players
+	- For robot clients, which are invited to games:
+        - Start a server which expects third-party bots, with these command-line parameters:
+          `-Djsettlers.bots.cookie=foo  -Djsettlers.bots.percent3p=50`
+        - Start the `soc.robot.sample3p.Sample3PClient` "third-party" bot, which does not have the Game Scenarios client feature, with these command-line parameters:
+          `localhost 8880 samplebot x foo`
+        - Start another Sample3PClient:
+          `localhost 8880 samplebot2 x foo`
+    	- Launch a standard client, connect to server
+    	- Create and start a 4-player game: Some samplebots should join (no features required) along with the built-in bots
+    	- Create and start a 6-player game: Some samplebots should join (requires a feature which they have) along with the built-in bots
+    	- Create and start a game having any Scenario (New Shores, etc): No samplebots should join, only built-in bots
+    	- Quit the standard client and stop the server
+        - Start a server which expects third-party bots and has no built-in bots, with these command-line parameters:
+          `-Djsettlers.bots.cookie=foo  -Djsettlers.bots.percent3p=50  -Djsettlers.startrobots=0`
+        - Start two Sample3PClients, same way as above
+    	- Launch a standard client, connect to server
+    	- Create and start a game having any Scenario: No samplebots should join, server should tell game-starting client to lock all empty seats
+    	- Start a second standard client, connect, join that game and sit down
+    	- Start that game (with the two human players)
+    	- After initial placement, have one player leave
+    	- Server should tell game it can't find a robot
 - Command line and jsserver.properties
     - Server and client: `-h` / `--help` / `-?`, `--version`
     - Server: Unknown args `-x -z` should print both, then not continue startup
@@ -152,7 +221,7 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
 - Run SOCPlayerClient: Nonexistent usernames with a password specified should have a pause before returning
   status from server, as if they were found but password was wrong
 - SOCPlayerClient: Log in with a case-insensitive account nickname (use all-caps or all-lowercase)
-- SOCPlayerClient: Log in as non-admin user, create game: `*who*` works (not an admin command) works,
+- SOCPlayerClient: Log in as non-admin user, create game: `*who*` works (not an admin command),
   `*who* testgame` and `*who* *` shouldn't ; `*help*` shouldn't show any admin commands
 - Test SOCServer parameter `--pw-reset username`  
   SOCPlayerClient: Log in afterwards with new password and start a game
@@ -163,7 +232,7 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
 - Test creating as old schema (before v1.2.00) and upgrading
     - Get the old schema SQL files you'll need from the git repo by using any pre-1.2.00 release tag, for example:
 
-          git show release-1.1.20:src/bin/sql/jsettlers-tables.sql > ../tmp/jsettlers-tables-1120.sql
+          git show release-1.1.19:src/bin/sql/jsettlers-tables.sql > ../tmp/jsettlers-tables-1119.sql
 
       - Files for mysql: jsettlers-create-mysql.sql, jsettlers-tables.sql
       - For postgres: jsettlers-create-postgres.sql, jsettlers-tables.sql, jsettlers-sec-postgres.sql
@@ -186,10 +255,37 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
     - Start a second client under your IDE's debugger & join that game
     - Start game, go through initial placement and into normal game play
     - In your IDE, pause the debugged client to simulate network connection loss
-    - Start a new client and connect as that same username; should allow after appropriate number of seconds
+    - Start a new client and connect as that same username; should allow connect after appropriate number of seconds
 - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
 - Leave a non-practice game idle for hours; should warn 10-15 minutes before 2-hour limit,
-  should let you add time in 30-minute intervals up to original limit + 30 minutes
+  should let you add time in 30-minute intervals up to original limit + 30 minutes remaining
+- Board layout generator stability:
+    - This is a scripted test to set up, start, and run in the background.
+    - The board layout generator is complicated, to flexibly handle the sea scenario layouts.
+      This test ensures it won't hang, time out, or crash while making a new board or resetting a board,
+      by repeatedly running a unit test and collecting any failure output for debugging.
+    - Locate where `junit.jar` and its dependency `hamcrest.core.jar` are on your system
+         - Their filenames might contain version numbers
+         - They may be within the IDE install, or the gradle cache
+         - Note the full path to each one, like `/Applications/eclipse/plugins/org.hamcrest.core_1.1.0.v20090501071000.jar`
+    - Open a bash shell
+    - `cd` to the git repo's root directory (containing src, test, build, and other subdirs)
+    - `gradle build`    # generate test classes
+    - Set up a CLASSPATH which has junit, hamcrest.core, and the built jsettlers classes. Example:  
+      `export CLASSPATH="/Applications/eclipse/plugins/org.junit_4.10.0.v4_10_0_v20120426-0900/junit.jar:/Applications/eclipse/plugins/org.hamcrest.core_1.1.0.v20090501071000.jar:./build/classes/main:./build/classes/test"`
+    - Loop for at least 2500 iterations of `soctest.game.TestBoardLayouts`:
+
+            rm -f /tmp/jsettlers-testout.txt
+            fails=0; echo "" > /tmp/jsettlers-testboardlayouts-fails.txt
+            for (( i=0; i<2500; ++i)); do
+              /bin/echo -n "$i "
+              if ! java soctest.game.TestBoardLayouts >/tmp/jsettlers-testout.txt ; then
+                fails=$((fails+1))
+                cat /tmp/jsettlers-testout.txt >> /tmp/jsettlers-testboardlayouts-fails.txt
+              fi
+            done; echo "-> Failure count: $fails"
+
+    - If any failures occur, debug using the contents of `/tmp/jsettlers-testboardlayouts-fails.txt`
 
 ## Platform-specific
 

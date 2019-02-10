@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2009,2011-2013,2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2011-2013,2015,2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -135,7 +135,6 @@ public class TradeOfferPanel extends Panel
     static final String SEND = "send";
     static final String CLEAR = "clear";
     static final String CANCEL = "cancel";
-    static final Color insideBGColor = new Color(255, 230, 162);
 
     /** This panel's player number */
     private final int from;
@@ -243,11 +242,14 @@ public class TradeOfferPanel extends Panel
         {
             setLayout(null);
             setFont(new Font("SansSerif", Font.PLAIN, 18));
+            setForeground(Color.BLACK);
 
             msg = new Label(" ", Label.CENTER);
-            msg.setBackground(insideBGColor);
+            msg.setForeground(Color.BLACK);
+            msg.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
             msg2 = new Label(" ", Label.CENTER);
-            msg2.setBackground(insideBGColor);
+            msg2.setForeground(Color.BLACK);
+            msg2.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
             msg2.setVisible(false);
             oneLineHeight = 0;  // set once in doLayout
             msgHeight = 0;  // set in doLayout
@@ -382,7 +384,10 @@ public class TradeOfferPanel extends Panel
         ShadowedBox offerBox;
 
         Label counterOfferToWhom;
+
+        /** Have we set prompt to include opponent name? Is set true by first call to {@link #update(SOCTradeOffer)}. */
         boolean counterOffer_playerInit = false;
+
         /** Counter-offer's resources; the main offer is {@link #squares}. */
         SquaresPanel counterOfferSquares;
 
@@ -446,15 +451,18 @@ public class TradeOfferPanel extends Panel
         {
             setLayout(null);
             setFont(new Font("SansSerif", Font.PLAIN, 10));
+            setForeground(Color.BLACK);
 
             /** Offer received */
 
             toWhom1 = new Label();
-            toWhom1.setBackground(insideBGColor);
+            toWhom1.setForeground(Color.BLACK);
+            toWhom1.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
             add(toWhom1);
 
             toWhom2 = new Label();
-            toWhom2.setBackground(insideBGColor);
+            toWhom2.setForeground(Color.BLACK);
+            toWhom2.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
             add(toWhom2);
 
             /** Offer's resources */
@@ -462,12 +470,14 @@ public class TradeOfferPanel extends Panel
             add(squares);
 
             givesYouLab = new Label(strings.get("trade.gives.you"));  // "Gives You:"
-            givesYouLab.setBackground(insideBGColor);
+            givesYouLab.setForeground(Color.BLACK);
+            givesYouLab.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
             add(givesYouLab);
             new AWTToolTip(strings.get("trade.opponent.gives"), givesYouLab);  // "Opponent gives to you"
 
             theyGetLab = new Label(strings.get("trade.they.get"));  // "They Get:"
-            theyGetLab.setBackground(insideBGColor);
+            theyGetLab.setForeground(Color.BLACK);
+            theyGetLab.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
             add(theyGetLab);
             new AWTToolTip(strings.get("trade.you.give"), theyGetLab);  // "You give to opponent"
 
@@ -496,6 +506,7 @@ public class TradeOfferPanel extends Panel
 
             counterOfferToWhom = new Label();
             counterOfferToWhom.setVisible(false);
+            counterOfferToWhom.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
             add(counterOfferToWhom);
 
             sendBut = new Button(strings.get("base.send"));  // "Send"
@@ -522,16 +533,18 @@ public class TradeOfferPanel extends Panel
 
             theyGetLab2 = new Label(strings.get("trade.they.get"));  // "They Get:"
             theyGetLab2.setVisible(false);
+            theyGetLab2.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
+
             add(theyGetLab2);
             new AWTToolTip(strings.get("trade.give.to.opponent"), theyGetLab2);  // "Give to opponent"
 
             givesYouLab2 = new Label(strings.get("trade.gives.you"));  // "Gives You:"
             givesYouLab2.setVisible(false);
+            givesYouLab2.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
             add(givesYouLab2);
             new AWTToolTip(strings.get("trade.opponent.gives"), givesYouLab2);  // "Opponent gives to you"
 
-            // correct the interior when we can get our player color
-            offerBox = new ShadowedBox(pi.getPlayerColor(from), Color.white);
+            offerBox = new ShadowedBox(pi.getPlayerColor(from), SOCPlayerInterface.DIALOG_BG_GOLDENROD);
             offerBox.setVisible(false);
             add(offerBox);
 
@@ -560,13 +573,7 @@ public class TradeOfferPanel extends Panel
             {
                 if (! counterOffer_playerInit)
                 {
-                    // do we have to fill in opponent's name for 1st time,
-                    // and set up colors?
-                    Color ourPlayerColor = pi.getPlayerColor(player.getPlayerNumber());
-                    theyGetLab2.setBackground(ourPlayerColor);
-                    givesYouLab2.setBackground(ourPlayerColor);
-                    counterOfferToWhom.setBackground(ourPlayerColor);
-                    offerBox.setInterior(ourPlayerColor);
+                    // do we have to fill in opponent's name for 1st time?
                     counterOfferToWhom.setText
                         (strings.get("trade.counter.to.x", hp.getPlayer().getName()));  // "Counter to {0}:"
 
@@ -672,7 +679,8 @@ public class TradeOfferPanel extends Panel
                 if (rejCountdownLab == null)
                 {
                     rejCountdownLab = new Label("");  // rejTimerTask.run() will set countdown text
-                    rejCountdownLab.setBackground(insideBGColor);
+                    rejCountdownLab.setForeground(Color.BLACK);
+                    rejCountdownLab.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
                     add(rejCountdownLab, null, 0);  // add at index 0 to paint in front of balloon (z-order)
                 }
             }

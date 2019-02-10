@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014,2017,2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  *
  * This program is free software; you can redistribute it and/or
@@ -235,7 +235,8 @@ public class SOCAuthRequest extends SOCMessage
      */
     public final String toString()
     {
-        return "SOCAuthRequest:role=" + role + "|nickname=" + nickname + "|scheme=" + authScheme + "|host=" + host
+        return "SOCAuthRequest:role=" + role + "|nickname=" + nickname + "|scheme=" + authScheme
+            + ((host != null) ? "|host=" + host : "")
             + (((password != null) && (password.length() > 0)) ? "|password=***" : "|password empty");
     }
 

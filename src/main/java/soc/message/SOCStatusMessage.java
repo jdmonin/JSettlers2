@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012-2014,2016-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012-2014,2016-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 package soc.message;
 
 import soc.proto.Message;
-import soc.util.SOCServerFeatures;  // for javadocs only
+import soc.util.SOCFeatureSet;  // for javadocs only
 
 
 /**
@@ -124,6 +124,12 @@ public class SOCStatusMessage extends SOCMessage
      * Server v1.1.20 and newer also send this value to {@code SOCAccountClient}
      * if client is too old to create accounts at the server's version
      * because of a required logon auth or other message added since that client's version.
+     *<P>
+     * Server v2.0.00 and newer also send this value if client wants to join or create a game
+     * but is missing a Client Feature (from {@link SOCFeatureSet}) required by the game.
+     * This situation doesn't need its own Status Value because the server announces such games
+     * to the client with the "Cannot Join" flag prefix, and the client shouldn't have UI options
+     * to create a game with features it doesn't have.
      *
      * @since 1.1.06
      */
@@ -147,7 +153,7 @@ public class SOCStatusMessage extends SOCMessage
      * being created, or server doesn't use accounts, = 8.
      *<P>
      * To see whether a server v1.1.19 or newer uses accounts and passwords, check
-     * whether {@link SOCServerFeatures#FEAT_ACCTS} is sent when the client connects.
+     * whether {@link SOCFeatureSet#SERVER_ACCOUNTS} is sent when the client connects.
      * @since 1.1.06
      * @see #SV_ACCT_NOT_CREATED_DENIED
      */
@@ -172,6 +178,7 @@ public class SOCStatusMessage extends SOCMessage
      *   {@link SOCMessage#sep2 SEP2} option keyname with problem (if more than one)
      *   ...
      * @see soc.server.SOCServerMessageHandler#handleNEWGAMEWITHOPTIONSREQUEST
+     * @see #SV_GAME_CLIENT_FEATURES_NEEDED
      * @since 1.1.07
      */
     public static final int SV_NEWGAME_OPTION_VALUE_TOONEW = 10;
@@ -236,7 +243,7 @@ public class SOCStatusMessage extends SOCMessage
      * This separate code is provided to let the client know they
      * must authenticate before creating any other accounts.
      *<P>
-     * This status is not sent if the server is in Open Registration mode ({@link SOCServerFeatures#FEAT_OPEN_REG}),
+     * This status is not sent if the server is in Open Registration mode ({@link SOCFeatureSet#SERVER_OPEN_REG}),
      * because in that mode there's nothing special about the first account and no need to authenticate
      * before creating others.
      *<P>
@@ -290,9 +297,28 @@ public class SOCStatusMessage extends SOCMessage
      */
     public static final int SV_OK_DEBUG_MODE_ON = 21;
 
+    /**
+     * Client has requested joining or creating a game whose options require some optional client features,
+     * but at least one of those features or its value is too new for the client to handle = 22
+     *<P>
+     * Format of this status text is: <BR>
+     * Status string with error message <BR>
+     *   {@link SOCMessage#sep2 SEP2} game name <BR>
+     *   {@link SOCMessage#sep2 SEP2} optional feature(s) required by game but not implemented in client,
+     *       in format returned by {@link soc.game.SOCGame#checkClientFeatures(SOCFeatureSet, boolean)}
+     *<P>
+     * This is sent when client tries to join or create a game: If sent for joining, the game name will be
+     * in the client's list of all games; if game name isn't there, this status was sent for a game creation
+     * request.
+     * @see #SV_NEWGAME_OPTION_VALUE_TOONEW
+     * @since 2.0.00
+     */
+    public static final int SV_GAME_CLIENT_FEATURES_NEEDED = 22;
+
     // IF YOU ADD A STATUS VALUE:
     // Do not change or remove the numeric values of earlier ones.
-    // Be sure to update statusValidAtVersion().
+    // Be sure to update statusValidAtVersion() and statusFallbackForVersion().
+    // If the message text is structured or delimited, explain its format in the new value's javadoc.
 
     /**
      * Text for server or client to present: New game requested,
@@ -305,20 +331,20 @@ public class SOCStatusMessage extends SOCMessage
     /**
      * Text for server or client to present: New game or auth requested,
      * but game name or player name does not meet standards
-     * @see #MSG_SV_NEWGAME_NAME_REJECTED_DIGITS
+     * @see #MSG_SV_NEWGAME_NAME_REJECTED_DIGITS_OR_PUNCT
      * @since 1.1.07
      */
     public static final String MSG_SV_NEWGAME_NAME_REJECTED
         = "This name is not permitted, please choose a different name.";
 
     /**
-     * Text for server or client to present: New game or auth requested,
-     * but game name or player name is only digits and does not meet standards
+     * Text for server or client to present: New game or User auth requested,
+     * but game name or player name is only digits or punctuation, so does not meet standards
      * @see #MSG_SV_NEWGAME_NAME_REJECTED
      * @since 2.0.00
      */
-    public static final String MSG_SV_NEWGAME_NAME_REJECTED_DIGITS
-        = "A name with only digits is not permitted, please add a letter.";
+    public static final String MSG_SV_NEWGAME_NAME_REJECTED_DIGITS_OR_PUNCT
+        = "A name with only digits or punctuation is not permitted, please add a letter.";
 
     /**
      * Text for server or client to present: New game or auth requested,
@@ -503,11 +529,11 @@ public class SOCStatusMessage extends SOCMessage
                 return (statusValue == 0);
             else if (cliVersion < 1119)  // for 1111 - 1118 inclusive
                 return (statusValue < SV_PW_REQUIRED);
-            else if (cliVersion < 2000)
+            else if (cliVersion < 2000)  // for 1201 - 1999 inclusive
                 return (statusValue < SV_OK_DEBUG_MODE_ON);
             else
                 // our version or newer; check vs highest constant that we know
-                return (statusValue <= SV_OK_DEBUG_MODE_ON);
+                return (statusValue <= SV_GAME_CLIENT_FEATURES_NEEDED);
             }
         }
     }
@@ -520,6 +546,7 @@ public class SOCStatusMessage extends SOCMessage
      * <LI> {@link #SV_OK_DEBUG_MODE_ON} falls back to {@link #SV_OK}
      * <LI> {@link #SV_PW_REQUIRED} falls back to {@link #SV_PW_WRONG}
      * <LI> {@link #SV_ACCT_CREATED_OK_FIRST_ONE} falls back to {@link #SV_ACCT_CREATED_OK}
+     * <LI> {@link #SV_GAME_CLIENT_FEATURES_NEEDED} falls back to {@link #SV_NEWGAME_OPTION_VALUE_TOONEW}
      * <LI> {@link #SV_OK_SET_NICKNAME} has no successful fallback, the client must be
      *      sent {@link #SV_NAME_NOT_FOUND} and must reauthenticate; throws {@link IllegalArgumentException}
      * <LI> All others fall back to {@link #SV_NOT_OK_GENERIC}
@@ -558,6 +585,13 @@ public class SOCStatusMessage extends SOCMessage
             case SV_OK_SET_NICKNAME:
                 reject = true;
                 break;
+            case SV_GAME_CLIENT_FEATURES_NEEDED:
+                if (cliVersion >= 1107)
+                {
+                    sv = SV_NEWGAME_OPTION_VALUE_TOONEW;
+                    break;
+                }
+                // else fall through
             default:
                 if (cliVersion >= 1106)
                     sv = SV_NOT_OK_GENERIC;

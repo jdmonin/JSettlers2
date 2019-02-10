@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -179,7 +179,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
     /**
      * For game scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
-     * move the pirate fleet's position along its path.
+     * move the pirate fleet's position along its path. Updates board's internal index along the path.
      * Calls {@link SOCBoardLarge#setPirateHex(int, boolean) setPirateHex(newHex, true)}.
      *<P>
      * If the pirate fleet is already defeated (all fortresses recaptured), returns 0.
@@ -197,11 +197,13 @@ public class SOCBoardAtServer extends SOCBoardLarge
             throw new IllegalStateException();
         if (pirateHex == 0)
             return 0;  // fleet already defeated (all fortresses recaptured)
+
         int i = piratePathIndex + numSteps;
         while (i >= path.length)
             i -= path.length;
         piratePathIndex = i;
         final int ph = path[i];
+
         setPirateHex(ph, true);
         return ph;
     }
@@ -992,8 +994,8 @@ public class SOCBoardAtServer extends SOCBoardLarge
         }
 
         // Shuffle, place, then check layout for clumps:
-
-        do   // will re-do placement until clumpsNotOK is false
+        int iterRemain = 20;
+        do   // will re-do placement until clumpsNotOK is false or iterRemain == 0
         {
             if (shuffleLandHexes)
             {
@@ -1114,7 +1116,8 @@ public class SOCBoardAtServer extends SOCBoardLarge
                 makeNewBoard_placeHexes_moveFrequentNumbers(landPath, redHexes, maxPl, scen);
             }
 
-        } while (clumpsNotOK);
+            --iterRemain;
+        } while (clumpsNotOK && (iterRemain > 0));
 
         // Now that we know this layout is okay,
         // add the hex coordinates to landHexLayout,
@@ -1430,7 +1433,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
         // Before anything else, check for frequent gold hexes and
         // swap their numbers with random other hexes in landPath
-        // which are less-frequent dice numbers (<= 4 or >= 10).
+        // which are less-frequent dice numbers (< 6 or > 8).
         {
             ArrayList<Integer> frequentGold = new ArrayList<Integer>();
             for (Integer hexCoord : redHexes)
@@ -1439,22 +1442,28 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
             if (! frequentGold.isEmpty())
             {
+                int iterRemain = 100;
                 for (int hex : frequentGold)
                 {
                     int swapHex, diceNum;
                     do {
-                        swapHex = landPath[Math.abs(rand.nextInt() % (landPath.length - 1))];
+                        swapHex = landPath[Math.abs(rand.nextInt()) % landPath.length];
                         diceNum = getNumberOnHexFromCoord(swapHex);
-                    } while ((swapHex == hex)
-                             || (diceNum == 0) || ((diceNum > 4) && (diceNum < 10))
-                             || (getHexTypeFromCoord(swapHex) == GOLD_HEX));
+                        --iterRemain;
+                    } while (((swapHex == hex)
+                              || (diceNum == 0) || ((diceNum >= 6) && (diceNum <= 8))
+                              || (getHexTypeFromCoord(swapHex) == GOLD_HEX))
+                             && (iterRemain > 0));
+
+                    if (iterRemain == 0)
+                        break;  // good enough effort
 
                     int hr = hex >> 8,
                         hc = hex & 0xFF,
                         sr = swapHex >> 8,
                         sc = swapHex & 0xFF;
                     numberLayoutLg[sr][sc] = numberLayoutLg[hr][hc];  // gets 6 or 8
-                    numberLayoutLg[hr][hc] = diceNum;  // gets 2, 3, 4, 10, 11, or 12
+                    numberLayoutLg[hr][hc] = diceNum;  // gets 2, 3, 4, 5, 9, 10, 11, or 12
 
                     redHexes.remove(Integer.valueOf(hex));
                     redHexes.add(swapHex);
@@ -1472,9 +1481,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
         // Overall plan:
 
         // Make an empty list swappedNums to hold all dice-number swaps, in case we undo them all and retry
-        // Duplicate redHexes in case we need to undo all swaps and retry
-        //   (This can be deferred until adjacent redHexes are found)
-        // numRetries = 0
+        // numOverallRetries = 4
         // Top of retry loop:
         // Make sets otherCoastalHexes, otherHexes: all land hexes in landPath not adjacent to redHexes
         //   which aren't desert or gold (This can be deferred until adjacent redHexes are found)
@@ -1504,12 +1511,12 @@ public class SOCBoardAtServer extends SOCBoardLarge
         //   Return true.
         //
         // If we need to undo all and retry:
-        // - ++numRetries
-        // - If numRetries > 5, we've tried enough.
+        // - --numOverallRetries
+        // - If numOverallRetries < 0, we've tried enough.
         //   Either the swaps we've done will have to do, or caller will make a new board.
         //   Return false.
-        // - Otherwise, restore redHexes from the backup we made
-        // - Go backwards through the list of swappedNums, reversing each swap
+        // - Otherwise, go backwards through the list of swappedNums, reversing each swap
+        // - Rebuild redHexes from current board contents
         // - Jump back to "Make sets otherCoastalHexes, otherHexes"
 
         // Swapping Algorithm for dice numbers:
@@ -1530,9 +1537,8 @@ public class SOCBoardAtServer extends SOCBoardLarge
         // Implementation:
 
         ArrayList<IntTriple> swappedNums = null;
-        ArrayList<Integer> redHexesBk = null;
 
-        int numRetries = 0;
+        int numOverallRetries = 4;
         boolean retry = false;
         do
         {
@@ -1617,8 +1623,6 @@ public class SOCBoardAtServer extends SOCBoardLarge
                 // h0 is the middle hex.
 
                 // Before swapping, build arrays if we need to.
-                if (redHexesBk == null)
-                    redHexesBk = new ArrayList<Integer>(redHexes);
                 if (otherCoastalHexes == null)
                 {
                     otherCoastalHexes = new HashSet<Integer>();
@@ -1665,7 +1669,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
                 //   (updates redHexes, otherCoastalHexes, otherHexes)
                 // - If no swap was available, we should undo all and retry.
 
-                while (! redHexes.isEmpty())
+                for (int redIterRemain = 200; (redIterRemain > 0) && ! redHexes.isEmpty(); --redIterRemain)
                 {
                     final int h0 = redHexes.get(0);
 
@@ -1698,8 +1702,6 @@ public class SOCBoardAtServer extends SOCBoardLarge
                     // We'll either swap h0, or its single adjacent red hex hAdjac1.
 
                     // Before swapping, build arrays if we need to.
-                    if (redHexesBk == null)
-                        redHexesBk = new ArrayList<Integer>(redHexes);
                     if (otherCoastalHexes == null)
                     {
                         otherCoastalHexes = new HashSet<Integer>();
@@ -1708,7 +1710,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
                             (landPath, redHexes, moveAnyRedFromHexes, otherCoastalHexes, otherHexes, null, null);
                     }
 
-                    // Now, swap.
+                    // Now, swap and remove from redHexes.
                     IntTriple hexnumSwap;
                     if (adjacRed > 1)
                     {
@@ -1716,7 +1718,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
                             (h0, 0, redHexes, moveAnyRedFromHexes, otherCoastalHexes, otherHexes);
                     } else {
                         // swap the adjacent instead; the algorithm will also remove this one from redHexes
-                        // because it wil have 0 adjacents after the swap
+                        // because it will have 0 adjacents after the swap
                         final int iAdjac1 = redHexes.indexOf(Integer.valueOf(hAdjac1));
                         hexnumSwap = makeNewBoard_placeHexes_moveFrequentNumbers_swapOne
                             (hAdjac1, iAdjac1, redHexes, moveAnyRedFromHexes, otherCoastalHexes, otherHexes);
@@ -1732,24 +1734,32 @@ public class SOCBoardAtServer extends SOCBoardLarge
                         swappedNums.add(hexnumSwap);
                     }
 
-                }  // while (redHexes not empty)
+                }  // loop while redHexes not empty and redIterRemain > 0
+
+                if (! redHexes.isEmpty())
+                {
+                    // Didn't make enough progress with random swaps,
+                    // so undo and give it another overall try
+                    retry = true;
+                }
             }
 
             if (retry)
             {
                 // undo all and retry:
-                // - ++numRetries
-                // - If numRetries > 5, we've tried enough.
+                // - --numOverallRetries
+                // - If numOverallRetries <= 0, we've tried enough.
                 //   Either the swaps we've done will have to do, or caller will make a new board.
                 //   Return false.
-                // - Otherwise, restore redHexes from the backup we made
-                // - Go backwards through the list of swappedNums, reversing each swap
+                // - Otherwise, go backwards through the list of swappedNums, reversing each swap
+                // - Rebuild redHexes from current board contents
 
-                ++numRetries;
-                if (numRetries > 5)
+                --numOverallRetries;
+                if (numOverallRetries <= 0)
+                {
                     return false;
+                }
 
-                redHexes = new ArrayList<Integer>(redHexesBk);
                 final int L = (swappedNums != null) ? swappedNums.size() : 0;
                 for (int i = L - 1; i >= 0; --i)
                 {
@@ -1761,6 +1771,16 @@ public class SOCBoardAtServer extends SOCBoardLarge
                               ntmp = numberLayoutLg[ro][co];
                     numberLayoutLg[ro][co] = numberLayoutLg[rs][cs];
                     numberLayoutLg[rs][cs] = ntmp;
+                }
+
+                redHexes.clear();
+                for (int hc : landPath)
+                {
+                    final int r = hc >> 8,
+                              c = hc & 0xFF,
+                              diceNum = numberLayoutLg[r][c];
+                    if ((diceNum == 6) || (diceNum == 8))
+                        redHexes.add(hc);
                 }
             }
 
@@ -2648,6 +2668,45 @@ public class SOCBoardAtServer extends SOCBoardLarge
     }
 
     /**
+     * For a game that's starting, now that the board layout is known,
+     * do any extra setup required by certain scenarios.
+     *<P>
+     * If ! {@link SOCGame#hasSeaBoard ga.hasSeaBoard}, does nothing and returns {@code null}.
+     *<P>
+     * In this order:
+     *<UL>
+     * <LI> Calls {@link #getLegalSeaEdges(SOCGame, int) getLegalSeaEdges(ga, -1)}:
+     *      In scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, that will return non-{@code null} because
+     *      ship placement is restricted. If so, calls each player's {@link SOCPlayer#setRestrictedLegalShips(int[])}.
+     * <LI> Calls {@link #startGame_putInitPieces(SOCGame)}:
+     *      Used in {@link SOCGameOption#K_SC_PIRI _SC_PIRI} and {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.
+     *</UL>
+     *
+     * @param ga  Game to set up; assumes {@link SOCGame#startGame()} has just been called
+     * @return  this board layout's {@link #getLegalSeaEdges(SOCGame, int) getLegalSeaEdges(ga, -1)}
+     *     if placement is restricted, or {@code null}
+     */
+    public static int[][] startGame_scenarioSetup(final SOCGame ga)
+    {
+        if (! ga.hasSeaBoard)
+            return null;  // just in case; such a game shouldn't be using this class anyway
+
+        final int[][] legalSeaEdges;  // used on sea board; if null, all are legal
+        legalSeaEdges = getLegalSeaEdges(ga, -1);
+        if (legalSeaEdges != null)
+            for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                ga.getPlayer(pn).setRestrictedLegalShips(legalSeaEdges[pn]);
+
+        if (ga.isGameOptionSet(SOCGameOption.K_SC_FTRI) || ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        {
+            // scenario has initial pieces
+            ((SOCBoardAtServer) (ga.getBoard())).startGame_putInitPieces(ga);
+        }
+
+        return legalSeaEdges;
+    }
+
+    /**
      * For scenario game option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
      * place each player's initial pieces.  For {@link SOCGameOption#K_SC_FTRI _SC_FTRI},
      * set aside some dev cards to be claimed later at Special Edges.
@@ -2660,7 +2719,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * Called only at server. For a method called during game start
      * at server and clients, see {@link SOCGame#updateAtBoardLayout()}.
      *<P>
-     * Called from {@link SOCGameHandler#startGame(SOCGame)} for those
+     * Called from {@link #startGame_scenarioSetup(SOCGame)} for those
      * scenario game options; if you need it called for your game, add
      * a check there for your scenario's {@link SOCGameOption}.
      *<P>

@@ -1098,8 +1098,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case Message.FromClient.VERS_FIELD_NUMBER:
                 {
                     Message.Version m = msg.getVers();
+                    // TODO proto Version needs feats field like SOCVersion
                     return new SOCVersion
-                        (m.getVersNum(), m.getVersStr(), m.getVersBuild(), m.getCliLocale());
+                        (m.getVersNum(), m.getVersStr(), m.getVersBuild(), null, m.getCliLocale());
                 }
 
             case Message.FromClient.AUTH_REQ_FIELD_NUMBER:

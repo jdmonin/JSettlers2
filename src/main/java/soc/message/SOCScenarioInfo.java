@@ -25,6 +25,7 @@ import java.util.List;
 import soc.game.SOCGameOption;
 import soc.game.SOCVersionedItem;
 import soc.game.SOCScenario;
+import soc.util.SOCFeatureSet;  // for javadocs only
 
 /**
  * A <B>client's request</B> for updated info on {@link SOCScenario}s,
@@ -108,6 +109,10 @@ import soc.game.SOCScenario;
  *  <LI> {@link #isKeyUnknown} if the server doesn't know a scenario requested by the client
  *  <LI> {@link #noMoreScens} if this is an empty message marking the end of the reply sequence
  *</UL>
+ * Note that to help implement third-party clients, the client version used in this delta calculation
+ * is the value reported in {@link SOCFeatureSet#CLIENT_SCENARIO_VERSION}, which might be lower than
+ * the client's actual version number.
+ *<P>
  * Special case: If the client is asking for any new or changed scenarios but there aren't any,
  * server responds with a single {@code SOCScenarioInfo} with the {@link #noMoreScens} flag.
  *<P>

@@ -107,6 +107,13 @@ For security, please use sqlite or another database and make a "debug" account w
 a password (see [Readme.md](../Readme.md) section "Database Setup").  Except for
 practice games, no other username can use debug commands.
 
+`D.ebugPrintln` is turned on or off for each java class by the import at the top of the file.
+For example if you wanted to see D.ebugPrintln output for soc.game.SOCPlayer,
+in SOCPlayer.java you would change the line  
+`import soc.disableDebug.D;`  
+to  
+`import soc.debug.D;`
+
 To print the contents of messages sent between the server and client, start the
 client with vm argument `-Djsettlers.debug.traffic=Y` (this goes before `-jar` if using
 the command line). This works for the player client and the robot client, including
@@ -146,6 +153,10 @@ hides them during game setup.  If you want to show them:
 - Click Practice or New Game
 
 The values you set may still be overridden by the server in SOCGameOption.adjustOptionsToKnown.
+
+If you're testing and need the client to create a game no one else can join,
+find and uncomment the `DEBUGNOJOIN` option in `soc.game.SOCGameOption`
+before starting the server.
 
 To use the "Free Placement" debug mode, type this debug command on your turn:
 
@@ -215,6 +226,10 @@ parameters (before the SOCPlayerClient class name, not after):
 - `-Djsettlers.debug.traffic=Y` - Print network traffic; see above for details
 - `-Djsettlers.debug.clear_prefs=PI_width,PI_height` - Remove these persistent
   preferences at startup. See SOCPlayerClient PREF_* fields for all name keys.
+- `-Djsettlers.debug.client.features=;6pl;sb;` - Pretend to not support some
+  of the optional client features from `SOCFeatureSet`. (To see all the
+  standard features, omit this property but use `jsettlers.debug.traffic`, then
+  look for semicolons within the Version message sent to the server.)
 
 
 ## Setup instructions for JSettlers as an Eclipse project
@@ -532,6 +547,7 @@ ideas.
 - Show # VP when choosing where to sit, if game is in progress
 - Keyboard shortcuts for "roll", "done" buttons
 - Occasionally the board does not re-scale at game reset
+- Add more scenarios' unit tests to `soctest.game.TestScenarioRules`
 - Kick robots if inactive but current player in game, assume they're buggy (use forceEndTurn)
 - Control the speed of robots in practice games
   - Adjust `SOCRobotBrain.pause`, `ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS`, etc
@@ -764,6 +780,13 @@ can optionally be encapsulated in JSON over HTTP. Proof-of-concept bots
 are included. Until the server, client, and bots are converted to use
 protobuf internally, temporary SOCMessage.toMsg/toProto methods will convert
 back and forth as needed.
+
+If you're writing a third-party client or robot, some features of the standard
+client are optional. When each client connects, it sends the server a
+`SOCVersion` message which includes its version, locale, and features from
+`SOCFeatureSet`. If your client hasn't implemented 6-player games, Seafarers
+boards, or scenarios, don't include those client features in the `SOCVersion`
+message you send.
 
 
 ## Coding Style

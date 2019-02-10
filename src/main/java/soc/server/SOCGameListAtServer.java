@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2014,2016-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2014,2016-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -22,6 +22,7 @@
 package soc.server;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,13 @@ import java.util.Vector;
 import soc.debug.D;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.message.SOCDeleteGame;
+import soc.message.SOCGames;
+import soc.message.SOCGamesWithOptions;
+import soc.message.SOCNewGame;
+import soc.message.SOCNewGameWithOptions;
 import soc.server.genericServer.Connection;
+import soc.util.SOCFeatureSet;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;
 import soc.util.Version;
@@ -39,13 +46,15 @@ import soc.util.Version;
 /**
  * A class for creating and tracking the games;
  * contains each game's name, {@link SOCGameOption game options},
- * {@link SOCGame} object, and member client {@link Connection}s.
+ * {@link SOCGame} object, member client {@link Connection}s, and
+ * {@link SOCChatRecentBuffer}.
  *<P>
  * In 1.1.07, parent class SOCGameList was refactored, with
  * some methods moved to this new subclass, such as
  * {@link #createGame(String, String, String, Map, GameHandler) createGame}.
  *
  * @see SOCBoardAtServer
+ * @see SOCChannelList
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
  */
@@ -64,8 +73,22 @@ public class SOCGameListAtServer extends SOCGameList
      */
     public static int GAME_TIME_EXPIRE_MINUTES = 120;
 
+    /**
+     * Synchronized map of game names to {@link SOCGame} objects.
+     *<P>
+     * Before v2.0.00 this field was in parent class {@link SOCGameList} but only the Server used it.
+     * @see SOCGameList#gameInfo
+     */
+    private final Hashtable<String, SOCGame> gameData;
+
     /** synchronized map of game names to Vector of game members ({@link Connection}s) */
-    protected Hashtable<String, Vector<Connection>> gameMembers;
+    protected final Hashtable<String, Vector<Connection>> gameMembers;
+
+    /**
+     * Each game's buffer of recent chat text.
+     * @since 2.0.00
+     */
+    protected final Hashtable<String, SOCChatRecentBuffer> gameChatBuffer;
 
     /**
      * constructor
@@ -73,7 +96,10 @@ public class SOCGameListAtServer extends SOCGameList
     public SOCGameListAtServer()
     {
         super();
+
+        gameData = new Hashtable<String, SOCGame>();
         gameMembers = new Hashtable<String, Vector<Connection>>();
+        gameChatBuffer = new Hashtable<String, SOCChatRecentBuffer>();
     }
 
     /**
@@ -98,6 +124,37 @@ public class SOCGameListAtServer extends SOCGameList
         }
 
         return result;
+    }
+
+    /**
+     * Get a game's SOCGame, if we've stored that.
+     *<P>
+     * Before v2.0.00 this method was in parent class {@link SOCGameList}.
+     *
+     * @param gaName  game name
+     * @return the game object data, or null
+     * @see #getGamesData()
+     */
+    public SOCGame getGameData(String gaName)
+    {
+        return gameData.get(gaName);
+    }
+
+    /**
+     * Get all the {@link SOCGame} data available; some of the games in {@link SOCGameList#getGameNames()}
+     * may not have associated SOCGame data, so this enumeration may have fewer
+     * elements than {@code SOCGameList#getGameNames()} or even 0 elements.
+     *<P>
+     * Before v2.0.00 this method was in parent class {@link SOCGameList}.
+     *
+     * @return an enumeration of game data ({@code SOCGame}s)
+     * @see SOCGameList#getGameNames()
+     * @see #getGameData(String)
+     * @since 1.1.06
+     */
+    public Collection<SOCGame> getGamesData()
+    {
+        return gameData.values();
     }
 
     /**
@@ -128,6 +185,17 @@ public class SOCGameListAtServer extends SOCGameList
             return null;
 
         return ((GameInfoAtServer) gi).messageHandler;
+    }
+
+    /**
+     * Get a game's recent-chat buffer.
+     * @param gaName  Game name
+     * @return  Game's chat buffer
+     * @since 2.0.00
+     */
+    public SOCChatRecentBuffer getChatBuffer(final String gaName)
+    {
+        return gameChatBuffer.get(gaName);
     }
 
     /**
@@ -254,29 +322,56 @@ public class SOCGameListAtServer extends SOCGameList
 
     /**
      * Replace member from all games, with a new connection with same name (after a network problem).
+     *<P>
+     * Assumes {@link #playerGamesMinVersion(Connection)} has already been called to validate {@code newConn} can join
+     * all of {@code oldConn}'s games.
+     *<P>
+     * The newly joining client is almost always using the same release as the old client. It's possible but
+     * very unlikely that the new client is different software with more limited client features. This method checks
+     * {@code newConn}'s {@link SOCClientData#hasLimitedFeats} and each game's {@link SOCGame#canClientJoin(SOCFeatureSet)}
+     * just in case. If {@code newConn} can't join a game because of this, the game is added to the list returned from
+     * this method.
      *
      * @param  oldConn  the member's old connection
      * @param  newConn  the member's new connection
+     * @return  {@code null} if replacement was done in all games; otherwise those games having {@code oldConn} which
+     *            {@code newConn} can't join because of its more limited client features (this is unlikely to occur)
      * @throws IllegalArgumentException  if oldConn's keyname (via {@link Connection#getData()})
      *            differs from newConn's keyname
      *
      * @see #memberGames(Connection, String)
      * @since 1.1.08
      */
-    public synchronized void replaceMemberAllGames(Connection oldConn, Connection newConn)
+    public synchronized List<SOCGame> replaceMemberAllGames(Connection oldConn, Connection newConn)
         throws IllegalArgumentException
     {
         if (! oldConn.getData().equals(newConn.getData()))
             throw new IllegalArgumentException("keyname data");
 
+        List<SOCGame> unjoinables = new ArrayList<SOCGame>();
+
         System.err.println("L212: replaceMemberAllGames(" + oldConn + ", " + newConn + ")");  // JM TEMP
         final boolean sameVersion = (oldConn.getVersion() == newConn.getVersion());
+        final SOCClientData scd = (SOCClientData) newConn.getAppData();
+        final boolean cliHasLimitedFeats = scd.hasLimitedFeats;
         for (String gaName : getGameNames())
         {
             Vector<Connection> members = gameMembers.get(gaName);
             if ((members != null) && members.contains(oldConn))
             {
                 System.err.println("L221: for game " + gaName + ":");  // JM TEMP
+
+                if (cliHasLimitedFeats)
+                {
+                    SOCGame ga = getGameData(gaName);
+                    if ((ga != null) && ! ga.canClientJoin(scd.feats))
+                    {
+                        // new client can't join this game (unlikely)
+                        unjoinables.add(ga);
+                        continue;
+                    }
+                }
+
                 if (sameVersion)
                 {
                     if (members.remove(oldConn))
@@ -290,6 +385,8 @@ public class SOCGameListAtServer extends SOCGameList
                 }
             }
         }
+
+        return (unjoinables.isEmpty()) ? null : unjoinables;
     }
 
     /**
@@ -325,6 +422,7 @@ public class SOCGameListAtServer extends SOCGameList
 
         Vector<Connection> members = new Vector<Connection>();
         gameMembers.put(gaName, members);
+        gameChatBuffer.put(gaName, new SOCChatRecentBuffer());
 
         SOCGame game = new SOCGame(gaName, gaOpts);
         if (gaOwner != null)
@@ -332,6 +430,7 @@ public class SOCGameListAtServer extends SOCGameList
 
         game.setExpiration(game.getStartTime().getTime() + (60 * 1000 * GAME_TIME_EXPIRE_MINUTES));
 
+        handler.calcGameClientFeaturesRequired(game);
         gameInfo.put(gaName, new GameInfoAtServer(game.getGameOptions(), handler));  // also creates MutexFlag
         gameData.put(gaName, game);
 
@@ -401,16 +500,38 @@ public class SOCGameListAtServer extends SOCGameList
         return reset;  // null if error during reset
     }
 
+    @Override
+    public synchronized void addGames(SOCGameList gl, final int ourVersion)
+    {
+        if (gl == null)
+            return;
+
+        if (gl instanceof SOCGameListAtServer)
+        {
+            Hashtable<String, SOCGame> gdata = ((SOCGameListAtServer) gl).gameData;
+            if (gdata != null)
+                addGames(gdata.values(), ourVersion);
+        }
+
+        super.addGames(gl, ourVersion);
+    }
+
     /**
-     * remove the game from the list
-     * and call {@link SOCGame#destroyGame()} via {@link SOCGameList#deleteGame(String)}.
+     * Call {@link SOCGame#destroyGame()} and remove the game from the list.
      *
      * @param gaName  the name of the game
      */
     @Override
     public synchronized void deleteGame(String gaName)
     {
-        // delete from super first, to destroy game and set its gameDestroyed flag
+        SOCGame game = gameData.get(gaName);
+        if (game != null)
+        {
+            game.destroyGame();
+            gameData.remove(gaName);
+        }
+
+        // delete from super to destroy GameInfo and set its gameDestroyed flag
         // (Removes game from list before dealing with members, in case of locks)
         super.deleteGame(gaName);
 
@@ -419,6 +540,10 @@ public class SOCGameListAtServer extends SOCGameList
         {
             members.removeAllElements();
         }
+
+        SOCChatRecentBuffer buf = gameChatBuffer.remove(gaName);
+        if (buf != null)
+            buf.clear();
     }
 
     /**
@@ -432,6 +557,7 @@ public class SOCGameListAtServer extends SOCGameList
      * @param  plConn   the previous connection of the player, which might be taken over
      * @return Minimum version, in same format as {@link SOCGame#getClientVersionMinRequired()},
      *         or 0 if player isn't in any games.
+     * @see #replaceMemberAllGames(Connection, Connection)
      * @since 1.1.08
      */
     public int playerGamesMinVersion(Connection plConn)
@@ -502,6 +628,182 @@ public class SOCGameListAtServer extends SOCGameList
     }
 
     /**
+     * Send the entire list of games to this client; this is sent once per connecting client.
+     * Or, send the set of changed games, if the client's guessed version was wrong.
+     * The list includes a flag on games which can't be joined by this client version
+     * ({@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}).
+     *<P>
+     * If <b>entire list</b>, then depending on client's version, the message sent will be
+     * either {@link SOCGames GAMES} or {@link SOCGamesWithOptions GAMESWITHOPTIONS}.
+     * If <b>set of changed games</b>, sent as matching pairs of {@link SOCDeleteGame DELETEGAME}
+     * and either {@link SOCNewGame NEWGAME} or {@link SOCNewGameWithOptions NEWGAMEWITHOPTIONS}.
+     *<P>
+     * There are 2 possible scenarios for when this method is called:
+     *<P>
+     * - (A) Sending game list to client, for the first time:
+     *    Iterate through all games, looking for ones the client's version
+     *    is capable of joining.  If not capable, mark the game name as such
+     *    before sending it to the client.  (As a special case, very old
+     *    client versions "can't know" about the game they can't join, because
+     *    they don't recognize the marker.)
+     *    Also set the client data's hasSentGameList flag.
+     *<P>
+     * - (B) The client didn't give its version, and was thus
+     *    identified as an old version.  Now we know its newer true version,
+     *    so we must tell it about games that it can now join,
+     *    which couldn't have been joined by the older assumed version.
+     *    So:  Look for games with those criteria.
+     *<P>
+     * Sending the list is done here, and not in newConnection2, because we must first
+     * know the client's version.
+     *<P>
+     * The minimum version which recognizes the "can't join" marker is
+     * 1.1.06 ({@link SOCGames#VERSION_FOR_UNJOINABLE}).  Older clients won't be sent
+     * the game names they can't join.
+     *<P>
+     * <b>Locks:</b> Calls {@link #takeMonitor()} / {@link #releaseMonitor()}
+     *<P>
+     * Before v2.0.00 this method was <tt>{@link SOCServer}.sendGameList(..)</tt>.
+     *
+     * @param c Client's connection; will call getVersion() on it
+     * @param prevVers  Previously assumed version of this client;
+     *                  if re-sending the list, should be less than c.getVersion.
+     * @since 1.1.06
+     */
+    public void sendGameList(Connection c, int prevVers)
+    {
+        final int cliVers = c.getVersion();   // Need to know this before sending
+        final SOCClientData scd = (SOCClientData) c.getAppData();
+
+        // Before send list of games, try for a client version.
+        // Give client 1.2 seconds to send it, before we assume it's old
+        // (too old to know VERSION).
+        // This waiting is done from SOCClientData.setVersionTimer;
+        // time to wait is SOCServer.CLI_VERSION_TIMER_FIRE_MS.
+
+        // GAMES / GAMESWITHOPTIONS
+
+        // Based on version:
+        // If client is too old (< 1.1.06), it can't be told names of games
+        // that it isn't capable of joining.
+        boolean cliCanKnow = (cliVers >= SOCGames.VERSION_FOR_UNJOINABLE);
+        final boolean cliCouldKnow = (prevVers >= SOCGames.VERSION_FOR_UNJOINABLE);
+        final boolean cliNotLimitedFeats = ! scd.hasLimitedFeats;
+        final SOCFeatureSet cliLimitedFeats = cliNotLimitedFeats ? null : scd.feats;
+
+        ArrayList<Object> gl = new ArrayList<Object>();  // contains Strings and/or SOCGames;
+                                   // strings are names of unjoinable games,
+                                   // with the UNJOINABLE prefix.
+        takeMonitor();
+
+        // Note this flag now, while gamelist monitor is held
+        final boolean alreadySent = scd.hasSentGameList();
+        boolean cliVersionChange = alreadySent && (cliVers > prevVers);
+
+        if (alreadySent && ! cliVersionChange)
+        {
+            releaseMonitor();
+
+            return;  // <---- Early return: Nothing to do ----
+        }
+
+        if (! alreadySent)
+        {
+            scd.setSentGameList();  // Set while gamelist monitor is held
+        }
+
+        /**
+         * We release the monitor as soon as we can, even though we haven't yet
+         * sent the list to the client.  It's theoretically possible the client will get
+         * a NEWGAME message, which is OK, or a DELETEGAME message, before it receives the list
+         * we're building.
+         * NEWGAME is OK because the GAMES message won't clear the list contents at client.
+         * DELETEGAME is less OK, but it's not very likely.
+         * If the game is deleted, and then they see it in the list, trying to join that game
+         * will create a new empty game with that name.
+         */
+        Collection<SOCGame> gaEnum = getGamesData();
+        releaseMonitor();
+
+        if (cliVersionChange && cliCouldKnow)
+        {
+            // If they already have the names of games they can't join,
+            // no need to re-send those names.
+            cliCanKnow = false;
+        }
+
+        try
+        {
+            // Build the list of game names.  This loop is used for the
+            // initial list, or for sending just the delta after the version fix.
+
+            for (SOCGame g : gaEnum)
+            {
+                int gameVers = g.getClientVersionMinRequired();
+
+                if (cliVersionChange && (prevVers >= gameVers))
+                {
+                    continue;  // No need to re-announce, they already
+                               // could join it with lower (prev-assumed) version
+                }
+
+                if ((cliVers >= gameVers)
+                    && (cliNotLimitedFeats || g.canClientJoin(cliLimitedFeats)))
+                {
+                    gl.add(g);  // Can join
+                } else if (cliCanKnow)
+                {
+                    //  Cannot join, but can see it
+                    StringBuffer sb = new StringBuffer();
+                    sb.append(SOCGames.MARKER_THIS_GAME_UNJOINABLE);
+                    sb.append(g.getName());
+                    gl.add(sb.toString());
+                }
+                // else
+                //   can't join, and won't see it
+
+            }
+
+            // We now have the list of game names / socgame objs.
+
+            if (! alreadySent)
+            {
+                // send the full list as 1 message
+                if (cliVers >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
+                    c.put(new SOCGamesWithOptions(gl, cliVers));
+                else
+                    c.put(new SOCGames(gl, false));
+            } else {
+                // send deltas only
+                for (int i = 0; i < gl.size(); ++i)
+                {
+                    Object ob = gl.get(i);
+                    String gaName;
+                    if (ob instanceof SOCGame)
+                        gaName = ((SOCGame) ob).getName();
+                    else
+                        gaName = (String) ob;
+
+                    if (cliCouldKnow)
+                    {
+                        // first send delete, if it's on their list already
+                        c.put(new SOCDeleteGame(gaName));
+                    }
+                    // announce as 'new game' to client
+                    if ((ob instanceof SOCGame) && (cliVers >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
+                        c.put(new SOCNewGameWithOptions((SOCGame) ob, cliVers));
+                    else
+                        c.put(new SOCNewGame(gaName));
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in GLAS.sendGameList");
+        }
+    }
+
+    /**
      * Game info including server-side information, such as the game type's {@link GameHandler}
      * and {@link GameMessageHandler}.
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -522,7 +824,7 @@ public class SOCGameListAtServer extends SOCGameList
          * @throws IllegalArgumentException  if {@code handler} is null
          */
         public GameInfoAtServer
-            (final Map<String,SOCGameOption> gameOpts, final GameHandler typeHandler)
+            (final Map<String, SOCGameOption> gameOpts, final GameHandler typeHandler)
             throws IllegalArgumentException
         {
             super(true, gameOpts);

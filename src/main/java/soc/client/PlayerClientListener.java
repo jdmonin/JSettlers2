@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2013-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2013-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -342,6 +342,8 @@ public interface PlayerClientListener
     void robberMoved(int newHex, boolean isPirate);
 
     void devCardDeckUpdated();
+
+    /** One or all player seats' Seat Lock Status have been updated in game data; refresh all players' displays. */
     void seatLockUpdated();
 
     // This javadoc also appears in SOCPlayerInterface; please also update there if it changes.
@@ -396,14 +398,23 @@ public interface PlayerClientListener
      */
     void gameDisconnected(boolean wasDeleted, String errorMessage);
 
+    /**
+     * Print a broadcast message into this display's chat area.
+     * @param message  Message text
+     * @see SOCPlayerClient.GameDisplay#chatMessageBroadcast(String)
+     */
     void messageBroadcast(String message);
 
     /**
      * A game text message was received from server, or a chat message from another player.
-     * @param nickname  Player's nickname, or {@code null} for messages from the server itself
+     * @param nickname  Player's nickname, {@code null} for messages from the server itself,
+     *     or {@code ":"} for server messages which should appear in the chat area (recap, etc).
+     *     For {@code ":"}, the message text will probably end with " ::" because the original client would
+     *     begin the text line with ":: " from {@code nickname + ": "}.
      * @param message  Message text
+     * @see SOCPlayerClient.GameDisplay#chatMessageReceived(String, String, String)
      */
-    void messageSent(String nickname, String message);
+    void messageReceived(String nickname, String message);
 
     /**
      * A player's {@link soc.message.SOCSimpleRequest "simple request"} has been sent to the entire game, or the server

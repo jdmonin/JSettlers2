@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -643,7 +643,14 @@ public class SOCGameOption
             }
         });
 
-        return opt;
+        /*
+            // A commented-out debug option for testing convenience:
+            // Un-comment to let client create games that no one can join.
+
+        opt.put("DEBUGNOJOIN", new SOCGameOption
+                ("DEBUGNOJOIN", Integer.MAX_VALUE, Integer.MAX_VALUE, false,
+                 SOCGameOption.FLAG_DROP_IF_UNUSED, "Cannot join this game"));
+        */
 
         /*
             // A commented-out debug option is kept here for each option type's testing convenience.
@@ -665,8 +672,9 @@ public class SOCGameOption
                 ("DEBUGSTR", 1107, 1107, 20, false, SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option str"));
         opt.put("DEBUGSTRHIDE", new SOCGameOption
                 ("DEBUGSTRHIDE", 1107, 1107, 20, true, SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option strhide"));
-
         */
+
+        return opt;
 
         /*
             // TEST CODE: simple callback for each option, that just echoes old/new value
@@ -1346,6 +1354,7 @@ public class SOCGameOption
     }
 
     /**
+     * Make and return a copy of all known objects. Calls {@link #cloneOptions(Map)}.
      * @return a deep copy of all known option objects
      * @see #addKnownOption(SOCGameOption)
      */
@@ -1441,8 +1450,10 @@ public class SOCGameOption
 
     /**
      * Make a deep copy of a group of options.
+     * Iterates over {@link Map#entrySet() opts.entrySet()} (ignores map keys).
      * @param opts  a map of SOCGameOptions, or null; method synchronizes on {@code opts}
-     * @return a deep copy of all option objects within opts, or null if opts is null
+     * @return a deep copy of all option objects within opts, or null if opts is null.
+     *    Each item's map key will be its {@link SOCVersionedItem#key}.
      */
     public static Map<String, SOCGameOption> cloneOptions(final Map<String, SOCGameOption> opts)
     {
@@ -2126,8 +2137,13 @@ public class SOCGameOption
                 }
             }
 
+            // If has "VP" but boolean part is false, use server default instead
+            SOCGameOption opt = newOpts.get("VP");
+            if ((opt != null) && ! opt.boolValue)
+                newOpts.remove("VP");
+
             // Apply scenario options, if any
-            SOCGameOption opt = newOpts.get("SC");
+            opt = newOpts.get("SC");
             if (opt != null)
             {
                 final String scKey = opt.getStringValue();
@@ -2143,8 +2159,6 @@ public class SOCGameOption
                         // opts if already in newOpts, except
                         // keep VP if specified.
                         opt = newOpts.get("VP");
-                        if ((opt != null) && ! opt.boolValue)
-                            opt = null;
 
                         final Map<String, SOCGameOption> scOpts = parseOptionsToMap(sc.scOpts);
                         if (scOpts.containsKey("VP") && (opt != null))

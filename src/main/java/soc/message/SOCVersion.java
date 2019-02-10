@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008-2009,2012-2015,2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2009,2012-2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,7 +22,7 @@ package soc.message;
 import java.util.StringTokenizer;
 
 import soc.proto.Message;
-import soc.util.SOCServerFeatures;  // for javadocs only
+import soc.util.SOCFeatureSet;  // for javadocs only
 
 
 /**
@@ -31,13 +31,13 @@ import soc.util.SOCServerFeatures;  // for javadocs only
  * The server also sends its version to the client early, not in response to client's VERSION message.
  * Version numbers are read via {@link soc.util.Version}.
  *<P>
- * Before 2.0.00, the client did not send locale; new servers should probably assume {@code en_US}
- * since older versions had all messages in english.  For robots the locale field is ignored at server,
- * because bots don't parse server text messages; sending a {@link SOCImARobot} message will clear the
- * robot client's locale to {@code null} at the server.
+ * Before 2.0.00, the client did not send its locale or optional features. If locale not sent by client,
+ * server should probably assume {@code en_US} since older versions had all messages in english.
+ * For robots the locale field is ignored at server, because bots don't parse server text messages;
+ * sending a {@link SOCImARobot} message will clear the robot client's locale to {@code null} at the server.
  *<P>
  * Before 1.1.19, the server did not send its active optional features; new clients of older servers
- * should use the {@link SOCServerFeatures#SOCServerFeatures(boolean) SOCServerFeatures(true)} constructor
+ * should use the {@link SOCFeatureSet#SOCFeatureSet(boolean, boolean) SOCFeatureSet(true, true)} constructor
  * to set the default features active.
  *<P>
  * Before 1.1.06, in SOCPlayerClient, this was sent first from server to client, then client responded.
@@ -67,14 +67,20 @@ public class SOCVersion extends SOCMessage
     private String versBuild;
 
     /**
-     * Dual-purpose field: Client's JVM locale, or null, as in {@link java.util.Locale#toString()};
-     * Or server's active optional features, or null, as in {@link SOCServerFeatures#getEncodedList()}.
-     * Locale not sent from server or from jsettlers clients older than 2.0.00.
-     * Features not sent from servers older than 1.1.19. (In v1.1.19 this field is called {@code feats}.)
-     * See class javadoc for handling older clients or servers when this field is null.
+     * List of active optional features, or null, as in {@link SOCFeatureSet#getEncodedList()}.
+     * Features aren't sent from servers older than 1.1.19 or clients older than 2.0.00.
+     * See class javadoc for handling older servers or clients when this field is null.
+     * @since 1.1.19
+     */
+    public final String feats;
+
+    /**
+     * Client's JVM locale, or null, as in {@link java.util.Locale#toString()};
+     * Not sent from server or from clients older than 2.0.00.
+     * See class javadoc for handling older clients when this field is null.
      * @since 2.0.00
      */
-    public final String localeOrFeats;
+    public final String cliLocale;
 
     /**
      * Create a Version message.
@@ -82,25 +88,28 @@ public class SOCVersion extends SOCMessage
      * @param verNum The version number, as in {@link soc.util.Version#versionNumber()}
      * @param verStr The version display string, as in {@link soc.util.Version#version()}
      * @param verBuild The version build, or null, as in {@link soc.util.Version#buildnum()}
-     * @param verlocaleOrFeats The client's JVM locale, or null, as in {@link java.util.Locale#toString()};
-     *                  not sent by jsettlers clients older than 2.0.00.
-     *                  Or the server's active optional features, or null, as in
-     *                  {@link SOCServerFeatures#getEncodedList()}; not sent by servers older than 1.1.19.
-     *                  Server can send this to a client older than 1.1.19, it is safely ignored.
-     * @throws IllegalArgumentException if {@code verBuild} is null and {@code verlocaleOrFeats} != null;
-     *     not supported by message encoding.
+     * @param feats  The server's active optional features, or null, as in
+     *     {@link SOCServerFeatures#getEncodedList()};
+     *     not sent by servers older than 1.1.19 or clients older than 2.0.00.
+     *     Server can send this to a client older than 1.1.19, it is safely ignored.
+     * @param cliLocale The client's JVM locale, or null, as in {@link java.util.Locale#toString()};
+     *     not sent by servers or by clients older than 2.0.00.
+     * @throws IllegalArgumentException if {@code verBuild} is null and {@code feats} != null;
+     *     not supported by message encoding to clients older than 2.0.00.
      */
-    public SOCVersion(final int verNum, final String verStr, final String verBuild, final String verlocaleOrFeats)
+    public SOCVersion
+        (final int verNum, final String verStr, final String verBuild, final String feats, final String cliLocale)
         throws IllegalArgumentException
     {
-        if ((verBuild == null) && (verlocaleOrFeats != null))
-            throw new IllegalArgumentException("null verBuild, non-null verlocaleOrFeats");
+        if ((verBuild == null) && (feats != null))
+            throw new IllegalArgumentException("null verBuild, non-null feats");
 
         messageType = VERSION;
         versNum = verNum;
         versStr = verStr;
         versBuild = verBuild;
-        localeOrFeats = verlocaleOrFeats;
+        this.feats = feats;
+        this.cliLocale = cliLocale;
     }
 
     /**
@@ -128,39 +137,47 @@ public class SOCVersion extends SOCMessage
     }
 
     /**
-     * VERSION SEP vernum SEP2 verstr SEP2 build SEP2 localeOrFeats; build,localeOrFeats may be blank
+     * VERSION SEP vernum SEP2 verstr [SEP2 build [SEP2 feats [SEP2 cliLocale]]].
+     * Build, feats, and cliLocale are optional and may be blank ({@link SOCMessage#EMPTYSTR}).
      *
      * @return the command String
      */
     public String toCmd()
     {
-        return toCmd(versNum, versStr, versBuild, localeOrFeats);
+        return toCmd(versNum, versStr, versBuild, feats, cliLocale);
     }
 
     /**
-     * VERSION SEP vernum SEP2 verstr SEP2 build SEP2 localeOrFeats; build,localeOrFeats may be blank
+     * VERSION SEP vernum SEP2 verstr [SEP2 build [SEP2 feats [SEP2 cliLocale]]].
+     * Build, feats, and cliLocale are optional and may be blank ({@link SOCMessage#EMPTYSTR}).
+     *<P>
+     * Empty strings should not be given as parameters; use {@code null} instead for optional fields.
      *
-     * @param verNum  the version number, like 1100 for 1.1.00, as in {@link soc.util.Version#versionNumber()}
-     * @param verStr  the version as string, like "1.1.00"
+     * @param verNum  the version number, like 1100 for 1.1.00, as in {@link soc.util.Version#versionNumber()}; not null
+     * @param verStr  the version as string, like "1.1.00"; not null
      * @param verBuild the version build, or null, from {@link soc.util.Version#buildnum()}
-     * @param verlocaleOrFeats The client's JVM locale, or null, as in {@link java.util.Locale#toString()};
-     *                  not sent by jsettlers clients older than 2.0.00.
-     *                  Or the server's active optional features, or null, as in
-     *                  {@link SOCServerFeatures#getEncodedList()}; not sent by servers older than 1.1.19.
-     *                  Server can send this to a client older than 1.1.19, it is safely ignored.
+     * @param feats  The server or client's active optional features, or null, as in
+     *     {@link SOCServerFeatures#getEncodedList()}.
+     *     Not sent by servers older than 1.1.19 or clients older than 2.0.00.
+     *     Server can send this to a client older than 1.1.19, it is safely ignored.
+     * @param cliLocale The client's JVM locale, or null, as in {@link java.util.Locale#toString()}.
+     *     Not sent by servers or by clients older than 2.0.00.
      * @return    the command string
-     * @throws IllegalArgumentException if {@code verBuild} is null and {@code verlocaleOrFeats} != null;
-     *     not supported by message encoding.
+     * @throws IllegalArgumentException if {@code verBuild} is null and {@code feats} != null;
+     *     not supported by message encoding to clients older than 2.0.00.
      */
-    public static String toCmd(final int verNum, final String verStr, final String verBuild, final String verlocaleOrFeats)
+    public static String toCmd
+        (final int verNum, final String verStr, final String verBuild, final String feats, final String cliLocale)
         throws IllegalArgumentException
     {
-        if ((verBuild == null) && (verlocaleOrFeats != null))
-            throw new IllegalArgumentException("null verBuild, non-null verlocaleOrFeats");
+        if ((verBuild == null) && (feats != null))
+            throw new IllegalArgumentException("null verBuild, non-null feats");
+        // don't need to check for null build && non-null cliLocale: that's 2.0.00+ only
 
         return VERSION + sep + verNum + sep2 + verStr
-            + sep2 + (verBuild != null ? verBuild : "")
-            + sep2 + (verlocaleOrFeats != null ? verlocaleOrFeats : "");
+            + sep2 + (verBuild != null ? verBuild : EMPTYSTR)
+            + sep2 + (feats != null ? feats : EMPTYSTR)
+            + (cliLocale != null ? (sep2 + cliLocale) : "");
     }
 
     /**
@@ -174,7 +191,8 @@ public class SOCVersion extends SOCMessage
         int vn;     // version number
         String vs;  // version string
         String bs;  // build string, or null
-        String lof = null;  // localeOrFeats string, or null
+        String fs = null;  // feats string, or null
+        String clo = null;  // cliLocale string, or null
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 
@@ -185,11 +203,21 @@ public class SOCVersion extends SOCMessage
             if (st.hasMoreTokens())
             {
                 bs = st.nextToken();
+                if ((bs.length() == 0) || EMPTYSTR.equals(bs))
+                    bs = null;
+
                 if (st.hasMoreTokens())
                 {
-                    lof = st.nextToken();
-                    if (lof.length() == 0)
-                        lof = null;
+                    fs = st.nextToken();
+                    if ((fs.length() == 0) || EMPTYSTR.equals(fs))
+                        fs = null;
+
+                    if (st.hasMoreTokens())
+                    {
+                        clo = st.nextToken();
+                        if ((clo.length() == 0) || EMPTYSTR.equals(clo))
+                            clo = null;
+                    }
                 }
             } else {
                 bs = null;
@@ -200,7 +228,7 @@ public class SOCVersion extends SOCMessage
             return null;
         }
 
-        return new SOCVersion(vn, vs, bs, lof);
+        return new SOCVersion(vn, vs, bs, fs, clo);
     }
 
     @Override
@@ -209,8 +237,8 @@ public class SOCVersion extends SOCMessage
         Message.Version.Builder vb = Message.Version.newBuilder()
             .setVersNum(versNum).setVersStr(versStr)
             .setVersBuild(versBuild);
-        if (localeOrFeats != null)
-            vb.setSrvFeats(localeOrFeats);
+        if (feats != null)
+            vb.setSrvFeats(feats);
         return Message.FromServer.newBuilder()
             .setVers(vb).build();
     }
@@ -222,7 +250,8 @@ public class SOCVersion extends SOCMessage
     {
         return "SOCVersion:" + versNum + ",str=" + versStr + ",verBuild="
             + (versBuild != null ? versBuild : "(null)")
-            + ",localeOrFeats=" + (localeOrFeats != null ? localeOrFeats : "(null)");
+            + ",feats=" + (feats != null ? feats : "(null)")
+            + ",cliLocale=" + (cliLocale != null ? cliLocale : "(null)");
     }
 
     /**

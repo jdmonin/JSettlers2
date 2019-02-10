@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file copyright (C) 2009,2013-2014,2016 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009,2013-2014,2016,2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -23,8 +23,6 @@ package soc.client;
 
 import java.awt.EventQueue;
 import java.awt.Frame;
-
-import soc.client.SOCPlayerClient.GameAwtDisplay;
 
 // TODO consider callback option; ActionListener
 
@@ -58,7 +56,7 @@ class NotifyDialog extends AskDialog
      * @throws IllegalArgumentException If cli, promptText, or btnText is null
      */
     public static NotifyDialog createAndShow
-        (GameAwtDisplay cli, Frame gamePI, String promptText, String btnText, boolean hasDefault)
+        (SOCPlayerClient.GameDisplay cli, Frame gamePI, String promptText, String btnText, boolean hasDefault)
         throws IllegalArgumentException
     {
         if (btnText == null)
@@ -82,12 +80,13 @@ class NotifyDialog extends AskDialog
      * @param hasDefault  Button is default (responds to Enter)
      * @throws IllegalArgumentException If cli or btnText is null
      */
-    protected NotifyDialog(GameAwtDisplay cli, Frame gamePI, String promptText, String btnText, boolean hasDefault)
+    protected NotifyDialog
+        (SOCPlayerClient.GameDisplay cli, Frame gamePI, String promptText, String btnText, boolean hasDefault)
     {
         super(cli,
               ((gamePI != null)
                ? gamePI
-               : getParentFrame(cli)),
+               : getParentFrame(cli.getGUIContainer())),
               promptText, promptText,
               (btnText != null) ? btnText : strings.get("base.ok"),
               hasDefault);

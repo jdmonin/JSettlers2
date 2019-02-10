@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - parameterize types, removeConnection bugfix
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -189,12 +189,14 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * <B>Locks:</B> Adding/removing/naming/versioning of connections synchronizes on {@link #unnamedConns}.
      * @see #connNames
      * @see #unnamedConns
+     * @see SOCServer#limitedConns
      */
     protected Hashtable<Object, Connection> conns = new Hashtable<Object, Connection>();
 
     /** the newly connected, unnamed client connections;
      *  Adding/removing/naming/versioning of connections synchronizes on this Vector.
      *  @see #conns
+     *  @see SOCServer#limitedConns
      */
     protected Vector<Connection> unnamedConns = new Vector<Connection>();
 

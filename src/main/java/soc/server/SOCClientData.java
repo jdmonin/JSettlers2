@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2008-2010,2013,2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008-2010,2013,2015,2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,13 +25,14 @@ import java.util.TimerTask;
 import soc.message.SOCGameOptionGetInfos;  // for javadoc
 import soc.message.SOCMessage;  // for javadoc
 import soc.server.genericServer.Connection;
+import soc.util.SOCFeatureSet;
 import soc.util.SOCGameList;
 import soc.util.SOCStringManager;  // for javadoc
 
 /**
  * The server's place to track client-specific information across games.
  * The win-loss count is kept here.
- * Not tied to any database; information here is only for the current
+ * Not tied to the optional database; information here is only for the current
  * session, not persistent across disconnects/reconnects by clients.
  *
  * @author Jeremy D Monin <jeremy@nand.net>
@@ -41,6 +42,26 @@ public class SOCClientData
 {
     /** Number of games won and lost since client connected */
     private int wins, losses;
+
+    /**
+     * Client's reported optional features, or {@code null}.
+     * Sent as an optional part of the SOCVersion message from clients 2.0.00 or newer;
+     * third-party clients or simple bots may have no features.
+     * For older 1.x.xx clients, this field has the default features from
+     * {@link SOCFeatureSet#SOCFeatureSet(boolean, boolean) new SOCFeatureSet(true, false)}.
+     * @see #hasLimitedFeats
+     * @see #scenVersion
+     * @since 2.0.00
+     */
+    public SOCFeatureSet feats;
+
+    /**
+     * If true, client is missing some optional features that the server expects
+     * the built-in client to have. This client might not be able to join some games.
+     * @see #feats
+     * @since 2.0.00
+     */
+    public boolean hasLimitedFeats;
 
     /**
      * Client's reported JVM locale, or {@code null}, as in {@link java.util.Locale#getDefault()}.
@@ -71,14 +92,14 @@ public class SOCClientData
     /**
      * If this flag is set, client has determined it wants localized strings (I18N),
      * and asked for them early in the connect process by sending a message
-     * that had {@link SOCGameOptionGetInfos#hasTokenGetI18nDescs()} true.
+     * that had {@link SOCGameOptionGetInfos#hasTokenGetI18nDescs} true.
      * Server can later check this flag to see if responses to various client request
      * messages should include localized strings.
      *<P>
      * Set this flag only if:
      * <UL>
      *  <LI> Client has sent a {@link SOCGameOptionGetInfos} request with
-     *     {@link SOCGameOptionGetInfos#hasTokenGetI18nDescs() msg.hasTokenGetI18nDescs()}
+     *     {@link SOCGameOptionGetInfos#hasTokenGetI18nDescs msg.hasTokenGetI18nDescs}
      *  <LI> {@link Connection#getI18NLocale() c.getI18NLocale()} != {@code null}
      *  <LI> {@link Connection#getVersion() c.getVersion()} &gt;= {@link SOCStringManager#VERSION_FOR_I18N};
      *     this is already implied by the client sending a message with {@code hasTokenGetI18nDescs}.
@@ -211,6 +232,13 @@ public class SOCClientData
      * @since 1.1.09
      */
     public String robot3rdPartyBrainClass;
+
+    /**
+     * Version of {@link soc.game.SOCScenario}s implemented by this client, or 0;
+     * from {@link SOCFeatureSet#CLIENT_SCENARIO_VERSION} reported in {@link #feats}.
+     * @since 2.0.00
+     */
+    public int scenVersion;
 
     /**
      * Are we considering a request to disconnect this client?
@@ -443,7 +471,7 @@ public class SOCClientData
             cliData.cliVersionTask = null;  // Clear reference to this soon-to-expire obj
             if (! cliConn.isVersionKnown())
             {
-                srv.setClientVersSendGamesOrReject(cliConn, SOCServer.CLI_VERSION_ASSUMED_GUESS, null, false);
+                srv.setClientVersSendGamesOrReject(cliConn, SOCServer.CLI_VERSION_ASSUMED_GUESS, null, null, false);
                 // will also send game list.
                 // if cli vers already known, it's already sent the list.
             }

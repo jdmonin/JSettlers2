@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2007-2010,2013,2016 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007-2010,2013,2016,2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -18,8 +18,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  **/
 package soc.client;
-
-import soc.client.SOCPlayerClient.GameAwtDisplay;
 
 /**
  * This is the dialog to ask players if they want to join an
@@ -46,7 +44,7 @@ class SOCPracticeAskDialog extends AskDialog
      * @param cli      Player client interface
      * @param gamePI   Current game's player interface
      */
-    public SOCPracticeAskDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI)
+    public SOCPracticeAskDialog(SOCPlayerClient.GameDisplay cli, SOCPlayerInterface gamePI)
     {
         super(cli, gamePI, strings.get("dialog.practiceask.in.progress"),  // "Practice game in progress"
             strings.get("dialog.practiceask.already.being.played"),  // "A practice game is already being played."

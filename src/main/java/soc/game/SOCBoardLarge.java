@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -61,7 +61,7 @@ import soc.util.IntPair;
  * In some game scenarios, players and the robber can be
  * {@link #getPlayerExcludedLandAreas() excluded} from placing in some land areas.
  *<P>
- * Server and client must be 2.0.00 or newer ({@link #VERSION_FOR_ENCODING_LARGE}).
+ * Server and client must be v2.0.00 or newer ({@link #MIN_VERSION}).
  * The board layout is sent using {@link #getLandHexLayout()} and {@link #getPortsLayout()},
  * followed by the robber hex and pirate hex (if they're &gt; 0),
  * and then (a separate message) the legal settlement/city nodes and land areas.
@@ -236,6 +236,9 @@ public class SOCBoardLarge extends SOCBoard
 {
     /** SOCBoardLarge serial, to suppress warning. SOCBoardLarge isn't sent over the network as a serialized object. */
     private static final long serialVersionUID = 2000L;
+
+    /** Minimum client and server version required: v2.0.00. */
+    public static final int MIN_VERSION = 2000;
 
     /**
      * Hex type for the Gold Hex, where the adjacent players
@@ -653,8 +656,9 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * the hex coordinate that the pirate is in, or 0; placed in {@link #makeNewBoard(Map)}.
-     * Once the pirate is placed on the board, it cannot be removed (cannot become 0 again) except
-     * in scenario {@link SOCGameOption#K_SC_PIRI}.
+     * Once the pirate is placed on the board it can't be removed (cannot become 0 again),
+     * except in scenario {@link SOCGameOption#K_SC_PIRI} when the pirate fleet is defeated
+     * (see {@link soc.server.SOCBoardAtServer#movePirateHexAlongPath(int)}).
      */
     protected int pirateHex;
 
@@ -1417,7 +1421,7 @@ public class SOCBoardLarge extends SOCBoard
      * move the pirate fleet's position along its path.
      *<P>
      * This is called at server, but not at client; client instead calls {@link #setPirateHex(int, boolean)}.
-     * Call {@code SOCBoardAtServer.movePirateHexAlongPath} instead of this stub super method.
+     * <B>See {@link soc.server.SOCBoardAtServer#movePirateHexAlongPath(int)}</B> instead of this stub super method.
      * @param numSteps  Number of steps to move along the path
      * @return  new pirate hex coordinate
      * @throws UnsupportedOperationException if called at client

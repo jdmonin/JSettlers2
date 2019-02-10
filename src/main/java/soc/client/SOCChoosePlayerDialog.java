@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2010,2012-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2010,2012-2015,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -107,7 +107,7 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener, Runnable
      *
      * @param plInt  PlayerInterface that owns this dialog
      * @param num    The number of players to choose from
-     * @param p   The player ids of those players; length of this
+     * @param p   The player IDs of those players; length of this
      *            array may be larger than count (may be {@link SOCGame#maxPlayers}).
      *            Only the first <tt>num</tt> elements will be used.
      *            If <tt>allowChooseNone</tt>, p.length must be at least <tt>num + 1</tt>
@@ -123,8 +123,8 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener, Runnable
         pi = plInt;
         number = (allowChooseNone) ? (num + 1) : num;
         players = p;
-        setBackground(new Color(255, 230, 162));
-        setForeground(Color.black);
+        setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
+        setForeground(Color.BLACK);
         setFont(new Font("SansSerif", Font.PLAIN, 12));
 
         hasCustomLayout = (number <= MAX_ON_SAME_LINE);

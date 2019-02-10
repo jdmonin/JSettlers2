@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007,2010-2013,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007,2010-2013,2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -38,6 +38,7 @@ import soc.proto.Message;
  *<P>
  *   The special inventory items in PLACING_INV_ITEM each have a different placement message, but if item placement
  *   can be canceled, use this common message type, with {@code pieceType} == -3 ({@link #INV_ITEM_PLACE_CANCEL}).
+ *   See {@link SOCInventoryItem} for when this is allowed.
  *   If placement can't be canceled, server will reply with {@link SOCGameServerText}.
  *
  *<LI> While placing the second free road or ship (PLACING_FREE_ROAD2), means
@@ -78,7 +79,7 @@ public class SOCCancelBuildRequest extends SOCMessage
     implements SOCMessageForGame
 {
     /**
-     * pieceType to cancel special {@code SOCInventoryItem} placement.
+     * pieceType to cancel special {@code SOCInventoryItem} placement; see {@link SOCCancelBuildRequest class javadoc}.
      * @since 2.0.00
      */
     public static final int INV_ITEM_PLACE_CANCEL = -3;

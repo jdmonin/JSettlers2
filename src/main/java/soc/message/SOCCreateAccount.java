@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2014,2016-2018 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,11 +30,11 @@ import java.util.StringTokenizer;
  * with status {@link SOCStatusMessage#SV_ACCT_CREATED_OK} or an error/rejection status and brief text.
  *<P>
  * In version 1.1.19 and higher, by default users must authenticate before creating user accounts.
- * (See {@link soc.util.SOCServerFeatures#FEAT_OPEN_REG}.)  If the user needs to log in but hasn't
+ * (See {@link soc.util.SOCFeatureSet#SERVER_OPEN_REG}.)  If the user needs to log in but hasn't
  * before sending {@code SOCCreateAccount}, the server replies with {@link SOCStatusMessage#SV_PW_WRONG}.
  *<P>
  * In version 1.1.20 and higher, after creating the very first account the reply status is
- * {@link SOCStatusMessage#SV_ACCT_CREATED_OK_FIRST_ONE} unless {@code FEAT_OPEN_REG} is active.
+ * {@link SOCStatusMessage#SV_ACCT_CREATED_OK_FIRST_ONE} unless {@code SERVER_OPEN_REG} is active.
  *
  * @author Robert S Thomas
  */

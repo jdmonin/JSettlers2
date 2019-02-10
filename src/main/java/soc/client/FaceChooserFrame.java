@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file copyright (C) 2007,2013,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007,2013,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,20 +21,15 @@
 package soc.client;
 
 import java.awt.BorderLayout;
-import java.awt.Button;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.Label;
 import java.awt.MouseInfo;
-import java.awt.Panel;
 import java.awt.Point;
-import java.awt.Scrollbar;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
@@ -43,6 +38,15 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollBar;
+import javax.swing.SwingConstants;
+import javax.swing.WindowConstants;
+import javax.swing.border.EmptyBorder;
 
 import soc.game.SOCGame;
 
@@ -59,7 +63,7 @@ import soc.game.SOCGame;
  */
 @SuppressWarnings("serial")
 public class FaceChooserFrame
-    extends Frame implements ActionListener, WindowListener, KeyListener
+    extends JFrame implements ActionListener, WindowListener, KeyListener
 {
     /** Face button that launched us. Passed to constructor, not null. */
     protected SOCFaceButton fb;
@@ -80,13 +84,13 @@ public class FaceChooserFrame
     protected FaceChooserList fcl;
 
     /** Button for confirm change */
-    protected Button changeFaceBut;
+    protected JButton changeFaceBut;
 
     /** Button for cancel */
-    protected Button cancelBut;
+    protected JButton cancelBut;
 
     /** Label to prompt to choose a new face */
-    protected Label promptLbl;
+    protected JLabel promptLbl;
 
     /**
      * Is this still visible and interactive? (vs already dismissed)
@@ -115,6 +119,7 @@ public class FaceChooserFrame
         throws IllegalArgumentException
     {
         super(strings.get("facechooser.title", gamePI.getGame().getName(), cli.getNickname()));
+            // "Choose Face Icon: {0} [{1}]"
 
         if (fbutton == null)
             throw new IllegalArgumentException("fbutton cannot be null");
@@ -130,15 +135,21 @@ public class FaceChooserFrame
         faceWidthPx = faceWidth;
         stillAvailable = true;
 
-        setBackground(new Color(255, 230, 162));  // Actual face-icon backgrounds will match player.
-        setForeground(Color.black);
+        setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);  // Actual face-icon backgrounds will match player.
+        setForeground(Color.BLACK);
         setFont(new Font("Dialog", Font.PLAIN, 12));
+        getRootPane().setBackground(null);  // inherit
+        getContentPane().setBackground(null);
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
-        changeFaceBut = new Button(strings.get("base.change"));
-        cancelBut = new Button(strings.get("base.cancel"));
+        changeFaceBut = new JButton(strings.get("base.change"));
+        changeFaceBut.setBackground(null);  // avoid gray corners on win32
+        cancelBut = new JButton(strings.get("base.cancel"));
+        cancelBut.setBackground(null);
         setLayout (new BorderLayout());
 
-        promptLbl = new Label(strings.get("facechooser.prompt"), Label.LEFT);
+        promptLbl = new JLabel(strings.get("facechooser.prompt"), SwingConstants.LEFT);  // "Choose your face icon."
+        promptLbl.setBorder(new EmptyBorder(4, 4, 4, 4));
         add(promptLbl, BorderLayout.NORTH);
 
         fcl = new FaceChooserList(this, faceID);
@@ -153,8 +164,9 @@ public class FaceChooserFrame
             setLocationRelativeTo(gamePI);
         }
 
-        Panel pBtns = new Panel();
+        JPanel pBtns = new JPanel();
         pBtns.setLayout(new FlowLayout(FlowLayout.CENTER));
+        pBtns.setBackground(null);
 
         pBtns.add(changeFaceBut);
         changeFaceBut.addActionListener(this);
@@ -164,9 +176,7 @@ public class FaceChooserFrame
 
         add(pBtns, BorderLayout.SOUTH);
 
-        // Now that we've added buttons to the dialog layout,
-        // we can get their font and adjust style of default button.
-        AskDialog.styleAsDefault(changeFaceBut);
+        getRootPane().setDefaultButton(changeFaceBut);
 
         addWindowListener(this);  // To handle close-button
         addKeyListener(this);     // To handle Enter, Esc keys.
@@ -449,7 +459,7 @@ public class FaceChooserFrame
         private FaceChooserRow[] visibleFaceGrid;
 
         private boolean needsScroll;  // Scrollbar required?
-        private Scrollbar faceSB;
+        private JScrollBar faceSB;
 
         /** Desired size (visible size inside of insets; not incl scrollW) **/
         protected int wantW, wantH;
@@ -515,7 +525,8 @@ public class FaceChooserFrame
             }
             if (needsScroll)
             {
-                faceSB = new Scrollbar(Scrollbar.VERTICAL, currentRow,
+                faceSB = new JScrollBar
+                       (JScrollBar.VERTICAL, currentRow,
                         /* number-rows-visible */ faceRowsHeight,
                         0, rowCount );
                     // Range 0 to rowCount per API note: "actual maximum value is
@@ -981,14 +992,17 @@ public class FaceChooserFrame
                     fb.addKeyListener(fcf);
                     add (fb);
                 }
+
                 if (numFaces < FaceChooserList.rowFacesWidth)
                 {
                     // The grid will be left-justified by FaceChooserList's layout.
                     // Fill blanks with the proper background color.
+                    final Color bg = faces[0].getBackground();
                     for (int i = numFaces; i < FaceChooserList.rowFacesWidth; ++i)
                     {
-                        Label la = new Label("");
-                        la.setBackground(faces[0].getBackground());
+                        JLabel la = new JLabel();
+                        la.setBackground(bg);
+                        la.setOpaque(true);
                         add (la);
                     }
                 }

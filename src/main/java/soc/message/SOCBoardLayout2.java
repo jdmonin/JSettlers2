@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2014,2016-2018 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -80,6 +80,17 @@ import soc.util.DataUtils;
  * client via {@link #getIntArrayPart(String) getIntArrayPart("HL")}.
  * Value mapping is not needed for <tt>LH</tt> introduced in v2.0.00
  * for {@link SOCBoard#BOARD_ENCODING_LARGE} ("v3").
+ *
+ *<H4>Optimization:</H4>
+ * For v2.0.00 and newer servers and clients ({@link SOCBoardLayout#VERSION_FOR_OMIT_IF_EMPTY_NEW_GAME}):
+ *<P>
+ * For original 4- and 6-player board encodings (v1 and v2, not v3 sea board), and if
+ * the game is still forming (state {@link soc.game.SOCGame#NEW}),
+ * client already has data for the empty board. If so, no board layout message
+ * is sent to the client.
+ *<P>
+ * If Sea Board, the layout must be sent, to set the "VS" part and other data useful for initial rendering.
+ * The empty-board message for Sea Board is compact, omitting the sea hexes.
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  * @see SOCBoardLayout

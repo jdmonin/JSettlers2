@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, type parameterization, GUI API updates, etc
  *
@@ -22,7 +22,6 @@
  **/
 package soc.client;
 
-import soc.client.SOCPlayerClient.GameAwtDisplay;
 import soc.client.stats.SOCGameStatistics;
 import soc.debug.D;  // JM
 
@@ -107,7 +106,7 @@ import javax.sound.sampled.LineUnavailableException;
  *<P>
  * <B>Local preferences:</B>
  * For optional per-game preferences like {@link #PREF_SOUND_MUTE}, see {@code localPrefs} parameter in
- * the {@link #SOCPlayerInterface(String, GameAwtDisplay, SOCGame, Map)} constructor javadoc.
+ * the {@link #SOCPlayerInterface(String, SOCPlayerClient.GameDisplay, SOCGame, Map)} constructor javadoc.
  * The current game's prefs are shown and changed with {@link NewGameOptionsFrame}.
  * Local prefs are not saved persistently like client preferences
  * ({@link SOCPlayerClient#PREF_SOUND_ON} etc) are.
@@ -125,6 +124,15 @@ public class SOCPlayerInterface extends Frame
     implements ActionListener, MouseListener, SOCScenarioEventListener,
     PlayerClientListener.NonBlockingDialogDismissListener
 {
+    /**
+     * The classic JSettlers goldenrod dialog background color; pale yellow-orange tint #FFE6A2.
+     * Typically used with foreground {@link Color#BLACK}, like in game/chat text areas,
+     * {@link TradeOfferPanel}, and {@link AskDialog}.
+     * @since 2.0.00
+     * @see SOCPlayerClient#JSETTLERS_BG_GREEN
+     */
+    public static final Color DIALOG_BG_GOLDENROD = new Color(255, 230, 162);
+
     /**
      * Boolean per-game preference to mute all sound effects in this game.
      * For use with constructor's {@code localPrefs} parameter. Default value is {@code false}.
@@ -426,7 +434,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * the display that spawned us
      */
-    protected GameAwtDisplay gameDisplay;
+    protected SOCPlayerClient.GameDisplay gameDisplay;
 
     protected SOCPlayerClient client;
 
@@ -536,7 +544,7 @@ public class SOCPlayerInterface extends Frame
      * Another value can be specified in our constructor's {@code localPrefs} param.
      * @since 1.2.00
      */
-    private int botTradeRejectSec = SOCPlayerClient.GameAwtDisplay.getUserPreference
+    private int botTradeRejectSec = SOCPlayerClient.UserPreferences.getPref
         (SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC, -8);
 
     /**
@@ -633,10 +641,11 @@ public class SOCPlayerInterface extends Frame
      * @throws IllegalArgumentException if a {@code localPrefs} value isn't the expected type
      *     ({@link Integer} or {@link Boolean}) based on its key's javadoc.
      */
-    public SOCPlayerInterface(String title, GameAwtDisplay gd, SOCGame ga, final Map<String, Object> localPrefs)
+    public SOCPlayerInterface(String title, SOCPlayerClient.GameDisplay gd, SOCGame ga, final Map<String, Object> localPrefs)
         throws IllegalArgumentException
     {
-        super(strings.get("interface.title.game", title) + (ga.isPractice ? "" : " [" + gd.getNickname() + "]"));
+        super(strings.get("interface.title.game", title)
+              + (ga.isPractice ? "" : " [" + gd.getClient().getNickname() + "]"));
             // "Settlers of Catan Game: {0}"
 
         layoutNotReadyYet = true;  // will set to false at end of doLayout
@@ -685,7 +694,7 @@ public class SOCPlayerInterface extends Frame
         playerColors[3] = new Color(249, 128,  29); // orange
         if (is6player)
         {
-            playerColors[4] = new Color(97, 151, 113); // almost same green as playerclient bg (97, 175, 113 #61AF71)
+            playerColors[4] = new Color(97, 151, 113); // almost same green as playerclient.JSETTLERS_BG_GREEN #61AF71
             playerColors[5] = playerColors[3];  // orange
             playerColors[3] = new Color(166, 88, 201);  // violet
         }
@@ -733,9 +742,9 @@ public class SOCPlayerInterface extends Frame
 
         // check window frame size preference if set
         {
-            int prefWidth = SOCPlayerClient.GameAwtDisplay.getUserPreference(SOCPlayerClient.PREF_PI__WIDTH, -1);
+            int prefWidth = SOCPlayerClient.UserPreferences.getPref(SOCPlayerClient.PREF_PI__WIDTH, -1);
             int prefHeight = (prefWidth != -1)
-                ? SOCPlayerClient.GameAwtDisplay.getUserPreference(SOCPlayerClient.PREF_PI__HEIGHT, HEIGHT_MIN_4PL)
+                ? SOCPlayerClient.UserPreferences.getPref(SOCPlayerClient.PREF_PI__HEIGHT, HEIGHT_MIN_4PL)
                 : 0;
             if (prefWidth != -1)
             {
@@ -899,8 +908,8 @@ public class SOCPlayerInterface extends Frame
 
         textDisplay = new SnippingTextArea("", 40, 80, TextArea.SCROLLBARS_VERTICAL_ONLY, 80);
         textDisplay.setFont(new Font("SansSerif", Font.PLAIN, 10));
-        textDisplay.setBackground(new Color(255, 230, 162));
-        textDisplay.setForeground(Color.black);
+        textDisplay.setBackground(DIALOG_BG_GOLDENROD);
+        textDisplay.setForeground(Color.BLACK);
         textDisplay.setEditable(false);
         add(textDisplay);
         if (is6player)
@@ -908,8 +917,8 @@ public class SOCPlayerInterface extends Frame
 
         chatDisplay = new SnippingTextArea("", 40, 80, TextArea.SCROLLBARS_VERTICAL_ONLY, 100);
         chatDisplay.setFont(new Font("SansSerif", Font.PLAIN, 10));
-        chatDisplay.setBackground(new Color(255, 230, 162));
-        chatDisplay.setForeground(Color.black);
+        chatDisplay.setBackground(DIALOG_BG_GOLDENROD);
+        chatDisplay.setForeground(Color.BLACK);
         chatDisplay.setEditable(false);
         if (is6player)
             chatDisplay.addMouseListener(this);
@@ -926,8 +935,8 @@ public class SOCPlayerInterface extends Frame
 
         FontMetrics fm = this.getFontMetrics(textInput.getFont());
         textInput.setSize(SOCBoardPanel.PANELX, fm.getHeight() + 4);
-        textInput.setBackground(Color.white);  // new Color(255, 230, 162));
-        textInput.setForeground(Color.black);
+        textInput.setBackground(Color.WHITE);  // before v1.1.00 was new Color(255, 230, 162) aka DIALOG_BG_GOLDENROD
+        textInput.setForeground(Color.BLACK);
         textInput.setEditable(false);
         textInputIsInitial = false;  // due to "please wait"
         textInput.setText(strings.get("base.please.wait"));  // "Please wait..."
@@ -1102,7 +1111,7 @@ public class SOCPlayerInterface extends Frame
      * @return the game display associated with this interface
      * @since 2.0.00
      */
-    public GameAwtDisplay getGameDisplay()
+    public SOCPlayerClient.GameDisplay getGameDisplay()
     {
         return gameDisplay;
     }
@@ -1216,7 +1225,8 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * @return the timer for time-driven events in the interface
+     * Get the timer for time-driven events in the interface.
+     * Same timer as {@link SOCPlayerClient.GameDisplay#getEventTimer()}.
      *
      * @see SOCHandPanel#autoRollSetupTimer()
      * @see SOCBoardPanel#popupSetBuildRequest(int, int)
@@ -1246,8 +1256,8 @@ public class SOCPlayerInterface extends Frame
         if ((w < 100) || (h < 100))
             return;  // sanity check
 
-        SOCPlayerClient.GameAwtDisplay.putUserPreference(SOCPlayerClient.PREF_PI__WIDTH, w);
-        SOCPlayerClient.GameAwtDisplay.putUserPreference(SOCPlayerClient.PREF_PI__HEIGHT, h);
+        SOCPlayerClient.UserPreferences.putPref(SOCPlayerClient.PREF_PI__WIDTH, w);
+        SOCPlayerClient.UserPreferences.putPref(SOCPlayerClient.PREF_PI__HEIGHT, h);
     }
 
     /**
@@ -1659,7 +1669,7 @@ public class SOCPlayerInterface extends Frame
      * @param cmd  Local client command string, which starts with \
      * @return true if a command was handled
      * @since 2.0.00
-     * @see SOCPlayerClient.GameAwtDisplay#doLocalCommand(String, String)
+     * @see SOCPlayerClient.SwingGameDisplay#doLocalCommand(String, String)
      */
     private boolean doLocalCommand(String cmd)
     {
@@ -3330,7 +3340,7 @@ public class SOCPlayerInterface extends Frame
          */
         if (layoutNotReadyYet)
         {
-            gameDisplay.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            gameDisplay.clearWaitingStatus(false);
             layoutNotReadyYet = false;
             repaint();
         }
@@ -3929,7 +3939,7 @@ public class SOCPlayerInterface extends Frame
             pi.chatPrint("::: " + msg + " :::");
         }
 
-        public void messageSent(String nickname, String message)
+        public void messageReceived(String nickname, String message)
         {
             if (nickname == null)
             {
@@ -4284,7 +4294,8 @@ public class SOCPlayerInterface extends Frame
          * @param requester  Name of player requesting the reset
          * @param gameIsOver The game is over - "Reset" button should be default (if not over, "Continue" is default)
          */
-        protected ResetBoardVoteDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI, String requester, boolean gameIsOver)
+        protected ResetBoardVoteDialog
+            (SOCPlayerClient.GameDisplay cli, SOCPlayerInterface gamePI, String requester, boolean gameIsOver)
         {
             super(cli, gamePI, strings.get("reset.board.for.game", gamePI.getGame().getName()),  // "Reset board for game {0}?"
                 (gameIsOver
@@ -4471,7 +4482,7 @@ public class SOCPlayerInterface extends Frame
          * @param cli      Player client interface
          * @param gamePI   Current game's player interface
          */
-        private ResetBoardConfirmDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI)
+        private ResetBoardConfirmDialog(SOCPlayerClient.GameDisplay cli, SOCPlayerInterface gamePI)
         {
             super(cli, gamePI, strings.get("reset.restart.game"),  // "Restart game?"
                 strings.get("reset.board.new"),  // "Reset the board and start a new game?"
@@ -4511,10 +4522,10 @@ public class SOCPlayerInterface extends Frame
      */
     private static class PIWindowAdapter extends WindowAdapter
     {
-        private final GameAwtDisplay gd;
+        private final SOCPlayerClient.GameDisplay gd;
         private final SOCPlayerInterface pi;
 
-        public PIWindowAdapter(GameAwtDisplay gd, SOCPlayerInterface spi)
+        public PIWindowAdapter(SOCPlayerClient.GameDisplay gd, SOCPlayerInterface spi)
         {
             this.gd = gd;
             pi = spi;
@@ -4659,7 +4670,7 @@ public class SOCPlayerInterface extends Frame
         /**
          * Create a new SOCPIDiscardOrPickMsgTask.
          * After creating, you must schedule it
-         * with {@link SOCPlayerClient.GameAwtDisplay#getEventTimer()}.{@link Timer#schedule(TimerTask, long) schedule(msgTask,delay)} .
+         * with {@link SOCPlayerClient.GameDisplay#getEventTimer()}.{@link Timer#schedule(TimerTask, long) schedule(msgTask,delay)} .
          * @param spi  Our player interface
          * @param forDiscard  True for discard, false for picking gold-hex resources
          */
@@ -4790,7 +4801,7 @@ public class SOCPlayerInterface extends Frame
 
         public void run()
         {
-            if (soundMuted || ! SOCPlayerClient.GameAwtDisplay.getUserPreference(SOCPlayerClient.PREF_SOUND_ON, true))
+            if (soundMuted || ! SOCPlayerClient.UserPreferences.getPref(SOCPlayerClient.PREF_SOUND_ON, true))
                 return;
 
             try

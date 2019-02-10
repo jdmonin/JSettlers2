@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -37,20 +37,27 @@ import java.util.Vector;
  * The list itself, and each channel, has a monitor for synchronization.
  *
  * @author Robert S. Thomas
+ * @see SOCGameListAtServer
  */
 public class SOCChannelList
 {
     /** key = string, value = Vector of MutexFlags */
-    protected Hashtable<String, MutexFlag> channelMutexes;
+    protected final Hashtable<String, MutexFlag> channelMutexes;
 
     /** Clients talking in this channel. key = string, value = Vector of {@link Connection}s */
-    protected Hashtable<String,Vector<Connection>> channelMembers;
+    protected final Hashtable<String,Vector<Connection>> channelMembers;
+
+    /**
+     * Each channel's buffer of recent chat text.
+     * @since 2.0.00
+     */
+    protected final Hashtable<String, SOCChatRecentBuffer> channelChatBuffer;
 
     /** Each channel's creator/owner name.
      * key = string, value = Vector of Strings.
      * @since 1.1.10
      */
-    protected Hashtable<String, String> channelOwners;
+    protected final Hashtable<String, String> channelOwners;
 
     /** track the monitor for this channel list */
     protected boolean inUse;
@@ -62,6 +69,7 @@ public class SOCChannelList
     {
         channelMutexes = new Hashtable<String, MutexFlag>();
         channelMembers = new Hashtable<String, Vector<Connection>>();
+        channelChatBuffer = new Hashtable<String, SOCChatRecentBuffer>();
         channelOwners = new Hashtable<String, String>();
         inUse = false;
     }
@@ -197,6 +205,18 @@ public class SOCChannelList
     }
 
     /**
+     * Get a channel's recent-chat buffer.
+     * @param chName  channel name
+     * @return  Channel's chat buffer
+     * @since 2.0.00
+     */
+    public SOCChatRecentBuffer getChatBuffer(final String chName)
+    {
+        return channelChatBuffer.get(chName);
+    }
+
+    /**
+     * Get a channel's members (client connections).
      * @param   chName  channel name
      * @return  list of members
      */
@@ -315,16 +335,16 @@ public class SOCChannelList
     public synchronized void createChannel(final String chName, final String chOwner)
         throws NullPointerException
     {
-        if (!isChannel(chName))
-        {
-            MutexFlag mutex = new MutexFlag();
-            channelMutexes.put(chName, mutex);
+        if (isChannel(chName))
+            return;
 
-            Vector<Connection> members = new Vector<Connection>();
-            channelMembers.put(chName, members);
+        channelMutexes.put(chName, new MutexFlag());
 
-            channelOwners.put(chName, chOwner);  // throws NullPointerException
-        }
+        channelMembers.put(chName, new Vector<Connection>());
+
+        channelChatBuffer.put(chName, new SOCChatRecentBuffer());
+
+        channelOwners.put(chName, chOwner);  // throws NullPointerException if chOwner null
     }
 
     /**
@@ -336,6 +356,10 @@ public class SOCChannelList
     {
         D.ebugPrintln("SOCChannelList : deleteChannel(" + chName + ")");
         channelMembers.remove(chName);
+
+        SOCChatRecentBuffer buf = channelChatBuffer.remove(chName);
+        if (buf != null)
+            buf.clear();
 
         MutexFlag mutex = channelMutexes.get(chName);
         channelMutexes.remove(chName);

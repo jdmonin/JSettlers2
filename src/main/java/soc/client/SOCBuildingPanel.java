@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014,2016-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014,2016-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net> - GameStatisticsFrame
  *
  * This program is free software; you can redistribute it and/or
@@ -55,6 +55,12 @@ public class SOCBuildingPanel extends Panel
 {
     /** i18n text strings */
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+
+    /**
+     * Background color; olive green #9CB35E. Used with foreground {@link Color#BLACK}.
+     * @since 2.0.00
+     */
+    private static final Color BUILDPAN_BG_OLIVE_GREEN = new Color(156, 179, 94);
 
     static final String ROAD = "road";  // I18N: These are internal command labels, not user-visible strings
     static final String STLMT = "stlmt";  // Build Settlement
@@ -199,8 +205,8 @@ public class SOCBuildingPanel extends Panel
         this.player = null;
         this.pi = pi;
 
-        setBackground(new Color(156, 179, 94));
-        setForeground(Color.black);
+        setBackground(BUILDPAN_BG_OLIVE_GREEN);
+        setForeground(Color.BLACK);
         setFont(new Font("Dialog", Font.PLAIN, 10));
 
         /*

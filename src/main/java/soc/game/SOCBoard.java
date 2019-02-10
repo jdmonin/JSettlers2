@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -50,7 +50,7 @@ import java.util.Vector;
  * To identify nearby nodes, edges, hexes, etc, use the methods
  * with names such as {@link #getAdjacentHexesToNode(int)}.
  *<P>
- * Other methods to examine the board: {@link SOCGame#getPlayersOnHex(int)},
+ * Other methods to examine the board: {@link SOCGame#getPlayersOnHex(int, java.util.Set)},
  * {@link SOCGame#putPiece(SOCPlayingPiece)}, etc.
  *<P>
  * <h4> Geometry/Navigation methods: </h4>
@@ -318,7 +318,8 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *<P>
      * Activated with {@link SOCGameOption} {@code "SBL"}.
      *<P>
-     * Although this is encoding "v3", it was added to JSettlers in v2.0.00.
+     * Although this is encoding "v3", it was added to JSettlers in v2.0.00
+     * ({@link SOCBoardLarge#MIN_VERSION}).
      * @since 2.0.00
      */
     public static final int BOARD_ENCODING_LARGE = 3;

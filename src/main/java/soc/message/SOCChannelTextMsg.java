@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2014,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -39,7 +39,7 @@ public class SOCChannelTextMsg extends SOCMessage
     private static final long serialVersionUID = 100L;  // last structural change v1.0.0 or earlier
 
     /**
-     * our token seperator
+     * Our token separator; to avoid collision with any possible text from user, not the normal {@link SOCMessage#sep2}
      */
     private static String sep2 = "" + (char) 0;
 
@@ -49,12 +49,14 @@ public class SOCChannelTextMsg extends SOCMessage
     private String channel;
 
     /**
-     * Nickname of sender
+     * Nickname of sender, or {@link SOCGameTextMsg#SERVER_FOR_CHAT}
      */
     private String nickname;
 
     /**
-     * Text message contents
+     * Text message contents.
+     * For expected format when {@link #nickname} is {@link SOCGameTextMsg#SERVER_FOR_CHAT},
+     * see that nickname constant's javadoc.
      */
     private String text;
 
@@ -62,7 +64,10 @@ public class SOCChannelTextMsg extends SOCMessage
      * Create a ChannelTextMsg message.
      *
      * @param ch  name of chat channel
-     * @param nn  nickname of sender
+     * @param nn  nickname of sender;
+     *     announcements from the server (not from a player) use {@link SOCGameTextMsg#SERVER_FOR_CHAT}
+     * @param tm  text message. For expected format when {@code nn} is {@link SOCGameTextMsg#SERVER_FOR_CHAT},
+     *     see that constant's javadoc.
      * @param tm  text message
      */
     public SOCChannelTextMsg(String ch, String nn, String tm)
@@ -82,7 +87,8 @@ public class SOCChannelTextMsg extends SOCMessage
     }
 
     /**
-     * @return the nickname
+     * @return the nickname, or {@link SOCGameTextMsg#SERVER_FOR_CHAT} ({@code ":"})
+     *     for server messages which should appear in the chat area (recap, etc)
      */
     public String getNickname()
     {
@@ -90,7 +96,9 @@ public class SOCChannelTextMsg extends SOCMessage
     }
 
     /**
-     * @return the text message
+     * @return the text message.
+     *    For expected format when {@link #getNickname()} is {@link SOCGameTextMsg#SERVER_FOR_CHAT},
+     *    see that constant's javadoc.
      */
     public String getText()
     {

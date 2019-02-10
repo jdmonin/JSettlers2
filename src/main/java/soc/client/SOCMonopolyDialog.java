@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2012-2014,2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012-2014,2018-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,22 +20,35 @@
  **/
 package soc.client;
 
-import java.awt.Button;
+import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dialog;
-import java.awt.Font;
-import java.awt.Label;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRootPane;
+import javax.swing.WindowConstants;
 
 
 @SuppressWarnings("serial")
-class SOCMonopolyDialog extends Dialog implements ActionListener, Runnable
+class SOCMonopolyDialog extends JDialog implements ActionListener, Runnable
 {
-    Button[] rsrcBut;
+    final JButton[] rsrcBut;
     /** Prompt message. Text alignment is centered. */
-    Label msg;
-    SOCPlayerInterface pi;
+    final JLabel msg;
+    final SOCPlayerInterface pi;
 
     /** i18n text strings; will use same locale as SOCPlayerClient's string manager.
      *  @since 2.0.00 */
@@ -51,30 +64,96 @@ class SOCMonopolyDialog extends Dialog implements ActionListener, Runnable
         super(pi, strings.get("spec.dcards.monopoly"), true);  // "Monopoly"
 
         this.pi = pi;
-        setBackground(new Color(255, 230, 162));
-        setForeground(Color.black);
-        setFont(new Font("SansSerif", Font.PLAIN, 12));
-        setLayout(null);
-        addNotify();
-        setSize(280, 160);
 
-        msg = new Label(strings.get("dialog.mono.please.pick.resource"), Label.CENTER);
+        final JRootPane rpane = getRootPane();
+        final Container cpane = getContentPane();
+
+        rpane.setBorder(BorderFactory.createEmptyBorder(5, 20, 20, 20));
+        rpane.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
+        rpane.setForeground(Color.BLACK);
+        cpane.setBackground(null);  // inherit from parent
+        cpane.setForeground(null);
+
+        msg = new JLabel(strings.get("dialog.mono.please.pick.resource"), JLabel.CENTER);
             // "Please pick a resource to monopolize."
-        add(msg);
+        add(msg, BorderLayout.PAGE_START);  // NORTH
 
-        rsrcBut = new Button[5];
+        // The actual content of this dialog is btnsPane, a narrow stack of 5 rows, 1 per resource type.
+        // Each row has 1 resource type's colorsquare and a button with its name.
+        // This stack of rows is centered horizontally in the larger container,
+        // and doesn't fill the entire width. Since the content pane's BorderLayout wants to
+        // stretch things to fill its center, to leave space on the left and right
+        // we wrap btnsPane in a larger btnsContainer ordered horizontally.
 
-        rsrcBut[0] = new Button(strings.get("resources.clay"));   // "Clay"
-        rsrcBut[1] = new Button(strings.get("resources.ore"));    // "Ore"
-        rsrcBut[2] = new Button(strings.get("resources.sheep"));  // "Sheep"
-        rsrcBut[3] = new Button(strings.get("resources.wheat"));  // "Wheat"
-        rsrcBut[4] = new Button(strings.get("resources.wood"));   // "Wood"
+        final JPanel btnsContainer = new JPanel();
+        btnsContainer.setLayout(new BoxLayout(btnsContainer, BoxLayout.X_AXIS));
+        btnsContainer.setBackground(null);
+        btnsContainer.setForeground(null);
 
-        for (int i = 0; i < 5; i++)
+        // In center of btnContainer, the stack of resource buttons:
+        final GridBagLayout gbl = new GridBagLayout();
+        final GridBagConstraints gbc = new GridBagConstraints();
+        final JPanel btnsPane = new JPanel(gbl)
         {
-            add(rsrcBut[i]);
-            rsrcBut[i].addActionListener(this);
+            /**
+             * Override to prevent some unwanted extra width, because default max is 32767 x 32767
+             * and parent's BoxLayout adds some proportion of that, based on its overall container width
+             * beyond btnsPane's minimum/preferred width.
+             */
+            public Dimension getMaximumSize() { return getPreferredSize(); }
+        };
+        btnsPane.setBackground(null);
+        btnsPane.setForeground(null);
+        btnsPane.setAlignmentX(CENTER_ALIGNMENT);  // center btnsPane within entire content pane
+        btnsPane.setBorder
+            (BorderFactory.createEmptyBorder(9, 0, 0, 0));  // space between prompt label and resource rows
+
+        rsrcBut = new JButton[5];
+        final String[] rsrcStr
+            = { "resources.clay", "resources.ore", "resources.sheep", "resources.wheat", "resources.wood" };
+        for (int i = 0; i < 5; ++i)
+        {
+            // Need to use the wrong color, then change it, in order to
+            // not use AWTToolTips (redraw problem when in a JDialog).
+            // See also SOCDiscardOrGainResDialog which uses the same tooltip-avoidance code.
+            final Color sqColor = ColorSquare.RESOURCE_COLORS[i];
+
+            ColorSquareLarger sq = new ColorSquareLarger(Color.WHITE);
+            sq.setBackground(sqColor);
+
+            JButton b = new JButton(strings.get(rsrcStr[i]));
+            b.setBackground(null);  // needed to avoid gray corners on win32
+            b.addActionListener(this);
+            rsrcBut[i] = b;
+
+            // add to layout; stretch buttons so they all have the same width, but don't stretch colorsquare
+
+            gbc.anchor = GridBagConstraints.CENTER;
+            gbc.fill = GridBagConstraints.NONE;
+            gbc.gridwidth = 1;
+            gbl.setConstraints(sq, gbc);
+            btnsPane.add(sq);
+
+            gbc.anchor = GridBagConstraints.LINE_START;
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            gbc.gridwidth = GridBagConstraints.REMAINDER;
+            gbl.setConstraints(b, gbc);
+            btnsPane.add(b);
         }
+
+        btnsContainer.add(Box.createHorizontalGlue());
+        btnsContainer.add(btnsPane);
+        btnsContainer.add(Box.createHorizontalGlue());
+
+        add(btnsContainer, BorderLayout.CENTER);
+
+        pack();
+        setLocationRelativeTo(pi);  // will center dialog in game window
+
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent we) { }  // don't close
+        });
     }
 
     /**
@@ -86,40 +165,6 @@ class SOCMonopolyDialog extends Dialog implements ActionListener, Runnable
 
         if (b)
             rsrcBut[0].requestFocus();
-    }
-
-    /**
-     * Do our dialog's custom layout: Prompt message, row of 2 resource buttons, of 3 resource buttons.
-     * Put the dialog in the center of the parent game window.
-     */
-    public void doLayout()
-    {
-        int width = getSize().width - getInsets().left - getInsets().right;
-        int height = getSize().height - getInsets().top - getInsets().bottom;
-        int space = 5;
-
-        int pix = pi.getInsets().left;
-        int piy = pi.getInsets().top;
-        int piwidth = pi.getSize().width - pi.getInsets().left - pi.getInsets().right;
-        int piheight = pi.getSize().height - pi.getInsets().top - pi.getInsets().bottom;
-
-        int buttonW = 60;
-        int button2X = (width - ((2 * buttonW) + space)) / 2;
-        int button3X = (width - ((3 * buttonW) + (2 * space))) / 2;
-
-        /* put the dialog in the center of the game window */
-        setLocation(pix + ((piwidth - width) / 2), piy + ((piheight - height) / 2));
-
-        try
-        {
-            msg.setBounds(getInsets().left, getInsets().top, width, 20);
-            rsrcBut[0].setBounds(button2X, (getInsets().bottom + height) - (50 + (2 * space)), buttonW, 25);
-            rsrcBut[1].setBounds(button2X + buttonW + space, (getInsets().bottom + height) - (50 + (2 * space)), buttonW, 25);
-            rsrcBut[2].setBounds(button3X, (getInsets().bottom + height) - (25 + space), buttonW, 25);
-            rsrcBut[3].setBounds(button3X + space + buttonW, (getInsets().bottom + height) - (25 + space), buttonW, 25);
-            rsrcBut[4].setBounds(button3X + (2 * (space + buttonW)), (getInsets().bottom + height) - (25 + space), buttonW, 25);
-        }
-        catch (NullPointerException e) {}
     }
 
     /**

@@ -3,7 +3,7 @@
  *
  * This file copyright (c)2000 IoS Gesellschaft fr innovative Softwareentwicklung mbH
  * http://www.IoS-Online.de    mailto:info@IoS-Online.de
- * Portions of this file copyright (c) 2007-2009,2011,2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (c) 2007-2009,2011,2016,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * originally from (GPL'd) de.ios.framework.gui.ExpandTooltip;
  * using for jsettlers AWT tooltip
@@ -29,6 +29,8 @@ import java.applet.Applet;
 import java.awt.*;
 import java.awt.event.*;
 
+import javax.swing.JComponent;
+
 /**
  * A short tooltip for a non-Swing component.
  * Does not handle component resize or moving, but will respond to hide/un-hide.
@@ -37,6 +39,9 @@ import java.awt.event.*;
  *<P>
  * The tooltip adds itself as a listener to the parent component.
  * If you need to remove this tooltip from the parent, call {@link #destroy()}.
+ *<P>
+ * This is for AWT, not Swing, components: For Swing, call {@link JComponent#setToolTipText(String)} instead.
+ * Swing does not tolerate the dynamic layout manager changes made by AWTToolTip as the mouse moves.
  *
  * @since 1.1.00
  */
@@ -118,13 +123,18 @@ public class AWTToolTip
    *
    * @param _comp the Component which this Tooltip describes.
    * @param _tip Text to show; single line.
+   * @throws  IllegalArgumentException if {@code tip} or {@code comp} is {@code null},
+   *     or if {@code} comp is a Swing {@link JComponent}
    */
   public AWTToolTip(String _tip, Component _comp)
+    throws IllegalArgumentException
   {
     if (_tip == null)
       throw new IllegalArgumentException("tip null");
     if (_comp == null)
       throw new IllegalArgumentException("comp null");
+    if (_comp instanceof JComponent)
+      throw new IllegalArgumentException("needs AWT but _comp is Swing " + _comp.getClass());
     parentComp = _comp;
     autoPopup = true;
     tip = _tip;

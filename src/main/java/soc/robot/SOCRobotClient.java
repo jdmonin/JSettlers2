@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@ import soc.server.genericServer.StringServerSocket;
 
 import soc.util.CappedQueue;
 import soc.util.CutoffExceededException;
+import soc.util.SOCFeatureSet;
 import soc.util.SOCRobotParameters;
 import soc.util.Version;
 
@@ -84,6 +85,7 @@ import java.util.Vector;
  * <LI> Update {@link #rbclass} value before calling {@link #init()}
  * <LI> Override {@link #createBrain(SOCRobotParameters, SOCGame, CappedQueue)}
  *      to provide your subclass of {@link SOCRobotBrain}
+ * <LI> Override {@link #buildClientFeats()} if your bot's optional client features differ from the standard bot
  *</UL>
  * See {@link soc.robot.sample3p.Sample3PClient} for a trivial example subclass.
  *
@@ -166,13 +168,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * When {@link #debugRandomPause} is true but not {@link #debugRandomPauseActive},
      * frequency of activating it; checked for each non-{@link SOCGameTextMsg}
      * and non-{@link SOCGameServerText} message received during our own turn.
+     * Default is 0.04 (4%).
      * @since 1.1.11
      */
     private static final double DEBUGRANDOMPAUSE_FREQ = .04;  // 4%
 
     /**
      * When {@link #debugRandomPauseActive} is activated, pause this many seconds
-     * before continuing.
+     * before continuing. Default is 12.
      * @see #debugRandomPauseUntil
      */
     private static final int DEBUGRANDOMPAUSE_SECONDS = 12;
@@ -185,6 +188,13 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * @since 2.0.00
      */
     protected String rbclass = SOCImARobot.RBCLASS_BUILTIN;
+
+    /**
+     * Features supported by this built-in JSettlers robot client.
+     * Initialized in {@link #init()}.
+     * @since 2.0.00
+     */
+    private SOCFeatureSet cliFeats;
 
     /**
      * The security cookie value; required by server v1.1.19 and higher.
@@ -320,8 +330,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     }
 
     /**
-     * Initialize the robot player; connect to server, send first messages
-     * including our version and {@link #rbclass}.
+     * Initialize the robot player; connect to server and send first messages
+     * including our version, features from {@link #buildClientFeats()}, and {@link #rbclass}.
      */
     public void init()
     {
@@ -342,9 +352,18 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             readerRobot = new Thread(this);
             readerRobot.start();
 
+            if (cliFeats == null)
+            {
+                cliFeats = buildClientFeats();
+                // subclass or third-party bot may override: must check result
+                if (cliFeats == null)
+                    throw new IllegalStateException("buildClientFeats() must not return null");
+            }
+
             //resetThread = new SOCRobotResetThread(this);
             //resetThread.start();
-            put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum(), null));
+            put(SOCVersion.toCmd
+                (Version.versionNumber(), Version.version(), Version.buildnum(), cliFeats.getEncodedList(), null));
             put(SOCImARobot.toCmd(nickname, cookie, rbclass));
         }
         catch (Exception e)
@@ -355,9 +374,10 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     }
 
     /**
-     * Disconnect and then try to reconnect.
+     * Disconnect and then try to reconnect. Sends the same messages as {@link #init()}.
      * If the reconnect fails, will retry a maximum of 3 times.
-     * If those attempts all fail, {@link #ex} is set. Otherwise {@code ex} is null when method returns.
+     * If those attempts all fail, {@link #connected} will be false and {@link #ex} will be set.
+     * Otherwise when method returns, {@link #connected} is true and {@code ex} is null.
      */
     public void disconnectReconnect()
     {
@@ -387,7 +407,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
                 //resetThread = new SOCRobotResetThread(this);
                 //resetThread.start();
-                put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum(), null));
+                put(SOCVersion.toCmd
+                    (Version.versionNumber(), Version.version(), Version.buildnum(), cliFeats.getEncodedList(), null));
                 put(SOCImARobot.toCmd(nickname, cookie, SOCImARobot.RBCLASS_BUILTIN));
 
                 break;  // <--- Exit attempt-loop ---
@@ -403,10 +424,40 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         if (! connected)
         {
+            System.err.println("-> Giving up");
+
             // Couldn't reconnect. Shut down active games' brains.
             for (SOCRobotBrain rb : robotBrains.values())
                 rb.kill();
         }
+    }
+
+    /**
+     * Build the set of optional client features this bot supports, to send to the server.
+     * ({@link SOCFeatureSet#CLIENT_6_PLAYERS}, etc.)
+     *<P>
+     * Third-party subclasses should override this if their features are different.
+     *<P>
+     * The built-in robots' client features are currently:
+     *<UL>
+     * <LI>{@link SOCFeatureSet#CLIENT_6_PLAYERS}
+     * <LI>{@link SOCFeatureSet#CLIENT_SEA_BOARD}
+     * <LI>{@link SOCFeatureSet#CLIENT_SCENARIO_VERSION} = {@link Version#versionNumber()}
+     *</UL>
+     *<P>
+     * Called from {@link #init()}.
+     *
+     * @return  This bot's set of implemented optional client features, if any, or an empty set (not {@code null})
+     * @since 2.0.00
+     */
+    protected SOCFeatureSet buildClientFeats()
+    {
+        SOCFeatureSet feats = new SOCFeatureSet(false, false);
+        feats.add(SOCFeatureSet.CLIENT_6_PLAYERS);
+        feats.add(SOCFeatureSet.CLIENT_SEA_BOARD);
+        feats.add(SOCFeatureSet.CLIENT_SCENARIO_VERSION, Version.versionNumber());
+
+        return feats;
     }
 
     /**

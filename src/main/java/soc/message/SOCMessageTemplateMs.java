@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2008-2012,2014-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2012,2014-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -184,6 +184,13 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
     }
 
     /**
+     * Get a human-readable form of this message.
+     * Starts with {@link #getClassNameShort()} and then one of:
+     *<UL>
+     *  <LI> each parameter, as {@code "|p=value.toString()"}
+     *  <LI> {@code "|(pa is empty)"}
+     *  <LI> {@code "|(pa is null)"}
+     *</UL>
      * @return a human readable form of the message
      */
     public String toString()
@@ -192,12 +199,17 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
 
         if (pa != null)
         {
-            for (final String p : pa)
-            {
-                sb.append("|p=");
-                if (p != null)
-                    sb.append(p);
-            }
+            if (pa.isEmpty())
+                sb.append("|(pa is empty)");
+            else
+                for (final String p : pa)
+                {
+                    sb.append("|p=");
+                    if (p != null)
+                        sb.append(p);
+                }
+        } else {
+            sb.append("|(pa is null)");
         }
 
         return sb.toString();

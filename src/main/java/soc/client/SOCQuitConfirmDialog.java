@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2007,2008,2010,2013-2014,2016,2018 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007,2008,2010,2013-2014,2016,2018-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -19,7 +19,6 @@
  **/
 package soc.client;
 
-import soc.client.SOCPlayerClient.GameAwtDisplay;
 import soc.game.SOCGame;
 import soc.util.SOCStringManager;
 
@@ -50,7 +49,7 @@ class SOCQuitConfirmDialog extends AskDialog
      * @param gamePI   Current game's player interface
      * @throws IllegalArgumentException If cli or gamePI is null
      */
-    public static void createAndShow(GameAwtDisplay cli, SOCPlayerInterface gamePI)
+    public static void createAndShow(SOCPlayerClient.GameDisplay cli, SOCPlayerInterface gamePI)
         throws IllegalArgumentException
     {
         if ((cli == null) || (gamePI == null))
@@ -70,7 +69,7 @@ class SOCQuitConfirmDialog extends AskDialog
      * @param gameIsOver The game is over - "Quit" button should be default (if not over, Continue is default).
      *     Must be {@code true} if {@link SOCPlayerInterface#gameHasErrorOrDeletion}.
      */
-    private SOCQuitConfirmDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI, boolean gameIsOver)
+    private SOCQuitConfirmDialog(SOCPlayerClient.GameDisplay cli, SOCPlayerInterface gamePI, boolean gameIsOver)
     {
         super(cli, gamePI,
             strings.get("dialog.quit.really", gamePI.getGame().getName()),  // "Really quit game {0}?"

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2012,2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2012,2014,2017-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -53,7 +53,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     public static final int CITY = 2;
 
     /**
-     * Types of playing pieces: Ship.
+     * Types of playing pieces: {@link SOCShip Ship}.
      * Used only when {@link SOCGame#hasSeaBoard}.
      * Requires client and server version 2.0.00 or newer.
      * @see #getResourcesToBuild(int)
