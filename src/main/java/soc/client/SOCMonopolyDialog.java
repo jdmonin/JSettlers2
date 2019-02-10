@@ -122,6 +122,7 @@ class SOCMonopolyDialog extends JDialog implements ActionListener, Runnable
             sq.setBackground(sqColor);
 
             JButton b = new JButton(strings.get(rsrcStr[i]));
+            b.setBackground(null);  // needed to avoid gray corners on win32
             b.addActionListener(this);
             rsrcBut[i] = b;
 
