@@ -513,37 +513,6 @@ public abstract class AskDialog extends JDialog
     }
 
     /**
-     * Since we can't designate as default visually through the standard AWT API,
-     * try to bold the button text or set its color to white.
-     *
-     * @param b  Button to style visually as default.  Please add button to
-     *           dialog layout before calling, so we can query the font.
-     */
-    public static void styleAsDefault(java.awt.Button b)
-    {
-        try
-        {
-            Font bf = b.getFont();
-            if (bf == null)
-                bf = new Font("Dialog", Font.BOLD, 12);
-            else
-                bf = bf.deriveFont(Font.BOLD);
-            b.setFont(bf);
-        }
-        catch (Throwable th)
-        {
-            // If we can't do that, try to mark via
-            // background color change instead
-            try
-            {
-                b.setBackground(Color.WHITE);
-            }
-            catch (Throwable th2)
-            {}
-        }
-    }
-
-    /**
      * A button has been chosen by the user.
      * Call button1Chosen, button2Chosen or button3chosen, and dispose of this dialog.
      */
