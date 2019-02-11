@@ -33,6 +33,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -219,10 +220,14 @@ public class SOCBuildingPanel extends JPanel
            title.setAlignment(Label.CENTER);
            add(title);
          */
+
+        final String costsLeftArrow = "◀";  // BLACK LEFT-POINTING TRIANGLE (U+25C0); since unicode 1.1 (june 1993)
+
         roadT = new JLabel(strings.get("build.road"));  // "Road: "
         roadT.setToolTipText(strings.get("build.road.vp"));  // "0 VP  (longest road = 2 VP)"
         add(roadT);
-        roadC = new JLabel(strings.get("build.cost"));  // "Cost:"
+        roadC = new JLabel(costsLeftArrow);
+        roadC.setToolTipText(strings.get("build.cost"));  // "Cost:"
         add(roadC);
         roadWood = new ColorSquare(ColorSquare.WOOD, 1);
         add(roadWood);
@@ -238,7 +243,8 @@ public class SOCBuildingPanel extends JPanel
         settlementT = new JLabel(strings.get("build.settlement"));  // "Settlement: "
         settlementT.setToolTipText(strings.get("build.1.vp"));  // "1 VP"
         add(settlementT);
-        settlementC = new JLabel(strings.get("build.cost"));  // "Cost: "
+        settlementC = new JLabel(costsLeftArrow);
+        settlementC.setToolTipText(strings.get("build.cost"));  // "Cost: "
         add(settlementC);
         settlementWood = new ColorSquare(ColorSquare.WOOD, 1);
         add(settlementWood);
@@ -254,10 +260,11 @@ public class SOCBuildingPanel extends JPanel
         settlementBut.setActionCommand(STLMT);
         settlementBut.addActionListener(this);
 
-        cityT = new JLabel(strings.get("build.city.upg"));  // "City Upgrade: "
-        cityT.setToolTipText(strings.get("build.city.upg.vp"));  // "2 VP  (receives 2x rsrc.)"
+        cityT = new JLabel(strings.get("build.city"));  // "City: "
+        cityT.setToolTipText(strings.get("build.city.vp"));  // "2 VP  (receives 2x rsrc.)"
         add(cityT);
-        cityC = new JLabel(strings.get("build.cost"));  // "Cost: "
+        cityC = new JLabel(costsLeftArrow);
+        cityC.setToolTipText(strings.get("build.cost"));  // "Cost: "
         add(cityC);
         cityWheat = new ColorSquare(ColorSquare.WHEAT, 2);
         add(cityWheat);
@@ -281,7 +288,8 @@ public class SOCBuildingPanel extends JPanel
         cardT = new JLabel(strings.get("build.dev.card"));  // "Dev Card: "
         cardT.setToolTipText(/*I*/"? VP  (largest army = 2 VP) "/*18N*/);
         add(cardT);
-        cardC = new JLabel(strings.get("build.cost"));  // "Cost: "
+        cardC = new JLabel(costsLeftArrow);
+        cardC.setToolTipText(strings.get("build.cost"));  // "Cost: "
         add(cardC);
         cardWheat = new ColorSquare(ColorSquare.WHEAT, 1);
         add(cardWheat);
@@ -311,7 +319,8 @@ public class SOCBuildingPanel extends JPanel
             shipT = new JLabel(strings.get("build.ship"), SwingConstants.LEFT);  // "Ship: "
             shipT.setToolTipText(strings.get("build.ship.vp"));  // "0 VP  (longest route = 2 VP)"
             add(shipT);
-            shipC = new JLabel(strings.get("build.cost"));  // "Cost: "
+            shipC = new JLabel(costsLeftArrow);
+            shipC.setToolTipText(strings.get("build.cost"));  // "Cost: "
             add(shipC);
             shipWood = new ColorSquare(ColorSquare.WOOD, 1);
             add(shipWood);
@@ -444,7 +453,9 @@ public class SOCBuildingPanel extends JPanel
                 sbLab.setToolTipText(TTIP_SBP_TEXT);
         }
 
-        // make all labels and buttons use panel's font and background color
+        // make all labels and buttons use panel's font and background color;
+        // to not cut off wide button text, remove button margin since we're using custom layout anyway
+        Insets minMargin = new Insets(2, 2, 2, 2);
         for (Component co : getComponents())
         {
             if (! ((co instanceof JLabel) || (co instanceof JButton)))
@@ -452,9 +463,13 @@ public class SOCBuildingPanel extends JPanel
 
             co.setFont(panelFont);
             if (co instanceof JLabel)
-                ((JLabel) co).setVerticalAlignment(JLabel.TOP);
-            else
+            {
+                if (! ((JLabel) co).getText().equals(costsLeftArrow))
+                    ((JLabel) co).setVerticalAlignment(JLabel.TOP);
+            } else {
+                ((JButton) co).setMargin(minMargin);
                 co.setBackground(null);  // required for win32 to avoid gray corners on JButton
+            }
         }
     }
 
@@ -479,20 +494,27 @@ public class SOCBuildingPanel extends JPanel
         FontMetrics fm = this.getFontMetrics(this.getFont());
         final int lineH = ColorSquare.HEIGHT;
         final int rowSpaceH = lineH / 2;
-        final int costW = fm.stringWidth(roadC.getText().trim()) + 4;  // "Cost:"
-        final int butW = 50;
+        final int costW = fm.stringWidth(roadC.getText().trim()) + 2;  // left arrow for Cost colorsquares
+        final int butW = 62;   // all Build buttons
         final int margin = 2;
 
-        final int settlementTW = fm.stringWidth(settlementT.getText());
-        final int cityTW = fm.stringWidth(cityT.getText());
-        final int buttonMargin = 2 * margin + ((settlementTW > cityTW) ? settlementTW : cityTW);
+        final int roadTW = fm.stringWidth(roadT.getText()),
+                  settlementTW = fm.stringWidth(settlementT.getText()),
+                  cityTW = fm.stringWidth(cityT.getText()),
+                  cardTW = fm.stringWidth(cardT.getText());
+        int buttonMargin = (settlementTW > cityTW) ? settlementTW : cityTW;
+        if (roadTW > buttonMargin)
+            buttonMargin = roadTW;
+        if (cardTW > buttonMargin)
+            buttonMargin = cardTW;
+        buttonMargin += 2 * margin;
 
         /*
            title.setSize(dim.width, lineH);
            title.setLocation(0, 0);
            curY += lineH;
          */
-        roadT.setSize(fm.stringWidth(roadT.getText()), lineH);
+        roadT.setSize(roadTW, lineH);
         roadT.setLocation(margin, curY);
         roadBut.setSize(butW, lineH);
         roadBut.setLocation(buttonMargin, curY);
@@ -609,7 +631,7 @@ public class SOCBuildingPanel extends JPanel
 
         curY += (rowSpaceH + lineH);
 
-        cardT.setSize(fm.stringWidth(cardT.getText()), lineH);
+        cardT.setSize(cardTW, lineH);
         cardT.setLocation(margin, curY);
         cardBut.setSize(butW, lineH);
         cardBut.setLocation(buttonMargin, curY);
