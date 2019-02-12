@@ -183,7 +183,7 @@ class SOCSpecialItemDialog
         gbl.setConstraints(L, gbc);
         cpane.add(L);
 
-        L = new JLabel(strings.get("build.cost"));  // "Cost:"
+        L = new JLabel(strings.get("dialog.specitem.cost"));  // "Cost:"
         gbc.gridx = GridBagConstraints.RELATIVE;
         gbc.gridwidth = 5;  // span 5 ColorSquares for the 5 resource types
         gbl.setConstraints(L, gbc);

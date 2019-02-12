@@ -23,10 +23,17 @@ package soc.client;
 
 import soc.client.stats.GameStatisticsFrame;
 import soc.game.SOCBoardLarge;
+import soc.game.SOCCity;
+import soc.game.SOCDevCard;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
+import soc.game.SOCResourceConstants;
+import soc.game.SOCResourceSet;
+import soc.game.SOCRoad;
+import soc.game.SOCSettlement;
+import soc.game.SOCShip;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -79,7 +86,7 @@ public class SOCBuildingPanel extends JPanel
     JButton cardBut;
 
     /**
-     * Click to show {@link SOCGameOption}s in an {@link #ngof} frame.
+     * "Options..." button; click to show {@link SOCGameOption}s in an {@link #ngof} frame.
      * Before v1.2.00, label was "Game Options...".
      * Before v2.0.00 this button was {@code optsBut}.
      * @since 1.1.07
@@ -95,26 +102,19 @@ public class SOCBuildingPanel extends JPanel
     GameStatisticsFrame statsFrame;
 
     JLabel roadT;  // text
-    JLabel roadC;  // cost
-    ColorSquare roadWood;
-    ColorSquare roadClay;
+    JLabel roadC;  // cost arrow
+    final ColorSquare[] roadSq;  // displayed cost
     JLabel settlementT;  // text
-    JLabel settlementC;  // cost
-    ColorSquare settlementWood;
-    ColorSquare settlementClay;
-    ColorSquare settlementWheat;
-    ColorSquare settlementSheep;
+    JLabel settlementC;  // cost arrow
+    final ColorSquare[] settlementSq;  // displayed cost
     JLabel cityT;
     JLabel cityC;
-    ColorSquare cityWheat;
-    ColorSquare cityOre;
+    final ColorSquare[] citySq;
     JLabel cardT;
     JLabel cardC;
     JLabel cardCountLab;
     private JLabel vpToWinLab;  // null unless hasSeaBoard or vp != 10; @since 1.1.14
-    ColorSquare cardWheat;
-    ColorSquare cardSheep;
-    ColorSquare cardOre;
+    final ColorSquare[] cardSq;
     ColorSquare cardCount;
     private ColorSquare vpToWin;  // null unless hasSeaBoard or vp != 10; @since 1.1.14
 
@@ -135,8 +135,7 @@ public class SOCBuildingPanel extends JPanel
     // Large Sea Board Ship button; @since 2.0.00
     private JLabel shipT;  // text
     private JLabel shipC;  // cost
-    private ColorSquare shipWood;
-    private ColorSquare shipSheep;
+    private final ColorSquare[] shipSq;
 
     /**
      * For large sea board ({@link SOCGame#hasSeaBoard}), button to buy a ship.
@@ -227,12 +226,9 @@ public class SOCBuildingPanel extends JPanel
         roadT.setToolTipText(strings.get("build.road.vp"));  // "0 VP  (longest road = 2 VP)"
         add(roadT);
         roadC = new JLabel(costsLeftArrow);
-        roadC.setToolTipText(strings.get("build.cost"));  // "Cost:"
+        roadC.setToolTipText(strings.get("build.cost_to_build"));  // "Cost to Build"
         add(roadC);
-        roadWood = new ColorSquare(ColorSquare.WOOD, 1);
-        add(roadWood);
-        roadClay = new ColorSquare(ColorSquare.CLAY, 1);
-        add(roadClay);
+        roadSq = makeCostSquares(SOCRoad.COST);
         roadBut = new JButton("---");
         roadBut.setEnabled(false);
         // note: will each JButton.setBackground(null) at end of constructor
@@ -244,16 +240,9 @@ public class SOCBuildingPanel extends JPanel
         settlementT.setToolTipText(strings.get("build.1.vp"));  // "1 VP"
         add(settlementT);
         settlementC = new JLabel(costsLeftArrow);
-        settlementC.setToolTipText(strings.get("build.cost"));  // "Cost: "
+        settlementC.setToolTipText(strings.get("build.cost_to_build"));  // "Cost to Build"
         add(settlementC);
-        settlementWood = new ColorSquare(ColorSquare.WOOD, 1);
-        add(settlementWood);
-        settlementClay = new ColorSquare(ColorSquare.CLAY, 1);
-        add(settlementClay);
-        settlementWheat = new ColorSquare(ColorSquare.WHEAT, 1);
-        add(settlementWheat);
-        settlementSheep = new ColorSquare(ColorSquare.SHEEP, 1);
-        add(settlementSheep);
+        settlementSq = makeCostSquares(SOCSettlement.COST);
         settlementBut = new JButton("---");
         settlementBut.setEnabled(false);
         add(settlementBut);
@@ -264,12 +253,9 @@ public class SOCBuildingPanel extends JPanel
         cityT.setToolTipText(strings.get("build.city.vp"));  // "2 VP  (receives 2x rsrc.)"
         add(cityT);
         cityC = new JLabel(costsLeftArrow);
-        cityC.setToolTipText(strings.get("build.cost"));  // "Cost: "
+        cityC.setToolTipText(strings.get("build.cost_to_build"));
         add(cityC);
-        cityWheat = new ColorSquare(ColorSquare.WHEAT, 2);
-        add(cityWheat);
-        cityOre = new ColorSquare(ColorSquare.ORE, 3);
-        add(cityOre);
+        citySq = makeCostSquares(SOCCity.COST);
         cityBut = new JButton("---");
         cityBut.setEnabled(false);
         add(cityBut);
@@ -289,14 +275,9 @@ public class SOCBuildingPanel extends JPanel
         cardT.setToolTipText(/*I*/"? VP  (largest army = 2 VP) "/*18N*/);
         add(cardT);
         cardC = new JLabel(costsLeftArrow);
-        cardC.setToolTipText(strings.get("build.cost"));  // "Cost: "
+        cardC.setToolTipText(strings.get("build.cost_to_build"));
         add(cardC);
-        cardWheat = new ColorSquare(ColorSquare.WHEAT, 1);
-        add(cardWheat);
-        cardSheep = new ColorSquare(ColorSquare.SHEEP, 1);
-        add(cardSheep);
-        cardOre = new ColorSquare(ColorSquare.ORE, 1);
-        add(cardOre);
+        cardSq = makeCostSquares(SOCDevCard.COST);
         cardBut = new JButton("---");
         cardBut.setEnabled(false);
         add(cardBut);
@@ -320,12 +301,9 @@ public class SOCBuildingPanel extends JPanel
             shipT.setToolTipText(strings.get("build.ship.vp"));  // "0 VP  (longest route = 2 VP)"
             add(shipT);
             shipC = new JLabel(costsLeftArrow);
-            shipC.setToolTipText(strings.get("build.cost"));  // "Cost: "
+            shipC.setToolTipText(strings.get("build.cost_to_build"));
             add(shipC);
-            shipWood = new ColorSquare(ColorSquare.WOOD, 1);
-            add(shipWood);
-            shipSheep = new ColorSquare(ColorSquare.SHEEP, 1);
-            add(shipSheep);
+            shipSq = makeCostSquares(SOCShip.COST);
             shipBut = new JButton("---");
             shipBut.setEnabled(false);
             add(shipBut);
@@ -356,6 +334,7 @@ public class SOCBuildingPanel extends JPanel
             }
         } else {
             // shipBut, cloth, wondersBut already null
+            shipSq = null;
         }
 
         if (ga.hasSeaBoard || (ga.vp_winner != 10))  // 10, not SOCGame.VP_WINNER_STANDARD, in case someone changes that
@@ -523,11 +502,7 @@ public class SOCBuildingPanel extends JPanel
         roadC.setSize(costW, lineH);
         roadC.setLocation(curX, curY);
         curX += costW + margin;
-        roadWood.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-        roadWood.setLocation(curX, curY);
-        curX += (ColorSquare.WIDTH + 2);
-        roadClay.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-        roadClay.setLocation(curX, curY);
+        curX = layoutCostSquares(roadSq, curX, curY);  // 2 squares
 
         if (shipBut != null)
         {
@@ -544,11 +519,7 @@ public class SOCBuildingPanel extends JPanel
             shipC.setSize(costW, lineH);
             shipC.setLocation(curX, curY);
             curX += costW + margin;
-            shipWood.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-            shipWood.setLocation(curX, curY);
-            curX += (ColorSquare.WIDTH + 2);
-            shipSheep.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-            shipSheep.setLocation(curX, curY);
+            layoutCostSquares(shipSq, curX, curY);  // 2 squares
         }
 
         curY += (rowSpaceH + lineH);
@@ -562,17 +533,7 @@ public class SOCBuildingPanel extends JPanel
         settlementC.setSize(costW, lineH);
         settlementC.setLocation(curX, curY);
         curX += costW + margin;
-        settlementWood.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-        settlementWood.setLocation(curX, curY);
-        curX += (ColorSquare.WIDTH + 2);
-        settlementClay.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-        settlementClay.setLocation(curX, curY);
-        curX += (ColorSquare.WIDTH + 2);
-        settlementWheat.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-        settlementWheat.setLocation(curX, curY);
-        curX += (ColorSquare.WIDTH + 2);
-        settlementSheep.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-        settlementSheep.setLocation(curX, curY);
+        curX = layoutCostSquares(settlementSq, curX, curY);  // 4 squares
 
         if (maxPlayers > 4)
         {
@@ -604,11 +565,7 @@ public class SOCBuildingPanel extends JPanel
         cityC.setSize(costW, lineH);
         cityC.setLocation(curX, curY);
         curX += costW + margin;
-        cityWheat.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-        cityWheat.setLocation(curX, curY);
-        curX += (ColorSquare.WIDTH + 2);
-        cityOre.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-        cityOre.setLocation(curX, curY);
+        curX = layoutCostSquares(citySq, curX, curY);  // 2 squares
 
         if (cloth != null)
         {
@@ -640,14 +597,7 @@ public class SOCBuildingPanel extends JPanel
         cardC.setSize(costW, lineH);
         cardC.setLocation(curX, curY);
         curX += costW + margin;
-        cardWheat.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-        cardWheat.setLocation(curX, curY);
-        curX += (ColorSquare.WIDTH + 2);
-        cardSheep.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-        cardSheep.setLocation(curX, curY);
-        curX += (ColorSquare.WIDTH + 2);
-        cardOre.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-        cardOre.setLocation(curX, curY);
+        curX = layoutCostSquares(cardSq, curX, curY);  // 3 squares
 
         curX += 2 * (ColorSquare.WIDTH + 2);
         // cardCount.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
@@ -726,6 +676,64 @@ public class SOCBuildingPanel extends JPanel
             }
         }
 
+    }
+
+    /** For aesthetics use a certain resource-type order, not {@link SOCResourceConstants}' order. */
+    private final static int[] makeCostSquares_resMap =
+        { SOCResourceConstants.WOOD, SOCResourceConstants.CLAY, SOCResourceConstants.WHEAT,
+          SOCResourceConstants.SHEEP, SOCResourceConstants.ORE };
+
+    /**
+     * Given an item's resource cost, make an array of {@link ColorSquare}s to show the cost
+     * and {@link java.awt.Container#add(Component) add(Component)} them to this panel.
+     * Each ColorSquare's tooltip will get a "Cost to Build" prefix, like: "Cost to Build: Sheep"
+     * @param cost  Item's cost; not {@code null}
+     * @return  ColorSquares for this item's cost
+     * @since 2.0.00
+     */
+    private ColorSquare[] makeCostSquares(final SOCResourceSet cost)
+    {
+        final String costToBuild = strings.get("build.cost_to_build");  // "Cost to Build"
+        final int n = cost.getResourceTypeCount();
+        final ColorSquare[] sq = new ColorSquare[n];
+
+        for (int i = 0, mapIdx = 0; i < n && mapIdx < 5; ++mapIdx)
+        {
+            final int res = makeCostSquares_resMap[mapIdx];  // will be in range 1 to 5
+            final int itemCost = cost.getAmount(res);
+            if (itemCost == 0)
+                continue;
+
+            final ColorSquare s = new ColorSquare(ColorSquare.RESOURCE_COLORS[res - 1], itemCost);
+            s.setTooltipText(costToBuild + ": " + s.getTooltipText());  // "Cost to Build: Sheep" etc
+            sq[i] = s;
+            add(s);
+            ++i;
+        }
+
+        return sq;
+    }
+
+    /**
+     * Lay out these item-cost {@link ColorSquare}s in a horizontal row starting at {@code (curX, curY)}.
+     * Space between them will be 2 pixels.
+     * @param sq  Array of ColorSquares
+     * @param curX  X-coordinate to use for first square's {@link ColorSquare#setLocation(int, int)}
+     * @param curY  Y-coordinate to use for first square's {@link ColorSquare#setLocation(int, int)}
+     * @return curX for next component after laying out all squares in {@code sq};
+     *    distance from passed-in {@code curX} will be {@code sq.length} * ({@link ColorSquare#WIDTH} + 2).
+     * @since 2.0.00
+     */
+    private int layoutCostSquares(final ColorSquare[] sq, int curX, final int curY)
+    {
+        for (int i = 0; i < sq.length; ++i)
+        {
+            sq[i].setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
+            sq[i].setLocation(curX, curY);
+            curX += (ColorSquare.WIDTH + 2);
+        }
+
+        return curX;
     }
 
     /**
