@@ -47,6 +47,7 @@ import soc.util.Triple;
 import soc.util.Version;
 
 import java.io.BufferedReader;
+import java.io.Console;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
@@ -8529,31 +8530,40 @@ public class SOCServer extends Server
     /**
      * Read a password from the console; currently used for password reset.
      * Blocks the calling thread while waiting for input.
+     * Uses {@link Console#readPassword()} if available.
      *<P>
-     * This rudimentary method exists for compatibility: java 1.5 doesn't have
-     * {@code System.console.readPassword()}, and the Eclipse console also
-     * doesn't offer {@code System.console}.
+     * This rudimentary method exists for compatibility:
+     * Neither the Eclipse console nor java 1.5 had {@code System.console}.
      *<P>
-     * <B>The input is not masked</B> because there's no cross-platform way to do so in 1.5.
+     * If not using {@code Console.readPassword()}, <B>the input is not masked</B>
+     * because there's no cross-platform way to do so.
      *
      * @param prompt  Optional password prompt; default is "Password:"
-     * @return  The password read, or an empty string "" if an error occurred.
+     *     Must avoid any java format-string characters; see {@link Console#readPassword(String, Object...)}.
+     * @return  The password read, or an empty string "" if none.
      *     This is returned as a mutable StringBuilder
      *     so the caller can clear its contents when done, using
      *     {@link #clearBuffer(StringBuilder)}.
-     *     If ^C or an error occurs, returns {@code null}.
+     *     If ^C or an {@link IOException} occurs, returns {@code null}.
      * @since 1.1.20
      */
     private static StringBuilder readPassword(String prompt)
     {
-        // java 1.5 doesn't have System.console.readPassword
-        // (TODO) consider reflection for 1.6+ JREs
-
         // System.in can read only an entire line (no portable raw mode in 1.5),
-        // so we can't mask after each character.
+        // so we can't mask after each character. This also applies to the Eclipse console.
 
         if (prompt == null)
             prompt = "Password:";
+
+        final Console con = System.console();
+        if (con != null)
+        {
+            char[] pw = System.console().readPassword(prompt);
+            if (pw == null)
+                return new StringBuilder();  // EOF or error
+
+            return new StringBuilder().append(pw);  // keep it mutable
+        }
 
         System.out.print(prompt);
         System.out.print(' ');
