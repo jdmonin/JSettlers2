@@ -44,6 +44,7 @@ and backport minor new features until `2.0.00` is ready.
 	  discarded but still have more than 7 resources
 - Server Config Validation mode: Test the current config and exit, with new startup option:
 	`-t` or `--test-config`
+- Server `--pw-reset` now hides the password text
 - Game option key names can now be longer (8 characters)
 - Some game options are meant to be set by the server during game creation, not requested by the client.
   Their option keynames all start with '_' and are hidden in the New Game options window.
@@ -72,7 +73,7 @@ and backport minor new features until `2.0.00` is ready.
 	- Some private SOCRobotClient fields made protected for use by bot developer 3rd-party subclasses
 	- If bot disconnects after server asks it to join a game that's starting,
 	  server looks for another bot so the game won't hang
-- Java 5 features, including parameterized types (thank you Paul Bilnoski)
+- Java 5+ features, including parameterized types (thank you Paul Bilnoski)
 - SOCBoard layout refactoring to SOCBoard4p, SOCBoard6p thanks to Ruud Poutsma
 - Major client refactoring (separate UI from network interface) thanks to Paul Bilnoski;
     Paul's UI split preserves the spirit and flow of the code, with a more logical layered structure.

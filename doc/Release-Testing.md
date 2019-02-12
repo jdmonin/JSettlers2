@@ -289,7 +289,7 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
 
 ## Platform-specific
 
-On most recent and less-recent OSX and Windows; oldest JRE (1.5) and a new JRE:
+On most recent and less-recent OSX and Windows; oldest JRE (java 6) and a new JRE:
 
 - Keyboard shortcuts including game-reset dialog's esc/enter keys, FaceChooserFrame arrow keys
 - Sound, including 2 clients in same game for overlapping piece-place sound

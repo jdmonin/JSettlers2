@@ -60,11 +60,11 @@ https://github.com/jdmonin/JSettlers2/blob/master/Readme.md .
 ## Requirements
 
 To play JSettlers by connecting to a remote server you will need the
-Java Runtime Version 5 or above. To connect as an applet, use any
+Java Runtime Version 6 or above. To connect as an applet, use any
 browser which is Java enabled (using the browser plug-in) or just
 download the JAR from http://nand.net/jsettlers/ and run it.
 
-To Play JSettlers locally you need the Java Runtime 5 or above.
+To Play JSettlers locally you need the Java Runtime 6 or above.
 `JSettlers-full.jar` can connect directly to any server over the Internet.
 
 To host a JSettlers server that provides a web applet for clients, you will
@@ -74,9 +74,9 @@ The JSettlers-full.jar file can also run locally as a server, without
 needing a web server.  The applet is considered more convenient,
 because you know everyone will have the same version.
 
-To build JSettlers from source, you will need Java JDK 1.5 or newer and Apache Ant,
-available from http://ant.apache.org, or an IDE such as Eclipse which understands
-Ant's format. See [doc/Readme.developer.md](doc/Readme.developer.md) for details.
+To build JSettlers from source, you will need Java JDK 6 or newer and gradle,
+or an IDE such as Eclipse which understands gradle's format.
+See [doc/Readme.developer.md](doc/Readme.developer.md) for details.
 
 
 ## Server Setup and Testing
@@ -92,7 +92,7 @@ instead of the full tar.gz, use that filename on the command lines shown below.
 ### Server Startup
 
 Start the server with the following command
-(server requires Java 5 or higher, or JDK 1.5 or higher):
+(server requires Java 6 JRE or higher, or JDK 6 or higher):
 
     java -jar JSettlersServer.jar
 

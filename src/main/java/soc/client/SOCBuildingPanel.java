@@ -23,22 +23,34 @@ package soc.client;
 
 import soc.client.stats.GameStatisticsFrame;
 import soc.game.SOCBoardLarge;
+import soc.game.SOCCity;
+import soc.game.SOCDevCard;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
+import soc.game.SOCResourceConstants;
+import soc.game.SOCResourceSet;
+import soc.game.SOCRoad;
+import soc.game.SOCSettlement;
+import soc.game.SOCShip;
 
-import java.awt.Button;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
-import java.awt.Label;
-import java.awt.Panel;
+import java.awt.GraphicsEnvironment;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
 /**
  * This class is a panel that shows how much it costs
@@ -62,55 +74,86 @@ import java.awt.event.WindowListener;
      */
     private static final Color BUILDPAN_BG_OLIVE_GREEN = new Color(156, 179, 94);
 
+    /**
+     * The piece-cost "arrow": BLACK LEFT-POINTING TRIANGLE (U+25C0); since unicode 1.1 (june 1993).
+     * @see #hasTestedArrowFont
+     * @since 2.0.00
+     */
+    private static final String COSTS_LEFT_ARROW_UNICODE = "◀";
+
+    /**
+     * If true, constructor has tested whether the cost "arrow" labels can use the unicode
+     * left-pointing triangle {@link #COSTS_LEFT_ARROW_UNICODE}, or if a fallback is needed.
+     * Some older OSes (for example, windows xp) can't display the unicode left arrow in their dialog font.
+     * If true, then {@link #arrowIsAsciiFallback} and {@link #arrowFallbackFont} can be used.
+     * If false, {@link #checkArrowForFontFallback(Font)} should test and initialize those fields
+     * for the constructor.
+     * @since 2.0.00
+     */
+    private static boolean hasTestedArrowFont = false;
+
+    /**
+     * If true, cost "arrow" labels should use {@code "<-"} instead of the unicode left-pointing arrow.
+     *<P>
+     * Do not read this field unless {@link #hasTestedArrowFont}.
+     * @see #arrowFallbackFont
+     * @since 2.0.00
+     */
+    private static boolean arrowIsAsciiFallback = false;
+
+    /**
+     * If non-null, cost "arrow" labels should use this fallback font instead of Dialog.
+     * For example, old Windows versions may need Lucida Sans Unicode to display the arrow glyph
+     * {@link #COSTS_LEFT_ARROW_UNICODE}.
+     *<P>
+     * Do not read this field unless {@link #hasTestedArrowFont}.
+     * @see #arrowIsAsciiFallback
+     * @since 2.0.00
+     */
+    private static Font arrowFallbackFont = null;
+
     static final String ROAD = "road";  // I18N: These are internal command labels, not user-visible strings
     static final String STLMT = "stlmt";  // Build Settlement
     static final String CITY = "city";
     static final String CARD = "card";
     static final String SHIP = "ship";  // Ship for large sea board; @since 2.0.00
     private static final String SBP = "sbp";  // Special Building Phase button; @since 1.1.08
-    Label title;
-    Button roadBut;
-    Button settlementBut;
-    Button cityBut;
-    Button cardBut;
+    JLabel title;
+    JButton roadBut;
+    JButton settlementBut;
+    JButton cityBut;
+    JButton cardBut;
 
     /**
-     * Click to show {@link SOCGameOption}s in an {@link #ngof} frame.
+     * "Options..." button; click to show {@link SOCGameOption}s in an {@link #ngof} frame.
      * Before v1.2.00, label was "Game Options...".
      * Before v2.0.00 this button was {@code optsBut}.
      * @since 1.1.07
      */
-    Button gameOptsBut;
+    JButton gameOptsBut;
 
     /**
      * Click to show game statistics in {@link #statsFrame}.
      * @since 2.0.00
      */
-    Button statsBut;
+    JButton statsBut;
 
     GameStatisticsFrame statsFrame;
 
-    Label roadT;  // text
-    Label roadC;  // cost
-    ColorSquare roadWood;
-    ColorSquare roadClay;
-    Label settlementT;  // text
-    Label settlementC;  // cost
-    ColorSquare settlementWood;
-    ColorSquare settlementClay;
-    ColorSquare settlementWheat;
-    ColorSquare settlementSheep;
-    Label cityT;
-    Label cityC;
-    ColorSquare cityWheat;
-    ColorSquare cityOre;
-    Label cardT;
-    Label cardC;
-    Label cardCountLab;
-    private Label vpToWinLab;  // null unless hasSeaBoard or vp != 10; @since 1.1.14
-    ColorSquare cardWheat;
-    ColorSquare cardSheep;
-    ColorSquare cardOre;
+    JLabel roadT;  // text
+    JLabel roadC;  // cost arrow
+    final ColorSquare[] roadSq;  // displayed cost
+    JLabel settlementT;  // text
+    JLabel settlementC;  // cost arrow
+    final ColorSquare[] settlementSq;  // displayed cost
+    JLabel cityT;
+    JLabel cityC;
+    final ColorSquare[] citySq;
+    JLabel cardT;
+    JLabel cardC;
+    JLabel cardCountLab;
+    private JLabel vpToWinLab;  // null unless hasSeaBoard or vp != 10; @since 1.1.14
+    final ColorSquare[] cardSq;
     ColorSquare cardCount;
     private ColorSquare vpToWin;  // null unless hasSeaBoard or vp != 10; @since 1.1.14
 
@@ -119,27 +162,26 @@ import java.awt.event.WindowListener;
      *  @since 2.0.00
      */
     private ColorSquare cloth;
-    private Label clothLab;
+    private JLabel clothLab;
 
     /** For game scenario {@link SOCGameOption#K_SC_WOND _SC_WOND}, the
      *  "Wonders" button that brings up a dialog with info and Build buttons. Null otherwise.
      *  @see #clickWondersButton()
      *  @since 2.0.00
      */
-    private Button wondersBut;
+    private JButton wondersBut;
 
     // Large Sea Board Ship button; @since 2.0.00
-    private Label shipT;  // text
-    private Label shipC;  // cost
-    private ColorSquare shipWood;
-    private ColorSquare shipSheep;
+    private JLabel shipT;  // text
+    private JLabel shipC;  // cost
+    private final ColorSquare[] shipSq;
 
     /**
      * For large sea board ({@link SOCGame#hasSeaBoard}), button to buy a ship.
      * Null if this game doesn't have that board.
      * @since 2.0.00
      */
-    private Button shipBut;
+    private JButton shipBut;
 
     /** For 6-player board: request Special Building Phase.
      *  Given variable custom layout in v2.0.00 for i18n. Contains {@link #sbLab} and {@link #sbBut}
@@ -147,10 +189,10 @@ import java.awt.event.WindowListener;
      *  (Large Board omits {@code sbLab}.)
      *  @since 1.1.08
      */
-    private Panel sbPanel;
-    private Button sbBut;
+    private JPanel sbPanel;
+    private JButton sbBut;
     /** "Special Building Phase" label. Not used on Large Board due to space constraints. */
-    private Label sbLab;
+    private JLabel sbLab;
     private boolean sbIsHilight;  // Yellow, not grey, when true
 
     /**
@@ -205,93 +247,87 @@ import java.awt.event.WindowListener;
         this.player = null;
         this.pi = pi;
 
+        final Font panelFont = new Font("Dialog", Font.PLAIN, 10);
+
         setBackground(BUILDPAN_BG_OLIVE_GREEN);
         setForeground(Color.BLACK);
-        setFont(new Font("Dialog", Font.PLAIN, 10));
+        setFont(panelFont);
 
         /*
            title = new Label("Building Costs:");
            title.setAlignment(Label.CENTER);
            add(title);
          */
-        roadT = new Label(strings.get("build.road"));  // "Road: "
+
+        if (! hasTestedArrowFont)
+            checkArrowForFontFallback(panelFont);
+
+        final String costsLeftArrow = (arrowIsAsciiFallback) ? "<-" : COSTS_LEFT_ARROW_UNICODE;
+
+        roadT = new JLabel(strings.get("build.road"));  // "Road: "
+        roadT.setToolTipText(strings.get("build.road.vp"));  // "0 VP  (longest road = 2 VP)"
         add(roadT);
-        new AWTToolTip(strings.get("build.road.vp"), roadT);  // "0 VP  (longest road = 2 VP)"
-        roadC = new Label(strings.get("build.cost"));  // "Cost:"
+        roadC = new JLabel(costsLeftArrow);
+        roadC.setToolTipText(strings.get("build.cost_to_build"));  // "Cost to Build"
         add(roadC);
-        roadWood = new ColorSquare(ColorSquare.WOOD, 1);
-        add(roadWood);
-        roadClay = new ColorSquare(ColorSquare.CLAY, 1);
-        add(roadClay);
-        roadBut = new Button("---");
+        roadSq = makeCostSquares(SOCRoad.COST);
+        roadBut = new JButton("---");
         roadBut.setEnabled(false);
+        // note: will each JButton.setBackground(null) at end of constructor
         add(roadBut);
         roadBut.setActionCommand(ROAD);
         roadBut.addActionListener(this);
 
-        settlementT = new Label(strings.get("build.settlement"));  // "Settlement: "
+        settlementT = new JLabel(strings.get("build.settlement"));  // "Settlement: "
+        settlementT.setToolTipText(strings.get("build.1.vp"));  // "1 VP"
         add(settlementT);
-        new AWTToolTip(strings.get("build.1.vp"), settlementT);  // "1 VP"
-        settlementC = new Label(strings.get("build.cost"));  // "Cost: "
+        settlementC = new JLabel(costsLeftArrow);
+        settlementC.setToolTipText(strings.get("build.cost_to_build"));  // "Cost to Build"
         add(settlementC);
-        settlementWood = new ColorSquare(ColorSquare.WOOD, 1);
-        add(settlementWood);
-        settlementClay = new ColorSquare(ColorSquare.CLAY, 1);
-        add(settlementClay);
-        settlementWheat = new ColorSquare(ColorSquare.WHEAT, 1);
-        add(settlementWheat);
-        settlementSheep = new ColorSquare(ColorSquare.SHEEP, 1);
-        add(settlementSheep);
-        settlementBut = new Button("---");
+        settlementSq = makeCostSquares(SOCSettlement.COST);
+        settlementBut = new JButton("---");
         settlementBut.setEnabled(false);
         add(settlementBut);
         settlementBut.setActionCommand(STLMT);
         settlementBut.addActionListener(this);
 
-        cityT = new Label(strings.get("build.city.upg"));  // "City Upgrade: "
+        cityT = new JLabel(strings.get("build.city"));  // "City: "
+        cityT.setToolTipText(strings.get("build.city.vp"));  // "2 VP  (receives 2x rsrc.)"
         add(cityT);
-        new AWTToolTip(strings.get("build.city.upg.vp"), cityT);  // "2 VP  (receives 2x rsrc.)"
-        cityC = new Label(strings.get("build.cost"));  // "Cost: "
+        cityC = new JLabel(costsLeftArrow);
+        cityC.setToolTipText(strings.get("build.cost_to_build"));
         add(cityC);
-        cityWheat = new ColorSquare(ColorSquare.WHEAT, 2);
-        add(cityWheat);
-        cityOre = new ColorSquare(ColorSquare.ORE, 3);
-        add(cityOre);
-        cityBut = new Button("---");
+        citySq = makeCostSquares(SOCCity.COST);
+        cityBut = new JButton("---");
         cityBut.setEnabled(false);
         add(cityBut);
         cityBut.setActionCommand(CITY);
         cityBut.addActionListener(this);
 
-        gameOptsBut = new Button(strings.get("build.game.options"));  // "Options..." -- show game options
+        gameOptsBut = new JButton(strings.get("build.game.options"));  // "Options..." -- show game options
         add(gameOptsBut);
         gameOptsBut.addActionListener(this);
 
         //TODO: disable until the game initialization is complete and the first roll is made
-        statsBut = new Button(strings.get("build.game.stats"));  // "Statistics..."
+        statsBut = new JButton(strings.get("build.game.stats"));  // "Statistics..."
         add(statsBut);
         statsBut.addActionListener(this);
 
-        cardT = new Label(strings.get("build.dev.card"));  // "Dev Card: "
+        cardT = new JLabel(strings.get("build.dev.card"));  // "Dev Card: "
+        cardT.setToolTipText(/*I*/"? VP  (largest army = 2 VP) "/*18N*/);
         add(cardT);
-        new AWTToolTip (/*I*/"? VP  (largest army = 2 VP) "/*18N*/, cardT);
-        cardC = new Label(strings.get("build.cost"));  // "Cost: "
+        cardC = new JLabel(costsLeftArrow);
+        cardC.setToolTipText(strings.get("build.cost_to_build"));
         add(cardC);
-        cardWheat = new ColorSquare(ColorSquare.WHEAT, 1);
-        add(cardWheat);
-        cardSheep = new ColorSquare(ColorSquare.SHEEP, 1);
-        add(cardSheep);
-        cardOre = new ColorSquare(ColorSquare.ORE, 1);
-        add(cardOre);
-        cardBut = new Button("---");
+        cardSq = makeCostSquares(SOCDevCard.COST);
+        cardBut = new JButton("---");
         cardBut.setEnabled(false);
         add(cardBut);
         cardBut.setActionCommand(CARD);
         cardBut.addActionListener(this);
         // Development Card count. Initial amount will be sent from server soon.
         //TODO i18n: Is 'Available X' better than 'X available' in some languages?
-        cardCountLab = new Label(strings.get("build.available"));  // "available"
-        cardCountLab.setAlignment(Label.LEFT);
+        cardCountLab = new JLabel(strings.get("build.available"), SwingConstants.LEFT);  // "available"
         add(cardCountLab);
         cardCount = new ColorSquare(ColorSquare.GREY, 0);
         cardCount.setTooltipText(strings.get("build.dev.cards.available"));  // "Development cards available to buy"
@@ -303,17 +339,14 @@ import java.awt.event.WindowListener;
 
         if (ga.hasSeaBoard)
         {
-            shipT = new Label(strings.get("build.ship"));  // "Ship: "
-            shipT.setAlignment(Label.LEFT);
+            shipT = new JLabel(strings.get("build.ship"), SwingConstants.LEFT);  // "Ship: "
+            shipT.setToolTipText(strings.get("build.ship.vp"));  // "0 VP  (longest route = 2 VP)"
             add(shipT);
-            new AWTToolTip (strings.get("build.ship.vp"), shipT);  // "0 VP  (longest route = 2 VP)"
-            shipC = new Label(strings.get("build.cost"));  // "Cost: "
+            shipC = new JLabel(costsLeftArrow);
+            shipC.setToolTipText(strings.get("build.cost_to_build"));
             add(shipC);
-            shipWood = new ColorSquare(ColorSquare.WOOD, 1);
-            add(shipWood);
-            shipSheep = new ColorSquare(ColorSquare.SHEEP, 1);
-            add(shipSheep);
-            shipBut = new Button("---");
+            shipSq = makeCostSquares(SOCShip.COST);
+            shipBut = new JButton("---");
             shipBut.setEnabled(false);
             add(shipBut);
             shipBut.setActionCommand(SHIP);
@@ -327,22 +360,23 @@ import java.awt.event.WindowListener;
                 final String TTIP_CLOTH_TEXT = strings.get("build.sc_clvi.cloth.tip");
                     // "General Supply of cloth for any villages shared by multiple players"
 
-                clothLab = new Label(strings.get("build.sc_clvi.cloth"));  // "Cloth:"
+                clothLab = new JLabel(strings.get("build.sc_clvi.cloth"));  // "Cloth:"
+                clothLab.setToolTipText(TTIP_CLOTH_TEXT);
                 add(clothLab);
-                new AWTToolTip(TTIP_CLOTH_TEXT, clothLab);
                 cloth = new ColorSquare(ColorSquare.GREY, 0);
                 add(cloth);
                 cloth.setTooltipText(TTIP_CLOTH_TEXT);
             }
             else if (ga.isGameOptionSet(SOCGameOption.K_SC_WOND))
             {
-                wondersBut = new Button(strings.get("build.specitem._SC_WOND"));  // "Wonders..."
+                wondersBut = new JButton(strings.get("build.specitem._SC_WOND"));  // "Wonders..."
+                wondersBut.setToolTipText(strings.get("build.specitem._SC_WOND.tip"));  // "Build or get info about the Wonders"
                 add(wondersBut);
-                new AWTToolTip(strings.get("build.specitem._SC_WOND.tip"), wondersBut);  // "Build or get info about the Wonders"
                 wondersBut.addActionListener(this);
             }
         } else {
             // shipBut, cloth, wondersBut already null
+            shipSq = null;
         }
 
         if (ga.hasSeaBoard || (ga.vp_winner != 10))  // 10, not SOCGame.VP_WINNER_STANDARD, in case someone changes that
@@ -354,10 +388,9 @@ import java.awt.event.WindowListener;
             vpToWin.setTooltipText(TTIP_VP_TEXT);
             add(vpToWin);
 
-            vpToWinLab = new Label(strings.get("build.vp.to.win"));  // "VP to win:"
-            vpToWinLab.setAlignment(Label.RIGHT);
+            vpToWinLab = new JLabel(strings.get("build.vp.to.win"), SwingConstants.RIGHT);  // "VP to win:"
+            vpToWinLab.setToolTipText(TTIP_VP_TEXT);
             add(vpToWinLab);
-            new AWTToolTip(TTIP_VP_TEXT, vpToWinLab);
         } else {
             vpToWinLab = null;
             vpToWin = null;
@@ -367,7 +400,7 @@ import java.awt.event.WindowListener;
         {
             // Special Building Phase button for 6-player game
             sbIsHilight = false;
-            sbPanel = new Panel(null)
+            sbPanel = new JPanel(null)
             {
                 /** Custom layout for this Panel, with button and optional label centered on their own lines.
                  *  Line height is {@link ColorSquare#HEIGHT}, the same used in {@link SOCBuildingPanel#doLayout()}.
@@ -388,7 +421,7 @@ import java.awt.event.WindowListener;
                         lineH = ColorSquare.HEIGHT;
 
                     int btnW = sbBut.getPreferredSize().width;
-                    final int btnTxtW = 8 + sbBut.getFontMetrics(sbBut.getFont()).stringWidth(sbBut.getLabel());
+                    final int btnTxtW = 8 + sbBut.getFontMetrics(sbBut.getFont()).stringWidth(sbBut.getText());
                     if (btnTxtW > btnW)
                         btnW = btnTxtW;
                     if (btnW > dim.width)
@@ -412,18 +445,23 @@ import java.awt.event.WindowListener;
                 }
             };
             sbPanel.setBackground(ColorSquare.GREY);
+
             if (ga.hasSeaBoard)
             {
                 // Large board: 1 line, no room for sbLab
-                sbBut = new Button(strings.get("build.special.build"));  // "Special Build"
+                sbBut = new JButton(strings.get("build.special.build"));  // "Special Build"
             } else {
                 // Classic board: 2 lines, label and button
-                sbLab = new Label(strings.get("build.special.build.phase"), Label.CENTER);  // "Special Building Phase"
-                sbBut = new Button(strings.get("build.buybuild"));  // "Buy/Build"
+                sbLab = new JLabel(strings.get("build.special.build.phase"), SwingConstants.CENTER);  // "Special Building Phase"
+                sbLab.setFont(panelFont);
+                sbBut = new JButton(strings.get("build.buybuild"));  // "Buy/Build"
             }
+            sbBut.setBackground(null);
+            sbBut.setFont(panelFont);
             sbBut.setEnabled(false);
             sbBut.setActionCommand(SBP);
             sbBut.addActionListener(this);
+
             if (sbLab != null)
                 sbPanel.add(sbLab);
             sbPanel.add(sbBut);
@@ -431,11 +469,81 @@ import java.awt.event.WindowListener;
 
             final String TTIP_SBP_TEXT = strings.get("build.special.build.tip");
                 // "This phase allows building between player turns."
-            new AWTToolTip(TTIP_SBP_TEXT, sbPanel);
+            sbPanel.setToolTipText(TTIP_SBP_TEXT);
             if (sbLab != null)
-                new AWTToolTip(TTIP_SBP_TEXT, sbLab);
+                sbLab.setToolTipText(TTIP_SBP_TEXT);
         }
 
+        // make all labels and buttons use panel's font and background color;
+        // to not cut off wide button text, remove button margin since we're using custom layout anyway
+        Insets minMargin = new Insets(2, 2, 2, 2);
+        final Font arrowFont = (arrowFallbackFont != null) ? arrowFallbackFont : panelFont;
+        for (Component co : getComponents())
+        {
+            if (! ((co instanceof JLabel) || (co instanceof JButton)))
+                continue;
+
+            co.setFont(panelFont);
+            if (co instanceof JLabel)
+            {
+                if (costsLeftArrow.equals(((JLabel) co).getText()))
+                    co.setFont(arrowFont);
+                else
+                    ((JLabel) co).setVerticalAlignment(JLabel.TOP);
+            } else {
+                ((JButton) co).setMargin(minMargin);
+                co.setBackground(null);  // required for win32 to avoid gray corners on JButton
+            }
+        }
+    }
+
+    /**
+     * For constructor, test {@code panelFont} glyphs and set {@link #hasTestedArrowFont}
+     * and possibly {@link #arrowIsAsciiFallback} or {@link #arrowFallbackFont}:
+     * Tests whether the cost "arrow" labels can use {@link #COSTS_LEFT_ARROW_UNICODE}
+     * or will need to use a fallback instead.
+     * @param panelFont Dialong font used for the SOCBuildingPanel being constructed
+     * @since 2.0.00
+     */
+    private static void checkArrowForFontFallback(final Font panelFont)
+    {
+        if (hasTestedArrowFont)
+            return;
+
+        if (! panelFont.canDisplay(COSTS_LEFT_ARROW_UNICODE.codePointAt(0)))
+        {
+            // win98,winNT and newer include Lucida Sans Unicode which has that triangle
+            Font lucidaFont = null;
+            System.err.println("info: SOCBuildingPanel: dialog font can't display unicode arrow");
+            for (Font f : GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts())
+            {
+                if (f.getFontName().equalsIgnoreCase("Lucida Sans Unicode"))
+                {
+                    lucidaFont = f.deriveFont(10f);  // float to avoid calling deriveFont(int style)
+                    break;
+                }
+            }
+
+            if (lucidaFont != null)
+            {
+                if (lucidaFont.canDisplay(COSTS_LEFT_ARROW_UNICODE.codePointAt(0)))
+                {
+                    System.err.println("-> got fallback font Lucida Sans Unicode");
+                    arrowFallbackFont = lucidaFont;
+                } else {
+                    System.err.println("and neither can fallback font");
+                    lucidaFont = null;
+                }
+            }
+
+            if (lucidaFont == null)
+            {
+                System.err.println("-> couldn't get fallback font; using ascii arrow");
+                arrowIsAsciiFallback = true;
+            }
+        }
+
+        hasTestedArrowFont = true;
     }
 
     /**
@@ -459,20 +567,27 @@ import java.awt.event.WindowListener;
         FontMetrics fm = this.getFontMetrics(this.getFont());
         final int lineH = ColorSquare.HEIGHT;
         final int rowSpaceH = lineH / 2;
-        final int costW = fm.stringWidth(roadC.getText().trim()) + 4;  // "Cost:"
-        final int butW = 50;
+        final int costW = fm.stringWidth(roadC.getText().trim()) + 2;  // left arrow for Cost colorsquares
+        final int butW = 62;   // all Build buttons
         final int margin = 2;
 
-        final int settlementTW = fm.stringWidth(settlementT.getText());
-        final int cityTW = fm.stringWidth(cityT.getText());
-        final int buttonMargin = 2 * margin + ((settlementTW > cityTW) ? settlementTW : cityTW);
+        final int roadTW = fm.stringWidth(roadT.getText()),
+                  settlementTW = fm.stringWidth(settlementT.getText()),
+                  cityTW = fm.stringWidth(cityT.getText()),
+                  cardTW = fm.stringWidth(cardT.getText());
+        int buttonMargin = (settlementTW > cityTW) ? settlementTW : cityTW;
+        if (roadTW > buttonMargin)
+            buttonMargin = roadTW;
+        if (cardTW > buttonMargin)
+            buttonMargin = cardTW;
+        buttonMargin += 2 * margin;
 
         /*
            title.setSize(dim.width, lineH);
            title.setLocation(0, 0);
            curY += lineH;
          */
-        roadT.setSize(fm.stringWidth(roadT.getText()), lineH);
+        roadT.setSize(roadTW, lineH);
         roadT.setLocation(margin, curY);
         roadBut.setSize(butW, lineH);
         roadBut.setLocation(buttonMargin, curY);
@@ -481,11 +596,7 @@ import java.awt.event.WindowListener;
         roadC.setSize(costW, lineH);
         roadC.setLocation(curX, curY);
         curX += costW + margin;
-        roadWood.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-        roadWood.setLocation(curX, curY);
-        curX += (ColorSquare.WIDTH + 2);
-        roadClay.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-        roadClay.setLocation(curX, curY);
+        curX = layoutCostSquares(roadSq, curX, curY);  // 2 squares
 
         if (shipBut != null)
         {
@@ -502,11 +613,7 @@ import java.awt.event.WindowListener;
             shipC.setSize(costW, lineH);
             shipC.setLocation(curX, curY);
             curX += costW + margin;
-            shipWood.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-            shipWood.setLocation(curX, curY);
-            curX += (ColorSquare.WIDTH + 2);
-            shipSheep.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-            shipSheep.setLocation(curX, curY);
+            layoutCostSquares(shipSq, curX, curY);  // 2 squares
         }
 
         curY += (rowSpaceH + lineH);
@@ -520,17 +627,7 @@ import java.awt.event.WindowListener;
         settlementC.setSize(costW, lineH);
         settlementC.setLocation(curX, curY);
         curX += costW + margin;
-        settlementWood.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-        settlementWood.setLocation(curX, curY);
-        curX += (ColorSquare.WIDTH + 2);
-        settlementClay.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-        settlementClay.setLocation(curX, curY);
-        curX += (ColorSquare.WIDTH + 2);
-        settlementWheat.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-        settlementWheat.setLocation(curX, curY);
-        curX += (ColorSquare.WIDTH + 2);
-        settlementSheep.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-        settlementSheep.setLocation(curX, curY);
+        curX = layoutCostSquares(settlementSq, curX, curY);  // 4 squares
 
         if (maxPlayers > 4)
         {
@@ -562,11 +659,7 @@ import java.awt.event.WindowListener;
         cityC.setSize(costW, lineH);
         cityC.setLocation(curX, curY);
         curX += costW + margin;
-        cityWheat.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-        cityWheat.setLocation(curX, curY);
-        curX += (ColorSquare.WIDTH + 2);
-        cityOre.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-        cityOre.setLocation(curX, curY);
+        curX = layoutCostSquares(citySq, curX, curY);  // 2 squares
 
         if (cloth != null)
         {
@@ -589,7 +682,7 @@ import java.awt.event.WindowListener;
 
         curY += (rowSpaceH + lineH);
 
-        cardT.setSize(fm.stringWidth(cardT.getText()), lineH);
+        cardT.setSize(cardTW, lineH);
         cardT.setLocation(margin, curY);
         cardBut.setSize(butW, lineH);
         cardBut.setLocation(buttonMargin, curY);
@@ -598,14 +691,7 @@ import java.awt.event.WindowListener;
         cardC.setSize(costW, lineH);
         cardC.setLocation(curX, curY);
         curX += costW + margin;
-        cardWheat.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-        cardWheat.setLocation(curX, curY);
-        curX += (ColorSquare.WIDTH + 2);
-        cardSheep.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-        cardSheep.setLocation(curX, curY);
-        curX += (ColorSquare.WIDTH + 2);
-        cardOre.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
-        cardOre.setLocation(curX, curY);
+        curX = layoutCostSquares(cardSq, curX, curY);  // 3 squares
 
         curX += 2 * (ColorSquare.WIDTH + 2);
         // cardCount.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
@@ -684,6 +770,64 @@ import java.awt.event.WindowListener;
             }
         }
 
+    }
+
+    /** For aesthetics use a certain resource-type order, not {@link SOCResourceConstants}' order. */
+    private final static int[] makeCostSquares_resMap =
+        { SOCResourceConstants.WOOD, SOCResourceConstants.CLAY, SOCResourceConstants.WHEAT,
+          SOCResourceConstants.SHEEP, SOCResourceConstants.ORE };
+
+    /**
+     * Given an item's resource cost, make an array of {@link ColorSquare}s to show the cost
+     * and {@link java.awt.Container#add(Component) add(Component)} them to this panel.
+     * Each ColorSquare's tooltip will get a "Cost to Build" prefix, like: "Cost to Build: Sheep"
+     * @param cost  Item's cost; not {@code null}
+     * @return  ColorSquares for this item's cost
+     * @since 2.0.00
+     */
+    private ColorSquare[] makeCostSquares(final SOCResourceSet cost)
+    {
+        final String costToBuild = strings.get("build.cost_to_build");  // "Cost to Build"
+        final int n = cost.getResourceTypeCount();
+        final ColorSquare[] sq = new ColorSquare[n];
+
+        for (int i = 0, mapIdx = 0; i < n && mapIdx < 5; ++mapIdx)
+        {
+            final int res = makeCostSquares_resMap[mapIdx];  // will be in range 1 to 5
+            final int itemCost = cost.getAmount(res);
+            if (itemCost == 0)
+                continue;
+
+            final ColorSquare s = new ColorSquare(ColorSquare.RESOURCE_COLORS[res - 1], itemCost);
+            s.setTooltipText(costToBuild + ": " + s.getTooltipText());  // "Cost to Build: Sheep" etc
+            sq[i] = s;
+            add(s);
+            ++i;
+        }
+
+        return sq;
+    }
+
+    /**
+     * Lay out these item-cost {@link ColorSquare}s in a horizontal row starting at {@code (curX, curY)}.
+     * Space between them will be 2 pixels.
+     * @param sq  Array of ColorSquares
+     * @param curX  X-coordinate to use for first square's {@link ColorSquare#setLocation(int, int)}
+     * @param curY  Y-coordinate to use for first square's {@link ColorSquare#setLocation(int, int)}
+     * @return curX for next component after laying out all squares in {@code sq};
+     *    distance from passed-in {@code curX} will be {@code sq.length} * ({@link ColorSquare#WIDTH} + 2).
+     * @since 2.0.00
+     */
+    private int layoutCostSquares(final ColorSquare[] sq, int curX, final int curY)
+    {
+        for (int i = 0; i < sq.length; ++i)
+        {
+            sq[i].setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
+            sq[i].setLocation(curX, curY);
+            curX += (ColorSquare.WIDTH + 2);
+        }
+
+        return curX;
     }
 
     /**
@@ -911,18 +1055,18 @@ import java.awt.event.WindowListener;
                             || pi.getClient().sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD2))))
             {
                 roadBut.setEnabled(true);
-                roadBut.setLabel(strings.get("base.cancel"));  // "Cancel"
+                roadBut.setText(strings.get("base.cancel"));  // "Cancel"
                 pieceButtonsState = (gstate == SOCGame.PLACING_FREE_ROAD2) ? gstate : SOCGame.PLACING_ROAD;
             }
             else if (game.couldBuildRoad(pnum))
             {
                 roadBut.setEnabled(currentCanBuy);
-                roadBut.setLabel(strings.get("build.buy"));  // "Buy"
+                roadBut.setText(strings.get("build.buy"));  // "Buy"
             }
             else
             {
                 roadBut.setEnabled(false);
-                roadBut.setLabel("---");
+                roadBut.setText("---");
             }
 
             if (isCurrent &&
@@ -930,46 +1074,46 @@ import java.awt.event.WindowListener;
                  || (gstate == SOCGame.START2B) || (gstate == SOCGame.START3B)) )
             {
                 settlementBut.setEnabled(true);
-                settlementBut.setLabel(strings.get("base.cancel"));
+                settlementBut.setText(strings.get("base.cancel"));
                 pieceButtonsState = SOCGame.PLACING_SETTLEMENT;
             }
             else if (game.couldBuildSettlement(pnum))
             {
                 settlementBut.setEnabled(currentCanBuy);
-                settlementBut.setLabel(strings.get("build.buy"));
+                settlementBut.setText(strings.get("build.buy"));
             }
             else
             {
                 settlementBut.setEnabled(false);
-                settlementBut.setLabel("---");
+                settlementBut.setText("---");
             }
 
             if (isCurrent && (gstate == SOCGame.PLACING_CITY))
             {
                 cityBut.setEnabled(true);
-                cityBut.setLabel(strings.get("base.cancel"));
+                cityBut.setText(strings.get("base.cancel"));
                 pieceButtonsState = SOCGame.PLACING_CITY;
             }
             else if (game.couldBuildCity(pnum))
             {
                 cityBut.setEnabled(currentCanBuy);
-                cityBut.setLabel(strings.get("build.buy"));
+                cityBut.setText(strings.get("build.buy"));
             }
             else
             {
                 cityBut.setEnabled(false);
-                cityBut.setLabel("---");
+                cityBut.setText("---");
             }
 
             if (game.couldBuyDevCard(pnum))
             {
                 cardBut.setEnabled(currentCanBuy);
-                cardBut.setLabel(strings.get("build.buy"));
+                cardBut.setText(strings.get("build.buy"));
             }
             else
             {
                 cardBut.setEnabled(false);
-                cardBut.setLabel("---");
+                cardBut.setText("---");
             }
 
             if (shipBut != null)
@@ -977,7 +1121,7 @@ import java.awt.event.WindowListener;
                 if (isCurrent && ((gstate == SOCGame.PLACING_SHIP) || (gstate == SOCGame.PLACING_FREE_ROAD2)))
                 {
                     shipBut.setEnabled(true);
-                    shipBut.setLabel(strings.get("base.cancel"));
+                    shipBut.setText(strings.get("base.cancel"));
                     pieceButtonsState = gstate;  // PLACING_SHIP or PLACING_FREE_ROAD2
                     // ships were added after VERSION_FOR_CANCEL_FREE_ROAD2, so no need to check server version
                     // to make sure the server supports canceling.
@@ -985,12 +1129,12 @@ import java.awt.event.WindowListener;
                 else if (game.couldBuildShip(pnum))
                 {
                     shipBut.setEnabled(currentCanBuy);
-                    shipBut.setLabel(strings.get("build.buy"));
+                    shipBut.setText(strings.get("build.buy"));
                 }
                 else
                 {
                     shipBut.setEnabled(false);
-                    shipBut.setLabel("---");
+                    shipBut.setText("---");
                 }
             }
 
