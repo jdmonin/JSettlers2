@@ -62,7 +62,7 @@ import javax.swing.SwingConstants;
  * @see GameStatisticsFrame
  */
 @SuppressWarnings("serial")
-/*package*/ class SOCBuildingPanel extends Panel
+/*package*/ class SOCBuildingPanel extends JPanel
     implements ActionListener, WindowListener
 {
     /** i18n text strings */
