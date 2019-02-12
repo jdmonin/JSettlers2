@@ -377,7 +377,7 @@ public class PropertiesTranslatorEditor
         {
             SecurityManager sm = System.getSecurityManager();
             if (sm != null)
-                sm.checkSystemClipboardAccess();
+                sm.checkPermission(new java.awt.AWTPermission("accessClipboard"));
         } catch (SecurityException e) {
             canSetClipboard = false;
         }
