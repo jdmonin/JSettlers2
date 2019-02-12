@@ -14,8 +14,8 @@ version = '2.0.00'  // same as in src/main/resources/resources/version.info
 mainClassName = "soc.client.SOCPlayerClient"
 
 compileJava {
-    sourceCompatibility = '1.5'
-    targetCompatibility = '1.5'
+    sourceCompatibility = '1.6'
+    targetCompatibility = '1.6'
 }
 
 tasks.withType(JavaCompile) {
