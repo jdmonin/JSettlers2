@@ -39,7 +39,7 @@ import soc.robot.SOCRobotClient;
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.00
  */
-class SOCLocalRobotClient implements Runnable
+/*package*/ class SOCLocalRobotClient implements Runnable
 {
     /**
      * All the started {@link SOCRobotClient}s. Key is the bot nickname.

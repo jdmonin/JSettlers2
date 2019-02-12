@@ -49,7 +49,7 @@ import java.util.Vector;
  *  @author <A HREF="http://www.nada.kth.se/~cristi">Cristian Bogdan</A>
  */
 @SuppressWarnings("serial")
-public class ChannelFrame extends Frame
+/*package*/ class ChannelFrame extends Frame
 {
     public SnippingTextArea ta;
     public TextField tf;

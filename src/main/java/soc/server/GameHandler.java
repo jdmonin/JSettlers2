@@ -60,7 +60,7 @@ import soc.util.SOCGameList;
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */
-public abstract class GameHandler
+/*package*/ abstract class GameHandler
 {
     protected final SOCServer srv;
 

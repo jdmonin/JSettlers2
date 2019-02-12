@@ -43,7 +43,7 @@ import javax.swing.WindowConstants;
 
 
 @SuppressWarnings("serial")
-class SOCMonopolyDialog extends JDialog implements ActionListener, Runnable
+/*package*/ class SOCMonopolyDialog extends JDialog implements ActionListener, Runnable
 {
     final JButton[] rsrcBut;
     /** Prompt message. Text alignment is centered. */

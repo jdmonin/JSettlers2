@@ -78,7 +78,7 @@ import soc.util.SOCStringManager;
  * @author Alessandro D'Ottavio
  * @since 2.0.00
  */
-public class SOCGameMessageHandler
+/*package*/ class SOCGameMessageHandler
     implements GameMessageHandler
 {
     /** Server reference, for data and responses */

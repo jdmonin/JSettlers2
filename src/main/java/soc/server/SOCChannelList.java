@@ -39,7 +39,7 @@ import java.util.Vector;
  * @author Robert S. Thomas
  * @see SOCGameListAtServer
  */
-public class SOCChannelList
+/*package*/ class SOCChannelList
 {
     /** key = string, value = Vector of MutexFlags */
     protected final Hashtable<String, MutexFlag> channelMutexes;

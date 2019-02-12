@@ -46,7 +46,7 @@ import javax.swing.JComponent;
  * @since 1.1.00
  */
 @SuppressWarnings("serial")
-public class AWTToolTip
+/*package*/ class AWTToolTip
   extends Canvas
   implements MouseListener, MouseMotionListener, ComponentListener
 {

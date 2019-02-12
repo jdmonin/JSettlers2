@@ -34,7 +34,7 @@ import java.util.Vector;
  * and a list of other building possibilities that
  * result from building this thing.
  */
-public class SOCBuildPossibility
+/*package*/ class SOCBuildPossibility
 {
     SOCPlayingPiece piece;
     boolean buyDevCard;

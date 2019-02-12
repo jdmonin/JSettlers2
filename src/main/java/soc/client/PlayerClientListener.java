@@ -63,7 +63,7 @@ import soc.game.SOCSpecialItem;
  * @author paulbilnoski
  * @since 2.0.00
  */
-public interface PlayerClientListener
+/*package*/ interface PlayerClientListener
 {
     /**
      * Receive a notification that the current player has rolled the dice.

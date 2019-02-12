@@ -50,7 +50,7 @@ import java.awt.event.WindowListener;
  * @see GameStatisticsFrame
  */
 @SuppressWarnings("serial")
-public class SOCBuildingPanel extends Panel
+/*package*/ class SOCBuildingPanel extends Panel
     implements ActionListener, WindowListener
 {
     /** i18n text strings */

@@ -54,7 +54,7 @@ import java.util.Vector;
  * @author <A HREF="http://www.nada.kth.se/~cristi">Cristian Bogdan</A>
  */
 @SuppressWarnings("serial")
-public final class NetConnection
+/*package*/ final class NetConnection
     extends Connection implements Runnable, Serializable, Cloneable
 {
     protected final static int TIMEOUT_VALUE = 3600000; // approx. 1 hour

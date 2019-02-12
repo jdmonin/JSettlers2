@@ -46,7 +46,7 @@ import java.awt.Graphics;
  * @author Robert S. Thomas
  */
 @SuppressWarnings("serial")
-public class SpeechBalloon extends Canvas
+/*package*/ class SpeechBalloon extends Canvas
 {
     /**
      * Size of the shadow appearing on the right and bottom sides, in pixels.

@@ -32,7 +32,7 @@ import soc.game.SOCPlayerNumbers;
  * @author Robert S Thomas
  *
  */
-public class SOCPossibleCity extends SOCPossiblePiece
+/*package*/ class SOCPossibleCity extends SOCPossiblePiece
 {
     /**
      * Speedup per building type.  Indexed from {@link SOCBuildingSpeedEstimate#MIN}

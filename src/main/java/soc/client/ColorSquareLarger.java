@@ -37,7 +37,7 @@ import java.awt.Color;
  * @since 1.1.00
  */
 @SuppressWarnings("serial")
-public class ColorSquareLarger extends ColorSquare
+/*package*/ class ColorSquareLarger extends ColorSquare
 {
     public final static int WIDTH_L = 20;
     public final static int HEIGHT_L = 20;

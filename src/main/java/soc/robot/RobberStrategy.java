@@ -33,7 +33,7 @@ import soc.game.SOCBoard;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 
-public class RobberStrategy
+/*package*/ class RobberStrategy
 {
 
     /** debug logging */

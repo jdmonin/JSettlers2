@@ -35,7 +35,7 @@ import java.awt.TextArea;
  * considered a line.
  */
 @SuppressWarnings("serial")
-public class SnippingTextArea extends TextArea
+/*package*/ class SnippingTextArea extends TextArea
 {
     /**
      * A bug in Java 1.4.2: the first time replaceRange() is called, it

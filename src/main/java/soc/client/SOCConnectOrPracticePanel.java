@@ -59,7 +59,7 @@ import soc.util.Version;
  * @author Jeremy D Monin <jeremy@nand.net>
  */
 @SuppressWarnings("serial")
-public class SOCConnectOrPracticePanel extends JPanel
+/*package*/ class SOCConnectOrPracticePanel extends JPanel
     implements ActionListener, KeyListener
 {
     private final GameDisplay gd;

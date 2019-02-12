@@ -30,7 +30,7 @@ import soc.util.SOCStringManager;  // for javadocs only
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @see SOCGameHandler#sendGamePendingMessages(soc.game.SOCGame, boolean)
  */
-public final class UnlocalizedString
+/*package*/ final class UnlocalizedString
 {
     /** Message localization key, to retrieve text with {@link SOCStringManager#get(String)} */
     public final String key;

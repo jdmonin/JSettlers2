@@ -102,7 +102,7 @@ import soc.util.Version;
  * @since 1.1.07
  */
 @SuppressWarnings("serial")
-public class NewGameOptionsFrame extends JFrame
+/*package*/ class NewGameOptionsFrame extends JFrame
     implements ActionListener, DocumentListener, KeyListener, ItemListener, MouseListener
 {
     // See initInterfaceElements() for most of the UI setup.

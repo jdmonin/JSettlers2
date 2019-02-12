@@ -32,7 +32,7 @@ import soc.disableDebug.D;
  *
  * @author  Robert S. Thomas
  */
-public class SOCOldLRStats
+/*package*/ class SOCOldLRStats
 {
     int[] lrLengths;
     SOCPlayer playerWithLR;

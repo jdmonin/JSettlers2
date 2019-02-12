@@ -30,7 +30,7 @@ import soc.game.SOCResourceConstants;
  * Monopoly dev card strategy for a {@link SOCRobotBrain} in a game.
  * See {@link #decidePlayMonopoly()} for details.
  */
-public class MonopolyStrategy
+/*package*/ class MonopolyStrategy
 {
 
     /** Our game */

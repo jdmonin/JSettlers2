@@ -31,7 +31,7 @@ package soc.client;
  * @since 1.1.00
  */
 @SuppressWarnings("serial")
-class SOCPracticeAskDialog extends AskDialog
+/*package*/ class SOCPracticeAskDialog extends AskDialog
 {
 
     /** i18n text strings; will use same locale as SOCPlayerClient's string manager.

@@ -57,7 +57,7 @@ import java.util.TimerTask;
  * because it is overridden to also update a "compact mode" flag for counter-offer layout.
  */
 @SuppressWarnings("serial")
-public class TradeOfferPanel extends Panel
+/*package*/ class TradeOfferPanel extends Panel
 {
     /** i18n text strings; will use same locale as SOCPlayerClient's string manager.
      *  @since 2.0.00 */

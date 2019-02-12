@@ -38,7 +38,7 @@ import soc.server.genericServer.Server;
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */
-public class SOCMessageDispatcher
+/*package*/ class SOCMessageDispatcher
     implements Server.InboundMessageDispatcher
 {
     /**

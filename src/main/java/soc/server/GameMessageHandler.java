@@ -32,7 +32,7 @@ import soc.server.genericServer.Connection;
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */
-public interface GameMessageHandler
+/*package*/ interface GameMessageHandler
 {
     /**
      * Process one inbound command message from a client player of this game.

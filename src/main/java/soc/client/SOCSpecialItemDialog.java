@@ -75,7 +75,7 @@ import javax.swing.border.EmptyBorder;
  * @since 2.0.00
  */
 @SuppressWarnings("serial")
-class SOCSpecialItemDialog
+/*package*/ class SOCSpecialItemDialog
     extends JDialog implements ActionListener
 {
     /** i18n text strings; will use same locale as SOCPlayerClient's string manager. */

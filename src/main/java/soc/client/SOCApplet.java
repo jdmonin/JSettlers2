@@ -37,7 +37,7 @@ import soc.util.Version;
  * @author paulbilnoski
  * @since 2.0.00
  */
-public class SOCApplet extends Applet
+/*package*/ class SOCApplet extends Applet
 {
     private static final long serialVersionUID = 2000L;  // for v2.0.00
 

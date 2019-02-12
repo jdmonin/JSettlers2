@@ -31,7 +31,7 @@ import soc.util.SOCStringManager;
  * @since 1.1.00
  */
 @SuppressWarnings("serial")
-class SOCQuitConfirmDialog extends AskDialog
+/*package*/ class SOCQuitConfirmDialog extends AskDialog
 {
     /** i18n text strings.
      *  @since 2.0.00

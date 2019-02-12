@@ -34,7 +34,7 @@ import java.util.Vector;
  *
  * @author Robert S. Thomas
  */
-public class SOCTradeTree
+/*package*/ class SOCTradeTree
 {
     SOCResourceSet resourceSet;
     SOCTradeTree parent;

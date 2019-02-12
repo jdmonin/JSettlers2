@@ -49,7 +49,7 @@ import java.awt.event.ActionListener;
  * @author  Robert S. Thomas
  */
 @SuppressWarnings("serial")
-class SOCChoosePlayerDialog extends Dialog implements ActionListener, Runnable
+/*package*/ class SOCChoosePlayerDialog extends Dialog implements ActionListener, Runnable
 {
     /** i18n text strings; will use same locale as SOCPlayerClient's string manager.
      *  @since 2.0.00 */

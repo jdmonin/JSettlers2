@@ -30,7 +30,7 @@ import java.awt.Frame;
  * @author Jeremy D Monin <jeremy@nand.net>
  */
 @SuppressWarnings("serial")
-class SOCQuitAllConfirmDialog extends AskDialog
+/*package*/class SOCQuitAllConfirmDialog extends AskDialog
 {
     /** i18n text strings; will use same locale as SOCPlayerClient's string manager.
      *  @since 2.0.00 */

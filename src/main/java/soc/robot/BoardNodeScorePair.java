@@ -19,7 +19,7 @@
  **/
 package soc.robot;
 
-class BoardNodeScorePair
+/*package*/ class BoardNodeScorePair
 {
     private int node;
     private int score;

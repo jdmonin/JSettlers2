@@ -34,7 +34,7 @@ import java.util.List;
  *
  * @author Robert S Thomas
  */
-public class SOCPossibleRoad extends SOCPossiblePiece
+/*package*/ class SOCPossibleRoad extends SOCPossiblePiece
 {
     protected final List<SOCPossibleRoad> necessaryRoads;
     protected final List<SOCPossiblePiece> newPossibilities;

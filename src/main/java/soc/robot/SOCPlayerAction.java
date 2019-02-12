@@ -27,7 +27,7 @@ import soc.game.SOCPlayer;
  *
  * @author $author$
  */
-public class SOCPlayerAction
+/*package*/ class SOCPlayerAction
 {
     /**
      * possible actions

@@ -33,7 +33,7 @@ import java.awt.Graphics;
  * @author Robert S. Thomas
  */
 @SuppressWarnings("serial")
-public class ShadowedBox extends Canvas
+/*package*/ class ShadowedBox extends Canvas
 {
     /**
      * Size of the shadow, in pixels.

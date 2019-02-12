@@ -40,7 +40,7 @@ import java.util.Vector;
  * The {@code getEstimates...} methods use {@link SOCPlayer#getPortFlags()}.
  * Used by {@link SOCRobotDM#planStuff(int)} and other tactical planning methods.
  */
-public class SOCBuildingSpeedEstimate
+/*package*/ class SOCBuildingSpeedEstimate
 {
     public static final int ROAD = 0;
     public static final int SETTLEMENT = 1;

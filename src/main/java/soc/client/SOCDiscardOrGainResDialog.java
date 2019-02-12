@@ -51,7 +51,7 @@ import java.awt.event.MouseListener;
  * @author  Robert S. Thomas
  */
 @SuppressWarnings("serial")
-class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseListener, Runnable
+/*package*/ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseListener, Runnable
 {
 
     /** i18n text strings; will use same locale as SOCPlayerClient's string manager.

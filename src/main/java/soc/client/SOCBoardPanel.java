@@ -136,7 +136,7 @@ import java.util.Timer;
  *</UL>
  */
 @SuppressWarnings("serial")
-public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionListener
+/*package*/ class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionListener
 {
     /** i18n text strings */
     private static final SOCStringManager strings = SOCStringManager.getClientManager();

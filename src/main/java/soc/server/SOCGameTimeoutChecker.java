@@ -33,7 +33,7 @@ package soc.server;
  * @see SOCServer#ROBOT_FORCE_ENDTURN_SECONDS
  * @see SOCServer#GAME_TIME_EXPIRE_CHECK_MINUTES
  */
-public class SOCGameTimeoutChecker extends Thread
+/*package*/ class SOCGameTimeoutChecker extends Thread
 {
     private SOCServer server;
     private boolean alive;

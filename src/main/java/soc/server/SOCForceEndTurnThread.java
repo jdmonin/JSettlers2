@@ -43,7 +43,7 @@ import soc.server.genericServer.Connection;
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.11
  */
-class SOCForceEndTurnThread extends Thread
+/*package*/ class SOCForceEndTurnThread extends Thread
 {
     private final SOCServer srv;
     private final SOCGameHandler hand;

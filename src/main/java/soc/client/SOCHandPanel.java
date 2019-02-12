@@ -81,7 +81,7 @@ import javax.swing.UIManager;
  * because it is overridden to also update {@link #getBlankStandIn()}.
  */
 @SuppressWarnings("serial")
-public class SOCHandPanel extends Panel
+/*package*/ class SOCHandPanel extends Panel
     implements ActionListener, MouseListener
 {
     /** Minimum desired width, in pixels */

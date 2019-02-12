@@ -62,7 +62,7 @@ import soc.game.SOCGame;
  * @since 1.1.00
  */
 @SuppressWarnings("serial")
-public class FaceChooserFrame
+/*package*/ class FaceChooserFrame
     extends JFrame implements ActionListener, WindowListener, KeyListener
 {
     /** Face button that launched us. Passed to constructor, not null. */

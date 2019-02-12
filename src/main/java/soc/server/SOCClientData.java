@@ -38,7 +38,7 @@ import soc.util.SOCStringManager;  // for javadoc
  * @author Jeremy D Monin <jeremy@nand.net>
  * @since 1.1.04
  */
-public class SOCClientData
+/*package*/ class SOCClientData
 {
     /** Number of games won and lost since client connected */
     private int wins, losses;

@@ -49,7 +49,7 @@ import javax.sound.sampled.SourceDataLine;
  * @since 1.2.00
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
-public class Sounds
+/*package*/ class Sounds
 {
     /** Sampling rate: 44100 Hz. Can also use 22050, but that adds more white noise. */
     public static final float SAMPLE_RATE_HZ = 44100f;
