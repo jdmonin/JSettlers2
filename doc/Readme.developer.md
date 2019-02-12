@@ -26,8 +26,8 @@
 ### Project layout
 
 This project uses gradle or ant (or IDEs) to build. For developer familiarity,
-the project uses the directory structure/layout of a maven/gradle project. v2
-and newer versions use gradle to build. The 1.x.xx versions used ant.
+the project uses the directory structure/layout of a maven/gradle project.
+(v2 and newer versions use gradle to build. The 1.x.xx versions used ant.)
 
 
 Also see the "Build Setup and Results" section.
@@ -61,7 +61,7 @@ scenario.
 
 Coding is done in Java 6, but should compile cleanly in newer JDKs.
 (v1.2 used java 5 for backwards compatibility; earlier versions used 1.4.)
-The build system is Ant, which is natively understood by Eclipse, and gradle.
+The build system is gradle, we are phasing out the earlier Ant build.
 Use any IDE you want, including vi.  Use spaces, not tabs.  Please try to
 keep the other conventions of the code already there (see "Coding Style"
 below for more details.).
