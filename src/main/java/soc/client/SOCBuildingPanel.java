@@ -40,6 +40,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
+import java.awt.GraphicsEnvironment;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -72,6 +73,44 @@ public class SOCBuildingPanel extends JPanel
      * @since 2.0.00
      */
     private static final Color BUILDPAN_BG_OLIVE_GREEN = new Color(156, 179, 94);
+
+    /**
+     * The piece-cost "arrow": BLACK LEFT-POINTING TRIANGLE (U+25C0); since unicode 1.1 (june 1993).
+     * @see #hasTestedArrowFont
+     * @since 2.0.00
+     */
+    private static final String COSTS_LEFT_ARROW_UNICODE = "◀";
+
+    /**
+     * If true, constructor has tested whether the cost "arrow" labels can use the unicode
+     * left-pointing triangle {@link #COSTS_LEFT_ARROW_UNICODE}, or if a fallback is needed.
+     * Some older OSes (for example, windows xp) can't display the unicode left arrow in their dialog font.
+     * If true, then {@link #arrowIsAsciiFallback} and {@link #arrowFallbackFont} can be used.
+     * If false, {@link #checkArrowForFontFallback(Font)} should test and initialize those fields
+     * for the constructor.
+     * @since 2.0.00
+     */
+    private static boolean hasTestedArrowFont = false;
+
+    /**
+     * If true, cost "arrow" labels should use {@code "<-"} instead of the unicode left-pointing arrow.
+     *<P>
+     * Do not read this field unless {@link #hasTestedArrowFont}.
+     * @see #arrowFallbackFont
+     * @since 2.0.00
+     */
+    private static boolean arrowIsAsciiFallback = false;
+
+    /**
+     * If non-null, cost "arrow" labels should use this fallback font instead of Dialog.
+     * For example, old Windows versions may need Lucida Sans Unicode to display the arrow glyph
+     * {@link #COSTS_LEFT_ARROW_UNICODE}.
+     *<P>
+     * Do not read this field unless {@link #hasTestedArrowFont}.
+     * @see #arrowIsAsciiFallback
+     * @since 2.0.00
+     */
+    private static Font arrowFallbackFont = null;
 
     static final String ROAD = "road";  // I18N: These are internal command labels, not user-visible strings
     static final String STLMT = "stlmt";  // Build Settlement
@@ -220,7 +259,10 @@ public class SOCBuildingPanel extends JPanel
            add(title);
          */
 
-        final String costsLeftArrow = "◀";  // BLACK LEFT-POINTING TRIANGLE (U+25C0); since unicode 1.1 (june 1993)
+        if (! hasTestedArrowFont)
+            checkArrowForFontFallback(panelFont);
+
+        final String costsLeftArrow = (arrowIsAsciiFallback) ? "<-" : COSTS_LEFT_ARROW_UNICODE;
 
         roadT = new JLabel(strings.get("build.road"));  // "Road: "
         roadT.setToolTipText(strings.get("build.road.vp"));  // "0 VP  (longest road = 2 VP)"
@@ -435,6 +477,7 @@ public class SOCBuildingPanel extends JPanel
         // make all labels and buttons use panel's font and background color;
         // to not cut off wide button text, remove button margin since we're using custom layout anyway
         Insets minMargin = new Insets(2, 2, 2, 2);
+        final Font arrowFont = (arrowFallbackFont != null) ? arrowFallbackFont : panelFont;
         for (Component co : getComponents())
         {
             if (! ((co instanceof JLabel) || (co instanceof JButton)))
@@ -443,13 +486,64 @@ public class SOCBuildingPanel extends JPanel
             co.setFont(panelFont);
             if (co instanceof JLabel)
             {
-                if (! ((JLabel) co).getText().equals(costsLeftArrow))
+                if (costsLeftArrow.equals(((JLabel) co).getText()))
+                    co.setFont(arrowFont);
+                else
                     ((JLabel) co).setVerticalAlignment(JLabel.TOP);
             } else {
                 ((JButton) co).setMargin(minMargin);
                 co.setBackground(null);  // required for win32 to avoid gray corners on JButton
             }
         }
+    }
+
+    /**
+     * For constructor, test {@code panelFont} glyphs and set {@link #hasTestedArrowFont}
+     * and possibly {@link #arrowIsAsciiFallback} or {@link #arrowFallbackFont}:
+     * Tests whether the cost "arrow" labels can use {@link #COSTS_LEFT_ARROW_UNICODE}
+     * or will need to use a fallback instead.
+     * @param panelFont Dialong font used for the SOCBuildingPanel being constructed
+     * @since 2.0.00
+     */
+    private static void checkArrowForFontFallback(final Font panelFont)
+    {
+        if (hasTestedArrowFont)
+            return;
+
+        if (! panelFont.canDisplay(COSTS_LEFT_ARROW_UNICODE.codePointAt(0)))
+        {
+            // win98,winNT and newer include Lucida Sans Unicode which has that triangle
+            Font lucidaFont = null;
+            System.err.println("info: SOCBuildingPanel: dialog font can't display unicode arrow");
+            for (Font f : GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts())
+            {
+                if (f.getFontName().equalsIgnoreCase("Lucida Sans Unicode"))
+                {
+                    lucidaFont = f.deriveFont(10f);  // float to avoid calling deriveFont(int style)
+                    break;
+                }
+            }
+
+            if (lucidaFont != null)
+            {
+                if (lucidaFont.canDisplay(COSTS_LEFT_ARROW_UNICODE.codePointAt(0)))
+                {
+                    System.err.println("-> got fallback font Lucida Sans Unicode");
+                    arrowFallbackFont = lucidaFont;
+                } else {
+                    System.err.println("and neither can fallback font");
+                    lucidaFont = null;
+                }
+            }
+
+            if (lucidaFont == null)
+            {
+                System.err.println("-> couldn't get fallback font; using ascii arrow");
+                arrowIsAsciiFallback = true;
+            }
+        }
+
+        hasTestedArrowFont = true;
     }
 
     /**
