@@ -59,8 +59,8 @@ see initAllOptions javadoc for a list. Options have flags for their properties
 game option keynames start with `_SC_`, and provide special rules for the
 scenario.
 
-Coding is done in Java 5, but should compile cleanly in newer JDKs. (Before
-v1.2.00, we restricted ourselves to java 1.4 for backwards compatibility.)
+Coding is done in Java 6, but should compile cleanly in newer JDKs.
+(v1.2 used java 5 for backwards compatibility; earlier versions used 1.4.)
 The build system is Ant, which is natively understood by Eclipse, and gradle.
 Use any IDE you want, including vi.  Use spaces, not tabs.  Please try to
 keep the other conventions of the code already there (see "Coding Style"
@@ -238,7 +238,7 @@ other IDEs.
 - Project -> Properties
     - Resource: Text file encoding: UTF-8
     - Java Compiler: JDK compliance
-    	- Compliance level: 1.5
+    	- Compliance level: 1.6
     - OK
     	- If eclipse asks "Build the project now?", hit Yes
 - To add the `resources` directory:
@@ -262,7 +262,7 @@ patch submissions.
 
 ## Build Setup and Results
 
-Before building, make sure you have the Java Development Kit version 5 or later.
+Before building, make sure you have the Java Development Kit version 6 or later.
 If you simply want to run the client or server, you only need the Java Runtime
 (JRE). If you wish to maintain a user database for your server, you need MySQL
 or PostgreSQL installed and configured, or the sqlite jdbc driver for a

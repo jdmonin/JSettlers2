@@ -7,7 +7,7 @@
  and also includes a build-i18neditor target for the PTEMain i18n editor (PTE.jar) not built by default.
 
  Copyright (C) 2004-2005 Chadwick A McHenry (mchenryc@acm.org)
- Portions of this file Copyright (C) 2007-2017 Jeremy D Monin (jeremy@nand.net)
+ Portions of this file Copyright (C) 2007-2017,2019 Jeremy D Monin (jeremy@nand.net)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@
       * To override system's default encoding, specify UTF-8 for *.java
       -->
   <presetdef name="javac">
-    <javac encoding="UTF-8" includeantruntime="false" source="1.5" target="1.5" />
+    <javac encoding="UTF-8" includeantruntime="false" source="1.6" target="1.6" />
   </presetdef>
   <presetdef name="javadoc">
     <javadoc encoding="UTF-8" />
@@ -588,7 +588,7 @@ pte.version = ${i18neditor.version}
                doctitle="${Name} ${version} API"
                windowtitle="${Name} ${version} API - javadocs"
                access="package"
-               source="1.5"
+               source="1.6"
                splitindex="false"
                use="true"
                breakiterator="yes"
