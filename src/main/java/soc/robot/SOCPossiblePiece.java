@@ -42,7 +42,7 @@ import java.util.List;
  *
  * @author Robert S. Thomas
  */
-/*package*/ abstract class SOCPossiblePiece
+public abstract class SOCPossiblePiece
 {
     /**
      * Type constant for a possible road. Same value as {@link SOCPlayingPiece#ROAD}.

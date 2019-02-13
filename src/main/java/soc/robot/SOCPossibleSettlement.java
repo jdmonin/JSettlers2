@@ -34,7 +34,7 @@ import java.util.Stack;
  * @author Robert S Thomas
  *
  */
-/*package*/ class SOCPossibleSettlement extends SOCPossiblePiece
+public class SOCPossibleSettlement extends SOCPossiblePiece
 {
     protected List<SOCPossibleRoad> necessaryRoads;
     protected List<SOCPossibleSettlement> conflicts;

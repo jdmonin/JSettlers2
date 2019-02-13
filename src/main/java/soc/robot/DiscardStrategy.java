@@ -39,7 +39,7 @@ import soc.util.SOCRobotParameters;
  * For details see javadoc for
  * {@link #discard(int, Stack, Random, SOCPlayer, SOCRobotParameters, SOCRobotDM, SOCRobotNegotiator)}.
  */
-/*package*/ class DiscardStrategy
+public class DiscardStrategy
 {
 
     /** debug logging */

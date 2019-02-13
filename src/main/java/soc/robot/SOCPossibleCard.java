@@ -30,7 +30,7 @@ import soc.game.SOCPlayer;
  * @author Robert S Thomas
  *
  */
-/*package*/ class SOCPossibleCard extends SOCPossiblePiece
+public class SOCPossibleCard extends SOCPossiblePiece
 {
     /**
      * constructor

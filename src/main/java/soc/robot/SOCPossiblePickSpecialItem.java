@@ -31,7 +31,7 @@ import soc.message.SOCSetSpecialItem;  // strictly for javadocs
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */
-/*package*/ class SOCPossiblePickSpecialItem extends SOCPossiblePiece
+public class SOCPossiblePickSpecialItem extends SOCPossiblePiece
 {
     /** The special item's {@code typeKey}, for {@link SOCSetSpecialItem#typeKey} */
     public final String typeKey;

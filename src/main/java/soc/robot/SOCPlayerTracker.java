@@ -81,7 +81,7 @@ import java.util.TreeMap;
  *
  * @author Robert S Thomas
  */
-/*package*/ class SOCPlayerTracker
+public class SOCPlayerTracker
 {
     // protected static final DecimalFormat df1 = new DecimalFormat("###0.00");
 

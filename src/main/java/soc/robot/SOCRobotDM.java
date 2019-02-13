@@ -70,7 +70,7 @@ import soc.util.SOCRobotParameters;
  *
  * @author Robert S. Thomas
  */
-/*package*/ class SOCRobotDM
+public class SOCRobotDM
 {
 
   protected static final DecimalFormat df1 = new DecimalFormat("###0.00");

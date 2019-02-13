@@ -33,7 +33,7 @@ import java.util.List;
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */
-/*package*/ class SOCPossibleShip extends SOCPossibleRoad
+public class SOCPossibleShip extends SOCPossibleRoad
 {
     /** True if this is a coastal edge that could possibly be a road or a ship */
     public final boolean isCoastalRoadAndShip;

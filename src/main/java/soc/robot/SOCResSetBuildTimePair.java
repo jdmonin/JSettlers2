@@ -25,7 +25,7 @@ import soc.game.SOCResourceSet;
 /**
  * this class holds a SOCResourceSet and a building type
  */
-/*package*/ class SOCResSetBuildTimePair
+public class SOCResSetBuildTimePair
 {
     /**
      * the resource set

@@ -42,7 +42,7 @@ import soc.util.CutoffExceededException;
  * @author Eli McGowan
  *
  */
-/*package*/ class OpeningBuildStrategy {
+public class OpeningBuildStrategy {
 
     /** Our game */
     private final SOCGame game;
