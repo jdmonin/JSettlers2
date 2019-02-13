@@ -620,6 +620,7 @@ import soc.util.Version;
             scenDropdown = jcb;
             initInterface_Opt1(op, jcb, true, true, bp, gbl, gbc);
                 // adds jcb, and a checkbox which will toggle this OTYPE_STR's op.boolValue
+            jcb.addActionListener(this);  // when item selected, enable/disable Scenario Info button
 
             if ((! readOnly) || opts.containsKey("SC"))
             {
@@ -797,7 +798,7 @@ import soc.util.Version;
                 }
                 else if (oc instanceof JComboBox)
                 {
-                    ((JComboBox<?>) oc).addActionListener(this);  // for related cb, and op.ChangeListener and userChanged
+                    ((JComboBox<?>) oc).addItemListener(this);  // for related cb, and op.ChangeListener and userChanged
                 }
             }
         }
@@ -865,7 +866,7 @@ import soc.util.Version;
             int defaultIdx = op.getIntValue() - op.minIntValue;
             if (defaultIdx > 0)
                 ch.setSelectedIndex(defaultIdx);
-            ch.addActionListener(this);  // for op.ChangeListener and userChanged
+            ch.addItemListener(this);  // for op.ChangeListener and userChanged
             c = ch;
         }
         return c;
