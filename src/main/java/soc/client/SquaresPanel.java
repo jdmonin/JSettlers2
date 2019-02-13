@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2009, 2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2012,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,10 +21,12 @@
 package soc.client;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Panel;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+
+import javax.swing.JPanel;
 
 /**
  * Display grid of give/get resources
@@ -38,13 +40,22 @@ import java.awt.event.MouseListener;
  * @see TradeOfferPanel
  */
 @SuppressWarnings("serial")
-/*package*/ class SquaresPanel extends Panel implements MouseListener, ColorSquareListener
+/*package*/ class SquaresPanel
+    extends JPanel
+    implements MouseListener, ColorSquareListener
 {
     /**
-     * Height of this panel
+     * Height of this panel: 2 lines of {@link ColorSquareLarger}s.
      * @since 1.1.08
      */
     public static final int HEIGHT = (2 * (ColorSquareLarger.HEIGHT_L - 1)) + 1;
+
+    /**
+     * Size of this panel: 2 lines x 5 columns of {@link ColorSquareLarger}s.
+     * @see #HEIGHT
+     * @since 2.0.00
+     */
+    private static final Dimension SIZE = new Dimension(5 * (ColorSquareLarger.WIDTH_L - 1) + 1, HEIGHT);
 
     /**
      *  To change its value, each ColorSquare handles its own mouse events.
@@ -96,71 +107,36 @@ import java.awt.event.MouseListener;
             give[i].addMouseListener(this);
         }
 
-        // int lineH = ColorSquareLarger.HEIGHT_L - 1,
-        //    HEIGHT = (2 * lineH) + 1;
-
-        int sqW = ColorSquareLarger.WIDTH_L - 1;
-        setSize((5 * sqW) + 1, HEIGHT);
+        // without these calls, parent panel layout is incomplete even when this panel overrides get*Size
+        setSize(SIZE);
+        setMinimumSize(SIZE);
+        setPreferredSize(SIZE);
     }
 
+    @Override
+    public Dimension getMinimumSize()   { return SIZE; };
+    @Override
+    public Dimension getMaximumSize()   { return SIZE; };
+    @Override
+    public Dimension getPreferredSize() { return SIZE; };
+
     /**
-     * DOCUMENT ME!
+     * Custom layout for panel.
      */
     public void doLayout()
     {
-        int lineH = ColorSquareLarger.HEIGHT_L - 1;
-        int sqW = ColorSquareLarger.WIDTH_L - 1;
+        final int lineH = ColorSquareLarger.HEIGHT_L - 1;
+        final int sqW = ColorSquareLarger.WIDTH_L - 1;
         int i;
 
         for (i = 0; i < 5; i++)
         {
             give[i].setSize(sqW + 1, lineH + 1);
             give[i].setLocation(i * sqW, 0);
-            //give[i].draw();
+
             get[i].setSize(sqW + 1, lineH + 1);
             get[i].setLocation(i * sqW, lineH);
-            //get[i].draw();
         }
-    }
-
-    /**
-     * DOCUMENT ME!
-     *
-     * @param e DOCUMENT ME!
-     */
-    public void mouseEntered(MouseEvent e)
-    {
-        ;
-    }
-
-    /**
-     * DOCUMENT ME!
-     *
-     * @param e DOCUMENT ME!
-     */
-    public void mouseExited(MouseEvent e)
-    {
-        ;
-    }
-
-    /**
-     * DOCUMENT ME!
-     *
-     * @param e DOCUMENT ME!
-     */
-    public void mouseClicked(MouseEvent e)
-    {
-        ;
-    }
-
-    /**
-     * DOCUMENT ME!
-     *
-     * @param e DOCUMENT ME!
-     */
-    public void mouseReleased(MouseEvent e)
-    {
-        ;
     }
 
     /** Don't "roll" plus/minus if shift or ctrl key is held during click */
@@ -281,5 +257,36 @@ import java.awt.event.MouseListener;
         if ((parentHand != null) && (wasNotZero != notAllZero))
             parentHand.sqPanelZerosChange(notAllZero);
     }
+
+
+    // Stubs required for MouseListener:
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param e DOCUMENT ME!
+     */
+    public void mouseEntered(MouseEvent e) {}
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param e DOCUMENT ME!
+     */
+    public void mouseExited(MouseEvent e) {}
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param e DOCUMENT ME!
+     */
+    public void mouseClicked(MouseEvent e) {}
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param e DOCUMENT ME!
+     */
+    public void mouseReleased(MouseEvent e) {}
 
 }
