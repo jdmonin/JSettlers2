@@ -150,7 +150,7 @@ import soc.util.Version;
  * @author Robert S Thomas
  */
 @SuppressWarnings("serial")
-/*package*/ class SOCPlayerClient
+public class SOCPlayerClient
 {
     /**
      * String property {@code jsettlers.debug.clear_prefs} to support testing and debugging:

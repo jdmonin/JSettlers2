@@ -80,7 +80,7 @@ import java.util.Locale;
  * @author Robert S Thomas
  */
 @SuppressWarnings("serial")
-/*package*/ class SOCAccountClient extends Applet
+public class SOCAccountClient extends Applet
     implements Runnable, ActionListener, KeyListener
 {
     /**
