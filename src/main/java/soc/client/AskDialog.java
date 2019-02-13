@@ -71,7 +71,7 @@ import javax.swing.SwingConstants;
  * @since 1.1.00
  */
 @SuppressWarnings("serial")
-/*package*/ abstract class AskDialog extends JDialog
+public abstract class AskDialog extends JDialog
     implements ActionListener, WindowListener, KeyListener, MouseListener, Runnable
 {
     /**

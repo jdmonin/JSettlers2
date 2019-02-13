@@ -25,7 +25,7 @@ package soc.client;
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  */
-/*package*/ interface ColorSquareListener
+public interface ColorSquareListener
 {
     /**
      * Called by {@link ColorSquare} when clicked and value changes.

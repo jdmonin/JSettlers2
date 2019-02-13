@@ -36,7 +36,7 @@ import java.awt.Frame;
  * @since 1.1.06
  */
 @SuppressWarnings("serial")
-/*package*/ class NotifyDialog extends AskDialog
+public class NotifyDialog extends AskDialog
 {
     /** i18n text strings */
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
