@@ -39,15 +39,13 @@ import soc.game.SOCTradeOffer;
 import soc.message.SOCCancelBuildRequest;  // for INV_ITEM_PLACE_CANCEL constant
 import soc.util.SOCStringManager;
 
-import java.awt.Button;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
-import java.awt.Label;
-import java.awt.List;
+import java.awt.Insets;
 import java.awt.MenuItem;
-import java.awt.Panel;
 import java.awt.PopupMenu;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -61,7 +59,14 @@ import java.util.MissingResourceException;
 import java.util.Timer;  // For auto-roll
 import java.util.TimerTask;
 
+import javax.swing.JButton;
+import javax.swing.DefaultListModel;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 
@@ -81,7 +86,7 @@ import javax.swing.UIManager;
  * because it is overridden to also update {@link #getBlankStandIn()}.
  */
 @SuppressWarnings("serial")
-/*package*/ class SOCHandPanel extends Panel
+/*package*/ class SOCHandPanel extends JPanel
     implements ActionListener, MouseListener
 {
     /** Minimum desired width, in pixels */
@@ -210,31 +215,21 @@ import javax.swing.UIManager;
      * @see #renameSitButLock()
      * @see #sittingRobotLockBut
      */
-    protected Button sitBut;
+    protected JButton sitBut;
 
-    /**
-     * Hint for "Lock/Unlock" button before game starts ({@link #sitBut};
-     * non-null only if {@link #sitButIsLock}.
-     * @see #LOCKSEATTIP
-     * @see #UNLOCKSEATTIP
-     * @since 1.1.12
-     */
-    private AWTToolTip sitButTip;
-
-    protected Button robotBut;
-    protected Button startBut;
-    protected Button takeOverBut;
+    protected JButton robotBut;
+    protected JButton startBut;
+    protected JButton takeOverBut;
 
     /** Seat lock/unlock shown in robot handpanels during game play,
      *  to prevent/allow humans to join and take over a robot's seat.
      *  Used during different game states than {@link #sitBut}.
      *<P>
      *  Labels are {@link #ROBOTLOCKBUT_U}, {@link #ROBOTLOCKBUT_L}, {@link #ROBOTLOCKBUT_M}.
-     *  Tooltip is {@link #robotLockButTip}.
      *  Click method is {@link #clickRobotSeatLockButton(soc.game.SOCGame.SeatLockState)}.
      *  @see #sitBut
      */
-    protected Button sittingRobotLockBut;
+    protected JButton sittingRobotLockBut;
 
     /** When true, the game is still forming, player has chosen a seat;
      *  "Sit Here" button is labeled as "Lock" or "Unlock".  Humans can
@@ -255,16 +250,16 @@ import javax.swing.UIManager;
     protected SOCFaceButton faceImg;
 
     /** Player name if {@link #inPlay}, otherwise blank or text like "Locked" */
-    protected Label pname;
+    protected JLabel pname;
 
-    protected Label vpLab;
+    protected JLabel vpLab;
     protected ColorSquare vpSq;
 
     /** Label for Special Victory Points.  Hidden if {@link SOCPlayer#getSpecialVP()} is 0.
      *  Null unless {@link SOCGame#hasSeaBoard}.
      *  @since 2.0.00
      */
-    private Label svpLab;
+    private JLabel svpLab;
 
     /** Special Victory Points, if > 0.  Hidden if 0.
      *  Null unless {@link SOCGame#hasSeaBoard}.
@@ -283,11 +278,11 @@ import javax.swing.UIManager;
     protected ColorSquare wheatSq;
     protected ColorSquare woodSq;
     protected ColorSquare resourceSqDivLine;
-    protected Label clayLab;
-    protected Label oreLab;
-    protected Label sheepLab;
-    protected Label wheatLab;
-    protected Label woodLab;
+    protected JLabel clayLab;
+    protected JLabel oreLab;
+    protected JLabel sheepLab;
+    protected JLabel wheatLab;
+    protected JLabel woodLab;
 
     /**
      * For right-click resource to trade - If playerIsClient, track cost
@@ -316,10 +311,10 @@ import javax.swing.UIManager;
     protected JLabel shipLab;
     /** Resource card count */
     protected ColorSquare resourceSq;
-    protected Label resourceLab;
+    protected JLabel resourceLab;
     /** Development card count */
     protected ColorSquare developmentSq;
-    protected Label developmentLab;
+    protected JLabel developmentLab;
     /** Soldier/Knight count */
     protected ColorSquare knightsSq;
     /**
@@ -328,10 +323,24 @@ import javax.swing.UIManager;
      * (seen during v2.0.00 development).
      */
     protected JLabel knightsLab;
-    /** Player's development card/inventory item names, from {@link #inventoryItems}; updated frequently by {@link #updateDevCards(boolean)} */
-    protected List inventory;
-    /** Player's development cards/inventory items, in same order as {@link #inventory}; updated frequently by {@link #updateDevCards(boolean)} */
+
+    /**
+     * Player's development card/inventory item names, from {@link #inventoryItems};
+     * updated frequently by {@link #updateDevCards(boolean)}. Held within {@link #inventoryScroll}.
+     */
+    protected JList<String> inventory;
+
+    /**
+     * Player's development cards/inventory items, in same order as {@link #inventory};
+     * updated frequently by {@link #updateDevCards(boolean)}
+     */
     private ArrayList<SOCInventoryItem> inventoryItems;
+
+    /**
+     * Scrollpane holding {@link #inventory} on panel, for {@code doLayout()} to size.
+     * @since 2.0.00
+     */
+    private JScrollPane inventoryScroll;
 
     /**
      * Play Card button for {@link #inventory}.
@@ -342,7 +351,7 @@ import javax.swing.UIManager;
      * inventory instead.  In any other state, label text is {@link #CARD}.
      * Updated in {@link #updateRollDoneBankButtons()} which checks {@link #canCancelInvItemPlay}.
      */
-    protected Button playCardBut;
+    protected JButton playCardBut;
 
     /**
      * Flag for {@link #playCardBut} in state {@link SOCGame#PLACING_INV_ITEM}.
@@ -379,32 +388,14 @@ import javax.swing.UIManager;
      */
     protected boolean playerTradingDisabled;
 
-    protected Label giveLab;
-    protected Label getLab;
+    protected JLabel giveLab;
+    protected JLabel getLab;
+
     /** "Offer" button for player trading: send offer to server */
-    protected Button offerBut;
-
-    /**
-     * Hint for "Offer" button; non-null only if interactive
-     *   and if playerTradingDisabled == false.
-     * @see #OFFERBUTTIP_DIS
-     * @see #OFFERBUTTIP_ENA
-     * @see #interactive
-     */
-    protected AWTToolTip offerButTip;
-
-    /**
-     * Hint for "Lock/Unlock" button ({@link #sittingRobotLockBut};
-     * non-null only if a robot is sitting there.
-     * @see #ROBOTLOCKBUTTIP_L
-     * @see #ROBOTLOCKBUTTIP_U
-     * @see #ROBOTLOCKBUTTIP_M
-     * @since 1.1.12
-     */
-    protected AWTToolTip robotLockButTip;
+    protected JButton offerBut;
 
     /** Clear the current trade offer at client and server */
-    protected Button clearOfferBut;
+    protected JButton clearOfferBut;
 
     /**
      * Trade resources with the bank or port.
@@ -413,7 +404,7 @@ import javax.swing.UIManager;
      * @see #bankUndoBut
      * @see SOCPlayerInterface#bankTradeWasFromTradePanel
      */
-    protected Button bankBut;
+    protected JButton bankBut;
 
     /**
      * Bank or port trade's give/get resource info;
@@ -427,7 +418,7 @@ import javax.swing.UIManager;
      * @see #bankBut
      * @since 1.1.13
      */
-    protected Button bankUndoBut;
+    protected JButton bankUndoBut;
 
     /**
      * Checkboxes to send to the other 3 or 5 players.
@@ -455,18 +446,18 @@ import javax.swing.UIManager;
     /** displays auto-roll countdown, or prompts to roll/play card.
      * @see #setRollPrompt(String, boolean)
      */
-    protected Label rollPromptCountdownLab;
+    protected JLabel rollPromptCountdownLab;
     protected boolean rollPromptInUse;
     protected TimerTask autoRollTimerTask;  // Created every turn when countdown needed
-    protected Button rollBut;
+    protected JButton rollBut;
 
     /** "Done" with turn during play; also "Restart" for board reset at end of game */
-    protected Button doneBut;
+    protected JButton doneBut;
 
     /** True when {@link #doneBut}'s label is Restart ({@link #DONE_RESTART}) */
     protected boolean doneButIsRestart;
 
-    protected Button quitBut;
+    protected JButton quitBut;
 
     protected final SOCPlayerInterface playerInterface;
     protected final SOCPlayerClient client;
@@ -605,7 +596,10 @@ import javax.swing.UIManager;
         playerIsClient = false;  // confirmed by call to removePlayer() at end of method.
         interactive = isInteractive;
 
-        // Note no AWT layout is used - custom layout, see doLayout().
+        // Note no layout manager is used - custom layout, see doLayout().
+
+        final String FONT_SKIP_FLAG = DONE;  // client property to not set a label's font in loop at bottom;
+            // picked DONE for value because it's a defined arbitrary unique-to-handpanel string reference
 
         final Color pcolor = playerInterface.getPlayerColor(playerNumber);
         setBackground(pcolor);
@@ -619,17 +613,19 @@ import javax.swing.UIManager;
         faceImg = new SOCFaceButton(playerInterface, playerNumber);
         add(faceImg);
 
-        pname = new Label();
+        pname = new JLabel();
         pname.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        pname.setVerticalAlignment(JLabel.TOP);
+        pname.putClientProperty(FONT_SKIP_FLAG, Boolean.TRUE);
         add(pname);
         pnameActiveBG = null;  // Will be calculated at first turn
 
-        startBut = new Button(START);
+        startBut = new JButton(START);
         startBut.addActionListener(this);
         // this button always enabled
         add(startBut);
 
-        vpLab = new Label(strings.get("hpan.points") + " ");  // "Points: "
+        vpLab = new JLabel(strings.get("hpan.points") + " ");  // "Points: "
         add(vpLab);
         vpSq = new ColorSquare(ColorSquare.GREY, 0);
         vpSq.setTooltipText(strings.get("hpan.points.total.opponent"));  // "Total victory points for this opponent"
@@ -646,10 +642,10 @@ import javax.swing.UIManager;
         {
             final String svp_tt = strings.get("hpan.svp.tt");  // "Special Victory Points, click for details"
 
-            svpLab = new Label(strings.get("hpan.svp") + " ");  // "SVP: "
+            svpLab = new JLabel(strings.get("hpan.svp") + " ");  // "SVP: "
             svpLab.setVisible(false);
+            svpLab.setToolTipText(svp_tt);
             add(svpLab);
-            new AWTToolTip(svp_tt, svpLab);
             svpLab.addMouseListener(this);
             svpSq = new ColorSquare(ColorSquare.GREY, 0);
             svpSq.setVisible(false);
@@ -694,9 +690,22 @@ import javax.swing.UIManager;
         //cardLab = new Label("Cards:");
         //add(cardLab);
         inventoryItems = new ArrayList<SOCInventoryItem>();
-        inventory = new List(0, false);
-        inventory.addActionListener(this);  // support double-click
-        add(inventory);
+        inventory = new JList<String>(new DefaultListModel<String>());
+        inventory.setVisibleRowCount(-1);  // show as many as possible, based on height from doLayout
+        inventory.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        inventory.setFont(getFont());
+        // support double-click:
+        inventory.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e)
+            {
+                if (e.getClickCount() < 2)
+                    return;
+                e.consume();
+                clickPlayCardButton();  // assumes first click has selected an item to play
+            }
+        });
+        inventoryScroll = new JScrollPane(inventory);
+        add(inventoryScroll);
 
         final String pieces_available_to_place = strings.get("hpan.pieces.available");
 
@@ -773,57 +782,57 @@ import javax.swing.UIManager;
         add(knightsSq);
         knightsSq.setTooltipText(strings.get("hpan.soldiers.sizearmy"));  // "Size of this army"
 
-        resourceLab = new Label(RESOURCES);
+        resourceLab = new JLabel(RESOURCES);
         add(resourceLab);
         resourceSq = new ColorSquare(ColorSquare.GREY, 0);
         add(resourceSq);
         resourceSq.setTooltipText(strings.get("hpan.amounthand"));  // "Amount in hand"
         resourceSq.setTooltipHighWarningLevel(strings.get("hpan.rsrc.roll7discard"), 8); // "If 7 is rolled, would discard half these resources"
 
-        developmentLab = new Label(strings.get("hpan.devcards") + " ");  // "Dev. Cards: "
+        developmentLab = new JLabel(strings.get("hpan.devcards") + " ");  // "Dev. Cards: "
         add(developmentLab);
         developmentSq = new ColorSquare(ColorSquare.GREY, 0);
         add(developmentSq);
         developmentSq.setTooltipText(strings.get("hpan.amounthand"));  // "Amount in hand"
 
-        sittingRobotLockBut = new Button(ROBOTLOCKBUT_U);  // button text will change soon in updateSeatLockButton()
+        sittingRobotLockBut = new JButton(ROBOTLOCKBUT_U);  // button text will change soon in updateSeatLockButton()
         sittingRobotLockBut.addActionListener(this);
         sittingRobotLockBut.setEnabled(interactive);
         add(sittingRobotLockBut);
 
-        takeOverBut = new Button(TAKEOVER);
+        takeOverBut = new JButton(TAKEOVER);
         takeOverBut.addActionListener(this);
         takeOverBut.setEnabled(interactive);
         add(takeOverBut);
 
-        sitBut = new Button(SIT);
+        sitBut = new JButton(SIT);
         sitBut.addActionListener(this);
         sitBut.setEnabled(interactive);
         add(sitBut);
         sitButIsLock = false;
 
-        robotBut = new Button(ROBOT);
+        robotBut = new JButton(ROBOT);
         robotBut.addActionListener(this);
         robotBut.setEnabled(interactive);
         add(robotBut);
 
-        playCardBut = new Button(CARD);
+        playCardBut = new JButton(CARD);
         playCardBut.addActionListener(this);
         playCardBut.setEnabled(interactive);
         add(playCardBut);
 
         playerTradingDisabled = game.isGameOptionSet("NT");
 
-        giveLab = new Label(GIVE);
+        giveLab = new JLabel(GIVE);
         add(giveLab);
         if (interactive)
-            new AWTToolTip(strings.get("hpan.trade.igive.tip"), giveLab);
+            giveLab.setToolTipText(strings.get("hpan.trade.igive.tip"));
                 // "Resources to give to other players or the bank"
 
-        getLab = new Label(GET);
+        getLab = new JLabel(GET);
         add(getLab);
         if (interactive)
-            new AWTToolTip(strings.get("hpan.trade.iget.tip"), getLab);
+            getLab.setToolTipText(strings.get("hpan.trade.iget.tip"));
                 // "Resources to get from other players or the bank"
 
         sqPanel = new SquaresPanel(interactive, this);
@@ -833,31 +842,30 @@ import javax.swing.UIManager;
         if (playerTradingDisabled)
         {
             offerBut = null;
-            offerButTip = null;
         } else {
-            offerBut = new Button(SEND);
+            offerBut = new JButton(SEND);
             offerBut.addActionListener(this);
             offerBut.setEnabled(interactive);
             add(offerBut);
             if (interactive)
-                offerButTip = new AWTToolTip(OFFERBUTTIP_ENA, offerBut);
+                offerBut.setToolTipText(OFFERBUTTIP_ENA);
         }
 
         // clearOfferBut used by bank/port trade, and player trade
-        clearOfferBut = new Button(CLEAR);
+        clearOfferBut = new JButton(CLEAR);
         clearOfferBut.addActionListener(this);
         clearOfferBut.setEnabled(interactive);
         add(clearOfferBut);
 
-        bankBut = new Button(BANK);
+        bankBut = new JButton(BANK);
         bankBut.addActionListener(this);
         bankBut.setEnabled(interactive);
         add(bankBut);
         if (interactive)
-            new AWTToolTip(strings.get("hpan.trade.bankport.tip"), bankBut);
+            bankBut.setToolTipText(strings.get("hpan.trade.bankport.tip"));
                 // "Trade these resources with the bank or a port"
 
-        bankUndoBut = new Button(BANK_UNDO);
+        bankUndoBut = new JButton(BANK_UNDO);
         bankUndoBut.addActionListener(this);
         bankUndoBut.setEnabled(false);
         add(bankUndoBut);
@@ -888,23 +896,23 @@ import javax.swing.UIManager;
             }
         }  // if(playerTradingDisabled)
 
-        rollPromptCountdownLab = new Label(" ");
+        rollPromptCountdownLab = new JLabel(" ");
         add(rollPromptCountdownLab);
         rollPromptInUse = false;   // Nothing yet (no game in progress)
         autoRollTimerTask = null;  // Nothing yet
 
-        rollBut = new Button(ROLL);
+        rollBut = new JButton(ROLL);
         rollBut.addActionListener(this);
         rollBut.setEnabled(interactive);
         add(rollBut);
 
-        doneBut = new Button(DONE);
+        doneBut = new JButton(DONE);
         doneBut.addActionListener(this);
         doneBut.setEnabled(interactive);
         doneButIsRestart = false;
         add(doneBut);
 
-        quitBut = new Button(QUIT);
+        quitBut = new JButton(QUIT);
         quitBut.addActionListener(this);
         quitBut.setEnabled(interactive);
         add(quitBut);
@@ -924,12 +932,32 @@ import javax.swing.UIManager;
             didSwingTooltipDefaults = true;
         }
 
+        // Make all labels and buttons use panel's font and background color.
+        // To not cut off wide button text, remove button margin since we're using custom layout anyway
+        final Insets minMargin = new Insets(2, 2, 2, 2);
+        final Font panelFont = getFont();
+        for (Component co : getComponents())
+        {
+            if (! ((co instanceof JLabel) || (co instanceof JButton)))
+                continue;
+
+            if ((co.getFont() != DIALOG_PLAIN_10) && (null == ((JComponent) co).getClientProperty(FONT_SKIP_FLAG)))
+                co.setFont(panelFont);
+
+            if (co instanceof JLabel)
+                co.setForeground(null);  // inherit panel's color
+            else
+                ((JButton) co).setMargin(minMargin);
+
+            co.setBackground(null);  // inherit panel's bg color; required for win32 to avoid gray corners on JButton
+        }
+
         // set the starting state of the panel
         removePlayer();
     }
 
     /** Color square label created by most recent call to {@link #createAndAddResourceColorSquare(Color, String)}. */
-    private Label createColorSqRetLbl;
+    private JLabel createColorSqRetLbl;
 
     /** Color square created by most recent call to {@link #createAndAddResourceColorSquare(Color, String)}. */
     private ColorSquare createColorSqRetSq;
@@ -948,7 +976,7 @@ import javax.swing.UIManager;
     private final void createAndAddResourceColorSquare(final Color rc, final String rtxtkey)
     {
         final String rtxt = strings.get(rtxtkey);
-        createColorSqRetLbl = new Label(rtxt + ":");  // "Clay:"
+        createColorSqRetLbl = new JLabel(rtxt + ":");  // "Clay:"
         add(createColorSqRetLbl);
         createColorSqRetSq = new ColorSquare(rc, 0);
         add(createColorSqRetSq);
@@ -1350,15 +1378,16 @@ import javax.swing.UIManager;
 
         setRollPrompt(null, false);  // Clear prompt if Play Card clicked (instead of Roll clicked)
 
-        itemText = inventory.getSelectedItem();
+        final DefaultListModel<String> invModel = (DefaultListModel<String>) inventory.getModel();
         itemNum = inventory.getSelectedIndex();
+        itemText = inventory.getSelectedValue();
 
         if ((itemText == null) || (itemText.length() == 0))
         {
-            if (inventory.getItemCount() == 1)
+            if (invModel.size() == 1)
             {
                 // No card selected, but only one to choose from
-                itemText = inventory.getItem(0);
+                itemText = invModel.get(0);
                 itemNum = 0;
                 if (itemText.length() == 0)
                     return;
@@ -1372,9 +1401,9 @@ import javax.swing.UIManager;
                  */
                 itemNum = -1;  // Nothing yet
                 String itemNumText = null;
-                for (int i = inventory.getItemCount() - 1; i >= 0; --i)
+                for (int i = invModel.size() - 1; i >= 0; --i)
                 {
-                    itemText = inventory.getItem(i);
+                    itemText = invModel.get(i);
                     if ((itemText != null) && (itemText.length() > 0))
                     {
                         SOCInventoryItem item = inventoryItems.get(i);
@@ -1425,7 +1454,7 @@ import javax.swing.UIManager;
                 // "You secretly played this VP card when you bought it."
             itemNum = inventory.getSelectedIndex();
             if (itemNum >= 0)
-                inventory.deselect(itemNum);
+                inventory.clearSelection();
 
             return;  // <--- Early Return: Can't play a VP card ---
         }
@@ -1568,13 +1597,9 @@ import javax.swing.UIManager;
             break;
         }
 
-        sittingRobotLockBut.setLabel(lbl);
+        sittingRobotLockBut.setText(lbl);
         sittingRobotLockBut.setVisible(true);
-
-        if (robotLockButTip != null)
-            robotLockButTip.setTip(tipText);
-        else
-            robotLockButTip = new AWTToolTip(tipText, sittingRobotLockBut);
+        sittingRobotLockBut.setToolTipText(tipText);
     }
 
     /**
@@ -1615,13 +1640,8 @@ import javax.swing.UIManager;
 
             if (sitButIsLock)
             {
-                sitBut.setLabel(SIT);
+                sitBut.setText(SIT);
                 sitButIsLock = false;
-                if (sitButTip != null)
-                {
-                    sitButTip.destroy();
-                    sitButTip = null;
-                }
             }
         }
         else if (clientHasSatAlready && ! sitButIsLock)
@@ -1762,7 +1782,7 @@ import javax.swing.UIManager;
 
         if (! playerTradingDisabled)
         {
-            offerBut.setVisible(false);  // also hides offerButTip if created
+            offerBut.setVisible(false);
             for (int i = 0; i < (game.maxPlayers - 1); i++)
             {
                 playerSend[i].setVisible(false);
@@ -1814,9 +1834,9 @@ import javax.swing.UIManager;
         removeSitBut();
         removeTakeOverBut();
 
-        Button[] inPlayButtons
-            = new Button[] { playCardBut, offerBut, bankBut, bankUndoBut, rollBut, doneBut, sittingRobotLockBut };
-        for (Button b : inPlayButtons)
+        JButton[] inPlayButtons
+            = new JButton[] { playCardBut, offerBut, bankBut, bankUndoBut, rollBut, doneBut, sittingRobotLockBut };
+        for (JButton b : inPlayButtons)
             if ((b != null) && b.isVisible() && b.isEnabled())
                 b.setEnabled(false);
     }
@@ -1980,9 +2000,9 @@ import javax.swing.UIManager;
             doneButIsRestart = ((game.getGameState() <= SOCGame.START3B)
                  || (game.getGameState() == SOCGame.OVER));
             if (doneButIsRestart)
-                doneBut.setLabel(DONE_RESTART);
+                doneBut.setText(DONE_RESTART);
             else
-                doneBut.setLabel(DONE);
+                doneBut.setText(DONE);
             doneBut.setVisible(true);
             quitBut.setVisible(true);
 
@@ -2141,14 +2161,14 @@ import javax.swing.UIManager;
             {
                 if (normalTurnStarting)
                 {
-                    doneBut.setLabel(DONE);
+                    doneBut.setText(DONE);
                     doneButIsRestart = false;
                 } else {
                     doneBut.setEnabled(true);  // "Restart" during game-start (label DONE_RESTART)
                 }
             }
             normalTurnStarting = normalTurnStarting && playerIsCurrent;
-            playCardBut.setEnabled(normalTurnStarting && (inventory.getItemCount() > 0));
+            playCardBut.setEnabled(normalTurnStarting && ! ((DefaultListModel<?>) inventory.getModel()).isEmpty());
         }
 
         bankGive = null;
@@ -2209,8 +2229,7 @@ import javax.swing.UIManager;
         if (! playerTradingDisabled)
         {
             offerBut.setEnabled(false);
-            if (offerButTip != null)
-                offerButTip.setTip(OFFERBUTTIP_DIS);
+            offerBut.setToolTipText(OFFERBUTTIP_DIS);
         }
     }
 
@@ -2239,13 +2258,7 @@ import javax.swing.UIManager;
 
         final boolean enaOfferBut = notAllZero && ((gs == SOCGame.ROLL_OR_CARD) || (gs == SOCGame.PLAY1));
         offerBut.setEnabled(enaOfferBut);
-        if (offerButTip != null)
-        {
-            if (enaOfferBut)
-                offerButTip.setTip(OFFERBUTTIP_ENA);
-            else
-                offerButTip.setTip(OFFERBUTTIP_DIS);
-        }
+        offerBut.setToolTipText((enaOfferBut) ? (OFFERBUTTIP_ENA) : OFFERBUTTIP_DIS);
     }
 
     /**
@@ -2308,9 +2321,10 @@ import javax.swing.UIManager;
 
         boolean hasOldCards = false;
 
+        final DefaultListModel<String> invModel = (DefaultListModel<String>) inventory.getModel();
         synchronized (inventory.getTreeLock())
         {
-            inventory.removeAll();
+            invModel.clear();
             inventoryItems.clear();
 
             if (addedPlayable && ! inventory.isEnabled())
@@ -2323,14 +2337,16 @@ import javax.swing.UIManager;
 
                 for (final SOCInventoryItem item : items.getByState(cState))  // almost always instanceof SOCDevCard
                 {
+                    String itemText;
                     if (isNew)
                     {
-                        inventory.add(DEVCARD_NEW + item.getItemName(game, false, strings));
+                        itemText = DEVCARD_NEW + item.getItemName(game, false, strings);
                     } else {
-                        inventory.add(item.getItemName(game, false, strings));
+                        itemText = item.getItemName(game, false, strings);
                         hasOldCards = true;
                     }
 
+                    invModel.addElement(itemText);
                     inventoryItems.add(item);
                 }
             }
@@ -2351,11 +2367,6 @@ import javax.swing.UIManager;
     public void removeSittingRobotLockBut()
     {
         sittingRobotLockBut.setVisible(false);
-        if (robotLockButTip != null)
-        {
-            robotLockButTip.destroy();
-            robotLockButTip = null;
-        }
     }
 
     /**
@@ -2379,7 +2390,7 @@ import javax.swing.UIManager;
             sitBut.setVisible(false);
         if (sitButIsLock)
         {
-            sitBut.setLabel(SIT);
+            sitBut.setText(SIT);
             sitButIsLock = false;
             if ((player == null) || (player.getName() == null))
                 pname.setVisible(false);  // Hide "Locked: No robot" text
@@ -2428,11 +2439,8 @@ import javax.swing.UIManager;
             buttonText = LOCKSEAT;
             ttipText = LOCKSEATTIP;
         }
-        sitBut.setLabel(buttonText);
-        if (sitButTip == null)
-            sitButTip = new AWTToolTip(ttipText, sitBut);
-        else
-            sitButTip.setTip(ttipText);
+        sitBut.setText(buttonText);
+        sitBut.setToolTipText(ttipText);
         sitButIsLock = true;
         validate();  // sitBut minimum width may change with text
         sitBut.repaint();
@@ -2733,13 +2741,14 @@ import javax.swing.UIManager;
             if (! playerTradingDisabled)
             {
                 offerBut.setEnabled(false);
-                offerButTip.setTip(OFFERBUTTIP_DIS);
+                offerBut.setToolTipText(OFFERBUTTIP_DIS);
             }
         }
         else if (offerHidesControls)
         {
             hideTradeMsgShowOthers(true);
         }
+
         validate();
         repaint();
     }
@@ -2844,9 +2853,9 @@ import javax.swing.UIManager;
         if ((game.getSeatLock(playerNumber) != SOCGame.SeatLockState.LOCKED) &&
             (game.getCurrentPlayerNumber() != playerNumber))
         {
-            takeOverBut.setLabel(TAKEOVER);
+            takeOverBut.setText(TAKEOVER);
         } else {
-            takeOverBut.setLabel(SEAT_LOCKED);
+            takeOverBut.setText(SEAT_LOCKED);
         }
     }
 
@@ -2882,15 +2891,15 @@ import javax.swing.UIManager;
                 if (placing != null)
                     canCancelInvItemPlay = placing.canCancelPlay;
                 inventory.setEnabled(false);
-                playCardBut.setLabel(CANCEL);
+                playCardBut.setText(CANCEL);
                 playCardBut.setEnabled(canCancelInvItemPlay);
             } else {
                 if (! inventory.isEnabled())
                     inventory.setEnabled(true);  // note, may still visually appear disabled; repaint doesn't fix it
 
-                if (playCardBut.getLabel().equals(CANCEL))
+                if (playCardBut.getText().equals(CANCEL))
                 {
-                    playCardBut.setLabel(CARD);  // " Play Card "
+                    playCardBut.setText(CARD);  // " Play Card "
                     playCardBut.setEnabled(! inventoryItems.isEmpty());
                 }
             }
@@ -2936,13 +2945,8 @@ import javax.swing.UIManager;
             break;
         }
 
-        sittingRobotLockBut.setLabel(lbl);
-        if (robotLockButTip != null)
-        {
-            final String prevTip = robotLockButTip.getTip();
-            if (prevTip != tipText)  // constant string ref, so don't need equals()
-                robotLockButTip.setTip(tipText);
-        }
+        sittingRobotLockBut.setText(lbl);
+        sittingRobotLockBut.setToolTipText(tipText);
 
         if (sitButIsLock)
         {
@@ -2970,11 +2974,8 @@ import javax.swing.UIManager;
                     pname.setVisible(false);
                 }
             }
-            sitBut.setLabel(buttonText);
-            if (sitButTip == null)
-                sitButTip = new AWTToolTip(ttipText, sitBut);
-            else
-                sitButTip.setTip(ttipText);
+            sitBut.setText(buttonText);
+            sitBut.setToolTipText(ttipText);
 
             validate();  // sitBut minimum width may change with text
             repaint();
@@ -3024,7 +3025,7 @@ import javax.swing.UIManager;
     {
         canCancelInvItemPlay = canCancel;
 
-        if (playerIsClient && playCardBut.getLabel().equals(CANCEL))  // should not be Cancel yet; check just in case
+        if (playerIsClient && playCardBut.getText().equals(CANCEL))  // should not be Cancel yet; check just in case
             playCardBut.setEnabled(canCancel);
     }
 
@@ -3067,7 +3068,7 @@ import javax.swing.UIManager;
                         bankUndoBut.setEnabled(false);
                         playCardBut.setEnabled(false);
                     }
-                    doneBut.setLabel(DONE_RESTART);
+                    doneBut.setText(DONE_RESTART);
                     doneBut.setEnabled(true);  // In case it's another player's turn
                     doneButIsRestart = true;
                 }
@@ -3449,11 +3450,11 @@ import javax.swing.UIManager;
                           wUnlock = fm.stringWidth(UNLOCKSEAT);
                 sitW = 24 + ((wLock > wUnlock) ? wLock : wUnlock);
             } else {
-                sitW = 24 + fm.stringWidth(sitBut.getLabel());
+                sitW = 24 + fm.stringWidth(sitBut.getText());
             }
 
             sitBut.setBounds((dim.width - sitW) / 2, (dim.height - 82) / 2, sitW, 40);
-            pname.setAlignment(Label.CENTER);
+            pname.setHorizontalAlignment(SwingConstants.CENTER);
             pname.setBounds(inset, inset, dim.width - (2*inset), lineH);
         }
         else
@@ -3463,7 +3464,7 @@ import javax.swing.UIManager;
 
             // Top of panel: Face icon, player name to right (left-aligned)
             faceImg.setBounds(inset, inset, faceW, faceW);
-            pname.setAlignment(Label.LEFT);
+            pname.setHorizontalAlignment(SwingConstants.LEFT);
             pname.setBounds(inset + faceW + inset, inset, pnameW, lineH);
 
             // To right of face, below player name:
@@ -3519,10 +3520,10 @@ import javax.swing.UIManager;
                 final int sheepW;  // width of longest localized string clay/sheep/ore/wheat/wood
                 {
                     int wmax = 0;
-                    final Label[] rLabs = { clayLab, oreLab, sheepLab, wheatLab, woodLab };
+                    final JLabel[] rLabs = { clayLab, oreLab, sheepLab, wheatLab, woodLab };
                     for (int i = 0; i < rLabs.length; ++i)
                     {
-                        final Label rl = rLabs[i];
+                        final JLabel rl = rLabs[i];
                         if (rl != null)
                         {
                             final String txt = rl.getText();
@@ -3672,7 +3673,7 @@ import javax.swing.UIManager;
                 // Development Card list, Play button below
                 final int clW = dim.width - (inset + sheepW + space + ColorSquare.WIDTH + (4 * space) + inset);
                 final int clX = inset + sheepW + space + ColorSquare.WIDTH + (4 * space);
-                inventory.setBounds(clX, devCardsY, clW, (4 * (lineH + space)) - 2);
+                inventoryScroll.setBounds(clX, devCardsY, clW, (4 * (lineH + space)) - 2);
                 playCardBut.setBounds(((clW - pcW) / 2) + clX, devCardsY + (4 * (lineH + space)), pcW, lineH);
 
                 // Bottom of panel:

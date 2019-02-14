@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2007-2011,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2007-2011,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -263,6 +263,11 @@ import java.net.URL;
         loadImages(this);
 
         this.addMouseListener(new MyMouseAdapter());
+
+        // set initial size to help when in a JPanel
+        setSize(ourSize);
+        setMinimumSize(ourSize);
+        setPreferredSize(ourSize);
     }
 
     /**
@@ -373,7 +378,8 @@ import java.net.URL;
      *
      * @return DOCUMENT ME!
      */
-    public Dimension getPreferedSize()
+    @Override
+    public Dimension getPreferredSize()
     {
         return ourSize;
     }
