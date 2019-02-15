@@ -113,13 +113,7 @@ import javax.swing.WindowConstants;
             = { "resources.clay", "resources.ore", "resources.sheep", "resources.wheat", "resources.wood" };
         for (int i = 0; i < 5; ++i)
         {
-            // Need to use the wrong color, then change it, in order to
-            // not use AWTToolTips (redraw problem when in a JDialog).
-            // See also SOCDiscardOrGainResDialog which uses the same tooltip-avoidance code.
-            final Color sqColor = ColorSquare.RESOURCE_COLORS[i];
-
-            ColorSquareLarger sq = new ColorSquareLarger(Color.WHITE);
-            sq.setBackground(sqColor);
+            ColorSquareLarger sq = new ColorSquareLarger(ColorSquare.RESOURCE_COLORS[i]);
 
             JButton b = new JButton(strings.get(rsrcStr[i]));
             b.setBackground(null);  // needed to avoid gray corners on win32

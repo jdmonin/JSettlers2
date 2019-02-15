@@ -275,7 +275,6 @@ import javax.swing.border.EmptyBorder;
             {
                 ColorSquareLarger sq = new ColorSquareLarger(ColorSquare.NUMBER, false, ColorSquare.RESOURCE_COLORS[j]);
                 sq.setIntValue((cost != null) ? cost.getAmount(j + 1) : 0);
-                sq.setTooltipText(null);  // TODO AWTTooltip does not work with this swing dialog
                 gbl.setConstraints(sq, gbc);
                 cpane.add(sq);
             }

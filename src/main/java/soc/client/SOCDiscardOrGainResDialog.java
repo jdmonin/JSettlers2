@@ -163,23 +163,10 @@ import java.awt.event.MouseListener;
 
         for (int i = 0; i < 5; i++)
         {
-            // On OSX: We must use the wrong color, then change it, in order to
-            // not use AWTToolTips (redraw problem for button enable/disable).
-            // See also SOCMonopolyDialog which uses the same tooltip-avoidance code.
-            Color sqColor;
-            if (SOCPlayerClient.isJavaOnOSX)
-                sqColor = Color.WHITE;
-            else
-                sqColor = ColorSquare.RESOURCE_COLORS[i];
+            final Color sqColor = ColorSquare.RESOURCE_COLORS[i];
 
             keep[i] = new ColorSquareLarger(ColorSquare.BOUNDED_DEC, false, sqColor);
             pick[i] = new ColorSquareLarger(ColorSquare.BOUNDED_INC, false, sqColor);
-            if (SOCPlayerClient.isJavaOnOSX)
-            {
-                sqColor = ColorSquare.RESOURCE_COLORS[i];
-                keep[i].setBackground(sqColor);
-                pick[i].setBackground(sqColor);
-            }
             add(keep[i]);
             add(pick[i]);
             keep[i].addMouseListener(this);

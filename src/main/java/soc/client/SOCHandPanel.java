@@ -628,13 +628,13 @@ import javax.swing.UIManager;
         vpLab = new JLabel(strings.get("hpan.points") + " ");  // "Points: "
         add(vpLab);
         vpSq = new ColorSquare(ColorSquare.GREY, 0);
-        vpSq.setTooltipText(strings.get("hpan.points.total.opponent"));  // "Total victory points for this opponent"
+        vpSq.setToolTipText(strings.get("hpan.points.total.opponent"));  // "Total victory points for this opponent"
         final String vp_close_to_win = strings.get("hpan.points.closetowin");  // "Close to winning"
         if (game.vp_winner <= 12)
         {
-            vpSq.setTooltipHighWarningLevel(vp_close_to_win, game.vp_winner - 2);  // (win checked in SOCGame.checkForWinner)
+            vpSq.setToolTipHighWarningLevel(vp_close_to_win, game.vp_winner - 2);  // (win checked in SOCGame.checkForWinner)
         } else {
-            vpSq.setTooltipHighWarningLevel(vp_close_to_win, game.vp_winner - 3);
+            vpSq.setToolTipHighWarningLevel(vp_close_to_win, game.vp_winner - 3);
         }
         add(vpSq);
 
@@ -649,7 +649,7 @@ import javax.swing.UIManager;
             svpLab.addMouseListener(this);
             svpSq = new ColorSquare(ColorSquare.GREY, 0);
             svpSq.setVisible(false);
-            svpSq.setTooltipText(svp_tt);
+            svpSq.setToolTipText(svp_tt);
             add(svpSq);
             svpSq.addMouseListener(this);
         } else {
@@ -711,27 +711,27 @@ import javax.swing.UIManager;
 
         roadSq = new ColorSquare(ColorSquare.GREY, 0);
         add(roadSq);
-        roadSq.setTooltipText(pieces_available_to_place);
-        roadSq.setTooltipLowWarningLevel(strings.get("hpan.roads.almostout"), 2);  // "Almost out of roads to place"
-        roadSq.setTooltipZeroText(strings.get("hpan.roads.out"));  // "No more roads available"
+        roadSq.setToolTipText(pieces_available_to_place);
+        roadSq.setToolTipLowWarningLevel(strings.get("hpan.roads.almostout"), 2);  // "Almost out of roads to place"
+        roadSq.setToolTipZeroText(strings.get("hpan.roads.out"));  // "No more roads available"
         roadLab = new JLabel(strings.get("hpan.roads"));  // "Roads:"
         roadLab.setFont(DIALOG_PLAIN_10);
         add(roadLab);
 
         settlementSq = new ColorSquare(ColorSquare.GREY, 0);
         add(settlementSq);
-        settlementSq.setTooltipText(pieces_available_to_place);
-        settlementSq.setTooltipLowWarningLevel(strings.get("hpan.stlmts.almostout"), 1);
-        settlementSq.setTooltipZeroText(strings.get("hpan.stlmts.out"));
+        settlementSq.setToolTipText(pieces_available_to_place);
+        settlementSq.setToolTipLowWarningLevel(strings.get("hpan.stlmts.almostout"), 1);
+        settlementSq.setToolTipZeroText(strings.get("hpan.stlmts.out"));
         settlementLab = new JLabel(strings.get("hpan.stlmts"));  // "Stlmts:"
         settlementLab.setFont(DIALOG_PLAIN_10);
         add(settlementLab);
 
         citySq = new ColorSquare(ColorSquare.GREY, 0);
         add(citySq);
-        citySq.setTooltipText(pieces_available_to_place);
-        citySq.setTooltipLowWarningLevel(strings.get("hpan.cities.almostout"), 1);
-        citySq.setTooltipZeroText(strings.get("hpan.cities.out"));
+        citySq.setToolTipText(pieces_available_to_place);
+        citySq.setToolTipLowWarningLevel(strings.get("hpan.cities.almostout"), 1);
+        citySq.setToolTipZeroText(strings.get("hpan.cities.out"));
         cityLab = new JLabel(strings.get("hpan.cities"));  // "Cities:"
         cityLab.setFont(DIALOG_PLAIN_10);
         add(cityLab);
@@ -740,9 +740,9 @@ import javax.swing.UIManager;
         {
             shipSq = new ColorSquare(ColorSquare.GREY, 0);
             add(shipSq);
-            shipSq.setTooltipText(pieces_available_to_place);
-            shipSq.setTooltipLowWarningLevel(strings.get("hpan.ships.almostout"), 2);
-            shipSq.setTooltipZeroText(strings.get("hpan.ships.out"));
+            shipSq.setToolTipText(pieces_available_to_place);
+            shipSq.setToolTipLowWarningLevel(strings.get("hpan.ships.almostout"), 2);
+            shipSq.setToolTipZeroText(strings.get("hpan.ships.out"));
             shipLab = new JLabel(strings.get("hpan.ships"));  // "Ships:"
             shipLab.setFont(DIALOG_PLAIN_10);
             add(shipLab);
@@ -757,7 +757,7 @@ import javax.swing.UIManager;
             add(clothLab);
             clothSq = new ColorSquare(ColorSquare.GREY, 0);
             add(clothSq);
-            clothSq.setTooltipText(strings.get("hpan.cloth.amounttraded"));  // "Amount of cloth traded from villages"
+            clothSq.setToolTipText(strings.get("hpan.cloth.amounttraded"));  // "Amount of cloth traded from villages"
         }
         else if (game.isGameOptionSet(SOCGameOption.K_SC_WOND))
         {
@@ -780,20 +780,20 @@ import javax.swing.UIManager;
         add(knightsLab);
         knightsSq = new ColorSquare(ColorSquare.GREY, 0);
         add(knightsSq);
-        knightsSq.setTooltipText(strings.get("hpan.soldiers.sizearmy"));  // "Size of this army"
+        knightsSq.setToolTipText(strings.get("hpan.soldiers.sizearmy"));  // "Size of this army"
 
         resourceLab = new JLabel(RESOURCES);
         add(resourceLab);
         resourceSq = new ColorSquare(ColorSquare.GREY, 0);
         add(resourceSq);
-        resourceSq.setTooltipText(strings.get("hpan.amounthand"));  // "Amount in hand"
-        resourceSq.setTooltipHighWarningLevel(strings.get("hpan.rsrc.roll7discard"), 8); // "If 7 is rolled, would discard half these resources"
+        resourceSq.setToolTipText(strings.get("hpan.amounthand"));  // "Amount in hand"
+        resourceSq.setToolTipHighWarningLevel(strings.get("hpan.rsrc.roll7discard"), 8); // "If 7 is rolled, would discard half these resources"
 
         developmentLab = new JLabel(strings.get("hpan.devcards") + " ");  // "Dev. Cards: "
         add(developmentLab);
         developmentSq = new ColorSquare(ColorSquare.GREY, 0);
         add(developmentSq);
-        developmentSq.setTooltipText(strings.get("hpan.amounthand"));  // "Amount in hand"
+        developmentSq.setToolTipText(strings.get("hpan.amounthand"));  // "Amount in hand"
 
         sittingRobotLockBut = new JButton(ROBOTLOCKBUT_U);  // button text will change soon in updateSeatLockButton()
         sittingRobotLockBut.addActionListener(this);
@@ -980,7 +980,7 @@ import javax.swing.UIManager;
         add(createColorSqRetLbl);
         createColorSqRetSq = new ColorSquare(rc, 0);
         add(createColorSqRetSq);
-        createColorSqRetSq.setTooltipText
+        createColorSqRetSq.setToolTipText
             (strings.get("hpan.trade.rightclick", rtxt.toLowerCase()));  // "Right-click to trade clay"
     }
 
@@ -1921,8 +1921,8 @@ import javax.swing.UIManager;
             playerIsClient = true;
             playerInterface.setClientHand(this);
 
-            knightsSq.setTooltipText(strings.get("hpan.soldiers.sizeyourarmy"));  // "Size of your army"
-            vpSq.setTooltipText(strings.get("hpan.points.total.yours"));  // "Your victory point total"
+            knightsSq.setToolTipText(strings.get("hpan.soldiers.sizeyourarmy"));  // "Size of your army"
+            vpSq.setToolTipText(strings.get("hpan.points.total.yours"));  // "Your victory point total"
 
             // show 'Victory Points' and hide "Start Button" if game in progress
             if (game.getGameState() == SOCGame.NEW)
@@ -2031,7 +2031,7 @@ import javax.swing.UIManager;
             D.ebugPrintln("player.getSeatLock(" + playerNumber + ") = " + game.getSeatLock(playerNumber));
             D.ebugPrintln("game.getPlayer(client.getNickname()) = " + game.getPlayer(client.getNickname()));
 
-            knightsSq.setTooltipText(strings.get("hpan.soldiers.sizeoppoarmy"));  // "Size of this opponent's army"
+            knightsSq.setToolTipText(strings.get("hpan.soldiers.sizeoppoarmy"));  // "Size of this opponent's army"
 
             // To see if client already sat down at this game,
             // we can't call playerInterface.getClientHand() yet,
@@ -2482,7 +2482,7 @@ import javax.swing.UIManager;
                 {
                     String pname = game.getPlayer(playerSendMap[i]).getName();
                     if (pname != null)
-                        playerSend[i].setTooltipText(pname);
+                        playerSend[i].setToolTipText(pname);
                 }
             }
         }
@@ -3059,7 +3059,7 @@ import javax.swing.UIManager;
                 {
                     if (game.getPlayerWithWin() == player)
                     {
-                        vpSq.setTooltipText(strings.get("hpan.winner.label.ttwithvp", newVP));  // "Winner with 12 victory points"
+                        vpSq.setToolTipText(strings.get("hpan.winner.label.ttwithvp", newVP));  // "Winner with 12 victory points"
                         pname.setText(strings.get("hpan.winner.label", player.getName()));  // "X - Winner"
                     }
                     if (interactive)

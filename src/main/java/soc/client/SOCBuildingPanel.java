@@ -330,9 +330,9 @@ import javax.swing.SwingConstants;
         cardCountLab = new JLabel(strings.get("build.available"), SwingConstants.LEFT);  // "available"
         add(cardCountLab);
         cardCount = new ColorSquare(ColorSquare.GREY, 0);
-        cardCount.setTooltipText(strings.get("build.dev.cards.available"));  // "Development cards available to buy"
-        cardCount.setTooltipLowWarningLevel(strings.get("build.dev.cards.low"), 3);  // "Almost out of development cards to buy"
-        cardCount.setTooltipZeroText(strings.get("build.dev.cards.none"));  // "No more development cards available to buy"
+        cardCount.setToolTipText(strings.get("build.dev.cards.available"));  // "Development cards available to buy"
+        cardCount.setToolTipLowWarningLevel(strings.get("build.dev.cards.low"), 3);  // "Almost out of development cards to buy"
+        cardCount.setToolTipZeroText(strings.get("build.dev.cards.none"));  // "No more development cards available to buy"
         add(cardCount);
 
         final SOCGame ga = pi.getGame();
@@ -365,7 +365,7 @@ import javax.swing.SwingConstants;
                 add(clothLab);
                 cloth = new ColorSquare(ColorSquare.GREY, 0);
                 add(cloth);
-                cloth.setTooltipText(TTIP_CLOTH_TEXT);
+                cloth.setToolTipText(TTIP_CLOTH_TEXT);
             }
             else if (ga.isGameOptionSet(SOCGameOption.K_SC_WOND))
             {
@@ -385,7 +385,7 @@ import javax.swing.SwingConstants;
 
             // add vpToWin above its label (z-order) in case of slight overlap
             vpToWin = new ColorSquare(ColorSquare.GREY, ga.vp_winner);
-            vpToWin.setTooltipText(TTIP_VP_TEXT);
+            vpToWin.setToolTipText(TTIP_VP_TEXT);
             add(vpToWin);
 
             vpToWinLab = new JLabel(strings.get("build.vp.to.win"), SwingConstants.RIGHT);  // "VP to win:"
@@ -799,7 +799,7 @@ import javax.swing.SwingConstants;
                 continue;
 
             final ColorSquare s = new ColorSquare(ColorSquare.RESOURCE_COLORS[res - 1], itemCost);
-            s.setTooltipText(costToBuild + ": " + s.getTooltipText());  // "Cost to Build: Sheep" etc
+            s.setToolTipText(costToBuild + ": " + s.getToolTipText());  // "Cost to Build: Sheep" etc
             sq[i] = s;
             add(s);
             ++i;
