@@ -851,8 +851,10 @@ public class SOCPlayerClient
      * Before v2.0.00, most of these fields and methods were part of the main {@link SOCPlayerClient} class.
      * Also converted from AWT to Swing in v2.0.00.
      * @since 2.0.00
+     *
+     * TODO: probably should be a class on its own?
      */
-    public static class SwingGameDisplay extends JPanel implements GameDisplay
+    /*package*/ static final class SwingGameDisplay extends JPanel implements GameDisplay
     {
         /** main panel, in cardlayout */
         private static final String MAIN_PANEL = "main";
@@ -3043,7 +3045,7 @@ public class SOCPlayerClient
          * and assumes it's localized.
          * @since 2.0.00
          */
-        private static class JoinableListItem
+        private static final class JoinableListItem
         {
             /** Blank dummy item; {@link #name} is 1 space " " */
             public static final JoinableListItem BLANK = new JoinableListItem(" ", false);
@@ -3108,8 +3110,10 @@ public class SOCPlayerClient
      *
      * @author jdmonin
      * @since 2.0.00
+     *
+     * TODO: maybe a class on its own?
      */
-    public static class UserPreferences
+    /*package*/ static final class UserPreferences
     {
         /**
          * Persistent user preferences like {@link #PREF_SOUND_ON}, or {@code null} if none could be loaded.
@@ -3302,7 +3306,7 @@ public class SOCPlayerClient
      * @author paulbilnoski
      * @since 2.0.00
      */
-    private class MessageTreater
+    private final class MessageTreater
     {
         private final SOCPlayerClient client;
         private final GameManager gmgr;
@@ -6280,8 +6284,10 @@ public class SOCPlayerClient
      * Before v2.0.00, most of these fields and methods were part of the main {@link SOCPlayerClient} class.
      * @author paulbilnoski
      * @since 2.0.00
+     *
+     * TODO: perhaps a class on its own?
      */
-    public static class GameManager
+    /*package*/ static class GameManager
     {
         private final SOCPlayerClient client;
         private final ClientNetwork net;
@@ -7048,7 +7054,7 @@ public class SOCPlayerClient
             client.net.connect(host, port);
     }
 
-    public ClientNetwork getNet()
+    /*package*/ ClientNetwork getNet()
     {
         return net;
     }
@@ -7069,17 +7075,8 @@ public class SOCPlayerClient
      * @since 2.0.00
      * @see SOCPlayerClient#getNet()
      */
-    public static class ClientNetwork
+    /*package*/ static class ClientNetwork
     {
-        /**
-         * Default tcp port number 8880 to listen, and to connect to remote server.
-         * Should match SOCServer.SOC_PORT_DEFAULT.
-         *<P>
-         * 8880 is the default SOCPlayerClient port since jsettlers 1.0.4, per cvs history.
-         * @since 1.1.00
-         */
-        public static final int SOC_PORT_DEFAULT = 8880;
-
         /**
          * Timeout for initial connection to server; default is 6000 milliseconds.
          */
@@ -7095,7 +7092,7 @@ public class SOCPlayerClient
         /**
          * TCP port we're connected to; default is {@link #SOC_PORT_DEFAULT}.
          */
-        private int port = SOC_PORT_DEFAULT;
+        private int port = SOCServer.SOC_PORT_DEFAULT;
 
         /**
          * Client-hosted TCP server. If client is running this server, it's also connected
@@ -7376,7 +7373,7 @@ public class SOCPlayerClient
                 in = new DataInputStream(s.getInputStream());
                 out = new DataOutputStream(s.getOutputStream());
                 connected = true;
-                (reader = new Thread(new NetReadTask(client, this))).start();
+                (reader = new Thread(new NetReadTask(client))).start();
                 // send VERSION right away (1.1.06 and later)
                 sendVersion(false);
             }
@@ -7618,15 +7615,13 @@ public class SOCPlayerClient
          * A task to continuously read from the server socket.
          * Not used for talking to the practice server.
          */
-        static class NetReadTask implements Runnable
+        private final static class NetReadTask implements Runnable
         {
-            final ClientNetwork net;
             final SOCPlayerClient client;
 
-            public NetReadTask(SOCPlayerClient client, ClientNetwork net)
+            public NetReadTask(SOCPlayerClient client)
             {
                 this.client = client;
-                this.net = net;
             }
 
             /**
@@ -7640,19 +7635,19 @@ public class SOCPlayerClient
                 Thread.currentThread().setName("cli-netread");  // Thread name for debug
                 try
                 {
-                    while (net.isConnected())
+                    while (client.getNet().isConnected())
                     {
-                        String s = net.in.readUTF();
+                        String s = client.getNet().in.readUTF();
                         client.treater.treat(SOCMessage.toMsg(s), false);
                     }
                 }
                 catch (IOException e)
                 {
                     // purposefully closing the socket brings us here too
-                    if (net.isConnected())
+                    if (client.getNet().isConnected())
                     {
-                        net.ex = e;
-                        System.out.println("could not read from the net: " + net.ex);  // I18N: Not localizing console output yet
+                        client.getNet().ex = e;
+                        System.out.println("could not read from the net: " + client.getNet().ex);  // I18N: Not localizing console output yet
                         client.shutdownFromNetwork();
                     }
                 }
@@ -7667,7 +7662,7 @@ public class SOCPlayerClient
          * @author jdmonin
          * @since 1.1.00
          */
-        class SOCPlayerLocalStringReader implements Runnable
+        private class SOCPlayerLocalStringReader implements Runnable
         {
             StringConnection locl;
 

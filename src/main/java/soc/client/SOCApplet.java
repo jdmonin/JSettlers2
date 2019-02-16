@@ -28,8 +28,8 @@ import java.awt.Color;
 
 import javax.swing.UIManager;
 
-import soc.client.SOCPlayerClient.ClientNetwork;
 import soc.client.SOCPlayerClient.SwingGameDisplay;
+import soc.server.SOCServer;
 import soc.util.Version;
 
 /**
@@ -128,7 +128,7 @@ public class SOCApplet extends Applet
             //host = null;  // localhost
             host = "127.0.0.1"; // localhost - don't use "localhost" because Java 6 applets do not work
 
-        int port = ClientNetwork.SOC_PORT_DEFAULT;
+        int port = SOCServer.SOC_PORT_DEFAULT;
         try {
             param = getParameter("PORT");
             if (param != null)

@@ -47,6 +47,7 @@ import javax.swing.SwingConstants;
 
 import soc.client.SOCPlayerClient.ClientNetwork;
 import soc.client.SOCPlayerClient.GameDisplay;
+import soc.server.SOCServer;
 import soc.util.SOCStringManager;
 import soc.util.Version;
 
@@ -125,7 +126,7 @@ import soc.util.Version;
 
     /**
      * Check with the {@link java.lang.SecurityManager} about being a tcp server.
-     * Port {@link SOCPlayerClient.ClientNetwork#SOC_PORT_DEFAULT} and some subsequent ports are checked (to be above 1024).
+     * Port {@link SOCServer#SOC_PORT_DEFAULT} and some subsequent ports are checked (to be above 1024).
      * @return True if we have perms to start a server and listen on a port
      */
     public static boolean checkCanLaunchServer()
@@ -137,8 +138,8 @@ import soc.util.Version;
                 return true;
             try
             {
-                sm.checkAccept("localhost", ClientNetwork.SOC_PORT_DEFAULT);
-                sm.checkListen(ClientNetwork.SOC_PORT_DEFAULT);
+                sm.checkAccept("localhost", SOCServer.SOC_PORT_DEFAULT);
+                sm.checkListen(SOCServer.SOC_PORT_DEFAULT);
             }
             catch (SecurityException se)
             {
@@ -148,7 +149,7 @@ import soc.util.Version;
         catch (SecurityException se)
         {
             // can't read security mgr; check it the hard way
-            int port = ClientNetwork.SOC_PORT_DEFAULT;
+            int port = SOCServer.SOC_PORT_DEFAULT;
             for (int i = 0; i <= 100; ++i)
             {
                 ServerSocket ss = null;
