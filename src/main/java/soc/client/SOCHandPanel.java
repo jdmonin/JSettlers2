@@ -617,6 +617,9 @@ import javax.swing.UIManager;
         pname.setFont(new Font("SansSerif", Font.PLAIN, 13));
         pname.setVerticalAlignment(JLabel.TOP);
         pname.putClientProperty(FONT_SKIP_FLAG, Boolean.TRUE);
+        // pname uses panel's background color, except when current player (updateAtTurn):
+        pname.setBackground(null);
+        pname.setOpaque(true);
         add(pname);
         pnameActiveBG = null;  // Will be calculated at first turn
 
@@ -2141,7 +2144,7 @@ import javax.swing.UIManager;
             if (showAsCurrent)
                 pname.setBackground(pnameActiveBG);
             else
-                pname.setBackground(this.getBackground());
+                pname.setBackground(null);  // use panel's bg color
         }
 
         updateTakeOverButton();
