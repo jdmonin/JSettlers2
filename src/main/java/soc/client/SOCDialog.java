@@ -137,6 +137,8 @@ public abstract class SOCDialog
         if (promptText != null)
         {
             northComponent = new JLabel(promptText, SwingConstants.CENTER);
+            northComponent.setForeground(null);  // inherit from panel
+            northComponent.setFont(panelFont);
             northComponent.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));  // margin between north & middle panel
             add(northComponent, BorderLayout.NORTH);
         }
@@ -196,7 +198,8 @@ public abstract class SOCDialog
      * Get the optional southern button panel, centered horizontally at the bottom.
      * If none exists, will create it and add to content pane.
      *<P>
-     * This panel's default {@link FlowLayout} gives a 4-pixel gap between components.
+     * This panel's default {@link FlowLayout} gives a 4-pixel gap between components,
+     * and its default top border creates a 16-pixel margin between the middle and south panels.
      * You are free to add any type of component in here, not only buttons, and change the layout manager.
      * After adding all buttons and labels, you can call {@link #styleButtonsAndLabels(Container)}.
      * You might also want to call {@link JRootPane#setDefaultButton(JButton) getRootPane().setDefaultButton(...)}.
@@ -208,7 +211,7 @@ public abstract class SOCDialog
         if (southPanel == null)
         {
             southPanel = makeJPanel(new FlowLayout(FlowLayout.CENTER, 4, 0), getFont());  // horiz border & gap 4 pixels
-            southPanel.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));  // margin between south & middle panels
+            southPanel.setBorder(BorderFactory.createEmptyBorder(16, 0, 0, 0));  // margin between south & middle panels
             southPanel.setAlignmentX(CENTER_ALIGNMENT);
             add(southPanel, BorderLayout.SOUTH);
         }

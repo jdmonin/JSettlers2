@@ -25,16 +25,19 @@ import soc.game.SOCPlayer;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 
-import java.awt.Button;
 import java.awt.Color;
-import java.awt.Dialog;
-import java.awt.Font;
-import java.awt.Label;
-import java.awt.Point;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
 
 /**
@@ -42,20 +45,20 @@ import java.awt.event.MouseListener;
  * to discard from rolling a 7, or to gain from the gold hex.
  * Also used for the Discovery/Year of Plenty dev card.
  *<P>
- * For convenience with {@link java.awt.EventQueue#invokeLater(Runnable)},
- * contains a {@link #run()} method which calls {@link #setVisible(boolean) setVisible(true)}.
- *<P>
- * Before v2.0.00, this was called {@code SOCDiscardDialog},
+ * Before v2.0.00 this class was {@code SOCDiscardDialog},
  * and Year of Plenty used {@code SOCDiscoveryDialog}.
  *
  * @author  Robert S. Thomas
  */
 @SuppressWarnings("serial")
-/*package*/ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseListener, Runnable
+/*package*/ class SOCDiscardOrGainResDialog
+    extends SOCDialog implements ActionListener, MouseListener, Runnable
 {
 
-    /** i18n text strings; will use same locale as SOCPlayerClient's string manager.
-     *  @since 2.0.00 */
+    /**
+     * i18n text strings; will use same locale as SOCPlayerClient's string manager.
+     * @since 2.0.00
+     */
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
     /**
@@ -68,21 +71,16 @@ import java.awt.event.MouseListener;
      * Clear button.  Reset the {@link #pick} resource colorsquare counts to 0.
      * @since 1.1.14
      */
-    private Button clearBut;
+    private final JButton clearBut;
 
     /** Discard or Pick button */
-    private Button okBut;
+    private final JButton okBut;
 
     /** The 'keep' square resource types/counts only change if {@link #isDiscard}. */
-    ColorSquare[] keep;
+    private final ColorSquare[] keep;
 
     /** Resource types/counts to discard or gain */
-    private ColorSquare[] pick;
-
-    Label msg;
-    Label youHave;
-    Label pickThese;
-    SOCPlayerInterface playerInterface;
+    private final ColorSquare[] pick;
 
     /** Must discard this many resources from {@link #keep}, or must gain this many resources. */
     private final int numPickNeeded;
@@ -93,73 +91,55 @@ import java.awt.event.MouseListener;
      */
     private int numChosen;
 
-    /** Desired size (visible size inside of insets) **/
-    protected int wantW, wantH;
-
-    /**
-     * Place window in center when displayed (in doLayout),
-     * don't change position afterwards
-     */
-    boolean didSetLocation;
-
     /**
      * Creates a new SOCDiscardOrGainResDialog popup.
+     * Sets initial values for current resources based on client player's {@link SOCPlayer#getResources()}.
      * To show it on screen and make it active,
      * call {@link #setVisible(boolean) setVisible(true)}.
      *
      * @param pi   Client's player interface
-     * @param rnum Player must discard or gain this many resources
+     * @param numPickNeeded Player must discard or gain this many resources
      * @param isDiscard  True for discard (after 7), false for gain (after gold hex)
      */
-    public SOCDiscardOrGainResDialog(SOCPlayerInterface pi, final int rnum, final boolean isDiscard)
+    public SOCDiscardOrGainResDialog(SOCPlayerInterface pi, final int numPickNeeded, final boolean isDiscard)
     {
-        super(pi, strings.get
-                (isDiscard ? "dialog.discard.title" : "dialog.discard.title.gain", pi.getClient().getNickname()), true);
-                // "Discard [{0}]" or "Gain Resources [{0}]"
+        super(pi,
+            strings.get
+                (isDiscard ? "dialog.discard.title" : "dialog.discard.title.gain", pi.getClient().getNickname()),
+                 // "Discard [{0}]" or "Gain Resources [{0}]"
+            strings.get((isDiscard) ? "dialog.discard.please.discard.n" : "dialog.discard.please.pick.n", numPickNeeded),
+                 // "Please discard {0} resources." or "Please pick {0} resources.",
+            false);
 
         this.isDiscard = isDiscard;
-        playerInterface = pi;
-        numPickNeeded = rnum;
+        this.numPickNeeded = numPickNeeded;
         numChosen = 0;
-        setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
-        setForeground(Color.BLACK);
-        setFont(new Font("SansSerif", Font.PLAIN, 12));
 
-        clearBut = new Button(strings.get("base.clear"));
-        okBut = new Button(strings.get(isDiscard ? "dialog.discard.discard" : "dialog.discard.pick"));
+        clearBut = new JButton(strings.get("base.clear"));
+        clearBut.setBackground(null);  // avoid gray corners on win32
+        okBut = new JButton(strings.get(isDiscard ? "dialog.discard.discard" : "dialog.discard.pick"));
             // "Discard" or "Pick"
+        okBut.setBackground(null);
 
-        didSetLocation = false;
-        setLayout(null);
+        // Resource panel: labels and colorsquares.
+        // X-align must be same for all in BoxLayout
+        JPanel resPanel = getMiddlePanel();
+        resPanel.setLayout(new BoxLayout(resPanel, BoxLayout.Y_AXIS));
 
-        msg = new Label
-            (strings.get((isDiscard) ? "dialog.discard.please.discard.n" : "dialog.discard.please.pick.n", numPickNeeded),
-             Label.CENTER);
-            // "Please discard {0} resources." or "Please pick {0} resources."
-        add(msg);
-        youHave = new Label(strings.get("dialog.discard.you.have"), Label.LEFT);  // "You have:"
-        add(youHave);
-        pickThese = new Label(strings.get(isDiscard ? "dialog.discard.these" : "dialog.discard.gain.these"), Label.LEFT);
-            // "Discard these:" or "Gain these:"
-        add(pickThese);
-
-        // wantH formula based on doLayout
-        //    labels: 20  colorsq: 20  button: 25  spacing: 5
-        wantW = 270;
-        wantH = 20 + 5 + (2 * (20 + 5 + 20 + 5)) + 25 + 5;
-        setSize(wantW + 10, wantH + 20);  // Can calc & add room for insets at doLayout
-
-        add(clearBut);
-        clearBut.addActionListener(this);
-        clearBut.setEnabled(false);  // since nothing picked yet
-
-        add(okBut);
-        okBut.addActionListener(this);
-        if (numPickNeeded > 0)
-            okBut.setEnabled(false);  // Must choose that many first
+        final JLabel youHave = new JLabel(strings.get("dialog.discard.you.have"), SwingConstants.LEFT);  // "You have:"
+        youHave.setAlignmentX(LEFT_ALIGNMENT);
+        youHave.setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
+        resPanel.add(youHave);
 
         keep = new ColorSquare[5];
         pick = new ColorSquare[5];
+
+        JPanel keepPanel = new JPanel(new GridLayout(1, 0, ColorSquareLarger.WIDTH_L, 0));
+        JPanel pickPanel = new JPanel(new GridLayout(1, 0, ColorSquareLarger.WIDTH_L, 0));
+        keepPanel.setBackground(null);
+        pickPanel.setBackground(null);
+        keepPanel.setAlignmentX(LEFT_ALIGNMENT);
+        pickPanel.setAlignmentX(LEFT_ALIGNMENT);
 
         for (int i = 0; i < 5; i++)
         {
@@ -167,18 +147,56 @@ import java.awt.event.MouseListener;
 
             keep[i] = new ColorSquareLarger(ColorSquare.BOUNDED_DEC, false, sqColor);
             pick[i] = new ColorSquareLarger(ColorSquare.BOUNDED_INC, false, sqColor);
-            add(keep[i]);
-            add(pick[i]);
+            keepPanel.add(keep[i]);
+            pickPanel.add(pick[i]);
             keep[i].addMouseListener(this);
             pick[i].addMouseListener(this);
         }
+
+        resPanel.add(keepPanel);
+
+        final JLabel pickThese = new JLabel
+            (strings.get(isDiscard ? "dialog.discard.these" : "dialog.discard.gain.these"), SwingConstants.LEFT);
+             // "Discard these:" or "Gain these:"
+        pickThese.setAlignmentX(LEFT_ALIGNMENT);
+        pickThese.setBorder(BorderFactory.createEmptyBorder(20, 0, 4, 0));  // also gives 20-pixel margin above.
+        resPanel.add(pickThese);
+
+        resPanel.add(pickPanel);
+
+        // set initial values
+        final SOCResourceSet resources
+            = playerInterface.getGame().getPlayer(playerInterface.getClientPlayerNumber()).getResources();
+        keep[0].setIntValue(resources.getAmount(SOCResourceConstants.CLAY));
+        keep[1].setIntValue(resources.getAmount(SOCResourceConstants.ORE));
+        keep[2].setIntValue(resources.getAmount(SOCResourceConstants.SHEEP));
+        keep[3].setIntValue(resources.getAmount(SOCResourceConstants.WHEAT));
+        keep[4].setIntValue(resources.getAmount(SOCResourceConstants.WOOD));
+
+        styleButtonsAndLabels(resPanel);
+
+        // bottom button panel:
+
+        final JPanel btnsPanel = getSouthPanel();
+
+        btnsPanel.add(clearBut);
+        clearBut.addActionListener(this);
+        clearBut.setEnabled(false);  // since nothing picked yet
+
+        btnsPanel.add(okBut);
+        okBut.addActionListener(this);
+        if (numPickNeeded > 0)
+            okBut.setEnabled(false);  // Must choose that many first
+
+        styleButtonsAndLabels(btnsPanel);
+        getRootPane().setDefaultButton(okBut);
     }
 
     /**
      * Show or hide this dialog.
-     * If showing (<tt>vis == true</tt>), also sets the initial values
-     * of our current resources, based on {@link SOCPlayer#getResources()},
-     * and requests focus on the Discard/Pick button.
+     * If showing (<tt>vis == true</tt>), also requests focus on the Discard/Pick button
+     * and plays the appropriate sound: {@link SOCPlayerInterface#SOUND_RSRC_LOST}
+     * or {@link SOCPlayerInterface#SOUND_RSRC_GAINED_FREE}.
      *
      * @param vis  True to make visible, false to hide
      */
@@ -187,17 +205,6 @@ import java.awt.event.MouseListener;
     {
         if (vis)
         {
-            /**
-             * set initial values
-             */
-            SOCPlayer player = playerInterface.getGame().getPlayer(playerInterface.getClient().getNickname());
-            SOCResourceSet resources = player.getResources();
-            keep[0].setIntValue(resources.getAmount(SOCResourceConstants.CLAY));
-            keep[1].setIntValue(resources.getAmount(SOCResourceConstants.ORE));
-            keep[2].setIntValue(resources.getAmount(SOCResourceConstants.SHEEP));
-            keep[3].setIntValue(resources.getAmount(SOCResourceConstants.WHEAT));
-            keep[4].setIntValue(resources.getAmount(SOCResourceConstants.WOOD));
-
             okBut.requestFocus();
 
             playerInterface.playSound
@@ -205,79 +212,6 @@ import java.awt.event.MouseListener;
         }
 
         super.setVisible(vis);
-    }
-
-    /**
-     * Custom layout, and setLocation call, for this dialog.
-     */
-    @Override
-    public void doLayout()
-    {
-        int x = getInsets().left;
-        int padW = getInsets().left + getInsets().right;
-        int padH = getInsets().top + getInsets().bottom;
-        int width = getSize().width - padW;
-        int height = getSize().height - padH;
-
-        /* check visible-size vs insets */
-        if ((width < wantW + padW) || (height < wantH + padH))
-        {
-            if (width < wantW + padW)
-                width = wantW + 1;
-            if (height < wantH + padH)
-                height = wantH + 1;
-            setSize (width + padW, height + padH);
-            width = getSize().width - padW;
-            height = getSize().height - padH;
-        }
-
-        int space = 5;
-        int msgW = this.getFontMetrics(this.getFont()).stringWidth(msg.getText());
-        int sqwidth = ColorSquareLarger.WIDTH_L;
-        int sqspace = (width - (5 * sqwidth)) / 6;
-
-        int keepY;
-        int discY;
-
-        /* put the dialog in the center of the game window */
-        if (! didSetLocation)
-        {
-            int cfx = playerInterface.getInsets().left;
-            int cfy = playerInterface.getInsets().top;
-            int cfwidth = playerInterface.getSize().width - playerInterface.getInsets().left - playerInterface.getInsets().right;
-            int cfheight = playerInterface.getSize().height - playerInterface.getInsets().top - playerInterface.getInsets().bottom;
-
-            final Point piLoc = playerInterface.getLocation();
-            setLocation(piLoc.x + cfx + ((cfwidth - width) / 2), piLoc.y + cfy + ((cfheight - height) / 3));
-            didSetLocation = true;
-        }
-
-        try
-        {
-            msg.setBounds((width - msgW) / 2, getInsets().top, msgW + 4, 20);
-            final int btnsX = (getSize().width - (2 * 80 + 5)) / 2;
-            int y = (getInsets().top + height) - 30;
-            clearBut.setBounds(btnsX, y, 80, 25);
-            okBut.setBounds(btnsX + 85, y, 80, 25);
-            youHave.setBounds(getInsets().left, getInsets().top + 20 + space, 70, 20);
-            pickThese.setBounds(getInsets().left, getInsets().top + 20 + space + 20 + space + sqwidth + space, 100, 20);
-        }
-        catch (NullPointerException e) {}
-
-        keepY = getInsets().top + 20 + space + 20 + space;
-        discY = keepY + sqwidth + space + 20 + space;
-
-        try
-        {
-            for (int i = 0; i < 5; i++)
-            {
-                keep[i].setSize(sqwidth, sqwidth);
-                keep[i].setLocation(x + sqspace + (i * (sqspace + sqwidth)), keepY);
-                pick[i].setSize(sqwidth, sqwidth);
-                pick[i].setLocation(x + sqspace + (i * (sqspace + sqwidth)), discY);
-            }
-        }
-        catch (NullPointerException e) {}
     }
 
     /**
@@ -294,7 +228,9 @@ import java.awt.event.MouseListener;
 
         if (target == okBut)
         {
-            SOCResourceSet rsrcs = new SOCResourceSet(pick[0].getIntValue(), pick[1].getIntValue(), pick[2].getIntValue(), pick[3].getIntValue(), pick[4].getIntValue(), 0);
+            SOCResourceSet rsrcs = new SOCResourceSet
+                (pick[0].getIntValue(), pick[1].getIntValue(), pick[2].getIntValue(),
+                 pick[3].getIntValue(), pick[4].getIntValue(), 0);
 
             if (rsrcs.getTotal() == numPickNeeded)
             {
@@ -321,30 +257,6 @@ import java.awt.event.MouseListener;
         } catch (Throwable th) {
             playerInterface.chatPrintStackTrace(th);
         }
-    }
-
-    /** Stub, required for {@link MouseListener}. */
-    public void mouseEntered(MouseEvent e)
-    {
-        ;
-    }
-
-    /** Stub, required for {@link MouseListener}. */
-    public void mouseExited(MouseEvent e)
-    {
-        ;
-    }
-
-    /** Stub, required for {@link MouseListener}. */
-    public void mouseClicked(MouseEvent e)
-    {
-        ;
-    }
-
-    /** Stub, required for {@link MouseListener}. */
-    public void mouseReleased(MouseEvent e)
-    {
-        ;
     }
 
     /**
@@ -439,14 +351,16 @@ import java.awt.event.MouseListener;
         }
     }
 
-    /**
-     * Run method, for convenience with {@link java.awt.EventQueue#invokeLater(Runnable)}.
-     * This method just calls {@link #setVisible(boolean) setVisible(true)}.
-     * @since 2.0.00
-     */
-    public void run()
-    {
-        setVisible(true);
-    }
+    /** Stub required for {@link MouseListener}. */
+    public void mouseEntered(MouseEvent e) {}
+
+    /** Stub required for {@link MouseListener}. */
+    public void mouseExited(MouseEvent e) {}
+
+    /** Stub required for {@link MouseListener}. */
+    public void mouseClicked(MouseEvent e) {}
+
+    /** Stub required for {@link MouseListener}. */
+    public void mouseReleased(MouseEvent e) {}
 
 }
