@@ -252,6 +252,7 @@ import javax.swing.border.EmptyBorder;
 
             // Wonder Name
             gbc.gridx = 1;  // skip possibly-empty button column
+            final Font labelFont;  // will use same font for requirements text
             {
                 String wname;
                 try
@@ -265,6 +266,7 @@ import javax.swing.border.EmptyBorder;
                 L = new JLabel(wname);
                 gbl.setConstraints(L, gbc);
                 cpane.add(L);
+                labelFont = L.getFont();
             }
             gbc.gridx = GridBagConstraints.RELATIVE;
 
@@ -283,11 +285,7 @@ import javax.swing.border.EmptyBorder;
             // Requirements
             final JComponent itmDesc = buildRequirementsText(itm.req);  // returns JLabel or JTextArea
             if (itmDesc instanceof JTextArea)
-            {
-                // override JTextArea's default black-on-white colors
-                itmDesc.setBackground(cpane.getBackground());
-                itmDesc.setForeground(cpane.getForeground());
-            }
+                itmDesc.setFont(labelFont);  // override default font (monospaced on win32)
             gbc.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(itmDesc, gbc);
             cpane.add(itmDesc);
@@ -463,10 +461,8 @@ import javax.swing.border.EmptyBorder;
         }
 
         ret.setBorder(new EmptyBorder(0, 3, 0, 3));
-
-        Font f = ret.getFont();
-        if (f.isBold())
-            ret.setFont(f.deriveFont(Font.PLAIN));
+        ret.setBackground(null);  // will inherit from panel
+        ret.setForeground(null);
 
         return ret;
     }
