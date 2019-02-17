@@ -2017,6 +2017,7 @@ public class SOCRobotBrain extends Thread
                        }
                        }
                      */
+
                     yield();
                 }
                 catch (Exception e)
@@ -4463,9 +4464,13 @@ public class SOCRobotBrain extends Thread
     public void pause(int msec)
     {
         if (game.isBotsOnly)
+        {
             msec = (int) (msec * BOTS_ONLY_FAST_PAUSE_FACTOR);
-        else if (pauseFaster && ! waitingForTradeResponse)
+            if (msec == 0)
+                return;  // will still yield within run() loop
+        } else if (pauseFaster && ! waitingForTradeResponse) {
             msec = (msec / 2) + (msec / 4);
+        }
 
         try
         {
