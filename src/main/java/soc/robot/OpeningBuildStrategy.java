@@ -138,7 +138,7 @@ public class OpeningBuildStrategy {
             final int firstNode = ourPotentialSettlements[i];
             // assert: ourPlayerData.isPotentialSettlement(firstNode)
 
-            final Integer firstNodeInt = new Integer(firstNode);
+            final Integer firstNodeInt = Integer.valueOf(firstNode);
 
             //
             // this is just for testing purposes
@@ -336,7 +336,7 @@ public class OpeningBuildStrategy {
         playerNumbers.clear();
         playerNumbers.updateNumbers(firstSettlement, board);
 
-        final Integer firstSettlementInt = new Integer(firstSettlement);
+        final Integer firstSettlementInt = Integer.valueOf(firstSettlement);
 
         for (int portType = SOCBoard.MISC_PORT; portType <= SOCBoard.WOOD_PORT;
                  portType++)
@@ -357,7 +357,7 @@ public class OpeningBuildStrategy {
         playerNumbers.clear();
         playerNumbers.updateNumbers(secondSettlement, board);
 
-        final Integer secondSettlementInt = new Integer(secondSettlement);
+        final Integer secondSettlementInt = Integer.valueOf(secondSettlement);
 
         for (int portType = SOCBoard.MISC_PORT; portType <= SOCBoard.WOOD_PORT;
                  portType++)
@@ -574,7 +574,7 @@ public class OpeningBuildStrategy {
             // each of 6 directions: NE, E, SE, SW, W, NW
             int tmp = board.getAdjacentNodeToNode2Away(settlementNode, facing);
             if ((tmp != -9) && ourPlayerData.canPlaceSettlement(tmp))
-                twoAway.put(new Integer(tmp), new Integer(0));
+                twoAway.put(Integer.valueOf(tmp), Integer.valueOf(0));
         }
 
         scoreNodesForSettlements(twoAway, 3, 5, 10);
@@ -681,7 +681,7 @@ public class OpeningBuildStrategy {
                     /**
                      * remove this spot from the list of best spots
                      */
-                    allNodes.remove(new Integer(bestNodePair.getNode()));
+                    allNodes.remove(Integer.valueOf(bestNodePair.getNode()));
                 }
             }
         }
@@ -821,7 +821,7 @@ public class OpeningBuildStrategy {
              */
             score *= weight;
 
-            nodesIn.put(nodeCoord, new Integer(oldScore + score));
+            nodesIn.put(nodeCoord, Integer.valueOf(oldScore + score));
 
             //log.debug("BSIANS -- put node "+Integer.toHexString(node)+" with old score "+oldScore+" + new score "+score);
         }
@@ -873,7 +873,7 @@ public class OpeningBuildStrategy {
              */
             score *= weight;
 
-            nodesIn.put(nodeCoord, new Integer(oldScore + score));
+            nodesIn.put(nodeCoord, Integer.valueOf(oldScore + score));
 
             //log.debug("BS2AFANS -- put node "+Integer.toHexString(node)+" with old score "+oldScore+" + new score "+score);
         }
@@ -1073,7 +1073,7 @@ public class OpeningBuildStrategy {
              * lowest score is 0
              */
             final int nScore = ((score * 100) / maxScore) * weight;
-            final Integer finalScore = new Integer(nScore + oldScore);
+            final Integer finalScore = Integer.valueOf(nScore + oldScore);
             nodes.put(node, finalScore);
 
             //log.debug("BSN -- put node "+Integer.toHexString(node.intValue())+" with old score "+oldScore+" + new score "+nScore);

@@ -1267,7 +1267,7 @@ public class SOCRobotDM
             int j = board.getAdjacentEdgeToNode(coord, dir);
             if (pl.isLegalRoad(j))
             {
-                final Integer edge = new Integer(j);
+                final Integer edge = Integer.valueOf(j);
                 boolean match = false;
 
                 for (Enumeration<Integer> ev = visited.elements(); ev.hasMoreElements(); )
@@ -1327,7 +1327,7 @@ public class SOCRobotDM
         else
             rv = 500;
 
-        return new Integer(rv);  // <-- Early return: ! wantsStack ---
+        return Integer.valueOf(rv);  // <-- Early return: ! wantsStack ---
     }
 
     if ((longest > lrLength) && (bestPathNode != null))
@@ -1344,7 +1344,7 @@ public class SOCRobotDM
       List<Integer> nodeList = bestPathNode.getB();
       if ((nodeList == null) || nodeList.isEmpty())
           return null;  // <--- early return, no node list: should not happen ---
-      nodeList.add(new Integer(bestPathNode.getA().node));  // append bestPathNode
+      nodeList.add(Integer.valueOf(bestPathNode.getA().node));  // append bestPathNode
 
       final int L = nodeList.size();
       coordP = nodeList.get(0);  // root ancestor

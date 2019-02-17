@@ -197,7 +197,7 @@ public class SOCBoardLayout2 extends SOCMessage
         layoutParts.put("NL", nl);
         if (pl != null)
             layoutParts.put("PL", pl);
-        layoutParts.put("RH", new Integer(rh));
+        layoutParts.put("RH", Integer.valueOf(rh));
     }
 
     /**
@@ -229,9 +229,9 @@ public class SOCBoardLayout2 extends SOCMessage
         if (pl != null)
             layoutParts.put("PL", pl);
         if (rh > 0)
-            layoutParts.put("RH", new Integer(rh));
+            layoutParts.put("RH", Integer.valueOf(rh));
         if (ph > 0)
-            layoutParts.put("PH", new Integer(ph));
+            layoutParts.put("PH", Integer.valueOf(ph));
         if (px != null)
             layoutParts.put("PX", px);
         if (rx != null)

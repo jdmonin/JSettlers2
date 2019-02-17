@@ -1683,7 +1683,7 @@ import soc.util.Version;
             if (validChange)
             {
                 if (otypeIsInt)
-                    fireOptionChangeListener(cl, opt, new Integer(oldIntValue), new Integer(opt.getIntValue()));
+                    fireOptionChangeListener(cl, opt, Integer.valueOf(oldIntValue), Integer.valueOf(opt.getIntValue()));
                 else
                     fireOptionChangeListener(cl, opt, oldText, newText);
             }
@@ -1792,8 +1792,8 @@ import soc.util.Version;
             if (chIdx != -1)
             {
                 final int nv = chIdx + opt.minIntValue;
-                Integer newValue = new Integer(nv);
-                Integer oldValue = new Integer(opt.getIntValue());
+                Integer newValue = Integer.valueOf(nv);
+                Integer oldValue = Integer.valueOf(opt.getIntValue());
                 opt.setIntValue(nv);
                 if (fireBooleanListener)
                     fireOptionChangeListener(cl, opt, boolOldValue, boolNewValue);

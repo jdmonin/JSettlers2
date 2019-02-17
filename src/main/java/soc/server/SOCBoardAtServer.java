@@ -1067,7 +1067,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
                 // ones placed in previous method calls are ignored
                 Vector<Integer> unvisited = new Vector<Integer>();  // contains each hex's coordinate
                 for (int i = 0; i < landHexType.length; ++i)
-                    unvisited.addElement(new Integer(landPath[i]));
+                    unvisited.addElement(Integer.valueOf(landPath[i]));
 
                 clumpsNotOK = makeNewBoard_checkLandHexResourceClumps(unvisited, clumpSize);
             } else {
@@ -1102,7 +1102,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
         cachedGetLandHexCoords = null;  // invalidate the previous cached set
 
         for (int i = 0; i < landHexType.length; i++)
-            landHexLayout.add(new Integer(landPath[i]));
+            landHexLayout.add(Integer.valueOf(landPath[i]));
 
         for (int i = 0, hexIdx = 0; i < landAreaPathRanges.length; i += 2)
         {

@@ -3461,7 +3461,7 @@ public class SOCGame implements Serializable, Cloneable
          */
         if (pp.getType() == SOCPlayingPiece.SHIP)
         {
-            placedShipsThisTurn.add(new Integer(coord));
+            placedShipsThisTurn.add(Integer.valueOf(coord));
         }
 
         /**
@@ -3527,7 +3527,7 @@ public class SOCGame implements Serializable, Cloneable
 
                 if (scenarioEventListener != null)
                     scenarioEventListener.gameEvent
-                        (this, SOCScenarioGameEvent.SGE_FOG_HEX_REVEALED, new Integer(hexCoord));
+                        (this, SOCScenarioGameEvent.SGE_FOG_HEX_REVEALED, Integer.valueOf(hexCoord));
 
                 if (! initialSettlement)
                     break;
@@ -3866,7 +3866,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         if (movedShipThisTurn || ! (hasSeaBoard && (currentPlayerNumber == pn) && (gameState == PLAY1)))
             return null;
-        if (placedShipsThisTurn.contains(new Integer(fromEdge)))
+        if (placedShipsThisTurn.contains(Integer.valueOf(fromEdge)))
             return null;
 
         // check fromEdge vs. pirate hex
@@ -5029,7 +5029,7 @@ public class SOCGame implements Serializable, Cloneable
                     final int num = fromHand.getAmount(rsrcType);
                     if (num == lowestNum)
                     {
-                        tempHand.addElement(new Integer(rsrcType));
+                        tempHand.addElement(Integer.valueOf(rsrcType));
                         --toAdd;  // might go below 0, that's okay: we'll shuffle.
                     }
                     else if (num < lowestNum)

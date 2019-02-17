@@ -207,8 +207,8 @@ public class RobberStrategy
            }
            else
            {
-               SOCPlayerTracker tracker1 = playerTrackers.get(new Integer(i));
-               SOCPlayerTracker tracker2 = playerTrackers.get(new Integer(choice));
+               SOCPlayerTracker tracker1 = playerTrackers.get(Integer.valueOf(i));
+               SOCPlayerTracker tracker2 = playerTrackers.get(Integer.valueOf(choice));
 
                if ((tracker1 != null) && (tracker2 != null) && (tracker1.getWinGameETA() < tracker2.getWinGameETA()))
                {

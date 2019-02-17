@@ -892,7 +892,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     public void clientVersionAdd(final int cvers)
     {
-        Integer cvkey = new Integer(cvers);
+        Integer cvkey = Integer.valueOf(cvers);
         ConnVersionCounter cv = cliVersionsConnected.get(cvkey);
         if (cv == null)
         {
@@ -932,7 +932,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     public void clientVersionRem(final int cvers)
     {
-        Integer cvkey = new Integer(cvers);
+        Integer cvkey = Integer.valueOf(cvers);
         ConnVersionCounter cv = cliVersionsConnected.get(cvkey);
         if (cv == null)
         {
@@ -1009,7 +1009,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     public boolean isCliVersionConnected(final int cvers)
     {
-        ConnVersionCounter cv = cliVersionsConnected.get(new Integer(cvers));
+        ConnVersionCounter cv = cliVersionsConnected.get(Integer.valueOf(cvers));
         return (cv != null) && (cv.cliCount > 0);
     }
 
@@ -1040,7 +1040,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
             if ((cvkey == null) || (cvers != lastVers))
             {
-                cvkey = new Integer(cvers);
+                cvkey = Integer.valueOf(cvers);
                 cvc = cvmap.get(cvkey);
                 if (cvc == null)
                 {
@@ -1059,7 +1059,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
             if ((cvkey == null) || (cvers != lastVers))
             {
-                cvkey = new Integer(cvers);
+                cvkey = Integer.valueOf(cvers);
                 cvc = cvmap.get(cvkey);
                 if (cvc == null)
                 {
