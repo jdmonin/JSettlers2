@@ -25,8 +25,6 @@ import soc.game.SOCGameOption;  // only for javadocs
 import soc.game.SOCPlayer;
 import soc.message.SOCChoosePlayer;
 
-import java.awt.Color;
-import java.awt.Container;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -34,13 +32,10 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.WindowConstants;
 
 
 /**
@@ -55,10 +50,13 @@ import javax.swing.WindowConstants;
  * @author  Robert S. Thomas
  */
 @SuppressWarnings("serial")
-/*package*/ class SOCChoosePlayerDialog extends JDialog implements ActionListener, Runnable
+/*package*/ class SOCChoosePlayerDialog
+    extends SOCDialog implements ActionListener, Runnable
 {
-    /** i18n text strings; will use same locale as SOCPlayerClient's string manager.
-     *  @since 2.0.00 */
+    /**
+     * i18n text strings; will use same locale as SOCPlayerClient's string manager.
+     * @since 2.0.00
+     */
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
     /**
@@ -88,13 +86,6 @@ import javax.swing.WindowConstants;
     /** Number of players to choose from for {@link #buttons} and {@link #players}. */
     final int number;
 
-    final JLabel msg;
-
-    final SOCPlayerInterface pi;
-
-    /** Desired size (visible size inside of insets) **/
-    protected final int wantW, wantH;
-
     /**
      * Creates a new SOCChoosePlayerDialog object.
      * After creation, call {@link #pack()} and {@link #setVisible(boolean)}.
@@ -116,8 +107,8 @@ import javax.swing.WindowConstants;
      * This occurs with the {@link SOCGameOption#K_SC_PIRI SC_PIRI} scenario, which allows
      * robbing any player with resources or declining to rob.
      *
-     * @param plInt  PlayerInterface that owns this dialog
-     * @param num    The number of players to choose from
+     * @param pi  PlayerInterface that owns this dialog
+     * @param num   The number of players to choose from
      * @param p   The player IDs of those players; length of this
      *            array may be larger than count (may be {@link SOCGame#maxPlayers}).
      *            Only the first <tt>num</tt> elements will be used.
@@ -127,29 +118,18 @@ import javax.swing.WindowConstants;
      *            (used with game scenario {@code SC_PIRI})
      */
     public SOCChoosePlayerDialog
-        (SOCPlayerInterface plInt, final int num, final int[] p, final boolean allowChooseNone)
+        (final SOCPlayerInterface pi, final int num, final int[] p, final boolean allowChooseNone)
     {
-        super(plInt, strings.get("dialog.robchoose.choose.player"), true);  // "Choose Player"
-        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);  // user must choose a button
+        super
+            (pi, strings.get("dialog.robchoose.choose.player"),  // "Choose Player"
+             strings.get("dialog.robchoose.please.choose"),  // "Please choose a player to steal from:"
+             false);
 
-        pi = plInt;
         number = (allowChooseNone) ? (num + 1) : num;
         players = p;
 
-        setLocationRelativeTo(plInt);  // center
-        Font panelFont = getFont();
-        if (panelFont.getSize() < 12)
-            panelFont = panelFont.deriveFont(12f);
-        Container cpane = getContentPane();
-        if (! (cpane instanceof JPanel))
-        {
-            cpane = new JPanel();
-            setContentPane(cpane);
-        }
-        cpane.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
-        cpane.setForeground(Color.BLACK);
-        ((JPanel) cpane).setBorder(BorderFactory.createEmptyBorder(4, 12, 8, 12));
-        cpane.setFont(panelFont);
+        final JPanel btnsPane = getMiddlePanel();
+        final Font panelFont = getFont();
 
         // Different layout when 3 or fewer players[] to choose from;
         // see constructor javadoc for diagram
@@ -162,25 +142,12 @@ import javax.swing.WindowConstants;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
 
-        setLayout(gbl);  // null if 3 or fewer players[]
-
-        // wantH formula based on doLayout
-        //    label: 20  button: 20  label: 16  spacing: 10
-        wantW = 320;
-        wantH = 20 + 10 + 20 + 10 + 16 + 5;
-        setSize(wantW + 10, wantH + 20);  // Can calc & add room for insets at doLayout
-
-        msg = new JLabel(strings.get("dialog.robchoose.please.choose"), SwingConstants.CENTER);
-            // "Please choose a player to steal from:"
-        msg.setFont(panelFont);
-        if (gbl != null)
-            gbl.setConstraints(msg, gbc);
-        add(msg);
+        btnsPane.setLayout(gbl);
 
         buttons = new JButton[number];
         player_res_lbl = new JLabel[number];
 
-        SOCGame ga = pi.getGame();
+        final SOCGame ga = pi.getGame();
 
         for (int i = 0; i < num; i++)
         {
@@ -238,7 +205,7 @@ import javax.swing.WindowConstants;
                 if (i == (n-1))
                     gbc.gridwidth = GridBagConstraints.REMAINDER;
                 gbl.setConstraints(buttons[i], gbc);
-                add(buttons[i]);
+                btnsPane.add(buttons[i]);
             }
 
             gbc.gridwidth = 1;
@@ -248,7 +215,7 @@ import javax.swing.WindowConstants;
                 if (i == (n-1))
                     gbc.gridwidth = GridBagConstraints.REMAINDER;
                 gbl.setConstraints(player_res_lbl[i], gbc);
-                add(player_res_lbl[i]);
+                btnsPane.add(player_res_lbl[i]);
             }
         } else {
             // each player on their own row (button is left of label)
@@ -258,12 +225,12 @@ import javax.swing.WindowConstants;
                 gbc.gridwidth = 1;
                 gbc.ipadx = 0;
                 gbl.setConstraints(buttons[i], gbc);
-                add(buttons[i]);
+                btnsPane.add(buttons[i]);
 
                 gbc.gridwidth = GridBagConstraints.REMAINDER;
                 gbc.ipadx = 32;
                 gbl.setConstraints(player_res_lbl[i], gbc);
-                add(player_res_lbl[i]);
+                btnsPane.add(player_res_lbl[i]);
             }
         }
     }
@@ -285,26 +252,15 @@ import javax.swing.WindowConstants;
         {
             if (target == buttons[i])
             {
-                pi.getClient().getGameManager().choosePlayer(pi.getGame(), players[i]);
+                playerInterface.getClient().getGameManager().choosePlayer(playerInterface.getGame(), players[i]);
                 dispose();
 
                 break;
             }
         }
         } catch (Throwable th) {
-            pi.chatPrintStackTrace(th);
+            playerInterface.chatPrintStackTrace(th);
         }
-    }
-
-    /**
-     * Run method, for convenience with {@link java.awt.EventQueue#invokeLater(Runnable)}.
-     * Calls {@link #pack()} and {@link #setVisible(boolean) setVisible(true)}.
-     * @since 2.0.00
-     */
-    public void run()
-    {
-        pack();
-        setVisible(true);
     }
 
 }
