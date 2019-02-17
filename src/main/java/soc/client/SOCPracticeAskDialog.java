@@ -19,6 +19,8 @@
  **/
 package soc.client;
 
+import soc.client.SOCPlayerClient.MainDisplay;
+
 /**
  * This is the dialog to ask players if they want to join an
  * existing practice game or start a new one.
@@ -41,12 +43,12 @@ package soc.client;
     /**
      * Creates a new SOCPracticeAskDialog.
      *
-     * @param cli      Player client interface
+     * @param md       Player client's main display
      * @param gamePI   Current game's player interface
      */
-    public SOCPracticeAskDialog(SOCPlayerClient.GameDisplay cli, SOCPlayerInterface gamePI)
+    public SOCPracticeAskDialog(MainDisplay md, SOCPlayerInterface gamePI)
     {
-        super(cli, gamePI, strings.get("dialog.practiceask.in.progress"),  // "Practice game in progress"
+        super(md, gamePI, strings.get("dialog.practiceask.in.progress"),  // "Practice game in progress"
             strings.get("dialog.practiceask.already.being.played"),  // "A practice game is already being played."
             strings.get("dialog.practiceask.show.game"),  // "Show that game"
             strings.get("dialog.practiceask.create"),     // "Create another"
@@ -68,7 +70,7 @@ package soc.client;
     @Override
     public void button2Chosen()
     {
-        pcli.gameWithOptionsBeginSetup(true, false);
+        md.gameWithOptionsBeginSetup(true, false);
     }
 
     /**

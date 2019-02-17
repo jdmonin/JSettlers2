@@ -45,7 +45,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
-import soc.client.SOCPlayerClient.GameDisplay;
+import soc.client.SOCPlayerClient.MainDisplay;
 import soc.util.SOCStringManager;
 import soc.util.Version;
 
@@ -61,7 +61,7 @@ import soc.util.Version;
 /*package*/ class SOCConnectOrPracticePanel extends JPanel
     implements ActionListener, KeyListener
 {
-    private final GameDisplay gd;
+    private final MainDisplay md;
     private final ClientNetwork clientNetwork;
 
     /** Welcome message, or error after disconnect */
@@ -103,14 +103,14 @@ import soc.util.Version;
     /**
      * Creates a new SOCConnectOrPracticePanel.
      *
-     * @param gd      Player client display
+     * @param md      Player client main display
      */
-    public SOCConnectOrPracticePanel(GameDisplay gd)
+    public SOCConnectOrPracticePanel(final MainDisplay md)
     {
         super(new BorderLayout());
 
-        this.gd = gd;
-        SOCPlayerClient cli = gd.getClient();
+        this.md = md;
+        SOCPlayerClient cli = md.getClient();
         clientNetwork = cli.getNet();
         canLaunchServer = checkCanLaunchServer();
 
@@ -469,7 +469,7 @@ import soc.util.Version;
     /**
      * A local server has been started; disable other options ("Connect", etc) but
      * not Practice.  Called from client, once the server is started in
-     * {@link SOCPlayerClient.GameDisplay#startLocalTCPServer(int)}.
+     * {@link MainDisplay#startLocalTCPServer(int)}.
      */
     public void startedLocalServer()
     {
@@ -531,7 +531,7 @@ import soc.util.Version;
         if (src == prac)
         {
             // Ask client to set up and start a practice game
-            gd.clickPracticeButton();
+            md.clickPracticeButton();
             return;
         }
 
@@ -635,7 +635,7 @@ import soc.util.Version;
 
         // Copy fields, show MAIN_PANEL, and connect in client
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        gd.getClient().connect(cserv, cport, conn_user.getText(), conn_pass.getText());
+        md.getClient().connect(cserv, cport, conn_user.getText(), conn_pass.getText());
     }
 
     /** Hide fields used to connect to server. Called by client after a network error. */
@@ -652,7 +652,7 @@ import soc.util.Version;
         // After clicking runserv, actually start a server
         final int srport = parsePortNumberOrDefault(run_servport);
         if (srport > 0)
-            gd.startLocalTCPServer(srport);
+            md.startLocalTCPServer(srport);
     }
 
     /** Hide fields used to start a server */

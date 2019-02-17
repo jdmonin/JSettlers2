@@ -105,13 +105,13 @@ import soc.util.Version;
 
 /**
  * Standalone client for connecting to the SOCServer. (For applet see {@link SOCApplet}.)
- * Nested class {@link SwingGameDisplay} prompts for name and password, then connects and
+ * Nested class {@link SwingMainDisplay} prompts for name and password, then connects and
  * displays the lists of games and channels available.
  * The actual game is played in a separate {@link SOCPlayerInterface} window.
  *<P>
  * If you want another connection port, you have to specify it as the "port"
  * argument in the html source. If you run this as a stand-alone, the port can be
- * specified on the command line or typed into {@code SwingGameDisplay}'s connect dialog.
+ * specified on the command line or typed into {@code SwingMainDisplay}'s connect dialog.
  *<P>
  * At startup or init, will try to connect to server via {@link ClientNetwork#connect(String, int)}.
  * See that method for more details.
@@ -211,7 +211,7 @@ public class SOCPlayerClient
     /**
      * The classic JSettlers green background color; green tone #61AF71.
      * Typically used with foreground color {@link Color#BLACK},
-     * like in {@link SOCPlayerClient.SwingGameDisplay}'s main panel.
+     * like in {@link SOCPlayerClient.SwingMainDisplay}'s main panel.
      * Occasionally used with {@link #MISC_LABEL_FG_OFF_WHITE}.
      * @since 2.0.00
      * @see SOCPlayerInterface#DIALOG_BG_GOLDENROD
@@ -233,7 +233,7 @@ public class SOCPlayerClient
 
     /**
      * Prefix text to indicate a game this client cannot join: "(cannot join) "<BR>
-     * Non-final for localization. Localize before calling {@link SwingGameDisplay.JoinableListItem#toString()}.
+     * Non-final for localization. Localize before calling {@link SwingMainDisplay.JoinableListItem#toString()}.
      * @since 1.1.06
      */
     protected static String GAMENAME_PREFIX_CANNOT_JOIN = "(cannot join) ";
@@ -286,9 +286,10 @@ public class SOCPlayerClient
     private final GameMessageMaker gameMessageMaker;
 
     /**
-     * Display for all user interface, including and beyond games.
+     * Display for the main user interface, including and beyond the list of games and chat channels.
+     * Individual games are {@link PlayerClientListener}s / {@link SOCPlayerInterface}s.
      */
-    private GameDisplay gameDisplay;
+    private MainDisplay mainDisplay;
 
     /**
      *  Server version number for remote server, sent soon after connect, 0 if no server, or -1 if version unknown.
@@ -307,7 +308,7 @@ public class SOCPlayerClient
 
     /**
      * Track the game options available at the remote server, at the practice server.
-     * Initialized by {@link SOCPlayerClient.SwingGameDisplay#gameWithOptionsBeginSetup(boolean, boolean)}
+     * Initialized by {@link SOCPlayerClient.SwingMainDisplay#gameWithOptionsBeginSetup(boolean, boolean)}
      * and/or {@link MessageTreater#handleVERSION(boolean, SOCVersion)}.
      * These fields are never null, even if the respective server is not connected or not running.
      *<P>
@@ -331,7 +332,7 @@ public class SOCPlayerClient
 
     /**
      * the nickname; null until validated and set by
-     * {@link SOCPlayerClient.SwingGameDisplay#getValidNickname(boolean) getValidNickname(true)}
+     * {@link SOCPlayerClient.SwingMainDisplay#getValidNickname(boolean) getValidNickname(true)}
      */
     protected String nickname = null;
 
@@ -430,10 +431,12 @@ public class SOCPlayerClient
 
 
     /**
-     * A facade for the SOCPlayerClient to use to invoke actions in the GUI
+     * A facade for the SOCPlayerClient to use to invoke actions in the main GUI
+     * (as opposed to in-game {@link PlayerClientListener}):
+     * Connect, list games and chat channels, etc.
      * @since 2.0.00
      */
-    public interface GameDisplay
+    public interface MainDisplay
     {
         /** Returns the overall Client. */
         SOCPlayerClient getClient();
@@ -728,21 +731,21 @@ public class SOCPlayerClient
          */
         Timer getEventTimer();
 
-    }  // public interface GameDisplay
+    }  // public interface MainDisplay
 
 
     /**
      * Create a SOCPlayerClient connecting to localhost port {@link ClientNetwork#SOC_PORT_DEFAULT}.
-     * Initializes helper objects (except {@link GameDisplay}), locale, {@link SOCStringManager}.
+     * Initializes helper objects (except {@link MainDisplay}), locale, {@link SOCStringManager}.
      * The locale will be the current user's default locale, unless overridden by setting the
      * {@link I18n#PROP_JSETTLERS_LOCALE PROP_JSETTLERS_LOCALE} system property {@code "jsettlers.locale"}.
      *<P>
-     * Must call {@link SOCApplet#init()}, or {@link #setGameDisplay(GameDisplay)} and then
-     * {@link GameDisplay#initVisualElements()}, to start up and do layout.
+     * Must call {@link SOCApplet#init()}, or {@link #setMainDisplay(MainDisplay)} and then
+     * {@link MainDisplay#initVisualElements()}, to start up and do layout.
      *<P>
      * Must then call {@link #connect(String, int, String, String)} or {@link ClientNetwork#connect(String, int)}
-     * to join a TCP server, or {@link GameDisplay#clickPracticeButton()}
-     * or {@link GameDisplay#startLocalTCPServer(int)} to start a server locally.
+     * to join a TCP server, or {@link MainDisplay#clickPracticeButton()}
+     * or {@link MainDisplay#startLocalTCPServer(int)} to start a server locally.
      */
     public SOCPlayerClient()
     {
@@ -782,23 +785,23 @@ public class SOCPlayerClient
     }
 
     /**
-     * Set our game display interface.
-     * Before using the client, caller must also call {@link GameDisplay#initVisualElements()}.
-     * @throws IllegalArgumentException if {@code gd} is {@code null}
+     * Set our main display interface.
+     * Before using the client, caller must also call {@link MainDisplay#initVisualElements()}.
+     * @throws IllegalArgumentException if {@code md} is {@code null}
      * @since 2.0.00
      */
-    public void setGameDisplay(final GameDisplay gd)
+    public void setMainDisplay(final MainDisplay md)
         throws IllegalArgumentException
     {
-        if (gd == null)
+        if (md == null)
             throw new IllegalArgumentException("null");
-        gameDisplay = gd;
-        net.setGameDisplay(gd);
+        mainDisplay = md;
+        net.setMainDisplay(md);
     }
 
     /**
      * Connect and give feedback by showing MESSAGE_PANEL.
-     * Calls {@link GameDisplay#connect(String, String)} to set username and password,
+     * Calls {@link MainDisplay#connect(String, String)} to set username and password,
      * then {@link ClientNetwork#connect(String, int)} to make the connection.
      *
      * @param chost Hostname to connect to, or null for localhost
@@ -808,7 +811,7 @@ public class SOCPlayerClient
      */
     public void connect(final String chost, final int cport, final String cuser, final String cpass)
     {
-        gameDisplay.connect(cpass, cuser);
+        mainDisplay.connect(cpass, cuser);
 
         // TODO don't do net connect attempt on UI thread
         // Meanwhile: To ensure the UI repaints before starting net connect:
@@ -823,7 +826,7 @@ public class SOCPlayerClient
 
     /**
      * @return the nickname of this user
-     * @see SOCPlayerClient.SwingGameDisplay#getValidNickname(boolean)
+     * @see SOCPlayerClient.SwingMainDisplay#getValidNickname(boolean)
      */
     public String getNickname()
     {
@@ -832,7 +835,7 @@ public class SOCPlayerClient
 
 
     /**
-     * A {@link GameDisplay} implementation for Swing.
+     * A {@link MainDisplay} implementation for Swing.
      * Uses {@link CardLayout} to display an appropriate interface:
      *<UL>
      * <LI> Initial "Connect or Practice" panel to connect to a server
@@ -847,7 +850,7 @@ public class SOCPlayerClient
      * Also converted from AWT to Swing in v2.0.00.
      * @since 2.0.00
      */
-    public static class SwingGameDisplay extends JPanel implements GameDisplay
+    public static class SwingMainDisplay extends JPanel implements MainDisplay
     {
         /** main panel, in cardlayout */
         private static final String MAIN_PANEL = "main";
@@ -1098,14 +1101,14 @@ public class SOCPlayerClient
 
         /**
          * Utility for time-driven events in the display.
-         * To find users: Search for where-used of this field, {@link GameDisplay#getEventTimer()},
+         * To find users: Search for where-used of this field, {@link MainDisplay#getEventTimer()},
          * and {@link SOCPlayerInterface#getEventTimer()}.
          * @since 1.1.07
          */
         protected Timer eventTimer = new Timer(true);  // use daemon thread
 
         /**
-         * Create a new SwingGameDisplay for this client.
+         * Create a new SwingMainDisplay for this client.
          * Must call {@link #initVisualElements()} after this constructor.
          * @param hasConnectOrPractice  True if should initially display {@link SOCConnectOrPracticePanel}
          *     and ask for a server to connect to, false if the server is known
@@ -1113,7 +1116,7 @@ public class SOCPlayerClient
          * @param client  Client using this display; {@link SOCPlayerClient#strings client.strings} must not be null
          * @throws IllegalArgumentException if {@code client} is null
          */
-        public SwingGameDisplay(boolean hasConnectOrPractice, final SOCPlayerClient client)
+        public SwingMainDisplay(boolean hasConnectOrPractice, final SOCPlayerClient client)
             throws IllegalArgumentException
         {
             if (client == null)
@@ -1169,7 +1172,7 @@ public class SOCPlayerClient
         /**
          * {@inheritDoc}
          *<P>
-         * Uses {@link NotifyDialog#createAndShow(SwingGameDisplay, Frame, String, String, boolean)}
+         * Uses {@link NotifyDialog#createAndShow(SwingMainDisplay, Frame, String, String, boolean)}
          * which calls {@link EventQueue#invokeLater(Runnable)} to ensure it displays from the proper thread.
          */
         public void showErrorDialog(final String errMessage, final String buttonText)
@@ -2592,7 +2595,7 @@ public class SOCPlayerClient
         {
             if (! isPractice)
             {
-                cardLayout.show(SwingGameDisplay.this, MAIN_PANEL);
+                cardLayout.show(SwingMainDisplay.this, MAIN_PANEL);
                 validate();
 
                 status.setText
@@ -2659,7 +2662,7 @@ public class SOCPlayerClient
                 hasJoinedServer = true;
             }
 
-            SOCPlayerInterface pi = new SOCPlayerInterface(game.getName(), SwingGameDisplay.this, game, localPrefs);
+            SOCPlayerInterface pi = new SOCPlayerInterface(game.getName(), SwingMainDisplay.this, game, localPrefs);
             System.err.println("L2325 new pi at " + System.currentTimeMillis());
             pi.setVisible(true);
             System.err.println("L2328 visible at " + System.currentTimeMillis());
@@ -2705,7 +2708,7 @@ public class SOCPlayerClient
         {
             gameOptionsCancelTimeoutTask();
             newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                (null, SwingGameDisplay.this, (String) null, opts.optionSet, isPractice, false);
+                (null, SwingMainDisplay.this, (String) null, opts.optionSet, isPractice, false);
         }
 
         public void optionsReceived(ServerGametypeInfo opts, boolean isPractice, boolean isDash, boolean hasAllNow)
@@ -2733,7 +2736,7 @@ public class SOCPlayerClient
                     if (! isPractice)
                         client.checkGameoptsForUnknownScenario(gameOpts);
                     newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                        (playerInterfaces.get(gameInfoWaiting), SwingGameDisplay.this,
+                        (playerInterfaces.get(gameInfoWaiting), SwingMainDisplay.this,
                          gameInfoWaiting, gameOpts, isPractice, true);
                 }
                 else if (newGameWaiting)
@@ -2743,7 +2746,7 @@ public class SOCPlayerClient
                         opts.newGameWaitingForOpts = false;
                     }
                     newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                        (null, SwingGameDisplay.this, (String) null, opts.optionSet, isPractice, false);
+                        (null, SwingMainDisplay.this, (String) null, opts.optionSet, isPractice, false);
                 }
             }
         }
@@ -2943,7 +2946,7 @@ public class SOCPlayerClient
                 public void mouseClicked(MouseEvent e)
                 {
                     NotifyDialog.createAndShow
-                        (SwingGameDisplay.this,
+                        (SwingMainDisplay.this,
                          null,
                          strings.get("pcli.localserver.dialog", tportStr),
                          /*      "Other players connecting to your server\n" +
@@ -3030,7 +3033,7 @@ public class SOCPlayerClient
 
 
         /**
-         * A game or channel in the displayed {@link SwingGameDisplay#gmlist} or {@link SwingGameDisplay#chlist}.
+         * A game or channel in the displayed {@link SwingMainDisplay#gmlist} or {@link SwingMainDisplay#chlist}.
          * Client may or may not be able to join this game or channel.
          *<P>
          * <B>I18N:</B> {@link #toString()} uses {@link SOCPlayerClient#GAMENAME_PREFIX_CANNOT_JOIN}
@@ -3087,7 +3090,7 @@ public class SOCPlayerClient
             }
         }   // JoinableListItem
 
-    }  // SwingGameDisplay
+    }  // SwingMainDisplay
 
 
     /**
@@ -3805,7 +3808,7 @@ public class SOCPlayerClient
                 ? new SOCFeatureSet(mes.feats)
                 : new SOCFeatureSet(true, true);
 
-            gameDisplay.showVersion(vers, mes.getVersionString(), mes.getBuild(), sFeatures);
+            mainDisplay.showVersion(vers, mes.getVersionString(), mes.getBuild(), sFeatures);
         }
 
         // If we ever require a minimum server version, would check that here.
@@ -3828,7 +3831,7 @@ public class SOCPlayerClient
             // Newer server: Ask it to list any options we don't know about yet.
             // Same version: Ask for all localized option descs if available.
             if (! isPractice)
-                gameDisplay.optionsRequested();
+                mainDisplay.optionsRequested();
             gmm.put(SOCGameOptionGetInfos.toCmd(null, withTokenI18n, withTokenI18n && sameVersion), isPractice);
                 // sends "-" and/or "?I18N"
         }
@@ -3864,7 +3867,7 @@ public class SOCPlayerClient
                 if (tooNewOpts != null)
                 {
                     if (! isPractice)
-                        gameDisplay.optionsRequested();
+                        mainDisplay.optionsRequested();
                     gmm.put(SOCGameOptionGetInfos.toCmd(tooNewOpts, withTokenI18n, false), isPractice);
                 }
                 else if (withTokenI18n && ! isPractice)
@@ -3921,7 +3924,7 @@ public class SOCPlayerClient
             {
                 client.nickname = statusText.substring(0, i);
                 statusText = statusText.substring(i + 1);
-                gameDisplay.setNickname(client.nickname);
+                mainDisplay.setNickname(client.nickname);
             }
         }
 
@@ -3931,7 +3934,7 @@ public class SOCPlayerClient
         else
             srvDebugMode = statusText.toLowerCase().contains("debug");
 
-        gameDisplay.showStatus(statusText, srvDebugMode);
+        mainDisplay.showStatus(statusText, srvDebugMode);
 
         // Are we waiting for auth response in order to show NGOF?
         if ((! isPractice) && client.isNGOFWaitingForAuthStatus)
@@ -3946,7 +3949,7 @@ public class SOCPlayerClient
                 {
                     public void run()
                     {
-                        gameDisplay.gameWithOptionsBeginSetup(false, true);
+                        mainDisplay.gameWithOptionsBeginSetup(false, true);
                     }
                 });
             }
@@ -3955,7 +3958,7 @@ public class SOCPlayerClient
         switch (sv)
         {
         case SOCStatusMessage.SV_PW_WRONG:
-            gameDisplay.focusPassword();
+            mainDisplay.focusPassword();
             break;
 
         case SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW:
@@ -3993,7 +3996,7 @@ public class SOCPlayerClient
                     errMsg = statusText;  // fallback, not expected to happen
                 }
 
-                gameDisplay.showErrorDialog(errMsg, strings.get("base.cancel"));
+                mainDisplay.showErrorDialog(errMsg, strings.get("base.cancel"));
             }
             break;
 
@@ -4020,7 +4023,7 @@ public class SOCPlayerClient
                     errMsg = statusText;  // fallback, not expected to happen
                 }
 
-                gameDisplay.showErrorDialog(errMsg, strings.get("base.cancel"));
+                mainDisplay.showErrorDialog(errMsg, strings.get("base.cancel"));
             }
             break;
         }
@@ -4033,7 +4036,7 @@ public class SOCPlayerClient
     protected void handleJOINCHANNELAUTH(SOCJoinChannelAuth mes)
     {
         gotPassword = true;
-        gameDisplay.channelJoined(mes.getChannel());
+        mainDisplay.channelJoined(mes.getChannel());
     }
 
     /**
@@ -4042,7 +4045,7 @@ public class SOCPlayerClient
      */
     protected void handleJOINCHANNEL(SOCJoinChannel mes)
     {
-        gameDisplay.channelJoined(mes.getChannel(), mes.getNickname());
+        mainDisplay.channelJoined(mes.getChannel(), mes.getNickname());
     }
 
     /**
@@ -4051,7 +4054,7 @@ public class SOCPlayerClient
      */
     protected void handleCHANNELMEMBERS(SOCChannelMembers mes)
     {
-        gameDisplay.channelMemberList(mes.getChannel(), mes.getMembers());
+        mainDisplay.channelMemberList(mes.getChannel(), mes.getMembers());
     }
 
     /**
@@ -4060,7 +4063,7 @@ public class SOCPlayerClient
      */
     protected void handleNEWCHANNEL(SOCNewChannel mes)
     {
-        gameDisplay.channelCreated(mes.getChannel());
+        mainDisplay.channelCreated(mes.getChannel());
     }
 
     /**
@@ -4073,7 +4076,7 @@ public class SOCPlayerClient
      */
     protected void handleCHANNELS(SOCChannels mes, final boolean isPractice)
     {
-        gameDisplay.channelList(mes.getChannels(), isPractice);
+        mainDisplay.channelList(mes.getChannels(), isPractice);
     }
 
     /**
@@ -4082,7 +4085,7 @@ public class SOCPlayerClient
      */
     protected void handleBCASTTEXTMSG(SOCBCastTextMsg mes)
     {
-        gameDisplay.chatMessageBroadcast(mes.getText());
+        mainDisplay.chatMessageBroadcast(mes.getText());
 
         for (PlayerClientListener pcl : clientListeners.values())
         {
@@ -4097,7 +4100,7 @@ public class SOCPlayerClient
      */
     protected void handleCHANNELTEXTMSG(SOCChannelTextMsg mes)
     {
-        gameDisplay.chatMessageReceived(mes.getChannel(), mes.getNickname(), mes.getText());
+        mainDisplay.chatMessageReceived(mes.getChannel(), mes.getNickname(), mes.getText());
     }
 
     /**
@@ -4106,7 +4109,7 @@ public class SOCPlayerClient
      */
     protected void handleLEAVECHANNEL(SOCLeaveChannel mes)
     {
-        gameDisplay.channelLeft(mes.getChannel(), mes.getNickname());
+        mainDisplay.channelLeft(mes.getChannel(), mes.getNickname());
     }
 
     /**
@@ -4115,7 +4118,7 @@ public class SOCPlayerClient
      */
     protected void handleDELETECHANNEL(SOCDeleteChannel mes)
     {
-        gameDisplay.channelDeleted(mes.getChannel());
+        mainDisplay.channelDeleted(mes.getChannel());
     }
 
     /**
@@ -4182,7 +4185,7 @@ public class SOCPlayerClient
         if (ga != null)
         {
             ga.isPractice = isPractice;
-            PlayerClientListener clientListener = gameDisplay.gameJoined(ga, gameReqLocalPrefs.get(gaName));
+            PlayerClientListener clientListener = mainDisplay.gameJoined(ga, gameReqLocalPrefs.get(gaName));
             clientListeners.put(gaName, clientListener);
             games.put(gaName, ga);
         }
@@ -4250,8 +4253,8 @@ public class SOCPlayerClient
     {
         final String gaName = mes.getGame();
 
-        if (! gameDisplay.deleteFromGameList(gaName, isPractice, false))
-            gameDisplay.deleteFromGameList(gaName, isPractice, true);
+        if (! mainDisplay.deleteFromGameList(gaName, isPractice, false))
+            mainDisplay.deleteFromGameList(gaName, isPractice, true);
 
         PlayerClientListener pcl = clientListeners.get(gaName);
         if (pcl != null)
@@ -5259,7 +5262,7 @@ public class SOCPlayerClient
     {
         net.disconnect();
 
-        gameDisplay.showErrorPanel(mes.getText(), (net.ex_P == null));
+        mainDisplay.showErrorPanel(mes.getText(), (net.ex_P == null));
     }
 
     /**
@@ -5411,12 +5414,12 @@ public class SOCPlayerClient
         if (unknowns != null)
         {
             if (! isPractice)
-                gameDisplay.optionsRequested();
+                mainDisplay.optionsRequested();
 
             gmm.put(SOCGameOptionGetInfos.toCmd(unknowns, wantsI18nStrings(isPractice), false), isPractice);
         } else {
             opts.newGameWaitingForOpts = false;
-            gameDisplay.optionsReceived(opts, isPractice);
+            mainDisplay.optionsReceived(opts, isPractice);
         }
     }
 
@@ -5446,7 +5449,7 @@ public class SOCPlayerClient
         }
 
         boolean isDash = mes.getOptionNameKey().equals("-");  // I18N: do not localize "-" keyname
-        gameDisplay.optionsReceived(opts, isPractice, isDash, hasAllNow);
+        mainDisplay.optionsReceived(opts, isPractice, isDash, hasAllNow);
     }
 
     /**
@@ -5464,7 +5467,7 @@ public class SOCPlayerClient
             gname = gname.substring(1);
             canJoin = false;
         }
-        gameDisplay.addToGameList(! canJoin, gname, opts, ! isPractice);
+        mainDisplay.addToGameList(! canJoin, gname, opts, ! isPractice);
     }
 
     /**
@@ -5497,7 +5500,7 @@ public class SOCPlayerClient
 
         for (String gaName : msgGames.getGameNames())
         {
-            gameDisplay.addToGameList(msgGames.isUnjoinableGame(gaName), gaName, msgGames.getGameOptionsString(gaName), false);
+            mainDisplay.addToGameList(msgGames.isUnjoinableGame(gaName), gaName, msgGames.getGameOptionsString(gaName), false);
         }
     }
 
@@ -6022,7 +6025,7 @@ public class SOCPlayerClient
      *            Practice games should not be added.
      *            The {@link #serverGames} list also has a flag for cannotJoin.
      * @see #doesGameExist(String, boolean)
-     * @see GameDisplay#addToGameList(boolean, String, String, boolean)
+     * @see MainDisplay#addToGameList(boolean, String, String, boolean)
      */
     public void addToGameList(String gameName, String gameOptsStr, final boolean addToSrvList)
     {
@@ -6031,7 +6034,7 @@ public class SOCPlayerClient
         {
             gameName = gameName.substring(1);
         }
-        gameDisplay.addToGameList(hasUnjoinMarker, gameName, gameOptsStr, addToSrvList);
+        mainDisplay.addToGameList(hasUnjoinMarker, gameName, gameOptsStr, addToSrvList);
     }
 
     /** If we're playing in a game that's just finished, update the scores.
@@ -6068,17 +6071,17 @@ public class SOCPlayerClient
      */
     public void leaveChannel(String ch)
     {
-        gameDisplay.channelLeft(ch);
+        mainDisplay.channelLeft(ch);
         net.putNet(SOCLeaveChannel.toCmd(nickname, net.getHost(), ch));
     }
 
     /**
-     * Get this client's GameDisplay.
+     * Get this client's MainDisplay.
      * @since 2.0.00
      */
-    GameDisplay getGameDisplay()
+    MainDisplay getMainDisplay()
     {
-        return gameDisplay;
+        return mainDisplay;
     }
 
     /**
@@ -6140,7 +6143,7 @@ public class SOCPlayerClient
 
     /**
      * Create a game name, and start a practice game.
-     * Assumes {@link SwingGameDisplay#MAIN_PANEL} is initialized.
+     * Assumes {@link SwingMainDisplay#MAIN_PANEL} is initialized.
      * See {@link #startPracticeGame(String, Map, boolean)} for details.
      * @return True if the practice game request was sent, false if there was a problem
      *         starting the practice server or client
@@ -6175,7 +6178,7 @@ public class SOCPlayerClient
 
         // May take a while to start server & game.
         // The new-game window will clear this cursor.
-        gameDisplay.practiceGameStarting();
+        mainDisplay.practiceGameStarting();
 
         return net.startPracticeGame(practiceGameName, gameOpts);
     }
@@ -6203,8 +6206,7 @@ public class SOCPlayerClient
 
     /**
      * network trouble; if possible, ask if they want to play locally (practiceServer vs. robots).
-     * Otherwise, go ahead and shut down. Either way, calls
-     * {@link SOCPlayerClient.GameDisplay#showErrorPanel(String, boolean)}
+     * Otherwise, go ahead and shut down. Either way, calls {@link MainDisplay#showErrorPanel(String, boolean)}
      * to show an error message or network exception detail.
      *<P>
      * "If possible" is determined from return value of {@link ClientNetwork#putLeaveAll()}.
@@ -6225,7 +6227,7 @@ public class SOCPlayerClient
         err = err + " " + ((net.ex == null) ? strings.get("pcli.error.loadpageagain") : net.ex.toString());
             // "Load the page again."
 
-        gameDisplay.channelsClosed(err);
+        mainDisplay.channelsClosed(err);
 
         // Stop network games; continue Practice games if possible.
         for (Map.Entry<String, PlayerClientListener> e : clientListeners.entrySet())
@@ -6239,7 +6241,7 @@ public class SOCPlayerClient
 
         net.dispose();
 
-        gameDisplay.showErrorPanel(err, canPractice);
+        mainDisplay.showErrorPanel(err, canPractice);
     }
 
     /**
@@ -6255,7 +6257,7 @@ public class SOCPlayerClient
      */
     public static void main(String[] args)
     {
-        SwingGameDisplay gameDisplay = null;
+        SwingMainDisplay mainDisplay = null;
         SOCPlayerClient client = null;
 
         String host = null;  // from args, if not empty
@@ -6286,26 +6288,26 @@ public class SOCPlayerClient
         } catch (Exception e) {}
 
         client = new SOCPlayerClient();
-        gameDisplay = new SwingGameDisplay((args.length == 0), client);
-        client.setGameDisplay(gameDisplay);
+        mainDisplay = new SwingMainDisplay((args.length == 0), client);
+        client.setMainDisplay(mainDisplay);
 
         JFrame frame = new JFrame(client.strings.get("pcli.main.title", Version.version()));  // "JSettlers client {0}"
         frame.setBackground(JSETTLERS_BG_GREEN);
         frame.setForeground(Color.black);
         // Add a listener for the close event
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        frame.addWindowListener(gameDisplay.createWindowAdapter());
+        frame.addWindowListener(mainDisplay.createWindowAdapter());
 
-        gameDisplay.initVisualElements(); // after the background is set
+        mainDisplay.initVisualElements(); // after the background is set
 
-        frame.add(gameDisplay, BorderLayout.CENTER);
+        frame.add(mainDisplay, BorderLayout.CENTER);
         frame.setLocationByPlatform(true);
         frame.setSize(650, 400);
         frame.setVisible(true);
 
         if (Version.versionNumber() == 0)
         {
-            client.gameDisplay.showErrorPanel("Packaging error: Cannot determine JSettlers version", false);
+            client.mainDisplay.showErrorPanel("Packaging error: Cannot determine JSettlers version", false);
                 // I18N: Can't localize this, the i18n files are provided by the same packaging steps
                 // which would create /resources/version.info
             return;
@@ -6324,14 +6326,14 @@ public class SOCPlayerClient
         return net;
     }
 
-    /** React to windowOpened, windowClosing events for SwingGameDisplay's Frame. */
+    /** React to windowOpened, windowClosing events for SwingMainDisplay's Frame. */
     private static class ClientWindowAdapter extends WindowAdapter
     {
-        private final SwingGameDisplay cli;
+        private final SwingMainDisplay md;
 
-        public ClientWindowAdapter(SwingGameDisplay c)
+        public ClientWindowAdapter(SwingMainDisplay md)
         {
-            cli = c;
+            this.md = md;
         }
 
         /**
@@ -6347,36 +6349,36 @@ public class SOCPlayerClient
 
             // Are we a client to any active games?
             if (piActive == null)
-                piActive = cli.findAnyActiveGame(false);
+                piActive = md.findAnyActiveGame(false);
 
             if (piActive != null)
             {
-                SOCQuitAllConfirmDialog.createAndShow(piActive.getGameDisplay(), piActive);
+                SOCQuitAllConfirmDialog.createAndShow(piActive.getMainDisplay(), piActive);
                 return;
             }
             boolean canAskHostingGames = false;
             boolean isHostingActiveGames = false;
 
             // Are we running a server?
-            ClientNetwork cnet = cli.getClient().getNet();
+            ClientNetwork cnet = md.getClient().getNet();
             if (cnet.isRunningLocalServer())
                 isHostingActiveGames = cnet.anyHostedActiveGames();
 
             if (isHostingActiveGames)
             {
                 // If we have GUI, ask whether to shut down these games
-                Container c = cli.getParent();
+                Container c = md.getParent();
                 if ((c != null) && (c instanceof Frame))
                 {
                     canAskHostingGames = true;
-                    SOCQuitAllConfirmDialog.createAndShow(cli, (Frame) c);
+                    SOCQuitAllConfirmDialog.createAndShow(md, (Frame) c);
                 }
             }
 
             if (! canAskHostingGames)
             {
                 // Just quit.
-                cli.getClient().getNet().putLeaveAll();
+                md.getClient().getNet().putLeaveAll();
                 System.exit(0);
             }
         }
@@ -6387,8 +6389,8 @@ public class SOCPlayerClient
         @Override
         public void windowOpened(WindowEvent evt)
         {
-            if (! cli.hasConnectOrPractice)
-                cli.nick.requestFocus();
+            if (! md.hasConnectOrPractice)
+                md.nick.requestFocus();
         }
 
     }  // nested class ClientWindowAdapter
@@ -6408,10 +6410,10 @@ public class SOCPlayerClient
      */
     private static class GameOptionsTimeoutTask extends TimerTask
     {
-        public SwingGameDisplay pcli;
+        public SwingMainDisplay pcli;
         public ServerGametypeInfo srvOpts;
 
-        public GameOptionsTimeoutTask (SwingGameDisplay c, ServerGametypeInfo opts)
+        public GameOptionsTimeoutTask (SwingMainDisplay c, ServerGametypeInfo opts)
         {
             pcli = c;
             srvOpts = opts;
@@ -6437,7 +6439,7 @@ public class SOCPlayerClient
      * {@link SOCGameOption game option defaults}.
      * (in case of slow connection or server bug).
      * Set up when sending {@link SOCGameOptionGetDefaults GAMEOPTIONGETDEFAULTS}
-     * in {@link SOCPlayerClient.SwingGameDisplay#gameWithOptionsBeginSetup(boolean, boolean)}.
+     * in {@link SOCPlayerClient.SwingMainDisplay#gameWithOptionsBeginSetup(boolean, boolean)}.
      *<P>
      * When timer fires, assume no defaults will be received.
      * Display the new-game dialog.
@@ -6446,11 +6448,11 @@ public class SOCPlayerClient
      */
     private static class GameOptionDefaultsTimeoutTask extends TimerTask
     {
-        public SwingGameDisplay pcli;
+        public SwingMainDisplay pcli;
         public ServerGametypeInfo srvOpts;
         public boolean forPracticeServer;
 
-        public GameOptionDefaultsTimeoutTask (SwingGameDisplay c, ServerGametypeInfo opts, boolean forPractice)
+        public GameOptionDefaultsTimeoutTask (SwingMainDisplay c, ServerGametypeInfo opts, boolean forPractice)
         {
             pcli = c;
             srvOpts = opts;

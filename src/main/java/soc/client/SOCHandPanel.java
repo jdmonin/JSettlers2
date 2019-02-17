@@ -1071,7 +1071,7 @@ import javax.swing.UIManager;
         }
         else if (target == QUIT)
         {
-            SOCQuitConfirmDialog.createAndShow(playerInterface.getGameDisplay(), playerInterface);
+            SOCQuitConfirmDialog.createAndShow(playerInterface.getMainDisplay(), playerInterface);
         }
         else if (target == DONE)
         {
@@ -1243,7 +1243,7 @@ import javax.swing.UIManager;
             }
         }
 
-        NotifyDialog.createAndShow(playerInterface.getGameDisplay(), playerInterface, sb.toString(), null, true);
+        NotifyDialog.createAndShow(playerInterface.getMainDisplay(), playerInterface, sb.toString(), null, true);
     }
 
     /** required stub for MouseListener */

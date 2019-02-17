@@ -6140,7 +6140,7 @@ import java.util.Timer;
                             // "To build pieces, hold Control while clicking the build location."
                         : "board.popup.hint_build_click";  // "To build pieces, right-click the build location."
                     NotifyDialog.createAndShow
-                        (playerInterface.getGameDisplay(), playerInterface,
+                        (playerInterface.getMainDisplay(), playerInterface,
                          "\n" + strings.get(prompt), null, true);
                         // start prompt with \n to prevent it being a lengthy popup-dialog title
                 }
@@ -9018,7 +9018,7 @@ import java.util.Timer;
          */
         private MoveRobberConfirmDialog(SOCPlayer player, final int newRobHex)
         {
-            super(playerInterface.getGameDisplay(), playerInterface,
+            super(playerInterface.getMainDisplay(), playerInterface,
                 strings.get((newRobHex > 0) ? "dialog.moverobber.to.hex" : "dialog.moverobber.to.hex.pirate"),
                     // "Move robber to your hex?" / "Move pirate to your hex?"
                 strings.get((newRobHex > 0) ? "dialog.moverobber.are.you.sure" : "dialog.moverobber.are.you.sure.pirate"),
@@ -9040,7 +9040,7 @@ import java.util.Timer;
         public void button1Chosen()
         {
             // ask server to move it
-            pcli.getGameMessageMaker().moveRobber(game, pl, robHex);
+            md.getGameMessageMaker().moveRobber(game, pl, robHex);
             clearModeAndHilight(-1);
         }
 
@@ -9077,7 +9077,7 @@ import java.util.Timer;
          */
         protected ConfirmAttackPirateFortressDialog()
         {
-            super(playerInterface.getGameDisplay(), playerInterface,
+            super(playerInterface.getMainDisplay(), playerInterface,
                 strings.get("game.sc_piri.attfort.and.endturn"),      // "Attack and end turn?"
                 strings.get("game.sc_piri.attfort.confirm.endturn"),  // "Attacking the fortress will end your turn. Are you sure?"
                 strings.get("game.sc_piri.attfort.confirm"),          // "Confirm Attack"
@@ -9148,7 +9148,7 @@ import java.util.Timer;
          */
         private ConfirmPlaceShipDialog(final int edge, final boolean sendBuildReqFirst, final int isMove_fromEdge)
         {
-            super(playerInterface.getGameDisplay(), playerInterface,
+            super(playerInterface.getMainDisplay(), playerInterface,
                 strings.get("dialog.base.place.ship.title"),  // "Place Ship Here?"
                 strings.get( (player.getPortMovePotentialLocations(false) != null)
                     ? "game.invitem.sc_ftri.pickup.ask.immed"
@@ -9179,9 +9179,9 @@ import java.util.Timer;
                 hoverTip.hoverShipID = currentHover;
             } else {
                 if (isMove_fromEdge == -1)
-                    pcli.getGameMessageMaker().putPiece(game, new SOCShip(player, edge, board));
+                    md.getGameMessageMaker().putPiece(game, new SOCShip(player, edge, board));
                 else
-                    pcli.getGameMessageMaker().movePieceRequest
+                    md.getGameMessageMaker().movePieceRequest
                         (game, playerNumber, SOCPlayingPiece.SHIP, isMove_fromEdge, edge);
                 clearModeAndHilight(SOCPlayingPiece.SHIP);
             }

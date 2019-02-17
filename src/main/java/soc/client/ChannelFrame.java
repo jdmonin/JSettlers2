@@ -43,6 +43,8 @@ import java.awt.event.WindowEvent;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import soc.client.SOCPlayerClient.MainDisplay;
+
 
 /** The chat channel window
  *  @version 2.0 (no GridbagLayout) with textwrapping and customized window
@@ -57,7 +59,8 @@ import java.util.Vector;
     public Canvas cnvs;
     public int ncols;
     public int npix = 1;
-    SOCPlayerClient.GameDisplay cc;
+
+    final MainDisplay md;
     String cname;
     Vector<String> history = new Vector<String>();
     int historyCounter = 1;
@@ -67,7 +70,7 @@ import java.util.Vector;
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
     /** Build a frame with the given title, belonging to the given frame/applet */
-    public ChannelFrame(String t, SOCPlayerClient.GameDisplay ccp)
+    public ChannelFrame(final String t, final MainDisplay md)
     {
         super(strings.get("channel.channel", t));
         setBackground(SOCPlayerClient.JSETTLERS_BG_GREEN);
@@ -76,7 +79,7 @@ import java.util.Vector;
         ta = new SnippingTextArea("", 100);
         tf = new TextField(strings.get("base.please.wait"));  // "Please wait..."
         lst = new java.awt.List(0, false);
-        cc = ccp;
+        this.md = md;
         cname = t;
         ta.setEditable(false);
         tf.setEditable(false);
@@ -195,7 +198,7 @@ import java.util.Vector;
             if (s.length() > 0)
             {
                 tf.setText("");
-                cc.sendToChannel(cname, s + "\n");
+                md.sendToChannel(cname, s + "\n");
 
                 history.setElementAt(s, history.size() - 1);
                 history.addElement("");
@@ -286,7 +289,7 @@ import java.util.Vector;
     {
         public void windowClosing(WindowEvent e)
         {
-            cc.getClient().leaveChannel(cname);
+            md.getClient().leaveChannel(cname);
             dispose();
         }
         public void windowOpened(WindowEvent e)

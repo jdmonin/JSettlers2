@@ -22,6 +22,7 @@
  **/
 package soc.client;
 
+import soc.client.SOCPlayerClient.MainDisplay;
 import soc.client.stats.SOCGameStatistics;
 import soc.debug.D;  // JM
 
@@ -106,7 +107,7 @@ import javax.sound.sampled.LineUnavailableException;
  *<P>
  * <B>Local preferences:</B>
  * For optional per-game preferences like {@link #PREF_SOUND_MUTE}, see {@code localPrefs} parameter in
- * the {@link #SOCPlayerInterface(String, SOCPlayerClient.GameDisplay, SOCGame, Map)} constructor javadoc.
+ * the {@link #SOCPlayerInterface(String, MainDisplay, SOCGame, Map)} constructor javadoc.
  * The current game's prefs are shown and changed with {@link NewGameOptionsFrame}.
  * Local prefs are not saved persistently like client preferences
  * ({@link SOCPlayerClient#PREF_SOUND_ON} etc) are.
@@ -432,9 +433,9 @@ public class SOCPlayerInterface extends Frame
     protected Color[] playerColors, playerColorsGhost;
 
     /**
-     * the display that spawned us
+     * the client main display that spawned us
      */
-    protected SOCPlayerClient.GameDisplay gameDisplay;
+    protected MainDisplay mainDisplay;
 
     protected SOCPlayerClient client;
 
@@ -631,7 +632,7 @@ public class SOCPlayerInterface extends Frame
      * by {@link #showScenarioInfoDialog()}.
      *
      * @param title  title for this interface - game name
-     * @param gd     the player display that spawned us
+     * @param md     the client main display that spawned us
      * @param ga     the game associated with this interface; must not be {@code null}
      * @param localPrefs  optional map of per-game local preferences to use in this {@code SOCPlayerInterface},
      *     or {@code null}. Preference name keys are {@link #PREF_SOUND_MUTE}, etc.
@@ -641,19 +642,19 @@ public class SOCPlayerInterface extends Frame
      * @throws IllegalArgumentException if a {@code localPrefs} value isn't the expected type
      *     ({@link Integer} or {@link Boolean}) based on its key's javadoc.
      */
-    public SOCPlayerInterface(String title, SOCPlayerClient.GameDisplay gd, SOCGame ga, final Map<String, Object> localPrefs)
+    public SOCPlayerInterface(String title, MainDisplay md, SOCGame ga, final Map<String, Object> localPrefs)
         throws IllegalArgumentException
     {
         super(strings.get("interface.title.game", title)
-              + (ga.isPractice ? "" : " [" + gd.getClient().getNickname() + "]"));
+              + (ga.isPractice ? "" : " [" + md.getClient().getNickname() + "]"));
             // "Settlers of Catan Game: {0}"
 
         layoutNotReadyYet = true;  // will set to false at end of doLayout
         setResizable(true);
         setLocationByPlatform(true);  // cascade, not all same hard-coded position as in v1.1.xx
 
-        this.gameDisplay = gd;
-        client = gd.getClient();
+        this.mainDisplay = md;
+        client = md.getClient();
         game = ga;
         game.setScenarioEventListener(this);
         knowsGameState = (game.getGameState() != 0);
@@ -1011,7 +1012,7 @@ public class SOCPlayerInterface extends Frame
         if (firstCall)
         {
             // If player requests window close, ask if they're sure, leave game if so
-            addWindowListener(new PIWindowAdapter(gameDisplay, this));
+            addWindowListener(new PIWindowAdapter(mainDisplay, this));
         }
 
     }
@@ -1104,16 +1105,16 @@ public class SOCPlayerInterface extends Frame
      */
     public SOCPlayerClient getClient()
     {
-        return gameDisplay.getClient();
+        return mainDisplay.getClient();
     }
 
     /**
-     * @return the game display associated with this interface
+     * @return the client's main display associated with this interface
      * @since 2.0.00
      */
-    public SOCPlayerClient.GameDisplay getGameDisplay()
+    public MainDisplay getMainDisplay()
     {
-        return gameDisplay;
+        return mainDisplay;
     }
 
     /**
@@ -1226,14 +1227,14 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Get the timer for time-driven events in the interface.
-     * Same timer as {@link SOCPlayerClient.GameDisplay#getEventTimer()}.
+     * Same timer as {@link MainDisplay#getEventTimer()}.
      *
      * @see SOCHandPanel#autoRollSetupTimer()
      * @see SOCBoardPanel#popupSetBuildRequest(int, int)
      */
     public Timer getEventTimer()
     {
-        return gameDisplay.getEventTimer();
+        return mainDisplay.getEventTimer();
     }
 
     /**
@@ -1664,12 +1665,12 @@ public class SOCPlayerInterface extends Frame
     /**
      * Handle local client commands for games.
      *<P>
-     * Before 2.0.00, this was <tt>SOCPlayerClient.doLocalCommand(SOCGame, String)</tt>.
+     * Before 2.0.00 this method was {@code SOCPlayerClient.doLocalCommand(SOCGame, String)}.
      *
      * @param cmd  Local client command string, which starts with \
      * @return true if a command was handled
      * @since 2.0.00
-     * @see SOCPlayerClient.SwingGameDisplay#doLocalCommand(String, String)
+     * @see SwingMainDisplay#doLocalCommand(String, String)
      */
     private boolean doLocalCommand(String cmd)
     {
@@ -1681,7 +1682,7 @@ public class SOCPlayerInterface extends Frame
             String name = cmd.substring(8);
             client.addToIgnoreList(name);
             print("* Ignoring " + name);
-            gameDisplay.printIgnoreList(this);
+            mainDisplay.printIgnoreList(this);
 
             return true;
         }
@@ -1690,7 +1691,7 @@ public class SOCPlayerInterface extends Frame
             String name = cmd.substring(10);
             client.removeFromIgnoreList(name);
             print("* Unignoring " + name);
-            gameDisplay.printIgnoreList(this);
+            mainDisplay.printIgnoreList(this);
 
             return true;
         }
@@ -1753,7 +1754,7 @@ public class SOCPlayerInterface extends Frame
      */
     public void leaveGame()
     {
-        gameDisplay.leaveGame(game);
+        mainDisplay.leaveGame(game);
         client.getGameMessageMaker().leaveGame(game);
         dispose();
     }
@@ -1780,7 +1781,7 @@ public class SOCPlayerInterface extends Frame
     {
         if (confirmDialogFirst)
         {
-            EventQueue.invokeLater(new ResetBoardConfirmDialog(gameDisplay, this));
+            EventQueue.invokeLater(new ResetBoardConfirmDialog(mainDisplay, this));
             return;
             // ResetBoardConfirmDialog will call resetBoardRequest(false) if its Restart button is clicked
         }
@@ -1881,7 +1882,7 @@ public class SOCPlayerInterface extends Frame
             boardResetRequester.resetBoardSetMessage(pleaseMsg);
 
             String requester = game.getPlayer(pnRequester).getName();
-            boardResetVoteDia = new ResetBoardVoteDialog(gameDisplay, this, requester, gaOver);
+            boardResetVoteDia = new ResetBoardVoteDialog(mainDisplay, this, requester, gaOver);
             EventQueue.invokeLater(boardResetVoteDia);
                // Separate thread so ours is not tied up; this allows server
                // messages to be received, and screen to refresh, if other
@@ -2472,7 +2473,7 @@ public class SOCPlayerInterface extends Frame
      */
     public void showScenarioInfoDialog()
     {
-        NewGameOptionsFrame.showScenarioInfoDialog(game, getGameDisplay(), this);
+        NewGameOptionsFrame.showScenarioInfoDialog(game, getMainDisplay(), this);
     }
 
     /**
@@ -2887,7 +2888,7 @@ public class SOCPlayerInterface extends Frame
             showingPlayerDiscardOrPick_task = new SOCPIDiscardOrPickMsgTask(this, isDiscard);
 
             // Run once, after a brief delay in case only robots must discard.
-            gameDisplay.getEventTimer().schedule(showingPlayerDiscardOrPick_task, 1000 /* ms */ );
+            mainDisplay.getEventTimer().schedule(showingPlayerDiscardOrPick_task, 1000 /* ms */ );
         }
     }
 
@@ -3340,7 +3341,7 @@ public class SOCPlayerInterface extends Frame
          */
         if (layoutNotReadyYet)
         {
-            gameDisplay.clearWaitingStatus(false);
+            mainDisplay.clearWaitingStatus(false);
             layoutNotReadyYet = false;
             repaint();
         }
@@ -4175,7 +4176,7 @@ public class SOCPlayerInterface extends Frame
                 }
 
                 final String s = sb.toString();
-                NotifyDialog nd = new NotifyDialog(pi.getGameDisplay(), pi, s, null, true);
+                NotifyDialog nd = new NotifyDialog(pi.getMainDisplay(), pi, s, null, true);
                 nd.setNonBlockingDialogDismissListener(pi);
                 pi.nbdForEvent = nd;
                 EventQueue.invokeLater(nd);  // calls setVisible(true)
@@ -4289,15 +4290,15 @@ public class SOCPlayerInterface extends Frame
         /**
          * Creates a new ResetBoardVoteDialog.
          *
-         * @param cli      Player client interface
+         * @param md       Player client's main display
          * @param gamePI   Current game's player interface
          * @param requester  Name of player requesting the reset
          * @param gameIsOver The game is over - "Reset" button should be default (if not over, "Continue" is default)
          */
         protected ResetBoardVoteDialog
-            (SOCPlayerClient.GameDisplay cli, SOCPlayerInterface gamePI, String requester, boolean gameIsOver)
+            (MainDisplay md, SOCPlayerInterface gamePI, String requester, boolean gameIsOver)
         {
-            super(cli, gamePI, strings.get("reset.board.for.game", gamePI.getGame().getName()),  // "Reset board for game {0}?"
+            super(md, gamePI, strings.get("reset.board.for.game", gamePI.getGame().getName()),  // "Reset board for game {0}?"
                 (gameIsOver
                     ? strings.get("reset.x.wants.start.new", requester)  // "{0} wants to start a new game."
                     : strings.get("reset.x.wants.reset", requester)),    // "{0} wants to reset the game being played."
@@ -4318,7 +4319,7 @@ public class SOCPlayerInterface extends Frame
         @Override
         public void button1Chosen()
         {
-            pcli.getGameMessageMaker().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), true);
+            md.getGameMessageMaker().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), true);
             pi.resetBoardClearDia();
         }
 
@@ -4328,7 +4329,7 @@ public class SOCPlayerInterface extends Frame
         @Override
         public void button2Chosen()
         {
-            pcli.getGameMessageMaker().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), false);
+            md.getGameMessageMaker().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), false);
             pi.resetBoardClearDia();
         }
 
@@ -4370,7 +4371,7 @@ public class SOCPlayerInterface extends Frame
          */
         private ChooseMoveRobberOrPirateDialog()
         {
-            super(getGameDisplay(), SOCPlayerInterface.this,
+            super(getMainDisplay(), SOCPlayerInterface.this,
                 strings.get("dialog.choosemove.robber.or.pirate"), // "Move robber or pirate?"
                 strings.get("dialog.choosemove.ask.rob.pirate"),   // "Do you want to move the robber or the pirate ship?"
                 strings.get("dialog.base.move.robber"),  // "Move Robber"
@@ -4385,7 +4386,7 @@ public class SOCPlayerInterface extends Frame
         @Override
         public void button1Chosen()
         {
-            pcli.getGameMessageMaker().chooseRobber(game);
+            md.getGameMessageMaker().chooseRobber(game);
         }
 
         /**
@@ -4395,7 +4396,7 @@ public class SOCPlayerInterface extends Frame
         @Override
         public void button2Chosen()
         {
-            pcli.getGameMessageMaker().choosePirate(game);
+            md.getGameMessageMaker().choosePirate(game);
         }
 
         /**
@@ -4428,7 +4429,7 @@ public class SOCPlayerInterface extends Frame
          */
         protected ChooseRobClothOrResourceDialog(final int vpn)
         {
-            super(getGameDisplay(), SOCPlayerInterface.this,
+            super(getMainDisplay(), SOCPlayerInterface.this,
                 strings.get("dialog.rob.sc_clvi.cloth.or.rsrc"),      // "Rob cloth or resource?"
                 strings.get("dialog.rob.sc_clvi.ask.cloth.or.rsrc"),  // "Do you want to steal cloth or a resource from this player?"
                 strings.get("dialog.rob.sc_clvi.cloth"),  // "Steal Cloth"
@@ -4444,7 +4445,7 @@ public class SOCPlayerInterface extends Frame
         @Override
         public void button1Chosen()
         {
-            pcli.getGameMessageMaker().choosePlayer(game, -(vpn + 1));
+            md.getGameMessageMaker().choosePlayer(game, -(vpn + 1));
         }
 
         /**
@@ -4454,7 +4455,7 @@ public class SOCPlayerInterface extends Frame
         @Override
         public void button2Chosen()
         {
-            pcli.getGameMessageMaker().choosePlayer(game, vpn);
+            md.getGameMessageMaker().choosePlayer(game, vpn);
         }
 
         /**
@@ -4479,12 +4480,12 @@ public class SOCPlayerInterface extends Frame
          * To display it from another thread, call
          * {@link EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
          *
-         * @param cli      Player client interface
+         * @param md       Player client's main display
          * @param gamePI   Current game's player interface
          */
-        private ResetBoardConfirmDialog(SOCPlayerClient.GameDisplay cli, SOCPlayerInterface gamePI)
+        private ResetBoardConfirmDialog(MainDisplay md, SOCPlayerInterface gamePI)
         {
-            super(cli, gamePI, strings.get("reset.restart.game"),  // "Restart game?"
+            super(md, gamePI, strings.get("reset.restart.game"),  // "Restart game?"
                 strings.get("reset.board.new"),  // "Reset the board and start a new game?"
                 strings.get("base.restart"),
                 strings.get("base.cancel"),
@@ -4522,12 +4523,12 @@ public class SOCPlayerInterface extends Frame
      */
     private static class PIWindowAdapter extends WindowAdapter
     {
-        private final SOCPlayerClient.GameDisplay gd;
+        private final MainDisplay md;
         private final SOCPlayerInterface pi;
 
-        public PIWindowAdapter(SOCPlayerClient.GameDisplay gd, SOCPlayerInterface spi)
+        public PIWindowAdapter(MainDisplay md, SOCPlayerInterface spi)
         {
-            this.gd = gd;
+            this.md = md;
             pi = spi;
         }
 
@@ -4539,7 +4540,7 @@ public class SOCPlayerInterface extends Frame
         public void windowClosing(WindowEvent e)
         {
             if (pi.clientHandPlayerNum != -1)
-                SOCQuitConfirmDialog.createAndShow(gd, pi);
+                SOCQuitConfirmDialog.createAndShow(md, pi);
             else
                 pi.leaveGame();
         }
@@ -4670,7 +4671,7 @@ public class SOCPlayerInterface extends Frame
         /**
          * Create a new SOCPIDiscardOrPickMsgTask.
          * After creating, you must schedule it
-         * with {@link SOCPlayerClient.GameDisplay#getEventTimer()}.{@link Timer#schedule(TimerTask, long) schedule(msgTask,delay)} .
+         * with {@link MainDisplay#getEventTimer()}.{@link Timer#schedule(TimerTask, long) schedule(msgTask,delay)} .
          * @param spi  Our player interface
          * @param forDiscard  True for discard, false for picking gold-hex resources
          */

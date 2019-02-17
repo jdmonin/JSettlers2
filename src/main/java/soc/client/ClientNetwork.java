@@ -90,15 +90,15 @@ import soc.util.Version;
 
     /**
      * The client we're communicating for.
-     * @see #gameDisplay
+     * @see #mainDisplay
      */
     private final SOCPlayerClient client;
 
     /**
-     * GameDisplay for our {@link #client}, to display information and perform callbacks when needed.
-     * Set after construction by calling {@link #setGameDisplay(SOCPlayerClient.GameDisplay)}.
+     * MainDisplay for our {@link #client}, to display information and perform callbacks when needed.
+     * Set after construction by calling {@link #setMainDisplay(SOCPlayerClient.MainDisplay)}.
      */
-    private SOCPlayerClient.GameDisplay gameDisplay;
+    private SOCPlayerClient.MainDisplay mainDisplay;
 
     /**
      * Hostname we're connected to, or null
@@ -113,7 +113,7 @@ import soc.util.Version;
     /**
      * Client-hosted TCP server. If client is running this server, it's also connected
      * as a client, instead of being client of a remote server.
-     * Started via {@link SOCPlayerClient.SwingGameDisplay#startLocalTCPServer(int)}.
+     * Started via {@link SOCPlayerClient.SwingMainDisplay#startLocalTCPServer(int)}.
      * {@link #practiceServer} may still be activated at the user's request.
      * Note that {@link SOCGame#isPractice} is false for localTCPServer's games.
      */
@@ -189,7 +189,7 @@ import soc.util.Version;
     /**
      * Create our client's ClientNetwork.
      * Before using the ClientNetwork, caller client must construct their GUI
-     * and call {@link #setGameDisplay(soc.client.SOCPlayerClient.GameDisplay)}.
+     * and call {@link #setMainDisplay(soc.client.SOCPlayerClient.MainDisplay)}.
      */
     public ClientNetwork(SOCPlayerClient c)
     {
@@ -199,17 +199,17 @@ import soc.util.Version;
     }
 
     /**
-     * Set our GameDisplay; must be done after construction.
-     * @param gd  GameDisplay to use
-     * @throws IllegalArgumentException if {@code gd} is {@code null}
+     * Set our MainDisplay; must be done after construction.
+     * @param md  MainDisplay to use
+     * @throws IllegalArgumentException if {@code md} is {@code null}
      */
-    public void setGameDisplay(final SOCPlayerClient.GameDisplay gd)
+    public void setMainDisplay(final SOCPlayerClient.MainDisplay md)
         throws IllegalArgumentException
     {
-        if (gd == null)
+        if (md == null)
             throw new IllegalArgumentException("null");
 
-        gameDisplay = gd;
+        mainDisplay = md;
     }
 
     /** Shut down the local TCP server (if any) and disconnect from the network. */
@@ -243,7 +243,7 @@ import soc.util.Version;
             }
             catch (Throwable th)
             {
-                gameDisplay.showErrorDialog
+                mainDisplay.showErrorDialog
                     (client.strings.get("pcli.error.startingpractice") + "\n" + th,  // "Problem starting practice server:"
                      client.strings.get("base.cancel"));
 
@@ -262,7 +262,7 @@ import soc.util.Version;
                 sendVersion(true);
 
                 // Practice server will support per-game options
-                gameDisplay.enableOptions();
+                mainDisplay.enableOptions();
             }
             catch (ConnectException e)
             {
@@ -318,7 +318,7 @@ import soc.util.Version;
         }
         catch (Throwable th)
         {
-            gameDisplay.showErrorDialog
+            mainDisplay.showErrorDialog
                 (client.strings.get("pcli.error.startingserv") + "\n" + th,  // "Problem starting server:"
                  client.strings.get("base.cancel"));
             return false;
@@ -385,15 +385,15 @@ import soc.util.Version;
 
         String hostString = (chost != null ? chost : "localhost") + ":" + sPort;
         System.out.println(/*I*/"Connecting to " + hostString/*18N*/);  // I18N: Not localizing console output yet
-        gameDisplay.setMessage
+        mainDisplay.setMessage
             (client.strings.get("pcli.message.connecting.serv"));  // "Connecting to server..."
 
         try
         {
             if (client.gotPassword)
             {
-                gameDisplay.setPassword(client.password);
-                    // when ! gotPassword, SwingGameDisplay.getPassword() will read pw from there
+                mainDisplay.setPassword(client.password);
+                    // when ! gotPassword, SwingMainDisplay.getPassword() will read pw from there
                 client.gotPassword = false;
             }
 
@@ -417,7 +417,7 @@ import soc.util.Version;
             ex = e;
             String msg = client.strings.get("pcli.error.couldnotconnect", ex);  // "Could not connect to the server: " + ex
             System.err.println(msg);
-            gameDisplay.showErrorPanel(msg, (ex_P == null));
+            mainDisplay.showErrorPanel(msg, (ex_P == null));
             if (connected)
             {
                 disconnect();
@@ -503,7 +503,7 @@ import soc.util.Version;
      * Look for active games that we're hosting (state >= START1A, not yet OVER).
      *
      * @return If any hosted games of ours are active
-     * @see SOCPlayerClient.SwingGameDisplay#findAnyActiveGame(boolean)
+     * @see SOCPlayerClient.SwingMainDisplay#findAnyActiveGame(boolean)
      */
     public boolean anyHostedActiveGames()
     {

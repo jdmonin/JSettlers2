@@ -47,6 +47,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 
+import soc.client.SOCPlayerClient.MainDisplay;
+
 /**
  * This is the generic modal dialog to ask players a two- or three-choice question;
  * to present a one-button message, see {@link NotifyDialog}.
@@ -79,12 +81,20 @@ public abstract class AskDialog extends JDialog
      */
     private static final int MSG_BORDER = 5;
 
-    /** Player client; passed to constructor, not null; used for actions in subclasses when dialog buttons are chosen */
-    protected final SOCPlayerClient.GameDisplay pcli;
+    /**
+     * Player client's main display; passed to constructor, not null.
+     * Used for actions in subclasses when dialog buttons are chosen.
+     *<P>
+     * Before v2.0.00 this field was {@code pcli}.
+     *
+     * @see #pi
+     */
+    protected final MainDisplay md;
 
     /**
      * Player interface; passed to constructor; may be null if the
      * question is related to the entire client, and not to a specific game
+     * @see #md
      */
     protected SOCPlayerInterface pi;
 
@@ -166,7 +176,7 @@ public abstract class AskDialog extends JDialog
      * @throws IllegalArgumentException If both default1 and default2 are true,
      *    or if any of these is null: cli, gamePI, prompt, choice1, choice2.
      */
-    public AskDialog(SOCPlayerClient.GameDisplay cli, SOCPlayerInterface gamePI,
+    public AskDialog(MainDisplay cli, SOCPlayerInterface gamePI,
         String titlebar, String prompt, String choice1, String choice2,
         boolean default1, boolean default2)
         throws IllegalArgumentException
@@ -186,7 +196,7 @@ public abstract class AskDialog extends JDialog
      * parentFr cannot be null; use {@link #getParentFrame(Component)} to find it.
      * @since 1.1.06
      */
-    protected AskDialog(SOCPlayerClient.GameDisplay cli, Frame parentFr,
+    protected AskDialog(MainDisplay cli, Frame parentFr,
         String titlebar, String prompt, String btnText,
         boolean hasDefault)
         throws IllegalArgumentException
@@ -215,7 +225,7 @@ public abstract class AskDialog extends JDialog
      * @throws IllegalArgumentException If both default1 and default2 are true,
      *    or if any of these is null: cli, gamePI, prompt, choice1, choice2.
      */
-    public AskDialog(SOCPlayerClient.GameDisplay cli, Frame parentFr,
+    public AskDialog(MainDisplay cli, Frame parentFr,
         String titlebar, String prompt, String choice1, String choice2,
         boolean default1, boolean default2)
         throws IllegalArgumentException
@@ -246,7 +256,7 @@ public abstract class AskDialog extends JDialog
      *    or if any of these is null: cli, gamePI, prompt, choice1, choice2,
      *    or if choice3 is null and defaultChoice is 3.
      */
-    public AskDialog(SOCPlayerClient.GameDisplay cli, SOCPlayerInterface gamePI,
+    public AskDialog(MainDisplay cli, SOCPlayerInterface gamePI,
         String titlebar, String prompt, String choice1, String choice2, String choice3,
         int defaultChoice)
         throws IllegalArgumentException
@@ -264,7 +274,7 @@ public abstract class AskDialog extends JDialog
      * Creates a new AskDialog with one, two, or three buttons, not about
      * a specific game.
      *
-     * @param cli      Player client interface; will be used for actions in subclasses when dialog buttons are chosen
+     * @param md       Player client's main display; will be used for actions in subclasses when dialog buttons are chosen
      * @param parentFr SOCPlayerClient or other parent frame
      * @param titlebar Title bar text; if text contains \n, only the portion before \n is used.
      *              If begins with \n, title is "JSettlers" instead.
@@ -279,15 +289,15 @@ public abstract class AskDialog extends JDialog
      *    or if any of these is null: cli, parentFr, prompt, choice1, choice2,
      *    or if choice3 is null and defaultChoice is 3.
      */
-    public AskDialog(SOCPlayerClient.GameDisplay cli, Frame parentFr,
+    public AskDialog(MainDisplay md, Frame parentFr,
         String titlebar, String prompt, String choice1, String choice2, String choice3,
         int defaultChoice)
         throws IllegalArgumentException
     {
         super(parentFr, firstLine(titlebar), true);
 
-        if (cli == null)
-            throw new IllegalArgumentException("cli cannot be null");
+        if (md == null)
+            throw new IllegalArgumentException("md cannot be null");
         if (parentFr == null)
             throw new IllegalArgumentException("parentFr cannot be null");
         if (choice1 == null)
@@ -299,7 +309,7 @@ public abstract class AskDialog extends JDialog
         if ((choice2 == null) && (defaultChoice > 1))
             throw new IllegalArgumentException("defaultChoice must be 1 when choice2 null");
 
-        pcli = cli;
+        this.md = md;
         pi = null;
         setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
         setForeground(Color.BLACK);

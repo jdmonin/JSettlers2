@@ -19,6 +19,7 @@
  **/
 package soc.client;
 
+import soc.client.SOCPlayerClient.MainDisplay;
 import soc.game.SOCGame;
 import soc.util.SOCStringManager;
 
@@ -45,33 +46,33 @@ import soc.util.SOCStringManager;
      *<P>
      * Assumes currently running on AWT event thread.
      *
-     * @param cli      Player client interface
+     * @param md       Player client's main display
      * @param gamePI   Current game's player interface
      * @throws IllegalArgumentException If cli or gamePI is null
      */
-    public static void createAndShow(SOCPlayerClient.GameDisplay cli, SOCPlayerInterface gamePI)
+    public static void createAndShow(MainDisplay md, SOCPlayerInterface gamePI)
         throws IllegalArgumentException
     {
-        if ((cli == null) || (gamePI == null))
+        if ((md == null) || (gamePI == null))
             throw new IllegalArgumentException("no nulls");
         SOCGame ga = gamePI.getGame();
         boolean gaOver = (ga.getGameState() >= SOCGame.OVER) || gamePI.gameHasErrorOrDeletion;
 
-        SOCQuitConfirmDialog qcd = new SOCQuitConfirmDialog(cli, gamePI, gaOver);
+        SOCQuitConfirmDialog qcd = new SOCQuitConfirmDialog(md, gamePI, gaOver);
         qcd.setVisible(true);
     }
 
     /**
      * Creates a new SOCQuitConfirmDialog.
      *
-     * @param cli      Player client interface
+     * @param md       Player client's main display
      * @param gamePI   Current game's player interface
      * @param gameIsOver The game is over - "Quit" button should be default (if not over, Continue is default).
      *     Must be {@code true} if {@link SOCPlayerInterface#gameHasErrorOrDeletion}.
      */
-    private SOCQuitConfirmDialog(SOCPlayerClient.GameDisplay cli, SOCPlayerInterface gamePI, boolean gameIsOver)
+    private SOCQuitConfirmDialog(MainDisplay md, SOCPlayerInterface gamePI, boolean gameIsOver)
     {
-        super(cli, gamePI,
+        super(md, gamePI,
             strings.get("dialog.quit.really", gamePI.getGame().getName()),  // "Really quit game {0}?"
             strings.get(gameIsOver
                 ? "dialog.quit.finished"        // "Do you want to quit this finished game?"

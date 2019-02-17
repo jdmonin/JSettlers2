@@ -64,6 +64,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 
+import soc.client.SOCPlayerClient.MainDisplay;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCScenario;
@@ -79,7 +80,7 @@ import soc.util.Version;
  * user preferences such as {@link SOCPlayerClient#PREF_SOUND_ON}
  * and per-game preferences such as {@link SOCPlayerInterface#PREF_SOUND_MUTE}.
  * When "Create" button is clicked, validates fields and calls
- * {@link SOCPlayerClient.GameDisplay#askStartGameWithOptions(String, boolean, Map, Map)}.
+ * {@link MainDisplay#askStartGameWithOptions(String, boolean, Map, Map)}.
  *<P>
  * Also used for showing a game's options (read-only) during game play.
  *<P>
@@ -96,7 +97,7 @@ import soc.util.Version;
  * This class also contains the "Scenario Info" popup window, called from
  * this dialog's Scenario Info button, and from {@link SOCPlayerInterface}
  * when first joining a game with a scenario.
- * See {@link #showScenarioInfoDialog(SOCScenario, Map, int, SOCPlayerClient.GameDisplay, Frame)}.
+ * See {@link #showScenarioInfoDialog(SOCScenario, Map, int, MainDisplay, Frame)}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
@@ -124,7 +125,7 @@ import soc.util.Version;
      */
     private final SOCPlayerInterface pi;
 
-    private final SOCPlayerClient.GameDisplay gameDisplay;
+    private final MainDisplay mainDisplay;
 
     /** should this be sent to the remote tcp server, or local practice server? */
     private final boolean forPractice;
@@ -229,11 +230,11 @@ import soc.util.Version;
      * Once created, resets the mouse cursor from hourglass to normal, and clears main panel's status text.
      *<P>
      * See also convenience method
-     * {@link #createAndShow(SOCPlayerInterface, SOCPlayerClient.GameDisplay, String, Map, boolean, boolean)}.
+     * {@link #createAndShow(SOCPlayerInterface, MainDisplay, String, Map, boolean, boolean)}.
      *
      * @param pi  Interface of existing game, or {@code null} for a new game.
      *     Used for updating settings like {@link SOCPlayerInterface#isSoundMuted()}.
-     * @param gd      Game display interface
+     * @param md  Client's main display interface
      * @param gaName   Name of existing game,
      *                 or null for new game; will be blank or (forPractice)
      *                 to use {@link SOCPlayerClient#DEFAULT_PRACTICE_GAMENAME}.
@@ -248,7 +249,7 @@ import soc.util.Version;
      * @param readOnly    Is this display-only (for use during a game), or can it be changed (making a new game)?
      */
     public NewGameOptionsFrame
-        (final SOCPlayerInterface pi, SOCPlayerClient.GameDisplay gd, String gaName,
+        (final SOCPlayerInterface pi, final MainDisplay md, String gaName,
          Map<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
     {
         super( readOnly
@@ -260,8 +261,8 @@ import soc.util.Version;
         // Uses default BorderLayout, for simple stretching when frame is resized
 
         this.pi = pi;
-        this.gameDisplay = gd;
-        SOCPlayerClient cli = gd.getClient();
+        this.mainDisplay = md;
+        SOCPlayerClient cli = md.getClient();
         forNewGame = (gaName == null);
         this.opts = opts;
         localPrefs = new HashMap<String, Object>();
@@ -302,13 +303,13 @@ import soc.util.Version;
          * setup is complete; reset mouse cursor from hourglass to normal
          * (was set to hourglass before calling this constructor)
          */
-        gd.clearWaitingStatus(true);
+        md.clearWaitingStatus(true);
     }
 
     /**
      * Creates and shows a new NewGameOptionsFrame.
      * Once created, resets the mouse cursor from hourglass to normal, and clears main panel's status text.
-     * See {@link #NewGameOptionsFrame(SOCPlayerInterface, SOCPlayerClient.GameDisplay, String, Map, boolean, boolean) constructor}
+     * See {@link #NewGameOptionsFrame(SOCPlayerInterface, MainDisplay, String, Map, boolean, boolean) constructor}
      * for notes about <tt>opts</tt> and other parameters.
      * @param pi  Interface of existing game, or {@code null} for a new game; see constructor
      * @param gaName  Name of existing game, or {@code null} to show options for a new game;
@@ -316,10 +317,10 @@ import soc.util.Version;
      * @return the new frame
      */
     public static NewGameOptionsFrame createAndShow
-        (SOCPlayerInterface pi, SOCPlayerClient.GameDisplay cli, String gaName,
+        (SOCPlayerInterface pi, MainDisplay md, String gaName,
          Map<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
     {
-        NewGameOptionsFrame ngof = new NewGameOptionsFrame(pi, cli, gaName, opts, forPractice, readOnly);
+        NewGameOptionsFrame ngof = new NewGameOptionsFrame(pi, md, gaName, opts, forPractice, readOnly);
         ngof.pack();
         ngof.setVisible(true);
 
@@ -461,7 +462,7 @@ import soc.util.Version;
     private void initInterface_Options(JPanel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
         final boolean hideUnderscoreOpts = (! readOnly)
-            && (! gameDisplay.getClient().getNickname().equalsIgnoreCase("debug"));
+            && (! mainDisplay.getClient().getNickname().equalsIgnoreCase("debug"));
 
         JLabel L;
 
@@ -1300,7 +1301,7 @@ import soc.util.Version;
             return;  // Not a valid game name
         }
 
-        SOCPlayerClient cl = gameDisplay.getClient();
+        SOCPlayerClient cl = mainDisplay.getClient();
 
         /**
          * Is this game name already used?
@@ -1309,18 +1310,18 @@ import soc.util.Version;
          */
         if (cl.doesGameExist(gmName, forPractice))
         {
-            NotifyDialog.createAndShow(gameDisplay, this, SOCStatusMessage.MSG_SV_NEWGAME_ALREADY_EXISTS, null, true);
+            NotifyDialog.createAndShow(mainDisplay, this, SOCStatusMessage.MSG_SV_NEWGAME_ALREADY_EXISTS, null, true);
             return;
         }
 
-        if (gameDisplay.readValidNicknameAndPassword())
+        if (mainDisplay.readValidNicknameAndPassword())
         {
             if (readOptsValuesFromControls(checkOptionsMinVers))
             {
                 // All fields OK, ready to create a new game.
                 setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));  // Immediate feedback in this frame
                 persistLocalPrefs();
-                gameDisplay.askStartGameWithOptions
+                mainDisplay.askStartGameWithOptions
                     (gmName, forPractice, opts, localPrefs);  // sets WAIT_CURSOR in main client frame
             } else {
                 return;  // readOptsValues will put the err msg in dia's status line
@@ -1330,7 +1331,7 @@ import soc.util.Version;
             // so the user must have gone back and changed it.
             // Can't correct the problem from within this dialog, since the
             // nickname field (and hint message) is in SOCPlayerClient's panel.
-            NotifyDialog.createAndShow(gameDisplay, this, strings.get("game.options.nickerror"), null, true);
+            NotifyDialog.createAndShow(mainDisplay, this, strings.get("game.options.nickerror"), null, true);
             return;
         }
 
@@ -1349,7 +1350,7 @@ import soc.util.Version;
     /**
      * The "Scenario Info" button was clicked.
      * Reads the current scenario, if any, from {@link #scenDropdown}.
-     * Calls {@link #showScenarioInfoDialog(SOCScenario, Map, int, SOCPlayerClient.GameDisplay, Frame)}.
+     * Calls {@link #showScenarioInfoDialog(SOCScenario, Map, int, MainDisplay, Frame)}.
      * @since 2.0.00
      */
     private void clickScenarioInfo()
@@ -1383,17 +1384,17 @@ import soc.util.Version;
                 vpWinner = scOptVP.getIntValue();
         }
 
-        showScenarioInfoDialog(scen, null, vpWinner, gameDisplay, this);
+        showScenarioInfoDialog(scen, null, vpWinner, mainDisplay, this);
     }
 
     /**
-     * Dismiss the frame, and if client's {@link SOCPlayerClient.GameDisplay} has a reference to this frame,
+     * Dismiss the frame, and if client's {@link MainDisplay} has a reference to this frame,
      * clear it to null there.
      */
     @Override
     public void dispose()
     {
-        gameDisplay.dialogClosed(this);
+        mainDisplay.dialogClosed(this);
         super.dispose();
     }
 
@@ -1937,13 +1938,13 @@ import soc.util.Version;
      * Show a popup window with this game's scenario's description, special rules, and number of victory points to win.
      * Calls {@link EventQueue#invokeLater(Runnable)}.
      * @param ga  Game to display scenario info for; if game option {@code "SC"} missing or blank, does nothing.
-     * @param cli     Player client interface, for {@link NotifyDialog} call
+     * @param md    Player client's main display, for {@link NotifyDialog} call
      * @param parent  Current game's player interface, or another Frame for our parent window,
      *                or null to look for {@code cli}'s Frame as parent
      * @since 2.0.00
      */
     public static void showScenarioInfoDialog
-        (final SOCGame ga, final SOCPlayerClient.GameDisplay cli, final Frame parent)
+        (final SOCGame ga, final MainDisplay md, final Frame parent)
     {
         final String scKey = ga.getGameOptionStringValue("SC");
         if (scKey == null)
@@ -1953,7 +1954,7 @@ import soc.util.Version;
         if (sc == null)
             return;
 
-        showScenarioInfoDialog(sc, ga.getGameOptions(), ga.vp_winner, cli, parent);
+        showScenarioInfoDialog(sc, ga.getGameOptions(), ga.vp_winner, md, parent);
     }
 
     /**
@@ -1962,14 +1963,14 @@ import soc.util.Version;
      * @param sc  A {@link SOCScenario}, or {@code null} to do nothing
      * @param gameOpts  All game options if current game, or null to extract from {@code sc}'s {@link SOCScenario#scOpts}
      * @param vpWinner  Number of victory points to win, or {@link SOCGame#VP_WINNER_STANDARD}.
-     * @param cli     Player client interface, required for {@link AskDialog} constructor
+     * @param md     Player client's main display, required for {@link AskDialog} constructor
      * @param parent  Current game's player interface, or another Frame for our parent window,
      *                or null to look for {@code cli}'s Frame as parent
      * @since 2.0.00
      */
     public static void showScenarioInfoDialog
         (final SOCScenario sc, Map<String, SOCGameOption> gameOpts, final int vpWinner,
-         final SOCPlayerClient.GameDisplay cli, final Frame parent)
+         final MainDisplay md, final Frame parent)
     {
         if (sc == null)
             return;
@@ -2025,7 +2026,7 @@ import soc.util.Version;
         }
 
         final String scenStr = sb.toString();
-        NotifyDialog.createAndShow(cli, parent, scenStr, null, true);
+        NotifyDialog.createAndShow(md, parent, scenStr, null, true);
     }
 
 
@@ -2135,7 +2136,7 @@ import soc.util.Version;
          */
         public VersionConfirmDialog(NewGameOptionsFrame ngof, int minVers)
         {
-            super(gameDisplay, ngof, strings.get("game.options.verconfirm.title"),
+            super(mainDisplay, ngof, strings.get("game.options.verconfirm.title"),
                 strings.get("game.options.verconfirm.prompt", Version.version(minVers)),
                 strings.get("game.options.verconfirm.create"),
                 strings.get("game.options.verconfirm.change"), true, false);

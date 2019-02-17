@@ -2684,7 +2684,7 @@ public class SOCServer extends Server
      *     This typically happens if a robot class or SOCDisplaylessClient
      *     can't be loaded, due to packaging of the server-only JAR.
      * @see soc.client.SOCPlayerClient#startPracticeGame()
-     * @see soc.client.SOCPlayerClient.GameDisplay#startLocalTCPServer(int)
+     * @see soc.client.MainDisplay#startLocalTCPServer(int)
      * @see #startRobotOnlyGames(boolean)
      * @see SOCLocalRobotClient
      * @since 1.1.00
