@@ -268,7 +268,8 @@ public class SOCServer extends Server
      * {@link #PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL}.
      *<P>
      * To wait at server startup time before starting these games, use
-     * {@link #PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC}.
+     * {@link #PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC}. To shut down the server
+     * after they all finish, use {@link #PROP_JSETTLERS_BOTS_BOTGAMES_SHUTDOWN}.
      *<P>
      * If this property's value != 0, a robots-only game can be started with the
      * {@code *STARTBOTGAME*} debug command. This can be used to test the bots with any given
@@ -295,6 +296,14 @@ public class SOCServer extends Server
      * @since 2.0.00
      */
     public static final String PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL = "jsettlers.bots.botgames.parallel";
+
+    /**
+     * Boolean property <tt>jsettlers.bots.botgames.shutdown</tt>:
+     * If true, when server has started robot-only games ({@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL} > 0)
+     * and those have finished, shut down the server if no other games are active. (Default is false.)
+     * @since 2.0.00
+     */
+    public static final String PROP_JSETTLERS_BOTS_BOTGAMES_SHUTDOWN = "jsettlers.bots.botgames.shutdown";
 
     /**
      * Integer property <tt>jsettlers.bots.botgames.wait_sec</tt> to wait this many seconds
@@ -465,6 +474,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL,     "Run this many robot-only games, a few at a time (default 0); allow bot-only games",
         PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL,  "Start this many robot-only games at a time (default 2)",
         PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC, "Wait at startup before starting robot-only games (default 1.6 seconds)",
+        PROP_JSETTLERS_BOTS_BOTGAMES_SHUTDOWN,  "After running the robot-only games, shut down the server if no other games are active (if Y)",
         PROP_JSETTLERS_BOTS_COOKIE,             "Robot cookie value (default is random generated each startup)",
         PROP_JSETTLERS_BOTS_SHOWCOOKIE,         "Flag to show the robot cookie value at startup",
         PROP_JSETTLERS_BOTS_FAST__PAUSE__PERCENT, "Pause at percent of normal pause time (0 to 100) for robot-only games (default 25)",
@@ -2753,7 +2763,8 @@ public class SOCServer extends Server
      * {@link SOCClientData#getCurrentCreatedGames()}.
      *<P>
      * Note that if this game had the {@link SOCGame#isBotsOnly} flag, and {@link #numRobotOnlyGamesRemaining} &gt; 0,
-     * will call {@link #startRobotOnlyGames(boolean, boolean)}.
+     * will call {@link #startRobotOnlyGames(boolean, boolean)}. If none remain, will shut down server if
+     * {@link #PROP_JSETTLERS_BOTS_BOTGAMES_SHUTDOWN} is true and active game list is empty.
      *<P>
      * <B>Locks:</B> Must have {@link #gameList}{@link SOCGameList#takeMonitor() .takeMonitor()}
      * before calling this method.
@@ -2813,8 +2824,26 @@ public class SOCServer extends Server
                 ((SOCClientData) oConn.getAppData()).deletedGame();
         }
 
-        if (wasBotsOnly && (numRobotOnlyGamesRemaining > 0))
+        if (! wasBotsOnly)
+        {
+            return;
+        }
+
+        if (numRobotOnlyGamesRemaining > 0)
+        {
             startRobotOnlyGames(true, true);
+        }
+        else if (getConfigIntProperty(PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0) > 0)
+        {
+            // Other robot-only games could still be active; remaining = 0 was set when the last one was started
+
+            if ((gameList.size() == 0) && getConfigBoolProperty(PROP_JSETTLERS_BOTS_BOTGAMES_SHUTDOWN, false))
+            {
+                stopServer(">>> All Robot-only games have finished. Shutting down server. <<<");
+
+                System.exit(0);  // TODO nonzero exit code if any exceptions thrown while bot games ran?
+            }
+        }
     }
 
     /**
@@ -4958,9 +4987,12 @@ public class SOCServer extends Server
     }
 
     /**
-     * The server is being cleanly stopped.  Send a final message, disconnect all
-     * the connections, disconnect from database if connected.
-     * Currently called only by the debug command "*STOP*",
+     * The server is being cleanly stopped.  Send a final message, wait 500 milliseconds,
+     * disconnect all the connections, disconnect from database if connected.
+     * Does not call {@link System#exit(int)} in case caller wants to use a different exit code status value.
+     *<P>
+     * Currently called only by the debug command "*STOP*", by
+     * {@link #destroyGame(String)} when {@link #PROP_JSETTLERS_BOTS_BOTGAMES_SHUTDOWN} is set,
      * and by SOCPlayerClient's locally hosted TCP server.
      *
      * @param stopMsg Final text message to send to all connected clients, or null.

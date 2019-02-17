@@ -179,7 +179,7 @@
 #
 # jsettlers.bots.botgames.total=0
 
-# When server is starting robot-only games (jsettlers.bots.botgames.total>0),
+# When server is starting robot-only games (jsettlers.bots.botgames.total > 0),
 # start this many at once. Use 0 to start them all.
 # jsettlers.bots.botgames.parallel=2
 
@@ -193,6 +193,10 @@
 # is bots-only. Default is 25, for 25% of normal pauses (4x speed). Use 1 for
 # a shorter delay (1% of normal pauses).
 # jsettlers.bots.fast_pause_percent=25
+
+# If true, when server has started robot-only games (jsettlers.bots.botgames.total > 0)
+# and those have finished, shut down the server if no other games are active.
+# jsettlers.bots.botgames.shutdown=N
 
 # Specify the robot connect cookie string. By default a new random string is
 # generated each time the server runs. Bots can't connect without giving the

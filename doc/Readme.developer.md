@@ -610,6 +610,9 @@ option to set the length of SOCRobotBrain pauses during bot-only games: For
 example `-Djsettlers.bots.fast_pause_percent=10` will pause for only 10% as long
 as in normal games.
 
+For testing purposes, if you want the server to exit after running all its
+robot-only games, start the server with `-Djsettlers.bots.botgames.shutdown=Y` .
+
 If `jsettlers.bots.botgames.total` != 0 (including < 0), at any time the client
 can create a new game, join but not sit down at a seat, and start that game as
 bots-only using the debug command `*STARTBOTGAME* [maxBots]` to test the bots

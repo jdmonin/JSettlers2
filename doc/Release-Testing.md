@@ -259,6 +259,16 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
 - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
 - Leave a non-practice game idle for hours; should warn 10-15 minutes before 2-hour limit,
   should let you add time in 30-minute intervals up to original limit + 30 minutes remaining
+- Robot stability:
+    - This test can be started and run in the background.
+    - At a command line, start and run a server with 100 robot-only games:  
+      `java -jar JSettlersServer-2.0.00.jar -Djsettlers.bots.botgames.total=100 -Djsettlers.bots.botgames.parallel=20 -Djsettlers.bots.fast_pause_percent=5 -Djsettlers.bots.botgames.shutdown=Y 8118 15`
+    - To optionally see progress, connect to port 8118 with a client. Game numbers start at 100 and count down.
+    - These games should complete in under 10 minutes
+    - Once the games complete, that server will exit
+    - Scroll through its output looking for exceptions
+        - "force end turn" output, and occasional bad placements or bank trades, are expected and OK
+        - If any exceptions occur: Debug, triage, document or correct them
 - Board layout generator stability:
     - This is a scripted test to set up, start, and run in the background.
     - The board layout generator is complicated, to flexibly handle the sea scenario layouts.
