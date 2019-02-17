@@ -248,10 +248,12 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_BOTS_TIMEOUT_TURN = "jsettlers.bots.timeout.turn";
 
     /**
-     * Integer property <tt>jsettlers.bots.fast_pause_percent</tt> to set
-     * the speed-up factor for bots' pause times between actions when {@link SOCGame#isBotsOnly}
-     * {@link soc.robot.SOCRobotBrain#BOTS_ONLY_FAST_PAUSE_FACTOR} (default is 25, for 25%
-     * of normal pauses).
+     * Integer property <tt>jsettlers.bots.fast_pause_percent</tt> to adjust
+     * the speed-up factor for bots' pause times between actions when {@link SOCGame#isBotsOnly}:
+     * Sets {@link soc.robot.SOCRobotBrain#BOTS_ONLY_FAST_PAUSE_FACTOR}.
+     *<P>
+     * Default is 25, for 25% of normal pauses (4x speed). Use 1 for a shorter delay (1% of normal pauses).
+     * @see #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL
      * @since 2.0.00
      */
     public static final String PROP_JSETTLERS_BOTS_FAST__PAUSE__PERCENT = "jsettlers.bots.fast_pause_percent";
@@ -260,6 +262,10 @@ public class SOCServer extends Server
      * Integer property <tt>jsettlers.bots.botgames.total</tt> will start robot-only games,
      * a few at a time, until this many have been played. (The default is 0.)
      * As the first few games end, the server will start new games until the total is reached.
+     *<P>
+     * To adjust the robot-only game speed and server load, use
+     * {@link #PROP_JSETTLERS_BOTS_FAST__PAUSE__PERCENT} and
+     * {@link #PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL}.
      *<P>
      * To wait at server startup time before starting these games, use
      * {@link #PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC}.
@@ -278,6 +284,17 @@ public class SOCServer extends Server
      * @since 2.0.00
      */
     public static final String PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL = "jsettlers.bots.botgames.total";
+
+    /**
+     * Integer property <tt>jsettlers.bots.botgames.parallel</tt>:
+     * When server is starting robot-only games ({@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL} > 0),
+     * start this many at once.
+     *<P>
+     * Default is 2. Use 0 to start them all.
+     *
+     * @since 2.0.00
+     */
+    public static final String PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL = "jsettlers.bots.botgames.parallel";
 
     /**
      * Integer property <tt>jsettlers.bots.botgames.wait_sec</tt> to wait this many seconds
@@ -446,6 +463,7 @@ public class SOCServer extends Server
         // I18n.PROP_JSETTLERS_LOCALE,             "Locale override from the default, such as es or en_US, for console output",
             // -- not used yet at server
         PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL,     "Run this many robot-only games, a few at a time (default 0); allow bot-only games",
+        PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL,  "Start this many robot-only games at a time (default 2)",
         PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC, "Wait at startup before starting robot-only games (default 1.6 seconds)",
         PROP_JSETTLERS_BOTS_COOKIE,             "Robot cookie value (default is random generated each startup)",
         PROP_JSETTLERS_BOTS_SHOWCOOKIE,         "Flag to show the robot cookie value at startup",
@@ -5954,6 +5972,8 @@ public class SOCServer extends Server
      * Later as these games end, the server will start new games as long as
      * {@link #numRobotOnlyGamesRemaining} &gt; 0 at the time.
      *<P>
+     * Starts 2 games here unless {@link #PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL} is set.
+     *<P>
      * <B>Locks:</b> May or may not have {@link SOCGameList#takeMonitor()} when calling;
      * see {@code hasGameListMonitor} parameter.  If not already held, this method takes and releases that monitor.
      *
@@ -5963,30 +5983,31 @@ public class SOCServer extends Server
      */
     private void startRobotOnlyGames(final boolean hasGameListMonitor)
     {
-        if (numRobotOnlyGamesRemaining <= 0)
-            return;
+        int nParallel = getConfigIntProperty(PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL, 2);
+        if (nParallel == 0)
+            nParallel = numRobotOnlyGamesRemaining;
 
-        // TODO start more than one here
-        // TODO property to control # "a few" games started here
-
-        String gaName = "~botsOnly~" + numRobotOnlyGamesRemaining;
-
-        SOCGame newGame = createGameAndBroadcast
-            (null, gaName, SOCGameOption.getAllKnownOptions(), Version.versionNumber(), true, hasGameListMonitor);
-
-        if (newGame != null)
+        for (int i = 0; (i < nParallel) && (numRobotOnlyGamesRemaining > 0); ++i)
         {
-            --numRobotOnlyGamesRemaining;
+            String gaName = "~botsOnly~" + numRobotOnlyGamesRemaining;
 
-            System.out.println("Started bot-only game: " + gaName);
-            newGame.setGameState(SOCGame.READY);
-            if (! readyGameAskRobotsJoin(newGame, null, 0))
+            SOCGame newGame = createGameAndBroadcast
+                (null, gaName, SOCGameOption.getAllKnownOptions(), Version.versionNumber(), true, hasGameListMonitor);
+
+            if (newGame != null)
             {
-                System.out.println("Bot-only game " + gaName + ": Not enough bots can join, not starting");
-                newGame.setGameState(SOCGame.OVER);
+                --numRobotOnlyGamesRemaining;
+
+                System.out.println("Started bot-only game: " + gaName);
+                newGame.setGameState(SOCGame.READY);
+                if (! readyGameAskRobotsJoin(newGame, null, 0))
+                {
+                    System.out.println("Bot-only game " + gaName + ": Not enough bots can join, not starting");
+                    newGame.setGameState(SOCGame.OVER);
+                }
+            } else {
+                // TODO game name existed
             }
-        } else {
-            // TODO game name existed
         }
     }
 

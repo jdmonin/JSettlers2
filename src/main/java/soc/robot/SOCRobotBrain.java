@@ -137,6 +137,7 @@ public class SOCRobotBrain extends Thread
     /**
      * Bot pause speed-up factor when {@link SOCGame#isBotsOnly} in {@link #pause(int)}.
      * Default 0.25 (25% of normal pause time: 4x speed-up).
+     * Use .01 for a shorter delay (1% of normal pauses).
      * @since 2.0.00
      */
     public static float BOTS_ONLY_FAST_PAUSE_FACTOR = .25f;

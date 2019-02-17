@@ -168,17 +168,31 @@
 # to test the bots with any given combination of game options and scenarios.
 # To permit starting such games without also starting any at server startup,
 # use a value less than 0.
+#
 # If this property's value != 0, a game with 1 human player against bots, and
 # 1 or more observers, won't be ended if that sole human player quits. A bot
 # will replace the human, and the game will continue as a robots-only game.
 # Otherwise any robots-only game will be ended even if it has observers.
+#
+# To adjust the robot-only game speed and server load, use
+# jsettlers.bots.fast_pause_percent and jsettlers.bots.botgames.parallel .
+#
 # jsettlers.bots.botgames.total=0
+
+# When server is starting robot-only games (jsettlers.bots.botgames.total>0),
+# start this many at once. Use 0 to start them all.
+# jsettlers.bots.botgames.parallel=2
 
 # Wait this many seconds at startup before starting robot-only games (default
 # 1.6 seconds), in order to give bot clients more time to connect first. The
 # server will print a reminder message:
 # "Waiting 30 seconds before starting robot-only games."
 # jsettlers.bots.botgames.wait_sec=30
+
+# Adjust the speed-up factor for bots' pause times between actions when game
+# is bots-only. Default is 25, for 25% of normal pauses (4x speed). Use 1 for
+# a shorter delay (1% of normal pauses).
+# jsettlers.bots.fast_pause_percent=25
 
 # Specify the robot connect cookie string. By default a new random string is
 # generated each time the server runs. Bots can't connect without giving the
@@ -217,7 +231,7 @@
 #
 # This file is part of the JSettlers project.
 #
-# This file Copyright (C) 2016-2018 Jeremy D Monin (jeremy@nand.net)
+# This file Copyright (C) 2016-2019 Jeremy D Monin (jeremy@nand.net)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
