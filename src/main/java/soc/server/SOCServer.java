@@ -1001,7 +1001,7 @@ public class SOCServer extends Server
      * Number of robot-only games not yet started (optional feature).
      * Set at startup from {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL},
      * then counts down to 0 as games are played: See
-     * {@link #startRobotOnlyGames(boolean)}.
+     * {@link #startRobotOnlyGames(boolean, boolean)}.
      * @since 2.0.00
      */
     private int numRobotOnlyGamesRemaining;
@@ -1790,7 +1790,7 @@ public class SOCServer extends Server
      *<P>
      * Unless {@link #PROP_JSETTLERS_STARTROBOTS} is 0, starts those {@link SOCRobotClient}s now
      * by calling {@link #setupLocalRobots(int, int)}. If {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL}
-     * is specified, waits briefly and then calls {@link #startRobotOnlyGames(boolean)}.
+     * is specified, waits briefly and then calls {@link #startRobotOnlyGames(boolean, boolean)}.
      *<P>
      * Once this method completes, server begins its main loop of listening for incoming
      * client connections, and starting a Thread for each one to handle that client's messages.
@@ -1869,7 +1869,7 @@ public class SOCServer extends Server
                                     System.err.println
                                         ("\nStarting robot-only games now, after waiting " + waitSec + " seconds.\n");
 
-                                startRobotOnlyGames(false);
+                                startRobotOnlyGames(false, false);
                             }
                         }.start();
                     }
@@ -2707,7 +2707,7 @@ public class SOCServer extends Server
      *     can't be loaded, due to packaging of the server-only JAR.
      * @see soc.client.SOCPlayerClient#startPracticeGame()
      * @see soc.client.MainDisplay#startLocalTCPServer(int)
-     * @see #startRobotOnlyGames(boolean)
+     * @see #startRobotOnlyGames(boolean, boolean)
      * @see SOCLocalRobotClient
      * @since 1.1.00
      */
@@ -2753,7 +2753,7 @@ public class SOCServer extends Server
      * {@link SOCClientData#getCurrentCreatedGames()}.
      *<P>
      * Note that if this game had the {@link SOCGame#isBotsOnly} flag, and {@link #numRobotOnlyGamesRemaining} &gt; 0,
-     * will call {@link #startRobotOnlyGames(boolean)}.
+     * will call {@link #startRobotOnlyGames(boolean, boolean)}.
      *<P>
      * <B>Locks:</B> Must have {@link #gameList}{@link SOCGameList#takeMonitor() .takeMonitor()}
      * before calling this method.
@@ -2814,7 +2814,7 @@ public class SOCServer extends Server
         }
 
         if (wasBotsOnly && (numRobotOnlyGamesRemaining > 0))
-            startRobotOnlyGames(true);
+            startRobotOnlyGames(true, true);
     }
 
     /**
@@ -5981,15 +5981,22 @@ public class SOCServer extends Server
      * <B>Locks:</b> May or may not have {@link SOCGameList#takeMonitor()} when calling;
      * see {@code hasGameListMonitor} parameter.  If not already held, this method takes and releases that monitor.
      *
+     * @param wasGameDestroyed  True if caller has just destroyed a game and should start 1 more to replace it
      * @param hasGameListMonitor  True if caller holds the {@link SOCGameList#takeMonitor()} lock already
      * @see #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL
      * @since 2.0.00
      */
-    private void startRobotOnlyGames(final boolean hasGameListMonitor)
+    private void startRobotOnlyGames(final boolean wasGameDestroyed, final boolean hasGameListMonitor)
     {
-        int nParallel = getConfigIntProperty(PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL, 2);
-        if (nParallel == 0)
-            nParallel = numRobotOnlyGamesRemaining;
+        int nParallel;
+        if (wasGameDestroyed)
+        {
+            nParallel = 1;
+        } else {
+            nParallel = getConfigIntProperty(PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL, 2);
+            if (nParallel == 0)
+                nParallel = numRobotOnlyGamesRemaining;
+        }
 
         for (int i = 0; (i < nParallel) && (numRobotOnlyGamesRemaining > 0); ++i)
         {
