@@ -19,8 +19,6 @@
  **/
 package soc.client;
 
-import soc.client.SOCPlayerClient.MainDisplay;
-
 /**
  * This is the dialog to ask players if they want to join an
  * existing practice game or start a new one.

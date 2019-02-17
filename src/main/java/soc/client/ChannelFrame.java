@@ -43,8 +43,6 @@ import java.awt.event.WindowEvent;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import soc.client.SOCPlayerClient.MainDisplay;
-
 
 /** The chat channel window
  *  @version 2.0 (no GridbagLayout) with textwrapping and customized window

@@ -47,8 +47,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 
-import soc.client.SOCPlayerClient.MainDisplay;
-
 /**
  * This is the generic modal dialog to ask players a two- or three-choice question;
  * to present a one-button message, see {@link NotifyDialog}.

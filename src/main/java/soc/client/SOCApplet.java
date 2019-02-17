@@ -28,7 +28,6 @@ import java.awt.Color;
 
 import javax.swing.UIManager;
 
-import soc.client.SOCPlayerClient.SwingMainDisplay;
 import soc.util.Version;
 
 /**

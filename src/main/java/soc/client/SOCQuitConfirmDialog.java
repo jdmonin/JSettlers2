@@ -19,7 +19,6 @@
  **/
 package soc.client;
 
-import soc.client.SOCPlayerClient.MainDisplay;
 import soc.game.SOCGame;
 import soc.util.SOCStringManager;
 

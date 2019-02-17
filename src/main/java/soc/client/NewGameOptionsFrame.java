@@ -64,7 +64,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 
-import soc.client.SOCPlayerClient.MainDisplay;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCScenario;

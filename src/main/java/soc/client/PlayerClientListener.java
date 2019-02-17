@@ -401,7 +401,7 @@ public interface PlayerClientListener
     /**
      * Print a broadcast message into this display's chat area.
      * @param message  Message text
-     * @see SOCPlayerClient.MainDisplay#chatMessageBroadcast(String)
+     * @see MainDisplay#chatMessageBroadcast(String)
      */
     void messageBroadcast(String message);
 
@@ -412,7 +412,7 @@ public interface PlayerClientListener
      *     For {@code ":"}, the message text will probably end with " ::" because the original client would
      *     begin the text line with ":: " from {@code nickname + ": "}.
      * @param message  Message text
-     * @see SOCPlayerClient.MainDisplay#chatMessageReceived(String, String, String)
+     * @see MainDisplay#chatMessageReceived(String, String, String)
      */
     void messageReceived(String nickname, String message);
 

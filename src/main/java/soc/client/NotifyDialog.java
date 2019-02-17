@@ -24,8 +24,6 @@ package soc.client;
 import java.awt.EventQueue;
 import java.awt.Frame;
 
-import soc.client.SOCPlayerClient.MainDisplay;
-
 // TODO consider callback option; ActionListener
 
 /**

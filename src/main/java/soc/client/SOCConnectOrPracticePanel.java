@@ -45,7 +45,6 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
-import soc.client.SOCPlayerClient.MainDisplay;
 import soc.util.SOCStringManager;
 import soc.util.Version;
 

@@ -251,7 +251,7 @@ import soc.message.SOCStartGame;
      *
      * @param ga   the game
      * @param me   the message
-     * @see SOCPlayerClient.MainDisplay#sendToChannel(String, String)
+     * @see MainDisplay#sendToChannel(String, String)
      */
     public void sendText(SOCGame ga, String me)
     {

@@ -96,9 +96,9 @@ import soc.util.Version;
 
     /**
      * MainDisplay for our {@link #client}, to display information and perform callbacks when needed.
-     * Set after construction by calling {@link #setMainDisplay(SOCPlayerClient.MainDisplay)}.
+     * Set after construction by calling {@link #setMainDisplay(MainDisplay)}.
      */
-    private SOCPlayerClient.MainDisplay mainDisplay;
+    private MainDisplay mainDisplay;
 
     /**
      * Hostname we're connected to, or null
@@ -113,7 +113,7 @@ import soc.util.Version;
     /**
      * Client-hosted TCP server. If client is running this server, it's also connected
      * as a client, instead of being client of a remote server.
-     * Started via {@link SOCPlayerClient.SwingMainDisplay#startLocalTCPServer(int)}.
+     * Started via {@link SwingMainDisplay#startLocalTCPServer(int)}.
      * {@link #practiceServer} may still be activated at the user's request.
      * Note that {@link SOCGame#isPractice} is false for localTCPServer's games.
      */
@@ -189,7 +189,7 @@ import soc.util.Version;
     /**
      * Create our client's ClientNetwork.
      * Before using the ClientNetwork, caller client must construct their GUI
-     * and call {@link #setMainDisplay(soc.client.SOCPlayerClient.MainDisplay)}.
+     * and call {@link #setMainDisplay(MainDisplay)}.
      */
     public ClientNetwork(SOCPlayerClient c)
     {
@@ -203,7 +203,7 @@ import soc.util.Version;
      * @param md  MainDisplay to use
      * @throws IllegalArgumentException if {@code md} is {@code null}
      */
-    public void setMainDisplay(final SOCPlayerClient.MainDisplay md)
+    public void setMainDisplay(final MainDisplay md)
         throws IllegalArgumentException
     {
         if (md == null)
@@ -503,7 +503,7 @@ import soc.util.Version;
      * Look for active games that we're hosting (state >= START1A, not yet OVER).
      *
      * @return If any hosted games of ours are active
-     * @see SOCPlayerClient.SwingMainDisplay#findAnyActiveGame(boolean)
+     * @see SwingMainDisplay#findAnyActiveGame(boolean)
      */
     public boolean anyHostedActiveGames()
     {

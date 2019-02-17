@@ -21,8 +21,6 @@ package soc.client;
 
 import java.awt.Frame;
 
-import soc.client.SOCPlayerClient.MainDisplay;
-
 
 /**
  * This is the dialog to confirm when someone closes the client.

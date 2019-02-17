@@ -22,7 +22,6 @@
  **/
 package soc.client;
 
-import soc.client.SOCPlayerClient.MainDisplay;
 import soc.client.stats.SOCGameStatistics;
 import soc.debug.D;  // JM
 
