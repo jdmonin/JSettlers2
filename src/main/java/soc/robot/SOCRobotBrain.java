@@ -1164,6 +1164,8 @@ public class SOCRobotBrain extends Thread
 
                     else if (mesType == SOCMessage.STARTGAME)
                     {
+                        SOCDisplaylessPlayerClient.handleSTARTGAME_checkIsBotsOnly(game);
+                            // might set game.isBotsOnly
                         handleGAMESTATE(((SOCStartGame) mes).getGameState());
                             // clears waitingForGameState, updates oldGameState, calls ga.setGameState
                     }

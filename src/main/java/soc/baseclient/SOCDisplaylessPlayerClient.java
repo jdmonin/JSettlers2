@@ -1271,9 +1271,19 @@ public class SOCDisplaylessPlayerClient implements Runnable
             return;
 
         handleGAMESTATE(ga, mes.getGameState());
+        handleSTARTGAME_checkIsBotsOnly(ga);
+    }
 
-        // Look for human players to determine isBotsOnly in game's local copy
+    /**
+     * Check this game's seats for human players to determine {@link SOCGame#isBotsOnly} in game's local copy.
+     * Calls {@link SOCGame#isSeatVacant(int)} and {@link SOCPlayer#isRobot()}.
+     * @param ga  Game to check
+     * @since 2.0.00
+     */
+    public final static void handleSTARTGAME_checkIsBotsOnly(SOCGame ga)
+    {
         boolean isBotsOnly = true;
+
         for (int pn = 0; pn < ga.maxPlayers; ++pn)
         {
             if (! (ga.isSeatVacant(pn) || ga.getPlayer(pn).isRobot()))
@@ -1282,6 +1292,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
             }
         }
+
         ga.isBotsOnly = isBotsOnly;
     }
 
