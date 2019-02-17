@@ -28,7 +28,6 @@ import java.awt.Color;
 
 import javax.swing.UIManager;
 
-import soc.client.SOCPlayerClient.ClientNetwork;
 import soc.client.SOCPlayerClient.SwingGameDisplay;
 import soc.util.Version;
 
@@ -82,10 +81,10 @@ public class SOCApplet extends Applet
 
     /**
      * Initialize the applet.
-     * Calls {@link SOCPlayerClient.ClientNetwork#connect(String, int) connect}
+     * Calls {@link ClientNetwork#connect(String, int) connect}
      * ({@link #getCodeBase()}.{@link java.net.URL#getHost() getHost()},
      * {@link #getParameter(String) getParameter("PORT")}).
-     * Default port is {@link SOCPlayerClient.ClientNetwork#SOC_PORT_DEFAULT SOC_PORT_DEFAULT}.
+     * Default port is {@link ClientNetwork#SOC_PORT_DEFAULT}.
      */
     @Override
     public synchronized void init()

@@ -68,7 +68,7 @@ import java.awt.Frame;
      *                 if we're hosting a local server but not actively playing.
      *                 Showing the dialog will make this frame topmost if possible, then appear over it.
      * @param hostedServerActive Is client hosting a local server with games active?
-     *                 Call {@link SOCPlayerClient.ClientNetwork#anyHostedActiveGames()} to determine.
+     *                 Caller should use {@link ClientNetwork#anyHostedActiveGames()} to determine.
      */
     protected SOCQuitAllConfirmDialog(SOCPlayerClient.GameDisplay cli, Frame gamePIOrSelf, boolean hostedServerActive)
     {

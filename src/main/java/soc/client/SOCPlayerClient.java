@@ -39,16 +39,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-
-import java.net.ConnectException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketAddress;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -108,9 +98,6 @@ import soc.game.SOCVillage;
 import soc.message.*;
 
 import soc.server.SOCServer;
-import soc.server.genericServer.Connection;
-import soc.server.genericServer.StringConnection;
-import soc.server.genericServer.StringServerSocket;
 
 import soc.util.I18n;
 import soc.util.SOCFeatureSet;
@@ -128,18 +115,19 @@ import soc.util.Version;
  * argument in the html source. If you run this as a stand-alone, the port can be
  * specified on the command line or typed into {@code SwingGameDisplay}'s connect dialog.
  *<P>
- * At startup or init, will try to connect to server via {@link SOCPlayerClient.ClientNetwork#connect(String, int)}.
+ * At startup or init, will try to connect to server via {@link ClientNetwork#connect(String, int)}.
  * See that method for more details.
  *<P>
  * There are three possible servers to which a client can be connected:
  *<UL>
  *  <LI>  A remote server, running on the other end of a TCP connection
  *  <LI>  A local TCP server, for hosting games, launched by this client:
- *        {@link SOCPlayerClient.ClientNetwork#localTCPServer localTCPServer}
+ *        {@link ClientNetwork#localTCPServer}
  *  <LI>  A "practice game" server, not bound to any TCP port, for practicing
- *        locally against robots: {@link SOCPlayerClient.ClientNetwork#practiceServer practiceServer}
+ *        locally against robots: {@link ClientNetwork#practiceServer}
  *</UL>
- * At most, the client is connected to the practice server and one TCP server.
+ * A running client can be connected to at most one TCP server at a time, plus the practice server.
+ * Its single shared list of games shows those on the server and any practice games.
  * Each game's {@link SOCGame#isPractice} flag determines which connection to use.
  *<P>
  * Once connected, messages from the server are processed in {@link MessageTreater#treat(SOCMessage, boolean)}.
@@ -241,7 +229,7 @@ public class SOCPlayerClient
      * i18n text strings in our {@link #cliLocale}.
      * @since 2.0.00
      */
-    private final soc.util.SOCStringManager strings;
+    final soc.util.SOCStringManager strings;
 
     /**
      * Prefix text to indicate a game this client cannot join: "(cannot join) "<BR>
@@ -288,12 +276,12 @@ public class SOCPlayerClient
     /**
      * Helper object to receive incoming network traffic from the server.
      */
-    private MessageTreater treater;
+    private final MessageTreater treater;
 
     /**
      * Helper object to send outgoing network traffic to the server.
      */
-    private GameManager gameManager;
+    private final GameManager gameManager;
 
     /**
      * Display for all user interface, including and beyond games.
@@ -361,7 +349,7 @@ public class SOCPlayerClient
      * true if user clicked "new game" and, before showing {@link NewGameOptionsFrame}, we've
      * sent the nickname (username) and password to the server and are waiting for a response.
      *<P>
-     * Used only with TCP servers, not with {@link SOCPlayerClient.ClientNetwork#practiceServer practiceServer}.
+     * Used only with TCP servers, not with {@link ClientNetwork#practiceServer}.
      * @since 1.1.19
      */
     protected boolean isNGOFWaitingForAuthStatus;
@@ -373,7 +361,7 @@ public class SOCPlayerClient
      * Versions earlier than 1.1.20 always printed this debug output; 1.1.20 never prints it.
      * @since 1.2.00
      */
-    private boolean debugTraffic;
+    boolean debugTraffic;
 
     /**
      * face ID chosen most recently (for use in new games)
@@ -382,7 +370,7 @@ public class SOCPlayerClient
 
     /**
      * The games we're currently playing.
-     * Accessed from GUI thread and network MessageTreater thread.
+     * Accessed from GUI thread and network {@link MessageTreater} thread.
      */
     protected Hashtable<String, SOCGame> games = new Hashtable<String, SOCGame>();
 
@@ -472,7 +460,7 @@ public class SOCPlayerClient
          * Stores the given username and password in the user interface.
          *<P>
          * Does not make a network connection.
-         * Call {@link SOCPlayerClient.ClientNetwork#connect(String, int)} when ready to make the connection.
+         * Call {@link ClientNetwork#connect(String, int)} when ready to make the connection.
          *<P>
          * User login and authentication don't occur until a game or channel join is requested;
          * at that time, the user interface will read the name and password stored here.
@@ -1054,8 +1042,7 @@ public class SOCPlayerClient
 
         /**
          * Practice Game button: Create game to play against
-         * {@link SOCPlayerClient.ClientNetwork#practiceServer practiceServer},
-         * not {@link SOCPlayerClient.ClientNetwork#localTCPServer localTCPServer}.
+         * {@link ClientNetwork#practiceServer}, not {@link ClientNetwork#localTCPServer}.
          */
         protected JButton pg;
 
@@ -1069,15 +1056,15 @@ public class SOCPlayerClient
 
         /**
          * Local Server indicator in main panel: blank, or 'server is running' if
-         * {@link SOCPlayerClient.ClientNetwork#localTCPServer localTCPServer} has been started.
+         * {@link ClientNetwork#localTCPServer} has been started.
          * If so, localTCPServer's port number is shown in {@link #versionOrlocalTCPPortLabel}.
          */
         private JLabel localTCPServerLabel;
 
         /**
          * When connected to a remote server, shows its version number.
-         * When running {@link SOCPlayerClient.ClientNetwork#localTCPServer localTCPServer},
-         * shows that server's port number (see also {@link #localTCPServerLabel}).
+         * When running {@link ClientNetwork#localTCPServer}, shows that
+         * server's port number (see also {@link #localTCPServerLabel}).
          * In either mode, has a tooltip with more info.
          */
         private JLabel versionOrlocalTCPPortLabel;
@@ -2304,7 +2291,7 @@ public class SOCPlayerClient
          * @param fromPracticeServer  Enumerate games from {@link ClientNetwork#practiceServer},
          *     instead of {@link #playerInterfaces}?
          * @return Any found game of ours which is active (state not OVER), or null if none.
-         * @see SOCPlayerClient.ClientNetwork#anyHostedActiveGames()
+         * @see ClientNetwork#anyHostedActiveGames()
          */
         protected SOCPlayerInterface findAnyActiveGame(boolean fromPracticeServer)
         {
@@ -3296,13 +3283,21 @@ public class SOCPlayerClient
 
 
     /**
+     * Get this client's MessageTreater.
+     * @since 2.0.00
+     */
+    MessageTreater getMessageTreater() { return treater; }
+
+    /**
      * Nested class for processing incoming messages (treating).
+     * {@link #treat(SOCMessage, boolean)} dispatches messages to their
+     * handler methods (such as {@link #handleBANKTRADE(SOCBankTrade)}).
      *<P>
      * Before v2.0.00, most of these fields and methods were part of the main {@link SOCPlayerClient} class.
      * @author paulbilnoski
      * @since 2.0.00
      */
-    private class MessageTreater
+    /*private*/ class MessageTreater   // TODO extract to pkg-visible top-level class
     {
         private final SOCPlayerClient client;
         private final GameManager gmgr;
@@ -3324,14 +3319,14 @@ public class SOCPlayerClient
      * ({@code mes} will be null from {@link SOCMessage#toMsg(String)}).
      *
      * @param mes    the message
-     * @param isPractice  Server is {@link ClientNetwork#practiceServer}, not tcp network
+     * @param isPractice  Message is coming from {@link ClientNetwork#practiceServer}, not a TCP server
      */
     public void treat(SOCMessage mes, final boolean isPractice)
     {
         if (mes == null)
             return;  // Parsing error
 
-        if (debugTraffic || D.ebugIsEnabled())
+        if (client.debugTraffic || D.ebugIsEnabled())
             soc.debug.D.ebugPrintln(mes.toString());
 
         try
@@ -4118,7 +4113,7 @@ public class SOCPlayerClient
             {
                 client.nickname = statusText.substring(0, i);
                 statusText = statusText.substring(i + 1);
-                gameDisplay.setNickname(nickname);
+                gameDisplay.setNickname(client.nickname);
             }
         }
 
@@ -5677,6 +5672,7 @@ public class SOCPlayerClient
         SOCGameList msgGames = mes.getGameList();
         if (msgGames == null)
             return;
+
         if (! isPractice)  // practice gameoption data is set up in handleVERSION;
         {                  // practice srv's gamelist is reached through practiceServer obj.
             if (serverGames == null)
@@ -6268,11 +6264,23 @@ public class SOCPlayerClient
         net.putNet(SOCLeaveChannel.toCmd(nickname, net.getHost(), ch));
     }
 
+    /**
+     * Get this client's GameDisplay.
+     * @since 2.0.00
+     */
+    GameDisplay getGameDisplay()
+    {
+        return gameDisplay;
+    }
+
+    /**
+     * Get this client's GameManager.
+     * @since 2.0.00
+     */
     public GameManager getGameManager()
     {
         return gameManager;
     }
-
 
     /**
      * Nested class for processing outgoing messages (putting).
@@ -6940,7 +6948,7 @@ public class SOCPlayerClient
      * {@link SOCPlayerClient.GameDisplay#showErrorPanel(String, boolean)}
      * to show an error message or network exception detail.
      *<P>
-     * "If possible" is determined from return value of {@link SOCPlayerClient.ClientNetwork#putLeaveAll()}.
+     * "If possible" is determined from return value of {@link ClientNetwork#putLeaveAll()}.
      *<P>
      * Before v1.2.01 this method was {@code destroy()}.
      */
@@ -7048,677 +7056,14 @@ public class SOCPlayerClient
             client.net.connect(host, port);
     }
 
+    /**
+     * Get this client's ClientNetwork.
+     * @since 2.0.00
+     */
     public ClientNetwork getNet()
     {
         return net;
     }
-
-
-    /**
-     * Helper object to encapsulate and deal with network connectivity.
-     *<P>
-     * Local practice server (if any) is started in {@link #startPracticeGame(String, Map)}.
-     *<br>
-     * Local tcp server (if any) is started in {@link #initLocalServer(int)}.
-     *<br>
-     * Network shutdown is {@link #disconnect()} or {@link #dispose()}.
-     *<P>
-     * Before v2.0.00, most of these fields and methods were part of the main {@link SOCPlayerClient} class.
-     *
-     * @author Paul Bilnoski &lt;paul@bilnoski.net&gt;
-     * @since 2.0.00
-     * @see SOCPlayerClient#getNet()
-     */
-    public static class ClientNetwork
-    {
-        /**
-         * Default tcp port number 8880 to listen, and to connect to remote server.
-         * Should match SOCServer.SOC_PORT_DEFAULT.
-         *<P>
-         * 8880 is the default SOCPlayerClient port since jsettlers 1.0.4, per cvs history.
-         * @since 1.1.00
-         */
-        public static final int SOC_PORT_DEFAULT = 8880;
-
-        /**
-         * Timeout for initial connection to server; default is 6000 milliseconds.
-         */
-        public static int CONNECT_TIMEOUT_MS = 6000;
-
-        final SOCPlayerClient client;
-
-        /**
-         * Hostname we're connected to, or null
-         */
-        private String host;
-
-        /**
-         * TCP port we're connected to; default is {@link #SOC_PORT_DEFAULT}.
-         */
-        private int port = SOC_PORT_DEFAULT;
-
-        /**
-         * Client-hosted TCP server. If client is running this server, it's also connected
-         * as a client, instead of being client of a remote server.
-         * Started via {@link SOCPlayerClient.SwingGameDisplay#startLocalTCPServer(int)}.
-         * {@link #practiceServer} may still be activated at the user's request.
-         * Note that {@link SOCGame#isPractice} is false for localTCPServer's games.
-         */
-        private SOCServer localTCPServer = null;
-
-        Socket s;
-        DataInputStream in;
-        DataOutputStream out;
-        Thread reader = null;
-
-        /**
-         * Features supported by this built-in JSettlers client.
-         * @since 2.0.00
-         */
-        private final SOCFeatureSet cliFeats;
-        {
-            cliFeats = new SOCFeatureSet(false, false);
-            cliFeats.add(SOCFeatureSet.CLIENT_6_PLAYERS);
-            cliFeats.add(SOCFeatureSet.CLIENT_SEA_BOARD);
-            cliFeats.add(SOCFeatureSet.CLIENT_SCENARIO_VERSION, Version.versionNumber());
-        }
-
-        /**
-         * Any network error (TCP communication) received while connecting
-         * or sending messages in {@link #putNet(String)}, or null.
-         * If {@code ex != null}, putNet will refuse to send.
-         *<P>
-         * The exception's {@link Throwable#toString() toString()} including its
-         * {@link Throwable#getMessage() getMessage()} may be displayed to the user
-         * by {@link SOCPlayerClient#shutdownFromNetwork()}; if throwing an error that the user
-         * should see, be sure to set the detail message.
-         * @see #ex_P
-         */
-        Exception ex = null;
-
-        /**
-         * Practice-server error (stringport pipes), or null.
-         *<P>
-         * Before v2.0.00 this field was {@code ex_L}.
-         * @see #ex
-         */
-        Exception ex_P = null;
-
-        /**
-         * Are we connected to a TCP server (remote or {@link #localTCPServer})?
-         * {@link #practiceServer} is not a TCP server.
-         * @see #ex
-         */
-        boolean connected = false;
-
-        /** For debug, our last messages sent, over the net or practice server (pipes) */
-        protected String lastMessage_N, lastMessage_P;
-
-        /**
-         * Server for practice games via {@link #prCli}; not connected to the network,
-         * not suited for hosting multi-player games. Use {@link #localTCPServer}
-         * for those.
-         * SOCMessages of games where {@link SOCGame#isPractice} is true are sent
-         * to practiceServer.
-         *<P>
-         * Null before it's started in {@link SOCPlayerClient#startPracticeGame()}.
-         */
-        protected SOCServer practiceServer = null;
-
-        /**
-         * Client connection to {@link #practiceServer practice server}.
-         * Null before it's started in {@link #startPracticeGame()}.
-         *<P>
-         * Last message is in {@link #lastMessage_P}; any error is in {@link #ex_P}.
-         */
-        protected StringConnection prCli = null;
-
-        public ClientNetwork(SOCPlayerClient c)
-        {
-            client = c;
-            if (client == null)
-                throw new IllegalArgumentException("client is null");
-        }
-
-        /** Shut down the local TCP server (if any) and disconnect from the network. */
-        public void dispose()
-        {
-            shutdownLocalServer();
-            disconnect();
-        }
-
-        /**
-         * Start a practice game.  If needed, create and start {@link #practiceServer}.
-         * @param practiceGameName  Game name
-         * @param gameOpts  Game options
-         * @return True if the practice game request was sent, false if there was a problem
-         *         starting the practice server or client
-         */
-        public boolean startPracticeGame(final String practiceGameName, final Map<String, SOCGameOption> gameOpts)
-        {
-            if (practiceServer == null)
-            {
-                try
-                {
-                    if (Version.versionNumber() == 0)
-                    {
-                        throw new IllegalStateException("Packaging error: Cannot determine JSettlers version");
-                    }
-
-                    practiceServer = new SOCServer(SOCServer.PRACTICE_STRINGPORT, SOCServer.SOC_MAXCONN_DEFAULT, null, null);
-                    practiceServer.setPriority(5);  // same as in SOCServer.main
-                    practiceServer.start();
-                }
-                catch (Throwable th)
-                {
-                    client.gameDisplay.showErrorDialog
-                        (client.strings.get("pcli.error.startingpractice") + "\n" + th,  // "Problem starting practice server:"
-                         client.strings.get("base.cancel"));
-
-                    return false;
-                }
-            }
-
-            if (prCli == null)
-            {
-                try
-                {
-                    prCli = StringServerSocket.connectTo(SOCServer.PRACTICE_STRINGPORT);
-                    new SOCPlayerLocalStringReader(prCli);  // Reader will start its own thread
-
-                    // Send VERSION right away (1.1.06 and later)
-                    sendVersion(true);
-
-                    // Practice server will support per-game options
-                    client.gameDisplay.enableOptions();
-                }
-                catch (ConnectException e)
-                {
-                    ex_P = e;
-
-                    return false;
-                }
-            }
-
-            // Ask internal practice server to create the game
-            if (gameOpts == null)
-                putPractice(SOCJoinGame.toCmd(client.nickname, "", getHost(), practiceGameName));
-            else
-                putPractice(SOCNewGameWithOptionsRequest.toCmd
-                    (client.nickname, "", getHost(), practiceGameName, gameOpts));
-
-            return true;
-        }
-
-        /**
-         * Get the tcp port number of the local server.
-         * @see #isRunningLocalServer()
-         */
-        public int getLocalServerPort()
-        {
-            if (localTCPServer == null)
-                return 0;
-            return localTCPServer.getPort();
-        }
-
-        /** Shut down the local TCP server. */
-        public void shutdownLocalServer()
-        {
-            if ((localTCPServer != null) && (localTCPServer.isUp()))
-            {
-                localTCPServer.stopServer();
-                localTCPServer = null;
-            }
-        }
-
-        /**
-         * Create and start the local TCP server on a given port.
-         * If startup fails, show a {@link NotifyDialog} with the error message.
-         * @return True if started, false if not
-         */
-        public boolean initLocalServer(int tport)
-        {
-            try
-            {
-                localTCPServer = new SOCServer(tport, SOCServer.SOC_MAXCONN_DEFAULT, null, null);
-                localTCPServer.setPriority(5);  // same as in SOCServer.main
-                localTCPServer.start();
-            }
-            catch (Throwable th)
-            {
-                client.gameDisplay.showErrorDialog
-                    (client.strings.get("pcli.error.startingserv") + "\n" + th,  // "Problem starting server:"
-                     client.strings.get("base.cancel"));
-                return false;
-            }
-
-            return true;
-        }
-
-        /** Port number of the tcp server we're a client of; default is {@link #SOC_PORT_DEFAULT}. */
-        public int getPort()
-        {
-            return port;
-        }
-
-        /** Hostname of the tcp server we're a client of */
-        public String getHost()
-        {
-            return host;
-        }
-
-        /** Are we connected to a tcp server? */
-        public synchronized boolean isConnected()
-        {
-            return connected;
-        }
-
-        /**
-         * Attempts to connect to the server. See {@link #isConnected()} for success or
-         * failure. Once connected, starts a {@link #reader} thread.
-         * The first message over the connection is our version,
-         * and the second is the server's response:
-         * Either {@link SOCRejectConnection}, or the lists of
-         * channels and games ({@link SOCChannels}, {@link SOCGames}).
-         *<P>
-         * Since user login and authentication don't occur until a game or channel join is requested,
-         * no username or password is needed here.
-         *<P>
-         * Before 1.1.06, the server's response was first,
-         * and version was sent in reply to server's version.
-         *
-         * @param chost  Server host to connect to, or {@code null} for localhost
-         * @param sPort  Server TCP port to connect to; the default server port is {@link ClientNetwork#SOC_PORT_DEFAULT}.
-         * @throws IllegalStateException if already connected
-         *     or if {@link Version#versionNumber()} returns 0 (packaging error)
-         * @see soc.server.SOCServer#newConnection1(Connection)
-         */
-        public synchronized void connect(String chost, int sPort)
-            throws IllegalStateException
-        {
-            if (connected)
-            {
-                throw new IllegalStateException
-                    ("Already connected to " + (host != null ? host : "localhost") + ":" + port);
-            }
-
-            if (Version.versionNumber() == 0)
-            {
-                throw new IllegalStateException("Packaging error: Cannot determine JSettlers version");
-            }
-
-            ex = null;
-            host = chost;
-            port = sPort;
-
-            String hostString = (chost != null ? chost : "localhost") + ":" + sPort;
-            System.out.println(/*I*/"Connecting to " + hostString/*18N*/);  // I18N: Not localizing console output yet
-            client.gameDisplay.setMessage
-                (client.strings.get("pcli.message.connecting.serv"));  // "Connecting to server..."
-
-            try
-            {
-                if (client.gotPassword)
-                {
-                    client.gameDisplay.setPassword(client.password);
-                        // when ! gotPassword, SwingGameDisplay.getPassword() will read pw from there
-                    client.gotPassword = false;
-                }
-
-                final SocketAddress srvAddr;
-                if (host != null)
-                    srvAddr = new InetSocketAddress(host, port);
-                else
-                    srvAddr = new InetSocketAddress(InetAddress.getByName(null), port);  // loopback
-
-                s = new Socket();
-                s.connect(srvAddr, CONNECT_TIMEOUT_MS);
-                in = new DataInputStream(s.getInputStream());
-                out = new DataOutputStream(s.getOutputStream());
-                connected = true;
-                (reader = new Thread(new NetReadTask(client, this))).start();
-                // send VERSION right away (1.1.06 and later)
-                sendVersion(false);
-            }
-            catch (Exception e)
-            {
-                ex = e;
-                String msg = client.strings.get("pcli.error.couldnotconnect", ex);  // "Could not connect to the server: " + ex
-                System.err.println(msg);
-                client.gameDisplay.showErrorPanel(msg, (ex_P == null));
-                if (connected)
-                {
-                    disconnect();
-                    connected = false;
-                }
-                host = null;
-                port = 0;
-                if (in != null)
-                {
-                    try { in.close(); } catch (Throwable th) {}
-                    in = null;
-                }
-                if (out != null)
-                {
-                    try { out.close(); } catch (Throwable th) {}
-                    out = null;
-                }
-                s = null;
-            }
-        }
-
-        /**
-         * Disconnect from the net (client of remote server).
-         * If a problem occurs, sets {@link #ex}.
-         * @see #dispose()
-         */
-        protected synchronized void disconnect()
-        {
-            connected = false;
-
-            // reader will die once 'connected' is false, and socket is closed
-
-            try
-            {
-                s.close();
-            }
-            catch (Exception e)
-            {
-                ex = e;
-            }
-        }
-
-        /**
-         * Construct and send a {@link SOCVersion} message during initial connection to a server.
-         * Version message includes features and locale in 2.0.00 and later clients; v1.x.xx servers will ignore them.
-         *<P>
-         * If debug property {@link SOCPlayerClient#PROP_JSETTLERS_DEBUG_CLIENT_FEATURES PROP_JSETTLERS_DEBUG_CLIENT_FEATURES}
-         * is set, its value is sent instead of {@link #cliFeats}.{@link SOCFeatureSet#getEncodedList() getEncodedList()}.
-         *
-         * @param isPractice  True if sending to client's practice server with {@link #putPractice(String)},
-         *     false if to a TCP server with {@link #putNet(String)}.
-         * @since 2.0.00
-         */
-        private void sendVersion(final boolean isPractice)
-        {
-            String feats = System.getProperty(PROP_JSETTLERS_DEBUG_CLIENT_FEATURES);
-            if (feats == null)
-                feats = cliFeats.getEncodedList();
-            else if (feats.length() == 0)
-                feats = null;
-
-            final String msg = SOCVersion.toCmd
-                (Version.versionNumber(), Version.version(), Version.buildnum(),
-                 feats, client.cliLocale.toString());
-
-            if (isPractice)
-                putPractice(msg);
-            else
-                putNet(msg);
-        }
-
-        /**
-         * Are we running a local tcp server?
-         * @see #getLocalServerPort()
-         * @see #anyHostedActiveGames()
-         */
-        public boolean isRunningLocalServer()
-        {
-            return localTCPServer != null;
-        }
-
-        /**
-         * Look for active games that we're hosting (state >= START1A, not yet OVER).
-         *
-         * @return If any hosted games of ours are active
-         * @see SOCPlayerClient.SwingGameDisplay#findAnyActiveGame(boolean)
-         */
-        public boolean anyHostedActiveGames()
-        {
-            if (localTCPServer == null)
-                return false;
-
-            Collection<String> gameNames = localTCPServer.getGameNames();
-
-            for (String tryGm : gameNames)
-            {
-                int gs = localTCPServer.getGameState(tryGm);
-                if ((gs < SOCGame.OVER) && (gs >= SOCGame.START1A))
-                {
-                    return true;  // Active
-                }
-            }
-
-            return false;  // No active games found
-        }
-
-        /**
-         * write a message to the net: either to a remote server,
-         * or to {@link #localTCPServer} for games we're hosting.
-         *<P>
-         * If {@link #ex} != null, or ! {@link #connected}, {@code putNet}
-         * returns false without attempting to send the message.
-         *<P>
-         * This message is copied to {@link #lastMessage_N}; any error sets {@link #ex}
-         * and calls {@link SOCPlayerClient#shutdownFromNetwork()} to show the error message.
-         *
-         * @param s  the message
-         * @return true if the message was sent, false if not
-         * @see SOCPlayerClient.GameManager#put(String, boolean)
-         */
-        public synchronized boolean putNet(String s)
-        {
-            lastMessage_N = s;
-
-            if ((ex != null) || !isConnected())
-            {
-                return false;
-            }
-
-            if (client.debugTraffic || D.ebugIsEnabled())
-                soc.debug.D.ebugPrintln("OUT - " + SOCMessage.toMsg(s));
-
-            try
-            {
-                out.writeUTF(s);
-                out.flush();
-            }
-            catch (IOException e)
-            {
-                ex = e;
-                System.err.println("could not write to the net: " + ex);  // I18N: Not localizing console output yet
-                client.shutdownFromNetwork();
-
-                return false;
-            }
-
-            return true;
-        }
-
-        /**
-         * write a message to the practice server. {@link #localTCPServer} is not
-         * the same as the practice server; use {@link #putNet(String)} to send
-         * a message to the local TCP server.
-         * Use <tt>putPractice</tt> only with {@link #practiceServer}.
-         *<P>
-         * Before version 1.1.14, this was <tt>putLocal</tt>.
-         *
-         * @param s  the message
-         * @return true if the message was sent, false if not
-         * @see SOCPlayerClient.GameManager#put(String, boolean)
-         * @throws IllegalArgumentException if {@code s} is {@code null}
-         * @since 1.1.00
-         */
-        public synchronized boolean putPractice(String s)
-            throws IllegalArgumentException
-        {
-            if (s == null)
-                throw new IllegalArgumentException("null");
-
-            lastMessage_P = s;
-
-            if ((ex_P != null) || ! prCli.isConnected())
-            {
-                return false;
-            }
-
-            if (client.debugTraffic || D.ebugIsEnabled())
-                soc.debug.D.ebugPrintln("OUT L- " + SOCMessage.toMsg(s));
-
-            prCli.put(s);
-
-            return true;
-        }
-
-        /**
-         * resend the last message (to the network)
-         */
-        public void resendNet()
-        {
-            if (lastMessage_N != null)
-                putNet(lastMessage_N);
-        }
-
-        /**
-         * resend the last message (to the practice server)
-         * @since 1.1.00
-         */
-        public void resendPractice()
-        {
-            if (lastMessage_P != null)
-                putPractice(lastMessage_P);
-        }
-
-        /**
-         * For shutdown - Tell the server we're leaving all games.
-         * If we've started a practice server, also tell that server.
-         * If we've started a TCP server, tell all players on that server, and shut it down.
-         *<P><em>
-         * Since no other state variables are set, call this only right before
-         * discarding this object or calling System.exit.
-         *</em>
-         * @return Can we still start practice games? (No local exception yet in {@link #ex_P})
-         */
-        public boolean putLeaveAll()
-        {
-            final boolean canPractice = (ex_P == null);  // Can we still start a practice game?
-
-            SOCLeaveAll leaveAllMes = new SOCLeaveAll();
-            putNet(leaveAllMes.toCmd());
-            if ((prCli != null) && ! canPractice)
-                putPractice(leaveAllMes.toCmd());
-
-            shutdownLocalServer();
-
-            return canPractice;
-        }
-
-
-        /**
-         * A task to continuously read from the server socket.
-         * Not used for talking to the practice server.
-         */
-        static class NetReadTask implements Runnable
-        {
-            final ClientNetwork net;
-            final SOCPlayerClient client;
-
-            public NetReadTask(SOCPlayerClient client, ClientNetwork net)
-            {
-                this.client = client;
-                this.net = net;
-            }
-
-            /**
-             * continuously read from the net in a separate thread;
-             * not used for talking to the practice server.
-             * If disconnected or an {@link IOException} occurs,
-             * calls {@link SOCPlayerClient#shutdownFromNetwork()}.
-             */
-            public void run()
-            {
-                Thread.currentThread().setName("cli-netread");  // Thread name for debug
-                try
-                {
-                    while (net.isConnected())
-                    {
-                        String s = net.in.readUTF();
-                        client.treater.treat(SOCMessage.toMsg(s), false);
-                    }
-                }
-                catch (IOException e)
-                {
-                    // purposefully closing the socket brings us here too
-                    if (net.isConnected())
-                    {
-                        net.ex = e;
-                        System.out.println("could not read from the net: " + net.ex);  // I18N: Not localizing console output yet
-                        client.shutdownFromNetwork();
-                    }
-                }
-            }
-
-        }  // nested class NetReadTask
-
-
-        /**
-         * For practice games, reader thread to get messages from the
-         * practice server to be treated and reacted to.
-         * @author jdmonin
-         * @since 1.1.00
-         */
-        class SOCPlayerLocalStringReader implements Runnable
-        {
-            StringConnection locl;
-
-            /**
-             * Start a new thread and listen to practice server.
-             *
-             * @param prConn Active connection to practice server
-             */
-            protected SOCPlayerLocalStringReader (StringConnection prConn)
-            {
-                locl = prConn;
-
-                Thread thr = new Thread(this);
-                thr.setDaemon(true);
-                thr.start();
-            }
-
-            /**
-             * Continuously read from the practice string server in a separate thread.
-             * If disconnected or an {@link IOException} occurs, calls
-             * {@link SOCPlayerClient#shutdownFromNetwork()}.
-             */
-            public void run()
-            {
-                Thread.currentThread().setName("cli-stringread");  // Thread name for debug
-                try
-                {
-                    while (locl.isConnected())
-                    {
-                        String s = locl.readNext();
-                        SOCMessage msg = SOCMessage.toMsg(s);
-
-                        client.treater.treat(msg, true);
-                    }
-                }
-                catch (IOException e)
-                {
-                    // purposefully closing the socket brings us here too
-                    if (locl.isConnected())
-                    {
-                        ex_P = e;
-                        System.out.println("could not read from practice server: " + ex_P);  // I18N: Not localizing console output yet
-                        client.shutdownFromNetwork();
-                    }
-                }
-            }
-
-        }  // nested class SOCPlayerLocalStringReader
-
-    }  // nested class ClientNetwork
-
 
     /** React to windowOpened, windowClosing events for SwingGameDisplay's Frame. */
     private static class ClientWindowAdapter extends WindowAdapter

@@ -45,7 +45,6 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
-import soc.client.SOCPlayerClient.ClientNetwork;
 import soc.client.SOCPlayerClient.GameDisplay;
 import soc.util.SOCStringManager;
 import soc.util.Version;
@@ -125,7 +124,7 @@ import soc.util.Version;
 
     /**
      * Check with the {@link java.lang.SecurityManager} about being a tcp server.
-     * Port {@link SOCPlayerClient.ClientNetwork#SOC_PORT_DEFAULT} and some subsequent ports are checked (to be above 1024).
+     * Port {@link ClientNetwork#SOC_PORT_DEFAULT} and some subsequent ports are checked (to be above 1024).
      * @return True if we have perms to start a server and listen on a port
      */
     public static boolean checkCanLaunchServer()
@@ -494,8 +493,8 @@ import soc.util.Version;
     /**
      * Parse a server TCP port number from a text field.
      * If the field is empty after trimming whitespace, use this client's default from
-     * {@link SOCPlayerClient.ClientNetwork#getPort() clientNetwork.getPort()},
-     * which is usually {@link SOCPlayerClient.ClientNetwork#SOC_PORT_DEFAULT}.
+     * {@link ClientNetwork#getPort() clientNetwork.getPort()},
+     * which is usually {@link ClientNetwork#SOC_PORT_DEFAULT}.
      * @param tf  Text field with the port number, such as {@link #conn_servport} or {@link #run_servport}
      * @return the port number, or {@code clientNetwork.getPort()} if empty,
      *         or 0 if cannot be parsed or if outside the valid range 1-65535
