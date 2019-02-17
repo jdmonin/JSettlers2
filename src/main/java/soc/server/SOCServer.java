@@ -1826,6 +1826,9 @@ public class SOCServer extends Server
                 }
                 else if ((hcount < 6) || (hcount < rcount))
                 {
+                    final int incr = 6 - hcount, newMaxC = maxConnections + incr;
+                    maxConnections = newMaxC;
+
                     new Thread() {
                         @Override
                         public void run()
@@ -1834,7 +1837,8 @@ public class SOCServer extends Server
                                 Thread.sleep(1600);  // wait for bot-connect messages to print
                             } catch (InterruptedException e) {}
                             System.err.println("** Warning: Only " + hcount
-                                + " player connections available, because of the robot connections.");
+                                + " player connections would be available because of the started robots.");
+                            System.err.println("   Using " + maxConnections + " for max connection count (+" + incr + ").");
                         }
                     }.start();
                 }
