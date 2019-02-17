@@ -811,10 +811,10 @@ public class SOCRobotBrain extends Thread
 
             return;
         }
-        if (null == playerTrackers.get(new Integer(pn)))
+        if (null == playerTrackers.get(Integer.valueOf(pn)))
         {
             SOCPlayerTracker tracker = new SOCPlayerTracker(game.getPlayer(pn), this);
-            playerTrackers.put(new Integer(pn), tracker);
+            playerTrackers.put(Integer.valueOf(pn), tracker);
         }
     }
 
@@ -926,14 +926,14 @@ public class SOCRobotBrain extends Thread
         ourPlayerTracker = new SOCPlayerTracker(ourPlayerData, this);
         ourPlayerNumber = ourPlayerData.getPlayerNumber();
         playerTrackers = new HashMap<Integer, SOCPlayerTracker>();
-        playerTrackers.put(new Integer(ourPlayerNumber), ourPlayerTracker);
+        playerTrackers.put(Integer.valueOf(ourPlayerNumber), ourPlayerTracker);
 
         for (int pn = 0; pn < game.maxPlayers; pn++)
         {
             if ((pn != ourPlayerNumber) && ! game.isSeatVacant(pn))
             {
                 SOCPlayerTracker tracker = new SOCPlayerTracker(game.getPlayer(pn), this);
-                playerTrackers.put(new Integer(pn), tracker);
+                playerTrackers.put(Integer.valueOf(pn), tracker);
             }
         }
 

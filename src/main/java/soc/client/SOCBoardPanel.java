@@ -4498,7 +4498,7 @@ import java.util.Timer;
                     final int hexCoord = rshift | c;
                     final int hexType = (r < bh) ? board.getHexTypeFromCoord(hexCoord) : SOCBoard.WATER_HEX;
                     drawHex(g, x, y, hexType, -1, hexCoord);
-                    if ((landHexShow != null) && landHexShow.contains(new Integer(hexCoord)))
+                    if ((landHexShow != null) && landHexShow.contains(Integer.valueOf(hexCoord)))
                     {
                        g.setColor(Color.RED);
                        g.drawRoundRect

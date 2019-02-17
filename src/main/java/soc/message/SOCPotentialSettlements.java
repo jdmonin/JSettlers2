@@ -437,7 +437,7 @@ public class SOCPotentialSettlements extends SOCMessage
                     hadNA = true;
                     break;
                 }
-                ps.add(new Integer(Integer.parseInt(tok)));
+                ps.add(Integer.valueOf(Integer.parseInt(tok)));
             }
 
             if (hadNA)
@@ -487,7 +487,7 @@ public class SOCPotentialSettlements extends SOCMessage
                         tok = st.nextToken();
                         if (tok.equals("SE") || tok.startsWith("LA"))
                             break;
-                        ls.add(new Integer(Integer.parseInt(tok)));
+                        ls.add(Integer.valueOf(Integer.parseInt(tok)));
                     }
 
                     las[areaNum] = ls;
@@ -511,7 +511,7 @@ public class SOCPotentialSettlements extends SOCMessage
                             if (edge != 0)
                                 // 0 is used for padding the last SE list if empty;
                                 // otherwise, at the end of the message, an empty list will have no tokens.
-                                lse.add(new Integer(edge));
+                                lse.add(Integer.valueOf(edge));
                         }
 
                         final int L = lse.size();
