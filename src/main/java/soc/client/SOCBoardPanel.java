@@ -6166,7 +6166,7 @@ import java.util.Timer;
                         hilight = 0;  // Road on edge 0x00
                     if (player.isPotentialRoad(hilight) && ! hilightIsShip)
                     {
-                        client.getGameManager().putPiece(game, new SOCRoad(player, hilight, board));
+                        client.getGameMessageMaker().putPiece(game, new SOCRoad(player, hilight, board));
 
                         // Now that we've placed, clear the mode and the hilight.
                         clearModeAndHilight(SOCPlayingPiece.ROAD);
@@ -6179,7 +6179,7 @@ import java.util.Timer;
                         {
                             java.awt.EventQueue.invokeLater(new ConfirmPlaceShipDialog(hilight, false, -1));
                         } else {
-                            client.getGameManager().putPiece(game, new SOCShip(player, hilight, board));
+                            client.getGameMessageMaker().putPiece(game, new SOCShip(player, hilight, board));
 
                             // Now that we've placed, clear the mode and the hilight.
                             clearModeAndHilight(SOCPlayingPiece.SHIP);
@@ -6209,7 +6209,7 @@ import java.util.Timer;
 
                     if (player.canPlaceSettlement(hilight))
                     {
-                        client.getGameManager().putPiece(game, new SOCSettlement(player, hilight, board));
+                        client.getGameMessageMaker().putPiece(game, new SOCSettlement(player, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
                         if (tempChangedMode)
                             hoverTip.hideHoverAndPieces();
@@ -6221,7 +6221,7 @@ import java.util.Timer;
 
                     if (player.isPotentialCity(hilight))
                     {
-                        client.getGameManager().putPiece(game, new SOCCity(player, hilight, board));
+                        client.getGameMessageMaker().putPiece(game, new SOCCity(player, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.CITY);
                         if (tempChangedMode)
                             hoverTip.hideHoverAndPieces();
@@ -6236,7 +6236,7 @@ import java.util.Timer;
                         {
                             java.awt.EventQueue.invokeLater(new ConfirmPlaceShipDialog(hilight, false, -1));
                         } else {
-                            client.getGameManager().putPiece(game, new SOCShip(player, hilight, board));
+                            client.getGameMessageMaker().putPiece(game, new SOCShip(player, hilight, board));
                             clearModeAndHilight(SOCPlayingPiece.SHIP);
                         }
                         if (tempChangedMode)
@@ -6269,7 +6269,7 @@ import java.util.Timer;
                         else
                         {
                             // ask server to move it
-                            client.getGameManager().moveRobber(game, player, hilight);
+                            client.getGameMessageMaker().moveRobber(game, player, hilight);
                             clearModeAndHilight(-1);
                         }
                     }
@@ -6301,7 +6301,7 @@ import java.util.Timer;
                         else
                         {
                             // ask server to move it
-                            client.getGameManager().moveRobber(game, player, -hilight);
+                            client.getGameMessageMaker().moveRobber(game, player, -hilight);
                             clearModeAndHilight(-1);
                         }
                     }
@@ -6317,7 +6317,7 @@ import java.util.Timer;
                         if (game.canPlacePort(player, edge))
                         {
                             // Ask server to place here.
-                            client.getGameManager().sendSimpleRequest
+                            client.getGameMessageMaker().sendSimpleRequest
                                 (player, SOCSimpleRequest.TRADE_PORT_PLACE, hilight, 0);
                             hilight = 0;
                         }
@@ -6328,7 +6328,7 @@ import java.util.Timer;
 
                     if (otherPlayer.canPlaceSettlement(hilight))
                     {
-                        client.getGameManager().considerMove(game, otherPlayer.getName(), new SOCSettlement(otherPlayer, hilight, board));
+                        client.getGameMessageMaker().considerMove(game, otherPlayer.getName(), new SOCSettlement(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
                     }
 
@@ -6338,7 +6338,7 @@ import java.util.Timer;
 
                     if (otherPlayer.isPotentialRoad(hilight))
                     {
-                        client.getGameManager().considerMove(game, otherPlayer.getName(), new SOCRoad(otherPlayer, hilight, board));
+                        client.getGameMessageMaker().considerMove(game, otherPlayer.getName(), new SOCRoad(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.ROAD);
                     }
 
@@ -6348,7 +6348,7 @@ import java.util.Timer;
 
                     if (otherPlayer.isPotentialCity(hilight))
                     {
-                        client.getGameManager().considerMove(game, otherPlayer.getName(), new SOCCity(otherPlayer, hilight, board));
+                        client.getGameMessageMaker().considerMove(game, otherPlayer.getName(), new SOCCity(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.CITY);
                     }
 
@@ -6358,7 +6358,7 @@ import java.util.Timer;
 
                     if (otherPlayer.canPlaceSettlement(hilight))
                     {
-                        client.getGameManager().considerTarget(game, otherPlayer.getName(), new SOCSettlement(otherPlayer, hilight, board));
+                        client.getGameMessageMaker().considerTarget(game, otherPlayer.getName(), new SOCSettlement(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
                     }
 
@@ -6368,7 +6368,7 @@ import java.util.Timer;
 
                     if (otherPlayer.isPotentialRoad(hilight))
                     {
-                        client.getGameManager().considerTarget(game, otherPlayer.getName(), new SOCRoad(otherPlayer, hilight, board));
+                        client.getGameMessageMaker().considerTarget(game, otherPlayer.getName(), new SOCRoad(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.ROAD);
                     }
 
@@ -6378,7 +6378,7 @@ import java.util.Timer;
 
                     if (otherPlayer.isPotentialCity(hilight))
                     {
-                        client.getGameManager().considerTarget(game, otherPlayer.getName(), new SOCCity(otherPlayer, hilight, board));
+                        client.getGameMessageMaker().considerTarget(game, otherPlayer.getName(), new SOCCity(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.CITY);
                     }
 
@@ -6578,7 +6578,7 @@ import java.util.Timer;
                         (new ConfirmPlaceShipDialog(moveShip_toEdge, false, moveShip_fromEdge));
                     clearMode = false;
                 } else {
-                    playerInterface.getClient().getGameManager().movePieceRequest
+                    playerInterface.getClient().getGameMessageMaker().movePieceRequest
                         (game, playerNumber, SOCPlayingPiece.SHIP, moveShip_fromEdge, moveShip_toEdge);
                 }
             }
@@ -8631,7 +8631,7 @@ import java.util.Timer;
               if (! sendNow)
                   canBuild = canBuild && game.couldBuildRoad(cpn);
               if (canBuild && sendNow)
-                  playerInterface.getClient().getGameManager().putPiece(game, new SOCRoad(player, buildLoc, board));
+                  playerInterface.getClient().getGameMessageMaker().putPiece(game, new SOCRoad(player, buildLoc, board));
               btarget = SOCBuildingPanel.ROAD;
               break;
 
@@ -8642,7 +8642,7 @@ import java.util.Timer;
                   canBuild = canBuild && game.couldBuildSettlement(cpn);
               if (canBuild && sendNow)
               {
-                  playerInterface.getClient().getGameManager().putPiece(game, new SOCSettlement(player, buildLoc, board));
+                  playerInterface.getClient().getGameMessageMaker().putPiece(game, new SOCSettlement(player, buildLoc, board));
                   if (isInitialPlacement)
                       initSettlementNode = buildLoc;  // track for initial road mouseover hilight
               }
@@ -8655,7 +8655,7 @@ import java.util.Timer;
               if (! sendNow)
                   canBuild = canBuild && game.couldBuildCity(cpn);
               if (canBuild && sendNow)
-                  playerInterface.getClient().getGameManager().putPiece(game, new SOCCity(player, buildLoc, board));
+                  playerInterface.getClient().getGameMessageMaker().putPiece(game, new SOCCity(player, buildLoc, board));
               btarget = SOCBuildingPanel.CITY;
               break;
 
@@ -8665,7 +8665,7 @@ import java.util.Timer;
               if (! sendNow)
                   canBuild = canBuild && game.couldBuildShip(cpn);
               if (canBuild && sendNow)
-                  playerInterface.getClient().getGameManager().putPiece(game, new SOCShip(player, buildLoc, board));
+                  playerInterface.getClient().getGameMessageMaker().putPiece(game, new SOCShip(player, buildLoc, board));
               btarget = SOCBuildingPanel.SHIP;
               break;
 
@@ -8720,7 +8720,7 @@ import java.util.Timer;
       {
           // Validate and make the request
           if (game.canAttackPirateFortress() != null)
-              playerInterface.getClient().getGameManager().sendSimpleRequest(player, SOCSimpleRequest.SC_PIRI_FORT_ATTACK);
+              playerInterface.getClient().getGameMessageMaker().sendSimpleRequest(player, SOCSimpleRequest.SC_PIRI_FORT_ATTACK);
           else
               // can't attack, cancel the request
               playerInterface.getClientListener().scen_SC_PIRI_pirateFortressAttackResult(true, 0, 0);
@@ -8967,22 +8967,22 @@ import java.util.Timer;
             {
             case SOCPlayingPiece.ROAD:
                 if (player.isPotentialRoad(buildLoc))
-                    client.getGameManager().putPiece(game, new SOCRoad(player, buildLoc, board));
+                    client.getGameMessageMaker().putPiece(game, new SOCRoad(player, buildLoc, board));
                 break;
 
             case SOCPlayingPiece.SETTLEMENT:
                 if (player.canPlaceSettlement(buildLoc))
-                    client.getGameManager().putPiece(game, new SOCSettlement(player, buildLoc, board));
+                    client.getGameMessageMaker().putPiece(game, new SOCSettlement(player, buildLoc, board));
                 break;
 
             case SOCPlayingPiece.CITY:
                 if (player.isPotentialCity(buildLoc))
-                    client.getGameManager().putPiece(game, new SOCCity(player, buildLoc, board));
+                    client.getGameMessageMaker().putPiece(game, new SOCCity(player, buildLoc, board));
                 break;
 
             case SOCPlayingPiece.SHIP:
                 if (game.canPlaceShip(player, buildLoc))  // checks isPotentialShip, pirate ship
-                    client.getGameManager().putPiece(game, new SOCShip(player, buildLoc, board));
+                    client.getGameMessageMaker().putPiece(game, new SOCShip(player, buildLoc, board));
                 break;
             }
 
@@ -9040,7 +9040,7 @@ import java.util.Timer;
         public void button1Chosen()
         {
             // ask server to move it
-            pcli.getGameManager().moveRobber(game, pl, robHex);
+            pcli.getGameMessageMaker().moveRobber(game, pl, robHex);
             clearModeAndHilight(-1);
         }
 
@@ -9165,8 +9165,8 @@ import java.util.Timer;
         }
 
         /**
-         * React to the Place Ship button: Call gameManager.buildRequest via BoardPopupMenu.tryBuild,
-         * or gameManager.putPiece or movePieceRequest.
+         * React to the Place Ship button: Call gameMessageMaker.buildRequest via BoardPopupMenu.tryBuild,
+         * or gameMessageMaker.putPiece or movePieceRequest.
          */
         @Override
         public void button1Chosen()
@@ -9179,9 +9179,9 @@ import java.util.Timer;
                 hoverTip.hoverShipID = currentHover;
             } else {
                 if (isMove_fromEdge == -1)
-                    pcli.getGameManager().putPiece(game, new SOCShip(player, edge, board));
+                    pcli.getGameMessageMaker().putPiece(game, new SOCShip(player, edge, board));
                 else
-                    pcli.getGameManager().movePieceRequest
+                    pcli.getGameMessageMaker().movePieceRequest
                         (game, playerNumber, SOCPlayingPiece.SHIP, isMove_fromEdge, edge);
                 clearModeAndHilight(SOCPlayingPiece.SHIP);
             }

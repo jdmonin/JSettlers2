@@ -236,9 +236,9 @@ import javax.swing.SwingConstants;
             {
                 SOCPlayerClient pcli = playerInterface.getClient();
                 if (isDiscard)
-                    pcli.getGameManager().discard(playerInterface.getGame(), rsrcs);
+                    pcli.getGameMessageMaker().discard(playerInterface.getGame(), rsrcs);
                 else
-                    pcli.getGameManager().pickResources(playerInterface.getGame(), rsrcs);
+                    pcli.getGameMessageMaker().pickResources(playerInterface.getGame(), rsrcs);
                 dispose();
             }
         }

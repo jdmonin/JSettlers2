@@ -1649,7 +1649,7 @@ public class SOCPlayerInterface extends Frame
 
             final String msg = s + '\n';
             if (! doLocalCommand(msg))
-                client.getGameManager().sendText(game, msg);
+                client.getGameMessageMaker().sendText(game, msg);
 
             if (sOverflow != null)
             {
@@ -1754,7 +1754,7 @@ public class SOCPlayerInterface extends Frame
     public void leaveGame()
     {
         gameDisplay.leaveGame(game);
-        client.getGameManager().leaveGame(game);
+        client.getGameMessageMaker().leaveGame(game);
         dispose();
     }
 
@@ -1799,7 +1799,7 @@ public class SOCPlayerInterface extends Frame
         }
         SOCPlayer pl = game.getPlayer(clientHandPlayerNum);
         if (! pl.hasAskedBoardReset())
-            client.getGameManager().resetBoardRequest(game);
+            client.getGameMessageMaker().resetBoardRequest(game);
         else
             textDisplay.append("*** " + strings.get("reset.you.may.ask.once") + "\n");
                 // "You may ask only once per turn to reset the board."
@@ -2435,13 +2435,13 @@ public class SOCPlayerInterface extends Frame
      *                If <tt>allowChooseNone</tt>, pnums.length must be at least <tt>count + 1</tt>
      *                to leave room for "no player".
      * @param allowChooseNone  if true, player can choose to rob no one (game scenario <tt>SC_PIRI</tt>)
-     * @see SOCPlayerClient.GameManager#choosePlayer(SOCGame, int)
+     * @see GameMessageMaker#choosePlayer(SOCGame, int)
      * @see #showChooseRobClothOrResourceDialog(int)
      */
     public void showChoosePlayerDialog(final int count, final int[] pnums, final boolean allowChooseNone)
     {
         choosePlayerDialog = new SOCChoosePlayerDialog(this, count, pnums, allowChooseNone);
-        EventQueue.invokeLater(choosePlayerDialog);  // calls setVisible(true)
+        EventQueue.invokeLater(choosePlayerDialog);  // dialog's run() calls pack and setVisible(true)
     }
 
     /**
@@ -2452,7 +2452,7 @@ public class SOCPlayerInterface extends Frame
      */
     public void showChooseRobClothOrResourceDialog(final int vpn)
     {
-        EventQueue.invokeLater(new ChooseRobClothOrResourceDialog(vpn));  // calls setVisible(true)
+        EventQueue.invokeLater(new ChooseRobClothOrResourceDialog(vpn));  // dialog's run() calls setVisible(true)
     }
 
     /**
@@ -2461,7 +2461,7 @@ public class SOCPlayerInterface extends Frame
     public void showMonopolyDialog()
     {
         monopolyDialog = new SOCMonopolyDialog(this);
-        EventQueue.invokeLater(monopolyDialog);  // calls setVisible(true)
+        EventQueue.invokeLater(monopolyDialog);  // dialog's run() calls setVisible(true)
     }
 
     /**
@@ -4318,7 +4318,7 @@ public class SOCPlayerInterface extends Frame
         @Override
         public void button1Chosen()
         {
-            pcli.getGameManager().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), true);
+            pcli.getGameMessageMaker().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), true);
             pi.resetBoardClearDia();
         }
 
@@ -4328,7 +4328,7 @@ public class SOCPlayerInterface extends Frame
         @Override
         public void button2Chosen()
         {
-            pcli.getGameManager().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), false);
+            pcli.getGameMessageMaker().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), false);
             pi.resetBoardClearDia();
         }
 
@@ -4353,8 +4353,8 @@ public class SOCPlayerInterface extends Frame
     /**
      * Modal dialog to ask whether to move the robber or the pirate ship.
      * Use the AWT event thread to show, so message treating can continue while the dialog is showing.
-     * When the choice is made, calls {@link SOCPlayerClient.GameManager#chooseRobber(SOCGame)}
-     * or {@link SOCPlayerClient.GameManager#choosePirate(SOCGame)}.
+     * When the choice is made, calls {@link GameMessageMaker#chooseRobber(SOCGame)}
+     * or {@link GameMessageMaker#choosePirate(SOCGame)}.
      *
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 2.0.00
@@ -4380,22 +4380,22 @@ public class SOCPlayerInterface extends Frame
 
         /**
          * React to the Move Robber button.
-         * Call {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int) pcli.choosePlayer(CHOICE_MOVE_ROBBER)}.
+         * Call {@link GameMessageMaker#choosePlayer(SOCGame, int) pcli.choosePlayer(CHOICE_MOVE_ROBBER)}.
          */
         @Override
         public void button1Chosen()
         {
-            pcli.getGameManager().chooseRobber(game);
+            pcli.getGameMessageMaker().chooseRobber(game);
         }
 
         /**
          * React to the Move Pirate button.
-         * Call {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int) pcli.choosePlayer(CHOICE_MOVE_PIRATE)}.
+         * Call {@link GameMessageMaker#choosePlayer(SOCGame, int) pcli.choosePlayer(CHOICE_MOVE_PIRATE)}.
          */
         @Override
         public void button2Chosen()
         {
-            pcli.getGameManager().choosePirate(game);
+            pcli.getGameMessageMaker().choosePirate(game);
         }
 
         /**
@@ -4409,7 +4409,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * Modal dialog to ask whether to rob cloth or a resource from the victim.
      * Start a new thread to show, so message treating can continue while the dialog is showing.
-     * When the choice is made, calls {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int)}.
+     * When the choice is made, calls {@link GameMessageMaker#choosePlayer(SOCGame, int)}.
      *
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 2.0.00
@@ -4439,22 +4439,22 @@ public class SOCPlayerInterface extends Frame
 
         /**
          * React to the Steal Cloth button.
-         * Call {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int) pcli.choosePlayer(-(vpn + 1))}.
+         * Call {@link GameMessageMaker#choosePlayer(SOCGame, int) pcli.choosePlayer(-(vpn + 1))}.
          */
         @Override
         public void button1Chosen()
         {
-            pcli.getGameManager().choosePlayer(game, -(vpn + 1));
+            pcli.getGameMessageMaker().choosePlayer(game, -(vpn + 1));
         }
 
         /**
          * React to the Steal Resource button.
-         * Call {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int) pcli.choosePlayer(vpn)}.
+         * Call {@link GameMessageMaker#choosePlayer(SOCGame, int) pcli.choosePlayer(vpn)}.
          */
         @Override
         public void button2Chosen()
         {
-            pcli.getGameManager().choosePlayer(game, vpn);
+            pcli.getGameMessageMaker().choosePlayer(game, vpn);
         }
 
         /**

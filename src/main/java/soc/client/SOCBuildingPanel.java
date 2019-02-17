@@ -934,7 +934,7 @@ import javax.swing.SwingConstants;
             }
             else if ((pieceButtonsState == SOCGame.PLACING_ROAD) || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD2))
             {
-                client.getGameManager().cancelBuildRequest(game, SOCPlayingPiece.ROAD);
+                client.getGameMessageMaker().cancelBuildRequest(game, SOCPlayingPiece.ROAD);
             }
         }
         else if (target == STLMT)
@@ -948,7 +948,7 @@ import javax.swing.SwingConstants;
             }
             else if (pieceButtonsState == SOCGame.PLACING_SETTLEMENT)
             {
-                client.getGameManager().cancelBuildRequest(game, SOCPlayingPiece.SETTLEMENT);
+                client.getGameMessageMaker().cancelBuildRequest(game, SOCPlayingPiece.SETTLEMENT);
             }
         }
         else if (target == CITY)
@@ -962,7 +962,7 @@ import javax.swing.SwingConstants;
             }
             else if (pieceButtonsState == SOCGame.PLACING_CITY)
             {
-                client.getGameManager().cancelBuildRequest(game, SOCPlayingPiece.CITY);
+                client.getGameMessageMaker().cancelBuildRequest(game, SOCPlayingPiece.CITY);
             }
         }
         else if (target == CARD)
@@ -971,7 +971,7 @@ import javax.swing.SwingConstants;
             {
                 if (stateBuyOK || canAskSBP)
                 {
-                    client.getGameManager().buyDevCard(game);
+                    client.getGameMessageMaker().buyDevCard(game);
                     pi.getClientHand().disableBankUndoButton();
                 }
             }
@@ -987,7 +987,7 @@ import javax.swing.SwingConstants;
             }
             else if ((pieceButtonsState == SOCGame.PLACING_SHIP) || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD2))
             {
-                client.getGameManager().cancelBuildRequest(game, SOCPlayingPiece.SHIP);
+                client.getGameMessageMaker().cancelBuildRequest(game, SOCPlayingPiece.SHIP);
             }
         }
         else if (target == SBP)
@@ -1002,7 +1002,7 @@ import javax.swing.SwingConstants;
             if (isCurrent && (sendBuildRequest == -1))
                 chp.setRollPrompt(null, true);  // clear the auto-roll countdown
 
-            client.getGameManager().buildRequest(game, sendBuildRequest);
+            client.getGameMessageMaker().buildRequest(game, sendBuildRequest);
             chp.disableBankUndoButton();
         }
     }

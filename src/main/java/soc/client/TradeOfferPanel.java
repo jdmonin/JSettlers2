@@ -905,7 +905,7 @@ import java.util.TimerTask;
                             new SOCTradeOffer (game.getName(),
                                                player.getPlayerNumber(),
                                                to, giveSet, getSet);
-                        hp.getClient().getGameManager().offerTrade(game, tradeOffer);
+                        hp.getClient().getGameMessageMaker().offerTrade(game, tradeOffer);
 
                         setCounterOfferVisible(true);
                     }
@@ -927,8 +927,9 @@ import java.util.TimerTask;
                 //int[] tempGive = new int[5];
                 //int[] tempGet = new int[5];
                 //squares.getValues(tempGive, tempGet);
+
                 cancelRejectCountdown();
-                hp.getClient().getGameManager().acceptOffer(hp.getGame(), from);
+                hp.getClient().getGameMessageMaker().acceptOffer(hp.getGame(), from);
                 hp.disableBankUndoButton();
             }
             } catch (Throwable th) {

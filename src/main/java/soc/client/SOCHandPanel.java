@@ -1033,24 +1033,24 @@ import javax.swing.UIManager;
         if (target == LOCKSEAT)
         {
             // Seat Lock while game forming (gamestate NEW); see below for ROBOTLOCKBUT_L etc
-            client.getGameManager().setSeatLock(game, playerNumber, SOCGame.SeatLockState.LOCKED);
+            client.getGameMessageMaker().setSeatLock(game, playerNumber, SOCGame.SeatLockState.LOCKED);
         }
         else if (target == UNLOCKSEAT)
         {
             // Unlock while game forming
-            client.getGameManager().setSeatLock(game, playerNumber, SOCGame.SeatLockState.UNLOCKED);
+            client.getGameMessageMaker().setSeatLock(game, playerNumber, SOCGame.SeatLockState.UNLOCKED);
         }
         else if (target == TAKEOVER)
         {
-            client.getGameManager().sitDown(game, playerNumber);
+            client.getGameMessageMaker().sitDown(game, playerNumber);
         }
         else if (target == SIT)
         {
-            client.getGameManager().sitDown(game, playerNumber);
+            client.getGameMessageMaker().sitDown(game, playerNumber);
         }
         else if ((target == START) && startBut.isVisible())
         {
-            client.getGameManager().startGame(game);
+            client.getGameMessageMaker().startGame(game);
 
             // checks isVisible to guard against button action from hitting spacebar
             // when hidden but has focus because startBut is the first button added to panel;
@@ -1076,7 +1076,7 @@ import javax.swing.UIManager;
         else if (target == DONE)
         {
             // sqPanel.setValues(zero, zero);
-            client.getGameManager().endTurn(game);
+            client.getGameMessageMaker().endTurn(game);
         }
         else if (target == DONE_RESTART)
         {
@@ -1087,7 +1087,7 @@ import javax.swing.UIManager;
             clearOffer(true);    // Zero the square panel numbers, unless board-reset vote in progress
             if (game.getGameState() == SOCGame.PLAY1)
             {
-                client.getGameManager().clearOffer(game);
+                client.getGameMessageMaker().clearOffer(game);
             }
         }
         else if (target == BANK)
@@ -1113,7 +1113,7 @@ import javax.swing.UIManager;
         {
             if ((bankGive != null) && (bankGet != null))
             {
-                client.getGameManager().bankTrade(game, bankGet, bankGive);  // undo by reversing previous request
+                client.getGameMessageMaker().bankTrade(game, bankGet, bankGive);  // undo by reversing previous request
                 bankGive = null;
                 bankGet = null;
                 bankUndoBut.setEnabled(false);
@@ -1202,7 +1202,7 @@ import javax.swing.UIManager;
                             new SOCTradeOffer(game.getName(),
                                               playerNumber,
                                               to, giveSet, getSet);
-                        client.getGameManager().offerTrade(game, tradeOffer);
+                        client.getGameMessageMaker().offerTrade(game, tradeOffer);
                         disableBankUndoButton();
                     }
                 }
@@ -1278,11 +1278,11 @@ import javax.swing.UIManager;
             // must take some actions now instead of when that message is received
 
         if (isFromTradePanel && (isOldServer || (player.getCurrentOffer() != null)))
-            client.getGameManager().clearOffer(game);
+            client.getGameMessageMaker().clearOffer(game);
 
         SOCResourceSet giveSet = new SOCResourceSet(give);
         SOCResourceSet getSet = new SOCResourceSet(get);
-        client.getGameManager().bankTrade(game, giveSet, getSet);
+        client.getGameMessageMaker().bankTrade(game, giveSet, getSet);
 
         bankGive = giveSet;
         bankGet = getSet;
@@ -1351,7 +1351,7 @@ import javax.swing.UIManager;
             break;
         }
 
-        client.getGameManager().setSeatLock(game, playerNumber, slNext);
+        client.getGameMessageMaker().setSeatLock(game, playerNumber, slNext);
     }
 
 
@@ -1371,7 +1371,7 @@ import javax.swing.UIManager;
         // Check first for "Cancel"
         if (game.getGameState() == SOCGame.PLACING_INV_ITEM)
         {
-            client.getGameManager().cancelBuildRequest(game, SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL);
+            client.getGameMessageMaker().cancelBuildRequest(game, SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL);
             return;
         }
 
@@ -1535,7 +1535,7 @@ import javax.swing.UIManager;
 
         if (cardTypeToPlay != -1)
         {
-            client.getGameManager().playDevCard(game, cardTypeToPlay);
+            client.getGameMessageMaker().playDevCard(game, cardTypeToPlay);
             disableBankUndoButton();
         }
     }
@@ -1549,7 +1549,7 @@ import javax.swing.UIManager;
     private final void clickPlayInventorySpecialItem(final SOCInventoryItem item)
     {
         if (item.isPlayable())
-            client.getGameManager().playInventoryItem(game, item.itype);
+            client.getGameMessageMaker().playInventoryItem(game, item.itype);
         // else isKept, or is new;
         // clickPlayCardButton checks these and prints a message to the user.
     }
@@ -1561,7 +1561,7 @@ import javax.swing.UIManager;
     {
         if (rollPromptInUse)
             setRollPrompt(null, false);  // Clear it
-        client.getGameManager().rollDice(game);
+        client.getGameMessageMaker().rollDice(game);
         rollBut.setEnabled(false);  // Only one roll per turn
     }
 
@@ -2571,7 +2571,7 @@ import javax.swing.UIManager;
      */
     public void rejectOfferAtClient()
     {
-        client.getGameManager().rejectOffer(game);
+        client.getGameMessageMaker().rejectOffer(game);
         if (offerHidesControls)
             hideTradeMsgShowOthers(false);
         repaint();
