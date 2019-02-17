@@ -71,9 +71,9 @@ import soc.util.Version;
 
 /**
  * Standalone client for connecting to the SOCServer. (For applet see {@link SOCApplet}.)
- * Nested class {@link SwingMainDisplay} prompts for name and password, then connects and
- * displays the lists of games and channels available.
- * The actual game is played in a separate {@link SOCPlayerInterface} window.
+ * The main user interface class {@link SwingMainDisplay} prompts for name and password,
+ * then connects and displays the lists of games and channels available.
+ * An actual game is played in a separate {@link SOCPlayerInterface} window.
  *<P>
  * If you want another connection port, you have to specify it as the "port"
  * argument in the html source. If you run this as a stand-alone, the port can be
@@ -103,7 +103,6 @@ import soc.util.Version;
  *
  * @author Robert S Thomas
  */
-@SuppressWarnings("serial")
 public class SOCPlayerClient
 {
     /**
@@ -392,8 +391,6 @@ public class SOCPlayerClient
      */
     protected int numPracticeGames = 0;
 
-
-
     /**
      * Create a SOCPlayerClient connecting to localhost port {@link ClientNetwork#SOC_PORT_DEFAULT}.
      * Initializes helper objects (except {@link MainDisplay}), locale, {@link SOCStringManager}.
@@ -494,10 +491,372 @@ public class SOCPlayerClient
     }
 
     /**
+     * Get this client's MainDisplay.
+     * @since 2.0.00
+     */
+    MainDisplay getMainDisplay()
+    {
+        return mainDisplay;
+    }
+
+    /**
+     * Get this client's ClientNetwork.
+     * @since 2.0.00
+     */
+    public ClientNetwork getNet()
+    {
+        return net;
+    }
+
+    /**
+     * Get this client's GameMessageMaker.
+     * @since 2.0.00
+     */
+    public GameMessageMaker getGameMessageMaker()
+    {
+        return gameMessageMaker;
+    }
+
+    /**
      * Get this client's MessageTreater.
      * @since 2.0.00
      */
     MessageTreater getMessageTreater() { return treater; }
+
+    /**
+     * Should this client request localized strings (I18N) from the server if available?
+     * Checks server version, checks whether client locale differs from the fallback {@code "en_US"}.
+     * @param isPractice  True if checking for local practice server, not a remote server
+     * @return  True if client should request localized strings
+     * @since 2.0.00
+     */
+    final boolean wantsI18nStrings(final boolean isPractice)
+    {
+        return (isPractice || (sVersion >= SOCStringManager.VERSION_FOR_I18N))
+            && (cliLocale != null)
+            && ! ("en".equals(cliLocale.getLanguage()) && "US".equals(cliLocale.getCountry()));
+    }
+
+    /**
+     * Check these game options to see if they contain a scenario we don't yet have full info about.
+     * If the options include a scenario and we don't have that scenario's info or localized strings,
+     * ask the server for that but don't wait here for a reply.
+     *<P>
+     * <B>Do not call for practice games:</B> Assumes this is the TCP server, because for practice games
+     * we already have full info about scenarios and their strings.
+     *
+     * @param opts  Game options to check for {@code "SC"}, or {@code null}
+     * @since 2.0.00
+     */
+    protected void checkGameoptsForUnknownScenario(final Map<String,SOCGameOption> opts)
+    {
+        if ((opts == null) || tcpServGameOpts.allScenInfoReceived || ! opts.containsKey("SC"))
+            return;
+
+        final String scKey = opts.get("SC").getStringValue();
+        if ((scKey.length() == 0) || tcpServGameOpts.scenKeys.contains(scKey))
+            return;
+
+        net.putNet(new SOCScenarioInfo(scKey, false).toCmd());
+    }
+
+    /**
+     * Localize {@link SOCScenario} names and descriptions with strings from the server.
+     * Updates scenario data in {@link #practiceServGameOpts} or {@link #tcpServGameOpts}.
+     *
+     * @param scStrs  Scenario localized strings, same format as {@link SOCLocalizedStrings} params.
+     * @param skipFirst  If true skip the first element of {@code scStrs}, it isn't a scenario keyname.
+     * @param sentAll  True if no further strings will be received; is {@link SOCLocalizedStrings#FLAG_SENT_ALL} set?
+     *     If true, sets {@link ServerGametypeInfo#allScenStringsReceived}.
+     * @param isPractice  Is the server {@link ClientNetwork#practiceServer}, not remote?
+     * @since 2.0.00
+     */
+    protected void localizeGameScenarios
+        (final List<String> scStrs, final boolean skipFirst, final boolean sentAll, final boolean isPractice)
+    {
+        ServerGametypeInfo opts = (isPractice ? practiceServGameOpts : tcpServGameOpts);
+
+        final int L = scStrs.size();
+        int i = (skipFirst) ? 1 : 0;
+        while (i < L)
+        {
+            final String scKey = scStrs.get(i);
+            ++i;
+            opts.scenKeys.add(scKey);
+
+            final String nm = scStrs.get(i);
+            ++i;
+
+            if (nm.equals(SOCLocalizedStrings.MARKER_KEY_UNKNOWN))
+                continue;
+
+            String desc = scStrs.get(i);
+            ++i;
+
+            SOCScenario sc = SOCScenario.getScenario(scKey);
+            if ((sc != null) && (nm.length() > 0))
+            {
+                if ((desc != null) && (desc.length() == 0))
+                    desc = null;
+
+                sc.setDesc(nm, desc);
+            }
+        }
+
+        if (sentAll)
+            opts.allScenStringsReceived = true;
+    }
+
+    /**
+     * Does a game with this name exist, either at the remote server or our Practice Server (if one is running)?
+     * @param gameName  Game name to check. Should not have the prefix {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
+     * @param checkPractice  True if should also check list of practice games, false to ignore practice games.
+     *     It's safe to use {@code true} even when the practice server isn't running.
+     * @return  True if game exists in client's practice server or remote server game lists
+     * @since 2.0.00
+     */
+    public boolean doesGameExist(final String gameName, final boolean checkPractice)
+    {
+        boolean gameExists = (checkPractice)
+            ? ((net.practiceServer != null) && (-1 != net.practiceServer.getGameState(gameName)))
+            : false;
+        if ((! gameExists) && (serverGames != null))
+            gameExists = gameExists || serverGames.isGame(gameName);
+
+        return gameExists;
+    }
+
+    /**
+     * Add a new game to the initial window's list of games, and possibly
+     * to the {@link #serverGames server games list}.
+     *
+     * @param gameName the game name to add to the list;
+     *            may have the prefix {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}
+     * @param gameOptsStr String of packed {@link SOCGameOption game options}, or null
+     * @param addToSrvList Should this game be added to the list of remote-server games?
+     *            Practice games should not be added.
+     *            The {@link #serverGames} list also has a flag for cannotJoin.
+     * @see #doesGameExist(String, boolean)
+     * @see MainDisplay#addToGameList(boolean, String, String, boolean)
+     */
+    public void addToGameList(String gameName, String gameOptsStr, final boolean addToSrvList)
+    {
+        boolean hasUnjoinMarker = (gameName.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE);
+        if (hasUnjoinMarker)
+        {
+            gameName = gameName.substring(1);
+        }
+        mainDisplay.addToGameList(hasUnjoinMarker, gameName, gameOptsStr, addToSrvList);
+    }
+
+    /** If we're playing in a game that's just finished, update the scores.
+     *  This is used to show the true scores, including hidden
+     *  victory-point cards, at the game's end.
+     *  @since 1.1.00
+     */
+    public void updateGameEndStats(String game, final int[] scores)
+    {
+        SOCGame ga = games.get(game);
+        if (ga == null)
+            return;  // Not playing in that game
+        if (ga.getGameState() != SOCGame.OVER)
+        {
+            System.err.println("L4044: pcli.updateGameEndStats called at state " + ga.getGameState());
+            return;  // Should not have been sent; game is not yet over.
+        }
+
+        PlayerClientListener pcl = clientListeners.get(game);
+        if (pcl == null)
+            return;
+        Map<SOCPlayer, Integer> scoresMap = new HashMap<SOCPlayer, Integer>();
+        for (int i=0; i<scores.length; ++i)
+        {
+            scoresMap.put(ga.getPlayer(i), Integer.valueOf(scores[i]));
+        }
+        pcl.gameEnded(scoresMap);
+    }
+
+    /**
+     * the user leaves the given chat channel
+     *
+     * @param ch  the name of the channel
+     */
+    public void leaveChannel(String ch)
+    {
+        mainDisplay.channelLeft(ch);
+        net.putNet(SOCLeaveChannel.toCmd(nickname, net.getHost(), ch));
+    }
+
+    /**
+     * @return true if name is on the ignore list
+     */
+    protected boolean onIgnoreList(String name)
+    {
+        boolean result = false;
+
+        for (String s : ignoreList)
+        {
+            if (s.equals(name))
+            {
+                result = true;
+
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * add this name to the ignore list
+     *
+     * @param name the name to add
+     * @see #removeFromIgnoreList(String)
+     */
+    protected void addToIgnoreList(String name)
+    {
+        name = name.trim();
+
+        if (! onIgnoreList(name))
+        {
+            ignoreList.addElement(name);
+        }
+    }
+
+    /**
+     * remove this name from the ignore list
+     *
+     * @param name  the name to remove
+     * @see #addToIgnoreList(String)
+     */
+    protected void removeFromIgnoreList(String name)
+    {
+        name = name.trim();
+        ignoreList.removeElement(name);
+    }
+
+    /**
+     * Create a game name, and start a practice game.
+     * Assumes {@link SwingMainDisplay#MAIN_PANEL} is initialized.
+     * See {@link #startPracticeGame(String, Map, boolean)} for details.
+     * @return True if the practice game request was sent, false if there was a problem
+     *         starting the practice server or client
+     * @since 1.1.00
+     */
+    public boolean startPracticeGame()
+    {
+        return startPracticeGame(null, null, true);
+    }
+
+    /**
+     * Setup for practice game (on the non-tcp server).
+     * If needed, a (stringport, not tcp) {@link ClientNetwork#practiceServer}, client, and robots are started.
+     *
+     * @param practiceGameName Unique name to give practice game; if name unknown, call
+     *         {@link #startPracticeGame()} instead
+     * @param gameOpts Set of {@link SOCGameOption game options} to use, or null
+     * @param mainPanelIsActive Is the SOCPlayerClient main panel active?
+     *         False if we're being called from elsewhere, such as
+     *         {@link SOCConnectOrPracticePanel}.
+     * @return True if the practice game request was sent, false if there was a problem
+     *         starting the practice server or client
+     * @since 1.1.00
+     */
+    public boolean startPracticeGame
+        (String practiceGameName, final Map<String, SOCGameOption> gameOpts, final boolean mainPanelIsActive)
+    {
+        ++numPracticeGames;
+
+        if (practiceGameName == null)
+            practiceGameName = DEFAULT_PRACTICE_GAMENAME + " " + (numPracticeGames);  // "Practice 3"
+
+        // May take a while to start server & game.
+        // The new-game window will clear this cursor.
+        mainDisplay.practiceGameStarting();
+
+        return net.startPracticeGame(practiceGameName, gameOpts);
+    }
+
+    /**
+     * For new-game requests, a per-game local preference map from {@link NewGameOptionsFrame} to pass to
+     * that new game's {@link SOCPlayerInterface} constructor.
+     *<P>
+     * Preference name keys are {@link SOCPlayerInterface#PREF_SOUND_MUTE}, etc.
+     * Values for boolean prefs should be {@link Boolean#TRUE} or {@code .FALSE}.  
+     *<P>
+     * The {@link HashMap} of game names permits a {@code null} value instead of a Map,
+     * but there is no guarantee that preference values can be {@code null} within a game's Map.
+     *
+     * @param gaName  Game name
+     * @param localPrefs  Local prefs to store for {@code gaName}
+     * @since 2.0.00
+     */
+    void putGameReqLocalPrefs(final String gaName, final Map<String, Object> localPrefs)
+    {
+        gameReqLocalPrefs.put(gaName, localPrefs);
+    }
+
+    /**
+     * Server version, for checking feature availability.
+     * Returns -1 if unknown. Checks {@link SOCGame#isPractice}:
+     * practice games always return this client's own {@link soc.util.Version#versionNumber()}.
+     *<P>
+     * Instead of calling this method, some client code checks a game's version like:<BR>
+     * {@code (game.isPractice || (client.sVersion >= VERSION_FOR_AUTHREQUEST))}
+     *
+     * @param  game  Game being played on a practice or tcp server.
+     * @return Server version, in same format as {@link soc.util.Version#versionNumber()},
+     *         or 0 or -1.
+     * @since 1.1.00
+     */
+    public int getServerVersion(SOCGame game)
+    {
+        if (game.isPractice)
+            return Version.versionNumber();
+        else
+            return sVersion;
+    }
+
+    /**
+     * network trouble; if possible, ask if they want to play locally (practiceServer vs. robots).
+     * Otherwise, go ahead and shut down. Either way, calls {@link MainDisplay#showErrorPanel(String, boolean)}
+     * to show an error message or network exception detail.
+     *<P>
+     * "If possible" is determined from return value of {@link ClientNetwork#putLeaveAll()}.
+     *<P>
+     * Before v1.2.01 this method was {@code destroy()}.
+     */
+    public void shutdownFromNetwork()
+    {
+        final boolean canPractice = net.putLeaveAll(); // Can we still start a practice game?
+
+        String err;
+        if (canPractice)
+        {
+            err = strings.get("pcli.error.networktrouble");  // "Sorry, network trouble has occurred."
+        } else {
+            err = strings.get("pcli.error.clientshutdown");  // "Sorry, the client has been shut down."
+        }
+        err = err + " " + ((net.ex == null) ? strings.get("pcli.error.loadpageagain") : net.ex.toString());
+            // "Load the page again."
+
+        mainDisplay.channelsClosed(err);
+
+        // Stop network games; continue Practice games if possible.
+        for (Map.Entry<String, PlayerClientListener> e : clientListeners.entrySet())
+        {
+            String gameName = e.getKey();
+            SOCGame game = games.get(gameName);
+            boolean isPractice = canPractice && (game != null) && game.isPractice;
+            if (! isPractice)
+                e.getValue().gameDisconnected(false, err);
+        }
+
+        net.dispose();
+
+        mainDisplay.showErrorPanel(err, canPractice);
+    }
+
 
     /**
      * Nested class for processing incoming messages (treating).
@@ -2831,6 +3190,11 @@ public class SOCPlayerClient
      * For a summary of the flags and variables involved with game options,
      * and the client/server interaction about their values, see
      * {@link ServerGametypeInfo}.
+     *<P>
+     * When first connected to a server having a different version, the client negotiates available options.
+     * To avoid hanging on this process because of a very slow network or bug,
+     * {@link SwingMainDisplay.GameOptionsTimeoutTask} can eventually call this
+     * method to signal that all options have been received.
      *
      * @since 1.1.07
      */
@@ -3312,358 +3676,6 @@ public class SOCPlayerClient
 
 
     /**
-     * Should this client request localized strings (I18N) from the server if available?
-     * Checks server version, checks whether client locale differs from the fallback {@code "en_US"}.
-     * @param isPractice  True if checking for local practice server, not a remote server
-     * @return  True if client should request localized strings
-     * @since 2.0.00
-     */
-    final boolean wantsI18nStrings(final boolean isPractice)
-    {
-        return (isPractice || (sVersion >= SOCStringManager.VERSION_FOR_I18N))
-            && (cliLocale != null)
-            && ! ("en".equals(cliLocale.getLanguage()) && "US".equals(cliLocale.getCountry()));
-    }
-
-    /**
-     * Check these game options to see if they contain a scenario we don't yet have full info about.
-     * If the options include a scenario and we don't have that scenario's info or localized strings,
-     * ask the server for that but don't wait here for a reply.
-     *<P>
-     * <B>Do not call for practice games:</B> Assumes this is the TCP server, because for practice games
-     * we already have full info about scenarios and their strings.
-     *
-     * @param opts  Game options to check for {@code "SC"}, or {@code null}
-     * @since 2.0.00
-     */
-    protected void checkGameoptsForUnknownScenario(final Map<String,SOCGameOption> opts)
-    {
-        if ((opts == null) || tcpServGameOpts.allScenInfoReceived || ! opts.containsKey("SC"))
-            return;
-
-        final String scKey = opts.get("SC").getStringValue();
-        if ((scKey.length() == 0) || tcpServGameOpts.scenKeys.contains(scKey))
-            return;
-
-        net.putNet(new SOCScenarioInfo(scKey, false).toCmd());
-    }
-
-    /**
-     * Localize {@link SOCScenario} names and descriptions with strings from the server.
-     * Updates scenario data in {@link #practiceServGameOpts} or {@link #tcpServGameOpts}.
-     *
-     * @param scStrs  Scenario localized strings, same format as {@link SOCLocalizedStrings} params.
-     * @param skipFirst  If true skip the first element of {@code scStrs}, it isn't a scenario keyname.
-     * @param sentAll  True if no further strings will be received; is {@link SOCLocalizedStrings#FLAG_SENT_ALL} set?
-     *     If true, sets {@link ServerGametypeInfo#allScenStringsReceived}.
-     * @param isPractice  Is the server {@link ClientNetwork#practiceServer}, not remote?
-     * @since 2.0.00
-     */
-    protected void localizeGameScenarios
-        (final List<String> scStrs, final boolean skipFirst, final boolean sentAll, final boolean isPractice)
-    {
-        ServerGametypeInfo opts = (isPractice ? practiceServGameOpts : tcpServGameOpts);
-
-        final int L = scStrs.size();
-        int i = (skipFirst) ? 1 : 0;
-        while (i < L)
-        {
-            final String scKey = scStrs.get(i);
-            ++i;
-            opts.scenKeys.add(scKey);
-
-            final String nm = scStrs.get(i);
-            ++i;
-
-            if (nm.equals(SOCLocalizedStrings.MARKER_KEY_UNKNOWN))
-                continue;
-
-            String desc = scStrs.get(i);
-            ++i;
-
-            SOCScenario sc = SOCScenario.getScenario(scKey);
-            if ((sc != null) && (nm.length() > 0))
-            {
-                if ((desc != null) && (desc.length() == 0))
-                    desc = null;
-
-                sc.setDesc(nm, desc);
-            }
-        }
-
-        if (sentAll)
-            opts.allScenStringsReceived = true;
-    }
-
-    /**
-     * Does a game with this name exist, either at the remote server or our Practice Server (if one is running)?
-     * @param gameName  Game name to check. Should not have the prefix {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
-     * @param checkPractice  True if should also check list of practice games, false to ignore practice games.
-     *     It's safe to use {@code true} even when the practice server isn't running.
-     * @return  True if game exists in client's practice server or remote server game lists
-     * @since 2.0.00
-     */
-    public boolean doesGameExist(final String gameName, final boolean checkPractice)
-    {
-        boolean gameExists = (checkPractice)
-            ? ((net.practiceServer != null) && (-1 != net.practiceServer.getGameState(gameName)))
-            : false;
-        if ((! gameExists) && (serverGames != null))
-            gameExists = gameExists || serverGames.isGame(gameName);
-
-        return gameExists;
-    }
-
-    /**
-     * Add a new game to the initial window's list of games, and possibly
-     * to the {@link #serverGames server games list}.
-     *
-     * @param gameName the game name to add to the list;
-     *            may have the prefix {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}
-     * @param gameOptsStr String of packed {@link SOCGameOption game options}, or null
-     * @param addToSrvList Should this game be added to the list of remote-server games?
-     *            Practice games should not be added.
-     *            The {@link #serverGames} list also has a flag for cannotJoin.
-     * @see #doesGameExist(String, boolean)
-     * @see MainDisplay#addToGameList(boolean, String, String, boolean)
-     */
-    public void addToGameList(String gameName, String gameOptsStr, final boolean addToSrvList)
-    {
-        boolean hasUnjoinMarker = (gameName.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE);
-        if (hasUnjoinMarker)
-        {
-            gameName = gameName.substring(1);
-        }
-        mainDisplay.addToGameList(hasUnjoinMarker, gameName, gameOptsStr, addToSrvList);
-    }
-
-    /** If we're playing in a game that's just finished, update the scores.
-     *  This is used to show the true scores, including hidden
-     *  victory-point cards, at the game's end.
-     *  @since 1.1.00
-     */
-    public void updateGameEndStats(String game, final int[] scores)
-    {
-        SOCGame ga = games.get(game);
-        if (ga == null)
-            return;  // Not playing in that game
-        if (ga.getGameState() != SOCGame.OVER)
-        {
-            System.err.println("L4044: pcli.updateGameEndStats called at state " + ga.getGameState());
-            return;  // Should not have been sent; game is not yet over.
-        }
-
-        PlayerClientListener pcl = clientListeners.get(game);
-        if (pcl == null)
-            return;
-        Map<SOCPlayer, Integer> scoresMap = new HashMap<SOCPlayer, Integer>();
-        for (int i=0; i<scores.length; ++i)
-        {
-            scoresMap.put(ga.getPlayer(i), Integer.valueOf(scores[i]));
-        }
-        pcl.gameEnded(scoresMap);
-    }
-
-    /**
-     * the user leaves the given chat channel
-     *
-     * @param ch  the name of the channel
-     */
-    public void leaveChannel(String ch)
-    {
-        mainDisplay.channelLeft(ch);
-        net.putNet(SOCLeaveChannel.toCmd(nickname, net.getHost(), ch));
-    }
-
-    /**
-     * Get this client's MainDisplay.
-     * @since 2.0.00
-     */
-    MainDisplay getMainDisplay()
-    {
-        return mainDisplay;
-    }
-
-    /**
-     * Get this client's GameMessageMaker.
-     * @since 2.0.00
-     */
-    public GameMessageMaker getGameMessageMaker()
-    {
-        return gameMessageMaker;
-    }
-
-    /**
-     * @return true if name is on the ignore list
-     */
-    protected boolean onIgnoreList(String name)
-    {
-        boolean result = false;
-
-        for (String s : ignoreList)
-        {
-            if (s.equals(name))
-            {
-                result = true;
-
-                break;
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * add this name to the ignore list
-     *
-     * @param name the name to add
-     * @see #removeFromIgnoreList(String)
-     */
-    protected void addToIgnoreList(String name)
-    {
-        name = name.trim();
-
-        if (! onIgnoreList(name))
-        {
-            ignoreList.addElement(name);
-        }
-    }
-
-    /**
-     * remove this name from the ignore list
-     *
-     * @param name  the name to remove
-     * @see #addToIgnoreList(String)
-     */
-    protected void removeFromIgnoreList(String name)
-    {
-        name = name.trim();
-        ignoreList.removeElement(name);
-    }
-
-    /**
-     * Create a game name, and start a practice game.
-     * Assumes {@link SwingMainDisplay#MAIN_PANEL} is initialized.
-     * See {@link #startPracticeGame(String, Map, boolean)} for details.
-     * @return True if the practice game request was sent, false if there was a problem
-     *         starting the practice server or client
-     * @since 1.1.00
-     */
-    public boolean startPracticeGame()
-    {
-        return startPracticeGame(null, null, true);
-    }
-
-    /**
-     * Setup for practice game (on the non-tcp server).
-     * If needed, a (stringport, not tcp) {@link ClientNetwork#practiceServer}, client, and robots are started.
-     *
-     * @param practiceGameName Unique name to give practice game; if name unknown, call
-     *         {@link #startPracticeGame()} instead
-     * @param gameOpts Set of {@link SOCGameOption game options} to use, or null
-     * @param mainPanelIsActive Is the SOCPlayerClient main panel active?
-     *         False if we're being called from elsewhere, such as
-     *         {@link SOCConnectOrPracticePanel}.
-     * @return True if the practice game request was sent, false if there was a problem
-     *         starting the practice server or client
-     * @since 1.1.00
-     */
-    public boolean startPracticeGame
-        (String practiceGameName, final Map<String, SOCGameOption> gameOpts, final boolean mainPanelIsActive)
-    {
-        ++numPracticeGames;
-
-        if (practiceGameName == null)
-            practiceGameName = DEFAULT_PRACTICE_GAMENAME + " " + (numPracticeGames);  // "Practice 3"
-
-        // May take a while to start server & game.
-        // The new-game window will clear this cursor.
-        mainDisplay.practiceGameStarting();
-
-        return net.startPracticeGame(practiceGameName, gameOpts);
-    }
-
-    /**
-     * For new-game requests, a per-game local preference map from {@link NewGameOptionsFrame} to pass to
-     * that new game's {@link SOCPlayerInterface} constructor.
-     *<P>
-     * Preference name keys are {@link SOCPlayerInterface#PREF_SOUND_MUTE}, etc.
-     * Values for boolean prefs should be {@link Boolean#TRUE} or {@code .FALSE}.  
-     *<P>
-     * The {@link HashMap} of game names permits a {@code null} value instead of a Map,
-     * but there is no guarantee that preference values can be {@code null} within a game's Map.
-     *
-     * @param gaName  Game name
-     * @param localPrefs  Local prefs to store for {@code gaName}
-     * @since 2.0.00
-     */
-    void putGameReqLocalPrefs(final String gaName, final Map<String, Object> localPrefs)
-    {
-        gameReqLocalPrefs.put(gaName, localPrefs);
-    }
-
-    /**
-     * Server version, for checking feature availability.
-     * Returns -1 if unknown. Checks {@link SOCGame#isPractice}:
-     * practice games always return this client's own {@link soc.util.Version#versionNumber()}.
-     *<P>
-     * Instead of calling this method, some client code checks a game's version like:<BR>
-     * {@code (game.isPractice || (client.sVersion >= VERSION_FOR_AUTHREQUEST))}
-     *
-     * @param  game  Game being played on a practice or tcp server.
-     * @return Server version, in same format as {@link soc.util.Version#versionNumber()},
-     *         or 0 or -1.
-     * @since 1.1.00
-     */
-    public int getServerVersion(SOCGame game)
-    {
-        if (game.isPractice)
-            return Version.versionNumber();
-        else
-            return sVersion;
-    }
-
-    /**
-     * network trouble; if possible, ask if they want to play locally (practiceServer vs. robots).
-     * Otherwise, go ahead and shut down. Either way, calls {@link MainDisplay#showErrorPanel(String, boolean)}
-     * to show an error message or network exception detail.
-     *<P>
-     * "If possible" is determined from return value of {@link ClientNetwork#putLeaveAll()}.
-     *<P>
-     * Before v1.2.01 this method was {@code destroy()}.
-     */
-    public void shutdownFromNetwork()
-    {
-        final boolean canPractice = net.putLeaveAll(); // Can we still start a practice game?
-
-        String err;
-        if (canPractice)
-        {
-            err = strings.get("pcli.error.networktrouble");  // "Sorry, network trouble has occurred."
-        } else {
-            err = strings.get("pcli.error.clientshutdown");  // "Sorry, the client has been shut down."
-        }
-        err = err + " " + ((net.ex == null) ? strings.get("pcli.error.loadpageagain") : net.ex.toString());
-            // "Load the page again."
-
-        mainDisplay.channelsClosed(err);
-
-        // Stop network games; continue Practice games if possible.
-        for (Map.Entry<String, PlayerClientListener> e : clientListeners.entrySet())
-        {
-            String gameName = e.getKey();
-            SOCGame game = games.get(gameName);
-            boolean isPractice = canPractice && (game != null) && game.isPractice;
-            if (! isPractice)
-                e.getValue().gameDisconnected(false, err);
-        }
-
-        net.dispose();
-
-        mainDisplay.showErrorPanel(err, canPractice);
-    }
-
-    /**
      * for stand-alones
      */
     public static void usage()
@@ -3734,15 +3746,6 @@ public class SOCPlayerClient
 
         if ((host != null) && (port != -1))
             client.net.connect(host, port);
-    }
-
-    /**
-     * Get this client's ClientNetwork.
-     * @since 2.0.00
-     */
-    public ClientNetwork getNet()
-    {
-        return net;
     }
 
 
