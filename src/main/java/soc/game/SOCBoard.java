@@ -1080,7 +1080,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
         //   We're operating on Integer instances, which is okay because
         //   vector methods such as contains() and remove() test obj.equals()
         //   to determine if the Integer is a member.
-        //   (getAdjacent() returns Integer.valueOf objs with the same value
+        //   (getAdjacent() returns Integers with the same value
         //    as unvisited's members.)
 
         boolean clumpsNotOK = false;    // will set true in while-loop body
