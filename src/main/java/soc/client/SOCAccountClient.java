@@ -36,19 +36,12 @@ import soc.util.SOCFeatureSet;
 import soc.util.Version;
 
 import java.applet.Applet;
-import java.applet.AppletContext;
 
 import java.awt.BorderLayout;
-import java.awt.Button;
 import java.awt.CardLayout;
 import java.awt.Color;
-import java.awt.Font;
-import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Label;
-import java.awt.Panel;
-import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -62,6 +55,17 @@ import java.io.IOException;
 
 import java.net.Socket;
 import java.util.Locale;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.WindowConstants;
 
 
 /**
@@ -115,29 +119,25 @@ public class SOCAccountClient extends Applet
      * Account info dialog prompt/label.
      * @since 1.1.20
      */
-    private Label promptLabel;
+    private JLabel promptLabel;
 
     /**
      * Nickname field label.
      * @since 1.1.20
      */
-    private Label nickLabel;
-
-    /** Nickname field ({@link #nick}) tooltip. */
-    private AWTToolTip nickTTip;
+    private JLabel nickLabel;
 
     /** Name of new user to be created. */
-    protected TextField nick;
-    protected TextField pass;
-    protected TextField pass2;
-    protected TextField email;
+    private JTextField nick;
+    private JPasswordField pass;
+    private JPasswordField pass2;
+    private JTextField email;
 
-    protected TextField status;
-    protected Button submit;
-    protected Label messageLabel;
+    private JTextField status;
+    private JButton submit;
+    private JLabel messageLabel;
 
-    protected AppletContext ac;
-    protected boolean submitLock;
+    private boolean submitLock;
 
     /**
      * Connect and Authenticate panel ({@link #CONN_PANEL}), for when
@@ -145,19 +145,19 @@ public class SOCAccountClient extends Applet
      * Created in {@link #initInterface_conn()}.
      * @since 1.1.19
      */
-    private Panel connPanel;
+    private JPanel connPanel;
 
     /**
      * Username, password, and status fields on {@link #connPanel}.
      * @since 1.1.19
      */
-    private TextField conn_user, conn_pass, conn_status;
+    private JTextField conn_user, conn_pass, conn_status;
 
     /**
      * Connect and Cancel buttons on {@link #connPanel}.
      * @since 1.1.19
      */
-    private Button conn_connect, conn_cancel;
+    private JButton conn_connect, conn_cancel;
 
     /**
      * If true, a username/password {@link SOCAuthRequest} has been sent to the server from {@link #connPanel}.
@@ -167,7 +167,7 @@ public class SOCAccountClient extends Applet
      */
     private boolean conn_sentAuth;
 
-    protected CardLayout cardLayout;
+    private CardLayout cardLayout;
 
     protected String host;
     protected int port;
@@ -287,62 +287,52 @@ public class SOCAccountClient extends Applet
      */
     protected void initVisualElements()
     {
-        char pwchar = SOCPlayerClient.isJavaOnOSX ? '\u2022' : '*';
-
-        setFont(new Font("SansSerif", Font.PLAIN, 12));
-
-        nick = new TextField(20);
-        pass = new TextField(10);
-        pass.setEchoChar(pwchar);
-        pass2 = new TextField(10);
-        pass2.setEchoChar(pwchar);
-        email = new TextField(50);
-        status = new TextField(50);
+        nick = new JTextField(20);
+        pass = new JPasswordField(10);
+        pass2 = new JPasswordField(10);
+        email = new JTextField(50);
+        status = new JTextField(50);
         status.setEditable(false);
-        submit = new Button(strings.get("account.okcreate"));  // "Create Account"
+        submit = new JButton(strings.get("account.okcreate"));  // "Create Account"
         submitLock = false;
 
         submit.addActionListener(this);
 
-        ac = null;
-
         GridBagLayout gbl = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
-        Panel mainPane = new Panel(gbl);
+        JPanel mainPane = new JPanel(gbl);
 
         c.fill = GridBagConstraints.BOTH;
 
-        Label l;
+        JLabel l;
 
-        promptLabel = new Label(strings.get("account.create.prompt.enter_your_info"));
+        promptLabel = new JLabel(strings.get("account.create.prompt.enter_your_info"), SwingConstants.CENTER);
                 // "To create an account, please enter your information."
-        promptLabel.setAlignment(Label.CENTER);
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(promptLabel, c);
         mainPane.add(promptLabel);
 
-        l = new Label();  // spacer
+        l = new JLabel(" ");  // spacer row
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(l, c);
         mainPane.add(l);
 
-        nickLabel = new Label(strings.get("account.create.nickname.your"));  // "Your Nickname:"
+        nickLabel = new JLabel(strings.get("account.create.nickname.your"));  // "Your Nickname:"
+        nickLabel.setToolTipText(strings.get("account.create.nickname.your.tip"));  // "This will be your username."
         c.gridwidth = 1;
         gbl.setConstraints(nickLabel, c);
         mainPane.add(nickLabel);
-        nickTTip = new AWTToolTip(strings.get("account.create.nickname.your.tip"), nick);
-            // "This will be your username."
 
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(nick, c);
         mainPane.add(nick);
 
-        l = new Label();
+        l = new JLabel();
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(l, c);
         mainPane.add(l);
 
-        l = new Label(strings.get("account.create.password"));  // "Password:"
+        l = new JLabel(strings.get("account.create.password"));  // "Password:"
         c.gridwidth = 1;
         gbl.setConstraints(l, c);
         mainPane.add(l);
@@ -351,12 +341,12 @@ public class SOCAccountClient extends Applet
         gbl.setConstraints(pass, c);
         mainPane.add(pass);
 
-        l = new Label();
+        l = new JLabel();
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(l, c);
         mainPane.add(l);
 
-        l = new Label(strings.get("account.create.password.again"));  // "Password (again):"
+        l = new JLabel(strings.get("account.create.password.again"));  // "Password (again):"
         c.gridwidth = 1;
         gbl.setConstraints(l, c);
         mainPane.add(l);
@@ -365,12 +355,12 @@ public class SOCAccountClient extends Applet
         gbl.setConstraints(pass2, c);
         mainPane.add(pass2);
 
-        l = new Label();
+        l = new JLabel();
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(l, c);
         mainPane.add(l);
 
-        l = new Label(strings.get("account.create.email"));  // "Email (optional):"
+        l = new JLabel(strings.get("account.create.email"));  // "Email (optional):"
         c.gridwidth = 1;
         gbl.setConstraints(l, c);
         mainPane.add(l);
@@ -379,21 +369,28 @@ public class SOCAccountClient extends Applet
         gbl.setConstraints(email, c);
         mainPane.add(email);
 
-        l = new Label();
+        l = new JLabel();
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(l, c);
         mainPane.add(l);
 
-        l = new Label();
+        l = new JLabel();
         c.gridwidth = 1;
         gbl.setConstraints(l, c);
         mainPane.add(l);
 
+        int oldAnchor = c.anchor;
         c.gridwidth = GridBagConstraints.REMAINDER;
+        c.fill = GridBagConstraints.NONE;
+        c.anchor = GridBagConstraints.LINE_START;
+        c.ipadx = 20;
         gbl.setConstraints(submit, c);
         mainPane.add(submit);
+        c.fill = GridBagConstraints.BOTH;
+        c.anchor = oldAnchor;
+        c.ipadx = 0;
 
-        l = new Label();
+        l = new JLabel();
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(l, c);
         mainPane.add(l);
@@ -403,9 +400,9 @@ public class SOCAccountClient extends Applet
         mainPane.add(status);
 
         // message label that takes up the whole pane
-        messageLabel = new Label("", Label.CENTER);
+        messageLabel = new JLabel("", SwingConstants.CENTER);
 
-        Panel messagePane = new Panel(new BorderLayout());
+        JPanel messagePane = new JPanel(new BorderLayout());
         messagePane.add(messageLabel, BorderLayout.CENTER);
 
         // all together now...
@@ -414,6 +411,9 @@ public class SOCAccountClient extends Applet
 
         add(messagePane, MESSAGE_PANEL); // shown first
         add(mainPane, MAIN_PANEL);
+
+        // Note: JFrame validate and pack seem to use mainPane's size, even if messagePane is taller; fields get cut off.
+        // Workaround: Make sure mainPane is taller
     }
 
     /**
@@ -425,85 +425,86 @@ public class SOCAccountClient extends Applet
      */
     private void initInterface_conn()
     {
-        Panel pconn = new Panel();
-        Label L;
+        JPanel pconn = new JPanel();
 
         GridBagLayout gbl = new GridBagLayout();
         GridBagConstraints gbc = new GridBagConstraints();
         pconn.setLayout(gbl);
         gbc.fill = GridBagConstraints.BOTH;
 
+        JLabel L;
+
         // heading row
-        L = new Label(strings.get("account.common.must_auth"));
+        L = new JLabel(strings.get("account.common.must_auth"), SwingConstants.CENTER);
             // "You must log in with a username and password before you can create accounts."
-        L.setAlignment(Label.CENTER);
         gbc.gridwidth = 4;
+        gbc.ipady = 8;  // space between this and next row
         gbl.setConstraints(L, gbc);
         pconn.add(L);
-        L = new Label(" ");  // Spacing for rest of form's rows
+        L = new JLabel();  // Spacing for rest of form's rows
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
+        gbc.ipady = 0;
 
-        // blank row
-        L = new Label();
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbl.setConstraints(L, gbc);
-        pconn.add(L);
+        // rows for server, port, nickname, password:
 
-        L = new Label(strings.get("pcli.cpp.server"));
+        gbc.ipady = 2;
+
+        L = new JLabel(strings.get("pcli.cpp.server"));
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
-        L = new Label(host);
+        L = new JLabel(host);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.ipadx = 4;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
+        gbc.ipadx = 0;
 
-        L = new Label(strings.get("pcli.cpp.port"));
+        L = new JLabel(strings.get("pcli.cpp.port"));
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
-        L = new Label(Integer.toString(port));
+        L = new JLabel(Integer.toString(port));
         gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.ipadx = 4;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
+        gbc.ipadx = 0;
 
-        L = new Label(strings.get("pcli.cpp.nickname"));
+        L = new JLabel(strings.get("pcli.cpp.nickname"));
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
-        conn_user = new TextField(20);
+        conn_user = new JTextField(20);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(conn_user, gbc);
         conn_user.addKeyListener(this);
         pconn.add(conn_user);
 
-        L = new Label(strings.get("pcli.cpp.password"));
+        L = new JLabel(strings.get("pcli.cpp.password"));
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
-        conn_pass = new TextField(20);
-        conn_pass.setEchoChar ((SOCPlayerClient.isJavaOnOSX) ? '\u2022' : '*');  // OSX: round bullet (option-8)
+        conn_pass = new JPasswordField(20);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(conn_pass, gbc);
         conn_pass.addKeyListener(this);
         pconn.add(conn_pass);
 
-        L = new Label(" ");  // spacer row
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbl.setConstraints(L, gbc);
-        pconn.add(L);
+        gbc.ipady = 0;
 
         // Connect and Cancel buttons shouldn't stretch entire width, so they get their own sub-Panel
-        Panel btnsRow = new Panel();
+        JPanel btnsRow = new JPanel();
+        btnsRow.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
 
-        conn_connect = new Button(strings.get("pcli.cpp.connect"));
+        conn_connect = new JButton(strings.get("pcli.cpp.connect"));
         conn_connect.addActionListener(this);
         conn_connect.addKeyListener(this);  // for win32 keyboard-focus ESC/ENTER
         btnsRow.add(conn_connect);
 
-        conn_cancel = new Button(strings.get("base.cancel"));
+        conn_cancel = new JButton(strings.get("base.cancel"));
         conn_cancel.addActionListener(this);
         conn_cancel.addKeyListener(this);
         btnsRow.add(conn_cancel);
@@ -513,11 +514,7 @@ public class SOCAccountClient extends Applet
         gbl.setConstraints(btnsRow, gbc);
         pconn.add(btnsRow);
 
-        L = new Label(" ");  // spacer row
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbl.setConstraints(L, gbc);
-        pconn.add(L);
-        conn_status = new TextField(50);
+        conn_status = new JTextField(50);
         conn_status.setEditable(false);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(conn_status, gbc);
@@ -546,7 +543,8 @@ public class SOCAccountClient extends Applet
         promptLabel.setText(strings.get("account.create.prompt.enter_its_info"));
             // "To create an account, please enter its information."
         nickLabel.setText(strings.get("account.create.nickname.its"));  // "Nickname:"
-        nickTTip.setTip(strings.get("account.create.nickname.its.tip"));  // "This will be the new account's username."
+        nickLabel.setToolTipText(strings.get("account.create.nickname.its.tip"));
+            // "This will be the new account's username."
     }
 
     /**
@@ -739,8 +737,8 @@ public class SOCAccountClient extends Applet
                 return;  // Not a valid username
             }
 
-            password = pass.getText().trim();
-            password2 = pass2.getText().trim();
+            getPasswordFields();  // set password, password2 from JPasswordFields pass, pass2
+
             emailAddress = email.getText().trim();
 
             //
@@ -781,6 +779,18 @@ public class SOCAccountClient extends Applet
         {
             clickConnCancel();
         }
+    }
+
+    /**
+     * Set {@link #password} and {@link #password2} string fields from GUI fields {@link #pass} and {@link #pass2}.
+     * Separate method to limit scope of SuppressWarnings.
+     * @since 2.0.00
+     */
+    @SuppressWarnings("deprecation")
+    private void getPasswordFields()
+    {
+        password = pass.getText().trim();
+        password2 = pass2.getText().trim();
     }
 
     /**
@@ -1092,6 +1102,10 @@ public class SOCAccountClient extends Applet
      */
     public static void main(String[] args)
     {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {}
+
         SOCAccountClient client = new SOCAccountClient();
 
         if (args.length != 2)
@@ -1109,16 +1123,17 @@ public class SOCAccountClient extends Applet
             System.exit(1);
         }
 
-        Frame frame = new Frame("SOCAccountClient");
-        frame.setBackground(SOCPlayerClient.JSETTLERS_BG_GREEN);
-        frame.setForeground(Color.BLACK);
+        JFrame frame = new JFrame("SOCAccountClient");
+        frame.getRootPane().setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+
         // Add a listener for the close event
+        frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         frame.addWindowListener(client.createWindowAdapter());
 
         client.initVisualElements(); // after the background is set
 
         frame.add(client, BorderLayout.CENTER);
-        frame.setSize(600, 350);
+        frame.pack();
         frame.setVisible(true);
 
         client.connect();
@@ -1126,20 +1141,18 @@ public class SOCAccountClient extends Applet
 
     private WindowAdapter createWindowAdapter()
     {
-        return new MyWindowAdapter();
-    }
-
-    private class MyWindowAdapter extends WindowAdapter
-    {
-        public void windowClosing(WindowEvent evt)
+        return new WindowAdapter()
         {
-            System.exit(0);
-        }
+            public void windowClosing(WindowEvent evt)
+            {
+                System.exit(0);
+            }
 
-        public void windowOpened(WindowEvent evt)
-        {
-            nick.requestFocus();
-        }
+            public void windowOpened(WindowEvent evt)
+            {
+                nick.requestFocus();
+            }
+        };
     }
 
     /**
