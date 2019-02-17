@@ -923,12 +923,12 @@ import soc.util.Version;
             (bp, gbl, gbc, null,
              strings.get("game.options.sound.all"),  // "Sound effects (All games)"
              true, false,
-             SOCPlayerClient.UserPreferences.getPref(SOCPlayerClient.PREF_SOUND_ON, true), 0,
+             UserPreferences.getPref(SOCPlayerClient.PREF_SOUND_ON, true), 0,
              new PrefCheckboxListener()
              {
                  public void stateChanged(boolean check)
                  {
-                     SOCPlayerClient.UserPreferences.putPref
+                     UserPreferences.putPref
                          (SOCPlayerClient.PREF_SOUND_ON, check);
                  }
              });
@@ -959,7 +959,7 @@ import soc.util.Version;
 
             int ival = (pi != null)
                 ? pi.getBotTradeRejectSec()
-                : SOCPlayerClient.UserPreferences.getPref(SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC, -8);
+                : UserPreferences.getPref(SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC, -8);
             localPrefs.put(SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC, Integer.valueOf(ival));
             bval = (ival > 0);
             if (! bval)
@@ -1416,7 +1416,7 @@ import soc.util.Version;
             if (pi != null)
                 pi.setBotTradeRejectSec(iv);
             if (iv != 0)
-                SOCPlayerClient.UserPreferences.putPref(k, iv);
+                UserPreferences.putPref(k, iv);
         }
     }
 

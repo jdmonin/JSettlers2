@@ -95,9 +95,10 @@ import soc.util.Version;
     private final SOCPlayerClient client;
 
     /**
-     * GameDisplay for our {@link #client}.
+     * GameDisplay for our {@link #client}, to display information and perform callbacks when needed.
+     * Set after construction by calling {@link #setGameDisplay(SOCPlayerClient.GameDisplay)}.
      */
-    private final SOCPlayerClient.GameDisplay gameDisplay;
+    private SOCPlayerClient.GameDisplay gameDisplay;
 
     /**
      * Hostname we're connected to, or null
@@ -185,13 +186,30 @@ import soc.util.Version;
      */
     protected StringConnection prCli = null;
 
+    /**
+     * Create our client's ClientNetwork.
+     * Before using the ClientNetwork, caller client must construct their GUI
+     * and call {@link #setGameDisplay(soc.client.SOCPlayerClient.GameDisplay)}.
+     */
     public ClientNetwork(SOCPlayerClient c)
     {
         client = c;
         if (client == null)
             throw new IllegalArgumentException("client is null");
+    }
 
-        gameDisplay = c.getGameDisplay();
+    /**
+     * Set our GameDisplay; must be done after construction.
+     * @param gd  GameDisplay to use
+     * @throws IllegalArgumentException if {@code gd} is {@code null}
+     */
+    public void setGameDisplay(final SOCPlayerClient.GameDisplay gd)
+        throws IllegalArgumentException
+    {
+        if (gd == null)
+            throw new IllegalArgumentException("null");
+
+        gameDisplay = gd;
     }
 
     /** Shut down the local TCP server (if any) and disconnect from the network. */

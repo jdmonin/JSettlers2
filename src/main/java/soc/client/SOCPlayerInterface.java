@@ -544,7 +544,7 @@ public class SOCPlayerInterface extends Frame
      * Another value can be specified in our constructor's {@code localPrefs} param.
      * @since 1.2.00
      */
-    private int botTradeRejectSec = SOCPlayerClient.UserPreferences.getPref
+    private int botTradeRejectSec = UserPreferences.getPref
         (SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC, -8);
 
     /**
@@ -742,9 +742,9 @@ public class SOCPlayerInterface extends Frame
 
         // check window frame size preference if set
         {
-            int prefWidth = SOCPlayerClient.UserPreferences.getPref(SOCPlayerClient.PREF_PI__WIDTH, -1);
+            int prefWidth = UserPreferences.getPref(SOCPlayerClient.PREF_PI__WIDTH, -1);
             int prefHeight = (prefWidth != -1)
-                ? SOCPlayerClient.UserPreferences.getPref(SOCPlayerClient.PREF_PI__HEIGHT, HEIGHT_MIN_4PL)
+                ? UserPreferences.getPref(SOCPlayerClient.PREF_PI__HEIGHT, HEIGHT_MIN_4PL)
                 : 0;
             if (prefWidth != -1)
             {
@@ -1256,8 +1256,8 @@ public class SOCPlayerInterface extends Frame
         if ((w < 100) || (h < 100))
             return;  // sanity check
 
-        SOCPlayerClient.UserPreferences.putPref(SOCPlayerClient.PREF_PI__WIDTH, w);
-        SOCPlayerClient.UserPreferences.putPref(SOCPlayerClient.PREF_PI__HEIGHT, h);
+        UserPreferences.putPref(SOCPlayerClient.PREF_PI__WIDTH, w);
+        UserPreferences.putPref(SOCPlayerClient.PREF_PI__HEIGHT, h);
     }
 
     /**
@@ -4801,7 +4801,7 @@ public class SOCPlayerInterface extends Frame
 
         public void run()
         {
-            if (soundMuted || ! SOCPlayerClient.UserPreferences.getPref(SOCPlayerClient.PREF_SOUND_ON, true))
+            if (soundMuted || ! UserPreferences.getPref(SOCPlayerClient.PREF_SOUND_ON, true))
                 return;
 
             try
