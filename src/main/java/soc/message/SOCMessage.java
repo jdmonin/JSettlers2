@@ -53,7 +53,7 @@ import java.util.StringTokenizer;
  * parseDataStr is called from {@link #toMsg(String)} in this class.
  * Remote TCP clients receive data using {@link java.io.DataInputStream#readUTF()}.
  *<P>
- * The client receives messages in {@link soc.client.SOCPlayerClient.MessageHandler#treat(SOCMessage, boolean)}.
+ * The client receives messages in {@link soc.client.MessageHandler#handle(SOCMessage, boolean)}.
  * The server receives messages in
  * {@link soc.server.SOCMessageDispatcher#dispatch(SOCMessage, soc.server.genericServer.Connection)}.
  *

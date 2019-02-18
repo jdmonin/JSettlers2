@@ -2424,7 +2424,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * Set up when sending {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS}.
      *<P>
      * When timer fires, assume no more options will be received. Call
-     * {@link SOCPlayerClient.MessageHandler#handleGAMEOPTIONINFO(SOCGameOptionInfo, boolean) handleGAMEOPTIONINFO("-",false)}
+     * {@link MessageHandler#handleGAMEOPTIONINFO(SOCGameOptionInfo, boolean) handleGAMEOPTIONINFO("-",false)}
      * to trigger end-of-list behavior at client.
      * @author jdmonin
      * @since 1.1.07

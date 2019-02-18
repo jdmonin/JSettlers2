@@ -77,7 +77,7 @@ import soc.util.Version;
  * Its single shared list of games shows those on the server and any practice games.
  * Each game's {@link SOCGame#isPractice} flag determines which connection to use.
  *<P>
- * Once connected, messages from the server are processed in {@link MessageHandler#treat(SOCMessage, boolean)}.
+ * Once connected, messages from the server are processed in {@link MessageHandler#handle(SOCMessage, boolean)}.
  *<P>
  * Messages to the server are formed and sent using {@link GameMessageMaker}.
  *<P>
@@ -332,10 +332,10 @@ public class SOCPlayerClient
      * we're in) which we can join (version is not higher than our version).
      *<P>
      * Key is the game name, without the UNJOINABLE prefix.
-     * This field is null until {@link SOCPlayerClient.MessageHandler#handleGAMES(SOCGames, boolean) handleGAMES},
-     *   {@link SOCPlayerClient.MessageHandler#handleGAMESWITHOPTIONS(SOCGamesWithOptions, boolean) handleGAMESWITHOPTIONS},
-     *   {@link SOCPlayerClient.MessageHandler#handleNEWGAME(SOCNewGame, boolean) handleNEWGAME}
-     *   or {@link SOCPlayerClient.MessageHandler#handleNEWGAMEWITHOPTIONS(SOCNewGameWithOptions, boolean) handleNEWGAMEWITHOPTIONS}
+     * This field is null until {@link MessageHandler#handleGAMES(SOCGames, boolean) handleGAMES},
+     *   {@link MessageHandler#handleGAMESWITHOPTIONS(SOCGamesWithOptions, boolean) handleGAMESWITHOPTIONS},
+     *   {@link MessageHandler#handleNEWGAME(SOCNewGame, boolean) handleNEWGAME}
+     *   or {@link MessageHandler#handleNEWGAMEWITHOPTIONS(SOCNewGameWithOptions, boolean) handleNEWGAMEWITHOPTIONS}
      *   is called.
      * @since 1.1.07
      */

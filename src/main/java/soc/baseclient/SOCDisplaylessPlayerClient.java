@@ -1486,7 +1486,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * Handles ASK_SPECIAL_BUILD, NUM_PICK_GOLD_HEX_RESOURCES, SCENARIO_CLOTH_COUNT, etc.
      *<P>
      * To avoid code duplication, also called from
-     * {@link SOCPlayerClient.MessageHandler#handlePLAYERELEMENT(SOCPlayerElement)}
+     * {@link soc.client.MessageHandler#handlePLAYERELEMENT(SOCPlayerElement)}
      * and {@link soc.robot.SOCRobotBrain#run()}.
      *<P>
      * Before v2.0.00 this method directly took a {@link SOCPlayerElement} instead of that message's
@@ -1608,7 +1608,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * Update a player's amount of a playing piece, for
      * {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, int, int)}.
      * To avoid code duplication, also called from
-     * {@link SOCPlayerClient.MessageHandler#handlePLAYERELEMENT(SOCPlayerElement)}
+     * {@link soc.client.MessageHandler#handlePLAYERELEMENT(SOCPlayerElement)}
      * and {@link soc.robot.SOCRobotBrain#run()}.
      *<P>
      * Before v2.0.00 this method directly took a {@link SOCPlayerElement} instead of that message's
@@ -1645,7 +1645,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * for {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, int, int)}.
      * Calls {@link SOCGame#updateLargestArmy() ga.updateLargestArmy()}.
      * To avoid code duplication, also called from
-     * {@link soc.client.SOCPlayerClient.MessageHandler#handlePLAYERELEMENT(SOCPlayerElement)}
+     * {@link soc.client.MessageHandler#handlePLAYERELEMENT(SOCPlayerElement)}
      * and {@link soc.robot.SOCRobotBrain#run()}.
      *<P>
      * Before v2.0.00 this method directly took a {@link SOCPlayerElement} instead of that message's
@@ -1690,7 +1690,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *</ul>
      *<P>
      * To avoid code duplication, also called from
-     * {@link SOCPlayerClient.MessageHandler#handlePLAYERELEMENT(SOCPlayerElement)}
+     * {@link soc.client.MessageHandler#handlePLAYERELEMENT(SOCPlayerElement)}
      * and {@link soc.robot.SOCRobotBrain#run()}.
      *<P>
      * Before v2.0.00 this method directly took a {@link SOCPlayerElement} instead of that message's
