@@ -115,6 +115,8 @@ import javax.swing.SwingConstants;
         this.numPickNeeded = numPickNeeded;
         numChosen = 0;
 
+        getRootPane().setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+
         clearBut = new JButton(strings.get("base.clear"));
         clearBut.setBackground(null);  // avoid gray corners on win32
         okBut = new JButton(strings.get(isDiscard ? "dialog.discard.discard" : "dialog.discard.pick"));
