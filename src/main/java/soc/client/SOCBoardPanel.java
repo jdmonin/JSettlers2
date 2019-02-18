@@ -9009,7 +9009,7 @@ import java.util.Timer;
 
         /**
          * Creates a new MoveRobberConfirmDialog.
-         * To display the dialog without tying up the client's message-treater thread,
+         * To display the dialog without tying up the client's message-handler thread,
          * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
          *
          * @param player  Current player
@@ -9072,7 +9072,7 @@ import java.util.Timer;
 
         /**
          * Creates a new ConfirmAttackPirateFortressDialog.
-         * To display the dialog without tying up the client's message-treater thread,
+         * To display the dialog without tying up the client's message-handler thread,
          * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
          */
         protected ConfirmAttackPirateFortressDialog()
@@ -9136,7 +9136,7 @@ import java.util.Timer;
 
         /**
          * Creates a new ConfirmPlaceShipDialog.
-         * To display the dialog without tying up the client's message-treater thread,
+         * To display the dialog without tying up the client's message-handler thread,
          * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
          *
          * @param edge  The port edge where the ship would be placed

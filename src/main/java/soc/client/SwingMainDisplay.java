@@ -170,7 +170,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
     /**
      * The player interfaces for the {@link SOCPlayerClient#games} we're playing.
-     * Accessed from GUI thread and network MessageTreater thread.
+     * Accessed from GUI thread and network MessageHandler thread.
      */
     private final Map<String, SOCPlayerInterface> playerInterfaces = new Hashtable<String, SOCPlayerInterface>();
 
@@ -350,7 +350,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
     /**
      * The channels we've joined.
-     * Accessed from GUI thread and network MessageTreater thread.
+     * Accessed from GUI thread and network MessageHandler thread.
      */
     protected Hashtable<String, ChannelFrame> channels = new Hashtable<String, ChannelFrame>();
 
@@ -2424,7 +2424,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * Set up when sending {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS}.
      *<P>
      * When timer fires, assume no more options will be received. Call
-     * {@link SOCPlayerClient.MessageTreater#handleGAMEOPTIONINFO(SOCGameOptionInfo, boolean) handleGAMEOPTIONINFO("-",false)}
+     * {@link MessageHandler#handleGAMEOPTIONINFO(SOCGameOptionInfo, boolean) handleGAMEOPTIONINFO("-",false)}
      * to trigger end-of-list behavior at client.
      * @author jdmonin
      * @since 1.1.07
@@ -2448,7 +2448,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         {
             pcli.gameOptsTask = null;  // Clear reference to this soon-to-expire obj
             srvOpts.noMoreOptions(false);
-            pcli.getClient().getMessageTreater().handleGAMEOPTIONINFO
+            pcli.getClient().getMessageHandler().handleGAMEOPTIONINFO
                 (new SOCGameOptionInfo(new SOCGameOption("-"), Version.versionNumber(), null), false);
         }
 

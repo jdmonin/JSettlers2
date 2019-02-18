@@ -33,7 +33,6 @@ import java.net.SocketAddress;
 import java.util.Collection;
 import java.util.Map;
 
-import soc.client.SOCPlayerClient.MessageTreater;
 import soc.disableDebug.D;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
@@ -59,7 +58,7 @@ import soc.util.Version;
  * Local tcp server (if any) is started in {@link #initLocalServer(int)}.
  *<br>
  * Messages from server to client are received in either {@link NetReadTask} or {@link LocalStringReaderTask},
- * which call the client's {@link SOCPlayerClient.MessageTreater#treat(SOCMessage, boolean)}.
+ * which call the client's {@link MessageHandler#handle(SOCMessage, boolean)}.
  *<br>
  * Messages from client to server are formed in {@link GameMessageMaker} or other classes,
  * and sent here to the server here via {@link #putNet(String)} or {@link #putPractice(String)}.
@@ -673,12 +672,12 @@ import soc.util.Version;
             Thread.currentThread().setName("cli-netread");  // Thread name for debug
             try
             {
-                final MessageTreater treater = client.getMessageTreater();
+                final MessageHandler handler = client.getMessageHandler();
 
                 while (net.isConnected())
                 {
                     String s = net.in.readUTF();
-                    treater.treat(SOCMessage.toMsg(s), false);
+                    handler.handle(SOCMessage.toMsg(s), false);
                 }
             }
             catch (IOException e)
@@ -734,14 +733,14 @@ import soc.util.Version;
             Thread.currentThread().setName("cli-stringread");  // Thread name for debug
             try
             {
-                final MessageTreater treater = client.getMessageTreater();
+                final MessageHandler handler = client.getMessageHandler();
 
                 while (locl.isConnected())
                 {
                     String s = locl.readNext();
                     SOCMessage msg = SOCMessage.toMsg(s);
 
-                    treater.treat(msg, true);
+                    handler.handle(msg, true);
                 }
             }
             catch (IOException e)
