@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2007,2016,2018 Jeremy D. Monin <jeremy@nand.net>
+ * This file Copyright (C) 2007,2016,2018-2019 Jeremy D. Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  *
  * This program is free software; you can redistribute it and/or
@@ -57,6 +57,7 @@ public class ColorSquareLarger extends ColorSquare
     {
         super(c);
         setSize(WIDTH_L, HEIGHT_L);
+        setMinimumSize(getSize());
     }
 
     /**
@@ -76,6 +77,7 @@ public class ColorSquareLarger extends ColorSquare
     {
         super(k, in, c);
         setSize(WIDTH_L, HEIGHT_L);
+        setMinimumSize(getSize());
     }
 
     /**
@@ -97,6 +99,7 @@ public class ColorSquareLarger extends ColorSquare
     {
         super(k, in, c, upper, lower);
         setSize(WIDTH_L, HEIGHT_L);
+        setMinimumSize(getSize());
     }
 
 }

@@ -23,6 +23,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
@@ -36,7 +37,10 @@ import javax.swing.JComponent;
  * interactive, or non-interactive.  The possible
  * colors of the box correspond to resources in SoC.
  *<P>
- * Default size is {@link #WIDTH} by {@link #HEIGHT} pixels; call {@link #setSize(int, int)} to change.
+ * Default size and minimum size are {@link #WIDTH} by {@link #HEIGHT} pixels: Call {@link #setSize(int, int)} to change
+ * size, {@link #setMinimumSize(Dimension)} to change minimum. Minimum is tracked separately to avoid a "disappearing"
+ * 0-height or 0-width square when a layout manager calls setSize or setBounds.
+ *<P>
  * Most colorsquares in JSettlers are actually {@link ColorSquareLarger} instances:
  * Creating that subclass was easier than changing the values of {@link #WIDTH} and {@link #HEIGHT} here,
  * which are used for setting the size of many GUI elements.
@@ -162,7 +166,19 @@ public class ColorSquare extends JComponent implements MouseListener
 
     /** Size per instance, for ColorSquareLarger */
     protected int squareW, squareH;
+
+    /**
+     * Size from most recent call to {@link #setSize(int, int)}.
+     * @see #minSize
+     */
     protected Dimension squareSize;
+
+    /**
+     * Size from most recent call to {@link #setMinimumSize(Dimension)}.
+     * @see #squareSize
+     * @since 2.0.00
+     */
+    protected Dimension minSize;
 
     /** i18n text strings */
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
@@ -360,6 +376,20 @@ public class ColorSquare extends JComponent implements MouseListener
     }
 
     /**
+     * Set the minimum size to be reported by {@link #getMinimumSize()}.
+     * Overrides the width and height set by {@link #setSize(int, int)},
+     * {@link #setSize(Dimension)}, or {@link #setBounds(int, int, int, int)}.
+     * @param d  New minimum size dimension; not {@code null}
+     * @since 2.0.00
+     */
+    @Override
+    public void setMinimumSize(Dimension d)
+    {
+        super.setMinimumSize(d);
+        minSize = new Dimension(d);  // copy w, h values; avoid copy reference that may change later
+    }
+
+    /**
      * Overrides standard to allow special warning behavior for {@link #GREY}.
      * Only grey squares change background color when a warning-level
      * threshold is reached ({@link #setHighWarningLevel(int)}
@@ -407,17 +437,40 @@ public class ColorSquare extends JComponent implements MouseListener
     /**
      * Set the width and height of this ColorSquare.
      * Does not need to be a square (w != h is OK).
-     * This size will also be returned by {@link #getPreferredSize()} and {@link #getMinimumSize()}.
+     * This size will also be returned by {@link #getPreferredSize()}.
+     * if {@link #setMinimumSize(Dimension)} has been called,
+     * will honor that minimum width and height here.
      * @param w width in pixels
      * @param h height in pixels
+     * @see #setMinimumSize(Dimension)
      */
     @Override
     public void setSize(int w, int h)
     {
+        if (minSize != null)
+        {
+            if (w < minSize.width)
+                w = minSize.width;
+            if (h < minSize.height)
+                h = minSize.height;
+        }
+
         squareW = w;
         squareH = h;
         squareSize = new Dimension(w, h);
+
         super.setSize(w, h);
+    }
+
+    /**
+     * Set the size of this ColorSquare; overriden to call {@link #setSize(int, int)}.
+     * @since 2.0.00
+     */
+    @Override
+    public void setSize(Dimension d)
+    {
+        if (d != null)
+            setSize(d.width, d.height);
     }
 
     /**
@@ -734,17 +787,19 @@ public class ColorSquare extends JComponent implements MouseListener
 
     /**
      * Get our minimum size:
-     * Default from constructor, or any value passed to {@link #setSize(int, int)}.
+     * Default from constructor, or any value passed to {@link #setMinimumSize(Dimension)}.
      */
     @Override
     public Dimension getMinimumSize()
     {
-        return squareSize;
+        return minSize;
     }
 
     /**
      * Set bounds (position and size).
      * Does not need to be a square (w != h is OK).
+     * if {@link #setMinimumSize(Dimension)} has been called,
+     * will honor that minimum width and height here.
      * @param x x-position
      * @param y y-position
      * @param w width in pixels
@@ -755,6 +810,14 @@ public class ColorSquare extends JComponent implements MouseListener
      */
     public void setBounds(int x, int y, int w, int h)
     {
+        if (minSize != null)
+        {
+            if (w < minSize.width)
+                w = minSize.width;
+            if (h < minSize.height)
+                h = minSize.height;
+        }
+
         squareW = w;
         squareH = h;
         if (squareSize != null)
@@ -762,7 +825,19 @@ public class ColorSquare extends JComponent implements MouseListener
             squareSize.width = w;
             squareSize.height = h;
         }
+
         super.setBounds(x, y, w, h);
+    }
+
+    /**
+     * Set bounds (position and size). Overrides to call {@link #setBounds(int, int, int, int)}.
+     * @since 2.0.00
+     */
+    @Override
+    public void setBounds(Rectangle r)
+    {
+        if (r != null)
+            setBounds(r.x, r.y, r.width, r.height);
     }
 
     /**

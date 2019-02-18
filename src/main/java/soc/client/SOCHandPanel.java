@@ -688,6 +688,7 @@ import javax.swing.UIManager;
         createColorSqRetLbl = null;      createColorSqRetSq = null;  // done, clear refs
 
         resourceSqDivLine = new ColorSquare(Color.BLACK);
+        resourceSqDivLine.setMinimumSize(new Dimension(20, 1));  // for this narrow line, reduce usual minimum height
         add(resourceSqDivLine);
 
         //cardLab = new Label("Cards:");
