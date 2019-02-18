@@ -86,6 +86,8 @@ import soc.util.Version;
      * Treat the incoming messages.
      * Messages of unknown type are ignored
      * ({@code mes} will be null from {@link SOCMessage#toMsg(String)}).
+     *<P>
+     * Before v2.0.00 this method was {@code SOCPlayerClient.treat(..)}.
      *
      * @param mes    the message
      * @param isPractice  Message is coming from {@link ClientNetwork#practiceServer}, not a TCP server
@@ -970,10 +972,10 @@ import soc.util.Version;
                 final String gameName = st.nextToken();
                 final String featsList = (st.hasMoreTokens()) ? st.nextToken() : "?";
                 final String msgKey = (client.doesGameExist(gameName, true))
-                        ? "pcli.gamelist.client_feats.cannot_join"
-                                // "Cannot create game {0}\nThis client does not have required feature(s): {1}"
-                                : "pcli.gamelist.client_feats.cannot_create";
-                // "Cannot join game {0}\nThis client does not have required feature(s): {1}"
+                    ? "pcli.gamelist.client_feats.cannot_join"
+                        // "Cannot create game {0}\nThis client does not have required feature(s): {1}"
+                    : "pcli.gamelist.client_feats.cannot_create";
+                        // "Cannot join game {0}\nThis client does not have required feature(s): {1}"
                 errMsg = client.strings.get(msgKey, gameName, featsList);
             }
             catch (Throwable t)
