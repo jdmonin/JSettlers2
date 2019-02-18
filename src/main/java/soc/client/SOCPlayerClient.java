@@ -492,6 +492,14 @@ public class SOCPlayerClient
     }
 
     /**
+     * @return the client listener of this SOCPlayerClient object based on the name
+     */
+    /*package*/ PlayerClientListener getClientListener(String name)
+    {
+        return clientListeners.get(name);
+    }
+
+    /**
      * @return the client listeners of this SOCPlayerClient object.
      */
     /*package*/ Map<String, PlayerClientListener> getClientListeners()

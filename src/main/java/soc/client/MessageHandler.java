@@ -1167,7 +1167,7 @@ import soc.util.Version;
         if (name == null)
             return;
 
-        PlayerClientListener pcl = client.getClientListeners().get(gn);
+        PlayerClientListener pcl = client.getClientListener(gn);
         pcl.playerJoined(name);
     }
 
@@ -1186,7 +1186,7 @@ import soc.util.Version;
             final SOCPlayer player = ga.getPlayer(name);
 
             // Give the listener a chance to clean up while the player is still in the game
-            PlayerClientListener pcl = client.getClientListeners().get(gn);
+            PlayerClientListener pcl = client.getClientListener(gn);
             pcl.playerLeft(name, player);
 
             if (player != null)
@@ -1220,7 +1220,7 @@ import soc.util.Version;
         if (! client.getMainDisplay().deleteFromGameList(gaName, isPractice, false))
             client.getMainDisplay().deleteFromGameList(gaName, isPractice, true);
 
-        PlayerClientListener pcl = client.getClientListeners().get(gaName);
+        PlayerClientListener pcl = client.getClientListener(gaName);
         if (pcl != null)
             pcl.gameDisconnected(true, null);
     }
@@ -1232,7 +1232,7 @@ import soc.util.Version;
      */
     protected void handleGAMEMEMBERS(final SOCGameMembers mes)
     {
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         pcl.membersListed(mes.getMembers());
     }
 
@@ -1263,7 +1263,7 @@ import soc.util.Version;
      */
     protected void handleGAMETEXTMSG(SOCGameTextMsg mes)
     {
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         if (pcl == null)
             return;
 
@@ -1314,7 +1314,7 @@ import soc.util.Version;
             /**
              * tell the GUI that a player is sitting
              */
-            PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+            PlayerClientListener pcl = client.getClientListener(mes.getGame());
             pcl.playerSitdown(mesPN, mes.getNickname());
 
             /**
@@ -1353,7 +1353,7 @@ import soc.util.Version;
             bd.setRobberHex(mes.getRobberHex(), false);
             ga.updateAtBoardLayout();
 
-            PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+            PlayerClientListener pcl = client.getClientListener(mes.getGame());
             pcl.boardLayoutUpdated();
         }
     }
@@ -1390,7 +1390,7 @@ import soc.util.Version;
         System.err.println("L2602 boardlayout2 at " + System.currentTimeMillis());
         if (SOCDisplaylessPlayerClient.handleBOARDLAYOUT2(client.games, mes))
         {
-            PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+            PlayerClientListener pcl = client.getClientListener(mes.getGame());
             pcl.boardLayoutUpdated();
         }
     }
@@ -1401,7 +1401,7 @@ import soc.util.Version;
      */
     protected void handleSTARTGAME(SOCStartGame mes)
     {
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         final SOCGame ga = client.games.get(mes.getGame());
         if ((pcl == null) || (ga == null))
             return;
@@ -1446,7 +1446,7 @@ import soc.util.Version;
 
         ga.setGameState(newState);
 
-        PlayerClientListener pcl = client.getClientListeners().get(ga.getName());
+        PlayerClientListener pcl = client.getClientListener(ga.getName());
         if (pcl == null)
             return;
 
@@ -1474,7 +1474,7 @@ import soc.util.Version;
         final int pnum = mes.getPlayerNumber();
         ga.setCurrentPlayerNumber(pnum);
         ga.updateAtTurn();
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         pcl.playerTurnSet(pnum);
     }
 
@@ -1490,7 +1490,7 @@ import soc.util.Version;
         if (ga == null)
             return;
 
-        final PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        final PlayerClientListener pcl = client.getClientListener(mes.getGame());
         final int pn = mes.getPlayerNumber();
         final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
         final int action = mes.getAction();
@@ -1517,7 +1517,7 @@ import soc.util.Version;
         final int etype = mes.getElementType();
 
         handlePLAYERELEMENT
-        (client.getClientListeners().get(mes.getGame()), ga, null, pn, action, etype, amount, mes.isNews());
+        (client.getClientListener(mes.getGame()), ga, null, pn, action, etype, amount, mes.isNews());
     }
 
     /**
@@ -1746,7 +1746,7 @@ import soc.util.Version;
         if (ga == null)
             return;
 
-        final PlayerClientListener pcl = client.getClientListeners().get(ga.getName());
+        final PlayerClientListener pcl = client.getClientListener(ga.getName());
 
         // A few etypes need to give PCL the old and new values.
         // For those, update game state and PCL together and return.
@@ -1810,7 +1810,7 @@ import soc.util.Version;
             return;
 
         handlePLAYERELEMENT
-        (client.getClientListeners().get(mes.getGame()), ga, null, mes.getPlayerNumber(),
+        (client.getClientListener(mes.getGame()), ga, null, mes.getPlayerNumber(),
                 SOCPlayerElement.SET, SOCPlayerElement.RESOURCE_COUNT, mes.getCount(), false);
     }
 
@@ -1837,7 +1837,7 @@ import soc.util.Version;
         ga.setCurrentDice(roll);
 
         // notify listener
-        PlayerClientListener listener = client.getClientListeners().get(gameName);
+        PlayerClientListener listener = client.getClientListener(gameName);
         listener.diceRolled(player, roll);
     }
 
@@ -1855,7 +1855,7 @@ import soc.util.Version;
         final int coord = mes.getCoordinates();
         final int ptype = mes.getPieceType();
 
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         if (pcl == null)
             return;
         pcl.playerPiecePlaced(player, coord, ptype);
@@ -1920,7 +1920,7 @@ import soc.util.Version;
             // ptype is -3 (SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL)
         }
 
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         pcl.buildRequestCanceled(pl);
     }
 
@@ -1949,7 +1949,7 @@ import soc.util.Version;
                 ((SOCBoardLarge) ga.getBoard()).setPirateHex(newHex, true);
             }
 
-            PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+            PlayerClientListener pcl = client.getClientListener(mes.getGame());
             pcl.robberMoved(newHex, isPirate);
         }
     }
@@ -1960,7 +1960,7 @@ import soc.util.Version;
      */
     protected void handleDISCARDREQUEST(SOCDiscardRequest mes)
     {
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         pcl.requestedDiscard(mes.getNumberOfDiscards());
     }
 
@@ -1984,7 +1984,7 @@ import soc.util.Version;
             }
         }
 
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         pcl.requestedChoosePlayer(choices, mes.canChooseNone());
     }
 
@@ -1998,7 +1998,7 @@ import soc.util.Version;
         int victimPlayerNumber = mes.getChoice();
         SOCPlayer player = ga.getPlayer(victimPlayerNumber);
 
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         pcl.requestedChooseRobResourceType(player);
     }
 
@@ -2013,7 +2013,7 @@ import soc.util.Version;
         final SOCGame ga = client.games.get(gaName);
         if (ga == null)
             return;
-        PlayerClientListener pcl = client.getClientListeners().get(gaName);
+        PlayerClientListener pcl = client.getClientListener(gaName);
         if (pcl == null)
             return;
 
@@ -2035,7 +2035,7 @@ import soc.util.Version;
         SOCPlayer from = ga.getPlayer(offer.getFrom());
         from.setCurrentOffer(offer);
 
-        PlayerClientListener pcl = client.getClientListeners().get(gaName);
+        PlayerClientListener pcl = client.getClientListener(gaName);
         pcl.requestedTrade(from);
     }
 
@@ -2064,7 +2064,7 @@ import soc.util.Version;
                 }
             }
 
-            PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+            PlayerClientListener pcl = client.getClientListener(mes.getGame());
             pcl.requestedTradeClear(player, false);
         }
     }
@@ -2078,7 +2078,7 @@ import soc.util.Version;
         SOCGame ga = client.games.get(mes.getGame());
         SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
 
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         pcl.requestedTradeRejection(player);
     }
 
@@ -2093,7 +2093,7 @@ import soc.util.Version;
         final SOCGame ga = client.games.get(gaName);
         if (ga == null)
             return;
-        PlayerClientListener pcl = client.getClientListeners().get(gaName);
+        PlayerClientListener pcl = client.getClientListener(gaName);
         if (pcl == null)
             return;
 
@@ -2113,7 +2113,7 @@ import soc.util.Version;
         if (pn != -1)
             player = ga.getPlayer(pn);
 
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         pcl.requestedTradeReset(player);
     }
 
@@ -2162,7 +2162,7 @@ import soc.util.Version;
                 break;
             }
 
-            PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+            PlayerClientListener pcl = client.getClientListener(mes.getGame());
             pcl.playerDevCardUpdated(player, (act == SOCDevCardAction.ADD_OLD));
         }
     }
@@ -2196,7 +2196,7 @@ import soc.util.Version;
         System.err.println("L3292 potentialsettles at " + System.currentTimeMillis());
         SOCDisplaylessPlayerClient.handlePOTENTIALSETTLEMENTS(mes, client.games);
 
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         if (pcl != null)
             pcl.boardPotentialsUpdated();
     }
@@ -2212,7 +2212,7 @@ import soc.util.Version;
         if (ga != null)
         {
             SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
-            PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+            PlayerClientListener pcl = client.getClientListener(mes.getGame());
             player.setFaceId(mes.getFaceId());
             pcl.playerFaceChanged(player, mes.getFaceId());
         }
@@ -2246,7 +2246,7 @@ import soc.util.Version;
         else
             ga.setSeatLocks(sls);
 
-        PlayerClientListener pcl = client.getClientListeners().get(gaName);
+        PlayerClientListener pcl = client.getClientListener(gaName);
         pcl.seatLockUpdated();
     }
 
@@ -2259,7 +2259,7 @@ import soc.util.Version;
      */
     protected void handleROLLDICEPROMPT(SOCRollDicePrompt mes)
     {
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         if (pcl == null)
             return;  // Not one of our games
 
@@ -2285,7 +2285,7 @@ import soc.util.Version;
         SOCGame ga = client.games.get(gname);
         if (ga == null)
             return;  // Not one of our games
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         if (pcl == null)
             return;  // Not one of our games
 
@@ -2308,7 +2308,7 @@ import soc.util.Version;
         SOCGame ga = client.games.get(gname);
         if (ga == null)
             return;  // Not one of our games
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         if (pcl == null)
             return;  // Not one of our games
 
@@ -2327,7 +2327,7 @@ import soc.util.Version;
         SOCGame ga = client.games.get(gname);
         if (ga == null)
             return;  // Not one of our games
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         if (pcl == null)
             return;  // Not one of our games
 
@@ -2346,7 +2346,7 @@ import soc.util.Version;
         SOCGame ga = client.games.get(gname);
         if (ga == null)
             return;  // Not one of our games
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         if (pcl == null)
             return;  // Not one of our games
 
@@ -2550,7 +2550,7 @@ import soc.util.Version;
      */
     private void handlePLAYERSTATS(SOCPlayerStats mes)
     {
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         if (pcl == null)
             return;  // Not one of our games
 
@@ -2582,7 +2582,7 @@ import soc.util.Version;
      */
     private final void handleDEBUGFREEPLACE(SOCDebugFreePlace mes)
     {
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         if (pcl == null)
             return;  // Not one of our games
 
@@ -2595,7 +2595,7 @@ import soc.util.Version;
      */
     private final void handleSIMPLEREQUEST(SOCSimpleRequest mes)
     {
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         if (pcl == null)
             return;  // Not one of our games
 
@@ -2610,7 +2610,7 @@ import soc.util.Version;
     private final void handleSIMPLEACTION(final SOCSimpleAction mes)
     {
         final String gaName = mes.getGame();
-        PlayerClientListener pcl = client.getClientListeners().get(gaName);
+        PlayerClientListener pcl = client.getClientListener(gaName);
         if (pcl == null)
             return;  // Not one of our games
 
@@ -2649,7 +2649,7 @@ import soc.util.Version;
      */
     protected void handleGAMESERVERTEXT(SOCGameServerText mes)
     {
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         if (pcl == null)
             return;
 
@@ -2667,7 +2667,7 @@ import soc.util.Version;
         if (ga == null)
             return;
 
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         if (pcl == null)
             return;
 
@@ -2678,7 +2678,7 @@ import soc.util.Version;
         final int n = mes.playerNum.size();
         for (int i = 0; i < n; ++i)
             handlePLAYERELEMENT
-            (client.getClientListeners().get(mes.getGame()), ga, null, mes.playerNum.get(i),
+            (client.getClientListener(mes.getGame()), ga, null, mes.playerNum.get(i),
                     SOCPlayerElement.SET, SOCPlayerElement.RESOURCE_COUNT, mes.playerResTotal.get(i), false);
     }
 
@@ -2693,7 +2693,7 @@ import soc.util.Version;
         if (ga == null)
             return;  // Not one of our games
 
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         if (pcl == null)
             return;
         SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
@@ -2711,7 +2711,7 @@ import soc.util.Version;
         if (ga == null)
             return;  // Not one of our games
 
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         if (pcl == null)
             return;
         SOCPlayer player = ga.getPlayer(mes.getParam1());
@@ -2733,7 +2733,7 @@ import soc.util.Version;
 
         ga.revealFogHiddenHex(mes.getParam1(), mes.getParam2(), mes.getParam3());
 
-        PlayerClientListener pcl = client.getClientListeners().get(gaName);
+        PlayerClientListener pcl = client.getClientListener(gaName);
         if (pcl == null)
             return;  // Not one of our games
         pcl.boardUpdated();
@@ -2778,7 +2778,7 @@ import soc.util.Version;
 
         if (updatePiece != null)
         {
-            PlayerClientListener pcl = client.getClientListeners().get(gaName);
+            PlayerClientListener pcl = client.getClientListener(gaName);
             if (pcl != null)
                 pcl.pieceValueUpdated(updatePiece);
         }
@@ -2800,7 +2800,7 @@ import soc.util.Version;
         if (pl == null)
             return;
         pl.addSpecialVPInfo(mes.svp, mes.desc);
-        PlayerClientListener pcl = client.getClientListeners().get(gaName);
+        PlayerClientListener pcl = client.getClientListener(gaName);
         if (pcl == null)
             return;
         pcl.playerSVPAwarded(pl, mes.svp, mes.desc);
@@ -2815,7 +2815,7 @@ import soc.util.Version;
         final boolean isReject = SOCDisplaylessPlayerClient.handleINVENTORYITEMACTION
                 (client.games, (SOCInventoryItemAction) mes);
 
-        PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         if (pcl == null)
             return;
 
@@ -2848,7 +2848,7 @@ import soc.util.Version;
     {
         SOCDisplaylessPlayerClient.handleSETSPECIALITEM(games, (SOCSetSpecialItem) mes);
 
-        final PlayerClientListener pcl = client.getClientListeners().get(mes.getGame());
+        final PlayerClientListener pcl = client.getClientListener(mes.getGame());
         if (pcl == null)
             return;
 
