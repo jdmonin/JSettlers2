@@ -59,6 +59,7 @@ import java.util.MissingResourceException;
 import java.util.Timer;  // For auto-roll
 import java.util.TimerTask;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.DefaultListModel;
 import javax.swing.JComponent;
@@ -3706,8 +3707,8 @@ import javax.swing.UIManager;
                 //   Robot lock button (during play) in bottom center
 
                 int balloonH = dim.height - (inset + (4 * (lineH + space)) + inset);  // offer-message panel
-                if (offer.offerPanel.wantsRejectCountdown())
-                    balloonH += TradeOfferPanel.LABEL_LINE_HEIGHT;
+                offer.setAvailableSpace(dim.width - 2 * inset, balloonH);  // recalc offer.getPreferredSize()
+
                 boolean hasTakeoverBut = false, hasSittingRobotLockBut = false;
                 if (player.isRobot())
                 {
@@ -3734,10 +3735,11 @@ import javax.swing.UIManager;
 
                 // Are we tall enough for room, after the offer, for other controls?
                 // If not, they will be hid when offer is visible.
+                final Dimension offerPrefSize = offer.getPreferredSize();
                 int offerMinHeight =
                     TradeOfferPanel.OFFER_HEIGHT + TradeOfferPanel.OFFER_COUNTER_HEIGHT
-                    - TradeOfferPanel.OFFER_BUTTONS_HEIGHT;
-                if (offer.offerPanel.wantsRejectCountdown())
+                    - TradeOfferPanel.OFFER_BUTTONS_ADDED_HEIGHT;
+                if (offer.offerPanel.wantsRejectCountdown(false))
                     offerMinHeight += TradeOfferPanel.LABEL_LINE_HEIGHT;
                 final int numBottomLines = (hasTakeoverBut || hasSittingRobotLockBut) ? 5 : 4;
                 offerHidesControls = offerHidingControls
@@ -3749,19 +3751,24 @@ import javax.swing.UIManager;
                     offerCounterHidesFace =
                         (dim.height - offerMinHeight) < faceW;
 
+                    final int offerW = Math.min(dim.width - (2 * inset), offerPrefSize.width);
+
                     // This is a dynamic flag, set by hideTradeMsgShowOthers
                     // when the user clicks button to show/hide the counter-offer.
                     // If true now, hideTradeMsgShowOthers has already hid faceImg,
                     // pname, vpLab and vpSq, to make room for it.
                     if (offerCounterHidingFace)
                     {
-                        offer.setBounds(inset, inset, dim.width - (2 * inset), dim.height - (2 * inset));
+                        offer.setBounds
+                            (inset, inset, offerW, Math.min(dim.height - (2 * inset), offerPrefSize.height));
                     } else {
-                        offer.setBounds(inset, inset + faceW + space, dim.width - (2 * inset), dim.height - (inset + faceW + 2 * space));
+                        offer.setBounds
+                            (inset, inset + faceW + space, offerW,
+                             Math.min(dim.height - (inset + faceW + 2 * space), offerPrefSize.height));
                     }
                     offer.setCounterHidesBalloonPoint(offerCounterHidingFace);
                 } else {
-                    offer.setBounds(inset, inset + faceW + space, dim.width - (2 * inset), balloonH);
+                    offer.setBounds(inset, inset + faceW + space, offerPrefSize.width, offerPrefSize.height);
                     offerCounterHidesFace = false;
                 }
                 offer.doLayout();

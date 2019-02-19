@@ -25,17 +25,20 @@ import soc.game.SOCPlayer;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
 
-import java.awt.Button;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
-import java.awt.Label;
-import java.awt.Panel;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.TimerTask;
+
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
 
 /**
@@ -53,11 +56,22 @@ import java.util.TimerTask;
  * To use trade offer mode, show {@link #setOffer(SOCTradeOffer)}.
  * To show or hide the panel in either mode, call {@link #setVisible(boolean)}.
  *<P>
+ * This panel is written for use in {@link SOCHandPanel}, so its layout conventions are nonstandard.
+ * To help determine {@link #getPreferredSize()}, call {@link #setAvailableSpace(int, int)} when known.
+ *<P>
  * To set this panel's position or size, please use {@link #setBounds(int, int, int, int)},
  * because it is overridden to also update a "compact mode" flag for counter-offer layout.
+ *
+ * <H3>TODO:</H3>
+ *<UL>
+ * <LI> Consider separating offerpanel, messagepanel to 2 separate components
+ *      that handpanel shows/hides/manages separately
+ * <LI> Consider combine ShadowedBox, SpeechBalloon: They look the same except for that balloon point
+ * <LI> Consider rework ShadowedBox, SpeechBalloon as JPanels with a custom-drawn border
+ *</UL>
  */
 @SuppressWarnings("serial")
-/*package*/ class TradeOfferPanel extends Panel
+/*package*/ class TradeOfferPanel extends JPanel
 {
     /** i18n text strings; will use same locale as SOCPlayerClient's string manager.
      *  @since 2.0.00 */
@@ -78,23 +92,40 @@ import java.util.TimerTask;
     public static final String MESSAGE_MODE = "message";  // shows MessagePanel
 
     /**
-     * Typical height of offer panel, when visible. (Includes {@link #OFFER_BUTTONS_HEIGHT}
-     * and speech balloon's protruding point, but not {@link #OFFER_COUNTER_HEIGHT}.)
+     * Typical button height, for doLayouts.
+     * @since 2.0.00
+     */
+    private static final int BUTTON_HEIGHT = 18;
+
+    /**
+     * Typical button width, for doLayouts.
+     * @since 2.0.00
+     */
+    private static final int BUTTON_WIDTH = 48;
+
+    /**
+     * Height of a single-line text label in pixels,
+     * including the auto-reject timer countdown when visible.
+     * For convenience of other classes' layout calculations.
+     * @see OfferPanel#wantsRejectCountdown(boolean)
+     * @since 1.2.00
+     */
+    public static final int LABEL_LINE_HEIGHT = 14;
+
+    /**
+     * Typical height of offer panel when visible. Includes {@link #OFFER_BUTTONS_ADDED_HEIGHT}
+     * and speech balloon's protruding point, but not {@link #OFFER_COUNTER_HEIGHT}.
+     * Also doesn't include {@link #LABEL_LINE_HEIGHT} + 5 needed when {@link OfferPanel#wantsRejectCountdown(boolean)}.
+     *<P>
      * For convenience of other classes' layout calculations.
      * Actual height (buttons' y-positions + height) is set dynamically in OfferPanel.doLayout.
      * @since 1.1.08
      */
     public static final int OFFER_HEIGHT
-        = (5 + 32 + (SquaresPanel.HEIGHT + 8)) + 18 + 10;
-        // As calculated in OfferPanel.doLayout():
-        //    18 = balloon tip height (OfferPanel.balloon's h / 8) for 4-player game
-        //       (15 if 6-player on same side of window as client)
-        //    top = between 5 and 18: = (h / (int)(.5 * ColorSquareLarger.HEIGHT_L)) + 5
-        //    squaresHeight = squares.getBounds().height + 8
-        //    buttonY = top + 32 + squaresHeight
-        //    buttonH = 18
-        //    inset = 10
-        //    HEIGHT = buttonY + buttonH + inset
+        = SpeechBalloon.BALLOON_POINT_SIZE + 3
+        + (2 * LABEL_LINE_HEIGHT + 4) + (SquaresPanel.HEIGHT + 5) + BUTTON_HEIGHT + 5
+        + SpeechBalloon.SHADOW_SIZE;
+        // same formula as OfferPanel.doLayout()
 
     /**
      * Additional height of offer (part of {@link #OFFER_HEIGHT})
@@ -102,9 +133,12 @@ import java.util.TimerTask;
      * That is, when not in counter-offer mode.
      * For convenience of other classes' layout calculations.
      * Based on calculations within OfferPanel.doLayout.
+     *<P>
+     * Before v2.0.00 this field was {@code OFFER_BUTTONS_HEIGHT}.
+     *
      * @since 1.1.08
      */
-    public static final int OFFER_BUTTONS_HEIGHT = 26;
+    public static final int OFFER_BUTTONS_ADDED_HEIGHT = 26;
 
     /**
      * Typical height of counter-offer panel, when visible.
@@ -120,13 +154,16 @@ import java.util.TimerTask;
         //   HEIGHT = squaresHeight + 16 + lineH
 
     /**
-     * Height of a single-line text label in pixels,
-     * including the auto-reject timer countdown when visible.
-     * For convenience of other classes' layout calculations.
-     * @see OfferPanel#wantsRejectCountdown()
-     * @since 1.2.00
+     * Offer panel minimum width, based on {@link OfferPanel#doLayout()}
+     * @since 2.0.00
      */
-    public static final int LABEL_LINE_HEIGHT = 14;
+    private static final int OFFER_MIN_WIDTH = (2 * (10+5) + 3 * BUTTON_WIDTH);
+
+    /**
+     * Initial size, to avoid (0,0)-sized JPanel during parent panels' construction.
+     * @since 2.0.00
+     */
+    private static final Dimension INITIAL_SIZE = new Dimension(OFFER_MIN_WIDTH, OFFER_HEIGHT);
 
     protected static final int[] zero = { 0, 0, 0, 0, 0 };
     static final String OFFER = "counter";
@@ -164,10 +201,19 @@ import java.util.TimerTask;
     OfferPanel offerPanel;
 
     /**
+     * Available width and height in handpanel. Used for determining {@link #getPreferredSize()},
+     * overall shape of which changes when a counter-offer needs to use {@link #counterCompactMode}.
+     * Is 0 (unused) until {@link #setAvailableSpace(int, int)} is called.
+     * @since 2.0.00
+     */
+    private int availableWidth, availableHeight;
+
+    /**
      * If true, display counter-offer in a "compact mode" layout
      * because the panel's height is too short for the normal arrangement.
+     * Buttons (width {@link #BUTTON_WIDTH}) will be to the right of colorsquares, not below them.
      * Calculated using {@link #OFFER_HEIGHT} + {@link #OFFER_COUNTER_HEIGHT}
-     *     - {@link #OFFER_BUTTONS_HEIGHT}.
+     *     - {@link #OFFER_BUTTONS_ADDED_HEIGHT}.
      * Ignored unless {@link OfferPanel#counterOfferMode}.
      * @since 1.1.08
      */
@@ -192,9 +238,6 @@ import java.util.TimerTask;
         this.from = from;
         pi = hp.getPlayerInterface();
 
-        setBackground(pi.getPlayerColor(from));
-        setForeground(Color.black);
-
         messagePanel = new MessagePanel();
         offerPanel = new OfferPanel();
 
@@ -209,6 +252,85 @@ import java.util.TimerTask;
 
         counterCompactMode = false;
         counterHidesBalloonPoint = false;
+
+        // without these calls, parent JPanel layout is incomplete even when this panel overrides get*Size
+        setSize(INITIAL_SIZE);
+        setMinimumSize(INITIAL_SIZE);
+        setPreferredSize(INITIAL_SIZE);  // will be updated when setAvailableSpace is called
+    }
+
+    /**
+     * Set the size of the largest space available for this panel in our {@link SOCHandPanel}.
+     * If space's size has changed since the last call, calls {@link #recalcPreferredSize()}.
+     *
+     * @param width  Available width
+     * @param height  Available height
+     * @since 2.0.00
+     */
+    public void setAvailableSpace(final int width, final int height)
+    {
+        if ((width == availableWidth) && (height == availableHeight))
+            return;
+
+        availableWidth = width;
+        availableHeight = height;
+
+        recalcPreferredSize();
+    }
+
+    /**
+     * Recalculate our panel's {@link #getPreferredSize()}.
+     * Useful when counter-offer is being shown or hidden, which might need a "compact mode".
+     * with a different width than otherwise. So, also updates that flag if panel is showing a counter-offer.
+     * Does not call {@link #invalidate()}, so call that afterwards if needed.
+     *
+     * @see #setAvailableSpace(int, int)
+     * @since 2.0.00
+     */
+    public void recalcPreferredSize()
+    {
+        int prefW, prefH;
+
+        if (mode.equals(MESSAGE_MODE))
+        {
+            prefW = OFFER_MIN_WIDTH;
+            prefH = messagePanel.calcLabelMinHeightFields(true);
+        } else {
+            prefW = OFFER_MIN_WIDTH;
+            if (! offerPanel.counterOfferMode)
+            {
+                prefH = OFFER_HEIGHT;
+            } else {
+                final boolean wasCompact = counterCompactMode;
+
+                prefH = OFFER_HEIGHT - OFFER_BUTTONS_ADDED_HEIGHT + OFFER_COUNTER_HEIGHT;
+                if (availableHeight >= prefH)
+                {
+                    counterCompactMode = false;
+                } else {
+                    counterCompactMode = true;
+                    prefW += (BUTTON_WIDTH + 2);
+                    prefH -= (BUTTON_HEIGHT + 2);
+                }
+
+                if (wasCompact != counterCompactMode)
+                    repaint();
+            }
+
+            if (! (offerPanel.counterOfferMode && counterCompactMode))
+            {
+                if (offerPanel.wantsRejectCountdown(true))
+                    prefH += LABEL_LINE_HEIGHT + 5;
+            } else {
+                prefH -= SpeechBalloon.BALLOON_POINT_SIZE;  // TODO already accounted for in offer_height?
+            }
+        }
+
+        if ((availableWidth != 0) && (availableWidth < prefW))
+            prefW = availableWidth;
+        if ((availableHeight != 0) && (availableHeight < prefH))
+            prefH = availableHeight;
+        setPreferredSize(new Dimension(prefW, prefH));
     }
 
     /**
@@ -216,16 +338,28 @@ import java.util.TimerTask;
      * not {@link TradeOfferPanel#OFFER_MODE OFFER_MODE}.
      * @see OfferPanel
      */
-    private class MessagePanel extends Panel
+    private class MessagePanel extends JPanel
     {
         private SpeechBalloon balloon;
+
         /**
          * For 1 line of text, {@link #msg} contains the entire text.
          * For 2 lines separated by <tt>\n</tt>, {@link #msg} and {@link #msg2} are used.
-         * (AWT Label is described as 1 line of text, although OSX respects \n in the text.)
+         * @see #msgLines
          */
-        private Label msg, msg2;
-        private int oneLineHeight, msgHeight;
+        private JLabel msg, msg2;
+
+        /**
+         * Height of the text in one label, from <tt>getFontMetrics({@link #msg}.getFont()).getHeight().
+         * Should be less than {@link #msgHeight}.
+         */
+        private int oneLineHeight;
+
+        /**
+         * Height of each label ({@link #msg}, {@link #msg2}).
+         * Should be {@link #oneLineHeight} + insets.
+         */
+        private int msgHeight;
 
         /**
          * Number of lines of text; 1, or 2 if text contains <tt>\n</tt>.
@@ -240,17 +374,22 @@ import java.util.TimerTask;
          */
         public MessagePanel()
         {
-            setLayout(null);
-            setFont(new Font("SansSerif", Font.PLAIN, 18));
-            setForeground(Color.BLACK);
+            super(null);  // custom doLayout
 
-            msg = new Label(" ", Label.CENTER);
-            msg.setForeground(Color.BLACK);
-            msg.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
-            msg2 = new Label(" ", Label.CENTER);
-            msg2.setForeground(Color.BLACK);
-            msg2.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
+            setForeground(Color.BLACK);
+            setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
+
+            final Font msgFont = new Font("SansSerif", Font.PLAIN, 18);
+
+            msg = new JLabel(" ", SwingConstants.CENTER);
+            msg.setFont(msgFont);
+            msg.setForeground(null);
+
+            msg2 = new JLabel(" ", SwingConstants.CENTER);
             msg2.setVisible(false);
+            msg2.setFont(msgFont);
+            msg2.setForeground(null);
+
             oneLineHeight = 0;  // set once in doLayout
             msgHeight = 0;  // set in doLayout
             msgLines = 1;
@@ -259,6 +398,10 @@ import java.util.TimerTask;
 
             balloon = new SpeechBalloon(pi.getPlayerColor(from));
             add(balloon);
+
+            setSize(INITIAL_SIZE);
+            setMinimumSize(INITIAL_SIZE);
+            setPreferredSize(INITIAL_SIZE);
         }
 
         /**
@@ -298,6 +441,34 @@ import java.util.TimerTask;
         }
 
         /**
+         * Calculate some fields for this panel's minimum height based on {@link #msgHeight}.
+         * Ignores getSize() and {@link TradeOfferPanel#availableHeight}.
+         *<P>
+         * Used by {@link #doLayout()} which wants those field calcs, and
+         * {@link TradeOfferPanel#setAvailableSpace(int, int)} which also wants
+         * an overall minimum height.
+         *<P>
+         * If not yet done (0), first calculate the values for {@link #oneLineHeight} and {@link #msgHeight}
+         * based on {@link #msgLines} and getFontMetrics({@link #msg}.getFont()).
+         *
+         * @return  Minimum panel height if {@code wantHeight}, otherwise 0
+         * @since 2.0.00
+         */
+        int calcLabelMinHeightFields(final boolean wantHeight)
+        {
+            if (oneLineHeight == 0)
+                oneLineHeight = getFontMetrics(msg.getFont()).getHeight();
+            if (msgHeight == 0)
+                msgHeight = oneLineHeight + 4;
+
+            if (! wantHeight)
+                return 0;
+
+            return 3 * msgHeight + 4 + SpeechBalloon.BALLOON_POINT_SIZE + SpeechBalloon.SHADOW_SIZE;
+                // actual minimum needs 2 * msgHeight; add another msgHeight for margins
+        }
+
+        /**
          * Custom layout for just the message panel.
          * To center {@link #msg} and {@link #msg2} vertically after changing {@link #msgLines},
          * set {@link #msgHeight} to 0 before calling.
@@ -305,19 +476,16 @@ import java.util.TimerTask;
         public void doLayout()
         {
             final Dimension dim = getSize();
-            final int buttonW = 48;
             final int inset = 2 * SpeechBalloon.SHADOW_SIZE;
 
-            if (oneLineHeight == 0)
-                oneLineHeight = getFontMetrics(msg.getFont()).getHeight();
-            if (msgHeight == 0)
-                msgHeight = oneLineHeight + 4;
-            int w = Math.min((2*(inset+5) + 3*buttonW), dim.width);
+            calcLabelMinHeightFields(false);  // if 0, set oneLineHeight, msgHeight
+
+            int w = Math.min((2*(inset+5) + 3*BUTTON_WIDTH), dim.width);
             int h = Math.min(92 + 2 * ColorSquareLarger.HEIGHT_L, dim.height);
             if ((msgHeight * msgLines) > h)
                 msgHeight = h / msgLines;
-            int msgY = ((h - msgHeight - SpeechBalloon.SHADOW_SIZE - (h / 8)) / 2)
-                        + (h / 8);
+            int msgY = ((h - msgHeight - SpeechBalloon.SHADOW_SIZE - SpeechBalloon.BALLOON_POINT_SIZE) / 2)
+                        + SpeechBalloon.BALLOON_POINT_SIZE;
             if (msgLines != 1)
                 msgY -= (oneLineHeight / 2);  // move up to make room for msg2
             if (msgY < 0)
@@ -341,7 +509,7 @@ import java.util.TimerTask;
      * Contains both offer and counter-offer; see {@link #setCounterOfferVisible(boolean)}
      * @see MessagePanel
      */
-    class OfferPanel extends Panel implements ActionListener
+    class OfferPanel extends JPanel implements ActionListener
     {
         /**
          * Balloon to hold offer received visually, not as a layout container.
@@ -351,31 +519,31 @@ import java.util.TimerTask;
         SpeechBalloon balloon;
 
         /** "Offered To" line 1 */
-        Label toWhom1;
+        JLabel toWhom1;
         /** "Offered To" line 2 for wrapping; usually blank */
-        Label toWhom2;
+        JLabel toWhom2;
 
         /**
          * Top row "Gives You:". Client player {@link SOCHandPanel} has "I Give" on this row.
          *<P>
          * Before v1.2.00 this label field was {@code giveLab}.
          */
-        Label givesYouLab;
+        JLabel givesYouLab;
 
         /**
          * Bottom row "They Get:". Client player {@link SOCHandPanel} has "I Get" on this row.
          *<P>
          * Before v1.2.00 this label field was {@code getLab}.
          */
-        Label theyGetLab;
+        JLabel theyGetLab;
 
         /** Offer's resources; counter-offer is {@link #counterOfferSquares}. */
         SquaresPanel squares;
 
         /** send button for counter-offer */
-        Button offerBut;
-        Button acceptBut;
-        Button rejectBut;
+        JButton offerBut;
+        JButton acceptBut;
+        JButton rejectBut;
 
         /**
          * Counter-offer to send; groups counter-offer elements visually, not as a layout container.
@@ -383,7 +551,7 @@ import java.util.TimerTask;
          */
         ShadowedBox offerBox;
 
-        Label counterOfferToWhom;
+        JLabel counterOfferToWhom;
 
         /** Have we set prompt to include opponent name? Is set true by first call to {@link #update(SOCTradeOffer)}. */
         boolean counterOffer_playerInit = false;
@@ -396,18 +564,19 @@ import java.util.TimerTask;
          *<P>
          * Before v1.2.00 this label field was {@code giveLab2}.
          */
-        Label theyGetLab2;
+        JLabel theyGetLab2;
 
         /**
          * Bottom row "Gives You:". Same as main offer's top row.
          *<P>
          * Before v1.2.00 this label field was {@code getLab2}.
          */
-        Label givesYouLab2;
+        JLabel givesYouLab2;
 
-        Button sendBut;
-        Button clearBut;
-        Button cancelBut;
+        JButton sendBut;
+        JButton clearBut;
+        JButton cancelBut;
+
         /** True if the current offer's "offered to" includes the client player. */
         boolean offered;
 
@@ -422,7 +591,7 @@ import java.util.TimerTask;
          * @see #rejTimerTask
          * @since 1.2.00
          */
-        private Label rejCountdownLab;
+        private JLabel rejCountdownLab;
 
         /**
          * Countdown timer to auto-reject offers from bots. Uses {@link #rejCountdownLab}.
@@ -449,100 +618,105 @@ import java.util.TimerTask;
          */
         public OfferPanel()
         {
-            setLayout(null);
-            setFont(new Font("SansSerif", Font.PLAIN, 10));
+            super(null);   // custom doLayout
+
+            final Font offerFont = new Font("SansSerif", Font.PLAIN, 10);
+            setFont(offerFont);
             setForeground(Color.BLACK);
+            setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
 
-            /** Offer received */
+            /** The offer received */
 
-            toWhom1 = new Label();
-            toWhom1.setForeground(Color.BLACK);
-            toWhom1.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
+            toWhom1 = new JLabel();
             add(toWhom1);
 
-            toWhom2 = new Label();
-            toWhom2.setForeground(Color.BLACK);
-            toWhom2.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
+            toWhom2 = new JLabel();
             add(toWhom2);
 
             /** Offer's resources */
             squares = new SquaresPanel(false);
             add(squares);
 
-            givesYouLab = new Label(strings.get("trade.gives.you"));  // "Gives You:"
-            givesYouLab.setForeground(Color.BLACK);
-            givesYouLab.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
+            givesYouLab = new JLabel(strings.get("trade.gives.you"));  // "Gives You:"
+            givesYouLab.setToolTipText(strings.get("trade.opponent.gives"));  // "Opponent gives to you"
             add(givesYouLab);
-            new AWTToolTip(strings.get("trade.opponent.gives"), givesYouLab);  // "Opponent gives to you"
 
-            theyGetLab = new Label(strings.get("trade.they.get"));  // "They Get:"
-            theyGetLab.setForeground(Color.BLACK);
-            theyGetLab.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
+            theyGetLab = new JLabel(strings.get("trade.they.get"));  // "They Get:"
+            theyGetLab.setToolTipText(strings.get("trade.you.give"));  // "You give to opponent"
             add(theyGetLab);
-            new AWTToolTip(strings.get("trade.you.give"), theyGetLab);  // "You give to opponent"
 
             giveInt = new int[5];
             getInt = new int[5];
 
-            acceptBut = new Button(strings.get("trade.accept"));  // "Accept"
+            final Insets minButtonMargin = new Insets(2, 2, 2, 2);  // avoid text cutoff on win32 JButtons
+
+            acceptBut = new JButton(strings.get("trade.accept"));  // "Accept"
             acceptBut.setActionCommand(ACCEPT);
             acceptBut.addActionListener(this);
+            acceptBut.setFont(offerFont);
+            acceptBut.setMargin(minButtonMargin);
             add(acceptBut);
 
-            rejectBut = new Button(strings.get("trade.reject"));  // "Reject"
+            rejectBut = new JButton(strings.get("trade.reject"));  // "Reject"
             rejectBut.setActionCommand(REJECT);
             rejectBut.addActionListener(this);
+            rejectBut.setFont(offerFont);
+            rejectBut.setMargin(minButtonMargin);
             add(rejectBut);
 
-            offerBut = new Button(strings.get("trade.counter"));  // "Counter"
+            offerBut = new JButton(strings.get("trade.counter"));  // "Counter"
             offerBut.setActionCommand(OFFER);
             offerBut.addActionListener(this);
+            offerBut.setFont(offerFont);
+            offerBut.setMargin(minButtonMargin);
             add(offerBut);
 
             // Skip rejCountdownLab setup for now, because isFromRobot is false when constructed.
             // TradeOfferPanel constructor will soon call addPlayer() to set it up if needed.
 
-            /** Counter-offer to send */
+            /** The counter-offer to send */
 
-            counterOfferToWhom = new Label();
+            counterOfferToWhom = new JLabel();
             counterOfferToWhom.setVisible(false);
-            counterOfferToWhom.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
             add(counterOfferToWhom);
 
-            sendBut = new Button(strings.get("base.send"));  // "Send"
+            sendBut = new JButton(strings.get("base.send"));  // "Send"
             sendBut.setActionCommand(SEND);
             sendBut.addActionListener(this);
             sendBut.setVisible(false);
+            sendBut.setFont(offerFont);
+            sendBut.setMargin(minButtonMargin);
             add(sendBut);
 
-            clearBut = new Button(strings.get("base.clear"));  // "Clear"
+            clearBut = new JButton(strings.get("base.clear"));  // "Clear"
             clearBut.setActionCommand(CLEAR);
             clearBut.addActionListener(this);
             clearBut.setVisible(false);
+            clearBut.setFont(offerFont);
+            clearBut.setMargin(minButtonMargin);
             add(clearBut);
 
-            cancelBut = new Button(strings.get("base.cancel"));  // "Cancel"
+            cancelBut = new JButton(strings.get("base.cancel"));  // "Cancel"
             cancelBut.setActionCommand(CANCEL);
             cancelBut.addActionListener(this);
             cancelBut.setVisible(false);
+            cancelBut.setFont(offerFont);
+            cancelBut.setMargin(minButtonMargin);
             add(cancelBut);
 
             counterOfferSquares = new SquaresPanel(true);
             counterOfferSquares.setVisible(false);
             add(counterOfferSquares);
 
-            theyGetLab2 = new Label(strings.get("trade.they.get"));  // "They Get:"
+            theyGetLab2 = new JLabel(strings.get("trade.they.get"));  // "They Get:"
             theyGetLab2.setVisible(false);
-            theyGetLab2.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
-
+            theyGetLab2.setToolTipText(strings.get("trade.give.to.opponent"));  // "Give to opponent"
             add(theyGetLab2);
-            new AWTToolTip(strings.get("trade.give.to.opponent"), theyGetLab2);  // "Give to opponent"
 
-            givesYouLab2 = new Label(strings.get("trade.gives.you"));  // "Gives You:"
+            givesYouLab2 = new JLabel(strings.get("trade.gives.you"));  // "Gives You:"
             givesYouLab2.setVisible(false);
-            givesYouLab2.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
+            givesYouLab2.setToolTipText(strings.get("trade.opponent.gives"));  // "Opponent gives to you"
             add(givesYouLab2);
-            new AWTToolTip(strings.get("trade.opponent.gives"), givesYouLab2);  // "Opponent gives to you"
 
             offerBox = new ShadowedBox(pi.getPlayerColor(from), SOCPlayerInterface.DIALOG_BG_GOLDENROD);
             offerBox.setVisible(false);
@@ -552,6 +726,13 @@ import java.util.TimerTask;
 
             balloon = new SpeechBalloon(pi.getPlayerColor(from));
             add(balloon);
+
+            /** adjust JLabel and JButton appearance */
+            SOCDialog.styleButtonsAndLabels(this);
+
+            setSize(INITIAL_SIZE);
+            setMinimumSize(INITIAL_SIZE);
+            setPreferredSize(INITIAL_SIZE);
         }
 
         /**
@@ -678,9 +859,9 @@ import java.util.TimerTask;
             {
                 if (rejCountdownLab == null)
                 {
-                    rejCountdownLab = new Label("");  // rejTimerTask.run() will set countdown text
-                    rejCountdownLab.setForeground(Color.BLACK);
-                    rejCountdownLab.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
+                    rejCountdownLab = new JLabel("");  // rejTimerTask.run() will set countdown text
+                    rejCountdownLab.setForeground(null);  // inherit from panel
+                    rejCountdownLab.setFont(getFont());
                     add(rejCountdownLab, null, 0);  // add at index 0 to paint in front of balloon (z-order)
                 }
             }
@@ -696,8 +877,6 @@ import java.util.TimerTask;
         {
             FontMetrics fm = this.getFontMetrics(this.getFont());
             Dimension dim = getSize();
-            final int buttonW = 48;
-            final int buttonH = 18;
             int inset = 10;
             final boolean isUsingRejCountdownLab =
                 offered && (! counterOfferMode) && (rejCountdownLab != null)
@@ -708,9 +887,10 @@ import java.util.TimerTask;
                 // layout already gives extra padding above/below, so no more is needed in this calc.
 
             // At initial call to doLayout: dim.width, .height == 0.
-            int w = Math.min((2*(inset+5) + 3*buttonW), dim.width);
-            int h = Math.min(92 + 2 * ColorSquareLarger.HEIGHT_L + countdownLabHeight, dim.height);
-            int top = (h / (int)(.5 * ColorSquareLarger.HEIGHT_L)) + 5;
+            int w = Math.min((2*(inset+5) + 3*BUTTON_WIDTH), dim.width);
+            int h = Math.min(64 + 2 * LABEL_LINE_HEIGHT + 2 * ColorSquareLarger.HEIGHT_L + countdownLabHeight, dim.height);
+            // top of toWhom1 label:
+            int top = SpeechBalloon.BALLOON_POINT_SIZE + 3;
 
             if (counterOfferMode)
             {
@@ -718,15 +898,13 @@ import java.util.TimerTask;
 
                 final int lineH = ColorSquareLarger.HEIGHT_L;
                 h = Math.min(60 + 2 * ColorSquareLarger.HEIGHT_L, h);
-                top = (h / (int)(.5 * ColorSquareLarger.HEIGHT_L)) + 10
-                    - (OFFER_BUTTONS_HEIGHT / 8);  // balloon and its point are shorter, since no Offer buttons
 
                 if (counterCompactMode)
                 {
                     inset = 2;
                     balloon.setBalloonPoint(false);
-                    top -= (h / 8);  // Shift everything up this far, since we
-                                     // don't need to leave room for balloon point.
+                    top -= SpeechBalloon.BALLOON_POINT_SIZE;
+                        // Shift everything up this far, since we don't need to leave room for balloon point.
                 } else {
                     balloon.setBalloonPoint(! counterHidesBalloonPoint);
                 }
@@ -739,9 +917,9 @@ import java.util.TimerTask;
 
                 givesYouLab.setBounds(inset, top + 32, giveW, lineH);
                 theyGetLab.setBounds(inset, top + 32 + lineH, giveW, lineH);
-                squares.setLocation(inset + giveW, top + 30);
+                squares.setLocation(inset + giveW, top + (2 * LABEL_LINE_HEIGHT) + 2);
 
-                int squaresHeight = squares.getBounds().height + 24;
+                int squaresHeight = SquaresPanel.HEIGHT + 24;
                 counterOfferToWhom.setBounds(inset, top + 23 + squaresHeight, w - 33, 12);
                 theyGetLab2.setBounds(inset, top + 26 + lineH + squaresHeight, giveW, lineH);
                 givesYouLab2.setBounds(inset, top + 26 + 2*lineH + squaresHeight, giveW, lineH);
@@ -754,27 +932,27 @@ import java.util.TimerTask;
                     int buttonY = top + 28 + squaresHeight;
                     final int buttonX = inset + giveW + squares.getBounds().width + 2;
 
-                    sendBut.setBounds(buttonX, buttonY, buttonW, buttonH);
-                    buttonY += buttonH + 2;
-                    clearBut.setBounds(buttonX, buttonY, buttonW, buttonH);
-                    buttonY += buttonH + 2;
-                    cancelBut.setBounds(buttonX, buttonY, buttonW, buttonH);
+                    sendBut.setBounds(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
+                    buttonY += BUTTON_HEIGHT + 2;
+                    clearBut.setBounds(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
+                    buttonY += BUTTON_HEIGHT + 2;
+                    cancelBut.setBounds(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
 
-                    if (w < (buttonX + buttonW + ShadowedBox.SHADOW_SIZE + 2))
-                        w = buttonX + buttonW + ShadowedBox.SHADOW_SIZE + 2;
+                    if (w < (buttonX + BUTTON_WIDTH + ShadowedBox.SHADOW_SIZE + 2))
+                        w = buttonX + BUTTON_WIDTH + ShadowedBox.SHADOW_SIZE + 2;
                 } else {
                     // Buttons below givesYouLab2, counterOfferSquares
                     final int buttonY = top + 6 + (2 * squaresHeight) + lineH;
 
-                    sendBut.setBounds(inset, buttonY, buttonW, buttonH);
-                    clearBut.setBounds(inset + 5 + buttonW, buttonY, buttonW, buttonH);
-                    cancelBut.setBounds(inset + (2 * (5 + buttonW)), buttonY, buttonW, buttonH);
+                    sendBut.setBounds(inset, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
+                    clearBut.setBounds(inset + 5 + BUTTON_WIDTH, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
+                    cancelBut.setBounds(inset + (2 * (5 + BUTTON_WIDTH)), buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
                 }
 
                 if (counterCompactMode)
                 {
-                    // No balloon point, so top h/8 of its bounding box is empty
-                    balloon.setBounds(0, -h/8, w, h - (h/16));
+                    // No balloon point, so top few pixels of its bounding box is empty: move it up
+                    balloon.setBounds(0, -SpeechBalloon.BALLOON_POINT_SIZE, w, h - SpeechBalloon.BALLOON_POINT_SIZE / 2);
                 } else {
                     balloon.setBounds(0, 0, w, h);
                 }
@@ -791,14 +969,14 @@ import java.util.TimerTask;
                 // don't waste space showing its point (happens in 6-player mode
                 // on same side of window as client player)
                 int balloonTop = 0;
-                int buttonY = (offered) ? top + 32 + SquaresPanel.HEIGHT + 8 : 0;
+                int buttonY = (offered) ? top + (2 * LABEL_LINE_HEIGHT) + 4 + SquaresPanel.HEIGHT + 5 : 0;
                 if (isUsingRejCountdownLab)
                 {
-                    int htWithLab = buttonY + buttonH + 5 + LABEL_LINE_HEIGHT + 3 + SpeechBalloon.SHADOW_SIZE;
+                    int htWithLab = buttonY + BUTTON_HEIGHT + 5 + LABEL_LINE_HEIGHT + 3 + SpeechBalloon.SHADOW_SIZE;
                     boolean tooTall = isUsingRejCountdownLab && (h < htWithLab);
                     if (tooTall)
                     {
-                        final int dh = h / 8;
+                        final int dh = SpeechBalloon.BALLOON_POINT_SIZE;
                         top -= dh;
                         balloonTop -= (dh + 2);
                         buttonY -= dh;
@@ -817,27 +995,28 @@ import java.util.TimerTask;
 
                 toWhom1.setBounds(inset, top, w - 20, LABEL_LINE_HEIGHT);
                 toWhom2.setBounds(inset, top + LABEL_LINE_HEIGHT, w - 20, LABEL_LINE_HEIGHT);
-                givesYouLab.setBounds(inset, top + 32, giveW, lineH);
-                theyGetLab.setBounds(inset, top + 32 + lineH, giveW, lineH);
-                squares.setLocation(inset + giveW, top + 32);
+                int y = top + (2 * LABEL_LINE_HEIGHT) + 4;
+                givesYouLab.setBounds(inset, y, giveW, lineH);
+                theyGetLab.setBounds(inset, y + lineH, giveW, lineH);
+                squares.setLocation(inset + giveW, y);
                 squares.doLayout();
 
                 if (offered)
                 {
-                    acceptBut.setBounds(inset, buttonY, buttonW, buttonH);
-                    rejectBut.setBounds(inset + 5 + buttonW, buttonY, buttonW, buttonH);
-                    offerBut.setBounds(inset + (2 * (5 + buttonW)), buttonY, buttonW, buttonH);
+                    acceptBut.setBounds(inset, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
+                    rejectBut.setBounds(inset + 5 + BUTTON_WIDTH, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
+                    offerBut.setBounds(inset + (2 * (5 + BUTTON_WIDTH)), buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
 
                     if (isUsingRejCountdownLab)
                         rejCountdownLab.setBounds
-                            (inset, buttonY + buttonH + 5, w - 2 * inset, LABEL_LINE_HEIGHT);
+                            (inset, buttonY + BUTTON_HEIGHT + 5, w - 2 * inset, LABEL_LINE_HEIGHT);
                 }
 
                 balloon.setBounds(0, balloonTop, w, h);
 
                 // If rejectBut height calculation changes, please update OFFER_HEIGHT.
                 // If change in the height difference of "offered" buttons showing/not showing,
-                // please update OFFER_BUTTONS_HEIGHT.
+                // please update OFFER_BUTTONS_ADDED_HEIGHT.
             }
         }
 
@@ -1019,7 +1198,8 @@ import java.util.TimerTask;
 
             counterOfferMode = visible;
             hp.offerCounterOfferVisibleChanged(visible);
-            validate();
+            recalcPreferredSize();
+            invalidate();
         }
 
         /**
@@ -1029,13 +1209,23 @@ import java.util.TimerTask;
          * If visible, this countdown's height is {@link #LABEL_LINE_HEIGHT}.
          * Even when returns true, the label may not yet be visible but space should be reserved
          * for it in {@link #doLayout()}.
+         *
+         * @param checkCurrentStatus  If true, don't only check the SOCPlayerInterface preference,
+         *     also check whether {@link #isCounterOfferMode()} and whether the reject-countdown
+         *     label is visible and not blank.
          * @return True if the current offer is from a bot, is offered to client player,
          *     is not counter-offer mode, and the Auto-Reject Countdown Timer label contains text.
          * @since 1.2.00
          */
-        public boolean wantsRejectCountdown()
+        public boolean wantsRejectCountdown(final boolean checkCurrentStatus)
         {
-            return isFromRobot && (pi.getBotTradeRejectSec() > 0);
+            boolean wants = isFromRobot && (pi.getBotTradeRejectSec() > 0);
+            if ((! wants) || (! checkCurrentStatus))
+                return wants;
+
+            // wants is true, but caller asks to check current status
+            return (! isCounterOfferMode()) && (rejCountdownLab != null)
+                && (rejCountdownLab.getText().length() != 0);
         }
 
         /**
@@ -1135,6 +1325,7 @@ import java.util.TimerTask;
         if (message != null)
         {
             cardLayout.show(this, mode = MESSAGE_MODE);
+            recalcPreferredSize();
             validate();
         }
     }
@@ -1158,6 +1349,7 @@ import java.util.TimerTask;
     {
         offerPanel.update(currentOffer);
         cardLayout.show(this, mode = OFFER_MODE);
+        recalcPreferredSize();
         validate();
     }
 
@@ -1187,6 +1379,7 @@ import java.util.TimerTask;
         if (offerPanel.counterOfferMode)
         {
             offerPanel.counterOfferMode = false;
+            recalcPreferredSize();
             invalidate();
         }
         repaint();
@@ -1215,9 +1408,9 @@ import java.util.TimerTask;
     }
 
     /**
-     * Returns current mode of {@link #OFFER_MODE}, or {@link #MESSAGE_MODE},
-     * which has been set by using
-     * {@link #setOffer} or {@link #setMessage}
+     * Returns current mode, which has been set by using
+     * {@link #setOffer} or {@link #setMessage}.
+     * @return {@link #OFFER_MODE} or {@link #MESSAGE_MODE}
      */
     public String getMode() {
         return mode;
@@ -1254,15 +1447,17 @@ import java.util.TimerTask;
      * Overriden to also update "compact mode" flag for counter-offer.
      * @since 1.1.08
      */
+    @Override
     public void setBounds(final int x, final int y, final int width, final int height)
     {
         super.setBounds(x, y, width, height);
+
         final int hpHeight = hp.getHeight();
         int counterBottomY = offerPanel.offerBox.getHeight();
         if (counterBottomY > 0)
             counterBottomY += offerPanel.offerBox.getY() + y + 3;
         counterCompactMode =
-            (height < (OFFER_HEIGHT + OFFER_COUNTER_HEIGHT - OFFER_BUTTONS_HEIGHT))
+            (height < (OFFER_HEIGHT + OFFER_COUNTER_HEIGHT - OFFER_BUTTONS_ADDED_HEIGHT))
             || ((hpHeight > 0) &&
                 (((y + height + 3 > hpHeight))
                  || ((counterBottomY > 0) && (counterBottomY >= hpHeight))));

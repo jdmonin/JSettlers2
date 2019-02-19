@@ -30,17 +30,17 @@ import java.awt.Graphics;
  * This is a rectangular speech balloon shape for use in the hand panel.
  * Both {@code SpeechBalloon} and {@link ShadowedBox} are used in {@link TradeOfferPanel}.
  *<P>
- * By default, it shows a point near the left side of its top edge:<PRE>
+ * By default, it shows a pointed tip near the left side of its top edge:<PRE>
  * __|\________________
  * |                  | </PRE>
  * Because of this point, the main rectangle of the balloon doesn't take up
  * the entire height (as set by {@link #setSize(int, int)} or
- * {@link #setBounds(int, int, int, int)}), but begins at height / 8.
+ * {@link #setBounds(int, int, int, int)}), but begins {@link #BALLOON_POINT_SIZE} pixels down.
  * Even when the point is hidden by {@link #setBalloonPoint(boolean) setBalloonPoint(false)},
  * this is still the case.
  *<P>
  * When centering items within the balloon, remember the top inset of
- * <tt>height / 8</tt> mentioned above, and the bottom and right insets
+ * {@link #BALLOON_POINT_SIZE} mentioned above, and the bottom and right insets
  * of {@link #SHADOW_SIZE}.  Left inset is 0.
  *
  * @author Robert S. Thomas
@@ -49,25 +49,33 @@ import java.awt.Graphics;
 /*package*/ class SpeechBalloon extends Canvas
 {
     /**
-     * Size of the shadow appearing on the right and bottom sides, in pixels.
+     * Size of the shadow appearing on the right and bottom sides, in pixels: 5.
      * @since 1.1.08
      */
     public static final int SHADOW_SIZE = 5;
 
+    /**
+     * Size of the pointed tip at the top of the balloon, when visible, in pixels: 16.
+     * @since 2.0.00
+     */
+    public static final int BALLOON_POINT_SIZE = 16;
+
     private static Color balloonColor = SOCPlayerInterface.DIALOG_BG_GOLDENROD;
+
     int height;
     int width;
 
     /**
-     * Is the balloon's point showing? (If not, it's drawn as a rectangle)
+     * Is the balloon's pointed tip showing? (If not, it's drawn as a rectangle)
      * @since 1.1.08
      */
     private boolean balloonPoint;
 
     /**
-     * constructor
+     * Constructor. Foreground color will be {@link Color#BLACK},
+     * color of balloon interior will be {@link SOCPlayerInterface#DIALOG_BG_GOLDENROD}.
      *
-     * @param bg  the background color of the panel; foreground will be {@link Color#BLACK}
+     * @param bg  the background color behind the panel
      */
     public SpeechBalloon(Color bg)
     {
@@ -77,6 +85,12 @@ import java.awt.Graphics;
         setBackground(bg);
         setForeground(Color.BLACK);
         balloonPoint = true;
+
+        // nonzero size helps when adding to a JPanel
+        Dimension initSize = new Dimension(width, height);
+        setSize(initSize);
+        setMinimumSize(initSize);
+        setPreferredSize(initSize);
     }
 
     /**
@@ -97,7 +111,7 @@ import java.awt.Graphics;
 
     /**
      * Should this balloon display its point, along the top edge?
-     * Height of the balloon point is balloon height / 8.
+     * Height of the balloon point is {@link #BALLOON_POINT_SIZE} pixels.
      * @since 1.1.08
      */
     public boolean getBalloonPoint()
@@ -107,7 +121,7 @@ import java.awt.Graphics;
 
     /**
      * Should this balloon display its point, along the top edge?
-     * Even when hidden, the main rectangle is drawn beginning at height / 8.
+     * Even when hidden, the main rectangle is drawn beginning {@link #BALLOON_POINT_SIZE} pixels down.
      * Triggers a repaint.
      * @param point  true to display, false to hide
      * @since 1.1.08
@@ -116,6 +130,7 @@ import java.awt.Graphics;
     {
         if (balloonPoint == point)
             return;
+
         balloonPoint = point;
         repaint();
     }
@@ -137,22 +152,25 @@ import java.awt.Graphics;
         g.setColor(balloonColor);
         if (balloonPoint)
         {
-            int[] xPoints = { 0, w / 8, w / 8, ((w / 8) + (w / 16)), w - xm, w - xm, 0, 0 };
-            int[] yPoints = { h / 8, h / 8, 0, h / 8, h / 8, h - ym, h - ym, h / 8 };
+            int[] xPoints =
+                { 0, BALLOON_POINT_SIZE, BALLOON_POINT_SIZE, (7 * BALLOON_POINT_SIZE) / 4,
+                  w - xm, w - xm, 0, 0 };
+            int[] yPoints =
+                { BALLOON_POINT_SIZE, BALLOON_POINT_SIZE, 0, BALLOON_POINT_SIZE,
+                  BALLOON_POINT_SIZE, h - ym, h - ym, BALLOON_POINT_SIZE };
 
             g.fillPolygon(xPoints, yPoints, 8);
             g.setColor(Color.BLACK);
             g.drawPolygon(xPoints, yPoints, 8);
         } else {
-            final int hdiv8 = h / 8;
-            g.fillRect(0, hdiv8, w - xm, h - ym - hdiv8);
+            g.fillRect(0, BALLOON_POINT_SIZE, w - xm, h - ym - BALLOON_POINT_SIZE);
             g.setColor(Color.BLACK);
-            g.drawRect(0, hdiv8, w - xm, h - ym - hdiv8);
+            g.drawRect(0, BALLOON_POINT_SIZE, w - xm, h - ym - BALLOON_POINT_SIZE);
         }
 
         // Draw the shadow
-        g.fillRect(ym, h - xm, w, h - 1);
-        g.fillRect(w - ym, (h / 6) + xm, w - 1, h);
+        g.fillRect(ym, h - xm, w, h - 1);  // bottom
+        g.fillRect(w - ym, (h / 6) + xm, w - 1, h); // right
     }
 
 }
