@@ -20,10 +20,12 @@
  **/
 package soc.client;
 
-import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.LayoutManager;
+
+import javax.swing.JPanel;
 
 
 /**
@@ -33,7 +35,7 @@ import java.awt.Graphics;
  * @author Robert S. Thomas
  */
 @SuppressWarnings("serial")
-/*package*/ class ShadowedBox extends Canvas
+/*package*/ class ShadowedBox extends JPanel
 {
     /**
      * Size of the shadow, in pixels.
@@ -48,12 +50,13 @@ import java.awt.Graphics;
     /**
      * constructor
      *
-     * @param bg  the background color of the panel
+     * @param bg  the background color beyond edges of the panel
      * @param interior  the color of the box interior
+     * @param lm  LayoutManager to use, or {@code null}
      */
-    public ShadowedBox(Color bg, Color interior)
+    public ShadowedBox(Color bg, Color interior, LayoutManager lm)
     {
-        super();
+        super(lm);
         height = 50;
         width = 50;
         setBackground(bg);
@@ -93,27 +96,33 @@ import java.awt.Graphics;
         return new Dimension(width, height);
     }
 
+    // TODO To help TradeOfferPanel doLayout, actually set insets and paint here as a custom Border
+
     /**
      * Draw this ShadowedBox.
      *
      * @param g Graphics
      */
-    public void paint(Graphics g)
+    public void paintComponent(Graphics g)
     {
         Dimension dim = getSize();
-        int h = dim.height;
-        int w = dim.width;
+        final int h = dim.height;
+        final int w = dim.width;
         final int xm = SHADOW_SIZE;
         final int ym = SHADOW_SIZE;
 
         g.setPaintMode();
+        g.setColor(getBackground());
+        g.fillRect(0, 0, w, h);
+
         g.setColor(interior);
         g.fillRect(0, 0, w - xm, h - ym);
         g.setColor(Color.black);
         g.drawRect(0, 0, w - xm, h - ym);
 
         // Draw the shadow
-        g.fillRect(ym, h - xm, w, h - 1);
-        g.fillRect(w - ym, xm, w - 1, h);
+        g.fillRect(ym, h - xm, w, h - 1);  // bottom
+        g.fillRect(w - ym, xm, w - 1, h);  // right
     }
+
 }

@@ -20,10 +20,12 @@
  **/
 package soc.client;
 
-import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.LayoutManager;
+
+import javax.swing.JPanel;
 
 
 /**
@@ -46,7 +48,7 @@ import java.awt.Graphics;
  * @author Robert S. Thomas
  */
 @SuppressWarnings("serial")
-/*package*/ class SpeechBalloon extends Canvas
+/*package*/ class SpeechBalloon extends JPanel
 {
     /**
      * Size of the shadow appearing on the right and bottom sides, in pixels: 5.
@@ -59,6 +61,12 @@ import java.awt.Graphics;
      * @since 2.0.00
      */
     public static final int BALLOON_POINT_SIZE = 16;
+
+    /**
+     * Background color for our parent panel beyond the edges of SpeechBalloon.
+     * @since 2.0.00
+     */
+    private final Color behindColor;
 
     private static Color balloonColor = SOCPlayerInterface.DIALOG_BG_GOLDENROD;
 
@@ -73,16 +81,22 @@ import java.awt.Graphics;
 
     /**
      * Constructor. Foreground color will be {@link Color#BLACK},
-     * color of balloon interior will be {@link SOCPlayerInterface#DIALOG_BG_GOLDENROD}.
+     * background color in balloon interior will be {@link SOCPlayerInterface#DIALOG_BG_GOLDENROD}.
      *
-     * @param bg  the background color behind the panel
+     * @param behindColor  the background color beyond edges of the panel
+     * @param lm  LayoutManager to use, or {@code null}
      */
-    public SpeechBalloon(Color bg)
+    public SpeechBalloon(Color behindColor, LayoutManager lm)
     {
-        super();
+        super(lm);
+        if (behindColor == null)
+            throw new IllegalArgumentException("behindColor");
+
         height = 50;
         width = 50;
-        setBackground(bg);
+        this.behindColor = behindColor;
+
+        setBackground(balloonColor);
         setForeground(Color.BLACK);
         balloonPoint = true;
 
@@ -135,12 +149,14 @@ import java.awt.Graphics;
         repaint();
     }
 
+    // TODO To help TradeOfferPanel doLayout, actually set insets and paint here as a custom Border
+
     /**
      * Draw this balloon.
      *
      * @param g Graphics
      */
-    public void paint(Graphics g)
+    public void paintComponent(Graphics g)
     {
         final Dimension dim = getSize();
         final int h = dim.height;
@@ -149,6 +165,9 @@ import java.awt.Graphics;
         final int ym = SHADOW_SIZE;
 
         g.setPaintMode();
+        g.setColor(behindColor);
+        g.fillRect(0, 0, w, h);
+
         g.setColor(balloonColor);
         if (balloonPoint)
         {

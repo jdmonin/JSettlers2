@@ -67,7 +67,7 @@ import javax.swing.SwingConstants;
  * <LI> Consider separating offerpanel, messagepanel to 2 separate components
  *      that handpanel shows/hides/manages separately
  * <LI> Consider combine ShadowedBox, SpeechBalloon: They look the same except for that balloon point
- * <LI> Consider rework ShadowedBox, SpeechBalloon as JPanels with a custom-drawn border
+ * <LI> Consider rework ShadowedBox, SpeechBalloon to have a custom-drawn Border
  *</UL>
  */
 @SuppressWarnings("serial")
@@ -322,7 +322,7 @@ import javax.swing.SwingConstants;
                 if (offerPanel.wantsRejectCountdown(true))
                     prefH += LABEL_LINE_HEIGHT + 5;
             } else {
-                prefH -= SpeechBalloon.BALLOON_POINT_SIZE;  // TODO already accounted for in offer_height?
+                prefH -= SpeechBalloon.BALLOON_POINT_SIZE;
             }
         }
 
@@ -338,10 +338,8 @@ import javax.swing.SwingConstants;
      * not {@link TradeOfferPanel#OFFER_MODE OFFER_MODE}.
      * @see OfferPanel
      */
-    private class MessagePanel extends JPanel
+    private class MessagePanel extends SpeechBalloon
     {
-        private SpeechBalloon balloon;
-
         /**
          * For 1 line of text, {@link #msg} contains the entire text.
          * For 2 lines separated by <tt>\n</tt>, {@link #msg} and {@link #msg2} are used.
@@ -374,7 +372,7 @@ import javax.swing.SwingConstants;
          */
         public MessagePanel()
         {
-            super(null);  // custom doLayout
+            super(pi.getPlayerColor(from), null);  // custom doLayout
 
             setForeground(Color.BLACK);
             setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
@@ -395,9 +393,6 @@ import javax.swing.SwingConstants;
             msgLines = 1;
             add(msg);
             add(msg2);
-
-            balloon = new SpeechBalloon(pi.getPlayerColor(from));
-            add(balloon);
 
             setSize(INITIAL_SIZE);
             setMinimumSize(INITIAL_SIZE);
@@ -475,45 +470,43 @@ import javax.swing.SwingConstants;
          */
         public void doLayout()
         {
-            final Dimension dim = getSize();
+            final Dimension dim = getSize();  // includes BALLOON_POINT_SIZE at top, SHADOW_SIZE at bottom
             final int inset = 2 * SpeechBalloon.SHADOW_SIZE;
 
             calcLabelMinHeightFields(false);  // if 0, set oneLineHeight, msgHeight
 
-            int w = Math.min((2*(inset+5) + 3*BUTTON_WIDTH), dim.width);
-            int h = Math.min(92 + 2 * ColorSquareLarger.HEIGHT_L, dim.height);
+            int h = dim.height - SpeechBalloon.BALLOON_POINT_SIZE - SpeechBalloon.SHADOW_SIZE;
             if ((msgHeight * msgLines) > h)
                 msgHeight = h / msgLines;
-            int msgY = ((h - msgHeight - SpeechBalloon.SHADOW_SIZE - SpeechBalloon.BALLOON_POINT_SIZE) / 2)
-                        + SpeechBalloon.BALLOON_POINT_SIZE;
+            int msgY = (h - msgHeight) / 2 + SpeechBalloon.BALLOON_POINT_SIZE;
             if (msgLines != 1)
                 msgY -= (oneLineHeight / 2);  // move up to make room for msg2
             if (msgY < 0)
                 msgY = 0;
 
             msg.setBounds
-                (inset, msgY, w - (2 * inset) - (SpeechBalloon.SHADOW_SIZE / 2), msgHeight);
+                (inset, msgY, dim.width - (2 * inset) - (SpeechBalloon.SHADOW_SIZE / 2), msgHeight);
             if (msgLines != 1)
             {
                 msgY += oneLineHeight;
                 msg2.setBounds
-                    (inset, msgY, w - (2 * inset) - (SpeechBalloon.SHADOW_SIZE / 2), msgHeight);
+                    (inset, msgY, dim.width - (2 * inset) - (SpeechBalloon.SHADOW_SIZE / 2), msgHeight);
             }
-            balloon.setBounds(0, 0, w, h);
         }
     }
 
     /**
      * Panel to show a trade offer when in {@link TradeOfferPanel#OFFER_MODE OFFER_MODE},
      * not {@link TradeOfferPanel#MESSAGE_MODE}.
-     * Contains both offer and counter-offer; see {@link #setCounterOfferVisible(boolean)}
+     * Contains both offer and counter-offer; see {@link #setCounterOfferVisible(boolean)}.
      * @see MessagePanel
      */
     class OfferPanel extends JPanel implements ActionListener
     {
         /**
-         * Balloon to hold offer received visually, not as a layout container.
+         * Balloon JPanel to hold offer received.
          * Fill color is {@link TradeOfferPanel#insideBGColor}.
+         * Has custom layout arranged in {@link #doLayout()}.
          * @see #offerBox
          */
         SpeechBalloon balloon;
@@ -540,13 +533,18 @@ import javax.swing.SwingConstants;
         /** Offer's resources; counter-offer is {@link #counterOfferSquares}. */
         SquaresPanel squares;
 
-        /** send button for counter-offer */
+        /** "Counter" button to show counter-offer panel */
         JButton offerBut;
+
+        /** Button to accept this other player's proposed trade */
         JButton acceptBut;
+
+        /** Button to reject this other player's proposed trade */
         JButton rejectBut;
 
         /**
-         * Counter-offer to send; groups counter-offer elements visually, not as a layout container.
+         * Counter-offer to send; a JPanel that groups counter-offer elements.
+         * Has custom layout arranged in {@link #doLayout()}.
          * @see #balloon
          */
         ShadowedBox offerBox;
@@ -573,8 +571,13 @@ import javax.swing.SwingConstants;
          */
         JLabel givesYouLab2;
 
+        /** Button to send counter-offer */
         JButton sendBut;
+
+        /** Button to clear counter-offer */
         JButton clearBut;
+
+        /** Button to cancel counter-offer and hide its panel */
         JButton cancelBut;
 
         /** True if the current offer's "offered to" includes the client player. */
@@ -620,30 +623,36 @@ import javax.swing.SwingConstants;
         {
             super(null);   // custom doLayout
 
+            final Color hpanColor = pi.getPlayerColor(from);
             final Font offerFont = new Font("SansSerif", Font.PLAIN, 10);
             setFont(offerFont);
             setForeground(Color.BLACK);
-            setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
+            setOpaque(false);
 
-            /** The offer received */
+            // All components are within either balloon or offerBox.
+
+            /** balloon: The offer received */
+
+            balloon = new SpeechBalloon(hpanColor, null);
+            balloon.setFont(offerFont);
 
             toWhom1 = new JLabel();
-            add(toWhom1);
+            balloon.add(toWhom1);
 
             toWhom2 = new JLabel();
-            add(toWhom2);
+            balloon.add(toWhom2);
 
             /** Offer's resources */
             squares = new SquaresPanel(false);
-            add(squares);
+            balloon.add(squares);
 
             givesYouLab = new JLabel(strings.get("trade.gives.you"));  // "Gives You:"
             givesYouLab.setToolTipText(strings.get("trade.opponent.gives"));  // "Opponent gives to you"
-            add(givesYouLab);
+            balloon.add(givesYouLab);
 
             theyGetLab = new JLabel(strings.get("trade.they.get"));  // "They Get:"
             theyGetLab.setToolTipText(strings.get("trade.you.give"));  // "You give to opponent"
-            add(theyGetLab);
+            balloon.add(theyGetLab);
 
             giveInt = new int[5];
             getInt = new int[5];
@@ -655,80 +664,75 @@ import javax.swing.SwingConstants;
             acceptBut.addActionListener(this);
             acceptBut.setFont(offerFont);
             acceptBut.setMargin(minButtonMargin);
-            add(acceptBut);
+            balloon.add(acceptBut);
 
             rejectBut = new JButton(strings.get("trade.reject"));  // "Reject"
             rejectBut.setActionCommand(REJECT);
             rejectBut.addActionListener(this);
             rejectBut.setFont(offerFont);
             rejectBut.setMargin(minButtonMargin);
-            add(rejectBut);
+            balloon.add(rejectBut);
 
             offerBut = new JButton(strings.get("trade.counter"));  // "Counter"
             offerBut.setActionCommand(OFFER);
             offerBut.addActionListener(this);
             offerBut.setFont(offerFont);
             offerBut.setMargin(minButtonMargin);
-            add(offerBut);
+            balloon.add(offerBut);
 
             // Skip rejCountdownLab setup for now, because isFromRobot is false when constructed.
             // TradeOfferPanel constructor will soon call addPlayer() to set it up if needed.
 
-            /** The counter-offer to send */
+            add(balloon);
+
+            /** offerBox: The counter-offer to send */
+
+            offerBox = new ShadowedBox(hpanColor, SOCPlayerInterface.DIALOG_BG_GOLDENROD, null);
+            offerBox.setVisible(false);
+            offerBox.setFont(offerFont);
 
             counterOfferToWhom = new JLabel();
-            counterOfferToWhom.setVisible(false);
-            add(counterOfferToWhom);
+            offerBox.add(counterOfferToWhom);
 
             sendBut = new JButton(strings.get("base.send"));  // "Send"
             sendBut.setActionCommand(SEND);
             sendBut.addActionListener(this);
-            sendBut.setVisible(false);
             sendBut.setFont(offerFont);
             sendBut.setMargin(minButtonMargin);
-            add(sendBut);
+            offerBox.add(sendBut);
 
             clearBut = new JButton(strings.get("base.clear"));  // "Clear"
             clearBut.setActionCommand(CLEAR);
             clearBut.addActionListener(this);
-            clearBut.setVisible(false);
             clearBut.setFont(offerFont);
             clearBut.setMargin(minButtonMargin);
-            add(clearBut);
+            offerBox.add(clearBut);
 
             cancelBut = new JButton(strings.get("base.cancel"));  // "Cancel"
             cancelBut.setActionCommand(CANCEL);
             cancelBut.addActionListener(this);
-            cancelBut.setVisible(false);
             cancelBut.setFont(offerFont);
             cancelBut.setMargin(minButtonMargin);
-            add(cancelBut);
+            offerBox.add(cancelBut);
 
             counterOfferSquares = new SquaresPanel(true);
-            counterOfferSquares.setVisible(false);
-            add(counterOfferSquares);
+            offerBox.add(counterOfferSquares);
 
             theyGetLab2 = new JLabel(strings.get("trade.they.get"));  // "They Get:"
-            theyGetLab2.setVisible(false);
             theyGetLab2.setToolTipText(strings.get("trade.give.to.opponent"));  // "Give to opponent"
-            add(theyGetLab2);
+            offerBox.add(theyGetLab2);
 
             givesYouLab2 = new JLabel(strings.get("trade.gives.you"));  // "Gives You:"
-            givesYouLab2.setVisible(false);
             givesYouLab2.setToolTipText(strings.get("trade.opponent.gives"));  // "Opponent gives to you"
-            add(givesYouLab2);
+            offerBox.add(givesYouLab2);
 
-            offerBox = new ShadowedBox(pi.getPlayerColor(from), SOCPlayerInterface.DIALOG_BG_GOLDENROD);
-            offerBox.setVisible(false);
             add(offerBox);
 
             /** done with counter-offer */
 
-            balloon = new SpeechBalloon(pi.getPlayerColor(from));
-            add(balloon);
-
-            /** adjust JLabel and JButton appearance */
-            SOCDialog.styleButtonsAndLabels(this);
+            // set JLabels' font/style to match their panels
+            SOCDialog.styleButtonsAndLabels(balloon);
+            SOCDialog.styleButtonsAndLabels(offerBox);
 
             setSize(INITIAL_SIZE);
             setMinimumSize(INITIAL_SIZE);
@@ -871,7 +875,8 @@ import javax.swing.SwingConstants;
         }
 
         /**
-         * Custom layout for this OfferPanel
+         * Custom layout for this OfferPanel, including the components within
+         * its offer {@link #balloon} and counter-offer {@link #offerBox}.
          */
         public void doLayout()
         {
@@ -912,24 +917,30 @@ import javax.swing.SwingConstants;
                 final int giveW =    // +6 for padding before ColorSquares
                     Math.max(fm.stringWidth(theyGetLab.getText()), fm.stringWidth(givesYouLab.getText())) + 6;
 
+                // position Offer controls relative to their SpeechBalloon
+
                 toWhom1.setBounds(inset, top, w - 20, LABEL_LINE_HEIGHT);
                 toWhom2.setBounds(inset, top + LABEL_LINE_HEIGHT, w - 20, LABEL_LINE_HEIGHT);
 
-                givesYouLab.setBounds(inset, top + 32, giveW, lineH);
-                theyGetLab.setBounds(inset, top + 32 + lineH, giveW, lineH);
-                squares.setLocation(inset + giveW, top + (2 * LABEL_LINE_HEIGHT) + 2);
+                int y = top + (2 * LABEL_LINE_HEIGHT) + 2;
+                givesYouLab.setBounds(inset, y, giveW, lineH);
+                theyGetLab.setBounds(inset, y + lineH, giveW, lineH);
+                squares.setLocation(inset + giveW, y);
 
                 int squaresHeight = SquaresPanel.HEIGHT + 24;
-                counterOfferToWhom.setBounds(inset, top + 23 + squaresHeight, w - 33, 12);
-                theyGetLab2.setBounds(inset, top + 26 + lineH + squaresHeight, giveW, lineH);
-                givesYouLab2.setBounds(inset, top + 26 + 2*lineH + squaresHeight, giveW, lineH);
-                counterOfferSquares.setLocation(inset + giveW, top + 24 + lineH + squaresHeight);
+
+                // position Counter-offer controls relative to their ShadowedBox
+
+                counterOfferToWhom.setBounds(inset, 4, w - 33, 12);
+                theyGetLab2.setBounds(inset, 4 + lineH, giveW, lineH);
+                givesYouLab2.setBounds(inset, 4 + 2*lineH, giveW, lineH);
+                counterOfferSquares.setLocation(inset + giveW, 4 + lineH);
                 counterOfferSquares.doLayout();
 
                 if (counterCompactMode)
                 {
                     // Buttons to right of counterOfferToWhom
-                    int buttonY = top + 28 + squaresHeight;
+                    int buttonY = 4;
                     final int buttonX = inset + giveW + squares.getBounds().width + 2;
 
                     sendBut.setBounds(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
@@ -942,7 +953,7 @@ import javax.swing.SwingConstants;
                         w = buttonX + BUTTON_WIDTH + ShadowedBox.SHADOW_SIZE + 2;
                 } else {
                     // Buttons below givesYouLab2, counterOfferSquares
-                    final int buttonY = top + 6 + (2 * squaresHeight) + lineH;
+                    final int buttonY = 4 + lineH + 6 + SquaresPanel.HEIGHT;
 
                     sendBut.setBounds(inset, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
                     clearBut.setBounds(inset + 5 + BUTTON_WIDTH, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
@@ -1164,26 +1175,19 @@ import javax.swing.SwingConstants;
         private void setCounterOfferVisible(boolean visible)
         {
             boolean haveResources = true;
-            if(offered)
+            if (offered)
             {
                 SOCPlayer player = hp.getGame().getPlayer(hp.getClient().getNickname());
                 haveResources = player.getResources().contains(get);
             }
 
-            theyGetLab2.setVisible(visible);
-            givesYouLab2.setVisible(visible);
-            counterOfferToWhom.setVisible(visible);
+            offerBox.setVisible(visible);
+
             if (! visible)
             {
                 // Clear counteroffer for next use
                 counterOfferSquares.setValues(zero, zero);
             }
-            counterOfferSquares.setVisible(visible);
-
-            sendBut.setVisible(visible);
-            clearBut.setVisible(visible);
-            cancelBut.setVisible(visible);
-            offerBox.setVisible(visible);
 
             acceptBut.setVisible(haveResources && offered && ! visible);
             rejectBut.setVisible(offered && ! visible);
@@ -1322,11 +1326,13 @@ import javax.swing.SwingConstants;
     public void setMessage(String message)
     {
         messagePanel.update(message);
+
         if (message != null)
         {
             cardLayout.show(this, mode = MESSAGE_MODE);
             recalcPreferredSize();
             validate();
+            repaint();
         }
     }
 
@@ -1348,9 +1354,12 @@ import javax.swing.SwingConstants;
     public void setOffer(SOCTradeOffer currentOffer)
     {
         offerPanel.update(currentOffer);
+
         cardLayout.show(this, mode = OFFER_MODE);
         recalcPreferredSize();
+        invalidate();
         validate();
+        repaint();
     }
 
     /**
@@ -1380,7 +1389,7 @@ import javax.swing.SwingConstants;
         {
             offerPanel.counterOfferMode = false;
             recalcPreferredSize();
-            invalidate();
+            validate();
         }
         repaint();
     }

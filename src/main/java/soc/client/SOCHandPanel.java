@@ -2574,6 +2574,8 @@ import javax.swing.UIManager;
     public void rejectOfferAtClient()
     {
         client.getGameMessageMaker().rejectOffer(game);
+        offer.setMessage(null);
+        offer.setVisible(false);
         if (offerHidesControls)
             hideTradeMsgShowOthers(false);
         repaint();
