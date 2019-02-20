@@ -3738,10 +3738,11 @@ import javax.swing.UIManager;
                 // Are we tall enough for room, after the offer, for other controls?
                 // If not, they will be hid when offer is visible.
                 final Dimension offerPrefSize = offer.getPreferredSize();
-                int offerMinHeight =
-                    TradeOfferPanel.OFFER_HEIGHT + TradeOfferPanel.OFFER_COUNTER_HEIGHT
-                    - TradeOfferPanel.OFFER_BUTTONS_ADDED_HEIGHT;
-                if (offer.offerPanel.wantsRejectCountdown(false))
+                int offerMinHeight = offer.isCounterOfferMode()
+                    ? (TradeOfferPanel.OFFER_HEIGHT + TradeOfferPanel.OFFER_COUNTER_HEIGHT
+                       - TradeOfferPanel.OFFER_BUTTONS_ADDED_HEIGHT)
+                    : TradeOfferPanel.OFFER_HEIGHT;
+                if (offer.offerPanel.wantsRejectCountdown(true))
                     offerMinHeight += TradeOfferPanel.LABEL_LINE_HEIGHT;
                 final int numBottomLines = (hasTakeoverBut || hasSittingRobotLockBut) ? 5 : 4;
                 offerHidesControls = offerHidingControls
@@ -3773,7 +3774,7 @@ import javax.swing.UIManager;
                     offer.setBounds(inset, inset + faceW + space, offerPrefSize.width, offerPrefSize.height);
                     offerCounterHidesFace = false;
                 }
-                offer.doLayout();
+                offer.validate();
 
                 // Calc stlmtsW, dcardsW minimum widths needed from label texts
                 final int stlmtsW;

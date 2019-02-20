@@ -45,17 +45,24 @@ import javax.swing.JPanel;
     implements MouseListener, ColorSquareListener
 {
     /**
-     * Height of this panel: 2 lines of {@link ColorSquareLarger}s.
+     * Width of this panel: 5 columns of {@link ColorSquareLarger}s,
+     * which share 1 pixel overlap for squares' shared border.
+     * @since 2.0.00
+     */
+    public static final int WIDTH = 5 * (ColorSquareLarger.WIDTH_L - 1) + 1;
+
+    /**
+     * Height of this panel: 2 lines of {@link ColorSquareLarger}s,
+     * which share 1 pixel overlap for squares' shared border.
      * @since 1.1.08
      */
     public static final int HEIGHT = (2 * (ColorSquareLarger.HEIGHT_L - 1)) + 1;
 
     /**
-     * Size of this panel: 2 lines x 5 columns of {@link ColorSquareLarger}s.
-     * @see #HEIGHT
+     * Size of this panel: {@link #HEIGHT} 2 lines x {@link #WIDTH} 5 columns of {@link ColorSquareLarger}s.
      * @since 2.0.00
      */
-    private static final Dimension SIZE = new Dimension(5 * (ColorSquareLarger.WIDTH_L - 1) + 1, HEIGHT);
+    private static final Dimension SIZE = new Dimension(WIDTH, HEIGHT);
 
     /**
      *  To change its value, each ColorSquare handles its own mouse events.

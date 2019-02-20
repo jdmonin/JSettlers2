@@ -51,16 +51,16 @@ import javax.swing.JPanel;
 /*package*/ class SpeechBalloon extends JPanel
 {
     /**
-     * Size of the shadow appearing on the right and bottom sides, in pixels: 5.
+     * Size of the shadow appearing on the right and bottom sides: 5 pixels.
      * @since 1.1.08
      */
     public static final int SHADOW_SIZE = 5;
 
     /**
-     * Size of the pointed tip at the top of the balloon, when visible, in pixels: 16.
+     * Size of the pointed tip at the top of the balloon, when visible: 12 pixels.
      * @since 2.0.00
      */
-    public static final int BALLOON_POINT_SIZE = 16;
+    public static final int BALLOON_POINT_SIZE = 12;
 
     /**
      * Background color for our parent panel beyond the edges of SpeechBalloon.
