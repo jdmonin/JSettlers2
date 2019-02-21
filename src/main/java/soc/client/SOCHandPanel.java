@@ -2279,8 +2279,9 @@ import javax.swing.UIManager;
      */
     public void offerCounterOfferVisibleChanged(final boolean counterVisible)
     {
-        if (! offerCounterHidesFace)
+        if (! (offerCounterHidesFace || offerHidingControls))
             return;
+
         hideTradeMsgShowOthers(false);  // move 'offer' around if needed, hide/show faceImg.
     }
 
@@ -2577,7 +2578,7 @@ import javax.swing.UIManager;
         offer.setMessage(null);
         offer.setVisible(false);
         if (offerHidesControls)
-            hideTradeMsgShowOthers(false);
+            hideTradeMsgShowOthers(true);
         repaint();
     }
 
@@ -2621,7 +2622,7 @@ import javax.swing.UIManager;
      */
     private void hideTradeMsgShowOthers(final boolean hideTradeMsg)
     {
-        if (! offerHidesControls)
+        if ((! offerHidesControls) && resourceSq.isVisible())
             return;
 
         if (offerHidingControls == hideTradeMsg)
@@ -3711,6 +3712,8 @@ import javax.swing.UIManager;
                 int balloonH = dim.height - (inset + (4 * (lineH + space)) + inset);  // offer-message panel
                 offer.setAvailableSpace(dim.width - 2 * inset, balloonH);  // recalc offer.getPreferredSize()
 
+                final boolean wasHidesControls = offerHidesControls;  // if changes here, will call hideTradeMsgShowOthers
+
                 boolean hasTakeoverBut = false, hasSittingRobotLockBut = false;
                 if (player.isRobot())
                 {
@@ -3857,6 +3860,9 @@ import javax.swing.UIManager;
                 settlementSq.setBounds(dim.width - inset - ColorSquare.WIDTH, lowerY + (2 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
                 cityLab.setBounds(dim.width - inset - stlmtsW - ColorSquare.WIDTH - space, lowerY + (3 * (lineH + space)), stlmtsW, lineH);
                 citySq.setBounds(dim.width - inset - ColorSquare.WIDTH, lowerY + (3 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+
+                if (wasHidesControls != offerHidesControls)
+                    hideTradeMsgShowOthers(false);
             }
         }
     }

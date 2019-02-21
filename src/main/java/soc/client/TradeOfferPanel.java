@@ -146,6 +146,9 @@ import javax.swing.SwingConstants;
      * Typical height of counter-offer panel, when visible.
      * For convenience of other classes' layout calculations.
      * Actual height of counter-offer (offerBox) is set dynamically in OfferPanel.doLayout.
+     *<P>
+     * If counter-offer is using compact mode, must subtract {@link #BUTTON_HEIGHT} + 2.
+     *
      * @since 1.1.08
      */
     public static final int OFFER_COUNTER_HEIGHT
@@ -157,10 +160,12 @@ import javax.swing.SwingConstants;
      * The larger of:
      *<UL>
      * <LI> Button widths: 3 buttons, with inset of 5 pixels from edge and buffer of 5 between buttons.
-     * <LI> Give/get widths: "Gives you/You get" labels, with inset of 8 pixels from left edge,
-     *     6 between label and SquaresPanel, 8 from right edge.
+     * <LI> Give/get widths: "Gives you/You get" labels ({@link OfferPanel#GIVES_MIN_WIDTH}), with
+     *     inset of 8 pixels from left edge, 6 between label and SquaresPanel, 8 from right edge.
      *</UL>
      * Width includes {@link SpeechBalloon#SHADOW_SIZE} along right edge.
+     *<P>
+     * If counter-offer is visible and in compact mode, must add {@link #BUTTON_WIDTH} + 2 - 12.
      *
      * @since 2.0.00
      */
@@ -319,7 +324,7 @@ import javax.swing.SwingConstants;
                     counterCompactMode = false;
                 } else {
                     counterCompactMode = true;
-                    prefW += (BUTTON_WIDTH + 2);
+                    prefW += (BUTTON_WIDTH + 2 - 12);
                     prefH -= (BUTTON_HEIGHT + 2);
                 }
 
@@ -928,8 +933,7 @@ import javax.swing.SwingConstants;
                 {
                     inset = 2;
                     balloon.setBalloonPoint(false);
-                    top -= SpeechBalloon.BALLOON_POINT_SIZE;
-                        // Shift everything up this far, since we don't need to leave room for balloon point.
+                    // Will shift balloon up by BALLOON_POINT_SIZE, since we don't need to leave room for the point.
                 } else {
                     balloon.setBalloonPoint(! counterHidesBalloonPoint);
                 }
@@ -954,9 +958,10 @@ import javax.swing.SwingConstants;
 
                 if (counterCompactMode)
                 {
-                    // Buttons to right of counterOfferToWhom
-                    int buttonY = 4;
-                    final int buttonX = inset + giveW + squares.getBounds().width + 2;
+                    // Buttons to right of counterOfferToWhom, y-centered vs. height of panel
+                    int buttonY =
+                        ((OFFER_COUNTER_HEIGHT - BUTTON_HEIGHT - SpeechBalloon.SHADOW_SIZE - 2) - (3 * BUTTON_HEIGHT + 4)) / 2;
+                    final int buttonX = inset + giveW + SquaresPanel.WIDTH + 2;
 
                     sendBut.setBounds(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
                     buttonY += BUTTON_HEIGHT + 2;
@@ -981,11 +986,13 @@ import javax.swing.SwingConstants;
                 {
                     // No balloon point, so top few pixels of its bounding box is empty: move it up
                     balloon.setBounds
-                        (0, -SpeechBalloon.BALLOON_POINT_SIZE, w, offerH - SpeechBalloon.BALLOON_POINT_SIZE / 2);
+                        (0, -SpeechBalloon.BALLOON_POINT_SIZE, w, offerH);
+                    offerBox.setBounds(0, offerH - SpeechBalloon.BALLOON_POINT_SIZE,
+                        w, OFFER_COUNTER_HEIGHT - BUTTON_HEIGHT - 2);
                 } else {
                     balloon.setBounds(0, 0, w, offerH);
+                    offerBox.setBounds(0, offerH, w, OFFER_COUNTER_HEIGHT);
                 }
-                offerBox.setBounds(0, offerH, w, OFFER_COUNTER_HEIGHT);
 
                 // If offerBox height calculation changes, please update OFFER_COUNTER_HEIGHT.
 
@@ -1220,8 +1227,8 @@ import javax.swing.SwingConstants;
             }
 
             counterOfferMode = visible;
-            hp.offerCounterOfferVisibleChanged(visible);
             recalcPreferredSize();
+            hp.offerCounterOfferVisibleChanged(visible);
             invalidate();
         }
 
