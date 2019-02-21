@@ -101,7 +101,7 @@ import javax.swing.SwingConstants;
      * Typical button width, for doLayouts.
      * @since 2.0.00
      */
-    private static final int BUTTON_WIDTH = 48;
+    private static final int BUTTON_WIDTH = 55;
 
     /**
      * Height of a single-line text label in pixels,
@@ -156,23 +156,45 @@ import javax.swing.SwingConstants;
         // As calculated in OfferPanel.doLayout(); label's lineH = ColorSquareLarger.HEIGHT_L
 
     /**
+     * For {@link #OFFER_MIN_WIDTH}, width from labels and squarepanel, including {@link SpeechBalloon#SHADOW_SIZE}.
+     * @since 2.0.00
+     */
+    private static final int OFFER_MIN_WIDTH_FROM_LABELS
+        = (8 + OfferPanel.GIVES_MIN_WIDTH + 6 + SquaresPanel.WIDTH + 8) + SpeechBalloon.SHADOW_SIZE;
+
+    /**
+     * For {@link #OFFER_MIN_WIDTH}, width from 3 buttons, including {@link SpeechBalloon#SHADOW_SIZE}.
+     * @since 2.0.00
+     */
+    private static final int OFFER_MIN_WIDTH_FROM_BUTTONS
+        = (2 * (5+5) + 3 * BUTTON_WIDTH) + SpeechBalloon.SHADOW_SIZE;
+
+    /**
      * Offer panel minimum width for {@link OfferPanel#doLayout()}.<BR>
      * The larger of:
      *<UL>
      * <LI> Button widths: 3 buttons, with inset of 5 pixels from edge and buffer of 5 between buttons.
+     *     ({@link #OFFER_MIN_WIDTH_FROM_BUTTONS})
      * <LI> Give/get widths: "Gives you/You get" labels ({@link OfferPanel#GIVES_MIN_WIDTH}), with
      *     inset of 8 pixels from left edge, 6 between label and SquaresPanel, 8 from right edge.
+     *     ({@link #OFFER_MIN_WIDTH_FROM_LABELS})
      *</UL>
      * Width includes {@link SpeechBalloon#SHADOW_SIZE} along right edge.
      *<P>
-     * If counter-offer is visible and in compact mode, must add {@link #BUTTON_WIDTH} + 2 - 12.
+     * If counter-offer is visible and in compact mode, use {@link #OFFER_COMPACT_MIN_WIDTH} instead.
      *
      * @since 2.0.00
      */
-    private static final int OFFER_MIN_WIDTH =
-        Math.max((2 * (5+5) + 3 * BUTTON_WIDTH),
-            (8 + OfferPanel.GIVES_MIN_WIDTH + 6 + SquaresPanel.WIDTH + 8)
-            ) + SpeechBalloon.SHADOW_SIZE;
+    private static final int OFFER_MIN_WIDTH
+        = Math.max(OFFER_MIN_WIDTH_FROM_BUTTONS, OFFER_MIN_WIDTH_FROM_LABELS);
+
+    /**
+     * Offer panel minimum width in counter-offer compact mode, which is less tall but wider.
+     * @see #OFFER_MIN_WIDTH
+     * @since 2.0.00
+     */
+    private static final int OFFER_COMPACT_MIN_WIDTH
+        = 2 + OfferPanel.GIVES_MIN_WIDTH + 6 + SquaresPanel.WIDTH + 2 + BUTTON_WIDTH + 2 + SpeechBalloon.SHADOW_SIZE;
 
     /**
      * Initial size, to avoid (0,0)-sized JPanel during parent panels' construction.
@@ -181,6 +203,7 @@ import javax.swing.SwingConstants;
     private static final Dimension INITIAL_SIZE = new Dimension(OFFER_MIN_WIDTH, OFFER_HEIGHT);
 
     protected static final int[] zero = new int[5];  // { 0, 0, 0, 0, 0 }
+
     static final String OFFER = "counter";
     static final String ACCEPT = "accept";
     static final String REJECT = "reject";
@@ -309,9 +332,13 @@ import javax.swing.SwingConstants;
         if (mode.equals(MESSAGE_MODE))
         {
             prefW = OFFER_MIN_WIDTH;
-            prefH = messagePanel.calcLabelMinHeightFields(true);
+            prefH = messagePanel.calcLabelMinHeight(true);
         } else {
             prefW = OFFER_MIN_WIDTH;
+            final int labelWidthChg = offerPanel.calcLabelWidth() - OfferPanel.GIVES_MIN_WIDTH;
+            if (labelWidthChg > 0)
+                prefW = Math.max(OFFER_MIN_WIDTH_FROM_BUTTONS, OFFER_MIN_WIDTH_FROM_LABELS + labelWidthChg);
+
             if (! offerPanel.counterOfferMode)
             {
                 prefH = OFFER_HEIGHT;
@@ -324,8 +351,10 @@ import javax.swing.SwingConstants;
                     counterCompactMode = false;
                 } else {
                     counterCompactMode = true;
-                    prefW += (BUTTON_WIDTH + 2 - 12);
                     prefH -= (BUTTON_HEIGHT + 2);
+                    prefW = OFFER_COMPACT_MIN_WIDTH;
+                    if (labelWidthChg > 0)
+                        prefW += labelWidthChg;
                 }
 
                 if (wasCompact != counterCompactMode)
@@ -363,14 +392,14 @@ import javax.swing.SwingConstants;
         private JLabel msg, msg2;
 
         /**
-         * Height of the text in one label, from <tt>getFontMetrics({@link #msg}.getFont()).getHeight().
-         * Should be less than {@link #msgHeight}.
+         * Height of the text in one label, from <tt>getFontMetrics({@link #msg}.getFont()).getHeight()</tt>.
+         * Should be less than {@link #msgHeight}. 0 if unknown.
          */
         private int oneLineHeight;
 
         /**
-         * Height of each label ({@link #msg}, {@link #msg2}).
-         * Should be {@link #oneLineHeight} + insets.
+         * Height of each label ({@link #msg}, {@link #msg2}). Should be {@link #oneLineHeight} + insets.
+         * 0 if unknown.
          */
         private int msgHeight;
 
@@ -403,8 +432,6 @@ import javax.swing.SwingConstants;
             msg2.setFont(msgFont);
             msg2.setForeground(null);
 
-            oneLineHeight = 0;  // set once in doLayout
-            msgHeight = 0;  // set in doLayout
             msgLines = 1;
             add(msg);
             add(msg2);
@@ -458,13 +485,14 @@ import javax.swing.SwingConstants;
          * {@link TradeOfferPanel#setAvailableSpace(int, int)} which also wants
          * an overall minimum height.
          *<P>
-         * If not yet done (0), first calculate the values for {@link #oneLineHeight} and {@link #msgHeight}
+         * If not yet done (value 0), first calculate the values for {@link #oneLineHeight} and {@link #msgHeight}
          * based on {@link #msgLines} and getFontMetrics({@link #msg}.getFont()).
          *
          * @return  Minimum panel height if {@code wantHeight}, otherwise 0
+         * @see OfferPanel#calcLabelWidth(boolean)
          * @since 2.0.00
          */
-        int calcLabelMinHeightFields(final boolean wantHeight)
+        int calcLabelMinHeight(final boolean wantHeight)
         {
             if (oneLineHeight == 0)
                 oneLineHeight = getFontMetrics(msg.getFont()).getHeight();
@@ -488,7 +516,7 @@ import javax.swing.SwingConstants;
             final Dimension dim = getSize();  // includes BALLOON_POINT_SIZE at top, SHADOW_SIZE at bottom
             final int inset = 2 * SpeechBalloon.SHADOW_SIZE;
 
-            calcLabelMinHeightFields(false);  // if 0, set oneLineHeight, msgHeight
+            calcLabelMinHeight(false);  // if 0, set oneLineHeight, msgHeight
 
             int h = dim.height - SpeechBalloon.BALLOON_POINT_SIZE - SpeechBalloon.SHADOW_SIZE;
             if ((msgHeight * msgLines) > h)
@@ -516,7 +544,7 @@ import javax.swing.SwingConstants;
      * Contains both offer and counter-offer; see {@link #setCounterOfferVisible(boolean)}.
      * @see MessagePanel
      */
-    class OfferPanel extends JPanel implements ActionListener
+    /*package*/ class OfferPanel extends JPanel implements ActionListener
     {
         /**
          * Minimum width for "Gives you/You get" labels, for fallback if FontMetrics not available yet.
@@ -541,6 +569,7 @@ import javax.swing.SwingConstants;
          * Top row "Gives You:". Client player {@link SOCHandPanel} has "I Give" on this row.
          *<P>
          * Before v1.2.00 this label field was {@code giveLab}.
+         * @see #givesYouLabWidth
          */
         JLabel givesYouLab;
 
@@ -548,8 +577,17 @@ import javax.swing.SwingConstants;
          * Bottom row "They Get:". Client player {@link SOCHandPanel} has "I Get" on this row.
          *<P>
          * Before v1.2.00 this label field was {@code getLab}.
+         * @see #givesYouLabWidth
          */
         JLabel theyGetLab;
+
+        /**
+         * Width in pixels of the text in the "Gives You:"/"They Get:" labels, whichever is wider,
+         * from <tt>getFontMetrics({@link #givesYouLab}.getFont()).getWidth()</tt> and
+         * same from {@link #theyGetLab}. 0 if unknown.
+         * @since 2.0.00
+         */
+        private int givesYouLabWidth;
 
         /** Offer's resources; counter-offer is {@link #counterOfferSquares}. */
         SquaresPanel squares;
@@ -897,12 +935,38 @@ import javax.swing.SwingConstants;
         }
 
         /**
+         * If not yet done, try to calculate the width in pixels of the text in the "Gives You:"/"They Get:" labels,
+         * whichever is wider. Calculated once from FontMetrics, then cached.
+         * Falls back to {@link #GIVES_MIN_WIDTH} if not yet available.
+         *<P>
+         * {@link #givesYouLab} and {@link #theyGetLab} font must be set before calling.
+         * Used by {@link #doLayout()} and {@link TradeOfferPanel#setAvailableSpace(int, int)}.
+         *
+         * @return  Calculated label width if FontMetrics available, otherwise {@link #GIVES_MIN_WIDTH}
+         * @see MessagePanel#calcLabelMinHeight(boolean)
+         * @since 2.0.00
+         */
+        int calcLabelWidth()
+        {
+            if (givesYouLabWidth == 0)
+            {
+                final FontMetrics fm = getFontMetrics(givesYouLab.getFont());
+                if (fm == null)
+                    return GIVES_MIN_WIDTH;
+
+                givesYouLabWidth = Math.max
+                    (fm.stringWidth(theyGetLab.getText()), fm.stringWidth(givesYouLab.getText()));
+            }
+
+            return givesYouLabWidth;
+        }
+
+        /**
          * Custom layout for this OfferPanel, including the components within
          * its offer {@link #balloon} and counter-offer {@link #offerBox}.
          */
         public void doLayout()
         {
-            FontMetrics fm = this.getFontMetrics(this.getFont());
             Dimension dim = getSize();
             int inset = 8;
             final boolean isUsingRejCountdownLab =
@@ -913,14 +977,21 @@ import javax.swing.SwingConstants;
                 // If shown, use same height as toWhom1, toWhom2;
                 // layout already gives extra padding above/below, so no more is needed in this calc.
 
+            // Label text's width may increase panel width
+            int w = OFFER_MIN_WIDTH;
+            final int giveW = calcLabelWidth() + 6;
+                // from theyGetLab, givesYouLab FontMetrics; +6 is for padding before ColorSquares
+            {
+                int d = giveW - (GIVES_MIN_WIDTH + 6);
+                if (d > 0)
+                    w = Math.max(OFFER_MIN_WIDTH_FROM_BUTTONS, OFFER_MIN_WIDTH_FROM_LABELS + d);
+            }
+
             // At initial call to doLayout: dim.width, .height == 0.
-            int w = Math.min(OFFER_MIN_WIDTH, dim.width);
+            w = Math.min(w, dim.width);
             int offerH = Math.min(OFFER_HEIGHT + countdownLabHeight, dim.height);
             // top of toWhom1 label:
             int top = SpeechBalloon.BALLOON_POINT_SIZE + 3;
-            final int giveW =
-                Math.max(fm.stringWidth(theyGetLab.getText()), fm.stringWidth(givesYouLab.getText())) + 6;
-                // +6 is for padding before ColorSquares; see also MIN_GIVES_WIDTH
 
             if (counterOfferMode)
             {
