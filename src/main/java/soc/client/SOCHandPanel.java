@@ -2267,22 +2267,28 @@ import javax.swing.UIManager;
     }
 
     /**
-     * Callback from {@link TradeOfferPanel}.
+     * Callback from {@link TradeOfferPanel} when counter-offer is shown or hidden.
      * For players who aren't the client:
      * If our {@link TradeOfferPanel} shows/hides the counter offer,
      * may need to rearrange or hide controls under it.
      * This should be called when in {@link TradeOfferPanel#OFFER_MODE},
      * not in {@link TradeOfferPanel#MESSAGE_MODE}.
+     *<P>
+     * After any component show/hide and rearrangement, calls {@link #validate()} and {@link #repaint()};
+     * this is necessary on win32 to avoid layout cutoff/repaint problems on Swing.
      *
      * @param counterVisible Is the counter-offer showing?
      * @since 1.1.08
      */
     public void offerCounterOfferVisibleChanged(final boolean counterVisible)
     {
-        if (! (offerCounterHidesFace || offerHidingControls))
-            return;
-
-        hideTradeMsgShowOthers(false);  // move 'offer' around if needed, hide/show faceImg.
+        invalidate();
+        if (offerCounterHidesFace || offerHidingControls)
+        {
+            hideTradeMsgShowOthers(false);  // move 'offer' around if needed, hide/show faceImg
+        }
+        validate();
+        repaint();
     }
 
     /**

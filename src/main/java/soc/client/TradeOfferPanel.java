@@ -1299,8 +1299,7 @@ import javax.swing.SwingConstants;
 
             counterOfferMode = visible;
             recalcPreferredSize();
-            hp.offerCounterOfferVisibleChanged(visible);
-            invalidate();
+            hp.offerCounterOfferVisibleChanged(visible);  // calls hp.validate(), repaint()
         }
 
         /**
