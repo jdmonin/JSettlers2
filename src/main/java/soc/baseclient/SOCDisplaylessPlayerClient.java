@@ -45,7 +45,6 @@ import soc.game.SOCVillage;
 
 import soc.message.*;
 
-import soc.robot.SOCRobotClient;
 import soc.server.genericServer.StringConnection;
 import soc.util.SOCFeatureSet;
 import soc.util.Version;
@@ -261,17 +260,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
             }
 
             ex = e;
-            if (! ((e instanceof java.io.EOFException)
-                   && (this instanceof SOCRobotClient)))
-            {
-                System.err.println("could not read from the net: " + ex);
-                /**
-                 * Robots are periodically disconnected from server;
-                 * they will try to reconnect.  Any error message
-                 * from that is printed in {@link soc.robot.SOCRobotClient#destroy()}.
-                 * So, print nothing here if that's the situation.
-                 */
-            }
             destroy();
         }
     }
