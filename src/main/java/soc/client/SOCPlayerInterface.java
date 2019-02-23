@@ -163,13 +163,13 @@ public class SOCPlayerInterface extends Frame
      * System property os.name; For use by {@link #SOCPI_isPlatformWindows}.
      * @since 1.1.08
      */
-    private final static String SOCPI_osName = System.getProperty("os.name");
+    private static final String SOCPI_osName = System.getProperty("os.name");
 
     /**
      * Are we running on the Windows platform, according to {@link #SOCPI_osName}?
      * @since 1.1.08
      */
-    private final static boolean SOCPI_isPlatformWindows = (SOCPI_osName != null) && (SOCPI_osName.toLowerCase().indexOf("windows") != -1);
+    private static final boolean SOCPI_isPlatformWindows = (SOCPI_osName != null) && (SOCPI_osName.toLowerCase().indexOf("windows") != -1);
 
     /**
      * Minimum frame width calculated in constructor from this game's player count and board,
@@ -605,7 +605,7 @@ public class SOCPlayerInterface extends Frame
      * Thread executor to queue and play {@link #playSound(byte[])} using {@link PIPlaySound}s.
      * @since 1.2.00
      */
-    private final static ExecutorService soundQueueThreader = Executors.newSingleThreadExecutor();
+    private static final ExecutorService soundQueueThreader = Executors.newSingleThreadExecutor();
 
     /**
      * Listener for

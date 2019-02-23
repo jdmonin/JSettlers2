@@ -1305,8 +1305,6 @@ import soc.util.Version;
             {
                 System.out.println("Exception caught - " + e);
                 e.printStackTrace();
-
-                return;
             }
             finally
             {

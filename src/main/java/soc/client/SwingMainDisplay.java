@@ -1734,7 +1734,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         if (! hasJoinedServer)
         {
             Container c = getParent();
-            if ((c != null) && (c instanceof Frame))
+            if (c instanceof Frame)
             {
                 Frame fr = (Frame) c;
                 fr.setTitle(/*I*/fr.getTitle() + " [" + nick.getText() + "]"/*18N*/);
@@ -1910,7 +1910,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         if (! hasJoinedServer)
         {
             Container c = getParent();
-            if ((c != null) && (c instanceof Frame))
+            if (c instanceof Frame)
             {
                 Frame fr = (Frame) c;
                 fr.setTitle(/*I*/fr.getTitle() + " [" + nick.getText() + "]"/*18N*/);
@@ -2251,7 +2251,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         // Set titlebar, if present
         {
             Container parent = this.getParent();
-            if ((parent != null) && (parent instanceof Frame))
+            if (parent instanceof Frame)
             {
                 try
                 {
@@ -2389,7 +2389,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             {
                 // If we have GUI, ask whether to shut down these games
                 Container c = md.getParent();
-                if ((c != null) && (c instanceof Frame))
+                if (c instanceof Frame)
                 {
                     canAskHostingGames = true;
                     SOCQuitAllConfirmDialog.createAndShow(md, (Frame) c);
