@@ -64,7 +64,7 @@ import java.util.Map;
 
 
 /**
- * GUI-less standalone client for connecting to the SOCServer.
+ * "Headless" standalone client for connecting to the SOCServer.
  * If you want another connection port, you have to specify it as the "port"
  * argument in the html source. If you run this as a stand-alone, you have to
  * specify the port.
@@ -225,7 +225,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * continuously read from the net in a separate thread
+     * Continuously read from the net in a separate thread.
+     * if {@link java.io.EOFException} or another error occurs, breaks the loop:
+     * Exception will be stored in {@link #ex}. {@link #destroy()} will be called
+     * unless {@code ex} is an {@link InterruptedIOException} (socket timeout).
      */
     public void run()
     {
@@ -248,9 +251,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 treat(SOCMessage.toMsg(s));
             }
         }
-        catch (InterruptedIOException x)
+        catch (InterruptedIOException e)
         {
-            System.err.println("Socket timeout in run: " + x);
+            ex = e;
+            System.err.println("Socket timeout in run: " + e);
         }
         catch (IOException e)
         {
@@ -2947,8 +2951,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * Connection to server has raised an error; leave all games, then disconnect.
-     * {@link SOCRobotClient} overrides this to try and reconnect.
+     * Connection to server has raised an error that wasn't {@link InterruptedIOException};
+     * {@link #ex} contains exception detail. Leave all games, then disconnect.
+     *<P>
+     * {@link soc.robot.SOCRobotClient} overrides this to try and reconnect.
      */
     public void destroy()
     {
