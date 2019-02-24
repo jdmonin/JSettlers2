@@ -1300,36 +1300,38 @@ import soc.util.Version;
                  * set the robot flag
                  */
                 player.setRobotFlag(mes.isRobot(), false);
-
-                /**
-                 * tell the GUI that a player is sitting
-                 */
-                PlayerClientListener pcl = client.getClientListener(mes.getGame());
-                pcl.playerSitdown(mesPN, mes.getNickname());
-
-                /**
-                 * let the board panel & building panel find our player object if we sat down
-                 */
-                if (client.getNickname().equals(mes.getNickname()))
-                {
-                    /**
-                     * change the face (this is so that old faces don't 'stick')
-                     */
-                    if (! ga.isBoardReset() && (ga.getGameState() < SOCGame.START1A))
-                    {
-                        ga.getPlayer(mesPN).setFaceId(client.lastFaceChange);
-                        gmm.changeFace(ga, client.lastFaceChange);
-                    }
-                }
             }
             catch (Exception e)
             {
                 System.out.println("Exception caught - " + e);
                 e.printStackTrace();
+
+                return;
             }
             finally
             {
                 ga.releaseMonitor();
+            }
+
+            /**
+             * tell the GUI that a player is sitting
+             */
+            PlayerClientListener pcl = client.getClientListener(mes.getGame());
+            pcl.playerSitdown(mesPN, mes.getNickname());
+
+            /**
+             * let the board panel & building panel find our player object if we sat down
+             */
+            if (client.getNickname().equals(mes.getNickname()))
+            {
+                /**
+                 * change the face (this is so that old faces don't 'stick')
+                 */
+                if (! ga.isBoardReset() && (ga.getGameState() < SOCGame.START1A))
+                {
+                    ga.getPlayer(mesPN).setFaceId(client.lastFaceChange);
+                    gmm.changeFace(ga, client.lastFaceChange);
+                }
             }
         }
     }
