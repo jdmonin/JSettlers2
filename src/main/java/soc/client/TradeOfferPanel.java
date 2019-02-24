@@ -233,10 +233,11 @@ import javax.swing.SwingConstants;
     String mode;
 
     /** Layout which shows either {@link #messagePanel} or {@link #offerPanel}. */
-    CardLayout cardLayout;
+    final CardLayout cardLayout;
 
-    MessagePanel messagePanel;
-    OfferPanel offerPanel;
+    final MessagePanel messagePanel;
+
+    final OfferPanel offerPanel;
 
     /**
      * Available width and height in handpanel. Used for determining {@link #getPreferredSize()},
@@ -389,7 +390,7 @@ import javax.swing.SwingConstants;
          * For 2 lines separated by <tt>\n</tt>, {@link #msg} and {@link #msg2} are used.
          * @see #msgLines
          */
-        private JLabel msg, msg2;
+        private final JLabel msg, msg2;
 
         /**
          * Height of the text in one label, from <tt>getFontMetrics({@link #msg}.getFont()).getHeight()</tt>.
@@ -556,14 +557,15 @@ import javax.swing.SwingConstants;
          * Balloon JPanel to hold offer received.
          * Fill color is {@link TradeOfferPanel#insideBGColor}.
          * Has custom layout arranged in {@link #doLayout()}.
-         * @see #offerBox
+         * @see #counterOfferBox
          */
-        SpeechBalloon balloon;
+        final SpeechBalloon balloon;
 
         /** "Offered To" line 1 */
-        JLabel toWhom1;
+        final JLabel toWhom1;
+
         /** "Offered To" line 2 for wrapping; usually blank */
-        JLabel toWhom2;
+        final JLabel toWhom2;
 
         /**
          * Top row "Gives You:". Client player {@link SOCHandPanel} has "I Give" on this row.
@@ -571,7 +573,7 @@ import javax.swing.SwingConstants;
          * Before v1.2.00 this label field was {@code giveLab}.
          * @see #givesYouLabWidth
          */
-        JLabel givesYouLab;
+        final JLabel givesYouLab;
 
         /**
          * Bottom row "They Get:". Client player {@link SOCHandPanel} has "I Get" on this row.
@@ -579,7 +581,7 @@ import javax.swing.SwingConstants;
          * Before v1.2.00 this label field was {@code getLab}.
          * @see #givesYouLabWidth
          */
-        JLabel theyGetLab;
+        final JLabel theyGetLab;
 
         /**
          * Width in pixels of the text in the "Gives You:"/"They Get:" labels, whichever is wider,
@@ -590,54 +592,57 @@ import javax.swing.SwingConstants;
         private int givesYouLabWidth;
 
         /** Offer's resources; counter-offer is {@link #counterOfferSquares}. */
-        SquaresPanel squares;
+        final SquaresPanel squares;
 
         /** "Counter" button to show counter-offer panel */
-        JButton offerBut;
+        final JButton offerBut;
 
         /** Button to accept this other player's proposed trade */
-        JButton acceptBut;
+        final JButton acceptBut;
 
         /** Button to reject this other player's proposed trade */
-        JButton rejectBut;
+        final JButton rejectBut;
 
         /**
          * Counter-offer to send; a JPanel that groups counter-offer elements.
          * Has custom layout arranged in {@link #doLayout()}.
+         *<P>
+         * Before v2.0.00 this field was {@code offerBox}.
+         *
          * @see #balloon
          */
-        ShadowedBox offerBox;
+        final ShadowedBox counterOfferBox;
 
-        JLabel counterOfferToWhom;
+        final JLabel counterOfferToWhom;
 
         /** Have we set prompt to include opponent name? Is set true by first call to {@link #update(SOCTradeOffer)}. */
         boolean counterOffer_playerInit = false;
 
         /** Counter-offer's resources; the main offer is {@link #squares}. */
-        SquaresPanel counterOfferSquares;
+        final SquaresPanel counterOfferSquares;
 
         /**
          * Counter-offer top row "They Get:". Same as main offer's bottom row.
          *<P>
          * Before v1.2.00 this label field was {@code giveLab2}.
          */
-        JLabel theyGetLab2;
+        final JLabel theyGetLab2;
 
         /**
          * Counter-offer bottom row "Gives You:". Same as main offer's top row.
          *<P>
          * Before v1.2.00 this label field was {@code getLab2}.
          */
-        JLabel givesYouLab2;
+        final JLabel givesYouLab2;
 
         /** Button to send counter-offer */
-        JButton sendBut;
+        final JButton sendBut;
 
         /** Button to clear counter-offer */
-        JButton clearBut;
+        final JButton clearBut;
 
         /** Button to cancel counter-offer and hide its panel */
-        JButton cancelBut;
+        final JButton cancelBut;
 
         /** True if the current offer's "offered to" includes the client player. */
         boolean offered;
@@ -747,52 +752,52 @@ import javax.swing.SwingConstants;
 
             /** offerBox: The counter-offer to send */
 
-            offerBox = new ShadowedBox(hpanColor, SOCPlayerInterface.DIALOG_BG_GOLDENROD, null);
-            offerBox.setVisible(false);
-            offerBox.setFont(offerFont);
+            counterOfferBox = new ShadowedBox(hpanColor, SOCPlayerInterface.DIALOG_BG_GOLDENROD, null);
+            counterOfferBox.setVisible(false);
+            counterOfferBox.setFont(offerFont);
 
             counterOfferToWhom = new JLabel();
-            offerBox.add(counterOfferToWhom);
+            counterOfferBox.add(counterOfferToWhom);
 
             sendBut = new JButton(strings.get("base.send"));  // "Send"
             sendBut.setActionCommand(SEND);
             sendBut.addActionListener(this);
             sendBut.setFont(offerFont);
             sendBut.setMargin(minButtonMargin);
-            offerBox.add(sendBut);
+            counterOfferBox.add(sendBut);
 
             clearBut = new JButton(strings.get("base.clear"));  // "Clear"
             clearBut.setActionCommand(CLEAR);
             clearBut.addActionListener(this);
             clearBut.setFont(offerFont);
             clearBut.setMargin(minButtonMargin);
-            offerBox.add(clearBut);
+            counterOfferBox.add(clearBut);
 
             cancelBut = new JButton(strings.get("base.cancel"));  // "Cancel"
             cancelBut.setActionCommand(CANCEL);
             cancelBut.addActionListener(this);
             cancelBut.setFont(offerFont);
             cancelBut.setMargin(minButtonMargin);
-            offerBox.add(cancelBut);
+            counterOfferBox.add(cancelBut);
 
             counterOfferSquares = new SquaresPanel(true);
-            offerBox.add(counterOfferSquares);
+            counterOfferBox.add(counterOfferSquares);
 
             theyGetLab2 = new JLabel(strings.get("trade.they.get"));  // "They Get:"
             theyGetLab2.setToolTipText(strings.get("trade.give.to.opponent"));  // "Give to opponent"
-            offerBox.add(theyGetLab2);
+            counterOfferBox.add(theyGetLab2);
 
             givesYouLab2 = new JLabel(strings.get("trade.gives.you"));  // "Gives You:"
             givesYouLab2.setToolTipText(strings.get("trade.opponent.gives"));  // "Opponent gives to you"
-            offerBox.add(givesYouLab2);
+            counterOfferBox.add(givesYouLab2);
 
-            add(offerBox);
+            add(counterOfferBox);
 
             /** done with counter-offer */
 
             // set JLabels' font/style to match their panels
             SOCDialog.styleButtonsAndLabels(balloon);
-            SOCDialog.styleButtonsAndLabels(offerBox);
+            SOCDialog.styleButtonsAndLabels(counterOfferBox);
 
             setSize(INITIAL_SIZE);
             setMinimumSize(INITIAL_SIZE);
@@ -963,11 +968,11 @@ import javax.swing.SwingConstants;
 
         /**
          * Custom layout for this OfferPanel, including the components within
-         * its offer {@link #balloon} and counter-offer {@link #offerBox}.
+         * its offer {@link #balloon} and counter-offer {@link #counterOfferBox}.
          */
         public void doLayout()
         {
-            Dimension dim = getSize();
+            final Dimension dim = getSize();
             int inset = 8;
             final boolean isUsingRejCountdownLab =
                 offered && (! counterOfferMode) && (rejCountdownLab != null)
@@ -1043,14 +1048,15 @@ import javax.swing.SwingConstants;
                     if (w < (buttonX + BUTTON_WIDTH + ShadowedBox.SHADOW_SIZE + 2))
                         w = buttonX + BUTTON_WIDTH + ShadowedBox.SHADOW_SIZE + 2;
                 } else {
-                    // Buttons below givesYouLab2, counterOfferSquares
+                    // Buttons below givesYouLab2, counterOfferSquares, centered across width
+                    int buttonX = ((w - SpeechBalloon.SHADOW_SIZE) - ((3 * BUTTON_WIDTH) + 10)) / 2;
                     final int buttonY = 4 + lineH + 6 + SquaresPanel.HEIGHT;
 
-                    // TODO center across width
-
-                    sendBut.setBounds(5, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
-                    clearBut.setBounds(5 + 5 + BUTTON_WIDTH, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
-                    cancelBut.setBounds(5 + (2 * (5 + BUTTON_WIDTH)), buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
+                    sendBut.setBounds(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
+                    buttonX += 5 + BUTTON_WIDTH;
+                    clearBut.setBounds(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
+                    buttonX += 5 + BUTTON_WIDTH;
+                    cancelBut.setBounds(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
                 }
 
                 if (counterCompactMode)
@@ -1058,11 +1064,11 @@ import javax.swing.SwingConstants;
                     // No balloon point, so top few pixels of its bounding box is empty: move it up
                     balloon.setBounds
                         (0, -SpeechBalloon.BALLOON_POINT_SIZE, w, offerH);
-                    offerBox.setBounds(0, offerH - SpeechBalloon.BALLOON_POINT_SIZE,
+                    counterOfferBox.setBounds(0, offerH - SpeechBalloon.BALLOON_POINT_SIZE,
                         w, OFFER_COUNTER_HEIGHT - BUTTON_HEIGHT - 2);
                 } else {
                     balloon.setBounds(0, 0, w, offerH);
-                    offerBox.setBounds(0, offerH, w, OFFER_COUNTER_HEIGHT);
+                    counterOfferBox.setBounds(0, offerH, w, OFFER_COUNTER_HEIGHT);
                 }
 
                 // If offerBox height calculation changes, please update OFFER_COUNTER_HEIGHT.
@@ -1109,11 +1115,14 @@ import javax.swing.SwingConstants;
 
                 if (offered)
                 {
-                    // TODO center across width; if acceptBut hidden, still center as if 3 visible buttons
+                    // center across width; if acceptBut hidden, still center as if 3 visible buttons
+                    int buttonX = ((w - SpeechBalloon.SHADOW_SIZE) - ((3 * BUTTON_WIDTH) + 10)) / 2;
 
-                    acceptBut.setBounds(5, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
-                    rejectBut.setBounds(5 + 5 + BUTTON_WIDTH, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
-                    offerBut.setBounds(5 + (2 * (5 + BUTTON_WIDTH)), buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
+                    acceptBut.setBounds(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
+                    buttonX += 5 + BUTTON_WIDTH;
+                    rejectBut.setBounds(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
+                    buttonX += 5 + BUTTON_WIDTH;
+                    offerBut.setBounds(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
 
                     if (isUsingRejCountdownLab)
                         rejCountdownLab.setBounds
@@ -1278,7 +1287,7 @@ import javax.swing.SwingConstants;
                 haveResources = player.getResources().contains(get);
             }
 
-            offerBox.setVisible(visible);
+            counterOfferBox.setVisible(visible);
 
             if (! visible)
             {
@@ -1557,9 +1566,9 @@ import javax.swing.SwingConstants;
         super.setBounds(x, y, width, height);
 
         final int hpHeight = hp.getHeight();
-        int counterBottomY = offerPanel.offerBox.getHeight();
+        int counterBottomY = offerPanel.counterOfferBox.getHeight();
         if (counterBottomY > 0)
-            counterBottomY += offerPanel.offerBox.getY() + y + 3;
+            counterBottomY += offerPanel.counterOfferBox.getY() + y + 3;
         counterCompactMode =
             (height < (OFFER_HEIGHT + OFFER_COUNTER_HEIGHT - OFFER_BUTTONS_ADDED_HEIGHT))
             || ((hpHeight > 0) &&
