@@ -420,6 +420,10 @@ ideas.
 - Kick robots if inactive but current player in game, assume they're buggy (use forceEndTurn)
 - Control the speed of robots in practice games
   - Adjust `SOCRobotBrain.pause`, `ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS`, etc
+- For bot test runs with `-Djsettlers.bots.botgames.shutdown=Y` (`SOCServer.PROP_JSETTLERS_BOTS_BOTGAMES_SHUTDOWN`):
+  - Print a summary at the end in a machine-readable format like YAML: Number of games, average length, etc
+  - Capture any exceptions thrown by bots during those games
+  - If any exceptions thrown, System.exit(1)
 - Add more sound effects
 - Add more functional and unit tests, in `src/test/bin/` and `src/test/java/` directories,
   `build.xml` and `build.gradle`
