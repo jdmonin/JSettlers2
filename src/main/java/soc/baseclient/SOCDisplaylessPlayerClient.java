@@ -1272,7 +1272,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param ga  Game to check
      * @since 2.0.00
      */
-    public final static void handleSTARTGAME_checkIsBotsOnly(SOCGame ga)
+    public static final void handleSTARTGAME_checkIsBotsOnly(SOCGame ga)
     {
         boolean isBotsOnly = true;
 

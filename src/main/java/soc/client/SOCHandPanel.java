@@ -59,7 +59,6 @@ import java.util.MissingResourceException;
 import java.util.Timer;  // For auto-roll
 import java.util.TimerTask;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.DefaultListModel;
 import javax.swing.JComponent;
@@ -109,7 +108,7 @@ import javax.swing.UIManager;
         SPECIALVICTORYPOINTS = 9;
 
     /** Auto-roll timer countdown, 5 seconds unless changed at program start. */
-    public static int AUTOROLL_TIME = 5;
+    public static final int AUTOROLL_TIME = 5;
 
     /** Array of five zeroes, one per resource type; for {@link #sqPanel}. */
     protected static final int[] zero = { 0, 0, 0, 0, 0 };
@@ -4047,7 +4046,7 @@ import javax.swing.UIManager;
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 1.1.00
      */
-    /* package-access */ static abstract class ResourceTradePopupMenu extends PopupMenu
+    /*package*/ abstract static class ResourceTradePopupMenu extends PopupMenu
     {
         protected SOCHandPanel hpan;
 

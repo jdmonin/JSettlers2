@@ -1029,7 +1029,7 @@ public class SOCServer extends Server
      * @see #i18n_scenario_SC_WOND_desc
      * @see soctest.TestI18NGameoptScenStrings
      */
-    final static String i18n_gameopt_PL_desc;
+    static final String i18n_gameopt_PL_desc;
     static
     {
         final SOCGameOption optPL = SOCGameOption.getOption("PL", false);
@@ -1428,7 +1428,7 @@ public class SOCServer extends Server
             }
 
             // set some DB-related SOCServer fields: acctsNotOpenRegButNoUsers, databaseUserAdmins
-            initSocServer_dbParamFields(accountsRequired, wants_upg_schema);
+            initSocServer_dbParamFields(wants_upg_schema);
 
             // check schema version, upgrade if requested:
             if (! SOCDBHelper.isSchemaLatestVersion())
@@ -1732,7 +1732,7 @@ public class SOCServer extends Server
      *     for {@link #acctsNotOpenRegButNoUsers}
      * @since 1.2.00
      */
-    private void initSocServer_dbParamFields(final boolean accountsRequired, final boolean wantsUpgSchema)
+    private void initSocServer_dbParamFields(final boolean wantsUpgSchema)
         throws IllegalArgumentException, SQLException
     {
         // open reg for user accounts?  if not, see if we have any yet
@@ -4539,7 +4539,7 @@ public class SOCServer extends Server
         final long now = System.currentTimeMillis();
         if (scd.disconnectLastPingMillis != 0)
         {
-            int secondsSincePing = (int) (((now - scd.disconnectLastPingMillis)) / 1000L);
+            int secondsSincePing = (int) ((now - scd.disconnectLastPingMillis) / 1000L);
             if (secondsSincePing >= timeoutNeeded)
             {
                 // Already sent ping, timeout has expired.
@@ -5244,8 +5244,6 @@ public class SOCServer extends Server
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_PROBLEM_WITH_DB, c.getVersion(),
                      "Problem connecting to database, please try again later."));
-
-            return;  // <---- Early return: DB problem ----
         }
     }
 
@@ -7500,7 +7498,7 @@ public class SOCServer extends Server
             {
                 // lastActionTime is a recent time, or might be 0 to force end
                 long lastActionTime = ga.lastActionTime;
-                if (lastActionTime > ((ga.isCurrentPlayerStubbornRobot() ? inactiveTimeStubborn : inactiveTime)))
+                if (lastActionTime > (ga.isCurrentPlayerStubbornRobot() ? inactiveTimeStubborn : inactiveTime))
                     continue;
 
                 if (ga.getGameState() >= SOCGame.OVER)
@@ -8807,7 +8805,6 @@ public class SOCServer extends Server
         catch (Throwable e)
         {
             printUsage(false);
-            return;
         }
 
     }  // main

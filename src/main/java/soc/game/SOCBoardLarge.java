@@ -379,7 +379,7 @@ public class SOCBoardLarge extends SOCBoard
      * {@link SOCBoard#FACING_E FACING_E} is 2, etc; {@link SOCBoard#FACING_NW FACING_NW} is 6.
      * Index here for {@link SOCBoard#FACING_NE FACING_NE} is 0, {@link SOCBoard#FACING_NW FACING_NW} is 5.
      */
-    private final static int[][] A_HEX2HEX = {
+    private static final int[][] A_HEX2HEX = {
         { -2, +1 }, { 0, +2 }, { +2, +1 },  // NE, E, SE
         { +2, -1 }, { 0, -2 }, { -2, -1 }   // SW, W, NW
     };
@@ -394,7 +394,7 @@ public class SOCBoardLarge extends SOCBoard
      * For each direction, array of adds to the coordinate to change the row & column.
      * The row delta in hex is +-0xRR00, the column is small (+-1) so doesn't need hex format.
      */
-    private final static int[][] A_NODE2HEX = {
+    private static final int[][] A_NODE2HEX = {
         { -0x100, 0 }, { -0x100, +1 }, { +0x100, +1 },  // N, NE, SE
         { +0x100, 0 }, { +0x100, -1 }, { -0x100, -1 }   // S, SW, NW
     };
@@ -407,7 +407,7 @@ public class SOCBoardLarge extends SOCBoard
      * For each direction, array of adds to the coordinate to change the row & column.
      * The row delta in hex is +-0xRR00, the column is small (+-1) so doesn't need hex format.
      */
-    private final static int[][] A_EDGE2HEX = {
+    private static final int[][] A_EDGE2HEX = {
         { -0x100,  0 }, { 0x0, +1 }, { +0x100,  0 },  // NE, E, SE
         { +0x100, -1 }, { 0x0, -1 }, { -0x100, -1 }   // SW, W, NW
     };
@@ -420,7 +420,7 @@ public class SOCBoardLarge extends SOCBoard
      *<br>
      * Order of directions: | / \
      */
-    private final static int[][] A_EDGE2EDGE = {
+    private static final int[][] A_EDGE2EDGE = {
         { -1,-1,  -1,0,  +1,-1,  +1,0 },  // "|"
         { 0,-1,   +1,0,  -1,+1,  0,+1 },  // "/"
         { 0,-1,   -1,0,  +1,+1,  0,+1 }   // "\"
@@ -433,7 +433,7 @@ public class SOCBoardLarge extends SOCBoard
      * Used by {@link #getAdjacentNodeToNode2Away(int, int)}.
      * The array contains 2 elements per facing.
      */
-    private final static int[] NODE_TO_NODE_2_AWAY = {
+    private static final int[] NODE_TO_NODE_2_AWAY = {
         -9,-9,          // not valid
         -2,+1,   0,+2,  // NE, E
         +2,+1,  +2,-1,  // SE, SW
@@ -667,7 +667,7 @@ public class SOCBoardLarge extends SOCBoard
     public SOCBoardLarge(final Map<String,SOCGameOption> gameOpts, int maxPlayers)
         throws IllegalArgumentException
     {
-        this(gameOpts, maxPlayers, getBoardSize(gameOpts, maxPlayers));
+        this(gameOpts, maxPlayers, getBoardSize(gameOpts));
     }
 
     /**
@@ -735,7 +735,7 @@ public class SOCBoardLarge extends SOCBoard
      * @return a new IntPair(height, width)
      * @see soc.server.SOCBoardAtServer#getBoardSize(Map, int)
      */
-    private static IntPair getBoardSize(final Map<String, SOCGameOption> gameOpts, int maxPlayers)
+    private static IntPair getBoardSize(final Map<String, SOCGameOption> gameOpts)
     {
         SOCGameOption bhwOpt = null;
         if (gameOpts != null)
