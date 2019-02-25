@@ -160,7 +160,10 @@ public class SOCPlayerInterface extends Frame
     private static final SOCStringManager strings = SOCStringManager.getClientManager();
 
     /**
-     * Is this a windows platform?
+     * Is this a windows platform, according to {@link System#getProperty(String) System.getProperty("os.name")}?
+     *<P>
+     * Before v2.0.00 this field was {@code SOCPI_isPlatformWindows}.
+     *
      * @since 1.1.08
      */
     private static final boolean IS_PLATFORM_WINDOWS;
