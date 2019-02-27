@@ -64,11 +64,16 @@ import javax.swing.JPanel;
 
     /**
      * Background color for our parent panel beyond the edges of SpeechBalloon.
+     * @see #balloonColor
      * @since 2.0.00
      */
     private final Color behindColor;
 
-    private static Color balloonColor = SOCPlayerInterface.DIALOG_BG_GOLDENROD;
+    /**
+     * Background color of the SpeechBalloon interior; typically {@link SwingMainDisplay#DIALOG_BG_GOLDENROD}.
+     * @see #behindColor
+     */
+    private final Color balloonColor;
 
     int height;
     int width;
@@ -81,7 +86,7 @@ import javax.swing.JPanel;
 
     /**
      * Constructor. Foreground color will be {@link Color#BLACK},
-     * background color in balloon interior will be {@link SOCPlayerInterface#DIALOG_BG_GOLDENROD}.
+     * background color in balloon interior will be {@link SwingMainDisplay#DIALOG_BG_GOLDENROD}.
      *
      * @param behindColor  the background color beyond edges of the panel
      * @param lm  LayoutManager to use, or {@code null}
@@ -96,8 +101,10 @@ import javax.swing.JPanel;
         width = 50;
         this.behindColor = behindColor;
 
+        final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true);
+        balloonColor = colors[2];  // SwingMainDisplay.DIALOG_BG_GOLDENROD
         setBackground(balloonColor);
-        setForeground(Color.BLACK);
+        setForeground(colors[0]);  // Color.BLACK
         balloonPoint = true;
 
         // nonzero size helps when adding to a JPanel

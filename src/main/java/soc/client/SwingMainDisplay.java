@@ -100,11 +100,41 @@ import soc.util.Version;
  *<P>
  * Before v2.0.00, most of these fields and methods were part of the main {@link SOCPlayerClient} class.
  * Also converted from AWT to Swing in v2.0.00.
+ *
  * @since 2.0.00
  */
 @SuppressWarnings("serial")
 public class SwingMainDisplay extends JPanel implements MainDisplay
 {
+    /**
+     * The classic JSettlers goldenrod dialog background color; pale yellow-orange tint #FFE6A2.
+     * Typically used with foreground {@link Color#BLACK}, like in game/chat text areas,
+     * {@link TradeOfferPanel}, and {@link AskDialog}.
+     * @see #getForegroundBackgroundColors(boolean)
+     * @see #JSETTLERS_BG_GREEN
+     * @since 2.0.00
+     */
+    public static final Color DIALOG_BG_GOLDENROD = new Color(255, 230, 162);
+
+    /**
+     * The classic JSettlers green background color; green tone #61AF71.
+     * Typically used with foreground color {@link Color#BLACK},
+     * like in {@link SwingMainDisplay}'s main panel.
+     * Occasionally used with {@link #MISC_LABEL_FG_OFF_WHITE}.
+     * @see #getForegroundBackgroundColors(boolean)
+     * @see #DIALOG_BG_GOLDENROD
+     * @since 2.0.00
+     */
+    public static final Color JSETTLERS_BG_GREEN = new Color(97, 175, 113);
+
+    /**
+     * For miscellaneous labels, off-white foreground color #FCFBF3.
+     * Typically used on {@link #JSETTLERS_BG_GREEN}.
+     * @see #getForegroundBackgroundColors(boolean)
+     * @since 2.0.00
+     */
+    public static final Color MISC_LABEL_FG_OFF_WHITE = new Color(252, 251, 243);
+
     /** main panel, in cardlayout */
     private static final String MAIN_PANEL = "main";
 
@@ -238,6 +268,12 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * @since 1.1.19
      */
     private JPanel mainPane;
+
+    /**
+     * Foreground color for miscellaneous label text; typically {@link #MISC_LABEL_FG_OFF_WHITE}.
+     * @since 2.0.00
+     */
+    private final Color miscLabelFGColor;
 
     /** Layout for {@link #mainPane} */
     private GridBagLayout mainGBL;
@@ -396,8 +432,32 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
         // Set colors; easier than troubleshooting color-inherit from JFrame or applet tag
         setOpaque(true);
-        setBackground(SOCPlayerClient.JSETTLERS_BG_GREEN);
-        setForeground(Color.BLACK);
+        final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(false);
+        setBackground(colors[2]);  // JSETTLERS_BG_GREEN
+        setForeground(colors[0]);  // Color.BLACK
+        miscLabelFGColor = colors[1];
+    }
+
+    /**
+     * Get foreground and background colors to use for a new window or panel.
+     *
+     * @param isForLightBG  True for a light background like {@link #DIALOG_BG_GOLDENROD},
+     *     false for a dark background like {@link #JSETTLERS_BG_GREEN}
+     * @return Array of 3 colors: { Main foreground, misc foreground, background }.
+     *     If background is dark, misc foreground is {@link #MISC_LABEL_FG_OFF_WHITE}
+     *     instead of same as main foreground {@link Color#BLACK}.
+     * @since 2.0.00
+     */
+    public static final Color[] getForegroundBackgroundColors(final boolean isForLightBG)
+    {
+        // TODO determine and cache whether using high-contrast mode/colors, have getter for that cached answer
+
+        if (isForLightBG)
+        {
+            return new Color[]{ Color.BLACK, Color.BLACK, DIALOG_BG_GOLDENROD };
+        } else {
+            return new Color[]{ Color.BLACK, MISC_LABEL_FG_OFF_WHITE, JSETTLERS_BG_GREEN };
+        }
     }
 
     public SOCPlayerClient getClient()
@@ -576,7 +636,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
         // message label that takes up the whole pane
         messageLabel = new JLabel("", SwingConstants.CENTER);
-        messageLabel.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
+        messageLabel.setForeground(miscLabelFGColor);  // MISC_LABEL_FG_OFF_WHITE
         messagePane.add(messageLabel, BorderLayout.CENTER);
 
         // bottom of message pane: practice-game button
@@ -1680,7 +1740,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     {
         if (null == net.localTCPServer)
         {
-            versionOrlocalTCPPortLabel.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
+            versionOrlocalTCPPortLabel.setForeground(miscLabelFGColor);  // MISC_LABEL_FG_OFF_WHITE
             versionOrlocalTCPPortLabel.setText(client.strings.get("pcli.main.version", versionString));  // "v {0}"
             versionOrlocalTCPPortLabel.setToolTipText
                 (client.strings.get("pcli.main.version.tip", versionString, buildString,

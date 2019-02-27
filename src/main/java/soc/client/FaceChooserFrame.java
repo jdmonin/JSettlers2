@@ -135,8 +135,9 @@ import soc.game.SOCGame;
         faceWidthPx = faceWidth;
         stillAvailable = true;
 
-        setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);  // Actual face-icon backgrounds will match player.
-        setForeground(Color.BLACK);
+        final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true);
+        setBackground(colors[2]);  // SwingMainDisplay.DIALOG_BG_GOLDENROD; actual face-icon backgrounds will match player
+        setForeground(colors[0]);  // Color.BLACK
         setFont(new Font("Dialog", Font.PLAIN, 12));
         getRootPane().setBackground(null);  // inherit
         getContentPane().setBackground(null);

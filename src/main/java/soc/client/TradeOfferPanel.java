@@ -419,8 +419,9 @@ import javax.swing.SwingConstants;
         {
             super(pi.getPlayerColor(from), null);  // custom doLayout
 
-            setForeground(Color.BLACK);
-            setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
+            final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true);
+            setForeground(colors[0]);  // Color.BLACK
+            setBackground(colors[2]);  // SwingMainDisplay.DIALOG_BG_GOLDENROD
 
             final Font msgFont = new Font("SansSerif", Font.PLAIN, 18);
 
@@ -690,7 +691,8 @@ import javax.swing.SwingConstants;
             final Color hpanColor = pi.getPlayerColor(from);
             final Font offerFont = new Font("SansSerif", Font.PLAIN, 10);
             setFont(offerFont);
-            setForeground(Color.BLACK);
+            final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true);
+            setForeground(colors[0]);  // Color.BLACK
             setBackground(hpanColor);
             setOpaque(true);
 
@@ -752,7 +754,7 @@ import javax.swing.SwingConstants;
 
             /** offerBox: The counter-offer to send */
 
-            counterOfferBox = new ShadowedBox(hpanColor, SOCPlayerInterface.DIALOG_BG_GOLDENROD, null);
+            counterOfferBox = new ShadowedBox(hpanColor, colors[2] /* SwingMainDisplay.DIALOG_BG_GOLDENROD */, null);
             counterOfferBox.setVisible(false);
             counterOfferBox.setFont(offerFont);
 

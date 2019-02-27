@@ -114,11 +114,12 @@ import soc.util.Version;
         canLaunchServer = checkCanLaunchServer();
 
         // same Frame setup as in SOCPlayerClient.main
-        setBackground(SOCPlayerClient.JSETTLERS_BG_GREEN);
-        setForeground(Color.BLACK);
+        final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(false);
+        setBackground(colors[2]);  // SwingMainDisplay.JSETTLERS_BG_GREEN
+        setForeground(colors[0]);  // Color.BLACK
 
         addKeyListener(this);
-        initInterfaceElements();
+        initInterfaceElements(colors[1]);  // SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE
     }
 
     /**
@@ -185,8 +186,10 @@ import soc.util.Version;
      * Interface setup for constructor.
      * Most elements are part of a sub-panel occupying most of this Panel, using a vertical BoxLayout.
      * There's also a label at bottom with the version and build number.
+     * @param miscLabelFGColor  Foreground color for miscellaneous label text;
+     *     typically {@link SwingMainDisplay#MISC_LABEL_FG_OFF_WHITE}
      */
-    private void initInterfaceElements()
+    private void initInterfaceElements(final Color miscLabelFGColor)
     {
         // The actual content of this dialog is bp, a narrow stack of buttons and other UI elements.
         // This stack is centered horizontally in the larger container, and doesn't fill the entire width.
@@ -279,7 +282,7 @@ import soc.util.Version;
         JLabel verl = new JLabel
             (strings.get("pcli.cpp.jsettlers.versionbuild", Version.version(), Version.buildnum()), SwingConstants.CENTER);
             // "JSettlers " + Version.version() + " build " + Version.buildnum()
-        verl.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
+        verl.setForeground(miscLabelFGColor);
         add(verl, BorderLayout.SOUTH);
     }
 

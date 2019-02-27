@@ -47,7 +47,7 @@ import javax.swing.WindowConstants;
  * stretched to fill the entire {@link BorderLayout#CENTER}, and an optional
  * button panel centered horizontally at the bottom.
  *<P>
- * Uses JSettlers dialog colors of black on {@link SOCPlayerClient#DIALOG_BG_GOLDENROD}
+ * Uses JSettlers dialog colors of black on {@link SwingMainDisplay#DIALOG_BG_GOLDENROD}
  * with default dialog font, increased to 12 points if default is smaller.
  * The root pane is given an empty border of 8 pixels.
  *<P>
@@ -120,8 +120,9 @@ public abstract class SOCDialog
         }
 
         final JRootPane rpane = getRootPane();
-        rpane.setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
-        rpane.setForeground(Color.BLACK);
+        final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true);
+        rpane.setBackground(colors[2]);  // SwingMainDisplay.DIALOG_BG_GOLDENROD
+        rpane.setForeground(colors[0]);  // Color.BLACK
         rpane.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
         Container cpane = getContentPane();

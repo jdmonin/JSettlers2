@@ -282,7 +282,7 @@ import soc.util.Version;
         }
 
         // same Frame setup as in SOCPlayerClient.main
-        setBackground(SOCPlayerClient.JSETTLERS_BG_GREEN);
+        setBackground(SwingMainDisplay.JSETTLERS_BG_GREEN);
         setForeground(Color.black);
         getRootPane().setBackground(null);  // inherit from overall frame
         getContentPane().setBackground(null);
@@ -339,7 +339,7 @@ import soc.util.Version;
         final JPanel bp = new JPanel(gbl);  // Actual button panel
         bp.setBorder(new EmptyBorder(4, 4, 4, 4));  // need padding around edges, because panel fills the frame
         bp.setForeground(getForeground());
-        bp.setBackground(SOCPlayerClient.JSETTLERS_BG_GREEN);  // If this is omitted, firefox 3.5+ applet uses themed bg-color (seen OS X)
+        bp.setBackground(SwingMainDisplay.JSETTLERS_BG_GREEN);  // If this is omitted, firefox 3.5+ applet uses themed bg-color (seen OS X)
 
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -349,7 +349,7 @@ import soc.util.Version;
         {
             msgText = new JTextField(strings.get("game.options.prompt"));  // "Choose options for the new game."
             msgText.setEditable(false);
-            msgText.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
+            msgText.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
             msgText.setBackground(getBackground());
             add(msgText, BorderLayout.NORTH);
         }
@@ -468,7 +468,7 @@ import soc.util.Version;
         if (opts == null)
         {
             L = new JLabel(strings.get("game.options.not"));  // "This server version does not support game options."
-            L.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
+            L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
             gbc.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(L, gbc);
             bp.add(L);
@@ -772,7 +772,7 @@ import soc.util.Version;
         if (placeholderIdx > 0)
         {
             L = new JLabel(opDesc.substring(0, placeholderIdx));
-            L.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
+            L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
             optp.add(L);
             if (hasCB && ! readOnly)
             {
@@ -810,7 +810,7 @@ import soc.util.Version;
         if (placeholderIdx + 1 < opDesc.length())
         {
             L = new JLabel(opDesc.substring(placeholderIdx + 1));
-            L.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
+            L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
             optp.add(L);
             if (hasCB && ! readOnly)
             {
@@ -1080,7 +1080,7 @@ import soc.util.Version;
         if (placeholderIdx > 0)
         {
             JLabel L = new JLabel(desc.substring(0, placeholderIdx));
-            L.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
+            L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
             prefp.add(L);
             L.addMouseListener(ml);
         }
@@ -1138,7 +1138,7 @@ import soc.util.Version;
         if (placeholderIdx + 1 < desc.length())
         {
             JLabel L = new JLabel(desc.substring(placeholderIdx + 1));
-            L.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
+            L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
             if (prefp != null)
             {
                 prefp.add(L);

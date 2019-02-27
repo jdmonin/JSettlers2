@@ -157,23 +157,6 @@ public class SOCPlayerClient
     public static final String PREF_BOT_TRADE_REJECT_SEC = "botTradeRejectSec";
 
     /**
-     * The classic JSettlers green background color; green tone #61AF71.
-     * Typically used with foreground color {@link Color#BLACK},
-     * like in {@link SwingMainDisplay}'s main panel.
-     * Occasionally used with {@link #MISC_LABEL_FG_OFF_WHITE}.
-     * @since 2.0.00
-     * @see SOCPlayerInterface#DIALOG_BG_GOLDENROD
-     */
-    public static final Color JSETTLERS_BG_GREEN = new Color(97, 175, 113);
-
-    /**
-     * For miscellaneous labels, off-white foreground color #FCFBF3.
-     * Typically used on {@link #JSETTLERS_BG_GREEN}.
-     * @since 2.0.00
-     */
-    public static final Color MISC_LABEL_FG_OFF_WHITE = new Color(252, 251, 243);
-
-    /**
      * i18n text strings in our {@link #cliLocale}.
      * @since 2.0.00
      */
@@ -915,8 +898,9 @@ public class SOCPlayerClient
         client.setMainDisplay(mainDisplay);
 
         JFrame frame = new JFrame(client.strings.get("pcli.main.title", Version.version()));  // "JSettlers client {0}"
-        frame.setBackground(JSETTLERS_BG_GREEN);
-        frame.setForeground(Color.black);
+        final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(false);
+        frame.setBackground(colors[2]);  // SwingMainDisplay.JSETTLERS_BG_GREEN
+        frame.setForeground(colors[0]);  // Color.BLACK
         // Add a listener for the close event
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         frame.addWindowListener(mainDisplay.createWindowAdapter());

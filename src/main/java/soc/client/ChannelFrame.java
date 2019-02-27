@@ -71,8 +71,9 @@ import java.util.Vector;
     public ChannelFrame(final String t, final MainDisplay md)
     {
         super(strings.get("channel.channel", t));
-        setBackground(SOCPlayerClient.JSETTLERS_BG_GREEN);
-        setForeground(Color.BLACK);
+        final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(false);
+        setBackground(colors[2]);  // SwingMainDisplay.JSETTLERS_BG_GREEN
+        setForeground(colors[0]);  // Color.BLACK
 
         ta = new SnippingTextArea("", 100);
         tf = new TextField(strings.get("base.please.wait"));  // "Please wait..."
