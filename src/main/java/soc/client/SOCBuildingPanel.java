@@ -69,12 +69,6 @@ import javax.swing.SwingConstants;
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
     /**
-     * Background color; olive green #9CB35E. Used with foreground {@link Color#BLACK}.
-     * @since 2.0.00
-     */
-    private static final Color BUILDPAN_BG_OLIVE_GREEN = new Color(156, 179, 94);
-
-    /**
      * The piece-cost "arrow": BLACK LEFT-POINTING TRIANGLE (U+25C0); since unicode 1.1 (june 1993).
      * @see #hasTestedArrowFont
      * @since 2.0.00
@@ -249,8 +243,9 @@ import javax.swing.SwingConstants;
 
         final Font panelFont = new Font("Dialog", Font.PLAIN, 10);
 
-        setBackground(BUILDPAN_BG_OLIVE_GREEN);
-        setForeground(Color.BLACK);
+        final Color colors[] = SwingMainDisplay.getForegroundBackgroundColors(true);
+        setBackground(colors[2]);  // SwingMainDisplay.DIALOG_BG_GOLDENROD
+        setForeground(colors[0]);  // Color.BLACK
         setFont(panelFont);
 
         /*
