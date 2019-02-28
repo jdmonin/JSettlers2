@@ -59,7 +59,6 @@ import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.TextArea;
-import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -70,8 +69,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.TextEvent;
-import java.awt.event.TextListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -90,6 +87,10 @@ import java.io.PrintWriter;  // For chatPrintStackTrace
 import java.io.StringWriter;
 
 import javax.sound.sampled.LineUnavailableException;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  * Window with interface for a player in one game of Settlers of Catan.
@@ -235,7 +236,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * where the player types in text
      */
-    protected TextField textInput;
+    private JTextField textInput;
 
     /**
      * Not yet typed-in; display prompt message.
@@ -916,20 +917,22 @@ public class SOCPlayerInterface extends Frame
             chatDisplay.addMouseListener(this);
         add(chatDisplay);
 
-        textInput = new TextField();
+        textInput = new JTextField();
+        if (SOCPlayerClient.isJavaOnOSX)
+            textInput.setBorder(new EmptyBorder(1, 1, 1, 1));  // avoid black background inside overly-thick border
         textInput.setFont(new Font("SansSerif", Font.PLAIN, 10));
         textInputListener = new SOCPITextfieldListener(this);
         textInputHasSent = false;
         textInputGreyCountdown = textInputGreyCountFrom;
         textInput.addKeyListener(textInputListener);
-        textInput.addTextListener(textInputListener);
+        textInput.getDocument().addDocumentListener(textInputListener);
         textInput.addFocusListener(textInputListener);
 
         FontMetrics fm = this.getFontMetrics(textInput.getFont());
         textInput.setSize(SOCBoardPanel.PANELX, fm.getHeight() + 4);
+        textInput.setEditable(false);
         textInput.setBackground(Color.WHITE);  // before v1.1.00 was new Color(255, 230, 162) aka DIALOG_BG_GOLDENROD
         textInput.setForeground(Color.BLACK);
-        textInput.setEditable(false);
         textInputIsInitial = false;  // due to "please wait"
         textInput.setText(strings.get("base.please.wait"));  // "Please wait..."
         add(textInput);
@@ -1587,7 +1590,7 @@ public class SOCPlayerInterface extends Frame
                 if (textInputListener != null)
                 {
                     textInput.removeKeyListener(textInputListener);
-                    textInput.removeTextListener(textInputListener);
+                    textInput.getDocument().removeDocumentListener(textInputListener);
                     textInputListener = null;
                 }
             }
@@ -2371,6 +2374,10 @@ public class SOCPlayerInterface extends Frame
      * Set or clear the chat text input's initial prompt.
      * If {@code setToInitial} true, sets its status, foreground color, and the prompt text
      * unless player already sent chat text ({@link #textInputHasSent}).
+     *<P>
+     * Do not call this directly from a Swing {@link DocumentListener},
+     * which will throw "IllegalStateException: Attempt to mutate in notification":
+     * Instead add to event queue with invokeLater.
      *
      * @param setToInitial If false, clear initial-prompt status, and
      *    clear contents (if they are the initial-prompt message);
@@ -2385,12 +2392,15 @@ public class SOCPlayerInterface extends Frame
             return;  // Already sent text, won't re-prompt
 
         // Always change text before changing flag,
-        // so TextListener doesn't fight this action.
+        // so DocumentListener doesn't fight this action.
 
         if (setToInitial)
         {
             if (textInput.getText().trim().length() == 0)
+            {
                 textInput.setText(TEXTINPUT_INITIAL_PROMPT_MSG);  // Set text before flag
+                textInput.setCaretPosition(0);
+            }
             textInputIsInitial = true;
             textInputGreyCountdown = textInputGreyCountFrom;  // Reset fade countdown
             textInput.setForeground(Color.DARK_GRAY);
@@ -4572,7 +4582,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Used for chat textfield setting/clearing initial prompt text
-     * (TEXTINPUT_INITIAL_PROMPT_MSG).
+     * ({@link #TEXTINPUT_INITIAL_PROMPT_MSG}).
      * It's expected that after the player sends their first line of chat text,
      * the listeners will be removed so we don't have the overhead of
      * calling these methods.
@@ -4580,7 +4590,7 @@ public class SOCPlayerInterface extends Frame
      * @since 1.1.00
      */
     private static class SOCPITextfieldListener
-        extends KeyAdapter implements TextListener, FocusListener
+        extends KeyAdapter implements DocumentListener, FocusListener
     {
         private SOCPlayerInterface pi;
 
@@ -4597,20 +4607,17 @@ public class SOCPlayerInterface extends Frame
             {
                 return;
             }
+
             pi.textInputSetToInitialPrompt(false);
         }
 
-        /**
-         * If input text is cleared, and field is again empty, show the
-         * prompt message unless player has already sent a line of chat.
-         */
-        public void textValueChanged(TextEvent e)
-        {
-            if (pi.textInputIsInitial || pi.textInputHasSent)
-            {
-                return;
-            }
-        }
+        // JTextField document listener:
+
+        public void insertUpdate(DocumentEvent e)  { }
+
+        public void removeUpdate(DocumentEvent e)  { promptIfEmpty(); }
+
+        public void changedUpdate(DocumentEvent e) { promptIfEmpty(); }
 
         /**
          * If input text is cleared, and player leaves the textfield while it's empty,
@@ -4618,10 +4625,21 @@ public class SOCPlayerInterface extends Frame
          */
         public void focusLost(FocusEvent e)
         {
+            promptIfEmpty();
+        }
+
+        /**
+         * If input text field is made empty, show the
+         * prompt message unless player has already sent a line of chat.
+         * @since 2.0.00
+         */
+        private void promptIfEmpty()
+        {
             if (pi.textInputIsInitial || pi.textInputHasSent)
             {
                 return;
             }
+
             if (pi.textInput.getText().trim().length() == 0)
             {
                 // Former contents were erased,
@@ -4630,7 +4648,13 @@ public class SOCPlayerInterface extends Frame
                 // player previously hitting "enter" in an
                 // initial field (actionPerformed).
 
-                pi.textInputSetToInitialPrompt(true);
+                EventQueue.invokeLater(new Runnable()
+                {
+                    public void run()
+                    {
+                        pi.textInputSetToInitialPrompt(true);
+                    }
+                });
             }
         }
 
@@ -4641,6 +4665,7 @@ public class SOCPlayerInterface extends Frame
             {
                 return;
             }
+
             pi.textInputSetToInitialPrompt(false);
         }
 
