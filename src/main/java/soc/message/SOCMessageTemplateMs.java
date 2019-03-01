@@ -195,7 +195,7 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
      */
     public String toString()
     {
-        StringBuilder sb = new StringBuilder(getClassNameShort());
+        StringBuilder sb = new StringBuilder(getClass().getSimpleName());
 
         if (pa != null)
         {

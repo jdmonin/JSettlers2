@@ -180,7 +180,7 @@ public abstract class SOCMessageTemplate2s extends SOCMessage
      */
     public String toString()
     {
-        return getClassNameShort() + ":game=" + game
+        return getClass().getSimpleName() + ":game=" + game
             + "|param1=" + p1
             + "|param2=" + (p2 != null ? p2 : "");
     }

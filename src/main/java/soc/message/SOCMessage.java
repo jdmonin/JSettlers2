@@ -507,20 +507,6 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public abstract String toString();
 
     /**
-     * Utility, get the short simple name of the class: SOCResetBoardVote, not soc.message.SOCResetBoardVote
-     * @return Short name of class, without package name
-     * @since 1.1.01
-     */
-    public String getClassNameShort()
-    {
-        String clName = getClass().getName();
-        int dot = clName.lastIndexOf(".");
-        if (dot > 0)
-            clName = clName.substring(dot + 1);
-        return clName;
-    }
-
-    /**
      * Test whether a string is non-empty and its characters are
      * all 'safe' as a single-line string:
      * No newlines or {@link Character#isISOControl(char) control characters},
