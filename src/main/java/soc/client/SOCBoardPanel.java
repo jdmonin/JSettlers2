@@ -41,7 +41,6 @@ import soc.util.SOCStringManager;
 
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
-import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Composite;
@@ -75,6 +74,8 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Set;
 import java.util.Timer;
+
+import javax.swing.JComponent;
 
 /**
  * This is a component that can display a Settlers of Catan Board.
@@ -136,7 +137,7 @@ import java.util.Timer;
  *</UL>
  */
 @SuppressWarnings("serial")
-/*package*/ class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionListener
+/*package*/ class SOCBoardPanel extends JComponent implements MouseListener, MouseMotionListener
 {
     /** i18n text strings */
     private static final SOCStringManager strings = SOCStringManager.getClientManager();
@@ -1449,6 +1450,7 @@ import java.util.Timer;
     public SOCBoardPanel(SOCPlayerInterface pi)
     {
         super();
+        setOpaque(true);
 
         game = pi.getGame();
         playerInterface = pi;
@@ -2893,7 +2895,7 @@ import java.util.Timer;
      * print stack traces to the player chat print area.
      */
     @Override
-    public void paint(Graphics g)
+    public void paintComponent(Graphics g)
     {
         Image ibuf = buffer;  // Local var in case field becomes null in other thread during paint
         try
