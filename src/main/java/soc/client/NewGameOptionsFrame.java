@@ -335,9 +335,11 @@ import soc.util.Version;
     {
         GridBagLayout gbl = new GridBagLayout();
         GridBagConstraints gbc = new GridBagConstraints();
+        final int displayScale = mainDisplay.getDisplayScaleFactor();
 
         final JPanel bp = new JPanel(gbl);  // Actual button panel
-        bp.setBorder(new EmptyBorder(4, 4, 4, 4));  // need padding around edges, because panel fills the frame
+        int n = 4 * displayScale;
+        bp.setBorder(new EmptyBorder(n, n, n, n));  // need padding around edges, because panel fills the frame
         bp.setForeground(getForeground());
         bp.setBackground(SwingMainDisplay.JSETTLERS_BG_GREEN);  // If this is omitted, firefox 3.5+ applet uses themed bg-color (seen OS X)
 
@@ -365,7 +367,7 @@ import soc.util.Version;
         L.setOpaque(true);
         gbc.gridwidth = 2;
         gbc.weightx = 0;
-        gbc.ipadx = 2;
+        gbc.ipadx = 2 * displayScale;
         gbl.setConstraints(L, gbc);
         gbc.ipadx = 0;
         bp.add(L);
@@ -401,7 +403,8 @@ import soc.util.Version;
         JPanel btnPan = new JPanel();
         btnPan.setBackground(null);
         btnPan.setForeground(null);
-        btnPan.setBorder(new EmptyBorder(4, 2, 0, 2));  // padding between option rows, buttons
+        btnPan.setBorder(new EmptyBorder(4 * displayScale, 2 * displayScale, 0, 2 * displayScale));
+            // padding between option rows, buttons
 
         if (readOnly)
         {

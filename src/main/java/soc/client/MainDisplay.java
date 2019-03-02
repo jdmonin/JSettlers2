@@ -53,6 +53,13 @@ public interface MainDisplay
     Container getGUIContainer();
 
     /**
+     * For high-DPI displays, what scaling factor to use? Unscaled is 1.
+     * Use for fonts, components, and window sizes.
+     * @return Display scaling factor, or 1 if none or unknown
+     */
+    int getDisplayScaleFactor();
+
+    /**
      * Init the visual elements.  Done before connecting to server,
      * so we don't know its version or active {@link SOCFeatureSet}.
      * So, most of the Main Panel elements are initialized here but not
