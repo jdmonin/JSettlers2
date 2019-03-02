@@ -169,6 +169,12 @@ public class SOCAccountClient extends Applet
 
     private CardLayout cardLayout;
 
+    /**
+     * For high-DPI displays, what scaling factor to use? Unscaled is 1.
+     * @since 2.0.00
+     */
+    private final int displayScale;
+
     protected String host;
     protected int port;
     protected Socket s;
@@ -235,10 +241,13 @@ public class SOCAccountClient extends Applet
 
     /**
      * Create a SOCAccountClient connecting to localhost port 8880
+     * @param displayScaleFactor  Display scaling factor to use (1 if not high-DPI); caller should call
+     *     {@link SwingMainDisplay#checkDisplayScaleFactor(Component)} with the Frame to which this display will be added
+     * @throws IllegalArgumentException if {@code displayScaleFactor} &lt; 1
      */
-    public SOCAccountClient()
+    public SOCAccountClient(final int displayScaleFactor)
     {
-        this(null, 8880);
+        this(null, 8880, displayScaleFactor);
     }
 
     /**
@@ -251,11 +260,19 @@ public class SOCAccountClient extends Applet
      *
      * @param h  host
      * @param p  port
+     * @param displayScaleFactor  Display scaling factor to use (1 if not high-DPI); caller should call
+     *     {@link SwingMainDisplay#checkDisplayScaleFactor(Component)} with the Frame to which this display will be added
+     * @throws IllegalArgumentException if {@code displayScaleFactor} &lt; 1
      */
-    public SOCAccountClient(String h, int p)
+    public SOCAccountClient(String h, int p, final int displayScaleFactor)
+        throws IllegalArgumentException
     {
+        if (displayScaleFactor < 1)
+            throw new IllegalArgumentException("displayScaleFactor");
+
         host = h;
         port = p;
+        displayScale = displayScaleFactor;
 
         String jsLocale = System.getProperty(I18n.PROP_JSETTLERS_LOCALE);
         Locale lo = null;
@@ -383,7 +400,7 @@ public class SOCAccountClient extends Applet
         c.gridwidth = GridBagConstraints.REMAINDER;
         c.fill = GridBagConstraints.NONE;
         c.anchor = GridBagConstraints.LINE_START;
-        c.ipadx = 20;
+        c.ipadx = 20 * displayScale;
         gbl.setConstraints(submit, c);
         mainPane.add(submit);
         c.fill = GridBagConstraints.BOTH;
@@ -438,7 +455,7 @@ public class SOCAccountClient extends Applet
         L = new JLabel(strings.get("account.common.must_auth"), SwingConstants.CENTER);
             // "You must log in with a username and password before you can create accounts."
         gbc.gridwidth = 4;
-        gbc.ipady = 8;  // space between this and next row
+        gbc.ipady = 12 * displayScale;  // space between this and next row
         gbl.setConstraints(L, gbc);
         pconn.add(L);
         L = new JLabel();  // Spacing for rest of form's rows
@@ -449,7 +466,7 @@ public class SOCAccountClient extends Applet
 
         // rows for server, port, nickname, password:
 
-        gbc.ipady = 2;
+        gbc.ipady = 2 * displayScale;
 
         L = new JLabel(strings.get("pcli.cpp.server"));
         gbc.gridwidth = 1;
@@ -457,7 +474,7 @@ public class SOCAccountClient extends Applet
         pconn.add(L);
         L = new JLabel(host);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.ipadx = 4;
+        gbc.ipadx = 4 * displayScale;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
         gbc.ipadx = 0;
@@ -468,7 +485,7 @@ public class SOCAccountClient extends Applet
         pconn.add(L);
         L = new JLabel(Integer.toString(port));
         gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.ipadx = 4;
+        gbc.ipadx = 4 * displayScale;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
         gbc.ipadx = 0;
@@ -497,7 +514,8 @@ public class SOCAccountClient extends Applet
 
         // Connect and Cancel buttons shouldn't stretch entire width, so they get their own sub-Panel
         JPanel btnsRow = new JPanel();
-        btnsRow.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+        final int bsize = 4 * displayScale;
+        btnsRow.setBorder(BorderFactory.createEmptyBorder(bsize, bsize, bsize, bsize));
 
         conn_connect = new JButton(strings.get("pcli.cpp.connect"));
         conn_connect.addActionListener(this);
@@ -1106,7 +1124,13 @@ public class SOCAccountClient extends Applet
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {}
 
-        SOCAccountClient client = new SOCAccountClient();
+        JFrame frame = new JFrame("SOCAccountClient");
+        final int displayScale = SwingMainDisplay.checkDisplayScaleFactor(frame);
+        SwingMainDisplay.scaleUIManagerFonts(displayScale);
+        final int bsize = 8 * displayScale;
+        frame.getRootPane().setBorder(BorderFactory.createEmptyBorder(bsize, bsize, bsize, bsize));
+
+        SOCAccountClient client = new SOCAccountClient(displayScale);
 
         if (args.length != 2)
         {
@@ -1122,9 +1146,6 @@ public class SOCAccountClient extends Applet
             System.err.println("Invalid port: " + args[1]);
             System.exit(1);
         }
-
-        JFrame frame = new JFrame("SOCAccountClient");
-        frame.getRootPane().setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
         // Add a listener for the close event
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
