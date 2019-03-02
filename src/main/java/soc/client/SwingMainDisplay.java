@@ -25,11 +25,13 @@ package soc.client;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Frame;
+import java.awt.GraphicsConfiguration;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -43,6 +45,7 @@ import java.util.Collection;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -58,6 +61,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
@@ -106,6 +110,23 @@ import soc.util.Version;
 @SuppressWarnings("serial")
 public class SwingMainDisplay extends JPanel implements MainDisplay
 {
+    /**
+     * Recommended minimum height of the screen (display): 768 pixels.
+     * {@link #checkDisplayScaleFactor(Component)} will return a high-DPI scaling factor
+     * if screen is at least twice this height.
+     * @see #PROP_JSETTLERS_UI_SCALE
+     * @since 2.0.00
+     */
+    public static final int DISPLAY_MIN_UNSCALED_HEIGHT = 768;
+
+    /**
+     * System property {@code "jsettlers.uiScale"} for UI scaling override ("high-DPI") if needed
+     * for {@link #checkDisplayScaleFactor(Component)}. Name is based on similar {@code "sun.java2d.uiScale"},
+     * but that property might not be available for all java versions.
+     * @since 2.0.00
+     */
+    public static final String PROP_JSETTLERS_UI_SCALE = "jsettlers.uiScale";
+
     /**
      * The classic JSettlers goldenrod dialog background color; pale yellow-orange tint #FFE6A2.
      * Typically used with foreground {@link Color#BLACK}, like in game/chat text areas,
@@ -194,9 +215,21 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      */
     public final String STATUS_CANNOT_JOIN_THIS_GAME;
 
+    /**
+     * Tracking flag to make sure {@link #scaleUIManagerFonts(int)} is done only once.
+     * @since 2.0.00
+     */
+    private static boolean didScaleUIManagerFonts;
+
     private final SOCPlayerClient client;
 
     private final ClientNetwork net;
+
+    /**
+     * For high-DPI displays, what scaling factor to use? Unscaled is 1.
+     * @see #checkDisplayScaleFactor(Component)
+     */
+    private final int displayScale;
 
     /**
      * The player interfaces for the {@link SOCPlayerClient#games} we're playing.
@@ -405,16 +438,22 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      *     and ask for a server to connect to, false if the server is known
      *     and should display the main panel (game list, channel list, etc).
      * @param client  Client using this display; {@link SOCPlayerClient#strings client.strings} must not be null
-     * @throws IllegalArgumentException if {@code client} is null
+     * @param displayScaleFactor  Display scaling factor to use (1 if not high-DPI); caller should
+     *     call {@link #checkDisplayScaleFactor(Component)} with the Frame to which this display will be added
+     * @throws IllegalArgumentException if {@code client} is null or {@code displayScaleFactor} is &lt;= 0
      */
-    public SwingMainDisplay(boolean hasConnectOrPractice, final SOCPlayerClient client)
+    public SwingMainDisplay
+        (boolean hasConnectOrPractice, final SOCPlayerClient client, final int displayScaleFactor)
         throws IllegalArgumentException
     {
         if (client == null)
             throw new IllegalArgumentException("null client");
+        if (displayScaleFactor <= 0)
+            throw new IllegalArgumentException("displayScaleFactor");
 
         this.hasConnectOrPractice = hasConnectOrPractice;
         this.client = client;
+        displayScale = displayScaleFactor;
         net = client.getNet();
 
         NET_UNAVAIL_CAN_PRACTICE_MSG = client.strings.get("pcli.error.server.unavailable");
@@ -460,6 +499,92 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         }
     }
 
+    /**
+     * For use on high-DPI displays, determine if the screen resolution is tall enough that our unscaled (1x)
+     * component sizes, window sizes, and font sizes would be too small to comfortably use.
+     *<P>
+     * Returns a high-DPI scaling factor if screen height is at least twice {@link #DISPLAY_MIN_UNSCALED_HEIGHT}.
+     *<P>
+     * After determining scale here, be sure to call {@link #scaleUIManagerFonts(int)} once.
+     *<P>
+     * If system property {@link #PROP_JSETTLERS_UI_SCALE} is set to an integer &gt;= 1,
+     * it overrides this display check and its value will be returned, even if {@code c} is null
+     * or hasn't been added to a Container.
+     *
+     * @param c  Component; not {@code null}
+     * @return scaling factor based on screen height divided by {@link #DISPLAY_MIN_UNSCALED_HEIGHT},
+     *     or 1 if cannot determine height
+     * @throws IllegalStateException  if {@code c} isn't a top-level Container and hasn't yet been added to a Container
+     * @throws NullPointerException  if {@code c} is null
+     * @since 2.0.00
+     */
+    public static final int checkDisplayScaleFactor(final Component c)
+        throws IllegalStateException, NullPointerException
+    {
+        final String propValue = System.getProperty(PROP_JSETTLERS_UI_SCALE);
+        if ((propValue != null) && (propValue.length() > 0))
+        {
+            try
+            {
+                int uiScale = Integer.parseInt(propValue);
+                if (uiScale > 0)
+                {
+                    System.err.println("L533: checkDisplayScaleFactor prop override -> scale=" + uiScale);  // TODO later: remove debug print
+                    return uiScale;
+                }
+            }
+            catch (NumberFormatException e) {}
+            catch (SecurityException e) {}
+        }
+
+        final GraphicsConfiguration gconf = c.getGraphicsConfiguration();
+        if (gconf == null)
+            throw new IllegalStateException("needs container");
+
+        int scale = 1;
+        try
+        {
+            final int screenHeight = gconf.getDevice().getDisplayMode().getHeight();
+            System.err.print("L549: checkDisplayScaleFactor got screenHeight=" + screenHeight);  // TODO later: remove debug print
+            if (screenHeight >= (2 * DISPLAY_MIN_UNSCALED_HEIGHT))
+                scale = screenHeight / DISPLAY_MIN_UNSCALED_HEIGHT;
+        } catch (NullPointerException e) {}
+
+        System.err.println(" -> scale=" + scale);  // TODO later: remove debug print
+        return scale;
+    }
+
+    /**
+     * If not already done, scale the UI look-and-feel font sizes for use on high-DPI displays.
+     * Helps keep buttons, labels, text fields legible.
+     * Sets a flag to ensure scaling is done only once, to avoid setting 4x or 8x font sizes.
+     * Assumes {@link UIManager#setLookAndFeel(String)} has already been called.
+     * @param displayScale  Scale factor to use, from {@link #checkDisplayScaleFactor(Component)};
+     *     if 1, makes no changes to font sizes.
+     * @since 2.0.00
+     */
+    public static final void scaleUIManagerFonts(final int displayScale)
+    {
+        if ((displayScale <= 1) || didScaleUIManagerFonts)
+            return;
+
+        // Adapted from MadProgrammer's 2014-11-12 answer to
+        // https://stackoverflow.com/questions/26877517/java-swing-on-high-dpi-screen
+
+        final Set<Object> keySet = UIManager.getLookAndFeelDefaults().keySet();
+        for (final Object key : keySet.toArray(new Object[keySet.size()]))
+        {
+            if ((key == null) || ! key.toString().toLowerCase().contains("font"))
+                continue;
+
+            Font font = UIManager.getDefaults().getFont(key);
+            if (font != null)
+                UIManager.put(key, font.deriveFont((float) (font.getSize2D() * displayScale)));
+        }
+
+        didScaleUIManagerFonts = true;
+    }
+
     public SOCPlayerClient getClient()
     {
         return client;
@@ -500,7 +625,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     {
         final SOCStringManager strings = client.strings;
 
-        setFont(new Font("SansSerif", Font.PLAIN, 12));
+        setFont(new Font("SansSerif", Font.PLAIN, 12 * displayScale));
 
         nick = new JTextField(20);
         pass = new JPasswordField(20);
@@ -697,7 +822,8 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             mainPane.setBackground(null);
             mainPane.setForeground(null);
             mainPane.setOpaque(false);
-            mainPane.setBorder(BorderFactory.createEmptyBorder(0, 4, 4, 4));
+            final int bsize = 4 * displayScale;
+            mainPane.setBorder(BorderFactory.createEmptyBorder(0, bsize, bsize, bsize));
         }
         else if (mainPane.getLayout() == null)
             mainPane.setLayout(mainGBL);

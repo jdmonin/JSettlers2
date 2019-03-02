@@ -93,7 +93,7 @@ public class SOCApplet extends Applet
         } catch (Exception e) {}
 
         client = new SOCPlayerClient();
-        mainDisplay = new SwingMainDisplay(false, client);
+        mainDisplay = new SwingMainDisplay(false, client, 1);
         client.setMainDisplay(mainDisplay);
 
         Version.printVersionText(System.out, "Java Settlers Client ");  // I18N: Not localizing console output yet
