@@ -579,14 +579,11 @@ public class SOCAccountClient extends Applet
         {
             value = getParameter(name);
             if (value != null)
-            {
                 iValue = Integer.parseInt(value, 16);
-            }
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             System.err.println("Invalid " + name + ": " + value);
         }
+
         return iValue;
     }
 
@@ -619,8 +616,7 @@ public class SOCAccountClient extends Applet
             param = getParameter("PORT");
             if (param != null)
                 port = Integer.parseInt(param);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.err.println("Invalid port: " + param);
         }
 
@@ -638,8 +634,7 @@ public class SOCAccountClient extends Applet
         String hostString = (host != null ? host : "localhost") + ":" + port;
         if (connected)
         {
-            throw new IllegalStateException("Already connected to " +
-                                            hostString);
+            throw new IllegalStateException("Already connected to " + hostString);
         }
 
         if (Version.versionNumber() == 0)
@@ -665,9 +660,7 @@ public class SOCAccountClient extends Applet
             // Version msg includes locale in 2.0.00 and later clients; v1.x.xx servers will ignore that token.
             put(SOCVersion.toCmd
                 (Version.versionNumber(), Version.version(), Version.buildnum(), null, cliLocale.toString()));
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             ex = e;
             String msg = strings.get("pcli.error.couldnotconnect", ex);  // "Could not connect to the server: " + ex
             System.err.println(msg);
@@ -689,6 +682,7 @@ public class SOCAccountClient extends Applet
         {
             conn_status.setText(strings.get("account.must_enter_nick"));  // "You must enter a nickname."
             conn_user.requestFocus();
+
             return;
         }
 
@@ -696,6 +690,7 @@ public class SOCAccountClient extends Applet
         {
             conn_status.setText(strings.get("account.must_enter_pw"));  // "You must enter a password."
             conn_pass.requestFocus();
+
             return;
         }
 
@@ -703,6 +698,7 @@ public class SOCAccountClient extends Applet
         {
             conn_status.setText(strings.get("account.common.password_too_long"));  // "That password is too long."
             conn_pass.requestFocus();
+
             return;
         }
 
@@ -718,9 +714,7 @@ public class SOCAccountClient extends Applet
     private void clickConnCancel()
     {
         if ((connPanel != null) && connPanel.isVisible())
-        {
             connPanel.setVisible(false);
-        }
 
         disconnect();
 
@@ -741,17 +735,14 @@ public class SOCAccountClient extends Applet
             String n = nick.getText().trim();
 
             if (n.length() > 20)
-            {
                 nickname = n.substring(0, 20);
-            }
             else
-            {
                 nickname = n;
-            }
             if (! SOCMessage.isSingleLineAndSafe(nickname))
             {
                 status.setText(SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED);  // I18N
                 nick.requestFocusInWindow();
+
                 return;  // Not a valid username
             }
 
@@ -823,9 +814,7 @@ public class SOCAccountClient extends Applet
                 String s = in.readUTF();
                 treat((SOCMessage) SOCMessage.toMsg(s));
             }
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             // purposefully closing the socket brings us here too
             if (connected)
             {
@@ -855,9 +844,7 @@ public class SOCAccountClient extends Applet
         try
         {
             out.writeUTF(s);
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             ex = e;
             System.err.println("could not write to the net: " + ex);
             destroy();
@@ -919,9 +906,7 @@ public class SOCAccountClient extends Applet
 
                 break;
             }
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             System.out.println("SOCAccountClient treat ERROR - " + e.getMessage());
             e.printStackTrace();
         }
@@ -947,6 +932,7 @@ public class SOCAccountClient extends Applet
                 // "This server has old version {0}; this client works only with {1} and newer servers."
             cardLayout.show(this, MESSAGE_PANEL);
             validate();
+
             return;
         }
 
@@ -962,6 +948,7 @@ public class SOCAccountClient extends Applet
             messageLabel.setText(strings.get("account.common.no_accts"));  // "This server does not use accounts and passwords."
             cardLayout.show(this, MESSAGE_PANEL);
             validate();
+
             return;
         }
 
@@ -1075,12 +1062,56 @@ public class SOCAccountClient extends Applet
         try
         {
             s.close();
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             ex = e;
         }
     }
+
+    private WindowAdapter createWindowAdapter()
+    {
+        return new WindowAdapter()
+        {
+            public void windowClosing(WindowEvent evt)
+            {
+                System.exit(0);
+            }
+
+            public void windowOpened(WindowEvent evt)
+            {
+                nick.requestFocus();
+            }
+        };
+    }
+
+    /**
+     * For Connect panel, handle Enter or Esc key (KeyListener).
+     * @since 1.1.19
+     */
+    public void keyPressed(KeyEvent e)
+    {
+        if (e.isConsumed())
+            return;
+
+        switch (e.getKeyCode())
+        {
+        case KeyEvent.VK_ENTER:
+            e.consume();
+            clickConnConnect();
+            break;
+
+        case KeyEvent.VK_CANCEL:
+        case KeyEvent.VK_ESCAPE:
+            e.consume();
+            clickConnCancel();
+            break;
+        }  // switch(e)
+    }
+
+    /** Stub required by KeyListener */
+    public void keyReleased(KeyEvent e) { }
+
+    /** Stub required by KeyListener */
+    public void keyTyped(KeyEvent e) { }
 
     /**
      * applet info
@@ -1090,7 +1121,7 @@ public class SOCAccountClient extends Applet
         return "SOCAccountClient 0.1 by Robert S. Thomas.";
     }
 
-    /** destroy the applet */
+    /** {@link #disconnect()} and destroy the applet or frame contents */
     public void destroy()
     {
         // account.msg.applet_destroyed
@@ -1106,6 +1137,7 @@ public class SOCAccountClient extends Applet
         cardLayout.show(this, MESSAGE_PANEL);
         validate();
     }
+
 
     /**
      * for stand-alones
@@ -1159,51 +1191,5 @@ public class SOCAccountClient extends Applet
 
         client.connect();
     }
-
-    private WindowAdapter createWindowAdapter()
-    {
-        return new WindowAdapter()
-        {
-            public void windowClosing(WindowEvent evt)
-            {
-                System.exit(0);
-            }
-
-            public void windowOpened(WindowEvent evt)
-            {
-                nick.requestFocus();
-            }
-        };
-    }
-
-    /**
-     * For Connect panel, handle Enter or Esc key (KeyListener).
-     * @since 1.1.19
-     */
-    public void keyPressed(KeyEvent e)
-    {
-        if (e.isConsumed())
-            return;
-
-        switch (e.getKeyCode())
-        {
-        case KeyEvent.VK_ENTER:
-            e.consume();
-            clickConnConnect();
-            break;
-
-        case KeyEvent.VK_CANCEL:
-        case KeyEvent.VK_ESCAPE:
-            e.consume();
-            clickConnCancel();
-            break;
-        }  // switch(e)
-    }
-
-    /** Stub required by KeyListener */
-    public void keyReleased(KeyEvent e) { }
-
-    /** Stub required by KeyListener */
-    public void keyTyped(KeyEvent e) { }
 
 }
