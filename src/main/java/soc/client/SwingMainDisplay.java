@@ -440,7 +440,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * @param client  Client using this display; {@link SOCPlayerClient#strings client.strings} must not be null
      * @param displayScaleFactor  Display scaling factor to use (1 if not high-DPI); caller should
      *     call {@link #checkDisplayScaleFactor(Component)} with the Frame to which this display will be added
-     * @throws IllegalArgumentException if {@code client} is null or {@code displayScaleFactor} is &lt;= 0
+     * @throws IllegalArgumentException if {@code client} is null or {@code displayScaleFactor} &lt; 1
      */
     public SwingMainDisplay
         (boolean hasConnectOrPractice, final SOCPlayerClient client, final int displayScaleFactor)
@@ -448,8 +448,8 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     {
         if (client == null)
             throw new IllegalArgumentException("null client");
-        if (displayScaleFactor <= 0)
-            throw new IllegalArgumentException("displayScaleFactor");
+        if (displayScaleFactor < 1)
+            throw new IllegalArgumentException("displayScaleFactor: " + displayScaleFactor);
 
         this.hasConnectOrPractice = hasConnectOrPractice;
         this.client = client;
@@ -521,21 +521,22 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     public static final int checkDisplayScaleFactor(final Component c)
         throws IllegalStateException, NullPointerException
     {
-        final String propValue = System.getProperty(PROP_JSETTLERS_UI_SCALE);
-        if ((propValue != null) && (propValue.length() > 0))
+        try
         {
-            try
+            final String propValue = System.getProperty(PROP_JSETTLERS_UI_SCALE);
+            if ((propValue != null) && (propValue.length() > 0))
             {
-                int uiScale = Integer.parseInt(propValue);
-                if (uiScale > 0)
+                try
                 {
-                    System.err.println("L533: checkDisplayScaleFactor prop override -> scale=" + uiScale);  // TODO later: remove debug print
-                    return uiScale;
-                }
+                    int uiScale = Integer.parseInt(propValue);
+                    if (uiScale > 0)
+                    {
+                        System.err.println("L533: checkDisplayScaleFactor prop override -> scale=" + uiScale);  // TODO later: remove debug print
+                        return uiScale;
+                    }
+                } catch (NumberFormatException e) {}
             }
-            catch (NumberFormatException e) {}
-            catch (SecurityException e) {}
-        }
+        } catch (SecurityException e) {}
 
         final GraphicsConfiguration gconf = c.getGraphicsConfiguration();
         if (gconf == null)

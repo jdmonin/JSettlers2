@@ -896,14 +896,14 @@ public class SOCPlayerClient
         client = new SOCPlayerClient();
         JFrame frame = new JFrame(client.strings.get("pcli.main.title", Version.version()));  // "JSettlers client {0}"
 
-        final int dispScale = SwingMainDisplay.checkDisplayScaleFactor(frame);
-        SwingMainDisplay.scaleUIManagerFonts(dispScale);
+        final int displayScale = SwingMainDisplay.checkDisplayScaleFactor(frame);
+        SwingMainDisplay.scaleUIManagerFonts(displayScale);
 
         final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(false);
         frame.setBackground(colors[2]);  // SwingMainDisplay.JSETTLERS_BG_GREEN
         frame.setForeground(colors[0]);  // Color.BLACK
 
-        mainDisplay = new SwingMainDisplay((args.length == 0), client, dispScale);
+        mainDisplay = new SwingMainDisplay((args.length == 0), client, displayScale);
         client.setMainDisplay(mainDisplay);
 
         // Add a listener for the close event
@@ -914,7 +914,7 @@ public class SOCPlayerClient
 
         frame.add(mainDisplay, BorderLayout.CENTER);
         frame.setLocationByPlatform(true);
-        frame.setSize(650 * dispScale, 400 * dispScale);
+        frame.setSize(650 * displayScale, 400 * displayScale);
         frame.setVisible(true);
 
         if (Version.versionNumber() == 0)
