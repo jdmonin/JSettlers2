@@ -166,7 +166,8 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Minimum frame width calculated in constructor from this game's player count and board,
-     * based on {@link #WIDTH_MIN_4PL}. Updated only in {@link #updateAtNewBoard()} if board layout part
+     * based on {@link #WIDTH_MIN_4PL} and {@link #displayScale}.
+     * Updated only in {@link #updateAtNewBoard()} if board layout part
      * Visual Shift ("VS") increases {@link #boardPanel}'s size.
      * @since 1.2.00
      */
@@ -174,11 +175,18 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Minimum frame height calculated in constructor from this game's player count and board,
-     * based on {@link #HEIGHT_MIN_4PL}. Updated only in {@link #updateAtNewBoard()} if board layout part
+     * based on {@link #HEIGHT_MIN_4PL} and {@link #displayScale}.
+     * Updated only in {@link #updateAtNewBoard()} if board layout part
      * Visual Shift ("VS") increases {@link #boardPanel}'s size.
      * @since 1.2.00
      */
     private int height_base;
+
+    /**
+     * For high-DPI displays, what scaling factor to use? Unscaled is 1.
+     * @since 2.0.00
+     */
+    /*package*/ final int displayScale;
 
     /**
      * the board display
@@ -646,6 +654,7 @@ public class SOCPlayerInterface extends Frame
         setLocationByPlatform(true);  // cascade, not all same hard-coded position as in v1.1.xx
 
         this.mainDisplay = md;
+        displayScale = md.getDisplayScaleFactor();
         client = md.getClient();
         game = ga;
         game.setScenarioEventListener(this);
@@ -701,7 +710,7 @@ public class SOCPlayerInterface extends Frame
          */
         setBackground(Color.black);
         setForeground(Color.black);
-        setFont(new Font("SansSerif", Font.PLAIN, 10));
+        setFont(new Font("SansSerif", Font.PLAIN, 10 * displayScale));
 
         /**
          * we're doing our own layout management
@@ -725,12 +734,14 @@ public class SOCPlayerInterface extends Frame
         int piHeight = HEIGHT_MIN_4PL, piWidth;
         if ((is6player || game.hasSeaBoard) && IS_PLATFORM_WINDOWS)
             piHeight += 25;
+        piHeight *= displayScale;
         height_base = piHeight;
 
         if (is6player || game.hasSeaBoard)
             piWidth = (2 * SOCHandPanel.WIDTH_MIN) + 16 + boardPanel.getMinimumSize().width;
         else
             piWidth = WIDTH_MIN_4PL;
+        piWidth *= displayScale;
         width_base = piWidth;
 
         // check window frame size preference if set
@@ -741,10 +752,12 @@ public class SOCPlayerInterface extends Frame
                 : 0;
             if (prefWidth != -1)
             {
-                if ((width_base != WIDTH_MIN_4PL) || (height_base != HEIGHT_MIN_4PL))
+                if ((width_base != (WIDTH_MIN_4PL * displayScale))
+                    || (height_base != (HEIGHT_MIN_4PL * displayScale)))
                 {
-                    piWidth = (prefWidth * width_base) / WIDTH_MIN_4PL;
-                    piHeight = (prefHeight * height_base) / HEIGHT_MIN_4PL;
+                    // pref size is based on minimum board size, but this game's board is bigger
+                    piWidth = (prefWidth * width_base) / (WIDTH_MIN_4PL * displayScale);
+                    piHeight = (prefHeight * height_base) / (HEIGHT_MIN_4PL * displayScale);
                 } else {
                     piWidth = prefWidth;
                     piHeight = prefHeight;
@@ -899,8 +912,10 @@ public class SOCPlayerInterface extends Frame
         if (firstCall && is6player)
             addMouseListener(this);  // react when mouse leaves the Frame
 
+        final Font sans10Font = new Font("SansSerif", Font.PLAIN, 10 * displayScale);
+
         textDisplay = new SnippingTextArea("", 40, 80, TextArea.SCROLLBARS_VERTICAL_ONLY, 80);
-        textDisplay.setFont(new Font("SansSerif", Font.PLAIN, 10));
+        textDisplay.setFont(sans10Font);
         textDisplay.setBackground(SwingMainDisplay.DIALOG_BG_GOLDENROD);
         textDisplay.setForeground(Color.BLACK);
         textDisplay.setEditable(false);
@@ -909,7 +924,7 @@ public class SOCPlayerInterface extends Frame
             textDisplay.addMouseListener(this);
 
         chatDisplay = new SnippingTextArea("", 40, 80, TextArea.SCROLLBARS_VERTICAL_ONLY, 100);
-        chatDisplay.setFont(new Font("SansSerif", Font.PLAIN, 10));
+        chatDisplay.setFont(sans10Font);
         chatDisplay.setBackground(SwingMainDisplay.DIALOG_BG_GOLDENROD);
         chatDisplay.setForeground(Color.BLACK);
         chatDisplay.setEditable(false);
@@ -919,8 +934,11 @@ public class SOCPlayerInterface extends Frame
 
         textInput = new JTextField();
         if (SOCPlayerClient.isJavaOnOSX)
-            textInput.setBorder(new EmptyBorder(1, 1, 1, 1));  // avoid black background inside overly-thick border
-        textInput.setFont(new Font("SansSerif", Font.PLAIN, 10));
+        {
+            int px = displayScale;  // based on 1-pixel border
+            textInput.setBorder(new EmptyBorder(px, px, px, px));  // avoid black background inside overly-thick border
+        }
+        textInput.setFont(sans10Font);
         textInputListener = new SOCPITextfieldListener(this);
         textInputHasSent = false;
         textInputGreyCountdown = textInputGreyCountFrom;
@@ -929,7 +947,7 @@ public class SOCPlayerInterface extends Frame
         textInput.addFocusListener(textInputListener);
 
         FontMetrics fm = this.getFontMetrics(textInput.getFont());
-        textInput.setSize(SOCBoardPanel.PANELX, fm.getHeight() + 4);
+        textInput.setSize(SOCBoardPanel.PANELX, fm.getHeight() + 4 * displayScale);
         textInput.setEditable(false);
         textInput.setBackground(Color.WHITE);  // before v1.1.00 was new Color(255, 230, 162) aka DIALOG_BG_GOLDENROD
         textInput.setForeground(Color.BLACK);
@@ -949,10 +967,10 @@ public class SOCPlayerInterface extends Frame
         {
             SOCHandPanel hp = new SOCHandPanel(this, game.getPlayer(i));
             hands[i] = hp;
-            hp.setSize(180, 120);
+            hp.setSize(180 * displayScale, 120 * displayScale);
             add(hp);
             ColorSquare blank = hp.getBlankStandIn();
-            blank.setSize(180, 120);
+            blank.setSize(hp.getSize());
             add(blank);
         }
 
@@ -960,7 +978,7 @@ public class SOCPlayerInterface extends Frame
          * initialize the building interface and add it to the main interface
          */
         buildingPanel = new SOCBuildingPanel(this);
-        buildingPanel.setSize(200, SOCBuildingPanel.MINHEIGHT);
+        buildingPanel.setSize(200 * displayScale, SOCBuildingPanel.MINHEIGHT * displayScale);
         add(buildingPanel);
 
         /**
@@ -969,9 +987,10 @@ public class SOCPlayerInterface extends Frame
         boardPanel = new SOCBoardPanel(this);
         boardPanel.setBackground(new Color(63, 86, 139));  // sea blue; briefly visible at start before water tiles are drawn
         boardPanel.setForeground(Color.black);
+        boardPanel.setFont(sans10Font);
         Dimension bpMinSz = boardPanel.getMinimumSize();
-        boardPanel.setSize(bpMinSz.width, bpMinSz.height);
-        boardIsScaled = false;
+        boardPanel.setSize(bpMinSz.width * displayScale, bpMinSz.height * displayScale);
+        boardIsScaled = (displayScale != 1);
         add(boardPanel);
         if (game.isGameOptionDefined("PL"))
         {
@@ -1050,6 +1069,7 @@ public class SOCPlayerInterface extends Frame
     {
         if (prevSize == null)
             return;
+
         if (is6player)
         {
             paintBordersHandColumn(g, hands[5]);
@@ -1058,7 +1078,9 @@ public class SOCPlayerInterface extends Frame
             paintBordersHandColumn(g, hands[0]);
             paintBordersHandColumn(g, hands[1]);
         }
-        g.clearRect(boardPanel.getX(), boardPanel.getY() - 4, boardPanel.getWidth(), 4);
+        int bw = 4 * displayScale;
+        g.clearRect(boardPanel.getX(), boardPanel.getY() - bw, boardPanel.getWidth(), bw);
+
         needRepaintBorders = false;
     }
 
@@ -1066,7 +1088,7 @@ public class SOCPlayerInterface extends Frame
      * Paint the borders of one column of handpanels.
      * {@link #prevSize} must be set before calling.
      * @param g  Graphics as passed to <tt>update()</tt>
-     * @param middlePanel  The middle handpanel (6-player) or the bottom (4-player) in this column
+     * @param middlePanel  The middle (6-player) or the bottom (4-player) handpanel in this column
      * @since 1.1.11
      */
     private final void paintBordersHandColumn(Graphics g, SOCHandPanel middlePanel)
@@ -1074,24 +1096,25 @@ public class SOCPlayerInterface extends Frame
         if (middlePanel == null)
             return;  // if called during board reset
 
-        final int w = middlePanel.getWidth();
+        final int w = middlePanel.getWidth();  // handpanel's width
+        final int bw = 4 * displayScale;  // border width
 
         // left side, entire height
         int x = middlePanel.getX();
-        g.clearRect(x - 4, 0, 4, prevSize.height);
+        g.clearRect(x - bw, 0, bw, prevSize.height);
 
         // right side, entire height
         x += w;
-        g.clearRect(x, 0, 4, prevSize.height);
+        g.clearRect(x, 0, bw, prevSize.height);
 
         // above middle panel
         x = middlePanel.getX();
         int y = middlePanel.getY();
-        g.clearRect(x, y - 4, w, 4);
+        g.clearRect(x, y - bw, w, bw);
 
         // below middle panel
         y += middlePanel.getHeight();
-        g.clearRect(x, y, w, 4);
+        g.clearRect(x, y, w, bw);
     }
 
     /**
@@ -1242,10 +1265,12 @@ public class SOCPlayerInterface extends Frame
     {
         final Dimension siz = getSize();
         int w = siz.width, h = siz.height;
-        if ((width_base != WIDTH_MIN_4PL) || (height_base != HEIGHT_MIN_4PL))
+        if ((width_base != (WIDTH_MIN_4PL * displayScale))
+            || (height_base != (HEIGHT_MIN_4PL * displayScale)))
         {
-            w = (w * WIDTH_MIN_4PL) / width_base;
-            h = (h * HEIGHT_MIN_4PL) / height_base;
+            // pref size is based on minimum board size, but this game's board is bigger
+            w = (w * WIDTH_MIN_4PL * displayScale) / width_base;
+            h = (h * HEIGHT_MIN_4PL * displayScale) / height_base;
         }
 
         if ((w < 100) || (h < 100))
@@ -3105,7 +3130,7 @@ public class SOCPlayerInterface extends Frame
 
         /**
          * Classic Sizing
-         * (board size is fixed, cannot scale)
+         * (board size was fixed, cannot scale)
          *
         int bw = SOCBoardPanel.getPanelX();
         int bh = SOCBoardPanel.getPanelY();
@@ -3119,15 +3144,22 @@ public class SOCPlayerInterface extends Frame
 
         /**
          * "Stretch" Scaleable-board Sizing:
+         *
          * If board can be at least 15% larger than minimum board width,
          * without violating minimum handpanel width, scale it larger.
          * Otherwise, use minimum board width (widen handpanels instead).
+         *
          * Handpanel height:
          * - If 4-player, 1/2 of window height
          * - If 6-player, 1/3 of window height, until client sits down.
          *   (Column of 3 on left side, 3 on right side, of this frame)
          *   Once sits down, that column's handpanel heights are
          *   1/2 of window height for the player's hand, and 1/4 for others.
+         *
+         * Since this is the minimum, is not multiplied by displayScale:
+         * Don't need displayScale here because we already used it when
+         * setting width_base and height_base. Just use overall PI size
+         * to drive boardpanel size.
          */
         final int bMinW, bMinH;
         {
@@ -3135,26 +3167,29 @@ public class SOCPlayerInterface extends Frame
             bMinW = bpMinSz.width;
             bMinH = bpMinSz.height;
         }
-        int bw = (dim.width - 16 - (2*SOCHandPanel.WIDTH_MIN));  // As wide as possible
+        int bw = dim.width - ((16 + (2*SOCHandPanel.WIDTH_MIN)) * displayScale);  // As wide as possible
         int bh = (int) ((bw * (long) bMinH) / bMinW);
         final int buildph = buildingPanel.getHeight();
-        int tfh = textInput.getHeight();
-        if (bh > (dim.height - buildph - 16 - (int)(5.5f * tfh)))
+        final int tfh = textInput.getHeight();
+        final int pix4 = 4 * displayScale, pix8 = 8 * displayScale,
+                  pix12 = 12 * displayScale, pix16 = 16 * displayScale;
+
+        if (bh > (dim.height - buildph - pix16 - (int)(5.5f * tfh)))
         {
             // Window is wide: board would become taller than fits in window.
             // Re-calc board max height, then board width.
-            bh = dim.height - buildph - 16 - (int)(5.5f * tfh);  // As tall as possible
+            bh = dim.height - buildph - pix16 - (int)(5.5f * tfh);  // As tall as possible
             bw = (int) ((bh * (long) bMinW) / bMinH);
         }
-        int hw = (dim.width - bw - 16) / 2;
-        int tah = dim.height - bh - buildph - tfh - 16;
+        int hw = (dim.width - bw - pix16) / 2;
+        int tah = dim.height - bh - buildph - tfh - pix16;
 
         boolean canScaleBoard = (bw >= (1.15f * bMinW));
         if (canScaleBoard)
         {
             try
             {
-                boardPanel.setBounds(i.left + hw + 8, i.top + tfh + tah + 8, bw, bh);
+                boardPanel.setBounds(i.left + hw + pix8, i.top + tfh + tah + pix8, bw, bh);
             }
             catch (IllegalArgumentException e)
             {
@@ -3165,27 +3200,27 @@ public class SOCPlayerInterface extends Frame
         {
             bw = bMinW;
             bh = bMinH;
-            hw = (dim.width - bw - 16) / 2;
-            tah = dim.height - bh - buildph - tfh - 16;
+            hw = (dim.width - bw - pix16) / 2;
+            tah = dim.height - bh - buildph - tfh - pix16;
             try
             {
-                boardPanel.setBounds(i.left + hw + 8, i.top + tfh + tah + 8, bw, bh);
+                boardPanel.setBounds(i.left + hw + pix8, i.top + tfh + tah + pix8, bw, bh);
             }
             catch (IllegalArgumentException ee)
             {
                 bw = boardPanel.getWidth();
                 bh = boardPanel.getHeight();
-                hw = (dim.width - bw - 16) / 2;
-                tah = dim.height - bh - buildph - tfh - 16;
-                boardPanel.setLocation(i.left + hw + 8, i.top + tfh + tah + 8);
+                hw = (dim.width - bw - pix16) / 2;
+                tah = dim.height - bh - buildph - tfh - pix16;
+                boardPanel.setLocation(i.left + hw + pix8, i.top + tfh + tah + pix8);
             }
         }
         boardIsScaled = canScaleBoard;  // set field, now that we know if it works
         final int halfplayers = (is6player) ? 3 : 2;
-        final int hh = (dim.height - 12) / halfplayers;  // handpanel height
+        final int hh = (dim.height - pix12) / halfplayers;  // handpanel height
         final int kw = bw;
 
-        buildingPanel.setBounds(i.left + hw + 8, i.top + tah + tfh + bh + 12, kw, buildph);
+        buildingPanel.setBounds(i.left + hw + pix8, i.top + tah + tfh + bh + pix12, kw, buildph);
 
         // Hands start at top-left, go clockwise;
         // hp.setBounds also sets its blankStandIn's bounds.
@@ -3195,12 +3230,12 @@ public class SOCPlayerInterface extends Frame
         {
             if (! is6player)
             {
-                hands[0].setBounds(i.left + 4, i.top + 4, hw, hh);
+                hands[0].setBounds(i.left + pix4, i.top + pix4, hw, hh);
                 if (game.maxPlayers > 1)
                 {
-                    hands[1].setBounds(i.left + hw + bw + 12, i.top + 4, hw, hh);
-                    hands[2].setBounds(i.left + hw + bw + 12, i.top + hh + 8, hw, hh);
-                    hands[3].setBounds(i.left + 4, i.top + hh + 8, hw, hh);
+                    hands[1].setBounds(i.left + hw + bw + pix12, i.top + pix4, hw, hh);
+                    hands[2].setBounds(i.left + hw + bw + pix12, i.top + hh + pix8, hw, hh);
+                    hands[3].setBounds(i.left + pix4, i.top + hh + pix8, hw, hh);
                 }
             }
             else
@@ -3213,15 +3248,15 @@ public class SOCPlayerInterface extends Frame
                 if ((clientHandPlayerNum == -1) ||
                     ((clientHandPlayerNum >= 1) && (clientHandPlayerNum <= 3)))
                 {
-                    hands[0].setBounds(i.left + 4, i.top + 4, hw, hh);
-                    hands[4].setBounds(i.left + 4, i.top + 2 * hh + 12, hw, hh);
-                    hands[5].setBounds(i.left + 4, i.top + hh + 8, hw, hh);
+                    hands[0].setBounds(i.left + pix4, i.top + pix4, hw, hh);
+                    hands[4].setBounds(i.left + pix4, i.top + 2 * hh + pix12, hw, hh);
+                    hands[5].setBounds(i.left + pix4, i.top + hh + pix8, hw, hh);
                 }
                 if ((clientHandPlayerNum < 1) || (clientHandPlayerNum > 3))
                 {
-                    hands[1].setBounds(i.left + hw + bw + 12, i.top + 4, hw, hh);
-                    hands[2].setBounds(i.left + hw + bw + 12, i.top + hh + 8, hw, hh);
-                    hands[3].setBounds(i.left + hw + bw + 12, i.top + 2 * hh + 12, hw, hh);
+                    hands[1].setBounds(i.left + hw + bw + pix12, i.top + pix4, hw, hh);
+                    hands[2].setBounds(i.left + hw + bw + pix12, i.top + hh + pix8, hw, hh);
+                    hands[3].setBounds(i.left + hw + bw + pix12, i.top + 2 * hh + pix12, hw, hh);
                 }
                 if (clientHandPlayerNum != -1)
                 {
@@ -3234,24 +3269,24 @@ public class SOCPlayerInterface extends Frame
                     {
                         final int[] idx_right = {1, 2, 3};
                         hp_idx = idx_right;
-                        hp_x = i.left + hw + bw + 12;
+                        hp_x = i.left + hw + bw + pix12;
                     } else {
                         final int[] idx_left = {0, 5, 4};
                         hp_idx = idx_left;
-                        hp_x = i.left + 4;
+                        hp_x = i.left + pix4;
                     }
-                    for (int ihp = 0, hp_y = i.top + 4; ihp < 3; ++ihp)
+                    for (int ihp = 0, hp_y = i.top + pix4; ihp < 3; ++ihp)
                     {
                         SOCHandPanel hp = hands[hp_idx[ihp]];
                         int hp_height;
                         if (hp_idx[ihp] == clientHandPlayerNum)
-                            hp_height = (dim.height - 12) / 2 - (2 * ColorSquare.HEIGHT);
+                            hp_height = (dim.height - pix12) / 2 - (2 * ColorSquare.HEIGHT * displayScale);
                         else
-                            hp_height = (dim.height - 12) / 4 + ColorSquare.HEIGHT;
+                            hp_height = (dim.height - pix12) / pix4 + (ColorSquare.HEIGHT * displayScale);
                         hp.setBounds(hp_x, hp_y, hw, hp_height);
                         hp.invalidate();
                         hp.doLayout();
-                        hp_y += (hp_height + 4);
+                        hp_y += (hp_height + pix4);
                     }
                 }
             }
@@ -3292,25 +3327,25 @@ public class SOCPlayerInterface extends Frame
                 int h1 = hands[1].getHeight();
                 if (h1 < hf)
                     hf = h1;
-                hf = hf - cdh - tfh - 15;
+                hf = hf - cdh - tfh - (15 * displayScale);
                 if (hf > h)
                     h = hf;
             }
 
-            textDisplay.setBounds(x, i.top + 4, w, h);
+            textDisplay.setBounds(x, i.top + pix4, w, h);
             if (! game.isPractice)
-                cdh += 20;
-            chatDisplay.setBounds(x, i.top + 4 + h, w, cdh);
+                cdh += (20 * displayScale);
+            chatDisplay.setBounds(x, i.top + pix4 + h, w, cdh);
             h += cdh;
-            textInput.setBounds(x, i.top + 4 + h, w, tfh);
+            textInput.setBounds(x, i.top + pix4 + h, w, tfh);
 
             // focus here for easier chat typing
             textInput.requestFocusInWindow();
         } else {
             // standard size
-            textDisplay.setBounds(i.left + hw + 8, i.top + 4, bw, tdh);
-            chatDisplay.setBounds(i.left + hw + 8, i.top + 4 + tdh, bw, cdh);
-            textInput.setBounds(i.left + hw + 8, i.top + 4 + tah, bw, tfh);
+            textDisplay.setBounds(i.left + hw + pix8, i.top + pix4, bw, tdh);
+            chatDisplay.setBounds(i.left + hw + pix8, i.top + pix4 + tdh, bw, cdh);
+            textInput.setBounds(i.left + hw + pix8, i.top + pix4 + tah, bw, tfh);
 
             // scroll to bottom of textDisplay, chatDisplay after resize from expanded
             EventQueue.invokeLater(new Runnable()

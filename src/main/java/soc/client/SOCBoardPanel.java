@@ -110,7 +110,7 @@ import javax.swing.JComponent;
  * top-center part of the panel by calling {@link #setSuperimposedTopText(String)}.
  *
  *<H3>Scaling and rotation:</H3>
- * This panel's minimum width and height in pixels is {@link #getMinimumSize()}.
+ * Based on board size in hexes, this panel's minimum width and height in pixels is {@link #getMinimumSize()}.
  * To set its size, call {@link #setSize(int, int)} or {@link #setBounds(int, int, int, int)};
  * these methods will set a flag to rescale board graphics if needed.
  * If the game has 6 players but not {@link SOCGame#hasSeaBoard}, the board is also
@@ -2075,6 +2075,7 @@ import javax.swing.JComponent;
 
     /**
      * Minimum required width and height, as determined by options and {@link #isRotated()}.
+     * Ignores {@link SOCPlayerInterface#displayScale}.
      *<P>
      * Minimum size is set in the constructor.
      * On the classic 4-player and 6-player boards, the size is based on {@link #PANELX} and {@link #PANELY}.
@@ -2211,7 +2212,7 @@ import javax.swing.JComponent;
      *<P>
      * If needed, update margins and visual shift from Added Layout Part {@code "VS"}.
      * Doing so will call {@link #rescaleBoard(int, int, boolean)} and may change
-     * the board panel's minimum size and/or current size. Returns true if current size changes
+     * the board panel's minimum size and/or actual current size. Returns true if current size changes
      * here: If so, caller must re-do layout of this panel within its container.
      *<P>
      * "VS" is part of the initial board layout from the server and its value won't change at
@@ -2219,7 +2220,8 @@ import javax.swing.JComponent;
      * the board layout and margins are unknown (0) at SOCBoardPanel construction time.
      *
      * @return  Null unless current {@link #getSize()} has changed from Visual Shift ({@code "VS"}).
-     *     If not null, the delta change (new - old) in this panel's width and height
+     *     If not null, the delta change (new - old) in this panel's actual width and height,
+     *     which has been multiplied by {@link SOCPlayerInterface#displayScale}
      * @since 1.1.08
      * @see SOCPlayerInterface#updateAtNewBoard()
      */
@@ -2318,7 +2320,7 @@ import javax.swing.JComponent;
 
     /**
      * Set the board fields to a new size, and rescale graphics if needed.
-     * Does not call repaint.  Does not call setSize.
+     * Does not call repaint or setSize.
      * Updates {@link #isScaledOrRotated}, {@link #scaledPanelW}, {@link #panelMarginX}, and other fields.
      * Calls {@link #renderBorderedHex(Image, Image, Color)} and {@link #renderPortImages()}.
      *
@@ -2327,7 +2329,8 @@ import javax.swing.JComponent;
      * @param changedMargins  True if the server has sent a board layout which includes values
      *   for Visual Shift ("VS"). When true, caller should update the {@link #panelShiftBX}, {@link #panelShiftBY},
      *   {@link #panelMinBW}, and {@link #panelMinBH} fields before calling, but <B>not</B> update {@link #minSize}
-     *   or {@link #unscaledPanelW} which will be updated here from {@code panelMinBW}, {@code panelMinBH}.
+     *   or {@link #unscaledPanelW} which will be updated here from {@code panelMinBW}, {@code panelMinBH},
+     *   and {@link SOCPlayerInterface#displayScale}.
      *   <P>
      *   Before and after calling, caller should check {@link #scaledPanelW} and {@link #scaledPanelH}
      *   to see if the current size fields had to be changed. If so, caller must call
@@ -2353,6 +2356,7 @@ import javax.swing.JComponent;
                 w = h;
                 h = swap;
             }
+
             if ((w != minSize.width) || (h != minSize.height))
             {
                 minSize.width = w;
@@ -2361,6 +2365,8 @@ import javax.swing.JComponent;
 
                 // Change requested new size if required by larger changed margin.
                 // From javadoc the caller knows this might happen and will check for it.
+                w *= playerInterface.displayScale;
+                h *= playerInterface.displayScale;
                 if (newW < w)
                     newW = w;
                 if (newH < h)
@@ -4958,7 +4964,7 @@ import javax.swing.JComponent;
     {
         // Force the font, so we know its metrics.
         // This avoids an OSX fm.stringWidth bug.
-        final Font bpf = new Font("Dialog", Font.PLAIN, 10);
+        final Font bpf = new Font("Dialog", Font.PLAIN, 10 * playerInterface.displayScale);
 
         // Do we need to calculate the metrics?
 
