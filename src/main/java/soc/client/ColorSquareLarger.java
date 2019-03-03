@@ -55,9 +55,7 @@ public class ColorSquareLarger extends ColorSquare
      */
     public ColorSquareLarger(Color c)
     {
-        super(c);
-        setSize(WIDTH_L, HEIGHT_L);
-        setMinimumSize(getSize());
+        super(c, WIDTH_L, HEIGHT_L);
     }
 
     /**
@@ -76,8 +74,7 @@ public class ColorSquareLarger extends ColorSquare
     public ColorSquareLarger(int k, boolean in, Color c)
     {
         super(k, in, c);
-        setSize(WIDTH_L, HEIGHT_L);
-        setMinimumSize(getSize());
+        setSizesAndFont(WIDTH_L, HEIGHT_L);
     }
 
     /**
@@ -98,8 +95,7 @@ public class ColorSquareLarger extends ColorSquare
     public ColorSquareLarger(int k, boolean in, Color c, int upper, int lower)
     {
         super(k, in, c, upper, lower);
-        setSize(WIDTH_L, HEIGHT_L);
-        setMinimumSize(getSize());
+        setSizesAndFont(WIDTH_L, HEIGHT_L);
     }
 
 }

@@ -217,9 +217,10 @@ import javax.swing.SwingConstants;
 
     /**
      * Minimum required size of this panel, as laid out in {@link #doLayout()}.
+     * Not scaled to {@link SOCPlayerInterface#displayScale}.
      * @since 1.1.08
      */
-    public static final int MINHEIGHT =  2 + (4*ColorSquare.HEIGHT) + (3*ColorSquare.HEIGHT / 2);
+    public static final int MINHEIGHT = 2 + (4 * ColorSquare.HEIGHT) + (3 * ColorSquare.HEIGHT / 2);
 
     /**
      * Client's player data.  Initially null; call setPlayer once seat is chosen.
@@ -233,7 +234,7 @@ import javax.swing.SwingConstants;
      *
      * @param pi  the player interface that this panel is in
      */
-    public SOCBuildingPanel(SOCPlayerInterface pi)
+    public SOCBuildingPanel(final SOCPlayerInterface pi)
     {
         super();
         setLayout(null);
@@ -241,7 +242,7 @@ import javax.swing.SwingConstants;
         this.player = null;
         this.pi = pi;
 
-        final Font panelFont = new Font("Dialog", Font.PLAIN, 10);
+        final Font panelFont = new Font("Dialog", Font.PLAIN, 10 * pi.displayScale);
 
         final Color colors[] = SwingMainDisplay.getForegroundBackgroundColors(true);
         setBackground(colors[2]);  // SwingMainDisplay.DIALOG_BG_GOLDENROD
@@ -308,6 +309,8 @@ import javax.swing.SwingConstants;
         add(statsBut);
         statsBut.addActionListener(this);
 
+        final int sqHeight = ColorSquare.HEIGHT * pi.displayScale;
+
         cardT = new JLabel(strings.get("build.dev.card"));  // "Dev Card: "
         cardT.setToolTipText(/*I*/"? VP  (largest army = 2 VP) "/*18N*/);
         add(cardT);
@@ -324,7 +327,7 @@ import javax.swing.SwingConstants;
         //TODO i18n: Is 'Available X' better than 'X available' in some languages?
         cardCountLab = new JLabel(strings.get("build.available"), SwingConstants.LEFT);  // "available"
         add(cardCountLab);
-        cardCount = new ColorSquare(ColorSquare.GREY, 0);
+        cardCount = new ColorSquare(ColorSquare.GREY, 0, sqHeight, sqHeight);
         cardCount.setToolTipText(strings.get("build.dev.cards.available"));  // "Development cards available to buy"
         cardCount.setToolTipLowWarningLevel(strings.get("build.dev.cards.low"), 3);  // "Almost out of development cards to buy"
         cardCount.setToolTipZeroText(strings.get("build.dev.cards.none"));  // "No more development cards available to buy"
@@ -358,7 +361,7 @@ import javax.swing.SwingConstants;
                 clothLab = new JLabel(strings.get("build.sc_clvi.cloth"));  // "Cloth:"
                 clothLab.setToolTipText(TTIP_CLOTH_TEXT);
                 add(clothLab);
-                cloth = new ColorSquare(ColorSquare.GREY, 0);
+                cloth = new ColorSquare(ColorSquare.GREY, 0, sqHeight, sqHeight);
                 add(cloth);
                 cloth.setToolTipText(TTIP_CLOTH_TEXT);
             }
@@ -379,7 +382,7 @@ import javax.swing.SwingConstants;
             final String TTIP_VP_TEXT = strings.get("build.vp.to.win.tip");  // "Victory Points total needed to win the game"
 
             // add vpToWin above its label (z-order) in case of slight overlap
-            vpToWin = new ColorSquare(ColorSquare.GREY, ga.vp_winner);
+            vpToWin = new ColorSquare(ColorSquare.GREY, ga.vp_winner, sqHeight, sqHeight);
             vpToWin.setToolTipText(TTIP_VP_TEXT);
             add(vpToWin);
 
@@ -413,10 +416,11 @@ import javax.swing.SwingConstants;
                     if (lineH == 0)
                         lineH = sbBut.getPreferredSize().height;
                     if (lineH == 0)
-                        lineH = ColorSquare.HEIGHT;
+                        lineH = sqHeight;
 
                     int btnW = sbBut.getPreferredSize().width;
-                    final int btnTxtW = 8 + sbBut.getFontMetrics(sbBut.getFont()).stringWidth(sbBut.getText());
+                    final int btnTxtW =
+                        (8 * pi.displayScale) + sbBut.getFontMetrics(sbBut.getFont()).stringWidth(sbBut.getText());
                     if (btnTxtW > btnW)
                         btnW = btnTxtW;
                     if (btnW > dim.width)
@@ -471,7 +475,8 @@ import javax.swing.SwingConstants;
 
         // make all labels and buttons use panel's font and background color;
         // to not cut off wide button text, remove button margin since we're using custom layout anyway
-        Insets minMargin = new Insets(2, 2, 2, 2);
+        final int pix2 = 2 * pi.displayScale;
+        Insets minMargin = new Insets(pix2, pix2, pix2, pix2);
         final Font arrowFont = (arrowFallbackFont != null) ? arrowFallbackFont : panelFont;
         for (Component co : getComponents())
         {
@@ -514,7 +519,7 @@ import javax.swing.SwingConstants;
             {
                 if (f.getFontName().equalsIgnoreCase("Lucida Sans Unicode"))
                 {
-                    lucidaFont = f.deriveFont(10f);  // float to avoid calling deriveFont(int style)
+                    lucidaFont = f.deriveFont(panelFont.getSize2D());  // float to avoid calling deriveFont(int style)
                     break;
                 }
             }
@@ -543,9 +548,8 @@ import javax.swing.SwingConstants;
 
     /**
      * custom layout for this panel.
-     * Layout line height is based on {@link ColorSquare#HEIGHT}.
-     * If you change the line spacing or total height laid out here,
-     * please update {@link #MINHEIGHT}.
+     * Layout line height is based on {@link ColorSquare#HEIGHT} * {@link SOCPlayerInterface#displayScale}.
+     * If you change the line spacing or total height laid out here, please update {@link #MINHEIGHT}.
      *<P>
      * For 6-player games, {@link #sbPanel} is 2 "layout lines" tall here
      * on the classic board, 1 line tall on the large board,
@@ -557,14 +561,16 @@ import javax.swing.SwingConstants;
         final Dimension dim = getSize();
         final int maxPlayers = pi.getGame().maxPlayers;
         final boolean hasLargeBoard = pi.getGame().hasSeaBoard;
-        int curY = 1;
-        int curX;
         FontMetrics fm = this.getFontMetrics(this.getFont());
-        final int lineH = ColorSquare.HEIGHT;
+        final int pix1 = pi.displayScale;  // 1 pixel, scaled
+        int curY = pix1;
+        int curX;
+        final int lineH = ColorSquare.HEIGHT * pi.displayScale;
         final int rowSpaceH = lineH / 2;
-        final int costW = fm.stringWidth(roadC.getText().trim()) + 2;  // left arrow for Cost colorsquares
-        final int butW = 62;   // all Build buttons
-        final int margin = 2;
+        final int sqWidth = ColorSquare.WIDTH * pi.displayScale;
+        final int margin = 2 * pi.displayScale;
+        final int costW = fm.stringWidth(roadC.getText().trim());  // left arrow for Cost colorsquares
+        final int butW = 62 * pi.displayScale;   // all Build buttons
 
         final int roadTW = fm.stringWidth(roadT.getText()),
                   settlementTW = fm.stringWidth(settlementT.getText()),
@@ -587,7 +593,7 @@ import javax.swing.SwingConstants;
         roadBut.setSize(butW, lineH);
         roadBut.setLocation(buttonMargin, curY);
 
-        curX = buttonMargin + butW + margin;
+        curX = buttonMargin + butW + pix1;
         roadC.setSize(costW, lineH);
         roadC.setLocation(curX, curY);
         curX += costW + margin;
@@ -596,15 +602,15 @@ import javax.swing.SwingConstants;
         if (shipBut != null)
         {
             // Ship buying button is top-center of panel
-            // (3 squares over from Road)
+            // (2 squares over from Road)
             final int shipTW = fm.stringWidth(shipT.getText());
-            curX += 3 * (ColorSquare.WIDTH + 2);
+            curX += 2 * (sqWidth + margin);
             shipT.setSize(shipTW, lineH);
             shipT.setLocation(curX, curY);
             curX += shipTW + margin;
             shipBut.setSize(butW, lineH);
             shipBut.setLocation(curX, curY);
-            curX += butW + margin;
+            curX += butW + pix1;
             shipC.setSize(costW, lineH);
             shipC.setLocation(curX, curY);
             curX += costW + margin;
@@ -618,7 +624,7 @@ import javax.swing.SwingConstants;
         settlementBut.setSize(butW, lineH);
         settlementBut.setLocation(buttonMargin, curY);
 
-        curX = buttonMargin + butW + margin;
+        curX = buttonMargin + butW + pix1;
         settlementC.setSize(costW, lineH);
         settlementC.setLocation(curX, curY);
         curX += costW + margin;
@@ -627,7 +633,7 @@ import javax.swing.SwingConstants;
         if (maxPlayers > 4)
         {
             // Special Building Phase button for 6-player game
-            curX += (ColorSquare.WIDTH + 3);
+            curX += (sqWidth + margin + 1);
             if (hasLargeBoard)
             {
                 // Large Board: 1 line, no label
@@ -650,7 +656,7 @@ import javax.swing.SwingConstants;
         cityBut.setSize(butW, lineH);
         cityBut.setLocation(buttonMargin, curY);
 
-        curX = buttonMargin + butW + margin;
+        curX = buttonMargin + butW + pix1;
         cityC.setSize(costW, lineH);
         cityC.setLocation(curX, curY);
         curX += costW + margin;
@@ -660,7 +666,7 @@ import javax.swing.SwingConstants;
         {
             // Cloth General Supply count is 3rd row, 2 squares to right of City costs
             final int clothTW = fm.stringWidth(clothLab.getText());
-            curX += 3 * (ColorSquare.WIDTH + 2);
+            curX += 3 * (sqWidth + margin);
             clothLab.setSize(clothTW + (2 * margin) - 1, lineH);
             clothLab.setLocation(curX, curY);
             curX += clothTW + (2 * margin);
@@ -670,7 +676,7 @@ import javax.swing.SwingConstants;
         if (wondersBut != null)
         {
             // Wonders button takes same place that clothLab would: 3rd row, 2 squares to right of City costs
-            curX += 3 * (ColorSquare.WIDTH + 2);
+            curX += 3 * (sqWidth + margin);
             wondersBut.setSize(dim.width - curX - (2 * butW) - (2 * margin), lineH);
             wondersBut.setLocation(curX, curY);
         }
@@ -682,37 +688,47 @@ import javax.swing.SwingConstants;
         cardBut.setSize(butW, lineH);
         cardBut.setLocation(buttonMargin, curY);
 
-        curX = buttonMargin + butW + margin;
+        curX = buttonMargin + butW + pix1;
         cardC.setSize(costW, lineH);
         cardC.setLocation(curX, curY);
         curX += costW + margin;
         curX = layoutCostSquares(cardSq, curX, curY);  // 3 squares
 
-        curX += 2 * (ColorSquare.WIDTH + 2);
-        // cardCount.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
+        curX += 2 * (sqWidth + margin);
         cardCount.setLocation(curX, curY);
         final int cardCLabW = fm.stringWidth(cardCountLab.getText());
-        curX += (ColorSquare.WIDTH + 3);
+        curX += (sqWidth + margin + 1);
         cardCountLab.setLocation(curX, curY);
-        cardCountLab.setSize(cardCLabW + 2, lineH);
+        cardCountLab.setSize(cardCLabW + margin, lineH);
+
+        // Make sure building-cost squares don't overlap with right-hand buttons; settlementSq is rightmost of them
+        int rightButW = 2 * butW;
+        curX = settlementSq[3].getX() + settlementSq[3].getWidth() + margin;
+        if ((dim.width - rightButW - margin) < curX)
+        {
+            rightButW = dim.width - curX - margin;
+            // keep current curX
+        } else {
+            curX = dim.width - rightButW - margin;
+            // keep current rightButW
+        }
 
         // Options button is bottom-right of panel.
         // Game Statistics button is just above it on the classic board, top-right for large board.
         // On 4-player classic board, Options button is moved up to make room for the dev card count.
         if ((maxPlayers <= 4) && ! hasLargeBoard)
-            curY -= (lineH + 5);
+            curY -= (lineH + (5 * pi.displayScale));
 
-        curX = dim.width - (2 * butW) - margin;
-        gameOptsBut.setSize(butW * 2, lineH);
+        gameOptsBut.setSize(rightButW, lineH);
         if ((maxPlayers <= 4) && ! hasLargeBoard)
-            gameOptsBut.setLocation(curX, 1 + (rowSpaceH + lineH)); // move up to row 2; row 3 will have VP to Win
+            gameOptsBut.setLocation(curX, pix1 + (rowSpaceH + lineH)); // move up to row 2; row 3 will have VP to Win
         else
             gameOptsBut.setLocation(curX, curY);
-        statsBut.setSize(butW * 2, lineH);
+        statsBut.setSize(rightButW, lineH);
         if (hasLargeBoard)
-            statsBut.setLocation(curX, 1 + (2 * (rowSpaceH + lineH)));
+            statsBut.setLocation(curX, pix1 + (2 * (rowSpaceH + lineH)));
         else
-            statsBut.setLocation(curX, 1);
+            statsBut.setLocation(curX, pix1);
 
         // VP to Win label moves to make room for various buttons.
         if (vpToWin != null)
@@ -724,7 +740,7 @@ import javax.swing.SwingConstants;
             {
                 // right-hand side of panel, above Game Stats
                 curY = rowSpaceH + lineH;
-                curX = dim.width - ColorSquare.WIDTH - margin;
+                curX = dim.width - sqWidth - margin;
                 vpToWin.setLocation(curX, curY);
 
                 curX -= (vpLabW + (2*margin));
@@ -735,8 +751,8 @@ import javax.swing.SwingConstants;
                 {
                     // 4-player: row 3, align from right, below Options;
                     // not enough room on row 1 with Game Stats button
-                    curY = 1 + (2 * (rowSpaceH + lineH));
-                    curX = dim.width - ColorSquare.WIDTH - margin;
+                    curY = pix1 + (2 * (rowSpaceH + lineH));
+                    curX = dim.width - sqWidth - margin;
                     vpToWin.setLocation(curX, curY);
 
                     curX -= (vpLabW + (2*margin));
@@ -745,15 +761,15 @@ import javax.swing.SwingConstants;
                     // 6-player: row 1, upper-right corner of panel; shift left to make room
                     // for Game Stats button (which is moved up to make room for Special Building button).
                     // Align from left if possible, above Special Building button's wide panel
-                    curY = 1;
-                    curX = buttonMargin + butW + margin + (costW + margin) + (4 * (ColorSquare.WIDTH + 2));
+                    curY = pix1;
+                    curX = buttonMargin + butW + margin + (costW + margin) + (4 * (sqWidth + margin));
                     final int statsButX = statsBut.getX();
-                    if (curX + ColorSquare.WIDTH + vpLabW + (2*margin) > statsButX)
-                        curX -= (2 * (ColorSquare.WIDTH + 2));
+                    if (curX + sqWidth + vpLabW + (2*margin) > statsButX)
+                        curX -= (2 * (sqWidth + margin));
                     vpToWinLab.setLocation(curX, curY);
 
                     curX += (vpLabW + (2*margin));
-                    final int xmax = statsButX - ColorSquare.WIDTH - margin;
+                    final int xmax = statsButX - sqWidth - margin;
                     if (curX > xmax)
                     {
                         vpLabW = xmax - vpToWinLab.getX() - margin;  // clip to prevent overlap
@@ -764,7 +780,6 @@ import javax.swing.SwingConstants;
                 vpToWinLab.setSize(vpLabW + margin, lineH);
             }
         }
-
     }
 
     /** For aesthetics use a certain resource-type order, not {@link SOCResourceConstants}' order. */
@@ -785,6 +800,7 @@ import javax.swing.SwingConstants;
         final String costToBuild = strings.get("build.cost_to_build");  // "Cost to Build"
         final int n = cost.getResourceTypeCount();
         final ColorSquare[] sq = new ColorSquare[n];
+        final int sqHeight = ColorSquare.HEIGHT * pi.displayScale;
 
         for (int i = 0, mapIdx = 0; i < n && mapIdx < 5; ++mapIdx)
         {
@@ -793,7 +809,7 @@ import javax.swing.SwingConstants;
             if (itemCost == 0)
                 continue;
 
-            final ColorSquare s = new ColorSquare(ColorSquare.RESOURCE_COLORS[res - 1], itemCost);
+            final ColorSquare s = new ColorSquare(ColorSquare.RESOURCE_COLORS[res - 1], itemCost, sqHeight, sqHeight);
             s.setToolTipText(costToBuild + ": " + s.getToolTipText());  // "Cost to Build: Sheep" etc
             sq[i] = s;
             add(s);
@@ -815,11 +831,11 @@ import javax.swing.SwingConstants;
      */
     private int layoutCostSquares(final ColorSquare[] sq, int curX, final int curY)
     {
-        for (int i = 0; i < sq.length; ++i)
+        final int sqWidth = ColorSquare.WIDTH * pi.displayScale, step = sqWidth + (2 * pi.displayScale);
+        for (int i = 0; i < sq.length; ++i, curX += step)
         {
-            sq[i].setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
+            sq[i].setSize(sqWidth, sqWidth);
             sq[i].setLocation(curX, curY);
-            curX += (ColorSquare.WIDTH + 2);
         }
 
         return curX;

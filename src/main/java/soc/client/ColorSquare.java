@@ -205,11 +205,28 @@ public class ColorSquare extends JComponent implements MouseListener
      * or an element of {@link #RESOURCE_COLORS}).
      *
      * @param c background color; creates resource-name tooltip if is a resource color
+     * @see #ColorSquare(Color, int, int)
      * @see #ColorSquare(int, boolean, Color, int, int)
      */
     public ColorSquare(Color c)
     {
         this(CHECKBOX, false, c, 99, 0);
+    }
+
+    /**
+     * Creates a new ColorSquare with specified background color and size, without a visible value;
+     * calls {@link #ColorSquare(Color)}.
+     *
+     * @param c background color; creates resource-name tooltip if is a resource color
+     * @param w width in pixels
+     * @param h height in pixels
+     * @since 2.0.00
+     */
+    public ColorSquare(Color c, int w, int h)
+    {
+        this(c);
+        if ((w != ColorSquare.WIDTH) || (h != ColorSquare.HEIGHT))
+            setSizesAndFont(w, h);
     }
 
     /**
@@ -223,12 +240,47 @@ public class ColorSquare extends JComponent implements MouseListener
      *
      * @param c background color; creates resource-name tooltip if is a resource color
      * @param v initial int value
+     * @see #ColorSquare(Color, int, int, int)
      * @see #ColorSquare(int, boolean, Color, int, int)
      */
     public ColorSquare(Color c, int v)
     {
         this(NUMBER, false, c, 99, 0);
         intValue = v;
+    }
+
+    /**
+     * Creates a new ColorSquare with specified background color, initial value, and size;
+     * calls {@link #ColorSquare(Color, int)}.
+     *
+     * @param c background color; creates resource-name tooltip if is a resource color
+     * @param v initial int value
+     * @param w width in pixels
+     * @param h height in pixels
+     * @since 2.0.00
+     */
+    public ColorSquare(Color c, int v, int w, int h)
+    {
+        this(c, v);
+        if ((w != ColorSquare.WIDTH) || (h != ColorSquare.HEIGHT))
+            setSizesAndFont(w, h);
+    }
+
+    /**
+     * Set minimum and current size of this ColorSquare.
+     * If {@code w} or {@code h} != {@link ColorSquare#HEIGHT},
+     * also update the font size to fill the square.
+     * @param w  New width
+     * @param h  New height
+     * @since 2.0.00
+     */
+    protected final void setSizesAndFont(final int w, final int h)
+    {
+        setSize(w, h);
+        setMinimumSize(squareSize);
+        final int size = (w < h) ? w : h;
+        if (size != ColorSquare.HEIGHT)
+            setFont(getFont().deriveFont(10f * (size / (float) ColorSquare.HEIGHT)));
     }
 
     /**
