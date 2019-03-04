@@ -3455,6 +3455,9 @@ import javax.swing.UIManager;
         final FontMetrics fm = this.getFontMetrics(this.getFont());
         final int lineH = ColorSquare.HEIGHT * displayScale;  // layout's basic line height; most rows have a ColorSquare
 
+        faceImg.setLocation(inset, inset);
+            // setLocation even if ! inPlay (hidden), so it doesn't visibly move when player sits
+
         if (! inPlay)
         {
             /* just show the 'sit' button */
@@ -3484,7 +3487,7 @@ import javax.swing.UIManager;
             final int sqSize = ColorSquare.WIDTH * displayScale;
 
             // Top of panel: Face icon, player name to right (left-aligned)
-            faceImg.setBounds(inset, inset, faceW, faceW);
+            // (faceImg is already positioned)
             pname.setHorizontalAlignment(SwingConstants.LEFT);
             pname.setBounds(inset + faceW + inset, inset, pnameW, lineH);
 
