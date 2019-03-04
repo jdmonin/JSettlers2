@@ -115,8 +115,8 @@ import javax.swing.JPanel;
         for (int i = 0; i < 5; i++)
         {
             final Color sqColor = ColorSquare.RESOURCE_COLORS[i];
-            get[i] = new ColorSquareLarger(ColorSquare.NUMBER, in, sqSize, sqSize, sqColor);
-            give[i] = new ColorSquareLarger(ColorSquare.NUMBER, in, sqSize, sqSize, sqColor);
+            get[i] = new ColorSquare(ColorSquare.NUMBER, in, sqSize, sqSize, sqColor);
+            give[i] = new ColorSquare(ColorSquare.NUMBER, in, sqSize, sqSize, sqColor);
             add(get[i]);
             add(give[i]);
             get[i].setSquareListener(this);

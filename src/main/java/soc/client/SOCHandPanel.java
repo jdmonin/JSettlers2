@@ -139,8 +139,8 @@ import javax.swing.UIManager;
     protected static final String SEND = strings.get("hpan.trade.offer");
     protected static final String BANK = strings.get("hpan.trade.bankport");  // "Bank/Port"
     private static final String BANK_UNDO = strings.get("hpan.trade.undo");  // "Undo Trade"
-    /** "  Play Card  " button label text for {@link #playCardBut} */
-    private static final String CARD = "  " + strings.get("hpan.devcards.play") + "  ";
+    /** " Play Card " button label text for {@link #playCardBut} */
+    private static final String CARD = " " + strings.get("hpan.devcards.play") + " ";
     /** "Cancel" button label text, used temporarily in some game states */
     private static final String CANCEL = strings.get("base.cancel");
     protected static final String GIVE = strings.get("hpan.trade.igive");  // No trailing space (room for wider colorsquares)
@@ -601,11 +601,13 @@ import javax.swing.UIManager;
         final String FONT_SKIP_FLAG = DONE;  // client property to not set a label's font in loop at bottom;
             // picked DONE for value because it's a defined arbitrary unique-to-handpanel string reference
 
+        final int displayScale = pi.displayScale,
+                  sqSize = ColorSquare.WIDTH * displayScale;
         final Color pcolor = playerInterface.getPlayerColor(playerNumber);
         setBackground(pcolor);
         setForeground(COLOR_FOREGROUND);
         setOpaque(true);
-        setFont(new Font("SansSerif", Font.PLAIN, 10));
+        setFont(new Font("SansSerif", Font.PLAIN, 10 * displayScale));
 
         blankStandIn = new ColorSquare(pcolor, strings.get("hpan.one.moment"));  // "One moment..."
         blankStandIn.setVisible(false);
@@ -615,7 +617,7 @@ import javax.swing.UIManager;
         add(faceImg);
 
         pname = new JLabel();
-        pname.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        pname.setFont(new Font("SansSerif", Font.PLAIN, 13 * displayScale));
         pname.setVerticalAlignment(JLabel.TOP);
         pname.putClientProperty(FONT_SKIP_FLAG, Boolean.TRUE);
         // pname uses panel's background color, except when current player (updateAtTurn):
@@ -631,7 +633,7 @@ import javax.swing.UIManager;
 
         vpLab = new JLabel(strings.get("hpan.points") + " ");  // "Points: "
         add(vpLab);
-        vpSq = new ColorSquare(ColorSquare.GREY, 0);
+        vpSq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
         vpSq.setToolTipText(strings.get("hpan.points.total.opponent"));  // "Total victory points for this opponent"
         final String vp_close_to_win = strings.get("hpan.points.closetowin");  // "Close to winning"
         if (game.vp_winner <= 12)
@@ -651,7 +653,7 @@ import javax.swing.UIManager;
             svpLab.setToolTipText(svp_tt);
             add(svpLab);
             svpLab.addMouseListener(this);
-            svpSq = new ColorSquare(ColorSquare.GREY, 0);
+            svpSq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
             svpSq.setVisible(false);
             svpSq.setToolTipText(svp_tt);
             add(svpSq);
@@ -661,7 +663,7 @@ import javax.swing.UIManager;
             svpSq = null;
         }
 
-        final Font DIALOG_PLAIN_10 = new Font("Dialog", Font.PLAIN, 10);
+        final Font DIALOG_PLAIN_10 = new Font("Dialog", Font.PLAIN, 10 * displayScale);
 
         larmyLab = new JLabel("", SwingConstants.CENTER);
         larmyLab.setFont(DIALOG_PLAIN_10);  // was bold 12pt SansSerif before v2.0.00 (i18n: needs room for more chars)
@@ -689,7 +691,8 @@ import javax.swing.UIManager;
         createColorSqRetLbl = null;      createColorSqRetSq = null;  // done, clear refs
 
         resourceSqDivLine = new ColorSquare(Color.BLACK);
-        resourceSqDivLine.setMinimumSize(new Dimension(20, 1));  // for this narrow line, reduce usual minimum height
+        resourceSqDivLine.setMinimumSize(new Dimension(20 * displayScale, displayScale));
+            // for this narrow line, reduce usual minimum height
         add(resourceSqDivLine);
 
         //cardLab = new Label("Cards:");
@@ -714,7 +717,7 @@ import javax.swing.UIManager;
 
         final String pieces_available_to_place = strings.get("hpan.pieces.available");
 
-        roadSq = new ColorSquare(ColorSquare.GREY, 0);
+        roadSq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
         add(roadSq);
         roadSq.setToolTipText(pieces_available_to_place);
         roadSq.setToolTipLowWarningLevel(strings.get("hpan.roads.almostout"), 2);  // "Almost out of roads to place"
@@ -723,7 +726,7 @@ import javax.swing.UIManager;
         roadLab.setFont(DIALOG_PLAIN_10);
         add(roadLab);
 
-        settlementSq = new ColorSquare(ColorSquare.GREY, 0);
+        settlementSq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
         add(settlementSq);
         settlementSq.setToolTipText(pieces_available_to_place);
         settlementSq.setToolTipLowWarningLevel(strings.get("hpan.stlmts.almostout"), 1);
@@ -732,7 +735,7 @@ import javax.swing.UIManager;
         settlementLab.setFont(DIALOG_PLAIN_10);
         add(settlementLab);
 
-        citySq = new ColorSquare(ColorSquare.GREY, 0);
+        citySq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
         add(citySq);
         citySq.setToolTipText(pieces_available_to_place);
         citySq.setToolTipLowWarningLevel(strings.get("hpan.cities.almostout"), 1);
@@ -743,7 +746,7 @@ import javax.swing.UIManager;
 
         if (game.hasSeaBoard)
         {
-            shipSq = new ColorSquare(ColorSquare.GREY, 0);
+            shipSq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
             add(shipSq);
             shipSq.setToolTipText(pieces_available_to_place);
             shipSq.setToolTipLowWarningLevel(strings.get("hpan.ships.almostout"), 2);
@@ -760,7 +763,7 @@ import javax.swing.UIManager;
             clothLab = new JLabel(strings.get("hpan.cloth"));  // No trailing space (room for wider colorsquares at left)
             clothLab.setFont(DIALOG_PLAIN_10);
             add(clothLab);
-            clothSq = new ColorSquare(ColorSquare.GREY, 0);
+            clothSq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
             add(clothSq);
             clothSq.setToolTipText(strings.get("hpan.cloth.amounttraded"));  // "Amount of cloth traded from villages"
         }
@@ -783,20 +786,20 @@ import javax.swing.UIManager;
         knightsLab = new JLabel(strings.get("hpan.soldiers"));  // No trailing space (room for wider colorsquares at left)
         knightsLab.setFont(DIALOG_PLAIN_10);
         add(knightsLab);
-        knightsSq = new ColorSquare(ColorSquare.GREY, 0);
+        knightsSq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
         add(knightsSq);
         knightsSq.setToolTipText(strings.get("hpan.soldiers.sizearmy"));  // "Size of this army"
 
         resourceLab = new JLabel(RESOURCES);
         add(resourceLab);
-        resourceSq = new ColorSquare(ColorSquare.GREY, 0);
+        resourceSq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
         add(resourceSq);
         resourceSq.setToolTipText(strings.get("hpan.amounthand"));  // "Amount in hand"
         resourceSq.setToolTipHighWarningLevel(strings.get("hpan.rsrc.roll7discard"), 8); // "If 7 is rolled, would discard half these resources"
 
         developmentLab = new JLabel(strings.get("hpan.devcards") + " ");  // "Dev. Cards: "
         add(developmentLab);
-        developmentSq = new ColorSquare(ColorSquare.GREY, 0);
+        developmentSq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
         add(developmentSq);
         developmentSq.setToolTipText(strings.get("hpan.amounthand"));  // "Amount in hand"
 
@@ -840,7 +843,7 @@ import javax.swing.UIManager;
             getLab.setToolTipText(strings.get("hpan.trade.iget.tip"));
                 // "Resources to get from other players or the bank"
 
-        sqPanel = new SquaresPanel(interactive, this, pi.displayScale);
+        sqPanel = new SquaresPanel(interactive, this, displayScale);
         add(sqPanel);
         sqPanel.setVisible(false); // will become visible only for seated client player
 
@@ -892,7 +895,7 @@ import javax.swing.UIManager;
                     Color color = playerInterface.getPlayerColor(pn);
                     playerSendMap[cnt] = pn;
                     playerSendForPrevTrade[cnt] = true;
-                    playerSend[cnt] = new ColorSquare(ColorSquare.CHECKBOX, true, color);
+                    playerSend[cnt] = new ColorSquare(ColorSquare.CHECKBOX, true, sqSize, sqSize, color);
                     playerSend[cnt].setColor(playerInterface.getPlayerColor(pn));
                     playerSend[cnt].setBoolValue(true);
                     add(playerSend[cnt]);
@@ -939,7 +942,8 @@ import javax.swing.UIManager;
 
         // Make all labels and buttons use panel's font and background color.
         // To not cut off wide button text, remove button margin since we're using custom layout anyway
-        final Insets minMargin = new Insets(2, 2, 2, 2);
+        final int msize = 2 * displayScale;
+        final Insets minMargin = new Insets(msize, msize, msize, msize);
         final Font panelFont = getFont();
         for (Component co : getComponents())
         {
@@ -983,7 +987,8 @@ import javax.swing.UIManager;
         final String rtxt = strings.get(rtxtkey);
         createColorSqRetLbl = new JLabel(rtxt + ":");  // "Clay:"
         add(createColorSqRetLbl);
-        createColorSqRetSq = new ColorSquare(rc, 0);
+        final int sqSize = ColorSquare.WIDTH * playerInterface.displayScale;
+        createColorSqRetSq = new ColorSquare(rc, 0, sqSize, sqSize);
         add(createColorSqRetSq);
         createColorSqRetSq.setToolTipText
             (strings.get("hpan.trade.rightclick", rtxt.toLowerCase()));  // "Right-click to trade clay"
@@ -3443,11 +3448,12 @@ import javax.swing.UIManager;
     public void doLayout()
     {
         final Dimension dim = getSize();
-        final int inset = 3;  // margin from edge of panel; was 8 before 1.1.08
-        final int space = 2;  // vertical and horizontal spacing between most items
+        final int displayScale = playerInterface.displayScale;
+        final int inset = 3 * displayScale;  // margin from edge of panel; was 8 before 1.1.08
+        final int space = 2 * displayScale;  // vertical and horizontal spacing between most items
 
         final FontMetrics fm = this.getFontMetrics(this.getFont());
-        final int lineH = ColorSquare.HEIGHT;  // layout's basic line height; most rows have a ColorSquare
+        final int lineH = ColorSquare.HEIGHT * displayScale;  // layout's basic line height; most rows have a ColorSquare
 
         if (! inPlay)
         {
@@ -3457,24 +3463,25 @@ import javax.swing.UIManager;
 
             final int sitW;
             if (fm == null)
-                sitW = 70;
+                sitW = 70 * displayScale;
             else if (sitButIsLock)
             {
                 final int wLock = fm.stringWidth(LOCKSEAT),
                           wUnlock = fm.stringWidth(UNLOCKSEAT);
-                sitW = 24 + ((wLock > wUnlock) ? wLock : wUnlock);
+                sitW = 24 * displayScale + ((wLock > wUnlock) ? wLock : wUnlock);
             } else {
-                sitW = 24 + fm.stringWidth(sitBut.getText());
+                sitW = 24 * displayScale + fm.stringWidth(sitBut.getText());
             }
 
-            sitBut.setBounds((dim.width - sitW) / 2, (dim.height - 82) / 2, sitW, 40);
+            sitBut.setBounds((dim.width - sitW) / 2, (dim.height - (82 * displayScale)) / 2, sitW, 40 * displayScale);
             pname.setHorizontalAlignment(SwingConstants.CENTER);
             pname.setBounds(inset, inset, dim.width - (2*inset), lineH);
         }
         else
         {
-            final int faceW = 40;  // face icon width
+            final int faceW = 40 * displayScale;  // face icon width
             final int pnameW = dim.width - (inset + faceW + inset + inset);  // player name width, to right of face
+            final int sqSize = ColorSquare.WIDTH * displayScale;
 
             // Top of panel: Face icon, player name to right (left-aligned)
             faceImg.setBounds(inset, inset, faceW, faceW);
@@ -3487,9 +3494,9 @@ import javax.swing.UIManager;
                 // Bug in stringWidth does not give correct size for ' ' in some versions
             int y = inset + lineH + 2*space;
             vpLab.setBounds(inset + faceW + inset, y, vpW, lineH);
-            vpSq.setBounds(inset + faceW + inset + vpW + space, y, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+            vpSq.setLocation(inset + faceW + inset + vpW + space, y);
 
-            final int topStuffW = inset + faceW + inset + vpW + space + ColorSquare.WIDTH + space;
+            final int topStuffW = inset + faceW + inset + vpW + space + sqSize + space;
 
             // always position these: though they may not be visible
             larmyLab.setBounds(topStuffW, y, (dim.width - (topStuffW + inset + space)) / 2, lineH);
@@ -3501,13 +3508,13 @@ import javax.swing.UIManager;
             {
                 y += (lineH + 1);
                 svpLab.setBounds(inset + faceW + inset, y, vpW, lineH);
-                svpSq.setBounds(inset + faceW + inset + vpW + space, y, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                svpSq.setLocation(inset + faceW + inset + vpW + space, y);
 
                 if (wonderLab != null)
                 {
                     // SC_WOND: Show Wonder Level next to svpSq.
                     // Since SC_WOND requires game.hasSeaBoard, svpSq != null for SC_WOND.
-                    final int x = svpSq.getX() + ColorSquare.WIDTH + space;
+                    final int x = svpSq.getX() + sqSize + space;
                     wonderLab.setBounds(x, y, dim.width - x - space, lineH);
                 }
             }
@@ -3554,11 +3561,11 @@ import javax.swing.UIManager;
 
                     sheepW = wmax + labelspc;
                 }
-                final int pcW = fm.stringWidth(CARD.replace(' ','_'));  // Bug in stringWidth
+                final int pcW = 10 * displayScale + fm.stringWidth(CARD.replace(' ','_'));  // Play Card; bug in stringWidth(" ")
                 final int giveW;  // width of trading Give/Get labels
                 {
                     final int gv = fm.stringWidth(GIVE), gt = fm.stringWidth(GET);
-                    giveW = ((gv > gt) ? gv : gt) + labelspc + 2;
+                    giveW = ((gv > gt) ? gv : gt) + labelspc + 2 * displayScale;
                 }
                 // int clearW = fm.stringWidth(CLEAR.replace(' ','_'));
                 // int bankW = fm.stringWidth(BANK.replace(' ','_'));
@@ -3569,7 +3576,8 @@ import javax.swing.UIManager;
                 final int devCardsY = tradeY + tradeH + sectionSpace;  // top of dev card list
 
                 // Always reposition everything
-                startBut.setBounds(inset + faceW + inset, inset + lineH + space, dim.width - (inset + faceW + inset + inset), lineH);
+                startBut.setBounds
+                    (inset + faceW + inset, inset + lineH + space, dim.width - (inset + faceW + inset + inset), lineH);
 
                 // Below face, player name, VP count, etc:
                 // Section spacer, then:
@@ -3577,7 +3585,7 @@ import javax.swing.UIManager;
 
                 // Trading: Give,Get labels to left of SquaresPanel
                 giveLab.setBounds(inset, tradeY, giveW, lineH);
-                getLab.setBounds(inset, tradeY + ColorSquareLarger.HEIGHT_L, giveW, lineH);
+                getLab.setBounds(inset, tradeY + ColorSquareLarger.HEIGHT_L * displayScale, giveW, lineH);
                 sqPanel.setLocation(inset + giveW + space, tradeY);
 
                 // Button rows Below SquaresPanel:
@@ -3593,7 +3601,7 @@ import javax.swing.UIManager;
                     if (game.maxPlayers == 4)
                         offerBut.setBounds(tbX, tbY, tbW, lineH);
                     else  // 6-player: leave room for 5 checkboxes
-                        offerBut.setBounds(tbX, tbY, (2 * tbW) + space - (5 * (1 + ColorSquare.WIDTH)), lineH);
+                        offerBut.setBounds(tbX, tbY, (2 * tbW) + space - (5 * (1 + sqSize)), lineH);
                 }
                 clearOfferBut.setBounds(tbX, tbY + lineH + space, tbW, lineH);
                 bankBut.setBounds(tbX + tbW + space, tbY + lineH + space, tbW, lineH);
@@ -3604,14 +3612,14 @@ import javax.swing.UIManager;
                     // Checkboxes to select players to send trade offers
                     if (game.maxPlayers == 4)
                     {
-                        playerSend[0].setBounds(tbX + tbW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                        playerSend[1].setBounds(tbX + tbW + space + ((tbW - ColorSquare.WIDTH) / 2), tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                        playerSend[2].setBounds((tbX + tbW + space + tbW) - ColorSquare.WIDTH, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                        playerSend[0].setLocation(tbX + tbW + space, tbY);
+                        playerSend[1].setLocation(tbX + tbW + space + ((tbW - sqSize) / 2), tbY);
+                        playerSend[2].setLocation((tbX + tbW + space + tbW) - sqSize, tbY);
                     } else {
                         // 6-player: 5 checkboxes
-                        int px = tbX + (2 * (space + tbW)) - ColorSquare.WIDTH - 1;
-                        for (int pi = 4; pi >=0; --pi, px -= (ColorSquare.WIDTH + 1))
-                            playerSend[pi].setBounds(px, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                        int px = tbX + (2 * (space + tbW)) - sqSize - 1;
+                        for (int pi = 4; pi >=0; --pi, px -= (sqSize + 1))
+                            playerSend[pi].setLocation(px, tbY);
                     }
                 }
 
@@ -3631,8 +3639,9 @@ import javax.swing.UIManager;
                     wmax += 2;  // +2 because Label text is inset from column 0
 
                     // make sure not more than half panel width
-                    if (wmax > ((dim.width - ColorSquare.WIDTH - 8) / 2))
-                        wmax = (dim.width - ColorSquare.WIDTH - 8) / 2;
+                    int wHalf = (dim.width - sqSize - (8 * displayScale)) / 2;
+                    if (wmax > wHalf)
+                        wmax = wHalf;
 
                     knightsW = wmax;
                 }
@@ -3640,21 +3649,21 @@ import javax.swing.UIManager;
                 // Various item counts, to the right of give/get/offer/trade area
                 if (clothSq != null)
                 {
-                    clothLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY - (lineH + space), knightsW, lineH);
-                    clothSq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY - (lineH + space), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                    clothLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY - (lineH + space), knightsW, lineH);
+                    clothSq.setLocation(dim.width - inset - sqSize, tradeY - (lineH + space));
                 }
-                knightsLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY, knightsW, lineH);
-                knightsSq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                roadLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY + lineH + space, knightsW, lineH);
-                roadSq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY + lineH + space, ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                settlementLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY + (2 * (lineH + space)), knightsW, lineH);
-                settlementSq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY + (2 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                cityLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY + (3 * (lineH + space)), knightsW, lineH);
-                citySq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY + (3 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                knightsLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY, knightsW, lineH);
+                knightsSq.setLocation(dim.width - inset - sqSize, tradeY);
+                roadLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY + lineH + space, knightsW, lineH);
+                roadSq.setLocation(dim.width - inset - sqSize, tradeY + lineH + space);
+                settlementLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY + (2 * (lineH + space)), knightsW, lineH);
+                settlementSq.setLocation(dim.width - inset - sqSize, tradeY + (2 * (lineH + space)));
+                cityLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY + (3 * (lineH + space)), knightsW, lineH);
+                citySq.setLocation(dim.width - inset - sqSize, tradeY + (3 * (lineH + space)));
                 if (shipSq != null)
                 {
-                    shipLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY + (4 * (lineH + space)), knightsW, lineH);
-                    shipSq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY + (4 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                    shipLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY + (4 * (lineH + space)), knightsW, lineH);
+                    shipSq.setLocation(dim.width - inset - sqSize, tradeY + (4 * (lineH + space)));
                 }
 
                 // Player's resource counts
@@ -3662,40 +3671,41 @@ import javax.swing.UIManager;
                 tbY = (((dim.height - lineH - inset) + (tbY + (2 * lineH) + space)) / 2)
                   - (3 * (lineH + space));
                 clayLab.setBounds(inset, tbY, sheepW, lineH);
-                claySq.setBounds(inset + sheepW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                claySq.setLocation(inset + sheepW + space, tbY);
                 tbY += (lineH + space);
                 oreLab.setBounds(inset, tbY, sheepW, lineH);
-                oreSq.setBounds(inset + sheepW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                oreSq.setLocation(inset + sheepW + space, tbY);
                 tbY += (lineH + space);
                 sheepLab.setBounds(inset, tbY, sheepW, lineH);
-                sheepSq.setBounds(inset + sheepW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                sheepSq.setLocation(inset + sheepW + space, tbY);
                 tbY += (lineH + space);
                 wheatLab.setBounds(inset, tbY, sheepW, lineH);
-                wheatSq.setBounds(inset + sheepW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                wheatSq.setLocation(inset + sheepW + space, tbY);
                 tbY += (lineH + space);
                 woodLab.setBounds(inset, tbY, sheepW, lineH);
-                woodSq.setBounds(inset + sheepW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                woodSq.setLocation(inset + sheepW + space, tbY);
                 // Line between woodSq, resourceSq
                 tbY += (lineH + space);
-                resourceSqDivLine.setBounds(inset + space, tbY - 1, sheepW + ColorSquare.WIDTH, 1);
+                resourceSqDivLine.setBounds(inset + space, tbY - displayScale, sheepW + sqSize, displayScale);
                 // Total Resources
                 ++tbY;
                 resourceLab.setBounds(inset, tbY, sheepW, lineH);
-                resourceSq.setBounds(inset + sheepW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                resourceSq.setLocation(inset + sheepW + space, tbY);
 
                 // To the right of resource counts:
                 // Development Card list, Play button below
-                final int clW = dim.width - (inset + sheepW + space + ColorSquare.WIDTH + (4 * space) + inset);
-                final int clX = inset + sheepW + space + ColorSquare.WIDTH + (4 * space);
-                inventoryScroll.setBounds(clX, devCardsY, clW, (4 * (lineH + space)) - 2);
+                final int clW = dim.width - (inset + sheepW + space + sqSize + (4 * space) + inset);
+                final int clX = inset + sheepW + space + sqSize + (4 * space);
+                inventoryScroll.setBounds(clX, devCardsY, clW, (4 * (lineH + space)) - 2 * displayScale);
                 playCardBut.setBounds(((clW - pcW) / 2) + clX, devCardsY + (4 * (lineH + space)), pcW, lineH);
 
                 // Bottom of panel:
                 // 1 button row: Quit to left; Roll, Restart to right
-                final int bbW = 50;
+                final int bbW = 50 * displayScale;
                 tbY = dim.height - lineH - inset;
                 // Label lines up over Roll button
-                rollPromptCountdownLab.setBounds(dim.width - (bbW + space + bbW + inset), tbY - lineH, dim.width - 2*inset, lineH);
+                rollPromptCountdownLab.setBounds
+                    (dim.width - (bbW + space + bbW + inset), tbY - lineH, dim.width - 2*inset, lineH);
                 // Bottom row of buttons
                 quitBut.setBounds(inset, tbY, bbW, lineH);
                 rollBut.setBounds(dim.width - (bbW + space + bbW + inset), tbY, bbW, lineH);
@@ -3728,18 +3738,19 @@ import javax.swing.UIManager;
                     // Just above the lower-left, lower-right columns of item counts
 
                     int lowerY = dim.height - ((4 * (lineH + space)) + inset);
-                    int yb = lowerY - 5;
+                    int yb = lowerY - (5 * displayScale);
                     if (game.hasSeaBoard)
                         yb -= (lineH + space);
 
+                    final int pix9 = 9 * displayScale;
                     if (game.getPlayer(client.getNickname()) == null)
                     {
-                        takeOverBut.setBounds(9, yb, dim.width - 18, lineH + space);
+                        takeOverBut.setBounds(pix9, yb, dim.width - 2 * pix9, lineH + space);
                         hasTakeoverBut = true;
                     }
                     else if (sittingRobotLockBut.isVisible())
                     {
-                        sittingRobotLockBut.setBounds(9, yb, dim.width - 18, lineH + space);
+                        sittingRobotLockBut.setBounds(pix9, yb, dim.width - 2 * pix9, lineH + space);
                         hasSittingRobotLockBut = true;
                     }
                 }
@@ -3753,6 +3764,7 @@ import javax.swing.UIManager;
                     : TradeOfferPanel.OFFER_HEIGHT;
                 if (offer.offerPanel.wantsRejectCountdown(true))
                     offerMinHeight += TradeOfferPanel.LABEL_LINE_HEIGHT;
+                offerMinHeight *= displayScale;
                 final int numBottomLines = (hasTakeoverBut || hasSittingRobotLockBut) ? 5 : 4;
                 offerHidesControls = offerHidingControls
                     || ((dim.height - (inset + faceW + space) - (numBottomLines * (lineH + space))) < offerMinHeight);
@@ -3799,11 +3811,12 @@ import javax.swing.UIManager;
                             wmax = w;
                     }
 
-                    wmax += 10;  // for inset before and spacing after label
+                    wmax += 10 * displayScale;  // for inset before and spacing after label
 
                     // make sure not more than half panel width
-                    if (wmax > ((dim.width - ColorSquare.WIDTH - 8) / 2))
-                        wmax = (dim.width - ColorSquare.WIDTH - 8) / 2;
+                    int wHalf = (dim.width - sqSize - (8 * displayScale)) / 2;
+                    if (wmax > wHalf)
+                        wmax = wHalf;
 
                     stlmtsW = wmax;
                 }
@@ -3831,8 +3844,9 @@ import javax.swing.UIManager;
                     wmax += 2;  // for insets within label
 
                     // make sure not more than half panel width
-                    if (wmax > ((dim.width - ColorSquare.WIDTH - 8) / 2))
-                        wmax = (dim.width - ColorSquare.WIDTH - 8) / 2;
+                    int wHalf = (dim.width - sqSize - (8 * displayScale)) / 2;
+                    if (wmax > wHalf)
+                        wmax = wHalf;
 
                     dcardsW = wmax;
                 }
@@ -3842,30 +3856,30 @@ import javax.swing.UIManager;
                 // Lower-left: Column of item counts:
                 // Cloth, Soldiers, Resources, Dev Cards
                 resourceLab.setBounds(inset, lowerY + (2 * (lineH + space)), dcardsW, lineH);
-                resourceSq.setBounds(inset + dcardsW + space, lowerY + (2 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                resourceSq.setLocation(inset + dcardsW + space, lowerY + (2 * (lineH + space)));
                 developmentLab.setBounds(inset, lowerY + (3 * (lineH + space)), dcardsW, lineH);
-                developmentSq.setBounds(inset + dcardsW + space, lowerY + (3 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                developmentSq.setLocation(inset + dcardsW + space, lowerY + (3 * (lineH + space)));
                 knightsLab.setBounds(inset, lowerY + (lineH + space), dcardsW, lineH);
-                knightsSq.setBounds(inset + dcardsW + space, lowerY + (lineH + space), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                knightsSq.setLocation(inset + dcardsW + space, lowerY + (lineH + space));
                 if (clothSq != null)
                 {
                     clothLab.setBounds(inset, lowerY, dcardsW, lineH);
-                    clothSq.setBounds(inset + dcardsW + space, lowerY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                    clothSq.setLocation(inset + dcardsW + space, lowerY);
                 }
 
                 // Lower-right: Column of piece counts:
                 // Ships, Roads, Settlements, Cities
                 if (shipSq != null)
                 {
-                    shipLab.setBounds(dim.width - inset - stlmtsW - ColorSquare.WIDTH - space, lowerY, stlmtsW, lineH);
-                    shipSq.setBounds(dim.width - inset - ColorSquare.WIDTH, lowerY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                    shipLab.setBounds(dim.width - inset - stlmtsW - sqSize - space, lowerY, stlmtsW, lineH);
+                    shipSq.setLocation(dim.width - inset - sqSize, lowerY);
                 }
-                roadLab.setBounds(dim.width - inset - stlmtsW - ColorSquare.WIDTH - space, lowerY + (lineH + space), stlmtsW, lineH);
-                roadSq.setBounds(dim.width - inset - ColorSquare.WIDTH, lowerY + (lineH + space), ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                settlementLab.setBounds(dim.width - inset - stlmtsW - ColorSquare.WIDTH - space, lowerY + (2 * (lineH + space)), stlmtsW, lineH);
-                settlementSq.setBounds(dim.width - inset - ColorSquare.WIDTH, lowerY + (2 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                cityLab.setBounds(dim.width - inset - stlmtsW - ColorSquare.WIDTH - space, lowerY + (3 * (lineH + space)), stlmtsW, lineH);
-                citySq.setBounds(dim.width - inset - ColorSquare.WIDTH, lowerY + (3 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                roadLab.setBounds(dim.width - inset - stlmtsW - sqSize - space, lowerY + (lineH + space), stlmtsW, lineH);
+                roadSq.setLocation(dim.width - inset - sqSize, lowerY + (lineH + space));
+                settlementLab.setBounds(dim.width - inset - stlmtsW - sqSize - space, lowerY + (2 * (lineH + space)), stlmtsW, lineH);
+                settlementSq.setLocation(dim.width - inset - sqSize, lowerY + (2 * (lineH + space)));
+                cityLab.setBounds(dim.width - inset - stlmtsW - sqSize - space, lowerY + (3 * (lineH + space)), stlmtsW, lineH);
+                citySq.setLocation(dim.width - inset - sqSize, lowerY + (3 * (lineH + space)));
 
                 if (wasHidesControls != offerHidesControls)
                     hideTradeMsgShowOthers(false);

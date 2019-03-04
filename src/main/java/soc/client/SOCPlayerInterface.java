@@ -3282,7 +3282,7 @@ public class SOCPlayerInterface extends Frame
                         if (hp_idx[ihp] == clientHandPlayerNum)
                             hp_height = (dim.height - pix12) / 2 - (2 * ColorSquare.HEIGHT * displayScale);
                         else
-                            hp_height = (dim.height - pix12) / pix4 + (ColorSquare.HEIGHT * displayScale);
+                            hp_height = (dim.height - pix12) / 4 + (ColorSquare.HEIGHT * displayScale);
                         hp.setBounds(hp_x, hp_y, hw, hp_height);
                         hp.invalidate();
                         hp.doLayout();

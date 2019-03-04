@@ -70,34 +70,11 @@ public class ColorSquareLarger extends ColorSquare
      * @param k Kind: NUMBER, YES_NO, CHECKBOX, BOUNDED_INC, BOUNDED_DEC
      * @param in interactive flag allowing user interaction
      * @param c background color; creates resource-name tooltip if is a resource color
-     * @see #ColorSquareLarger(int, boolean, int, int, Color)
      */
     public ColorSquareLarger(int k, boolean in, Color c)
     {
         super(k, in, c);
         setSizesAndFont(WIDTH_L, HEIGHT_L);
-    }
-
-    /**
-     * Creates a new ColorSquareLarger of the specified kind and background
-     * color. Possibly interactive. For kind = NUMBER, upper=99, lower=0.
-     * Calls {@link ColorSquare#ColorSquare(int, boolean, Color)}.
-     *<P>
-     * A tooltip with the resource name is created if {@code c} is one of the
-     * resource colors defined in ColorSquare ({@link ColorSquare#CLAY CLAY}, {@link ColorSquare#WHEAT WHEAT}, etc,
-     * or an element of {@link ColorSquare#RESOURCE_COLORS RESOURCE_COLORS}).
-     *
-     * @param k Kind: NUMBER, YES_NO, CHECKBOX, BOUNDED_INC, BOUNDED_DEC
-     * @param in interactive flag allowing user interaction
-     * @param w width in pixels
-     * @param h height in pixels
-     * @param c background color; creates resource-name tooltip if is a resource color
-     * @since 2.0.00
-     */
-    public ColorSquareLarger(int k, boolean in, int w, int h, Color c)
-    {
-        super(k, in, c);
-        setSizesAndFont(w, h);
     }
 
     /**

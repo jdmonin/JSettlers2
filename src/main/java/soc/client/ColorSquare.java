@@ -267,23 +267,6 @@ public class ColorSquare extends JComponent implements MouseListener
     }
 
     /**
-     * Set minimum and current size of this ColorSquare.
-     * If {@code w} or {@code h} != {@link ColorSquare#HEIGHT},
-     * also update the font size to fill the square.
-     * @param w  New width
-     * @param h  New height
-     * @since 2.0.00
-     */
-    protected final void setSizesAndFont(final int w, final int h)
-    {
-        setSize(w, h);
-        setMinimumSize(squareSize);
-        final int size = (w < h) ? w : h;
-        if (size != ColorSquare.HEIGHT)
-            setFont(getFont().deriveFont(10f * (size / (float) ColorSquare.HEIGHT)));
-    }
-
-    /**
      * Creates a new ColorSquare object with specified background color and
      * initial value. Type {@link #TEXT}, non-interactive.
      *<P>
@@ -318,11 +301,33 @@ public class ColorSquare extends JComponent implements MouseListener
      * @param k Kind: {@link #NUMBER}, YES_NO, CHECKBOX, BOUNDED_INC, BOUNDED_DEC
      * @param in interactive flag allowing user interaction
      * @param c background color; creates resource-name tooltip if is a resource color
+     * @see #ColorSquare(int, boolean, int, int, Color)
      * @see #ColorSquare(int, boolean, Color, int, int)
      */
     public ColorSquare(int k, boolean in, Color c)
     {
         this(k, in, c, 99, 0);
+    }
+
+    /**
+     * Creates a new ColorSquare with specified kind, background color, and size;
+     * calls {@link #ColorSquare(int, boolean, Color)}.
+     *<P>
+     * A tooltip with the resource name is created if {@code c} is one of the
+     * resource colors defined in ColorSquare ({@link #CLAY}, {@link #WHEAT}, etc,
+     * or an element of {@link #RESOURCE_COLORS}).
+     *
+     * @param k Kind: {@link #NUMBER}, YES_NO, CHECKBOX, BOUNDED_INC, BOUNDED_DEC
+     * @param in interactive flag allowing user interaction
+     * @param w width in pixels
+     * @param h height in pixels
+     * @param c background color; creates resource-name tooltip if is a resource color
+     * @since 2.0.00
+     */
+    public ColorSquare(int k, boolean in, int w, int h, Color c)
+    {
+        this(k, in, c);
+        setSizesAndFont(w, h);
     }
 
     /**
@@ -425,6 +430,23 @@ public class ColorSquare extends JComponent implements MouseListener
 
         if (in)
             addMouseListener(this);
+    }
+
+    /**
+     * Set minimum and current size of this ColorSquare.
+     * If {@code w} or {@code h} != {@link ColorSquare#HEIGHT},
+     * also update the font size to fill the square.
+     * @param w  New width
+     * @param h  New height
+     * @since 2.0.00
+     */
+    protected final void setSizesAndFont(final int w, final int h)
+    {
+        setSize(w, h);
+        setMinimumSize(squareSize);
+        final int size = (w < h) ? w : h;
+        if (size != ColorSquare.HEIGHT)
+            setFont(getFont().deriveFont(10f * (size / (float) ColorSquare.HEIGHT)));
     }
 
     /**
