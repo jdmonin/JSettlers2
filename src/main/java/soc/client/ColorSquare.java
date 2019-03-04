@@ -434,7 +434,7 @@ public class ColorSquare extends JComponent implements MouseListener
 
     /**
      * Set minimum and current size of this ColorSquare.
-     * If {@code w} or {@code h} != {@link ColorSquare#HEIGHT},
+     * If {@code w} or {@code h} >= 4/3 of {@link ColorSquare#HEIGHT},
      * also update the font size to fill the square.
      * @param w  New width
      * @param h  New height
@@ -445,7 +445,7 @@ public class ColorSquare extends JComponent implements MouseListener
         setSize(w, h);
         setMinimumSize(squareSize);
         final int size = (w < h) ? w : h;
-        if (size != ColorSquare.HEIGHT)
+        if (size >= (ColorSquare.HEIGHT * 4) / 3)
             setFont(getFont().deriveFont(10f * (size / (float) ColorSquare.HEIGHT)));
     }
 
