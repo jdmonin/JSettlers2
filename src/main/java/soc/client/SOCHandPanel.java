@@ -945,13 +945,16 @@ import javax.swing.UIManager;
         final int msize = 2 * displayScale;
         final Insets minMargin = new Insets(msize, msize, msize, msize);
         final Font panelFont = getFont();
+        final Font buttonFont = ((displayScale > 1) && SOCPlayerClient.isJavaOnOSX)
+            ? panelFont.deriveFont(0.9f * panelFont.getSize2D())  // smaller buttons to avoid text cutoff/ellipsis
+            : panelFont;
         for (Component co : getComponents())
         {
             if (! ((co instanceof JLabel) || (co instanceof JButton)))
                 continue;
 
             if ((co.getFont() != DIALOG_PLAIN_10) && (null == ((JComponent) co).getClientProperty(FONT_SKIP_FLAG)))
-                co.setFont(panelFont);
+                co.setFont((co instanceof JButton) ? buttonFont : panelFont);
 
             if (co instanceof JLabel)
                 co.setForeground(null);  // inherit panel's color
