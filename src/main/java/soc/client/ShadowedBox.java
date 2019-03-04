@@ -38,7 +38,7 @@ import javax.swing.JPanel;
 /*package*/ class ShadowedBox extends JPanel
 {
     /**
-     * Size of the shadow, in pixels.
+     * Size of the shadow, in pixels. Not scaled by {@code displayScale}.
      * @since 1.1.08
      */
     public static final int SHADOW_SIZE = 5;
@@ -48,17 +48,26 @@ import javax.swing.JPanel;
     Color interior;
 
     /**
-     * constructor
+     * For high-DPI displays, what scaling factor to use? Unscaled is 1.
+     * @since 2.0.00
+     */
+    private final int displayScale;
+
+    /**
+     * Constructor. Sets a small default size and assumes a layout manager will soon change that size.
      *
      * @param bg  the background color beyond edges of the panel
      * @param interior  the color of the box interior
+     * @param displayScale  For high-DPI displays, what scaling factor to use? Unscaled is 1.
      * @param lm  LayoutManager to use, or {@code null}
      */
-    public ShadowedBox(Color bg, Color interior, LayoutManager lm)
+    public ShadowedBox(Color bg, Color interior, final int displayScale, LayoutManager lm)
     {
         super(lm);
         height = 50;
         width = 50;
+        this.displayScale = displayScale;
+
         setBackground(bg);
         setForeground(Color.black);
         this.interior = interior;
@@ -108,8 +117,8 @@ import javax.swing.JPanel;
         Dimension dim = getSize();
         final int h = dim.height;
         final int w = dim.width;
-        final int xm = SHADOW_SIZE;
-        final int ym = SHADOW_SIZE;
+        final int xm = SHADOW_SIZE * displayScale;
+        final int ym = SHADOW_SIZE * displayScale;
 
         g.setPaintMode();
         g.setColor(getBackground());

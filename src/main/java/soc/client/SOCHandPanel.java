@@ -840,7 +840,7 @@ import javax.swing.UIManager;
             getLab.setToolTipText(strings.get("hpan.trade.iget.tip"));
                 // "Resources to get from other players or the bank"
 
-        sqPanel = new SquaresPanel(interactive, this);
+        sqPanel = new SquaresPanel(interactive, this, pi.displayScale);
         add(sqPanel);
         sqPanel.setVisible(false); // will become visible only for seated client player
 

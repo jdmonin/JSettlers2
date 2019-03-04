@@ -60,9 +60,10 @@ import javax.swing.JPanel;
 
     /**
      * Size of this panel: {@link #HEIGHT} 2 lines x {@link #WIDTH} 5 columns of {@link ColorSquareLarger}s.
+     * Scaled by {@link #displayScale}.
      * @since 2.0.00
      */
-    private static final Dimension SIZE = new Dimension(WIDTH, HEIGHT);
+    private final Dimension size;
 
     /**
      *  To change its value, each ColorSquare handles its own mouse events.
@@ -74,13 +75,20 @@ import javax.swing.JPanel;
     SOCHandPanel parentHand;
 
     /**
+     * For high-DPI displays, what scaling factor to use? Unscaled is 1.
+     * @since 2.0.00
+     */
+    private final int displayScale;
+
+    /**
      * Creates a new SquaresPanel object.
      *
      * @param in Interactive?
+     * @param displayScale  For high-DPI displays, what scaling factor to use? Unscaled is 1.
      */
-    public SquaresPanel(boolean in)
+    public SquaresPanel(boolean in, final int displayScale)
     {
-        this (in, null);
+        this (in, null, displayScale);
     }
 
     /**
@@ -88,24 +96,27 @@ import javax.swing.JPanel;
      *
      * @param in Interactive?
      * @param hand HandPanel containing this SquaresPanel
+     * @param displayScale  For high-DPI displays, what scaling factor to use? Unscaled is 1.
      */
-    public SquaresPanel(boolean in, SOCHandPanel hand)
+    public SquaresPanel(boolean in, SOCHandPanel hand, final int displayScale)
     {
         super(null);
+        this.displayScale = displayScale;
 
         interactive = in;
         notAllZero = false;
         parentHand = hand;
 
-        setFont(new Font("SansSerif", Font.PLAIN, 10));
+        setFont(new Font("SansSerif", Font.PLAIN, 10 * displayScale));
 
         give = new ColorSquare[5];
         get = new ColorSquare[5];
+        final int sqSize = ColorSquareLarger.WIDTH_L * displayScale;
         for (int i = 0; i < 5; i++)
         {
             final Color sqColor = ColorSquare.RESOURCE_COLORS[i];
-            get[i] = new ColorSquareLarger(ColorSquare.NUMBER, in, sqColor);
-            give[i] = new ColorSquareLarger(ColorSquare.NUMBER, in, sqColor);
+            get[i] = new ColorSquareLarger(ColorSquare.NUMBER, in, sqSize, sqSize, sqColor);
+            give[i] = new ColorSquareLarger(ColorSquare.NUMBER, in, sqSize, sqSize, sqColor);
             add(get[i]);
             add(give[i]);
             get[i].setSquareListener(this);
@@ -115,25 +126,26 @@ import javax.swing.JPanel;
         }
 
         // without these calls, parent panel layout is incomplete even when this panel overrides get*Size
-        setSize(SIZE);
-        setMinimumSize(SIZE);
-        setPreferredSize(SIZE);
+        size = new Dimension(WIDTH * displayScale, HEIGHT * displayScale);
+        setSize(size);
+        setMinimumSize(size);
+        setPreferredSize(size);
     }
 
     @Override
-    public Dimension getMinimumSize()   { return SIZE; };
+    public Dimension getMinimumSize()   { return size; };
     @Override
-    public Dimension getMaximumSize()   { return SIZE; };
+    public Dimension getMaximumSize()   { return size; };
     @Override
-    public Dimension getPreferredSize() { return SIZE; };
+    public Dimension getPreferredSize() { return size; };
 
     /**
      * Custom layout for panel.
      */
     public void doLayout()
     {
-        final int lineH = ColorSquareLarger.HEIGHT_L - 1;
-        final int sqW = ColorSquareLarger.WIDTH_L - 1;
+        final int lineH = ColorSquareLarger.HEIGHT_L * displayScale - 1;
+        final int sqW = ColorSquareLarger.WIDTH_L * displayScale - 1;
         int i;
 
         for (i = 0; i < 5; i++)

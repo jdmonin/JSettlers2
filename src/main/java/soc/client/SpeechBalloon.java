@@ -52,12 +52,14 @@ import javax.swing.JPanel;
 {
     /**
      * Size of the shadow appearing on the right and bottom sides: 5 pixels.
+     * Not scaled by {@code displayScale}.
      * @since 1.1.08
      */
     public static final int SHADOW_SIZE = 5;
 
     /**
      * Size of the pointed tip at the top of the balloon, when visible: 12 pixels.
+     * Not scaled by {@code displayScale}.
      * @since 2.0.00
      */
     public static final int BALLOON_POINT_SIZE = 12;
@@ -85,13 +87,21 @@ import javax.swing.JPanel;
     private boolean balloonPoint;
 
     /**
+     * For high-DPI displays, what scaling factor to use? Unscaled is 1.
+     * @since 2.0.00
+     */
+    private final int displayScale;
+
+    /**
      * Constructor. Foreground color will be {@link Color#BLACK},
      * background color in balloon interior will be {@link SwingMainDisplay#DIALOG_BG_GOLDENROD}.
+     * Sets a small default size and assumes a layout manager will soon change that size.
      *
      * @param behindColor  the background color beyond edges of the panel
+     * @param displayScale  For high-DPI displays, what scaling factor to use? Unscaled is 1.
      * @param lm  LayoutManager to use, or {@code null}
      */
-    public SpeechBalloon(Color behindColor, LayoutManager lm)
+    public SpeechBalloon(Color behindColor, final int displayScale, LayoutManager lm)
     {
         super(lm);
         if (behindColor == null)
@@ -100,6 +110,7 @@ import javax.swing.JPanel;
         height = 50;
         width = 50;
         this.behindColor = behindColor;
+        this.displayScale = displayScale;
 
         final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true);
         balloonColor = colors[2];  // SwingMainDisplay.DIALOG_BG_GOLDENROD
@@ -168,8 +179,9 @@ import javax.swing.JPanel;
         final Dimension dim = getSize();
         final int h = dim.height;
         final int w = dim.width;
-        final int xm = SHADOW_SIZE;
-        final int ym = SHADOW_SIZE;
+        final int xm = SHADOW_SIZE * displayScale;
+        final int ym = SHADOW_SIZE * displayScale;
+        final int bpSize = BALLOON_POINT_SIZE * displayScale;
 
         g.setPaintMode();
         g.setColor(behindColor);
@@ -179,19 +191,19 @@ import javax.swing.JPanel;
         if (balloonPoint)
         {
             int[] xPoints =
-                { 0, BALLOON_POINT_SIZE, BALLOON_POINT_SIZE, (7 * BALLOON_POINT_SIZE) / 4,
+                { 0, bpSize, bpSize, (7 * BALLOON_POINT_SIZE * displayScale) / 4,
                   w - xm, w - xm, 0, 0 };
             int[] yPoints =
-                { BALLOON_POINT_SIZE, BALLOON_POINT_SIZE, 0, BALLOON_POINT_SIZE,
-                  BALLOON_POINT_SIZE, h - ym, h - ym, BALLOON_POINT_SIZE };
+                { bpSize, bpSize, 0, bpSize,
+                    bpSize, h - ym, h - ym, bpSize };
 
             g.fillPolygon(xPoints, yPoints, 8);
             g.setColor(Color.BLACK);
             g.drawPolygon(xPoints, yPoints, 8);
         } else {
-            g.fillRect(0, BALLOON_POINT_SIZE, w - xm, h - ym - BALLOON_POINT_SIZE);
+            g.fillRect(0, bpSize, w - xm, h - ym - bpSize);
             g.setColor(Color.BLACK);
-            g.drawRect(0, BALLOON_POINT_SIZE, w - xm, h - ym - BALLOON_POINT_SIZE);
+            g.drawRect(0, bpSize, w - xm, h - ym - bpSize);
         }
 
         // Draw the shadow
