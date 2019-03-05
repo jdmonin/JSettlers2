@@ -62,6 +62,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.font.TextLayout;
 import java.awt.image.BufferedImage;
 
 import java.util.Arrays;
@@ -1038,15 +1039,10 @@ import javax.swing.JComponent;
     private boolean[] scaledHexFail, scaledPortFail;
 
     /**
-     * Dice number pictures (for the arrow; the hex dice numbers use
-     * {@link Graphics#drawString Graphics.drawString}).
-     * @see #DICE_SZ
+     * Arrow dice number bounding-box size in pixels; 24 x 24 square fits in the arrow.
+     * @see #drawArrow(Graphics, int, int)
      */
-    private static Image[] dice;
-
-    /** Dice number graphic size in pixels; fits in a 25 x 25 square.
-     *  @see #dice */
-    private static final int DICE_SZ = 25;
+    private static final int DICE_SZ = 24;
 
     /**
      * Coordinate arrays for drawing the playing pieces.
@@ -1097,6 +1093,21 @@ import javax.swing.JComponent;
      * @since 1.1.00
      */
     private int[] scaledArrowXL, scaledArrowXR, scaledArrowY;
+
+    /**
+     * Font for dice number in arrow. Is set in and cached for {@link #drawArrow(Graphics, int, int)}
+     * along with {@link #arrowDiceHeight}.
+     * @since 2.0.00
+     */
+    private Font arrowDiceFont;
+
+    /**
+     * Pixel height of text digits in the current {@link #arrowDiceFont}.
+     * Usually smaller than {@link FontMetrics#getAscent()}.
+     * Is set in and cached for {@link #drawArrow(Graphics, int, int)}.
+     * @since 2.0.00
+     */
+    private int arrowDiceHeight;
 
     /**
      * Hex polygon's corner coordinates, clockwise from top-center,
@@ -3820,7 +3831,6 @@ import javax.swing.JComponent;
 
             // top left
             arrowX = 3;  arrowY = 5;
-            diceX = 13;
             arrowLeft = true;
 
             break;
@@ -3829,7 +3839,6 @@ import javax.swing.JComponent;
 
             // top right
             arrowX = minSize.width - 40;  arrowY = 5;
-            diceX = minSize.width - 40;
             arrowLeft = false;
 
             break;
@@ -3838,7 +3847,6 @@ import javax.swing.JComponent;
 
             // bottom right
             arrowX = minSize.width - 40;  arrowY = minSize.height - 42;
-            diceX = minSize.width - 40;
             arrowLeft = false;
 
             break;
@@ -3847,7 +3855,6 @@ import javax.swing.JComponent;
 
             // bottom left
             arrowX = 3;  arrowY = minSize.height - 42;
-            diceX = 13;
             arrowLeft = true;
 
             break;
@@ -3856,7 +3863,6 @@ import javax.swing.JComponent;
 
             // middle right
             arrowX = minSize.width - 40;  arrowY = minSize.height / 2 - 12;
-            diceX = minSize.width - 40;
             arrowLeft = false;
             break;
 
@@ -3864,12 +3870,12 @@ import javax.swing.JComponent;
 
             // middle left
             arrowX = 3;  arrowY = minSize.height / 2 - 12;
-            diceX = 13;
             arrowLeft = true;
             break;
         }
 
-        diceY = arrowY + 5;
+        diceX = (arrowLeft) ? 12 : minSize.width - 39;
+        diceY = arrowY + 6;
 
         /**
          * Draw Arrow
@@ -3903,15 +3909,43 @@ import javax.swing.JComponent;
          */
         if ((diceResult >= 2) && (gameState != SOCGame.ROLL_OR_CARD) && (gameState != SOCGame.SPECIAL_BUILDING))
         {
+            final int boxSize;  // bounding box around dice-number digit(s)
             if (isScaled)
             {
-                // Dice number is not scaled, but arrow is.
-                // Move to keep centered in arrow.
-                int adj = (scaleToActual(DICE_SZ) - DICE_SZ) / 2;
-                diceX = scaleToActual(diceX) + adj;
-                diceY = scaleToActual(diceY) + adj;
+                boxSize = scaleToActual(DICE_SZ);
+                diceX = scaleToActual(diceX);
+                diceY = scaleToActual(diceY);
+            } else {
+                boxSize = DICE_SZ;
             }
-            g.drawImage(dice[diceResult], diceX, diceY, this);
+            final int fontSize = 4 * boxSize / 5;  // 80%
+
+            boolean needHeight = false;
+            if ((arrowDiceFont == null) || (arrowDiceFont.getSize() != fontSize))
+            {
+                arrowDiceFont = new Font("Dialog", Font.BOLD, fontSize);
+                needHeight = true;
+            }
+            final Font prevFont = g.getFont();
+            g.setFont(arrowDiceFont);
+            if (needHeight)
+            {
+                if (g instanceof Graphics2D)
+                {
+                    final TextLayout tl
+                        = new TextLayout("1234567890", arrowDiceFont, ((Graphics2D) g).getFontRenderContext());
+                    arrowDiceHeight = (int) tl.getBounds().getHeight();
+                } else {
+                    arrowDiceHeight = g.getFontMetrics().getAscent();  // usually taller than actual height of digits
+                }
+            }
+            final FontMetrics fm = g.getFontMetrics();
+            diceY += boxSize;  // text baseline at bottom of box; will move up (-y) to vertically center
+
+            final String dstr = Integer.toString(diceResult);
+            final int diceW = fm.stringWidth(dstr);
+            g.drawString(dstr, diceX + (boxSize - diceW) / 2, diceY - (boxSize - arrowDiceHeight) / 2);
+            g.setFont(prevFont);
         }
     }
 
@@ -6907,7 +6941,7 @@ import javax.swing.JComponent;
     }
 
     /**
-     * Load the images for the board: {@link #hexes}, {@link #rotatHexes}, and {@link #dice}.
+     * Load the images for the board: {@link #hexes} and {@link #rotatHexes}.
      * Loads all hex types, up through {@link SOCBoardLarge#FOG_HEX},
      * because {@link #hexes} is static for all boards and all game options.
      * @param c  Our component, to load image resource files with getToolkit and getResource
@@ -6929,15 +6963,8 @@ import javax.swing.JComponent;
             MediaTracker tracker = new MediaTracker(c);
 
             hexes = new Image[11];  // water, desert, 5 resources, gold, fog, hex border mask, 3:1 port
-            dice = new Image[14];
 
             loadHexesAndImages(hexes, IMAGEDIR, tracker, tk, clazz, false);
-
-            for (int i = 2; i < 13; i++)
-            {
-                dice[i] = tk.getImage(clazz.getResource(IMAGEDIR + "/dice" + i + ".gif"));
-                tracker.addImage(dice[i], 0);
-            }
 
             try
             {
