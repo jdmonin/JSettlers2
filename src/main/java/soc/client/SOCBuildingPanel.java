@@ -40,14 +40,17 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
-import java.awt.GraphicsEnvironment;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Insets;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
@@ -67,44 +70,6 @@ import javax.swing.SwingConstants;
 {
     /** i18n text strings */
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
-
-    /**
-     * The piece-cost "arrow": BLACK LEFT-POINTING TRIANGLE (U+25C0); since unicode 1.1 (june 1993).
-     * @see #hasTestedArrowFont
-     * @since 2.0.00
-     */
-    private static final String COSTS_LEFT_ARROW_UNICODE = "◀";
-
-    /**
-     * If true, constructor has tested whether the cost "arrow" labels can use the unicode
-     * left-pointing triangle {@link #COSTS_LEFT_ARROW_UNICODE}, or if a fallback is needed.
-     * Some older OSes (for example, windows xp) can't display the unicode left arrow in their dialog font.
-     * If true, then {@link #arrowIsAsciiFallback} and {@link #arrowFallbackFont} can be used.
-     * If false, {@link #checkArrowForFontFallback(Font)} should test and initialize those fields
-     * for the constructor.
-     * @since 2.0.00
-     */
-    private static boolean hasTestedArrowFont = false;
-
-    /**
-     * If true, cost "arrow" labels should use {@code "<-"} instead of the unicode left-pointing arrow.
-     *<P>
-     * Do not read this field unless {@link #hasTestedArrowFont}.
-     * @see #arrowFallbackFont
-     * @since 2.0.00
-     */
-    private static boolean arrowIsAsciiFallback = false;
-
-    /**
-     * If non-null, cost "arrow" labels should use this fallback font instead of Dialog.
-     * For example, old Windows versions may need Lucida Sans Unicode to display the arrow glyph
-     * {@link #COSTS_LEFT_ARROW_UNICODE}.
-     *<P>
-     * Do not read this field unless {@link #hasTestedArrowFont}.
-     * @see #arrowIsAsciiFallback
-     * @since 2.0.00
-     */
-    private static Font arrowFallbackFont = null;
 
     static final String ROAD = "road";  // I18N: These are internal command labels, not user-visible strings
     static final String STLMT = "stlmt";  // Build Settlement
@@ -135,16 +100,16 @@ import javax.swing.SwingConstants;
     GameStatisticsFrame statsFrame;
 
     JLabel roadT;  // text
-    JLabel roadC;  // cost arrow
+    ArrowheadPanel roadC;  // cost arrow
     final ColorSquare[] roadSq;  // displayed cost
     JLabel settlementT;  // text
-    JLabel settlementC;  // cost arrow
+    ArrowheadPanel settlementC;  // cost arrow
     final ColorSquare[] settlementSq;  // displayed cost
     JLabel cityT;
-    JLabel cityC;
+    ArrowheadPanel cityC;
     final ColorSquare[] citySq;
     JLabel cardT;
-    JLabel cardC;
+    ArrowheadPanel cardC;
     JLabel cardCountLab;
     private JLabel vpToWinLab;  // null unless hasSeaBoard or vp != 10; @since 1.1.14
     final ColorSquare[] cardSq;
@@ -167,7 +132,7 @@ import javax.swing.SwingConstants;
 
     // Large Sea Board Ship button; @since 2.0.00
     private JLabel shipT;  // text
-    private JLabel shipC;  // cost
+    private ArrowheadPanel shipC;  // cost
     private final ColorSquare[] shipSq;
 
     /**
@@ -255,16 +220,13 @@ import javax.swing.SwingConstants;
            add(title);
          */
 
-        if (! hasTestedArrowFont)
-            checkArrowForFontFallback(panelFont);
-
-        final String costsLeftArrow = (arrowIsAsciiFallback) ? "<-" : COSTS_LEFT_ARROW_UNICODE;
+        final int costsH = 10 * pi.displayScale - 1, costsW = 7 * pi.displayScale - 1;
+        final String costsTooltip = strings.get("build.cost_to_build");  // "Cost to Build"
 
         roadT = new JLabel(strings.get("build.road"));  // "Road: "
         roadT.setToolTipText(strings.get("build.road.vp"));  // "0 VP  (longest road = 2 VP)"
         add(roadT);
-        roadC = new JLabel(costsLeftArrow);
-        roadC.setToolTipText(strings.get("build.cost_to_build"));  // "Cost to Build"
+        roadC = new ArrowheadPanel(costsW, costsH, costsTooltip, this);
         add(roadC);
         roadSq = makeCostSquares(SOCRoad.COST);
         roadBut = new JButton("---");
@@ -277,8 +239,7 @@ import javax.swing.SwingConstants;
         settlementT = new JLabel(strings.get("build.settlement"));  // "Settlement: "
         settlementT.setToolTipText(strings.get("build.1.vp"));  // "1 VP"
         add(settlementT);
-        settlementC = new JLabel(costsLeftArrow);
-        settlementC.setToolTipText(strings.get("build.cost_to_build"));  // "Cost to Build"
+        settlementC = new ArrowheadPanel(costsW, costsH, costsTooltip, this);
         add(settlementC);
         settlementSq = makeCostSquares(SOCSettlement.COST);
         settlementBut = new JButton("---");
@@ -290,8 +251,7 @@ import javax.swing.SwingConstants;
         cityT = new JLabel(strings.get("build.city"));  // "City: "
         cityT.setToolTipText(strings.get("build.city.vp"));  // "2 VP  (receives 2x rsrc.)"
         add(cityT);
-        cityC = new JLabel(costsLeftArrow);
-        cityC.setToolTipText(strings.get("build.cost_to_build"));
+        cityC = new ArrowheadPanel(costsW, costsH, costsTooltip, this);
         add(cityC);
         citySq = makeCostSquares(SOCCity.COST);
         cityBut = new JButton("---");
@@ -314,8 +274,7 @@ import javax.swing.SwingConstants;
         cardT = new JLabel(strings.get("build.dev.card"));  // "Dev Card: "
         cardT.setToolTipText(/*I*/"? VP  (largest army = 2 VP) "/*18N*/);
         add(cardT);
-        cardC = new JLabel(costsLeftArrow);
-        cardC.setToolTipText(strings.get("build.cost_to_build"));
+        cardC = new ArrowheadPanel(costsW, costsH, costsTooltip, this);
         add(cardC);
         cardSq = makeCostSquares(SOCDevCard.COST);
         cardBut = new JButton("---");
@@ -340,8 +299,7 @@ import javax.swing.SwingConstants;
             shipT = new JLabel(strings.get("build.ship"), SwingConstants.LEFT);  // "Ship: "
             shipT.setToolTipText(strings.get("build.ship.vp"));  // "0 VP  (longest route = 2 VP)"
             add(shipT);
-            shipC = new JLabel(costsLeftArrow);
-            shipC.setToolTipText(strings.get("build.cost_to_build"));
+            shipC = new ArrowheadPanel(costsW, costsH, costsTooltip, this);
             add(shipC);
             shipSq = makeCostSquares(SOCShip.COST);
             shipBut = new JButton("---");
@@ -477,7 +435,6 @@ import javax.swing.SwingConstants;
         // to not cut off wide button text, remove button margin since we're using custom layout anyway
         final int pix2 = 2 * pi.displayScale;
         Insets minMargin = new Insets(pix2, pix2, pix2, pix2);
-        final Font arrowFont = (arrowFallbackFont != null) ? arrowFallbackFont : panelFont;
         for (Component co : getComponents())
         {
             if (! ((co instanceof JLabel) || (co instanceof JButton)))
@@ -486,64 +443,12 @@ import javax.swing.SwingConstants;
             co.setFont(panelFont);
             if (co instanceof JLabel)
             {
-                if (costsLeftArrow.equals(((JLabel) co).getText()))
-                    co.setFont(arrowFont);
-                else
-                    ((JLabel) co).setVerticalAlignment(JLabel.TOP);
+                ((JLabel) co).setVerticalAlignment(JLabel.TOP);
             } else {
                 ((JButton) co).setMargin(minMargin);
                 co.setBackground(null);  // required for win32 to avoid gray corners on JButton
             }
         }
-    }
-
-    /**
-     * For constructor, test {@code panelFont} glyphs and set {@link #hasTestedArrowFont}
-     * and possibly {@link #arrowIsAsciiFallback} or {@link #arrowFallbackFont}:
-     * Tests whether the cost "arrow" labels can use {@link #COSTS_LEFT_ARROW_UNICODE}
-     * or will need to use a fallback instead.
-     * @param panelFont Dialong font used for the SOCBuildingPanel being constructed
-     * @since 2.0.00
-     */
-    private static void checkArrowForFontFallback(final Font panelFont)
-    {
-        if (hasTestedArrowFont)
-            return;
-
-        if (! panelFont.canDisplay(COSTS_LEFT_ARROW_UNICODE.codePointAt(0)))
-        {
-            // win98,winNT and newer include Lucida Sans Unicode which has that triangle
-            Font lucidaFont = null;
-            System.err.println("info: SOCBuildingPanel: dialog font can't display unicode arrow");
-            for (Font f : GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts())
-            {
-                if (f.getFontName().equalsIgnoreCase("Lucida Sans Unicode"))
-                {
-                    lucidaFont = f.deriveFont(panelFont.getSize2D());  // float to avoid calling deriveFont(int style)
-                    break;
-                }
-            }
-
-            if (lucidaFont != null)
-            {
-                if (lucidaFont.canDisplay(COSTS_LEFT_ARROW_UNICODE.codePointAt(0)))
-                {
-                    System.err.println("-> got fallback font Lucida Sans Unicode");
-                    arrowFallbackFont = lucidaFont;
-                } else {
-                    System.err.println("and neither can fallback font");
-                    lucidaFont = null;
-                }
-            }
-
-            if (lucidaFont == null)
-            {
-                System.err.println("-> couldn't get fallback font; using ascii arrow");
-                arrowIsAsciiFallback = true;
-            }
-        }
-
-        hasTestedArrowFont = true;
     }
 
     /**
@@ -569,7 +474,8 @@ import javax.swing.SwingConstants;
         final int rowSpaceH = lineH / 2;
         final int sqWidth = ColorSquare.WIDTH * pi.displayScale;
         final int margin = 2 * pi.displayScale;
-        final int costW = fm.stringWidth(roadC.getText().trim());  // left arrow for Cost colorsquares
+        final int costW = roadC.getWidth() + pix1,  // left arrow for Cost colorsquares
+                  costDY = (lineH - roadC.getHeight()) / 2;  // delta-Y to center Costs within lineH
         final int butW = 62 * pi.displayScale;   // all Build buttons
 
         final int roadTW = fm.stringWidth(roadT.getText()),
@@ -594,8 +500,7 @@ import javax.swing.SwingConstants;
         roadBut.setLocation(buttonMargin, curY);
 
         curX = buttonMargin + butW + pix1;
-        roadC.setSize(costW, lineH);
-        roadC.setLocation(curX, curY);
+        roadC.setLocation(curX, curY + costDY);
         curX += costW + margin;
         curX = layoutCostSquares(roadSq, curX, curY);  // 2 squares
 
@@ -611,8 +516,7 @@ import javax.swing.SwingConstants;
             shipBut.setSize(butW, lineH);
             shipBut.setLocation(curX, curY);
             curX += butW + pix1;
-            shipC.setSize(costW, lineH);
-            shipC.setLocation(curX, curY);
+            shipC.setLocation(curX, curY + costDY);
             curX += costW + margin;
             layoutCostSquares(shipSq, curX, curY);  // 2 squares
         }
@@ -625,8 +529,7 @@ import javax.swing.SwingConstants;
         settlementBut.setLocation(buttonMargin, curY);
 
         curX = buttonMargin + butW + pix1;
-        settlementC.setSize(costW, lineH);
-        settlementC.setLocation(curX, curY);
+        settlementC.setLocation(curX, curY + costDY);
         curX += costW + margin;
         curX = layoutCostSquares(settlementSq, curX, curY);  // 4 squares
 
@@ -657,8 +560,7 @@ import javax.swing.SwingConstants;
         cityBut.setLocation(buttonMargin, curY);
 
         curX = buttonMargin + butW + pix1;
-        cityC.setSize(costW, lineH);
-        cityC.setLocation(curX, curY);
+        cityC.setLocation(curX, curY + costDY);
         curX += costW + margin;
         curX = layoutCostSquares(citySq, curX, curY);  // 2 squares
 
@@ -689,8 +591,7 @@ import javax.swing.SwingConstants;
         cardBut.setLocation(buttonMargin, curY);
 
         curX = buttonMargin + butW + pix1;
-        cardC.setSize(costW, lineH);
-        cardC.setLocation(curX, curY);
+        cardC.setLocation(curX, curY + costDY);
         curX += costW + margin;
         curX = layoutCostSquares(cardSq, curX, curY);  // 3 squares
 
@@ -1235,5 +1136,48 @@ import javax.swing.SwingConstants;
 
     /** Required stub for {@link WindowListener} */
     public void windowDeactivated(WindowEvent e) {}
+
+    /**
+     * Contains a left-pointing arrowhead (a triangle) that fills its height and width.
+     * Found to be more reliable than a JLabel with a Unicode arrowhead, espcially with displayScale > 1.
+     * @since 2.0.00
+     */
+    private static class ArrowheadPanel extends JComponent
+    {
+        /** Create a new ArrowheadPanel, taking another component's background and foreground colors. */
+        public ArrowheadPanel
+            (final int width, final int height, final String tooltipText, final Component colorsFrom)
+        {
+            setOpaque(true);
+            setBackground(colorsFrom.getBackground());
+            setForeground(colorsFrom.getForeground());
+            if (tooltipText != null)
+                setToolTipText(tooltipText);
+
+            final Dimension initSize = new Dimension(width, height);
+            setSize(initSize);
+            setMinimumSize(initSize);
+            setPreferredSize(initSize);
+        }
+
+        @Override
+        public void paintComponent(Graphics g)
+        {
+            Insets ins = getInsets();
+            final int x = ins.left,
+                      y = ins.top,
+                      w = getWidth() - x - ins.right,
+                      h = getHeight() - y - ins.bottom;
+            g.setColor(getBackground());
+            g.fillRect(x, y, w, h);
+            if (g instanceof Graphics2D)
+                ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            int[] xp = { x, x + w, x + w };
+            int[] yp = { h/2 + y, y, y + h };
+            g.setColor(getForeground());
+            g.fillPolygon(xp, yp, 3);
+        }
+
+    }  // nested class ArrowheadPanel
 
 }
