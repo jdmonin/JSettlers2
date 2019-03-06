@@ -309,7 +309,7 @@ On most recent and less-recent OSX and Windows; oldest JRE (java 6) and a new JR
     - Run as usual (auto-detect resolution) on a low-DPI and a high-DPI display if available
 	- Override runs, using jvm property `-Djsettlers.uiScale=1` and again using `-Djsettlers.uiScale=2`
 - Persistent user prefs (sound, auto-reject bot offer, window size)  
-  Then, re-run to check default size with `-Djsettlers.debug.clear_prefs=PI_width,PI_height`
+  Then, re-run to check default size with jvm property `-Djsettlers.debug.clear_prefs=PI_width,PI_height`
 - SQLite database setup, from instructions in [Database.md](Database.md)
 
 ## Instructions and Setup

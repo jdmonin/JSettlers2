@@ -33,6 +33,7 @@ and pull requests can be posted at the github page.
 
 -  Documentation
 -  Requirements
+-  Client Command Line
 -  Server Setup and Testing
 -  Shutting down the server
 -  Installing a JSettlers Server
@@ -77,6 +78,25 @@ because you know everyone will have the same version.
 To build JSettlers from source, you will need Java JDK 6 or newer and gradle,
 or an IDE such as Eclipse which understands gradle's format.
 See [doc/Readme.developer.md](doc/Readme.developer.md) for details.
+
+
+## Client Command Line
+
+Running the client with no parameters is the same as double-clicking it:  
+`java -jar JSettlers-full.jar` will bring up a window with options to
+connect to a server, practice against bots (no network needed), or start
+a server for others to connect to.
+
+To connect directly to a server, give its host and port number:  
+`java -jar JSettlers-full.jar myserver.example.com 8880`
+
+If your screen is High-DPI, JSettlers should automatically detect that
+instead of running in a very small window. If detection fails for some
+reason, ask for High-DPI support this way:  
+`java -Djsettlers.uiScale=2 -jar JSettlers-full.jar`
+
+Also available: `--help`, `--version`, and various debugging flags
+listed in [doc/Readme.developer.md](doc/Readme.developer.md).
 
 
 ## Server Setup and Testing
