@@ -877,6 +877,8 @@ import javax.swing.UIManager;
         bankUndoBut.addActionListener(this);
         bankUndoBut.setEnabled(false);
         add(bankUndoBut);
+        if (interactive)
+            bankUndoBut.setToolTipText(strings.get("hpan.trade.undo.tip"));  // "Undo the most recent Bank Trade"
 
         if (playerTradingDisabled)
         {
