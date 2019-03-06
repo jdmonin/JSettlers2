@@ -3481,7 +3481,8 @@ import javax.swing.UIManager;
                 sitW = 24 * displayScale + fm.stringWidth(sitBut.getText());
             }
 
-            sitBut.setBounds((dim.width - sitW) / 2, (dim.height - (82 * displayScale)) / 2, sitW, 40 * displayScale);
+            sitBut.setBounds((dim.width - sitW) / 2, (dim.height - (55 * displayScale)) / 2, sitW, 40 * displayScale);
+                // slightly above center: when truly centered, looks too low
             pname.setHorizontalAlignment(SwingConstants.CENTER);
             pname.setBounds(inset, inset, dim.width - (2*inset), lineH);
         }
