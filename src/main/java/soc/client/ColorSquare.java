@@ -18,12 +18,15 @@
  **/
 package soc.client;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.Stroke;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
@@ -989,10 +992,18 @@ public class ColorSquare extends JComponent implements MouseListener
 
                     if (boolValue)
                     {
+                        final boolean wantWide = (g instanceof Graphics2D) && (squareW >= (2 * WIDTH));
+                        final Stroke origStroke = (wantWide) ? ((Graphics2D) g).getStroke() : null;
+                        if (wantWide)
+                            ((Graphics2D) g).setStroke(new BasicStroke(squareW / (float) WIDTH));
+
                         int checkX = squareW / 5;
                         int checkY = squareH / 4;
                         g.drawLine(checkX, 2 * checkY, 2 * checkX, 3 * checkY);
                         g.drawLine(2 * checkX, 3 * checkY, 4 * checkX, checkY);
+
+                        if (wantWide)
+                            ((Graphics2D) g).setStroke(origStroke);
                     }
 
                     break;
