@@ -2177,6 +2177,8 @@ public class SOCPlayerInterface extends Frame
                 // in a 6-player game.
                 invalidate();
                 doLayout();
+                repaint(hands[pn].getX(), 0, hands[pn].getWidth(), getHeight());
+                    // must repaint entire column's handpanels and wide borders
             }
         }
 
