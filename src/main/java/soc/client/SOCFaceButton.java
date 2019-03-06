@@ -50,6 +50,10 @@ import java.net.URL;
  * and Bordered (with associated {@link FaceChooserFrame}) for choosing a new face icon.
  * The two constructors correspond to the two modes.
  *
+ * <H3>High-DPI:</H3>
+ * Most of the JSettlers icons are blocky pixel art: Interpolation only makes them blurry.
+ * So this button scales them up without interpolation, big pixels and all.
+ *
  * @author Robert S. Thomas
  */
 @SuppressWarnings("serial")
@@ -443,7 +447,7 @@ import java.net.URL;
     }
 
     /**
-     * Draw the face. Will scale up if {@link SOCPlayerInterface#displayScale} > 1.
+     * Draw the face. If {@link SOCPlayerInterface#displayScale} > 1, will scale up without interpolation.
      */
     private void drawFace(Graphics g)
     {
@@ -488,8 +492,10 @@ import java.net.URL;
         } else {
             if (g instanceof Graphics2D)
             {
-                ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                ((Graphics2D) g).setRenderingHint
+                    (RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+                ((Graphics2D) g).setRenderingHint
+                    (RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);  // == OFF
             }
             int w = panelx, h = panely;
             if (offs != 0)
