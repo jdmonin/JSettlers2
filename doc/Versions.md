@@ -24,7 +24,7 @@ and backport minor new features until `2.0.00` is ready.
 	- Trade counter-offer: For legibility use light background color, not player color
 	- Bank trades: If server declines trade, don't enable Undo Trade button or clear Give/Get resources to 0
 	- When joining a game or chat channel, server sends a "recap" of recent player chat
-	- Game windows: Player name labels sans-serif for cleaner look
+	- Game windows: Show board as large as possible; player name labels sans-serif for cleaner look
 	- On OSX, set app name to JSettlers in menu bar
 	- Popups (AskDialog, etc) layout fine-tuned, can wrap multi-line text
 	- When deleting a game, remove from game list using exact match, not startsWith

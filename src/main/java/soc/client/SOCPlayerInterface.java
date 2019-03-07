@@ -3169,12 +3169,15 @@ public class SOCPlayerInterface extends Frame
             bMinW = bpMinSz.width;
             bMinH = bpMinSz.height;
         }
-        int bw = dim.width - ((16 + (2*SOCHandPanel.WIDTH_MIN)) * displayScale);  // As wide as possible
-        int bh = (int) ((bw * (long) bMinH) / bMinW);
         final int buildph = buildingPanel.getHeight();
         final int tfh = textInput.getHeight();
         final int pix4 = 4 * displayScale, pix8 = 8 * displayScale,
                   pix12 = 12 * displayScale, pix16 = 16 * displayScale;
+        int hpMinW = SOCHandPanel.WIDTH_MIN * displayScale;
+        if (hpMinW < (dim.width / 10))
+            hpMinW = dim.width / 10;  // at least 10% of window width
+        int bw = dim.width - (2 * hpMinW) - pix16;  // As wide as possible
+        int bh = (int) ((bw * (long) bMinH) / bMinW);
 
         if (bh > (dim.height - buildph - pix16 - (int)(5.5f * tfh)))
         {
@@ -3183,12 +3186,29 @@ public class SOCPlayerInterface extends Frame
             bh = dim.height - buildph - pix16 - (int)(5.5f * tfh);  // As tall as possible
             bw = (int) ((bh * (long) bMinW) / bMinH);
         }
-        int hw = (dim.width - bw - pix16) / 2;
-        int tah = dim.height - bh - buildph - tfh - pix16;
+
+        int hw = 0;   // each handpanel's width; height is hh
+        int tah = 0;  // textareas' height (not including tfh): calculated soon
 
         boolean canScaleBoard = (bw >= (1.15f * bMinW));
+
         if (canScaleBoard)
         {
+            // Now that we have minimum board height/width,
+            // make taller if possible
+            int spare = (dim.height - buildph - pix16 - (int)(5.5f * tfh)) - bh;
+            if (spare > 0)
+                bh += (2 * spare / 3);  // give 2/3 to boardpanel height, the rest to tah
+
+            // and wider if possible
+            spare = dim.width - (hpMinW * 2) - bw - pix16;
+            if (spare > 0)
+                bw += (4 * spare / 5);  // give 4/5 to boardpanel width, the rest to hw
+
+            tah = dim.height - bh - buildph - tfh - pix16;
+            hw = (dim.width - bw - pix16) / 2;
+
+            // Scale it
             try
             {
                 boardPanel.setBounds(i.left + hw + pix8, i.top + tfh + tah + pix8, bw, bh);
@@ -3198,6 +3218,7 @@ public class SOCPlayerInterface extends Frame
                 canScaleBoard = false;
             }
         }
+
         if (! canScaleBoard)
         {
             bw = bMinW;

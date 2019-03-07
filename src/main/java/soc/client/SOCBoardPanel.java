@@ -782,12 +782,23 @@ import javax.swing.JComponent;
      * from {@link #panelShiftBX}, {@link #panelShiftBY}. Updated in {@link #rescaleBoard(int, int, boolean)}
      * when called with {@code changedMargins == true} from {@link #flushBoardLayoutAndRepaint()}.
      *<P>
-     * Used for {@link #scaleToActual(int)} and {@link #scaleFromActual(int)}.
      * See {@link #unscaledPanelW} for unscaled (internal pixel) width.
+     * See {@link #scaledBoardW} for width within {@code scaledPanelW} containing board hexes from game data.
      *<P>
      * Before v2.0.00 these fields were {@code scaledPanelX, scaledPanelY}.
      */
     private int scaledPanelW, scaledPanelH;
+
+    /**
+     * The width in pixels within {@link #scaledPanelW} containing the board hexes from game data.
+     * If {@code scaledPanelW > scaledBoardW}, that margin will be filled by water hexes.
+     *<P>
+     * Used for {@link #scaleToActual(int)} and {@link #scaleFromActual(int)}:
+     * Scaling ratio is {@code #scaledBoardW} / {@link #unscaledPanelW}.
+     *
+     * @since 2.0.00
+     */
+    private int scaledBoardW;
 
     /**
      * <tt>panelMinBW</tt> and <tt>panelMinBH</tt> are the minimum width and height,
@@ -802,7 +813,7 @@ import javax.swing.JComponent;
      *<P>
      * Differs from {@link #minSize} because minSize takes {@link #isRotated} into account.
      *<P>
-     * Rescaling formulas use {@link #scaledPanelW} and {@link #unscaledPanelW} instead of these fields,
+     * Rescaling formulas use {@link #scaledBoardW} and {@link #unscaledPanelW} instead of these fields,
      * to avoid distortion from rotation or board size aspect ratio changes.
      * @since 1.1.08
      */
@@ -1518,6 +1529,7 @@ import javax.swing.JComponent;
 
         minSize = new Dimension(scaledPanelW, scaledPanelH);
         unscaledPanelW = scaledPanelW;
+        scaledBoardW = scaledPanelW;
         hasCalledSetSize = false;
         debugShowPotentials = new boolean[10];
 
@@ -2123,7 +2135,8 @@ import javax.swing.JComponent;
 
         // Resize
         super.setSize(newW, newH);
-        hasCalledSetSize = true;
+        if ((newW > 0) && (newH > 0))
+            hasCalledSetSize = true;
         repaint();
     }
 
@@ -2384,7 +2397,7 @@ import javax.swing.JComponent;
                     newH = h;
 
                 // Other fields will be updated below as needed by calling scaleToActual,
-                // which will use the new scaledPanelW:unscaledPanelW ratio
+                // which will use the new scaledBoardW:unscaledPanelW ratio
             }
         }
 
@@ -2393,6 +2406,17 @@ import javax.swing.JComponent;
          */
         scaledPanelW = newW;
         scaledPanelH = newH;
+
+        scaledBoardW = newW;  // for use in next scaleToActual call
+        isScaled = true;      // also needed for that call
+        if (scaleToActual(minSize.height) > newH)
+        {
+            // Using scaledPanelW:unscaledPanelW as a scaling ratio, newH wouldn't fit contents of board.
+            // So, calc ratio based on newH:minSize.height instead
+            float ratio = newH / (float) minSize.height;
+            scaledBoardW = (int) (ratio * minSize.width);
+        }
+
         isScaled = ((scaledPanelW != minSize.width) || (scaledPanelH != minSize.height));
         scaledAt = System.currentTimeMillis();
         isScaledOrRotated = (isScaled || isRotated);
@@ -2404,6 +2428,8 @@ import javax.swing.JComponent;
             panelMarginX = scaleToActual(panelMinBW - hexesWidth) / 2;  // take half, to center
             if (panelMarginX < (halfdeltaX / 4))  // also if negative (larger than panelMinBW)
                 panelMarginX = 0;
+            if (scaledBoardW < scaledPanelW)
+                panelMarginX += (scaledPanelW - scaledBoardW) / 2;
         }
         panelMarginX += scaleToActual(panelShiftBX);
         panelMarginY = scaleToActual(panelShiftBY);
@@ -2778,7 +2804,7 @@ import javax.swing.JComponent;
     {
         int[] xs = new int[orig.length];
         for (int i = orig.length - 1; i >= 0; --i)
-            xs[i] = (int) ((orig[i] * (long) scaledPanelW) / unscaledPanelW);
+            xs[i] = (int) ((orig[i] * (long) scaledBoardW) / unscaledPanelW);
         return xs;
     }
 
@@ -2798,7 +2824,7 @@ import javax.swing.JComponent;
             xr[i] = width - yorig[i];
         if (rescale)
             for (int i = yorig.length - 1; i >= 0; --i)
-                xr[i] = (int) ((xr[i] * (long) scaledPanelW) / unscaledPanelW);
+                xr[i] = (int) ((xr[i] * (long) scaledBoardW) / unscaledPanelW);
 
         return xr;
     }
@@ -2851,6 +2877,9 @@ import javax.swing.JComponent;
     /**
      * Set or clear a debug flag to show player 0's potential/legal coordinate sets.
      * Currently implemented only for the sea board layout ({@link SOCBoardLarge}).
+     * When turning on pieceType 2 (or all), prints some geometry info to {@link System#err};
+     * that's printed even if not using a sea board layout.
+     *
      * @param pieceType  Piece type; 0=road, 1=settle, 2=city, 3=ship;
      *         Use 8 for land hexes, 9 for nodes on board.  Or, -1 for all.
      *         See {@link #debugShowPotentials} javadoc for all values.
@@ -2889,7 +2918,7 @@ import javax.swing.JComponent;
             System.err.println
                 ("  Panel size (width, height): unscaled = "
                  + panelMinBW + "," + panelMinBH + ((isRotated) ? ", rotated" : "")
-                 + ", current = " + scaledPanelW + "," + scaledPanelH
+                 + ", current = " + scaledBoardW + " of " + scaledPanelW + "," + scaledPanelH
                  + ", margin (left, top) = " + panelMarginX + "," + panelMarginY
                  + ", unscaled shift (right, down) = " + panelShiftBX + "," + panelShiftBY);
             int w = playerInterface.getWidth(), h = playerInterface.getHeight();
@@ -3661,7 +3690,7 @@ import javax.swing.JComponent;
             final float[] dash = { hexPartWidth * 0.15f, hexPartWidth * 0.12f };  // length of dash/break
             ((Graphics2D) g).setStroke
                 (new BasicStroke
-                    ((1.5f * scaledPanelW) / panelMinBW, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
+                    ((1.5f * scaledBoardW) / panelMinBW, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
                      1.5f, dash, hexPartWidth * 0.1f));
             if (co == null)
                 co = playerInterface.getPlayerColor(playerNumber);
@@ -3828,64 +3857,50 @@ import javax.swing.JComponent;
         switch (pnum)
         {
         case 0:
-
             // top left
-            arrowX = 3;  arrowY = 5;
+            arrowY = scaleToActual(5);
             arrowLeft = true;
-
             break;
 
         case 1:
-
             // top right
-            arrowX = minSize.width - 40;  arrowY = 5;
+            arrowY = scaleToActual(5);
             arrowLeft = false;
-
             break;
 
         case 2:
-
             // bottom right
-            arrowX = minSize.width - 40;  arrowY = minSize.height - 42;
+            arrowY = scaledPanelH - scaleToActual(42);
             arrowLeft = false;
-
             break;
 
         default:  // 3: (Default prevents compiler var-not-init errors)
-
             // bottom left
-            arrowX = 3;  arrowY = minSize.height - 42;
+            arrowY = scaledPanelH - scaleToActual(42);
             arrowLeft = true;
-
             break;
 
         case 4:
-
             // middle right
-            arrowX = minSize.width - 40;  arrowY = minSize.height / 2 - 12;
+            arrowY = scaledPanelH / 2 - scaleToActual(12);
             arrowLeft = false;
             break;
 
         case 5:
-
             // middle left
-            arrowX = 3;  arrowY = minSize.height / 2 - 12;
+            arrowY = scaledPanelH / 2 - scaleToActual(12);
             arrowLeft = true;
             break;
         }
 
-        diceX = (arrowLeft) ? 12 : minSize.width - 39;
-        diceY = arrowY + 6;
+        arrowX = (arrowLeft) ? scaleToActual(3) : scaledPanelW - scaleToActual(40);
+        diceX = (arrowLeft) ? scaleToActual(12) : scaledPanelW - scaleToActual(39);
+        diceY = arrowY + scaleToActual(6);
 
         /**
          * Draw Arrow
          */
         final int gameState = game.getGameState();
-        if (isScaled)
-        {
-            arrowX = scaleToActual(arrowX);
-            arrowY = scaleToActual(arrowY);
-        }
         int[] scArrowX;
         if (arrowLeft)
             scArrowX = scaledArrowXL;
@@ -3909,15 +3924,7 @@ import javax.swing.JComponent;
          */
         if ((diceResult >= 2) && (gameState != SOCGame.ROLL_OR_CARD) && (gameState != SOCGame.SPECIAL_BUILDING))
         {
-            final int boxSize;  // bounding box around dice-number digit(s)
-            if (isScaled)
-            {
-                boxSize = scaleToActual(DICE_SZ);
-                diceX = scaleToActual(diceX);
-                diceY = scaleToActual(diceY);
-            } else {
-                boxSize = DICE_SZ;
-            }
+            final int boxSize = (isScaled) ? scaleToActual(DICE_SZ) : DICE_SZ;  // bounding box for dice-number digit(s)
             final int fontSize = 4 * boxSize / 5;  // 80%
 
             boolean needHeight = false;
@@ -5166,7 +5173,7 @@ import javax.swing.JComponent;
         if (! isScaled)
             return;
         for (int i = xa.length - 1; i >= 0; --i)
-            xa[i] = (int) ((xa[i] * (long) scaledPanelW) / unscaledPanelW);
+            xa[i] = (int) ((xa[i] * (long) scaledBoardW) / unscaledPanelW);
     }
 
     /**
@@ -5187,7 +5194,7 @@ import javax.swing.JComponent;
         if (! isScaled)
             return x;
         else
-            return (int) ((x * (long) scaledPanelW) / unscaledPanelW);
+            return (int) ((x * (long) scaledBoardW) / unscaledPanelW);
     }
 
     /**
@@ -5208,7 +5215,7 @@ import javax.swing.JComponent;
         if (! isScaled)
             return x;
         else
-            return (int) ((x * (long) unscaledPanelW) / scaledPanelW);
+            return (int) ((x * (long) unscaledPanelW) / scaledBoardW);
     }
 
     /**
