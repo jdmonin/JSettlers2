@@ -185,7 +185,7 @@ import javax.swing.SwingConstants;
      * Not scaled to {@link SOCPlayerInterface#displayScale}.
      * @since 1.1.08
      */
-    public static final int MINHEIGHT = 2 + (4 * ColorSquare.HEIGHT) + (3 * ColorSquare.HEIGHT / 2);
+    public static final int MINHEIGHT = 2 + (4 * ColorSquare.HEIGHT) + (3 * 4) + 2;  // rowSpaceH == 4
 
     /**
      * Client's player data.  Initially null; call setPlayer once seat is chosen.
@@ -468,12 +468,12 @@ import javax.swing.SwingConstants;
         final boolean hasLargeBoard = pi.getGame().hasSeaBoard;
         FontMetrics fm = this.getFontMetrics(this.getFont());
         final int pix1 = pi.displayScale;  // 1 pixel, scaled
-        int curY = pix1;
-        int curX;
-        final int lineH = ColorSquare.HEIGHT * pi.displayScale;
-        final int rowSpaceH = lineH / 2;
+        final int lineH = ColorSquare.HEIGHT * pi.displayScale;  // not including rowSpaceH
+        final int rowSpaceH = 4 * pi.displayScale;
         final int sqWidth = ColorSquare.WIDTH * pi.displayScale;
         final int margin = 2 * pi.displayScale;
+        int curY = margin;
+        int curX;
         final int costW = roadC.getWidth() + pix1,  // left arrow for Cost colorsquares
                   costDY = (lineH - roadC.getHeight()) / 2;  // delta-Y to center Costs within lineH
         final int butW = 62 * pi.displayScale;   // all Build buttons
