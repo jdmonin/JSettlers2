@@ -731,17 +731,16 @@ public class SOCPlayerInterface extends Frame
         /**
          * more initialization stuff
          */
-        int piHeight = HEIGHT_MIN_4PL, piWidth;
+        final Dimension boardExtraSize = boardPanel.getExtraSizeFromBoard();
+
+        int piHeight = HEIGHT_MIN_4PL;
         if ((is6player || game.hasSeaBoard) && IS_PLATFORM_WINDOWS)
             piHeight += 25;
-        piHeight *= displayScale;
+        piHeight = (piHeight + boardExtraSize.height) * displayScale;
         height_base = piHeight;
 
-        if (is6player || game.hasSeaBoard)
-            piWidth = (2 * SOCHandPanel.WIDTH_MIN) + 16 + boardPanel.getMinimumSize().width;
-        else
-            piWidth = WIDTH_MIN_4PL;
-        piWidth *= displayScale;
+        int piWidth = WIDTH_MIN_4PL;
+        piWidth = (piWidth + boardExtraSize.width) * displayScale;
         width_base = piWidth;
 
         // check window frame size preference if set
@@ -1265,13 +1264,10 @@ public class SOCPlayerInterface extends Frame
     {
         final Dimension siz = getSize();
         int w = siz.width, h = siz.height;
-        if ((width_base != (WIDTH_MIN_4PL * displayScale))
-            || (height_base != (HEIGHT_MIN_4PL * displayScale)))
-        {
-            // pref size is based on minimum board size, but this game's board is bigger
-            w = (w * WIDTH_MIN_4PL * displayScale) / width_base;
-            h = (h * HEIGHT_MIN_4PL * displayScale) / height_base;
-        }
+
+        Dimension boardExtraSize = boardPanel.getExtraSizeFromBoard();
+        w -= boardExtraSize.width;
+        h -= boardExtraSize.height;
 
         if ((w < 100) || (h < 100))
             return;  // sanity check

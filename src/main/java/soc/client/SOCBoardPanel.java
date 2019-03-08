@@ -152,21 +152,6 @@ import javax.swing.JComponent;
     private static String IMAGEDIR = "/resources/images";
 
     /**
-     * size of the whole panel, internal-pixels "scale".
-     * This constant may not reflect the current game board's minimum size:
-     * In board-internal coordinates, use {@link #panelMinBW} and {@link #panelMinBH} instead.
-     * For minimum acceptable size in on-screen pixels,
-     * call {@link #getMinimumSize()} instead of using PANELX and PANELY directly.
-     * For actual current size in screen pixels, see
-     * {@link #scaledPanelW} {@link #scaledPanelH};
-     * If {@link #isRotated()}, the minimum size swaps {@link #PANELX} and {@link #PANELY}.
-     * If 6-player board or Large/Sea Board, the minimum size is larger.
-     *<P>
-     * Left/top margins for {@link #isLargeBoard}: 0 for x, {@link #halfdeltaY} for y.
-     */
-    public static final int PANELX = 379, PANELY = 340;
-
-    /**
      * When {@link #isLargeBoard},
      * Minimum visual {@link SOCBoard#getBoardWidth()} = 18 for good-looking aspect ratio, and
      * enough width for {@link SOCBuildingPanel} contents below.
@@ -209,6 +194,7 @@ import javax.swing.JComponent;
      * @see #deltaY
      * @see #halfdeltaX
      * @see #HALF_HEXHEIGHT
+     * @see #HEXY_OFF_SLOPE_HEIGHT
      */
     private static final int halfdeltaY = 23;
 
@@ -292,6 +278,7 @@ import javax.swing.JComponent;
      * the height of the sloped top/bottom hex edges.
      * @since 2.0.00
      * @see #hexCornersY
+     * @see #halfdeltaY
      */
     private static final int HEXY_OFF_SLOPE_HEIGHT = 16;
 
@@ -660,8 +647,25 @@ import javax.swing.JComponent;
     private static final int HALF_HEXHEIGHT = 32;
 
     /**
+     * When using classic 4-player board, the width padding (unscaled internal-pixels) in {@link #PANELX}
+     * beyond {@link SOCBoard#WIDTH_VISUAL_ORIGINAL} * {@link #halfdeltaX}.
+     * @see #PANELPAD_LBOARD_RT
+     * @since 2.0.00
+     */
+    private static final int PANELPAD_CBOARD4_WIDTH = 1 + halfdeltaX;
+
+    /**
+     * When using classic 4-player board, the height padding (unscaled internal-pixels) in {@link #PANELY}
+     * beyond {@link SOCBoard#HEIGHT_VISUAL_ORIGINAL} * {@link #halfdeltaY} + {@link #HEXY_OFF_SLOPE_HEIGHT}.
+     * @see #PANELPAD_LBOARD_BTM
+     * @since 2.0.00
+     */
+    private static final int PANELPAD_CBOARD4_HEIGHT = 2;
+
+    /**
      * When {@link #isLargeBoard}, padding on right-hand side so pieces there are visible,
      * in internal coordinates (like {@link #panelMinBW}).
+     * @see #PANELPAD_CBOARD4_WIDTH
      * @since 2.0.00
      */
     private static final int PANELPAD_LBOARD_RT = HALF_HEXHEIGHT;
@@ -669,9 +673,27 @@ import javax.swing.JComponent;
     /**
      * When {@link #isLargeBoard}, padding on bottom side so pieces there are visible,
      * in internal coordinates (like {@link #panelMinBH}).
+     * @see #PANELPAD_CBOARD4_HEIGHT
      * @since 2.0.00
      */
     private static final int PANELPAD_LBOARD_BTM = HEXWIDTH / 4;
+
+    /**
+     * Default size of the whole panel, in unscaled internal pixels.
+     * This constant may not reflect the current game board's minimum size:
+     * In board-internal coordinates, use {@link #panelMinBW} and {@link #panelMinBH} instead.
+     * For minimum acceptable size in on-screen pixels,
+     * call {@link #getMinimumSize()} instead of using PANELX and PANELY directly.
+     * For actual current size in screen pixels, see
+     * {@link #scaledPanelW} {@link #scaledPanelH};
+     * If {@link #isRotated()}, the minimum size swaps {@link #PANELX} and {@link #PANELY}.
+     * If 6-player board or Large/Sea Board, the minimum size is larger.
+     *<P>
+     * Left/top margins for {@link #isLargeBoard} are 0 for x, {@link #halfdeltaY} for y.
+     */
+    public static final int
+        PANELX = SOCBoard.WIDTH_VISUAL_ORIGINAL * halfdeltaX + PANELPAD_CBOARD4_WIDTH,  // 379
+        PANELY = SOCBoard.HEIGHT_VISUAL_ORIGINAL * halfdeltaY + HEXY_OFF_SLOPE_HEIGHT + PANELPAD_CBOARD4_HEIGHT;  // 340
 
     /**
      * Diameter and font size (unscaled internal-pixels) for dice number circles on hexes.
@@ -1501,6 +1523,9 @@ import javax.swing.JComponent;
             isRotated = isScaledOrRotated = is6player;
         }
 
+        // Calc Board Size: scaledPanelW, scaledPanelH, panelMinBW, panelMinBH, etc.
+        // If these calcs change, also update getExtraSizeFromBoard()
+
         if (isRotated)
         {
             // scaledPanelW, scaledPanelH are on-screen minimum size.
@@ -2113,11 +2138,49 @@ import javax.swing.JComponent;
      * and {@link SOCBoard#getBoardHeight() .getBoardHeight()}.
      *
      * @return minimum size
+     * @see #getExtraSizeFromBoard()
      */
     @Override
     public Dimension getMinimumSize()
     {
         return minSize;
+    }
+
+    /**
+     * Get the amount of our current width and height that comes from the board being larger than
+     * the standard 4-player board size. Compares {@link SOCBoard#getBoardWidth()}, {@link SOCBoard#getBoardHeight()}
+     * against {@link SOCBoardPanel#BOARDWIDTH_VISUAL_MIN}, {@link SOCBoardPanel#BOARDHEIGHT_VISUAL_MIN}, and
+     * adjusts for SOCBoardPanel padding constants.
+     * @return extra size, in screen pixels
+     * @since 2.0.00
+     */
+    public Dimension getExtraSizeFromBoard()
+    {
+        // Based on constructor's size calcs for panelMinBW, panelMinBH
+
+        if (! isLargeBoard)
+        {
+            if (isRotated)
+                // standard 6pl
+                return new Dimension(scaleToActual(2 * deltaY), scaleToActual(halfdeltaY));
+            else
+                // standard 4pl
+                return new Dimension(0, 0);
+        }
+
+        int bh = board.getBoardHeight(), bw = board.getBoardWidth();
+        if (bh < BOARDHEIGHT_VISUAL_MIN)
+            bh = BOARDHEIGHT_VISUAL_MIN;
+        if (bw < BOARDWIDTH_VISUAL_MIN)
+            bw = BOARDWIDTH_VISUAL_MIN;
+
+        bh -= SOCBoard.HEIGHT_VISUAL_ORIGINAL;
+        bw -= SOCBoard.WIDTH_VISUAL_ORIGINAL;
+
+        return new Dimension
+            (scaleToActual((bw * halfdeltaX) - PANELPAD_CBOARD4_WIDTH + PANELPAD_LBOARD_RT),
+             scaleToActual((bh * halfdeltaY) - PANELPAD_CBOARD4_HEIGHT + PANELPAD_LBOARD_BTM));
+            // ignore HEXY_OFF_SLOPE_HEIGHT: it adds same amount to classic & sea board height
     }
 
     /**

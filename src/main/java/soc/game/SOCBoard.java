@@ -285,6 +285,20 @@ public abstract class SOCBoard implements Serializable, Cloneable
         FACING_SW = 4, FACING_W = 5, FACING_NW = 6;
 
     /**
+     * "Visual" width of original 4-player board, including ring of port hexes, in half-hex coordinate units.
+     * The original board uses a non-orthogonal coordinate system; see {@link #BOARD_ENCODING_ORIGINAL}.
+     * @since 2.0.00
+     */
+    public static final int WIDTH_VISUAL_ORIGINAL = 13;
+
+    /**
+     * "Visual" height of original 4-player board, including ring of port hexes, in half-hex coordinate units.
+     * The original board uses a non-orthogonal coordinate system; see {@link #BOARD_ENCODING_ORIGINAL}.
+     * @since 2.0.00
+     */
+    public static final int HEIGHT_VISUAL_ORIGINAL = 14;
+
+    /**
      * Board Encoding fields begin here
      * ------------------------------------------------------------------------------------
      */
@@ -2020,9 +2034,9 @@ public abstract class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Width of this board in coordinates (not in number of hexes across.)
+     * Width of this board in half-hex coordinate units (not in number of hexes across).
      * The maximum column coordinate.
-     * For the default size, see {@link #BOARD_ENCODING_ORIGINAL}.
+     * For the classic 4-player board, see also {@link #WIDTH_VISUAL_ORIGINAL}.
      * @since 1.1.06
      */
     public int getBoardWidth()
@@ -2031,9 +2045,9 @@ public abstract class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Height of this board in coordinates (not in number of hexes across.)
+     * Height of this board in half-hex coordinate units (not in number of hexes across).
      * The maximum row coordinate.
-     * For the default size, see {@link #BOARD_ENCODING_ORIGINAL}.
+     * For the classic 4-player board, see also {@link #HEIGHT_VISUAL_ORIGINAL}.
      * @since 1.1.06
      */
     public int getBoardHeight()
