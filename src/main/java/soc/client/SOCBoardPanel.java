@@ -182,10 +182,16 @@ import javax.swing.JComponent;
      */
     private static final int BOARDHEIGHT_VISUAL_MIN = 17;
 
-    /** How many pixels to drop for each row of hexes. @see #HEXHEIGHT */
+    /**
+     * How many pixels to drop for each row of hexes.
+     * @see #HEXHEIGHT
+     */
     private static final int deltaY = 46;
 
-    /** How many pixels to move over for a new hex. @see #HEXWIDTH */
+    /**
+     * How many pixels to move over for a new hex.
+     * @see #HEXWIDTH
+     */
     private static final int deltaX = 54;
 
     /**
@@ -841,7 +847,8 @@ import javax.swing.JComponent;
      * {@link #drawSettlement(Graphics, int, int, boolean, boolean)}, so those
      * pieces' methods can ignore the {@code panelMarginX} value.
      *<P>
-     * Used only when {@link #isLargeBoard} and not {@link #isRotated}, otherwise 0.
+     * Used only when not {@link #isRotated}, and either {@link #isLargeBoard} or
+     * {@link #scaledBoardW} &lt; {@link #scaledPanelW}; otherwise 0.
      * Updated in {@link #rescaleBoard(int, int, boolean)}.
      * @since 2.0.00
      */
@@ -4430,7 +4437,6 @@ import javax.swing.JComponent;
      */
     private void drawBoardEmpty(Graphics g)
     {
-        // ask for antialiasing if available
         if (g instanceof Graphics2D)
             ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
@@ -4469,13 +4475,18 @@ import javax.swing.JComponent;
             // these are outside the board coordinate system.
 
             boolean isRowOffset = isRotated;
-            for (int hy = -deltaY; hy < panelMinBH; hy += deltaY, isRowOffset = ! isRowOffset)
+            final int hxMin =
+                (panelMarginX <= 0) ? 0 : deltaX * (int) Math.floor(-scaleFromActual(panelMarginX) / (float) deltaX);
+            final int hxMax =
+                (scaledBoardW == scaledPanelW) ? panelMinBW : scaleFromActual(scaledPanelW - panelMarginX);
+            final int hyMax = scaleFromActual(scaledPanelH);  // often same as panelMinBH
+            for (int hy = -deltaY; hy < hyMax; hy += deltaY, isRowOffset = ! isRowOffset)
             {
-                int hx = 0;
+                int hx = hxMin;
                 if (isRowOffset)
                     hx -= halfdeltaX;
-                for (; hx < panelMinBW; hx += deltaX)
-                    if (0 == findHex(hx, hy))
+                for (; hx < hxMax; hx += deltaX)
+                    if ((hx < 0) || (hx >= panelMinBW) || (hy >= panelMinBH) || (0 == findHex(hx, hy)))
                         drawHex(g, hx, hy, SOCBoard.WATER_HEX, -1, -1);
             }
 
