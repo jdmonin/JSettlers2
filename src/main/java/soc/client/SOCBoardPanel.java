@@ -6258,7 +6258,7 @@ import javax.swing.JComponent;
 
                     ++hintShownCount_RightClickToBuild;
                     final String prompt =
-                        (SOCPlayerClient.isJavaOnOSX)
+                        (SOCPlayerClient.IS_PLATFORM_MAC_OSX)
                         ? "board.popup.hint_build_click.osx"
                             // "To build pieces, hold Control while clicking the build location."
                         : "board.popup.hint_build_click";  // "To build pieces, right-click the build location."

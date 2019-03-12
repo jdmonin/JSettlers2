@@ -947,7 +947,7 @@ import javax.swing.UIManager;
         final int msize = 2 * displayScale;
         final Insets minMargin = new Insets(msize, msize, msize, msize);
         final Font panelFont = getFont();
-        final Font buttonFont = ((displayScale > 1) && SOCPlayerClient.isJavaOnOSX)
+        final Font buttonFont = ((displayScale > 1) && SOCPlayerClient.IS_PLATFORM_MAC_OSX)
             ? panelFont.deriveFont(0.9f * panelFont.getSize2D())  // smaller buttons to avoid text cutoff/ellipsis
             : panelFont;
         for (Component co : getComponents())

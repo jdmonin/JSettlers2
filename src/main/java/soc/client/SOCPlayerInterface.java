@@ -919,7 +919,7 @@ public class SOCPlayerInterface extends Frame
         add(chatDisplay);
 
         textInput = new JTextField();
-        if (SOCPlayerClient.isJavaOnOSX)
+        if (SOCPlayerClient.IS_PLATFORM_MAC_OSX)
         {
             int px = displayScale;  // based on 1-pixel border
             textInput.setBorder(new EmptyBorder(px, px, px, px));  // avoid black background inside overly-thick border

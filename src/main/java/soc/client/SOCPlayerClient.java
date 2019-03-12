@@ -173,15 +173,19 @@ public class SOCPlayerClient
      * For use in password fields, and possibly by other places, detect if we're running on
      * Mac OS X.  To identify osx from within java, see technote TN2110:
      * http://developer.apple.com/technotes/tn2002/tn2110.html
+     *<P>
+     * Before v2.0.00 this field was {@code isJavaOnOSX}.
+     *
      * @since 1.1.07
      */
-    public static final boolean isJavaOnOSX;
+    public static final boolean IS_PLATFORM_MAC_OSX;
 
     /**
      * Is this a windows platform, according to {@link System#getProperty(String) System.getProperty("os.name")}?
      *<P>
      * Before v2.0.00 this field was {@code SOCPlayerInterface.SOCPI_isPlatformWindows}.
      *
+     * @see #IS_PLATFORM_MAC_OSX
      * @since 1.1.08
      */
     /*package*/ static final boolean IS_PLATFORM_WINDOWS;
@@ -189,18 +193,18 @@ public class SOCPlayerClient
     static {
         String osName = System.getProperty("os.name");
         IS_PLATFORM_WINDOWS = (osName != null) && (osName.toLowerCase().indexOf("windows") != -1);
-        isJavaOnOSX = (osName != null) && osName.toLowerCase().startsWith("mac os x");
+        IS_PLATFORM_MAC_OSX = (osName != null) && osName.toLowerCase().startsWith("mac os x");
     }
 
     static
     {
-        if (isJavaOnOSX)
+        if (IS_PLATFORM_MAC_OSX)
         {
             // Must set "OSX look and feel" items before calling any AWT code
             // or setting a platform look and feel.
 
             System.setProperty("apple.awt.application.name", "JSettlers");
-                // Required on OSX 10.7 or so and newer; works for java 6
+                // Required on OSX 10.7 or so and newer; works for apple java 6
             System.setProperty("com.apple.mrj.application.apple.menu.about.name", "JSettlers");
                 // Works for earlier OSX versions
         }
