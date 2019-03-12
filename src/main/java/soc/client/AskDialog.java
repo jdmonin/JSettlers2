@@ -317,16 +317,23 @@ public abstract class AskDialog extends JDialog
         getRootPane().setBackground(null);  // inherit
         getContentPane().setBackground(null);
 
+        final boolean isPlatformWindows = SOCPlayerClient.IS_PLATFORM_WINDOWS;
+
         choice1But = new JButton(choice1);
-        choice1But.setBackground(null);  // needed on win32 to avoid gray corners
+        if (isPlatformWindows)
+            choice1But.setBackground(null);  // needed on win32 to avoid gray corners
+
         if (choice2 != null)
         {
             choice2But = new JButton(choice2);
-            choice2But.setBackground(null);
+            if (isPlatformWindows)
+                choice2But.setBackground(null);
+
             if (choice3 != null)
             {
                 choice3But = new JButton(choice3);
-                choice3But.setBackground(null);
+                if (isPlatformWindows)
+                    choice3But.setBackground(null);
             } else {
                 choice3But = null;
             }

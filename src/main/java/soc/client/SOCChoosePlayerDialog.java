@@ -149,13 +149,15 @@ import javax.swing.SwingConstants;
 
         final SOCGame ga = pi.getGame();
 
+        final boolean isPlatformWindows = SOCPlayerClient.IS_PLATFORM_WINDOWS;
         for (int i = 0; i < num; i++)
         {
             SOCPlayer pl = ga.getPlayer(players[i]);
 
             buttons[i] = new JButton(pl.getName());
             buttons[i].addActionListener(this);
-            buttons[i].setBackground(null);  // inherit from panel: avoid gray corners on win32
+            if (isPlatformWindows)
+                buttons[i].setBackground(null);  // inherit from panel: avoid gray corners on win32
 
             final int rescount = pl.getResources().getTotal();
             final int vpcount = pl.getPublicVP();
@@ -177,7 +179,8 @@ import javax.swing.SwingConstants;
         if (allowChooseNone)
         {
             JButton bNone = new JButton(strings.get("base.none"));  // "None"
-            bNone.setBackground(null);
+            if (isPlatformWindows)
+                bNone.setBackground(null);
             buttons[num] = bNone;
 
             bNone.setToolTipText(strings.get("dialog.robchoose.choose.steal.no.player"));

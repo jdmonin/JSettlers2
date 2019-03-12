@@ -259,6 +259,8 @@ public abstract class SOCDialog
     public final static void styleButtonsAndLabels(final Container c)
     {
         final Font panelFont = c.getFont();
+        final boolean isPlatformWindows = SOCPlayerClient.IS_PLATFORM_WINDOWS;
+
         for (Component co : c.getComponents())
         {
             if (! ((co instanceof JLabel) || (co instanceof JButton)))
@@ -268,11 +270,11 @@ public abstract class SOCDialog
             {
                 co.setFont(panelFont);
                 co.setForeground(null);  // inherit panel's color
+                co.setBackground(null);
+            } else if (isPlatformWindows) {
+                co.setBackground(null);  // inherit panel's bg color; required on win32 to avoid gray corners on JButton
             }
-
-            co.setBackground(null);  // inherit panel's bg color; required for win32 to avoid gray corners on JButton
         }
-
     }
 
     /**

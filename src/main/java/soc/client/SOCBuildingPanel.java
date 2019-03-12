@@ -231,7 +231,7 @@ import javax.swing.SwingConstants;
         roadSq = makeCostSquares(SOCRoad.COST);
         roadBut = new JButton("---");
         roadBut.setEnabled(false);
-        // note: will each JButton.setBackground(null) at end of constructor
+        // note: will each JButton.setBackground(null) at end of constructor if IS_PLATFORM_WINDOWS
         add(roadBut);
         roadBut.setActionCommand(ROAD);
         roadBut.addActionListener(this);
@@ -413,7 +413,8 @@ import javax.swing.SwingConstants;
                 sbLab.setFont(panelFont);
                 sbBut = new JButton(strings.get("build.buybuild"));  // "Buy/Build"
             }
-            sbBut.setBackground(null);
+            if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+                sbBut.setBackground(null);
             sbBut.setFont(panelFont);
             sbBut.setEnabled(false);
             sbBut.setActionCommand(SBP);
@@ -434,7 +435,8 @@ import javax.swing.SwingConstants;
         // make all labels and buttons use panel's font and background color;
         // to not cut off wide button text, remove button margin since we're using custom layout anyway
         final int pix2 = 2 * pi.displayScale;
-        Insets minMargin = new Insets(pix2, pix2, pix2, pix2);
+        final Insets minMargin = new Insets(pix2, pix2, pix2, pix2);
+        final boolean isPlatformWindows = SOCPlayerClient.IS_PLATFORM_WINDOWS;
         for (Component co : getComponents())
         {
             if (! ((co instanceof JLabel) || (co instanceof JButton)))
@@ -446,7 +448,8 @@ import javax.swing.SwingConstants;
                 ((JLabel) co).setVerticalAlignment(JLabel.TOP);
             } else {
                 ((JButton) co).setMargin(minMargin);
-                co.setBackground(null);  // required for win32 to avoid gray corners on JButton
+                if (isPlatformWindows)
+                    co.setBackground(null);  // required on win32 to avoid gray corners on JButton
             }
         }
     }

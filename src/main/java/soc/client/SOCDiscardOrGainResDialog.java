@@ -118,10 +118,13 @@ import javax.swing.SwingConstants;
         getRootPane().setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
 
         clearBut = new JButton(strings.get("base.clear"));
-        clearBut.setBackground(null);  // avoid gray corners on win32
         okBut = new JButton(strings.get(isDiscard ? "dialog.discard.discard" : "dialog.discard.pick"));
             // "Discard" or "Pick"
-        okBut.setBackground(null);
+        if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+        {
+            clearBut.setBackground(null);  // avoid gray corners on win32 JButtons
+            okBut.setBackground(null);
+        }
 
         // Resource panel: labels and colorsquares.
         // X-align must be same for all in BoxLayout

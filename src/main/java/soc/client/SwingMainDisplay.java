@@ -657,12 +657,15 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         pg = new JButton(strings.get("pcli.main.practice"));      // "Practice" -- "practice game" text is too wide
         gi = new JButton(strings.get("pcli.main.game.info"));     // "Game Info" -- show game options
 
-        // swing on win32 needs all JButtons to inherit their bgcolor from panel, or they get gray corners
-        ng.setBackground(null);
-        jc.setBackground(null);
-        jg.setBackground(null);
-        pg.setBackground(null);
-        gi.setBackground(null);
+        if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+        {
+            // swing on win32 needs all JButtons to inherit their bgcolor from panel, or they get gray corners
+            ng.setBackground(null);
+            jc.setBackground(null);
+            jg.setBackground(null);
+            pg.setBackground(null);
+            gi.setBackground(null);
+        }
 
         versionOrlocalTCPPortLabel = new JLabel();
         localTCPServerLabel = new JLabel();
@@ -773,7 +776,8 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         // bottom of message pane: practice-game button
         pgm = new JButton(strings.get("pcli.message.practicebutton"));  // "Practice Game (against robots)"
         pgm.setVisible(false);
-        pgm.setBackground(null);
+        if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+            pgm.setBackground(null);
         messagePane.add(pgm, BorderLayout.SOUTH);
         pgm.addActionListener(actionListener);
 

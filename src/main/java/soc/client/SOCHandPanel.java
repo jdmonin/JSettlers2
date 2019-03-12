@@ -950,6 +950,7 @@ import javax.swing.UIManager;
         final Font buttonFont = ((displayScale > 1) && SOCPlayerClient.IS_PLATFORM_MAC_OSX)
             ? panelFont.deriveFont(0.9f * panelFont.getSize2D())  // smaller buttons to avoid text cutoff/ellipsis
             : panelFont;
+        final boolean isPlatformWindows = SOCPlayerClient.IS_PLATFORM_WINDOWS;
         for (Component co : getComponents())
         {
             if (! ((co instanceof JLabel) || (co instanceof JButton)))
@@ -959,11 +960,15 @@ import javax.swing.UIManager;
                 co.setFont((co instanceof JButton) ? buttonFont : panelFont);
 
             if (co instanceof JLabel)
+            {
                 co.setForeground(null);  // inherit panel's color
-            else
+                co.setBackground(null);
+            } else {
                 ((JButton) co).setMargin(minMargin);
+                if (isPlatformWindows)
+                    co.setBackground(null);  // inherit panel's bg color; required on win32 to avoid gray corners
+            }
 
-            co.setBackground(null);  // inherit panel's bg color; required for win32 to avoid gray corners on JButton
         }
 
         // set the starting state of the panel

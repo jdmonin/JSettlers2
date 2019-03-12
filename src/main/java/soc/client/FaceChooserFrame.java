@@ -145,9 +145,13 @@ import soc.game.SOCGame;
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
         changeFaceBut = new JButton(strings.get("base.change"));
-        changeFaceBut.setBackground(null);  // avoid gray corners on win32
         cancelBut = new JButton(strings.get("base.cancel"));
-        cancelBut.setBackground(null);
+        if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+        {
+            // avoid gray corners on win32 JButtons
+            changeFaceBut.setBackground(null);
+            cancelBut.setBackground(null);
+        }
         setLayout (new BorderLayout());
 
         final int bsize = 4 * displayScale;
