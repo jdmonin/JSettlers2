@@ -415,13 +415,15 @@ import soc.util.Version;
             cancel.addKeyListener(this);  // for win32 keyboard-focus
         }
         cancel.addActionListener(this);
-        cancel.setBackground(null);  // needed on win32 to avoid gray corners
+        if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+            cancel.setBackground(null);  // needed on win32 to avoid gray corners
         btnPan.add(cancel);
 
         if (! readOnly)
         {
             create = new JButton(strings.get("game.options.oknew"));  // "Create Game"
-            create.setBackground(null);
+            if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+                create.setBackground(null);
             create.addActionListener(this);
             create.addKeyListener(this);
             create.setEnabled(! readOnly);
@@ -635,7 +637,8 @@ import soc.util.Version;
                 gbl.setConstraints(blank, gbc);
                 bp.add(blank);
                 scenInfo = new JButton(strings.get("game.options.scenario.info_btn"));  // "Scenario Info..."
-                scenInfo.setBackground(null);  // inherit from parent; needed on win32 to avoid gray corners
+                if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+                    scenInfo.setBackground(null);  // inherit from parent; needed on win32 to avoid gray corners
                 scenInfo.addActionListener(this);
                 scenInfo.addKeyListener(this);
                 scenInfo.setEnabled(sel != 0);  // disable if "(none)" is selected scenario option

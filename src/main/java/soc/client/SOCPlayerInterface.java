@@ -152,19 +152,6 @@ public class SOCPlayerInterface extends Frame
     private static final SOCStringManager strings = SOCStringManager.getClientManager();
 
     /**
-     * Is this a windows platform, according to {@link System#getProperty(String) System.getProperty("os.name")}?
-     *<P>
-     * Before v2.0.00 this field was {@code SOCPI_isPlatformWindows}.
-     *
-     * @since 1.1.08
-     */
-    private static final boolean IS_PLATFORM_WINDOWS;
-    static {
-        String osName = System.getProperty("os.name");
-        IS_PLATFORM_WINDOWS = (osName != null) && (osName.toLowerCase().indexOf("windows") != -1);
-    }
-
-    /**
      * Minimum frame width calculated in constructor from this game's player count and board,
      * based on {@link #WIDTH_MIN_4PL} and {@link #displayScale}.
      * Updated only in {@link #updateAtNewBoard()} if board layout part
@@ -734,7 +721,7 @@ public class SOCPlayerInterface extends Frame
         final Dimension boardExtraSize = boardPanel.getExtraSizeFromBoard();
 
         int piHeight = HEIGHT_MIN_4PL;
-        if ((is6player || game.hasSeaBoard) && IS_PLATFORM_WINDOWS)
+        if ((is6player || game.hasSeaBoard) && SOCPlayerClient.IS_PLATFORM_WINDOWS)
             piHeight += 25;
         piHeight = (piHeight + boardExtraSize.height) * displayScale;
         height_base = piHeight;
@@ -1010,7 +997,7 @@ public class SOCPlayerInterface extends Frame
          */
         if (is6player)
         {
-            if (IS_PLATFORM_WINDOWS)
+            if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
             {
                 sbFixNeeded = true;
                 hands[0].addMouseListener(this);  // upper-left

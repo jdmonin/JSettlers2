@@ -175,8 +175,23 @@ public class SOCPlayerClient
      * http://developer.apple.com/technotes/tn2002/tn2110.html
      * @since 1.1.07
      */
-    public static final boolean isJavaOnOSX =
-        System.getProperty("os.name").toLowerCase().startsWith("mac os x");
+    public static final boolean isJavaOnOSX;
+
+    /**
+     * Is this a windows platform, according to {@link System#getProperty(String) System.getProperty("os.name")}?
+     *<P>
+     * Before v2.0.00 this field was {@code SOCPlayerInterface.SOCPI_isPlatformWindows}.
+     *
+     * @since 1.1.08
+     */
+    /*package*/ static final boolean IS_PLATFORM_WINDOWS;
+
+    static {
+        String osName = System.getProperty("os.name");
+        IS_PLATFORM_WINDOWS = (osName != null) && (osName.toLowerCase().indexOf("windows") != -1);
+        isJavaOnOSX = (osName != null) && osName.toLowerCase().startsWith("mac os x");
+    }
+
     static
     {
         if (isJavaOnOSX)
