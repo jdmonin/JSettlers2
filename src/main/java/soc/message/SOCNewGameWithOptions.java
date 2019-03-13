@@ -79,27 +79,6 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
               Integer.toString(minVers),
               ((optstr != null) && (optstr.length() > 0) ? optstr : "-"));
         gameMinVers = minVers;
-        // p1 = minVers
-        // p2 = optstr
-    }
-
-    /**
-     * Create a SOCNewGameWithOptions message.
-     *
-     * @param ga  the name of the game; may have the
-     *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
-     *            minVers also designates if the game is joinable.
-     * @param opts The game's {@link SOCGameOption}s, or null
-     * @param minVers Minimum client version for this game, or -1.
-     *                Ignored if sent from client to server. Calculated at
-     *                server and sent out to all clients.
-     * @see #SOCNewGameWithOptions(String, Map, int, int)
-     */
-    public SOCNewGameWithOptions(final String ga, final Map<String,SOCGameOption> opts, final int minVers)
-    {
-        this(ga, SOCGameOption.packOptionsToString(opts, false), minVers);
-        // p1 = minVers
-        // p2 = optstr
     }
 
     /**
@@ -121,8 +100,6 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
         (final String ga, final Map<String,SOCGameOption> opts, final int minVers, final int cliVers)
     {
         this(ga, SOCGameOption.packOptionsToString(opts, false, cliVers), minVers);
-        // p1 = minVers
-        // p2 = optstr, adjusted if necessary
     }
 
     /**
