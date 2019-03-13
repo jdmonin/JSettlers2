@@ -108,7 +108,7 @@ import javax.swing.SwingConstants;
      * including the auto-reject timer countdown when visible.
      * For convenience of other classes' layout calculations.
      * Not scaled by {@link SOCPlayerInterface#displayScale}.
-     * @see OfferPanel#wantsRejectCountdown(boolean)
+     * @see OfferPanel#wantsRejectCountdown()
      * @since 1.2.00
      */
     public static final int LABEL_LINE_HEIGHT = 14;
@@ -117,7 +117,7 @@ import javax.swing.SwingConstants;
      * Typical height of offer panel when visible. Includes {@link #OFFER_BUTTONS_ADDED_HEIGHT}
      * and speech balloon's protruding point, but not {@link #OFFER_COUNTER_HEIGHT}.
      * Doesn't include {@link #LABEL_LINE_HEIGHT} needed when
-     * {@link OfferPanel#wantsRejectCountdown(boolean) OfferPanel#wantsRejectCountdown(true)}.
+     * {@link OfferPanel#wantsRejectCountdown()}.
      *<P>
      * For convenience of other classes' layout calculations.
      * Actual height (buttons' y-positions + height) is set dynamically in {@link OfferPanel#doLayout()}.
@@ -385,7 +385,7 @@ import javax.swing.SwingConstants;
 
             if (! (offerPanel.counterOfferMode && counterCompactMode))
             {
-                if (offerPanel.wantsRejectCountdown(true))
+                if (offerPanel.wantsRejectCountdown())
                     prefH += (LABEL_LINE_HEIGHT * displayScale);
             } else {
                 prefH -= (SpeechBalloon.BALLOON_POINT_SIZE * displayScale);
@@ -1363,26 +1363,24 @@ import javax.swing.SwingConstants;
 
         /**
          * Will the Auto-Reject Countdown timer text be shown for this bot's offer?
-         * (from {@link SOCPlayerInterface#getBotTradeRejectSec()})
+         * Checks preference from {@link SOCPlayerInterface#getBotTradeRejectSec()},
+         * whether {@link #isCounterOfferMode()}, and whether the reject-countdown
+         * label is visible and not blank.
          *<P>
          * If visible, this countdown's height is {@link #LABEL_LINE_HEIGHT} * {@code displayScale}.
          * Even when returns true, the label may not yet be visible but space should be reserved
          * for it in {@link #doLayout()}.
          *
-         * @param checkCurrentStatus  If true, don't only check the SOCPlayerInterface preference,
-         *     also check whether {@link #isCounterOfferMode()} and whether the reject-countdown
-         *     label is visible and not blank.
          * @return True if the current offer is from a bot, is offered to client player,
          *     is not counter-offer mode, and the Auto-Reject Countdown Timer label contains text.
          * @since 1.2.00
          */
-        public boolean wantsRejectCountdown(final boolean checkCurrentStatus)
+        public boolean wantsRejectCountdown()
         {
-            boolean wants = isFromRobot && (pi.getBotTradeRejectSec() > 0);
-            if ((! wants) || (! checkCurrentStatus))
-                return wants;
+            if (! (isFromRobot && (pi.getBotTradeRejectSec() > 0)))
+                return false;
 
-            // wants is true, but caller asks to check current status
+            // check current status
             return (! isCounterOfferMode()) && (rejCountdownLab != null)
                 && (rejCountdownLab.getText().length() != 0);
         }

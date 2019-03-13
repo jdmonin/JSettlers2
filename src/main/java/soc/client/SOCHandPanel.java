@@ -3776,7 +3776,7 @@ import javax.swing.UIManager;
                     ? (TradeOfferPanel.OFFER_HEIGHT + TradeOfferPanel.OFFER_COUNTER_HEIGHT
                        - TradeOfferPanel.OFFER_BUTTONS_ADDED_HEIGHT)
                     : TradeOfferPanel.OFFER_HEIGHT;
-                if (offer.offerPanel.wantsRejectCountdown(true))
+                if (offer.offerPanel.wantsRejectCountdown())
                     offerMinHeight += TradeOfferPanel.LABEL_LINE_HEIGHT;
                 offerMinHeight *= displayScale;
                 final int numBottomLines = (hasTakeoverBut || hasSittingRobotLockBut) ? 5 : 4;
