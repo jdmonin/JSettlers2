@@ -39,7 +39,7 @@ import java.util.Vector;
  * has some internal comments on structures, coordinates, layout and values.
  *<P>
  * Because some game variants may need different board layouts or features,
- * you will need a subclass of SOCBoard: Use
+ * you will need a subclass of SOCBoard like {@link SOCBoardLarge}: Use
  * {@link SOCBoard.BoardFactory#createBoard(Map, boolean, int)}
  * whenever you need to construct a new SOCBoard.
  *<P>
