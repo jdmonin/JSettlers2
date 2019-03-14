@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011,2013-2014,2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011,2013-2014,2018-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -83,21 +83,20 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
 
     /**
      * Create a SOCNewGameWithOptions message, optionally for a specific client version.
-     * This constructor may adjust encoded option values for backwards compatibility with the client version;
-     * contents of the referenced {@code opts} map aren't changed: Calls
+     * This constructor may adjust encoded option values for backwards compatibility with the client version.
+     * If so, contents of the referenced {@code opts} map aren't changed: Calls
      * {@link SOCGameOption#packOptionsToString(Map, boolean, int) SOCGameOption.packOptionsToString(opts, false, cliVers)}.
      *
      * @param ga  the name of the game; the game name may have
      *            the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
-     * @param opts Requested game options, as a map of {@link soc.game.SOCGameOption}
+     * @param opts Requested game options, as a read-only map
      * @param gameMinVers Minimum client version required, or -1
      * @param cliVers  Client version, if any game's options need adjustment for an older client.
      *            Use -2 if the client version doesn't matter, or if adjustment should not be done.
-     * @see #SOCNewGameWithOptions(String, Map, int)
      * @since 2.0.00
      */
     public SOCNewGameWithOptions
-        (final String ga, final Map<String,SOCGameOption> opts, final int minVers, final int cliVers)
+        (final String ga, final Map<String, SOCGameOption> opts, final int minVers, final int cliVers)
     {
         this(ga, SOCGameOption.packOptionsToString(opts, false, cliVers), minVers);
     }
@@ -144,7 +143,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      *
      * @param ga  the name of the game; the game name may have
      *            the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
-     * @param opts Requested game options, as a map of {@link soc.game.SOCGameOption}
+     * @param opts Requested game options, as a read-only map
      * @param gameMinVers Minimum client version required, or -1
      * @param cliVers  Client version, if any game's options need adjustment for an older client.
      *            Use -2 if the client version doesn't matter, or if adjustment should not be done.
