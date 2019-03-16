@@ -3,6 +3,7 @@
  * This file copyright (C) 2019 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1461,10 +1462,6 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             return null;
         }
 
-        if (n.length() > 20)
-        {
-            n = n.substring(0, 20);
-        }
         if (! SOCMessage.isSingleLineAndSafe(n))
         {
             status.setText(SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED);

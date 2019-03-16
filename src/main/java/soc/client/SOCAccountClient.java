@@ -732,12 +732,7 @@ public class SOCAccountClient extends Applet
 
         if (target == submit)
         {
-            String n = nick.getText().trim();
-
-            if (n.length() > 20)
-                nickname = n.substring(0, 20);
-            else
-                nickname = n;
+            nickname = nick.getText().trim();
             if (! SOCMessage.isSingleLineAndSafe(nickname))
             {
                 status.setText(SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED);  // I18N

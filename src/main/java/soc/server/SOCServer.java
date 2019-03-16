@@ -599,7 +599,7 @@ public class SOCServer extends Server
 
     /**
      * Maximum permitted player name length, default 20 characters.
-     * The client already truncates to 20 characters in SOCPlayerClient.getValidNickname.
+     * Clients older than v2.0.00 truncate nickname to 20 characters in SOCPlayerClient.getValidNickname before sending.
      *
      * @see #createOrJoinGameIfUserOK(Connection, String, String, String, Map)
      * @see SOCGameList#GAME_NAME_MAX_LENGTH
@@ -6820,6 +6820,14 @@ public class SOCServer extends Server
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
                      SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
+            return;
+        }
+
+        if (userName.length() > PLAYER_NAME_MAX_LENGTH)
+        {
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
+                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));
             return;
         }
 
