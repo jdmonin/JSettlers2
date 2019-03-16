@@ -126,7 +126,7 @@ public class TestBoardLayouts
             {
                 currentRoundFailed = false;
 
-                final SOCGame ga = GameUtils.createGame
+                final SOCGame ga = GameTestUtils.createGame
                     (pl, ((sc != null) ? sc.key : null), ((j == 1) ? "BC=t3" : null), gaName, gl, sgh);
 
                 // Create the board. Adapted from SOCGameHandler.startGame,

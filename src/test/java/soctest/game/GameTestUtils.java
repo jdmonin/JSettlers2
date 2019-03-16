@@ -34,7 +34,7 @@ import static org.junit.Assert.*;
  * Non-testing class to hold utility methods to help run the actual tests.
  * @since 2.0.00
  */
-public abstract class GameUtils
+public abstract class GameTestUtils
 {
     /**
      * Create a game with the given player count, with optional scenario and options.
