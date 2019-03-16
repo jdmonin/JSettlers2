@@ -2160,7 +2160,9 @@ public class SOCBoardAtServer extends SOCBoardLarge
                         }
                     } else {
                         // no longer has any adjacent reds; can add to otherCoastalHexes or otherHexes
-                        if ((otherHexes != null) && ((ignoreHexes == null) || ! ignoreHexes.contains(hInt)))
+                        final int htype = getHexTypeFromCoord(h);
+                        if ((otherHexes != null) && ((ignoreHexes == null) || ! ignoreHexes.contains(hInt))
+                            && (dnum > 0) && (htype != DESERT_HEX) && (htype != WATER_HEX))
                         {
                             if (isHexCoastline(h))
                             {

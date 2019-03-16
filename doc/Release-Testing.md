@@ -283,9 +283,9 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
     - `gradle build`    # generate test classes
     - Set up a CLASSPATH which has junit, hamcrest.core, and the built jsettlers classes. Example:  
       `export CLASSPATH="/Applications/eclipse/plugins/org.junit_4.10.0.v4_10_0_v20120426-0900/junit.jar:/Applications/eclipse/plugins/org.hamcrest.core_1.1.0.v20090501071000.jar:./build/classes/main:./build/classes/test"`
-    - Loop for at least 2500 iterations of `soctest.game.TestBoardLayouts`:
+    - Loop for at least 2400 iterations of `soctest.game.TestBoardLayouts`:
 
-            java soctest.game.TestBoardLayouts 2500
+            java soctest.game.TestBoardLayouts 2400
 
       When run in this mode, TestBoardLayouts performs extra checks of the layout structure.
       If any layout failures occur, that's a bug to be triaged or corrected before release.
