@@ -113,6 +113,9 @@ public class SOCSpecialItem
      * Requirements for the Wonders in the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
      * Index 0 unused.  The 6-player game includes another copy of the first two wonders.
      * Used by {@link #makeKnownItem(String, int)}.
+     *<P>
+     * Parsing each of these is tested in {@link soctest.game.TestSpecialItem#testRequirementParseGood()};
+     * if you change the contents here, also update the test cases in that method.
      */
     private static final String[] REQ_SC_WOND = { null, "2C", "S@N2", "C@P,5L", "S@N1", "C,6V", "2C", "S@N2" };
 
@@ -832,7 +835,10 @@ public class SOCSpecialItem
                     ret.add(new Requirement(reqType, itemCount, false, null));
 
                     ++i;
-                    continue;
+                    if (i >= L)
+                        throw new IllegalArgumentException("ends with ',': " + req);
+
+                    continue;  // <--- completed this req ---
                 }
 
                 if (c != '@')
@@ -911,8 +917,25 @@ public class SOCSpecialItem
             this.atCoordList = atCoordList;
         }
 
+        /**
+         * Equality test, mostly for testing/debugging.
+         * @return true if {@code other} is a {@link Requirement} with same field contents
+         */
+        public final boolean equals(final Object other)
+        {
+            if (! (other instanceof Requirement))
+                return false;
+            final Requirement oth = (Requirement) other;
+            return (reqType == oth.reqType)
+                && (count == oth.count)
+                && (atPort == oth.atPort)
+                && ((atCoordList == null)
+                    ? (oth.atCoordList == null)
+                    : atCoordList.equals(oth.atCoordList));
+        }
+
         /** String representation for debugging; same format as {@link #parse(String)}. */
-        public String toString()
+        public final String toString()
         {
             StringBuilder sb = new StringBuilder();
             if (count != 1)
