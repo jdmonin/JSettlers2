@@ -6,9 +6,9 @@
 
 # File/directory assumptions at runtime (mostly tested in env_ok()):
 # - Python interpreter is python2, not python3  [env_ok() prints warning if 3]
-# - This script lives in test/bin/  [not tested]
+# - This script lives in test/bin/ and that's the current directory when ran  [not tested]
 # - Properties files can be created and deleted in test/tmp/  [tests dir existence only]
-# - Server JAR has been built already, to ../../target/JSettlersServer.jar
+# - Server JAR has been built already, to ../../target/JSettlersServer.jar or ../../build/libs/JSettlersServer-?.?.??.jar
 # - java command is on the PATH
 # Since this is a testing script, most error conditions will throw an exception
 # instead of being caught (for example, os.chdir failure).
@@ -223,9 +223,9 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
     Assumes already running in test/tmp/ and can rewrite or delete jsserver.properties if needed.
 
     Args:
-        should_startup (bool): True if server should start up and run with these params,
-            False if these params should cause startup to fail or to return nonzero
-        cmdline_params (str): Parameters for command line; defaults to empty string
+        should_startup (bool): True if server should start up and run indefinitely with these params,
+            False if these params should cause startup to fail, exit quickly, or to return nonzero
+        cmdline_params (str): Optional parameters for command line; defaults to empty string
         propsfile_contents (list of str): Contents to write to jsserver.properties,
             or None to run the test without a jsserver.properties file.
             Each list item is written as a line to the file.
@@ -315,13 +315,44 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
         print("")
     return ret
 
+def props_tests_cmdline_propsfile(should_startup, common_cmdline_params="", props_list=None, expected_output_incl=None):
+    """Run two tests with this list of properties: Once on command line, once with properties file.
+    Calls arg_test with -o <props_list> and again with props file contents props_list.
+    Uses common_cmdline_params for both tests.
+
+    Args:
+        should_startup (bool): True if server should start up and run indefinitely with these params,
+            False if these params should cause startup to fail, exit quickly, or to return nonzero
+        common_cmdline_params (str): Optional parameters for command line; defaults to empty string
+        props_list (list of str): Parameter names and values, each in the form "pname=val".
+            Will be given to the command line as "-D pname=val", or to jssettlers.properties.
+        expected_output_incl (str): String to search for in server output, case-sensitive,
+            or None to not look in output for any particular string
+            Note: All or some output may be lost (buffering) when timeout kills the process.
+            So if should_startup==True, it's unreliable to also use expected_output_incl.
+
+    Returns:
+    	bool: True if test results matched should_startup (and expected_output_incl if given),
+            False otherwise.
+
+    Raises:
+        ValueError: If called with empty props_list, or with should_startup==True and expected_output_incl not None.
+    """
+    if not props_list:
+        raise ValueError("props_list is missing or empty")
+    # use "all" to ensure all tests run (avoid boolean short-circuit)
+    return all([
+        arg_test(should_startup, common_cmdline_params + " -D" + (" -D".join(props_list)), None, expected_output_incl),
+        arg_test(should_startup, common_cmdline_params, props_list, expected_output_incl)
+        ])
+
 def gameopt_tests_cmdline_propsfile(should_startup, opt, expected_output_incl=None):
     """Run two tests with this game option: Once on command line, once with properties file.
     Calls arg_test with -o <opt> and again with props file contents jsettlers.<opt> .
 
     Args:
-        should_startup (bool): True if server should start up and run with these params,
-            False if these params should cause startup to fail or to return nonzero
+        should_startup (bool): True if server should start up and run indefinitely with these params,
+            False if these params should cause startup to fail, exit quickly, or to return nonzero
         opt (str): Game option and value, in the form "oname=val".
             Will be appended to gameopt-setting prefix in the two tests:
             "-o oname=val"; ["jsettlers.gameopt.oname=val"]
@@ -408,6 +439,22 @@ def all_tests():
     gameopt_tests_cmdline_propsfile(False, "SC=ZZZ", "default scenario ZZZ is unknown")
     gameopt_tests_cmdline_propsfile(False, "sc=ZZZ", "default scenario ZZZ is unknown")  # non-uppercase opt name
     arg_test(False, "-Djsettlers.gameopt.sc=ZZZ", None, "Command line default scenario ZZZ is unknown")
+
+    # Config Validation Mode (--test-config):
+    # - Should pass using default settings
+    str_no_problems_found = "Config Validation Mode: No problems found."
+    arg_test(False, "--test-config", None, str_no_problems_found)
+    arg_test(False, "-t", None, str_no_problems_found)
+    arg_test(False, "", ["jsettlers.test.validate_config=Y"], str_no_problems_found)
+    # - Check number of bot users vs maxConnections, reserve room for humans
+    props_tests_cmdline_propsfile(False, "--test-config", ["jsettlers.connections=20", "jsettlers.startrobots=10"],
+        str_no_problems_found)
+    props_tests_cmdline_propsfile(False, "--test-config", ["jsettlers.connections=20", "jsettlers.startrobots=11"],
+        "jsettlers.connections: Only 9 player connections would be available because of the 11 started robots. Should use 22 for max")
+    props_tests_cmdline_propsfile(False, "--test-config", ["jsettlers.connections=10", "jsettlers.startrobots=4"],
+        str_no_problems_found)
+    props_tests_cmdline_propsfile(False, "--test-config", ["jsettlers.connections=9", "jsettlers.startrobots=4"],
+        "jsettlers.connections: Only 5 player connections would be available because of the 4 started robots. Should use 10 for max")
 
     return (0 == tests_failed_count)
 
