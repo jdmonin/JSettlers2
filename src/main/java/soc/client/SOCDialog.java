@@ -120,9 +120,13 @@ public abstract class SOCDialog
         }
 
         final JRootPane rpane = getRootPane();
-        final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true);
-        rpane.setBackground(colors[2]);  // SwingMainDisplay.DIALOG_BG_GOLDENROD
-        rpane.setForeground(colors[0]);  // Color.BLACK
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+        if (! isOSHighContrast)
+        {
+            final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true, false);
+            rpane.setBackground(colors[2]);  // SwingMainDisplay.DIALOG_BG_GOLDENROD
+            rpane.setForeground(colors[0]);  // Color.BLACK
+        }
         rpane.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
         Container cpane = getContentPane();
@@ -131,14 +135,18 @@ public abstract class SOCDialog
             cpane = new JPanel();
             setContentPane(cpane);
         }
-        cpane.setBackground(null);  // inherit from parent/rootpane
-        cpane.setForeground(null);
+        if (! isOSHighContrast)
+        {
+            cpane.setBackground(null);  // inherit from parent/rootpane
+            cpane.setForeground(null);
+        }
         cpane.setFont(panelFont);
 
         if (promptText != null)
         {
             northComponent = new JLabel(promptText, SwingConstants.CENTER);
-            northComponent.setForeground(null);  // inherit from panel
+            if (! isOSHighContrast)
+                northComponent.setForeground(null);  // inherit from panel
             northComponent.setFont(panelFont);
             northComponent.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));  // margin between north & middle panel
             add(northComponent, BorderLayout.NORTH);
@@ -155,8 +163,11 @@ public abstract class SOCDialog
 
             final JPanel wrapperContainer = new JPanel();
             wrapperContainer.setLayout(new BoxLayout(wrapperContainer, BoxLayout.X_AXIS));
-            wrapperContainer.setBackground(null);
-            wrapperContainer.setForeground(null);
+            if (! isOSHighContrast)
+            {
+                wrapperContainer.setBackground(null);
+                wrapperContainer.setForeground(null);
+            }
 
             middlePanel = new JPanel()
             {
@@ -167,8 +178,11 @@ public abstract class SOCDialog
                  */
                 public Dimension getMaximumSize() { return getPreferredSize(); }
             };
-            middlePanel.setBackground(null);
-            middlePanel.setForeground(null);
+            if (! isOSHighContrast)
+            {
+                middlePanel.setBackground(null);
+                middlePanel.setForeground(null);
+            }
             middlePanel.setFont(panelFont);
             middlePanel.setAlignmentX(CENTER_ALIGNMENT);  // within entire content pane
 
@@ -243,8 +257,11 @@ public abstract class SOCDialog
     protected final JPanel makeJPanel(final LayoutManager lm, final Font panelFont)
     {
         final JPanel p = ((lm == null) ? new JPanel() : new JPanel(lm));
-        p.setBackground(null);  // inherit from parent
-        p.setForeground(null);
+        if (! SwingMainDisplay.isOSColorHighContrast())
+        {
+            p.setBackground(null);  // inherit from parent
+            p.setForeground(null);
+        }
         if (panelFont != null)
             p.setFont(panelFont);
 
@@ -259,7 +276,8 @@ public abstract class SOCDialog
     public final static void styleButtonsAndLabels(final Container c)
     {
         final Font panelFont = c.getFont();
-        final boolean isPlatformWindows = SOCPlayerClient.IS_PLATFORM_WINDOWS;
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+        final boolean shouldClearButtonBGs = (! isOSHighContrast) && SOCPlayerClient.IS_PLATFORM_WINDOWS;
 
         for (Component co : c.getComponents())
         {
@@ -269,9 +287,12 @@ public abstract class SOCDialog
             if (co instanceof JLabel)
             {
                 co.setFont(panelFont);
-                co.setForeground(null);  // inherit panel's color
-                co.setBackground(null);
-            } else if (isPlatformWindows) {
+                if (! isOSHighContrast)
+                {
+                    co.setForeground(null);  // inherit panel's color
+                    co.setBackground(null);
+                }
+            } else if (shouldClearButtonBGs) {
                 co.setBackground(null);  // inherit panel's bg color; required on win32 to avoid gray corners on JButton
             }
         }

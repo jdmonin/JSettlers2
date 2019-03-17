@@ -136,17 +136,24 @@ import soc.game.SOCGame;
         stillAvailable = true;
         final int displayScale = pi.displayScale;
 
-        final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true);
-        setBackground(colors[2]);  // SwingMainDisplay.DIALOG_BG_GOLDENROD; actual face-icon backgrounds will match player
-        setForeground(colors[0]);  // Color.BLACK
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+        if (! isOSHighContrast)
+        {
+            final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true, false);
+
+            setBackground(colors[2]);  // SwingMainDisplay.DIALOG_BG_GOLDENROD; face-icon backgrounds will match player
+            setForeground(colors[0]);  // Color.BLACK
+
+            getRootPane().setBackground(null);  // inherit
+            getContentPane().setBackground(null);
+        }
         setFont(new Font("Dialog", Font.PLAIN, 12 * displayScale));
-        getRootPane().setBackground(null);  // inherit
-        getContentPane().setBackground(null);
+
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
         changeFaceBut = new JButton(strings.get("base.change"));
         cancelBut = new JButton(strings.get("base.cancel"));
-        if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+        if (SOCPlayerClient.IS_PLATFORM_WINDOWS && ! isOSHighContrast)
         {
             // avoid gray corners on win32 JButtons
             changeFaceBut.setBackground(null);

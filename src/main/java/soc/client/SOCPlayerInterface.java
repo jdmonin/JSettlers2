@@ -695,8 +695,11 @@ public class SOCPlayerInterface extends Frame
         /**
          * initialize the font and the foreground, and background colors
          */
-        setBackground(Color.black);
-        setForeground(Color.black);
+        if (! SwingMainDisplay.isOSColorHighContrast())
+        {
+            setBackground(Color.BLACK);
+            setForeground(Color.WHITE);
+        }
         setFont(new Font("SansSerif", Font.PLAIN, 10 * displayScale));
 
         /**
@@ -878,6 +881,8 @@ public class SOCPlayerInterface extends Frame
      */
     protected void initInterfaceElements(boolean firstCall)
     {
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+
         /**
          * initialize the text input and display and add them to the interface.
          * Moved first so they'll be at top of the z-order, for use with textDisplaysLargerTemp.
@@ -902,8 +907,11 @@ public class SOCPlayerInterface extends Frame
 
         textDisplay = new SnippingTextArea("", 40, 80, TextArea.SCROLLBARS_VERTICAL_ONLY, 80);
         textDisplay.setFont(sans10Font);
-        textDisplay.setBackground(SwingMainDisplay.DIALOG_BG_GOLDENROD);
-        textDisplay.setForeground(Color.BLACK);
+        if (! isOSHighContrast)
+        {
+            textDisplay.setBackground(SwingMainDisplay.DIALOG_BG_GOLDENROD);
+            textDisplay.setForeground(Color.BLACK);
+        }
         textDisplay.setEditable(false);
         add(textDisplay);
         if (is6player)
@@ -911,8 +919,11 @@ public class SOCPlayerInterface extends Frame
 
         chatDisplay = new SnippingTextArea("", 40, 80, TextArea.SCROLLBARS_VERTICAL_ONLY, 100);
         chatDisplay.setFont(sans10Font);
-        chatDisplay.setBackground(SwingMainDisplay.DIALOG_BG_GOLDENROD);
-        chatDisplay.setForeground(Color.BLACK);
+        if (! isOSHighContrast)
+        {
+            chatDisplay.setBackground(SwingMainDisplay.DIALOG_BG_GOLDENROD);
+            chatDisplay.setForeground(Color.BLACK);
+        }
         chatDisplay.setEditable(false);
         if (is6player)
             chatDisplay.addMouseListener(this);
@@ -935,8 +946,15 @@ public class SOCPlayerInterface extends Frame
         FontMetrics fm = this.getFontMetrics(textInput.getFont());
         textInput.setSize(SOCBoardPanel.PANELX, fm.getHeight() + 4 * displayScale);
         textInput.setEditable(false);
-        textInput.setBackground(Color.WHITE);  // before v1.1.00 was new Color(255, 230, 162) aka DIALOG_BG_GOLDENROD
-        textInput.setForeground(Color.BLACK);
+        if (! isOSHighContrast)
+        {
+            textInput.setBackground(Color.WHITE);  // before v1.1.00 was new Color(255, 230, 162) aka DIALOG_BG_GOLDENROD
+            textInput.setForeground(Color.BLACK);
+        } else {
+            final Color[] sysColors = SwingMainDisplay.getForegroundBackgroundColors(false, true);
+            textInput.setBackground(sysColors[2]);
+            textInput.setForeground(sysColors[0]);
+        }
         textInputIsInitial = false;  // due to "please wait"
         textInput.setText(strings.get("base.please.wait"));  // "Please wait..."
         add(textInput);
@@ -1042,6 +1060,7 @@ public class SOCPlayerInterface extends Frame
     {
         if (needRepaintBorders)
             paintBorders(g);
+
         super.paint(g);
     }
 
@@ -2304,7 +2323,7 @@ public class SOCPlayerInterface extends Frame
         if (textInputGreyCountdown > 0)
         {
             --textInputGreyCountdown;
-            if ((textInputGreyCountdown == 0) && textInputIsInitial)
+            if ((textInputGreyCountdown == 0) && textInputIsInitial && ! SwingMainDisplay.isOSColorHighContrast())
             {
                 textInput.setForeground(Color.LIGHT_GRAY);
             }
@@ -2401,6 +2420,8 @@ public class SOCPlayerInterface extends Frame
         if (setToInitial && textInputHasSent)
             return;  // Already sent text, won't re-prompt
 
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+
         // Always change text before changing flag,
         // so DocumentListener doesn't fight this action.
 
@@ -2413,12 +2434,14 @@ public class SOCPlayerInterface extends Frame
             }
             textInputIsInitial = true;
             textInputGreyCountdown = textInputGreyCountFrom;  // Reset fade countdown
-            textInput.setForeground(Color.DARK_GRAY);
+            if (! isOSHighContrast)
+                textInput.setForeground(Color.DARK_GRAY);
         } else {
             if (textInput.getText().equals(TEXTINPUT_INITIAL_PROMPT_MSG))
                 textInput.setText("");  // Clear to make room for text being typed
             textInputIsInitial = false;
-            textInput.setForeground(Color.BLACK);
+            if (! isOSHighContrast)
+                textInput.setForeground(Color.BLACK);
         }
     }
 

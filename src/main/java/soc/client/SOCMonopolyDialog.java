@@ -65,13 +65,14 @@ import javax.swing.JPanel;
         rsrcBut = new JButton[5];
         final String[] rsrcStr
             = { "resources.clay", "resources.ore", "resources.sheep", "resources.wheat", "resources.wood" };
-        final boolean isPlatformWindows = SOCPlayerClient.IS_PLATFORM_WINDOWS;
+        final boolean shouldClearButtonBGs
+            = SOCPlayerClient.IS_PLATFORM_WINDOWS && ! SwingMainDisplay.isOSColorHighContrast();
         for (int i = 0; i < 5; ++i)
         {
             ColorSquareLarger sq = new ColorSquareLarger(ColorSquare.RESOURCE_COLORS[i]);
 
             JButton b = new JButton(strings.get(rsrcStr[i]));
-            if (isPlatformWindows)
+            if (shouldClearButtonBGs)
                 b.setBackground(null);  // needed to avoid gray corners on win32
             b.addActionListener(this);
             rsrcBut[i] = b;

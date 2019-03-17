@@ -120,7 +120,10 @@ import javax.swing.SwingConstants;
         clearBut = new JButton(strings.get("base.clear"));
         okBut = new JButton(strings.get(isDiscard ? "dialog.discard.discard" : "dialog.discard.pick"));
             // "Discard" or "Pick"
-        if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+        final boolean shouldClearButtonBGs = (! isOSHighContrast) && SOCPlayerClient.IS_PLATFORM_WINDOWS;
+        if (shouldClearButtonBGs)
         {
             clearBut.setBackground(null);  // avoid gray corners on win32 JButtons
             okBut.setBackground(null);
@@ -141,8 +144,11 @@ import javax.swing.SwingConstants;
 
         JPanel keepPanel = new JPanel(new GridLayout(1, 0, ColorSquareLarger.WIDTH_L, 0));
         JPanel pickPanel = new JPanel(new GridLayout(1, 0, ColorSquareLarger.WIDTH_L, 0));
-        keepPanel.setBackground(null);
-        pickPanel.setBackground(null);
+        if (! isOSHighContrast)
+        {
+            keepPanel.setBackground(null);
+            pickPanel.setBackground(null);
+        }
         keepPanel.setAlignmentX(LEFT_ALIGNMENT);
         pickPanel.setAlignmentX(LEFT_ALIGNMENT);
 

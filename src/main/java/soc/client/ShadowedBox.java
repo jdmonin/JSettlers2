@@ -57,7 +57,8 @@ import javax.swing.JPanel;
      * Constructor. Sets a small default size and assumes a layout manager will soon change that size.
      *
      * @param bg  the background color beyond edges of the panel
-     * @param interior  the color of the box interior
+     * @param interior  the color of the box interior, or {@code null} to use system defaults
+     *     from {@link SwingMainDisplay#getForegroundBackgroundColors(boolean, boolean)}
      * @param displayScale  For high-DPI displays, what scaling factor to use? Unscaled is 1.
      * @param lm  LayoutManager to use, or {@code null}
      */
@@ -68,9 +69,18 @@ import javax.swing.JPanel;
         width = 50;
         this.displayScale = displayScale;
 
-        setBackground(bg);
-        setForeground(Color.black);
-        this.interior = interior;
+        if (interior != null)
+        {
+            setBackground(bg);
+            setForeground(Color.black);
+            this.interior = interior;
+        } else {
+            final Color[] sysColors = SwingMainDisplay.getForegroundBackgroundColors(false, true);
+            interior = sysColors[2];
+            setBackground(interior);
+            setForeground(sysColors[0]);
+            this.interior = interior;
+        }
 
         // nonzero size helps when adding to a JPanel
         Dimension initSize = new Dimension(width, height);

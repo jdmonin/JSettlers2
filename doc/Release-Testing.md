@@ -310,6 +310,10 @@ On most recent and less-recent OSX and Windows; oldest JRE (java 6) and a new JR
 	- Override runs, using jvm property `-Djsettlers.uiScale=1` and again using `-Djsettlers.uiScale=2`
 - Persistent user prefs (sound, auto-reject bot offer, window size)  
   Then, re-run to check default size with jvm property `-Djsettlers.debug.clear_prefs=PI_width,PI_height`
+- Accessibility/High-Contrast mode
+	- Test debug jvm property `-Djsettlers.uiContrastMode=light`
+    - On Windows, test high-contrast dark and light themes, and high-contrast accessibility mode
+	- On Windows, test debug jvm property `-Djsettlers.uiContrastMode=dark` while using a dark theme
 - SQLite database setup, from instructions in [Database.md](Database.md)
 
 ## Instructions and Setup

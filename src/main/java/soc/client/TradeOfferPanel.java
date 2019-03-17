@@ -440,9 +440,12 @@ import javax.swing.SwingConstants;
         {
             super(pi.getPlayerColor(from), displayScale, null);  // custom doLayout
 
-            final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true);
-            setForeground(colors[0]);  // Color.BLACK
-            setBackground(colors[2]);  // SwingMainDisplay.DIALOG_BG_GOLDENROD
+            final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true, false);
+            if (colors != null)
+            {
+                setForeground(colors[0]);  // Color.BLACK
+                setBackground(colors[2]);  // SwingMainDisplay.DIALOG_BG_GOLDENROD
+            }
 
             final Font msgFont = new Font("SansSerif", Font.PLAIN, 18 * displayScale);
 
@@ -714,10 +717,13 @@ import javax.swing.SwingConstants;
             final Color hpanColor = pi.getPlayerColor(from);
             final Font offerFont = new Font("SansSerif", Font.PLAIN, 10 * displayScale);
             setFont(offerFont);
-            final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true);
-            setForeground(colors[0]);  // Color.BLACK
-            setBackground(hpanColor);
-            setOpaque(true);
+            final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true, false);
+            if (colors != null)
+            {
+                setForeground(colors[0]);  // Color.BLACK
+                setBackground(hpanColor);
+                setOpaque(true);
+            }
 
             // All components are within either balloon or offerBox.
 
@@ -779,7 +785,8 @@ import javax.swing.SwingConstants;
             /** offerBox: The counter-offer to send */
 
             counterOfferBox = new ShadowedBox
-                (hpanColor, colors[2] /* SwingMainDisplay.DIALOG_BG_GOLDENROD */, displayScale, null);
+                (hpanColor, colors != null ? colors[2] : null /* SwingMainDisplay.DIALOG_BG_GOLDENROD */,
+                 displayScale, null);
             counterOfferBox.setVisible(false);
             counterOfferBox.setFont(offerFont);
 

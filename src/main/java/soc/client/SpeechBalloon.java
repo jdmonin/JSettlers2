@@ -112,7 +112,10 @@ import javax.swing.JPanel;
         this.behindColor = behindColor;
         this.displayScale = displayScale;
 
-        final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true);
+        Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true, false);
+        if (colors == null)
+            colors = SwingMainDisplay.getForegroundBackgroundColors(false, true);  // system colors
+
         balloonColor = colors[2];  // SwingMainDisplay.DIALOG_BG_GOLDENROD
         setBackground(balloonColor);
         setForeground(colors[0]);  // Color.BLACK

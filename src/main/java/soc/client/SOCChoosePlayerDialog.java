@@ -149,14 +149,15 @@ import javax.swing.SwingConstants;
 
         final SOCGame ga = pi.getGame();
 
-        final boolean isPlatformWindows = SOCPlayerClient.IS_PLATFORM_WINDOWS;
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+        final boolean shouldClearButtonBGs = (! isOSHighContrast) && SOCPlayerClient.IS_PLATFORM_WINDOWS;
         for (int i = 0; i < num; i++)
         {
             SOCPlayer pl = ga.getPlayer(players[i]);
 
             buttons[i] = new JButton(pl.getName());
             buttons[i].addActionListener(this);
-            if (isPlatformWindows)
+            if (shouldClearButtonBGs)
                 buttons[i].setBackground(null);  // inherit from panel: avoid gray corners on win32
 
             final int rescount = pl.getResources().getTotal();
@@ -179,7 +180,7 @@ import javax.swing.SwingConstants;
         if (allowChooseNone)
         {
             JButton bNone = new JButton(strings.get("base.none"));  // "None"
-            if (isPlatformWindows)
+            if (shouldClearButtonBGs)
                 bNone.setBackground(null);
             buttons[num] = bNone;
 
@@ -190,7 +191,8 @@ import javax.swing.SwingConstants;
             players[num] = SOCChoosePlayer.CHOICE_NO_PLAYER;
 
             JLabel lNone = new JLabel(strings.get("dialog.robchoose.decline"), SwingConstants.CENTER);  // "(decline)"
-            lNone.setForeground(null);
+            if (! isOSHighContrast)
+                lNone.setForeground(null);
             lNone.setFont(panelFont);
             player_res_lbl[num] = lNone;
         }

@@ -114,12 +114,15 @@ import soc.util.Version;
         canLaunchServer = checkCanLaunchServer();
 
         // same Frame setup as in SOCPlayerClient.main
-        final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(false);
-        setBackground(colors[2]);  // SwingMainDisplay.JSETTLERS_BG_GREEN
-        setForeground(colors[0]);  // Color.BLACK
+        final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(false, false);
+        if (colors != null)
+        {
+            setBackground(colors[2]);  // SwingMainDisplay.JSETTLERS_BG_GREEN
+            setForeground(colors[0]);  // Color.BLACK
+        }
 
         addKeyListener(this);
-        initInterfaceElements(colors[1]);  // SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE
+        initInterfaceElements(colors != null ? colors[1] : null);  // SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE
     }
 
     /**
@@ -186,7 +189,7 @@ import soc.util.Version;
      * Interface setup for constructor.
      * Most elements are part of a sub-panel occupying most of this Panel, using a vertical BoxLayout.
      * There's also a label at bottom with the version and build number.
-     * @param miscLabelFGColor  Foreground color for miscellaneous label text;
+     * @param miscLabelFGColor  Foreground color for miscellaneous label text, or {@code null} for panel's text color;
      *     typically {@link SwingMainDisplay#MISC_LABEL_FG_OFF_WHITE}
      */
     private void initInterfaceElements(final Color miscLabelFGColor)
@@ -201,16 +204,21 @@ import soc.util.Version;
         bpContainer.setBackground(null);  // inherit from parent
         bpContainer.setForeground(null);
 
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+
         /**
          * JButton.setBackground(null) is needed on win32 to avoid gray corners
          */
-        final boolean isPlatformWindows = SOCPlayerClient.IS_PLATFORM_WINDOWS;
+        final boolean shouldClearButtonBGs = (! isOSHighContrast) && SOCPlayerClient.IS_PLATFORM_WINDOWS;
 
         // In center of bpContainer, bp holds the narrow UI stack:
         final JPanel bp = new BoxedJPanel();
         bp.setLayout(new BoxLayout(bp, BoxLayout.Y_AXIS));
-        bp.setBackground(null);
-        bp.setForeground(null);
+        if (! isOSHighContrast)
+        {
+            bp.setBackground(null);
+            bp.setForeground(null);
+        }
         bp.setAlignmentX(CENTER_ALIGNMENT);  // center bp within entire content pane
 
         // The welcome label and 3 buttons should be the same width,
@@ -219,8 +227,11 @@ import soc.util.Version;
         final GridBagLayout gbl = new GridBagLayout();
         final GridBagConstraints gbc = new GridBagConstraints();
         final JPanel modeButtonsContainer = new BoxedJPanel(gbl);
-        modeButtonsContainer.setBackground(null);
-        modeButtonsContainer.setForeground(null);
+        if (! isOSHighContrast)
+        {
+            modeButtonsContainer.setBackground(null);
+            modeButtonsContainer.setForeground(null);
+        }
 
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -235,7 +246,7 @@ import soc.util.Version;
          */
 
         connserv = new JButton(strings.get("pcli.cpp.connecttoaserv"));  // "Connect to a Server"
-        if (isPlatformWindows)
+        if (shouldClearButtonBGs)
             connserv.setBackground(null);
         gbl.setConstraints(connserv, gbc);
         modeButtonsContainer.add(connserv);
@@ -245,7 +256,7 @@ import soc.util.Version;
          * Interface setup: Practice
          */
         prac = new JButton(strings.get("pcli.main.practice"));  // "Practice" - same as SOCPlayerClient button
-        if (isPlatformWindows)
+        if (shouldClearButtonBGs)
             prac.setBackground(null);
         gbl.setConstraints(prac, gbc);
         modeButtonsContainer.add(prac);
@@ -255,7 +266,7 @@ import soc.util.Version;
          * Interface setup: Start a Server
          */
         runserv = new JButton(strings.get("pcli.cpp.startserv"));  // "Start a Server"
-        if (isPlatformWindows)
+        if (shouldClearButtonBGs)
             runserv.setBackground(null);
         gbl.setConstraints(runserv, gbc);
         if (! canLaunchServer)
@@ -290,19 +301,25 @@ import soc.util.Version;
         JLabel verl = new JLabel
             (strings.get("pcli.cpp.jsettlers.versionbuild", Version.version(), Version.buildnum()), SwingConstants.CENTER);
             // "JSettlers " + Version.version() + " build " + Version.buildnum()
-        verl.setForeground(miscLabelFGColor);
+        if (miscLabelFGColor != null)
+            verl.setForeground(miscLabelFGColor);
         add(verl, BorderLayout.SOUTH);
     }
 
     /** panel_conn setup */
     private JPanel initInterface_conn()
     {
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+        final boolean shouldClearButtonBGs = (! isOSHighContrast) && SOCPlayerClient.IS_PLATFORM_WINDOWS;
         GridBagLayout gbl = new GridBagLayout();
         GridBagConstraints gbc = new GridBagConstraints();
         JPanel pconn = new BoxedJPanel(gbl);
 
-        pconn.setBackground(null);  // inherit from parent
-        pconn.setForeground(null);
+        if (! isOSHighContrast)
+        {
+            pconn.setBackground(null);  // inherit from parent
+            pconn.setForeground(null);
+        }
 
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
@@ -311,9 +328,12 @@ import soc.util.Version;
         // heading row
 
         L = new JLabel(strings.get("pcli.cpp.connecttoserv"), SwingConstants.CENTER);  // "Connect to Server"
-        L.setBackground(HEADER_LABEL_BG);
-        L.setForeground(HEADER_LABEL_FG);
-        L.setOpaque(true);
+        if (! isOSHighContrast)
+        {
+            L.setBackground(HEADER_LABEL_BG);
+            L.setForeground(HEADER_LABEL_FG);
+            L.setOpaque(true);
+        }
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbc.ipady = 8;
         gbl.setConstraints(L, gbc);
@@ -375,7 +395,7 @@ import soc.util.Version;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
         conn_connect = new JButton(strings.get("pcli.cpp.connect"));
-        if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+        if (shouldClearButtonBGs)
             conn_connect.setBackground(null);
         conn_connect.addActionListener(this);
         conn_connect.addKeyListener(this);  // for win32 keyboard-focus
@@ -384,7 +404,7 @@ import soc.util.Version;
         pconn.add(conn_connect);
 
         conn_cancel = new JButton(strings.get("base.cancel"));
-        if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+        if (shouldClearButtonBGs)
             conn_cancel.setBackground(null);
         conn_cancel.addActionListener(this);
         conn_cancel.addKeyListener(this);
@@ -398,12 +418,17 @@ import soc.util.Version;
     /** panel_run setup */
     private JPanel initInterface_run()
     {
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+        final boolean shouldClearButtonBGs = (! isOSHighContrast) && SOCPlayerClient.IS_PLATFORM_WINDOWS;
         GridBagLayout gbl = new GridBagLayout();
         GridBagConstraints gbc = new GridBagConstraints();
         JPanel prun = new BoxedJPanel(gbl);
 
-        prun.setBackground(null);  // inherit from parent
-        prun.setForeground(null);
+        if (! isOSHighContrast)
+        {
+            prun.setBackground(null);  // inherit from parent
+            prun.setForeground(null);
+        }
 
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
@@ -411,9 +436,12 @@ import soc.util.Version;
 
         // heading row
         L = new JLabel(strings.get("pcli.cpp.startserv"), SwingConstants.CENTER);  // "Start a Server"
-        L.setBackground(HEADER_LABEL_BG);
-        L.setForeground(HEADER_LABEL_FG);
-        L.setOpaque(true);
+        if (! isOSHighContrast)
+        {
+            L.setBackground(HEADER_LABEL_BG);
+            L.setForeground(HEADER_LABEL_FG);
+            L.setOpaque(true);
+        }
         gbc.gridwidth = 4;
         gbc.weightx = 1;
         gbc.ipadx = 4;
@@ -461,7 +489,7 @@ import soc.util.Version;
         gbl.setConstraints(L, gbc);
         prun.add(L);
         run_startserv = new JButton(" " + strings.get("pcli.cpp.start") + " ");
-        if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+        if (shouldClearButtonBGs)
             run_startserv.setBackground(null);
         run_startserv.addActionListener(this);
         run_startserv.addKeyListener(this);  // for win32 keyboard-focus
@@ -470,7 +498,7 @@ import soc.util.Version;
         prun.add(run_startserv);
 
         run_cancel = new JButton(strings.get("base.cancel"));
-        if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+        if (shouldClearButtonBGs)
             run_cancel.setBackground(null);
         run_cancel.addActionListener(this);
         run_cancel.addKeyListener(this);

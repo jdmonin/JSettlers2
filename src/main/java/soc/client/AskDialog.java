@@ -309,30 +309,35 @@ public abstract class AskDialog extends JDialog
 
         this.md = md;
         pi = null;
-        final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true);
-        setBackground(colors[2]);  // SwingMainDisplay.DIALOG_BG_GOLDENROD
-        setForeground(colors[0]);  // Color.BLACK
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+        if (! isOSHighContrast)
+        {
+            final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true, false);
+            setBackground(colors[2]);  // SwingMainDisplay.DIALOG_BG_GOLDENROD
+            setForeground(colors[0]);  // Color.BLACK
+
+            getRootPane().setBackground(null);  // inherit
+            getContentPane().setBackground(null);
+        }
+
         setFont(new Font("Dialog", Font.PLAIN, 12));
 
-        getRootPane().setBackground(null);  // inherit
-        getContentPane().setBackground(null);
-
-        final boolean isPlatformWindows = SOCPlayerClient.IS_PLATFORM_WINDOWS;
+        final boolean shouldClearButtonBGs = (! isOSHighContrast) && SOCPlayerClient.IS_PLATFORM_WINDOWS;
 
         choice1But = new JButton(choice1);
-        if (isPlatformWindows)
+        if (shouldClearButtonBGs)
             choice1But.setBackground(null);  // needed on win32 to avoid gray corners
 
         if (choice2 != null)
         {
             choice2But = new JButton(choice2);
-            if (isPlatformWindows)
+            if (shouldClearButtonBGs)
                 choice2But.setBackground(null);
 
             if (choice3 != null)
             {
                 choice3But = new JButton(choice3);
-                if (isPlatformWindows)
+                if (shouldClearButtonBGs)
                     choice3But.setBackground(null);
             } else {
                 choice3But = null;
@@ -393,8 +398,11 @@ public abstract class AskDialog extends JDialog
                     pmsg.setFont(new Font("Dialog", Font.PLAIN, 12));
                 pmsg.setLineWrap(true);
                 pmsg.setWrapStyleWord(true);
-                pmsg.setBackground(getBackground());  // avoid white background
-                pmsg.setForeground(null);
+                if (! isOSHighContrast)
+                {
+                    pmsg.setBackground(getBackground());  // avoid white background
+                    pmsg.setForeground(null);
+                }
                 JScrollPane pScroll = new JScrollPane(pmsg);
                 pScroll.setOpaque(false);
                 msg = pScroll;
@@ -432,8 +440,11 @@ public abstract class AskDialog extends JDialog
         setLocationRelativeTo(parentFr);
 
         pBtns = new JPanel();
-        pBtns.setOpaque(true);
-        pBtns.setBackground(null);  // avoid gray bg on win32
+        if (! isOSHighContrast)
+        {
+            pBtns.setOpaque(true);
+            pBtns.setBackground(null);  // avoid gray bg on win32
+        }
         pBtns.setLayout(new FlowLayout(FlowLayout.CENTER, 3, 0));  // horiz border 3 pixels
         final int pbboarder = ColorSquare.HEIGHT / 2;
         pBtns.setBorder

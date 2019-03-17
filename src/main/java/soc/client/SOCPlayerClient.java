@@ -918,9 +918,12 @@ public class SOCPlayerClient
         final int displayScale = SwingMainDisplay.checkDisplayScaleFactor(frame);
         SwingMainDisplay.scaleUIManagerFonts(displayScale);
 
-        final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(false);
-        frame.setBackground(colors[2]);  // SwingMainDisplay.JSETTLERS_BG_GREEN
-        frame.setForeground(colors[0]);  // Color.BLACK
+        final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(false, false);
+        if (colors != null)
+        {
+            frame.setBackground(colors[2]);  // SwingMainDisplay.JSETTLERS_BG_GREEN
+            frame.setForeground(colors[0]);  // Color.BLACK
+        }
 
         mainDisplay = new SwingMainDisplay((args.length == 0), client, displayScale);
         client.setMainDisplay(mainDisplay);

@@ -282,10 +282,13 @@ import soc.util.Version;
         }
 
         // same Frame setup as in SOCPlayerClient.main
-        setBackground(SwingMainDisplay.JSETTLERS_BG_GREEN);
-        setForeground(Color.black);
-        getRootPane().setBackground(null);  // inherit from overall frame
-        getContentPane().setBackground(null);
+        if (! SwingMainDisplay.isOSColorHighContrast())
+        {
+            setBackground(SwingMainDisplay.JSETTLERS_BG_GREEN);
+            setForeground(Color.black);
+            getRootPane().setBackground(null);  // inherit from overall frame
+            getContentPane().setBackground(null);
+        }
         setLocationByPlatform(true);
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -336,12 +339,17 @@ import soc.util.Version;
         GridBagLayout gbl = new GridBagLayout();
         GridBagConstraints gbc = new GridBagConstraints();
         final int displayScale = mainDisplay.getDisplayScaleFactor();
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+        final boolean shouldClearButtonBGs = (! isOSHighContrast) && SOCPlayerClient.IS_PLATFORM_WINDOWS;
 
         final JPanel bp = new JPanel(gbl);  // Actual button panel
         int n = 4 * displayScale;
         bp.setBorder(new EmptyBorder(n, n, n, n));  // need padding around edges, because panel fills the frame
-        bp.setForeground(getForeground());
-        bp.setBackground(SwingMainDisplay.JSETTLERS_BG_GREEN);  // If this is omitted, firefox 3.5+ applet uses themed bg-color (seen OS X)
+        if (! isOSHighContrast)
+        {
+            bp.setForeground(getForeground());
+            bp.setBackground(SwingMainDisplay.JSETTLERS_BG_GREEN);  // If this is omitted, firefox 3.5+ applet uses themed bg-color (seen OS X)
+        }
 
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -351,8 +359,11 @@ import soc.util.Version;
         {
             msgText = new JTextField(strings.get("game.options.prompt"));  // "Choose options for the new game."
             msgText.setEditable(false);
-            msgText.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
-            msgText.setBackground(getBackground());
+            if (! isOSHighContrast)
+            {
+                msgText.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
+                msgText.setBackground(getBackground());
+            }
             add(msgText, BorderLayout.NORTH);
         }
 
@@ -362,9 +373,12 @@ import soc.util.Version;
         JLabel L;
 
         L = new JLabel(strings.get("game.options.name"), SwingConstants.LEFT);  // "Game name"
-        L.setBackground(HEADER_LABEL_BG);
-        L.setForeground(HEADER_LABEL_FG);
-        L.setOpaque(true);
+        if (! isOSHighContrast)
+        {
+            L.setBackground(HEADER_LABEL_BG);
+            L.setForeground(HEADER_LABEL_FG);
+            L.setOpaque(true);
+        }
         gbc.gridwidth = 2;
         gbc.weightx = 0;
         gbc.ipadx = 2 * displayScale;
@@ -401,8 +415,11 @@ import soc.util.Version;
          * was green in all 1.1.xx, default-gray in 1.2.xx, back to green for all 2.x.xx
          */
         JPanel btnPan = new JPanel();
-        btnPan.setBackground(null);
-        btnPan.setForeground(null);
+        if (! isOSHighContrast)
+        {
+            btnPan.setBackground(null);
+            btnPan.setForeground(null);
+        }
         btnPan.setBorder(new EmptyBorder(4 * displayScale, 2 * displayScale, 0, 2 * displayScale));
             // padding between option rows, buttons
 
@@ -415,14 +432,14 @@ import soc.util.Version;
             cancel.addKeyListener(this);  // for win32 keyboard-focus
         }
         cancel.addActionListener(this);
-        if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+        if (shouldClearButtonBGs)
             cancel.setBackground(null);  // needed on win32 to avoid gray corners
         btnPan.add(cancel);
 
         if (! readOnly)
         {
             create = new JButton(strings.get("game.options.oknew"));  // "Create Game"
-            if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+            if (shouldClearButtonBGs)
                 create.setBackground(null);
             create.addActionListener(this);
             create.addKeyListener(this);
@@ -465,6 +482,7 @@ import soc.util.Version;
      */
     private void initInterface_Options(JPanel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
         final boolean hideUnderscoreOpts = (! readOnly)
             && (! mainDisplay.getClient().getNickname().equalsIgnoreCase("debug"));
 
@@ -473,7 +491,8 @@ import soc.util.Version;
         if (opts == null)
         {
             L = new JLabel(strings.get("game.options.not"));  // "This server version does not support game options."
-            L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
+            if (! isOSHighContrast)
+                L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
             gbc.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(L, gbc);
             bp.add(L);
@@ -637,7 +656,7 @@ import soc.util.Version;
                 gbl.setConstraints(blank, gbc);
                 bp.add(blank);
                 scenInfo = new JButton(strings.get("game.options.scenario.info_btn"));  // "Scenario Info..."
-                if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+                if (SOCPlayerClient.IS_PLATFORM_WINDOWS && ! SwingMainDisplay.isOSColorHighContrast())
                     scenInfo.setBackground(null);  // inherit from parent; needed on win32 to avoid gray corners
                 scenInfo.addActionListener(this);
                 scenInfo.addKeyListener(this);
@@ -729,6 +748,7 @@ import soc.util.Version;
             boolean hasCB, boolean allowPH,
             JPanel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
         JLabel L;
 
         // reminder: same gbc widths/weights are used in initInterface_UserPrefs/initInterface_Pref1
@@ -745,8 +765,11 @@ import soc.util.Version;
             controlsOpts.put(cb, op);
             cb.setSelected(op.getBoolValue());
             cb.setEnabled(! readOnly);
-            cb.setBackground(null);  // needed on win32 to avoid gray border
-            cb.setForeground(null);
+            if (! isOSHighContrast)
+            {
+                cb.setBackground(null);  // needed on win32 to avoid gray border
+                cb.setForeground(null);
+            }
             gbl.setConstraints(cb, gbc);
             bp.add(cb);
             if (! readOnly)
@@ -763,8 +786,11 @@ import soc.util.Version;
         final String opDesc = op.getDesc();
         final int placeholderIdx = allowPH ? opDesc.indexOf('#') : -1;
         JPanel optp = new JPanel();  // with FlowLayout
-        optp.setBackground(null);  // inherit from parent
-        optp.setForeground(null);
+        if (! isOSHighContrast)
+        {
+            optp.setBackground(null);  // inherit from parent
+            optp.setForeground(null);
+        }
         try
         {
             FlowLayout fl = (FlowLayout) (optp.getLayout());
@@ -778,7 +804,8 @@ import soc.util.Version;
         if (placeholderIdx > 0)
         {
             L = new JLabel(opDesc.substring(0, placeholderIdx));
-            L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
+            if (! isOSHighContrast)
+                L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
             optp.add(L);
             if (hasCB && ! readOnly)
             {
@@ -816,7 +843,8 @@ import soc.util.Version;
         if (placeholderIdx + 1 < opDesc.length())
         {
             L = new JLabel(opDesc.substring(placeholderIdx + 1));
-            L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
+            if (! isOSHighContrast)
+                L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
             optp.add(L);
             if (hasCB && ! readOnly)
             {
@@ -917,7 +945,8 @@ import soc.util.Version;
         // thin <HR>-type spacer above prefs section
 
         JSeparator spacer = new JSeparator();
-        spacer.setBackground(HEADER_LABEL_BG);
+        if (! SwingMainDisplay.isOSColorHighContrast())
+            spacer.setBackground(HEADER_LABEL_BG);
         gbl.setConstraints(spacer, gbc);
         bp.add(spacer);
 
@@ -1007,6 +1036,8 @@ import soc.util.Version;
         if ((key == null) && (pcl == null))
             throw new IllegalArgumentException("null key, pcl");
 
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+
         // reminder: same gbc widths/weights are used in initInterface_Opt1
 
         final JCheckBox cb;
@@ -1019,8 +1050,11 @@ import soc.util.Version;
             gbc.gridwidth = 1;
             gbc.weightx = 0;
             gbl.setConstraints(cb, gbc);
-            cb.setBackground(null);  // needed on win32 to avoid gray border
-            cb.setForeground(null);
+            if (! isOSHighContrast)
+            {
+                cb.setBackground(null);  // needed on win32 to avoid gray border
+                cb.setForeground(null);
+            }
             bp.add(cb);
 
             ml = new MouseAdapter()
@@ -1066,8 +1100,11 @@ import soc.util.Version;
                 throw new IllegalArgumentException("missing '#'");
 
             prefp = new JPanel();  // with FlowLayout
-            prefp.setBackground(null);  // inherit from parent
-            prefp.setForeground(null);
+            if (! isOSHighContrast)
+            {
+                prefp.setBackground(null);  // inherit from parent
+                prefp.setForeground(null);
+            }
             try
             {
                 FlowLayout fl = (FlowLayout) (prefp.getLayout());
@@ -1086,7 +1123,8 @@ import soc.util.Version;
         if (placeholderIdx > 0)
         {
             JLabel L = new JLabel(desc.substring(0, placeholderIdx));
-            L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
+            if (! isOSHighContrast)
+                L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
             prefp.add(L);
             L.addMouseListener(ml);
         }
@@ -1144,7 +1182,8 @@ import soc.util.Version;
         if (placeholderIdx + 1 < desc.length())
         {
             JLabel L = new JLabel(desc.substring(placeholderIdx + 1));
-            L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
+            if (! isOSHighContrast)
+                L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
             if (prefp != null)
             {
                 prefp.add(L);

@@ -35,6 +35,8 @@ import java.awt.Frame;
 import java.awt.GraphicsConfiguration;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.SystemColor;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -127,6 +129,14 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * @since 2.0.00
      */
     public static final String PROP_JSETTLERS_UI_SCALE = "jsettlers.uiScale";
+
+    /**
+     * System property {@code "jsettlers.uiContrastMode"} to force high-contrast dark or light mode
+     * if needed for accessibility. Recognized values: {@code "light"} or {@code "dark"} background.
+     * Name is based on {@link #PROP_JSETTLERS_UI_SCALE}.
+     * @since 2.0.00
+     */
+    public static final String PROP_JSETTLERS_UI_CONTRAST_MODE = "jsettlers.uiContrastMode";
 
     /**
      * The classic JSettlers goldenrod dialog background color; pale yellow-orange tint #FFE6A2.
@@ -233,6 +243,34 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     private final int displayScale;
 
     /**
+     * True if {@link #getForegroundBackgroundColors(boolean, boolean)} has been called to
+     * determine {@link #isOSColorHighContrast}, {@link #osColorText}, {@link #osColorTextBG}.
+     * @since 2.0.00
+     */
+    private static boolean hasDeterminedOSColors;
+
+    /**
+     * Is the OS using high-contrast or reverse-video colors (accessibility mode)?
+     * If {@link #hasDeterminedOSColors}, has been set in {@link #getForegroundBackgroundColors(boolean, boolean)}.
+     * @since 2.0.00
+     */
+    private static boolean isOSColorHighContrast;  // TODO later enhancement: + isOSDarkBackground
+
+    /**
+     * System theme's default text colors, from {@link SystemColor#textText} and {@link SystemColor#text}.
+     * If {@link #hasDeterminedOSColors}, has been set in {@link #getForegroundBackgroundColors(boolean, boolean)}.
+     * Lazy: avoids static initializer to avoid problems for console-only client jar usage.
+     * @since 2.0.00
+     */
+    private static Color osColorText, osColorTextBG;
+
+    /**
+     * Foreground color for miscellaneous label text; typically {@link #MISC_LABEL_FG_OFF_WHITE}.
+     * @since 2.0.00
+     */
+    private final Color miscLabelFGColor;
+
+    /**
      * The player interfaces for the {@link SOCPlayerClient#games} we're playing.
      * Accessed from GUI thread and network MessageHandler thread.
      */
@@ -302,12 +340,6 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * @since 1.1.19
      */
     private JPanel mainPane;
-
-    /**
-     * Foreground color for miscellaneous label text; typically {@link #MISC_LABEL_FG_OFF_WHITE}.
-     * @since 2.0.00
-     */
-    private final Color miscLabelFGColor;
 
     /** Layout for {@link #mainPane} */
     private GridBagLayout mainGBL;
@@ -472,25 +504,104 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
         // Set colors; easier than troubleshooting color-inherit from JFrame or applet tag
         setOpaque(true);
-        final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(false);
-        setBackground(colors[2]);  // JSETTLERS_BG_GREEN
-        setForeground(colors[0]);  // Color.BLACK
-        miscLabelFGColor = colors[1];
+        final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(false, false);
+        if (colors != null)
+        {
+            setBackground(colors[2]);  // JSETTLERS_BG_GREEN
+            setForeground(colors[0]);  // Color.BLACK
+            miscLabelFGColor = colors[1];
+        } else {
+            miscLabelFGColor = osColorText;
+        }
     }
 
     /**
-     * Get foreground and background colors to use for a new window or panel.
+     * Get foreground and background colors to use for a new window or panel, unless OS
+     * is using high-contrast or reverse-video colors (accessibility).
+     *<P>
+     * The first time this is called, attempts to determine if the OS is using
+     * a high-contrast or reverse-video mode (might detect only on Windows);
+     * if so, windows and panels should probably use the OS default colors.
+     *<P>
+     * To check whether the OS is using such a mode, call {@link #isOSColorHighContrast()}.
      *
      * @param isForLightBG  True for a light background like {@link #DIALOG_BG_GOLDENROD},
      *     false for a dark background like {@link #JSETTLERS_BG_GREEN}
-     * @return Array of 3 colors: { Main foreground, misc foreground, background }.
+     * @param wantSystemColors  True to return the default system-theme colors (not always accurate)
+     *     from {@link SystemColor#textText} and {@link SystemColor#text} instead of JSettlers colors.
+     *     If true: Won't return null, and ignores {@code isForLightBG}.
+     * @return Array of 3 colors: { Main foreground, misc foreground, background },
+     *     or {@code null} if OS is using high-contrast or reverse-video colors.
      *     If background is dark, misc foreground is {@link #MISC_LABEL_FG_OFF_WHITE}
      *     instead of same as main foreground {@link Color#BLACK}.
      * @since 2.0.00
      */
-    public static final Color[] getForegroundBackgroundColors(final boolean isForLightBG)
+    public static final Color[] getForegroundBackgroundColors
+        (final boolean isForLightBG, final boolean wantSystemColors)
     {
-        // TODO determine and cache whether using high-contrast mode/colors, have getter for that cached answer
+        if (! hasDeterminedOSColors)
+        {
+            String propValue = System.getProperty(PROP_JSETTLERS_UI_CONTRAST_MODE);
+            if (propValue != null)
+            {
+                if (propValue.equalsIgnoreCase("dark"))
+                {
+                    osColorTextBG = Color.BLACK;
+                    osColorText = Color.WHITE;
+                }
+                else if (propValue.equalsIgnoreCase("light"))
+                {
+                    osColorTextBG = Color.WHITE;
+                    osColorText = Color.BLACK;
+                }
+                else
+                {
+                    System.err.println
+                        ("* Unrecognized value for " + PROP_JSETTLERS_UI_CONTRAST_MODE + ": " + propValue);
+                    propValue = null;
+                }
+
+                if (propValue != null)
+                {
+                    isOSColorHighContrast = true;
+                    System.err.println
+                        ("High-contrast mode enabled using " + PROP_JSETTLERS_UI_CONTRAST_MODE + '=' + propValue);
+                }
+            }
+
+            if (propValue == null)
+            {
+                osColorTextBG = SystemColor.text;
+                osColorText = SystemColor.textText;
+
+                Object o = Toolkit.getDefaultToolkit().getDesktopProperty("win.highContrast.on");
+                if (o instanceof Boolean)  // false if null
+                    isOSColorHighContrast = (Boolean) o;
+
+                if (! isOSColorHighContrast)
+                {
+                    // check for reverse video
+                    final float brightnessBG =
+                        (osColorTextBG.getRed() + osColorTextBG.getGreen() + osColorTextBG.getBlue()) / (3 * 255f),
+                      brightnessText =
+                        (osColorText.getRed() + osColorText.getGreen() + osColorText.getBlue()) / (3 * 255f);
+
+                    isOSColorHighContrast = (brightnessText > brightnessBG) && (brightnessBG <= 0.3f);
+                    if (isOSColorHighContrast)
+                        System.err.println("High-contrast mode detected (dark background).");
+                } else {
+                    System.err.println("High-contrast mode detected.");
+                }
+            }
+
+            hasDeterminedOSColors = true;
+        }
+
+        if (wantSystemColors)
+            return new Color[]{ osColorText, osColorText, osColorTextBG };
+
+        if (isOSColorHighContrast)
+            return null;
 
         if (isForLightBG)
         {
@@ -498,6 +609,20 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         } else {
             return new Color[]{ Color.BLACK, MISC_LABEL_FG_OFF_WHITE, JSETTLERS_BG_GREEN };
         }
+    }
+
+    /**
+     * Is the OS using high-contrast or reverse-video colors (accessibility mode)? If so, to get those colors call
+     * {@link #getForegroundBackgroundColors(boolean, boolean) getForegroundBackgroundColors(false, true)}.
+     * @return true if high-contrast or reverse instead of usual JSettlers colors
+     * @since 2.0.00
+     */
+    public static final boolean isOSColorHighContrast()
+    {
+        if (! hasDeterminedOSColors)
+            getForegroundBackgroundColors(false, true);
+
+        return isOSColorHighContrast;
     }
 
     /**
@@ -658,7 +783,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         pg = new JButton(strings.get("pcli.main.practice"));      // "Practice" -- "practice game" text is too wide
         gi = new JButton(strings.get("pcli.main.game.info"));     // "Game Info" -- show game options
 
-        if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+        if (SOCPlayerClient.IS_PLATFORM_WINDOWS && ! isOSColorHighContrast)
         {
             // swing on win32 needs all JButtons to inherit their bgcolor from panel, or they get gray corners
             ng.setBackground(null);
@@ -777,7 +902,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         // bottom of message pane: practice-game button
         pgm = new JButton(strings.get("pcli.message.practicebutton"));  // "Practice Game (against robots)"
         pgm.setVisible(false);
-        if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+        if (SOCPlayerClient.IS_PLATFORM_WINDOWS && ! isOSColorHighContrast)
             pgm.setBackground(null);
         messagePane.add(pgm, BorderLayout.SOUTH);
         pgm.addActionListener(actionListener);

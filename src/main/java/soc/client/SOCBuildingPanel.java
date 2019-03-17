@@ -209,9 +209,13 @@ import javax.swing.SwingConstants;
 
         final Font panelFont = new Font("Dialog", Font.PLAIN, 10 * pi.displayScale);
 
-        final Color colors[] = SwingMainDisplay.getForegroundBackgroundColors(true);
-        setBackground(colors[2]);  // SwingMainDisplay.DIALOG_BG_GOLDENROD
-        setForeground(colors[0]);  // Color.BLACK
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+        if (! isOSHighContrast)
+        {
+            final Color colors[] = SwingMainDisplay.getForegroundBackgroundColors(true, false);
+            setBackground(colors[2]);  // SwingMainDisplay.DIALOG_BG_GOLDENROD
+            setForeground(colors[0]);  // Color.BLACK
+        }
         setFont(panelFont);
 
         /*
@@ -222,11 +226,12 @@ import javax.swing.SwingConstants;
 
         final int costsH = 10 * pi.displayScale - 1, costsW = 7 * pi.displayScale - 1;
         final String costsTooltip = strings.get("build.cost_to_build");  // "Cost to Build"
+        final Component arrowColorsFrom = (isOSHighContrast) ? null : this;
 
         roadT = new JLabel(strings.get("build.road"));  // "Road: "
         roadT.setToolTipText(strings.get("build.road.vp"));  // "0 VP  (longest road = 2 VP)"
         add(roadT);
-        roadC = new ArrowheadPanel(costsW, costsH, costsTooltip, this);
+        roadC = new ArrowheadPanel(costsW, costsH, costsTooltip, arrowColorsFrom);
         add(roadC);
         roadSq = makeCostSquares(SOCRoad.COST);
         roadBut = new JButton("---");
@@ -239,7 +244,7 @@ import javax.swing.SwingConstants;
         settlementT = new JLabel(strings.get("build.settlement"));  // "Settlement: "
         settlementT.setToolTipText(strings.get("build.1.vp"));  // "1 VP"
         add(settlementT);
-        settlementC = new ArrowheadPanel(costsW, costsH, costsTooltip, this);
+        settlementC = new ArrowheadPanel(costsW, costsH, costsTooltip, arrowColorsFrom);
         add(settlementC);
         settlementSq = makeCostSquares(SOCSettlement.COST);
         settlementBut = new JButton("---");
@@ -251,7 +256,7 @@ import javax.swing.SwingConstants;
         cityT = new JLabel(strings.get("build.city"));  // "City: "
         cityT.setToolTipText(strings.get("build.city.vp"));  // "2 VP  (receives 2x rsrc.)"
         add(cityT);
-        cityC = new ArrowheadPanel(costsW, costsH, costsTooltip, this);
+        cityC = new ArrowheadPanel(costsW, costsH, costsTooltip, arrowColorsFrom);
         add(cityC);
         citySq = makeCostSquares(SOCCity.COST);
         cityBut = new JButton("---");
@@ -274,7 +279,7 @@ import javax.swing.SwingConstants;
         cardT = new JLabel(strings.get("build.dev.card"));  // "Dev Card: "
         cardT.setToolTipText(/*I*/"? VP  (largest army = 2 VP) "/*18N*/);
         add(cardT);
-        cardC = new ArrowheadPanel(costsW, costsH, costsTooltip, this);
+        cardC = new ArrowheadPanel(costsW, costsH, costsTooltip, arrowColorsFrom);
         add(cardC);
         cardSq = makeCostSquares(SOCDevCard.COST);
         cardBut = new JButton("---");
@@ -299,7 +304,7 @@ import javax.swing.SwingConstants;
             shipT = new JLabel(strings.get("build.ship"), SwingConstants.LEFT);  // "Ship: "
             shipT.setToolTipText(strings.get("build.ship.vp"));  // "0 VP  (longest route = 2 VP)"
             add(shipT);
-            shipC = new ArrowheadPanel(costsW, costsH, costsTooltip, this);
+            shipC = new ArrowheadPanel(costsW, costsH, costsTooltip, arrowColorsFrom);
             add(shipC);
             shipSq = makeCostSquares(SOCShip.COST);
             shipBut = new JButton("---");
@@ -413,7 +418,7 @@ import javax.swing.SwingConstants;
                 sbLab.setFont(panelFont);
                 sbBut = new JButton(strings.get("build.buybuild"));  // "Buy/Build"
             }
-            if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+            if (SOCPlayerClient.IS_PLATFORM_WINDOWS && ! isOSHighContrast)
                 sbBut.setBackground(null);
             sbBut.setFont(panelFont);
             sbBut.setEnabled(false);
@@ -436,7 +441,7 @@ import javax.swing.SwingConstants;
         // to not cut off wide button text, remove button margin since we're using custom layout anyway
         final int pix2 = 2 * pi.displayScale;
         final Insets minMargin = new Insets(pix2, pix2, pix2, pix2);
-        final boolean isPlatformWindows = SOCPlayerClient.IS_PLATFORM_WINDOWS;
+        final boolean shouldClearButtonBGs = SOCPlayerClient.IS_PLATFORM_WINDOWS && ! isOSHighContrast;
         for (Component co : getComponents())
         {
             if (! ((co instanceof JLabel) || (co instanceof JButton)))
@@ -448,7 +453,7 @@ import javax.swing.SwingConstants;
                 ((JLabel) co).setVerticalAlignment(JLabel.TOP);
             } else {
                 ((JButton) co).setMargin(minMargin);
-                if (isPlatformWindows)
+                if (shouldClearButtonBGs)
                     co.setBackground(null);  // required on win32 to avoid gray corners on JButton
             }
         }
@@ -1147,13 +1152,24 @@ import javax.swing.SwingConstants;
      */
     private static class ArrowheadPanel extends JComponent
     {
-        /** Create a new ArrowheadPanel, taking another component's background and foreground colors. */
+        /**
+         * Create a new ArrowheadPanel, taking another component's background and foreground colors
+         * (or system colors if null).
+         */
         public ArrowheadPanel
             (final int width, final int height, final String tooltipText, final Component colorsFrom)
         {
             setOpaque(true);
-            setBackground(colorsFrom.getBackground());
-            setForeground(colorsFrom.getForeground());
+            if (colorsFrom != null)
+            {
+                setBackground(colorsFrom.getBackground());
+                setForeground(colorsFrom.getForeground());
+            } else {
+                final Color[] sysColors = SwingMainDisplay.getForegroundBackgroundColors(false, true);
+                setForeground(sysColors[0]);
+                setBackground(sysColors[2]);
+            }
+
             if (tooltipText != null)
                 setToolTipText(tooltipText);
 
