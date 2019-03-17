@@ -174,11 +174,19 @@ public class SOCServer extends Server
     public static final int SOC_STARTROBOTS_DEFAULT = 7;
 
     /**
-     * Default maximum number of connected clients (40; {@link #maxConnections} field).
+     * Default maximum number of connected clients (40; {@link #maxConnections} field;
+     * {@link #PROP_JSETTLERS_CONNECTIONS} property).
      * Always at least 20 more than {@link #SOC_STARTROBOTS_DEFAULT}.
      * @since 1.1.15
      */
     public static final int SOC_MAXCONN_DEFAULT = Math.max(40, 20 + SOC_STARTROBOTS_DEFAULT);
+
+    /**
+     * No matter how many bots are started by {@link #SOC_STARTROBOTS_DEFAULT} or {@link #PROP_JSETTLERS_STARTROBOTS},
+     * reserve this many spots in {@link #maxConnections} for human clients to connect and play.
+     * @since 2.0.00
+     */
+    private static final int SOC_MAXCONN_HUMANS_RESERVE = 6;
 
     /**
      * Filename {@code "jsserver.properties"} for the optional server startup properties file.
@@ -1315,12 +1323,13 @@ public class SOCServer extends Server
         }
 
         /**
-         * If true, connect to DB (like validate_config_mode) but start no threads.
+         * If true, connect to DB (like validate_config_mode does) but start no threads.
          * Will run the requested tests and exit.
          */
         final boolean test_mode_with_db = getConfigBoolProperty(PROP_JSETTLERS_TEST_DB, false);
 
         final boolean validate_config_mode = getConfigBoolProperty(PROP_JSETTLERS_TEST_VALIDATE__CONFIG, false);
+
         final boolean wants_upg_schema = getConfigBoolProperty(SOCDBHelper.PROP_JSETTLERS_DB_UPGRADE__SCHEMA, false);
         boolean db_test_bcrypt_mode = false;
 
@@ -1360,6 +1369,7 @@ public class SOCServer extends Server
 
         // Set game option defaults from any jsettlers.gameopt.* properties found.
         // If problems found, throws IllegalArgumentException with details.
+        // validate_config_mode uses this method to do most validation.
         // Does not apply scenario's game options, if any.
         // Ignores unknown scenario ("SC"), see init_checkScenarioOpts for that.
         init_propsSetGameopts(props);
@@ -1372,6 +1382,25 @@ public class SOCServer extends Server
             else
                 throw new IllegalArgumentException
                     ("Error: Property out of range (0 to 100): " + PROP_JSETTLERS_BOTS_FAST__PAUSE__PERCENT);
+        }
+
+        if (validate_config_mode)
+        {
+            // Check number of bot users vs maxConnections, reserve room for humans.
+            // Same reserve logic is used in serverUp when calling setupLocalRobots
+
+            final int rcount = Integer.parseInt(props.getProperty(PROP_JSETTLERS_STARTROBOTS));
+            final int hcount = maxConnections - rcount;  // max human client connection count
+            final int reserve = Math.max(rcount, SOC_MAXCONN_HUMANS_RESERVE);
+            if (hcount < reserve)
+            {
+                final int incr = reserve - hcount;
+                throw new IllegalArgumentException
+                    ("Config: " + PROP_JSETTLERS_CONNECTIONS + ": Only "
+                     + hcount + " player connections would be available because of the "
+                     + rcount + " started robots. Should use " + (maxConnections + incr)
+                     + " for max connection count (+" + incr + ")");
+            }
         }
 
         ((SOCMessageDispatcher) inboundMsgDispatcher).setServer(this, srvMsgHandler, gameList);
@@ -1568,6 +1597,8 @@ public class SOCServer extends Server
         }
         catch (IllegalArgumentException iax)
         {
+            // reminder: caught here only if thrown by db init, not by init_propsSetGameopts
+
             System.err.println("\n* Error in specified database properties: " + iax.getMessage());
             SQLException sqle = new SQLException("Error with DB props");
             sqle.initCause(iax);
@@ -1682,6 +1713,8 @@ public class SOCServer extends Server
             // Print configured known properties (ignore if not in PROPS_LIST);
             // this also gives them in the same order as PROPS_LIST,
             // which is the same order --help prints them out.
+            // If a problem was found by init_propsSetGameopts, it would have already
+            // thrown an exception out of this method.
             System.err.println();
             System.err.println("-- Configured server properties: --");
             for (int i = 0; i < PROPS_LIST.length; i += 2)
@@ -1825,8 +1858,11 @@ public class SOCServer extends Server
             try
             {
                 // 0 bots is OK with the logic here
+                // Same reserve logic is used in initSocServer for validate_config_mode
+
                 final int rcount = Integer.parseInt(props.getProperty(PROP_JSETTLERS_STARTROBOTS));
                 final int hcount = maxConnections - rcount;  // max human client connection count
+                final int reserve = Math.max(rcount, SOC_MAXCONN_HUMANS_RESERVE);
                 int fast30 = (int) (0.30f * rcount);
                 boolean loadSuccess = setupLocalRobots(fast30, rcount - fast30);  // each bot gets a thread
                 if (! loadSuccess)
@@ -1834,9 +1870,9 @@ public class SOCServer extends Server
                     System.err.println("** Cannot start robots with this JAR.");
                     System.err.println("** For robots, please use the Full JAR instead of the server-only JAR.");
                 }
-                else if ((hcount < 6) || (hcount < rcount))
+                else if (hcount < reserve)
                 {
-                    final int incr = 6 - hcount, newMaxC = maxConnections + incr;
+                    final int incr = reserve - hcount, newMaxC = maxConnections + incr;
                     maxConnections = newMaxC;
 
                     new Thread() {
@@ -8789,6 +8825,7 @@ public class SOCServer extends Server
             }
             catch (IllegalArgumentException e)
             {
+                // was probably thrown in init_propsSetGameopts via initSocServer
                 System.err.println
                     ("\n" + e.getMessage()
                      + "\n* Error in game options properties: Exiting now.\n");
