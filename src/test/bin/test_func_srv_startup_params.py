@@ -21,14 +21,17 @@
 
 from __future__ import print_function  # Python 2.6 or higher is required
 
-import os, re, socket, subprocess, sys, time
+import glob, os, re, socket, subprocess, sys, time
 from threading import Thread
 
 FNAME_JSSERVER_JAR = "JSettlersServer.jar"
-REL_PATH_JS_SERVER_JAR = "../../../target/" + FNAME_JSSERVER_JAR
+REL_PATHS_JS_SERVER_JAR = ("../../../target/" + FNAME_JSSERVER_JAR, "../../../build/libs/JSettlersServer-?.?.??.jar")
 REL_PATH_TEMPDIR = "../tmp"
 FNAME_JSSERVER_PROPS = "jsserver.properties"
 MAX_TIMEOUT_SEC = 20
+
+rel_path_js_server_jar = ""
+"""str: will be set in env_ok() from REL_PATHS_JS_SERVER_JAR"""
 
 tests_failed_count = 0
 """int: global counter for test failures; increment in arg_test or
@@ -41,6 +44,7 @@ def print_err(*args, **kwargs):
 
 def env_ok():
     """Check environment. Return true if okay, false if problems."""
+    global rel_path_js_server_jar
     all_ok = True
 
     # python version
@@ -55,9 +59,22 @@ def env_ok():
     if os.path.exists(rel_path_jsserver_props) and not os.path.isfile(rel_path_jsserver_props):
         all_ok = False
         print_err(rel_path_jsserver_props + " exists but is not a normal file: Remove it")
-    if not os.path.isfile(REL_PATH_JS_SERVER_JAR):
+    # search possible build-target dirs for server jar
+    for rel_fname in REL_PATHS_JS_SERVER_JAR:
+        if os.path.isdir(os.path.dirname(rel_fname)):
+            if '?' in rel_fname:
+                # glob for matching filenames, use newest if multiple
+                match_fnames = glob.glob(rel_fname)
+                if match_fnames:
+                    rel_fname = max(match_fnames, key=os.path.getctime)  # most recently modified
+                else:
+                    rel_fname = ""  # no matches
+            if os.path.isfile(rel_fname):
+                rel_path_js_server_jar = rel_fname
+                break
+    if not os.path.isfile(rel_path_js_server_jar):
         all_ok = False
-        print_err("Must build server JAR first: missing " + REL_PATH_JS_SERVER_JAR)
+        print_err("Must build server JAR first: file not found among " + repr(REL_PATHS_JS_SERVER_JAR))
 
     # test java binary execution: java -version
     # (no need to parse version# in this test script)
@@ -199,7 +216,7 @@ def test_run_and_get_outputs():
         (ec, __, __) = _run_and_get_outputs("/prog_does_not_Exist")
     except OSError:
         got_err = True
-    print_result("Test 4: Program does not exist", got_err)
+    print_result("Test 4: program should not exist", got_err)
 
 def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expected_output_incl=None):
     """Run a single test of JSettlersServer command-line/properties-file arguments.
@@ -231,7 +248,7 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
             entirely captured when the timeout kills the subprocess; searching for expected
             output may fail although the program generated that output.
     """
-    global tests_failed_count
+    global tests_failed_count, rel_path_js_server_jar
 
     if should_startup and (expected_output_incl is not None):
         raise ValueError("Can't use should_startup with expected_output_incl")
@@ -240,7 +257,7 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
     if (expected_output_incl is not None) and isinstance(expected_output_incl, list):
         expected_output_set = set(expected_output_incl)
 
-    args = ["-jar", REL_PATH_JS_SERVER_JAR]
+    args = ["-jar", rel_path_js_server_jar]
     if len(cmdline_params):
         args.extend(cmdline_params.split())
 

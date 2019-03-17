@@ -195,6 +195,13 @@ When preparing to release a new version, testing should include:
 - Command line and jsserver.properties
     - Server and client: `-h` / `--help` / `-?`, `--version`
     - Server: Unknown args `-x -z` should print both, then not continue startup
+	- Server: Automated test for various argument/property combinations, in a terminal or command prompt:
+
+          cd src/main/test
+          python test_func_srv_startup_params.py
+
+      The test script should run for about a minute, and end with:  
+      `All tests passed.`
     - Start client w/ no args, start client with host & port on command line
     - Game option defaults on command line, in `jsserver.properties`: `-oVP=t11 -oN7=t5 -oRD=y`
     - Server prop for no chat channels (`jsettlers.client.maxcreatechannels=0`):  
