@@ -240,14 +240,14 @@ public class SOCAccountClient extends Applet
     private final soc.util.SOCStringManager strings;
 
     /**
-     * Create a SOCAccountClient connecting to localhost port 8880
+     * Create a SOCAccountClient connecting to localhost port 8880 ({@link ClientNetwork#SOC_PORT_DEFAULT}).
      * @param displayScaleFactor  Display scaling factor to use (1 if not high-DPI); caller should call
      *     {@link SwingMainDisplay#checkDisplayScaleFactor(Component)} with the Frame to which this display will be added
      * @throws IllegalArgumentException if {@code displayScaleFactor} &lt; 1
      */
     public SOCAccountClient(final int displayScaleFactor)
     {
-        this(null, 8880, displayScaleFactor);
+        this(null, ClientNetwork.SOC_PORT_DEFAULT, displayScaleFactor);
     }
 
     /**
@@ -259,7 +259,7 @@ public class SOCAccountClient extends Applet
      * {@link I18n#PROP_JSETTLERS_LOCALE PROP_JSETTLERS_LOCALE} system property {@code "jsettlers.locale"}.
      *
      * @param h  host
-     * @param p  port
+     * @param p  port; JSettlers default is 8880 ({@link ClientNetwork#SOC_PORT_DEFAULT})
      * @param displayScaleFactor  Display scaling factor to use (1 if not high-DPI); caller should call
      *     {@link SwingMainDisplay#checkDisplayScaleFactor(Component)} with the Frame to which this display will be added
      * @throws IllegalArgumentException if {@code displayScaleFactor} &lt; 1
