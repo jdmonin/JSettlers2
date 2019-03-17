@@ -1139,7 +1139,7 @@ public class SOCAccountClient extends Applet
      */
     public static void usage()
     {
-        System.err.println("usage: java soc.client.SOCAccountClient <host> <port>");
+        System.err.println("usage: java -cp JSettlers.jar soc.client.SOCAccountClient <host> [<port>]");
     }
 
     /**
@@ -1159,7 +1159,7 @@ public class SOCAccountClient extends Applet
 
         SOCAccountClient client = new SOCAccountClient(displayScale);
 
-        if (args.length != 2)
+        if ((args.length < 1) || (args.length > 2))
         {
             usage();
             System.exit(1);
@@ -1167,7 +1167,7 @@ public class SOCAccountClient extends Applet
 
         try {
             client.host = args[0];
-            client.port = Integer.parseInt(args[1]);
+            client.port = (args.length > 1) ? Integer.parseInt(args[1]) : ClientNetwork.SOC_PORT_DEFAULT;
         } catch (NumberFormatException x) {
             usage();
             System.err.println("Invalid port: " + args[1]);
