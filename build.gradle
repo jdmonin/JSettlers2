@@ -1,3 +1,6 @@
+// JSettlers build script for gradle 2 or higher
+// See bottom of file for copyright and license information (GPLv3).
+
 apply plugin: 'java'
 apply plugin: 'application'
 apply plugin: 'idea'
@@ -21,6 +24,18 @@ compileJava {
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'  // override the system's default encoding
         // To test that this has an effect, use 'Cp1252' instead here and expect "unmappable character" errors in StringUtil.java
+}
+
+tasks.withType(Test) { task ->
+    task.outputs.upToDateWhen { false }  // never skip testing ("UP-TO-DATE") when it's asked for or is dependency
+    task.afterSuite { desc, result ->
+        if (! desc.parent) {
+            // print overall results only
+            // Testing results: :test SUCCESS (62 tests, 62 successes, 0 failures, 0 skipped)
+            logger.lifecycle("Testing results: {} {} ({} tests, {} successes, {} failures, {} skipped)", task.path,
+                result.resultType, result.testCount, result.successfulTestCount, result.failedTestCount, result.skippedTestCount)
+        }
+    }
 }
 
 tasks.withType(Jar) {
@@ -92,3 +107,24 @@ dependencies {
 artifacts {
     archives serverJar, fullJar
 }
+
+/*
+ * This file is part of the JSettlers project.
+ *
+ * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
+ * Portions of this file Copyright (C) 2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2019 Colin Werner
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see http://www.gnu.org/licenses/ .
+ */
