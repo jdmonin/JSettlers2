@@ -21,6 +21,23 @@ compileJava {
     targetCompatibility = '1.6'
 }
 
+sourceSets {
+    extraTest {
+        // also runs extraTest/python/*.py, see task extraTaskPython below
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDirs = ['src/extraTest/java']
+        }
+        // if needed later: resources.srcDir file('src/extraTest/resources')
+    }
+}
+
+configurations {
+    extraTestCompile.extendsFrom testCompile
+    extraTestRuntime.extendsFrom testRuntime
+}
+
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'  // override the system's default encoding
         // To test that this has an effect, use 'Cp1252' instead here and expect "unmappable character" errors in StringUtil.java
@@ -87,6 +104,27 @@ task fullJar(type: Jar) {
         include "**"
     }
 }
+
+task extraTestPython <<{  // (type: Test) -- unsure what's needed to use as unit tests (TODO)
+    fileTree("src/extraTest/python").matching{ include "**/*.py"}.each { pyfi ->
+        exec {
+            executable 'python'  // expected to be in PATH
+            workingDir pyfi.getParentFile()
+            args pyfi.absolutePath
+            environment CLASSPATH: tasks.extraTest.classpath.asPath
+        }
+    }
+}
+
+task extraTest(type: Test) {
+    testClassesDir = sourceSets.extraTest.output.classesDir
+    classpath = sourceSets.extraTest.runtimeClasspath
+    reports.junitXml.destination = file("$buildDir/extraTest-results")  // unit tests use buildDir/test-results
+    reports.html.destination = file("$buildDir/reports/extraTests")     // unit tests use buildDir/reports/tests
+    outputs.upToDateWhen { false }  // never skip running it
+}
+
+extraTest.dependsOn test, extraTestPython
 
 // TODO i18neditor (see build.xml build-i18neditor)
 
