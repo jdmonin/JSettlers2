@@ -132,6 +132,11 @@ task extraTestPython(type: Exec) {
 extraTest.dependsOn test
 extraTest.finalizedBy extraTestPython  // run java tests first; run python tests even if java fails
 
+clean {
+    // also remove python bytecode files
+    delete fileTree("src/extraTest/python").matching{ include "**/*.pyc" }
+}
+
 // TODO i18neditor (see build.xml build-i18neditor)
 
 //
