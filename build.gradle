@@ -21,6 +21,14 @@ compileJava {
     targetCompatibility = '1.6'
 }
 
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile 'junit:junit:4.12'
+}
+
 sourceSets {
     extraTest {
         // also runs extraTest/python/*.py, see task extraTaskPython below
@@ -105,17 +113,6 @@ task fullJar(type: Jar) {
     }
 }
 
-task extraTestPython <<{  // (type: Test) -- unsure what's needed to use as unit tests (TODO)
-    fileTree("src/extraTest/python").matching{ include "**/*.py"}.each { pyfi ->
-        exec {
-            executable 'python'  // expected to be in PATH
-            workingDir pyfi.getParentFile()
-            args pyfi.absolutePath
-            environment CLASSPATH: tasks.extraTest.classpath.asPath
-        }
-    }
-}
-
 task extraTest(type: Test) {
     testClassesDir = sourceSets.extraTest.output.classesDir
     classpath = sourceSets.extraTest.runtimeClasspath
@@ -124,23 +121,25 @@ task extraTest(type: Test) {
     outputs.upToDateWhen { false }  // never skip running it
 }
 
-extraTest.dependsOn test, extraTestPython
+// run all python tests using PyUnit (unittest); returns 0 if no failures
+task extraTestPython(type: Exec) {
+    executable 'python'  // expected to be in PATH
+    workingDir 'src/extraTest/python'
+    args '-m', 'unittest', 'discover', '--verbose'  // discover requires python 2.7 or higher
+    environment CLASSPATH: tasks.extraTest.classpath.asPath
+}
+
+extraTest.dependsOn test
+extraTest.finalizedBy extraTestPython  // run java tests first; run python tests even if java fails
 
 // TODO i18neditor (see build.xml build-i18neditor)
 
-repositories {
-    mavenCentral()
-}
 //
 //jar {
 //    into 'resources', {
 //        from 'resources'
 //    }
 //}
-
-dependencies {
-    testCompile 'junit:junit:4.12'
-}
 
 artifacts {
     archives serverJar, fullJar

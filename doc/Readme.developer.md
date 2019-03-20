@@ -264,7 +264,9 @@ patch submissions.
 
 Before building, make sure you have the Java Development Kit version 6 or later.
 If you simply want to run the client or server, you only need the Java Runtime
-(JRE). If you wish to maintain a user database for your server, you need MySQL
+(JRE). Extra tests in the build want python 2.7 or later for unittest discovery.
+
+If you wish to maintain a user database for your server, you need MySQL
 or PostgreSQL installed and configured, or the sqlite jdbc driver for a
 file-based local database.
 
