@@ -104,7 +104,7 @@ def env_ok():
     # (no need to parse version# in this test script)
     try:
         (ec, stdout, stderr) = _run_and_get_outputs("java", ["-version"])
-        if ec != 0 or not re.search("java version", str(stdout)+" "+str(stderr), re.I):
+        if ec != 0 or not re.search("(openjdk|java) version", str(stdout)+" "+str(stderr), re.I):
             all_ok = False
             if ec != 0:
                 print_err("Failed to run: java -version")
@@ -329,7 +329,7 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
         tests_failed_count += 1
         print(prn_startup + " -> FAIL")
         if (expected_output_incl is not None) and not did_startup:
-            print("EXPECTED: " + expected_output_incl)
+            print("EXPECTED: " + str(expected_output_incl))
         print("STDOUT: " + stdout)
         print("STDERR: " + stderr)
         if propsfile_contents is not None:
