@@ -1,4 +1,4 @@
-// JSettlers build script for gradle 2 or higher
+// JSettlers build script for gradle 4 and gradle 5
 // See bottom of file for copyright and license information (GPLv3).
 
 apply plugin: 'java'
@@ -114,7 +114,7 @@ task fullJar(type: Jar) {
 }
 
 task extraTest(type: Test) {
-    testClassesDir = sourceSets.extraTest.output.classesDir
+    testClassesDirs = sourceSets.extraTest.output.classesDirs
     classpath = sourceSets.extraTest.runtimeClasspath
     reports.junitXml.destination = file("$buildDir/extraTest-results")  // unit tests use buildDir/test-results
     reports.html.destination = file("$buildDir/reports/extraTests")     // unit tests use buildDir/reports/tests
