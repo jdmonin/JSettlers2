@@ -1,0 +1,3 @@
+# server test package
+
+pass

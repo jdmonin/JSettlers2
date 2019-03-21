@@ -197,11 +197,12 @@ When preparing to release a new version, testing should include:
     - Server: Unknown args `-x -z` should print both, then not continue startup
 	- Server: Automated test for various argument/property combinations, in a terminal or command prompt:
 
-          cd src/main/test
-          python test_func_srv_startup_params.py
+          cd src/extraTest/python/server
+          python test_startup_params.py
 
-      The test script should run for about a minute, and end with:  
-      `All tests passed.`
+      The test script should run for about two minutes, and end without errors:  
+      `Ran 1 test in `_(number)_`s`  
+	  `OK`
     - Start client w/ no args, start client with host & port on command line
     - Game option defaults on command line, in `jsserver.properties`: `-oVP=t11 -oN7=t5 -oRD=y`
     - Server prop for no chat channels (`jsettlers.client.maxcreatechannels=0`):  
@@ -280,21 +281,11 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
     - This is a scripted test to set up, start, and run in the background.
     - The board layout generator is complicated, to flexibly handle the sea scenario layouts.
       This test ensures it won't hang, time out, or crash while making a new board or resetting a board,
-      by running many rounds of a unit test.
-    - Locate where `junit.jar` and its dependency `hamcrest.core.jar` are on your system
-         - Their filenames might contain version numbers
-         - They may be within the IDE install, or the gradle cache
-         - Note the full path to each one, like `/Applications/eclipse/plugins/org.hamcrest.core_1.1.0.v20090501071000.jar`
-    - Open a bash shell
-    - `cd` to the git repo's root directory (containing src, test, build, and other subdirs)
-    - `gradle build`    # generate test classes
-    - Set up a CLASSPATH which has junit, hamcrest.core, and the built jsettlers classes. Example:  
-      `export CLASSPATH="/Applications/eclipse/plugins/org.junit_4.10.0.v4_10_0_v20120426-0900/junit.jar:/Applications/eclipse/plugins/org.hamcrest.core_1.1.0.v20090501071000.jar:./build/classes/main:./build/classes/test"`
-    - Loop for at least 2400 iterations of `soctest.game.TestBoardLayouts`:
+      by running a couple thousand rounds of a unit test.
+    - Run as:  
+      `gradle extraTest -D 'test.single=*TestBoardLayouts*' -x :extraTestPython`
 
-            java soctest.game.TestBoardLayouts 2400
-
-      When run in this mode, TestBoardLayouts performs extra checks of the layout structure.
+      When run in this mode, each round of TestBoardLayouts performs extra checks of the layout structure.
       If any layout failures occur, that's a bug to be triaged or corrected before release.
 
 ## Platform-specific
