@@ -25,10 +25,9 @@
 
 ### Project layout
 
-This project uses gradle or ant (or IDEs) to build. For developer familiarity,
+This project uses gradle 4 or 5 (or IDEs) to build. For developer familiarity,
 the project uses the directory structure/layout of a maven/gradle project.
 (v2 and newer versions use gradle to build. The 1.x.xx versions used ant.)
-
 
 Also see the "Build Setup and Results" section.
 
@@ -61,7 +60,7 @@ scenario.
 
 Coding is done in Java 6, but should compile cleanly in newer JDKs.
 (v1.2 used java 5 for backwards compatibility; earlier versions used 1.4.)
-The build system is gradle, we are phasing out the earlier Ant build.
+The build system is gradle 4 or 5, we are phasing out the earlier Ant build.
 Use any IDE you want, including vi.  Use spaces, not tabs.  Please try to
 keep the other conventions of the code already there (see "Coding Style"
 below for more details.).
@@ -270,24 +269,30 @@ If you wish to maintain a user database for your server, you need MySQL
 or PostgreSQL installed and configured, or the sqlite jdbc driver for a
 file-based local database.
 
-This project was designed to build with gradle or ant, and from within an IDE
-like eclipse. Gradle builds output to `build/libs/`, ant outputs to `target/`.
+This project was designed to build with gradle 4 or 5, and from within an IDE
+like eclipse. Gradle builds output to `build/libs/`.
 
-If not using an IDE like eclipse, check the `build.xml` file. There may be
+If not using an IDE like eclipse, check the `build.gradle` file. There may be
 build variables you may want to change locally. These can be changed by
-creating a `build.properties` file, or from the ant command line by passing
+creating a `build.properties` file, or from the gradle command line by passing
 a `-Dname=value` parameter.
 
-There are several build targets, here are the most useful ones:
+There are several gradle build tasks; here are the most useful ones:
 
-- `build`: create project jar files. (default)
+- `build`: create project jar files; also runs unit tests. (default)
+- `assemble`: create jars but don't run unit tests
+- `test`: run unit tests
+- `extraTest`: run unit tests, create jars, and run a few lengthy extra tests
 - `clean`: clean the project of all generated files
+
+The old Ant `build.xml` file also contains:
+
 - `dist-src`: create a tarball of the source tree (jsettlers-2.x.xx-src.tar.gz)
 - `dist-full`: `build` & `dist-src` and a tarball of the source + built JARs (jsettlers-2.x.xx-full.tar.gz)
 - `javadoc`: create JavaDoc files in "target/docs/api"
 - `build-i18neditor`: create `PTE.jar` for maintaining i18n translations (not built by default)
 
-All files created by building are in the `target` directory, including
+All files created by Ant builds are in the `target` directory, including
 JARs, Java .class files, and JavaDoc files. Distribution tarballs, zip
 files, and installation files are placed in `target/dist`. If you run dist-src or
 dist-full, run the `dist-tar-clean` target afterwards to remove temp files.
