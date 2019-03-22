@@ -54,7 +54,7 @@
   <property name="name"      value="jsettlers" />
   <property name="Name"      value="JSettlers" />
   <property name="url"       value="http://nand.net/jsettlers/devel/" />
-  <!-- version string for the PTE i18n editor; written to net/nand/util/i18n/gui/pteversion.properties during build-i18neditor -->
+  <!-- version string for the PTE i18n editor; same as in /resources/pteResources/pteversion.properties -->
   <property name="i18neditor.version" value="1.0.0" />
 
   <!-- For startup arguments, see README or run client/server with -h -->
@@ -132,7 +132,8 @@
     <include name="net/nand/util/i18n/mgr/" />         <!-- i18n string manager -->
   </patternset>
   <patternset id="i18neditor.files">
-    <include name="net/nand/util/i18n/" />         <!-- i18n editor gui, string manager, parser/writer -->
+    <include name="net/nand/util/i18n/" />         <!-- i18n string manager, parser/writer, editor gui -->
+    <include name="pteResources/" />   <!-- for version file and i18n strings -->
   </patternset>
 
   <!-- external libraries -->
@@ -190,13 +191,9 @@
   </target>
 
   <target name="resources-i18neditor"
-          description="Copy resources for i18n editor to classes directory; update pteversion.properties" >
-      <echo append="false" file="${java.src}/net/nand/util/i18n/gui/pteversion.properties"># PTE version file - updated by resources-i18neditor ant task
-pte.version = ${i18neditor.version}
-</echo>
+          description="Copy resources for i18n editor to classes directory" >
       <copy toDir="${classes}">
-        <fileset dir="${java.src}" includes="net/nand/util/i18n/gui/strings/*.properties" />
-        <fileset dir="${java.src}" includes="net/nand/util/i18n/gui/pteversion.properties" />
+        <fileset dir="${main.src}/resources" includes="pteResources/**/*" />
       </copy>
   </target>
 

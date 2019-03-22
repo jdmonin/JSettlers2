@@ -1,6 +1,6 @@
 /*
  * nand.net i18n utilities for Java: Property file editor for translators (side-by-side source and destination languages).
- * This file Copyright (C) 2013-2014,2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2014,2016,2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2011 Jim Morris: RequestFocusListener (CC BY-SA 3.0)
  *
  * This program is free software; you can redistribute it and/or
@@ -916,7 +916,7 @@ public class PropertiesTranslatorEditor
     }
 
     /**
-     * Initialize {@link #strings} with the properties bundle at {@code net/nand/util/i18n/gui/strings/pte.properties}
+     * Initialize {@link #strings} with the properties bundle at {@code pteResources/strings/pte.properties}
      * in the default locale.
      */
     static void initStringManager()
@@ -924,7 +924,7 @@ public class PropertiesTranslatorEditor
         if (strings != null)
             return;
 
-        strings = new StringManager("net/nand/util/i18n/gui/strings/pte");
+        strings = new StringManager("pteResources/strings/pte");
     }
 
     /**

@@ -13,6 +13,7 @@ buildscript {
 }
 
 version = '2.0.00'  // same as in src/main/resources/resources/version.info
+ext.i18neditor_version = '1.0.0'  // for PTE editor; same as in src/main/resources/pteResources/pteversion.properties
 
 mainClassName = "soc.client.SOCPlayerClient"
 
@@ -109,7 +110,28 @@ task fullJar(type: Jar) {
         include "soc/**"
     }
     from(sourceSets.main.resources) {
-        include "**"
+        include "resources/**"
+    }
+}
+
+// PropertiesTranslatorEditor utility; not built by default
+task i18neditorJar(type: Jar) {
+    baseName = 'PTE'
+    version = project.i18neditor_version
+    manifest {
+        attributes(
+            'Main-Class': 'net.nand.util.i18n.gui.PTEMain',
+            'Implementation-Version': project.i18neditor_version
+        )
+    }
+    from(sourceSets.main.output) {
+        include "net/nand/util/i18n/**"  // i18n string manager, parser/writer, editor gui
+    }
+    from(sourceSets.main.resources) {
+        include "pteResources/**"   // for pteversion.properties, strings/**
+    }
+    from('src/main/java/net/nand/util/i18n/') {
+       include 'README.txt'  // into root directory of jar
     }
 }
 
@@ -136,8 +158,6 @@ clean {
     // also remove python bytecode files
     delete fileTree("src/extraTest/python").matching{ include "**/*.pyc" }
 }
-
-// TODO i18neditor (see build.xml build-i18neditor)
 
 //
 //jar {
