@@ -195,14 +195,14 @@ When preparing to release a new version, testing should include:
 - Command line and jsserver.properties
     - Server and client: `-h` / `--help` / `-?`, `--version`
     - Server: Unknown args `-x -z` should print both, then not continue startup
-	- Server: Automated test for various argument/property combinations, in a terminal or command prompt:
+    - Server: Automated test for various argument/property combinations, in a terminal or command prompt:
 
           cd src/extraTest/python/server
           python test_startup_params.py
 
       The test script should run for about two minutes, and end without errors:  
       `Ran 1 test in `_(number)_`s`  
-	  `OK`
+      `OK`
     - Start client w/ no args, start client with host & port on command line
     - Game option defaults on command line, in `jsserver.properties`: `-oVP=t11 -oN7=t5 -oRD=y`
     - Server prop for no chat channels (`jsettlers.client.maxcreatechannels=0`):  
@@ -298,13 +298,13 @@ On most recent and less-recent OSX and Windows; oldest JRE (java 6) and a new JR
 - Graphics, including scaling and antialiasing after window resize
 - High-DPI support: Test layout and font appearance
     - Run as usual (auto-detect resolution) on a low-DPI and a high-DPI display if available
-	- Override runs, using jvm property `-Djsettlers.uiScale=1` and again using `-Djsettlers.uiScale=2`
+    - Override runs, using jvm property `-Djsettlers.uiScale=1` and again using `-Djsettlers.uiScale=2`
 - Persistent user prefs (sound, auto-reject bot offer, window size)  
   Then, re-run to check default size with jvm property `-Djsettlers.debug.clear_prefs=PI_width,PI_height`
 - Accessibility/High-Contrast mode
-	- Test debug jvm property `-Djsettlers.uiContrastMode=light`
+    - Test debug jvm property `-Djsettlers.uiContrastMode=light`
     - On Windows, test high-contrast dark and light themes, and high-contrast accessibility mode
-	- On Windows, test debug jvm property `-Djsettlers.uiContrastMode=dark` while using a dark theme
+    - On Windows, test debug jvm property `-Djsettlers.uiContrastMode=dark` while using a dark theme
 - SQLite database setup, from instructions in [Database.md](Database.md)
 
 ## Instructions and Setup

@@ -22,6 +22,7 @@ package soctest.game;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
+import org.junit.runner.notification.Failure;
 import static org.junit.Assert.*;
 
 /**
@@ -38,7 +39,24 @@ public class TestBoardLayoutsRounds
     {
         TestBoardLayouts.roundCount = 2000;
         final Result rslt = JUnitCore.runClasses(TestBoardLayouts.class);
-        assertTrue(rslt.wasSuccessful());  // no failures
+        if (! rslt.wasSuccessful())
+        {
+            boolean isTimeoutOnly = true;
+            for (Failure f : rslt.getFailures())
+            {
+                System.out.println("sub-test failure: " + f);
+                    // "testLayouts(soctest.game.TestBoardLayouts): test timed out after 300 milliseconds"
+                // Was it a timeout?
+                // Test exception name, not class object, to avoid brittle dependency on junit package structure
+                Throwable tex = f.getException();
+                if ((tex == null) || ! "TestTimedOutException".equals(tex.getClass().getSimpleName()))
+                    isTimeoutOnly = false;
+            }
+            System.out.flush();
+            if (isTimeoutOnly)
+                fail("Layout tests timed out");  // instead of generic failure message
+        }
+        assertTrue("Layout tests failed; see test's stdout for details", rslt.wasSuccessful());
     }
 
 }
