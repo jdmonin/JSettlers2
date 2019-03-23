@@ -5,7 +5,7 @@ When preparing to release a new version, testing should include:
 ## Quick tests and setup
 
 - Before building the JARs to be tested, `git status` should have no untracked or uncommitted changes
-    - The `dist-src` build target also checks this
+    - Running `gradle distCheckSrcDirty` also checks that, listing any files with such changes
 - `gradle clean test` runs without failures
 - These should print the expected version and build number:
     - `java -jar build/libs/JSettlers-2.*.jar --version`

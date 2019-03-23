@@ -183,8 +183,35 @@ tasks.withType(AbstractArchiveTask) {
     reproducibleFileOrder = true
 }
 
+// For dist, ensure no git-untracked files or uncommited changes in repo
+task distCheckSrcDirty {
+    outputs.upToDateWhen { false }  // prevent "Task has not declared any outputs despite executing actions"
+
+    // Git command adapted from mark-longair's 2011-02-28 answer at
+    // http://stackoverflow.com/questions/5139290/how-to-check-if-theres-nothing-to-be-committed-in-the-current-branch
+    // Gradle capture of stdout from benjamin-muschko's 2012-06-19 answer at
+    // https://stackoverflow.com/questions/11093223/how-to-use-exec-output-in-gradle
+    doLast {
+        new ByteArrayOutputStream().withStream { ostr ->
+            def ostream = exec {
+                executable = 'git'
+                args = ['ls-files', '--other', '--exclude-standard', '--directory', '--no-empty-directory']
+                    // ignore empty-ish target/classes/
+                standardOutput = ostr
+            }
+            def stdout = ostr.toString().trim()
+            if (! stdout.isEmpty())
+            {
+                println "Untracked files in repo: Commit, move, or .gitignore these:" + System.properties['line.separator'] + stdout
+                throw new BuildCancelledException
+                    ("Untracked files in repo: Commit, move, or .gitignore")
+            }
+        }
+    }
+}
+
 task dist {
-    dependsOn distSrcTar, distFullTar, distFullZip
+    dependsOn distCheckSrcDirty, distSrcTar, distFullTar, distFullZip
     doLast {
         println "Built for distribution:"
         [distSrcTar, distFullTar, distFullZip].each { dtask -> dtask.outputs.files.each { File file ->
