@@ -75,8 +75,8 @@ The JSettlers-full.jar file can also run locally as a server, without
 needing a web server.  The applet is considered more convenient,
 because you know everyone will have the same version.
 
-To build JSettlers from source, you will need Java JDK 6 or newer and gradle,
-or an IDE such as Eclipse which understands gradle's format.
+To build JSettlers from source, you will need Java JDK 6 or newer and
+gradle 4 or 5, or an IDE such as Eclipse which understands gradle's format.
 See [doc/Readme.developer.md](doc/Readme.developer.md) for details.
 
 

@@ -6,8 +6,10 @@ When preparing to release a new version, testing should include:
 
 - Before building the JARs to be tested, `git status` should have no untracked or uncommitted changes
     - The `dist-src` build target also checks this
-- `gradle test` runs without failures
-- Automated tests in build.xml `test` target
+- `gradle clean test` runs without failures
+- These should print the expected version and build number:
+    - `java -jar build/libs/JSettlers-2.*.jar --version`
+    - `java -jar build/libs/JSettlersServer-2.*.jar --version`
 - Message Traffic debug prints during all tests, to help debugging if needed:  
   Run server and clients with JVM property `-Djsettlers.debug.traffic=Y`
 
@@ -287,6 +289,27 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
 
       When run in this mode, each round of TestBoardLayouts performs extra checks of the layout structure.
       If any layout failures occur, that's a bug to be triaged or corrected before release.
+- Build contents and built artifacts
+    - Diff list of files from `gradle dist` outputs in `build/distributions/`:
+        - `unzip -t jsettlers-2.*-full.zip | sort`
+        - `tar tzf jsettlers-2.*-full.tar.gz | sort` (same files as above)
+        - `tar tzf jsettlers-2.*-src.tar.gz | sort` (same but without *.jar)
+    - Diff that list of files against previously released version's `full.tar.gz`
+        - Make sure any missing/moved/removed files are deliberate (from refactoring, etc)
+    - In a temp dir, do a fresh git checkout and compare contents:  
+      Example if using `bash`:
+
+            cd my_project_top_level_dir  # containing src, doc, etc
+            MYTOPDIR=$(pwd)
+            cd /tmp && mkdir jt && cd jt
+            git clone https://github.com/jdmonin/JSettlers2.git
+            cd JSettlers2
+            X_IGNORES="-x .git -x build -x target -x tmp"
+			diff -ur $X_IGNORES . "$MYTOPDIR" | grep ^Only  # check for missing/extra files
+            diff -ur $X_IGNORES . "$MYTOPDIR"  # check for uncommitted or unpushed changes
+            cd .. && rm -rf JSettlers2
+            cd .. && rmdir jt
+
 
 ## Platform-specific
 

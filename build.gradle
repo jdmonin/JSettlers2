@@ -52,6 +52,8 @@ tasks.withType(JavaCompile) {
         // To test that this has an effect, use 'Cp1252' instead here and expect "unmappable character" errors in StringUtil.java
 }
 
+// unit tests
+
 tasks.withType(Test) { task ->
     task.outputs.upToDateWhen { false }  // never skip testing ("UP-TO-DATE") when it's asked for or is dependency
     task.afterSuite { desc, result ->
@@ -64,13 +66,17 @@ tasks.withType(Test) { task ->
     }
 }
 
+// jars
+
 tasks.withType(Jar) {
     includeEmptyDirs = false
 }
 
-jar.enabled = false  // prevent default jsettlers.git-<version>.jar artifact creation
-distZip.enabled = false   // TODO revisit later, with more control over contents
-distTar.enabled = false   // TODO revisit later, with more control over contents
+// prevent default jsettlers.git-<version>.{jar,zip,.tar.gz} artifact creation;
+// various tasks will build artifacts with more specific names and contents instead
+jar.enabled = false       // instead build serverJar, fullJar, i18neditorJar
+distZip.enabled = false   // dist builds distFullZip
+distTar.enabled = false   // dist builds distSrcTar, distFullTar
 
 task serverJar(type: Jar) {
     baseName = 'JSettlersServer'
@@ -134,6 +140,59 @@ task i18neditorJar(type: Jar) {
        include 'README.txt'  // into root directory of jar
     }
 }
+
+// distribution tgzs and zip
+
+ant.defaultexcludes remove: "**/.gitignore"
+
+// This copies everything in your "src" directory, so be sure to run on a clean repository only!
+// Includes target/lib/ to prevent eclipse ant import error
+FileTree srcTree = fileTree(dir: '.', includes: ['src/**', 'doc/**', 'build.*', 'Readme.*', '*.txt', '.gitignore', 'target/lib/.gitignore'])
+
+// Naming reminder: [baseName]-[appendix]-[version]-[classifier].[extension]
+
+// jsettlers-2.x.xx-src.tar.gz
+task distSrcTar(type: Tar) {
+    baseName = 'jsettlers'
+    classifier = 'src'
+    compression = Compression.GZIP
+    extension = 'tar.gz'
+    from srcTree
+    into 'jsettlers-' + project.version + '-src/'
+}
+
+// jsettlers-2.x.xx-full.tar.gz
+task distFullTar(type: Tar) {
+    baseName = 'jsettlers'
+    classifier = 'full'
+    compression = Compression.GZIP
+    extension = 'tar.gz'
+    from srcTree, fullJar.outputs.files, serverJar.outputs.files
+    into 'jsettlers-' + project.version + '/'
+}
+
+// jsettlers-2.x.xx-full.zip
+task distFullZip(type: Zip) {
+    baseName = 'jsettlers'
+    classifier = 'full'
+    from srcTree, fullJar.outputs.files, serverJar.outputs.files
+    into 'jsettlers-' + project.version + '/'
+}
+
+tasks.withType(AbstractArchiveTask) {
+    reproducibleFileOrder = true
+}
+
+task dist {
+    dependsOn distSrcTar, distFullTar, distFullZip
+    doLast {
+        println "Built for distribution:"
+        [distSrcTar, distFullTar, distFullZip].each { dtask -> dtask.outputs.files.each { File file ->
+            println file.name
+    }}}
+}
+
+// extra testing
 
 task extraTest(type: Test) {
     testClassesDirs = sourceSets.extraTest.output.classesDirs

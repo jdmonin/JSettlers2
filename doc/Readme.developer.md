@@ -277,27 +277,25 @@ build variables you may want to change locally. These can be changed by
 creating a `build.properties` file, or from the gradle command line by passing
 a `-Dname=value` parameter.
 
-There are several gradle build tasks; here are the most useful ones:
+There are several gradle build tasks. Here are the main ones:
 
-- `build`: create project jar files; also runs unit tests. (default)
+- `build`: create project jar files; also runs unit tests
 - `assemble`: create jars but don't run unit tests
 - `test`: run unit tests
 - `extraTest`: run unit tests, create jars, and run a few lengthy extra tests
+- `dist`: `build` and create tarballs of the source + built JARs  
+  (jsettlers-2.x.xx-src.tar.gz, jsettlers-2.x.xx-full.tar.gz, jsettlers-2.x.xx-full.zip) in "build/distributions/"
+- `i18neditorJar`: create `PTE.jar` for maintaining i18n translations (not built by default)
 - `clean`: clean the project of all generated files
 
 The old Ant `build.xml` file also contains:
 
-- `dist-src`: create a tarball of the source tree (jsettlers-2.x.xx-src.tar.gz)
-- `dist-full`: `build` & `dist-src` and a tarball of the source + built JARs (jsettlers-2.x.xx-full.tar.gz)
 - `javadoc`: create JavaDoc files in "target/docs/api"
-- `build-i18neditor`: create `PTE.jar` for maintaining i18n translations (not built by default)
 
 All files created by Ant builds are in the `target` directory, including
-JARs, Java .class files, and JavaDoc files. Distribution tarballs, zip
-files, and installation files are placed in `target/dist`. If you run dist-src or
-dist-full, run the `dist-tar-clean` target afterwards to remove temp files.
+JARs, Java .class files, and JavaDoc files.
 
-Note: Even if you're in an IDE running SOCServer or SOCPlayerClient as Java apps,
+**Note**: Even if you're in an IDE running SOCServer or SOCPlayerClient as Java apps,
 first build either the `build` or `compile` target to copy resources into
 `target/classes/resources/` from `src/main/resources`; otherwise startup will
 fail with this error:
@@ -432,8 +430,7 @@ ideas.
   - Capture any exceptions thrown by bots during those games
   - If any exceptions thrown, System.exit(1)
 - Add more sound effects
-- Add more functional and unit tests, in `src/test/bin/` and `src/test/java/` directories,
-  `build.xml` and `build.gradle`
+- Add more functional and unit tests, in `src/extraTest/` and `src/test/` directories
 - Possible: Auto-add robots when needed as server runs, with server active-game count
     - Only do so if `jsettlers.startrobots` property is set
 - refactor: `ga.getPlayer(ga.getCurrentPlayer())` or `getClient().getClientManager()`
