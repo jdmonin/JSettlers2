@@ -285,15 +285,9 @@ There are several gradle build tasks. Here are the main ones:
 - `extraTest`: run unit tests, create jars, and run a few lengthy extra tests
 - `dist`: `build` and create tarballs of the source + built JARs  
   (jsettlers-2.x.xx-src.tar.gz, jsettlers-2.x.xx-full.tar.gz, jsettlers-2.x.xx-full.zip) in "build/distributions/"
+- `javadoc`: create JavaDoc files in "build/docs/javadoc"
 - `i18neditorJar`: create `PTE.jar` for maintaining i18n translations (not built by default)
 - `clean`: clean the project of all generated files
-
-The old Ant `build.xml` file also contains:
-
-- `javadoc`: create JavaDoc files in "target/docs/api"
-
-All files created by Ant builds are in the `target` directory, including
-JARs, Java .class files, and JavaDoc files.
 
 **Note**: Even if you're in an IDE running SOCServer or SOCPlayerClient as Java apps,
 first build either the `build` or `compile` target to copy resources into

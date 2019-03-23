@@ -192,7 +192,29 @@ task dist {
     }}}
 }
 
-// extra testing
+// misc
+
+javadoc {    // generates into build/docs/javadoc/
+    source = sourceSets.main.allJava
+    classpath = sourceSets.main.runtimeClasspath
+    title = 'JSettlers ' + project.version + ' API'
+    excludes ['**/fedorahosted/**']
+    options.memberLevel = JavadocMemberLevel.PACKAGE
+    options.encoding = 'UTF-8'
+    options.overview = 'src/main/java/main-overview.html'  // becomes overview-summary.html
+    options.addBooleanOption('author', true)
+    options.addBooleanOption('breakiterator', true)
+    options.addBooleanOption('version', true)
+    options.addBooleanOption('splitindex', false)
+    if (JavaVersion.current().isJava8Compatible()) {
+        // avoid overly-strict JDK 8 doclint;
+        // jdk 7 javadoc doesn't recognize this flag
+        options.addBooleanOption('Xdoclint:none', true)
+    }
+    // Unlike v1.x.xx in Ant, don't generate the "-use" page; IDEs can provide up-to-date usage info
+}
+
+// extra functional testing
 
 task extraTest(type: Test) {
     testClassesDirs = sourceSets.extraTest.output.classesDirs
@@ -217,13 +239,6 @@ clean {
     // also remove python bytecode files
     delete fileTree("src/extraTest/python").matching{ include "**/*.pyc" }
 }
-
-//
-//jar {
-//    into 'resources', {
-//        from 'resources'
-//    }
-//}
 
 artifacts {
     archives serverJar, fullJar
