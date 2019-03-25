@@ -1,6 +1,6 @@
 /*
  * nand.net i18n utilities for Java: Property file editor for translators (side-by-side source and destination languages).
- * This file Copyright (C) 2013,2015-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015-2017,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -207,7 +207,7 @@ public class PTEMain extends JFrame
         InputStream isp = null;
         try
         {
-            isp = PTEMain.class.getResourceAsStream("pteversion.properties");
+            isp = PTEMain.class.getResourceAsStream("/pteResources/pteversion.properties");
             Properties vprop = new Properties();
             vprop.load(isp);
             String vers = (String) vprop.get("pte.version");  // "1.0.0"

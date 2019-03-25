@@ -41,7 +41,6 @@ import soc.util.SOCStringManager;
 
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
-import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Composite;
@@ -63,6 +62,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.font.TextLayout;
 import java.awt.image.BufferedImage;
 
 import java.util.Arrays;
@@ -75,6 +75,8 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Set;
 import java.util.Timer;
+
+import javax.swing.JComponent;
 
 /**
  * This is a component that can display a Settlers of Catan Board.
@@ -109,7 +111,7 @@ import java.util.Timer;
  * top-center part of the panel by calling {@link #setSuperimposedTopText(String)}.
  *
  *<H3>Scaling and rotation:</H3>
- * This panel's minimum width and height in pixels is {@link #getMinimumSize()}.
+ * Based on board size in hexes, this panel's minimum width and height in pixels is {@link #getMinimumSize()}.
  * To set its size, call {@link #setSize(int, int)} or {@link #setBounds(int, int, int, int)};
  * these methods will set a flag to rescale board graphics if needed.
  * If the game has 6 players but not {@link SOCGame#hasSeaBoard}, the board is also
@@ -136,7 +138,7 @@ import java.util.Timer;
  *</UL>
  */
 @SuppressWarnings("serial")
-public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionListener
+/*package*/ class SOCBoardPanel extends JComponent implements MouseListener, MouseMotionListener
 {
     /** i18n text strings */
     private static final SOCStringManager strings = SOCStringManager.getClientManager();
@@ -148,21 +150,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * {@link #scaledHexes}, and {@link #scaledPorts} arrays.
      */
     private static String IMAGEDIR = "/resources/images";
-
-    /**
-     * size of the whole panel, internal-pixels "scale".
-     * This constant may not reflect the current game board's minimum size:
-     * In board-internal coordinates, use {@link #panelMinBW} and {@link #panelMinBH} instead.
-     * For minimum acceptable size in on-screen pixels,
-     * call {@link #getMinimumSize()} instead of using PANELX and PANELY directly.
-     * For actual current size in screen pixels, see
-     * {@link #scaledPanelW} {@link #scaledPanelH};
-     * If {@link #isRotated()}, the minimum size swaps {@link #PANELX} and {@link #PANELY}.
-     * If 6-player board or Large/Sea Board, the minimum size is larger.
-     *<P>
-     * Left/top margins for {@link #isLargeBoard}: 0 for x, {@link #halfdeltaY} for y.
-     */
-    public static final int PANELX = 379, PANELY = 340;
 
     /**
      * When {@link #isLargeBoard},
@@ -180,10 +167,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private static final int BOARDHEIGHT_VISUAL_MIN = 17;
 
-    /** How many pixels to drop for each row of hexes. @see #HEXHEIGHT */
+    /**
+     * How many pixels to drop for each row of hexes.
+     * @see #HEXHEIGHT
+     */
     private static final int deltaY = 46;
 
-    /** How many pixels to move over for a new hex. @see #HEXWIDTH */
+    /**
+     * How many pixels to move over for a new hex.
+     * @see #HEXWIDTH
+     */
     private static final int deltaX = 54;
 
     /**
@@ -201,6 +194,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @see #deltaY
      * @see #halfdeltaX
      * @see #HALF_HEXHEIGHT
+     * @see #HEXY_OFF_SLOPE_HEIGHT
      */
     private static final int halfdeltaY = 23;
 
@@ -284,6 +278,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * the height of the sloped top/bottom hex edges.
      * @since 2.0.00
      * @see #hexCornersY
+     * @see #halfdeltaY
      */
     private static final int HEXY_OFF_SLOPE_HEIGHT = 16;
 
@@ -652,8 +647,25 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final int HALF_HEXHEIGHT = 32;
 
     /**
+     * When using classic 4-player board, the width padding (unscaled internal-pixels) in {@link #PANELX}
+     * beyond {@link SOCBoard#WIDTH_VISUAL_ORIGINAL} * {@link #halfdeltaX}.
+     * @see #PANELPAD_LBOARD_RT
+     * @since 2.0.00
+     */
+    private static final int PANELPAD_CBOARD4_WIDTH = 1 + halfdeltaX;
+
+    /**
+     * When using classic 4-player board, the height padding (unscaled internal-pixels) in {@link #PANELY}
+     * beyond {@link SOCBoard#HEIGHT_VISUAL_ORIGINAL} * {@link #halfdeltaY} + {@link #HEXY_OFF_SLOPE_HEIGHT}.
+     * @see #PANELPAD_LBOARD_BTM
+     * @since 2.0.00
+     */
+    private static final int PANELPAD_CBOARD4_HEIGHT = 2;
+
+    /**
      * When {@link #isLargeBoard}, padding on right-hand side so pieces there are visible,
      * in internal coordinates (like {@link #panelMinBW}).
+     * @see #PANELPAD_CBOARD4_WIDTH
      * @since 2.0.00
      */
     private static final int PANELPAD_LBOARD_RT = HALF_HEXHEIGHT;
@@ -661,9 +673,27 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * When {@link #isLargeBoard}, padding on bottom side so pieces there are visible,
      * in internal coordinates (like {@link #panelMinBH}).
+     * @see #PANELPAD_CBOARD4_HEIGHT
      * @since 2.0.00
      */
     private static final int PANELPAD_LBOARD_BTM = HEXWIDTH / 4;
+
+    /**
+     * Default size of the whole panel, in unscaled internal pixels.
+     * This constant may not reflect the current game board's minimum size:
+     * In board-internal coordinates, use {@link #panelMinBW} and {@link #panelMinBH} instead.
+     * For minimum acceptable size in on-screen pixels,
+     * call {@link #getMinimumSize()} instead of using PANELX and PANELY directly.
+     * For actual current size in screen pixels, see
+     * {@link #scaledPanelW} {@link #scaledPanelH};
+     * If {@link #isRotated()}, the minimum size swaps {@link #PANELX} and {@link #PANELY}.
+     * If 6-player board or Large/Sea Board, the minimum size is larger.
+     *<P>
+     * Left/top margins for {@link #isLargeBoard} are 0 for x, {@link #halfdeltaY} for y.
+     */
+    public static final int
+        PANELX = SOCBoard.WIDTH_VISUAL_ORIGINAL * halfdeltaX + PANELPAD_CBOARD4_WIDTH,  // 379
+        PANELY = SOCBoard.HEIGHT_VISUAL_ORIGINAL * halfdeltaY + HEXY_OFF_SLOPE_HEIGHT + PANELPAD_CBOARD4_HEIGHT;  // 340
 
     /**
      * Diameter and font size (unscaled internal-pixels) for dice number circles on hexes.
@@ -790,12 +820,23 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * from {@link #panelShiftBX}, {@link #panelShiftBY}. Updated in {@link #rescaleBoard(int, int, boolean)}
      * when called with {@code changedMargins == true} from {@link #flushBoardLayoutAndRepaint()}.
      *<P>
-     * Used for {@link #scaleToActual(int)} and {@link #scaleFromActual(int)}.
      * See {@link #unscaledPanelW} for unscaled (internal pixel) width.
+     * See {@link #scaledBoardW} for width within {@code scaledPanelW} containing board hexes from game data.
      *<P>
      * Before v2.0.00 these fields were {@code scaledPanelX, scaledPanelY}.
      */
     private int scaledPanelW, scaledPanelH;
+
+    /**
+     * The width in pixels within {@link #scaledPanelW} containing the board hexes from game data.
+     * If {@code scaledPanelW > scaledBoardW}, that margin will be filled by water hexes.
+     *<P>
+     * Used for {@link #scaleToActual(int)} and {@link #scaleFromActual(int)}:
+     * Scaling ratio is {@code #scaledBoardW} / {@link #unscaledPanelW}.
+     *
+     * @since 2.0.00
+     */
+    private int scaledBoardW;
 
     /**
      * <tt>panelMinBW</tt> and <tt>panelMinBH</tt> are the minimum width and height,
@@ -810,7 +851,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *<P>
      * Differs from {@link #minSize} because minSize takes {@link #isRotated} into account.
      *<P>
-     * Rescaling formulas use {@link #scaledPanelW} and {@link #unscaledPanelW} instead of these fields,
+     * Rescaling formulas use {@link #scaledBoardW} and {@link #unscaledPanelW} instead of these fields,
      * to avoid distortion from rotation or board size aspect ratio changes.
      * @since 1.1.08
      */
@@ -838,7 +879,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * {@link #drawSettlement(Graphics, int, int, boolean, boolean)}, so those
      * pieces' methods can ignore the {@code panelMarginX} value.
      *<P>
-     * Used only when {@link #isLargeBoard} and not {@link #isRotated}, otherwise 0.
+     * Used only when not {@link #isRotated}, and either {@link #isLargeBoard} or
+     * {@link #scaledBoardW} &lt; {@link #scaledPanelW}; otherwise 0.
      * Updated in {@link #rescaleBoard(int, int, boolean)}.
      * @since 2.0.00
      */
@@ -1047,15 +1089,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private boolean[] scaledHexFail, scaledPortFail;
 
     /**
-     * Dice number pictures (for the arrow; the hex dice numbers use
-     * {@link Graphics#drawString Graphics.drawString}).
-     * @see #DICE_SZ
+     * Arrow dice number bounding-box size in pixels; 24 x 24 square fits in the arrow.
+     * @see #drawArrow(Graphics, int, int)
      */
-    private static Image[] dice;
-
-    /** Dice number graphic size in pixels; fits in a 25 x 25 square.
-     *  @see #dice */
-    private static final int DICE_SZ = 25;
+    private static final int DICE_SZ = 24;
 
     /**
      * Coordinate arrays for drawing the playing pieces.
@@ -1106,6 +1143,21 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @since 1.1.00
      */
     private int[] scaledArrowXL, scaledArrowXR, scaledArrowY;
+
+    /**
+     * Font for dice number in arrow. Is set in and cached for {@link #drawArrow(Graphics, int, int)}
+     * along with {@link #arrowDiceHeight}.
+     * @since 2.0.00
+     */
+    private Font arrowDiceFont;
+
+    /**
+     * Pixel height of text digits in the current {@link #arrowDiceFont}.
+     * Usually smaller than {@link FontMetrics#getAscent()}.
+     * Is set in and cached for {@link #drawArrow(Graphics, int, int)}.
+     * @since 2.0.00
+     */
+    private int arrowDiceHeight;
 
     /**
      * Hex polygon's corner coordinates, clockwise from top-center,
@@ -1462,6 +1514,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         throws IllegalStateException
     {
         super();
+        setOpaque(true);
 
         game = pi.getGame();
         playerInterface = pi;
@@ -1479,6 +1532,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         isRotated = isScaledOrRotated = is6player && ! isSeaBoard;
 
         int bh = board.getBoardHeight(), bw = board.getBoardWidth();
+
+        // Calc Board Size: scaledPanelW, scaledPanelH, panelMinBW, panelMinBH, etc.
+        // If these calcs change, also update getExtraSizeFromBoard()
 
         if (isRotated)
         {
@@ -1514,6 +1570,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         minSize = new Dimension(scaledPanelW, scaledPanelH);
         unscaledPanelW = scaledPanelW;
+        scaledBoardW = scaledPanelW;
         hasCalledSetSize = false;
         debugShowPotentials = new boolean[10];
 
@@ -2082,6 +2139,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Minimum required width and height, as determined by options and {@link #isRotated()}.
+     * Ignores {@link SOCPlayerInterface#displayScale}.
      *<P>
      * Minimum size is set in the constructor.
      * On the classic 4-player and 6-player boards, the size is based on {@link #PANELX} and {@link #PANELY}.
@@ -2089,11 +2147,49 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * and {@link SOCBoard#getBoardHeight() .getBoardHeight()}.
      *
      * @return minimum size
+     * @see #getExtraSizeFromBoard()
      */
     @Override
     public Dimension getMinimumSize()
     {
         return minSize;
+    }
+
+    /**
+     * Get the amount of our current width and height that comes from the board being larger than
+     * the standard 4-player board size. Compares {@link SOCBoard#getBoardWidth()}, {@link SOCBoard#getBoardHeight()}
+     * against {@link SOCBoardPanel#BOARDWIDTH_VISUAL_MIN}, {@link SOCBoardPanel#BOARDHEIGHT_VISUAL_MIN}, and
+     * adjusts for SOCBoardPanel padding constants.
+     * @return extra size, in screen pixels
+     * @since 2.0.00
+     */
+    public Dimension getExtraSizeFromBoard()
+    {
+        // Based on constructor's size calcs for panelMinBW, panelMinBH
+
+        if (! isLargeBoard)
+        {
+            if (isRotated)
+                // standard 6pl
+                return new Dimension(scaleToActual(2 * deltaY), scaleToActual(halfdeltaY));
+            else
+                // standard 4pl
+                return new Dimension(0, 0);
+        }
+
+        int bh = board.getBoardHeight(), bw = board.getBoardWidth();
+        if (bh < BOARDHEIGHT_VISUAL_MIN)
+            bh = BOARDHEIGHT_VISUAL_MIN;
+        if (bw < BOARDWIDTH_VISUAL_MIN)
+            bw = BOARDWIDTH_VISUAL_MIN;
+
+        bh -= SOCBoard.HEIGHT_VISUAL_ORIGINAL;
+        bw -= SOCBoard.WIDTH_VISUAL_ORIGINAL;
+
+        return new Dimension
+            (scaleToActual((bw * halfdeltaX) - PANELPAD_CBOARD4_WIDTH + PANELPAD_LBOARD_RT),
+             scaleToActual((bh * halfdeltaY) - PANELPAD_CBOARD4_HEIGHT + PANELPAD_LBOARD_BTM));
+            // ignore HEXY_OFF_SLOPE_HEIGHT: it adds same amount to classic & sea board height
     }
 
     /**
@@ -2118,7 +2214,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         // Resize
         super.setSize(newW, newH);
-        hasCalledSetSize = true;
+        if ((newW > 0) && (newH > 0))
+            hasCalledSetSize = true;
         repaint();
     }
 
@@ -2218,7 +2315,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *<P>
      * If needed, update margins and visual shift from Added Layout Part {@code "VS"}.
      * Doing so will call {@link #rescaleBoard(int, int, boolean)} and may change
-     * the board panel's minimum size and/or current size. Returns true if current size changes
+     * the board panel's minimum size and/or actual current size. Returns true if current size changes
      * here: If so, caller must re-do layout of this panel within its container.
      *<P>
      * "VS" is part of the initial board layout from the server and its value won't change at
@@ -2226,7 +2323,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * the board layout and margins are unknown (0) at SOCBoardPanel construction time.
      *
      * @return  Null unless current {@link #getSize()} has changed from Visual Shift ({@code "VS"}).
-     *     If not null, the delta change (new - old) in this panel's width and height
+     *     If not null, the delta change (new - old) in this panel's actual width and height,
+     *     which has been multiplied by {@link SOCPlayerInterface#displayScale}
      * @since 1.1.08
      * @see SOCPlayerInterface#updateAtNewBoard()
      */
@@ -2325,7 +2423,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Set the board fields to a new size, and rescale graphics if needed.
-     * Does not call repaint.  Does not call setSize.
+     * Does not call repaint or setSize.
      * Updates {@link #isScaledOrRotated}, {@link #scaledPanelW}, {@link #panelMarginX}, and other fields.
      * Calls {@link #renderBorderedHex(Image, Image, Color)} and {@link #renderPortImages()}.
      *
@@ -2334,7 +2432,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @param changedMargins  True if the server has sent a board layout which includes values
      *   for Visual Shift ("VS"). When true, caller should update the {@link #panelShiftBX}, {@link #panelShiftBY},
      *   {@link #panelMinBW}, and {@link #panelMinBH} fields before calling, but <B>not</B> update {@link #minSize}
-     *   or {@link #unscaledPanelW} which will be updated here from {@code panelMinBW}, {@code panelMinBH}.
+     *   or {@link #unscaledPanelW} which will be updated here from {@code panelMinBW}, {@code panelMinBH},
+     *   and {@link SOCPlayerInterface#displayScale}.
      *   <P>
      *   Before and after calling, caller should check {@link #scaledPanelW} and {@link #scaledPanelH}
      *   to see if the current size fields had to be changed. If so, caller must call
@@ -2360,6 +2459,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 w = h;
                 h = swap;
             }
+
             if ((w != minSize.width) || (h != minSize.height))
             {
                 minSize.width = w;
@@ -2368,13 +2468,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 // Change requested new size if required by larger changed margin.
                 // From javadoc the caller knows this might happen and will check for it.
+                w *= playerInterface.displayScale;
+                h *= playerInterface.displayScale;
                 if (newW < w)
                     newW = w;
                 if (newH < h)
                     newH = h;
 
                 // Other fields will be updated below as needed by calling scaleToActual,
-                // which will use the new scaledPanelW:unscaledPanelW ratio
+                // which will use the new scaledBoardW:unscaledPanelW ratio
             }
         }
 
@@ -2383,6 +2485,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          */
         scaledPanelW = newW;
         scaledPanelH = newH;
+
+        scaledBoardW = newW;  // for use in next scaleToActual call
+        isScaled = true;      // also needed for that call
+        if (scaleToActual(minSize.height) > newH)
+        {
+            // Using scaledPanelW:unscaledPanelW as a scaling ratio, newH wouldn't fit contents of board.
+            // So, calc ratio based on newH:minSize.height instead
+            float ratio = newH / (float) minSize.height;
+            scaledBoardW = (int) (ratio * minSize.width);
+        }
+
         isScaled = ((scaledPanelW != minSize.width) || (scaledPanelH != minSize.height));
         scaledAt = System.currentTimeMillis();
         isScaledOrRotated = (isScaled || isRotated);
@@ -2397,6 +2510,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 panelMarginX = 0;
             panelMarginX += scaleToActual(panelShiftBX);
             panelMarginY = scaleToActual(panelShiftBY);
+            if (scaledBoardW < scaledPanelW)
+                panelMarginX += (scaledPanelW - scaledBoardW) / 2;
         }
 
         /**
@@ -2769,7 +2884,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         int[] xs = new int[orig.length];
         for (int i = orig.length - 1; i >= 0; --i)
-            xs[i] = (int) ((orig[i] * (long) scaledPanelW) / unscaledPanelW);
+            xs[i] = (int) ((orig[i] * (long) scaledBoardW) / unscaledPanelW);
         return xs;
     }
 
@@ -2789,7 +2904,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             xr[i] = width - yorig[i];
         if (rescale)
             for (int i = yorig.length - 1; i >= 0; --i)
-                xr[i] = (int) ((xr[i] * (long) scaledPanelW) / unscaledPanelW);
+                xr[i] = (int) ((xr[i] * (long) scaledBoardW) / unscaledPanelW);
 
         return xr;
     }
@@ -2842,6 +2957,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Set or clear a debug flag to show player 0's potential/legal coordinate sets.
      * Currently implemented only for the sea board layout ({@link SOCBoardLarge}).
+     * When turning on pieceType 2 (or all), prints some geometry info to {@link System#err};
+     * that's printed even if not using a sea board layout.
+     *
      * @param pieceType  Piece type; 0=road, 1=settle, 2=city, 3=ship;
      *         Use 8 for land hexes, 9 for nodes on board.  Or, -1 for all.
      *         See {@link #debugShowPotentials} javadoc for all values.
@@ -2880,7 +2998,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             System.err.println
                 ("  Panel size (width, height): unscaled = "
                  + panelMinBW + "," + panelMinBH + ((isRotated) ? ", rotated" : "")
-                 + ", current = " + scaledPanelW + "," + scaledPanelH
+                 + ", current = " + scaledBoardW + " of " + scaledPanelW + "," + scaledPanelH
                  + ", margin (left, top) = " + panelMarginX + "," + panelMarginY
                  + ", unscaled shift (right, down) = " + panelShiftBX + "," + panelShiftBY);
             int w = playerInterface.getWidth(), h = playerInterface.getHeight();
@@ -2903,7 +3021,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * print stack traces to the player chat print area.
      */
     @Override
-    public void paint(Graphics g)
+    public void paintComponent(Graphics g)
     {
         Image ibuf = buffer;  // Local var in case field becomes null in other thread during paint
         try
@@ -3652,7 +3770,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             final float[] dash = { hexPartWidth * 0.15f, hexPartWidth * 0.12f };  // length of dash/break
             ((Graphics2D) g).setStroke
                 (new BasicStroke
-                    ((1.5f * scaledPanelW) / panelMinBW, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
+                    ((1.5f * scaledBoardW) / panelMinBW, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
                      1.5f, dash, hexPartWidth * 0.1f));
             if (co == null)
                 co = playerInterface.getPlayerColor(playerNumber);
@@ -3819,69 +3937,50 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         switch (pnum)
         {
         case 0:
-
             // top left
-            arrowX = 3;  arrowY = 5;
-            diceX = 13;
+            arrowY = scaleToActual(5);
             arrowLeft = true;
-
             break;
 
         case 1:
-
             // top right
-            arrowX = minSize.width - 40;  arrowY = 5;
-            diceX = minSize.width - 40;
+            arrowY = scaleToActual(5);
             arrowLeft = false;
-
             break;
 
         case 2:
-
             // bottom right
-            arrowX = minSize.width - 40;  arrowY = minSize.height - 42;
-            diceX = minSize.width - 40;
+            arrowY = scaledPanelH - scaleToActual(42);
             arrowLeft = false;
-
             break;
 
         default:  // 3: (Default prevents compiler var-not-init errors)
-
             // bottom left
-            arrowX = 3;  arrowY = minSize.height - 42;
-            diceX = 13;
+            arrowY = scaledPanelH - scaleToActual(42);
             arrowLeft = true;
-
             break;
 
         case 4:
-
             // middle right
-            arrowX = minSize.width - 40;  arrowY = minSize.height / 2 - 12;
-            diceX = minSize.width - 40;
+            arrowY = scaledPanelH / 2 - scaleToActual(12);
             arrowLeft = false;
             break;
 
         case 5:
-
             // middle left
-            arrowX = 3;  arrowY = minSize.height / 2 - 12;
-            diceX = 13;
+            arrowY = scaledPanelH / 2 - scaleToActual(12);
             arrowLeft = true;
             break;
         }
 
-        diceY = arrowY + 5;
+        arrowX = (arrowLeft) ? scaleToActual(3) : scaledPanelW - scaleToActual(40);
+        diceX = (arrowLeft) ? scaleToActual(12) : scaledPanelW - scaleToActual(39);
+        diceY = arrowY + scaleToActual(6);
 
         /**
          * Draw Arrow
          */
         final int gameState = game.getGameState();
-        if (isScaled)
-        {
-            arrowX = scaleToActual(arrowX);
-            arrowY = scaleToActual(arrowY);
-        }
         int[] scArrowX;
         if (arrowLeft)
             scArrowX = scaledArrowXL;
@@ -3905,15 +4004,35 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          */
         if ((diceResult >= 2) && (gameState != SOCGame.ROLL_OR_CARD) && (gameState != SOCGame.SPECIAL_BUILDING))
         {
-            if (isScaled)
+            final int boxSize = (isScaled) ? scaleToActual(DICE_SZ) : DICE_SZ;  // bounding box for dice-number digit(s)
+            final int fontSize = 4 * boxSize / 5;  // 80%
+
+            boolean needHeight = false;
+            if ((arrowDiceFont == null) || (arrowDiceFont.getSize() != fontSize))
             {
-                // Dice number is not scaled, but arrow is.
-                // Move to keep centered in arrow.
-                int adj = (scaleToActual(DICE_SZ) - DICE_SZ) / 2;
-                diceX = scaleToActual(diceX) + adj;
-                diceY = scaleToActual(diceY) + adj;
+                arrowDiceFont = new Font("Dialog", Font.BOLD, fontSize);
+                needHeight = true;
             }
-            g.drawImage(dice[diceResult], diceX, diceY, this);
+            final Font prevFont = g.getFont();
+            g.setFont(arrowDiceFont);
+            if (needHeight)
+            {
+                if (g instanceof Graphics2D)
+                {
+                    final TextLayout tl
+                        = new TextLayout("1234567890", arrowDiceFont, ((Graphics2D) g).getFontRenderContext());
+                    arrowDiceHeight = (int) tl.getBounds().getHeight();
+                } else {
+                    arrowDiceHeight = g.getFontMetrics().getAscent();  // usually taller than actual height of digits
+                }
+            }
+            final FontMetrics fm = g.getFontMetrics();
+            diceY += boxSize;  // text baseline at bottom of box; will move up (-y) to vertically center
+
+            final String dstr = Integer.toString(diceResult);
+            final int diceW = fm.stringWidth(dstr);
+            g.drawString(dstr, diceX + (boxSize - diceW) / 2, diceY - (boxSize - arrowDiceHeight) / 2);
+            g.setFont(prevFont);
         }
     }
 
@@ -4391,7 +4510,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private void drawBoardEmpty(Graphics g)
     {
-        // ask for antialiasing if available
         if (g instanceof Graphics2D)
             ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
@@ -4430,13 +4548,18 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             // these are outside the board coordinate system.
 
             boolean isRowOffset = isRotated;
-            for (int hy = -deltaY; hy < panelMinBH; hy += deltaY, isRowOffset = ! isRowOffset)
+            final int hxMin =
+                (panelMarginX <= 0) ? 0 : deltaX * (int) Math.floor(-scaleFromActual(panelMarginX) / (float) deltaX);
+            final int hxMax =
+                (scaledBoardW == scaledPanelW) ? panelMinBW : scaleFromActual(scaledPanelW - panelMarginX);
+            final int hyMax = scaleFromActual(scaledPanelH);  // often same as panelMinBH
+            for (int hy = -deltaY; hy < hyMax; hy += deltaY, isRowOffset = ! isRowOffset)
             {
-                int hx = 0;
+                int hx = hxMin;
                 if (isRowOffset)
                     hx -= halfdeltaX;
-                for (; hx < panelMinBW; hx += deltaX)
-                    if (0 == findHex(hx, hy))
+                for (; hx < hxMax; hx += deltaX)
+                    if ((hx < 0) || (hx >= panelMinBW) || (hy >= panelMinBH) || (0 == findHex(hx, hy)))
                         drawHex(g, hx, hy, SOCBoard.WATER_HEX, -1, -1);
             }
 
@@ -4514,7 +4637,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     final int hexCoord = rshift | c;
                     final int hexType = (r < bh) ? board.getHexTypeFromCoord(hexCoord) : SOCBoard.WATER_HEX;
                     drawHex(g, x, y, hexType, -1, hexCoord);
-                    if ((landHexShow != null) && landHexShow.contains(new Integer(hexCoord)))
+                    if ((landHexShow != null) && landHexShow.contains(Integer.valueOf(hexCoord)))
                     {
                        g.setColor(Color.RED);
                        g.drawRoundRect
@@ -4987,7 +5110,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         // Force the font, so we know its metrics.
         // This avoids an OSX fm.stringWidth bug.
-        final Font bpf = new Font("Dialog", Font.PLAIN, 10);
+        final Font bpf = new Font("Dialog", Font.PLAIN, 10 * playerInterface.displayScale);
 
         // Do we need to calculate the metrics?
 
@@ -5155,7 +5278,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (! isScaled)
             return;
         for (int i = xa.length - 1; i >= 0; --i)
-            xa[i] = (int) ((xa[i] * (long) scaledPanelW) / unscaledPanelW);
+            xa[i] = (int) ((xa[i] * (long) scaledBoardW) / unscaledPanelW);
     }
 
     /**
@@ -5176,7 +5299,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (! isScaled)
             return x;
         else
-            return (int) ((x * (long) scaledPanelW) / unscaledPanelW);
+            return (int) ((x * (long) scaledBoardW) / unscaledPanelW);
     }
 
     /**
@@ -5197,7 +5320,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (! isScaled)
             return x;
         else
-            return (int) ((x * (long) unscaledPanelW) / scaledPanelW);
+            return (int) ((x * (long) unscaledPanelW) / scaledBoardW);
     }
 
     /**
@@ -6170,12 +6293,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                     ++hintShownCount_RightClickToBuild;
                     final String prompt =
-                        (SOCPlayerClient.isJavaOnOSX)
+                        (SOCPlayerClient.IS_PLATFORM_MAC_OSX)
                         ? "board.popup.hint_build_click.osx"
                             // "To build pieces, hold Control while clicking the build location."
                         : "board.popup.hint_build_click";  // "To build pieces, right-click the build location."
                     NotifyDialog.createAndShow
-                        (playerInterface.getGameDisplay(), playerInterface,
+                        (playerInterface.getMainDisplay(), playerInterface,
                          "\n" + strings.get(prompt), null, true);
                         // start prompt with \n to prevent it being a lengthy popup-dialog title
                 }
@@ -6201,7 +6324,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         hilight = 0;  // Road on edge 0x00
                     if (player.isPotentialRoad(hilight) && ! hilightIsShip)
                     {
-                        client.getGameManager().putPiece(game, new SOCRoad(player, hilight, board));
+                        client.getGameMessageMaker().putPiece(game, new SOCRoad(player, hilight, board));
 
                         // Now that we've placed, clear the mode and the hilight.
                         clearModeAndHilight(SOCPlayingPiece.ROAD);
@@ -6214,7 +6337,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         {
                             java.awt.EventQueue.invokeLater(new ConfirmPlaceShipDialog(hilight, false, -1));
                         } else {
-                            client.getGameManager().putPiece(game, new SOCShip(player, hilight, board));
+                            client.getGameMessageMaker().putPiece(game, new SOCShip(player, hilight, board));
 
                             // Now that we've placed, clear the mode and the hilight.
                             clearModeAndHilight(SOCPlayingPiece.SHIP);
@@ -6244,7 +6367,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                     if (player.canPlaceSettlement(hilight))
                     {
-                        client.getGameManager().putPiece(game, new SOCSettlement(player, hilight, board));
+                        client.getGameMessageMaker().putPiece(game, new SOCSettlement(player, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
                         if (tempChangedMode)
                             hoverTip.hideHoverAndPieces();
@@ -6256,7 +6379,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                     if (player.isPotentialCity(hilight))
                     {
-                        client.getGameManager().putPiece(game, new SOCCity(player, hilight, board));
+                        client.getGameMessageMaker().putPiece(game, new SOCCity(player, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.CITY);
                         if (tempChangedMode)
                             hoverTip.hideHoverAndPieces();
@@ -6271,7 +6394,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         {
                             java.awt.EventQueue.invokeLater(new ConfirmPlaceShipDialog(hilight, false, -1));
                         } else {
-                            client.getGameManager().putPiece(game, new SOCShip(player, hilight, board));
+                            client.getGameMessageMaker().putPiece(game, new SOCShip(player, hilight, board));
                             clearModeAndHilight(SOCPlayingPiece.SHIP);
                         }
                         if (tempChangedMode)
@@ -6304,7 +6427,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         else
                         {
                             // ask server to move it
-                            client.getGameManager().moveRobber(game, player, hilight);
+                            client.getGameMessageMaker().moveRobber(game, player, hilight);
                             clearModeAndHilight(-1);
                         }
                     }
@@ -6336,7 +6459,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         else
                         {
                             // ask server to move it
-                            client.getGameManager().moveRobber(game, player, -hilight);
+                            client.getGameMessageMaker().moveRobber(game, player, -hilight);
                             clearModeAndHilight(-1);
                         }
                     }
@@ -6352,7 +6475,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         if (game.canPlacePort(player, edge))
                         {
                             // Ask server to place here.
-                            client.getGameManager().sendSimpleRequest
+                            client.getGameMessageMaker().sendSimpleRequest
                                 (player, SOCSimpleRequest.TRADE_PORT_PLACE, hilight, 0);
                             hilight = 0;
                         }
@@ -6363,7 +6486,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                     if (otherPlayer.canPlaceSettlement(hilight))
                     {
-                        client.getGameManager().considerMove(game, otherPlayer.getName(), new SOCSettlement(otherPlayer, hilight, board));
+                        client.getGameMessageMaker().considerMove(game, otherPlayer.getName(), new SOCSettlement(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
                     }
 
@@ -6373,7 +6496,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                     if (otherPlayer.isPotentialRoad(hilight))
                     {
-                        client.getGameManager().considerMove(game, otherPlayer.getName(), new SOCRoad(otherPlayer, hilight, board));
+                        client.getGameMessageMaker().considerMove(game, otherPlayer.getName(), new SOCRoad(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.ROAD);
                     }
 
@@ -6383,7 +6506,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                     if (otherPlayer.isPotentialCity(hilight))
                     {
-                        client.getGameManager().considerMove(game, otherPlayer.getName(), new SOCCity(otherPlayer, hilight, board));
+                        client.getGameMessageMaker().considerMove(game, otherPlayer.getName(), new SOCCity(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.CITY);
                     }
 
@@ -6393,7 +6516,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                     if (otherPlayer.canPlaceSettlement(hilight))
                     {
-                        client.getGameManager().considerTarget(game, otherPlayer.getName(), new SOCSettlement(otherPlayer, hilight, board));
+                        client.getGameMessageMaker().considerTarget(game, otherPlayer.getName(), new SOCSettlement(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
                     }
 
@@ -6403,7 +6526,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                     if (otherPlayer.isPotentialRoad(hilight))
                     {
-                        client.getGameManager().considerTarget(game, otherPlayer.getName(), new SOCRoad(otherPlayer, hilight, board));
+                        client.getGameMessageMaker().considerTarget(game, otherPlayer.getName(), new SOCRoad(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.ROAD);
                     }
 
@@ -6413,7 +6536,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                     if (otherPlayer.isPotentialCity(hilight))
                     {
-                        client.getGameManager().considerTarget(game, otherPlayer.getName(), new SOCCity(otherPlayer, hilight, board));
+                        client.getGameMessageMaker().considerTarget(game, otherPlayer.getName(), new SOCCity(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.CITY);
                     }
 
@@ -6613,7 +6736,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         (new ConfirmPlaceShipDialog(moveShip_toEdge, false, moveShip_fromEdge));
                     clearMode = false;
                 } else {
-                    playerInterface.getClient().getGameManager().movePieceRequest
+                    playerInterface.getClient().getGameMessageMaker().movePieceRequest
                         (game, playerNumber, SOCPlayingPiece.SHIP, moveShip_fromEdge, moveShip_toEdge);
                 }
             }
@@ -6934,7 +7057,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * Load the images for the board: {@link #hexes}, {@link #rotatHexes}, and {@link #dice}.
+     * Load the images for the board: {@link #hexes} and {@link #rotatHexes}.
      * Loads all hex types, up through {@link SOCBoardLarge#FOG_HEX},
      * because {@link #hexes} is static for all boards and all game options.
      * @param c  Our component, to load image resource files with getToolkit and getResource
@@ -6956,15 +7079,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             MediaTracker tracker = new MediaTracker(c);
 
             hexes = new Image[11];  // water, desert, 5 resources, gold, fog, hex border mask, 3:1 port
-            dice = new Image[14];
 
             loadHexesAndImages(hexes, IMAGEDIR, tracker, tk, clazz, false);
-
-            for (int i = 2; i < 13; i++)
-            {
-                dice[i] = tk.getImage(clazz.getResource(IMAGEDIR + "/dice" + i + ".gif"));
-                tracker.addImage(dice[i], 0);
-            }
 
             try
             {
@@ -8666,7 +8782,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               if (! sendNow)
                   canBuild = canBuild && game.couldBuildRoad(cpn);
               if (canBuild && sendNow)
-                  playerInterface.getClient().getGameManager().putPiece(game, new SOCRoad(player, buildLoc, board));
+                  playerInterface.getClient().getGameMessageMaker().putPiece(game, new SOCRoad(player, buildLoc, board));
               btarget = SOCBuildingPanel.ROAD;
               break;
 
@@ -8677,7 +8793,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                   canBuild = canBuild && game.couldBuildSettlement(cpn);
               if (canBuild && sendNow)
               {
-                  playerInterface.getClient().getGameManager().putPiece(game, new SOCSettlement(player, buildLoc, board));
+                  playerInterface.getClient().getGameMessageMaker().putPiece(game, new SOCSettlement(player, buildLoc, board));
                   if (isInitialPlacement)
                       initSettlementNode = buildLoc;  // track for initial road mouseover hilight
               }
@@ -8690,7 +8806,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               if (! sendNow)
                   canBuild = canBuild && game.couldBuildCity(cpn);
               if (canBuild && sendNow)
-                  playerInterface.getClient().getGameManager().putPiece(game, new SOCCity(player, buildLoc, board));
+                  playerInterface.getClient().getGameMessageMaker().putPiece(game, new SOCCity(player, buildLoc, board));
               btarget = SOCBuildingPanel.CITY;
               break;
 
@@ -8700,7 +8816,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               if (! sendNow)
                   canBuild = canBuild && game.couldBuildShip(cpn);
               if (canBuild && sendNow)
-                  playerInterface.getClient().getGameManager().putPiece(game, new SOCShip(player, buildLoc, board));
+                  playerInterface.getClient().getGameMessageMaker().putPiece(game, new SOCShip(player, buildLoc, board));
               btarget = SOCBuildingPanel.SHIP;
               break;
 
@@ -8755,7 +8871,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
       {
           // Validate and make the request
           if (game.canAttackPirateFortress() != null)
-              playerInterface.getClient().getGameManager().sendSimpleRequest(player, SOCSimpleRequest.SC_PIRI_FORT_ATTACK);
+              playerInterface.getClient().getGameMessageMaker().sendSimpleRequest(player, SOCSimpleRequest.SC_PIRI_FORT_ATTACK);
           else
               // can't attack, cancel the request
               playerInterface.getClientListener().scen_SC_PIRI_pirateFortressAttackResult(true, 0, 0);
@@ -9002,22 +9118,22 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
             case SOCPlayingPiece.ROAD:
                 if (player.isPotentialRoad(buildLoc))
-                    client.getGameManager().putPiece(game, new SOCRoad(player, buildLoc, board));
+                    client.getGameMessageMaker().putPiece(game, new SOCRoad(player, buildLoc, board));
                 break;
 
             case SOCPlayingPiece.SETTLEMENT:
                 if (player.canPlaceSettlement(buildLoc))
-                    client.getGameManager().putPiece(game, new SOCSettlement(player, buildLoc, board));
+                    client.getGameMessageMaker().putPiece(game, new SOCSettlement(player, buildLoc, board));
                 break;
 
             case SOCPlayingPiece.CITY:
                 if (player.isPotentialCity(buildLoc))
-                    client.getGameManager().putPiece(game, new SOCCity(player, buildLoc, board));
+                    client.getGameMessageMaker().putPiece(game, new SOCCity(player, buildLoc, board));
                 break;
 
             case SOCPlayingPiece.SHIP:
                 if (game.canPlaceShip(player, buildLoc))  // checks isPotentialShip, pirate ship
-                    client.getGameManager().putPiece(game, new SOCShip(player, buildLoc, board));
+                    client.getGameMessageMaker().putPiece(game, new SOCShip(player, buildLoc, board));
                 break;
             }
 
@@ -9044,7 +9160,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         /**
          * Creates a new MoveRobberConfirmDialog.
-         * To display the dialog without tying up the client's message-treater thread,
+         * To display the dialog without tying up the client's message-handler thread,
          * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
          *
          * @param player  Current player
@@ -9053,7 +9169,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          */
         private MoveRobberConfirmDialog(SOCPlayer player, final int newRobHex)
         {
-            super(playerInterface.getGameDisplay(), playerInterface,
+            super(playerInterface.getMainDisplay(), playerInterface,
                 strings.get((newRobHex > 0) ? "dialog.moverobber.to.hex" : "dialog.moverobber.to.hex.pirate"),
                     // "Move robber to your hex?" / "Move pirate to your hex?"
                 strings.get((newRobHex > 0) ? "dialog.moverobber.are.you.sure" : "dialog.moverobber.are.you.sure.pirate"),
@@ -9075,7 +9191,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         public void button1Chosen()
         {
             // ask server to move it
-            pcli.getGameManager().moveRobber(game, pl, robHex);
+            md.getGameMessageMaker().moveRobber(game, pl, robHex);
             clearModeAndHilight(-1);
         }
 
@@ -9107,12 +9223,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         /**
          * Creates a new ConfirmAttackPirateFortressDialog.
-         * To display the dialog without tying up the client's message-treater thread,
+         * To display the dialog without tying up the client's message-handler thread,
          * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
          */
         protected ConfirmAttackPirateFortressDialog()
         {
-            super(playerInterface.getGameDisplay(), playerInterface,
+            super(playerInterface.getMainDisplay(), playerInterface,
                 strings.get("game.sc_piri.attfort.and.endturn"),      // "Attack and end turn?"
                 strings.get("game.sc_piri.attfort.confirm.endturn"),  // "Attacking the fortress will end your turn. Are you sure?"
                 strings.get("game.sc_piri.attfort.confirm"),          // "Confirm Attack"
@@ -9171,7 +9287,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         /**
          * Creates a new ConfirmPlaceShipDialog.
-         * To display the dialog without tying up the client's message-treater thread,
+         * To display the dialog without tying up the client's message-handler thread,
          * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
          *
          * @param edge  The port edge where the ship would be placed
@@ -9183,7 +9299,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          */
         private ConfirmPlaceShipDialog(final int edge, final boolean sendBuildReqFirst, final int isMove_fromEdge)
         {
-            super(playerInterface.getGameDisplay(), playerInterface,
+            super(playerInterface.getMainDisplay(), playerInterface,
                 strings.get("dialog.base.place.ship.title"),  // "Place Ship Here?"
                 strings.get( (player.getPortMovePotentialLocations(false) != null)
                     ? "game.invitem.sc_ftri.pickup.ask.immed"
@@ -9200,8 +9316,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
 
         /**
-         * React to the Place Ship button: Call gameManager.buildRequest via BoardPopupMenu.tryBuild,
-         * or gameManager.putPiece or movePieceRequest.
+         * React to the Place Ship button: Call gameMessageMaker.buildRequest via BoardPopupMenu.tryBuild,
+         * or gameMessageMaker.putPiece or movePieceRequest.
          */
         @Override
         public void button1Chosen()
@@ -9214,9 +9330,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 hoverTip.hoverShipID = currentHover;
             } else {
                 if (isMove_fromEdge == -1)
-                    pcli.getGameManager().putPiece(game, new SOCShip(player, edge, board));
+                    md.getGameMessageMaker().putPiece(game, new SOCShip(player, edge, board));
                 else
-                    pcli.getGameManager().movePieceRequest
+                    md.getGameMessageMaker().movePieceRequest
                         (game, playerNumber, SOCPlayingPiece.SHIP, isMove_fromEdge, edge);
                 clearModeAndHilight(SOCPlayingPiece.SHIP);
             }

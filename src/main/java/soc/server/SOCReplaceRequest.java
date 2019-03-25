@@ -29,7 +29,7 @@ import soc.server.genericServer.Connection;
  * This is a pair of connections, one is sitting at the
  * game and the other is leaving.
  */
-class SOCReplaceRequest
+/*package*/ class SOCReplaceRequest
 {
     private Connection arriving;
     private Connection leaving;

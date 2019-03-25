@@ -23,14 +23,17 @@ and backport minor new features until `2.0.00` is ready.
 - Large board (sea board) support
 - Game Scenario and special-rules support
 - Client:
+	- High-DPI support, based on screen resolution or running with JVM parameter `-Djsettlers.uiScale=2`
 	- Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard dialog)
 	- Trade counter-offer: For legibility use light background color, not player color
 	- Bank trades: If server declines trade, don't enable Undo Trade button or clear Give/Get resources to 0
 	- When joining a game or chat channel, server sends a "recap" of recent player chat
-	- Game windows: Player name labels sans-serif for cleaner look
+	- Game windows: Show board as large as possible; player name labels sans-serif for cleaner look
 	- On OSX, set app name to JSettlers in menu bar
 	- Popups (AskDialog, etc) layout fine-tuned, can wrap multi-line text
 	- When deleting a game, remove from game list using exact match, not startsWith
+	- Use Swing framework to help performance and accessibility
+	- On Windows, detects High-Contrast mode/theme and uses appropriate colors
 - If a new game is created but no one has sat down, then someone joins and leaves it, don't delete that game
 - If a bot is slow and its turn has been ended several times, shorten its timeout so other players won't have to wait so long (KotCzarny idea)
 - I18N framework in place, started by Luis A. Ramirez; thank you Luis. Jeremy wrote more I18N utilities (package net.nand.util.i18n).
@@ -48,6 +51,8 @@ and backport minor new features until `2.0.00` is ready.
 	  discarded but still have more than 7 resources
 - Server Config Validation mode: Test the current config and exit, with new startup option:
 	`-t` or `--test-config`
+- At server startup, if robots take up most of maxConnections, warn and use a higher value so humans can connect
+- Server `--pw-reset` now hides the password text
 - Game option key names can now be longer (8 characters)
 - Some game options are meant to be set by the server during game creation, not requested by the client.
   Their option keynames all start with '_' and are hidden in the New Game options window.
@@ -76,7 +81,7 @@ and backport minor new features until `2.0.00` is ready.
 	- Some private SOCRobotClient fields made protected for use by bot developer 3rd-party subclasses
 	- If bot disconnects after server asks it to join a game that's starting,
 	  server looks for another bot so the game won't hang
-- Java 5 features, including parameterized types (thank you Paul Bilnoski)
+- Java 5+ features, including parameterized types (thank you Paul Bilnoski)
 - SOCBoard layout refactoring to SOCBoard4p, SOCBoard6p thanks to Ruud Poutsma
 - Major client refactoring (separate UI from network interface) thanks to Paul Bilnoski;
     Paul's UI split preserves the spirit and flow of the code, with a more logical layered structure.
@@ -87,6 +92,7 @@ and backport minor new features until `2.0.00` is ready.
 - For clarity rename genericServer classes: StringConnection -> Connection, NetStringConnection -> NetConnection,
     LocalStringConnection -> StringConnection, etc
 - Game state renamed for clarity: SOCGame.PLAY -> ROLL_OR_CARD; PLAY1 not renamed; SOCRobotBrain.expectPLAY -> expectROLL_OR_CARD
+- Tightened class scope for clarity: Removed `public` from classes meant for internal use (thank you Colin Werner)
 - Minor refactoring
 - Project dir structure converted to maven layout
 - To simplify build process, move version and copyright info from `build.xml` to `version.info`

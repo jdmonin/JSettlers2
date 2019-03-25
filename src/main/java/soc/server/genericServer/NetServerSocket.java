@@ -36,7 +36,7 @@ import java.net.SocketException;
  *
  * @since 2.0.00
  */
-public class NetServerSocket implements SOCServerSocket
+/*package*/ class NetServerSocket implements SOCServerSocket
 {
     protected final ServerSocket implServSocket;
     protected final Server server;

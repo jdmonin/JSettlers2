@@ -79,12 +79,20 @@ public abstract class AskDialog extends JDialog
      */
     private static final int MSG_BORDER = 5;
 
-    /** Player client; passed to constructor, not null; used for actions in subclasses when dialog buttons are chosen */
-    protected final SOCPlayerClient.GameDisplay pcli;
+    /**
+     * Player client's main display; passed to constructor, not null.
+     * Used for actions in subclasses when dialog buttons are chosen.
+     *<P>
+     * Before v2.0.00 this field was {@code pcli}.
+     *
+     * @see #pi
+     */
+    protected final MainDisplay md;
 
     /**
      * Player interface; passed to constructor; may be null if the
      * question is related to the entire client, and not to a specific game
+     * @see #md
      */
     protected SOCPlayerInterface pi;
 
@@ -166,7 +174,7 @@ public abstract class AskDialog extends JDialog
      * @throws IllegalArgumentException If both default1 and default2 are true,
      *    or if any of these is null: cli, gamePI, prompt, choice1, choice2.
      */
-    public AskDialog(SOCPlayerClient.GameDisplay cli, SOCPlayerInterface gamePI,
+    public AskDialog(MainDisplay cli, SOCPlayerInterface gamePI,
         String titlebar, String prompt, String choice1, String choice2,
         boolean default1, boolean default2)
         throws IllegalArgumentException
@@ -186,7 +194,7 @@ public abstract class AskDialog extends JDialog
      * parentFr cannot be null; use {@link #getParentFrame(Component)} to find it.
      * @since 1.1.06
      */
-    protected AskDialog(SOCPlayerClient.GameDisplay cli, Frame parentFr,
+    protected AskDialog(MainDisplay cli, Frame parentFr,
         String titlebar, String prompt, String btnText,
         boolean hasDefault)
         throws IllegalArgumentException
@@ -215,7 +223,7 @@ public abstract class AskDialog extends JDialog
      * @throws IllegalArgumentException If both default1 and default2 are true,
      *    or if any of these is null: cli, gamePI, prompt, choice1, choice2.
      */
-    public AskDialog(SOCPlayerClient.GameDisplay cli, Frame parentFr,
+    public AskDialog(MainDisplay cli, Frame parentFr,
         String titlebar, String prompt, String choice1, String choice2,
         boolean default1, boolean default2)
         throws IllegalArgumentException
@@ -246,7 +254,7 @@ public abstract class AskDialog extends JDialog
      *    or if any of these is null: cli, gamePI, prompt, choice1, choice2,
      *    or if choice3 is null and defaultChoice is 3.
      */
-    public AskDialog(SOCPlayerClient.GameDisplay cli, SOCPlayerInterface gamePI,
+    public AskDialog(MainDisplay cli, SOCPlayerInterface gamePI,
         String titlebar, String prompt, String choice1, String choice2, String choice3,
         int defaultChoice)
         throws IllegalArgumentException
@@ -264,7 +272,7 @@ public abstract class AskDialog extends JDialog
      * Creates a new AskDialog with one, two, or three buttons, not about
      * a specific game.
      *
-     * @param cli      Player client interface; will be used for actions in subclasses when dialog buttons are chosen
+     * @param md       Player client's main display; will be used for actions in subclasses when dialog buttons are chosen
      * @param parentFr SOCPlayerClient or other parent frame
      * @param titlebar Title bar text; if text contains \n, only the portion before \n is used.
      *              If begins with \n, title is "JSettlers" instead.
@@ -279,15 +287,15 @@ public abstract class AskDialog extends JDialog
      *    or if any of these is null: cli, parentFr, prompt, choice1, choice2,
      *    or if choice3 is null and defaultChoice is 3.
      */
-    public AskDialog(SOCPlayerClient.GameDisplay cli, Frame parentFr,
+    public AskDialog(MainDisplay md, Frame parentFr,
         String titlebar, String prompt, String choice1, String choice2, String choice3,
         int defaultChoice)
         throws IllegalArgumentException
     {
         super(parentFr, firstLine(titlebar), true);
 
-        if (cli == null)
-            throw new IllegalArgumentException("cli cannot be null");
+        if (md == null)
+            throw new IllegalArgumentException("md cannot be null");
         if (parentFr == null)
             throw new IllegalArgumentException("parentFr cannot be null");
         if (choice1 == null)
@@ -299,25 +307,38 @@ public abstract class AskDialog extends JDialog
         if ((choice2 == null) && (defaultChoice > 1))
             throw new IllegalArgumentException("defaultChoice must be 1 when choice2 null");
 
-        pcli = cli;
+        this.md = md;
         pi = null;
-        setBackground(SOCPlayerInterface.DIALOG_BG_GOLDENROD);
-        setForeground(Color.BLACK);
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+        if (! isOSHighContrast)
+        {
+            final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true, false);
+            setBackground(colors[2]);  // SwingMainDisplay.DIALOG_BG_GOLDENROD
+            setForeground(colors[0]);  // Color.BLACK
+
+            getRootPane().setBackground(null);  // inherit
+            getContentPane().setBackground(null);
+        }
+
         setFont(new Font("Dialog", Font.PLAIN, 12));
 
-        getRootPane().setBackground(null);  // inherit
-        getContentPane().setBackground(null);
+        final boolean shouldClearButtonBGs = (! isOSHighContrast) && SOCPlayerClient.IS_PLATFORM_WINDOWS;
 
         choice1But = new JButton(choice1);
-        choice1But.setBackground(null);  // needed on win32 to avoid gray corners
+        if (shouldClearButtonBGs)
+            choice1But.setBackground(null);  // needed on win32 to avoid gray corners
+
         if (choice2 != null)
         {
             choice2But = new JButton(choice2);
-            choice2But.setBackground(null);
+            if (shouldClearButtonBGs)
+                choice2But.setBackground(null);
+
             if (choice3 != null)
             {
                 choice3But = new JButton(choice3);
-                choice3But.setBackground(null);
+                if (shouldClearButtonBGs)
+                    choice3But.setBackground(null);
             } else {
                 choice3But = null;
             }
@@ -377,8 +398,11 @@ public abstract class AskDialog extends JDialog
                     pmsg.setFont(new Font("Dialog", Font.PLAIN, 12));
                 pmsg.setLineWrap(true);
                 pmsg.setWrapStyleWord(true);
-                pmsg.setBackground(getBackground());  // avoid white background
-                pmsg.setForeground(null);
+                if (! isOSHighContrast)
+                {
+                    pmsg.setBackground(getBackground());  // avoid white background
+                    pmsg.setForeground(null);
+                }
                 JScrollPane pScroll = new JScrollPane(pmsg);
                 pScroll.setOpaque(false);
                 msg = pScroll;
@@ -416,8 +440,11 @@ public abstract class AskDialog extends JDialog
         setLocationRelativeTo(parentFr);
 
         pBtns = new JPanel();
-        pBtns.setOpaque(true);
-        pBtns.setBackground(null);  // avoid gray bg on win32
+        if (! isOSHighContrast)
+        {
+            pBtns.setOpaque(true);
+            pBtns.setBackground(null);  // avoid gray bg on win32
+        }
         pBtns.setLayout(new FlowLayout(FlowLayout.CENTER, 3, 0));  // horiz border 3 pixels
         final int pbboarder = ColorSquare.HEIGHT / 2;
         pBtns.setBorder

@@ -62,7 +62,7 @@ import soc.proto.Message;
  * parseDataStr is called from {@link #toMsg(String)} in this class.
  * Remote TCP clients receive data using {@link java.io.DataInputStream#readUTF()}.
  *<P>
- * The client receives messages in {@link soc.client.SOCPlayerClient.MessageTreater#treat(SOCMessage, boolean)}.
+ * The client receives messages in {@link soc.client.MessageHandler#handle(SOCMessage, boolean)}.
  * The server receives messages in
  * {@link soc.server.SOCMessageDispatcher#dispatch(SOCMessage, soc.server.genericServer.Connection)}.
  *
@@ -598,20 +598,6 @@ public abstract class SOCMessage implements Serializable, Cloneable
     /** Simple human-readable representation, used for debug purposes. */
     @Override
     public abstract String toString();
-
-    /**
-     * Utility, get the short simple name of the class: SOCResetBoardVote, not soc.message.SOCResetBoardVote
-     * @return Short name of class, without package name
-     * @since 1.1.01
-     */
-    public String getClassNameShort()
-    {
-        String clName = getClass().getName();
-        int dot = clName.lastIndexOf(".");
-        if (dot > 0)
-            clName = clName.substring(dot + 1);
-        return clName;
-    }
 
     /**
      * Test whether a string is non-empty and its characters are

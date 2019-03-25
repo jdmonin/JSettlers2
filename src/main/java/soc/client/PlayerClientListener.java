@@ -228,7 +228,7 @@ public interface PlayerClientListener
      * This player must choose a player for robbery.
      * @param choices   The potential victim players to choose from
      * @param isNoneAllowed  If true, player can choose to rob no one (game scenario <tt>SC_PIRI</tt>)
-     * @see SOCPlayerClient.GameManager#choosePlayer(SOCGame, int)
+     * @see GameMessageMaker#choosePlayer(SOCGame, int)
      */
     void requestedChoosePlayer(List<SOCPlayer> choices, boolean isNoneAllowed);
 
@@ -401,7 +401,7 @@ public interface PlayerClientListener
     /**
      * Print a broadcast message into this display's chat area.
      * @param message  Message text
-     * @see SOCPlayerClient.GameDisplay#chatMessageBroadcast(String)
+     * @see MainDisplay#chatMessageBroadcast(String)
      */
     void messageBroadcast(String message);
 
@@ -412,7 +412,7 @@ public interface PlayerClientListener
      *     For {@code ":"}, the message text will probably end with " ::" because the original client would
      *     begin the text line with ":: " from {@code nickname + ": "}.
      * @param message  Message text
-     * @see SOCPlayerClient.GameDisplay#chatMessageReceived(String, String, String)
+     * @see MainDisplay#chatMessageReceived(String, String, String)
      */
     void messageReceived(String nickname, String message);
 

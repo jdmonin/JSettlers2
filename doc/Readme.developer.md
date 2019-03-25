@@ -25,9 +25,9 @@
 
 ### Project layout
 
-This project uses gradle or ant (or IDEs) to build. For developer familiarity,
-the project uses the directory structure/layout of a maven/gradle project. v2
-and newer versions use gradle to build. The 1.x.xx versions used ant.
+This project uses gradle 4 or 5 (or IDEs) to build. For developer familiarity,
+the project uses the directory structure/layout of a maven/gradle project.
+(v2 and newer versions use gradle to build. The 1.x.xx versions used ant.)
 
 Also see the "Build Setup and Results" section.
 
@@ -66,9 +66,9 @@ see initAllOptions javadoc for a list. Options have flags for their properties
 game option keynames start with `_SC_`, and provide special rules for the
 scenario.
 
-Coding is done in Java 7, but should compile cleanly in newer JDKs. (v1.2 and
-v2.0 used java 5 for backwards compatibility; earlier versions used java 1.4.)
-The build system is Ant, which is natively understood by Eclipse, and Gradle.
+Coding is done in Java 7, but should compile cleanly in newer JDKs.
+(v2.0 used java 6 for backwards compatibility; earlier versions used 1.4 or 5.)
+The build system is gradle 4 or 5, we are phasing out the earlier Ant build.
 Use any IDE you want, including vi.  Use spaces, not tabs.  Please try to
 keep the other conventions of the code already there (see "Coding Style"
 below for more details.).
@@ -315,33 +315,33 @@ patch submissions.
 
 Before building, make sure you have the Java Development Kit version 7 or later.
 If you simply want to run the client or server, you only need the Java Runtime
-(JRE). If you wish to maintain a user database for your server, you need MySQL
+(JRE). Extra tests in the build want python 2.7 or later for unittest discovery.
+
+If you wish to maintain a user database for your server, you need MySQL
 or PostgreSQL installed and configured, or the sqlite jdbc driver for a
 file-based local database.
 
-This project was designed to build with gradle or ant, and from within an IDE
-like eclipse. Gradle builds output to `build/libs/`, ant outputs to `target/`.
+This project was designed to build with gradle 4 or 5, and from within an IDE
+like eclipse. Gradle builds output to `build/libs/`.
 
-If not using an IDE like eclipse, check the `build.xml` file. There may be
+If not using an IDE like eclipse, check the `build.gradle` file. There may be
 build variables you may want to change locally. These can be changed by
-creating a `build.properties` file, or from the ant command line by passing
+creating a `build.properties` file, or from the gradle command line by passing
 a `-Dname=value` parameter.
 
-There are several build targets, here are the most useful ones:
+There are several gradle build tasks. Here are the main ones:
 
-- `build`: create project jar files. (default)
+- `build`: create project jar files; also runs unit tests
+- `assemble`: create jars but don't run unit tests
+- `test`: run unit tests
+- `extraTest`: run unit tests, create jars, and run a few lengthy extra tests
+- `dist`: `build` and create tarballs of the source + built JARs  
+  (jsettlers-2.x.xx-src.tar.gz, jsettlers-2.x.xx-full.tar.gz, jsettlers-2.x.xx-full.zip) in "build/distributions/"
+- `javadoc`: create JavaDoc files in "build/docs/javadoc"
+- `i18neditorJar`: create `PTE.jar` for maintaining i18n translations (not built by default)
 - `clean`: clean the project of all generated files
-- `dist-src`: create a tarball of the source tree (jsettlers-3.x.xx-src.tar.gz)
-- `dist-full`: `build` & `dist-src` and a tarball of the source + built JARs (jsettlers-3.x.xx-full.tar.gz)
-- `javadoc`: create JavaDoc files in "target/docs/api"
-- `build-i18neditor`: create `PTE.jar` for maintaining i18n translations (not built by default)
 
-All files created by building are in the `target` directory, including
-JARs, Java .class files, and JavaDoc files. Distribution tarballs, zip
-files, and installation files are placed in `target/dist`. If you run dist-src or
-dist-full, run the `dist-tar-clean` target afterwards to remove temp files.
-
-Note: Even if you're in an IDE running SOCServer or SOCPlayerClient as Java apps,
+**Note**: Even if you're in an IDE running SOCServer or SOCPlayerClient as Java apps,
 first build either the `build` or `compile` target to copy resources into
 `target/classes/resources/` from `src/main/resources`; otherwise startup will
 fail with this error:
@@ -551,9 +551,12 @@ ideas.
 - Kick robots if inactive but current player in game, assume they're buggy (use forceEndTurn)
 - Control the speed of robots in practice games
   - Adjust `SOCRobotBrain.pause`, `ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS`, etc
+- For bot test runs with `-Djsettlers.bots.botgames.shutdown=Y` (`SOCServer.PROP_JSETTLERS_BOTS_BOTGAMES_SHUTDOWN`):
+  - Print a summary at the end in a machine-readable format like YAML: Number of games, average length, etc
+  - Capture any exceptions thrown by bots during those games
+  - If any exceptions thrown, System.exit(1)
 - Add more sound effects
-- Add more functional and unit tests, in `src/test/bin/` and `src/test/java/` directories,
-  `build.xml` and `build.gradle`
+- Add more functional and unit tests, in `src/extraTest/` and `src/test/` directories
 - Possible: Auto-add robots when needed as server runs, with server active-game count
     - Only do so if `jsettlers.startrobots` property is set
 - refactor: `ga.getPlayer(ga.getCurrentPlayer())` or `getClient().getClientManager()`
@@ -625,6 +628,16 @@ welcomes contributions. Please keep these things in mind:
   build path -> Libraries -> Add External JAR, or add it to the classpath tab of
   SOCServer's eclipse Run Configuration; that option is
   useful when testing against multiple database types.
+- Any DB upgrade should be done in `soc.server.database.SOCDBHelper.upgradeSchema()`
+  and (for new installs) `jsettlers-tables-tmpl.sql`
+- Any changes to the schema setup scripts should be done in
+  `src/main/bin/sql/template/jsettlers-tables-tmpl.sql` and then regenerating
+  scripts from that template:
+
+      cd src/main/bin/sql/template
+      ./render.py -i jsettlers-tables-tmpl.sql -d mysql,sqlite,postgres -o ../jsettlers-tables-%s.sql
+      git status
+
 - See also the "To configure a sqlite database for testing" section of this readme.
 
 
@@ -739,6 +752,9 @@ To speed up or slow down robot-only games, start the server with this tuning
 option to set the length of SOCRobotBrain pauses during bot-only games: For
 example `-Djsettlers.bots.fast_pause_percent=10` will pause for only 10% as long
 as in normal games.
+
+For testing purposes, if you want the server to exit after running all its
+robot-only games, start the server with `-Djsettlers.bots.botgames.shutdown=Y` .
 
 If `jsettlers.bots.botgames.total` != 0 (including < 0), at any time the client
 can create a new game, join but not sit down at a seat, and start that game as

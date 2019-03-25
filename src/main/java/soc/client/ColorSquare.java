@@ -18,14 +18,20 @@
  **/
 package soc.client;
 
-import java.awt.Canvas;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Stroke;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
 
 
 /**
@@ -34,16 +40,18 @@ import java.awt.event.MouseListener;
  * interactive, or non-interactive.  The possible
  * colors of the box correspond to resources in SoC.
  *<P>
- * Default size is {@link #WIDTH} by {@link #HEIGHT} pixels; call {@link #setSize(int, int)} to change.
- * Most colorsquares in JSettlers are actually
- * {@link ColorSquareLarger} instances.
- * This was easier than changing the values of {@link #WIDTH} and {@link #HEIGHT},
+ * Default size and minimum size are {@link #WIDTH} by {@link #HEIGHT} pixels: Call {@link #setSize(int, int)} to change
+ * size, {@link #setMinimumSize(Dimension)} to change minimum. Minimum isn't set by setSize, to avoid a "disappearing"
+ * 0-height or 0-width square when layout manager calls setSize or setBounds.
+ *<P>
+ * Most colorsquares in JSettlers are actually {@link ColorSquareLarger} instances:
+ * Creating that subclass was easier than changing the values of {@link #WIDTH} and {@link #HEIGHT} here,
  * which are used for setting the size of many GUI elements.
  *
  * @author Robert S Thomas
  */
 @SuppressWarnings("serial")
-public class ColorSquare extends Canvas implements MouseListener
+public class ColorSquare extends JComponent implements MouseListener
 {
     /**
      * The color constants are used by ColorSquare,
@@ -107,7 +115,7 @@ public class ColorSquare extends Canvas implements MouseListener
      *
      *  @see #setHighWarningLevel(int)
      *  @see #setLowWarningLevel(int)
-     *  @see #setTooltipZeroText(String)
+     *  @see #setToolTipZeroText(String)
      *  @see #WARN_LEVEL_COLOR_BG_FROMGREY
      */
     public static Color WARN_LEVEL_COLOR = new Color(200, 0, 0);
@@ -130,9 +138,9 @@ public class ColorSquare extends Canvas implements MouseListener
     /** Border color, BLACK by default
      * @since 1.1.13
      */
-    private Color borderColor;
+    private Color borderColor = Color.BLACK;
+
     protected ColorSquareListener sqListener;
-    protected AWTToolTip ttip;
 
     /**
      * Normal background color is GREY (when not high or low "warning" color).
@@ -141,7 +149,10 @@ public class ColorSquare extends Canvas implements MouseListener
      */
     protected boolean warn_bg_grey;
 
-    /** Text for normal vs low-warning-level. Unused unless a low-bound or high-bound or zero-level-text is set. */
+    /**
+     * Text to use when numeric value is in normal range (not low-warning-level).
+     * Field contents are unused unless a low-bound or high-bound or zero-level-text is set.
+     */
     protected String ttip_text;
     /** Optional text for low-warning-level and high-warning-level (intValue). */
     protected String ttip_text_warnLow, ttip_text_warnHigh;
@@ -158,7 +169,19 @@ public class ColorSquare extends Canvas implements MouseListener
 
     /** Size per instance, for ColorSquareLarger */
     protected int squareW, squareH;
+
+    /**
+     * Size from most recent call to {@link #setSize(int, int)}.
+     * @see #minSize
+     */
     protected Dimension squareSize;
+
+    /**
+     * Size from most recent call to {@link #setMinimumSize(Dimension)}.
+     * @see #squareSize
+     * @since 2.0.00
+     */
+    protected Dimension minSize;
 
     /** i18n text strings */
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
@@ -185,11 +208,28 @@ public class ColorSquare extends Canvas implements MouseListener
      * or an element of {@link #RESOURCE_COLORS}).
      *
      * @param c background color; creates resource-name tooltip if is a resource color
+     * @see #ColorSquare(Color, int, int)
      * @see #ColorSquare(int, boolean, Color, int, int)
      */
     public ColorSquare(Color c)
     {
         this(CHECKBOX, false, c, 99, 0);
+    }
+
+    /**
+     * Creates a new ColorSquare with specified background color and size, without a visible value;
+     * calls {@link #ColorSquare(Color)}.
+     *
+     * @param c background color; creates resource-name tooltip if is a resource color
+     * @param w width in pixels
+     * @param h height in pixels
+     * @since 2.0.00
+     */
+    public ColorSquare(Color c, int w, int h)
+    {
+        this(c);
+        if ((w != ColorSquare.WIDTH) || (h != ColorSquare.HEIGHT))
+            setSizesAndFont(w, h);
     }
 
     /**
@@ -203,12 +243,30 @@ public class ColorSquare extends Canvas implements MouseListener
      *
      * @param c background color; creates resource-name tooltip if is a resource color
      * @param v initial int value
+     * @see #ColorSquare(Color, int, int, int)
      * @see #ColorSquare(int, boolean, Color, int, int)
      */
     public ColorSquare(Color c, int v)
     {
         this(NUMBER, false, c, 99, 0);
         intValue = v;
+    }
+
+    /**
+     * Creates a new ColorSquare with specified background color, initial value, and size;
+     * calls {@link #ColorSquare(Color, int)}.
+     *
+     * @param c background color; creates resource-name tooltip if is a resource color
+     * @param v initial int value
+     * @param w width in pixels
+     * @param h height in pixels
+     * @since 2.0.00
+     */
+    public ColorSquare(Color c, int v, int w, int h)
+    {
+        this(c, v);
+        if ((w != ColorSquare.WIDTH) || (h != ColorSquare.HEIGHT))
+            setSizesAndFont(w, h);
     }
 
     /**
@@ -246,11 +304,33 @@ public class ColorSquare extends Canvas implements MouseListener
      * @param k Kind: {@link #NUMBER}, YES_NO, CHECKBOX, BOUNDED_INC, BOUNDED_DEC
      * @param in interactive flag allowing user interaction
      * @param c background color; creates resource-name tooltip if is a resource color
+     * @see #ColorSquare(int, boolean, int, int, Color)
      * @see #ColorSquare(int, boolean, Color, int, int)
      */
     public ColorSquare(int k, boolean in, Color c)
     {
         this(k, in, c, 99, 0);
+    }
+
+    /**
+     * Creates a new ColorSquare with specified kind, background color, and size;
+     * calls {@link #ColorSquare(int, boolean, Color)}.
+     *<P>
+     * A tooltip with the resource name is created if {@code c} is one of the
+     * resource colors defined in ColorSquare ({@link #CLAY}, {@link #WHEAT}, etc,
+     * or an element of {@link #RESOURCE_COLORS}).
+     *
+     * @param k Kind: {@link #NUMBER}, YES_NO, CHECKBOX, BOUNDED_INC, BOUNDED_DEC
+     * @param in interactive flag allowing user interaction
+     * @param w width in pixels
+     * @param h height in pixels
+     * @param c background color; creates resource-name tooltip if is a resource color
+     * @since 2.0.00
+     */
+    public ColorSquare(int k, boolean in, int w, int h, Color c)
+    {
+        this(k, in, c);
+        setSizesAndFont(w, h);
     }
 
     /**
@@ -273,14 +353,18 @@ public class ColorSquare extends Canvas implements MouseListener
         super();
 
         setSize(WIDTH, HEIGHT);
+        setMinimumSize(squareSize);
+        setPreferredSize(squareSize);
         setFont(new Font("Dialog", Font.PLAIN, 10));
 
-        borderColor = Color.BLACK;
+        setOpaque(true);
         setBackground(c);
+        setBorder(BorderFactory.createLineBorder(borderColor));
+
         kind = k;
         interactive = in;
         sqListener = null;
-        ttip = null;
+
         ttip_text = null;
         ttip_text_warnLow = null;
         ttip_text_zero = null;
@@ -334,21 +418,52 @@ public class ColorSquare extends Canvas implements MouseListener
         {
             // Most common case.
             // Do nothing.
-            // If needed, can call setTooltipText explicitly.
+            // If needed, can call setToolTipText explicitly.
         }
         else if (c == CLAY)
-            ttip = new AWTToolTip (strings.get("resources.clay"), this);
+            setToolTipText(strings.get("resources.clay"));
         else if (c == ORE)
-            ttip = new AWTToolTip (strings.get("resources.ore"), this);
+            setToolTipText(strings.get("resources.ore"));
         else if (c == SHEEP)
-            ttip = new AWTToolTip (strings.get("resources.sheep"), this);
+            setToolTipText(strings.get("resources.sheep"));
         else if (c == WHEAT)
-            ttip = new AWTToolTip (strings.get("resources.wheat"), this);
+            setToolTipText(strings.get("resources.wheat"));
         else if (c == WOOD)
-            ttip = new AWTToolTip (strings.get("resources.wood"), this);
+            setToolTipText(strings.get("resources.wood"));
 
         if (in)
             addMouseListener(this);
+    }
+
+    /**
+     * Set minimum and current size of this ColorSquare.
+     * If {@code w} or {@code h} >= 4/3 of {@link ColorSquare#HEIGHT},
+     * also update the font size to fill the square.
+     * @param w  New width
+     * @param h  New height
+     * @since 2.0.00
+     */
+    protected final void setSizesAndFont(final int w, final int h)
+    {
+        setSize(w, h);
+        setMinimumSize(squareSize);
+        final int size = (w < h) ? w : h;
+        if (size >= (ColorSquare.HEIGHT * 4) / 3)
+            setFont(getFont().deriveFont(10f * (size / (float) ColorSquare.HEIGHT)));
+    }
+
+    /**
+     * Set the minimum size to be reported by {@link #getMinimumSize()}.
+     * Overrides the width and height set by {@link #setSize(int, int)},
+     * {@link #setSize(Dimension)}, or {@link #setBounds(int, int, int, int)}.
+     * @since 2.0.00
+     */
+    @Override
+    public void setMinimumSize(Dimension d)
+    {
+        super.setMinimumSize(d);
+        minSize = (d != null) ? new Dimension(d) : null;
+            // copy w, h values instead of copying a reference that might be squareSize
     }
 
     /**
@@ -389,67 +504,73 @@ public class ColorSquare extends Canvas implements MouseListener
     {
         if (c == null)
             throw new IllegalArgumentException();
+        if (borderColor.equals(c))
+            return;
+
+        setBorder(BorderFactory.createLineBorder(c));
         borderColor = c;
     }
 
     /**
      * Set the width and height of this ColorSquare.
      * Does not need to be a square (w != h is OK).
-     * This size will also be returned by {@link #getPreferredSize()} and {@link #getMinimumSize()}.
+     * This size will also be returned by {@link #getPreferredSize()}.
+     * If {@link #setMinimumSize(Dimension)} has been called,
+     * will honor that minimum width and height here.
      * @param w width in pixels
      * @param h height in pixels
+     * @see #setMinimumSize(Dimension)
      */
     @Override
     public void setSize(int w, int h)
     {
+        if (minSize != null)
+        {
+            if (w < minSize.width)
+                w = minSize.width;
+            if (h < minSize.height)
+                h = minSize.height;
+        }
+
         squareW = w;
         squareH = h;
         squareSize = new Dimension(w, h);
+
         super.setSize(w, h);
     }
 
     /**
-     * If we have a tooltip, return its text.
-     *
-     * @return tooltip text, or null if none
+     * Set the size of this ColorSquare; overriden to call {@link #setSize(int, int)}.
+     * @since 2.0.00
      */
-    public String getTooltipText()
+    @Override
+    public void setSize(Dimension d)
     {
-        if (ttip == null)
-            return null;
-        return ttip.getTip();
+        if (d != null)
+            setSize(d.width, d.height);
     }
 
     /**
-     * Change tooltip text or show or hide tooltip.
-     * (Set tip text to null to hide it.)
+     * Change tooltip text or show or (if null) hide tooltip.
+     * Any previously set warning-level or zero-level tooltip text is cleared to null.
+     *<P>
+     * Before v2.0.00 this method was {@code setTooltipText} with lowercase "tip".
      *
      * @param tip New tip text; will create tooltip if needed.
-     *     If tip is null, tooltip is removed, and any warning-level tip text
-     *     or zero-level text is also set to null.
+     *     If tip is null, tooltip is removed.
      *
-     * @see #setTooltipHighWarningLevel(String, int)
-     * @see #setTooltipLowWarningLevel(String, int)
-     * @see #setTooltipZeroText(String)
+     * @see #setToolTipHighWarningLevel(String, int)
+     * @see #setToolTipLowWarningLevel(String, int)
+     * @see #setToolTipZeroText(String)
      */
-    public void setTooltipText(String tip)
+    @Override
+    public void setToolTipText(String tip)
     {
         ttip_text = tip;
-        if (tip == null)
-        {
-            if (ttip != null)
-            {
-                ttip.destroy();
-                ttip = null;
-            }
-            ttip_text_warnLow = null;
-            ttip_text_zero = null;
-            return;
-        }
-        if (ttip == null)
-            ttip = new AWTToolTip(tip, this);
-        else
-            ttip.setTip(tip);  // Handles its own repaint
+        ttip_text_warnLow = null;
+        ttip_text_zero = null;
+
+        super.setToolTipText(tip);
     }
 
     /**
@@ -459,10 +580,10 @@ public class ColorSquare extends Canvas implements MouseListener
      *     indicate with the warning color.
      *
      * @see #clearLowWarningLevel()
-     * @see #setTooltipZeroText(String)
+     * @see #setToolTipZeroText(String)
      *
      * @throws IllegalArgumentException if warnLevel is above high level, or is zero.
-     *     To set text for value 0, use {@link #setTooltipZeroText(String)} instead.
+     *     To set text for value 0, use {@link #setToolTipZeroText(String)} instead.
      *     To clear the warning level, use {@link #clearLowWarningLevel()} instead.
      */
     public void setLowWarningLevel(int warnLevel)
@@ -473,7 +594,7 @@ public class ColorSquare extends Canvas implements MouseListener
             if (ttip_text == null)
                 throw new IllegalArgumentException("To clear, call clearLowWarningLevel instead");
             else
-                throw new IllegalArgumentException("To set zero text, call setTooltipZeroText instead");
+                throw new IllegalArgumentException("To set zero text, call setToolTipZeroText instead");
         }
         if (hasWarnHigh && (warnLevel >= warnHighBound))
             throw new IllegalArgumentException("Asked for low warning (" + warnLevel
@@ -488,14 +609,9 @@ public class ColorSquare extends Canvas implements MouseListener
         {
             repaint();
             if ((intValue == 0) && (ttip_text_zero != null))
-                ttip.setTip(ttip_text_zero);
+                super.setToolTipText(ttip_text_zero);
             else if (ttip_text_warnLow != null)
-            {
-                if (isWarnLow)
-                    ttip.setTip(ttip_text_warnLow);
-                else
-                    ttip.setTip(ttip_text);
-            }
+                super.setToolTipText((isWarnLow) ? ttip_text_warnLow : ttip_text);
         }
     }
 
@@ -514,9 +630,9 @@ public class ColorSquare extends Canvas implements MouseListener
             {
                 ttip_text_warnLow = null;
                 if ((intValue == 0) && (ttip_text_zero != null))
-                    ttip.setTip(ttip_text_zero);
+                    super.setToolTipText(ttip_text_zero);
                 else
-                    ttip.setTip(ttip_text);
+                    super.setToolTipText(ttip_text);
             }
         }
     }
@@ -525,33 +641,35 @@ public class ColorSquare extends Canvas implements MouseListener
      * Set low-level warning, and set or clear its tooltip text.
      * If warnTip not null, we must already have a standard tooltip text.
      * Does not affect zero-level or high-level tooltip text.
+     *<P>
+     * Before v2.0.00 this method was {@code setTooltipLowWarningLevel} with lowercase "tip".
      *
      * @param warnTip   TODO docu - or null to clear tip text
      * @param warnLevel TODO docu - at or below
      *
      * @see #setHighWarningLevel(int)
      * @see #setLowWarningLevel(int)
-     * @see #setTooltipText(String)
-     * @see #setTooltipZeroText(String)
+     * @see #setToolTipText(String)
+     * @see #setToolTipZeroText(String)
      *
-     * @throws IllegalStateException if setTooltipText has not yet been called,
+     * @throws IllegalStateException if setToolTipText has not yet been called
      *     and warnTip is not null
      *
      * @throws IllegalArgumentException if warnLevel is above high level, or is zero.
-     *     To set text for value 0, use {@link #setTooltipZeroText(String)} instead.
+     *     To set text for value 0, use {@link #setToolTipZeroText(String)} instead.
      *     To clear the warning level, use {@link #clearLowWarningLevel()} instead.
      */
-    public void setTooltipLowWarningLevel(String warnTip, int warnLevel)
+    public void setToolTipLowWarningLevel(String warnTip, int warnLevel)
         throws IllegalStateException, IllegalArgumentException
     {
         if ((ttip_text == null) && (warnTip != null))
-            throw new IllegalStateException("Must call setTooltipText first");
+            throw new IllegalStateException("Must call setToolTipText first");
         if (warnLevel == 0)
         {
             if (ttip_text == null)
                 throw new IllegalArgumentException("To clear, call clearLowWarningLevel instead");
             else
-                throw new IllegalArgumentException("To set zero text, call setTooltipZeroText instead");
+                throw new IllegalArgumentException("To set zero text, call setToolTipZeroText instead");
         }
         if (hasWarnHigh && (warnLevel >= warnHighBound))
             throw new IllegalArgumentException("Asked for low warning (" + warnLevel
@@ -567,9 +685,9 @@ public class ColorSquare extends Canvas implements MouseListener
         {
             // No more warnTip text.
             if ((intValue == 0) && (ttip_text_zero != null))
-                ttip.setTip(ttip_text_zero);  // Revert to zero-level tooltip text
+                super.setToolTipText(ttip_text_zero);  // Revert to zero-level tooltip text
             else if (wasWarnLow)
-                ttip.setTip(ttip_text);  // Revert to non-warning tooltip text
+                super.setToolTipText(ttip_text);  // Revert to non-warning tooltip text
         }
         else if ((warnTip != null) && wasWarnLow && willWarnLow)
         {
@@ -577,7 +695,7 @@ public class ColorSquare extends Canvas implements MouseListener
             // change the text, because setLowWarningLevel won't.
             // Change text unless we're at zero and there's a zero text.
             if ((intValue != 0) || (ttip_text_zero == null))
-                ttip.setTip(warnTip);
+                super.setToolTipText(warnTip);
         }
 
         setLowWarningLevel(warnLevel);  // Remember new warning level
@@ -604,15 +722,16 @@ public class ColorSquare extends Canvas implements MouseListener
         hasWarnHigh = true;
         warnHighBound = warnLevel;
         isWarnHigh = (intValue >= warnLevel);
+
         if (isWarnHigh != wasWarnHigh)
         {
             repaint();
             if (ttip_text_warnHigh != null)
             {
                 if (isWarnHigh)
-                    ttip.setTip(ttip_text_warnHigh);
+                    super.setToolTipText(ttip_text_warnHigh);
                 else
-                    ttip.setTip(ttip_text);
+                    super.setToolTipText(ttip_text);
             }
         }
     }
@@ -624,6 +743,7 @@ public class ColorSquare extends Canvas implements MouseListener
     public void clearHighWarningLevel()
     {
         hasWarnHigh = false;
+
         if (isWarnHigh)
         {
             isWarnHigh = false;
@@ -631,7 +751,7 @@ public class ColorSquare extends Canvas implements MouseListener
             if (ttip_text_warnHigh != null)
             {
                 ttip_text_warnHigh = null;
-                ttip.setTip(ttip_text);
+                super.setToolTipText(ttip_text);
             }
         }
     }
@@ -640,24 +760,26 @@ public class ColorSquare extends Canvas implements MouseListener
      * Set high-level warning, and set or clear its tooltip text.
      * If warnTip not null, we must already have a standard tooltip text.
      * Does not affect zero-level or low-level tooltip text.
+     *<P>
+     * Before v2.0.00 this method was {@code setTooltipHighWarningLevel} with lowercase "tip".
      *
      * @param warnTip   TODO docu - or null to clear tip text
      * @param warnLevel TODO docu - at or above
      *
      * @see #setHighWarningLevel(int)
      * @see #setLowWarningLevel(int)
-     * @see #setTooltipText(String)
+     * @see #setToolTipText(String)
      *
-     * @throws IllegalStateException if setTooltipText has not yet been called,
+     * @throws IllegalStateException if setToolTipText has not yet been called
      *     and warnTip is not null
      *
      * @throws IllegalArgumentException if warnLevel is below low-warning level.
      */
-    public void setTooltipHighWarningLevel(String warnTip, int warnLevel)
+    public void setToolTipHighWarningLevel(String warnTip, int warnLevel)
         throws IllegalStateException, IllegalArgumentException
     {
         if ((ttip_text == null) && (warnTip != null))
-            throw new IllegalStateException("Must call setTooltipText first");
+            throw new IllegalStateException("Must call setToolTipText first");
         if (hasWarnLow && (warnLevel <= warnLowBound))
             throw new IllegalArgumentException("Asked for high warning (" + warnLevel
                 + ") lower than existing low warning (" + warnLowBound + ")");
@@ -672,13 +794,13 @@ public class ColorSquare extends Canvas implements MouseListener
         {
             // No more warnTip text.
             if (wasWarnHigh)
-                ttip.setTip(ttip_text);  // Revert to non-warning tooltip text
+                super.setToolTipText(ttip_text);  // Revert to non-warning tooltip text
         }
         else if ((warnTip != null) && wasWarnHigh && willWarnHigh)
         {
             // If the status won't change (we're still at warning level),
             // change the text, because setHighWarningLevel won't.
-            ttip.setTip(warnTip);
+            super.setToolTipText(warnTip);
         }
 
         setHighWarningLevel(warnLevel);  // Remember new warning level
@@ -686,24 +808,26 @@ public class ColorSquare extends Canvas implements MouseListener
 
     /**
      * Set or clear zero-level tooltip text.
-     * Setting this text will also make the tooltip color the warning color
+     * Setting this text will also change the tooltip background color the warning color
      * when at value 0.
+     *<P>
+     * Before v2.0.00 this method was {@code setTooltipZeroText} with lowercase "tip".
      *
-     * @param zeroTip   TODO docu - or null to clear tip text
+     * @param zeroTip  Text to display only when value is 0,
+     *     or {@code null} to not have a separate zero-level-only tip text
      *
-     * @see #setTooltipText(String)
-     * @see #setTooltipHighWarningLevel(String, int)
-     * @see #setTooltipLowWarningLevel(String, int)
-     * @see #setTooltipZeroText(String)
+     * @see #setToolTipText(String)
+     * @see #setToolTipHighWarningLevel(String, int)
+     * @see #setToolTipLowWarningLevel(String, int)
      *
-     * @throws IllegalStateException if setTooltipText has not yet been called,
+     * @throws IllegalStateException if setToolTipText has not yet been called
      *     and zeroTip is not null
      */
-    public void setTooltipZeroText(String zeroTip)
+    public void setToolTipZeroText(String zeroTip)
         throws IllegalStateException
     {
         if ((ttip_text == null) && (zeroTip != null))
-            throw new IllegalStateException("Must call setTooltipText first");
+            throw new IllegalStateException("Must call setToolTipText first");
 
         boolean isZero = (intValue == 0);
 
@@ -716,27 +840,16 @@ public class ColorSquare extends Canvas implements MouseListener
             if (isZero)
             {
                 if (hasWarnLow && isWarnLow)
-                    ttip.setTip(ttip_text_warnLow);  // Revert to low-level tooltip text
+                    super.setToolTipText(ttip_text_warnLow);  // Revert to low-level tooltip text
                 else
-                    ttip.setTip(ttip_text);  // Revert to non-warning tooltip text
+                    super.setToolTipText(ttip_text);  // Revert to non-warning tooltip text
             }
         }
         else if ((zeroTip != null) && isZero)
         {
             // New zeroTip text. We may have been at low-level or standard tooltip text.
-            ttip.setTip(zeroTip);
+            super.setToolTipText(zeroTip);
         }
-    }
-
-    /** Show or hide the colorsquare.
-     *
-     *  If we have a tooltip, will also show/hide that tooltip.
-     */
-    public void setVisible(boolean newVis)
-    {
-        if (ttip != null)
-            ttip.setVisible(newVis);
-        super.setVisible(newVis);
     }
 
     /**
@@ -751,17 +864,19 @@ public class ColorSquare extends Canvas implements MouseListener
 
     /**
      * Get our minimum size:
-     * Default from constructor, or any value passed to {@link #setSize(int, int)}.
+     * Default from constructor, or any value passed to {@link #setMinimumSize(Dimension)}.
      */
     @Override
     public Dimension getMinimumSize()
     {
-        return squareSize;
+        return minSize;
     }
 
     /**
      * Set bounds (position and size).
      * Does not need to be a square (w != h is OK).
+     * If {@link #setMinimumSize(Dimension)} has been called,
+     * will honor that minimum width and height here.
      * @param x x-position
      * @param y y-position
      * @param w width in pixels
@@ -772,6 +887,14 @@ public class ColorSquare extends Canvas implements MouseListener
      */
     public void setBounds(int x, int y, int w, int h)
     {
+        if (minSize != null)
+        {
+            if (w < minSize.width)
+                w = minSize.width;
+            if (h < minSize.height)
+                h = minSize.height;
+        }
+
         squareW = w;
         squareH = h;
         if (squareSize != null)
@@ -779,28 +902,36 @@ public class ColorSquare extends Canvas implements MouseListener
             squareSize.width = w;
             squareSize.height = h;
         }
+
         super.setBounds(x, y, w, h);
     }
 
     /**
-     * DOCUMENT ME!
-     *
-     * @param g DOCUMENT ME!
+     * Set bounds (position and size). Overrides to call {@link #setBounds(int, int, int, int)}.
+     * @since 2.0.00
      */
-    public void paint(Graphics g)
+    @Override
+    public void setBounds(Rectangle r)
     {
+        if (r != null)
+            setBounds(r.x, r.y, r.width, r.height);
+    }
+
+    /**
+     * Paint our contents.
+     *<P>
+     * Before v2.0.00 and its Swing conversion, this method was {@code paint}.
+     */
+    public void paintComponent(Graphics g)
+    {
+            super.paintComponent(g);
+
             g.setPaintMode();
             if (warn_bg_grey && (isWarnLow || isWarnHigh))
-            {
                 g.setColor(WARN_LEVEL_COLOR_BG_FROMGREY);
-                g.fillRect(1, 1, squareW - 2, squareH - 2);
-            }
             else
-            {
-                g.clearRect(0, 0, squareW, squareH);
-            }
-            g.setColor(borderColor);
-            g.drawRect(0, 0, squareW - 1, squareH - 1);
+                g.setColor(getBackground());
+            g.fillRect(0, 0, squareW, squareH);
 
             int x;
             int y;
@@ -816,6 +947,7 @@ public class ColorSquare extends Canvas implements MouseListener
                 int numW;
                 int numH = fm.getHeight();
                 //int numA = fm.getAscent();
+
                 switch (kind)
                 {
                 case NUMBER:
@@ -860,10 +992,18 @@ public class ColorSquare extends Canvas implements MouseListener
 
                     if (boolValue)
                     {
+                        final boolean wantWide = (g instanceof Graphics2D) && (squareW >= (2 * WIDTH));
+                        final Stroke origStroke = (wantWide) ? ((Graphics2D) g).getStroke() : null;
+                        if (wantWide)
+                            ((Graphics2D) g).setStroke(new BasicStroke(squareW / (float) WIDTH));
+
                         int checkX = squareW / 5;
                         int checkY = squareH / 4;
                         g.drawLine(checkX, 2 * checkY, 2 * checkX, 3 * checkY);
                         g.drawLine(2 * checkX, 3 * checkY, 4 * checkX, checkY);
+
+                        if (wantWide)
+                            ((Graphics2D) g).setStroke(origStroke);
                     }
 
                     break;
@@ -927,17 +1067,17 @@ public class ColorSquare extends Canvas implements MouseListener
         // Possible tooltip text update
         if (isZero)
         {
-            ttip.setTip(ttip_text_zero);
+            super.setToolTipText(ttip_text_zero);
         }
         else if ((ttip_text != null) &&
             ((isZero != wasZero) || (isWarnLow != wasWarnLow) || (isWarnHigh != wasWarnHigh)))
         {
             if (isWarnHigh && (ttip_text_warnHigh != null))
-                ttip.setTip(ttip_text_warnHigh);
+                super.setToolTipText(ttip_text_warnHigh);
             else if (isWarnLow && (ttip_text_warnLow != null))
-                ttip.setTip(ttip_text_warnLow);
+                super.setToolTipText(ttip_text_warnLow);
             else
-                ttip.setTip(ttip_text);
+                super.setToolTipText(ttip_text);
         }
 
         // Listener callback

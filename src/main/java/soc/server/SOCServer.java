@@ -47,6 +47,7 @@ import soc.util.Triple;
 import soc.util.Version;
 
 import java.io.BufferedReader;
+import java.io.Console;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
@@ -173,11 +174,19 @@ public class SOCServer extends Server
     public static final int SOC_STARTROBOTS_DEFAULT = 7;
 
     /**
-     * Default maximum number of connected clients (40; {@link #maxConnections} field).
+     * Default maximum number of connected clients (40; {@link #maxConnections} field;
+     * {@link #PROP_JSETTLERS_CONNECTIONS} property).
      * Always at least 20 more than {@link #SOC_STARTROBOTS_DEFAULT}.
      * @since 1.1.15
      */
     public static final int SOC_MAXCONN_DEFAULT = Math.max(40, 20 + SOC_STARTROBOTS_DEFAULT);
+
+    /**
+     * No matter how many bots are started by {@link #SOC_STARTROBOTS_DEFAULT} or {@link #PROP_JSETTLERS_STARTROBOTS},
+     * reserve this many spots in {@link #maxConnections} for human clients to connect and play.
+     * @since 2.0.00
+     */
+    private static final int SOC_MAXCONN_HUMANS_RESERVE = 6;
 
     /**
      * Filename {@code "jsserver.properties"} for the optional server startup properties file.
@@ -247,10 +256,12 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_BOTS_TIMEOUT_TURN = "jsettlers.bots.timeout.turn";
 
     /**
-     * Integer property <tt>jsettlers.bots.fast_pause_percent</tt> to set
-     * the speed-up factor for bots' pause times between actions when {@link SOCGame#isBotsOnly}
-     * {@link soc.robot.SOCRobotBrain#BOTS_ONLY_FAST_PAUSE_FACTOR} (default is 25, for 25%
-     * of normal pauses).
+     * Integer property <tt>jsettlers.bots.fast_pause_percent</tt> to adjust
+     * the speed-up factor for bots' pause times between actions when {@link SOCGame#isBotsOnly}:
+     * Sets {@link soc.robot.SOCRobotBrain#BOTS_ONLY_FAST_PAUSE_FACTOR}.
+     *<P>
+     * Default is 25, for 25% of normal pauses (4x speed). Use 1 for a shorter delay (1% of normal pauses).
+     * @see #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL
      * @since 2.0.00
      */
     public static final String PROP_JSETTLERS_BOTS_FAST__PAUSE__PERCENT = "jsettlers.bots.fast_pause_percent";
@@ -260,8 +271,13 @@ public class SOCServer extends Server
      * a few at a time, until this many have been played. (The default is 0.)
      * As the first few games end, the server will start new games until the total is reached.
      *<P>
+     * To adjust the robot-only game speed and server load, use
+     * {@link #PROP_JSETTLERS_BOTS_FAST__PAUSE__PERCENT} and
+     * {@link #PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL}.
+     *<P>
      * To wait at server startup time before starting these games, use
-     * {@link #PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC}.
+     * {@link #PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC}. To shut down the server
+     * after they all finish, use {@link #PROP_JSETTLERS_BOTS_BOTGAMES_SHUTDOWN}.
      *<P>
      * If this property's value != 0, a robots-only game can be started with the
      * {@code *STARTBOTGAME*} debug command. This can be used to test the bots with any given
@@ -277,6 +293,25 @@ public class SOCServer extends Server
      * @since 2.0.00
      */
     public static final String PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL = "jsettlers.bots.botgames.total";
+
+    /**
+     * Integer property <tt>jsettlers.bots.botgames.parallel</tt>:
+     * When server is starting robot-only games ({@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL} > 0),
+     * start this many at once.
+     *<P>
+     * Default is 2. Use 0 to start them all.
+     *
+     * @since 2.0.00
+     */
+    public static final String PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL = "jsettlers.bots.botgames.parallel";
+
+    /**
+     * Boolean property <tt>jsettlers.bots.botgames.shutdown</tt>:
+     * If true, when server has started robot-only games ({@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL} > 0)
+     * and those have finished, shut down the server if no other games are active. (Default is false.)
+     * @since 2.0.00
+     */
+    public static final String PROP_JSETTLERS_BOTS_BOTGAMES_SHUTDOWN = "jsettlers.bots.botgames.shutdown";
 
     /**
      * Integer property <tt>jsettlers.bots.botgames.wait_sec</tt> to wait this many seconds
@@ -448,7 +483,9 @@ public class SOCServer extends Server
         // I18n.PROP_JSETTLERS_LOCALE,             "Locale override from the default, such as es or en_US, for console output",
             // -- not used yet at server
         PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL,     "Run this many robot-only games, a few at a time (default 0); allow bot-only games",
+        PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL,  "Start this many robot-only games at a time (default 2)",
         PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC, "Wait at startup before starting robot-only games (default 1.6 seconds)",
+        PROP_JSETTLERS_BOTS_BOTGAMES_SHUTDOWN,  "After running the robot-only games, shut down the server if no other games are active (if Y)",
         PROP_JSETTLERS_BOTS_COOKIE,             "Robot cookie value (default is random generated each startup)",
         PROP_JSETTLERS_BOTS_SHOWCOOKIE,         "Flag to show the robot cookie value at startup",
         PROP_JSETTLERS_BOTS_FAST__PAUSE__PERCENT, "Pause at percent of normal pause time (0 to 100) for robot-only games (default 25)",
@@ -573,7 +610,7 @@ public class SOCServer extends Server
 
     /**
      * Maximum permitted player name length, default 20 characters.
-     * The client already truncates to 20 characters in SOCPlayerClient.getValidNickname.
+     * Clients older than v2.0.00 truncate nickname to 20 characters in SOCPlayerClient.getValidNickname before sending.
      *
      * @see #createOrJoinGameIfUserOK(Connection, String, String, String, Map)
      * @see SOCGameList#GAME_NAME_MAX_LENGTH
@@ -985,7 +1022,7 @@ public class SOCServer extends Server
      * Number of robot-only games not yet started (optional feature).
      * Set at startup from {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL},
      * then counts down to 0 as games are played: See
-     * {@link #startRobotOnlyGames(boolean)}.
+     * {@link #startRobotOnlyGames(boolean, boolean)}.
      * @since 2.0.00
      */
     private int numRobotOnlyGamesRemaining;
@@ -1003,7 +1040,7 @@ public class SOCServer extends Server
      * @see #i18n_scenario_SC_WOND_desc
      * @see soctest.TestI18NGameoptScenStrings
      */
-    final static String i18n_gameopt_PL_desc;
+    static final String i18n_gameopt_PL_desc;
     static
     {
         final SOCGameOption optPL = SOCGameOption.getOption("PL", false);
@@ -1289,12 +1326,13 @@ public class SOCServer extends Server
         }
 
         /**
-         * If true, connect to DB (like validate_config_mode) but start no threads.
+         * If true, connect to DB (like validate_config_mode does) but start no threads.
          * Will run the requested tests and exit.
          */
         final boolean test_mode_with_db = getConfigBoolProperty(PROP_JSETTLERS_TEST_DB, false);
 
         final boolean validate_config_mode = getConfigBoolProperty(PROP_JSETTLERS_TEST_VALIDATE__CONFIG, false);
+
         final boolean wants_upg_schema = getConfigBoolProperty(SOCDBHelper.PROP_JSETTLERS_DB_UPGRADE__SCHEMA, false);
         boolean db_test_bcrypt_mode = false;
 
@@ -1334,6 +1372,7 @@ public class SOCServer extends Server
 
         // Set game option defaults from any jsettlers.gameopt.* properties found.
         // If problems found, throws IllegalArgumentException with details.
+        // validate_config_mode uses this method to do most validation.
         // Does not apply scenario's game options, if any.
         // Ignores unknown scenario ("SC"), see init_checkScenarioOpts for that.
         init_propsSetGameopts(props);
@@ -1346,6 +1385,25 @@ public class SOCServer extends Server
             else
                 throw new IllegalArgumentException
                     ("Error: Property out of range (0 to 100): " + PROP_JSETTLERS_BOTS_FAST__PAUSE__PERCENT);
+        }
+
+        if (validate_config_mode)
+        {
+            // Check number of bot users vs maxConnections, reserve room for humans.
+            // Same reserve logic is used in serverUp when calling setupLocalRobots
+
+            final int rcount = Integer.parseInt(props.getProperty(PROP_JSETTLERS_STARTROBOTS));
+            final int hcount = maxConnections - rcount;  // max human client connection count
+            final int reserve = Math.max(rcount, SOC_MAXCONN_HUMANS_RESERVE);
+            if (hcount < reserve)
+            {
+                final int incr = reserve - hcount;
+                throw new IllegalArgumentException
+                    ("Config: " + PROP_JSETTLERS_CONNECTIONS + ": Only "
+                     + hcount + " player connections would be available because of the "
+                     + rcount + " started robots. Should use " + (maxConnections + incr)
+                     + " for max connection count (+" + incr + ")");
+            }
         }
 
         ((SOCMessageDispatcher) inboundMsgDispatcher).setServer(this, srvMsgHandler, gameList);
@@ -1402,7 +1460,7 @@ public class SOCServer extends Server
             }
 
             // set some DB-related SOCServer fields: acctsNotOpenRegButNoUsers, databaseUserAdmins
-            initSocServer_dbParamFields(accountsRequired, wants_upg_schema);
+            initSocServer_dbParamFields(wants_upg_schema);
 
             // check schema version, upgrade if requested:
             if (! SOCDBHelper.isSchemaLatestVersion())
@@ -1542,6 +1600,8 @@ public class SOCServer extends Server
         }
         catch (IllegalArgumentException iax)
         {
+            // reminder: caught here only if thrown by db init, not by init_propsSetGameopts
+
             System.err.println("\n* Error in specified database properties: " + iax.getMessage());
             SQLException sqle = new SQLException("Error with DB props");
             sqle.initCause(iax);
@@ -1656,6 +1716,8 @@ public class SOCServer extends Server
             // Print configured known properties (ignore if not in PROPS_LIST);
             // this also gives them in the same order as PROPS_LIST,
             // which is the same order --help prints them out.
+            // If a problem was found by init_propsSetGameopts, it would have already
+            // thrown an exception out of this method.
             System.err.println();
             System.err.println("-- Configured server properties: --");
             for (int i = 0; i < PROPS_LIST.length; i += 2)
@@ -1710,7 +1772,7 @@ public class SOCServer extends Server
      *     for {@link #acctsNotOpenRegButNoUsers}
      * @since 1.2.00
      */
-    private void initSocServer_dbParamFields(final boolean accountsRequired, final boolean wantsUpgSchema)
+    private void initSocServer_dbParamFields(final boolean wantsUpgSchema)
         throws IllegalArgumentException, SQLException
     {
         // open reg for user accounts?  if not, see if we have any yet
@@ -1778,7 +1840,7 @@ public class SOCServer extends Server
      *<P>
      * Unless {@link #PROP_JSETTLERS_STARTROBOTS} is 0, starts those {@link SOCRobotClient}s now
      * by calling {@link #setupLocalRobots(int, int)}. If {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL}
-     * is specified, waits briefly and then calls {@link #startRobotOnlyGames(boolean)}.
+     * is specified, waits briefly and then calls {@link #startRobotOnlyGames(boolean, boolean)}.
      *<P>
      * Once this method completes, server begins its main loop of listening for incoming
      * client connections, and starting a Thread for each one to handle that client's messages.
@@ -1803,8 +1865,11 @@ public class SOCServer extends Server
             try
             {
                 // 0 bots is OK with the logic here
+                // Same reserve logic is used in initSocServer for validate_config_mode
+
                 final int rcount = Integer.parseInt(props.getProperty(PROP_JSETTLERS_STARTROBOTS));
                 final int hcount = maxConnections - rcount;  // max human client connection count
+                final int reserve = Math.max(rcount, SOC_MAXCONN_HUMANS_RESERVE);
                 int fast30 = (int) (0.30f * rcount);
                 boolean loadSuccess = setupLocalRobots(fast30, rcount - fast30);  // each bot gets a thread
                 if (! loadSuccess)
@@ -1812,8 +1877,11 @@ public class SOCServer extends Server
                     System.err.println("** Cannot start robots with this JAR.");
                     System.err.println("** For robots, please use the Full JAR instead of the server-only JAR.");
                 }
-                else if ((hcount < 6) || (hcount < rcount))
+                else if (hcount < reserve)
                 {
+                    final int incr = reserve - hcount, newMaxC = maxConnections + incr;
+                    maxConnections = newMaxC;
+
                     new Thread() {
                         @Override
                         public void run()
@@ -1822,7 +1890,8 @@ public class SOCServer extends Server
                                 Thread.sleep(1600);  // wait for bot-connect messages to print
                             } catch (InterruptedException e) {}
                             System.err.println("** Warning: Only " + hcount
-                                + " player connections available, because of the robot connections.");
+                                + " player connections would be available because of the started robots.");
+                            System.err.println("   Using " + maxConnections + " for max connection count (+" + incr + ").");
                         }
                     }.start();
                 }
@@ -1853,7 +1922,7 @@ public class SOCServer extends Server
                                     System.err.println
                                         ("\nStarting robot-only games now, after waiting " + waitSec + " seconds.\n");
 
-                                startRobotOnlyGames(false);
+                                startRobotOnlyGames(false, false);
                             }
                         }.start();
                     }
@@ -2690,8 +2759,8 @@ public class SOCServer extends Server
      *     This typically happens if a robot class or SOCDisplaylessClient
      *     can't be loaded, due to packaging of the server-only JAR.
      * @see soc.client.SOCPlayerClient#startPracticeGame()
-     * @see soc.client.SOCPlayerClient.GameDisplay#startLocalTCPServer(int)
-     * @see #startRobotOnlyGames(boolean)
+     * @see soc.client.MainDisplay#startLocalTCPServer(int)
+     * @see #startRobotOnlyGames(boolean, boolean)
      * @see SOCLocalRobotClient
      * @since 1.1.00
      */
@@ -2737,7 +2806,8 @@ public class SOCServer extends Server
      * {@link SOCClientData#getCurrentCreatedGames()}.
      *<P>
      * Note that if this game had the {@link SOCGame#isBotsOnly} flag, and {@link #numRobotOnlyGamesRemaining} &gt; 0,
-     * will call {@link #startRobotOnlyGames(boolean)}.
+     * will call {@link #startRobotOnlyGames(boolean, boolean)}. If none remain, will shut down server if
+     * {@link #PROP_JSETTLERS_BOTS_BOTGAMES_SHUTDOWN} is true and active game list is empty.
      *<P>
      * <B>Locks:</B> Must have {@link #gameList}{@link SOCGameList#takeMonitor() .takeMonitor()}
      * before calling this method.
@@ -2797,8 +2867,26 @@ public class SOCServer extends Server
                 ((SOCClientData) oConn.getAppData()).deletedGame();
         }
 
-        if (wasBotsOnly && (numRobotOnlyGamesRemaining > 0))
-            startRobotOnlyGames(true);
+        if (! wasBotsOnly)
+        {
+            return;
+        }
+
+        if (numRobotOnlyGamesRemaining > 0)
+        {
+            startRobotOnlyGames(true, true);
+        }
+        else if (getConfigIntProperty(PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0) > 0)
+        {
+            // Other robot-only games could still be active; remaining = 0 was set when the last one was started
+
+            if ((gameList.size() == 0) && getConfigBoolProperty(PROP_JSETTLERS_BOTS_BOTGAMES_SHUTDOWN, false))
+            {
+                stopServer(">>> All Robot-only games have finished. Shutting down server. <<<");
+
+                System.exit(0);  // TODO nonzero exit code if any exceptions thrown while bot games ran?
+            }
+        }
     }
 
     /**
@@ -4486,7 +4574,7 @@ public class SOCServer extends Server
         final long now = System.currentTimeMillis();
         if (scd.disconnectLastPingMillis != 0)
         {
-            int secondsSincePing = (int) (((now - scd.disconnectLastPingMillis)) / 1000L);
+            int secondsSincePing = (int) ((now - scd.disconnectLastPingMillis) / 1000L);
             if (secondsSincePing >= timeoutNeeded)
             {
                 // Already sent ping, timeout has expired.
@@ -4934,9 +5022,12 @@ public class SOCServer extends Server
     }
 
     /**
-     * The server is being cleanly stopped.  Send a final message, disconnect all
-     * the connections, disconnect from database if connected.
-     * Currently called only by the debug command "*STOP*",
+     * The server is being cleanly stopped.  Send a final message, wait 500 milliseconds,
+     * disconnect all the connections, disconnect from database if connected.
+     * Does not call {@link System#exit(int)} in case caller wants to use a different exit code status value.
+     *<P>
+     * Currently called only by the debug command "*STOP*", by
+     * {@link #destroyGame(String)} when {@link #PROP_JSETTLERS_BOTS_BOTGAMES_SHUTDOWN} is set,
      * and by SOCPlayerClient's locally hosted TCP server.
      *
      * @param stopMsg Final text message to send to all connected clients, or null.
@@ -5188,8 +5279,6 @@ public class SOCServer extends Server
             c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_PROBLEM_WITH_DB, c.getVersion(),
                      "Problem connecting to database, please try again later."));
-
-            return;  // <---- Early return: DB problem ----
         }
     }
 
@@ -5952,39 +6041,49 @@ public class SOCServer extends Server
      * Later as these games end, the server will start new games as long as
      * {@link #numRobotOnlyGamesRemaining} &gt; 0 at the time.
      *<P>
+     * Starts 2 games here unless {@link #PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL} is set.
+     *<P>
      * <B>Locks:</b> May or may not have {@link SOCGameList#takeMonitor()} when calling;
      * see {@code hasGameListMonitor} parameter.  If not already held, this method takes and releases that monitor.
      *
+     * @param wasGameDestroyed  True if caller has just destroyed a game and should start 1 more to replace it
      * @param hasGameListMonitor  True if caller holds the {@link SOCGameList#takeMonitor()} lock already
      * @see #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL
      * @since 2.0.00
      */
-    private void startRobotOnlyGames(final boolean hasGameListMonitor)
+    private void startRobotOnlyGames(final boolean wasGameDestroyed, final boolean hasGameListMonitor)
     {
-        if (numRobotOnlyGamesRemaining <= 0)
-            return;
-
-        // TODO start more than one here
-        // TODO property to control # "a few" games started here
-
-        String gaName = "~botsOnly~" + numRobotOnlyGamesRemaining;
-
-        SOCGame newGame = createGameAndBroadcast
-            (null, gaName, SOCGameOption.getAllKnownOptions(), Version.versionNumber(), true, hasGameListMonitor);
-
-        if (newGame != null)
+        int nParallel;
+        if (wasGameDestroyed)
         {
-            --numRobotOnlyGamesRemaining;
-
-            System.out.println("Started bot-only game: " + gaName);
-            newGame.setGameState(SOCGame.READY);
-            if (! readyGameAskRobotsJoin(newGame, null, 0))
-            {
-                System.out.println("Bot-only game " + gaName + ": Not enough bots can join, not starting");
-                newGame.setGameState(SOCGame.OVER);
-            }
+            nParallel = 1;
         } else {
-            // TODO game name existed
+            nParallel = getConfigIntProperty(PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL, 2);
+            if (nParallel == 0)
+                nParallel = numRobotOnlyGamesRemaining;
+        }
+
+        for (int i = 0; (i < nParallel) && (numRobotOnlyGamesRemaining > 0); ++i)
+        {
+            String gaName = "~botsOnly~" + numRobotOnlyGamesRemaining;
+
+            SOCGame newGame = createGameAndBroadcast
+                (null, gaName, SOCGameOption.getAllKnownOptions(), Version.versionNumber(), true, hasGameListMonitor);
+
+            if (newGame != null)
+            {
+                --numRobotOnlyGamesRemaining;
+
+                System.out.println("Started bot-only game: " + gaName);
+                newGame.setGameState(SOCGame.READY);
+                if (! readyGameAskRobotsJoin(newGame, null, 0))
+                {
+                    System.out.println("Bot-only game " + gaName + ": Not enough bots can join, not starting");
+                    newGame.setGameState(SOCGame.OVER);
+                }
+            } else {
+                // TODO game name existed
+            }
         }
     }
 
@@ -6759,6 +6858,14 @@ public class SOCServer extends Server
             return;
         }
 
+        if (userName.length() > PLAYER_NAME_MAX_LENGTH)
+        {
+            c.put(new SOCStatusMessage
+                    (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
+                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));
+            return;
+        }
+
         //
         // Check if requester is on the user admins list; this check is also in isUserDBUserAdmin.
         //
@@ -7435,7 +7542,7 @@ public class SOCServer extends Server
             {
                 // lastActionTime is a recent time, or might be 0 to force end
                 long lastActionTime = ga.lastActionTime;
-                if (lastActionTime > ((ga.isCurrentPlayerStubbornRobot() ? inactiveTimeStubborn : inactiveTime)))
+                if (lastActionTime > (ga.isCurrentPlayerStubbornRobot() ? inactiveTimeStubborn : inactiveTime))
                     continue;
 
                 if (ga.getGameState() >= SOCGame.OVER)
@@ -8529,31 +8636,40 @@ public class SOCServer extends Server
     /**
      * Read a password from the console; currently used for password reset.
      * Blocks the calling thread while waiting for input.
+     * Uses {@link Console#readPassword()} if available.
      *<P>
-     * This rudimentary method exists for compatibility: java 1.5 doesn't have
-     * {@code System.console.readPassword()}, and the Eclipse console also
-     * doesn't offer {@code System.console}.
+     * This rudimentary method exists for compatibility:
+     * Neither the Eclipse console nor java 1.5 had {@code System.console}.
      *<P>
-     * <B>The input is not masked</B> because there's no cross-platform way to do so in 1.5.
+     * If not using {@code Console.readPassword()}, <B>the input is not masked</B>
+     * because there's no cross-platform way to do so.
      *
      * @param prompt  Optional password prompt; default is "Password:"
-     * @return  The password read, or an empty string "" if an error occurred.
+     *     Must avoid any java format-string characters; see {@link Console#readPassword(String, Object...)}.
+     * @return  The password read, or an empty string "" if none.
      *     This is returned as a mutable StringBuilder
      *     so the caller can clear its contents when done, using
      *     {@link #clearBuffer(StringBuilder)}.
-     *     If ^C or an error occurs, returns {@code null}.
+     *     If ^C or an {@link IOException} occurs, returns {@code null}.
      * @since 1.1.20
      */
     private static StringBuilder readPassword(String prompt)
     {
-        // java 1.5 doesn't have System.console.readPassword
-        // (TODO) consider reflection for 1.6+ JREs
-
         // System.in can read only an entire line (no portable raw mode in 1.5),
-        // so we can't mask after each character.
+        // so we can't mask after each character. This also applies to the Eclipse console.
 
         if (prompt == null)
             prompt = "Password:";
+
+        final Console con = System.console();
+        if (con != null)
+        {
+            char[] pw = System.console().readPassword(prompt);
+            if (pw == null)
+                return new StringBuilder();  // EOF or error
+
+            return new StringBuilder().append(pw);  // keep it mutable
+        }
 
         System.out.print(prompt);
         System.out.print(' ');
@@ -8709,6 +8825,7 @@ public class SOCServer extends Server
             }
             catch (IllegalArgumentException e)
             {
+                // was probably thrown in init_propsSetGameopts via initSocServer
                 System.err.println
                     ("\n" + e.getMessage()
                      + "\n* Error in game options properties: Exiting now.\n");
@@ -8733,7 +8850,6 @@ public class SOCServer extends Server
         catch (Throwable e)
         {
             printUsage(false);
-            return;
         }
 
     }  // main

@@ -180,7 +180,7 @@ public class SOCPlayerNumbers
         //    So, skip this loop:
         // for (int i = 0; i < landHexCoords.length; i++)
         // {
-        //    numberAndResourceForHex.put(new Integer(landHexCoords[i]), new Vector());
+        //    numberAndResourceForHex.put(Integer.valueOf(landHexCoords[i]), new Vector());
         // }
     }
 
@@ -398,7 +398,7 @@ public class SOCPlayerNumbers
             if (landHexCoords[i] == robberHex)
                 continue;
 
-            Vector<IntPair> pairs = numberAndResourceForHex.get(new Integer(landHexCoords[i]));
+            Vector<IntPair> pairs = numberAndResourceForHex.get(Integer.valueOf(landHexCoords[i]));
             if (pairs == null)
                 continue;
 
@@ -457,9 +457,9 @@ public class SOCPlayerNumbers
                     if (hasSeaBoard && (res == SOCBoardLarge.GOLD_HEX))
                     {
                         for (int r = Data.ResourceType.CLAY_VALUE; r <= Data.ResourceType.WOOD_VALUE; ++r)
-                            resources.addElement(new Integer(r));
+                            resources.addElement(Integer.valueOf(r));
                     } else {
-                        resources.addElement(new Integer(res));
+                        resources.addElement(Integer.valueOf(res));
                     }
                 }
             }
@@ -482,9 +482,9 @@ public class SOCPlayerNumbers
     {
         if ((resource >= Data.ResourceType.CLAY_VALUE) && (resource <= Data.ResourceType.WOOD_VALUE))
         {
-            numbersForResource[resource].addElement(new Integer(diceNum));
+            numbersForResource[resource].addElement(Integer.valueOf(diceNum));
 
-            Integer resourceInt = new Integer(resource);
+            Integer resourceInt = Integer.valueOf(resource);
 
             //if (!resourcesForNumber[number].contains(resourceInt)) {
             resourcesForNumber[diceNum].addElement(resourceInt);
@@ -499,17 +499,17 @@ public class SOCPlayerNumbers
             }
 
             // GOLD_HEX: Add all 5 resource types
-            final Integer diceNumInt = new Integer(diceNum);
+            final Integer diceNumInt = Integer.valueOf(diceNum);
             for (int res = Data.ResourceType.CLAY_VALUE; res <= Data.ResourceType.WOOD_VALUE; ++res)
             {
                 numbersForResource[res].addElement(diceNumInt);
-                resourcesForNumber[diceNum].addElement(new Integer(res));
+                resourcesForNumber[diceNum].addElement(Integer.valueOf(res));
             }
 
             // GOLD_HEX is okay in numberAndResourceForHex.
         }
 
-        final Integer hexInt = new Integer(hex);
+        final Integer hexInt = Integer.valueOf(hex);
         Vector<IntPair> pairs = numberAndResourceForHex.get(hexInt);
         if (pairs == null)
         {

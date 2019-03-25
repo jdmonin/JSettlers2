@@ -25,7 +25,7 @@ package soc.robot;
  * This is a list of probabilities for how often
  * each dice number comes up.
  */
-interface SOCNumberProbabilities
+public interface SOCNumberProbabilities
 {
     /**
      * Float probabilities:

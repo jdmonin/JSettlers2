@@ -59,7 +59,6 @@ import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.TextArea;
-import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -70,8 +69,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.TextEvent;
-import java.awt.event.TextListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -90,6 +87,10 @@ import java.io.PrintWriter;  // For chatPrintStackTrace
 import java.io.StringWriter;
 
 import javax.sound.sampled.LineUnavailableException;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  * Window with interface for a player in one game of Settlers of Catan.
@@ -106,7 +107,7 @@ import javax.sound.sampled.LineUnavailableException;
  *<P>
  * <B>Local preferences:</B>
  * For optional per-game preferences like {@link #PREF_SOUND_MUTE}, see {@code localPrefs} parameter in
- * the {@link #SOCPlayerInterface(String, SOCPlayerClient.GameDisplay, SOCGame, Map)} constructor javadoc.
+ * the {@link #SOCPlayerInterface(String, MainDisplay, SOCGame, Map)} constructor javadoc.
  * The current game's prefs are shown and changed with {@link NewGameOptionsFrame}.
  * Local prefs are not saved persistently like client preferences
  * ({@link SOCPlayerClient#PREF_SOUND_ON} etc) are.
@@ -124,15 +125,6 @@ public class SOCPlayerInterface extends Frame
     implements ActionListener, MouseListener, SOCScenarioEventListener,
     PlayerClientListener.NonBlockingDialogDismissListener
 {
-    /**
-     * The classic JSettlers goldenrod dialog background color; pale yellow-orange tint #FFE6A2.
-     * Typically used with foreground {@link Color#BLACK}, like in game/chat text areas,
-     * {@link TradeOfferPanel}, and {@link AskDialog}.
-     * @since 2.0.00
-     * @see SOCPlayerClient#JSETTLERS_BG_GREEN
-     */
-    public static final Color DIALOG_BG_GOLDENROD = new Color(255, 230, 162);
-
     /**
      * Boolean per-game preference to mute all sound effects in this game.
      * For use with constructor's {@code localPrefs} parameter. Default value is {@code false}.
@@ -160,20 +152,9 @@ public class SOCPlayerInterface extends Frame
     private static final SOCStringManager strings = SOCStringManager.getClientManager();
 
     /**
-     * System property os.name; For use by {@link #SOCPI_isPlatformWindows}.
-     * @since 1.1.08
-     */
-    private final static String SOCPI_osName = System.getProperty("os.name");
-
-    /**
-     * Are we running on the Windows platform, according to {@link #SOCPI_osName}?
-     * @since 1.1.08
-     */
-    private final static boolean SOCPI_isPlatformWindows = (SOCPI_osName != null) && (SOCPI_osName.toLowerCase().indexOf("windows") != -1);
-
-    /**
      * Minimum frame width calculated in constructor from this game's player count and board,
-     * based on {@link #WIDTH_MIN_4PL}. Updated only in {@link #updateAtNewBoard()} if board layout part
+     * based on {@link #WIDTH_MIN_4PL} and {@link #displayScale}.
+     * Updated only in {@link #updateAtNewBoard()} if board layout part
      * Visual Shift ("VS") increases {@link #boardPanel}'s size.
      * @since 1.2.00
      */
@@ -181,11 +162,18 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Minimum frame height calculated in constructor from this game's player count and board,
-     * based on {@link #HEIGHT_MIN_4PL}. Updated only in {@link #updateAtNewBoard()} if board layout part
+     * based on {@link #HEIGHT_MIN_4PL} and {@link #displayScale}.
+     * Updated only in {@link #updateAtNewBoard()} if board layout part
      * Visual Shift ("VS") increases {@link #boardPanel}'s size.
      * @since 1.2.00
      */
     private int height_base;
+
+    /**
+     * For high-DPI displays, what scaling factor to use? Unscaled is 1.
+     * @since 2.0.00
+     */
+    /*package*/ final int displayScale;
 
     /**
      * the board display
@@ -243,7 +231,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * where the player types in text
      */
-    protected TextField textInput;
+    private JTextField textInput;
 
     /**
      * Not yet typed-in; display prompt message.
@@ -432,9 +420,9 @@ public class SOCPlayerInterface extends Frame
     protected Color[] playerColors, playerColorsGhost;
 
     /**
-     * the display that spawned us
+     * the client main display that spawned us
      */
-    protected SOCPlayerClient.GameDisplay gameDisplay;
+    protected MainDisplay mainDisplay;
 
     protected SOCPlayerClient client;
 
@@ -544,7 +532,7 @@ public class SOCPlayerInterface extends Frame
      * Another value can be specified in our constructor's {@code localPrefs} param.
      * @since 1.2.00
      */
-    private int botTradeRejectSec = SOCPlayerClient.UserPreferences.getPref
+    private int botTradeRejectSec = UserPreferences.getPref
         (SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC, -8);
 
     /**
@@ -605,7 +593,7 @@ public class SOCPlayerInterface extends Frame
      * Thread executor to queue and play {@link #playSound(byte[])} using {@link PIPlaySound}s.
      * @since 1.2.00
      */
-    private final static ExecutorService soundQueueThreader = Executors.newSingleThreadExecutor();
+    private static final ExecutorService soundQueueThreader = Executors.newSingleThreadExecutor();
 
     /**
      * Listener for
@@ -631,7 +619,7 @@ public class SOCPlayerInterface extends Frame
      * by {@link #showScenarioInfoDialog()}.
      *
      * @param title  title for this interface - game name
-     * @param gd     the player display that spawned us
+     * @param md     the client main display that spawned us
      * @param ga     the game associated with this interface; must not be {@code null}
      * @param localPrefs  optional map of per-game local preferences to use in this {@code SOCPlayerInterface},
      *     or {@code null}. Preference name keys are {@link #PREF_SOUND_MUTE}, etc.
@@ -641,19 +629,20 @@ public class SOCPlayerInterface extends Frame
      * @throws IllegalArgumentException if a {@code localPrefs} value isn't the expected type
      *     ({@link Integer} or {@link Boolean}) based on its key's javadoc.
      */
-    public SOCPlayerInterface(String title, SOCPlayerClient.GameDisplay gd, SOCGame ga, final Map<String, Object> localPrefs)
+    public SOCPlayerInterface(String title, MainDisplay md, SOCGame ga, final Map<String, Object> localPrefs)
         throws IllegalArgumentException
     {
         super(strings.get("interface.title.game", title)
-              + (ga.isPractice ? "" : " [" + gd.getClient().getNickname() + "]"));
+              + (ga.isPractice ? "" : " [" + md.getClient().getNickname() + "]"));
             // "Settlers of Catan Game: {0}"
 
         layoutNotReadyYet = true;  // will set to false at end of doLayout
         setResizable(true);
         setLocationByPlatform(true);  // cascade, not all same hard-coded position as in v1.1.xx
 
-        this.gameDisplay = gd;
-        client = gd.getClient();
+        this.mainDisplay = md;
+        displayScale = md.getDisplayScaleFactor();
+        client = md.getClient();
         game = ga;
         game.setScenarioEventListener(this);
         knowsGameState = (game.getGameState() != 0);
@@ -694,7 +683,7 @@ public class SOCPlayerInterface extends Frame
         playerColors[3] = new Color(249, 128,  29); // orange
         if (is6player)
         {
-            playerColors[4] = new Color(97, 151, 113); // almost same green as playerclient.JSETTLERS_BG_GREEN #61AF71
+            playerColors[4] = new Color(97, 151, 113); // almost same green as SwingMainDisplay.JSETTLERS_BG_GREEN #61AF71
             playerColors[5] = playerColors[3];  // orange
             playerColors[3] = new Color(166, 88, 201);  // violet
         }
@@ -706,9 +695,12 @@ public class SOCPlayerInterface extends Frame
         /**
          * initialize the font and the foreground, and background colors
          */
-        setBackground(Color.black);
-        setForeground(Color.black);
-        setFont(new Font("SansSerif", Font.PLAIN, 10));
+        if (! SwingMainDisplay.isOSColorHighContrast())
+        {
+            setBackground(Color.BLACK);
+            setForeground(Color.WHITE);
+        }
+        setFont(new Font("SansSerif", Font.PLAIN, 10 * displayScale));
 
         /**
          * we're doing our own layout management
@@ -729,29 +721,32 @@ public class SOCPlayerInterface extends Frame
         /**
          * more initialization stuff
          */
-        int piHeight = HEIGHT_MIN_4PL, piWidth;
-        if ((is6player || game.hasSeaBoard) && SOCPI_isPlatformWindows)
+        final Dimension boardExtraSize = boardPanel.getExtraSizeFromBoard();
+
+        int piHeight = HEIGHT_MIN_4PL;
+        if ((is6player || game.hasSeaBoard) && SOCPlayerClient.IS_PLATFORM_WINDOWS)
             piHeight += 25;
+        piHeight = (piHeight + boardExtraSize.height) * displayScale;
         height_base = piHeight;
 
-        if (is6player || game.hasSeaBoard)
-            piWidth = (2 * SOCHandPanel.WIDTH_MIN) + 16 + boardPanel.getMinimumSize().width;
-        else
-            piWidth = WIDTH_MIN_4PL;
+        int piWidth = WIDTH_MIN_4PL;
+        piWidth = (piWidth + boardExtraSize.width) * displayScale;
         width_base = piWidth;
 
         // check window frame size preference if set
         {
-            int prefWidth = SOCPlayerClient.UserPreferences.getPref(SOCPlayerClient.PREF_PI__WIDTH, -1);
+            int prefWidth = UserPreferences.getPref(SOCPlayerClient.PREF_PI__WIDTH, -1);
             int prefHeight = (prefWidth != -1)
-                ? SOCPlayerClient.UserPreferences.getPref(SOCPlayerClient.PREF_PI__HEIGHT, HEIGHT_MIN_4PL)
+                ? UserPreferences.getPref(SOCPlayerClient.PREF_PI__HEIGHT, HEIGHT_MIN_4PL)
                 : 0;
             if (prefWidth != -1)
             {
-                if ((width_base != WIDTH_MIN_4PL) || (height_base != HEIGHT_MIN_4PL))
+                if ((width_base != (WIDTH_MIN_4PL * displayScale))
+                    || (height_base != (HEIGHT_MIN_4PL * displayScale)))
                 {
-                    piWidth = (prefWidth * width_base) / WIDTH_MIN_4PL;
-                    piHeight = (prefHeight * height_base) / HEIGHT_MIN_4PL;
+                    // pref size is based on minimum board size, but this game's board is bigger
+                    piWidth = (prefWidth * width_base) / (WIDTH_MIN_4PL * displayScale);
+                    piHeight = (prefHeight * height_base) / (HEIGHT_MIN_4PL * displayScale);
                 } else {
                     piWidth = prefWidth;
                     piHeight = prefHeight;
@@ -886,6 +881,8 @@ public class SOCPlayerInterface extends Frame
      */
     protected void initInterfaceElements(boolean firstCall)
     {
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+
         /**
          * initialize the text input and display and add them to the interface.
          * Moved first so they'll be at top of the z-order, for use with textDisplaysLargerTemp.
@@ -906,38 +903,58 @@ public class SOCPlayerInterface extends Frame
         if (firstCall && is6player)
             addMouseListener(this);  // react when mouse leaves the Frame
 
+        final Font sans10Font = new Font("SansSerif", Font.PLAIN, 10 * displayScale);
+
         textDisplay = new SnippingTextArea("", 40, 80, TextArea.SCROLLBARS_VERTICAL_ONLY, 80);
-        textDisplay.setFont(new Font("SansSerif", Font.PLAIN, 10));
-        textDisplay.setBackground(DIALOG_BG_GOLDENROD);
-        textDisplay.setForeground(Color.BLACK);
+        textDisplay.setFont(sans10Font);
+        if (! isOSHighContrast)
+        {
+            textDisplay.setBackground(SwingMainDisplay.DIALOG_BG_GOLDENROD);
+            textDisplay.setForeground(Color.BLACK);
+        }
         textDisplay.setEditable(false);
         add(textDisplay);
         if (is6player)
             textDisplay.addMouseListener(this);
 
         chatDisplay = new SnippingTextArea("", 40, 80, TextArea.SCROLLBARS_VERTICAL_ONLY, 100);
-        chatDisplay.setFont(new Font("SansSerif", Font.PLAIN, 10));
-        chatDisplay.setBackground(DIALOG_BG_GOLDENROD);
-        chatDisplay.setForeground(Color.BLACK);
+        chatDisplay.setFont(sans10Font);
+        if (! isOSHighContrast)
+        {
+            chatDisplay.setBackground(SwingMainDisplay.DIALOG_BG_GOLDENROD);
+            chatDisplay.setForeground(Color.BLACK);
+        }
         chatDisplay.setEditable(false);
         if (is6player)
             chatDisplay.addMouseListener(this);
         add(chatDisplay);
 
-        textInput = new TextField();
-        textInput.setFont(new Font("SansSerif", Font.PLAIN, 10));
+        textInput = new JTextField();
+        if (SOCPlayerClient.IS_PLATFORM_MAC_OSX)
+        {
+            int px = displayScale;  // based on 1-pixel border
+            textInput.setBorder(new EmptyBorder(px, px, px, px));  // avoid black background inside overly-thick border
+        }
+        textInput.setFont(sans10Font);
         textInputListener = new SOCPITextfieldListener(this);
         textInputHasSent = false;
         textInputGreyCountdown = textInputGreyCountFrom;
         textInput.addKeyListener(textInputListener);
-        textInput.addTextListener(textInputListener);
+        textInput.getDocument().addDocumentListener(textInputListener);
         textInput.addFocusListener(textInputListener);
 
         FontMetrics fm = this.getFontMetrics(textInput.getFont());
-        textInput.setSize(SOCBoardPanel.PANELX, fm.getHeight() + 4);
-        textInput.setBackground(Color.WHITE);  // before v1.1.00 was new Color(255, 230, 162) aka DIALOG_BG_GOLDENROD
-        textInput.setForeground(Color.BLACK);
+        textInput.setSize(SOCBoardPanel.PANELX, fm.getHeight() + 4 * displayScale);
         textInput.setEditable(false);
+        if (! isOSHighContrast)
+        {
+            textInput.setBackground(Color.WHITE);  // before v1.1.00 was new Color(255, 230, 162) aka DIALOG_BG_GOLDENROD
+            textInput.setForeground(Color.BLACK);
+        } else {
+            final Color[] sysColors = SwingMainDisplay.getForegroundBackgroundColors(false, true);
+            textInput.setBackground(sysColors[2]);
+            textInput.setForeground(sysColors[0]);
+        }
         textInputIsInitial = false;  // due to "please wait"
         textInput.setText(strings.get("base.please.wait"));  // "Please wait..."
         add(textInput);
@@ -954,10 +971,10 @@ public class SOCPlayerInterface extends Frame
         {
             SOCHandPanel hp = new SOCHandPanel(this, game.getPlayer(i));
             hands[i] = hp;
-            hp.setSize(180, 120);
+            hp.setSize(180 * displayScale, 120 * displayScale);
             add(hp);
             ColorSquare blank = hp.getBlankStandIn();
-            blank.setSize(180, 120);
+            blank.setSize(hp.getSize());
             add(blank);
         }
 
@@ -965,7 +982,7 @@ public class SOCPlayerInterface extends Frame
          * initialize the building interface and add it to the main interface
          */
         buildingPanel = new SOCBuildingPanel(this);
-        buildingPanel.setSize(200, SOCBuildingPanel.MINHEIGHT);
+        buildingPanel.setSize(200 * displayScale, SOCBuildingPanel.MINHEIGHT * displayScale);
         add(buildingPanel);
 
         /**
@@ -974,9 +991,10 @@ public class SOCPlayerInterface extends Frame
         boardPanel = new SOCBoardPanel(this);
         boardPanel.setBackground(new Color(63, 86, 139));  // sea blue; briefly visible at start before water tiles are drawn
         boardPanel.setForeground(Color.black);
+        boardPanel.setFont(sans10Font);
         Dimension bpMinSz = boardPanel.getMinimumSize();
-        boardPanel.setSize(bpMinSz.width, bpMinSz.height);
-        boardIsScaled = false;
+        boardPanel.setSize(bpMinSz.width * displayScale, bpMinSz.height * displayScale);
+        boardIsScaled = (displayScale != 1);
         add(boardPanel);
         if (game.isGameOptionDefined("PL"))
         {
@@ -997,7 +1015,7 @@ public class SOCPlayerInterface extends Frame
          */
         if (is6player)
         {
-            if (SOCPI_isPlatformWindows)
+            if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
             {
                 sbFixNeeded = true;
                 hands[0].addMouseListener(this);  // upper-left
@@ -1011,7 +1029,7 @@ public class SOCPlayerInterface extends Frame
         if (firstCall)
         {
             // If player requests window close, ask if they're sure, leave game if so
-            addWindowListener(new PIWindowAdapter(gameDisplay, this));
+            addWindowListener(new PIWindowAdapter(mainDisplay, this));
         }
 
     }
@@ -1042,6 +1060,7 @@ public class SOCPlayerInterface extends Frame
     {
         if (needRepaintBorders)
             paintBorders(g);
+
         super.paint(g);
     }
 
@@ -1055,6 +1074,7 @@ public class SOCPlayerInterface extends Frame
     {
         if (prevSize == null)
             return;
+
         if (is6player)
         {
             paintBordersHandColumn(g, hands[5]);
@@ -1063,7 +1083,9 @@ public class SOCPlayerInterface extends Frame
             paintBordersHandColumn(g, hands[0]);
             paintBordersHandColumn(g, hands[1]);
         }
-        g.clearRect(boardPanel.getX(), boardPanel.getY() - 4, boardPanel.getWidth(), 4);
+        int bw = 4 * displayScale;
+        g.clearRect(boardPanel.getX(), boardPanel.getY() - bw, boardPanel.getWidth(), bw);
+
         needRepaintBorders = false;
     }
 
@@ -1071,7 +1093,7 @@ public class SOCPlayerInterface extends Frame
      * Paint the borders of one column of handpanels.
      * {@link #prevSize} must be set before calling.
      * @param g  Graphics as passed to <tt>update()</tt>
-     * @param middlePanel  The middle handpanel (6-player) or the bottom (4-player) in this column
+     * @param middlePanel  The middle (6-player) or the bottom (4-player) handpanel in this column
      * @since 1.1.11
      */
     private final void paintBordersHandColumn(Graphics g, SOCHandPanel middlePanel)
@@ -1079,24 +1101,25 @@ public class SOCPlayerInterface extends Frame
         if (middlePanel == null)
             return;  // if called during board reset
 
-        final int w = middlePanel.getWidth();
+        final int w = middlePanel.getWidth();  // handpanel's width
+        final int bw = 4 * displayScale;  // border width
 
         // left side, entire height
         int x = middlePanel.getX();
-        g.clearRect(x - 4, 0, 4, prevSize.height);
+        g.clearRect(x - bw, 0, bw, prevSize.height);
 
         // right side, entire height
         x += w;
-        g.clearRect(x, 0, 4, prevSize.height);
+        g.clearRect(x, 0, bw, prevSize.height);
 
         // above middle panel
         x = middlePanel.getX();
         int y = middlePanel.getY();
-        g.clearRect(x, y - 4, w, 4);
+        g.clearRect(x, y - bw, w, bw);
 
         // below middle panel
         y += middlePanel.getHeight();
-        g.clearRect(x, y, w, 4);
+        g.clearRect(x, y, w, bw);
     }
 
     /**
@@ -1104,16 +1127,16 @@ public class SOCPlayerInterface extends Frame
      */
     public SOCPlayerClient getClient()
     {
-        return gameDisplay.getClient();
+        return mainDisplay.getClient();
     }
 
     /**
-     * @return the game display associated with this interface
+     * @return the client's main display associated with this interface
      * @since 2.0.00
      */
-    public SOCPlayerClient.GameDisplay getGameDisplay()
+    public MainDisplay getMainDisplay()
     {
-        return gameDisplay;
+        return mainDisplay;
     }
 
     /**
@@ -1226,14 +1249,14 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Get the timer for time-driven events in the interface.
-     * Same timer as {@link SOCPlayerClient.GameDisplay#getEventTimer()}.
+     * Same timer as {@link MainDisplay#getEventTimer()}.
      *
      * @see SOCHandPanel#autoRollSetupTimer()
      * @see SOCBoardPanel#popupSetBuildRequest(int, int)
      */
     public Timer getEventTimer()
     {
-        return gameDisplay.getEventTimer();
+        return mainDisplay.getEventTimer();
     }
 
     /**
@@ -1247,17 +1270,16 @@ public class SOCPlayerInterface extends Frame
     {
         final Dimension siz = getSize();
         int w = siz.width, h = siz.height;
-        if ((width_base != WIDTH_MIN_4PL) || (height_base != HEIGHT_MIN_4PL))
-        {
-            w = (w * WIDTH_MIN_4PL) / width_base;
-            h = (h * HEIGHT_MIN_4PL) / height_base;
-        }
+
+        Dimension boardExtraSize = boardPanel.getExtraSizeFromBoard();
+        w -= boardExtraSize.width;
+        h -= boardExtraSize.height;
 
         if ((w < 100) || (h < 100))
             return;  // sanity check
 
-        SOCPlayerClient.UserPreferences.putPref(SOCPlayerClient.PREF_PI__WIDTH, w);
-        SOCPlayerClient.UserPreferences.putPref(SOCPlayerClient.PREF_PI__HEIGHT, h);
+        UserPreferences.putPref(SOCPlayerClient.PREF_PI__WIDTH, w);
+        UserPreferences.putPref(SOCPlayerClient.PREF_PI__HEIGHT, h);
     }
 
     /**
@@ -1595,7 +1617,7 @@ public class SOCPlayerInterface extends Frame
                 if (textInputListener != null)
                 {
                     textInput.removeKeyListener(textInputListener);
-                    textInput.removeTextListener(textInputListener);
+                    textInput.getDocument().removeDocumentListener(textInputListener);
                     textInputListener = null;
                 }
             }
@@ -1649,7 +1671,7 @@ public class SOCPlayerInterface extends Frame
 
             final String msg = s + '\n';
             if (! doLocalCommand(msg))
-                client.getGameManager().sendText(game, msg);
+                client.getGameMessageMaker().sendText(game, msg);
 
             if (sOverflow != null)
             {
@@ -1664,12 +1686,12 @@ public class SOCPlayerInterface extends Frame
     /**
      * Handle local client commands for games.
      *<P>
-     * Before 2.0.00, this was <tt>SOCPlayerClient.doLocalCommand(SOCGame, String)</tt>.
+     * Before 2.0.00 this method was {@code SOCPlayerClient.doLocalCommand(SOCGame, String)}.
      *
      * @param cmd  Local client command string, which starts with \
      * @return true if a command was handled
      * @since 2.0.00
-     * @see SOCPlayerClient.SwingGameDisplay#doLocalCommand(String, String)
+     * @see SwingMainDisplay#doLocalCommand(String, String)
      */
     private boolean doLocalCommand(String cmd)
     {
@@ -1681,7 +1703,7 @@ public class SOCPlayerInterface extends Frame
             String name = cmd.substring(8);
             client.addToIgnoreList(name);
             print("* Ignoring " + name);
-            gameDisplay.printIgnoreList(this);
+            mainDisplay.printIgnoreList(this);
 
             return true;
         }
@@ -1690,7 +1712,7 @@ public class SOCPlayerInterface extends Frame
             String name = cmd.substring(10);
             client.removeFromIgnoreList(name);
             print("* Unignoring " + name);
-            gameDisplay.printIgnoreList(this);
+            mainDisplay.printIgnoreList(this);
 
             return true;
         }
@@ -1753,8 +1775,8 @@ public class SOCPlayerInterface extends Frame
      */
     public void leaveGame()
     {
-        gameDisplay.leaveGame(game);
-        client.getGameManager().leaveGame(game);
+        mainDisplay.leaveGame(game);
+        client.getGameMessageMaker().leaveGame(game);
         dispose();
     }
 
@@ -1780,7 +1802,7 @@ public class SOCPlayerInterface extends Frame
     {
         if (confirmDialogFirst)
         {
-            EventQueue.invokeLater(new ResetBoardConfirmDialog(gameDisplay, this));
+            EventQueue.invokeLater(new ResetBoardConfirmDialog(mainDisplay, this));
             return;
             // ResetBoardConfirmDialog will call resetBoardRequest(false) if its Restart button is clicked
         }
@@ -1799,7 +1821,7 @@ public class SOCPlayerInterface extends Frame
         }
         SOCPlayer pl = game.getPlayer(clientHandPlayerNum);
         if (! pl.hasAskedBoardReset())
-            client.getGameManager().resetBoardRequest(game);
+            client.getGameMessageMaker().resetBoardRequest(game);
         else
             textDisplay.append("*** " + strings.get("reset.you.may.ask.once") + "\n");
                 // "You may ask only once per turn to reset the board."
@@ -1881,7 +1903,7 @@ public class SOCPlayerInterface extends Frame
             boardResetRequester.resetBoardSetMessage(pleaseMsg);
 
             String requester = game.getPlayer(pnRequester).getName();
-            boardResetVoteDia = new ResetBoardVoteDialog(gameDisplay, this, requester, gaOver);
+            boardResetVoteDia = new ResetBoardVoteDialog(mainDisplay, this, requester, gaOver);
             EventQueue.invokeLater(boardResetVoteDia);
                // Separate thread so ours is not tied up; this allows server
                // messages to be received, and screen to refresh, if other
@@ -2157,6 +2179,8 @@ public class SOCPlayerInterface extends Frame
                 // in a 6-player game.
                 invalidate();
                 doLayout();
+                repaint(hands[pn].getX(), 0, hands[pn].getWidth(), getHeight());
+                    // must repaint entire column's handpanels and wide borders
             }
         }
 
@@ -2299,7 +2323,7 @@ public class SOCPlayerInterface extends Frame
         if (textInputGreyCountdown > 0)
         {
             --textInputGreyCountdown;
-            if ((textInputGreyCountdown == 0) && textInputIsInitial)
+            if ((textInputGreyCountdown == 0) && textInputIsInitial && ! SwingMainDisplay.isOSColorHighContrast())
             {
                 textInput.setForeground(Color.LIGHT_GRAY);
             }
@@ -2379,6 +2403,10 @@ public class SOCPlayerInterface extends Frame
      * Set or clear the chat text input's initial prompt.
      * If {@code setToInitial} true, sets its status, foreground color, and the prompt text
      * unless player already sent chat text ({@link #textInputHasSent}).
+     *<P>
+     * Do not call this directly from a Swing {@link DocumentListener},
+     * which will throw "IllegalStateException: Attempt to mutate in notification":
+     * Instead add to event queue with invokeLater.
      *
      * @param setToInitial If false, clear initial-prompt status, and
      *    clear contents (if they are the initial-prompt message);
@@ -2392,21 +2420,28 @@ public class SOCPlayerInterface extends Frame
         if (setToInitial && textInputHasSent)
             return;  // Already sent text, won't re-prompt
 
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+
         // Always change text before changing flag,
-        // so TextListener doesn't fight this action.
+        // so DocumentListener doesn't fight this action.
 
         if (setToInitial)
         {
             if (textInput.getText().trim().length() == 0)
+            {
                 textInput.setText(TEXTINPUT_INITIAL_PROMPT_MSG);  // Set text before flag
+                textInput.setCaretPosition(0);
+            }
             textInputIsInitial = true;
             textInputGreyCountdown = textInputGreyCountFrom;  // Reset fade countdown
-            textInput.setForeground(Color.DARK_GRAY);
+            if (! isOSHighContrast)
+                textInput.setForeground(Color.DARK_GRAY);
         } else {
             if (textInput.getText().equals(TEXTINPUT_INITIAL_PROMPT_MSG))
                 textInput.setText("");  // Clear to make room for text being typed
             textInputIsInitial = false;
-            textInput.setForeground(Color.BLACK);
+            if (! isOSHighContrast)
+                textInput.setForeground(Color.BLACK);
         }
     }
 
@@ -2435,13 +2470,13 @@ public class SOCPlayerInterface extends Frame
      *                If <tt>allowChooseNone</tt>, pnums.length must be at least <tt>count + 1</tt>
      *                to leave room for "no player".
      * @param allowChooseNone  if true, player can choose to rob no one (game scenario <tt>SC_PIRI</tt>)
-     * @see SOCPlayerClient.GameManager#choosePlayer(SOCGame, int)
+     * @see GameMessageMaker#choosePlayer(SOCGame, int)
      * @see #showChooseRobClothOrResourceDialog(int)
      */
     public void showChoosePlayerDialog(final int count, final int[] pnums, final boolean allowChooseNone)
     {
         choosePlayerDialog = new SOCChoosePlayerDialog(this, count, pnums, allowChooseNone);
-        EventQueue.invokeLater(choosePlayerDialog);  // calls setVisible(true)
+        EventQueue.invokeLater(choosePlayerDialog);  // dialog's run() calls pack and setVisible(true)
     }
 
     /**
@@ -2452,7 +2487,7 @@ public class SOCPlayerInterface extends Frame
      */
     public void showChooseRobClothOrResourceDialog(final int vpn)
     {
-        EventQueue.invokeLater(new ChooseRobClothOrResourceDialog(vpn));  // calls setVisible(true)
+        EventQueue.invokeLater(new ChooseRobClothOrResourceDialog(vpn));  // dialog's run() calls setVisible(true)
     }
 
     /**
@@ -2461,7 +2496,7 @@ public class SOCPlayerInterface extends Frame
     public void showMonopolyDialog()
     {
         monopolyDialog = new SOCMonopolyDialog(this);
-        EventQueue.invokeLater(monopolyDialog);  // calls setVisible(true)
+        EventQueue.invokeLater(monopolyDialog);  // dialog's run() calls setVisible(true)
     }
 
     /**
@@ -2472,7 +2507,7 @@ public class SOCPlayerInterface extends Frame
      */
     public void showScenarioInfoDialog()
     {
-        NewGameOptionsFrame.showScenarioInfoDialog(game, getGameDisplay(), this);
+        NewGameOptionsFrame.showScenarioInfoDialog(game, getMainDisplay(), this);
     }
 
     /**
@@ -2887,7 +2922,7 @@ public class SOCPlayerInterface extends Frame
             showingPlayerDiscardOrPick_task = new SOCPIDiscardOrPickMsgTask(this, isDiscard);
 
             // Run once, after a brief delay in case only robots must discard.
-            gameDisplay.getEventTimer().schedule(showingPlayerDiscardOrPick_task, 1000 /* ms */ );
+            mainDisplay.getEventTimer().schedule(showingPlayerDiscardOrPick_task, 1000 /* ms */ );
         }
     }
 
@@ -3103,7 +3138,7 @@ public class SOCPlayerInterface extends Frame
 
         /**
          * Classic Sizing
-         * (board size is fixed, cannot scale)
+         * (board size was fixed, cannot scale)
          *
         int bw = SOCBoardPanel.getPanelX();
         int bh = SOCBoardPanel.getPanelY();
@@ -3117,15 +3152,22 @@ public class SOCPlayerInterface extends Frame
 
         /**
          * "Stretch" Scaleable-board Sizing:
+         *
          * If board can be at least 15% larger than minimum board width,
          * without violating minimum handpanel width, scale it larger.
          * Otherwise, use minimum board width (widen handpanels instead).
+         *
          * Handpanel height:
          * - If 4-player, 1/2 of window height
          * - If 6-player, 1/3 of window height, until client sits down.
          *   (Column of 3 on left side, 3 on right side, of this frame)
          *   Once sits down, that column's handpanel heights are
          *   1/2 of window height for the player's hand, and 1/4 for others.
+         *
+         * Since this is the minimum, is not multiplied by displayScale:
+         * Don't need displayScale here because we already used it when
+         * setting width_base and height_base. Just use overall PI size
+         * to drive boardpanel size.
          */
         final int bMinW, bMinH;
         {
@@ -3133,57 +3175,81 @@ public class SOCPlayerInterface extends Frame
             bMinW = bpMinSz.width;
             bMinH = bpMinSz.height;
         }
-        int bw = (dim.width - 16 - (2*SOCHandPanel.WIDTH_MIN));  // As wide as possible
-        int bh = (int) ((bw * (long) bMinH) / bMinW);
         final int buildph = buildingPanel.getHeight();
-        int tfh = textInput.getHeight();
-        if (bh > (dim.height - buildph - 16 - (int)(5.5f * tfh)))
+        final int tfh = textInput.getHeight();
+        final int pix4 = 4 * displayScale, pix8 = 8 * displayScale,
+                  pix12 = 12 * displayScale, pix16 = 16 * displayScale;
+        int hpMinW = SOCHandPanel.WIDTH_MIN * displayScale;
+        if (hpMinW < (dim.width / 10))
+            hpMinW = dim.width / 10;  // at least 10% of window width
+        int bw = dim.width - (2 * hpMinW) - pix16;  // As wide as possible
+        int bh = (int) ((bw * (long) bMinH) / bMinW);
+
+        if (bh > (dim.height - buildph - pix16 - (int)(5.5f * tfh)))
         {
             // Window is wide: board would become taller than fits in window.
             // Re-calc board max height, then board width.
-            bh = dim.height - buildph - 16 - (int)(5.5f * tfh);  // As tall as possible
+            bh = dim.height - buildph - pix16 - (int)(5.5f * tfh);  // As tall as possible
             bw = (int) ((bh * (long) bMinW) / bMinH);
         }
-        int hw = (dim.width - bw - 16) / 2;
-        int tah = dim.height - bh - buildph - tfh - 16;
+
+        int hw = 0;   // each handpanel's width; height is hh
+        int tah = 0;  // textareas' height (not including tfh): calculated soon
 
         boolean canScaleBoard = (bw >= (1.15f * bMinW));
+
         if (canScaleBoard)
         {
+            // Now that we have minimum board height/width,
+            // make taller if possible
+            int spare = (dim.height - buildph - pix16 - (int)(5.5f * tfh)) - bh;
+            if (spare > 0)
+                bh += (2 * spare / 3);  // give 2/3 to boardpanel height, the rest to tah
+
+            // and wider if possible
+            spare = dim.width - (hpMinW * 2) - bw - pix16;
+            if (spare > 0)
+                bw += (4 * spare / 5);  // give 4/5 to boardpanel width, the rest to hw
+
+            tah = dim.height - bh - buildph - tfh - pix16;
+            hw = (dim.width - bw - pix16) / 2;
+
+            // Scale it
             try
             {
-                boardPanel.setBounds(i.left + hw + 8, i.top + tfh + tah + 8, bw, bh);
+                boardPanel.setBounds(i.left + hw + pix8, i.top + tfh + tah + pix8, bw, bh);
             }
             catch (IllegalArgumentException e)
             {
                 canScaleBoard = false;
             }
         }
+
         if (! canScaleBoard)
         {
             bw = bMinW;
             bh = bMinH;
-            hw = (dim.width - bw - 16) / 2;
-            tah = dim.height - bh - buildph - tfh - 16;
+            hw = (dim.width - bw - pix16) / 2;
+            tah = dim.height - bh - buildph - tfh - pix16;
             try
             {
-                boardPanel.setBounds(i.left + hw + 8, i.top + tfh + tah + 8, bw, bh);
+                boardPanel.setBounds(i.left + hw + pix8, i.top + tfh + tah + pix8, bw, bh);
             }
             catch (IllegalArgumentException ee)
             {
                 bw = boardPanel.getWidth();
                 bh = boardPanel.getHeight();
-                hw = (dim.width - bw - 16) / 2;
-                tah = dim.height - bh - buildph - tfh - 16;
-                boardPanel.setLocation(i.left + hw + 8, i.top + tfh + tah + 8);
+                hw = (dim.width - bw - pix16) / 2;
+                tah = dim.height - bh - buildph - tfh - pix16;
+                boardPanel.setLocation(i.left + hw + pix8, i.top + tfh + tah + pix8);
             }
         }
         boardIsScaled = canScaleBoard;  // set field, now that we know if it works
         final int halfplayers = (is6player) ? 3 : 2;
-        final int hh = (dim.height - 12) / halfplayers;  // handpanel height
+        final int hh = (dim.height - pix12) / halfplayers;  // handpanel height
         final int kw = bw;
 
-        buildingPanel.setBounds(i.left + hw + 8, i.top + tah + tfh + bh + 12, kw, buildph);
+        buildingPanel.setBounds(i.left + hw + pix8, i.top + tah + tfh + bh + pix12, kw, buildph);
 
         // Hands start at top-left, go clockwise;
         // hp.setBounds also sets its blankStandIn's bounds.
@@ -3193,12 +3259,12 @@ public class SOCPlayerInterface extends Frame
         {
             if (! is6player)
             {
-                hands[0].setBounds(i.left + 4, i.top + 4, hw, hh);
+                hands[0].setBounds(i.left + pix4, i.top + pix4, hw, hh);
                 if (game.maxPlayers > 1)
                 {
-                    hands[1].setBounds(i.left + hw + bw + 12, i.top + 4, hw, hh);
-                    hands[2].setBounds(i.left + hw + bw + 12, i.top + hh + 8, hw, hh);
-                    hands[3].setBounds(i.left + 4, i.top + hh + 8, hw, hh);
+                    hands[1].setBounds(i.left + hw + bw + pix12, i.top + pix4, hw, hh);
+                    hands[2].setBounds(i.left + hw + bw + pix12, i.top + hh + pix8, hw, hh);
+                    hands[3].setBounds(i.left + pix4, i.top + hh + pix8, hw, hh);
                 }
             }
             else
@@ -3211,15 +3277,15 @@ public class SOCPlayerInterface extends Frame
                 if ((clientHandPlayerNum == -1) ||
                     ((clientHandPlayerNum >= 1) && (clientHandPlayerNum <= 3)))
                 {
-                    hands[0].setBounds(i.left + 4, i.top + 4, hw, hh);
-                    hands[4].setBounds(i.left + 4, i.top + 2 * hh + 12, hw, hh);
-                    hands[5].setBounds(i.left + 4, i.top + hh + 8, hw, hh);
+                    hands[0].setBounds(i.left + pix4, i.top + pix4, hw, hh);
+                    hands[4].setBounds(i.left + pix4, i.top + 2 * hh + pix12, hw, hh);
+                    hands[5].setBounds(i.left + pix4, i.top + hh + pix8, hw, hh);
                 }
                 if ((clientHandPlayerNum < 1) || (clientHandPlayerNum > 3))
                 {
-                    hands[1].setBounds(i.left + hw + bw + 12, i.top + 4, hw, hh);
-                    hands[2].setBounds(i.left + hw + bw + 12, i.top + hh + 8, hw, hh);
-                    hands[3].setBounds(i.left + hw + bw + 12, i.top + 2 * hh + 12, hw, hh);
+                    hands[1].setBounds(i.left + hw + bw + pix12, i.top + pix4, hw, hh);
+                    hands[2].setBounds(i.left + hw + bw + pix12, i.top + hh + pix8, hw, hh);
+                    hands[3].setBounds(i.left + hw + bw + pix12, i.top + 2 * hh + pix12, hw, hh);
                 }
                 if (clientHandPlayerNum != -1)
                 {
@@ -3232,24 +3298,24 @@ public class SOCPlayerInterface extends Frame
                     {
                         final int[] idx_right = {1, 2, 3};
                         hp_idx = idx_right;
-                        hp_x = i.left + hw + bw + 12;
+                        hp_x = i.left + hw + bw + pix12;
                     } else {
                         final int[] idx_left = {0, 5, 4};
                         hp_idx = idx_left;
-                        hp_x = i.left + 4;
+                        hp_x = i.left + pix4;
                     }
-                    for (int ihp = 0, hp_y = i.top + 4; ihp < 3; ++ihp)
+                    for (int ihp = 0, hp_y = i.top + pix4; ihp < 3; ++ihp)
                     {
                         SOCHandPanel hp = hands[hp_idx[ihp]];
                         int hp_height;
                         if (hp_idx[ihp] == clientHandPlayerNum)
-                            hp_height = (dim.height - 12) / 2 - (2 * ColorSquare.HEIGHT);
+                            hp_height = (dim.height - pix12) / 2 - (2 * ColorSquare.HEIGHT * displayScale);
                         else
-                            hp_height = (dim.height - 12) / 4 + ColorSquare.HEIGHT;
+                            hp_height = (dim.height - pix12) / 4 + (ColorSquare.HEIGHT * displayScale);
                         hp.setBounds(hp_x, hp_y, hw, hp_height);
                         hp.invalidate();
                         hp.doLayout();
-                        hp_y += (hp_height + 4);
+                        hp_y += (hp_height + pix4);
                     }
                 }
             }
@@ -3290,25 +3356,25 @@ public class SOCPlayerInterface extends Frame
                 int h1 = hands[1].getHeight();
                 if (h1 < hf)
                     hf = h1;
-                hf = hf - cdh - tfh - 15;
+                hf = hf - cdh - tfh - (15 * displayScale);
                 if (hf > h)
                     h = hf;
             }
 
-            textDisplay.setBounds(x, i.top + 4, w, h);
+            textDisplay.setBounds(x, i.top + pix4, w, h);
             if (! game.isPractice)
-                cdh += 20;
-            chatDisplay.setBounds(x, i.top + 4 + h, w, cdh);
+                cdh += (20 * displayScale);
+            chatDisplay.setBounds(x, i.top + pix4 + h, w, cdh);
             h += cdh;
-            textInput.setBounds(x, i.top + 4 + h, w, tfh);
+            textInput.setBounds(x, i.top + pix4 + h, w, tfh);
 
             // focus here for easier chat typing
             textInput.requestFocusInWindow();
         } else {
             // standard size
-            textDisplay.setBounds(i.left + hw + 8, i.top + 4, bw, tdh);
-            chatDisplay.setBounds(i.left + hw + 8, i.top + 4 + tdh, bw, cdh);
-            textInput.setBounds(i.left + hw + 8, i.top + 4 + tah, bw, tfh);
+            textDisplay.setBounds(i.left + hw + pix8, i.top + pix4, bw, tdh);
+            chatDisplay.setBounds(i.left + hw + pix8, i.top + pix4 + tdh, bw, cdh);
+            textInput.setBounds(i.left + hw + pix8, i.top + pix4 + tah, bw, tfh);
 
             // scroll to bottom of textDisplay, chatDisplay after resize from expanded
             EventQueue.invokeLater(new Runnable()
@@ -3340,7 +3406,7 @@ public class SOCPlayerInterface extends Frame
          */
         if (layoutNotReadyYet)
         {
-            gameDisplay.clearWaitingStatus(false);
+            mainDisplay.clearWaitingStatus(false);
             layoutNotReadyYet = false;
             repaint();
         }
@@ -4175,7 +4241,7 @@ public class SOCPlayerInterface extends Frame
                 }
 
                 final String s = sb.toString();
-                NotifyDialog nd = new NotifyDialog(pi.getGameDisplay(), pi, s, null, true);
+                NotifyDialog nd = new NotifyDialog(pi.getMainDisplay(), pi, s, null, true);
                 nd.setNonBlockingDialogDismissListener(pi);
                 pi.nbdForEvent = nd;
                 EventQueue.invokeLater(nd);  // calls setVisible(true)
@@ -4289,15 +4355,15 @@ public class SOCPlayerInterface extends Frame
         /**
          * Creates a new ResetBoardVoteDialog.
          *
-         * @param cli      Player client interface
+         * @param md       Player client's main display
          * @param gamePI   Current game's player interface
          * @param requester  Name of player requesting the reset
          * @param gameIsOver The game is over - "Reset" button should be default (if not over, "Continue" is default)
          */
         protected ResetBoardVoteDialog
-            (SOCPlayerClient.GameDisplay cli, SOCPlayerInterface gamePI, String requester, boolean gameIsOver)
+            (MainDisplay md, SOCPlayerInterface gamePI, String requester, boolean gameIsOver)
         {
-            super(cli, gamePI, strings.get("reset.board.for.game", gamePI.getGame().getName()),  // "Reset board for game {0}?"
+            super(md, gamePI, strings.get("reset.board.for.game", gamePI.getGame().getName()),  // "Reset board for game {0}?"
                 (gameIsOver
                     ? strings.get("reset.x.wants.start.new", requester)  // "{0} wants to start a new game."
                     : strings.get("reset.x.wants.reset", requester)),    // "{0} wants to reset the game being played."
@@ -4318,7 +4384,7 @@ public class SOCPlayerInterface extends Frame
         @Override
         public void button1Chosen()
         {
-            pcli.getGameManager().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), true);
+            md.getGameMessageMaker().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), true);
             pi.resetBoardClearDia();
         }
 
@@ -4328,7 +4394,7 @@ public class SOCPlayerInterface extends Frame
         @Override
         public void button2Chosen()
         {
-            pcli.getGameManager().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), false);
+            md.getGameMessageMaker().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), false);
             pi.resetBoardClearDia();
         }
 
@@ -4353,8 +4419,8 @@ public class SOCPlayerInterface extends Frame
     /**
      * Modal dialog to ask whether to move the robber or the pirate ship.
      * Use the AWT event thread to show, so message treating can continue while the dialog is showing.
-     * When the choice is made, calls {@link SOCPlayerClient.GameManager#chooseRobber(SOCGame)}
-     * or {@link SOCPlayerClient.GameManager#choosePirate(SOCGame)}.
+     * When the choice is made, calls {@link GameMessageMaker#chooseRobber(SOCGame)}
+     * or {@link GameMessageMaker#choosePirate(SOCGame)}.
      *
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 2.0.00
@@ -4370,7 +4436,7 @@ public class SOCPlayerInterface extends Frame
          */
         private ChooseMoveRobberOrPirateDialog()
         {
-            super(getGameDisplay(), SOCPlayerInterface.this,
+            super(getMainDisplay(), SOCPlayerInterface.this,
                 strings.get("dialog.choosemove.robber.or.pirate"), // "Move robber or pirate?"
                 strings.get("dialog.choosemove.ask.rob.pirate"),   // "Do you want to move the robber or the pirate ship?"
                 strings.get("dialog.base.move.robber"),  // "Move Robber"
@@ -4380,22 +4446,22 @@ public class SOCPlayerInterface extends Frame
 
         /**
          * React to the Move Robber button.
-         * Call {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int) pcli.choosePlayer(CHOICE_MOVE_ROBBER)}.
+         * Call {@link GameMessageMaker#choosePlayer(SOCGame, int) pcli.choosePlayer(CHOICE_MOVE_ROBBER)}.
          */
         @Override
         public void button1Chosen()
         {
-            pcli.getGameManager().chooseRobber(game);
+            md.getGameMessageMaker().chooseRobber(game);
         }
 
         /**
          * React to the Move Pirate button.
-         * Call {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int) pcli.choosePlayer(CHOICE_MOVE_PIRATE)}.
+         * Call {@link GameMessageMaker#choosePlayer(SOCGame, int) pcli.choosePlayer(CHOICE_MOVE_PIRATE)}.
          */
         @Override
         public void button2Chosen()
         {
-            pcli.getGameManager().choosePirate(game);
+            md.getGameMessageMaker().choosePirate(game);
         }
 
         /**
@@ -4409,7 +4475,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * Modal dialog to ask whether to rob cloth or a resource from the victim.
      * Start a new thread to show, so message treating can continue while the dialog is showing.
-     * When the choice is made, calls {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int)}.
+     * When the choice is made, calls {@link GameMessageMaker#choosePlayer(SOCGame, int)}.
      *
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 2.0.00
@@ -4428,7 +4494,7 @@ public class SOCPlayerInterface extends Frame
          */
         protected ChooseRobClothOrResourceDialog(final int vpn)
         {
-            super(getGameDisplay(), SOCPlayerInterface.this,
+            super(getMainDisplay(), SOCPlayerInterface.this,
                 strings.get("dialog.rob.sc_clvi.cloth.or.rsrc"),      // "Rob cloth or resource?"
                 strings.get("dialog.rob.sc_clvi.ask.cloth.or.rsrc"),  // "Do you want to steal cloth or a resource from this player?"
                 strings.get("dialog.rob.sc_clvi.cloth"),  // "Steal Cloth"
@@ -4439,22 +4505,22 @@ public class SOCPlayerInterface extends Frame
 
         /**
          * React to the Steal Cloth button.
-         * Call {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int) pcli.choosePlayer(-(vpn + 1))}.
+         * Call {@link GameMessageMaker#choosePlayer(SOCGame, int) pcli.choosePlayer(-(vpn + 1))}.
          */
         @Override
         public void button1Chosen()
         {
-            pcli.getGameManager().choosePlayer(game, -(vpn + 1));
+            md.getGameMessageMaker().choosePlayer(game, -(vpn + 1));
         }
 
         /**
          * React to the Steal Resource button.
-         * Call {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int) pcli.choosePlayer(vpn)}.
+         * Call {@link GameMessageMaker#choosePlayer(SOCGame, int) pcli.choosePlayer(vpn)}.
          */
         @Override
         public void button2Chosen()
         {
-            pcli.getGameManager().choosePlayer(game, vpn);
+            md.getGameMessageMaker().choosePlayer(game, vpn);
         }
 
         /**
@@ -4479,12 +4545,12 @@ public class SOCPlayerInterface extends Frame
          * To display it from another thread, call
          * {@link EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
          *
-         * @param cli      Player client interface
+         * @param md       Player client's main display
          * @param gamePI   Current game's player interface
          */
-        private ResetBoardConfirmDialog(SOCPlayerClient.GameDisplay cli, SOCPlayerInterface gamePI)
+        private ResetBoardConfirmDialog(MainDisplay md, SOCPlayerInterface gamePI)
         {
-            super(cli, gamePI, strings.get("reset.restart.game"),  // "Restart game?"
+            super(md, gamePI, strings.get("reset.restart.game"),  // "Restart game?"
                 strings.get("reset.board.new"),  // "Reset the board and start a new game?"
                 strings.get("base.restart"),
                 strings.get("base.cancel"),
@@ -4522,12 +4588,12 @@ public class SOCPlayerInterface extends Frame
      */
     private static class PIWindowAdapter extends WindowAdapter
     {
-        private final SOCPlayerClient.GameDisplay gd;
+        private final MainDisplay md;
         private final SOCPlayerInterface pi;
 
-        public PIWindowAdapter(SOCPlayerClient.GameDisplay gd, SOCPlayerInterface spi)
+        public PIWindowAdapter(MainDisplay md, SOCPlayerInterface spi)
         {
-            this.gd = gd;
+            this.md = md;
             pi = spi;
         }
 
@@ -4539,7 +4605,7 @@ public class SOCPlayerInterface extends Frame
         public void windowClosing(WindowEvent e)
         {
             if (pi.clientHandPlayerNum != -1)
-                SOCQuitConfirmDialog.createAndShow(gd, pi);
+                SOCQuitConfirmDialog.createAndShow(md, pi);
             else
                 pi.leaveGame();
         }
@@ -4580,7 +4646,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Used for chat textfield setting/clearing initial prompt text
-     * (TEXTINPUT_INITIAL_PROMPT_MSG).
+     * ({@link #TEXTINPUT_INITIAL_PROMPT_MSG}).
      * It's expected that after the player sends their first line of chat text,
      * the listeners will be removed so we don't have the overhead of
      * calling these methods.
@@ -4588,7 +4654,7 @@ public class SOCPlayerInterface extends Frame
      * @since 1.1.00
      */
     private static class SOCPITextfieldListener
-        extends KeyAdapter implements TextListener, FocusListener
+        extends KeyAdapter implements DocumentListener, FocusListener
     {
         private SOCPlayerInterface pi;
 
@@ -4605,20 +4671,17 @@ public class SOCPlayerInterface extends Frame
             {
                 return;
             }
+
             pi.textInputSetToInitialPrompt(false);
         }
 
-        /**
-         * If input text is cleared, and field is again empty, show the
-         * prompt message unless player has already sent a line of chat.
-         */
-        public void textValueChanged(TextEvent e)
-        {
-            if (pi.textInputIsInitial || pi.textInputHasSent)
-            {
-                return;
-            }
-        }
+        // JTextField document listener:
+
+        public void insertUpdate(DocumentEvent e)  { }
+
+        public void removeUpdate(DocumentEvent e)  { promptIfEmpty(); }
+
+        public void changedUpdate(DocumentEvent e) { promptIfEmpty(); }
 
         /**
          * If input text is cleared, and player leaves the textfield while it's empty,
@@ -4626,10 +4689,21 @@ public class SOCPlayerInterface extends Frame
          */
         public void focusLost(FocusEvent e)
         {
+            promptIfEmpty();
+        }
+
+        /**
+         * If input text field is made empty, show the
+         * prompt message unless player has already sent a line of chat.
+         * @since 2.0.00
+         */
+        private void promptIfEmpty()
+        {
             if (pi.textInputIsInitial || pi.textInputHasSent)
             {
                 return;
             }
+
             if (pi.textInput.getText().trim().length() == 0)
             {
                 // Former contents were erased,
@@ -4638,7 +4712,13 @@ public class SOCPlayerInterface extends Frame
                 // player previously hitting "enter" in an
                 // initial field (actionPerformed).
 
-                pi.textInputSetToInitialPrompt(true);
+                EventQueue.invokeLater(new Runnable()
+                {
+                    public void run()
+                    {
+                        pi.textInputSetToInitialPrompt(true);
+                    }
+                });
             }
         }
 
@@ -4649,6 +4729,7 @@ public class SOCPlayerInterface extends Frame
             {
                 return;
             }
+
             pi.textInputSetToInitialPrompt(false);
         }
 
@@ -4670,7 +4751,7 @@ public class SOCPlayerInterface extends Frame
         /**
          * Create a new SOCPIDiscardOrPickMsgTask.
          * After creating, you must schedule it
-         * with {@link SOCPlayerClient.GameDisplay#getEventTimer()}.{@link Timer#schedule(TimerTask, long) schedule(msgTask,delay)} .
+         * with {@link MainDisplay#getEventTimer()}.{@link Timer#schedule(TimerTask, long) schedule(msgTask,delay)} .
          * @param spi  Our player interface
          * @param forDiscard  True for discard, false for picking gold-hex resources
          */
@@ -4801,7 +4882,7 @@ public class SOCPlayerInterface extends Frame
 
         public void run()
         {
-            if (soundMuted || ! SOCPlayerClient.UserPreferences.getPref(SOCPlayerClient.PREF_SOUND_ON, true))
+            if (soundMuted || ! UserPreferences.getPref(SOCPlayerClient.PREF_SOUND_ON, true))
                 return;
 
             try

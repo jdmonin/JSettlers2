@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -47,7 +47,6 @@ import soc.message.*;
 
 import soc.proto.Data;
 
-import soc.robot.SOCRobotClient;
 import soc.server.genericServer.StringConnection;
 import soc.util.SOCFeatureSet;
 import soc.util.Version;
@@ -67,7 +66,7 @@ import java.util.Map;
 
 
 /**
- * GUI-less standalone client for connecting to the SOCServer.
+ * "Headless" standalone client for connecting to the SOCServer.
  * If you want another connection port, you have to specify it as the "port"
  * argument in the html source. If you run this as a stand-alone, you have to
  * specify the port.
@@ -247,7 +246,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * continuously read from the net in a separate thread
+     * Continuously read from the net in a separate thread.
+     * if {@link java.io.EOFException} or another error occurs, breaks the loop:
+     * Exception will be stored in {@link #ex}. {@link #destroy()} will be called
+     * unless {@code ex} is an {@link InterruptedIOException} (socket timeout).
      */
     public void run()
     {
@@ -270,9 +272,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 treat(SOCMessage.toMsg(s));
             }
         }
-        catch (InterruptedIOException x)
+        catch (InterruptedIOException e)
         {
-            System.err.println("Socket timeout in run: " + x);
+            ex = e;
+            System.err.println("Socket timeout in run: " + e);
         }
         catch (IOException e)
         {
@@ -282,17 +285,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
             }
 
             ex = e;
-            if (! ((e instanceof java.io.EOFException)
-                   && (this instanceof SOCRobotClient)))
-            {
-                System.err.println("could not read from the net: " + ex);
-                /**
-                 * Robots are periodically disconnected from server;
-                 * they will try to reconnect.  Any error message
-                 * from that is printed in {@link soc.robot.SOCRobotClient#destroy()}.
-                 * So, print nothing here if that's the situation.
-                 */
-            }
             destroy();
         }
     }
@@ -1283,9 +1275,19 @@ public class SOCDisplaylessPlayerClient implements Runnable
             return;
 
         handleGAMESTATE(ga, mes.getGameState());
+        handleSTARTGAME_checkIsBotsOnly(ga);
+    }
 
-        // Look for human players to determine isBotsOnly in game's local copy
+    /**
+     * Check this game's seats for human players to determine {@link SOCGame#isBotsOnly} in game's local copy.
+     * Calls {@link SOCGame#isSeatVacant(int)} and {@link SOCPlayer#isRobot()}.
+     * @param ga  Game to check
+     * @since 2.0.00
+     */
+    public static final void handleSTARTGAME_checkIsBotsOnly(SOCGame ga)
+    {
         boolean isBotsOnly = true;
+
         for (int pn = 0; pn < ga.maxPlayers; ++pn)
         {
             if (! (ga.isSeatVacant(pn) || ga.getPlayer(pn).isRobot()))
@@ -1294,6 +1296,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
             }
         }
+
         ga.isBotsOnly = isBotsOnly;
     }
 
@@ -1487,7 +1490,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * Handles ASK_SPECIAL_BUILD, NUM_PICK_GOLD_HEX_RESOURCES, SCENARIO_CLOTH_COUNT, etc.
      *<P>
      * To avoid code duplication, also called from
-     * {@link SOCPlayerClient.MessageTreater#handlePLAYERELEMENT(SOCPlayerElement)}
+     * {@link soc.client.MessageHandler#handlePLAYERELEMENT(SOCPlayerElement)}
      * and {@link soc.robot.SOCRobotBrain#run()}.
      *<P>
      * Before v2.0.00 this method directly took a {@link SOCPlayerElement} instead of that message's
@@ -1609,7 +1612,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * Update a player's amount of a playing piece, for
      * {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, int, int)}.
      * To avoid code duplication, also called from
-     * {@link SOCPlayerClient.MessageTreater#handlePLAYERELEMENT(SOCPlayerElement)}
+     * {@link soc.client.MessageHandler#handlePLAYERELEMENT(SOCPlayerElement)}
      * and {@link soc.robot.SOCRobotBrain#run()}.
      *<P>
      * Before v2.0.00 this method directly took a {@link SOCPlayerElement} instead of that message's
@@ -1646,7 +1649,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * for {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, int, int)}.
      * Calls {@link SOCGame#updateLargestArmy() ga.updateLargestArmy()}.
      * To avoid code duplication, also called from
-     * {@link soc.client.SOCPlayerClient.MessageTreater#handlePLAYERELEMENT(SOCPlayerElement)}
+     * {@link soc.client.MessageHandler#handlePLAYERELEMENT(SOCPlayerElement)}
      * and {@link soc.robot.SOCRobotBrain#run()}.
      *<P>
      * Before v2.0.00 this method directly took a {@link SOCPlayerElement} instead of that message's
@@ -1691,7 +1694,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *</ul>
      *<P>
      * To avoid code duplication, also called from
-     * {@link SOCPlayerClient.MessageTreater#handlePLAYERELEMENT(SOCPlayerElement)}
+     * {@link soc.client.MessageHandler#handlePLAYERELEMENT(SOCPlayerElement)}
      * and {@link soc.robot.SOCRobotBrain#run()}.
      *<P>
      * Before v2.0.00 this method directly took a {@link SOCPlayerElement} instead of that message's
@@ -2955,8 +2958,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * Connection to server has raised an error; leave all games, then disconnect.
-     * {@link SOCRobotClient} overrides this to try and reconnect.
+     * Connection to server has raised an error that wasn't {@link InterruptedIOException};
+     * {@link #ex} contains exception detail. Leave all games, then disconnect.
+     *<P>
+     * {@link soc.robot.SOCRobotClient} overrides this to try and reconnect.
      */
     public void destroy()
     {

@@ -35,7 +35,7 @@ import soc.server.genericServer.Connection;
  *
  * @author Robert S Thomas
  */
-public class SOCServerRobotPinger extends Thread
+/*package*/ class SOCServerRobotPinger extends Thread
 {
     /** A list of robot {@link Connection}s to ping, shared with and modified by the server. */
     private Vector<Connection> robotConnections;

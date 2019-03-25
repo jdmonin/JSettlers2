@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * This file appears (by its comments) to be (C) 1999 Brian Davies
- * Portions of this file Copyright (C) 2009,2012,2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2012,2018-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@ import java.awt.TextArea;
  * considered a line.
  */
 @SuppressWarnings("serial")
-public class SnippingTextArea extends TextArea
+/*package*/ class SnippingTextArea extends TextArea
 {
     /**
      * A bug in Java 1.4.2: the first time replaceRange() is called, it
@@ -60,7 +60,7 @@ public class SnippingTextArea extends TextArea
      * @since 1.1.06
      */
     static final boolean isJavaOnOSX105 =
-        SOCPlayerClient.isJavaOnOSX
+        SOCPlayerClient.IS_PLATFORM_MAC_OSX
         && System.getProperty("os.version").startsWith("10.");
 
     int maximumLines = 100;

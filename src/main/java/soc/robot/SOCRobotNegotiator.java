@@ -1242,7 +1242,7 @@ public class SOCRobotNegotiator
        ourOriginalFavoriteCity = decisionMaker.getFavoriteCity();
        ourOriginalFavoriteRoad = decisionMaker.getFavoriteRoad();
        ourOriginalPossibleCard = decisionMaker.getPossibleCard();
-       SOCPlayerTracker theirPlayerTracker = (SOCPlayerTracker)playerTrackers.get(new Integer(offer.getFrom()));
+       SOCPlayerTracker theirPlayerTracker = (SOCPlayerTracker)playerTrackers.get(Integer.valueOf(offer.getFrom()));
 
        if (theirPlayerTracker != null) {
        theirOriginalWGETA = theirPlayerTracker.getWinGameETA();

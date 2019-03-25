@@ -876,7 +876,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         if (gaOpts != null)
             gameOptions.put(gaName, gaOpts);
 
-        seatRequests.put(gaName, new Integer(mes.getPlayerNumber()));
+        seatRequests.put(gaName, Integer.valueOf(mes.getPlayerNumber()));
         if (put(SOCJoinGame.toCmd(nickname, password, host, gaName)))
         {
             D.ebugPrintln("**** sent SOCJoinGame ****");

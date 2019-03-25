@@ -203,7 +203,7 @@ public class SOCSVPTextMessage extends SOCMessage
      */
     public String toString()
     {
-        return getClassNameShort() + ":game=" + game
+        return getClass().getSimpleName() + ":game=" + game
             + "|pn=" + pn + "|svp=" + svp + "|desc=" + desc;
     }
 

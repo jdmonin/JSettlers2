@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2009, 2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2012,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,10 +21,12 @@
 package soc.client;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Panel;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+
+import javax.swing.JPanel;
 
 /**
  * Display grid of give/get resources
@@ -38,13 +40,30 @@ import java.awt.event.MouseListener;
  * @see TradeOfferPanel
  */
 @SuppressWarnings("serial")
-public class SquaresPanel extends Panel implements MouseListener, ColorSquareListener
+/*package*/ class SquaresPanel
+    extends JPanel
+    implements MouseListener, ColorSquareListener
 {
     /**
-     * Height of this panel
+     * Width of this panel: 5 columns of {@link ColorSquareLarger}s,
+     * which share 1 pixel overlap for squares' shared border.
+     * @since 2.0.00
+     */
+    public static final int WIDTH = 5 * (ColorSquareLarger.WIDTH_L - 1) + 1;
+
+    /**
+     * Height of this panel: 2 lines of {@link ColorSquareLarger}s,
+     * which share 1 pixel overlap for squares' shared border.
      * @since 1.1.08
      */
     public static final int HEIGHT = (2 * (ColorSquareLarger.HEIGHT_L - 1)) + 1;
+
+    /**
+     * Size of this panel: {@link #HEIGHT} 2 lines x {@link #WIDTH} 5 columns of {@link ColorSquareLarger}s.
+     * Scaled by {@link #displayScale}.
+     * @since 2.0.00
+     */
+    private final Dimension size;
 
     /**
      *  To change its value, each ColorSquare handles its own mouse events.
@@ -56,13 +75,20 @@ public class SquaresPanel extends Panel implements MouseListener, ColorSquareLis
     SOCHandPanel parentHand;
 
     /**
+     * For high-DPI displays, what scaling factor to use? Unscaled is 1.
+     * @since 2.0.00
+     */
+    private final int displayScale;
+
+    /**
      * Creates a new SquaresPanel object.
      *
      * @param in Interactive?
+     * @param displayScale  For high-DPI displays, what scaling factor to use? Unscaled is 1.
      */
-    public SquaresPanel(boolean in)
+    public SquaresPanel(boolean in, final int displayScale)
     {
-        this (in, null);
+        this (in, null, displayScale);
     }
 
     /**
@@ -70,24 +96,27 @@ public class SquaresPanel extends Panel implements MouseListener, ColorSquareLis
      *
      * @param in Interactive?
      * @param hand HandPanel containing this SquaresPanel
+     * @param displayScale  For high-DPI displays, what scaling factor to use? Unscaled is 1.
      */
-    public SquaresPanel(boolean in, SOCHandPanel hand)
+    public SquaresPanel(boolean in, SOCHandPanel hand, final int displayScale)
     {
         super(null);
+        this.displayScale = displayScale;
 
         interactive = in;
         notAllZero = false;
         parentHand = hand;
 
-        setFont(new Font("SansSerif", Font.PLAIN, 10));
+        setFont(new Font("SansSerif", Font.PLAIN, 10 * displayScale));
 
         give = new ColorSquare[5];
         get = new ColorSquare[5];
+        final int sqSize = ColorSquareLarger.WIDTH_L * displayScale;
         for (int i = 0; i < 5; i++)
         {
             final Color sqColor = ColorSquare.RESOURCE_COLORS[i];
-            get[i] = new ColorSquareLarger(ColorSquare.NUMBER, in, sqColor);
-            give[i] = new ColorSquareLarger(ColorSquare.NUMBER, in, sqColor);
+            get[i] = new ColorSquare(ColorSquare.NUMBER, in, sqSize, sqSize, sqColor);
+            give[i] = new ColorSquare(ColorSquare.NUMBER, in, sqSize, sqSize, sqColor);
             add(get[i]);
             add(give[i]);
             get[i].setSquareListener(this);
@@ -96,71 +125,37 @@ public class SquaresPanel extends Panel implements MouseListener, ColorSquareLis
             give[i].addMouseListener(this);
         }
 
-        // int lineH = ColorSquareLarger.HEIGHT_L - 1,
-        //    HEIGHT = (2 * lineH) + 1;
-
-        int sqW = ColorSquareLarger.WIDTH_L - 1;
-        setSize((5 * sqW) + 1, HEIGHT);
+        // without these calls, parent panel layout is incomplete even when this panel overrides get*Size
+        size = new Dimension(WIDTH * displayScale, HEIGHT * displayScale);
+        setSize(size);
+        setMinimumSize(size);
+        setPreferredSize(size);
     }
 
+    @Override
+    public Dimension getMinimumSize()   { return size; };
+    @Override
+    public Dimension getMaximumSize()   { return size; };
+    @Override
+    public Dimension getPreferredSize() { return size; };
+
     /**
-     * DOCUMENT ME!
+     * Custom layout for panel.
      */
     public void doLayout()
     {
-        int lineH = ColorSquareLarger.HEIGHT_L - 1;
-        int sqW = ColorSquareLarger.WIDTH_L - 1;
+        final int lineH = ColorSquareLarger.HEIGHT_L * displayScale - 1;
+        final int sqW = ColorSquareLarger.WIDTH_L * displayScale - 1;
         int i;
 
         for (i = 0; i < 5; i++)
         {
             give[i].setSize(sqW + 1, lineH + 1);
             give[i].setLocation(i * sqW, 0);
-            //give[i].draw();
+
             get[i].setSize(sqW + 1, lineH + 1);
             get[i].setLocation(i * sqW, lineH);
-            //get[i].draw();
         }
-    }
-
-    /**
-     * DOCUMENT ME!
-     *
-     * @param e DOCUMENT ME!
-     */
-    public void mouseEntered(MouseEvent e)
-    {
-        ;
-    }
-
-    /**
-     * DOCUMENT ME!
-     *
-     * @param e DOCUMENT ME!
-     */
-    public void mouseExited(MouseEvent e)
-    {
-        ;
-    }
-
-    /**
-     * DOCUMENT ME!
-     *
-     * @param e DOCUMENT ME!
-     */
-    public void mouseClicked(MouseEvent e)
-    {
-        ;
-    }
-
-    /**
-     * DOCUMENT ME!
-     *
-     * @param e DOCUMENT ME!
-     */
-    public void mouseReleased(MouseEvent e)
-    {
-        ;
     }
 
     /** Don't "roll" plus/minus if shift or ctrl key is held during click */
@@ -281,5 +276,36 @@ public class SquaresPanel extends Panel implements MouseListener, ColorSquareLis
         if ((parentHand != null) && (wasNotZero != notAllZero))
             parentHand.sqPanelZerosChange(notAllZero);
     }
+
+
+    // Stubs required for MouseListener:
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param e DOCUMENT ME!
+     */
+    public void mouseEntered(MouseEvent e) {}
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param e DOCUMENT ME!
+     */
+    public void mouseExited(MouseEvent e) {}
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param e DOCUMENT ME!
+     */
+    public void mouseClicked(MouseEvent e) {}
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param e DOCUMENT ME!
+     */
+    public void mouseReleased(MouseEvent e) {}
 
 }

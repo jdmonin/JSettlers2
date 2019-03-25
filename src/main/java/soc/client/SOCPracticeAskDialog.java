@@ -31,7 +31,7 @@ package soc.client;
  * @since 1.1.00
  */
 @SuppressWarnings("serial")
-class SOCPracticeAskDialog extends AskDialog
+/*package*/ class SOCPracticeAskDialog extends AskDialog
 {
 
     /** i18n text strings; will use same locale as SOCPlayerClient's string manager.
@@ -41,12 +41,12 @@ class SOCPracticeAskDialog extends AskDialog
     /**
      * Creates a new SOCPracticeAskDialog.
      *
-     * @param cli      Player client interface
+     * @param md       Player client's main display
      * @param gamePI   Current game's player interface
      */
-    public SOCPracticeAskDialog(SOCPlayerClient.GameDisplay cli, SOCPlayerInterface gamePI)
+    public SOCPracticeAskDialog(MainDisplay md, SOCPlayerInterface gamePI)
     {
-        super(cli, gamePI, strings.get("dialog.practiceask.in.progress"),  // "Practice game in progress"
+        super(md, gamePI, strings.get("dialog.practiceask.in.progress"),  // "Practice game in progress"
             strings.get("dialog.practiceask.already.being.played"),  // "A practice game is already being played."
             strings.get("dialog.practiceask.show.game"),  // "Show that game"
             strings.get("dialog.practiceask.create"),     // "Create another"
@@ -68,7 +68,7 @@ class SOCPracticeAskDialog extends AskDialog
     @Override
     public void button2Chosen()
     {
-        pcli.gameWithOptionsBeginSetup(true, false);
+        md.gameWithOptionsBeginSetup(true, false);
     }
 
     /**

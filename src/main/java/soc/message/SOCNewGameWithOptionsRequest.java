@@ -65,25 +65,6 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
      * @param pw  optional password, or "" if none
      * @param hn  optional server host name, or "-"
      * @param ga  name of the game
-     * @param opts the game options, or null;
-     *           if null, it probably makes sense to create
-     *           a {@link SOCJoinGame} message instead.
-     */
-    public SOCNewGameWithOptionsRequest(String nn, String pw, String hn, String ga, Map<String, SOCGameOption> opts)
-    {
-        super(nn, pw, hn, ga);
-        messageType = NEWGAMEWITHOPTIONSREQUEST;
-        this.opts = opts;
-        optsStr = SOCGameOption.packOptionsToString(opts, false);
-    }
-
-    /**
-     * Create a NewGameWithOptionsRequest message.
-     *
-     * @param nn  nickname, or "-" if already auth'd to server
-     * @param pw  optional password, or "" if none
-     * @param hn  optional server host name, or "-"
-     * @param ga  name of the game
      * @param optstr the game options as a string name-value pairs, as created by
      *             {@link SOCGameOption#packOptionsToString(Map, boolean)}.
      */

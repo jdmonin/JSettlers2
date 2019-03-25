@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2007-2011,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2007-2011,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -28,10 +28,12 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.MediaTracker;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
@@ -48,10 +50,14 @@ import java.net.URL;
  * and Bordered (with associated {@link FaceChooserFrame}) for choosing a new face icon.
  * The two constructors correspond to the two modes.
  *
+ * <H3>High-DPI:</H3>
+ * Most of the JSettlers icons are blocky pixel art: Interpolation only makes them blurry.
+ * So this button scales them up without interpolation, big pixels and all.
+ *
  * @author Robert S. Thomas
  */
 @SuppressWarnings("serial")
-public class SOCFaceButton extends Canvas
+/*package*/ class SOCFaceButton extends Canvas
 {
     public static final int DEFAULT_FACE = 1;  // Human face # 1 (face1.gif)
 
@@ -96,7 +102,7 @@ public class SOCFaceButton extends Canvas
     /** player number */
     private int pNumber;
     private SOCGame game;
-    private SOCPlayerInterface pi;  // For callbacks (stack-trace print)
+    private final SOCPlayerInterface pi;  // For callbacks (stack-trace print)
 
     /** Null unless being used in the face chooser */
     private FaceChooserFrame faceChooser;
@@ -201,20 +207,20 @@ public class SOCFaceButton extends Canvas
     public SOCFaceButton(SOCPlayerInterface pi, int pn)
         throws IllegalArgumentException
     {
-        this (pi, pn, pi.getPlayerColor(pn), FACE_WIDTH_PX);
+        this (pi, pn, pi.getPlayerColor(pn), FACE_WIDTH_PX * pi.displayScale);
     }
 
     /**
      * create a new SOCFaceButton, for the FaceChooserFrame (bordered mode)
      *
-     * @param pi  Player interface (for stack-print callback ONLY)
+     * @param pi  Player interface (only for stack-print callback and {@link SOCPlayerInterface#displayScale})
      * @param fcf Face chooser frame for callback
      * @param faceId Face ID to show; same range as {@link #setFace(int)}
      * @since 1.1.00
      */
     public SOCFaceButton(SOCPlayerInterface pi, FaceChooserFrame fcf, int faceId)
     {
-        this (pi, -1, fcf.getPlayerColor(), FACE_WIDTH_BORDERED_PX);
+        this (pi, -1, fcf.getPlayerColor(), FACE_WIDTH_BORDERED_PX * pi.displayScale);
         setFace(faceId);
         faceChooser = fcf;
     }
@@ -232,7 +238,7 @@ public class SOCFaceButton extends Canvas
      *           or if <tt>pi.getGame()</tt> is null.
      * @since 1.1.00
      */
-    protected SOCFaceButton(SOCPlayerInterface pi, int pn, Color bgColor, int width)
+    private SOCFaceButton(final SOCPlayerInterface pi, final int pn, final Color bgColor, final int width)
         throws IllegalArgumentException
     {
         super();
@@ -263,6 +269,11 @@ public class SOCFaceButton extends Canvas
         loadImages(this);
 
         this.addMouseListener(new MyMouseAdapter());
+
+        // set initial size to help when in a JPanel
+        setSize(ourSize);
+        setMinimumSize(ourSize);
+        setPreferredSize(ourSize);
     }
 
     /**
@@ -373,7 +384,8 @@ public class SOCFaceButton extends Canvas
      *
      * @return DOCUMENT ME!
      */
-    public Dimension getPreferedSize()
+    @Override
+    public Dimension getPreferredSize()
     {
         return ourSize;
     }
@@ -435,10 +447,11 @@ public class SOCFaceButton extends Canvas
     }
 
     /**
-     * draw the face
+     * Draw the face. If {@link SOCPlayerInterface#displayScale} > 1, will scale up without interpolation.
      */
     private void drawFace(Graphics g)
     {
+        final int displayScale = pi.displayScale;
         Image fimage;
 
         /**
@@ -467,13 +480,32 @@ public class SOCFaceButton extends Canvas
             fimage = robotImages[findex];
         }
 
-        int offs;  // offset for border
-        if (panelx == FACE_WIDTH_BORDERED_PX)
-            offs = FACE_BORDER_WIDTH_PX;
+        final int offs;  // optional offset for border
+        if (panelx == FACE_WIDTH_BORDERED_PX * displayScale)
+            offs = FACE_BORDER_WIDTH_PX * displayScale;
         else
             offs = 0;
-        g.clearRect(offs, offs, WIDTH, HEIGHT);
-        g.drawImage(fimage, offs, offs, getBackground(), this);
+
+        if (displayScale == 1)
+        {
+            g.drawImage(fimage, offs, offs, getBackground(), this);
+        } else {
+            if (g instanceof Graphics2D)
+            {
+                ((Graphics2D) g).setRenderingHint
+                    (RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+                ((Graphics2D) g).setRenderingHint
+                    (RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);  // == OFF
+            }
+            int w = panelx, h = panely;
+            if (offs != 0)
+            {
+                w -= (2 * offs);
+                h -= (2 * offs);
+            }
+
+            g.drawImage(fimage, offs, offs, w, h, getBackground(), this);
+        }
     }
 
     /**
@@ -495,9 +527,11 @@ public class SOCFaceButton extends Canvas
             drawColor = getBackground();
         }
 
+        final int pix1 = pi.displayScale, pix3 = 3 * pix1;
+
         g.setColor(drawColor);
-        g.drawRect(0, 1, panelx - 1, panely - 3);
-        g.drawRect(1, 0, panelx - 3, panely - 1);
+        g.drawRect(0, pix1, panelx - pix1, panely - pix3);
+        g.drawRect(pix1, 0, panelx - pix3, panely - pix1);
     }
 
     /*********************************
@@ -574,7 +608,7 @@ public class SOCFaceButton extends Canvas
                     return;  // <--- Notify, nothing else to do ---
                 }
 
-                if (x < (FACE_WIDTH_PX / 2))
+                if (x < (getWidth() / 2))
                 {
                     // if the click is on the left side, decrease the number
                     currentImageNum--;
@@ -596,7 +630,7 @@ public class SOCFaceButton extends Canvas
                 }
 
                 evt.consume();
-                pi.getClient().getGameManager().changeFace(game, currentImageNum);
+                pi.getClient().getGameMessageMaker().changeFace(game, currentImageNum);
                 repaint();
             }
             } catch (Throwable th) {

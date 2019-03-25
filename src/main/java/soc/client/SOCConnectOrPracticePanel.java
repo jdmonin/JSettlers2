@@ -45,8 +45,6 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
-import soc.client.SOCPlayerClient.ClientNetwork;
-import soc.client.SOCPlayerClient.GameDisplay;
 import soc.util.SOCStringManager;
 import soc.util.Version;
 
@@ -59,10 +57,10 @@ import soc.util.Version;
  * @author Jeremy D Monin <jeremy@nand.net>
  */
 @SuppressWarnings("serial")
-public class SOCConnectOrPracticePanel extends JPanel
+/*package*/ class SOCConnectOrPracticePanel extends JPanel
     implements ActionListener, KeyListener
 {
-    private final GameDisplay gd;
+    private final MainDisplay md;
     private final ClientNetwork clientNetwork;
 
     /** Welcome message, or error after disconnect */
@@ -104,28 +102,32 @@ public class SOCConnectOrPracticePanel extends JPanel
     /**
      * Creates a new SOCConnectOrPracticePanel.
      *
-     * @param gd      Player client display
+     * @param md      Player client main display
      */
-    public SOCConnectOrPracticePanel(GameDisplay gd)
+    public SOCConnectOrPracticePanel(final MainDisplay md)
     {
         super(new BorderLayout());
 
-        this.gd = gd;
-        SOCPlayerClient cli = gd.getClient();
+        this.md = md;
+        SOCPlayerClient cli = md.getClient();
         clientNetwork = cli.getNet();
         canLaunchServer = checkCanLaunchServer();
 
         // same Frame setup as in SOCPlayerClient.main
-        setBackground(SOCPlayerClient.JSETTLERS_BG_GREEN);
-        setForeground(Color.BLACK);
+        final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(false, false);
+        if (colors != null)
+        {
+            setBackground(colors[2]);  // SwingMainDisplay.JSETTLERS_BG_GREEN
+            setForeground(colors[0]);  // Color.BLACK
+        }
 
         addKeyListener(this);
-        initInterfaceElements();
+        initInterfaceElements(colors != null ? colors[1] : null);  // SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE
     }
 
     /**
      * Check with the {@link java.lang.SecurityManager} about being a tcp server.
-     * Port {@link SOCPlayerClient.ClientNetwork#SOC_PORT_DEFAULT} and some subsequent ports are checked (to be above 1024).
+     * Port {@link ClientNetwork#SOC_PORT_DEFAULT} and some subsequent ports are checked (to be above 1024).
      * @return True if we have perms to start a server and listen on a port
      */
     public static boolean checkCanLaunchServer()
@@ -187,8 +189,10 @@ public class SOCConnectOrPracticePanel extends JPanel
      * Interface setup for constructor.
      * Most elements are part of a sub-panel occupying most of this Panel, using a vertical BoxLayout.
      * There's also a label at bottom with the version and build number.
+     * @param miscLabelFGColor  Foreground color for miscellaneous label text, or {@code null} for panel's text color;
+     *     typically {@link SwingMainDisplay#MISC_LABEL_FG_OFF_WHITE}
      */
-    private void initInterfaceElements()
+    private void initInterfaceElements(final Color miscLabelFGColor)
     {
         // The actual content of this dialog is bp, a narrow stack of buttons and other UI elements.
         // This stack is centered horizontally in the larger container, and doesn't fill the entire width.
@@ -200,11 +204,21 @@ public class SOCConnectOrPracticePanel extends JPanel
         bpContainer.setBackground(null);  // inherit from parent
         bpContainer.setForeground(null);
 
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+
+        /**
+         * JButton.setBackground(null) is needed on win32 to avoid gray corners
+         */
+        final boolean shouldClearButtonBGs = (! isOSHighContrast) && SOCPlayerClient.IS_PLATFORM_WINDOWS;
+
         // In center of bpContainer, bp holds the narrow UI stack:
         final JPanel bp = new BoxedJPanel();
         bp.setLayout(new BoxLayout(bp, BoxLayout.Y_AXIS));
-        bp.setBackground(null);
-        bp.setForeground(null);
+        if (! isOSHighContrast)
+        {
+            bp.setBackground(null);
+            bp.setForeground(null);
+        }
         bp.setAlignmentX(CENTER_ALIGNMENT);  // center bp within entire content pane
 
         // The welcome label and 3 buttons should be the same width,
@@ -213,8 +227,11 @@ public class SOCConnectOrPracticePanel extends JPanel
         final GridBagLayout gbl = new GridBagLayout();
         final GridBagConstraints gbc = new GridBagConstraints();
         final JPanel modeButtonsContainer = new BoxedJPanel(gbl);
-        modeButtonsContainer.setBackground(null);
-        modeButtonsContainer.setForeground(null);
+        if (! isOSHighContrast)
+        {
+            modeButtonsContainer.setBackground(null);
+            modeButtonsContainer.setForeground(null);
+        }
 
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -229,7 +246,8 @@ public class SOCConnectOrPracticePanel extends JPanel
          */
 
         connserv = new JButton(strings.get("pcli.cpp.connecttoaserv"));  // "Connect to a Server"
-        connserv.setBackground(null);  // needed on win32 to avoid gray corners
+        if (shouldClearButtonBGs)
+            connserv.setBackground(null);
         gbl.setConstraints(connserv, gbc);
         modeButtonsContainer.add(connserv);
         connserv.addActionListener(this);
@@ -238,7 +256,8 @@ public class SOCConnectOrPracticePanel extends JPanel
          * Interface setup: Practice
          */
         prac = new JButton(strings.get("pcli.main.practice"));  // "Practice" - same as SOCPlayerClient button
-        prac.setBackground(null);
+        if (shouldClearButtonBGs)
+            prac.setBackground(null);
         gbl.setConstraints(prac, gbc);
         modeButtonsContainer.add(prac);
         prac.addActionListener(this);
@@ -247,7 +266,8 @@ public class SOCConnectOrPracticePanel extends JPanel
          * Interface setup: Start a Server
          */
         runserv = new JButton(strings.get("pcli.cpp.startserv"));  // "Start a Server"
-        runserv.setBackground(null);
+        if (shouldClearButtonBGs)
+            runserv.setBackground(null);
         gbl.setConstraints(runserv, gbc);
         if (! canLaunchServer)
             runserv.setEnabled(false);
@@ -281,19 +301,25 @@ public class SOCConnectOrPracticePanel extends JPanel
         JLabel verl = new JLabel
             (strings.get("pcli.cpp.jsettlers.versionbuild", Version.version(), Version.buildnum()), SwingConstants.CENTER);
             // "JSettlers " + Version.version() + " build " + Version.buildnum()
-        verl.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
+        if (miscLabelFGColor != null)
+            verl.setForeground(miscLabelFGColor);
         add(verl, BorderLayout.SOUTH);
     }
 
     /** panel_conn setup */
     private JPanel initInterface_conn()
     {
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+        final boolean shouldClearButtonBGs = (! isOSHighContrast) && SOCPlayerClient.IS_PLATFORM_WINDOWS;
         GridBagLayout gbl = new GridBagLayout();
         GridBagConstraints gbc = new GridBagConstraints();
         JPanel pconn = new BoxedJPanel(gbl);
 
-        pconn.setBackground(null);  // inherit from parent
-        pconn.setForeground(null);
+        if (! isOSHighContrast)
+        {
+            pconn.setBackground(null);  // inherit from parent
+            pconn.setForeground(null);
+        }
 
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
@@ -302,9 +328,12 @@ public class SOCConnectOrPracticePanel extends JPanel
         // heading row
 
         L = new JLabel(strings.get("pcli.cpp.connecttoserv"), SwingConstants.CENTER);  // "Connect to Server"
-        L.setBackground(HEADER_LABEL_BG);
-        L.setForeground(HEADER_LABEL_FG);
-        L.setOpaque(true);
+        if (! isOSHighContrast)
+        {
+            L.setBackground(HEADER_LABEL_BG);
+            L.setForeground(HEADER_LABEL_FG);
+            L.setOpaque(true);
+        }
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbc.ipady = 8;
         gbl.setConstraints(L, gbc);
@@ -366,7 +395,8 @@ public class SOCConnectOrPracticePanel extends JPanel
         gbl.setConstraints(L, gbc);
         pconn.add(L);
         conn_connect = new JButton(strings.get("pcli.cpp.connect"));
-        conn_connect.setBackground(null);
+        if (shouldClearButtonBGs)
+            conn_connect.setBackground(null);
         conn_connect.addActionListener(this);
         conn_connect.addKeyListener(this);  // for win32 keyboard-focus
         gbc.weightx = 0.5;
@@ -374,7 +404,8 @@ public class SOCConnectOrPracticePanel extends JPanel
         pconn.add(conn_connect);
 
         conn_cancel = new JButton(strings.get("base.cancel"));
-        conn_cancel.setBackground(null);
+        if (shouldClearButtonBGs)
+            conn_cancel.setBackground(null);
         conn_cancel.addActionListener(this);
         conn_cancel.addKeyListener(this);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -387,12 +418,17 @@ public class SOCConnectOrPracticePanel extends JPanel
     /** panel_run setup */
     private JPanel initInterface_run()
     {
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+        final boolean shouldClearButtonBGs = (! isOSHighContrast) && SOCPlayerClient.IS_PLATFORM_WINDOWS;
         GridBagLayout gbl = new GridBagLayout();
         GridBagConstraints gbc = new GridBagConstraints();
         JPanel prun = new BoxedJPanel(gbl);
 
-        prun.setBackground(null);  // inherit from parent
-        prun.setForeground(null);
+        if (! isOSHighContrast)
+        {
+            prun.setBackground(null);  // inherit from parent
+            prun.setForeground(null);
+        }
 
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
@@ -400,9 +436,12 @@ public class SOCConnectOrPracticePanel extends JPanel
 
         // heading row
         L = new JLabel(strings.get("pcli.cpp.startserv"), SwingConstants.CENTER);  // "Start a Server"
-        L.setBackground(HEADER_LABEL_BG);
-        L.setForeground(HEADER_LABEL_FG);
-        L.setOpaque(true);
+        if (! isOSHighContrast)
+        {
+            L.setBackground(HEADER_LABEL_BG);
+            L.setForeground(HEADER_LABEL_FG);
+            L.setOpaque(true);
+        }
         gbc.gridwidth = 4;
         gbc.weightx = 1;
         gbc.ipadx = 4;
@@ -450,7 +489,8 @@ public class SOCConnectOrPracticePanel extends JPanel
         gbl.setConstraints(L, gbc);
         prun.add(L);
         run_startserv = new JButton(" " + strings.get("pcli.cpp.start") + " ");
-        run_startserv.setBackground(null);
+        if (shouldClearButtonBGs)
+            run_startserv.setBackground(null);
         run_startserv.addActionListener(this);
         run_startserv.addKeyListener(this);  // for win32 keyboard-focus
         gbc.weightx = 0.5;
@@ -458,7 +498,8 @@ public class SOCConnectOrPracticePanel extends JPanel
         prun.add(run_startserv);
 
         run_cancel = new JButton(strings.get("base.cancel"));
-        run_cancel.setBackground(null);
+        if (shouldClearButtonBGs)
+            run_cancel.setBackground(null);
         run_cancel.addActionListener(this);
         run_cancel.addKeyListener(this);
         gbl.setConstraints(run_cancel, gbc);  // still with weightx = 0.5
@@ -470,7 +511,7 @@ public class SOCConnectOrPracticePanel extends JPanel
     /**
      * A local server has been started; disable other options ("Connect", etc) but
      * not Practice.  Called from client, once the server is started in
-     * {@link SOCPlayerClient.GameDisplay#startLocalTCPServer(int)}.
+     * {@link MainDisplay#startLocalTCPServer(int)}.
      */
     public void startedLocalServer()
     {
@@ -494,8 +535,8 @@ public class SOCConnectOrPracticePanel extends JPanel
     /**
      * Parse a server TCP port number from a text field.
      * If the field is empty after trimming whitespace, use this client's default from
-     * {@link SOCPlayerClient.ClientNetwork#getPort() clientNetwork.getPort()},
-     * which is usually {@link SOCPlayerClient.ClientNetwork#SOC_PORT_DEFAULT}.
+     * {@link ClientNetwork#getPort() clientNetwork.getPort()},
+     * which is usually {@link ClientNetwork#SOC_PORT_DEFAULT}.
      * @param tf  Text field with the port number, such as {@link #conn_servport} or {@link #run_servport}
      * @return the port number, or {@code clientNetwork.getPort()} if empty,
      *         or 0 if cannot be parsed or if outside the valid range 1-65535
@@ -532,7 +573,7 @@ public class SOCConnectOrPracticePanel extends JPanel
         if (src == prac)
         {
             // Ask client to set up and start a practice game
-            gd.clickPracticeButton();
+            md.clickPracticeButton();
             return;
         }
 
@@ -636,7 +677,7 @@ public class SOCConnectOrPracticePanel extends JPanel
 
         // Copy fields, show MAIN_PANEL, and connect in client
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        gd.getClient().connect(cserv, cport, conn_user.getText(), conn_pass.getText());
+        md.getClient().connect(cserv, cport, conn_user.getText(), conn_pass.getText());
     }
 
     /** Hide fields used to connect to server. Called by client after a network error. */
@@ -653,7 +694,7 @@ public class SOCConnectOrPracticePanel extends JPanel
         // After clicking runserv, actually start a server
         final int srport = parsePortNumberOrDefault(run_servport);
         if (srport > 0)
-            gd.startLocalTCPServer(srport);
+            md.startLocalTCPServer(srport);
     }
 
     /** Hide fields used to start a server */

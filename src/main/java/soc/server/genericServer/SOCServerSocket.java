@@ -39,7 +39,7 @@ import java.net.SocketException;
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
-public interface SOCServerSocket
+/*package*/ interface SOCServerSocket
 {
 
     /**

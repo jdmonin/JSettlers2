@@ -28,8 +28,6 @@ import java.awt.Color;
 
 import javax.swing.UIManager;
 
-import soc.client.SOCPlayerClient.ClientNetwork;
-import soc.client.SOCPlayerClient.SwingGameDisplay;
 import soc.util.Version;
 
 /**
@@ -42,7 +40,7 @@ public class SOCApplet extends Applet
     private static final long serialVersionUID = 2000L;  // for v2.0.00
 
     SOCPlayerClient client;
-    SwingGameDisplay gameDisplay;
+    SwingMainDisplay mainDisplay;
 
     /**
      * Retrieve a parameter and translate to a hex value.
@@ -76,16 +74,16 @@ public class SOCApplet extends Applet
     @Override
     public void start()
     {
-        if (! gameDisplay.hasConnectOrPractice)
-            gameDisplay.nick.requestFocus();
+        if (! mainDisplay.hasConnectOrPractice)
+            mainDisplay.nick.requestFocus();
     }
 
     /**
      * Initialize the applet.
-     * Calls {@link SOCPlayerClient.ClientNetwork#connect(String, int) connect}
+     * Calls {@link ClientNetwork#connect(String, int) connect}
      * ({@link #getCodeBase()}.{@link java.net.URL#getHost() getHost()},
      * {@link #getParameter(String) getParameter("PORT")}).
-     * Default port is {@link SOCPlayerClient.ClientNetwork#SOC_PORT_DEFAULT SOC_PORT_DEFAULT}.
+     * Default port is {@link ClientNetwork#SOC_PORT_DEFAULT}.
      */
     @Override
     public synchronized void init()
@@ -95,8 +93,8 @@ public class SOCApplet extends Applet
         } catch (Exception e) {}
 
         client = new SOCPlayerClient();
-        gameDisplay = new SwingGameDisplay(false, client);
-        client.setGameDisplay(gameDisplay);
+        mainDisplay = new SwingMainDisplay(false, client, 1);
+        client.setMainDisplay(mainDisplay);
 
         Version.printVersionText(System.out, "Java Settlers Client ");  // I18N: Not localizing console output yet
 
@@ -111,16 +109,16 @@ public class SOCApplet extends Applet
         if (intValue != -1)
             setForeground(new Color(intValue));
 
-        gameDisplay.initVisualElements(); // after the background is set
-        add(gameDisplay);
+        mainDisplay.initVisualElements(); // after the background is set
+        add(mainDisplay);
 
         param = getParameter("suggestion");
         if (param != null)
-            gameDisplay.channel.setText(param); // after visuals initialized
+            mainDisplay.channel.setText(param); // after visuals initialized
 
         param = getParameter("nickname");  // for use with dynamically-generated html
         if (param != null)
-            gameDisplay.nick.setText(param);
+            mainDisplay.nick.setText(param);
 
         System.out.println("Getting host...");  // I18N: Not localizing console output yet
         String host = getCodeBase().getHost();

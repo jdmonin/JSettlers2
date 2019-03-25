@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -266,12 +266,12 @@ public final class ProtoJSONConnection
         if (pmsg == null)
         {
             if (D.ebugIsEnabled())
-                D.ebugPrintln("proto: " + data + ": null proto for put(" + msg.getClassNameShort() + ")");
+                D.ebugPrintln("proto: " + data + ": null proto for put(" + msg.getClass().getSimpleName() + ")");
             return;
         }
 
         if (D.ebugIsEnabled())
-            D.ebugPrintln("proto: " + data + ": put(" + msg.getClassNameShort() + ")");
+            D.ebugPrintln("proto: " + data + ": put(" + msg.getClass().getSimpleName() + ")");
         synchronized (outQueue)
         {
             outQueue.addElement(pmsg);

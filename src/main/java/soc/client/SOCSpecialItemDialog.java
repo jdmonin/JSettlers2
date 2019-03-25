@@ -75,7 +75,7 @@ import javax.swing.border.EmptyBorder;
  * @since 2.0.00
  */
 @SuppressWarnings("serial")
-class SOCSpecialItemDialog
+/*package*/ class SOCSpecialItemDialog
     extends JDialog implements ActionListener
 {
     /** i18n text strings; will use same locale as SOCPlayerClient's string manager. */
@@ -183,7 +183,7 @@ class SOCSpecialItemDialog
         gbl.setConstraints(L, gbc);
         cpane.add(L);
 
-        L = new JLabel(strings.get("build.cost"));  // "Cost:"
+        L = new JLabel(strings.get("dialog.specitem.cost"));  // "Cost:"
         gbc.gridx = GridBagConstraints.RELATIVE;
         gbc.gridwidth = 5;  // span 5 ColorSquares for the 5 resource types
         gbl.setConstraints(L, gbc);
@@ -252,6 +252,7 @@ class SOCSpecialItemDialog
 
             // Wonder Name
             gbc.gridx = 1;  // skip possibly-empty button column
+            final Font labelFont;  // will use same font for requirements text
             {
                 String wname;
                 try
@@ -265,6 +266,7 @@ class SOCSpecialItemDialog
                 L = new JLabel(wname);
                 gbl.setConstraints(L, gbc);
                 cpane.add(L);
+                labelFont = L.getFont();
             }
             gbc.gridx = GridBagConstraints.RELATIVE;
 
@@ -275,7 +277,6 @@ class SOCSpecialItemDialog
             {
                 ColorSquareLarger sq = new ColorSquareLarger(ColorSquare.NUMBER, false, ColorSquare.RESOURCE_COLORS[j]);
                 sq.setIntValue((cost != null) ? cost.getAmount(j + 1) : 0);
-                sq.setTooltipText(null);  // TODO AWTTooltip does not work with this swing dialog
                 gbl.setConstraints(sq, gbc);
                 cpane.add(sq);
             }
@@ -284,11 +285,7 @@ class SOCSpecialItemDialog
             // Requirements
             final JComponent itmDesc = buildRequirementsText(itm.req);  // returns JLabel or JTextArea
             if (itmDesc instanceof JTextArea)
-            {
-                // override JTextArea's default black-on-white colors
-                itmDesc.setBackground(cpane.getBackground());
-                itmDesc.setForeground(cpane.getForeground());
-            }
+                itmDesc.setFont(labelFont);  // override default font (monospaced on win32)
             gbc.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(itmDesc, gbc);
             cpane.add(itmDesc);
@@ -464,10 +461,8 @@ class SOCSpecialItemDialog
         }
 
         ret.setBorder(new EmptyBorder(0, 3, 0, 3));
-
-        Font f = ret.getFont();
-        if (f.isBold())
-            ret.setFont(f.deriveFont(Font.PLAIN));
+        ret.setBackground(null);  // will inherit from panel
+        ret.setForeground(null);
 
         return ret;
     }
@@ -539,7 +534,7 @@ class SOCSpecialItemDialog
                 // during other players' turns.
 
                 final SOCGame ga = pi.getGame();
-                final SOCPlayerClient.GameManager gm = pi.getClient().getGameManager();
+                final GameMessageMaker gmm = pi.getClient().getGameMessageMaker();
                 boolean askedSBP = false;
                 if (! pi.clientIsCurrentPlayer())
                 {
@@ -549,7 +544,7 @@ class SOCSpecialItemDialog
                         // Can't build on other players' turns, but can request SBP.
                         // Consistent with what happens when clicking Buy for a road,
                         // city, etc on another player's turn in 6-player game.
-                        gm.buildRequest(ga, -1);
+                        gmm.buildRequest(ga, -1);
                         askedSBP = true;
                     }
                     // else: Fall through, send PICK request, server will
@@ -558,7 +553,7 @@ class SOCSpecialItemDialog
                 }
 
                 if (! askedSBP)
-                    gm.pickSpecialItem(ga, typeKey, 1 + i, 0);
+                    gmm.pickSpecialItem(ga, typeKey, 1 + i, 0);
 
                 nbddListenerCalled = true;
                 dispose();

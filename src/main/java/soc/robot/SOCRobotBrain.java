@@ -155,6 +155,7 @@ public class SOCRobotBrain extends Thread
     /**
      * Bot pause speed-up factor when {@link SOCGame#isBotsOnly} in {@link #pause(int)}.
      * Default 0.25 (25% of normal pause time: 4x speed-up).
+     * Use .01 for a shorter delay (1% of normal pauses).
      * @since 2.0.00
      */
     public static float BOTS_ONLY_FAST_PAUSE_FACTOR = .25f;
@@ -829,10 +830,10 @@ public class SOCRobotBrain extends Thread
 
             return;
         }
-        if (null == playerTrackers.get(new Integer(pn)))
+        if (null == playerTrackers.get(Integer.valueOf(pn)))
         {
             SOCPlayerTracker tracker = new SOCPlayerTracker(game.getPlayer(pn), this);
-            playerTrackers.put(new Integer(pn), tracker);
+            playerTrackers.put(Integer.valueOf(pn), tracker);
         }
     }
 
@@ -944,14 +945,14 @@ public class SOCRobotBrain extends Thread
         ourPlayerTracker = new SOCPlayerTracker(ourPlayerData, this);
         ourPlayerNumber = ourPlayerData.getPlayerNumber();
         playerTrackers = new HashMap<Integer, SOCPlayerTracker>();
-        playerTrackers.put(new Integer(ourPlayerNumber), ourPlayerTracker);
+        playerTrackers.put(Integer.valueOf(ourPlayerNumber), ourPlayerTracker);
 
         for (int pn = 0; pn < game.maxPlayers; pn++)
         {
             if ((pn != ourPlayerNumber) && ! game.isSeatVacant(pn))
             {
                 SOCPlayerTracker tracker = new SOCPlayerTracker(game.getPlayer(pn), this);
-                playerTrackers.put(new Integer(pn), tracker);
+                playerTrackers.put(Integer.valueOf(pn), tracker);
             }
         }
 
@@ -1181,6 +1182,8 @@ public class SOCRobotBrain extends Thread
 
                     else if (mesType == SOCMessage.STARTGAME)
                     {
+                        SOCDisplaylessPlayerClient.handleSTARTGAME_checkIsBotsOnly(game);
+                            // might set game.isBotsOnly
                         handleGAMESTATE(((SOCStartGame) mes).getGameState());
                             // clears waitingForGameState, updates oldGameState, calls ga.setGameState
                     }
@@ -2034,6 +2037,7 @@ public class SOCRobotBrain extends Thread
                        }
                        }
                      */
+
                     yield();
                 }
                 catch (Exception e)
@@ -4480,9 +4484,13 @@ public class SOCRobotBrain extends Thread
     public void pause(int msec)
     {
         if (game.isBotsOnly)
+        {
             msec = (int) (msec * BOTS_ONLY_FAST_PAUSE_FACTOR);
-        else if (pauseFaster && ! waitingForTradeResponse)
+            if (msec == 0)
+                return;  // will still yield within run() loop
+        } else if (pauseFaster && ! waitingForTradeResponse) {
             msec = (msec / 2) + (msec / 4);
+        }
 
         try
         {

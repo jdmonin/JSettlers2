@@ -40,15 +40,13 @@ import soc.message.SOCCancelBuildRequest;  // for INV_ITEM_PLACE_CANCEL constant
 import soc.proto.Data;
 import soc.util.SOCStringManager;
 
-import java.awt.Button;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
-import java.awt.Label;
-import java.awt.List;
+import java.awt.Insets;
 import java.awt.MenuItem;
-import java.awt.Panel;
 import java.awt.PopupMenu;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -62,7 +60,14 @@ import java.util.MissingResourceException;
 import java.util.Timer;  // For auto-roll
 import java.util.TimerTask;
 
+import javax.swing.JButton;
+import javax.swing.DefaultListModel;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 
@@ -82,7 +87,7 @@ import javax.swing.UIManager;
  * because it is overridden to also update {@link #getBlankStandIn()}.
  */
 @SuppressWarnings("serial")
-public class SOCHandPanel extends Panel
+/*package*/ class SOCHandPanel extends JPanel
     implements ActionListener, MouseListener
 {
     /** Minimum desired width, in pixels */
@@ -104,7 +109,7 @@ public class SOCHandPanel extends Panel
         SPECIALVICTORYPOINTS = 9;
 
     /** Auto-roll timer countdown, 5 seconds unless changed at program start. */
-    public static int AUTOROLL_TIME = 5;
+    public static final int AUTOROLL_TIME = 5;
 
     /** Array of five zeroes, one per resource type; for {@link #sqPanel}. */
     protected static final int[] zero = { 0, 0, 0, 0, 0 };
@@ -135,8 +140,8 @@ public class SOCHandPanel extends Panel
     protected static final String SEND = strings.get("hpan.trade.offer");
     protected static final String BANK = strings.get("hpan.trade.bankport");  // "Bank/Port"
     private static final String BANK_UNDO = strings.get("hpan.trade.undo");  // "Undo Trade"
-    /** "  Play Card  " button label text for {@link #playCardBut} */
-    private static final String CARD = "  " + strings.get("hpan.devcards.play") + "  ";
+    /** " Play Card " button label text for {@link #playCardBut} */
+    private static final String CARD = " " + strings.get("hpan.devcards.play") + " ";
     /** "Cancel" button label text, used temporarily in some game states */
     private static final String CANCEL = strings.get("base.cancel");
     protected static final String GIVE = strings.get("hpan.trade.igive");  // No trailing space (room for wider colorsquares)
@@ -211,31 +216,21 @@ public class SOCHandPanel extends Panel
      * @see #renameSitButLock()
      * @see #sittingRobotLockBut
      */
-    protected Button sitBut;
+    protected JButton sitBut;
 
-    /**
-     * Hint for "Lock/Unlock" button before game starts ({@link #sitBut};
-     * non-null only if {@link #sitButIsLock}.
-     * @see #LOCKSEATTIP
-     * @see #UNLOCKSEATTIP
-     * @since 1.1.12
-     */
-    private AWTToolTip sitButTip;
-
-    protected Button robotBut;
-    protected Button startBut;
-    protected Button takeOverBut;
+    protected JButton robotBut;
+    protected JButton startBut;
+    protected JButton takeOverBut;
 
     /** Seat lock/unlock shown in robot handpanels during game play,
      *  to prevent/allow humans to join and take over a robot's seat.
      *  Used during different game states than {@link #sitBut}.
      *<P>
      *  Labels are {@link #ROBOTLOCKBUT_U}, {@link #ROBOTLOCKBUT_L}, {@link #ROBOTLOCKBUT_M}.
-     *  Tooltip is {@link #robotLockButTip}.
      *  Click method is {@link #clickRobotSeatLockButton(soc.game.SOCGame.SeatLockState)}.
      *  @see #sitBut
      */
-    protected Button sittingRobotLockBut;
+    protected JButton sittingRobotLockBut;
 
     /** When true, the game is still forming, player has chosen a seat;
      *  "Sit Here" button is labeled as "Lock" or "Unlock".  Humans can
@@ -256,16 +251,16 @@ public class SOCHandPanel extends Panel
     protected SOCFaceButton faceImg;
 
     /** Player name if {@link #inPlay}, otherwise blank or text like "Locked" */
-    protected Label pname;
+    protected JLabel pname;
 
-    protected Label vpLab;
+    protected JLabel vpLab;
     protected ColorSquare vpSq;
 
     /** Label for Special Victory Points.  Hidden if {@link SOCPlayer#getSpecialVP()} is 0.
      *  Null unless {@link SOCGame#hasSeaBoard}.
      *  @since 2.0.00
      */
-    private Label svpLab;
+    private JLabel svpLab;
 
     /** Special Victory Points, if > 0.  Hidden if 0.
      *  Null unless {@link SOCGame#hasSeaBoard}.
@@ -284,11 +279,11 @@ public class SOCHandPanel extends Panel
     protected ColorSquare wheatSq;
     protected ColorSquare woodSq;
     protected ColorSquare resourceSqDivLine;
-    protected Label clayLab;
-    protected Label oreLab;
-    protected Label sheepLab;
-    protected Label wheatLab;
-    protected Label woodLab;
+    protected JLabel clayLab;
+    protected JLabel oreLab;
+    protected JLabel sheepLab;
+    protected JLabel wheatLab;
+    protected JLabel woodLab;
 
     /**
      * For right-click resource to trade - If playerIsClient, track cost
@@ -317,10 +312,10 @@ public class SOCHandPanel extends Panel
     protected JLabel shipLab;
     /** Resource card count */
     protected ColorSquare resourceSq;
-    protected Label resourceLab;
+    protected JLabel resourceLab;
     /** Development card count */
     protected ColorSquare developmentSq;
-    protected Label developmentLab;
+    protected JLabel developmentLab;
     /** Soldier/Knight count */
     protected ColorSquare knightsSq;
     /**
@@ -329,10 +324,24 @@ public class SOCHandPanel extends Panel
      * (seen during v2.0.00 development).
      */
     protected JLabel knightsLab;
-    /** Player's development card/inventory item names, from {@link #inventoryItems}; updated frequently by {@link #updateDevCards(boolean)} */
-    protected List inventory;
-    /** Player's development cards/inventory items, in same order as {@link #inventory}; updated frequently by {@link #updateDevCards(boolean)} */
+
+    /**
+     * Player's development card/inventory item names, from {@link #inventoryItems};
+     * updated frequently by {@link #updateDevCards(boolean)}. Held within {@link #inventoryScroll}.
+     */
+    protected JList<String> inventory;
+
+    /**
+     * Player's development cards/inventory items, in same order as {@link #inventory};
+     * updated frequently by {@link #updateDevCards(boolean)}
+     */
     private ArrayList<SOCInventoryItem> inventoryItems;
+
+    /**
+     * Scrollpane holding {@link #inventory} on panel, for {@code doLayout()} to size.
+     * @since 2.0.00
+     */
+    private JScrollPane inventoryScroll;
 
     /**
      * Play Card button for {@link #inventory}.
@@ -343,7 +352,7 @@ public class SOCHandPanel extends Panel
      * inventory instead.  In any other state, label text is {@link #CARD}.
      * Updated in {@link #updateRollDoneBankButtons()} which checks {@link #canCancelInvItemPlay}.
      */
-    protected Button playCardBut;
+    protected JButton playCardBut;
 
     /**
      * Flag for {@link #playCardBut} in state {@link SOCGame#PLACING_INV_ITEM}.
@@ -380,32 +389,14 @@ public class SOCHandPanel extends Panel
      */
     protected boolean playerTradingDisabled;
 
-    protected Label giveLab;
-    protected Label getLab;
+    protected JLabel giveLab;
+    protected JLabel getLab;
+
     /** "Offer" button for player trading: send offer to server */
-    protected Button offerBut;
-
-    /**
-     * Hint for "Offer" button; non-null only if interactive
-     *   and if playerTradingDisabled == false.
-     * @see #OFFERBUTTIP_DIS
-     * @see #OFFERBUTTIP_ENA
-     * @see #interactive
-     */
-    protected AWTToolTip offerButTip;
-
-    /**
-     * Hint for "Lock/Unlock" button ({@link #sittingRobotLockBut};
-     * non-null only if a robot is sitting there.
-     * @see #ROBOTLOCKBUTTIP_L
-     * @see #ROBOTLOCKBUTTIP_U
-     * @see #ROBOTLOCKBUTTIP_M
-     * @since 1.1.12
-     */
-    protected AWTToolTip robotLockButTip;
+    protected JButton offerBut;
 
     /** Clear the current trade offer at client and server */
-    protected Button clearOfferBut;
+    protected JButton clearOfferBut;
 
     /**
      * Trade resources with the bank or port.
@@ -414,7 +405,7 @@ public class SOCHandPanel extends Panel
      * @see #bankUndoBut
      * @see SOCPlayerInterface#bankTradeWasFromTradePanel
      */
-    protected Button bankBut;
+    protected JButton bankBut;
 
     /**
      * Bank or port trade's give/get resource info;
@@ -428,7 +419,7 @@ public class SOCHandPanel extends Panel
      * @see #bankBut
      * @since 1.1.13
      */
-    protected Button bankUndoBut;
+    protected JButton bankUndoBut;
 
     /**
      * Checkboxes to send to the other 3 or 5 players.
@@ -456,18 +447,18 @@ public class SOCHandPanel extends Panel
     /** displays auto-roll countdown, or prompts to roll/play card.
      * @see #setRollPrompt(String, boolean)
      */
-    protected Label rollPromptCountdownLab;
+    protected JLabel rollPromptCountdownLab;
     protected boolean rollPromptInUse;
     protected TimerTask autoRollTimerTask;  // Created every turn when countdown needed
-    protected Button rollBut;
+    protected JButton rollBut;
 
     /** "Done" with turn during play; also "Restart" for board reset at end of game */
-    protected Button doneBut;
+    protected JButton doneBut;
 
     /** True when {@link #doneBut}'s label is Restart ({@link #DONE_RESTART}) */
     protected boolean doneButIsRestart;
 
-    protected Button quitBut;
+    protected JButton quitBut;
 
     protected final SOCPlayerInterface playerInterface;
     protected final SOCPlayerClient client;
@@ -606,12 +597,18 @@ public class SOCHandPanel extends Panel
         playerIsClient = false;  // confirmed by call to removePlayer() at end of method.
         interactive = isInteractive;
 
-        // Note no AWT layout is used - custom layout, see doLayout().
+        // Note no layout manager is used - custom layout, see doLayout().
 
+        final String FONT_SKIP_FLAG = DONE;  // client property to not set a label's font in loop at bottom;
+            // picked DONE for value because it's a defined arbitrary unique-to-handpanel string reference
+
+        final int displayScale = pi.displayScale,
+                  sqSize = ColorSquare.WIDTH * displayScale;
         final Color pcolor = playerInterface.getPlayerColor(playerNumber);
         setBackground(pcolor);
         setForeground(COLOR_FOREGROUND);
-        setFont(new Font("SansSerif", Font.PLAIN, 10));
+        setOpaque(true);
+        setFont(new Font("SansSerif", Font.PLAIN, 10 * displayScale));
 
         blankStandIn = new ColorSquare(pcolor, strings.get("hpan.one.moment"));  // "One moment..."
         blankStandIn.setVisible(false);
@@ -620,26 +617,31 @@ public class SOCHandPanel extends Panel
         faceImg = new SOCFaceButton(playerInterface, playerNumber);
         add(faceImg);
 
-        pname = new Label();
-        pname.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        pname = new JLabel();
+        pname.setFont(new Font("SansSerif", Font.PLAIN, 13 * displayScale));
+        pname.setVerticalAlignment(JLabel.TOP);
+        pname.putClientProperty(FONT_SKIP_FLAG, Boolean.TRUE);
+        // pname uses panel's background color, except when current player (updateAtTurn):
+        pname.setBackground(null);
+        pname.setOpaque(true);
         add(pname);
         pnameActiveBG = null;  // Will be calculated at first turn
 
-        startBut = new Button(START);
+        startBut = new JButton(START);
         startBut.addActionListener(this);
         // this button always enabled
         add(startBut);
 
-        vpLab = new Label(strings.get("hpan.points") + " ");  // "Points: "
+        vpLab = new JLabel(strings.get("hpan.points") + " ");  // "Points: "
         add(vpLab);
-        vpSq = new ColorSquare(ColorSquare.GREY, 0);
-        vpSq.setTooltipText(strings.get("hpan.points.total.opponent"));  // "Total victory points for this opponent"
+        vpSq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
+        vpSq.setToolTipText(strings.get("hpan.points.total.opponent"));  // "Total victory points for this opponent"
         final String vp_close_to_win = strings.get("hpan.points.closetowin");  // "Close to winning"
         if (game.vp_winner <= 12)
         {
-            vpSq.setTooltipHighWarningLevel(vp_close_to_win, game.vp_winner - 2);  // (win checked in SOCGame.checkForWinner)
+            vpSq.setToolTipHighWarningLevel(vp_close_to_win, game.vp_winner - 2);  // (win checked in SOCGame.checkForWinner)
         } else {
-            vpSq.setTooltipHighWarningLevel(vp_close_to_win, game.vp_winner - 3);
+            vpSq.setToolTipHighWarningLevel(vp_close_to_win, game.vp_winner - 3);
         }
         add(vpSq);
 
@@ -647,14 +649,14 @@ public class SOCHandPanel extends Panel
         {
             final String svp_tt = strings.get("hpan.svp.tt");  // "Special Victory Points, click for details"
 
-            svpLab = new Label(strings.get("hpan.svp") + " ");  // "SVP: "
+            svpLab = new JLabel(strings.get("hpan.svp") + " ");  // "SVP: "
             svpLab.setVisible(false);
+            svpLab.setToolTipText(svp_tt);
             add(svpLab);
-            new AWTToolTip(svp_tt, svpLab);
             svpLab.addMouseListener(this);
-            svpSq = new ColorSquare(ColorSquare.GREY, 0);
+            svpSq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
             svpSq.setVisible(false);
-            svpSq.setTooltipText(svp_tt);
+            svpSq.setToolTipText(svp_tt);
             add(svpSq);
             svpSq.addMouseListener(this);
         } else {
@@ -662,7 +664,7 @@ public class SOCHandPanel extends Panel
             svpSq = null;
         }
 
-        final Font DIALOG_PLAIN_10 = new Font("Dialog", Font.PLAIN, 10);
+        final Font DIALOG_PLAIN_10 = new Font("Dialog", Font.PLAIN, 10 * displayScale);
 
         larmyLab = new JLabel("", SwingConstants.CENTER);
         larmyLab.setFont(DIALOG_PLAIN_10);  // was bold 12pt SansSerif before v2.0.00 (i18n: needs room for more chars)
@@ -690,51 +692,66 @@ public class SOCHandPanel extends Panel
         createColorSqRetLbl = null;      createColorSqRetSq = null;  // done, clear refs
 
         resourceSqDivLine = new ColorSquare(Color.BLACK);
+        resourceSqDivLine.setMinimumSize(new Dimension(20 * displayScale, displayScale));
+            // for this narrow line, reduce usual minimum height
         add(resourceSqDivLine);
 
         //cardLab = new Label("Cards:");
         //add(cardLab);
         inventoryItems = new ArrayList<SOCInventoryItem>();
-        inventory = new List(0, false);
-        inventory.addActionListener(this);  // support double-click
-        add(inventory);
+        inventory = new JList<String>(new DefaultListModel<String>());
+        inventory.setVisibleRowCount(-1);  // show as many as possible, based on height from doLayout
+        inventory.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        inventory.setFont(getFont());
+        // support double-click:
+        inventory.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e)
+            {
+                if (e.getClickCount() < 2)
+                    return;
+                e.consume();
+                clickPlayCardButton();  // assumes first click has selected an item to play
+            }
+        });
+        inventoryScroll = new JScrollPane(inventory);
+        add(inventoryScroll);
 
         final String pieces_available_to_place = strings.get("hpan.pieces.available");
 
-        roadSq = new ColorSquare(ColorSquare.GREY, 0);
+        roadSq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
         add(roadSq);
-        roadSq.setTooltipText(pieces_available_to_place);
-        roadSq.setTooltipLowWarningLevel(strings.get("hpan.roads.almostout"), 2);  // "Almost out of roads to place"
-        roadSq.setTooltipZeroText(strings.get("hpan.roads.out"));  // "No more roads available"
+        roadSq.setToolTipText(pieces_available_to_place);
+        roadSq.setToolTipLowWarningLevel(strings.get("hpan.roads.almostout"), 2);  // "Almost out of roads to place"
+        roadSq.setToolTipZeroText(strings.get("hpan.roads.out"));  // "No more roads available"
         roadLab = new JLabel(strings.get("hpan.roads"));  // "Roads:"
         roadLab.setFont(DIALOG_PLAIN_10);
         add(roadLab);
 
-        settlementSq = new ColorSquare(ColorSquare.GREY, 0);
+        settlementSq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
         add(settlementSq);
-        settlementSq.setTooltipText(pieces_available_to_place);
-        settlementSq.setTooltipLowWarningLevel(strings.get("hpan.stlmts.almostout"), 1);
-        settlementSq.setTooltipZeroText(strings.get("hpan.stlmts.out"));
+        settlementSq.setToolTipText(pieces_available_to_place);
+        settlementSq.setToolTipLowWarningLevel(strings.get("hpan.stlmts.almostout"), 1);
+        settlementSq.setToolTipZeroText(strings.get("hpan.stlmts.out"));
         settlementLab = new JLabel(strings.get("hpan.stlmts"));  // "Stlmts:"
         settlementLab.setFont(DIALOG_PLAIN_10);
         add(settlementLab);
 
-        citySq = new ColorSquare(ColorSquare.GREY, 0);
+        citySq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
         add(citySq);
-        citySq.setTooltipText(pieces_available_to_place);
-        citySq.setTooltipLowWarningLevel(strings.get("hpan.cities.almostout"), 1);
-        citySq.setTooltipZeroText(strings.get("hpan.cities.out"));
+        citySq.setToolTipText(pieces_available_to_place);
+        citySq.setToolTipLowWarningLevel(strings.get("hpan.cities.almostout"), 1);
+        citySq.setToolTipZeroText(strings.get("hpan.cities.out"));
         cityLab = new JLabel(strings.get("hpan.cities"));  // "Cities:"
         cityLab.setFont(DIALOG_PLAIN_10);
         add(cityLab);
 
         if (game.hasSeaBoard)
         {
-            shipSq = new ColorSquare(ColorSquare.GREY, 0);
+            shipSq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
             add(shipSq);
-            shipSq.setTooltipText(pieces_available_to_place);
-            shipSq.setTooltipLowWarningLevel(strings.get("hpan.ships.almostout"), 2);
-            shipSq.setTooltipZeroText(strings.get("hpan.ships.out"));
+            shipSq.setToolTipText(pieces_available_to_place);
+            shipSq.setToolTipLowWarningLevel(strings.get("hpan.ships.almostout"), 2);
+            shipSq.setToolTipZeroText(strings.get("hpan.ships.out"));
             shipLab = new JLabel(strings.get("hpan.ships"));  // "Ships:"
             shipLab.setFont(DIALOG_PLAIN_10);
             add(shipLab);
@@ -747,9 +764,9 @@ public class SOCHandPanel extends Panel
             clothLab = new JLabel(strings.get("hpan.cloth"));  // No trailing space (room for wider colorsquares at left)
             clothLab.setFont(DIALOG_PLAIN_10);
             add(clothLab);
-            clothSq = new ColorSquare(ColorSquare.GREY, 0);
+            clothSq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
             add(clothSq);
-            clothSq.setTooltipText(strings.get("hpan.cloth.amounttraded"));  // "Amount of cloth traded from villages"
+            clothSq.setToolTipText(strings.get("hpan.cloth.amounttraded"));  // "Amount of cloth traded from villages"
         }
         else if (game.isGameOptionSet(SOCGameOption.K_SC_WOND))
         {
@@ -770,98 +787,99 @@ public class SOCHandPanel extends Panel
         knightsLab = new JLabel(strings.get("hpan.soldiers"));  // No trailing space (room for wider colorsquares at left)
         knightsLab.setFont(DIALOG_PLAIN_10);
         add(knightsLab);
-        knightsSq = new ColorSquare(ColorSquare.GREY, 0);
+        knightsSq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
         add(knightsSq);
-        knightsSq.setTooltipText(strings.get("hpan.soldiers.sizearmy"));  // "Size of this army"
+        knightsSq.setToolTipText(strings.get("hpan.soldiers.sizearmy"));  // "Size of this army"
 
-        resourceLab = new Label(RESOURCES);
+        resourceLab = new JLabel(RESOURCES);
         add(resourceLab);
-        resourceSq = new ColorSquare(ColorSquare.GREY, 0);
+        resourceSq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
         add(resourceSq);
-        resourceSq.setTooltipText(strings.get("hpan.amounthand"));  // "Amount in hand"
-        resourceSq.setTooltipHighWarningLevel(strings.get("hpan.rsrc.roll7discard"), 8); // "If 7 is rolled, would discard half these resources"
+        resourceSq.setToolTipText(strings.get("hpan.amounthand"));  // "Amount in hand"
+        resourceSq.setToolTipHighWarningLevel(strings.get("hpan.rsrc.roll7discard"), 8); // "If 7 is rolled, would discard half these resources"
 
-        developmentLab = new Label(strings.get("hpan.devcards") + " ");  // "Dev. Cards: "
+        developmentLab = new JLabel(strings.get("hpan.devcards") + " ");  // "Dev. Cards: "
         add(developmentLab);
-        developmentSq = new ColorSquare(ColorSquare.GREY, 0);
+        developmentSq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
         add(developmentSq);
-        developmentSq.setTooltipText(strings.get("hpan.amounthand"));  // "Amount in hand"
+        developmentSq.setToolTipText(strings.get("hpan.amounthand"));  // "Amount in hand"
 
-        sittingRobotLockBut = new Button(ROBOTLOCKBUT_U);  // button text will change soon in updateSeatLockButton()
+        sittingRobotLockBut = new JButton(ROBOTLOCKBUT_U);  // button text will change soon in updateSeatLockButton()
         sittingRobotLockBut.addActionListener(this);
         sittingRobotLockBut.setEnabled(interactive);
         add(sittingRobotLockBut);
 
-        takeOverBut = new Button(TAKEOVER);
+        takeOverBut = new JButton(TAKEOVER);
         takeOverBut.addActionListener(this);
         takeOverBut.setEnabled(interactive);
         add(takeOverBut);
 
-        sitBut = new Button(SIT);
+        sitBut = new JButton(SIT);
         sitBut.addActionListener(this);
         sitBut.setEnabled(interactive);
         add(sitBut);
         sitButIsLock = false;
 
-        robotBut = new Button(ROBOT);
+        robotBut = new JButton(ROBOT);
         robotBut.addActionListener(this);
         robotBut.setEnabled(interactive);
         add(robotBut);
 
-        playCardBut = new Button(CARD);
+        playCardBut = new JButton(CARD);
         playCardBut.addActionListener(this);
         playCardBut.setEnabled(interactive);
         add(playCardBut);
 
         playerTradingDisabled = game.isGameOptionSet("NT");
 
-        giveLab = new Label(GIVE);
+        giveLab = new JLabel(GIVE);
         add(giveLab);
         if (interactive)
-            new AWTToolTip(strings.get("hpan.trade.igive.tip"), giveLab);
+            giveLab.setToolTipText(strings.get("hpan.trade.igive.tip"));
                 // "Resources to give to other players or the bank"
 
-        getLab = new Label(GET);
+        getLab = new JLabel(GET);
         add(getLab);
         if (interactive)
-            new AWTToolTip(strings.get("hpan.trade.iget.tip"), getLab);
+            getLab.setToolTipText(strings.get("hpan.trade.iget.tip"));
                 // "Resources to get from other players or the bank"
 
-        sqPanel = new SquaresPanel(interactive, this);
+        sqPanel = new SquaresPanel(interactive, this, displayScale);
         add(sqPanel);
         sqPanel.setVisible(false); // will become visible only for seated client player
 
         if (playerTradingDisabled)
         {
             offerBut = null;
-            offerButTip = null;
         } else {
-            offerBut = new Button(SEND);
+            offerBut = new JButton(SEND);
             offerBut.addActionListener(this);
             offerBut.setEnabled(interactive);
             add(offerBut);
             if (interactive)
-                offerButTip = new AWTToolTip(OFFERBUTTIP_ENA, offerBut);
+                offerBut.setToolTipText(OFFERBUTTIP_ENA);
         }
 
         // clearOfferBut used by bank/port trade, and player trade
-        clearOfferBut = new Button(CLEAR);
+        clearOfferBut = new JButton(CLEAR);
         clearOfferBut.addActionListener(this);
         clearOfferBut.setEnabled(interactive);
         add(clearOfferBut);
 
-        bankBut = new Button(BANK);
+        bankBut = new JButton(BANK);
         bankBut.addActionListener(this);
         bankBut.setEnabled(interactive);
         add(bankBut);
         if (interactive)
-            new AWTToolTip(strings.get("hpan.trade.bankport.tip"), bankBut);
+            bankBut.setToolTipText(strings.get("hpan.trade.bankport.tip"));
                 // "Trade these resources with the bank or a port"
 
-        bankUndoBut = new Button(BANK_UNDO);
+        bankUndoBut = new JButton(BANK_UNDO);
         bankUndoBut.addActionListener(this);
         bankUndoBut.setEnabled(false);
         add(bankUndoBut);
+        if (interactive)
+            bankUndoBut.setToolTipText(strings.get("hpan.trade.undo.tip"));  // "Undo the most recent Bank Trade"
 
         if (playerTradingDisabled)
         {
@@ -880,7 +898,7 @@ public class SOCHandPanel extends Panel
                     Color color = playerInterface.getPlayerColor(pn);
                     playerSendMap[cnt] = pn;
                     playerSendForPrevTrade[cnt] = true;
-                    playerSend[cnt] = new ColorSquare(ColorSquare.CHECKBOX, true, color);
+                    playerSend[cnt] = new ColorSquare(ColorSquare.CHECKBOX, true, sqSize, sqSize, color);
                     playerSend[cnt].setColor(playerInterface.getPlayerColor(pn));
                     playerSend[cnt].setBoolValue(true);
                     add(playerSend[cnt]);
@@ -889,23 +907,23 @@ public class SOCHandPanel extends Panel
             }
         }  // if(playerTradingDisabled)
 
-        rollPromptCountdownLab = new Label(" ");
+        rollPromptCountdownLab = new JLabel(" ");
         add(rollPromptCountdownLab);
         rollPromptInUse = false;   // Nothing yet (no game in progress)
         autoRollTimerTask = null;  // Nothing yet
 
-        rollBut = new Button(ROLL);
+        rollBut = new JButton(ROLL);
         rollBut.addActionListener(this);
         rollBut.setEnabled(interactive);
         add(rollBut);
 
-        doneBut = new Button(DONE);
+        doneBut = new JButton(DONE);
         doneBut.addActionListener(this);
         doneBut.setEnabled(interactive);
         doneButIsRestart = false;
         add(doneBut);
 
-        quitBut = new Button(QUIT);
+        quitBut = new JButton(QUIT);
         quitBut.addActionListener(this);
         quitBut.setEnabled(interactive);
         add(quitBut);
@@ -925,12 +943,42 @@ public class SOCHandPanel extends Panel
             didSwingTooltipDefaults = true;
         }
 
+        // Make all labels and buttons use panel's font and background color.
+        // To not cut off wide button text, remove button margin since we're using custom layout anyway
+        final int msize = 2 * displayScale;
+        final Insets minMargin = new Insets(msize, msize, msize, msize);
+        final Font panelFont = getFont();
+        final Font buttonFont = ((displayScale > 1) && SOCPlayerClient.IS_PLATFORM_MAC_OSX)
+            ? panelFont.deriveFont(0.9f * panelFont.getSize2D())  // smaller buttons to avoid text cutoff/ellipsis
+            : panelFont;
+        final boolean shouldClearButtonBGs
+            = SOCPlayerClient.IS_PLATFORM_WINDOWS && ! SwingMainDisplay.isOSColorHighContrast();
+        for (Component co : getComponents())
+        {
+            if (! ((co instanceof JLabel) || (co instanceof JButton)))
+                continue;
+
+            if ((co.getFont() != DIALOG_PLAIN_10) && (null == ((JComponent) co).getClientProperty(FONT_SKIP_FLAG)))
+                co.setFont((co instanceof JButton) ? buttonFont : panelFont);
+
+            if (co instanceof JLabel)
+            {
+                co.setForeground(null);  // inherit panel's color
+                co.setBackground(null);
+            } else {
+                ((JButton) co).setMargin(minMargin);
+                if (shouldClearButtonBGs)
+                    co.setBackground(null);  // inherit panel's bg color; required on win32 to avoid gray corners
+            }
+
+        }
+
         // set the starting state of the panel
         removePlayer();
     }
 
     /** Color square label created by most recent call to {@link #createAndAddResourceColorSquare(Color, String)}. */
-    private Label createColorSqRetLbl;
+    private JLabel createColorSqRetLbl;
 
     /** Color square created by most recent call to {@link #createAndAddResourceColorSquare(Color, String)}. */
     private ColorSquare createColorSqRetSq;
@@ -949,11 +997,12 @@ public class SOCHandPanel extends Panel
     private final void createAndAddResourceColorSquare(final Color rc, final String rtxtkey)
     {
         final String rtxt = strings.get(rtxtkey);
-        createColorSqRetLbl = new Label(rtxt + ":");  // "Clay:"
+        createColorSqRetLbl = new JLabel(rtxt + ":");  // "Clay:"
         add(createColorSqRetLbl);
-        createColorSqRetSq = new ColorSquare(rc, 0);
+        final int sqSize = ColorSquare.WIDTH * playerInterface.displayScale;
+        createColorSqRetSq = new ColorSquare(rc, 0, sqSize, sqSize);
         add(createColorSqRetSq);
-        createColorSqRetSq.setTooltipText
+        createColorSqRetSq.setToolTipText
             (strings.get("hpan.trade.rightclick", rtxt.toLowerCase()));  // "Right-click to trade clay"
     }
 
@@ -1003,24 +1052,24 @@ public class SOCHandPanel extends Panel
         if (target == LOCKSEAT)
         {
             // Seat Lock while game forming (gamestate NEW); see below for ROBOTLOCKBUT_L etc
-            client.getGameManager().setSeatLock(game, playerNumber, SOCGame.SeatLockState.LOCKED);
+            client.getGameMessageMaker().setSeatLock(game, playerNumber, SOCGame.SeatLockState.LOCKED);
         }
         else if (target == UNLOCKSEAT)
         {
             // Unlock while game forming
-            client.getGameManager().setSeatLock(game, playerNumber, SOCGame.SeatLockState.UNLOCKED);
+            client.getGameMessageMaker().setSeatLock(game, playerNumber, SOCGame.SeatLockState.UNLOCKED);
         }
         else if (target == TAKEOVER)
         {
-            client.getGameManager().sitDown(game, playerNumber);
+            client.getGameMessageMaker().sitDown(game, playerNumber);
         }
         else if (target == SIT)
         {
-            client.getGameManager().sitDown(game, playerNumber);
+            client.getGameMessageMaker().sitDown(game, playerNumber);
         }
         else if ((target == START) && startBut.isVisible())
         {
-            client.getGameManager().startGame(game);
+            client.getGameMessageMaker().startGame(game);
 
             // checks isVisible to guard against button action from hitting spacebar
             // when hidden but has focus because startBut is the first button added to panel;
@@ -1041,12 +1090,12 @@ public class SOCHandPanel extends Panel
         }
         else if (target == QUIT)
         {
-            SOCQuitConfirmDialog.createAndShow(playerInterface.getGameDisplay(), playerInterface);
+            SOCQuitConfirmDialog.createAndShow(playerInterface.getMainDisplay(), playerInterface);
         }
         else if (target == DONE)
         {
             // sqPanel.setValues(zero, zero);
-            client.getGameManager().endTurn(game);
+            client.getGameMessageMaker().endTurn(game);
         }
         else if (target == DONE_RESTART)
         {
@@ -1057,7 +1106,7 @@ public class SOCHandPanel extends Panel
             clearOffer(true);    // Zero the square panel numbers, unless board-reset vote in progress
             if (game.getGameState() == SOCGame.PLAY1)
             {
-                client.getGameManager().clearOffer(game);
+                client.getGameMessageMaker().clearOffer(game);
             }
         }
         else if (target == BANK)
@@ -1083,7 +1132,7 @@ public class SOCHandPanel extends Panel
         {
             if ((bankGive != null) && (bankGet != null))
             {
-                client.getGameManager().bankTrade(game, bankGet, bankGive);  // undo by reversing previous request
+                client.getGameMessageMaker().bankTrade(game, bankGet, bankGive);  // undo by reversing previous request
                 bankGive = null;
                 bankGet = null;
                 bankUndoBut.setEnabled(false);
@@ -1172,7 +1221,7 @@ public class SOCHandPanel extends Panel
                             new SOCTradeOffer(game.getName(),
                                               playerNumber,
                                               to, giveSet, getSet);
-                        client.getGameManager().offerTrade(game, tradeOffer);
+                        client.getGameMessageMaker().offerTrade(game, tradeOffer);
                         disableBankUndoButton();
                     }
                 }
@@ -1213,7 +1262,7 @@ public class SOCHandPanel extends Panel
             }
         }
 
-        NotifyDialog.createAndShow(playerInterface.getGameDisplay(), playerInterface, sb.toString(), null, true);
+        NotifyDialog.createAndShow(playerInterface.getMainDisplay(), playerInterface, sb.toString(), null, true);
     }
 
     /** required stub for MouseListener */
@@ -1248,11 +1297,11 @@ public class SOCHandPanel extends Panel
             // must take some actions now instead of when that message is received
 
         if (isFromTradePanel && (isOldServer || (player.getCurrentOffer() != null)))
-            client.getGameManager().clearOffer(game);
+            client.getGameMessageMaker().clearOffer(game);
 
         SOCResourceSet giveSet = new SOCResourceSet(give);
         SOCResourceSet getSet = new SOCResourceSet(get);
-        client.getGameManager().bankTrade(game, giveSet, getSet);
+        client.getGameMessageMaker().bankTrade(game, giveSet, getSet);
 
         bankGive = giveSet;
         bankGet = getSet;
@@ -1321,7 +1370,7 @@ public class SOCHandPanel extends Panel
             break;
         }
 
-        client.getGameManager().setSeatLock(game, playerNumber, slNext);
+        client.getGameMessageMaker().setSeatLock(game, playerNumber, slNext);
     }
 
 
@@ -1341,7 +1390,7 @@ public class SOCHandPanel extends Panel
         // Check first for "Cancel"
         if (game.getGameState() == SOCGame.PLACING_INV_ITEM)
         {
-            client.getGameManager().cancelBuildRequest(game, SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL);
+            client.getGameMessageMaker().cancelBuildRequest(game, SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL);
             return;
         }
 
@@ -1351,15 +1400,16 @@ public class SOCHandPanel extends Panel
 
         setRollPrompt(null, false);  // Clear prompt if Play Card clicked (instead of Roll clicked)
 
-        itemText = inventory.getSelectedItem();
+        final DefaultListModel<String> invModel = (DefaultListModel<String>) inventory.getModel();
         itemNum = inventory.getSelectedIndex();
+        itemText = inventory.getSelectedValue();
 
         if ((itemText == null) || (itemText.length() == 0))
         {
-            if (inventory.getItemCount() == 1)
+            if (invModel.size() == 1)
             {
                 // No card selected, but only one to choose from
-                itemText = inventory.getItem(0);
+                itemText = invModel.get(0);
                 itemNum = 0;
                 if (itemText.length() == 0)
                     return;
@@ -1373,9 +1423,9 @@ public class SOCHandPanel extends Panel
                  */
                 itemNum = -1;  // Nothing yet
                 String itemNumText = null;
-                for (int i = inventory.getItemCount() - 1; i >= 0; --i)
+                for (int i = invModel.size() - 1; i >= 0; --i)
                 {
-                    itemText = inventory.getItem(i);
+                    itemText = invModel.get(i);
                     if ((itemText != null) && (itemText.length() > 0))
                     {
                         SOCInventoryItem item = inventoryItems.get(i);
@@ -1426,7 +1476,7 @@ public class SOCHandPanel extends Panel
                 // "You secretly played this VP card when you bought it."
             itemNum = inventory.getSelectedIndex();
             if (itemNum >= 0)
-                inventory.deselect(itemNum);
+                inventory.clearSelection();
 
             return;  // <--- Early Return: Can't play a VP card ---
         }
@@ -1504,7 +1554,7 @@ public class SOCHandPanel extends Panel
 
         if (cardTypeToPlay != -1)
         {
-            client.getGameManager().playDevCard(game, cardTypeToPlay);
+            client.getGameMessageMaker().playDevCard(game, cardTypeToPlay);
             disableBankUndoButton();
         }
     }
@@ -1518,7 +1568,7 @@ public class SOCHandPanel extends Panel
     private final void clickPlayInventorySpecialItem(final SOCInventoryItem item)
     {
         if (item.isPlayable())
-            client.getGameManager().playInventoryItem(game, item.itype);
+            client.getGameMessageMaker().playInventoryItem(game, item.itype);
         // else isKept, or is new;
         // clickPlayCardButton checks these and prints a message to the user.
     }
@@ -1530,7 +1580,7 @@ public class SOCHandPanel extends Panel
     {
         if (rollPromptInUse)
             setRollPrompt(null, false);  // Clear it
-        client.getGameManager().rollDice(game);
+        client.getGameMessageMaker().rollDice(game);
         rollBut.setEnabled(false);  // Only one roll per turn
     }
 
@@ -1569,13 +1619,9 @@ public class SOCHandPanel extends Panel
             break;
         }
 
-        sittingRobotLockBut.setLabel(lbl);
+        sittingRobotLockBut.setText(lbl);
         sittingRobotLockBut.setVisible(true);
-
-        if (robotLockButTip != null)
-            robotLockButTip.setTip(tipText);
-        else
-            robotLockButTip = new AWTToolTip(tipText, sittingRobotLockBut);
+        sittingRobotLockBut.setToolTipText(tipText);
     }
 
     /**
@@ -1616,13 +1662,8 @@ public class SOCHandPanel extends Panel
 
             if (sitButIsLock)
             {
-                sitBut.setLabel(SIT);
+                sitBut.setText(SIT);
                 sitButIsLock = false;
-                if (sitButTip != null)
-                {
-                    sitButTip.destroy();
-                    sitButTip = null;
-                }
             }
         }
         else if (clientHasSatAlready && ! sitButIsLock)
@@ -1763,7 +1804,7 @@ public class SOCHandPanel extends Panel
 
         if (! playerTradingDisabled)
         {
-            offerBut.setVisible(false);  // also hides offerButTip if created
+            offerBut.setVisible(false);
             for (int i = 0; i < (game.maxPlayers - 1); i++)
             {
                 playerSend[i].setVisible(false);
@@ -1815,9 +1856,9 @@ public class SOCHandPanel extends Panel
         removeSitBut();
         removeTakeOverBut();
 
-        Button[] inPlayButtons
-            = new Button[] { playCardBut, offerBut, bankBut, bankUndoBut, rollBut, doneBut, sittingRobotLockBut };
-        for (Button b : inPlayButtons)
+        JButton[] inPlayButtons
+            = new JButton[] { playCardBut, offerBut, bankBut, bankUndoBut, rollBut, doneBut, sittingRobotLockBut };
+        for (JButton b : inPlayButtons)
             if ((b != null) && b.isVisible() && b.isEnabled())
                 b.setEnabled(false);
     }
@@ -1902,8 +1943,8 @@ public class SOCHandPanel extends Panel
             playerIsClient = true;
             playerInterface.setClientHand(this);
 
-            knightsSq.setTooltipText(strings.get("hpan.soldiers.sizeyourarmy"));  // "Size of your army"
-            vpSq.setTooltipText(strings.get("hpan.points.total.yours"));  // "Your victory point total"
+            knightsSq.setToolTipText(strings.get("hpan.soldiers.sizeyourarmy"));  // "Size of your army"
+            vpSq.setToolTipText(strings.get("hpan.points.total.yours"));  // "Your victory point total"
 
             // show 'Victory Points' and hide "Start Button" if game in progress
             if (game.getGameState() == SOCGame.NEW)
@@ -1981,9 +2022,9 @@ public class SOCHandPanel extends Panel
             doneButIsRestart = ((game.getGameState() <= SOCGame.START3B)
                  || (game.getGameState() == SOCGame.OVER));
             if (doneButIsRestart)
-                doneBut.setLabel(DONE_RESTART);
+                doneBut.setText(DONE_RESTART);
             else
-                doneBut.setLabel(DONE);
+                doneBut.setText(DONE);
             doneBut.setVisible(true);
             quitBut.setVisible(true);
 
@@ -2012,7 +2053,7 @@ public class SOCHandPanel extends Panel
             D.ebugPrintln("player.getSeatLock(" + playerNumber + ") = " + game.getSeatLock(playerNumber));
             D.ebugPrintln("game.getPlayer(client.getNickname()) = " + game.getPlayer(client.getNickname()));
 
-            knightsSq.setTooltipText(strings.get("hpan.soldiers.sizeoppoarmy"));  // "Size of this opponent's army"
+            knightsSq.setToolTipText(strings.get("hpan.soldiers.sizeoppoarmy"));  // "Size of this opponent's army"
 
             // To see if client already sat down at this game,
             // we can't call playerInterface.getClientHand() yet,
@@ -2122,7 +2163,7 @@ public class SOCHandPanel extends Panel
             if (showAsCurrent)
                 pname.setBackground(pnameActiveBG);
             else
-                pname.setBackground(this.getBackground());
+                pname.setBackground(null);  // use panel's bg color
         }
 
         updateTakeOverButton();
@@ -2142,14 +2183,14 @@ public class SOCHandPanel extends Panel
             {
                 if (normalTurnStarting)
                 {
-                    doneBut.setLabel(DONE);
+                    doneBut.setText(DONE);
                     doneButIsRestart = false;
                 } else {
                     doneBut.setEnabled(true);  // "Restart" during game-start (label DONE_RESTART)
                 }
             }
             normalTurnStarting = normalTurnStarting && playerIsCurrent;
-            playCardBut.setEnabled(normalTurnStarting && (inventory.getItemCount() > 0));
+            playCardBut.setEnabled(normalTurnStarting && ! ((DefaultListModel<?>) inventory.getModel()).isEmpty());
         }
 
         bankGive = null;
@@ -2210,8 +2251,7 @@ public class SOCHandPanel extends Panel
         if (! playerTradingDisabled)
         {
             offerBut.setEnabled(false);
-            if (offerButTip != null)
-                offerButTip.setTip(OFFERBUTTIP_DIS);
+            offerBut.setToolTipText(OFFERBUTTIP_DIS);
         }
     }
 
@@ -2240,31 +2280,32 @@ public class SOCHandPanel extends Panel
 
         final boolean enaOfferBut = notAllZero && ((gs == SOCGame.ROLL_OR_CARD) || (gs == SOCGame.PLAY1));
         offerBut.setEnabled(enaOfferBut);
-        if (offerButTip != null)
-        {
-            if (enaOfferBut)
-                offerButTip.setTip(OFFERBUTTIP_ENA);
-            else
-                offerButTip.setTip(OFFERBUTTIP_DIS);
-        }
+        offerBut.setToolTipText((enaOfferBut) ? (OFFERBUTTIP_ENA) : OFFERBUTTIP_DIS);
     }
 
     /**
-     * Callback from {@link TradeOfferPanel}.
+     * Callback from {@link TradeOfferPanel} when counter-offer is shown or hidden.
      * For players who aren't the client:
      * If our {@link TradeOfferPanel} shows/hides the counter offer,
      * may need to rearrange or hide controls under it.
      * This should be called when in {@link TradeOfferPanel#OFFER_MODE},
      * not in {@link TradeOfferPanel#MESSAGE_MODE}.
+     *<P>
+     * After any component show/hide and rearrangement, calls {@link #validate()} and {@link #repaint()};
+     * this is necessary on win32 to avoid layout cutoff/repaint problems on Swing.
      *
      * @param counterVisible Is the counter-offer showing?
      * @since 1.1.08
      */
     public void offerCounterOfferVisibleChanged(final boolean counterVisible)
     {
-        if (! offerCounterHidesFace)
-            return;
-        hideTradeMsgShowOthers(false);  // move 'offer' around if needed, hide/show faceImg.
+        invalidate();
+        if (offerCounterHidesFace || offerHidingControls)
+        {
+            hideTradeMsgShowOthers(false);  // move 'offer' around if needed, hide/show faceImg
+        }
+        validate();
+        repaint();
     }
 
     /**
@@ -2309,9 +2350,10 @@ public class SOCHandPanel extends Panel
 
         boolean hasOldCards = false;
 
+        final DefaultListModel<String> invModel = (DefaultListModel<String>) inventory.getModel();
         synchronized (inventory.getTreeLock())
         {
-            inventory.removeAll();
+            invModel.clear();
             inventoryItems.clear();
 
             if (addedPlayable && ! inventory.isEnabled())
@@ -2324,14 +2366,16 @@ public class SOCHandPanel extends Panel
 
                 for (final SOCInventoryItem item : items.getByState(cState))  // almost always instanceof SOCDevCard
                 {
+                    String itemText;
                     if (isNew)
                     {
-                        inventory.add(DEVCARD_NEW + item.getItemName(game, false, strings));
+                        itemText = DEVCARD_NEW + item.getItemName(game, false, strings);
                     } else {
-                        inventory.add(item.getItemName(game, false, strings));
+                        itemText = item.getItemName(game, false, strings);
                         hasOldCards = true;
                     }
 
+                    invModel.addElement(itemText);
                     inventoryItems.add(item);
                 }
             }
@@ -2352,11 +2396,6 @@ public class SOCHandPanel extends Panel
     public void removeSittingRobotLockBut()
     {
         sittingRobotLockBut.setVisible(false);
-        if (robotLockButTip != null)
-        {
-            robotLockButTip.destroy();
-            robotLockButTip = null;
-        }
     }
 
     /**
@@ -2380,7 +2419,7 @@ public class SOCHandPanel extends Panel
             sitBut.setVisible(false);
         if (sitButIsLock)
         {
-            sitBut.setLabel(SIT);
+            sitBut.setText(SIT);
             sitButIsLock = false;
             if ((player == null) || (player.getName() == null))
                 pname.setVisible(false);  // Hide "Locked: No robot" text
@@ -2429,11 +2468,8 @@ public class SOCHandPanel extends Panel
             buttonText = LOCKSEAT;
             ttipText = LOCKSEATTIP;
         }
-        sitBut.setLabel(buttonText);
-        if (sitButTip == null)
-            sitButTip = new AWTToolTip(ttipText, sitBut);
-        else
-            sitButTip.setTip(ttipText);
+        sitBut.setText(buttonText);
+        sitBut.setToolTipText(ttipText);
         sitButIsLock = true;
         validate();  // sitBut minimum width may change with text
         sitBut.repaint();
@@ -2475,7 +2511,7 @@ public class SOCHandPanel extends Panel
                 {
                     String pname = game.getPlayer(playerSendMap[i]).getName();
                     if (pname != null)
-                        playerSend[i].setTooltipText(pname);
+                        playerSend[i].setToolTipText(pname);
                 }
             }
         }
@@ -2561,9 +2597,11 @@ public class SOCHandPanel extends Panel
      */
     public void rejectOfferAtClient()
     {
-        client.getGameManager().rejectOffer(game);
+        client.getGameMessageMaker().rejectOffer(game);
+        offer.setMessage(null);
+        offer.setVisible(false);
         if (offerHidesControls)
-            hideTradeMsgShowOthers(false);
+            hideTradeMsgShowOthers(true);
         repaint();
     }
 
@@ -2607,7 +2645,7 @@ public class SOCHandPanel extends Panel
      */
     private void hideTradeMsgShowOthers(final boolean hideTradeMsg)
     {
-        if (! offerHidesControls)
+        if ((! offerHidesControls) && resourceSq.isVisible())
             return;
 
         if (offerHidingControls == hideTradeMsg)
@@ -2734,13 +2772,14 @@ public class SOCHandPanel extends Panel
             if (! playerTradingDisabled)
             {
                 offerBut.setEnabled(false);
-                offerButTip.setTip(OFFERBUTTIP_DIS);
+                offerBut.setToolTipText(OFFERBUTTIP_DIS);
             }
         }
         else if (offerHidesControls)
         {
             hideTradeMsgShowOthers(true);
         }
+
         validate();
         repaint();
     }
@@ -2845,9 +2884,9 @@ public class SOCHandPanel extends Panel
         if ((game.getSeatLock(playerNumber) != SOCGame.SeatLockState.LOCKED) &&
             (game.getCurrentPlayerNumber() != playerNumber))
         {
-            takeOverBut.setLabel(TAKEOVER);
+            takeOverBut.setText(TAKEOVER);
         } else {
-            takeOverBut.setLabel(SEAT_LOCKED);
+            takeOverBut.setText(SEAT_LOCKED);
         }
     }
 
@@ -2883,15 +2922,15 @@ public class SOCHandPanel extends Panel
                 if (placing != null)
                     canCancelInvItemPlay = placing.canCancelPlay;
                 inventory.setEnabled(false);
-                playCardBut.setLabel(CANCEL);
+                playCardBut.setText(CANCEL);
                 playCardBut.setEnabled(canCancelInvItemPlay);
             } else {
                 if (! inventory.isEnabled())
                     inventory.setEnabled(true);  // note, may still visually appear disabled; repaint doesn't fix it
 
-                if (playCardBut.getLabel().equals(CANCEL))
+                if (playCardBut.getText().equals(CANCEL))
                 {
-                    playCardBut.setLabel(CARD);  // " Play Card "
+                    playCardBut.setText(CARD);  // " Play Card "
                     playCardBut.setEnabled(! inventoryItems.isEmpty());
                 }
             }
@@ -2937,13 +2976,8 @@ public class SOCHandPanel extends Panel
             break;
         }
 
-        sittingRobotLockBut.setLabel(lbl);
-        if (robotLockButTip != null)
-        {
-            final String prevTip = robotLockButTip.getTip();
-            if (prevTip != tipText)  // constant string ref, so don't need equals()
-                robotLockButTip.setTip(tipText);
-        }
+        sittingRobotLockBut.setText(lbl);
+        sittingRobotLockBut.setToolTipText(tipText);
 
         if (sitButIsLock)
         {
@@ -2971,11 +3005,8 @@ public class SOCHandPanel extends Panel
                     pname.setVisible(false);
                 }
             }
-            sitBut.setLabel(buttonText);
-            if (sitButTip == null)
-                sitButTip = new AWTToolTip(ttipText, sitBut);
-            else
-                sitButTip.setTip(ttipText);
+            sitBut.setText(buttonText);
+            sitBut.setToolTipText(ttipText);
 
             validate();  // sitBut minimum width may change with text
             repaint();
@@ -3025,7 +3056,7 @@ public class SOCHandPanel extends Panel
     {
         canCancelInvItemPlay = canCancel;
 
-        if (playerIsClient && playCardBut.getLabel().equals(CANCEL))  // should not be Cancel yet; check just in case
+        if (playerIsClient && playCardBut.getText().equals(CANCEL))  // should not be Cancel yet; check just in case
             playCardBut.setEnabled(canCancel);
     }
 
@@ -3059,7 +3090,7 @@ public class SOCHandPanel extends Panel
                 {
                     if (game.getPlayerWithWin() == player)
                     {
-                        vpSq.setTooltipText(strings.get("hpan.winner.label.ttwithvp", newVP));  // "Winner with 12 victory points"
+                        vpSq.setToolTipText(strings.get("hpan.winner.label.ttwithvp", newVP));  // "Winner with 12 victory points"
                         pname.setText(strings.get("hpan.winner.label", player.getName()));  // "X - Winner"
                     }
                     if (interactive)
@@ -3068,7 +3099,7 @@ public class SOCHandPanel extends Panel
                         bankUndoBut.setEnabled(false);
                         playCardBut.setEnabled(false);
                     }
-                    doneBut.setLabel(DONE_RESTART);
+                    doneBut.setText(DONE_RESTART);
                     doneBut.setEnabled(true);  // In case it's another player's turn
                     doneButIsRestart = true;
                 }
@@ -3429,11 +3460,15 @@ public class SOCHandPanel extends Panel
     public void doLayout()
     {
         final Dimension dim = getSize();
-        final int inset = 3;  // margin from edge of panel; was 8 before 1.1.08
-        final int space = 2;  // vertical and horizontal spacing between most items
+        final int displayScale = playerInterface.displayScale;
+        final int inset = 3 * displayScale;  // margin from edge of panel; was 8 before 1.1.08
+        final int space = 2 * displayScale;  // vertical and horizontal spacing between most items
 
         final FontMetrics fm = this.getFontMetrics(this.getFont());
-        final int lineH = ColorSquare.HEIGHT;  // layout's basic line height; most rows have a ColorSquare
+        final int lineH = ColorSquare.HEIGHT * displayScale;  // layout's basic line height; most rows have a ColorSquare
+
+        faceImg.setLocation(inset, inset);
+            // setLocation even if ! inPlay (hidden), so it doesn't visibly move when player sits
 
         if (! inPlay)
         {
@@ -3443,28 +3478,30 @@ public class SOCHandPanel extends Panel
 
             final int sitW;
             if (fm == null)
-                sitW = 70;
+                sitW = 70 * displayScale;
             else if (sitButIsLock)
             {
                 final int wLock = fm.stringWidth(LOCKSEAT),
                           wUnlock = fm.stringWidth(UNLOCKSEAT);
-                sitW = 24 + ((wLock > wUnlock) ? wLock : wUnlock);
+                sitW = 24 * displayScale + ((wLock > wUnlock) ? wLock : wUnlock);
             } else {
-                sitW = 24 + fm.stringWidth(sitBut.getLabel());
+                sitW = 24 * displayScale + fm.stringWidth(sitBut.getText());
             }
 
-            sitBut.setBounds((dim.width - sitW) / 2, (dim.height - 82) / 2, sitW, 40);
-            pname.setAlignment(Label.CENTER);
+            sitBut.setBounds((dim.width - sitW) / 2, (dim.height - (55 * displayScale)) / 2, sitW, 40 * displayScale);
+                // slightly above center: when truly centered, looks too low
+            pname.setHorizontalAlignment(SwingConstants.CENTER);
             pname.setBounds(inset, inset, dim.width - (2*inset), lineH);
         }
         else
         {
-            final int faceW = 40;  // face icon width
+            final int faceW = 40 * displayScale;  // face icon width
             final int pnameW = dim.width - (inset + faceW + inset + inset);  // player name width, to right of face
+            final int sqSize = ColorSquare.WIDTH * displayScale;
 
             // Top of panel: Face icon, player name to right (left-aligned)
-            faceImg.setBounds(inset, inset, faceW, faceW);
-            pname.setAlignment(Label.LEFT);
+            // (faceImg is already positioned)
+            pname.setHorizontalAlignment(SwingConstants.LEFT);
             pname.setBounds(inset + faceW + inset, inset, pnameW, lineH);
 
             // To right of face, below player name:
@@ -3473,9 +3510,9 @@ public class SOCHandPanel extends Panel
                 // Bug in stringWidth does not give correct size for ' ' in some versions
             int y = inset + lineH + 2*space;
             vpLab.setBounds(inset + faceW + inset, y, vpW, lineH);
-            vpSq.setBounds(inset + faceW + inset + vpW + space, y, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+            vpSq.setLocation(inset + faceW + inset + vpW + space, y);
 
-            final int topStuffW = inset + faceW + inset + vpW + space + ColorSquare.WIDTH + space;
+            final int topStuffW = inset + faceW + inset + vpW + space + sqSize + space;
 
             // always position these: though they may not be visible
             larmyLab.setBounds(topStuffW, y, (dim.width - (topStuffW + inset + space)) / 2, lineH);
@@ -3487,13 +3524,13 @@ public class SOCHandPanel extends Panel
             {
                 y += (lineH + 1);
                 svpLab.setBounds(inset + faceW + inset, y, vpW, lineH);
-                svpSq.setBounds(inset + faceW + inset + vpW + space, y, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                svpSq.setLocation(inset + faceW + inset + vpW + space, y);
 
                 if (wonderLab != null)
                 {
                     // SC_WOND: Show Wonder Level next to svpSq.
                     // Since SC_WOND requires game.hasSeaBoard, svpSq != null for SC_WOND.
-                    final int x = svpSq.getX() + ColorSquare.WIDTH + space;
+                    final int x = svpSq.getX() + sqSize + space;
                     wonderLab.setBounds(x, y, dim.width - x - space, lineH);
                 }
             }
@@ -3520,10 +3557,10 @@ public class SOCHandPanel extends Panel
                 final int sheepW;  // width of longest localized string clay/sheep/ore/wheat/wood
                 {
                     int wmax = 0;
-                    final Label[] rLabs = { clayLab, oreLab, sheepLab, wheatLab, woodLab };
+                    final JLabel[] rLabs = { clayLab, oreLab, sheepLab, wheatLab, woodLab };
                     for (int i = 0; i < rLabs.length; ++i)
                     {
-                        final Label rl = rLabs[i];
+                        final JLabel rl = rLabs[i];
                         if (rl != null)
                         {
                             final String txt = rl.getText();
@@ -3540,11 +3577,11 @@ public class SOCHandPanel extends Panel
 
                     sheepW = wmax + labelspc;
                 }
-                final int pcW = fm.stringWidth(CARD.replace(' ','_'));  // Bug in stringWidth
+                final int pcW = 10 * displayScale + fm.stringWidth(CARD.replace(' ','_'));  // Play Card; bug in stringWidth(" ")
                 final int giveW;  // width of trading Give/Get labels
                 {
                     final int gv = fm.stringWidth(GIVE), gt = fm.stringWidth(GET);
-                    giveW = ((gv > gt) ? gv : gt) + labelspc + 2;
+                    giveW = ((gv > gt) ? gv : gt) + labelspc + 2 * displayScale;
                 }
                 // int clearW = fm.stringWidth(CLEAR.replace(' ','_'));
                 // int bankW = fm.stringWidth(BANK.replace(' ','_'));
@@ -3555,7 +3592,8 @@ public class SOCHandPanel extends Panel
                 final int devCardsY = tradeY + tradeH + sectionSpace;  // top of dev card list
 
                 // Always reposition everything
-                startBut.setBounds(inset + faceW + inset, inset + lineH + space, dim.width - (inset + faceW + inset + inset), lineH);
+                startBut.setBounds
+                    (inset + faceW + inset, inset + lineH + space, dim.width - (inset + faceW + inset + inset), lineH);
 
                 // Below face, player name, VP count, etc:
                 // Section spacer, then:
@@ -3563,7 +3601,7 @@ public class SOCHandPanel extends Panel
 
                 // Trading: Give,Get labels to left of SquaresPanel
                 giveLab.setBounds(inset, tradeY, giveW, lineH);
-                getLab.setBounds(inset, tradeY + ColorSquareLarger.HEIGHT_L, giveW, lineH);
+                getLab.setBounds(inset, tradeY + ColorSquareLarger.HEIGHT_L * displayScale, giveW, lineH);
                 sqPanel.setLocation(inset + giveW + space, tradeY);
 
                 // Button rows Below SquaresPanel:
@@ -3579,7 +3617,7 @@ public class SOCHandPanel extends Panel
                     if (game.maxPlayers == 4)
                         offerBut.setBounds(tbX, tbY, tbW, lineH);
                     else  // 6-player: leave room for 5 checkboxes
-                        offerBut.setBounds(tbX, tbY, (2 * tbW) + space - (5 * (1 + ColorSquare.WIDTH)), lineH);
+                        offerBut.setBounds(tbX, tbY, (2 * tbW) + space - (5 * (1 + sqSize)), lineH);
                 }
                 clearOfferBut.setBounds(tbX, tbY + lineH + space, tbW, lineH);
                 bankBut.setBounds(tbX + tbW + space, tbY + lineH + space, tbW, lineH);
@@ -3590,14 +3628,14 @@ public class SOCHandPanel extends Panel
                     // Checkboxes to select players to send trade offers
                     if (game.maxPlayers == 4)
                     {
-                        playerSend[0].setBounds(tbX + tbW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                        playerSend[1].setBounds(tbX + tbW + space + ((tbW - ColorSquare.WIDTH) / 2), tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                        playerSend[2].setBounds((tbX + tbW + space + tbW) - ColorSquare.WIDTH, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                        playerSend[0].setLocation(tbX + tbW + space, tbY);
+                        playerSend[1].setLocation(tbX + tbW + space + ((tbW - sqSize) / 2), tbY);
+                        playerSend[2].setLocation((tbX + tbW + space + tbW) - sqSize, tbY);
                     } else {
                         // 6-player: 5 checkboxes
-                        int px = tbX + (2 * (space + tbW)) - ColorSquare.WIDTH - 1;
-                        for (int pi = 4; pi >=0; --pi, px -= (ColorSquare.WIDTH + 1))
-                            playerSend[pi].setBounds(px, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                        int px = tbX + (2 * (space + tbW)) - sqSize - 1;
+                        for (int pi = 4; pi >=0; --pi, px -= (sqSize + 1))
+                            playerSend[pi].setLocation(px, tbY);
                     }
                 }
 
@@ -3617,8 +3655,9 @@ public class SOCHandPanel extends Panel
                     wmax += 2;  // +2 because Label text is inset from column 0
 
                     // make sure not more than half panel width
-                    if (wmax > ((dim.width - ColorSquare.WIDTH - 8) / 2))
-                        wmax = (dim.width - ColorSquare.WIDTH - 8) / 2;
+                    int wHalf = (dim.width - sqSize - (8 * displayScale)) / 2;
+                    if (wmax > wHalf)
+                        wmax = wHalf;
 
                     knightsW = wmax;
                 }
@@ -3626,21 +3665,21 @@ public class SOCHandPanel extends Panel
                 // Various item counts, to the right of give/get/offer/trade area
                 if (clothSq != null)
                 {
-                    clothLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY - (lineH + space), knightsW, lineH);
-                    clothSq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY - (lineH + space), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                    clothLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY - (lineH + space), knightsW, lineH);
+                    clothSq.setLocation(dim.width - inset - sqSize, tradeY - (lineH + space));
                 }
-                knightsLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY, knightsW, lineH);
-                knightsSq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                roadLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY + lineH + space, knightsW, lineH);
-                roadSq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY + lineH + space, ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                settlementLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY + (2 * (lineH + space)), knightsW, lineH);
-                settlementSq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY + (2 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                cityLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY + (3 * (lineH + space)), knightsW, lineH);
-                citySq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY + (3 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                knightsLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY, knightsW, lineH);
+                knightsSq.setLocation(dim.width - inset - sqSize, tradeY);
+                roadLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY + lineH + space, knightsW, lineH);
+                roadSq.setLocation(dim.width - inset - sqSize, tradeY + lineH + space);
+                settlementLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY + (2 * (lineH + space)), knightsW, lineH);
+                settlementSq.setLocation(dim.width - inset - sqSize, tradeY + (2 * (lineH + space)));
+                cityLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY + (3 * (lineH + space)), knightsW, lineH);
+                citySq.setLocation(dim.width - inset - sqSize, tradeY + (3 * (lineH + space)));
                 if (shipSq != null)
                 {
-                    shipLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY + (4 * (lineH + space)), knightsW, lineH);
-                    shipSq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY + (4 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                    shipLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY + (4 * (lineH + space)), knightsW, lineH);
+                    shipSq.setLocation(dim.width - inset - sqSize, tradeY + (4 * (lineH + space)));
                 }
 
                 // Player's resource counts
@@ -3648,40 +3687,41 @@ public class SOCHandPanel extends Panel
                 tbY = (((dim.height - lineH - inset) + (tbY + (2 * lineH) + space)) / 2)
                   - (3 * (lineH + space));
                 clayLab.setBounds(inset, tbY, sheepW, lineH);
-                claySq.setBounds(inset + sheepW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                claySq.setLocation(inset + sheepW + space, tbY);
                 tbY += (lineH + space);
                 oreLab.setBounds(inset, tbY, sheepW, lineH);
-                oreSq.setBounds(inset + sheepW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                oreSq.setLocation(inset + sheepW + space, tbY);
                 tbY += (lineH + space);
                 sheepLab.setBounds(inset, tbY, sheepW, lineH);
-                sheepSq.setBounds(inset + sheepW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                sheepSq.setLocation(inset + sheepW + space, tbY);
                 tbY += (lineH + space);
                 wheatLab.setBounds(inset, tbY, sheepW, lineH);
-                wheatSq.setBounds(inset + sheepW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                wheatSq.setLocation(inset + sheepW + space, tbY);
                 tbY += (lineH + space);
                 woodLab.setBounds(inset, tbY, sheepW, lineH);
-                woodSq.setBounds(inset + sheepW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                woodSq.setLocation(inset + sheepW + space, tbY);
                 // Line between woodSq, resourceSq
                 tbY += (lineH + space);
-                resourceSqDivLine.setBounds(inset + space, tbY - 1, sheepW + ColorSquare.WIDTH, 1);
+                resourceSqDivLine.setBounds(inset + space, tbY - displayScale, sheepW + sqSize, displayScale);
                 // Total Resources
                 ++tbY;
                 resourceLab.setBounds(inset, tbY, sheepW, lineH);
-                resourceSq.setBounds(inset + sheepW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                resourceSq.setLocation(inset + sheepW + space, tbY);
 
                 // To the right of resource counts:
                 // Development Card list, Play button below
-                final int clW = dim.width - (inset + sheepW + space + ColorSquare.WIDTH + (4 * space) + inset);
-                final int clX = inset + sheepW + space + ColorSquare.WIDTH + (4 * space);
-                inventory.setBounds(clX, devCardsY, clW, (4 * (lineH + space)) - 2);
+                final int clW = dim.width - (inset + sheepW + space + sqSize + (4 * space) + inset);
+                final int clX = inset + sheepW + space + sqSize + (4 * space);
+                inventoryScroll.setBounds(clX, devCardsY, clW, (4 * (lineH + space)) - 2 * displayScale);
                 playCardBut.setBounds(((clW - pcW) / 2) + clX, devCardsY + (4 * (lineH + space)), pcW, lineH);
 
                 // Bottom of panel:
                 // 1 button row: Quit to left; Roll, Restart to right
-                final int bbW = 50;
+                final int bbW = 50 * displayScale;
                 tbY = dim.height - lineH - inset;
                 // Label lines up over Roll button
-                rollPromptCountdownLab.setBounds(dim.width - (bbW + space + bbW + inset), tbY - lineH, dim.width - 2*inset, lineH);
+                rollPromptCountdownLab.setBounds
+                    (dim.width - (bbW + space + bbW + inset), tbY - lineH, dim.width - 2*inset, lineH);
                 // Bottom row of buttons
                 quitBut.setBounds(inset, tbY, bbW, lineH);
                 rollBut.setBounds(dim.width - (bbW + space + bbW + inset), tbY, bbW, lineH);
@@ -3702,8 +3742,10 @@ public class SOCHandPanel extends Panel
                 //   Robot lock button (during play) in bottom center
 
                 int balloonH = dim.height - (inset + (4 * (lineH + space)) + inset);  // offer-message panel
-                if (offer.offerPanel.wantsRejectCountdown())
-                    balloonH += TradeOfferPanel.LABEL_LINE_HEIGHT;
+                offer.setAvailableSpace(dim.width - 2 * inset, balloonH);  // recalc offer.getPreferredSize()
+
+                final boolean wasHidesControls = offerHidesControls;  // if changes here, will call hideTradeMsgShowOthers
+
                 boolean hasTakeoverBut = false, hasSittingRobotLockBut = false;
                 if (player.isRobot())
                 {
@@ -3712,29 +3754,33 @@ public class SOCHandPanel extends Panel
                     // Just above the lower-left, lower-right columns of item counts
 
                     int lowerY = dim.height - ((4 * (lineH + space)) + inset);
-                    int yb = lowerY - 5;
+                    int yb = lowerY - (5 * displayScale);
                     if (game.hasSeaBoard)
                         yb -= (lineH + space);
 
+                    final int pix9 = 9 * displayScale;
                     if (game.getPlayer(client.getNickname()) == null)
                     {
-                        takeOverBut.setBounds(9, yb, dim.width - 18, lineH + space);
+                        takeOverBut.setBounds(pix9, yb, dim.width - 2 * pix9, lineH + space);
                         hasTakeoverBut = true;
                     }
                     else if (sittingRobotLockBut.isVisible())
                     {
-                        sittingRobotLockBut.setBounds(9, yb, dim.width - 18, lineH + space);
+                        sittingRobotLockBut.setBounds(pix9, yb, dim.width - 2 * pix9, lineH + space);
                         hasSittingRobotLockBut = true;
                     }
                 }
 
                 // Are we tall enough for room, after the offer, for other controls?
                 // If not, they will be hid when offer is visible.
-                int offerMinHeight =
-                    TradeOfferPanel.OFFER_HEIGHT + TradeOfferPanel.OFFER_COUNTER_HEIGHT
-                    - TradeOfferPanel.OFFER_BUTTONS_HEIGHT;
+                final Dimension offerPrefSize = offer.getPreferredSize();
+                int offerMinHeight = offer.isCounterOfferMode()
+                    ? (TradeOfferPanel.OFFER_HEIGHT + TradeOfferPanel.OFFER_COUNTER_HEIGHT
+                       - TradeOfferPanel.OFFER_BUTTONS_ADDED_HEIGHT)
+                    : TradeOfferPanel.OFFER_HEIGHT;
                 if (offer.offerPanel.wantsRejectCountdown())
                     offerMinHeight += TradeOfferPanel.LABEL_LINE_HEIGHT;
+                offerMinHeight *= displayScale;
                 final int numBottomLines = (hasTakeoverBut || hasSittingRobotLockBut) ? 5 : 4;
                 offerHidesControls = offerHidingControls
                     || ((dim.height - (inset + faceW + space) - (numBottomLines * (lineH + space))) < offerMinHeight);
@@ -3745,22 +3791,27 @@ public class SOCHandPanel extends Panel
                     offerCounterHidesFace =
                         (dim.height - offerMinHeight) < faceW;
 
+                    final int offerW = Math.min(dim.width - (2 * inset), offerPrefSize.width);
+
                     // This is a dynamic flag, set by hideTradeMsgShowOthers
                     // when the user clicks button to show/hide the counter-offer.
                     // If true now, hideTradeMsgShowOthers has already hid faceImg,
                     // pname, vpLab and vpSq, to make room for it.
                     if (offerCounterHidingFace)
                     {
-                        offer.setBounds(inset, inset, dim.width - (2 * inset), dim.height - (2 * inset));
+                        offer.setBounds
+                            (inset, inset, offerW, Math.min(dim.height - (2 * inset), offerPrefSize.height));
                     } else {
-                        offer.setBounds(inset, inset + faceW + space, dim.width - (2 * inset), dim.height - (inset + faceW + 2 * space));
+                        offer.setBounds
+                            (inset, inset + faceW + space, offerW,
+                             Math.min(dim.height - (inset + faceW + 2 * space), offerPrefSize.height));
                     }
                     offer.setCounterHidesBalloonPoint(offerCounterHidingFace);
                 } else {
-                    offer.setBounds(inset, inset + faceW + space, dim.width - (2 * inset), balloonH);
+                    offer.setBounds(inset, inset + faceW + space, offerPrefSize.width, offerPrefSize.height);
                     offerCounterHidesFace = false;
                 }
-                offer.doLayout();
+                offer.validate();
 
                 // Calc stlmtsW, dcardsW minimum widths needed from label texts
                 final int stlmtsW;
@@ -3776,11 +3827,12 @@ public class SOCHandPanel extends Panel
                             wmax = w;
                     }
 
-                    wmax += 10;  // for inset before and spacing after label
+                    wmax += 10 * displayScale;  // for inset before and spacing after label
 
                     // make sure not more than half panel width
-                    if (wmax > ((dim.width - ColorSquare.WIDTH - 8) / 2))
-                        wmax = (dim.width - ColorSquare.WIDTH - 8) / 2;
+                    int wHalf = (dim.width - sqSize - (8 * displayScale)) / 2;
+                    if (wmax > wHalf)
+                        wmax = wHalf;
 
                     stlmtsW = wmax;
                 }
@@ -3808,8 +3860,9 @@ public class SOCHandPanel extends Panel
                     wmax += 2;  // for insets within label
 
                     // make sure not more than half panel width
-                    if (wmax > ((dim.width - ColorSquare.WIDTH - 8) / 2))
-                        wmax = (dim.width - ColorSquare.WIDTH - 8) / 2;
+                    int wHalf = (dim.width - sqSize - (8 * displayScale)) / 2;
+                    if (wmax > wHalf)
+                        wmax = wHalf;
 
                     dcardsW = wmax;
                 }
@@ -3819,30 +3872,33 @@ public class SOCHandPanel extends Panel
                 // Lower-left: Column of item counts:
                 // Cloth, Soldiers, Resources, Dev Cards
                 resourceLab.setBounds(inset, lowerY + (2 * (lineH + space)), dcardsW, lineH);
-                resourceSq.setBounds(inset + dcardsW + space, lowerY + (2 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                resourceSq.setLocation(inset + dcardsW + space, lowerY + (2 * (lineH + space)));
                 developmentLab.setBounds(inset, lowerY + (3 * (lineH + space)), dcardsW, lineH);
-                developmentSq.setBounds(inset + dcardsW + space, lowerY + (3 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                developmentSq.setLocation(inset + dcardsW + space, lowerY + (3 * (lineH + space)));
                 knightsLab.setBounds(inset, lowerY + (lineH + space), dcardsW, lineH);
-                knightsSq.setBounds(inset + dcardsW + space, lowerY + (lineH + space), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                knightsSq.setLocation(inset + dcardsW + space, lowerY + (lineH + space));
                 if (clothSq != null)
                 {
                     clothLab.setBounds(inset, lowerY, dcardsW, lineH);
-                    clothSq.setBounds(inset + dcardsW + space, lowerY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                    clothSq.setLocation(inset + dcardsW + space, lowerY);
                 }
 
                 // Lower-right: Column of piece counts:
                 // Ships, Roads, Settlements, Cities
                 if (shipSq != null)
                 {
-                    shipLab.setBounds(dim.width - inset - stlmtsW - ColorSquare.WIDTH - space, lowerY, stlmtsW, lineH);
-                    shipSq.setBounds(dim.width - inset - ColorSquare.WIDTH, lowerY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                    shipLab.setBounds(dim.width - inset - stlmtsW - sqSize - space, lowerY, stlmtsW, lineH);
+                    shipSq.setLocation(dim.width - inset - sqSize, lowerY);
                 }
-                roadLab.setBounds(dim.width - inset - stlmtsW - ColorSquare.WIDTH - space, lowerY + (lineH + space), stlmtsW, lineH);
-                roadSq.setBounds(dim.width - inset - ColorSquare.WIDTH, lowerY + (lineH + space), ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                settlementLab.setBounds(dim.width - inset - stlmtsW - ColorSquare.WIDTH - space, lowerY + (2 * (lineH + space)), stlmtsW, lineH);
-                settlementSq.setBounds(dim.width - inset - ColorSquare.WIDTH, lowerY + (2 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                cityLab.setBounds(dim.width - inset - stlmtsW - ColorSquare.WIDTH - space, lowerY + (3 * (lineH + space)), stlmtsW, lineH);
-                citySq.setBounds(dim.width - inset - ColorSquare.WIDTH, lowerY + (3 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                roadLab.setBounds(dim.width - inset - stlmtsW - sqSize - space, lowerY + (lineH + space), stlmtsW, lineH);
+                roadSq.setLocation(dim.width - inset - sqSize, lowerY + (lineH + space));
+                settlementLab.setBounds(dim.width - inset - stlmtsW - sqSize - space, lowerY + (2 * (lineH + space)), stlmtsW, lineH);
+                settlementSq.setLocation(dim.width - inset - sqSize, lowerY + (2 * (lineH + space)));
+                cityLab.setBounds(dim.width - inset - stlmtsW - sqSize - space, lowerY + (3 * (lineH + space)), stlmtsW, lineH);
+                citySq.setLocation(dim.width - inset - sqSize, lowerY + (3 * (lineH + space)));
+
+                if (wasHidesControls != offerHidesControls)
+                    hideTradeMsgShowOthers(false);
             }
         }
     }
@@ -4021,7 +4077,7 @@ public class SOCHandPanel extends Panel
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 1.1.00
      */
-    /* package-access */ static abstract class ResourceTradePopupMenu extends PopupMenu
+    /*package*/ abstract static class ResourceTradePopupMenu extends PopupMenu
     {
         protected SOCHandPanel hpan;
 

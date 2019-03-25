@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2017,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,10 +20,12 @@
  **/
 package soc.client;
 
-import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.LayoutManager;
+
+import javax.swing.JPanel;
 
 
 /**
@@ -33,10 +35,10 @@ import java.awt.Graphics;
  * @author Robert S. Thomas
  */
 @SuppressWarnings("serial")
-public class ShadowedBox extends Canvas
+/*package*/ class ShadowedBox extends JPanel
 {
     /**
-     * Size of the shadow, in pixels.
+     * Size of the shadow, in pixels. Not scaled by {@code displayScale}.
      * @since 1.1.08
      */
     public static final int SHADOW_SIZE = 5;
@@ -46,19 +48,45 @@ public class ShadowedBox extends Canvas
     Color interior;
 
     /**
-     * constructor
-     *
-     * @param bg  the background color of the panel
-     * @param interior  the color of the box interior
+     * For high-DPI displays, what scaling factor to use? Unscaled is 1.
+     * @since 2.0.00
      */
-    public ShadowedBox(Color bg, Color interior)
+    private final int displayScale;
+
+    /**
+     * Constructor. Sets a small default size and assumes a layout manager will soon change that size.
+     *
+     * @param bg  the background color beyond edges of the panel
+     * @param interior  the color of the box interior, or {@code null} to use system defaults
+     *     from {@link SwingMainDisplay#getForegroundBackgroundColors(boolean, boolean)}
+     * @param displayScale  For high-DPI displays, what scaling factor to use? Unscaled is 1.
+     * @param lm  LayoutManager to use, or {@code null}
+     */
+    public ShadowedBox(Color bg, Color interior, final int displayScale, LayoutManager lm)
     {
-        super();
+        super(lm);
         height = 50;
         width = 50;
-        setBackground(bg);
-        setForeground(Color.black);
-        this.interior = interior;
+        this.displayScale = displayScale;
+
+        if (interior != null)
+        {
+            setBackground(bg);
+            setForeground(Color.black);
+            this.interior = interior;
+        } else {
+            final Color[] sysColors = SwingMainDisplay.getForegroundBackgroundColors(false, true);
+            interior = sysColors[2];
+            setBackground(interior);
+            setForeground(sysColors[0]);
+            this.interior = interior;
+        }
+
+        // nonzero size helps when adding to a JPanel
+        Dimension initSize = new Dimension(width, height);
+        setSize(initSize);
+        setMinimumSize(initSize);
+        setPreferredSize(initSize);
     }
 
     public void setInterior(Color interior)
@@ -87,27 +115,33 @@ public class ShadowedBox extends Canvas
         return new Dimension(width, height);
     }
 
+    // TODO To help TradeOfferPanel doLayout, actually set insets and paint here as a custom Border
+
     /**
      * Draw this ShadowedBox.
      *
      * @param g Graphics
      */
-    public void paint(Graphics g)
+    public void paintComponent(Graphics g)
     {
         Dimension dim = getSize();
-        int h = dim.height;
-        int w = dim.width;
-        final int xm = SHADOW_SIZE;
-        final int ym = SHADOW_SIZE;
+        final int h = dim.height;
+        final int w = dim.width;
+        final int xm = SHADOW_SIZE * displayScale;
+        final int ym = SHADOW_SIZE * displayScale;
 
         g.setPaintMode();
+        g.setColor(getBackground());
+        g.fillRect(0, 0, w, h);
+
         g.setColor(interior);
         g.fillRect(0, 0, w - xm, h - ym);
         g.setColor(Color.black);
         g.drawRect(0, 0, w - xm, h - ym);
 
         // Draw the shadow
-        g.fillRect(ym, h - xm, w, h - 1);
-        g.fillRect(w - ym, xm, w - 1, h);
+        g.fillRect(ym, h - xm, w, h - 1);  // bottom
+        g.fillRect(w - ym, xm, w - 1, h);  // right
     }
+
 }

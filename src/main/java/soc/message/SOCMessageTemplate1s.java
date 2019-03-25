@@ -156,6 +156,6 @@ public abstract class SOCMessageTemplate1s extends SOCMessage
      */
     public String toString()
     {
-        return getClassNameShort() + ":game=" + game + "|param=" + p1;
+        return getClass().getSimpleName() + ":game=" + game + "|param=" + p1;
     }
 }

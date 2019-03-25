@@ -30,7 +30,7 @@ import java.awt.Frame;
  * @author Jeremy D Monin <jeremy@nand.net>
  */
 @SuppressWarnings("serial")
-class SOCQuitAllConfirmDialog extends AskDialog
+/*package*/class SOCQuitAllConfirmDialog extends AskDialog
 {
     /** i18n text strings; will use same locale as SOCPlayerClient's string manager.
      *  @since 2.0.00 */
@@ -44,35 +44,35 @@ class SOCQuitAllConfirmDialog extends AskDialog
      *<P>
      * Assumes currently running on AWT event thread.
      *
-     * @param cli      Player client interface
+     * @param md  Player client's main display
      * @param gamePIOrSelf   An active game's player interface, or the client's Frame
      *                 if we're hosting a local server but not actively playing
      * @throws IllegalArgumentException If cli or gameOrSelf is null
      */
-    public static void createAndShow(SOCPlayerClient.GameDisplay cli, Frame gamePIOrSelf)
+    public static void createAndShow(MainDisplay md, Frame gamePIOrSelf)
         throws IllegalArgumentException
     {
-        if ((cli == null) || (gamePIOrSelf == null))
+        if ((md == null) || (gamePIOrSelf == null))
             throw new IllegalArgumentException("no nulls");
 
-        boolean hasAny = cli.getClient().getNet().anyHostedActiveGames();
-        SOCQuitAllConfirmDialog qcd = new SOCQuitAllConfirmDialog(cli, gamePIOrSelf, hasAny);
+        boolean hasAny = md.getClient().getNet().anyHostedActiveGames();
+        SOCQuitAllConfirmDialog qcd = new SOCQuitAllConfirmDialog(md, gamePIOrSelf, hasAny);
         qcd.setVisible(true);
     }
 
     /**
      * Creates a new SOCQuitAllConfirmDialog.
      *
-     * @param cli      Player client interface
+     * @param md  Player client's main display
      * @param gamePIOrSelf   An active game's player interface, or the client's Frame
      *                 if we're hosting a local server but not actively playing.
      *                 Showing the dialog will make this frame topmost if possible, then appear over it.
      * @param hostedServerActive Is client hosting a local server with games active?
-     *                 Call {@link SOCPlayerClient.ClientNetwork#anyHostedActiveGames()} to determine.
+     *                 Caller should use {@link ClientNetwork#anyHostedActiveGames()} to determine.
      */
-    protected SOCQuitAllConfirmDialog(SOCPlayerClient.GameDisplay cli, Frame gamePIOrSelf, boolean hostedServerActive)
+    protected SOCQuitAllConfirmDialog(MainDisplay md, Frame gamePIOrSelf, boolean hostedServerActive)
     {
-        super(cli, gamePIOrSelf,
+        super(md, gamePIOrSelf,
             strings.get(hostedServerActive ? "dialog.quitall.shut.srv" : "dialog.quitall.really"),
                 // "Shut down game server?" / "Really quit all games?"
             strings.get("dialog.quitall.still.active"),  // "One or more games are still active."
@@ -92,7 +92,7 @@ class SOCQuitAllConfirmDialog extends AskDialog
     @Override
     public void button1Chosen()
     {
-        pcli.getClient().getNet().putLeaveAll();
+        md.getClient().getNet().putLeaveAll();
         System.exit(0);
     }
 

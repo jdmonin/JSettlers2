@@ -5,9 +5,11 @@ When preparing to release a new version, testing should include:
 ## Quick tests and setup
 
 - Before building the JARs to be tested, `git status` should have no untracked or uncommitted changes
-    - The `dist-src` build target also checks this
-- `gradle test` runs without failures
-- Automated tests in build.xml `test` target
+    - Running `gradle distCheckSrcDirty` also checks that, listing any files with such changes
+- `gradle clean test` runs without failures
+- These should print the expected version and build number:
+    - `java -jar build/libs/JSettlers-2.*.jar --version`
+    - `java -jar build/libs/JSettlersServer-2.*.jar --version`
 - Message Traffic debug prints during all tests, to help debugging if needed:  
   Run server and clients with JVM property `-Djsettlers.debug.traffic=Y`
 
@@ -195,6 +197,14 @@ When preparing to release a new version, testing should include:
 - Command line and jsserver.properties
     - Server and client: `-h` / `--help` / `-?`, `--version`
     - Server: Unknown args `-x -z` should print both, then not continue startup
+    - Server: Automated test for various argument/property combinations, in a terminal or command prompt:
+
+          cd src/extraTest/python/server
+          python test_startup_params.py
+
+      The test script should run for about two minutes, and end without errors:  
+      `Ran 1 test in `_(number)_`s`  
+      `OK`
     - Start client w/ no args, start client with host & port on command line
     - Game option defaults on command line, in `jsserver.properties`: `-oVP=t11 -oN7=t5 -oRD=y`
     - Server prop for no chat channels (`jsettlers.client.maxcreatechannels=0`):  
@@ -259,44 +269,65 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
 - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
 - Leave a non-practice game idle for hours; should warn 10-15 minutes before 2-hour limit,
   should let you add time in 30-minute intervals up to original limit + 30 minutes remaining
+- Robot stability:
+    - This test can be started and run in the background.
+    - At a command line, start and run a server with 100 robot-only games:  
+      `java -jar JSettlersServer-2.0.00.jar -Djsettlers.bots.botgames.total=100 -Djsettlers.bots.botgames.parallel=20 -Djsettlers.bots.fast_pause_percent=5 -Djsettlers.bots.botgames.shutdown=Y 8118 15`
+    - To optionally see progress, connect to port 8118 with a client. Game numbers start at 100 and count down.
+    - These games should complete in under 10 minutes
+    - Once the games complete, that server will exit
+    - Scroll through its output looking for exceptions
+        - "force end turn" output, and occasional bad placements or bank trades, are expected and OK
+        - If any exceptions occur: Debug, triage, document or correct them
 - Board layout generator stability:
     - This is a scripted test to set up, start, and run in the background.
     - The board layout generator is complicated, to flexibly handle the sea scenario layouts.
       This test ensures it won't hang, time out, or crash while making a new board or resetting a board,
-      by repeatedly running a unit test and collecting any failure output for debugging.
-    - Locate where `junit.jar` and its dependency `hamcrest.core.jar` are on your system
-         - Their filenames might contain version numbers
-         - They may be within the IDE install, or the gradle cache
-         - Note the full path to each one, like `/Applications/eclipse/plugins/org.hamcrest.core_1.1.0.v20090501071000.jar`
-    - Open a bash shell
-    - `cd` to the git repo's root directory (containing src, test, build, and other subdirs)
-    - `gradle build`    # generate test classes
-    - Set up a CLASSPATH which has junit, hamcrest.core, and the built jsettlers classes. Example:  
-      `export CLASSPATH="/Applications/eclipse/plugins/org.junit_4.10.0.v4_10_0_v20120426-0900/junit.jar:/Applications/eclipse/plugins/org.hamcrest.core_1.1.0.v20090501071000.jar:./build/classes/main:./build/classes/test"`
-    - Loop for at least 2500 iterations of `soctest.game.TestBoardLayouts`:
+      by running a couple thousand rounds of a unit test.
+    - Run as:  
+      `gradle extraTest -D 'test.single=*TestBoardLayouts*' -x :extraTestPython`
 
-            rm -f /tmp/jsettlers-testout.txt
-            fails=0; echo "" > /tmp/jsettlers-testboardlayouts-fails.txt
-            for (( i=0; i<2500; ++i)); do
-              /bin/echo -n "$i "
-              if ! java soctest.game.TestBoardLayouts >/tmp/jsettlers-testout.txt ; then
-                fails=$((fails+1))
-                cat /tmp/jsettlers-testout.txt >> /tmp/jsettlers-testboardlayouts-fails.txt
-              fi
-            done; echo "-> Failure count: $fails"
+      When run in this mode, each round of TestBoardLayouts performs extra checks of the layout structure.
+      If any layout failures occur, that's a bug to be triaged or corrected before release.
+- Build contents and built artifacts
+    - Diff list of files from `gradle dist` outputs in `build/distributions/`:
+        - `unzip -t jsettlers-2.*-full.zip | sort`
+        - `tar tzf jsettlers-2.*-full.tar.gz | sort` (same files as above)
+        - `tar tzf jsettlers-2.*-src.tar.gz | sort` (same but without *.jar)
+    - Diff that list of files against previously released version's `full.tar.gz`
+        - Make sure any missing/moved/removed files are deliberate (from refactoring, etc)
+    - In a temp dir, do a fresh git checkout and compare contents:  
+      Example if using `bash`:
 
-    - If any failures occur, debug using the contents of `/tmp/jsettlers-testboardlayouts-fails.txt`
+            cd my_project_top_level_dir  # containing src, doc, etc
+            MYTOPDIR=$(pwd)
+            cd /tmp && mkdir jt && cd jt
+            git clone https://github.com/jdmonin/JSettlers2.git
+            cd JSettlers2
+            X_IGNORES="-x .git -x build -x target -x tmp"
+			diff -ur $X_IGNORES . "$MYTOPDIR" | grep ^Only  # check for missing/extra files
+            diff -ur $X_IGNORES . "$MYTOPDIR"  # check for uncommitted or unpushed changes
+            cd .. && rm -rf JSettlers2
+            cd .. && rmdir jt
+
 
 ## Platform-specific
 
-On most recent and less-recent OSX and Windows; oldest JRE (1.7) and a new JRE:
+On most recent and less-recent OSX and Windows; oldest JRE (java 7) and a new JRE:
 
 - Keyboard shortcuts including game-reset dialog's esc/enter keys, FaceChooserFrame arrow keys
 - Sound, including 2 clients in same game for overlapping piece-place sound
 - Start or join networked game
 - Graphics, including scaling and antialiasing after window resize
+- High-DPI support: Test layout and font appearance
+    - Run as usual (auto-detect resolution) on a low-DPI and a high-DPI display if available
+    - Override runs, using jvm property `-Djsettlers.uiScale=1` and again using `-Djsettlers.uiScale=2`
 - Persistent user prefs (sound, auto-reject bot offer, window size)  
-  Then, re-run to check default size with `-Djsettlers.debug.clear_prefs=PI_width,PI_height`
+  Then, re-run to check default size with jvm property `-Djsettlers.debug.clear_prefs=PI_width,PI_height`
+- Accessibility/High-Contrast mode
+    - Test debug jvm property `-Djsettlers.uiContrastMode=light`
+    - On Windows, test high-contrast dark and light themes, and high-contrast accessibility mode
+    - On Windows, test debug jvm property `-Djsettlers.uiContrastMode=dark` while using a dark theme
 - SQLite database setup, from instructions in [Database.md](Database.md)
 
 ## Instructions and Setup

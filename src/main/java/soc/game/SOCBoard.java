@@ -39,7 +39,7 @@ import java.util.Vector;
  * has some internal comments on structures, coordinates, layout and values.
  *<P>
  * Because some game variants may need different board layouts or features,
- * you will need a subclass of SOCBoard: Use
+ * you will need a subclass of SOCBoard like {@link SOCBoardLarge}: Use
  * {@link SOCBoard.BoardFactory#createBoard(Map, int)}
  * whenever you need to construct a new SOCBoard.
  *<P>
@@ -268,6 +268,20 @@ public abstract class SOCBoard implements Serializable, Cloneable
      */
     public static final int FACING_NE = 1, FACING_E = 2, FACING_SE = 3,
         FACING_SW = 4, FACING_W = 5, FACING_NW = 6;
+
+    /**
+     * "Visual" width of original 4-player board, including ring of port hexes, in half-hex coordinate units.
+     * The original board uses a non-orthogonal coordinate system; see {@link #BOARD_ENCODING_ORIGINAL}.
+     * @since 2.0.00
+     */
+    public static final int WIDTH_VISUAL_ORIGINAL = 13;
+
+    /**
+     * "Visual" height of original 4-player board, including ring of port hexes, in half-hex coordinate units.
+     * The original board uses a non-orthogonal coordinate system; see {@link #BOARD_ENCODING_ORIGINAL}.
+     * @since 2.0.00
+     */
+    public static final int HEIGHT_VISUAL_ORIGINAL = 14;
 
     /**
      * Board Encoding fields begin here
@@ -783,31 +797,31 @@ public abstract class SOCBoard implements Serializable, Cloneable
         if (is6player)
         {
             for (i = 0x07; i <= 0x6D; i += 0x11)
-                nodesOnLand.add(new Integer(i));
+                nodesOnLand.add(Integer.valueOf(i));
         }
 
         for (i = 0x27 - westAdj; i <= 0x8D; i += 0x11)  //  Northernmost horizontal row: each north corner across 3 hexes
-            nodesOnLand.add(new Integer(i));
+            nodesOnLand.add(Integer.valueOf(i));
 
         for (i = 0x25 - westAdj; i <= 0xAD; i += 0x11)  // Next: each north corner of row of 4 / south corner of the northernmost 3 hexes
-            nodesOnLand.add(new Integer(i));
+            nodesOnLand.add(Integer.valueOf(i));
 
         for (i = 0x23 - westAdj; i <= 0xCD; i += 0x11)  // Next: north corners of middle row of 5 hexes
-            nodesOnLand.add(new Integer(i));
+            nodesOnLand.add(Integer.valueOf(i));
 
         for (i = 0x32 - westAdj; i <= 0xDC; i += 0x11) // Next: south corners of middle row of 5 hexes
-            nodesOnLand.add(new Integer(i));
+            nodesOnLand.add(Integer.valueOf(i));
 
         for (i = 0x52 - westAdj; i <= 0xDA; i += 0x11)  // South corners of row of 4 / north corners of the southernmost 3 hexes
-            nodesOnLand.add(new Integer(i));
+            nodesOnLand.add(Integer.valueOf(i));
 
         for (i = 0x72 - westAdj; i <= 0xD8; i += 0x11)  // Southernmost horizontal row: each south corner across 3 hexes
-            nodesOnLand.add(new Integer(i));
+            nodesOnLand.add(Integer.valueOf(i));
 
         if (is6player)
         {
             for (i = 0x70; i <= 0xD6; i += 0x11)
-                nodesOnLand.add(new Integer(i));
+                nodesOnLand.add(Integer.valueOf(i));
         }
     }
 
@@ -935,7 +949,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
         //   We're operating on Integer instances, which is okay because
         //   vector methods such as contains() and remove() test obj.equals()
         //   to determine if the Integer is a member.
-        //   (getAdjacent() returns new Integer objs with the same value
+        //   (getAdjacent() returns Integers with the same value
         //    as unvisited's members.)
 
         boolean clumpsNotOK = false;    // will set true in while-loop body
@@ -1163,9 +1177,9 @@ public abstract class SOCBoard implements Serializable, Cloneable
             }
         }
 
-        final Integer node1Int = new Integer(node1),
-                      node2Int = new Integer(node2),
-                      ptypeInt = new Integer(ptype);
+        final Integer node1Int = Integer.valueOf(node1),
+                      node2Int = Integer.valueOf(node2),
+                      ptypeInt = Integer.valueOf(ptype);
 
         nodeIDtoPortType.put(node1Int, ptypeInt);
         nodeIDtoPortType.put(node2Int, ptypeInt);
@@ -1204,52 +1218,52 @@ public abstract class SOCBoard implements Serializable, Cloneable
         if (is6player)
         {
             for (i = 0x07; i <= 0x5C; i += 0x11)
-                legalRoads.add(new Integer(i));
+                legalRoads.add(Integer.valueOf(i));
 
             for (i = 0x06; i <= 0x6C; i += 0x22)
-                legalRoads.add(new Integer(i));
+                legalRoads.add(Integer.valueOf(i));
         }
 
         for (i = 0x27 - westAdj; i <= 0x7C; i += 0x11)
-            legalRoads.add(new Integer(i));
+            legalRoads.add(Integer.valueOf(i));
 
         for (i = 0x26 - westAdj; i <= 0x8C; i += 0x22)
-            legalRoads.add(new Integer(i));
+            legalRoads.add(Integer.valueOf(i));
 
         for (i = 0x25 - westAdj; i <= 0x9C; i += 0x11)
-            legalRoads.add(new Integer(i));
+            legalRoads.add(Integer.valueOf(i));
 
         for (i = 0x24 - westAdj; i <= 0xAC; i += 0x22)
-            legalRoads.add(new Integer(i));
+            legalRoads.add(Integer.valueOf(i));
 
         for (i = 0x23 - westAdj; i <= 0xBC; i += 0x11)
-            legalRoads.add(new Integer(i));
+            legalRoads.add(Integer.valueOf(i));
 
         for (i = 0x22 - westAdj; i <= 0xCC; i += 0x22)
-            legalRoads.add(new Integer(i));
+            legalRoads.add(Integer.valueOf(i));
 
         for (i = 0x32 - westAdj; i <= 0xCB; i += 0x11)
-            legalRoads.add(new Integer(i));
+            legalRoads.add(Integer.valueOf(i));
 
         for (i = 0x42 - westAdj; i <= 0xCA; i += 0x22)
-            legalRoads.add(new Integer(i));
+            legalRoads.add(Integer.valueOf(i));
 
         for (i = 0x52 - westAdj; i <= 0xC9; i += 0x11)
-            legalRoads.add(new Integer(i));
+            legalRoads.add(Integer.valueOf(i));
 
         for (i = 0x62 - westAdj; i <= 0xC8; i += 0x22)
-            legalRoads.add(new Integer(i));
+            legalRoads.add(Integer.valueOf(i));
 
         for (i = 0x72 - westAdj; i <= 0xC7; i += 0x11)
-            legalRoads.add(new Integer(i));
+            legalRoads.add(Integer.valueOf(i));
 
         if (is6player)
         {
             for (i = 0x60; i <= 0xC6; i += 0x22)
-                legalRoads.add(new Integer(i));
+                legalRoads.add(Integer.valueOf(i));
 
             for (i = 0x70; i <= 0xC5; i += 0x11)
-                legalRoads.add(new Integer(i));
+                legalRoads.add(Integer.valueOf(i));
         }
 
         return legalRoads;
@@ -1592,7 +1606,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
         if ((nodeCoord < 0) || (nodeIDtoPortType == null))
             return -1;
 
-        Integer ptype = nodeIDtoPortType.get(new Integer(nodeCoord));
+        Integer ptype = nodeIDtoPortType.get(Integer.valueOf(nodeCoord));
         if (ptype != null)
             return ptype.intValue();
         else
@@ -1854,9 +1868,9 @@ public abstract class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Width of this board in coordinates (not in number of hexes across.)
+     * Width of this board in half-hex coordinate units (not in number of hexes across).
      * The maximum column coordinate.
-     * For the default size, see {@link #BOARD_ENCODING_ORIGINAL}.
+     * For the classic 4-player board, see also {@link #WIDTH_VISUAL_ORIGINAL}.
      * @since 1.1.06
      */
     public int getBoardWidth()
@@ -1865,9 +1879,9 @@ public abstract class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Height of this board in coordinates (not in number of hexes across.)
+     * Height of this board in half-hex coordinate units (not in number of hexes across).
      * The maximum row coordinate.
-     * For the default size, see {@link #BOARD_ENCODING_ORIGINAL}.
+     * For the classic 4-player board, see also {@link #HEIGHT_VISUAL_ORIGINAL}.
      * @since 1.1.06
      */
     public int getBoardHeight()
@@ -1936,9 +1950,9 @@ public abstract class SOCBoard implements Serializable, Cloneable
         Vector<Integer> nodes = new Vector<Integer>(2);
         final int[] narr = getAdjacentNodesToEdge_arr(coord);
         if ((narr[0] >= minNode) && (narr[0] <= MAXNODE))
-            nodes.addElement(new Integer(narr[0]));
+            nodes.addElement(Integer.valueOf(narr[0]));
         if ((narr[1] >= minNode) && (narr[1] <= MAXNODE))
-            nodes.addElement(new Integer(narr[1]));
+            nodes.addElement(Integer.valueOf(narr[1]));
         return nodes;
     }
 
@@ -2015,28 +2029,28 @@ public abstract class SOCBoard implements Serializable, Cloneable
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
-                edges.addElement(new Integer(tmp));
+                edges.addElement(Integer.valueOf(tmp));
             }
 
             tmp = coord + 0x01;
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
-                edges.addElement(new Integer(tmp));
+                edges.addElement(Integer.valueOf(tmp));
             }
 
             tmp = coord + 0x10;
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
-                edges.addElement(new Integer(tmp));
+                edges.addElement(Integer.valueOf(tmp));
             }
 
             tmp = coord - 0x01;
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
-                edges.addElement(new Integer(tmp));
+                edges.addElement(Integer.valueOf(tmp));
             }
         }
 
@@ -2050,28 +2064,28 @@ public abstract class SOCBoard implements Serializable, Cloneable
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
-                edges.addElement(new Integer(tmp));
+                edges.addElement(Integer.valueOf(tmp));
             }
 
             tmp = coord + 0x01;
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
-                edges.addElement(new Integer(tmp));
+                edges.addElement(Integer.valueOf(tmp));
             }
 
             tmp = coord + 0x11;
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
-                edges.addElement(new Integer(tmp));
+                edges.addElement(Integer.valueOf(tmp));
             }
 
             tmp = coord - 0x01;
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
-                edges.addElement(new Integer(tmp));
+                edges.addElement(Integer.valueOf(tmp));
             }
         }
         else
@@ -2084,28 +2098,28 @@ public abstract class SOCBoard implements Serializable, Cloneable
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
-                edges.addElement(new Integer(tmp));
+                edges.addElement(Integer.valueOf(tmp));
             }
 
             tmp = coord + 0x11;
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
-                edges.addElement(new Integer(tmp));
+                edges.addElement(Integer.valueOf(tmp));
             }
 
             tmp = coord + 0x10;
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
-                edges.addElement(new Integer(tmp));
+                edges.addElement(Integer.valueOf(tmp));
             }
 
             tmp = coord - 0x11;
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
-                edges.addElement(new Integer(tmp));
+                edges.addElement(Integer.valueOf(tmp));
             }
         }
 
@@ -2133,21 +2147,21 @@ public abstract class SOCBoard implements Serializable, Cloneable
 
             if ((tmp >= MINHEX) && (tmp <= MAXHEX))
             {
-                hexes.addElement(new Integer(tmp));
+                hexes.addElement(Integer.valueOf(tmp));
             }
 
             tmp = coord + 0x10;
 
             if ((tmp >= MINHEX) && (tmp <= MAXHEX))
             {
-                hexes.addElement(new Integer(tmp));
+                hexes.addElement(Integer.valueOf(tmp));
             }
 
             tmp = coord - 0x12;
 
             if ((tmp >= MINHEX) && (tmp <= MAXHEX))
             {
-                hexes.addElement(new Integer(tmp));
+                hexes.addElement(Integer.valueOf(tmp));
             }
         }
         else
@@ -2160,21 +2174,21 @@ public abstract class SOCBoard implements Serializable, Cloneable
 
             if ((tmp >= MINHEX) && (tmp <= MAXHEX))
             {
-                hexes.addElement(new Integer(tmp));
+                hexes.addElement(Integer.valueOf(tmp));
             }
 
             tmp = coord + 0x01;
 
             if ((tmp >= MINHEX) && (tmp <= MAXHEX))
             {
-                hexes.addElement(new Integer(tmp));
+                hexes.addElement(Integer.valueOf(tmp));
             }
 
             tmp = coord - 0x01;
 
             if ((tmp >= MINHEX) && (tmp <= MAXHEX))
             {
-                hexes.addElement(new Integer(tmp));
+                hexes.addElement(Integer.valueOf(tmp));
             }
         }
 
@@ -2193,7 +2207,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
         int[] edgea = getAdjacentEdgesToNode_arr(coord);
         for (int i = edgea.length - 1; i>=0; --i)
             if (edgea[i] != -9)
-                edges.addElement(new Integer(edgea[i]));
+                edges.addElement(Integer.valueOf(edgea[i]));
         return edges;
     }
 
@@ -2429,7 +2443,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
         int[] nodea = getAdjacentNodesToNode_arr(coord);
         for (int i = nodea.length - 1; i>=0; --i)
             if (nodea[i] != -9)
-                nodes.addElement(new Integer(nodea[i]));
+                nodes.addElement(Integer.valueOf(nodea[i]));
         return nodes;
     }
 
@@ -2737,7 +2751,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
             && (includeWater
                 || ((hexLayout[hexIDtoNum[hexCoord]] <= MAX_LAND_HEX)
                     && (hexLayout[hexIDtoNum[hexCoord]] != WATER_HEX)) ))
-            addTo.addElement(new Integer(hexCoord));
+            addTo.addElement(Integer.valueOf(hexCoord));
     }
 
     /**

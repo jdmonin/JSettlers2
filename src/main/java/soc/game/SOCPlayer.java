@@ -387,7 +387,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Placing a settlement will clear its node and adjacent nodes.
      *<P>
      * Key = node coordinate, as {@link Integer}.
-     * If {@link HashSet#contains(Object) legalSettlements.contains(new Integer(nodeCoord))},
+     * If {@link HashSet#contains(Object) legalSettlements.contains(Integer.valueOf(nodeCoord))},
      * then <tt>nodeCoord</tt> is a legal settlement.
      *<P>
      * If not {@link SOCGame#hasSeaBoard}, initialized in constructor
@@ -455,7 +455,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Placing a settlement will clear its node and adjacent nodes.
      *<P>
      * Key = node coordinate, as {@link Integer}.
-     * If {@link HashSet#contains(Object) potentialSettlements.contains(new Integer(nodeCoord))},
+     * If {@link HashSet#contains(Object) potentialSettlements.contains(Integer.valueOf(nodeCoord))},
      * then this is a potential settlement.
      * @see #legalSettlements
      * @see #setPotentialAndLegalSettlements(Collection, boolean, HashSet[])
@@ -1825,7 +1825,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             // - node is the "far end" of edge, next to be inspected
             // - segment's most recently added ship is the one at edge
 
-            final Integer edgeInt = new Integer(edge);
+            final Integer edgeInt = Integer.valueOf(edge);
 
             // have we already visited this edge?
             if (alreadyVisited.contains(edgeInt))
@@ -1922,7 +1922,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 {
                     // Build an encounteredSelf list entry.
                     Vector<Object> already = new Vector<Object>();
-                    already.add(new Integer(node));
+                    already.add(Integer.valueOf(node));
                     already.addAll(segment);
 
                     encounteredSelf.add(already);
@@ -1957,7 +1957,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         if (! foundClosedEnd)
             return null;
 
-        if ((pp != null) && (pp instanceof SOCVillage))
+        if (pp instanceof SOCVillage)
             isTradeRouteFarEndClosed_foundVillage = (SOCVillage) pp;
 
         return segment;
@@ -2705,8 +2705,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         {
             final int node0 = nodeCoords[0],
                       node1 = nodeCoords[1];
-            final Integer node0Int = new Integer(node0),
-                          node1Int = new Integer(node1);
+            final Integer node0Int = Integer.valueOf(node0),
+                          node1Int = Integer.valueOf(node1);
 
             // roadNodeGraph[node0][node1]
             int[] rnArr = roadNodeGraph.get(node0Int);
@@ -2792,7 +2792,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             }
             else if (boardHasVillages)
             {
-                pp = ((SOCBoardLarge) board).getVillageAtNode(edgeNodes[i]);
+                pp = board.getVillageAtNode(edgeNodes[i]);
             }
 
             if (pp == null)
@@ -2828,7 +2828,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             return;  // <--- Early return: Temporary piece ---
         }
 
-        final int seType = ((SOCBoardLarge) board).getSpecialEdgeType(edge);
+        final int seType = board.getSpecialEdgeType(edge);
         if (seType != 0)
         {
             SOCPlayer currentPlayer = game.getPlayer(game.getCurrentPlayerNumber());
@@ -2881,7 +2881,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
          * _SC_FTRI: Is ship placed at a "gift" port that can be
          * removed from the board for placement elsewhere?
          */
-        if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI) && ((SOCBoardLarge) board).canRemovePort(edge))
+        if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI) && board.canRemovePort(edge))
         {
             game.removePort(this, edge);  // updates game state, fires SOCScenarioPlayerEvent.REMOVED_TRADE_PORT
         }
@@ -2908,7 +2908,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             if (edge == -9)
                 continue;
             SOCRoutePiece pp = getRoadOrShip(edge);
-            if ((pp == null) || ! (pp instanceof SOCShip))
+            if (! (pp instanceof SOCShip))
                 continue;
             SOCShip sh = (SOCShip) pp;
             if (sh.isClosed())
@@ -2994,7 +2994,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     {
         final boolean ours = (piece.getPlayerNumber() == playerNumber);
         final int pieceCoord = piece.getCoordinates();
-        final Integer pieceCoordInt = new Integer(pieceCoord);
+        final Integer pieceCoordInt = Integer.valueOf(pieceCoord);
 
         final SOCBoard board = game.getBoard();
         switch (piece.getType())
@@ -3128,7 +3128,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     protected void undoPutPieceAuxSettlement(int settlementNode)
     {
-        final Integer settleNodeInt = new Integer(settlementNode);
+        final Integer settleNodeInt = Integer.valueOf(settlementNode);
 
         //D.ebugPrintln("))))) undoPutPieceAuxSettlement : node = "+Integer.toHexString(settlementNode));
         //
@@ -3274,7 +3274,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         D.ebugPrintln("--- SOCPlayer.removePiece(" + piece + ")");
 
         final int pieceCoord = piece.getCoordinates();
-        final Integer pieceCoordInt = new Integer(pieceCoord);
+        final Integer pieceCoordInt = Integer.valueOf(pieceCoord);
         final int ptype = piece.getType();
 
         Enumeration<SOCPlayingPiece> pEnum = pieces.elements();
@@ -3367,8 +3367,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     {
                         final int node0 = edgeNodeCoords[0],
                                   node1 = edgeNodeCoords[1];
-                        final Integer node0Int = new Integer(node0),
-                                      node1Int = new Integer(node1);
+                        final Integer node0Int = Integer.valueOf(node0),
+                                      node1Int = Integer.valueOf(node1);
 
                         // check roadNodeGraph[node0][node1]
                         int[] rnArr = roadNodeGraph.get(node0Int);
@@ -3696,7 +3696,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         final boolean ours;
         boolean blocked;
         final int id = piece.getCoordinates();
-        final Integer idInt = new Integer(id);
+        final Integer idInt = Integer.valueOf(id);
         SOCBoard board = game.getBoard();
 
         /**
@@ -3751,7 +3751,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                             int edge = edges[i];
                             if (edge != -9)
                             {
-                                final Integer edgeInt = new Integer(edge);
+                                final Integer edgeInt = Integer.valueOf(edge);
                                 if (ptype == SOCPlayingPiece.ROAD)
                                 {
                                     if (legalRoads.contains(edgeInt))
@@ -3763,7 +3763,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                             }
                         }
 
-                        final Integer nodeInt = new Integer(node);
+                        final Integer nodeInt = Integer.valueOf(node);
                         if (legalSettlements.contains(nodeInt))
                         {
                             potentialSettlements.add(nodeInt);
@@ -3829,7 +3829,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             {
                 if (adjac[i] != -9)
                 {
-                    final Integer adjacNodeInt = new Integer(adjac[i]);
+                    final Integer adjacNodeInt = Integer.valueOf(adjac[i]);
                     potentialSettlements.remove(adjacNodeInt);
                     legalSettlements.remove(adjacNodeInt);
                 }
@@ -3848,7 +3848,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     tmp = adjac[i];
                     if (tmp != -9)
                     {
-                        final Integer tmpEdgeInt = new Integer(tmp);
+                        final Integer tmpEdgeInt = Integer.valueOf(tmp);
                         if (legalRoads.contains(tmpEdgeInt))
                             potentialRoads.add(tmpEdgeInt);
                         if (legalShips.contains(tmpEdgeInt))

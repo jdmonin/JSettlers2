@@ -1,3 +1,6 @@
+// JSettlers build script for gradle 4 and gradle 5
+// See bottom of file for copyright and license information (GPLv3).
+
 apply plugin: 'java'
 apply plugin: 'com.google.protobuf'
 apply plugin: 'war'  // for jsettlers-webapp servlet
@@ -15,12 +18,42 @@ buildscript {
 }
 
 version = '3.0.00'  // same as in src/main/resources/resources/version.info
+ext.i18neditor_version = '1.0.0'  // for PTE editor; same as in src/main/resources/pteResources/pteversion.properties
 
 mainClassName = "soc.client.SOCPlayerClient"
 
 compileJava {
-  sourceCompatibility = '1.7'
-  targetCompatibility = '1.7'
+    sourceCompatibility = '1.7'
+    targetCompatibility = '1.7'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile 'junit:junit:4.12'
+    providedCompile 'com.google.protobuf:protobuf-java:3.4.0'
+    providedCompile 'com.google.protobuf:protobuf-java-util:3.4.0'   // for proto3 <-> json
+    providedCompile 'javax.servlet:javax.servlet-api:3.1.0'  // Java EE 7
+    providedCompile 'javax.websocket:javax.websocket-api:1.0'  // for java EE 7
+}
+
+sourceSets {
+    extraTest {
+        // also runs extraTest/python/*.py, see task extraTaskPython below
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDirs = ['src/extraTest/java']
+        }
+        // if needed later: resources.srcDir file('src/extraTest/resources')
+    }
+}
+
+configurations {
+    extraTestCompile.extendsFrom testCompile
+    extraTestRuntime.extendsFrom testRuntime
 }
 
 tasks.withType(JavaCompile) {
@@ -28,13 +61,42 @@ tasks.withType(JavaCompile) {
         // To test that this has an effect, use 'Cp1252' instead here and expect "unmappable character" errors in StringUtil.java
 }
 
+// unit tests
+
+// Make sure sql scripts are consistent with their template:
+// If render.py finds problems, it will print a message showing which script(s) must be regenerated.
+task testSrcDBTemplates(type: Exec) {
+    executable 'python'  // expected to be in PATH
+    workingDir 'src/main/bin/sql/template'
+    args 'render.py', '-i', 'jsettlers-tables-tmpl.sql', '-d', 'mysql,sqlite,postgres', '-c', '../jsettlers-tables-%s.sql'
+    outputs.upToDateWhen { false }  // never skip this test
+}
+
+tasks.withType(Test) { task ->
+    task.outputs.upToDateWhen { false }  // never skip testing ("UP-TO-DATE") when it's asked for or is dependency
+    task.afterSuite { desc, result ->
+        if (! desc.parent) {
+            // print overall results only
+            // Testing results: :test SUCCESS (62 tests, 62 successes, 0 failures, 0 skipped)
+            logger.lifecycle("Testing results: {} {} ({} tests, {} successes, {} failures, {} skipped)", task.path,
+                result.resultType, result.testCount, result.successfulTestCount, result.failedTestCount, result.skippedTestCount)
+        }
+    }
+}
+
+test.dependsOn testSrcDBTemplates
+
+// jars
+
 tasks.withType(Jar) {
     includeEmptyDirs = false
 }
 
-jar.enabled = false  // prevent default jsettlers.git-<version>.jar artifact creation
-distZip.enabled = false   // TODO revisit later, with more control over contents
-distTar.enabled = false   // TODO revisit later, with more control over contents
+// prevent default jsettlers.git-<version>.{jar,zip,.tar.gz} artifact creation;
+// various tasks will build artifacts with more specific names and contents instead
+jar.enabled = false       // instead build serverJar, fullJar, i18neditorJar
+distZip.enabled = false   // dist builds distFullZip
+distTar.enabled = false   // dist builds distSrcTar, distFullTar
 
 task serverJar(type: Jar) {
     baseName = 'JSettlersServer'
@@ -75,11 +137,30 @@ task fullJar(type: Jar) {
         include "soc/**"
     }
     from(sourceSets.main.resources) {
-        include "**"
+        include "resources/**"
     }
 }
 
-// TODO i18neditor (see build.xml build-i18neditor)
+// PropertiesTranslatorEditor utility; not built by default
+task i18neditorJar(type: Jar) {
+    baseName = 'PTE'
+    version = project.i18neditor_version
+    manifest {
+        attributes(
+            'Main-Class': 'net.nand.util.i18n.gui.PTEMain',
+            'Implementation-Version': project.i18neditor_version
+        )
+    }
+    from(sourceSets.main.output) {
+        include "net/nand/util/i18n/**"  // i18n string manager, parser/writer, editor gui
+    }
+    from(sourceSets.main.resources) {
+        include "pteResources/**"   // for pteversion.properties, strings/**
+    }
+    from('src/main/java/net/nand/util/i18n/') {
+       include 'README.txt'  // into root directory of jar
+    }
+}
 
 // see https://github.com/google/protobuf-gradle-plugin
 protobuf {
@@ -97,16 +178,6 @@ protobuf {
     }
 }
 
-repositories {
-    mavenCentral()
-}
-//
-//jar {
-//    into 'resources', {
-//        from 'resources'
-//    }
-//}
-
 // The .WAR built here is socserver.war, not anything for an HTML5 web app/client:
 // The html5 client will be a separate build.
 war {
@@ -122,15 +193,152 @@ war {
     }
 }
 
-dependencies {
-    testCompile 'junit:junit:4.12'
-    providedCompile 'com.google.protobuf:protobuf-java:3.4.0'
-    providedCompile 'com.google.protobuf:protobuf-java-util:3.4.0'   // for proto3 <-> json
-    providedCompile 'javax.servlet:javax.servlet-api:3.1.0'  // Java EE 7
-    providedCompile 'javax.websocket:javax.websocket-api:1.0'  // for java EE 7
+// distribution tgzs and zip
+
+ant.defaultexcludes remove: "**/.gitignore"
+
+// This copies everything in your "src" directory, so be sure to run on a clean repository only!
+// Includes target/lib/ to prevent eclipse ant import error
+FileTree srcTree = fileTree(dir: '.', includes: ['src/**', 'doc/**', 'build.*', 'Readme.*', '*.txt', '.gitignore', 'target/lib/.gitignore'])
+
+// Naming reminder: [baseName]-[appendix]-[version]-[classifier].[extension]
+
+// jsettlers-3.x.xx-src.tar.gz
+task distSrcTar(type: Tar) {
+    baseName = 'jsettlers'
+    classifier = 'src'
+    compression = Compression.GZIP
+    extension = 'tar.gz'
+    from srcTree
+    into 'jsettlers-' + project.version + '-src/'
+}
+
+// jsettlers-3.x.xx-full.tar.gz
+task distFullTar(type: Tar) {
+    baseName = 'jsettlers'
+    classifier = 'full'
+    compression = Compression.GZIP
+    extension = 'tar.gz'
+    from srcTree, fullJar.outputs.files, serverJar.outputs.files
+    into 'jsettlers-' + project.version + '/'
+}
+
+// jsettlers-3.x.xx-full.zip
+task distFullZip(type: Zip) {
+    baseName = 'jsettlers'
+    classifier = 'full'
+    from srcTree, fullJar.outputs.files, serverJar.outputs.files
+    into 'jsettlers-' + project.version + '/'
+}
+
+tasks.withType(AbstractArchiveTask) {
+    reproducibleFileOrder = true
+}
+
+// For dist, ensure no git-untracked files or uncommited changes in repo
+task distCheckSrcDirty {
+    outputs.upToDateWhen { false }  // prevent "Task has not declared any outputs despite executing actions"
+
+    // Git command adapted from mark-longair's 2011-02-28 answer at
+    // http://stackoverflow.com/questions/5139290/how-to-check-if-theres-nothing-to-be-committed-in-the-current-branch
+    // Gradle capture of stdout from benjamin-muschko's 2012-06-19 answer at
+    // https://stackoverflow.com/questions/11093223/how-to-use-exec-output-in-gradle
+    doLast {
+        new ByteArrayOutputStream().withStream { ostr ->
+            def ostream = exec {
+                executable = 'git'
+                args = ['ls-files', '--other', '--exclude-standard', '--directory', '--no-empty-directory']
+                    // ignore empty-ish target/classes/
+                standardOutput = ostr
+            }
+            def stdout = ostr.toString().trim()
+            if (! stdout.isEmpty())
+            {
+                println "Untracked files in repo: Commit, move, or .gitignore these:" + System.properties['line.separator'] + stdout
+                throw new BuildCancelledException
+                    ("Untracked files in repo: Commit, move, or .gitignore")
+            }
+        }
+    }
+}
+
+task dist {
+    dependsOn distCheckSrcDirty, distSrcTar, distFullTar, distFullZip
+    doLast {
+        println "Built for distribution:"
+        [distSrcTar, distFullTar, distFullZip].each { dtask -> dtask.outputs.files.each { File file ->
+            println file.name
+    }}}
+}
+
+// misc
+
+javadoc {    // generates into build/docs/javadoc/
+    source = sourceSets.main.allJava
+    classpath = sourceSets.main.runtimeClasspath
+    title = 'JSettlers ' + project.version + ' API'
+    excludes ['**/fedorahosted/**']
+    options.memberLevel = JavadocMemberLevel.PACKAGE
+    options.encoding = 'UTF-8'
+    options.overview = 'src/main/java/main-overview.html'  // becomes overview-summary.html
+    options.addBooleanOption('author', true)
+    options.addBooleanOption('breakiterator', true)
+    options.addBooleanOption('version', true)
+    options.addBooleanOption('splitindex', false)
+    if (JavaVersion.current().isJava8Compatible()) {
+        // avoid overly-strict JDK 8 doclint;
+        // jdk 7 javadoc doesn't recognize this flag
+        options.addBooleanOption('Xdoclint:none', true)
+    }
+    // Unlike v1.x.xx in Ant, don't generate the "-use" page; IDEs can provide up-to-date usage info
+}
+
+// extra functional testing
+
+task extraTest(type: Test) {
+    testClassesDirs = sourceSets.extraTest.output.classesDirs
+    classpath = sourceSets.extraTest.runtimeClasspath
+    reports.junitXml.destination = file("$buildDir/extraTest-results")  // unit tests use buildDir/test-results
+    reports.html.destination = file("$buildDir/reports/extraTests")     // unit tests use buildDir/reports/tests
+    outputs.upToDateWhen { false }  // never skip running it
+}
+
+// run all python tests using PyUnit (unittest); returns 0 if no failures
+task extraTestPython(type: Exec) {
+    executable 'python'  // expected to be in PATH
+    workingDir 'src/extraTest/python'
+    args '-m', 'unittest', 'discover', '--verbose'  // discover requires python 2.7 or higher
+    environment CLASSPATH: tasks.extraTest.classpath.asPath
+}
+
+extraTest.dependsOn test
+extraTest.finalizedBy extraTestPython  // run java tests first; run python tests even if java fails
+
+clean {
+    // also remove python bytecode files
+    delete fileTree("src/extraTest/python").matching{ include "**/*.pyc" }
 }
 
 artifacts {
     archives serverJar, fullJar
 }
 
+/*
+ * This file is part of the JSettlers project.
+ *
+ * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
+ * Portions of this file Copyright (C) 2017,2019 Jeremy D Monin <jeremy@nand.net>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see http://www.gnu.org/licenses/ .
+ */

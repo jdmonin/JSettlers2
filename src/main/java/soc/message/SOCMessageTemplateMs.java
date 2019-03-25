@@ -185,7 +185,7 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
 
     /**
      * Get a human-readable form of this message.
-     * Starts with {@link #getClassNameShort()} and then one of:
+     * Starts with {@link Class#getSimpleName() getClass().getSimpleName()} and then one of:
      *<UL>
      *  <LI> each parameter, as {@code "|p=value.toString()"}
      *  <LI> {@code "|(pa is empty)"}
@@ -195,7 +195,7 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
      */
     public String toString()
     {
-        StringBuilder sb = new StringBuilder(getClassNameShort());
+        StringBuilder sb = new StringBuilder(getClass().getSimpleName());
 
         if (pa != null)
         {
@@ -214,4 +214,5 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
 
         return sb.toString();
     }
+
 }

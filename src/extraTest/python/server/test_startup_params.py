@@ -6,9 +6,9 @@
 
 # File/directory assumptions at runtime (mostly tested in env_ok()):
 # - Python interpreter is python2, not python3  [env_ok() prints warning if 3]
-# - This script lives in test/bin/  [not tested]
+# - This script lives in extraTest/python/server/ and that's the current directory when ran
 # - Properties files can be created and deleted in test/tmp/  [tests dir existence only]
-# - Server JAR has been built already, to ../../target/JSettlersServer.jar
+# - Server JAR has been built already, to target/JSettlersServer.jar or build/libs/JSettlersServer-?.?.??.jar
 # - java command is on the PATH
 # Since this is a testing script, most error conditions will throw an exception
 # instead of being caught (for example, os.chdir failure).
@@ -17,18 +17,24 @@
 # Overall test function: all_tests, which calls arg_test or
 # gameopt_tests_cmdline_propsfile to run individual tests.
 # Basic functions used per test: _run_and_get_outputs, print_result
+# Because these tests must run in a specific order, entire file looks like 1 "unit test" to PyUnit.
 
 
 from __future__ import print_function  # Python 2.6 or higher is required
 
-import os, re, socket, subprocess, sys, time
+import glob, os, re, socket, subprocess, sys, time, unittest
 from threading import Thread
 
 FNAME_JSSERVER_JAR = "JSettlersServer.jar"
-REL_PATH_JS_SERVER_JAR = "../../../target/" + FNAME_JSSERVER_JAR
-REL_PATH_TEMPDIR = "../tmp"
+EXPECTED_STARTUP_DIR = "src/extraTest/python"
+STARTUP_POSSIBLE_SUBDIR = "server"  # starts here if ran directly from command line, not part of discovered set of all tests
+REL_PATHS_JS_SERVER_JAR = ("../../../target/" + FNAME_JSSERVER_JAR, "../../../build/libs/JSettlersServer-?.?.??.jar")
+REL_PATH_TEMPDIR = "../../test/tmp"
 FNAME_JSSERVER_PROPS = "jsserver.properties"
 MAX_TIMEOUT_SEC = 20
+
+rel_path_js_server_jar = ""
+"""str: will be set in env_ok() from REL_PATHS_JS_SERVER_JAR"""
 
 tests_failed_count = 0
 """int: global counter for test failures; increment in arg_test or
@@ -41,13 +47,35 @@ def print_err(*args, **kwargs):
 
 def env_ok():
     """Check environment. Return true if okay, false if problems."""
+    global rel_path_js_server_jar
     all_ok = True
 
     # python version
     if sys.version_info[0] > 2:
         print_err("Warning: python3 not supported; may give errors writing jsserver.properties (unicode vs string bytes)")
 
-    # paths and files
+    # paths and files:
+    cwd = os.getcwd()
+    if (not cwd):
+        print_err("Can't determine current directory")
+        return False
+    EXPECTED_STARTUP_DIR_ELEMS = EXPECTED_STARTUP_DIR.split("/")
+    if STARTUP_POSSIBLE_SUBDIR == os.path.split(cwd)[1]:
+        # if ran standalone, change to parent dir where rest of test cases live;
+        # then, startup environment is same as when all test cases are ran together
+        os.chdir("..")
+        cwd = os.getcwd()
+        if (not cwd):
+            print_err("Can't determine current directory")
+            return False
+    while len(cwd) and len(EXPECTED_STARTUP_DIR_ELEMS):
+        (cwd, basename) = os.path.split(cwd)  # "a/b/c" -> ("a/b", "c"); "c" -> ("", "c")
+        expected_basename = EXPECTED_STARTUP_DIR_ELEMS.pop()
+        if basename != expected_basename:
+           print_err("Expected current directory (" + os.getcwd() + ") to end with "
+               + os.path.join(*(EXPECTED_STARTUP_DIR.split("/"))))
+           all_ok = False
+           break
     if not os.path.isdir(REL_PATH_TEMPDIR):
         all_ok = False
         print_err("Missing required directory " + REL_PATH_TEMPDIR)
@@ -55,15 +83,28 @@ def env_ok():
     if os.path.exists(rel_path_jsserver_props) and not os.path.isfile(rel_path_jsserver_props):
         all_ok = False
         print_err(rel_path_jsserver_props + " exists but is not a normal file: Remove it")
-    if not os.path.isfile(REL_PATH_JS_SERVER_JAR):
+    # search possible build-target dirs for server jar
+    for rel_fname in REL_PATHS_JS_SERVER_JAR:
+        if os.path.isdir(os.path.dirname(rel_fname)):
+            if '?' in rel_fname:
+                # glob for matching filenames, use newest if multiple
+                match_fnames = glob.glob(rel_fname)
+                if match_fnames:
+                    rel_fname = max(match_fnames, key=os.path.getctime)  # most recently modified
+                else:
+                    rel_fname = ""  # no matches
+            if os.path.isfile(rel_fname):
+                rel_path_js_server_jar = rel_fname
+                break
+    if not os.path.isfile(rel_path_js_server_jar):
         all_ok = False
-        print_err("Must build server JAR first: missing " + REL_PATH_JS_SERVER_JAR)
+        print_err("Must build server JAR first: file not found among " + repr(REL_PATHS_JS_SERVER_JAR))
 
     # test java binary execution: java -version
     # (no need to parse version# in this test script)
     try:
         (ec, stdout, stderr) = _run_and_get_outputs("java", ["-version"])
-        if ec != 0 or not re.search("java version", str(stdout)+" "+str(stderr), re.I):
+        if ec != 0 or not re.search("(openjdk|java) version", str(stdout)+" "+str(stderr), re.I):
             all_ok = False
             if ec != 0:
                 print_err("Failed to run: java -version")
@@ -199,16 +240,16 @@ def test_run_and_get_outputs():
         (ec, __, __) = _run_and_get_outputs("/prog_does_not_Exist")
     except OSError:
         got_err = True
-    print_result("Test 4: Program does not exist", got_err)
+    print_result("Test 4: program should not exist", got_err)
 
 def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expected_output_incl=None):
     """Run a single test of JSettlersServer command-line/properties-file arguments.
     Assumes already running in test/tmp/ and can rewrite or delete jsserver.properties if needed.
 
     Args:
-        should_startup (bool): True if server should start up and run with these params,
-            False if these params should cause startup to fail or to return nonzero
-        cmdline_params (str): Parameters for command line; defaults to empty string
+        should_startup (bool): True if server should start up and run indefinitely with these params,
+            False if these params should cause startup to fail, exit quickly, or to return nonzero
+        cmdline_params (str): Optional parameters for command line; defaults to empty string
         propsfile_contents (list of str): Contents to write to jsserver.properties,
             or None to run the test without a jsserver.properties file.
             Each list item is written as a line to the file.
@@ -231,7 +272,7 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
             entirely captured when the timeout kills the subprocess; searching for expected
             output may fail although the program generated that output.
     """
-    global tests_failed_count
+    global tests_failed_count, rel_path_js_server_jar
 
     if should_startup and (expected_output_incl is not None):
         raise ValueError("Can't use should_startup with expected_output_incl")
@@ -240,7 +281,7 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
     if (expected_output_incl is not None) and isinstance(expected_output_incl, list):
         expected_output_set = set(expected_output_incl)
 
-    args = ["-jar", REL_PATH_JS_SERVER_JAR]
+    args = ["-jar", rel_path_js_server_jar]
     if len(cmdline_params):
         args.extend(cmdline_params.split())
 
@@ -288,7 +329,7 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
         tests_failed_count += 1
         print(prn_startup + " -> FAIL")
         if (expected_output_incl is not None) and not did_startup:
-            print("EXPECTED: " + expected_output_incl)
+            print("EXPECTED: " + str(expected_output_incl))
         print("STDOUT: " + stdout)
         print("STDERR: " + stderr)
         if propsfile_contents is not None:
@@ -298,13 +339,44 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
         print("")
     return ret
 
+def props_tests_cmdline_propsfile(should_startup, common_cmdline_params="", props_list=None, expected_output_incl=None):
+    """Run two tests with this list of properties: Once on command line, once with properties file.
+    Calls arg_test with -o <props_list> and again with props file contents props_list.
+    Uses common_cmdline_params for both tests.
+
+    Args:
+        should_startup (bool): True if server should start up and run indefinitely with these params,
+            False if these params should cause startup to fail, exit quickly, or to return nonzero
+        common_cmdline_params (str): Optional parameters for command line; defaults to empty string
+        props_list (list of str): Parameter names and values, each in the form "pname=val".
+            Will be given to the command line as "-D pname=val", or to jssettlers.properties.
+        expected_output_incl (str): String to search for in server output, case-sensitive,
+            or None to not look in output for any particular string
+            Note: All or some output may be lost (buffering) when timeout kills the process.
+            So if should_startup==True, it's unreliable to also use expected_output_incl.
+
+    Returns:
+    	bool: True if test results matched should_startup (and expected_output_incl if given),
+            False otherwise.
+
+    Raises:
+        ValueError: If called with empty props_list, or with should_startup==True and expected_output_incl not None.
+    """
+    if not props_list:
+        raise ValueError("props_list is missing or empty")
+    # use "all" to ensure all tests run (avoid boolean short-circuit)
+    return all([
+        arg_test(should_startup, common_cmdline_params + " -D" + (" -D".join(props_list)), None, expected_output_incl),
+        arg_test(should_startup, common_cmdline_params, props_list, expected_output_incl)
+        ])
+
 def gameopt_tests_cmdline_propsfile(should_startup, opt, expected_output_incl=None):
     """Run two tests with this game option: Once on command line, once with properties file.
     Calls arg_test with -o <opt> and again with props file contents jsettlers.<opt> .
 
     Args:
-        should_startup (bool): True if server should start up and run with these params,
-            False if these params should cause startup to fail or to return nonzero
+        should_startup (bool): True if server should start up and run indefinitely with these params,
+            False if these params should cause startup to fail, exit quickly, or to return nonzero
         opt (str): Game option and value, in the form "oname=val".
             Will be appended to gameopt-setting prefix in the two tests:
             "-o oname=val"; ["jsettlers.gameopt.oname=val"]
@@ -392,6 +464,22 @@ def all_tests():
     gameopt_tests_cmdline_propsfile(False, "sc=ZZZ", "default scenario ZZZ is unknown")  # non-uppercase opt name
     arg_test(False, "-Djsettlers.gameopt.sc=ZZZ", None, "Command line default scenario ZZZ is unknown")
 
+    # Config Validation Mode (--test-config):
+    # - Should pass using default settings
+    str_no_problems_found = "Config Validation Mode: No problems found."
+    arg_test(False, "--test-config", None, str_no_problems_found)
+    arg_test(False, "-t", None, str_no_problems_found)
+    arg_test(False, "", ["jsettlers.test.validate_config=Y"], str_no_problems_found)
+    # - Check number of bot users vs maxConnections, reserve room for humans
+    props_tests_cmdline_propsfile(False, "--test-config", ["jsettlers.connections=20", "jsettlers.startrobots=10"],
+        str_no_problems_found)
+    props_tests_cmdline_propsfile(False, "--test-config", ["jsettlers.connections=20", "jsettlers.startrobots=11"],
+        "jsettlers.connections: Only 9 player connections would be available because of the 11 started robots. Should use 22 for max")
+    props_tests_cmdline_propsfile(False, "--test-config", ["jsettlers.connections=10", "jsettlers.startrobots=4"],
+        str_no_problems_found)
+    props_tests_cmdline_propsfile(False, "--test-config", ["jsettlers.connections=9", "jsettlers.startrobots=4"],
+        "jsettlers.connections: Only 5 player connections would be available because of the 4 started robots. Should use 10 for max")
+
     return (0 == tests_failed_count)
 
 
@@ -400,40 +488,32 @@ def cleanup():
     if os.path.exists(FNAME_JSSERVER_PROPS):
         os.remove(FNAME_JSSERVER_PROPS)
 
-def main():
-    """Main function: Check environment, set up, run tests, clean up.
+class test_startup_params(unittest.TestCase):
 
-    Returns:
-        If any tests failed, calls sys.exit(tests_failed_count).
-        Otherwise, exit code is 0 (default).
-    """
+    def test_params_main(self):
+        """Main function: Check environment, set up, run tests, clean up, assert tests_failed_count==0."""
 
-    global tests_failed_count
+        global tests_failed_count
 
-    if not env_ok():
-        print_err("")
-        print_err("*** Exiting due to missing required conditions. ***")
-        sys.exit(1)  # <--- Early exit ---
-    setup()
-    if (os.name == 'posix'):
-        test_run_and_get_outputs()  # only if on unix: runs sleep, false commands
-    all_tests()
-    cleanup()
+        self.assertTrue(env_ok(), "*** Exiting due to missing required conditions. ***")
+        setup()
+        if (os.name == 'posix'):
+            test_run_and_get_outputs()  # only if on unix: runs sleep, false commands
+        all_tests()
+        cleanup()
 
-    print("")
-    if (tests_failed_count > 0):
-        print("Total failure count: " + str(tests_failed_count))
-        sys.exit(tests_failed_count)
-    else:
-        print("All tests passed.")
+        print("")
+        self.assertEqual(tests_failed_count, 0, "Total failure count: " + str(tests_failed_count))
+        # else: print("All tests passed.")
 
 
-main()
+if __name__ == '__main__':
+    unittest.main()
 
 
 # This file is part of the JSettlers project.
 #
-# This file Copyright (C) 2016-2017 Jeremy D Monin <jeremy@nand.net>
+# This file Copyright (C) 2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

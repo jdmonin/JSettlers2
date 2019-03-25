@@ -1,0 +1,3 @@
+# ignore python temp files at same scope as "gradle clean" removal of *.pyc
+__pycache__
+*.pyc

@@ -380,7 +380,7 @@ public class SOCBoardLarge extends SOCBoard
      * {@link SOCBoard#FACING_E FACING_E} is 2, etc; {@link SOCBoard#FACING_NW FACING_NW} is 6.
      * Index here for {@link SOCBoard#FACING_NE FACING_NE} is 0, {@link SOCBoard#FACING_NW FACING_NW} is 5.
      */
-    private final static int[][] A_HEX2HEX = {
+    private static final int[][] A_HEX2HEX = {
         { -2, +1 }, { 0, +2 }, { +2, +1 },  // NE, E, SE
         { +2, -1 }, { 0, -2 }, { -2, -1 }   // SW, W, NW
     };
@@ -395,7 +395,7 @@ public class SOCBoardLarge extends SOCBoard
      * For each direction, array of adds to the coordinate to change the row & column.
      * The row delta in hex is +-0xRR00, the column is small (+-1) so doesn't need hex format.
      */
-    private final static int[][] A_NODE2HEX = {
+    private static final int[][] A_NODE2HEX = {
         { -0x100, 0 }, { -0x100, +1 }, { +0x100, +1 },  // N, NE, SE
         { +0x100, 0 }, { +0x100, -1 }, { -0x100, -1 }   // S, SW, NW
     };
@@ -408,7 +408,7 @@ public class SOCBoardLarge extends SOCBoard
      * For each direction, array of adds to the coordinate to change the row & column.
      * The row delta in hex is +-0xRR00, the column is small (+-1) so doesn't need hex format.
      */
-    private final static int[][] A_EDGE2HEX = {
+    private static final int[][] A_EDGE2HEX = {
         { -0x100,  0 }, { 0x0, +1 }, { +0x100,  0 },  // NE, E, SE
         { +0x100, -1 }, { 0x0, -1 }, { -0x100, -1 }   // SW, W, NW
     };
@@ -421,7 +421,7 @@ public class SOCBoardLarge extends SOCBoard
      *<br>
      * Order of directions: | / \
      */
-    private final static int[][] A_EDGE2EDGE = {
+    private static final int[][] A_EDGE2EDGE = {
         { -1,-1,  -1,0,  +1,-1,  +1,0 },  // "|"
         { 0,-1,   +1,0,  -1,+1,  0,+1 },  // "/"
         { 0,-1,   -1,0,  +1,+1,  0,+1 }   // "\"
@@ -434,7 +434,7 @@ public class SOCBoardLarge extends SOCBoard
      * Used by {@link #getAdjacentNodeToNode2Away(int, int)}.
      * The array contains 2 elements per facing.
      */
-    private final static int[] NODE_TO_NODE_2_AWAY = {
+    private static final int[] NODE_TO_NODE_2_AWAY = {
         -9,-9,          // not valid
         -2,+1,   0,+2,  // NE, E
         +2,+1,  +2,-1,  // SE, SW
@@ -682,7 +682,7 @@ public class SOCBoardLarge extends SOCBoard
     public SOCBoardLarge(final Map<String,SOCGameOption> gameOpts, int maxPlayers)
         throws IllegalArgumentException
     {
-        this(gameOpts, maxPlayers, getBoardSize(gameOpts, maxPlayers));
+        this(gameOpts, maxPlayers, getBoardSize(gameOpts));
     }
 
     /**
@@ -752,7 +752,7 @@ public class SOCBoardLarge extends SOCBoard
      * @return a new IntPair(height, width)
      * @see soc.server.SOCBoardAtServer#getBoardSize(Map, int)
      */
-    private static IntPair getBoardSize(final Map<String, SOCGameOption> gameOpts, int maxPlayers)
+    private static IntPair getBoardSize(final Map<String, SOCGameOption> gameOpts)
     {
         SOCGameOption bhwOpt = null;
         if (gameOpts != null)
@@ -883,7 +883,7 @@ public class SOCBoardLarge extends SOCBoard
 
                     // OK to add
                     if (hasLand)
-                        legalRoadEdges.add(new Integer(edge));
+                        legalRoadEdges.add(Integer.valueOf(edge));
                         // it's ok to add if this set already contains an Integer equal to that edge.
                 }
             }
@@ -2566,7 +2566,7 @@ public class SOCBoardLarge extends SOCBoard
             || ((hexLayoutLg[r][c] <= MAX_LAND_HEX_LG)
                 && (hexLayoutLg[r][c] != WATER_HEX)) )
         {
-            addTo.addElement(new Integer((r << 8) | c));
+            addTo.addElement(Integer.valueOf((r << 8) | c));
         }
     }
 
@@ -2940,7 +2940,7 @@ public class SOCBoardLarge extends SOCBoard
             final int er = r + offs[i];  ++i;
             final int ec = c + offs[i];  ++i;
             if (isEdgeInBounds(er, ec))
-                edge.addElement(new Integer( (er << 8) | ec ));
+                edge.addElement(Integer.valueOf( (er << 8) | ec ));
         }
         return edge;
     }
@@ -3040,8 +3040,8 @@ public class SOCBoardLarge extends SOCBoard
     {
         Vector<Integer> nodes = new Vector<Integer>(2);
         final int[] narr = getAdjacentNodesToEdge_arr(coord);
-        nodes.addElement(new Integer(narr[0]));
-        nodes.addElement(new Integer(narr[1]));
+        nodes.addElement(Integer.valueOf(narr[0]));
+        nodes.addElement(Integer.valueOf(narr[1]));
         return nodes;
     }
 
@@ -3187,34 +3187,34 @@ public class SOCBoardLarge extends SOCBoard
         {
             // North: (r-1, c)
             if (r > 1)
-                hexes.addElement(new Integer(nodeCoord - 0x0100));
+                hexes.addElement(Integer.valueOf(nodeCoord - 0x0100));
 
             if (r < (boardHeight-1))
             {
                 // SW: (r+1, c-1)
                 if (c > 1)
-                    hexes.addElement(new Integer((nodeCoord + 0x0100) - 1));
+                    hexes.addElement(Integer.valueOf((nodeCoord + 0x0100) - 1));
 
                 // SE: (r+1, c+1)
                 if (c < (boardWidth-1))
-                    hexes.addElement(new Integer((nodeCoord + 0x0100) + 1));
+                    hexes.addElement(Integer.valueOf((nodeCoord + 0x0100) + 1));
             }
         }
         else
         {
             // South: (r+1, c)
             if (r < (boardHeight-1))
-                hexes.addElement(new Integer(nodeCoord + 0x0100));
+                hexes.addElement(Integer.valueOf(nodeCoord + 0x0100));
 
             if (r > 1)
             {
                 // NW: (r-1, c-1)
                 if (c > 1)
-                    hexes.addElement(new Integer((nodeCoord - 0x0100) - 1));
+                    hexes.addElement(Integer.valueOf((nodeCoord - 0x0100) - 1));
 
                 // NE: (r-1, c+1)
                 if (c < (boardWidth-1))
-                    hexes.addElement(new Integer((nodeCoord - 0x0100) + 1));
+                    hexes.addElement(Integer.valueOf((nodeCoord - 0x0100) + 1));
             }
         }
 

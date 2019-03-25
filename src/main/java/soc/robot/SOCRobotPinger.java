@@ -34,7 +34,7 @@ import soc.util.CutoffExceededException;
  *
  * @author Robert S Thomas
  */
-public class SOCRobotPinger extends Thread
+/*package*/ class SOCRobotPinger extends Thread
 {
     private CappedQueue<SOCMessage> messageQueue;
     private final SOCTimingPing ping;

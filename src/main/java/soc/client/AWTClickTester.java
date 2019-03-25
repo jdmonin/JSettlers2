@@ -35,7 +35,7 @@ import java.awt.event.MouseListener;
  * @since 1.1.00
  */
 @SuppressWarnings("serial")
-public class AWTClickTester extends java.awt.Canvas implements MouseListener
+/*package*/ class AWTClickTester extends java.awt.Canvas implements MouseListener
 {
     int lastX, lastY;
     int wid, ht;

@@ -67,7 +67,7 @@ public class TestScenarioRules
         // If multiple players are adjacent, don't steal.
 
         final String gaName = SOCScenario.K_SC_PIRI + ":6";
-        final SOCGame ga = GameUtils.createGame
+        final SOCGame ga = GameTestUtils.createGame
             (6, SOCScenario.K_SC_PIRI, null, gaName, gl, sgh);
 
         // Create the board. Adapted from SOCGameHandler.startGame
@@ -99,7 +99,7 @@ public class TestScenarioRules
             for (final int plAddedNode : playerNodes)
             {
                 assertTrue(plAddedNode > 0);
-                boolean found = GameUtils.contains(pirateAdjacNodes, plAddedNode);
+                boolean found = GameTestUtils.contains(pirateAdjacNodes, plAddedNode);
                 assertTrue("expected player's legal settlement adjacent to hex 0x" + Integer.toHexString(pirHexShared)
                     + " but it was node 0x" + Integer.toHexString(plAddedNode),
                     found);
@@ -108,8 +108,8 @@ public class TestScenarioRules
 
         // - pirate path should contain both
         final int[] pirateFleetHexPath = board.getAddedLayoutPart("PP");
-        assertTrue(GameUtils.contains(pirateFleetHexPath, pirHexAdjacP0));
-        assertTrue(GameUtils.contains(pirateFleetHexPath, pirHexShared));
+        assertTrue(GameTestUtils.contains(pirateFleetHexPath, pirHexAdjacP0));
+        assertTrue(GameTestUtils.contains(pirateFleetHexPath, pirHexShared));
 
         // Set up pirate fleet and test things:
 

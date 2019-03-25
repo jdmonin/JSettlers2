@@ -26,7 +26,7 @@ package soc.robot;
  *
  * @author Robert S Thomas
  */
-public class SOCRobotResetThread extends Thread
+/*package*/ class SOCRobotResetThread extends Thread
 {
     SOCRobotClient client;
     boolean sleeping;

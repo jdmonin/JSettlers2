@@ -79,7 +79,7 @@ import soc.util.Version;
  * user preferences such as {@link SOCPlayerClient#PREF_SOUND_ON}
  * and per-game preferences such as {@link SOCPlayerInterface#PREF_SOUND_MUTE}.
  * When "Create" button is clicked, validates fields and calls
- * {@link SOCPlayerClient.GameDisplay#askStartGameWithOptions(String, boolean, Map, Map)}.
+ * {@link MainDisplay#askStartGameWithOptions(String, boolean, Map, Map)}.
  *<P>
  * Also used for showing a game's options (read-only) during game play.
  *<P>
@@ -96,13 +96,13 @@ import soc.util.Version;
  * This class also contains the "Scenario Info" popup window, called from
  * this dialog's Scenario Info button, and from {@link SOCPlayerInterface}
  * when first joining a game with a scenario.
- * See {@link #showScenarioInfoDialog(SOCScenario, Map, int, SOCPlayerClient.GameDisplay, Frame)}.
+ * See {@link #showScenarioInfoDialog(SOCScenario, Map, int, MainDisplay, Frame)}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
  */
 @SuppressWarnings("serial")
-public class NewGameOptionsFrame extends JFrame
+/*package*/ class NewGameOptionsFrame extends JFrame
     implements ActionListener, DocumentListener, KeyListener, ItemListener, MouseListener
 {
     // See initInterfaceElements() for most of the UI setup.
@@ -124,7 +124,7 @@ public class NewGameOptionsFrame extends JFrame
      */
     private final SOCPlayerInterface pi;
 
-    private final SOCPlayerClient.GameDisplay gameDisplay;
+    private final MainDisplay mainDisplay;
 
     /** should this be sent to the remote tcp server, or local practice server? */
     private final boolean forPractice;
@@ -229,11 +229,11 @@ public class NewGameOptionsFrame extends JFrame
      * Once created, resets the mouse cursor from hourglass to normal, and clears main panel's status text.
      *<P>
      * See also convenience method
-     * {@link #createAndShow(SOCPlayerInterface, SOCPlayerClient.GameDisplay, String, Map, boolean, boolean)}.
+     * {@link #createAndShow(SOCPlayerInterface, MainDisplay, String, Map, boolean, boolean)}.
      *
      * @param pi  Interface of existing game, or {@code null} for a new game.
      *     Used for updating settings like {@link SOCPlayerInterface#isSoundMuted()}.
-     * @param gd      Game display interface
+     * @param md  Client's main display interface
      * @param gaName   Name of existing game,
      *                 or null for new game; will be blank or (forPractice)
      *                 to use {@link SOCPlayerClient#DEFAULT_PRACTICE_GAMENAME}.
@@ -248,7 +248,7 @@ public class NewGameOptionsFrame extends JFrame
      * @param readOnly    Is this display-only (for use during a game), or can it be changed (making a new game)?
      */
     public NewGameOptionsFrame
-        (final SOCPlayerInterface pi, SOCPlayerClient.GameDisplay gd, String gaName,
+        (final SOCPlayerInterface pi, final MainDisplay md, String gaName,
          Map<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
     {
         super( readOnly
@@ -260,8 +260,8 @@ public class NewGameOptionsFrame extends JFrame
         // Uses default BorderLayout, for simple stretching when frame is resized
 
         this.pi = pi;
-        this.gameDisplay = gd;
-        SOCPlayerClient cli = gd.getClient();
+        this.mainDisplay = md;
+        SOCPlayerClient cli = md.getClient();
         forNewGame = (gaName == null);
         this.opts = opts;
         localPrefs = new HashMap<String, Object>();
@@ -282,10 +282,13 @@ public class NewGameOptionsFrame extends JFrame
         }
 
         // same Frame setup as in SOCPlayerClient.main
-        setBackground(SOCPlayerClient.JSETTLERS_BG_GREEN);
-        setForeground(Color.black);
-        getRootPane().setBackground(null);  // inherit from overall frame
-        getContentPane().setBackground(null);
+        if (! SwingMainDisplay.isOSColorHighContrast())
+        {
+            setBackground(SwingMainDisplay.JSETTLERS_BG_GREEN);
+            setForeground(Color.black);
+            getRootPane().setBackground(null);  // inherit from overall frame
+            getContentPane().setBackground(null);
+        }
         setLocationByPlatform(true);
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -302,13 +305,13 @@ public class NewGameOptionsFrame extends JFrame
          * setup is complete; reset mouse cursor from hourglass to normal
          * (was set to hourglass before calling this constructor)
          */
-        gd.clearWaitingStatus(true);
+        md.clearWaitingStatus(true);
     }
 
     /**
      * Creates and shows a new NewGameOptionsFrame.
      * Once created, resets the mouse cursor from hourglass to normal, and clears main panel's status text.
-     * See {@link #NewGameOptionsFrame(SOCPlayerInterface, SOCPlayerClient.GameDisplay, String, Map, boolean, boolean) constructor}
+     * See {@link #NewGameOptionsFrame(SOCPlayerInterface, MainDisplay, String, Map, boolean, boolean) constructor}
      * for notes about <tt>opts</tt> and other parameters.
      * @param pi  Interface of existing game, or {@code null} for a new game; see constructor
      * @param gaName  Name of existing game, or {@code null} to show options for a new game;
@@ -316,10 +319,10 @@ public class NewGameOptionsFrame extends JFrame
      * @return the new frame
      */
     public static NewGameOptionsFrame createAndShow
-        (SOCPlayerInterface pi, SOCPlayerClient.GameDisplay cli, String gaName,
+        (SOCPlayerInterface pi, MainDisplay md, String gaName,
          Map<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
     {
-        NewGameOptionsFrame ngof = new NewGameOptionsFrame(pi, cli, gaName, opts, forPractice, readOnly);
+        NewGameOptionsFrame ngof = new NewGameOptionsFrame(pi, md, gaName, opts, forPractice, readOnly);
         ngof.pack();
         ngof.setVisible(true);
 
@@ -335,11 +338,18 @@ public class NewGameOptionsFrame extends JFrame
     {
         GridBagLayout gbl = new GridBagLayout();
         GridBagConstraints gbc = new GridBagConstraints();
+        final int displayScale = mainDisplay.getDisplayScaleFactor();
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+        final boolean shouldClearButtonBGs = (! isOSHighContrast) && SOCPlayerClient.IS_PLATFORM_WINDOWS;
 
         final JPanel bp = new JPanel(gbl);  // Actual button panel
-        bp.setBorder(new EmptyBorder(4, 4, 4, 4));  // need padding around edges, because panel fills the frame
-        bp.setForeground(getForeground());
-        bp.setBackground(SOCPlayerClient.JSETTLERS_BG_GREEN);  // If this is omitted, firefox 3.5+ applet uses themed bg-color (seen OS X)
+        int n = 4 * displayScale;
+        bp.setBorder(new EmptyBorder(n, n, n, n));  // need padding around edges, because panel fills the frame
+        if (! isOSHighContrast)
+        {
+            bp.setForeground(getForeground());
+            bp.setBackground(SwingMainDisplay.JSETTLERS_BG_GREEN);  // If this is omitted, firefox 3.5+ applet uses themed bg-color (seen OS X)
+        }
 
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -349,8 +359,11 @@ public class NewGameOptionsFrame extends JFrame
         {
             msgText = new JTextField(strings.get("game.options.prompt"));  // "Choose options for the new game."
             msgText.setEditable(false);
-            msgText.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
-            msgText.setBackground(getBackground());
+            if (! isOSHighContrast)
+            {
+                msgText.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
+                msgText.setBackground(getBackground());
+            }
             add(msgText, BorderLayout.NORTH);
         }
 
@@ -360,12 +373,15 @@ public class NewGameOptionsFrame extends JFrame
         JLabel L;
 
         L = new JLabel(strings.get("game.options.name"), SwingConstants.LEFT);  // "Game name"
-        L.setBackground(HEADER_LABEL_BG);
-        L.setForeground(HEADER_LABEL_FG);
-        L.setOpaque(true);
+        if (! isOSHighContrast)
+        {
+            L.setBackground(HEADER_LABEL_BG);
+            L.setForeground(HEADER_LABEL_FG);
+            L.setOpaque(true);
+        }
         gbc.gridwidth = 2;
         gbc.weightx = 0;
-        gbc.ipadx = 2;
+        gbc.ipadx = 2 * displayScale;
         gbl.setConstraints(L, gbc);
         gbc.ipadx = 0;
         bp.add(L);
@@ -399,9 +415,13 @@ public class NewGameOptionsFrame extends JFrame
          * was green in all 1.1.xx, default-gray in 1.2.xx, back to green for all 2.x.xx
          */
         JPanel btnPan = new JPanel();
-        btnPan.setBackground(null);
-        btnPan.setForeground(null);
-        btnPan.setBorder(new EmptyBorder(4, 2, 0, 2));  // padding between option rows, buttons
+        if (! isOSHighContrast)
+        {
+            btnPan.setBackground(null);
+            btnPan.setForeground(null);
+        }
+        btnPan.setBorder(new EmptyBorder(4 * displayScale, 2 * displayScale, 0, 2 * displayScale));
+            // padding between option rows, buttons
 
         if (readOnly)
         {
@@ -412,13 +432,15 @@ public class NewGameOptionsFrame extends JFrame
             cancel.addKeyListener(this);  // for win32 keyboard-focus
         }
         cancel.addActionListener(this);
-        cancel.setBackground(null);  // needed on win32 to avoid gray corners
+        if (shouldClearButtonBGs)
+            cancel.setBackground(null);  // needed on win32 to avoid gray corners
         btnPan.add(cancel);
 
         if (! readOnly)
         {
             create = new JButton(strings.get("game.options.oknew"));  // "Create Game"
-            create.setBackground(null);
+            if (shouldClearButtonBGs)
+                create.setBackground(null);
             create.addActionListener(this);
             create.addKeyListener(this);
             create.setEnabled(! readOnly);
@@ -460,15 +482,17 @@ public class NewGameOptionsFrame extends JFrame
      */
     private void initInterface_Options(JPanel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
         final boolean hideUnderscoreOpts = (! readOnly)
-            && (! gameDisplay.getClient().getNickname().equalsIgnoreCase("debug"));
+            && (! mainDisplay.getClient().getNickname().equalsIgnoreCase("debug"));
 
         JLabel L;
 
         if (opts == null)
         {
             L = new JLabel(strings.get("game.options.not"));  // "This server version does not support game options."
-            L.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
+            if (! isOSHighContrast)
+                L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
             gbc.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(L, gbc);
             bp.add(L);
@@ -620,6 +644,7 @@ public class NewGameOptionsFrame extends JFrame
             scenDropdown = jcb;
             initInterface_Opt1(op, jcb, true, true, bp, gbl, gbc);
                 // adds jcb, and a checkbox which will toggle this OTYPE_STR's op.boolValue
+            jcb.addActionListener(this);  // when item selected, enable/disable Scenario Info button
 
             if ((! readOnly) || opts.containsKey("SC"))
             {
@@ -631,7 +656,8 @@ public class NewGameOptionsFrame extends JFrame
                 gbl.setConstraints(blank, gbc);
                 bp.add(blank);
                 scenInfo = new JButton(strings.get("game.options.scenario.info_btn"));  // "Scenario Info..."
-                scenInfo.setBackground(null);  // inherit from parent; needed on win32 to avoid gray corners
+                if (SOCPlayerClient.IS_PLATFORM_WINDOWS && ! SwingMainDisplay.isOSColorHighContrast())
+                    scenInfo.setBackground(null);  // inherit from parent; needed on win32 to avoid gray corners
                 scenInfo.addActionListener(this);
                 scenInfo.addKeyListener(this);
                 scenInfo.setEnabled(sel != 0);  // disable if "(none)" is selected scenario option
@@ -722,6 +748,7 @@ public class NewGameOptionsFrame extends JFrame
             boolean hasCB, boolean allowPH,
             JPanel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
         JLabel L;
 
         // reminder: same gbc widths/weights are used in initInterface_UserPrefs/initInterface_Pref1
@@ -738,8 +765,11 @@ public class NewGameOptionsFrame extends JFrame
             controlsOpts.put(cb, op);
             cb.setSelected(op.getBoolValue());
             cb.setEnabled(! readOnly);
-            cb.setBackground(null);  // needed on win32 to avoid gray border
-            cb.setForeground(null);
+            if (! isOSHighContrast)
+            {
+                cb.setBackground(null);  // needed on win32 to avoid gray border
+                cb.setForeground(null);
+            }
             gbl.setConstraints(cb, gbc);
             bp.add(cb);
             if (! readOnly)
@@ -756,8 +786,11 @@ public class NewGameOptionsFrame extends JFrame
         final String opDesc = op.getDesc();
         final int placeholderIdx = allowPH ? opDesc.indexOf('#') : -1;
         JPanel optp = new JPanel();  // with FlowLayout
-        optp.setBackground(null);  // inherit from parent
-        optp.setForeground(null);
+        if (! isOSHighContrast)
+        {
+            optp.setBackground(null);  // inherit from parent
+            optp.setForeground(null);
+        }
         try
         {
             FlowLayout fl = (FlowLayout) (optp.getLayout());
@@ -771,7 +804,8 @@ public class NewGameOptionsFrame extends JFrame
         if (placeholderIdx > 0)
         {
             L = new JLabel(opDesc.substring(0, placeholderIdx));
-            L.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
+            if (! isOSHighContrast)
+                L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
             optp.add(L);
             if (hasCB && ! readOnly)
             {
@@ -797,7 +831,7 @@ public class NewGameOptionsFrame extends JFrame
                 }
                 else if (oc instanceof JComboBox)
                 {
-                    ((JComboBox<?>) oc).addActionListener(this);  // for related cb, and op.ChangeListener and userChanged
+                    ((JComboBox<?>) oc).addItemListener(this);  // for related cb, and op.ChangeListener and userChanged
                 }
             }
         }
@@ -809,7 +843,8 @@ public class NewGameOptionsFrame extends JFrame
         if (placeholderIdx + 1 < opDesc.length())
         {
             L = new JLabel(opDesc.substring(placeholderIdx + 1));
-            L.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
+            if (! isOSHighContrast)
+                L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
             optp.add(L);
             if (hasCB && ! readOnly)
             {
@@ -865,7 +900,7 @@ public class NewGameOptionsFrame extends JFrame
             int defaultIdx = op.getIntValue() - op.minIntValue;
             if (defaultIdx > 0)
                 ch.setSelectedIndex(defaultIdx);
-            ch.addActionListener(this);  // for op.ChangeListener and userChanged
+            ch.addItemListener(this);  // for op.ChangeListener and userChanged
             c = ch;
         }
         return c;
@@ -910,7 +945,8 @@ public class NewGameOptionsFrame extends JFrame
         // thin <HR>-type spacer above prefs section
 
         JSeparator spacer = new JSeparator();
-        spacer.setBackground(HEADER_LABEL_BG);
+        if (! SwingMainDisplay.isOSColorHighContrast())
+            spacer.setBackground(HEADER_LABEL_BG);
         gbl.setConstraints(spacer, gbc);
         bp.add(spacer);
 
@@ -922,12 +958,12 @@ public class NewGameOptionsFrame extends JFrame
             (bp, gbl, gbc, null,
              strings.get("game.options.sound.all"),  // "Sound effects (All games)"
              true, false,
-             SOCPlayerClient.UserPreferences.getPref(SOCPlayerClient.PREF_SOUND_ON, true), 0,
+             UserPreferences.getPref(SOCPlayerClient.PREF_SOUND_ON, true), 0,
              new PrefCheckboxListener()
              {
                  public void stateChanged(boolean check)
                  {
-                     SOCPlayerClient.UserPreferences.putPref
+                     UserPreferences.putPref
                          (SOCPlayerClient.PREF_SOUND_ON, check);
                  }
              });
@@ -958,7 +994,7 @@ public class NewGameOptionsFrame extends JFrame
 
             int ival = (pi != null)
                 ? pi.getBotTradeRejectSec()
-                : SOCPlayerClient.UserPreferences.getPref(SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC, -8);
+                : UserPreferences.getPref(SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC, -8);
             localPrefs.put(SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC, Integer.valueOf(ival));
             bval = (ival > 0);
             if (! bval)
@@ -1000,6 +1036,8 @@ public class NewGameOptionsFrame extends JFrame
         if ((key == null) && (pcl == null))
             throw new IllegalArgumentException("null key, pcl");
 
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+
         // reminder: same gbc widths/weights are used in initInterface_Opt1
 
         final JCheckBox cb;
@@ -1012,8 +1050,11 @@ public class NewGameOptionsFrame extends JFrame
             gbc.gridwidth = 1;
             gbc.weightx = 0;
             gbl.setConstraints(cb, gbc);
-            cb.setBackground(null);  // needed on win32 to avoid gray border
-            cb.setForeground(null);
+            if (! isOSHighContrast)
+            {
+                cb.setBackground(null);  // needed on win32 to avoid gray border
+                cb.setForeground(null);
+            }
             bp.add(cb);
 
             ml = new MouseAdapter()
@@ -1059,8 +1100,11 @@ public class NewGameOptionsFrame extends JFrame
                 throw new IllegalArgumentException("missing '#'");
 
             prefp = new JPanel();  // with FlowLayout
-            prefp.setBackground(null);  // inherit from parent
-            prefp.setForeground(null);
+            if (! isOSHighContrast)
+            {
+                prefp.setBackground(null);  // inherit from parent
+                prefp.setForeground(null);
+            }
             try
             {
                 FlowLayout fl = (FlowLayout) (prefp.getLayout());
@@ -1079,7 +1123,8 @@ public class NewGameOptionsFrame extends JFrame
         if (placeholderIdx > 0)
         {
             JLabel L = new JLabel(desc.substring(0, placeholderIdx));
-            L.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
+            if (! isOSHighContrast)
+                L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
             prefp.add(L);
             L.addMouseListener(ml);
         }
@@ -1137,7 +1182,8 @@ public class NewGameOptionsFrame extends JFrame
         if (placeholderIdx + 1 < desc.length())
         {
             JLabel L = new JLabel(desc.substring(placeholderIdx + 1));
-            L.setForeground(SOCPlayerClient.MISC_LABEL_FG_OFF_WHITE);
+            if (! isOSHighContrast)
+                L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
             if (prefp != null)
             {
                 prefp.add(L);
@@ -1299,7 +1345,7 @@ public class NewGameOptionsFrame extends JFrame
             return;  // Not a valid game name
         }
 
-        SOCPlayerClient cl = gameDisplay.getClient();
+        SOCPlayerClient cl = mainDisplay.getClient();
 
         /**
          * Is this game name already used?
@@ -1308,18 +1354,18 @@ public class NewGameOptionsFrame extends JFrame
          */
         if (cl.doesGameExist(gmName, forPractice))
         {
-            NotifyDialog.createAndShow(gameDisplay, this, SOCStatusMessage.MSG_SV_NEWGAME_ALREADY_EXISTS, null, true);
+            NotifyDialog.createAndShow(mainDisplay, this, SOCStatusMessage.MSG_SV_NEWGAME_ALREADY_EXISTS, null, true);
             return;
         }
 
-        if (gameDisplay.readValidNicknameAndPassword())
+        if (mainDisplay.readValidNicknameAndPassword())
         {
             if (readOptsValuesFromControls(checkOptionsMinVers))
             {
                 // All fields OK, ready to create a new game.
                 setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));  // Immediate feedback in this frame
                 persistLocalPrefs();
-                gameDisplay.askStartGameWithOptions
+                mainDisplay.askStartGameWithOptions
                     (gmName, forPractice, opts, localPrefs);  // sets WAIT_CURSOR in main client frame
             } else {
                 return;  // readOptsValues will put the err msg in dia's status line
@@ -1329,7 +1375,7 @@ public class NewGameOptionsFrame extends JFrame
             // so the user must have gone back and changed it.
             // Can't correct the problem from within this dialog, since the
             // nickname field (and hint message) is in SOCPlayerClient's panel.
-            NotifyDialog.createAndShow(gameDisplay, this, strings.get("game.options.nickerror"), null, true);
+            NotifyDialog.createAndShow(mainDisplay, this, strings.get("game.options.nickerror"), null, true);
             return;
         }
 
@@ -1348,7 +1394,7 @@ public class NewGameOptionsFrame extends JFrame
     /**
      * The "Scenario Info" button was clicked.
      * Reads the current scenario, if any, from {@link #scenDropdown}.
-     * Calls {@link #showScenarioInfoDialog(SOCScenario, Map, int, SOCPlayerClient.GameDisplay, Frame)}.
+     * Calls {@link #showScenarioInfoDialog(SOCScenario, Map, int, MainDisplay, Frame)}.
      * @since 2.0.00
      */
     private void clickScenarioInfo()
@@ -1382,17 +1428,17 @@ public class NewGameOptionsFrame extends JFrame
                 vpWinner = scOptVP.getIntValue();
         }
 
-        showScenarioInfoDialog(scen, null, vpWinner, gameDisplay, this);
+        showScenarioInfoDialog(scen, null, vpWinner, mainDisplay, this);
     }
 
     /**
-     * Dismiss the frame, and if client's {@link SOCPlayerClient.GameDisplay} has a reference to this frame,
+     * Dismiss the frame, and if client's {@link MainDisplay} has a reference to this frame,
      * clear it to null there.
      */
     @Override
     public void dispose()
     {
-        gameDisplay.dialogClosed(this);
+        mainDisplay.dialogClosed(this);
         super.dispose();
     }
 
@@ -1415,7 +1461,7 @@ public class NewGameOptionsFrame extends JFrame
             if (pi != null)
                 pi.setBotTradeRejectSec(iv);
             if (iv != 0)
-                SOCPlayerClient.UserPreferences.putPref(k, iv);
+                UserPreferences.putPref(k, iv);
         }
     }
 
@@ -1682,7 +1728,7 @@ public class NewGameOptionsFrame extends JFrame
             if (validChange)
             {
                 if (otypeIsInt)
-                    fireOptionChangeListener(cl, opt, new Integer(oldIntValue), new Integer(opt.getIntValue()));
+                    fireOptionChangeListener(cl, opt, Integer.valueOf(oldIntValue), Integer.valueOf(opt.getIntValue()));
                 else
                     fireOptionChangeListener(cl, opt, oldText, newText);
             }
@@ -1791,8 +1837,8 @@ public class NewGameOptionsFrame extends JFrame
             if (chIdx != -1)
             {
                 final int nv = chIdx + opt.minIntValue;
-                Integer newValue = new Integer(nv);
-                Integer oldValue = new Integer(opt.getIntValue());
+                Integer newValue = Integer.valueOf(nv);
+                Integer oldValue = Integer.valueOf(opt.getIntValue());
                 opt.setIntValue(nv);
                 if (fireBooleanListener)
                     fireOptionChangeListener(cl, opt, boolOldValue, boolNewValue);
@@ -1936,13 +1982,13 @@ public class NewGameOptionsFrame extends JFrame
      * Show a popup window with this game's scenario's description, special rules, and number of victory points to win.
      * Calls {@link EventQueue#invokeLater(Runnable)}.
      * @param ga  Game to display scenario info for; if game option {@code "SC"} missing or blank, does nothing.
-     * @param cli     Player client interface, for {@link NotifyDialog} call
+     * @param md    Player client's main display, for {@link NotifyDialog} call
      * @param parent  Current game's player interface, or another Frame for our parent window,
      *                or null to look for {@code cli}'s Frame as parent
      * @since 2.0.00
      */
     public static void showScenarioInfoDialog
-        (final SOCGame ga, final SOCPlayerClient.GameDisplay cli, final Frame parent)
+        (final SOCGame ga, final MainDisplay md, final Frame parent)
     {
         final String scKey = ga.getGameOptionStringValue("SC");
         if (scKey == null)
@@ -1952,7 +1998,7 @@ public class NewGameOptionsFrame extends JFrame
         if (sc == null)
             return;
 
-        showScenarioInfoDialog(sc, ga.getGameOptions(), ga.vp_winner, cli, parent);
+        showScenarioInfoDialog(sc, ga.getGameOptions(), ga.vp_winner, md, parent);
     }
 
     /**
@@ -1961,14 +2007,14 @@ public class NewGameOptionsFrame extends JFrame
      * @param sc  A {@link SOCScenario}, or {@code null} to do nothing
      * @param gameOpts  All game options if current game, or null to extract from {@code sc}'s {@link SOCScenario#scOpts}
      * @param vpWinner  Number of victory points to win, or {@link SOCGame#VP_WINNER_STANDARD}.
-     * @param cli     Player client interface, required for {@link AskDialog} constructor
+     * @param md     Player client's main display, required for {@link AskDialog} constructor
      * @param parent  Current game's player interface, or another Frame for our parent window,
      *                or null to look for {@code cli}'s Frame as parent
      * @since 2.0.00
      */
     public static void showScenarioInfoDialog
         (final SOCScenario sc, Map<String, SOCGameOption> gameOpts, final int vpWinner,
-         final SOCPlayerClient.GameDisplay cli, final Frame parent)
+         final MainDisplay md, final Frame parent)
     {
         if (sc == null)
             return;
@@ -2024,7 +2070,7 @@ public class NewGameOptionsFrame extends JFrame
         }
 
         final String scenStr = sb.toString();
-        NotifyDialog.createAndShow(cli, parent, scenStr, null, true);
+        NotifyDialog.createAndShow(md, parent, scenStr, null, true);
     }
 
 
@@ -2134,7 +2180,7 @@ public class NewGameOptionsFrame extends JFrame
          */
         public VersionConfirmDialog(NewGameOptionsFrame ngof, int minVers)
         {
-            super(gameDisplay, ngof, strings.get("game.options.verconfirm.title"),
+            super(mainDisplay, ngof, strings.get("game.options.verconfirm.title"),
                 strings.get("game.options.verconfirm.prompt", Version.version(minVers)),
                 strings.get("game.options.verconfirm.create"),
                 strings.get("game.options.verconfirm.change"), true, false);
