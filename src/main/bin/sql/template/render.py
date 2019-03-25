@@ -1,13 +1,20 @@
 #!/usr/bin/env python
 
 # render.py - Simple template renderer for SQL DML/DDL to specific DBMS types.
-#   Usage: render.py [-i infile] [-o outfile] [-c comparefile] -d mysql|postgres|sqlite
+#   Usage: render.py [-i infile] [-o outfile] [-c comparefile] -d dbtype[,dbtype,...]
+#     -d recognized types are: mysql,postgres,sqlite
+#     -c or -o filename can contain %s placeholder for dbtype string
 #   Returns: 0 on success, 1 if error reading/writing or failed comparison, 2 if problems with command line
 #   Assumes utf-8 encoding for infile, outfile, comparefile
 #
+# Typical usage if you see the message "Must regenerate SQL script(s) from templates using render.py":
+#   cd src/main/bin/sql/template
+#   ./render.py -i jsettlers-tables-tmpl.sql -d mysql,sqlite,postgres -o ../jsettlers-tables-%s.sql
+#   git status
+#
 # This file is part of the JSettlers project.
 #
-# This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+# This file Copyright (C) 2017,2019 Jeremy D Monin <jeremy@nand.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,13 +31,18 @@
 
 import codecs, getopt, re, sys
 
-dbtype = None  # mysql|postgres|sqlite; see parse_cmdline()
+known_dbtypes = ('mysql', 'postgres', 'sqlite')
+# from parse_cmdline():
+dbtypes = None  # a list, from known_dbtypes
 infile = None
-outfile = None
-compfile = None  # for comparison mode, against rendered template
+outfile = None   # may contain %s for dbtype placeholder
+compfile = None  # for comparison mode, against rendered template; may contain %s for dbtype placeholder
 
-TOKENS = {}  # init in setup_tokens() to include DB_TOKENS[dbtype] and tokens based on command-line params
+TOKENS = {}  # updated in setup_tokens() to include DB_TOKENS[dbtype] and tokens based on command-line params
 
+sys_exit = 0  # for sys.exit's value if any render_one call fails
+
+# contains all dbtypes in known_dbtypes; each type must have same token keynames
 DB_TOKENS = {
     'mysql': {
         'now': 'now()',
@@ -54,16 +66,21 @@ DB_TOKENS = {
 }
 
 def print_usage():
-    sys.stderr.write("Usage: render.py [-i infile] [-o outfile] [-c comparefile] -d mysql|postgres|sqlite\n")
-    sys.stderr.write("Output Mode renders infile's template to outfile for a given dbtype.\n")
-    sys.stderr.write("Comparison Mode checks if a previously rendered file is up to date with the current template.\n")
-    sys.stderr.write("Default infile and outfile are the program's input and output streams.\n")
-    sys.stderr.write("Returns: 0 on success, 1 if error reading infile or writing outfile or if comparefile differs, 2 if problems with command line\n")
-    sys.stderr.write("Token format: {{now}}, {{TIMESTAMP}}, etc\n")
+    usage = [
+        "Usage: render.py [-i infile] [-o outfile] [-c comparefile] -d dbtype[,dbtype,...]",
+        "  -d recognized types are: mysql,postgres,sqlite",
+        "  -c or -o filename can contain %s placeholder for dbtype string",
+        "Output Mode renders infile's template to outfile for a given dbtype.",
+        "Comparison Mode checks if a previously rendered file is up to date with the current template.",
+        "Default infile and outfile are the program's input and output streams.",
+        "Returns: 0 on success, 1 if error reading infile or writing outfile or if comparefile differs, 2 if problems with command line",
+        "Token format: {{now}}, {{TIMESTAMP}}, etc"
+    ]
+    sys.stderr.write("\n".join(usage) + "\n")
 
 def parse_cmdline():
     """Parse command line. If any problems, calls sys.exit(2)."""
-    global dbtype, infile, outfile, compfile
+    global dbtypes, infile, outfile, compfile
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "?hd:i:o:c:", ["help", "dbtype=", "input=", "output=", "compare="])
@@ -79,35 +96,51 @@ def parse_cmdline():
             infile = oVal
         elif opt in ('-o', '--output'):
             outfile = oVal
+            if '%' in oVal:
+                s = re.search(r'%[^s]', oVal)
+                if s:
+                    sys.stderr.write("output filename: unknown token " + s.group(0) + '\n')
+                    all_ok = False
         elif opt in ('-c', '--compare'):
             compfile = oVal
             if oVal == '-':
                 sys.stderr.write('cannot use -c with stdin ("-")\n')
                 all_ok = False
+            elif '%' in oVal:
+                s = re.search(r'%[^s]', oVal)
+                if s:
+                    sys.stderr.write("comparison filename: unknown token " + s.group(0) + '\n')
+                    all_ok = False
         elif opt in ('-d', '--dbtype'):
-            if oVal in ('mysql', 'postgres', 'sqlite'):
-                dbtype = oVal
-            else:
-                sys.stderr.write('dbtype ' + oVal + ' not recognized, only: mysql postgres sqlite\n')
-                all_ok = False
+            ovList = oVal.split(',')
+            for d in ovList:
+                if len(d):
+                    if not (d in known_dbtypes):
+                        sys.stderr.write('dbtype ' + d + ' not recognized, only: ' + ' '.join(known_dbtypes) + '\n')
+                        all_ok = False
+                else:
+                    sys.stderr.write('missing dbtype or extra comma\n')
+                    all_ok = False
+            if all_ok:
+                dbtypes = ovList
         elif opt in ('-h', '-?', '--help'):
             print_usage()
             sys.exit(0)
-    if dbtype is None:
+    if dbtypes is None:
         all_ok = False
     if (compfile is not None) and (outfile is not None):
         all_ok = False
         sys.stderr.write('Cannot use both -o and -c\n')
     if not all_ok:
+        sys.stderr.write('\n')
         print_usage()
         sys.exit(2)
 
-def setup_tokens():
-    """Set up TOKENS from dynamic tokens and DB_TOKENS[dbtype]"""
-    if infile != '-':
-        TOKENS['render_src'] = infile
-    else:
-        TOKENS['render_src'] = '(standard input)'
+def setup_tokens(dbtype, infile_name):
+    """Set up TOKENS from dynamic tokens and DB_TOKENS[dbtype]. Can call multiple times."""
+    if infile_name == '-':
+        infile_name = '(standard input)'
+    TOKENS['render_src'] = infile_name
     TOKENS.update(DB_TOKENS[dbtype])
 
 def render(in_str):
@@ -120,46 +153,59 @@ def render(in_str):
             raise KeyError("unknown template token " + s.group(0))
     return in_str
 
+def render_one(dbtype, infile, outfile, compfile):
+    """Render or compare files; pass in either outfile or compfile, which can include token %s to be replaced by dbtype"""
+    global sys_exit
+
+    if outfile and ('%s' in outfile):
+        outfile = outfile.replace('%s', dbtype)
+    if compfile and ('%s' in compfile):
+        compfile = compfile.replace('%s', dbtype)
+
+    setup_tokens(dbtype, infile)
+
+    try:
+        if infile is None or infile == '-':
+            file_in = sys.stdin
+            infile = '(stdin)'  # for possible syserr.write below
+        else:
+            file_in = codecs.open(infile, 'r', encoding='utf8')
+        with file_in:
+            in_str = file_in.read()
+
+        out_str = render(in_str)
+
+        if compfile is not None:
+            # comparison mode
+            with codecs.open(compfile, 'r', encoding='utf8') as file_comp:
+               comp_str = file_comp.read()
+            if out_str != comp_str:
+                sys.stderr.write(compfile + " contents differ from " + infile + " for dbtype " + dbtype + "\n")
+                sys_exit = 1
+        else:
+            # output mode
+            if outfile is None or outfile == '-':
+                file_out = sys.stdout
+            else:
+                file_out = codecs.open(outfile, 'w', encoding='utf8')
+            with file_out:
+                file_out.write(out_str)
+    except BaseException as e:
+        if compfile is None:
+            if outfile is None or outfile == '-':
+                outfile = '(stdout)'
+            sys.stderr.write("Error rendering " + infile + " to " + outfile + ": " + str(e) + "\n")
+        else:
+            sys.stderr.write("Error comparing " + infile + " to " + compfile + ": " + str(e) + "\n")
+        sys_exit = 1
+
+
 # main:
 
 parse_cmdline()  # exits if problems found
-setup_tokens()
-
-sys_exit = 0  # to set sys.exit's value within try-except
-try:
-    if infile is None or infile == '-':
-        file_in = sys.stdin
-        infile = '(stdin)'  # for possible syserr.write below
-    else:
-        file_in = codecs.open(infile, 'r', encoding='utf8')
-    with file_in:
-        in_str = file_in.read()
-
-    out_str = render(in_str)
-
-    if compfile is not None:
-        # comparison mode
-        with codecs.open(compfile, 'r', encoding='utf8') as file_comp:
-            comp_str = file_comp.read()
-        if out_str != comp_str:
-            sys.stderr.write(compfile + " contents differ from " + infile + " for dbtype " + dbtype + "\n")
-            sys_exit = 1
-    else:
-        # output mode
-        if outfile is None or outfile == '-':
-            file_out = sys.stdout
-        else:
-            file_out = codecs.open(outfile, 'w', encoding='utf8')
-        with file_out:
-            file_out.write(out_str)
-except BaseException as e:
-    if compfile is None:
-        if outfile is None or outfile == '-':
-            outfile = '(stdout)'
-        sys.stderr.write("Error rendering " + infile + " to " + outfile + ": " + str(e) + "\n")
-    else:
-        sys.stderr.write("Error comparing " + infile + " to " + compfile + ": " + str(e) + "\n")
-    sys_exit = 1
-
+for d in dbtypes:
+    render_one(d, infile, outfile, compfile)  # sets sys_exit if problems found
+if sys_exit == 1:
+    sys.stderr.write("Must regenerate SQL script(s) from templates using render.py\n")
 sys.exit(sys_exit)
 

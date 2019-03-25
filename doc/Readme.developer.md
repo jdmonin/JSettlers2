@@ -496,6 +496,16 @@ welcomes contributions. Please keep these things in mind:
   build path -> Libraries -> Add External JAR, or add it to the classpath tab of
   SOCServer's eclipse Run Configuration; that option is
   useful when testing against multiple database types.
+- Any DB upgrade should be done in `soc.server.database.SOCDBHelper.upgradeSchema()`
+  and (for new installs) `jsettlers-tables-tmpl.sql`
+- Any changes to the schema setup scripts should be done in
+  `src/main/bin/sql/template/jsettlers-tables-tmpl.sql` and then regenerating
+  scripts from that template:
+
+      cd src/main/bin/sql/template
+      ./render.py -i jsettlers-tables-tmpl.sql -d mysql,sqlite,postgres -o ../jsettlers-tables-%s.sql
+      git status
+
 - See also the "To configure a sqlite database for testing" section of this readme.
 
 

@@ -54,6 +54,15 @@ tasks.withType(JavaCompile) {
 
 // unit tests
 
+// Make sure sql scripts are consistent with their template:
+// If render.py finds problems, it will print a message showing which script(s) must be regenerated.
+task testSrcDBTemplates(type: Exec) {
+    executable 'python'  // expected to be in PATH
+    workingDir 'src/main/bin/sql/template'
+    args 'render.py', '-i', 'jsettlers-tables-tmpl.sql', '-d', 'mysql,sqlite,postgres', '-c', '../jsettlers-tables-%s.sql'
+    outputs.upToDateWhen { false }  // never skip this test
+}
+
 tasks.withType(Test) { task ->
     task.outputs.upToDateWhen { false }  // never skip testing ("UP-TO-DATE") when it's asked for or is dependency
     task.afterSuite { desc, result ->
@@ -65,6 +74,8 @@ tasks.withType(Test) { task ->
         }
     }
 }
+
+test.dependsOn testSrcDBTemplates
 
 // jars
 
