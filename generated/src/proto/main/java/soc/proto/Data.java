@@ -806,6 +806,7 @@ public final class Data {
    * <pre>
    * Game state constants for {&#64;link soc.game.SOCGame}.
    * For general docs about game states see {&#64;link soc.game.SOCGame#NEW}.
+   * Sent to client through Game_Message.State, or as a field in some other message types.
    *&lt;P&gt;
    * Per-state docs may eventually be transferred here from SOCGame.
    * </pre>

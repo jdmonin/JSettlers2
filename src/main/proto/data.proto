@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
- * Portions of this file Copyright (C) 2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -209,6 +209,7 @@ enum DevCardValue {
 
 /* Game state constants for {@link soc.game.SOCGame}.
  * For general docs about game states see {@link soc.game.SOCGame#NEW}.
+ * Sent to client through Game_Message.State, or as a field in some other message types.
  *<P>
  * Per-state docs may eventually be transferred here from SOCGame.
  */
