@@ -1283,14 +1283,23 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleREJECTOFFER(SOCGame ga, Connection c, final SOCRejectOffer mes)
+    private void handleREJECTOFFER(final SOCGame ga, final Connection c, final SOCRejectOffer mes)
     {
         SOCPlayer player = ga.getPlayer(c.getData());
         if (player == null)
             return;
+        final int pn = player.getPlayerNumber();
+
+        try
+        {
+            ga.takeMonitor();
+            ga.rejectTradeOffersTo(pn);
+        } finally {
+            ga.releaseMonitor();
+        }
 
         final String gaName = ga.getName();
-        SOCRejectOffer rejectMessage = new SOCRejectOffer(gaName, player.getPlayerNumber());
+        SOCRejectOffer rejectMessage = new SOCRejectOffer(gaName, pn);
         srv.messageToGame(gaName, rejectMessage);
 
         srv.recordGameEvent(gaName, rejectMessage);

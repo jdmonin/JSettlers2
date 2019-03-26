@@ -122,6 +122,8 @@ public class SOCGameHandler extends GameHandler
     /**
      * Force robot to end their turn after this much inactivity,
      * while they've made a trade offer. Default is 60 seconds.
+     * This is longer than the usual robot turn timeout,
+     * and used only if waiting for a human player's response.
      *<P>
      * This field was originally in SOCServer, moved in v2.0.00.
      * @see SOCServer#ROBOT_FORCE_ENDTURN_SECONDS
@@ -2787,7 +2789,7 @@ public class SOCGameHandler extends GameHandler
      * If {@link SOCGame#hasSeaBoard}: Once the board is made, send the updated
      * {@link SOCPotentialSettlements potential settlements}.
      *<P>
-     * If this code changes, must also update {@link soctest.TestBoardLayouts#testSingleLayout(SOCScenario, int)}.
+     * If this code changes, must also update {@link soctest.game.TestBoardLayouts#testSingleLayout(SOCScenario, int)}.
      */
     public void startGame(SOCGame ga)
     {
@@ -2932,7 +2934,8 @@ public class SOCGameHandler extends GameHandler
                     (gaName, -1, SOCPlayerElement.SET, SOCPlayerElement.PLAYED_DEV_CARD_FLAG, 0));
 
             /**
-             * send the number of dev cards
+             * send the number of dev cards.
+             * needed for SC_PIRI because if PL<4, startGame() removed some cards.
              */
             srv.messageToGameWithMon(gaName, (ga.clientVersionLowest >= SOCGameElements.MIN_VERSION)
                 ? new SOCGameElements(gaName, SOCGameElements.DEV_CARD_COUNT, ga.getNumDevCards())
@@ -3344,9 +3347,9 @@ public class SOCGameHandler extends GameHandler
             // Check if we're waiting on any humans too, not on robots only
 
             SOCPlayer plEnd = null;  // bot the game is waiting to hear from
-            for (int i = 0; i < ga.maxPlayers; ++i)
+            for (int pn = 0; pn < ga.maxPlayers; ++pn)
             {
-                final SOCPlayer pli = ga.getPlayer(i);
+                final SOCPlayer pli = ga.getPlayer(pn);
                 if ((! pli.getNeedToDiscard()) && (pli.getNeedToPickGoldHexResources() == 0))
                     continue;
 
@@ -3368,14 +3371,27 @@ public class SOCGameHandler extends GameHandler
                 return;  // <--- not a robot's turn, and not isDiscardOrPickRsrc ---
         }
 
-        if (pl.getCurrentOffer() != null)
+        final SOCTradeOffer plCurrentOffer = pl.getCurrentOffer();
+        if (plCurrentOffer != null)
         {
             // Robot is waiting for response to a trade offer;
-            // check against that longer timeout.
-            final long tradeInactiveTime
-                = currentTimeMillis - (1000L * ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS);
-            if (ga.lastActionTime > tradeInactiveTime)
-                return;  // <-- Waiting on humans --
+            // have the humans all responded already?
+            boolean waitingForHuman = false;
+            for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                if (plCurrentOffer.isWaitingReplyFrom(pn) && ! ga.getPlayer(pn).isRobot())
+                {
+                    waitingForHuman = true;
+                    break;
+                }
+
+            // If waiting for any humans' response, check against that longer timeout
+            if (waitingForHuman)
+            {
+                final long tradeInactiveTime
+                    = currentTimeMillis - (1000L * ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS);
+                if (ga.lastActionTime > tradeInactiveTime)
+                    return;  // <--- Wait longer for humans ---
+            }
         }
 
         new SOCForceEndTurnThread(srv, this, ga, pl).start();

@@ -6756,6 +6756,7 @@ public class SOCGame implements Serializable, Cloneable
      * Are there currently any trade offers?
      * Calls each player's {@link SOCPlayer#getCurrentOffer()}.
      * @return true if any, false if not
+     * @see #makeTrade(int, int)
      * @since 1.1.12
      */
     public boolean hasTradeOffers()
@@ -6766,6 +6767,25 @@ public class SOCGame implements Serializable, Cloneable
                 return true;
         }
         return false;
+    }
+
+    /**
+     * This player is declining or rejecting all trade offers sent to them.
+     * For all active trade offers, calls
+     * {@link SOCTradeOffer#clearWaitingReplyFrom(int) offer.clearWaitingReplyFrom(rejectingPN)}.
+     * @param rejectingPN  Player number who is rejecting trade offers
+     * @throws IllegalArgumentException if <tt>rejectingPN &lt; 0</tt> or <tt>&gt;= {@link SOCGame#MAXPLAYERS}</tt>
+     * @since 2.0.00
+     */
+    public void rejectTradeOffersTo(final int rejectingPN)
+        throws IllegalArgumentException
+    {
+        for (int pn = 0; pn < maxPlayers; ++pn)
+        {
+            final SOCTradeOffer offer = players[pn].getCurrentOffer();
+            if (offer != null)
+                offer.clearWaitingReplyFrom(rejectingPN);
+        }
     }
 
     /**
@@ -6844,6 +6864,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param offering  the number of the player making the offer
      * @param accepting the number of the player accepting the offer
      * @see #makeBankTrade(SOCResourceSet, SOCResourceSet)
+     * @see #rejectTradeOffersTo(int)
      */
     public void makeTrade(final int offering, final int accepting)
     {
