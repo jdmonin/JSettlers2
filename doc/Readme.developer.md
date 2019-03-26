@@ -60,16 +60,15 @@ scenario.
 
 Coding is done in Java 6, but should compile cleanly in newer JDKs.
 (v1.2 used java 5 for backwards compatibility; earlier versions used 1.4.)
-The build system is gradle 4 or 5, we are phasing out the earlier Ant build.
-Use any IDE you want, including vi.  Use spaces, not tabs.  Please try to
-keep the other conventions of the code already there (see "Coding Style"
-below for more details.).
+The build system is gradle 4 or 5. Use any IDE you want, including vi.
+Use spaces, not tabs.  Please try to keep the other conventions of the
+current code (see "Coding Style" below for more details.).
 
 When adding new methods or fields, describe them in javadoc, including the
 `@since` marker and the one-sentence summary (even though some old methods
 don't have that summary).
 
-When submitting patches, please use unified diff (`-ur`) format.
+When submitting patches, please send pull requests or use unified diff (`-ur`) format.
 
 For more information about the AI, please see the "Robots (AI)" section
 and Robert S Thomas' dissertation.
@@ -226,33 +225,31 @@ parameters (before the SOCPlayerClient class name, not after):
 
 ## Setup instructions for JSettlers as an Eclipse project
 
-Written for Eclipse 3.6, should be applicable to other versions with minor changes.
-These instructions can be adapted to import JSettlers and its `build.xml` into
-other IDEs.
+Written for Eclipse 4.2 and Buildship 2, should be applicable to other versions
+with minor changes. These instructions can be adapted to import JSettlers and
+its `build.gradle` into other IDEs.
 
-- Choose File -> New -> Project... -> Java -> Java Project from Existing Ant Buildfile.
-- Browse to jsettlers-2.x.xx-src/build.xml, select the "javac" task in target "compile".
-- Check the box "Link to the buildfile in the file system"
-- Hit Finish.
+- If your Eclipse's File -> Import dialog doesn't have a "Gradle" option:
+    - Help -> Eclipse Marketplace -> Search -> Find "buildship"
+      ("Buildship Gradle Integration, by Eclipse Buildship Project")
+        - Buildship 2.x runs on JDK 7 or newer, eclipse 4.2 or newer
+        - Buildship 3.x runs on JDK 8 or newer, eclipse 4.3 or newer
+    - Install
+    - If prompted to restart Eclipse, do so
+- Choose File -> Import -> Gradle -> Existing Gradle Project
+- Browse to the jsettlers git checkout's top-level directory (containing `build.gradle`)
+- Hit Finish
+- Eclipse should import the project and do an initial build
 - Project -> Properties
     - Resource: Text file encoding: UTF-8
-    - Java Compiler: JDK compliance
-    	- Compliance level: 1.6
+    - Java Compiler:
+	    - Enable project specific settings
+	    - JDK compliance
+    	    - Compliance level: 1.6
     - OK
     	- If eclipse asks "Build the project now?", hit Yes
-- To add the `resources` directory:
-     - In the Package Explorer tree right-click the project name -> New ->
-       Folder. In that dialog click Advanced, select the radio button
-       "Link to alternate location (Linked Folder)", then Browse to
-       `src/main/resources/resources`, click Finish.
-- To add the `test` directory and JUnit tests:
-     - In the Package Explorer tree right-click the project name -> New ->
-       Folder. Click Advanced, select "Link to alternate location (Linked
-       Folder)", Browse to `src/test`, click Finish.
-     - In Package Explorer expand the `test` folder and right-click `java` ->
-       Build Path -> Use as Source Folder.
-- You'll need to run the `build` target once before you run JSettlers,
-  to copy resources into `target` from `src/main/resources/`.
+- You may need to run the `assemble` or `build` gradle task once
+  before you run JSettlers, to copy resources from `src/main/resources/`.
 
 Continue reading to see how to set up the builds and the run configs in Eclipse.
 A later section walks through the coding style expected for pull requests or
@@ -284,41 +281,39 @@ There are several gradle build tasks. Here are the main ones:
 - `test`: run unit tests
 - `extraTest`: run unit tests, create jars, and run a few lengthy extra tests
 - `dist`: `build` and create tarballs of the source + built JARs  
-  (jsettlers-2.x.xx-src.tar.gz, jsettlers-2.x.xx-full.tar.gz, jsettlers-2.x.xx-full.zip) in "build/distributions/"
+  (jsettlers-2.x.xx-src.tar.gz, jsettlers-2.x.xx-full.tar.gz, jsettlers-2.x.xx-full.zip)
+  in "build/distributions/"
 - `javadoc`: create JavaDoc files in "build/docs/javadoc"
 - `i18neditorJar`: create `PTE.jar` for maintaining i18n translations (not built by default)
 - `clean`: clean the project of all generated files
 
 **Note**: Even if you're in an IDE running SOCServer or SOCPlayerClient as Java apps,
-first build either the `build` or `compile` target to copy resources into
-`target/classes/resources/` from `src/main/resources`; otherwise startup will
+you may need to first run either the `build` or `assemble` gradle task to copy resources
+to their built location from `src/main/resources`; otherwise startup will
 fail with this error:
 
     Packaging error: Cannot determine JSettlers version
+
+To do so in Eclipse: Gradle tasks tab -> jsettlers -> build -> assemble
 
 
 ## Recommended debug/run configurations for testing
 
 In my IDE's JSettlers project, I've created these debug/run configurations:
 
-    Java applet: soc.client.SOCApplet   [optional, rarely used]
-        width 700, height 500
-        parameters: PORT = 8880
-
     Java applications:
         cli-noargs: soc.client.SOCPlayerClient
             vm arguments: -Djsettlers.debug.traffic=Y
 
         socserver: soc.server.SOCServer
-            arguments: -o N7=t7 -Djsettlers.startrobots=7 -Djsettlers.allow.debug=Y
+            program arguments: -o N7=t7 -Djsettlers.startrobots=7 -Djsettlers.allow.debug=Y
 
         socserver-sqlite: soc.server.SOCServer   [optional]
-            arguments: -o N7=t7 -o RD=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite
+            program arguments: -o N7=t7 -o RD=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite
                 -Djsettlers.startrobots=7 -Djsettlers.allow.debug=Y
                 -Djsettlers.accounts.admins=adm 8880 20 dbuser dbpass
-            working directory: filesystem: JSettlers2/target
 
-The server will start 7 bots with the above configuration.  If you need to
+The server will start 7 bots with the above configurations.  If you need to
 stop and start your own bots, then add `-Djsettlers.bots.cookie=cook` to the
 server configuration arguments, and create these Java application configs:
 
@@ -328,7 +323,7 @@ server configuration arguments, and create these Java application configs:
         arguments: localhost 8880 robot2 r2 cook
 
 For automated functional testing, the project also includes the script
-`src/test/bin/test_func_srv_startup_params.py`; run and update this script if
+`src/extraTest/python/server/test_startup_params.py`; run and update this script if
 you are developing anything related to game options or jsettlers properties.
 
 
@@ -337,7 +332,7 @@ you are developing anything related to game options or jsettlers properties.
 This is optional. See also the "Developing with a database (JDBC)" section
 of this readme.
 
-These instructions are written for Eclipse 3.6. JSettlers+sqlite works with
+These instructions are written for Eclipse 4.2. JSettlers+sqlite works with
 standard Eclipse; the j2ee Eclipse adds a convenient data browser. Note that
 [Readme.md](../Readme.md) mentions a command-line option
 `-Djsettlers.db.jar=driverfile.jar`; that's needed only while running the
@@ -348,21 +343,20 @@ jsettlers JAR from the command line, not running inside the IDE.
 - Download the driver from https://bitbucket.org/xerial/sqlite-jdbc/downloads/ .
   The downloaded JAR might have a name like `sqlite-jdbc-3.15.1.jar`.
   These instructions use a generic name `sqlite-jdbc-3.xx.y`.
-- Project properties -> Java build path -> Libraries -> Add External JARs ->
+- Project properties -> Java build path -> Libraries -> Add External JARs... ->
      Browse to `sqlite-jdbc-3.xx.y.jar`
 - If using eclipse j2ee instead of basic Eclipse:
   - Eclipse menu -> prefs -> data mgmt -> connectivity -> driver definitions -> Add
   - Select `SQLite JDBC Driver`
   - Jar list -> edit (or add, if empty) -> navigate to `sqlite-jdbc-3.xx.y.jar` -> OK
-- Build the project from `build.xml`, to copy `target/classes/resources/version.info`
-  and other resources from `src/main/resources`
 
 - Create and initialize the db file:
   - in Run Configurations dialog:
     - duplicate `socserver-sqlite` -> `socserver-sqlite-setup`
-        - program arguments: add at beginning of args: `-Djsettlers.db.script.setup=../src/main/bin/sql/jsettlers-tables-sqlite.sql`
+        - program arguments: add at beginning of args: `-Djsettlers.db.script.setup=src/main/bin/sql/jsettlers-tables-sqlite.sql`
   - Run the `socserver-sqlite-setup` configuration
-  - This line should appear in the console: `Setup script was successful. Exiting now.`
+  - After running, this line should appear in the console:  
+    `Setup script was successful. Exiting now.`
 - If using eclipse j2ee, add the database so you can add tables and query it:
   - `Window -> show view -> other... -> data mgmt -> data source explorer`
   - Right-click Database Connections, choose New
@@ -372,7 +366,8 @@ jsettlers JAR from the command line, not running inside the IDE.
   - Click "Test Connection"
   - Click Finish
 - Run the `socserver-sqlite` configuration
-  - This line should appear in the console: `User database initialized.`
+  - In console, this line should appear near the top of the output:  
+    `User database initialized.`
 - The database is now ready for use, development, and debugging.
 - To create player users, see [Readme.md](../Readme.md) and use `SOCAccountClient`.
   The first account you create should be `adm` (named in property
@@ -543,8 +538,8 @@ support and color hilighting, and will convert to `ISO-8859-1` (with unicode
 escapes) automatically when saving. See `src/main/java/net/nand/util/i18n/README.txt`
 for more details.
 
-Before running PTEMain for the first time, you must build the JSettlers build
-target (using Ant or with `build.xml` imported into your IDE) so that the
+Before running PTEMain for the first time, you might need to run the gradle task
+`i18neditorJar` (using gradle on the command line or from your IDE) so that the
 PTEMain editor's own externalized strings will be available.
 
 When starting the editor this message is harmless, because preferences are stored per-user:
@@ -552,8 +547,9 @@ When starting the editor this message is harmless, because preferences are store
     Dec 6, 2013 3:59:16 PM java.util.prefs.WindowsPreferences <init>
     WARNING: Could not open/create prefs root node Software\JavaSoft\Prefs at root 0x80000002. Windows RegCreateKeyEx(...) returned error code 5.
 
-To override system locales for testing, launch the client with vm argument
-`-Djsettlers.locale=es` (this goes before -jar if using the command line).
+If you need to override system locales for testing, launch the client with
+vm argument `-Djsettlers.locale=es` (this goes before -jar if using the
+command line).
 
 Pseudolocalization for testing (en_AA locale) uses StringUtil from the JBoss
 Ant-Gettext utilities. See command-line utility
