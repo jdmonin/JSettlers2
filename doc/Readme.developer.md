@@ -253,7 +253,8 @@ its `build.gradle` into other IDEs.
 
 Continue reading to see how to set up the builds and the run configs in Eclipse.
 A later section walks through the coding style expected for pull requests or
-patch submissions.
+patch submissions; to set up Eclipse now to use that style, see section
+"Eclipse coding style setup and tips".
 
 
 ## Build Setup and Results
@@ -759,8 +760,8 @@ You will also want this to have this, which disables auto-reindenting:
 ### Eclipse coding style setup and tips:
 
     preferences -> general -> editors -> text editors:
-    [x] insert spaces for tabs
     displayed tab width: 8
+    [x] insert spaces for tabs
     [x] show print margin
     print margin column: 120
     [x] show whitespace characters
@@ -777,7 +778,7 @@ You will also want this to have this, which disables auto-reindenting:
             Tab policy: Spaces only
             Indentation: 4
             Tab size: 8
-            confirm is unchecked: [ ] Indent empty lines
+            confirm is unchecked: Indent: [ ] Empty lines
 
             (Brace positions)
             All 'next line' except:
@@ -803,13 +804,6 @@ You will also want this to have this, which disables auto-reindenting:
 
         go to prefs -> java -> code style -> formatter
         if it's not active: set active profile to jsettlers & restart eclipse
-
-        prefs -> java -> editor -> typing
-            Verify tab 8 spaces, indent 4 spaces:
-            [x] Tab key adjusts indentation of current line
-        "The tab display value (currently 8) and whether spaces are used to indent lines
-        are configured on the formatter preference page.  The current indentation size
-        is 4, using spaces."
 
 When you hit enter twice to skip a line in Eclipse, watch for unwanted whitespace because
 Eclipse will add whitespace to each blank line to match the current indent.
