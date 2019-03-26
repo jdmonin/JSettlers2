@@ -197,14 +197,6 @@ When preparing to release a new version, testing should include:
 - Command line and jsserver.properties
     - Server and client: `-h` / `--help` / `-?`, `--version`
     - Server: Unknown args `-x -z` should print both, then not continue startup
-    - Server: Automated test for various argument/property combinations, in a terminal or command prompt:
-
-          cd src/extraTest/python/server
-          python test_startup_params.py
-
-      The test script should run for about two minutes, and end without errors:  
-      `Ran 1 test in `_(number)_`s`  
-      `OK`
     - Start client w/ no args, start client with host & port on command line
     - Game option defaults on command line, in `jsserver.properties`: `-oVP=t11 -oN7=t5 -oRD=y`
     - Server prop for no chat channels (`jsettlers.client.maxcreatechannels=0`):  
@@ -280,15 +272,8 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
         - "force end turn" output, and occasional bad placements or bank trades, are expected and OK
         - If any exceptions occur: Debug, triage, document or correct them
 - Board layout generator stability:
-    - This is a scripted test to set up, start, and run in the background.
-    - The board layout generator is complicated, to flexibly handle the sea scenario layouts.
-      This test ensures it won't hang, time out, or crash while making a new board or resetting a board,
-      by running a couple thousand rounds of a unit test.
-    - Run as:  
+    - See `extraTest` section, or run as:  
       `gradle extraTest -D 'test.single=*TestBoardLayouts*' -x :extraTestPython`
-
-      When run in this mode, each round of TestBoardLayouts performs extra checks of the layout structure.
-      If any layout failures occur, that's a bug to be triaged or corrected before release.
 - Build contents and built artifacts
     - `gradle dist` runs without errors, under gradle 4 and also gradle 5
     - Diff list of files from `gradle dist` outputs in `build/distributions/`:
@@ -310,6 +295,30 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
             diff -ur $X_IGNORES . "$MYTOPDIR"  # check for uncommitted or unpushed changes
             cd .. && rm -rf JSettlers2
             cd .. && rmdir jt
+
+
+## Automated extra testing (extraTest)
+
+A few functional tests are scripted to set up, begin, and run in the background
+while you're doing other work or other testing.
+
+Open a terminal or command prompt, go to the project's top-level directory
+(containing `build.gradle`), and run:  
+`gradle extraTest`
+
+These tests will run for several minutes, and end without errors:  
+`BUILD SUCCESSFUL`
+
+The current Extra Tests are:
+
+- Game: `TestBoardLayoutsRounds`: Board layout generator stability:
+    - The board layout generator is complicated, to flexibly handle the sea scenario layouts.
+      This test ensures it won't hang, time out, or crash while making a new board or resetting a board,
+      by running a couple thousand rounds of a unit test.
+    - When run in this mode, each round of TestBoardLayouts performs extra checks of the layout structure.
+      If any layout failures occur, that's a bug to be triaged or corrected before release.
+- Server: `test_startup_params.py`: Various argument/property combinations:
+    - The test script should run for about two minutes, and end without errors
 
 
 ## Platform-specific
