@@ -5,11 +5,8 @@ This internationalization editor is used by the JSettlers project, so its "home"
 	download:    http://nand.net/jsettlers/devel/i18n/PTE-0.9.0.jar
 	webpage:     http://nand.net/jsettlers/devel/i18n/
 	bug-tracker: https://github.com/jdmonin/JSettlers2/issues
-	source:      https://github.com/jdmonin/JSettlers2
+	source:      https://github.com/jdmonin/JSettlers2/tree/master/src/main/java/net/nand/util/i18n
 in the net.nand.util.i18n and net.nand.util.i18n.gui packages.
-
-The editor is work in progress.  Right now it can't create or copy new .properties files; you'll
-need to do that on your own and then use the editor on the new file.
 
 
 Purpose and File Format
@@ -64,16 +61,32 @@ When starting the editor this message is harmless, because preferences are store
 Developers
 ----------
 The project code lives at https://github.com/jdmonin/JSettlers2 .
+
+To build PTE.jar, use: gradle i18neditorJar
+
 See the PropertiesTranslatorEditor javadoc for current limitations and TODO items.
+
 Patches can be sent by email or by pull request; if emailing, use diff -u format.
-Please make sure your patch follows the project coding style (see /README.developer).
+Please make sure your patch follows the project coding style (see /doc/Readme.developer.md).
 
 
 Version history
 ---------------
 
-1.0.0 (2016-02-xx)
-- Current beta version.  Can also create new translation files.
+1.1.0 (not yet released)
+- Current beta version being developed.
+- Use Ctrl-S/Cmd-S to save any changes to both source and destination
+- Remove icon clutter in key string add/edit dialog
 
-0.9.0 (2014-03-31)
-- Can edit files but not create them.
+1.0.0 (2016-04-21 532e652)
+- Can create new translation destination files
+- When searching, show current matching cell using different text color
+- Adds Find button
+- MacOSX can use Cmd-F for Find
+- Use case-insensitive comparison for filenames (Windows)
+- While loading source and destination, look for duplicate keys
+
+0.9.0 (2014-03-31 b9efb1a)
+- Initial release of side-by-side Properties Translator's Editor
+- Can edit files but not create them
+- Use Ctrl-F for Find (not yet discoverable in GUI)
