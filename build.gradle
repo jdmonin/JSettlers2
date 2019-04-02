@@ -13,7 +13,7 @@ buildscript {
 }
 
 version = '2.0.00'  // same as in src/main/resources/resources/version.info
-ext.i18neditor_version = '1.0.0'  // for PTE editor; same as in src/main/resources/pteResources/pteversion.properties
+ext.i18neditor_version = '1.1.0'  // for PTE editor; same as in src/main/resources/pteResources/pteversion.properties
 
 mainClassName = "soc.client.SOCPlayerClient"
 
