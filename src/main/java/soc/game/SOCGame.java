@@ -1880,6 +1880,7 @@ public class SOCGame implements Serializable, Cloneable
      * @since 1.1.07
      * @see #isGameOptionDefined(String)
      * @see #isGameOptionSet(String)
+     * @see #getGameOptionStringValue(String)
      */
     public int getGameOptionIntValue(final String optKey)
     {
@@ -1905,6 +1906,7 @@ public class SOCGame implements Serializable, Cloneable
      * @see #isGameOptionDefined(String)
      * @see #isGameOptionSet(String)
      * @see #getGameOptionIntValue(Map, String, int, boolean)
+     * @see #getGameOptionStringValue(Map, String)
      */
     public static int getGameOptionIntValue(final Map<String, SOCGameOption> opts, final String optKey)
     {
@@ -1933,6 +1935,7 @@ public class SOCGame implements Serializable, Cloneable
      * @see #isGameOptionDefined(String)
      * @see #isGameOptionSet(String)
      * @see #getGameOptionIntValue(Map, String)
+     * @see #getGameOptionStringValue(Map, String)
      */
     public static int getGameOptionIntValue
         (final Map<String, SOCGameOption> opts, final String optKey, final int defValue, final boolean onlyIfBoolSet)
@@ -1959,6 +1962,7 @@ public class SOCGame implements Serializable, Cloneable
      * @since 1.1.07
      * @see #isGameOptionDefined(String)
      * @see #isGameOptionSet(String)
+     * @see #getGameOptionIntValue(String)
      */
     public String getGameOptionStringValue(final String optKey)
     {
@@ -1978,6 +1982,7 @@ public class SOCGame implements Serializable, Cloneable
      * @since 1.1.07
      * @see #isGameOptionDefined(String)
      * @see #isGameOptionSet(String)
+     * @see #getGameOptionIntValue(Map, String)
      */
     public static String getGameOptionStringValue(final Map<String, SOCGameOption> opts, final String optKey)
     {

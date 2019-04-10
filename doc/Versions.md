@@ -67,6 +67,9 @@ and backport minor new features until `2.0.00` is ready.
 	- Third-party bots can have more time to plan their turn with new server startup option:
 	  (this example uses 18 seconds)  
 	  `-Djsettlers.bots.timeout.turn=18`
+	- Third-party bots can be sent config or debug settings with new game option `_EXT_BOT`
+	  from server command line:  
+	  `java -jar JSettlersServer.jar -o _EXT_BOT=abcde`  
 	- Tuning for length of SOCRobotBrain pauses during bot-only games:
 	  To pause only 10% as long as in normal games, use  
 	  `-Djsettlers.bots.fast_pause_percent=10`

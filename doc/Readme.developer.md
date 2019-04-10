@@ -113,6 +113,12 @@ direction `IN -` (from server) or `OUT -` (from bot) + their name + ` - ` + mess
 When a bot client appears idle and isn't receiving messages for any particular active game,
 it won't print SOCServerPings.
 
+One way to send configuration or debug settings from the server to a third-party
+robot, client, or the game objects running there, is to use the `_EXT_BOT`,
+`_EXT_CLI`, or `_EXT_GAM` SOCGameOptions. Those are defined but not used by
+core JSettlers, for use by third-party code. They can be set at the server's
+command line or properties file and read by the client when it connects to a game.
+
 To force the board to contain fog hexes, start the server with vm argument
 `-Djsettlers.debug.board.fog=Y` which will hide 20% of land hexes behind fog
 when using the sea board.
@@ -587,6 +593,13 @@ few seconds to send the command. On the other hand if you want the bots to move
 quickly, use the No Trading house rule and play on the 6-player board, where the
 bots have shorter delays since there might be more players (but you can also use
 this board with 2-4 players).
+
+When they join a game, third-party bots can be sent configuration or debug
+settings using `SOCGameOption.K__EXT_BOT`. This game option's string value can
+be set at the server command line like  
+`java -jar JSettlersServer.jar -o _EXT_BOT=abcde`  
+and then read in the bot's brain class. For an example see
+`Sample3PBrain.setOurPlayerData()`.
 
 If you're looking to make minor changes, it's probably best to fork the
 `soc.robot` package and go from the classes and javadocs there.  For a larger
