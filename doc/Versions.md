@@ -94,6 +94,7 @@ and backport minor new features until `2.0.00` is ready.
 - Game state renamed for clarity: SOCGame.PLAY -> ROLL_OR_CARD; PLAY1 not renamed; SOCRobotBrain.expectPLAY -> expectROLL_OR_CARD
 - Tightened class scope for clarity: Removed `public` from classes meant for internal use (thank you Colin Werner)
 - Minor refactoring
+- Built JARs include git commit hash if available, as Build-Revision in MANIFEST.MF
 - Project dir structure converted to maven/gradle layout
 - Project builds with gradle, not ant
 - To simplify build process, moved version and copyright info from `build.xml` to `version.info`

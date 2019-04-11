@@ -14,6 +14,7 @@ buildscript {
 
 version = '2.0.00'  // same as in src/main/resources/resources/version.info
 ext.i18neditor_version = '1.1.0'  // for PTE editor; same as in src/main/resources/pteResources/pteversion.properties
+ext.git_revision = '?'  // placed in jar manifests as Build-Revision attrib; will be filled in by findGitRevision task
 
 mainClassName = "soc.client.SOCPlayerClient"
 
@@ -79,8 +80,21 @@ test.dependsOn testSrcDBTemplates
 
 // jars
 
+// note: this task runs during configuration
+task findGitRevision {
+    def cmd = "git rev-parse --short HEAD"
+    try {
+        def proc = cmd.execute()
+        project.ext.git_revision = proc.text.trim()
+    } catch (Exception e) {
+        // fail gracefully: continue build with git_revision = '?'
+        project.logger.lifecycle("warning: findGitRevision can't execute git rev-parse; using '?'")
+    }
+}
+
 tasks.withType(Jar) {
     includeEmptyDirs = false
+    dependsOn findGitRevision
 }
 
 // prevent default jsettlers.git-<version>.{jar,zip,.tar.gz} artifact creation;
@@ -94,7 +108,8 @@ task serverJar(type: Jar) {
     version = project.version
     manifest {
         attributes(
-            'Main-Class': 'soc.server.SOCServer'
+            'Main-Class': 'soc.server.SOCServer',
+            'Build-Revision': project.git_revision,
         )
     }
     from(sourceSets.main.output) {
@@ -119,7 +134,8 @@ task fullJar(type: Jar) {
     version = project.version
     manifest {
         attributes(
-            'Main-Class': 'soc.client.SOCPlayerClient'
+            'Main-Class': 'soc.client.SOCPlayerClient',
+            'Build-Revision': project.git_revision,
         )
     }
     from(sourceSets.main.output) {
@@ -138,7 +154,8 @@ task i18neditorJar(type: Jar) {
     manifest {
         attributes(
             'Main-Class': 'net.nand.util.i18n.gui.PTEMain',
-            'Implementation-Version': project.i18neditor_version
+            'Implementation-Version': project.i18neditor_version,
+            'Build-Revision': project.git_revision,
         )
     }
     from(sourceSets.main.output) {

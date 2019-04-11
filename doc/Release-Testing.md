@@ -274,8 +274,11 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
 - Board layout generator stability:
     - See `extraTest` section, or run as:  
       `gradle extraTest -D 'test.single=*TestBoardLayouts*' -x :extraTestPython`
-- Build contents and built artifacts
+- Build contents and built artifacts:
     - `gradle dist` runs without errors, under gradle 4 and also gradle 5
+    - Full jar and server jar should include correct git commit id:
+        - `unzip -q -c build/libs/JSettlers-*.jar META-INF/MANIFEST.MF | grep Build-Revision`
+        - `unzip -q -c build/libs/JSettlersServer-*.jar META-INF/MANIFEST.MF | grep Build-Revision`
     - Diff list of files from `gradle dist` outputs in `build/distributions/`:
         - `unzip -t jsettlers-2.*-full.zip | sort`
         - `tar tzf jsettlers-2.*-full.tar.gz | sort` (same files as above)
