@@ -383,9 +383,6 @@ jsettlers JAR from the command line, not running inside the IDE.
 
 ## Current work to complete for v2.0.00 release
 
-- Robot AI:
-  - Refine ship planning/modeling, especially along coastal edges
-  - AI in SC_FOG may want more work to react to reveals and encourage exploration
 - Game/scenario framework:
   - Review scenarios' description text
   - Other expansions should be possible to add later within the framework
@@ -395,6 +392,7 @@ jsettlers JAR from the command line, not running inside the IDE.
   - Consider a common handler/constant for EMPTYSTR token
 - Server:
   - DB schema additions
+- Review documentation, especially for v2.0 changes
 
 
 ## Current partially-done work
