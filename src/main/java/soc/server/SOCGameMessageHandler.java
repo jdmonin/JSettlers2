@@ -2731,14 +2731,30 @@ public class SOCGameMessageHandler
                         handler.endGameTurn(ga, player, true);  // locking: already did ga.takeMonitor()
                     }
                 } else {
-                    srv.messageToPlayer(c, gaName, "You can't pick that many resources.");
+                    // Can't pick because resource count or game state was wrong
+
                     final int npick = player.getNeedToPickGoldHexResources();
-                    if ((npick > 0) && (gstate < SOCGame.OVER))
-                        srv.messageToPlayer(c, new SOCSimpleRequest
-                            (gaName, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, npick));
-                    else
-                        srv.messageToPlayer(c, new SOCPlayerElement
-                            (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, 0));
+                    if (npick != rsrcs.getTotal())
+                    {
+                        srv.messageToPlayer(c, gaName, "You can't pick that many resources.");  // TODO i18n
+                        if ((npick > 0) && (gstate < SOCGame.OVER))
+                            srv.messageToPlayer(c, new SOCSimpleRequest
+                                (gaName, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, npick));
+                        else
+                            srv.messageToPlayer(c, new SOCPlayerElement
+                                (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, 0));
+                    } else {
+                        // Probably a game logic bug:
+                        // Some recent action/event gave the player free resource(s)
+                        // but didn't follow up with a state where they're expected to claim them.
+                        srv.messageToGame(gaName,
+                            "Recovering from buggy state: " + player.getName()
+                            + " won free resources but game state didn't allow them to be picked; giving them anyway.");
+                            // TODO i18n
+                        player.getResources().add(rsrcs);
+                        player.setNeedToPickGoldHexResources(0);
+                        handler.reportRsrcGainGold(ga, player, pn, rsrcs, true, false);
+                    }
                 }
             }
         }
