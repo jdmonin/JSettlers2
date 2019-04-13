@@ -121,7 +121,8 @@ command line or properties file and read by the client when it connects to a gam
 
 To force the board to contain fog hexes, start the server with vm argument
 `-Djsettlers.debug.board.fog=Y` which will hide 20% of land hexes behind fog
-when using the sea board.
+when using the sea board. To force half the fog hexes to be gold for testing,
+use `-Djsettlers.debug.board.fog_gold=Y`.
 
 If you want to inspect the game object state at the server or robot:
 
