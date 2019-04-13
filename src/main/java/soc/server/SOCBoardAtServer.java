@@ -2444,7 +2444,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
             int hexType = hexLayoutLg[r][c];
             if (hexType == FOG_HEX)
                 throw new IllegalStateException("Already fog: 0x" + Integer.toHexString(hexCoord));
-            if (debugHalfAreGold && rand.nextBoolean())
+            if (debugHalfAreGold && (hexType != WATER_HEX) && rand.nextBoolean())
                 hexType = GOLD_HEX;
 
             fogHiddenHexes.put(Integer.valueOf(hexCoord), (hexType << 8) | (numberLayoutLg[r][c] & 0xFF));
