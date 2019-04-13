@@ -2003,7 +2003,7 @@ public class SOCGameHandler extends GameHandler
 
     /**
      * Send all game members the current state of the game with a message.
-     * May also send other messages to the game and/or specific players.
+     * May also send other messages to the game and/or specific players if noted here.
      * Note that the current (or new) player number is not sent here.
      *<P>
      * See {@link SOCGameState} for complete list of game states,
@@ -2156,8 +2156,8 @@ public class SOCGameHandler extends GameHandler
 
         // case SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE and
         // case SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE are now
-            // handled in SOCGameMessageHandler.handlePUTPIECE and handleROLLDICE, so it's sent after
-            // the resource texts ("x gets 1 sheep") and not before.
+            // handled in SOCGameMessageHandler.handlePUTPIECE and handleROLLDICE,
+            // so that the new state is sent after resource texts ("x gets 1 sheep") and not before.
             // These methods directly call sendGameState_sendGoldPickAnnounceText.
 
         case SOCGame.WAITING_FOR_ROBBER_OR_PIRATE:

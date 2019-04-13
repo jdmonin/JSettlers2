@@ -2259,13 +2259,16 @@ public class SOCGameMessageHandler
             srv.messageToGame(gaName, new SOCPutPiece
                               (gaName, mes.getPlayerNumber(), pieceType, coord));
 
-            // Check for initial settlement next to gold hex
-            if (pieceType == SOCPlayingPiece.SETTLEMENT)
+            // Check for initial settlement next to gold hex, or road/ship revealed gold from fog
+            final int numGoldRes = player.getNeedToPickGoldHexResources();
+            if (numGoldRes > 0)
             {
-                final int numGoldRes = player.getNeedToPickGoldHexResources();
-                if (numGoldRes > 0)
-                    srv.messageToPlayer(c, new SOCSimpleRequest
-                        (gaName, player.getPlayerNumber(), SOCSimpleRequest.PROMPT_PICK_RESOURCES, numGoldRes));
+                final int newGS = ga.getGameState();
+                if (newGS == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+                    srv.messageToGame(gaName, new SOCGameState(gaName, newGS));
+                    // state not sent for STARTS_WAITING_FOR_PICK_GOLD_RESOURCE
+                srv.messageToPlayer(c, new SOCSimpleRequest
+                    (gaName, player.getPlayerNumber(), SOCSimpleRequest.PROMPT_PICK_RESOURCES, numGoldRes));
             }
 
             if (ga.getGameState() >= SOCGame.OVER)

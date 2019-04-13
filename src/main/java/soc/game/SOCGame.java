@@ -442,6 +442,10 @@ public class SOCGame implements Serializable, Cloneable
      * Valid only when {@link #hasSeaBoard}, settlements or cities
      * adjacent to {@link SOCBoardLarge#GOLD_HEX}.
      *<P>
+     * When receiving this state from server, a client shouldn't immediately check their user player's
+     * {@link SOCPlayer#getNeedToPickGoldHexResources()} or prompt the user to pick resources; those
+     * players' clients will be sent a {@link soc.message.SOCSimpleRequest#PROMPT_PICK_RESOURCES} message shortly.
+     *<P>
      * If scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI} is active,
      * this state is also used when a 7 is rolled and the player has won against a
      * pirate fleet attack.  They must choose a free resource.  {@link #oldGameState} is {@link #ROLL_OR_CARD}.
@@ -3478,10 +3482,8 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * update the state of the game, and possibly current player
          */
-        if (active && ! debugFreePlacement)
-        {
+        if (active)
             advanceTurnStateAfterPutPiece();
-        }
     }
 
     /**
@@ -3561,6 +3563,10 @@ public class SOCGame implements Serializable, Cloneable
      * this method it returns immediately. In {@link #START2B} or {@link #START3B} after the last initial
      * road/ship placement, this method calls {@link #updateAtGameFirstTurn()} which includes {@link #updateAtTurn()}.
      *<P>
+     * If {@link #debugFreePlacement}, does nothing unless current player's
+     * {@link SOCPlayer#getNeedToPickGoldHexResources()} &gt; 0 and so the state should
+     * change to one where they're prompted to pick their gains.
+     *<P>
      * Also used in {@link #forceEndTurn()} to continue the game
      * after a cancelled piece placement in {@link #START1A}..{@link #START3B} .
      * If the current player number changes here, {@link #isForcingEndTurn()} is cleared.
@@ -3579,10 +3585,13 @@ public class SOCGame implements Serializable, Cloneable
         if ((gameState < ROLL_OR_CARD) && ! isAtServer)
             return true;  // Only server advances state during initial placement
 
-        //D.ebugPrintln("CHANGING GAME STATE FROM "+gameState);
-
         final boolean needToPickFromGold
             = hasSeaBoard && (players[currentPlayerNumber].getNeedToPickGoldHexResources() != 0);
+
+        if (debugFreePlacement && ! needToPickFromGold)
+            return true;  // Free placement doesn't change state or player
+
+        //D.ebugPrintln("CHANGING GAME STATE FROM "+gameState);
 
         switch (gameState)
         {
