@@ -4819,7 +4819,8 @@ import javax.swing.JComponent;
 
     /**
      * If any bit in {@link #debugShowPotentials}[] is set, besides 8,
-     * draw it on the board. Shows potential/legal placement locations for player 0.
+     * draw it on the board. Shows potential/legal placement locations for
+     * client's {@link #playerNumber} if playing, or player 0 if observing.
      * (<tt>debugShowPotentials[8]</tt> is drawn in the per-hex loop
      *  of {@link #drawBoardEmpty(Graphics)}).
      *<P>
@@ -4833,7 +4834,7 @@ import javax.swing.JComponent;
         if (! isLargeBoard)
             throw new IllegalStateException("not supported yet");
 
-        final SOCPlayer pl = game.getPlayer(0);
+        final SOCPlayer pl = game.getPlayer((playerNumber >= 0) ? playerNumber : 0);
         final int bw = board.getBoardWidth();
 
         if (debugShowPotentials[2])
@@ -5593,7 +5594,8 @@ import javax.swing.JComponent;
     }
 
     /**
-     * set the player that is using this board panel to be the client's player in this game.
+     * Set the player that is using this board panel to be the client's player in this game.
+     * Called when observing user sits down to become a player.
      */
     public void setPlayer()
     {
@@ -5601,8 +5603,8 @@ import javax.swing.JComponent;
     }
 
     /**
-     * Temporarily change the player that is using this board panel.
-     * Used during {@link SOCGame#debugFreePlacement} mode.
+     * Change the player that is using this board panel.
+     * Also used for temporary change during {@link SOCGame#debugFreePlacement} mode.
      * @param pl Player to set, or null to change back to the client player
      * @see #getPlayerNumber()
      * @since 1.1.12
@@ -5613,8 +5615,24 @@ import javax.swing.JComponent;
             pl = game.getPlayer(playerInterface.getClient().getNickname());
         if (pl == player)
             return;
+
         player = pl;
         playerNumber = player.getPlayerNumber();
+
+        // check if any debugShowPotentials flags are set, which are per-player
+        {
+            boolean any = false;
+            for (int i = 0; i < debugShowPotentials.length; ++i)
+                if (debugShowPotentials[i])
+                {
+                    any = true;
+                    break;
+                }
+
+            if (any)
+                scaledMissedImage = true;  // force redraw of empty board and its potentials
+        }
+
         updateMode();
     }
 
