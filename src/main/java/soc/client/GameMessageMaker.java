@@ -546,18 +546,20 @@ import soc.message.SOCStartGame;
     }
 
         /**
-         * send a command to the server with a message
+         * Send a {@code :consider-move} command text message to the server
          * asking a robot to show the debug info for
-         * a possible move after a move has been made
+         * a possible move </B>after</B> a move has been made.
+         *<P>
+         * To show debug info <B>before</B> making a move, see
+         * {@link #considerTarget(SOCGame, SOCPlayer, SOCPlayingPiece)}.
          *
          * @param ga  the game
-         * @param pname  the robot name
-         * @param piece  the piece to consider
+         * @param robotPlayer  the robot player; will call {@link SOCPlayer#getName() getName()}
+         * @param piece  the piece type and coordinate to consider
          */
-         //TODO i18n this is a command, isn't it?
-        public void considerMove(SOCGame ga, String pname, SOCPlayingPiece piece)
+        public void considerMove(final SOCGame ga, final SOCPlayer robotPlayer, final SOCPlayingPiece piece)
         {
-            String msg = pname + ":consider-move ";
+            String msg = robotPlayer.getName() + ":consider-move ";  // i18n OK: Is a formatted command to a robot
 
             switch (piece.getType())
             {
@@ -582,17 +584,20 @@ import soc.message.SOCStartGame;
         }
 
         /**
-         * send a command to the server with a message
+         * Send a {@code :consider-target} command text message to the server
          * asking a robot to show the debug info for
-         * a possible move before a move has been made
+         * a possible move <B>before</B> a move has been made.
+         *<P>
+         * To show debug info <B>after</B> making a move, see
+         * {@link #considerMove(SOCGame, SOCPlayer, SOCPlayingPiece)}.
          *
          * @param ga  the game
-         * @param pname  the robot name
-         * @param piece  the piece to consider
+         * @param robotPlayer  the robot player; will call {@link SOCPlayer#getName() getName()}
+         * @param piece  the piece type and coordinate to consider
          */
-        public void considerTarget(SOCGame ga, String pname, SOCPlayingPiece piece)
+        public void considerTarget(final SOCGame ga, final SOCPlayer robotPlayer, final SOCPlayingPiece piece)
         {
-            String msg = pname + ":consider-target ";
+            String msg = robotPlayer.getName() + ":consider-target ";  // i18n OK: Is a formatted command to a robot
 
             switch (piece.getType())
             {
