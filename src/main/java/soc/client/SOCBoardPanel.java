@@ -5668,12 +5668,16 @@ import javax.swing.JComponent;
     /**
      * For "consider" modes like {@link #CONSIDER_LM_SETTLEMENT} or {@link #CONSIDER_LT_ROAD},
      * set the robot player we'll send the {@code :consider-} command to.
+     * Must be called before {@link #setMode(int)} into a "consider" mode.
      *
-     * @param op  the robot other player
+     * @param op  the robot other player; does nothing if {@code null}.
+     *     This keeps the current otherPlayer in case {@code null} comes from
+     *     a player name being unrecognized by {@link SOCGame#getPlayer(String)}.
      */
     public void setOtherPlayer(final SOCPlayer op)
     {
-        otherPlayer = op;
+        if (op != null)
+            otherPlayer = op;
     }
 
     /*********************************
@@ -7017,9 +7021,13 @@ import javax.swing.JComponent;
     }
 
     /**
-     * Set the interaction mode, for debugging purposes.
+     * Set the interaction mode directly, for debugging purposes.
      *
-     * @param m  mode, such as {@link #CONSIDER_LM_SETTLEMENT} or {@link #CONSIDER_LT_CITY}
+     * @param m  mode, such as {@link #PLACE_ROAD}.
+     *    <BR>
+     *     If {@code m} is a bot-debugging {@code :consider-} mode (in range {@link #CONSIDER_LM_SETTLEMENT}
+     *     - {@link #CONSIDER_LT_CITY}), but {@link #setOtherPlayer(SOCPlayer)} hasn't been called,
+     *     does nothing.
      *
      * @see #updateMode()
      * @see #setModeMoveShip(int)
@@ -7027,6 +7035,12 @@ import javax.swing.JComponent;
      */
     public void setMode(int m)
     {
+        if ((m >= CONSIDER_LM_SETTLEMENT) && (m <= CONSIDER_LT_CITY))
+        {
+            if (otherPlayer == null)
+                return;
+        }
+
         mode = m;
         updateHoverTipToMode();
     }
