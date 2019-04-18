@@ -144,7 +144,7 @@ import soc.util.Version;
      */
     private final boolean forNewGame;
 
-    /** is this for display only? True if shown for an existing game (not a new game). */
+    /** is this for display only (shown for an existing game)? If false, dialog is to create a new game. */
     private final boolean readOnly;
 
     /** Contains this game's {@link SOCGameOption}s, or null if none.
@@ -463,10 +463,9 @@ import soc.util.Version;
      * One row per option, except for 3-letter options which group with 2-letter ones.
      * Boolean checkboxes go on the left edge; text and int/enum values are to right of checkboxes.
      *<P>
-     * When showing options to create a new game, option keys starting with '_' are hidden
-     * unless the player nickname is "debug".  This prevents unwanted changes to those options,
-     * which are set at the server during game creation.  When the options are shown read-only
-     * during a game, these options are shown and not hidden.
+     * When showing options to create a new game, option keys starting with '_' are hidden.
+     * This prevents unwanted changes to those options, which are set at the server during game creation.
+     * When the dialog is shown read-only during a game, these options are shown.
      *<P>
      * Options which have {@link SOCGameOption#FLAG_INTERNAL_GAME_PROPERTY} are always hidden.
      * If not {@link #readOnly}, they're removed from opts.  Unknown opts are always removed.
@@ -483,8 +482,7 @@ import soc.util.Version;
     private void initInterface_Options(JPanel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
         final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
-        final boolean hideUnderscoreOpts = (! readOnly)
-            && (! mainDisplay.getClient().getNickname().equalsIgnoreCase("debug"));
+        final boolean hideUnderscoreOpts = ! readOnly;
 
         JLabel L;
 

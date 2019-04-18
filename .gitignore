@@ -15,6 +15,6 @@
 /target/test-classes/*
 /build
 /.gradle
-/src/.gradle
 /.idea
+/.settings
 __pycache__

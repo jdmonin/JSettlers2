@@ -197,7 +197,7 @@ public class SOCGameOption
      */
     public static final int OTYPE_ENUMBOOL = 5;
 
-    /** Option type: text string (max string length is {@link #maxIntValue}, default value is "") */
+    /** Option type: text string (max string length is option's {@link #maxIntValue}, default value is "") */
     public static final int OTYPE_STR = 6;
 
     /** Option type: text string (like {@link #OTYPE_STR}) but hidden from view; is NOT encrypted,
@@ -280,6 +280,46 @@ public class SOCGameOption
 
     // -- End of scenario flag keynames --
 
+    // -- Extra option keynames --
+
+    /**
+     * An "extra" option key {@code _EXT_BOT} available for robot development.
+     * Available for third-party bot developers: Not used by JSettlers core itself.
+     * Can hold a string of data which is sent to all robot clients,
+     * entered on the server command line or properties file.
+     * Maximum length of this option's value is {@link #TEXT_OPTION_MAX_LENGTH}.
+     * @see #K__EXT_CLI
+     * @see #K__EXT_GAM
+     * @since 2.0.00
+     */
+    public static final String K__EXT_BOT = "_EXT_BOT";
+
+    /**
+     * An "extra" option key {@code _EXT_CLI} available for client development.
+     * Available for third-party developers: Not used by JSettlers core itself.
+     * Can hold a string of data which is sent to all clients,
+     * entered on the server command line or properties file.
+     * Maximum length of this option's value is {@link #TEXT_OPTION_MAX_LENGTH}.
+     * @see #K__EXT_BOT
+     * @see #K__EXT_GAM
+     * @since 2.0.00
+     */
+    public static final String K__EXT_CLI = "_EXT_CLI";
+
+    /**
+     * An "extra" option key {@code _EXT_GAM} available for game development.
+     * Available for third-party developers: Not used by JSettlers core itself.
+     * Can hold a string of data which is sent to the game at all clients,
+     * entered on the server command line or properties file.
+     * Maximum length of this option's value is {@link #TEXT_OPTION_MAX_LENGTH}.
+     * @see #K__EXT_BOT
+     * @see #K__EXT_CLI
+     * @since 2.0.00
+     */
+    public static final String K__EXT_GAM = "_EXT_GAM";
+
+    // -- End of extra option keynames --
+
     /**
      * Version 2.0.00 introduced longer option keynames (8 characters, earlier max was 3)
      * and underscores '_' in option names.
@@ -287,6 +327,16 @@ public class SOCGameOption
      * @since 2.0.00
      */
     public static final int VERSION_FOR_LONGER_OPTNAMES = 2000;
+
+    /**
+     * Maximum possible length of any text-type SOCGameOption's value, to conserve network bandwidth.
+     * Checked in option's constructor. Individual SOCGameOptions may choose a shorter max length
+     * (stored in {@link #maxIntValue} field).
+     *<P>
+     * Types: {@link #OTYPE_STR}, {@link #OTYPE_STRHIDE}.
+     * @since 2.0.00
+     */
+    public static final int TEXT_OPTION_MAX_LENGTH = 255;
 
     /**
      * Set of "known options".
@@ -524,6 +574,18 @@ public class SOCGameOption
         opt.put(K_SC_WOND, new SOCGameOption
                 (K_SC_WOND, 2000, 2000, false, FLAG_DROP_IF_UNUSED,
                  "Scenarios: Wonders"));
+
+        // "Extra" options for third-party developers
+
+        opt.put(K__EXT_BOT, new SOCGameOption
+                (K__EXT_BOT, 2000, 2000, TEXT_OPTION_MAX_LENGTH, false, FLAG_DROP_IF_UNUSED,
+                 "Extra non-core option available for robots in this game"));
+        opt.put(K__EXT_CLI, new SOCGameOption
+                (K__EXT_CLI, 2000, 2000, TEXT_OPTION_MAX_LENGTH, false, FLAG_DROP_IF_UNUSED,
+                 "Extra non-core option available for clients in this game"));
+        opt.put(K__EXT_GAM, new SOCGameOption
+                (K__EXT_GAM, 2000, 2000, TEXT_OPTION_MAX_LENGTH, false, FLAG_DROP_IF_UNUSED,
+                 "Extra non-core option available for this game"));
 
         // NEW_OPTION - Add opt.put here at end of list, and update the
         //       list of "current known options" in javadoc just above.
@@ -946,12 +1008,13 @@ public class SOCGameOption
 
     /**
      * Create a new text game option ({@link #OTYPE_STR} or {@link #OTYPE_STRHIDE}).
-     * The {@link #maxIntValue} will be maxLength.
+     * The {@link #maxIntValue} field will hold {@code maxLength}.
      * @param key     Alphanumeric 2-character code for this option;
      *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
-     * @param maxLength   Maximum length, between 1 and 255 (for network bandwidth conservation)
+     * @param maxLength   Maximum length, between 1 and 255 ({@link #TEXT_OPTION_MAX_LENGTH})
+     *                for network bandwidth conservation
      * @param hideTyping  Should type be {@link #OTYPE_STRHIDE} instead of {@link #OTYPE_STR}?
      * @param flags   Option flags such as {@link #FLAG_DROP_IF_UNUSED}, or 0;
      *                Remember that older clients won't recognize some gameoption flags.
@@ -959,7 +1022,7 @@ public class SOCGameOption
      *             contain a placeholder character '#' where the text value goes.
      *             If no placeholder is found, the value text field appears at left,
      *             like boolean options.
-     * @throws IllegalArgumentException if maxLength > 255,
+     * @throws IllegalArgumentException if maxLength > {@link #TEXT_OPTION_MAX_LENGTH},
      *        or if key length is > 3 or not alphanumeric,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
@@ -971,7 +1034,7 @@ public class SOCGameOption
 	this( (hideTyping ? OTYPE_STRHIDE : OTYPE_STR ),
 	     key, minVers, lastModVers, false, 0,
 	     0, maxLength, null, flags, desc);
-	if ((maxLength < 1) || (maxLength > 255))
+	if ((maxLength < 1) || (maxLength > TEXT_OPTION_MAX_LENGTH))
 	    throw new IllegalArgumentException("maxLength");
     }
 

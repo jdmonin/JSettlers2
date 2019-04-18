@@ -36,6 +36,7 @@ and backport minor new features until `2.0.00` is ready.
 	- On Windows, detects High-Contrast mode/theme and uses appropriate colors
 - If a new game is created but no one has sat down, then someone joins and leaves it, don't delete that game
 - If a bot is slow and its turn has been ended several times, shorten its timeout so other players won't have to wait so long (KotCzarny idea)
+- Shorten bot trade timeout after human players have declined (KotCzarny idea)
 - I18N framework in place, started by Luis A. Ramirez; thank you Luis. Jeremy wrote more I18N utilities (package net.nand.util.i18n).
 - Game names and user nicknames can't be a number or punctuation: Must contain a non-digit, non-punctuation character
 - Applet class is now `soc.client.SOCApplet`
@@ -70,6 +71,9 @@ and backport minor new features until `2.0.00` is ready.
 	- Third-party bots can have more time to plan their turn with new server startup option:
 	  (this example uses 18 seconds)  
 	  `-Djsettlers.bots.timeout.turn=18`
+	- Third-party bots can be sent config or debug settings with new game option `_EXT_BOT`
+	  from server command line:  
+	  `java -jar JSettlersServer.jar -o _EXT_BOT=abcde`  
 	- Tuning for length of SOCRobotBrain pauses during bot-only games:
 	  To pause only 10% as long as in normal games, use  
 	  `-Djsettlers.bots.fast_pause_percent=10`
@@ -94,8 +98,10 @@ and backport minor new features until `2.0.00` is ready.
 - Game state renamed for clarity: SOCGame.PLAY -> ROLL_OR_CARD; PLAY1 not renamed; SOCRobotBrain.expectPLAY -> expectROLL_OR_CARD
 - Tightened class scope for clarity: Removed `public` from classes meant for internal use (thank you Colin Werner)
 - Minor refactoring
-- Project dir structure converted to maven layout
-- To simplify build process, move version and copyright info from `build.xml` to `version.info`
+- Built JARs include git commit hash if available, as Build-Revision in MANIFEST.MF
+- Project dir structure converted to maven/gradle layout
+- Project builds with gradle, not ant
+- To simplify build process, moved version and copyright info from `build.xml` to `version.info`
 - READMEs and VERSIONS.txt converted to Markdown (thank you Ruud Poutsma),
     merged old-updates-rsthomas.html into Versions.md
 

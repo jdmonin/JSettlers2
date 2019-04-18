@@ -565,11 +565,28 @@ import javax.swing.JComponent;
     /** Place an initial road or ship. */
     private final static int PLACE_INIT_ROAD = 6;
 
+    /**
+     * Hover while picking a {@code :consider-move} at robot {@link #otherPlayer}'s
+     * {@link SOCPlayer#canPlaceSettlement(int) canPlaceSettlement(node)} locations.
+     */
     public final static int CONSIDER_LM_SETTLEMENT = 7;
+
+    /** Hover while picking a {@code :consider-move} at robot {@link #otherPlayer}'s potential roads. */
     public final static int CONSIDER_LM_ROAD = 8;
+
+    /** Hover while picking a {@code :consider-move} at robot {@link #otherPlayer}'s potential cities. */
     public final static int CONSIDER_LM_CITY = 9;
+
+    /**
+     * Hover while picking a {@code :consider-target} at robot {@link #otherPlayer}'s
+     * {@link SOCPlayer#canPlaceSettlement(int) canPlaceSettlement(node)} locations.
+     */
     public final static int CONSIDER_LT_SETTLEMENT = 10;
+
+    /** Hover while picking a {@code :consider-target} at robot {@link #otherPlayer}'s potential roads. */
     public final static int CONSIDER_LT_ROAD = 11;
+
+    /** Hover while picking a {@code :consider-target} at robot {@link #otherPlayer}'s potential cities. */
     public final static int CONSIDER_LT_CITY = 12;
 
     /** Place a ship on the large sea board.
@@ -1440,8 +1457,8 @@ import javax.swing.JComponent;
     private int playerNumber;
 
     /**
-     * When in "consider" mode, this is the player
-     * we're talking to
+     * When in "consider" mode, this is the robot player we'll send the command to;
+     * see {@link #setOtherPlayer(SOCPlayer)} for details.
      */
     private SOCPlayer otherPlayer;
 
@@ -4836,7 +4853,8 @@ import javax.swing.JComponent;
 
     /**
      * If any bit in {@link #debugShowPotentials}[] is set, besides 8,
-     * draw it on the board. Shows potential/legal placement locations for player 0.
+     * draw it on the board. Shows potential/legal placement locations for
+     * client's {@link #playerNumber} if playing, or player 0 if observing.
      * (<tt>debugShowPotentials[8]</tt> is drawn in the per-hex loop
      *  of {@link #drawBoardEmpty(Graphics)}).
      *<P>
@@ -4850,7 +4868,7 @@ import javax.swing.JComponent;
         if (! isLargeBoard)
             throw new IllegalStateException("not supported yet");
 
-        final SOCPlayer pl = game.getPlayer(0);
+        final SOCPlayer pl = game.getPlayer((playerNumber >= 0) ? playerNumber : 0);
         final int bw = board.getBoardWidth();
 
         if (debugShowPotentials[2])
@@ -5624,7 +5642,8 @@ import javax.swing.JComponent;
     }
 
     /**
-     * set the player that is using this board panel to be the client's player in this game.
+     * Set the player that is using this board panel to be the client's player in this game.
+     * Called when observing user sits down to become a player.
      */
     public void setPlayer()
     {
@@ -5632,8 +5651,8 @@ import javax.swing.JComponent;
     }
 
     /**
-     * Temporarily change the player that is using this board panel.
-     * Used during {@link SOCGame#debugFreePlacement} mode.
+     * Change the player that is using this board panel.
+     * Also used for temporary change during {@link SOCGame#debugFreePlacement} mode.
      * @param pl Player to set, or null to change back to the client player
      * @see #getPlayerNumber()
      * @since 1.1.12
@@ -5644,8 +5663,24 @@ import javax.swing.JComponent;
             pl = game.getPlayer(playerInterface.getClient().getNickname());
         if (pl == player)
             return;
+
         player = pl;
         playerNumber = player.getPlayerNumber();
+
+        // check if any debugShowPotentials flags are set, which are per-player
+        {
+            boolean any = false;
+            for (int i = 0; i < debugShowPotentials.length; ++i)
+                if (debugShowPotentials[i])
+                {
+                    any = true;
+                    break;
+                }
+
+            if (any)
+                scaledMissedImage = true;  // force redraw of empty board and its potentials
+        }
+
         updateMode();
     }
 
@@ -5662,13 +5697,18 @@ import javax.swing.JComponent;
     }
 
     /**
-     * set the other player
+     * For "consider" modes like {@link #CONSIDER_LM_SETTLEMENT} or {@link #CONSIDER_LT_ROAD},
+     * set the robot player we'll send the {@code :consider-} command to.
+     * Must be called before {@link #setMode(int)} into a "consider" mode.
      *
-     * @param op  the other player
+     * @param op  the robot other player; does nothing if {@code null}.
+     *     This keeps the current otherPlayer in case {@code null} comes from
+     *     a player name being unrecognized by {@link SOCGame#getPlayer(String)}.
      */
-    public void setOtherPlayer(SOCPlayer op)
+    public void setOtherPlayer(final SOCPlayer op)
     {
-        otherPlayer = op;
+        if (op != null)
+            otherPlayer = op;
     }
 
     /*********************************
@@ -6483,63 +6523,57 @@ import javax.swing.JComponent;
                     break;
 
                 case CONSIDER_LM_SETTLEMENT:
-
                     if (otherPlayer.canPlaceSettlement(hilight))
                     {
-                        client.getGameMessageMaker().considerMove(game, otherPlayer.getName(), new SOCSettlement(otherPlayer, hilight, board));
+                        client.getGameMessageMaker().considerMove
+                            (game, otherPlayer, new SOCSettlement(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
                     }
-
                     break;
 
                 case CONSIDER_LM_ROAD:
-
                     if (otherPlayer.isPotentialRoad(hilight))
                     {
-                        client.getGameMessageMaker().considerMove(game, otherPlayer.getName(), new SOCRoad(otherPlayer, hilight, board));
+                        client.getGameMessageMaker().considerMove
+                            (game, otherPlayer, new SOCRoad(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.ROAD);
                     }
-
                     break;
 
                 case CONSIDER_LM_CITY:
-
                     if (otherPlayer.isPotentialCity(hilight))
                     {
-                        client.getGameMessageMaker().considerMove(game, otherPlayer.getName(), new SOCCity(otherPlayer, hilight, board));
+                        client.getGameMessageMaker().considerMove
+                            (game, otherPlayer, new SOCCity(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.CITY);
                     }
-
                     break;
 
                 case CONSIDER_LT_SETTLEMENT:
-
                     if (otherPlayer.canPlaceSettlement(hilight))
                     {
-                        client.getGameMessageMaker().considerTarget(game, otherPlayer.getName(), new SOCSettlement(otherPlayer, hilight, board));
+                        client.getGameMessageMaker().considerTarget
+                            (game, otherPlayer, new SOCSettlement(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
                     }
-
                     break;
 
                 case CONSIDER_LT_ROAD:
-
                     if (otherPlayer.isPotentialRoad(hilight))
                     {
-                        client.getGameMessageMaker().considerTarget(game, otherPlayer.getName(), new SOCRoad(otherPlayer, hilight, board));
+                        client.getGameMessageMaker().considerTarget
+                            (game, otherPlayer, new SOCRoad(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.ROAD);
                     }
-
                     break;
 
                 case CONSIDER_LT_CITY:
-
                     if (otherPlayer.isPotentialCity(hilight))
                     {
-                        client.getGameMessageMaker().considerTarget(game, otherPlayer.getName(), new SOCCity(otherPlayer, hilight, board));
+                        client.getGameMessageMaker().considerTarget
+                            (game, otherPlayer, new SOCCity(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.CITY);
                     }
-
                     break;
                 }
             }
@@ -7022,9 +7056,13 @@ import javax.swing.JComponent;
     }
 
     /**
-     * Set the interaction mode, for debugging purposes.
+     * Set the interaction mode directly, for debugging purposes.
      *
-     * @param m  mode, such as {@link #CONSIDER_LM_SETTLEMENT} or {@link #CONSIDER_LT_CITY}
+     * @param m  mode, such as {@link #PLACE_ROAD}.
+     *    <BR>
+     *     If {@code m} is a bot-debugging {@code :consider-} mode (in range {@link #CONSIDER_LM_SETTLEMENT}
+     *     - {@link #CONSIDER_LT_CITY}), but {@link #setOtherPlayer(SOCPlayer)} hasn't been called,
+     *     does nothing.
      *
      * @see #updateMode()
      * @see #setModeMoveShip(int)
@@ -7032,6 +7070,12 @@ import javax.swing.JComponent;
      */
     public void setMode(int m)
     {
+        if ((m >= CONSIDER_LM_SETTLEMENT) && (m <= CONSIDER_LT_CITY))
+        {
+            if (otherPlayer == null)
+                return;
+        }
+
         mode = m;
         updateHoverTipToMode();
     }

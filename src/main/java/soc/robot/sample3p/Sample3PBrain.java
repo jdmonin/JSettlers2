@@ -1,6 +1,6 @@
 /*
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,6 +20,7 @@
 package soc.robot.sample3p;
 
 import soc.game.SOCGame;
+import soc.game.SOCGameOption;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
 import soc.message.SOCMessage;
@@ -60,6 +61,10 @@ public class Sample3PBrain extends SOCRobotBrain
      * After the standard actions of {@link SOCRobotBrain#setOurPlayerData()},
      * sends a "hello" chat message as a sample action using {@link SOCRobotClient#sendText(SOCGame, String)}.
      *<P>
+     * If the for-bots extra game option {@link SOCGameOption#K__EXT_BOT} was set at the server command line,
+     * prints its value to {@link System#err}. A third-party bot might want to use that option's value
+     * to configure its behavior or debug settings.
+     *<P>
      *<B>I18N Note:</B> Robots don't know what languages or locales the human players can read:
      * It would be unfair for a bot to ever send text that the players must understand
      * for gameplay. So this sample bot's "hello" is not localized.
@@ -69,7 +74,12 @@ public class Sample3PBrain extends SOCRobotBrain
     {
         super.setOurPlayerData();
 
-        client.sendText(game, "Hello from sample bot " + client.getNickname() + "!");
+        final String botName = client.getNickname();
+        client.sendText(game, "Hello from sample bot " + botName + "!");
+
+        final String optExtBot = game.getGameOptionStringValue(SOCGameOption.K__EXT_BOT);
+        if (optExtBot != null)
+            System.err.println("Bot " + botName + ": __EXT_BOT is: " + optExtBot);
     }
 
     /**

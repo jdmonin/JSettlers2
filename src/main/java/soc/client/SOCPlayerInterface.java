@@ -1686,10 +1686,30 @@ public class SOCPlayerInterface extends Frame
     /**
      * Handle local client commands for games.
      *<P>
+     * Command names, after \ :
+     *<UL>
+     * <LI> For chat:
+     * <UL>
+     *  <LI> {@code ignore} <em>playerName</em>
+     *  <LI> {@code unignore} <em>playerName</em>
+     * </UL>
+     * <LI> To pick a board location to send a bot {@code :consider-target} commands:
+     * <UL>
+     *  <LI> {@code clt-set} <em>robotName</em>
+     *  <LI> {@code clt-road} <em>robotName</em>
+     *  <LI> {@code clt-city} <em>robotName</em>
+     * </UL>
+     * <LI> To pick a board location to send a bot {@code :consider-move} commands:
+     * <UL>
+     *  <LI> {@code clm-set} <em>robotName</em>
+     *  <LI> {@code clm-road} <em>robotName</em>
+     *  <LI> {@code clm-city} <em>robotName</em>
+     * </UL>
+     *</UL>
      * Before 2.0.00 this method was {@code SOCPlayerClient.doLocalCommand(SOCGame, String)}.
      *
      * @param cmd  Local client command string, which starts with \
-     * @return true if a command was handled
+     * @return true if a command was handled, false if no command name was recognized
      * @since 2.0.00
      * @see SwingMainDisplay#doLocalCommand(String, String)
      */

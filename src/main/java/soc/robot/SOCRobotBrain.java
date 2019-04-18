@@ -169,6 +169,22 @@ public class SOCRobotBrain extends Thread
     public static int MAX_DENIED_BUILDING_PER_TURN = 3;
 
     /**
+     * When a trade has been offered to humans (and maybe also to bots),
+     * maximum wait in seconds for responses: {@link #tradeResponseTimeoutSec}.
+     * Longer than {@link #TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY}.
+     * @since 2.0.00
+     */
+    private static final int TRADE_RESPONSE_TIMEOUT_SEC_HUMANS = 100;
+
+    /**
+     * When a trade has been offered to only bots (not to any humans),
+     * maximum wait in seconds for responses: {@link #tradeResponseTimeoutSec}.
+     * Shorter than {@link #TRADE_RESPONSE_TIMEOUT_SEC_HUMANS}.
+     * @since 2.0.00
+     */
+    private static final int TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY = 5;
+
+    /**
      * The robot parameters
      */
     SOCRobotParameters robotParameters;
@@ -578,9 +594,20 @@ public class SOCRobotBrain extends Thread
     protected boolean moveRobberOnSeven;
 
     /**
-     * true if we're waiting for a response to our trade message
+     * True if we're waiting for a response to our trade message.
+     * Max wait time is {@link #tradeResponseTimeoutSec}.
      */
     protected boolean waitingForTradeResponse;
+
+    /**
+     * When {@link #waitingForTradeResponse}, how many seconds to wait
+     * before we stop waiting for response to a trade message.
+     * Longer if trade is offered to humans, shorter if bots only:
+     * {@link #TRADE_RESPONSE_TIMEOUT_SEC_HUMANS}, {@link #TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY}.
+     * Updated when {@link #waitingForTradeResponse} is set true.
+     * @since 2.0.00
+     */
+    protected int tradeResponseTimeoutSec;
 
     /**
      * Non-{@code null} if we're waiting for server response to picking
@@ -1159,7 +1186,7 @@ public class SOCRobotBrain extends Thread
                         counter = 0;
                     }
 
-                    if (waitingForTradeResponse && (counter > 100))
+                    if (waitingForTradeResponse && (counter > tradeResponseTimeoutSec))
                     {
                         // Remember other players' responses, call client.clearOffer,
                         // clear waitingForTradeResponse and counter.
@@ -3213,6 +3240,7 @@ public class SOCRobotBrain extends Thread
     /**
      * Handle a REJECTOFFER for this game.
      * watch rejections of other players' offers, and of our offers.
+     * If everyone's rejected our offer, clear {@link #waitingForTradeResponse}.
      * @since 1.1.08
      */
     private void handleREJECTOFFER(SOCRejectOffer mes)
@@ -3241,17 +3269,22 @@ public class SOCRobotBrain extends Thread
 
             offerRejections[mes.getPlayerNumber()] = true;
 
-            boolean everyoneRejected = true;
+            boolean everyoneRejected = true,
+                allHumansRejected = (tradeResponseTimeoutSec > TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY);
             D.ebugPrintln("ourPlayerData.getCurrentOffer() = " + ourPlayerData.getCurrentOffer());
 
             boolean[] offeredTo = ourPlayerData.getCurrentOffer().getTo();
 
-            for (int i = 0; i < game.maxPlayers; i++)
+            for (int pn = 0; pn < game.maxPlayers; ++pn)
             {
-                D.ebugPrintln("offerRejections[" + i + "]=" + offerRejections[i]);
+                D.ebugPrintln("offerRejections[" + pn + "]=" + offerRejections[pn]);
 
-                if (offeredTo[i] && ! offerRejections[i])
+                if (offeredTo[pn] && ! offerRejections[pn])
+                {
                     everyoneRejected = false;
+                    if (allHumansRejected && ! game.getPlayer(pn).isRobot())
+                        allHumansRejected = false;
+                }
             }
 
             D.ebugPrintln("everyoneRejected=" + everyoneRejected);
@@ -3261,6 +3294,11 @@ public class SOCRobotBrain extends Thread
                 negotiator.addToOffersMade(ourPlayerData.getCurrentOffer());
                 client.clearOffer(game);
                 waitingForTradeResponse = false;
+            }
+            else if (allHumansRejected)
+            {
+                // can now shorten timeout
+                tradeResponseTimeoutSec = TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY;
             }
         }
         else
@@ -4967,14 +5005,20 @@ public class SOCRobotBrain extends Thread
         if (offer != null)
         {
             ///
-            ///  reset the offerRejections flag
+            ///  reset the offerRejections flag and check for human players
             ///
-            for (int i = 0; i < game.maxPlayers; i++)
+            boolean anyHumans = false;
+            for (int pn = 0; pn < game.maxPlayers; ++pn)
             {
-                offerRejections[i] = false;
+                offerRejections[pn] = false;
+                if (! (game.isSeatVacant(pn) || game.getPlayer(pn).isRobot()))
+                    anyHumans = true;
             }
 
             waitingForTradeResponse = true;
+            tradeResponseTimeoutSec = (anyHumans)
+                ? TRADE_RESPONSE_TIMEOUT_SEC_HUMANS
+                : TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY;
             counter = 0;
             client.offerTrade(game, offer);
             result = true;
@@ -5010,8 +5054,12 @@ public class SOCRobotBrain extends Thread
             ///
             ///  reset the offerRejections flag
             ///
-            offerRejections[offer.getFrom()] = false;
+            final int pn = offer.getFrom();
+            offerRejections[pn] = false;
             waitingForTradeResponse = true;
+            tradeResponseTimeoutSec = (game.getPlayer(pn).isRobot())
+                ? TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY
+                : TRADE_RESPONSE_TIMEOUT_SEC_HUMANS;
             counter = 0;
             client.offerTrade(game, counterOffer);
 
@@ -5309,4 +5357,5 @@ public class SOCRobotBrain extends Thread
             }
         }
     }
+
 }

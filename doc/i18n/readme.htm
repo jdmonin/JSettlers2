@@ -4,14 +4,14 @@
 </head>
 <body bgcolor="white" text="black">
 <!--
-This file Copyright (C) 2014 Jeremy D Monin (jeremy@nand.net)
+This file Copyright (C) 2014,2019 Jeremy D Monin (jeremy@nand.net)
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation; either version 3
 of the License, or (at your option) any later version.
 
-Based on src/main/net/nand/util/i18n/README.txt; please keep in sync when text changes.
+Based on src/main/java/net/nand/util/i18n/README.txt; please keep in sync when text changes.
 -->
 
 <h2>README.htm - Notes and current status for the nand.net i18n translator's editor</h2>
@@ -23,14 +23,11 @@ Based on src/main/net/nand/util/i18n/README.txt; please keep in sync when text c
 	<td>webpage: </td><td>
 		<A href="http://nand.net/jsettlers/devel/i18n/">http://nand.net/jsettlers/devel/i18n/</A> </td></tr>
 	<td>bug-tracker: </td><td>
-		<A href="http://sourceforge.net/projects/jsettlers2/">http://sourceforge.net/projects/jsettlers2/</A> </td></tr>
+		<A href="https://github.com/jdmonin/JSettlers2/issues">https://github.com/jdmonin/JSettlers2/issues</A> </td></tr>
 	<td>source: </td><td>
-		<A href="https://github.com/jdmonin/JSettlers2">https://github.com/jdmonin/JSettlers2</A> </td></tr>
+		<A href="https://github.com/jdmonin/JSettlers2/tree/master/src/main/java/net/nand/util/i18n">https://github.com/jdmonin/JSettlers2/tree/master/src/main/java/net/nand/util/i18n</A> </td></tr>
 </table></blockquote>
 in the <tt>net.nand.util.i18n</tt> and <tt>net.nand.util.i18n.gui</tt> packages.</P>
-
-<P>The editor is work in progress.  Right now it can't create or copy new .properties files; you'll
-need to do that on your own and then use the editor on the new file.</P>
 
 
 <h3>Purpose and File Format</h3>
@@ -68,10 +65,10 @@ ISO-8859-1 encoding (with unicode escapes) automatically.</P>
 Click the main window's Help button for more info.</P>
 
 <P><B>"Open Destination + Source" Dialog:</B><br>
-<img src="pte-0.9.0-open.png" width=376 height=266></P>
+<img src="pte-1.0.0-open.png" width=376 height=266></P>
 
 <P><B>Main Window:</B><br>
-<img src="pte-0.9.0-main.png" width=862 height=525></P>
+<img src="pte-1.0.0-main.png" width=862 height=525></P>
 
 <P>
 When starting the editor this message is harmless, because preferences are stored per-user:
@@ -85,16 +82,39 @@ When starting the editor this message is harmless, because preferences are store
 <h3>Developers</h3>
 
 The project code lives at <A href="https://github.com/jdmonin/JSettlers2">https://github.com/jdmonin/JSettlers2</A> .
+<P>
+To build PTE.jar, use: <tt>gradle i18neditorJar</tt>
+<P>
 See the <tt>PropertiesTranslatorEditor</tt> javadoc for current limitations and TODO items.
+<P>
 Patches can be sent by email or by pull request; if emailing, use diff -u format.
-Please make sure your patch follows the project coding style (see <tt>/README.developer</tt>).
+Please make sure your patch follows the project coding style (see <tt>/doc/Readme.developer.md</tt>).
 
 
-<h3>Version history</h3>
+<H3>Version history</H3>
 
-<b>0.9.0 (2014-03-31)</b>
+<B>1.1.0</B> (not yet released)
 <UL>
-	<LI> Current beta version.  Can edit files but not create them.
+	<LI> Current beta version being developed.
+	<LI> Use Ctrl-S/Cmd-S to save any changes to both source and destination
+	<LI> Remove icon clutter in key string add/edit dialog
+</UL>
+
+<B>1.0.0</B> (2016-04-21 532e652)
+<UL>
+	<LI> Can create new translation destination files
+	<LI> When searching, show current matching cell using different text color
+	<LI> Adds Find button
+	<LI> MacOSX can use Cmd-F for Find
+	<LI> Use case-insensitive comparison for filenames (Windows)
+	<LI> While loading source and destination, look for duplicate keys
+</UL>
+
+<B>0.9.0</B> (2014-03-31 b9efb1a)
+<UL>
+	<LI> Initial release of side-by-side Properties Translator's Editor
+	<LI> Can edit files but not create them
+	<LI> Use Ctrl-F for Find (not yet discoverable in GUI)
 </UL>
 
 </body>

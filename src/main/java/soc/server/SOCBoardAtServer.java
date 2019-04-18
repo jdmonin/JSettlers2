@@ -113,8 +113,18 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * Flag property {@code jsettlers.debug.board.fog}: When present, about 20% of the board's
      * land hexes will be randomly covered by fog during {@code makeNewBoard} generation.
      * Ignored if {@link SOCGameOption#K_SC_FOG} is set.
+     *
+     * @see #PROP_JSETTLERS_DEBUG_BOARD_FOG__GOLD
      */
     public static final String PROP_JSETTLERS_DEBUG_BOARD_FOG = "jsettlers.debug.board.fog";
+
+    /**
+     * Flag property {@code jsettlers.debug.board.fog_gold}: When present, about 50% of the board's
+     * fog hexes will be randomly revealed as gold.
+     *<P>
+     * Can be used independently of {@link #PROP_JSETTLERS_DEBUG_BOARD_FOG}.
+     */
+    public static final String PROP_JSETTLERS_DEBUG_BOARD_FOG__GOLD = "jsettlers.debug.board.fog_gold";
 
     private static final long serialVersionUID = 2000L;
 
@@ -2447,22 +2457,28 @@ public class SOCBoardAtServer extends SOCBoardLarge
     protected void makeNewBoard_hideHexesInFog(final int[] hexCoords)
         throws IllegalStateException
     {
+        final boolean debugHalfAreGold =
+            (null != System.getProperty(PROP_JSETTLERS_DEBUG_BOARD_FOG__GOLD));
+
         for (int i = 0; i < hexCoords.length; ++i)
         {
             final int hexCoord = hexCoords[i];
             if (hexCoord == 0)
                 continue;
+
             final int r = hexCoord >> 8,
                       c = hexCoord & 0xFF;
-            final int hex = hexLayoutLg[r][c];
-            if (hex == FOG_HEX)
+            int hexType = hexLayoutLg[r][c];
+            if (hexType == FOG_HEX)
                 throw new IllegalStateException("Already fog: 0x" + Integer.toHexString(hexCoord));
+            if (debugHalfAreGold && (hexType != WATER_HEX) && rand.nextBoolean())
+                hexType = GOLD_HEX;
 
-            fogHiddenHexes.put(Integer.valueOf(hexCoord), (hex << 8) | (numberLayoutLg[r][c] & 0xFF));
+            fogHiddenHexes.put(Integer.valueOf(hexCoord), (hexType << 8) | (numberLayoutLg[r][c] & 0xFF));
             hexLayoutLg[r][c] = FOG_HEX;
             numberLayoutLg[r][c] = 0;
 
-            if ((hex == WATER_HEX) && landHexLayout.contains(hexCoord))
+            if ((hexType == WATER_HEX) && landHexLayout.contains(hexCoord))
             {
                 legalRoadEdges.addAll(getAdjacentEdgesToHex(hexCoord));
 
