@@ -70,7 +70,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      * @param optstr Requested game options, in the format returned by
      *            {@link soc.game.SOCGameOption#packOptionsToString(Map, boolean) SOCGameOption.packOptionsToString(opts, false)},
      *            or null
-     * @param minVers Minimum client version required for this game, or -1.
+     * @param minVers Minimum client version required for this game, or -1
      */
     public SOCNewGameWithOptions(final String ga, final String optstr, final int minVers)
     {
@@ -90,7 +90,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      * @param ga  the name of the game; the game name may have
      *            the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
      * @param opts Requested game options, as a read-only map
-     * @param gameMinVers Minimum client version required, or -1
+     * @param minVers Minimum client version required for this game, or -1
      * @param cliVers  Client version, if any game's options need adjustment for an older client.
      *            Use -2 if the client version doesn't matter, or if adjustment should not be done.
      * @since 2.0.00

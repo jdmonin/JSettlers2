@@ -290,7 +290,7 @@ public class SOCStatusMessage extends SOCMessage
     /**
      * Client has connected successfully ({@link #SV_OK}) and the server's Debug Mode is on.
      * Versions older than 2.0.00 get {@link #SV_OK} instead;
-     * see {@link #toCmd(int, int, String)}.
+     * see {@link #statusFallbackForVersion(int, int)}.
      * @since 2.0.00
      */
     public static final int SV_OK_DEBUG_MODE_ON = 21;
@@ -396,7 +396,8 @@ public class SOCStatusMessage extends SOCMessage
     /**
      * Create a StatusMessage message, with a nonzero status value.
      * Does not check that {@code sv} is compatible with the client it's sent to;
-     * for that use {@link #toCmd(int, int, String)} instead.
+     * for that check, call {@link #statusFallbackForVersion(int, int)}
+     * or use {@link #toCmd(int, int, String)} instead.
      *
      * @param sv  status value (from constants defined here, such as {@link #SV_OK})
      * @param st  the status message text.
@@ -469,20 +470,9 @@ public class SOCStatusMessage extends SOCMessage
      * STATUSMESSAGE sep [svalue sep2] status -- includes backwards compatibility.
      * Calls {@link #statusValidAtVersion(int, int)}. if {@code sv} isn't recognized in
      * that client version, will send {@link #SV_NOT_OK_GENERIC} or another "fallback"
-     * value defined in the client. See individual status values' javadocs for details.
-     *<UL>
-     * <LI> {@link #SV_OK_DEBUG_MODE_ON} falls back to {@link #SV_OK}
-     * <LI> {@link #SV_PW_REQUIRED} falls back to {@link #SV_PW_WRONG}
-     * <LI> {@link #SV_ACCT_CREATED_OK_FIRST_ONE} falls back to {@link #SV_ACCT_CREATED_OK}
-     * <LI> {@link #SV_GAME_CLIENT_FEATURES_NEEDED} falls back to {@link #SV_NEWGAME_OPTION_VALUE_TOONEW}
-     * <LI> {@link #SV_OK_SET_NICKNAME} has no successful fallback, the client must be
-     *      sent {@link #SV_NAME_NOT_FOUND} and must reauthenticate; throws {@link IllegalArgumentException}
-     * <LI> All others fall back to {@link #SV_NOT_OK_GENERIC}
-     * <LI> In case the fallback value is also not recognized at the client,
-     *      {@code toCmd(..)} will fall back again to something more generic
-     * <LI> Clients before v1.1.06 will be sent the status text {@code st} only,
-     *      without the {@code sv} parameter which was added in 1.1.06
-     *</UL>
+     * value defined in the client.
+     *<P>
+     * For details and the list of status value fallbacks, see {@link #statusFallbackForVersion(int, int)}.
      *
      * @param sv  the status value; if 0 or less, is not output.
      *            Should be a constant such as {@link #SV_OK}.
@@ -556,6 +546,23 @@ public class SOCStatusMessage extends SOCMessage
 
     /**
      * Is this status value defined at this version? Check client version and if not, find a compatible status value.
+     *<P>
+     *<H3>Status value fallbacks:</H3>
+     * See individual status values' javadocs for details.
+     *<UL>
+     * <LI> {@link #SV_OK_DEBUG_MODE_ON} falls back to {@link #SV_OK}
+     * <LI> {@link #SV_PW_REQUIRED} falls back to {@link #SV_PW_WRONG}
+     * <LI> {@link #SV_ACCT_CREATED_OK_FIRST_ONE} falls back to {@link #SV_ACCT_CREATED_OK}
+     * <LI> {@link #SV_GAME_CLIENT_FEATURES_NEEDED} falls back to {@link #SV_NEWGAME_OPTION_VALUE_TOONEW}
+     * <LI> {@link #SV_OK_SET_NICKNAME} has no successful fallback, the client must be
+     *      sent {@link #SV_NAME_NOT_FOUND} and must reauthenticate; throws {@link IllegalArgumentException}
+     * <LI> All others fall back to {@link #SV_NOT_OK_GENERIC}
+     * <LI> In case the fallback value is also not recognized at the client,
+     *      {@code toCmd(..)} will fall back again to something more generic
+     * <LI> Clients before v1.1.06 will be sent the status text {@code st} only,
+     *      without the {@code sv} parameter which was added in 1.1.06
+     *</UL>
+     *
      * @param sv  the status value; should be a constant such as {@link #SV_OK}.
      * @param cliVersion Client's version, same format as {@link soc.util.Version#versionNumber()}
      * @return {@code sv} if valid at {@code cliVersion}, or the most applicable status for that version.
