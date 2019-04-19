@@ -255,8 +255,8 @@ its `build.gradle` into other IDEs.
     	    - Compliance level: 1.6
     - OK
     	- If eclipse asks "Build the project now?", hit Yes
-- You may need to run the `assemble` or `build` gradle task once
-  before you run JSettlers, to copy resources from `src/main/resources/`.
+- Run the `assemble` or `build` gradle task now to copy resources from `src/main/resources/`.  
+  To do so: Gradle tasks tab -> jsettlers -> build -> assemble
 
 Continue reading to see how to set up the builds and the run configs in Eclipse.
 A later section walks through the coding style expected for pull requests or
@@ -296,13 +296,11 @@ There are several gradle build tasks. Here are the main ones:
 - `clean`: clean the project of all generated files
 
 **Note**: Even if you're in an IDE running SOCServer or SOCPlayerClient as Java apps,
-you may need to first run either the `build` or `assemble` gradle task to copy resources
+you should first run the `build` or `assemble` gradle task to copy resources
 to their built location from `src/main/resources`; otherwise startup will
 fail with this error:
 
     Packaging error: Cannot determine JSettlers version
-
-To do so in Eclipse: Gradle tasks tab -> jsettlers -> build -> assemble
 
 
 ## Recommended debug/run configurations for testing
@@ -316,7 +314,7 @@ In my IDE's JSettlers project, I've created these debug/run configurations:
         socserver: soc.server.SOCServer
             program arguments: -o N7=t7 -Djsettlers.startrobots=7 -Djsettlers.allow.debug=Y
 
-        socserver-sqlite: soc.server.SOCServer   [optional]
+        socserver-sqlite (optional): soc.server.SOCServer
             program arguments: -o N7=t7 -o RD=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite
                 -Djsettlers.startrobots=7 -Djsettlers.allow.debug=Y
                 -Djsettlers.accounts.admins=adm 8880 20 dbuser dbpass
@@ -783,7 +781,7 @@ You will also want this to have this, which disables auto-reindenting:
         Click "Enable Project Specific Settings", then New
         {
             Profile name: 'jsettlers'
-            "based on Eclipse built-in standard"
+            Initialize with profile: Eclipse (built-in)
             [X] Open the edit dialog now
 
             (Indentation)
@@ -792,7 +790,7 @@ You will also want this to have this, which disables auto-reindenting:
             Tab size: 8
             confirm is unchecked: Indent: [ ] Empty lines
 
-            (Brace positions)
+            (Braces)
             All 'next line' except:
             Blocks in case stmt: Next line indented
             Array init: Next line indented
@@ -806,6 +804,10 @@ You will also want this to have this, which disables auto-reindenting:
             [X] Keep 'else if' on one line
             [ ] (all other options)
 
+            (Line Wrapping)
+            Maximum line width: 120
+            [x] Never join already-wrapped lines
+
             (All other tabs)
             Take defaults
         }
@@ -815,6 +817,7 @@ You will also want this to have this, which disables auto-reindenting:
         restart eclipse
 
         go to prefs -> java -> code style -> formatter
+        click Configure Project Specific Settings
         if it's not active: set active profile to jsettlers & restart eclipse
 
 When you hit enter twice to skip a line in Eclipse, watch for unwanted whitespace because
