@@ -13,7 +13,7 @@ buildscript {
         maven { url "http://google-diff-match-patch.googlecode.com/svn/trunk/maven" }
     }
     dependencies {
-        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.3'
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.8'
     }
 }
 
@@ -24,8 +24,8 @@ ext.git_revision = '?'  // placed in jar manifests as Build-Revision attrib; wil
 mainClassName = "soc.client.SOCPlayerClient"
 
 compileJava {
-    sourceCompatibility = '1.7'
-    targetCompatibility = '1.7'
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
 }
 
 repositories {
