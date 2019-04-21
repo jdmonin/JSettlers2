@@ -213,10 +213,11 @@ public class SOCScenario
             (K_SC_PIRI, 2000, 2000,
              "Pirate Islands and Fortresses",
              "A pirate fleet patrols, stealing resources from weak players with adjacent settlements/cities until "
-             + "the player upgrades their ships to warships.  To win, you must build ships directly to the Fortress "
-             + "with your color, which the pirates have captured from you, and defeat it 3 times using warships.  "
-             + "So, ship routes can't branch in different directions, only extend from their ends.  "
-             + "No robber or largest army.  When 7 is rolled, any pirate fleet attack happens before the usual discards.",
+             + "the player upgrades their ships by playing Warship development cards. Build ships directly to the "
+             + "Fortress of your color, which the pirates have captured from you. To win, you must reach the "
+             + "victory point goal and defeat the Fortress 3 times using warships. "
+             + "Ship routes can't branch out, only follow dotted lines to the Fortress. "
+             + "No robber or largest army. When 7 is rolled, any pirate fleet attack happens before the usual discards.",
              "_SC_PIRI=t,SBL=t,VP=t10,_SC_0RVP=t"));  // win condition: 10 VP _and_ defeat a pirate fortress
 
         allSc.put(K_SC_FTRI, new SOCScenario
