@@ -7716,6 +7716,7 @@ import javax.swing.JComponent;
                     hoverID = id;
 
                     StringBuffer sb = new StringBuffer();
+                    String pieceExtraDesc = null;  // {2} in localized string for SC_PIRI fortress, otherwise unused
                     String portDesc = portDescAtNode(id);
                     if (portDesc != null)
                     {
@@ -7741,10 +7742,26 @@ import javax.swing.JComponent;
                         // fortress is never a port or city
                         sb.setLength(0);
                         sb.append("board.sc_piri.piratefortress");
+                        if ((player != null) && (player == p.getPlayer()))
+                        {
+                            // Can client player attack now, or need to build ships there first?
+                            if (game.canAttackPirateFortress(player, true) != null)
+                            {
+                                pieceExtraDesc = (SOCPlayerClient.IS_PLATFORM_MAC_OSX)
+                                    ? "board.sc_piri.pf_extra.attack.osx"  // ". Control-click to attack this fortress."
+                                    : "board.sc_piri.pf_extra.attack";     // ". Right-click to attack this fortress."
+                            } else {
+                                pieceExtraDesc = "board.sc_piri.pf_extra.build";
+                                    // ". To attack this fortress, build ships to it."
+                            }
+                            pieceExtraDesc = strings.get(pieceExtraDesc);
+                        }
                     }
 
+                    if (pieceExtraDesc == null)
+                        pieceExtraDesc = "";
                     setHoverText
-                        (strings.get(sb.toString(), plName, board.getPortTypeFromNodeCoord(id)), id);
+                        (strings.get(sb.toString(), plName, board.getPortTypeFromNodeCoord(id), pieceExtraDesc), id);
                     hoverTextSet = true;
 
                     // If we're at the player's settlement, ready to upgrade to city

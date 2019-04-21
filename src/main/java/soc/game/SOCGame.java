@@ -6159,22 +6159,44 @@ public class SOCGame implements Serializable, Cloneable
      * Used with scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
      *
      * @return Current player's ship adjacent to their {@link SOCFortress}, or {@code null} if they can't attack
+     * @see #canAttackPirateFortress(SOCPlayer, boolean)
      * @since 2.0.00
      */
     public SOCShip canAttackPirateFortress()
     {
-        if (gameState != PLAY1)
+        return canAttackPirateFortress(null, false);
+    }
+
+    /**
+     * Can this player attack their pirate fortress, and try to conquer and recapture it?
+     * Same logic as {@link #canAttackPirateFortress()}, but can optionally call for
+     * other players and/or ignore current game state. See that method's javadoc for details.
+     * Useful for client-side tooltips or menus.
+     *
+     * @param pl  Player to check
+     * @param checkPiecesOnly  True if should ignore current game state and current player,
+     *     only check whether the pieces are in position to do so
+     * @return  Player's ship adjacent to their {@link SOCFortress}, or {@code null} if they can't attack
+     * @since 2.0.00
+     */
+    public SOCShip canAttackPirateFortress(SOCPlayer pl, final boolean checkPiecesOnly)
+    {
+        if (! (checkPiecesOnly || (gameState == PLAY1)))
             return null;
 
-        final SOCPlayer currPlayer = players[currentPlayerNumber];
-        SOCFortress fort = currPlayer.getFortress();
+        if (pl == null)
+            pl = players[currentPlayerNumber];
+        else if (! (checkPiecesOnly || (pl.getPlayerNumber() == currentPlayerNumber)))
+            return null;
+
+        SOCFortress fort = pl.getFortress();
         if (fort == null)   // will be null unless _SC_PIRI; will be null if already recaptured by player
             return null;
 
         // Look for player's ship at edge adjacent to pirate fortress;
         // start with most recently placed ship
         final int[] edges = board.getAdjacentEdgesToNode_arr(fort.getCoordinates());
-        Vector<SOCRoutePiece> roadsAndShips = currPlayer.getRoadsAndShips();
+        Vector<SOCRoutePiece> roadsAndShips = pl.getRoadsAndShips();
         for (int i = roadsAndShips.size() - 1; i >= 0; --i)
         {
             SOCRoutePiece rs = roadsAndShips.get(i);
