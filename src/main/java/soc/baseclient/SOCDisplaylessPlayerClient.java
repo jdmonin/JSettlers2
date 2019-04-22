@@ -2730,13 +2730,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * send a text message to the people in the game
      *
-     * @param ga   the game
+     * @param ga   the game; does nothing if {@code null}
      * @param me   the message
      */
     public void sendText(SOCGame ga, String me)
     {
         if (ga == null)
             return;
+
         put(SOCGameTextMsg.toCmd(ga.getName(), nickname, me));
     }
 

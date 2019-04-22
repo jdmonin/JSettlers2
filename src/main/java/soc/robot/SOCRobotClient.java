@@ -1139,37 +1139,46 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         else if (dcmd.startsWith(":consider-move ") || dcmd.startsWith(":cm "))
         {
-            SOCRobotBrain brain = robotBrains.get(mes.getGame());
+            final String gaName = mes.getGame();
+            SOCRobotBrain brain = robotBrains.get(gaName);
 
             if ((brain != null) && (brain.getOldDRecorder().isOn()))
             {
-                String[] tokens = mes.getText().split(" ");
-                String key = null;
+                String[] tokens = mes.getText().split(" ");  // ":consider-move road 154"
+                final int L = tokens.length;
+                String keytoken = (L > 2) ? tokens[L-2].trim() : "(missing)",
+                       lasttoken = (L > 1) ? tokens[L-1].trim() : "(missing)",
+                       key = null;
 
-                if (tokens[1].trim().equals("card"))
+                if (lasttoken.equals("card"))
                 {
                     key = "DEVCARD";
                 }
-                else if (tokens[1].equals("road"))
+                else if (keytoken.equals("road"))
                 {
-                    key = "ROAD" + tokens[2].trim();
+                    key = "ROAD" + lasttoken;
                 }
-                else if (tokens[1].equals("settlement"))
+                else if (keytoken.equals("settlement"))
                 {
-                    key = "SETTLEMENT" + tokens[2].trim();
+                    key = "SETTLEMENT" + lasttoken;
                 }
-                else if (tokens[1].equals("city"))
+                else if (keytoken.equals("city"))
                 {
-                    key = "CITY" + tokens[2].trim();
+                    key = "CITY" + lasttoken;
+                }
+
+                final SOCGame ga = games.get(gaName);
+                if (key == null)
+                {
+                    sendText(ga, "Unknown :consider-move key: " + keytoken);
+                    return;
                 }
 
                 Vector<String> record = brain.getOldDRecorder().getRecord(key);
-
                 if (record != null)
-                {
-                    SOCGame ga = games.get(mes.getGame());
                     sendRecordsText(ga, record);
-                }
+                else
+                    sendText(ga, "No debug records for " + key);
             }
         }
 
@@ -1221,37 +1230,46 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         else if (dcmd.startsWith(":consider-target ") || dcmd.startsWith(":ct "))
         {
-            SOCRobotBrain brain = robotBrains.get(mes.getGame());
+            final String gaName = mes.getGame();
+            SOCRobotBrain brain = robotBrains.get(gaName);
 
             if ((brain != null) && (brain.getDRecorder().isOn()))
             {
-                String[] tokens = mes.getText().split(" ");
-                String key = null;
+                String[] tokens = mes.getText().split(" ");  // ":consider-target road 154"
+                final int L = tokens.length;
+                String keytoken = (L > 2) ? tokens[L-2].trim() : "(missing)",
+                       lasttoken = (L > 1) ? tokens[L-1].trim() : "(missing)",
+                       key = null;
 
-                if (tokens[1].trim().equals("card"))
+                if (lasttoken.equals("card"))
                 {
                     key = "DEVCARD";
                 }
-                else if (tokens[1].equals("road"))
+                else if (keytoken.equals("road"))
                 {
-                    key = "ROAD" + tokens[2].trim();
+                    key = "ROAD" + lasttoken;
                 }
-                else if (tokens[1].equals("settlement"))
+                else if (keytoken.equals("settlement"))
                 {
-                    key = "SETTLEMENT" + tokens[2].trim();
+                    key = "SETTLEMENT" + lasttoken;
                 }
-                else if (tokens[1].equals("city"))
+                else if (keytoken.equals("city"))
                 {
-                    key = "CITY" + tokens[2].trim();
+                    key = "CITY" + lasttoken;
+                }
+
+                final SOCGame ga = games.get(mes.getGame());
+                if (key == null)
+                {
+                    sendText(ga, "Unknown :consider-target key: " + keytoken);
+                    return;
                 }
 
                 Vector<String> record = brain.getDRecorder().getRecord(key);
-
                 if (record != null)
-                {
-                    SOCGame ga = games.get(mes.getGame());
                     sendRecordsText(ga, record);
-                }
+                else
+                    sendText(ga, "No debug records for " + key);
             }
         }
 
