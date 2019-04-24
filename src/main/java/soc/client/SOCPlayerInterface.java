@@ -1799,7 +1799,7 @@ public class SOCPlayerInterface extends Frame
         {
             final SOCBoardPanel bp = getBoardPanel();
             bp.setOtherPlayer(pl);
-            bp.setMode(SOCBoardPanel.CONSIDER_LM_SETTLEMENT);
+            bp.setMode(mode);
 
             String modeName;
             try
