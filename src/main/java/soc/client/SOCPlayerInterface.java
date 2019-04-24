@@ -1738,55 +1738,82 @@ public class SOCPlayerInterface extends Frame
         }
         else if (cmd.startsWith("\\clm-set "))
         {
-            String name = cmd.substring(9).trim();
-            getBoardPanel().setOtherPlayer(game.getPlayer(name));
-            getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LM_SETTLEMENT);
-
+            doLocalCommand_botConsiderMode
+                (cmd.substring(9), SOCBoardPanel.CONSIDER_LM_SETTLEMENT, "clm-set");
             return true;
         }
         else if (cmd.startsWith("\\clm-road "))
         {
-            String name = cmd.substring(10).trim();
-            getBoardPanel().setOtherPlayer(game.getPlayer(name));
-            getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LM_ROAD);
-
+            doLocalCommand_botConsiderMode
+                (cmd.substring(10), SOCBoardPanel.CONSIDER_LM_ROAD, "clm-road");
             return true;
         }
         else if (cmd.startsWith("\\clm-city "))
         {
-            String name = cmd.substring(10).trim();
-            getBoardPanel().setOtherPlayer(game.getPlayer(name));
-            getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LM_CITY);
-
+            doLocalCommand_botConsiderMode
+                (cmd.substring(10), SOCBoardPanel.CONSIDER_LM_CITY, "clm-city");
             return true;
         }
         else if (cmd.startsWith("\\clt-set "))
         {
-            String name = cmd.substring(9).trim();
-            getBoardPanel().setOtherPlayer(game.getPlayer(name));
-            getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LT_SETTLEMENT);
-
+            doLocalCommand_botConsiderMode
+                (cmd.substring(9), SOCBoardPanel.CONSIDER_LT_SETTLEMENT, "clt-set");
             return true;
         }
         else if (cmd.startsWith("\\clt-road "))
         {
-            String name = cmd.substring(10).trim();
-            getBoardPanel().setOtherPlayer(game.getPlayer(name));
-            getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LT_ROAD);
-
+            doLocalCommand_botConsiderMode
+                (cmd.substring(10), SOCBoardPanel.CONSIDER_LT_ROAD, "clt-road");
             return true;
         }
         else if (cmd.startsWith("\\clt-city "))
         {
-            String name = cmd.substring(10).trim();
-            getBoardPanel().setOtherPlayer(game.getPlayer(name));
-            getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LT_CITY);
-
+            doLocalCommand_botConsiderMode
+                (cmd.substring(10), SOCBoardPanel.CONSIDER_LT_CITY, "clt-city");
             return true;
         }
         else
         {
             return false;
+        }
+    }
+
+    /**
+     * Handle {@link #doLocalCommand(String)} bot-debugging "consider" modes for {@link SOCBoardPanel}:
+     * {@link SOCBoardPanel#CONSIDER_LM_SETTLEMENT}, {@link SOCBoardPanel#CONSIDER_LT_ROAD}, etc.
+     * Gives feedback that mode has been set or {@code botPlName} not found in game.
+     *
+     * @param botPlName  Bot name to look for in game; will be trimmed
+     * @param mode   {@link SOCBoardPanel} mode to set
+     * @param modeNameKey  Mode name string key suffix to use in feedback: "clm-road", "clt-set", etc.
+     *     For string lookup, will be prefixed with "interface.debug.bot.".
+     * @since 2.0.00
+     */
+    private void doLocalCommand_botConsiderMode
+        (String botPlName, final int mode, final String modeNameKey)
+    {
+        botPlName = botPlName.trim();
+
+        SOCPlayer pl = game.getPlayer(botPlName.trim());
+        if (pl != null)
+        {
+            final SOCBoardPanel bp = getBoardPanel();
+            bp.setOtherPlayer(pl);
+            bp.setMode(SOCBoardPanel.CONSIDER_LM_SETTLEMENT);
+
+            String modeName;
+            try
+            {
+                modeName = strings.get("interface.debug.bot." + modeNameKey);
+                    // interface.debug.bot.clt-set -> ":consider-target(settlement)"
+            } catch(MissingResourceException e) {
+                modeName = modeNameKey;
+            }
+            printKeyed("interface.debug.bot.mode_prompt", modeName, botPlName);
+                // "{0} mode for {1}: Click to indicate piece location."
+        } else {
+            printKeyed("interface.debug.bot.not_found", botPlName);
+                // "Can't find a player named {0}"
         }
     }
 
