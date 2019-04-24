@@ -574,11 +574,6 @@ agents, so there's some instrumentation for the bots but it's not entirely
 documented.  For a technical overview of how the bots plan their actions, start
 at the SOCRobotBrain class javadoc.
 
-There are a few bot debugging commands, such as print-vars and stats. To send
-them, type `botname:command` into the chat textbox while playing or observing a
-game with bots: `robot 7:stats`. See `SOCRobotClient.handleGAMETEXTMSG_debug`
-for more details.
-
 You can also build pieces for the bots using "Free Placement" debug mode (see
 above) to help set up debugging or testing situations, including the game's
 initial placement.
@@ -590,6 +585,28 @@ few seconds to send the command. On the other hand if you want the bots to move
 quickly, use the No Trading house rule and play on the 6-player board, where the
 bots have shorter delays since there might be more players (but you can also use
 this board with 2-4 players).
+
+There are a few bot debugging commands, such as print-vars and stats. To send
+them, type `botname:command` into the chat textbox while playing or observing a
+game with bots: `robot 7:stats`. See `SOCRobotClient.handleGAMETEXTMSG_debug`
+for more details. For some commands, you must first send a `:debug-on` command
+to start recording stats.
+
+Some of the bot debugging commands can ask about those stats for an empty
+location where the bot's considering to build (`:consider-move`) or building
+to counter another player's builds (`:consider-target`). You can ask the client
+to let you click on these locations to send the right coordinate to the bot.
+These client-helper debug commands are recognized in the chat textbox. Type one,
+then click the location you're asking the bot about:
+
+| Command | Bot debug command sent after clicking location |
+| --- | --- |
+| `\clm-road ` _botname_ | _botname_`:consider-move road ` _coord_ |
+| `\clm-set ` _botname_  |  _botname_`:consider-move settlement ` _coord_ |
+| `\clm-city ` _botname_ | _botname_`:consider-move city ` _coord_ |
+| `\clt-road ` _botname_ | _botname_`:consider-target road ` _coord_ |
+| `\clt-set ` _botname_  |  _botname_`:consider-target settlement ` _coord_ |
+| `\clt-city ` _botname_ | _botname_`:consider-target city ` _coord_ |
 
 When they join a game, third-party bots can be sent configuration or debug
 settings using `SOCGameOption.K__EXT_BOT`. This game option's string value can
