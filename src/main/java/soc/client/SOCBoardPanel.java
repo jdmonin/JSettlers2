@@ -1435,13 +1435,15 @@ import javax.swing.JComponent;
     private SOCBoard board;
 
     /**
-     * The player that is using this interface.
+     * The player that is using this interface;
+     * initially {@code null} when first joining or observing a game.
      * @see #playerNumber
      */
     private SOCPlayer player;
 
     /**
-     * player number of our {@link #player} if in a game, or -1.
+     * player number of our {@link #player} if in a game, or -1
+     * when first joining or observing a game.
      * @since 1.1.00
      */
     private int playerNumber;
@@ -5620,7 +5622,8 @@ import javax.swing.JComponent;
     }
 
     /**
-     * Change the player that is using this board panel.
+     * Set or change the player that is using this board panel.
+     * Initially {@code null} when first joining or observing a game.
      * Also used for temporary change during {@link SOCGame#debugFreePlacement} mode.
      * @param pl Player to set, or null to change back to the client player
      * @see #getPlayerNumber()
@@ -5654,10 +5657,11 @@ import javax.swing.JComponent;
     }
 
     /**
-     * Get our player number.
+     * Get our client player number, if not observing.
      * Almost always the client's player number.
      * During {@link SOCGame#debugFreePlacement}, the temporary
      * player set by {@link #setPlayer(SOCPlayer)}.
+     * @return  Our player number, or -1 if observing the game and haven't sat down yet
      * @since 1.1.12
      */
     int getPlayerNumber()
