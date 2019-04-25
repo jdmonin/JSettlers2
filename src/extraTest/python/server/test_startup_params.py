@@ -8,7 +8,7 @@
 # - Python interpreter is python2, not python3  [env_ok() prints warning if 3]
 # - This script lives in extraTest/python/server/ and that's the current directory when ran
 # - Properties files can be created and deleted in test/tmp/  [tests dir existence only]
-# - Server JAR has been built already, to target/JSettlersServer.jar or build/libs/JSettlersServer-?.?.??.jar
+# - Server JAR has been built already, as build/libs/JSettlersServer-?.?.??.jar
 # - java command is on the PATH
 # Since this is a testing script, most error conditions will throw an exception
 # instead of being caught (for example, os.chdir failure).
@@ -25,16 +25,15 @@ from __future__ import print_function  # Python 2.6 or higher is required
 import glob, os, re, socket, subprocess, sys, time, unittest
 from threading import Thread
 
-FNAME_JSSERVER_JAR = "JSettlersServer.jar"
 EXPECTED_STARTUP_DIR = "src/extraTest/python"
 STARTUP_POSSIBLE_SUBDIR = "server"  # starts here if ran directly from command line, not part of discovered set of all tests
-REL_PATHS_JS_SERVER_JAR = ("../../../target/" + FNAME_JSSERVER_JAR, "../../../build/libs/JSettlersServer-?.?.??.jar")
+REL_PATH_JS_SERVER_JAR_GLOB = "../../../build/libs/JSettlersServer-?.?.??.jar"
 REL_PATH_TEMPDIR = "../../test/tmp"
 FNAME_JSSERVER_PROPS = "jsserver.properties"
 MAX_TIMEOUT_SEC = 20
 
 rel_path_js_server_jar = ""
-"""str: will be set in env_ok() from REL_PATHS_JS_SERVER_JAR"""
+"""str: will be set in env_ok() from REL_PATH_JS_SERVER_JAR_GLOB"""
 
 tests_failed_count = 0
 """int: global counter for test failures; increment in arg_test or
@@ -83,22 +82,22 @@ def env_ok():
     if os.path.exists(rel_path_jsserver_props) and not os.path.isfile(rel_path_jsserver_props):
         all_ok = False
         print_err(rel_path_jsserver_props + " exists but is not a normal file: Remove it")
-    # search possible build-target dirs for server jar
-    for rel_fname in REL_PATHS_JS_SERVER_JAR:
-        if os.path.isdir(os.path.dirname(rel_fname)):
-            if '?' in rel_fname:
-                # glob for matching filenames, use newest if multiple
-                match_fnames = glob.glob(rel_fname)
-                if match_fnames:
-                    rel_fname = max(match_fnames, key=os.path.getctime)  # most recently modified
-                else:
-                    rel_fname = ""  # no matches
-            if os.path.isfile(rel_fname):
-                rel_path_js_server_jar = rel_fname
-                break
+    # search possible server jars for latest
+    if os.path.isdir(os.path.dirname(REL_PATH_JS_SERVER_JAR_GLOB)):
+        if '?' in REL_PATH_JS_SERVER_JAR_GLOB:
+            # glob for matching filenames, use newest if multiple
+            match_fnames = glob.glob(REL_PATH_JS_SERVER_JAR_GLOB)
+            if match_fnames:
+                rel_fname = max(match_fnames, key=os.path.getctime)  # most recently modified
+            else:
+                rel_fname = ""  # no matches
+        else:
+            rel_fname = REL_PATH_JS_SERVER_JAR_GLOB
+        if os.path.isfile(rel_fname):
+            rel_path_js_server_jar = rel_fname
     if not os.path.isfile(rel_path_js_server_jar):
         all_ok = False
-        print_err("Must build server JAR first: file not found among " + repr(REL_PATHS_JS_SERVER_JAR))
+        print_err("Must build server JAR first: file not found among " + repr(REL_PATH_JS_SERVER_JAR_GLOB))
 
     # test java binary execution: java -version
     # (no need to parse version# in this test script)
