@@ -55,6 +55,14 @@ tasks.withType(JavaCompile) {
 
 // unit tests
 
+// run all python unit tests, using PyUnit (unittest module); returns 0 if no failures
+task testPython(type: Exec) {
+    executable 'python'  // expected to be in PATH
+    workingDir 'src/test/python'
+    args '-m', 'unittest', 'discover', '--verbose'  // discover requires python 2.7 or higher
+    environment CLASSPATH: tasks.test.classpath.asPath
+}
+
 // Make sure sql scripts are consistent with their template:
 // If render.py finds problems, it will print a message showing which script(s) must be regenerated.
 task testSrcDBTemplates(type: Exec) {
@@ -77,6 +85,7 @@ tasks.withType(Test) { task ->
 }
 
 test.dependsOn testSrcDBTemplates
+test.finalizedBy testPython  // run java tests first; run python tests even if java fails
 
 // jars
 
@@ -279,7 +288,7 @@ task extraTest(type: Test) {
     outputs.upToDateWhen { false }  // never skip running it
 }
 
-// run all python tests using PyUnit (unittest); returns 0 if no failures
+// run all python extra tests, using PyUnit (unittest module); returns 0 if no failures
 task extraTestPython(type: Exec) {
     executable 'python'  // expected to be in PATH
     workingDir 'src/extraTest/python'
@@ -292,6 +301,7 @@ extraTest.finalizedBy extraTestPython  // run java tests first; run python tests
 
 clean {
     // also remove python bytecode files
+    delete fileTree("src/test/python").matching{ include "**/*.pyc" }
     delete fileTree("src/extraTest/python").matching{ include "**/*.pyc" }
 }
 
