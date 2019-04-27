@@ -59,7 +59,7 @@ tasks.withType(JavaCompile) {
 task testPython(type: Exec) {
     executable 'python'  // expected to be in PATH
     workingDir 'src/test/python'
-    args '-m', 'unittest', 'discover', '--verbose'  // discover requires python 2.7 or higher
+    args '-m', 'unittest', 'discover'  // discover requires python 2.7 or higher
     environment CLASSPATH: tasks.test.classpath.asPath
 }
 
