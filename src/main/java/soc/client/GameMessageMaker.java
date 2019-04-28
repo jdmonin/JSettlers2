@@ -565,17 +565,18 @@ import soc.message.SOCStartGame;
             {
             case SOCPlayingPiece.SETTLEMENT:
                 msg += "settlement";
-
                 break;
 
             case SOCPlayingPiece.ROAD:
                 msg += "road";
+                break;
 
+            case SOCPlayingPiece.SHIP:
+                msg += "ship";
                 break;
 
             case SOCPlayingPiece.CITY:
                 msg += "city";
-
                 break;
             }
 
@@ -603,17 +604,18 @@ import soc.message.SOCStartGame;
             {
             case SOCPlayingPiece.SETTLEMENT:
                 msg += "settlement";
-
                 break;
 
             case SOCPlayingPiece.ROAD:
                 msg += "road";
+                break;
 
+            case SOCPlayingPiece.SHIP:
+                msg += "ship";
                 break;
 
             case SOCPlayingPiece.CITY:
                 msg += "city";
-
                 break;
             }
 

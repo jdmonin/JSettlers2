@@ -1697,12 +1697,14 @@ public class SOCPlayerInterface extends Frame
      * <UL>
      *  <LI> {@code clt-set} <em>robotName</em>
      *  <LI> {@code clt-road} <em>robotName</em>
+     *  <LI> {@code clt-ship} <em>robotName</em>
      *  <LI> {@code clt-city} <em>robotName</em>
      * </UL>
      * <LI> To pick a board location to send a bot {@code :consider-move} commands:
      * <UL>
      *  <LI> {@code clm-set} <em>robotName</em>
      *  <LI> {@code clm-road} <em>robotName</em>
+     *  <LI> {@code clm-ship} <em>robotName</em>
      *  <LI> {@code clm-city} <em>robotName</em>
      * </UL>
      *</UL>
@@ -1748,6 +1750,12 @@ public class SOCPlayerInterface extends Frame
                 (cmd.substring(10), SOCBoardPanel.CONSIDER_LM_ROAD, "clm-road");
             return true;
         }
+        else if (cmd.startsWith("\\clm-ship "))
+        {
+            doLocalCommand_botConsiderMode
+                (cmd.substring(10), SOCBoardPanel.CONSIDER_LM_SHIP, "clm-ship");
+            return true;
+        }
         else if (cmd.startsWith("\\clm-city "))
         {
             doLocalCommand_botConsiderMode
@@ -1764,6 +1772,12 @@ public class SOCPlayerInterface extends Frame
         {
             doLocalCommand_botConsiderMode
                 (cmd.substring(10), SOCBoardPanel.CONSIDER_LT_ROAD, "clt-road");
+            return true;
+        }
+        else if (cmd.startsWith("\\clt-ship "))
+        {
+            doLocalCommand_botConsiderMode
+                (cmd.substring(10), SOCBoardPanel.CONSIDER_LT_SHIP, "clt-ship");
             return true;
         }
         else if (cmd.startsWith("\\clt-city "))

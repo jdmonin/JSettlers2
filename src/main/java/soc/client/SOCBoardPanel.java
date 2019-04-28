@@ -574,6 +574,12 @@ import javax.swing.JComponent;
     /** Hover while picking a {@code :consider-move} at robot {@link #otherPlayer}'s potential roads. */
     public final static int CONSIDER_LM_ROAD = 8;
 
+    /**
+     * Hover while picking a {@code :consider-move} at robot {@link #otherPlayer}'s potential ships.
+     * @since 2.0.00
+     */
+    public final static int CONSIDER_LM_SHIP = 18;
+
     /** Hover while picking a {@code :consider-move} at robot {@link #otherPlayer}'s potential cities. */
     public final static int CONSIDER_LM_CITY = 9;
 
@@ -585,6 +591,12 @@ import javax.swing.JComponent;
 
     /** Hover while picking a {@code :consider-target} at robot {@link #otherPlayer}'s potential roads. */
     public final static int CONSIDER_LT_ROAD = 11;
+
+    /**
+     * Hover while picking a {@code :consider-target} at robot {@link #otherPlayer}'s potential ships.
+     * @since 2.0.00
+     */
+    public final static int CONSIDER_LT_SHIP = 19;
 
     /** Hover while picking a {@code :consider-target} at robot {@link #otherPlayer}'s potential cities. */
     public final static int CONSIDER_LT_CITY = 12;
@@ -620,6 +632,9 @@ import javax.swing.JComponent;
      * @since 2.0.00
      */
     private final static int SC_FTRI_PLACE_PORT = 17;
+
+    // see above for mode#s 18, 19
+
 
     private final static int TURN_STARTING = 97;
     private final static int GAME_FORMING = 98;
@@ -4393,6 +4408,13 @@ import javax.swing.JComponent;
             }
             break;
 
+        case CONSIDER_LM_SHIP:
+        case CONSIDER_LT_SHIP:
+
+            if (hilight != 0)
+                drawRoadOrShip(g, hilight, otherPlayer.getPlayerNumber(), false, false, false);
+            break;
+
         case CONSIDER_LM_CITY:
         case CONSIDER_LT_CITY:
 
@@ -5587,6 +5609,8 @@ import javax.swing.JComponent;
 
         case PLACE_SHIP:
         case MOVE_SHIP:
+        case CONSIDER_LM_SHIP:
+        case CONSIDER_LT_SHIP:
             expectedPtype = SOCPlayingPiece.SHIP;
             break;
 
@@ -6177,6 +6201,33 @@ import javax.swing.JComponent;
 
                 break;
 
+            case CONSIDER_LM_SHIP:
+            case CONSIDER_LT_SHIP:
+
+                /**** Code for finding an edge ********/
+                edgeNum = 0;
+
+                if ((ptrOldX != x) || (ptrOldY != y))
+                {
+                    ptrOldX = x;
+                    ptrOldY = y;
+                    edgeNum = findEdge(xb, yb, false);
+
+                    if (! otherPlayer.isPotentialShip(edgeNum))
+                    {
+                        edgeNum = 0;
+                    }
+
+                    if (hilight != edgeNum)
+                    {
+                        hilight = edgeNum;
+                        hilightIsShip = true;
+                        repaint();
+                    }
+                }
+
+                break;
+
             case CONSIDER_LM_CITY:
             case CONSIDER_LT_CITY:
 
@@ -6509,6 +6560,15 @@ import javax.swing.JComponent;
                     }
                     break;
 
+                case CONSIDER_LM_SHIP:
+                    if (otherPlayer.isPotentialShip(hilight))
+                    {
+                        client.getGameMessageMaker().considerMove
+                            (game, otherPlayer, new SOCShip(otherPlayer, hilight, board));
+                        clearModeAndHilight(SOCPlayingPiece.SHIP);
+                    }
+                    break;
+
                 case CONSIDER_LM_CITY:
                     if (otherPlayer.isPotentialCity(hilight))
                     {
@@ -6533,6 +6593,15 @@ import javax.swing.JComponent;
                         client.getGameMessageMaker().considerTarget
                             (game, otherPlayer, new SOCRoad(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.ROAD);
+                    }
+                    break;
+
+                case CONSIDER_LT_SHIP:
+                    if (otherPlayer.isPotentialShip(hilight))
+                    {
+                        client.getGameMessageMaker().considerTarget
+                            (game, otherPlayer, new SOCShip(otherPlayer, hilight, board));
+                        clearModeAndHilight(SOCPlayingPiece.SHIP);
                     }
                     break;
 

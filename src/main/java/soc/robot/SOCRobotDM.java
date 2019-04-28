@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2003-2004  Robert S. Thomas
- * Portions of this file copyright (C) 2009-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -1609,7 +1609,8 @@ public class SOCRobotDM
 	D.ebugPrintln("$$$$$ threatened road at "+Integer.toHexString(threatenedRoad.getCoordinates()));
 
 	if ((brain != null) && (brain.getDRecorder().isOn())) {
-	  brain.getDRecorder().startRecording("ROAD"+threatenedRoad.getCoordinates());
+	  brain.getDRecorder().startRecording
+	      ((threatenedRoad.isRoadNotShip() ? "ROAD" : "SHIP") + threatenedRoad.getCoordinates());
 	  brain.getDRecorder().record("Estimate value of road at "
 	      + game.getBoard().edgeCoordToString(threatenedRoad.getCoordinates()));
 	}
@@ -1640,7 +1641,8 @@ public class SOCRobotDM
 	D.ebugPrintln("$$$$$ good road at "+Integer.toHexString(goodRoad.getCoordinates()));
 
 	if ((brain != null) && (brain.getDRecorder().isOn())) {
-	  brain.getDRecorder().startRecording("ROAD"+goodRoad.getCoordinates());
+	  brain.getDRecorder().startRecording
+	      ( (goodRoad.isRoadNotShip() ? "ROAD" : "SHIP") + goodRoad.getCoordinates());
 	  brain.getDRecorder().record("Estimate value of road at "
 	      + game.getBoard().edgeCoordToString(goodRoad.getCoordinates()));
 	}

@@ -1116,21 +1116,15 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                    key = null;
 
             if (lasttoken.equals("card"))
-            {
                 key = "DEVCARD";
-            }
             else if (keytoken.equals("road"))
-            {
                 key = "ROAD" + lasttoken;
-            }
+            else if (keytoken.equals("ship"))
+                key = "SHIP" + lasttoken;
             else if (keytoken.equals("settlement"))
-            {
                 key = "SETTLEMENT" + lasttoken;
-            }
             else if (keytoken.equals("city"))
-            {
                 key = "CITY" + lasttoken;
-            }
 
             final SOCGame ga = games.get(gaName);
             if (key == null)
@@ -1193,21 +1187,15 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                    key = null;
 
             if (lasttoken.equals("card"))
-            {
                 key = "DEVCARD";
-            }
             else if (keytoken.equals("road"))
-            {
                 key = "ROAD" + lasttoken;
-            }
+            else if (keytoken.equals("ship"))
+                key = "SHIP" + lasttoken;
             else if (keytoken.equals("settlement"))
-            {
                 key = "SETTLEMENT" + lasttoken;
-            }
             else if (keytoken.equals("city"))
-            {
                 key = "CITY" + lasttoken;
-            }
 
             final SOCGame ga = games.get(gaName);
             if (key == null)
