@@ -682,13 +682,16 @@ public class SOCRobotBrain extends Thread
     protected SOCRobotPinger pinger;
 
     /**
-     * an object for recording debug information that can
-     * be accessed interactively
+     * An object for recording a building plan's debug information that can
+     * be accessed interactively.
+     * See {@link #getDRecorder()} and debug commands in
+     * {@link SOCRobotClient#handleGAMETEXTMSG_debug}.
      */
     protected DebugRecorder[] dRecorder;
 
     /**
-     * keeps track of which dRecorder is current
+     * keeps track of which dRecorder is current.
+     * When the bot starts a new building plan, it switches dRecorders.
      */
     protected int currentDRecorder;
 
@@ -891,6 +894,8 @@ public class SOCRobotBrain extends Thread
 
     /**
      * turns the debug recorders on
+     * @see #getDRecorder()
+     * @see #turnOffDRecorder()
      */
     public void turnOnDRecorder()
     {
@@ -900,6 +905,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * turns the debug recorders off
+     * @see #turnOnDRecorder()
      */
     public void turnOffDRecorder()
     {
@@ -908,7 +914,12 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
+     * Get this bot's current Debug Recorder data.
+     * The Debug Recorder is an object for recording a building plan's debug information that can
+     * be accessed interactively.
      * @return the debug recorder
+     * @see #getOldDRecorder()
+     * @see #turnOnDRecorder()
      */
     public DebugRecorder getDRecorder()
     {
@@ -916,7 +927,9 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
+     * Get this bot's Debug Recorder data for the previously built piece.
      * @return the old debug recorder
+     * @see #getDRecorder()
      */
     public DebugRecorder getOldDRecorder()
     {
