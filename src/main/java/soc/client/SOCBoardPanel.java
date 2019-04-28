@@ -578,7 +578,7 @@ import javax.swing.JComponent;
      * Hover while picking a {@code :consider-move} at robot {@link #otherPlayer}'s potential ships.
      * @since 2.0.00
      */
-    public final static int CONSIDER_LM_SHIP = 18;
+    public final static int CONSIDER_LM_SHIP = 13;
 
     /** Hover while picking a {@code :consider-move} at robot {@link #otherPlayer}'s potential cities. */
     public final static int CONSIDER_LM_CITY = 9;
@@ -596,45 +596,46 @@ import javax.swing.JComponent;
      * Hover while picking a {@code :consider-target} at robot {@link #otherPlayer}'s potential ships.
      * @since 2.0.00
      */
-    public final static int CONSIDER_LT_SHIP = 19;
+    public final static int CONSIDER_LT_SHIP = 14;
 
     /** Hover while picking a {@code :consider-target} at robot {@link #otherPlayer}'s potential cities. */
     public final static int CONSIDER_LT_CITY = 12;
 
+    // see above for mode#s 13, 14
+
     /** Place a ship on the large sea board.
      *  @since 2.0.00 */
-    private final static int PLACE_SHIP = 13;
+    private final static int PLACE_SHIP = 15;
 
     /**
      * Place a free road or ship on the large sea board.
      * If not {@link #isLargeBoard}, use {@link #PLACE_ROAD} instead.
      * @since 2.0.00
      */
-    private final static int PLACE_FREE_ROAD_OR_SHIP = 14;
+    private final static int PLACE_FREE_ROAD_OR_SHIP = 16;
 
     /**
      * Move a previously-placed ship on the large sea board.
      * Also set {@link #moveShip_fromEdge} and {@link #moveShip_isWarship}.
      * @since 2.0.00
      */
-    private final static int MOVE_SHIP = 15;
+    private final static int MOVE_SHIP = 17;
 
     /**
      * Move the pirate ship.
      * @since 2.0.00
      * @see #PLACE_ROBBER
      */
-    private final static int PLACE_PIRATE = 16;
+    private final static int PLACE_PIRATE = 18;
 
     /**
      * In scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI} game state {@link SOCGame#PLACING_INV_ITEM},
      * boardpanel mode to place a port next to player's coastal settlement/city.
      * @since 2.0.00
      */
-    private final static int SC_FTRI_PLACE_PORT = 17;
+    private final static int SC_FTRI_PLACE_PORT = 19;
 
-    // see above for mode#s 18, 19
-
+    // future boardpanel state#s can go here
 
     private final static int TURN_STARTING = 97;
     private final static int GAME_FORMING = 98;
