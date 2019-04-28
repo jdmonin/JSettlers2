@@ -94,6 +94,7 @@ import java.util.Vector;
  *      {@link #getAdjacentNodesToEdge(int)} <br>
  *      {@link #getAdjacentNodesToEdge_arr(int)} <br>
  *      {@link #getAdjacentNodeFarEndOfEdge(int, int)}
+ *      {@link #getNodeBetweenAdjacentEdges(int, int)}
  *    </td>
  *    <td><!-- Node adjac to node -->
  *      {@link #getAdjacentNodeToNode(int, int)} <br>
@@ -2130,6 +2131,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * @return the nodes that touch this edge, as an array of 2 integer coordinates
      * @see #getAdjacentNodesToEdge(int)
      * @see #getAdjacentNodeFarEndOfEdge(int, int)
+     * @see #getNodeBetweenAdjacentEdges(int, int)
      * @since 1.1.08
      */
     public int[] getAdjacentNodesToEdge_arr(final int coord)
@@ -2163,6 +2165,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * @param nodeCoord  Node at one end of <tt>edgeCoord</tt>; the opposite end node
      *           will be returned.
      * @return the edge's other end node, opposite <tt>nodeCoord</tt>
+     * @see #getNodeBetweenAdjacentEdges(int, int)
      * @since 2.0.00
      */
     public int getAdjacentNodeFarEndOfEdge(final int edgeCoord, final int nodeCoord)
@@ -2172,6 +2175,79 @@ public abstract class SOCBoard implements Serializable, Cloneable
             return nodes[1];
         else
             return nodes[0];
+    }
+
+    /**
+     * Given a pair of adjacent edge coordinates, get the node coordinate
+     * that connects them.
+     *<P>
+     * Does not check actual roads or other pieces on the board, only uses the
+     * calculations in Robert S Thomas' dissertation figures A.11 - A.13.
+     *
+     * @param edgeA  Edge coordinate adjacent to <tt>edgeB</tt>; not checked for validity
+     * @param edgeB  Edge coordinate adjacent to <tt>edgeA</tt>; not checked for validity
+     * @return  node coordinate between edgeA and edgeB
+     * @throws IllegalArgumentException  if edgeA and edgeB aren't adjacent
+     * @see #getAdjacentNodesToEdge(int)
+     * @since 2.0.00
+     */
+    public int getNodeBetweenAdjacentEdges(final int edgeA, final int edgeB)
+        throws IllegalArgumentException
+    {
+        // A.11:  Adjacent hexes, nodes, and edges to an [Even,Odd] Edge
+        // A.12:  Adjacent hexes, nodes, and edges to an [Odd,Even] Edge
+        // A.13:  Adjacent hexes, nodes, and edges to an [Even,Even] Edge
+
+        final int node;
+
+        if ((((edgeA & 0x0F) + (edgeA >> 4)) % 2) == 0)
+        {
+            /**
+             * edgeA is [Even,Even]: vertical
+             */
+            switch (edgeB - edgeA)  // edgeA to edgeB: fig. A.13
+            {
+            case  0x01:  // B is NE of A
+            case -0x10:  // NW of A
+                node = edgeA + 0x01;
+                break;
+
+            case -0x01:  // SW of A
+            case  0x10:  // SE of A
+                node = edgeA + 0x10;
+                break;
+
+            default:
+                node = -9;  // not adjacent or invalid edge coord
+            }
+        } else {
+            /**
+             * edgeA is [Even,Odd] or [Odd,Even]
+             */
+            switch (edgeB - edgeA)  // edgeA to edgeB: fig. A.11, A.12
+            {
+            case -0x11:  // B is diagonal W of A
+            case -0x10:  // vertical NW of A
+            case -0x01:  // vertical SW of A
+                node = edgeA;
+                break;
+
+            case 0x11:  // diagonal E of A
+            case 0x01:  // vertical NE of A
+            case 0x10:  // vertical SE of A
+                node = edgeA + 0x11;
+                break;
+
+            default:
+                node = -9;  // not adjacent or invalid edge coord
+            }
+        }
+
+        if (node == -9)
+            throw new IllegalArgumentException
+                ("Edges not adjacent: 0x" + Integer.toHexString(edgeA)
+                 + ", 0x" + Integer.toHexString(edgeB));
+        return node;
     }
 
     /**

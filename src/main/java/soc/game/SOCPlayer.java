@@ -3451,6 +3451,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         if (! (potentialRoads.contains(adjEdge) || potentialShips.contains(adjEdge)))
                             continue;
 
+                        /**
+                         * if we have a settlement or city between adjEdge and removed piece's edge,
+                         * adjEdge remains potential because it's adjacent to that settlement/city.
+                         */
+                        final int nodeBetween = board.getNodeBetweenAdjacentEdges(adjEdge, pieceCoord);
+                        final SOCPlayingPiece settleBetween = board.settlementAtNode(nodeBetween);
+                        if ((settleBetween != null) && (settleBetween.getPlayerNumber() == playerNumber))
+                            continue;
+
                         boolean isPotentialRoad = false;  // or, isPotentialShip
 
                         /**
@@ -3464,7 +3473,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         {
                             boolean blocked = false;  // Are we blocked in this node's direction?
                             final int adjNode = adjNodes[ni];
-                            final SOCPlayingPiece aPiece = board.settlementAtNode(adjNode);
+                            final SOCPlayingPiece aPiece =
+                                (adjNode == nodeBetween) ? settleBetween : board.settlementAtNode(adjNode);
                             if ((aPiece != null)
                                 && (aPiece.getPlayerNumber() != playerNumber))
                             {

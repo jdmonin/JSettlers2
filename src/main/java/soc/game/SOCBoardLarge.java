@@ -3068,8 +3068,10 @@ public class SOCBoardLarge extends SOCBoard
      * @param edgeB  Edge coordinate adjacent to <tt>edgeA</tt>; not checked for validity
      * @return  node coordinate between edgeA and edgeB
      * @see #getAdjacentNodesToEdge(int)
+     * @see #getAdjacentNodeFarEndOfEdge(int, int)
      * @throws IllegalArgumentException  if edgeA and edgeB aren't adjacent
      */
+    @Override
     public int getNodeBetweenAdjacentEdges(final int edgeA, final int edgeB)
         throws IllegalArgumentException
     {
