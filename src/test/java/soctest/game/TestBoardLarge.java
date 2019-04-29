@@ -22,28 +22,27 @@ package soctest.game;
 
 import java.util.Arrays;
 
-import soc.game.SOCBoard;
-import soc.game.SOCBoard4p;
+import soc.game.SOCBoardLarge;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- * A few tests for {@link SOCBoard}.
+ * A few tests for {@link SOCBoardLarge}.
  * @since 2.0.00
  */
-public class TestBoard
+public class TestBoardLarge
 {
     /**
      * For a pair of edge coordinates, test
-     * {@link SOCBoard#getNodeBetweenAdjacentEdges(int, int)} with parameters in both orders,
-     * and {@link SOCBoard#getAdjacentNodesToEdge_arr(int)}, to see if they return {@code nodeBetween}.
+     * {@link SOCBoardLarge#getNodeBetweenAdjacentEdges(int, int)} with parameters in both orders,
+     * and {@link SOCBoardLarge#getAdjacentNodesToEdge_arr(int)}, to see if they return {@code nodeBetween}.
      * @param expectFail  True if {@code nodeBetween} isn't between the two edges
      *     and {@code getNodeBetweenAdjacentEdges} should throw {@link IllegalArgumentException}
-     * @see TestBoardLarge#doTestPair_getNodeBetweenAdjacentEdges(soc.game.SOCBoardLarge, int, int, int, boolean)
+     * @see TestBoard#doTestPair_getNodeBetweenAdjacentEdges(soc.game.SOCBoard, int, int, int, boolean)
      */
     private static void doTestPair_getNodeBetweenAdjacentEdges
-        (final SOCBoard board, final int edgeA, final int edgeB, final int nodeBetween, final boolean expectFail)
+        (final SOCBoardLarge board, final int edgeA, final int edgeB, final int nodeBetween, final boolean expectFail)
     {
         String desc = "getNodeBetweenAdjacentEdges(0x" + Integer.toHexString(edgeA)
             + ", 0x" + Integer.toHexString(edgeB) + ")";
@@ -90,39 +89,37 @@ public class TestBoard
     @Test
     public void test_getNodeBetweenAdjacentEdges()
     {
-        SOCBoard b = new SOCBoard4p(null);  // SOCBoard4p and SOCBoard6p use same geometry methods in base SOCBoard
+        SOCBoardLarge b = new SOCBoardLarge(null, 4);
 
-        // See RST Dissertation figure A.3: Edge Coordinates and A.2: Node Coordinates
+        // adjacent to vertical "|" edge
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x505, 0x404, 0x405, false);
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x505, 0x405, 0x405, false);
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x505, 0x604, 0x605, false);
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x505, 0x605, 0x605, false);
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x505, 0x505, 0, true);  // not adjacent: same edge twice
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x505, 0x503, 0, true);  // same row 1 hex away
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x505, 0x507, 0, true);  // same row
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x505, 0x403, 0, true);  // 2 edges away
 
-        // adjacent to vertical [Even,Even] edge: Figure A.13
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x26, 0x16, 0x27, false);
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x26, 0x27, 0x27, false);
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x26, 0x25, 0x36, false);
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x26, 0x36, 0x36, false);
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x26, 0x26, 0, true);  // not adjacent: same edge twice
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x26, 0x04, 0, true);  // same row 1 hex away
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x26, 0x48, 0, true);  // same row
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x26, 0x06, 0, true);  // 2 edges away
+        // adjacent to northeast-diagonal "/" edge
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x407, 0x406, 0x407, false);
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x407, 0x507, 0x407, false);
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x407, 0x308, 0x408, false);
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x407, 0x408, 0x408, false);
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x407, 0x407, 0, true);  // not adjacent: same edge twice
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x407, 0x206, 0, true);  // same axis 1 hex away
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x407, 0x608, 0, true);  // same axis
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x407, 0x405, 0, true);  // 2 edges away
 
-        // adjacent to northeast-diagonal [Even, Odd] edge: Fig A. 11
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x47, 0x36, 0x47, false);
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x47, 0x46, 0x47, false);
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x47, 0x48, 0x58, false);
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x47, 0x48, 0x58, false);
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x47, 0x47, 0, true);  // not adjacent: same edge twice
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x47, 0x67, 0, true);  // same axis 1 hex away
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x47, 0x27, 0, true);  // same axis
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x47, 0x49, 0, true);  // 2 edges away
-
-        // adjacent to southeast-diagonal [Odd, Even] edge: Fig A. 12
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x52, 0x41, 0x52, false);
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x52, 0x42, 0x52, false);
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x52, 0x62, 0x63, false);
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x52, 0x63, 0x63, false);
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x52, 0x52, 0, true);  // not adjacent: same edge twice
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x52, 0x54, 0, true);  // same axis 1 hex away
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x52, 0x50, 0, true);  // same axis
-        doTestPair_getNodeBetweenAdjacentEdges(b, 0x52, 0x43, 0, true);  // 2 edges away
+        // adjacent to southeast-diagonal "\" edge
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x406, 0x306, 0x406, false);
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x406, 0x405, 0x406, false);
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x406, 0x407, 0x407, false);
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x406, 0x507, 0x407, false);
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x406, 0x406, 0, true);  // not adjacent: same edge twice
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x406, 0x207, 0, true);  // same axis 1 hex away
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x406, 0x605, 0, true);  // same axis
+        doTestPair_getNodeBetweenAdjacentEdges(b, 0x406, 0x505, 0, true);  // 2 edges away
     }
 
 }

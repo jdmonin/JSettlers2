@@ -3119,18 +3119,27 @@ public class SOCBoardLarge extends SOCBoard
             // 'A' node, north and SW edges:
 
             case (0x0100 - 0x01):  // edgeA is north, edgeB is SW (r+1, c-1)
-                node = edgeB + 1;
+                if ((((edgeA >> 8) % 2) == 1) && ((edgeA >> 8) < (edgeB >> 8)))
+                    node = edgeB + 1;
+                else
+                    node = -9;  // non-adjacent such as vertical south edgeA, horiz gap to east, then southeast edgeB
                 break;
 
             case (0x01 - 0x0100):  // edgeA is SW, edgeB is north (r-1, c+1)
-                node = edgeA + 1;
+                if ((((edgeB >> 8) % 2) == 1) && ((edgeA >> 8) > (edgeB >> 8)))
+                    node = edgeA + 1;
+                else
+                    node = -9;
                 break;
 
             default:
-                throw new IllegalArgumentException
-                    ("Edges not adjacent: 0x" + Integer.toHexString(edgeA)
-                     + ", 0x" + Integer.toHexString(edgeB));
+                node = -9;
         }
+
+        if (node == -9)
+            throw new IllegalArgumentException
+                ("Edges not adjacent: 0x" + Integer.toHexString(edgeA)
+                 + ", 0x" + Integer.toHexString(edgeB));
 
         return node;
     }
