@@ -3968,50 +3968,42 @@ public class SOCRobotBrain extends Thread
         /// see if this settlement bisected someone else's road
         ///
         int[] roadCount = { 0, 0, 0, 0, 0, 0 };  // Length should be SOCGame.MAXPLAYERS
-        SOCBoard board = game.getBoard();
-        Enumeration<Integer> adjEdgeEnum = board.getAdjacentEdgesToNode(newSettlement.getCoordinates()).elements();
+        final SOCBoard board = game.getBoard();
 
-        while (adjEdgeEnum.hasMoreElements())
+        for (final int adjEdge : board.getAdjacentEdgesToNode(newSettlement.getCoordinates()))
         {
-            final int adjEdge = adjEdgeEnum.nextElement().intValue();
-            Enumeration<SOCRoutePiece> roadEnum = board.getRoadsAndShips().elements();
+            final SOCRoutePiece rs = board.roadOrShipAtEdge(adjEdge);
+            if (rs == null)
+                continue;
 
-            while (roadEnum.hasMoreElements())
+            final int roadPN = rs.getPlayerNumber();
+
+            roadCount[roadPN]++;
+
+            if (roadCount[roadPN] == 2)
             {
-                final SOCRoutePiece rs = roadEnum.nextElement();
-
-                if (rs.getCoordinates() == adjEdge)
+                if (roadPN != ourPlayerNumber)
                 {
-                    final int roadPN = rs.getPlayerNumber();
+                    ///
+                    /// this settlement bisects another players road
+                    ///
+                    trackersIter = playerTrackers.values().iterator();
 
-                    roadCount[roadPN]++;
-
-                    if (roadCount[roadPN] == 2)
+                    while (trackersIter.hasNext())
                     {
-                        if (roadPN != ourPlayerNumber)
+                        SOCPlayerTracker tracker = trackersIter.next();
+
+                        if (tracker.getPlayer().getPlayerNumber() == roadPN)
                         {
-                            ///
-                            /// this settlement bisects another players road
-                            ///
-                            trackersIter = playerTrackers.values().iterator();
-
-                            while (trackersIter.hasNext())
-                            {
-                                SOCPlayerTracker tracker = trackersIter.next();
-
-                                if (tracker.getPlayer().getPlayerNumber() == roadPN)
-                                {
-                                    //D.ebugPrintln("$$ updating LR Value for player "+tracker.getPlayer().getPlayerNumber());
-                                    //tracker.updateLRValues();
-                                }
-
-                                //tracker.recalcLongestRoadETA();
-                            }
+                            //D.ebugPrintln("$$ updating LR Value for player "+tracker.getPlayer().getPlayerNumber());
+                            //tracker.updateLRValues();
                         }
 
-                        break;
+                        //tracker.recalcLongestRoadETA();
                     }
                 }
+
+                break;
             }
         }
 

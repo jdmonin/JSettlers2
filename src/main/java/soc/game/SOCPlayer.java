@@ -3046,7 +3046,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 // on our roads/ships that are adjacent to
                 // this edge
                 //
-                Vector<Integer> adjEdges = board.getAdjacentEdgesToEdge(pieceCoord);
+                List<Integer> adjEdges = board.getAdjacentEdgesToEdge(pieceCoord);
 
                 for (SOCRoutePiece rs : roadsAndShips)
                 {
@@ -3089,11 +3089,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             //
             // check adjacent nodes
             //
-            Vector<Integer> adjNodesEnum = board.getAdjacentNodesToNode(pieceCoord);
-
-            for (Integer adjNodeObj : adjNodesEnum)
+            for (final int adjNode : board.getAdjacentNodesToNode(pieceCoord))
             {
-                final int adjNode = adjNodeObj.intValue();
                 undoPutPieceAuxSettlement(adjNode);
             }
 
@@ -3144,14 +3141,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         //
         boolean haveNeighbor = false;
         SOCBoard board = game.getBoard();
-        Vector<Integer> adjNodes = board.getAdjacentNodesToNode(settlementNode);
+        final List<Integer> adjNodes = board.getAdjacentNodesToNode(settlementNode);
 
         for (SOCSettlement settlement : board.getSettlements())
         {
-            for (Integer adjNodeObj : adjNodes)
+            for (final int adjNode : adjNodes)
             {
-                final int adjNode = adjNodeObj.intValue();
-
                 if (adjNode == settlement.getCoordinates())
                 {
                     haveNeighbor = true;
@@ -3171,10 +3166,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         {
             for (SOCCity city : board.getCities())
             {
-                for (Integer adjNodeObj : adjNodes)
+                for (final int adjNode : adjNodes)
                 {
-                    final int adjNode = adjNodeObj.intValue();
-
                     if (adjNode == city.getCoordinates())
                     {
                         haveNeighbor = true;
@@ -3218,14 +3211,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         //
                         //D.ebugPrintln(")))) checking for adjacent roads");
                         boolean adjRoad = false;
-                        Vector<Integer> adjEdges = board.getAdjacentEdgesToNode(settlementNode);
+                        final List<Integer> adjEdges = board.getAdjacentEdgesToNode(settlementNode);
 
                         for (SOCRoutePiece rs : roadsAndShips)
                         {
-                            for (Integer adjEdgeObj : adjEdges)
+                            for (final int adjEdge : adjEdges)
                             {
-                                final int adjEdge = adjEdgeObj.intValue();
-
                                 if (rs.getCoordinates() == adjEdge)
                                 {
                                     //D.ebugPrintln("))) found adj road at "+Integer.toHexString(adjEdge.intValue()));
@@ -3331,24 +3322,24 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         Collection<Integer> nodes = board.getAdjacentNodesToEdge(pieceCoord);
                         int i = 0;
 
-                        for (Integer node : nodes)
+                        for (final Integer nodeInt : nodes)
                         {
-                            edgeNodeCoords[i] = node.intValue();
+                            edgeNodeCoords[i] = nodeInt.intValue();
                             i++;
 
                             /**
                              * only remove a node if none of our roads/ships are touching it
                              */
-                            Collection<Integer> adjEdges = board.getAdjacentEdgesToNode(node.intValue());
+                            final Collection<Integer> adjEdges = board.getAdjacentEdgesToNode(nodeInt.intValue());
                             boolean match = false;
 
                             for (SOCRoutePiece rs : roadsAndShips)
                             {
                                 final int rdEdge = rs.getCoordinates();
 
-                                for (Integer adjEdgeObj : adjEdges)
+                                for (final int adjEdge : adjEdges)
                                 {
-                                    if (rdEdge == adjEdgeObj)
+                                    if (rdEdge == adjEdge)
                                     {
                                         match = true;
                                         break;
@@ -3363,8 +3354,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                             if (! match)
                             {
-                                roadNodes.removeElement(node);
-                                potentialSettlements.remove(node);
+                                roadNodes.removeElement(nodeInt);
+                                potentialSettlements.remove(nodeInt);
                             }
                         }
                     }
@@ -3444,9 +3435,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                      * potential road
                      */
                     // TODO roads/ships are not interchangeable here
-                    Collection<Integer> adjEdgesEnum = board.getAdjacentEdgesToEdge(pieceCoord);
+                    Collection<Integer> adjEdges = board.getAdjacentEdgesToEdge(pieceCoord);
 
-                    for (Integer adjEdge : adjEdgesEnum)
+                    for (Integer adjEdge : adjEdges)
                     {
                         if (! (potentialRoads.contains(adjEdge) || potentialShips.contains(adjEdge)))
                             continue;
@@ -3486,12 +3477,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                             if (! blocked)
                             {
-                                Collection<Integer> adjAdjEdgesEnum = board.getAdjacentEdgesToNode(adjNode);
-
-                                for (Integer adjAdjEdgesObj : adjAdjEdgesEnum)
+                                for (final int adjAdjEdge : board.getAdjacentEdgesToNode(adjNode))
                                 {
-                                    final int adjAdjEdge = adjAdjEdgesObj.intValue();
-
                                     if (adjAdjEdge != adjEdgeID)
                                     {
                                         for (SOCRoutePiece ourRS : roadsAndShips)

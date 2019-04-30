@@ -6392,11 +6392,9 @@ public class SOCServer extends Server
         {
             System.err.print("\t");
             SOCPlayingPiece sc = pe.nextElement();
-            Enumeration<Integer> hexes = board.getAdjacentHexesToNode(sc.getCoordinates()).elements();
 
-            while (hexes.hasMoreElements())
+            for (final int hexCoord : board.getAdjacentHexesToNode(sc.getCoordinates()))
             {
-                final int hexCoord = hexes.nextElement().intValue();
                 final int hdice = board.getNumberOnHexFromCoord(hexCoord);
                 if (hdice != 0)
                     System.err.print(hdice);

@@ -3876,10 +3876,9 @@ public class SOCGameHandler extends GameHandler
             return true;  // shouldn't happen, but fail gracefully; most new areas are on new islands
 
         final SOCBoard board = ga.getBoard();
-        Vector<Integer> seEdges = board.getAdjacentEdgesToNode(se.getCoordinates());
 
         int shipCount = 0, roadCount = 0;
-        for (int edge : seEdges)
+        for (final int edge : board.getAdjacentEdgesToNode(se.getCoordinates()))
         {
             SOCRoutePiece pp = board.roadOrShipAtEdge(edge);
             if (pp == null)

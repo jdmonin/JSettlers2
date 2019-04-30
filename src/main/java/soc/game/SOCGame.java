@@ -37,7 +37,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -3278,12 +3277,11 @@ public class SOCGame implements Serializable, Cloneable
             else if ((pp instanceof SOCSettlement) && isInitialPlacement())
             {
                 // settlements
-                final Collection<Integer> hexColl = board.getAdjacentHexesToNode(coord);
-                int[] seHexes = new int[hexColl.size()];
-                int i;
-                Iterator<Integer> hi;
-                for (i = 0, hi = hexColl.iterator(); hi.hasNext(); ++i)
-                    seHexes[i] = hi.next();
+                final List<Integer> adjacHexes = board.getAdjacentHexesToNode(coord);
+                final int L = adjacHexes.size();
+                int[] seHexes = new int[L];
+                for (int i = 0; i < L; ++i)
+                    seHexes[i] = adjacHexes.get(i);
                 putPieceCommon_checkFogHexes(seHexes, true);
 
                 // Any settlement might reveal 1-3 fog hexes.
@@ -3356,13 +3354,10 @@ public class SOCGame implements Serializable, Cloneable
                      && (ppPlayer.getPieces().size() == (init3 ? 5 : 3))) )
             {
                 SOCResourceSet resources = new SOCResourceSet();
-                Vector<Integer> hexes = board.getAdjacentHexesToNode(coord);
                 int goldHexAdjacent = 0;
 
-                for (Integer hex : hexes)
+                for (final int hexCoord : board.getAdjacentHexesToNode(coord))
                 {
-                    final int hexCoord = hex.intValue();
-
                     switch (board.getHexTypeFromCoord(hexCoord))
                     {
                     case SOCBoard.CLAY_HEX:
@@ -3415,17 +3410,9 @@ public class SOCGame implements Serializable, Cloneable
                  * this is a settlement, check if it cut anyone else's road or trade route
                  */
                 int[] roads = new int[maxPlayers];
-                for (int i = 0; i < maxPlayers; i++)
+
+                for (final int adjEdge : board.getAdjacentEdgesToNode(coord))
                 {
-                    roads[i] = 0;
-                }
-
-                Vector<Integer> adjEdges = board.getAdjacentEdgesToNode(coord);
-
-                for (Integer adj : adjEdges)
-                {
-                    final int adjEdge = adj.intValue();
-
                     /**
                      * look for other players' roads and ships adjacent to this node
                      */
@@ -5429,11 +5416,8 @@ public class SOCGame implements Serializable, Cloneable
     {
         for (SOCPlayingPiece sc : sEnum)
         {
-            Collection<Integer> hexes = board.getAdjacentHexesToNode(sc.getCoordinates());
-
-            for (Integer hex : hexes)
+            for (final int hexCoord : board.getAdjacentHexesToNode(sc.getCoordinates()))
             {
-                final int hexCoord = hex.intValue();
                 SOCResourceSet rset = hexCoord != robberHex ? resources : missedResources;
                 if (board.getNumberOnHexFromCoord(hexCoord) == roll)
                 {
@@ -6173,7 +6157,7 @@ public class SOCGame implements Serializable, Cloneable
      * other players and/or ignore current game state. See that method's javadoc for details.
      * Useful for client-side tooltips or menus.
      *
-     * @param pl  Player to check
+     * @param pl  Player to check, or {@code null} for current player
      * @param checkPiecesOnly  True if should ignore current game state and current player,
      *     only check whether the pieces are in position to do so
      * @return  Player's ship adjacent to their {@link SOCFortress}, or {@code null} if they can't attack
@@ -6316,8 +6300,8 @@ public class SOCGame implements Serializable, Cloneable
             {
                 // find player's newest-placed ship adjacent to shipEdge;
                 // it will also be lost
-                final Vector<Integer> adjacEdges = board.getAdjacentEdgesToEdge(shipEdge);
-                Vector<SOCRoutePiece> roadsAndShips = currPlayer.getRoadsAndShips();
+                final List<Integer> adjacEdges = board.getAdjacentEdgesToEdge(shipEdge);
+                List<SOCRoutePiece> roadsAndShips = currPlayer.getRoadsAndShips();
                 for (int i = roadsAndShips.size() - 1; i >= 0; --i)
                 {
                     SOCRoutePiece rs = roadsAndShips.get(i);

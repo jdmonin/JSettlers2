@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2011-2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2011-2014,2017,2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -244,11 +244,8 @@ public class SOCPlayerNumbers
      */
     public void updateNumbers(final int nodeCoord, SOCBoard board)
     {
-        Vector<Integer> hexes = board.getAdjacentHexesToNode(nodeCoord);
-
-        for (Integer hexInt : hexes)
+        for (final int hex : board.getAdjacentHexesToNode(nodeCoord))
         {
-            final int hex = hexInt.intValue();
             final int number = board.getNumberOnHexFromCoord(hex);
             final int resource = board.getHexTypeFromCoord(hex);
             addNumberForResource(number, resource, hex);
@@ -278,11 +275,9 @@ public class SOCPlayerNumbers
         (final int nodeCoord, SOCBoard board, final int[] numProb, final StringBuffer sb)
     {
         int probTotal = 0;
-        Vector<Integer> hexes = board.getAdjacentHexesToNode(nodeCoord);
 
-        for (Integer hexInt : hexes)
+        for (final int hex : board.getAdjacentHexesToNode(nodeCoord))
         {
-            final int hex = hexInt.intValue();
             final int number = board.getNumberOnHexFromCoord(hex);
             if (number > 0)
             {
@@ -541,11 +536,8 @@ public class SOCPlayerNumbers
      */
     public void undoUpdateNumbers(final int coord, SOCBoard board)
     {
-        Vector<Integer> hexes = board.getAdjacentHexesToNode(coord);
-
-        for (Integer hexInt : hexes)
+        for (final int hex : board.getAdjacentHexesToNode(coord))
         {
-            final int hex = hexInt.intValue();
             final int number = board.getNumberOnHexFromCoord(hex);
             final int resource = board.getHexTypeFromCoord(hex);
             undoAddNumberForResource(number, resource, hex);

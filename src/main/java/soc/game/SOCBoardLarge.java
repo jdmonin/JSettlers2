@@ -29,7 +29,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import soc.util.IntPair;
 
@@ -2091,7 +2090,7 @@ public class SOCBoardLarge extends SOCBoard
         // Water, or off the board, aren't included.
         // So if there are 6, hex isn't coastal.
 
-        final Vector<Integer> adjac = getAdjacentHexesToHex(hexCoord, false);
+        final List<Integer> adjac = getAdjacentHexesToHex(hexCoord, false);
         return (adjac == null) || (adjac.size() < 6);
     }
 
@@ -2412,7 +2411,7 @@ public class SOCBoardLarge extends SOCBoard
      * sets the contents of the same data structures.
      *
      * @param psNodes  The set of potential settlement node coordinates as {@link Integer}s;
-     *    either a {@link HashSet} or {@link Vector}.
+     *    either a {@link HashSet} or a {@link List}.
      *    If <tt>lan == null</tt>, this will also be used as the
      *    legal set of settlement nodes on land.
      * @param sla  The required starting Land Area number, or 0
@@ -2508,16 +2507,16 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @param hexCoord  Coordinate ("ID") of this hex; not checked for validity
      * @param includeWater  Should water hexes be returned (not only land ones)?
-     * @return the hexes that touch this hex, as a Vector of Integer coordinates,
-     *         or null if none are adjacent (will <b>not</b> return a 0-length vector)
+     * @return the hex coordinates that touch this hex,
+     *         or null if none are adjacent (will <b>not</b> return a 0-length list)
      * @see #isHexAdjacentToHex(int, int)
      * @see #isHexInBounds(int, int)
      * @see #isHexCoastline(int)
      */
     @Override
-    public Vector<Integer> getAdjacentHexesToHex(final int hexCoord, final boolean includeWater)
+    public List<Integer> getAdjacentHexesToHex(final int hexCoord, final boolean includeWater)
     {
-        Vector<Integer> hexes = new Vector<Integer>();
+        List<Integer> hexes = new ArrayList<Integer>();
 
         final int r = hexCoord >> 8,
                   c = hexCoord & 0xFF;
@@ -2533,13 +2532,13 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Check one possible coordinate for getAdjacentHexesToHex.
-     * @param addTo the list we're building of hexes that touch this hex, as a Vector of Integer coordinates.
+     * @param addTo the coordinate list we're building of hexes that touch this hex
      * @param includeWater Should water hexes be returned (not only land ones)?
      * @param r  Hex row coordinate
      * @param c  Hex column coordinate
      */
     private final void getAdjacentHexes2Hex_AddIfOK
-        (Vector<Integer> addTo, final boolean includeWater, final int r, final int c)
+        (List<Integer> addTo, final boolean includeWater, final int r, final int c)
     {
         if (! isHexInBounds(r, c))  // also checks that it's a valid hex row
             return;
@@ -2548,7 +2547,7 @@ public class SOCBoardLarge extends SOCBoard
             || ((hexLayoutLg[r][c] <= MAX_LAND_HEX_LG)
                 && (hexLayoutLg[r][c] != WATER_HEX)) )
         {
-            addTo.addElement(Integer.valueOf((r << 8) | c));
+            addTo.add(Integer.valueOf((r << 8) | c));
         }
     }
 
@@ -2893,12 +2892,12 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Get the edge coordinates of the 2 to 4 edges adjacent to this edge.
      * @param coord  Edge coordinate; not checked for validity
-     * @return the valid adjacent edges to this edge, as a Vector of Integer coordinates.
+     * @return the valid adjacent edge coordinates to this edge.
      *     If {@code coord} is off the board, none of its adjacents will be in bounds,
      *     and this method will return an empty list; never returns {@code null}.
      */
     @Override
-    public Vector<Integer> getAdjacentEdgesToEdge(final int coord)
+    public List<Integer> getAdjacentEdgesToEdge(final int coord)
     {
         final int r = (coord >> 8),
                   c = (coord & 0xFF);
@@ -2916,14 +2915,15 @@ public class SOCBoardLarge extends SOCBoard
             offs = A_EDGE2EDGE[dir];
         }
 
-        Vector<Integer> edge = new Vector<Integer>(4);
+        List<Integer> edge = new ArrayList<Integer>(4);
         for (int i = 0; i < 8; )
         {
             final int er = r + offs[i];  ++i;
             final int ec = c + offs[i];  ++i;
             if (isEdgeInBounds(er, ec))
-                edge.addElement(Integer.valueOf( (er << 8) | ec ));
+                edge.add(Integer.valueOf( (er << 8) | ec ));
         }
+
         return edge;
     }
 
@@ -3013,17 +3013,19 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Adjacent node coordinates to an edge (that is, the nodes that are the two ends of the edge).
-     * @return the nodes that touch this edge, as a Vector of Integer coordinates
+     * @return the node coordinates that touch this edge
      * @see #getAdjacentNodesToEdge_arr(int)
      * @see #getAdjacentNodeToEdge(int, int)
      */
     @Override
-    public Vector<Integer> getAdjacentNodesToEdge(final int coord)
+    public List<Integer> getAdjacentNodesToEdge(final int coord)
     {
-        Vector<Integer> nodes = new Vector<Integer>(2);
+        List<Integer> nodes = new ArrayList<Integer>(2);
+
         final int[] narr = getAdjacentNodesToEdge_arr(coord);
-        nodes.addElement(Integer.valueOf(narr[0]));
-        nodes.addElement(Integer.valueOf(narr[1]));
+        nodes.add(Integer.valueOf(narr[0]));
+        nodes.add(Integer.valueOf(narr[1]));
+
         return nodes;
     }
 
@@ -3164,7 +3166,7 @@ public class SOCBoardLarge extends SOCBoard
      *         because hex coordinates (their centers) are fully within the board.
      */
     @Override
-    public Vector<Integer> getAdjacentHexesToNode(final int nodeCoord)
+    public List<Integer> getAdjacentHexesToNode(final int nodeCoord)
     {
         // Determining (r,c) node direction: Y or A
         //  s = r/2
@@ -3173,41 +3175,41 @@ public class SOCBoardLarge extends SOCBoard
         // Bounds check for hexes: r > 0, c > 0, r < height, c < width
 
         final int r = (nodeCoord >> 8), c = (nodeCoord & 0xFF);
-        Vector<Integer> hexes = new Vector<Integer>(3);
+        List<Integer> hexes = new ArrayList<Integer>(3);
 
         final boolean nodeIsY = ( (c % 2) != ((r/2) % 2) );
         if (nodeIsY)
         {
             // North: (r-1, c)
             if (r > 1)
-                hexes.addElement(Integer.valueOf(nodeCoord - 0x0100));
+                hexes.add(Integer.valueOf(nodeCoord - 0x0100));
 
             if (r < (boardHeight-1))
             {
                 // SW: (r+1, c-1)
                 if (c > 1)
-                    hexes.addElement(Integer.valueOf((nodeCoord + 0x0100) - 1));
+                    hexes.add(Integer.valueOf((nodeCoord + 0x0100) - 1));
 
                 // SE: (r+1, c+1)
                 if (c < (boardWidth-1))
-                    hexes.addElement(Integer.valueOf((nodeCoord + 0x0100) + 1));
+                    hexes.add(Integer.valueOf((nodeCoord + 0x0100) + 1));
             }
         }
         else
         {
             // South: (r+1, c)
             if (r < (boardHeight-1))
-                hexes.addElement(Integer.valueOf(nodeCoord + 0x0100));
+                hexes.add(Integer.valueOf(nodeCoord + 0x0100));
 
             if (r > 1)
             {
                 // NW: (r-1, c-1)
                 if (c > 1)
-                    hexes.addElement(Integer.valueOf((nodeCoord - 0x0100) - 1));
+                    hexes.add(Integer.valueOf((nodeCoord - 0x0100) - 1));
 
                 // NE: (r-1, c+1)
                 if (c < (boardWidth-1))
-                    hexes.addElement(Integer.valueOf((nodeCoord - 0x0100) + 1));
+                    hexes.add(Integer.valueOf((nodeCoord - 0x0100) + 1));
             }
         }
 
@@ -3764,7 +3766,7 @@ public class SOCBoardLarge extends SOCBoard
         else
             nodeIDtoPortType.clear();
         for (int i = 0; i < ports.length; ++i)
-            ports[i].removeAllElements();
+            ports[i].clear();
 
         // Place the new ports
         for (int i = 0; i < portsCount; ++i)

@@ -30,7 +30,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
-import java.util.Vector;
 
 import soc.game.SOCBoard;
 import soc.game.SOCBoard4p;
@@ -755,7 +754,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
                 portsLayout, pcountMain, portTypes_islands.length);
 
         // place the ports (hex numbers and facing) within portsLayout[] and nodeIDtoPortType.
-        // fill out the ports[] vectors with node coordinates where a trade port can be placed.
+        // fill out the ports[] lists with node coordinates where a trade port can be placed.
         nodeIDtoPortType = new HashMap<Integer, Integer>();
 
         // - main island(s):
@@ -953,12 +952,12 @@ public class SOCBoardAtServer extends SOCBoardLarge
      *             or if <tt>landHexType.length != landPath.length</tt>, <BR>
      *             or if <tt>landHexType</tt> contains {@link #FOG_HEX}, <BR>
      *             or if <tt>number</tt> contains a negative value, <BR>
-     *             or if {@link SOCBoard#makeNewBoard_checkLandHexResourceClumps(Vector, int)}
+     *             or if {@link SOCBoard#makeNewBoard_checkLandHexResourceClumps(List, int)}
      *                 finds an invalid or uninitialized hex coordinate (hex type -1)
      * @see #makeNewBoard_placeHexes(int[], int[], int[], boolean, boolean, int, boolean, int, SOCGameOption, String, Map)
      */
     private final void makeNewBoard_placeHexes
-        (int[] landHexType, final int[] landPath, int[] number, final boolean shuffleDiceNumbers,
+        (final int[] landHexType, final int[] landPath, int[] number, final boolean shuffleDiceNumbers,
          final boolean shuffleLandHexes, final int[] landAreaPathRanges, final boolean addToExistingLA,
          final int maxPl, final SOCGameOption optBC, final String scen,
          final Map<String, SOCGameOption> opts)
@@ -1103,9 +1102,9 @@ public class SOCBoardAtServer extends SOCBoardLarge
             {
                 // Check the newly placed land area(s) for clumps;
                 // ones placed in previous method calls are ignored
-                Vector<Integer> unvisited = new Vector<Integer>();  // contains each hex's coordinate
-                for (int i = 0; i < landHexType.length; ++i)
-                    unvisited.addElement(Integer.valueOf(landPath[i]));
+                List<Integer> unvisited = new ArrayList<Integer>();  // contains each hex's coordinate
+                for (int i = 0; i < landPath.length; ++i)
+                    unvisited.add(Integer.valueOf(landPath[i]));
 
                 clumpsNotOK = makeNewBoard_checkLandHexResourceClumps(unvisited, clumpSize);
             } else {
@@ -1184,7 +1183,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
     {
         // map of gold hex coords to all their adjacent land hexes, if any;
         // golds with no adjacent land are left out of the map.
-        HashMap<Integer, Vector<Integer>> goldAdjac = new HashMap<Integer, Vector<Integer>>();
+        HashMap<Integer, List<Integer>> goldAdjac = new HashMap<Integer, List<Integer>>();
 
         // Find each gold hex's adjacent land hexes:
         for (int hex : hexCoords)
@@ -1192,9 +1191,9 @@ public class SOCBoardAtServer extends SOCBoardLarge
             if (GOLD_HEX != getHexTypeFromCoord(hex))
                 continue;
 
-            Vector<Integer> adjacLand = getAdjacentHexesToHex(hex, false);
+            List<Integer> adjacLand = getAdjacentHexesToHex(hex, false);
             if (adjacLand == null)
-                continue;  // no adjacents, ignore this GOLD_HEX; getAdjacentHexesToHex never returns an empty vector
+                continue;  // no adjacents, ignore this GOLD_HEX; getAdjacentHexesToHex never returns an empty list
 
             goldAdjac.put(Integer.valueOf(hex), adjacLand);
         }
@@ -1294,7 +1293,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
             final Integer hexInt = Integer.valueOf(hex);
             boolean adjac = false;
-            for (Vector<Integer> goldAdjacList : goldAdjac.values())
+            for (final List<Integer> goldAdjacList : goldAdjac.values())
             {
                 if (goldAdjacList.contains(hexInt))
                 {
@@ -1391,7 +1390,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
         // since it's gold now, remove nonAdjHex and its adjacents from nonAdjac:
         nonAdjac.remove(nonAdjHex);
-        Vector<Integer> adjs = getAdjacentHexesToHex(nonAdjHex, false);
+        List<Integer> adjs = getAdjacentHexesToHex(nonAdjHex, false);
         if (adjs != null)
             for (Integer ahex : adjs)
                 nonAdjac.remove(ahex);
@@ -1573,7 +1572,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
             {
                 final int h0 = redHexes.get(i);
 
-                Vector<Integer> ahex = getAdjacentHexesToHex(h0, false);
+                final List<Integer> ahex = getAdjacentHexesToHex(h0, false);
                 if (ahex == null)
                 {
                     redHexes.remove(i);
@@ -1692,7 +1691,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
                 {
                     final int h0 = redHexes.get(0);
 
-                    Vector<Integer> ahex = getAdjacentHexesToHex(h0, false);
+                    final List<Integer> ahex = getAdjacentHexesToHex(h0, false);
                     if (ahex == null)
                     {
                         redHexes.remove(0);
@@ -1870,7 +1869,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
             if (((dnum < 5) || (dnum > 9)) && buildOtherHexesLessFreq_59)
                 otherHexesForScen.add(Integer.valueOf(h));
 
-            final Vector<Integer> ahex = getAdjacentHexesToHex(h, false);
+            final List<Integer> ahex = getAdjacentHexesToHex(h, false);
             boolean hasAdjacentRed = false;
             if (ahex != null)
             {
@@ -2106,7 +2105,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
         // - Remove new location and its adjacents from otherCoastalHexes or otherHexes
         others.remove(ohex);
-        Vector<Integer> ahex = getAdjacentHexesToHex(ohex, false);
+        List<Integer> ahex = getAdjacentHexesToHex(ohex, false);
         if (ahex != null)
         {
             for (int h : ahex)
@@ -2134,7 +2133,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
                 final int dnum = getNumberOnHexFromCoord(h);
                 final boolean hexIsRed = (dnum == 6) || (dnum == 8);
                 boolean hasAdjacentRed = false;
-                Vector<Integer> aahex = getAdjacentHexesToHex(h, false);
+                final List<Integer> aahex = getAdjacentHexesToHex(h, false);
                 if (aahex != null)
                 {
                     // adjacents to swaphex's adjacent
