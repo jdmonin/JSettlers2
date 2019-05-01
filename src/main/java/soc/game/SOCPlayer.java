@@ -2504,9 +2504,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Call this before calling {@link SOCBoard#putPiece(SOCPlayingPiece)}.
      *<P>
      * For some scenarios on the {@link SOCGame#hasSeaBoard large sea board}, placing
-     * a settlement in a new Land Area may award the player a Special Victory Point (SVP).
-     * This method will increment {@link #specialVP}
-     * and set the {@link SOCPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA} flag.
+     * a settlement in a new Land Area may award the player Special Victory Points (SVP).
+     * If so, this method will update {@link #getSpecialVP()} and
+     * {@link #getPlayerEvents()} / {@link #getScenarioSVPLandAreas()}
+     * and fire a {@link SOCPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA} or
+     * {@link SOCPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA}.
      *<P>
      * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
      * call with <tt>piece</tt> = {@link SOCFortress} to set the single "pirate fortress"
@@ -2594,7 +2596,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         }
 
                         /**
-                         * do we get an SVP for reaching a new land area?
+                         * do we get any SVP for reaching a new land area?
                          */
                         else
                         {
@@ -2934,7 +2936,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Does the player get a Special Victory Point (SVP) for reaching a new land area?
      * Call when a settlement has been placed in a land area different from
      * {@link #startingLandArea1} and {@link #startingLandArea2}.
-     * Used with game options {@link SOCGameOption#K_SC_SANY _SC_SANY} and {@link SOCGameOption#K_SC_SEAC _SC_SEAC}.
+     * If player gets Special Victory Points because of game option
+     * {@link SOCGameOption#K_SC_SANY _SC_SANY} or {@link SOCGameOption#K_SC_SEAC _SC_SEAC},
+     * will update fields and fire a {@link SOCPlayerEvent} as described in
+     * {@link #putPiece(SOCPlayingPiece, boolean)}.
+     *
      * @param newSettle  Newly placed settlement
      * @param newSettleArea  Land area number of new settlement's location
      * @param isTempPiece  Is this a temporary piece?  If so, do not call the
