@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -286,7 +286,7 @@ public class SOCScenario
     public static final String K_SC_4ISL = "SC_4ISL";
 
     /**
-     * Scenario key {@code SC_FOG} for {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED} (The Fog Islands scenario).
+     * Scenario key {@code SC_FOG} for {@link SOCGameEvent#SGE_FOG_HEX_REVEALED} (The Fog Islands scenario).
      * Main option is {@link SOCGameOption#K_SC_FOG}.
      */
     public static final String K_SC_FOG = "SC_FOG";
@@ -298,7 +298,7 @@ public class SOCScenario
     public static final String K_SC_TTD = "SC_TTD";
 
     /**
-     * Scenario key {@code SC_CLVI} for {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}:
+     * Scenario key {@code SC_CLVI} for {@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}:
      * Cloth Trade with neutral {@link SOCVillage villages}.
      * Main option is {@link SOCGameOption#K_SC_CLVI}.
      *<P>
@@ -339,8 +339,8 @@ public class SOCScenario
      * player to place later when they have such a coastal settlement.
      *<P>
      * When a player reaches a Special Edge and is awarded a gift, the game clears that edge's special
-     * type, then fires a {@link SOCScenarioPlayerEvent#DEV_CARD_REACHED_SPECIAL_EDGE} or
-     * {@link SOCScenarioPlayerEvent#SVP_REACHED_SPECIAL_EDGE} event.
+     * type, then fires a {@link SOCPlayerEvent#DEV_CARD_REACHED_SPECIAL_EDGE} or
+     * {@link SOCPlayerEvent#SVP_REACHED_SPECIAL_EDGE} event.
      *<P>
      * When a player reaches a "gift" trade port, either the port is added to their inventory
      * as a {@link SOCInventoryItem} for later placement, or they must immediately place it:
@@ -515,7 +515,7 @@ public class SOCScenario
      *<LI> {@link #K_SC_NSHO SC_NSHO}  New Shores
      *<LI> {@link #K_SC_4ISL SC_4ISL}  The Four Islands (Six on the 6-player board)
      *<LI> {@link #K_SC_FOG  SC_FOG}   A hex has been revealed from behind fog:
-     *                                  {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}
+     *                                  {@link SOCGameEvent#SGE_FOG_HEX_REVEALED}
      *<LI> {@link #K_SC_TTD  SC_TTD}   Through The Desert
      *<LI> {@link #K_SC_CLVI SC_CLVI}  Cloth trade with neutral {@link SOCVillage villages}
      *<LI> {@link #K_SC_PIRI SC_PIRI}  Pirate Islands and {@link SOCFortress fortresses}

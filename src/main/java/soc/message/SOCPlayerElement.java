@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2014,2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -179,13 +179,13 @@ public class SOCPlayerElement extends SOCMessage
     public static final int SCENARIO_SVP = 102;
 
     /**
-     * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
-     * bitmask of flags related to scenario player events.
+     * For the {@link soc.game.SOCBoardLarge large sea board},
+     * bitmask of flags related to {@link soc.game.SOCPlayerEvent}s.
      * This element is {@link #SET} to 0 or to the player's flags
-     * from {@link soc.game.SOCPlayer#getScenarioPlayerEvents()}.
+     * from {@link soc.game.SOCPlayer#getPlayerEvents()}.
      * @since 2.0.00
      */
-    public static final int SCENARIO_PLAYEREVENTS_BITMASK = 103;
+    public static final int PLAYEREVENTS_BITMASK = 103;
 
     /**
      * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},

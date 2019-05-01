@@ -28,16 +28,16 @@ import soc.debug.D;  // JM
 import soc.game.SOCCity;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
+import soc.game.SOCGameEvent;
+import soc.game.SOCGameEventListener;
 import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
+import soc.game.SOCPlayerEvent;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
 import soc.game.SOCScenario;
-import soc.game.SOCScenarioEventListener;
-import soc.game.SOCScenarioGameEvent;
-import soc.game.SOCScenarioPlayerEvent;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCSpecialItem;
@@ -122,8 +122,8 @@ import javax.swing.event.DocumentListener;
  */
 @SuppressWarnings("serial")
 public class SOCPlayerInterface extends Frame
-    implements ActionListener, MouseListener, SOCScenarioEventListener,
-    PlayerClientListener.NonBlockingDialogDismissListener
+    implements ActionListener, MouseListener, SOCGameEventListener,
+        PlayerClientListener.NonBlockingDialogDismissListener
 {
     /**
      * Boolean per-game preference to mute all sound effects in this game.
@@ -644,7 +644,7 @@ public class SOCPlayerInterface extends Frame
         displayScale = md.getDisplayScaleFactor();
         client = md.getClient();
         game = ga;
-        game.setScenarioEventListener(this);
+        game.setGameEventListener(this);
         knowsGameState = (game.getGameState() != 0);
         clientListener = new ClientBridge(this);
         gameStats = new SOCGameStatistics(game);
@@ -2899,10 +2899,10 @@ public class SOCPlayerInterface extends Frame
      * @param ga  Game
      * @param evt Event code
      * @param detail  Game piece, coordinate, or other data about the event, or null, depending on <tt>evt</tt>
-     * @see #playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent, boolean, Object)
+     * @see #playerEvent(SOCGame, SOCPlayer, SOCPlayerEvent, boolean, Object)
      * @since 2.0.00
      */
-    public void gameEvent(final SOCGame ga, final SOCScenarioGameEvent evt, final Object detail)
+    public void gameEvent(final SOCGame ga, final SOCGameEvent evt, final Object detail)
     {
         switch (evt)
         {
@@ -2925,15 +2925,15 @@ public class SOCPlayerInterface extends Frame
      * @param ga  Game
      * @param pl  Player
      * @param evt  Event code
-     * @param flagsChanged  True if this event changed {@link SOCPlayer#getScenarioPlayerEvents()},
+     * @param flagsChanged  True if this event changed {@link SOCPlayer#getPlayerEvents()},
      *             {@link SOCPlayer#getSpecialVP()}, or another flag documented for <tt>evt</tt> in
-     *             {@link SOCScenarioPlayerEvent}
-     * @param obj  Object related to the event, or null; documented for <tt>evt</tt> in {@link SOCScenarioPlayerEvent}.
-     *             Example: The {@link SOCVillage} for {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
-     * @see #gameEvent(SOCGame, SOCScenarioGameEvent, Object)
+     *             {@link SOCPlayerEvent}
+     * @param obj  Object related to the event, or null; documented for <tt>evt</tt> in {@link SOCPlayerEvent}.
+     *             Example: The {@link SOCVillage} for {@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
+     * @see #gameEvent(SOCGame, SOCGameEvent, Object)
      * @since 2.0.00
      */
-    public void playerEvent(final SOCGame ga, final SOCPlayer pl, final SOCScenarioPlayerEvent evt,
+    public void playerEvent(final SOCGame ga, final SOCPlayer pl, final SOCPlayerEvent evt,
         final boolean flagsChanged, final Object obj)
     {
         final SOCHandPanel mesHp = getPlayerHandPanel(pl.getPlayerNumber());

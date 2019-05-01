@@ -138,7 +138,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
      * Package access for SOCPlayer's benefit.
      * @since 2.0.00
      */
-    SOCScenarioPlayerEvent specialVPEvent;
+    SOCPlayerEvent specialVPEvent;
 
     /**
      * Make a new piece, which is owned by a player.

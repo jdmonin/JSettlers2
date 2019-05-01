@@ -307,8 +307,8 @@ public class SOCBoardLarge extends SOCBoard
      *</UL>
      *<P>
      * The Special Edge Types are constants such as {@link #SPECIAL_EDGE_DEV_CARD}
-     * or {@link #SPECIAL_EDGE_SVP} used by game and board logic.  Game events or
-     * {@link SOCScenarioPlayerEvent}s can happen when something occurs at such an edge.
+     * or {@link #SPECIAL_EDGE_SVP} used by game and board logic.  {@link SOCGameEvent}s or
+     * {@link SOCPlayerEvent}s can happen when something occurs at such an edge.
      * Often these will clear the edge's type, it will no longer be special.
      *<P>
      * During board setup, lists of edges of a special type are sent with the board layout as

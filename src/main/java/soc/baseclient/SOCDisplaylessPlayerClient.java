@@ -1561,8 +1561,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
             pl.setSpecialVP(val);
             break;
 
-        case SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK:
-            pl.setScenarioPlayerEvents(val);
+        case SOCPlayerElement.PLAYEREVENTS_BITMASK:
+            pl.setPlayerEvents(val);
             break;
 
         case SOCPlayerElement.SCENARIO_SVP_LANDAREAS_BITMASK:

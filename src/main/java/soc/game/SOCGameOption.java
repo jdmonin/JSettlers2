@@ -81,7 +81,7 @@ import soc.message.SOCMessage;
  *<P>
  * <B>Sea Board Scenarios:</B><br>
  * Game scenarios were introduced with the large sea board in 2.0.00.
- * Game options are used to indicate which {@link SOCScenarioPlayerEvent scenario events}
+ * Game options are used to indicate which {@link SOCGameEvent}s, {@link SOCPlayerEvent}s,
  * and rules are possible in the current game.
  * These all start with <tt>"_SC_"</tt> and have a static key string;
  * an example is {@link #K_SC_SANY} for scenario game option <tt>"_SC_SANY"</tt>.
@@ -214,19 +214,19 @@ public class SOCGameOption
     // Not all scenario keynames have scenario events, some are just properties of the game.
 
     /**
-     * Scenario key <tt>_SC_SANY</tt> for {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}.
+     * Scenario key <tt>_SC_SANY</tt> for {@link SOCPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}.
      * @since 2.0.00
      */
     public static final String K_SC_SANY = "_SC_SANY";
 
     /**
-     * Scenario key <tt>_SC_SEAC</tt> for {@link SOCScenarioPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA}.
+     * Scenario key <tt>_SC_SEAC</tt> for {@link SOCPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA}.
      * @since 2.0.00
      */
     public static final String K_SC_SEAC = "_SC_SEAC";
 
     /**
-     * Scenario key <tt>_SC_FOG</tt> for {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}.
+     * Scenario key <tt>_SC_FOG</tt> for {@link SOCGameEvent#SGE_FOG_HEX_REVEALED}.
      * @see SOCScenario#K_SC_FOG
      * @since 2.0.00
      */
@@ -246,7 +246,7 @@ public class SOCGameOption
     public static final String K_SC_3IP = "_SC_3IP";
 
     /**
-     * Scenario key <tt>_SC_CLVI</tt> for {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}:
+     * Scenario key <tt>_SC_CLVI</tt> for {@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}:
      * Cloth Trade with neutral {@link SOCVillage villages}.
      * Villages and cloth are in a game only if this option is set.
      * @since 2.0.00
@@ -377,11 +377,11 @@ public class SOCGameOption
      * <h3>Current Game Scenario options:</h3>
      *<UL>
      *<LI> {@link #K_SC_SANY _SC_SANY}  SVP to settle in any new land area:
-     *                                  {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}
+     *         {@link SOCPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}
      *<LI> {@link #K_SC_SEAC _SC_SEAC}  2 SVP each time settle in another new land area:
-     *                                  {@link SOCScenarioPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA}
+     *         {@link SOCPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA}
      *<LI> {@link #K_SC_FOG  _SC_FOG}   A hex has been revealed from behind fog:
-     *                                  {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}: See {@link SOCScenario#K_SC_FOG}
+     *         {@link SOCGameEvent#SGE_FOG_HEX_REVEALED}: See {@link SOCScenario#K_SC_FOG}
      *<LI> {@link #K_SC_0RVP _SC_0RVP}  No VP for longest road / longest trade route
      *<LI> {@link #K_SC_3IP  _SC_3IP}   Third initial settlement and road/ship placement
      *<LI> {@link #K_SC_CLVI _SC_CLVI}  Cloth trade with neutral {@link SOCVillage villages}: See {@link SOCScenario#K_SC_CLVI}

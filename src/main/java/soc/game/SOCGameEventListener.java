@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
 package soc.game;
 
 /**
- * Listener for scenario events on the {@link SOCGame#hasSeaBoard large sea board}.
+ * Listener for game-wide and per-player events on the {@link SOCGame#hasSeaBoard large sea board}.
  *<P>
  * <em>Threads:</em> These events occur in game methods (or player methods) that change game state.
  * So, whatever thread changed the game state, that same thread will run the listener callback method.
@@ -28,10 +28,10 @@ package soc.game;
  * @since 2.0.00
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
-public interface SOCScenarioEventListener
+public interface SOCGameEventListener
 {
     /**
-     * A scenario event has occurred whichs affect the game or board, not a specific player.
+     * A scenario event has occurred which affects the overall game or board, not a specific player.
      *<P>
      * <em>Threads:</em> The game's treater thread handles incoming client messages and calls
      * game methods that change state. Those same game methods will trigger the scenario events;
@@ -41,20 +41,20 @@ public interface SOCScenarioEventListener
      * @param evt  Event code
      * @param detail  Game piece, coordinate, or other data about the event, or null, depending on <tt>evt</tt>
      */
-    public void gameEvent(final SOCGame ga, final SOCScenarioGameEvent evt, final Object detail);
+    public void gameEvent(final SOCGame ga, final SOCGameEvent evt, final Object detail);
 
     /**
      * A per-player scenario event has occurred.
      * @param ga  Game
      * @param pl  Player
      * @param evt  Event code
-     * @param flagsChanged  True if this event changed {@link SOCPlayer#getScenarioPlayerEvents()},
+     * @param flagsChanged  True if this event changed {@link SOCPlayer#getPlayerEvents()},
      *             {@link SOCPlayer#getSpecialVP()}, or another flag documented for <tt>evt</tt> in
-     *             {@link SOCScenarioPlayerEvent}
-     * @param obj  Object related to the event, or null; documented for <tt>evt</tt> in {@link SOCScenarioPlayerEvent}.
-     *             Example: The {@link SOCVillage} for {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
+     *             {@link SOCPlayerEvent}
+     * @param obj  Object related to the event, or null; documented for <tt>evt</tt> in {@link SOCPlayerEvent}.
+     *             Example: The {@link SOCVillage} for {@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
      */
-    public void playerEvent(final SOCGame ga, final SOCPlayer pl, final SOCScenarioPlayerEvent evt,
+    public void playerEvent(final SOCGame ga, final SOCPlayer pl, final SOCPlayerEvent evt,
         final boolean flagsChanged, final Object obj);
 
 }

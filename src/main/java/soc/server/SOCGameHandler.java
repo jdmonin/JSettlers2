@@ -117,7 +117,7 @@ import soc.util.Version;
  * @since 2.0.00
  */
 public class SOCGameHandler extends GameHandler
-    implements SOCScenarioEventListener
+    implements SOCGameEventListener
 {
     /**
      * Force robot to end their turn after this much inactivity,
@@ -524,7 +524,7 @@ public class SOCGameHandler extends GameHandler
                 final int edge = (ga.getBoard().getBoardWidth() + 2) | 0x101;
                 ga.placePort(null, edge, ptype);
                 ga.removePort(pl, edge);
-                // removePort calls scenarioEventListener.playerEvent(REMOVED_TRADE_PORT),
+                // removePort calls gameEventListener.playerEvent(REMOVED_TRADE_PORT),
                 // which sends some messages but not GAMESTATE
                 sendGameState(ga);
             } else {
@@ -1238,7 +1238,7 @@ public class SOCGameHandler extends GameHandler
             if (itm != 0)
             {
                 srv.messageToPlayer(c, new SOCPlayerElement
-                        (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_SVP, itm));
+                    (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_SVP, itm));
 
                 ArrayList<SOCPlayer.SpecialVPInfo> svpis = pl.getSpecialVPInfo();
                 if (svpis != null)
@@ -1246,10 +1246,10 @@ public class SOCGameHandler extends GameHandler
                         srv.messageToPlayer(c, new SOCSVPTextMessage(gameName, i, svpi.svp, c.getLocalized(svpi.desc)));
             }
 
-            itm = pl.getScenarioPlayerEvents();
+            itm = pl.getPlayerEvents();
             if (itm != 0)
                 srv.messageToPlayer(c, new SOCPlayerElement
-                        (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK, itm));
+                    (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.PLAYEREVENTS_BITMASK, itm));
 
             itm = pl.getScenarioSVPLandAreas();
             if (itm != 0)
@@ -1259,7 +1259,7 @@ public class SOCGameHandler extends GameHandler
             itm = pl.getStartingLandAreasEncoded();
             if (itm != 0)
                 srv.messageToPlayer(c, new SOCPlayerElement
-                        (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.STARTING_LANDAREAS, itm));
+                    (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.STARTING_LANDAREAS, itm));
 
             itm = pl.getCloth();
             if (itm != 0)
@@ -2806,7 +2806,7 @@ public class SOCGameHandler extends GameHandler
          * update soctest.TestBoardLayouts.testSingleLayout(..).
          */
 
-        ga.setScenarioEventListener(this);  // for playerEvent, gameEvent callbacks (since 2.0.00)
+        ga.setGameEventListener(this);  // for playerEvent, gameEvent callbacks (since 2.0.00)
         ga.startGame();
 
         final int[][] legalSeaEdges;  // used on sea board; if null, all are legal
@@ -3649,10 +3649,10 @@ public class SOCGameHandler extends GameHandler
      * @param ga  Game
      * @param evt  Event code
      * @param detail  Game piece, coordinate, or other data about the event, or null, depending on <tt>evt</tt>
-     * @see #playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent, boolean, Object)
+     * @see #playerEvent(SOCGame, SOCPlayer, SOCPlayerEvent, boolean, Object)
      * @since 2.0.00
      */
-    public void gameEvent(final SOCGame ga, final SOCScenarioGameEvent evt, final Object detail)
+    public void gameEvent(final SOCGame ga, final SOCGameEvent evt, final Object detail)
     {
         switch (evt)
         {
@@ -3721,15 +3721,15 @@ public class SOCGameHandler extends GameHandler
      * @param ga  Game
      * @param pl  Player
      * @param evt  Event code
-     * @see #gameEvent(SOCGame, SOCScenarioGameEvent, Object)
-     * @param flagsChanged  True if this event changed {@link SOCPlayer#getScenarioPlayerEvents()},
+     * @param flagsChanged  True if this event changed {@link SOCPlayer#getPlayerEvents()},
      *             {@link SOCPlayer#getSpecialVP()}, or another flag documented for <tt>evt</tt> in
-     *             {@link SOCScenarioPlayerEvent}
-     * @param obj  Object related to the event, or null; documented for <tt>evt</tt> in {@link SOCScenarioPlayerEvent}.
-     *             Example: The {@link SOCVillage} for {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
+     *             {@link SOCPlayerEvent}
+     * @param obj  Object related to the event, or null; documented for <tt>evt</tt> in {@link SOCPlayerEvent}.
+     *             Example: The {@link SOCVillage} for {@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
+     * @see #gameEvent(SOCGame, SOCGameEvent, Object)
      * @since 2.0.00
      */
-    public void playerEvent(final SOCGame ga, final SOCPlayer pl, final SOCScenarioPlayerEvent evt,
+    public void playerEvent(final SOCGame ga, final SOCPlayer pl, final SOCPlayerEvent evt,
         final boolean flagsChanged, final Object obj)
     {
         // Note: Some SOCGameHandler code assumes that player events are fired only during
@@ -3858,7 +3858,7 @@ public class SOCGameHandler extends GameHandler
         if (sendPlayerEventsBitmask)
             ga.pendingMessagesOut.add(new SOCPlayerElement
                 (gaName, pn, SOCPlayerElement.SET,
-                 SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK, pl.getScenarioPlayerEvents()));
+                 SOCPlayerElement.PLAYEREVENTS_BITMASK, pl.getPlayerEvents()));
     }
 
     /**
@@ -3866,7 +3866,7 @@ public class SOCGameHandler extends GameHandler
      * Most new LandAreas are on other islands, but a few (SC_TTD) are on the main island.
      * @param ga  Game with this new settlement
      * @param se  Newly placed settlement to check, passed to
-     *     {@link #playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent, boolean, Object)}
+     *     {@link #playerEvent(SOCGame, SOCPlayer, SOCPlayerEvent, boolean, Object)}
      * @return  Does the new settlement have more adjacent ships than roads?
      * @since 2.0.00
      */

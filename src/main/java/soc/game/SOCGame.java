@@ -88,7 +88,7 @@ import java.util.Vector;
  * on their own turn.  Some optional game scenarios have special win conditions, see {@link #checkForWinner()}.
  *<P>
  * The {@link SOCGame#hasSeaBoard large sea board} features scenario events.
- * To listen for these, call {@link #setScenarioEventListener(SOCScenarioEventListener)}.
+ * To listen for these, call {@link #setGameEventListener(SOCGameEventListener)}.
  * If the game has a scenario, its {@link SOCGameOption}s will include {@code "SC"}, possibly along with
  * other options whose key names start with {@code "_SC_"}.
  *
@@ -609,10 +609,10 @@ public class SOCGame implements Serializable, Cloneable
      * For games at server, a convenient queue to hold any outbound SOCMessages during game actions.
      * Public access for use by SOCServer.  The server will handle a game action as usual
      * (for example, {@link #putPiece(SOCPlayingPiece)}), create pending PLAYERELEMENT messages from
-     * {@link SOCScenarioEventListener#playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent, boolean, Object) SOCScenarioEventListener.playerEvent(...)},
+     * {@link SOCGameEventListener#playerEvent(SOCGame, SOCPlayer, SOCPlayerEvent, boolean, Object) SOCGameEventListener.playerEvent(...)},
      * send the usual messages related to that action, then check this list and send out
      * the pending PLAYERELEMENT message so that the game's clients will update that player's
-     * {@link SOCPlayer#setScenarioPlayerEvents(int)} or other related fields, before the GAMESTATE message.
+     * {@link SOCPlayer#setPlayerEvents(int)} or other related fields, before the GAMESTATE message.
      *<P>
      * <B>Contents:</B> When sending out to game members, the server handles queue elements by class:
      *<UL>
@@ -726,7 +726,7 @@ public class SOCGame implements Serializable, Cloneable
      * Package access for read-only use by {@link SOCPlayer}.
      * @since 2.0.00
      */
-    SOCScenarioEventListener scenarioEventListener;
+    SOCGameEventListener gameEventListener;
 
     /**
      * For use at server; are there clients connected which aren't at the latest version?
@@ -1463,13 +1463,13 @@ public class SOCGame implements Serializable, Cloneable
      * @throws IllegalStateException  If listener already not null, <tt>sel</tt> is not null, and listener is not <tt>sel</tt>
      * @since 2.0.00
      */
-    public void setScenarioEventListener(SOCScenarioEventListener sel)
+    public void setGameEventListener(SOCGameEventListener sel)
         throws IllegalStateException
     {
-        if ((sel != null) && (scenarioEventListener != null) && (scenarioEventListener != sel))
-            throw new IllegalStateException("Listener already " + scenarioEventListener + ", wants " + sel);
+        if ((sel != null) && (gameEventListener != null) && (gameEventListener != sel))
+            throw new IllegalStateException("Listener already " + gameEventListener + ", wants " + sel);
 
-        scenarioEventListener = sel;
+        gameEventListener = sel;
     }
 
     /**
@@ -2948,7 +2948,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * This method will remove the port from the board.  At server it will also either add it to the
      * player's inventory or set the game's placingItem field; change the game state if placing
-     * it immediately; and then fire {@link SOCScenarioPlayerEvent#REMOVED_TRADE_PORT}.
+     * it immediately; and then fire {@link SOCPlayerEvent#REMOVED_TRADE_PORT}.
      *<P>
      * <b>At the server:</b> Not called directly; called only from other game/player methods.
      * Ports are currently removed only by a player's adjacent ship placement, so
@@ -3006,11 +3006,9 @@ public class SOCGame implements Serializable, Cloneable
             }
 
             // Fire the scenario player event, with the removed port's edge coord and type
-            if (scenarioEventListener != null)
-            {
-                scenarioEventListener.playerEvent
-                    (this, pl, SOCScenarioPlayerEvent.REMOVED_TRADE_PORT, false, new IntPair(edge, ptype));
-            }
+            if (gameEventListener != null)
+                gameEventListener.playerEvent
+                    (this, pl, SOCPlayerEvent.REMOVED_TRADE_PORT, false, new IntPair(edge, ptype));
         }
 
         return port;
@@ -3229,7 +3227,7 @@ public class SOCGame implements Serializable, Cloneable
      * For some scenarios on the {@link SOCGame#hasSeaBoard large sea board}, placing
      * a settlement in a new Land Area may award the player a Special Victory Point (SVP).
      * This method will increment {@link SOCPlayer#getSpecialVP()}
-     * and set the player's {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA} flag.
+     * and set the player's {@link SOCPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA} flag.
      *<P>
      * Some scenarios use extra initial pieces in fixed locations, placed in
      * {@code SOCBoardAtServer.startGame_putInitPieces}.  To prevent the state or current player from
@@ -3253,7 +3251,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pp  The piece to put on the board; coordinates are not checked for validity
      * @param isTempPiece  Is this a temporary piece?  If so, do not change current
-     *                     player or gamestate, or call our {@link SOCScenarioEventListener}.
+     *            player or gamestate, or call our {@link SOCGameEventListener}.
      * @since 1.1.14
      */
     private void putPieceCommon(SOCPlayingPiece pp, final boolean isTempPiece)
@@ -3479,7 +3477,7 @@ public class SOCGame implements Serializable, Cloneable
      * Reveal it before placing the new piece, so it's easier for
      * players and bots to updatePotentials (their data about the
      * board reachable through their roads/ships).
-     * Each revealed fog hex triggers {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}
+     * Each revealed fog hex triggers {@link SOCGameEvent#SGE_FOG_HEX_REVEALED}
      * and gives the current player that resource (if not desert or water or gold).
      * The server should send the clients messages to reveal the hex
      * and give the resource to that player.
@@ -3519,9 +3517,9 @@ public class SOCGame implements Serializable, Cloneable
                         ++goldHexes;
                 }
 
-                if (scenarioEventListener != null)
-                    scenarioEventListener.gameEvent
-                        (this, SOCScenarioGameEvent.SGE_FOG_HEX_REVEALED, Integer.valueOf(hexCoord));
+                if (gameEventListener != null)
+                    gameEventListener.gameEvent
+                        (this, SOCGameEvent.SGE_FOG_HEX_REVEALED, Integer.valueOf(hexCoord));
 
                 if (! initialSettlement)
                     break;
@@ -4006,7 +4004,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pp  the piece to remove from the board
      * @param isTempPiece  Is this a temporary piece?  If so, do not call the
-     *                     game's {@link SOCScenarioEventListener}.
+     *            game's {@link SOCGameEventListener}.
      */
     protected void undoPutPieceCommon(SOCPlayingPiece pp, final boolean isTempPiece)
     {
@@ -4489,9 +4487,9 @@ public class SOCGame implements Serializable, Cloneable
                 }
             }
 
-            if (emptiedAnyNodeSet && (scenarioEventListener != null))
-                scenarioEventListener.gameEvent
-                    (this, SOCScenarioGameEvent.SGE_STARTPLAY_BOARD_SPECIAL_NODES_EMPTIED, null);
+            if (emptiedAnyNodeSet && (gameEventListener != null))
+                gameEventListener.gameEvent
+                    (this, SOCGameEvent.SGE_STARTPLAY_BOARD_SPECIAL_NODES_EMPTIED, null);
         }
 
         // Begin play.
@@ -5674,7 +5672,7 @@ public class SOCGame implements Serializable, Cloneable
      * True only if {@link #hasSeaBoard}.
      *<UL>
      *<LI> For scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, the player
-     * must have {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
+     * must have {@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
      *<LI> Scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI} has a pirate fleet
      * and no robber; this scenario is checked in {@link #rollDice()} and does not call
      * {@code canChooseMovePirate()}.
@@ -5694,8 +5692,8 @@ public class SOCGame implements Serializable, Cloneable
             return false;
 
         if (isGameOptionSet(SOCGameOption.K_SC_CLVI)
-            && ! players[currentPlayerNumber].hasScenarioPlayerEvent
-                 (SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE))
+            && ! players[currentPlayerNumber].hasPlayerEvent
+                 (SOCPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE))
             return false;
 
         return true;
@@ -5859,7 +5857,7 @@ public class SOCGame implements Serializable, Cloneable
      * Game must have {@link #hasSeaBoard}.
      * Must be current player.  Game state must be {@link #PLACING_PIRATE}.
      * For scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, the player
-     * must have {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
+     * must have {@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
      *
      * @return true if this player can move the pirate ship to this hex coordinate
      *
@@ -5880,7 +5878,7 @@ public class SOCGame implements Serializable, Cloneable
         if (((SOCBoardLarge) board).getPirateHex() == hco)
             return false;
         if (isGameOptionSet(SOCGameOption.K_SC_CLVI)
-            && ! players[pn].hasScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE))
+            && ! players[pn].hasPlayerEvent(SOCPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE))
             return false;
 
         return (board.isHexOnWater(hco));
@@ -6209,7 +6207,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * If the player wins, the {@link SOCFortress} strength is reduced by 1.  After several wins, its strength is 0 and
      * the fortress is recaptured, becoming a {@link SOCSettlement} for the player.  This method will fire a
-     * {@link SOCScenarioPlayerEvent#PIRI_FORTRESS_RECAPTURED} to announce this to any listener.
+     * {@link SOCPlayerEvent#PIRI_FORTRESS_RECAPTURED} to announce this to any listener.
      *<P>
      * Used with scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
      *
@@ -6256,9 +6254,9 @@ public class SOCGame implements Serializable, Cloneable
                 //  game.putPiece will also call checkForWinner, and may set gamestate to OVER.
 
                 // Fire the scenario player event, with the resulting SOCSettlement
-                if (scenarioEventListener != null)
-                    scenarioEventListener.playerEvent
-                        (this, currPlayer, SOCScenarioPlayerEvent.PIRI_FORTRESS_RECAPTURED, true, recaptSettle);
+                if (gameEventListener != null)
+                    gameEventListener.playerEvent
+                        (this, currPlayer, SOCPlayerEvent.PIRI_FORTRESS_RECAPTURED, true, recaptSettle);
 
                 // Have all other players' fortresses also been conquered?
                 boolean stillHasFortress = false;
@@ -6279,9 +6277,9 @@ public class SOCGame implements Serializable, Cloneable
                 {
                     // All fortresses defeated. pirate fleet goes away; trigger a further scenario game event for that.
                     ((SOCBoardLarge) board).setPirateHex(0, true);
-                    if (scenarioEventListener != null)
-                        scenarioEventListener.gameEvent
-                            (this, SOCScenarioGameEvent.SGE_PIRI_LAST_FORTRESS_FLEET_DEFEATED, null);
+                    if (gameEventListener != null)
+                        gameEventListener.gameEvent
+                            (this, SOCGameEvent.SGE_PIRI_LAST_FORTRESS_FLEET_DEFEATED, null);
                 }
             }
         }
@@ -8105,9 +8103,9 @@ public class SOCGame implements Serializable, Cloneable
             {
                 // gameState is OVER
                 currentPlayerNumber = playerWithWin;  // don't call setCurrentPlayerNumber, would recurse here
-                if (scenarioEventListener != null)
-                    scenarioEventListener.gameEvent
-                        (this, SOCScenarioGameEvent.SGE_CLVI_WIN_VILLAGE_CLOTH_EMPTY, players[playerWithWin]);
+                if (gameEventListener != null)
+                    gameEventListener.gameEvent
+                        (this, SOCGameEvent.SGE_CLVI_WIN_VILLAGE_CLOTH_EMPTY, players[playerWithWin]);
             }
         }
 
@@ -8129,7 +8127,7 @@ public class SOCGame implements Serializable, Cloneable
      * (If half or more still have cloth, return false without changing game state.)
      * If so, end the game; see {@link #checkForWinner()} for details.
      * Sets state to {@link #OVER}.  Returns true.
-     * Caller should fire {@link SOCScenarioGameEvent#SGE_CLVI_WIN_VILLAGE_CLOTH_EMPTY}.
+     * Caller should fire {@link SOCGameEvent#SGE_CLVI_WIN_VILLAGE_CLOTH_EMPTY}.
      * @return true if game has ended with a winner under this special condition
      * @since 2.0.00
      */
@@ -8268,14 +8266,12 @@ public class SOCGame implements Serializable, Cloneable
         // Most fields are NOT copied since this is a "reset", not an identical-state game.
         cp.isAtServer = isAtServer;
         cp.isPractice = isPractice;
+        cp.gameEventListener = gameEventListener;
         cp.ownerName = ownerName;
         cp.ownerLocale = ownerLocale;
         cp.hasMultiLocales = hasMultiLocales;
-        cp.scenarioEventListener = scenarioEventListener;
         cp.clientVersionLowest = clientVersionLowest;
         cp.clientVersionHighest = clientVersionHighest;
-
-        // Game min-version from options
         cp.clientVersionMinRequired = clientVersionMinRequired;
 
         // Per-player state
