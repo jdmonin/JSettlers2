@@ -2098,7 +2098,7 @@ import soc.util.Version;
                 handleDEVCARDACTION(ga, player, act, ctype, pcl, clientPN);
         } else {
             int ctype = mes.getCardType();
-            if ((! isPractice) && (client.sVersion < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+            if ((! isPractice) && (client.sVersion < SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES))
             {
                 if (ctype == SOCDevCardConstants.KNIGHT_FOR_VERS_1_X)
                     ctype = SOCDevCardConstants.KNIGHT;

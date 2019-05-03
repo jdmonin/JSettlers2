@@ -2056,7 +2056,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
 
             int ctype = mes.getCardType();
-            if ((! isPractice) && (sVersion < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+            if ((! isPractice) && (sVersion < SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES))
             {
                 if (ctype == SOCDevCardConstants.KNIGHT_FOR_VERS_1_X)
                     ctype = SOCDevCardConstants.KNIGHT;
@@ -2889,7 +2889,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void playDevCard(SOCGame ga, int dc)
     {
-        if ((! ga.isPractice) && (sVersion < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+        if ((! ga.isPractice) && (sVersion < SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES))
         {
             // Unlikely; the displayless client is currently used for SOCRobotClient,
             // and the built-in robots must be the same version as the server.

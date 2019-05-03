@@ -436,7 +436,7 @@ import soc.message.SOCStartGame;
      */
     public void playDevCard(SOCGame ga, int dc)
     {
-        if ((! ga.isPractice) && (client.sVersion < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+        if ((! ga.isPractice) && (client.sVersion < SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES))
         {
             if (dc == SOCDevCardConstants.KNIGHT)
                 dc = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;

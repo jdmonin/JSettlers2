@@ -407,7 +407,8 @@ public class SOCGameMessageHandler
                     // because pre-2.0.00 clients don't understand SOCGameServerText messages.
                     srv.messageToGameForVersions(ga, 0, SOCGameTextMsg.VERSION_FOR_DICE_RESULT_INSTEAD - 1,
                         new SOCGameTextMsg
-                            (gn, SOCGameTextMsg.SERVERNAME, plName + " rolled a " + roll.diceA + " and a " + roll.diceB + "."), // I18N
+                            (gn, SOCGameTextMsg.SERVERNAME,
+                             plName + " rolled a " + roll.diceA + " and a " + roll.diceB + "."), // I18N
                         true);
                 }
                 handler.sendGameState(ga);  // For 7, give visual feedback before sending discard request
@@ -670,7 +671,8 @@ public class SOCGameMessageHandler
                                 if (con != null)
                                 {
                                     srv.messageToGame(gn, new SOCPlayerElement
-                                        (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, numPick));
+                                        (gn, pn, SOCPlayerElement.SET,
+                                         SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, numPick));
                                     con.put
                                         (SOCSimpleRequest.toCmd
                                             (gn, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, numPick, 0));
@@ -917,7 +919,8 @@ public class SOCGameMessageHandler
                     else if (ga.canChoosePlayer(choice))
                     {
                         final int rsrc = ga.choosePlayerForRobbery(choice);
-                        final boolean waitingClothOrRsrc = (ga.getGameState() == SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE);
+                        final boolean waitingClothOrRsrc =
+                            (ga.getGameState() == SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE);
                         if (! waitingClothOrRsrc)
                         {
                             handler.reportRobbery
@@ -1723,7 +1726,8 @@ public class SOCGameMessageHandler
                         ga.undoPutInitSettlement(pp);
                         srv.messageToGame(gaName, mes);  // Re-send to all clients to announce it
                             // (Safe since we've validated all message parameters)
-                        srv.messageToGameKeyed(ga, true, "action.built.stlmt.cancel", player.getName());  //  "{0} cancelled this settlement placement."
+                        srv.messageToGameKeyed(ga, true, "action.built.stlmt.cancel", player.getName());
+                            //  "{0} cancelled this settlement placement."
                         // The handler.sendGameState below is redundant if client reaction changes game state
                     } else {
                         srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a settlement."/*18N*/ );
@@ -2342,20 +2346,24 @@ public class SOCGameMessageHandler
                     }
                     srv.gameList.releaseMonitorForGame(gaName);
 
-                    if ((card == SOCDevCardConstants.KNIGHT) && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+                    if ((card == SOCDevCardConstants.KNIGHT)
+                        && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES))
                         card = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
                     srv.messageToPlayer(c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, card));
 
-                    if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
+                    if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES)
                     {
-                        srv.messageToGameExcept(gaName, c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
+                        srv.messageToGameExcept(gaName, c, new SOCDevCardAction
+                            (gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
                     } else {
                         srv.messageToGameForVersionsExcept
-                            (ga, -1, SOCDevCardConstants.VERSION_FOR_NEW_TYPES - 1,
-                             c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X), true);
+                            (ga, -1, SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES - 1,
+                             c, new SOCDevCardAction
+                                 (gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X), true);
                         srv.messageToGameForVersionsExcept
-                            (ga, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
-                             c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
+                            (ga, SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES, Integer.MAX_VALUE,
+                             c, new SOCDevCardAction
+                                 (gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
                     }
 
                     final int remain = ga.getNumDevCards();
@@ -2387,7 +2395,8 @@ public class SOCGameMessageHandler
                         case 1:
                             remainTxt = "There is 1 card left.";  break;
                         default:
-                            remainTxt = MessageFormat.format("There are {0,number} cards left.", ga.getNumDevCards());  // I18N OK: for old version compat
+                            remainTxt = MessageFormat.format("There are {0,number} cards left.", ga.getNumDevCards());
+                                // I18N OK: for old version compat
                         }
                         srv.messageToGameForVersions(ga, -1, SOCSimpleAction.VERSION_FOR_SIMPLEACTION - 1,
                                 new SOCGameTextMsg(gaName, SOCGameTextMsg.SERVERNAME, remainTxt), false);
@@ -2412,7 +2421,8 @@ public class SOCGameMessageHandler
                     try
                     {
                         ga.askSpecialBuild(pn, true);
-                        srv.messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
+                        srv.messageToGame(gaName, new SOCPlayerElement
+                            (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
                     } catch (IllegalStateException e) {
                         srv.messageToPlayer(c, gaName, "You can't ask to buy a card now.");
                     }
@@ -2457,7 +2467,7 @@ public class SOCGameMessageHandler
 
                 int ctype = mes.getDevCard();
                 if ((ctype == SOCDevCardConstants.KNIGHT_FOR_VERS_1_X)
-                    && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+                    && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES))
                     ctype = SOCDevCardConstants.KNIGHT;
 
                 switch (ctype)
@@ -2478,17 +2488,20 @@ public class SOCGameMessageHandler
                             : "action.card.soldier";         // "played a Soldier card."
                         srv.gameList.takeMonitorForGame(gaName);
                         srv.messageToGameKeyed(ga, false, cardplayed, player.getName());
-                        if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
+                        if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES)
                         {
-                            srv.messageToGameWithMon(gaName, new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT));
+                            srv.messageToGameWithMon(gaName, new SOCDevCardAction
+                                (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT));
                         } else {
                             D.ebugPrintln("L7870: played soldier; clientVersionLowest = " + ga.clientVersionLowest);  // JM temp
                             srv.messageToGameForVersions
-                                (ga, -1, SOCDevCardConstants.VERSION_FOR_NEW_TYPES - 1,
-                                 new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X), false);
+                                (ga, -1, SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES - 1,
+                                 new SOCDevCardAction
+                                     (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X), false);
                             srv.messageToGameForVersions
-                                (ga, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
-                                 new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT), false);
+                                (ga, SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES, Integer.MAX_VALUE,
+                                 new SOCDevCardAction
+                                     (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT), false);
                         }
                         if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
                             srv.messageToGameWithMon(gaName, new SOCPlayerElement
@@ -2516,13 +2529,15 @@ public class SOCGameMessageHandler
                         ga.playRoadBuilding();
 
                         srv.gameList.takeMonitorForGame(gaName);
-                        srv.messageToGameWithMon(gaName, new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.ROADS));
+                        srv.messageToGameWithMon(gaName, new SOCDevCardAction
+                            (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.ROADS));
                         if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
                             srv.messageToGameWithMon(gaName, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.PLAYED_DEV_CARD_FLAG, 1));
                         else
                             srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
-                        srv.messageToGameKeyed(ga, false, "action.card.roadbuilding", player.getName());  // "played a Road Building card."
+                        srv.messageToGameKeyed(ga, false, "action.card.roadbuilding", player.getName());
+                            // "played a Road Building card."
                         srv.gameList.releaseMonitorForGame(gaName);
                         handler.sendGameState(ga);
                         if (ga.getGameState() == SOCGame.PLACING_FREE_ROAD1)
@@ -2546,7 +2561,8 @@ public class SOCGameMessageHandler
                         ga.playDiscovery();
 
                         srv.gameList.takeMonitorForGame(gaName);
-                        srv.messageToGameWithMon(gaName, new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.DISC));
+                        srv.messageToGameWithMon(gaName, new SOCDevCardAction
+                            (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.DISC));
                         if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
                             srv.messageToGameWithMon(gaName, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.PLAYED_DEV_CARD_FLAG, 1));
@@ -2569,7 +2585,8 @@ public class SOCGameMessageHandler
                         ga.playMonopoly();
 
                         srv.gameList.takeMonitorForGame(gaName);
-                        srv.messageToGameWithMon(gaName, new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.MONO));
+                        srv.messageToGameWithMon(gaName, new SOCDevCardAction
+                            (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.MONO));
                         if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
                             srv.messageToGameWithMon(gaName, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.PLAYED_DEV_CARD_FLAG, 1));
@@ -2669,7 +2686,8 @@ public class SOCGameMessageHandler
                             // "{0} received {1,rsrcs} from the bank."
                         handler.sendGameState(ga);
                     } else {
-                        srv.messageToPlayerKeyed(c, gaName, "action.card.discov.notlegal");  // "That is not a legal Year of Plenty pick."
+                        srv.messageToPlayerKeyed(c, gaName, "action.card.discov.notlegal");
+                            // "That is not a legal Year of Plenty pick."
                     }
                 } else {
                     srv.messageToPlayerKeyed(c, gaName, "reply.not.your.turn");  // "It's not your turn."

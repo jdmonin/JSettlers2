@@ -785,7 +785,8 @@ public class SOCGameHandler extends GameHandler
                 if (itemCard instanceof SOCDevCard)
                 {
                     int card = itemCard.itype;
-                    if ((card == SOCDevCardConstants.KNIGHT) && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+                    if ((card == SOCDevCardConstants.KNIGHT)
+                        && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES))
                         card = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
                     srv.messageToPlayer(c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADD_OLD, card));
                 } else {
@@ -830,18 +831,18 @@ public class SOCGameHandler extends GameHandler
             }
             else if (announceAsUnknown)
             {
-                if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
+                if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES)
                 {
                     srv.messageToGameExcept
                         (gaName, c, new SOCDevCardAction
                             (gaName, cpn, SOCDevCardAction.ADD_OLD, SOCDevCardConstants.UNKNOWN), true);
                 } else {
                     srv.messageToGameForVersionsExcept
-                        (ga, -1, SOCDevCardConstants.VERSION_FOR_NEW_TYPES - 1,
+                        (ga, -1, SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES - 1,
                          c, new SOCDevCardAction
                              (gaName, cpn, SOCDevCardAction.ADD_OLD, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X), true);
                     srv.messageToGameForVersionsExcept
-                        (ga, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
+                        (ga, SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES, Integer.MAX_VALUE,
                          c, new SOCDevCardAction
                              (gaName, cpn, SOCDevCardAction.ADD_OLD, SOCDevCardConstants.UNKNOWN), true);
                 }
@@ -1329,11 +1330,10 @@ public class SOCGameHandler extends GameHandler
             }
 
             final int numDevCards = pl.getInventory().getTotal();
-            final int unknownType;
-            if (cliVers >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
-                unknownType = SOCDevCardConstants.UNKNOWN;
-            else
-                unknownType = SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X;
+            final int unknownType =
+                (cliVers >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES)
+                ? SOCDevCardConstants.UNKNOWN
+                : SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X;
             final String cardUnknownCmd = new SOCDevCardAction(gameName, i, SOCDevCardAction.ADD_OLD, unknownType).toCmd();
             for (int j = 0; j < numDevCards; j++)
             {
@@ -1602,12 +1602,12 @@ public class SOCGameHandler extends GameHandler
 
         SOCInventory cardsInv = pl.getInventory();
 
-        final boolean cliVersionNew = (c.getVersion() >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES);
+        final boolean cliVersionRecent = (c.getVersion() >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES);
 
         /**
          * remove the unknown cards
          */
-        final SOCDevCardAction cardUnknown = (cliVersionNew)
+        final SOCDevCardAction cardUnknown = (cliVersionRecent)
             ? new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN)
             : new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X);
         for (int i = cardsInv.getTotal(); i > 0; --i)
@@ -1629,7 +1629,7 @@ public class SOCGameHandler extends GameHandler
                 if (iitem instanceof SOCDevCard)
                 {
                     final int dcType = iitem.itype;
-                    if (cliVersionNew || (dcType != SOCDevCardConstants.KNIGHT))
+                    if (cliVersionRecent || (dcType != SOCDevCardConstants.KNIGHT))
                         addMsg = new SOCDevCardAction(gaName, pn, addCmd, dcType);
                     else
                         addMsg = new SOCDevCardAction(gaName, pn, addCmd, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X);
@@ -2096,7 +2096,8 @@ public class SOCGameHandler extends GameHandler
         case SOCGame.START1A:
         case SOCGame.START2A:
         case SOCGame.START3A:
-            srv.messageToGameKeyed(ga, true, "prompt.turn.to.build.stlmt",  player.getName());  // "It's Joe's turn to build a settlement."
+            srv.messageToGameKeyed(ga, true, "prompt.turn.to.build.stlmt",  player.getName());
+                // "It's Joe's turn to build a settlement."
             if ((gaState >= SOCGame.START2A)
                 && ga.isGameOptionSet(SOCGameOption.K_SC_3IP))
             {
@@ -2228,7 +2229,8 @@ public class SOCGameHandler extends GameHandler
 
     /**
      * Send a game text message "x, y, and z need to pick resources from the gold hex."
-     * and, for each picking player, a {@link SOCPlayerElement}({@link SOCPlayerElement#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES}).
+     * and, for each picking player, a
+     * {@link SOCPlayerElement}({@link SOCPlayerElement#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES}).
      * To prompt the specific players to choose a resource, also sends their clients a
      * {@link SOCSimpleRequest}({@link SOCSimpleRequest#PROMPT_PICK_RESOURCES PROMPT_PICK_RESOURCES}).
      *<P>
@@ -2438,10 +2440,12 @@ public class SOCGameHandler extends GameHandler
                 gameSeconds = gameSeconds % 60L;
 
                 if (gameSeconds == 0)
-                    srv.messageToGameKeyed(ga, true, "stats.game.was.roundsminutes", gameRounds, gameMinutes);
+                    srv.messageToGameKeyed
+                        (ga, true, "stats.game.was.roundsminutes", gameRounds, gameMinutes);
                         // "This game was # rounds, and took # minutes."
                 else
-                    srv.messageToGameKeyed(ga, true, "stats.game.was.roundsminutessec", gameRounds, gameMinutes, gameSeconds);
+                    srv.messageToGameKeyed
+                        (ga, true, "stats.game.was.roundsminutessec", gameRounds, gameMinutes, gameSeconds);
                         // "This game was # rounds, and took # minutes # seconds." [or 1 second.]
 
                 // Ignore possible "1 minutes"; that game is too short to worry about.
@@ -3294,16 +3298,20 @@ public class SOCGameHandler extends GameHandler
         pl.getInventory().addDevCard(1, SOCInventory.NEW, cardType);
 
         final int pnum = pl.getPlayerNumber();
-        if ((cardType != SOCDevCardConstants.KNIGHT) || (game.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+        if ((cardType != SOCDevCardConstants.KNIGHT)
+            || (game.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES))
         {
-            srv.messageToGame(game.getName(), new SOCDevCardAction(game.getName(), pnum, SOCDevCardAction.DRAW, cardType));
+            srv.messageToGame(game.getName(), new SOCDevCardAction
+                (game.getName(), pnum, SOCDevCardAction.DRAW, cardType));
         } else {
             srv.messageToGameForVersions
-                (game, -1, SOCDevCardConstants.VERSION_FOR_NEW_TYPES - 1,
-                 new SOCDevCardAction(game.getName(), pnum, SOCDevCardAction.DRAW, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X), true);
+                (game, -1, SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES - 1,
+                 new SOCDevCardAction
+                     (game.getName(), pnum, SOCDevCardAction.DRAW, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X), true);
             srv.messageToGameForVersions
-                (game, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
-                 new SOCDevCardAction(game.getName(), pnum, SOCDevCardAction.DRAW, SOCDevCardConstants.KNIGHT), true);
+                (game, SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES, Integer.MAX_VALUE,
+                 new SOCDevCardAction
+                     (game.getName(), pnum, SOCDevCardAction.DRAW, SOCDevCardConstants.KNIGHT), true);
         }
         srv.messageToGameKeyedSpecial(game, true, "debug.dev.gets", pl.getName(), Integer.valueOf(cardType));
             // ""### joe gets a Road Building card."
