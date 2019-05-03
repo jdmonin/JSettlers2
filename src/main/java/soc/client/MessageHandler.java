@@ -2083,12 +2083,20 @@ import soc.util.Version;
     protected void handleDEVCARDACTION(final boolean isPractice, final SOCDevCardAction mes)
     {
         SOCGame ga = client.games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
+        final SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+        final PlayerClientListener pcl = client.getClientListener(mes.getGame());
+        final int clientPN = (pcl != null) ? pcl.getClientPlayerNumber() : -2;  // not -1: message may have that
+        final int act = mes.getAction();
+
+        final List<Integer> ctypes = mes.getCardTypes();
+        if (ctypes != null)
         {
-            final int mesPN = mes.getPlayerNumber();
-            SOCPlayer player = ga.getPlayer(mesPN);
-
+            for (final int ctype : ctypes)
+                handleDEVCARDACTION(ga, player, act, ctype, pcl, clientPN);
+        } else {
             int ctype = mes.getCardType();
             if ((! isPractice) && (client.sVersion < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
             {
@@ -2097,33 +2105,44 @@ import soc.util.Version;
                 else if (ctype == SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X)
                     ctype = SOCDevCardConstants.UNKNOWN;
             }
-
-            final int act = mes.getAction();
-            switch (act)
-            {
-            case SOCDevCardAction.DRAW:
-                player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
-                break;
-
-            case SOCDevCardAction.PLAY:
-                player.getInventory().removeDevCard(SOCInventory.OLD, ctype);
-                // JM temp debug:
-                if (ctype != mes.getCardType())
-                    System.out.println("L3947: play dev card type " + ctype + "; srv has " + mes.getCardType());
-                break;
-
-            case SOCDevCardAction.ADD_OLD:
-                player.getInventory().addDevCard(1, SOCInventory.OLD, ctype);
-                break;
-
-            case SOCDevCardAction.ADD_NEW:
-                player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
-                break;
-            }
-
-            PlayerClientListener pcl = client.getClientListener(mes.getGame());
-            pcl.playerDevCardUpdated(player, (act == SOCDevCardAction.ADD_OLD));
+            handleDEVCARDACTION(ga, player, act, ctype, pcl, clientPN);
         }
+    }
+
+    /**
+     * Handle one dev card for {@link #handleDEVCARDACTION(boolean, SOCDevCardAction)},
+     * which may have multiple cards in its message. Updates game data and calls
+     * {@link PlayerClientListener#playerDevCardUpdated(SOCPlayer, boolean)}.
+     */
+    private void handleDEVCARDACTION
+        (final SOCGame ga, final SOCPlayer player, final int act, final int ctype,
+         final PlayerClientListener pcl, final int clientPN)
+    {
+        switch (act)
+        {
+        case SOCDevCardAction.DRAW:
+            player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
+            break;
+
+        case SOCDevCardAction.PLAY:
+            player.getInventory().removeDevCard(SOCInventory.OLD, ctype);
+            break;
+
+        case SOCDevCardAction.ADD_OLD:
+            if ((player.getPlayerNumber() == clientPN) && (ga.getGameState() == SOCGame.OVER))
+            {
+                return;  // ignore messages at OVER about our own VP dev cards
+            }
+            player.getInventory().addDevCard(1, SOCInventory.OLD, ctype);
+            break;
+
+        case SOCDevCardAction.ADD_NEW:
+            player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
+            break;
+        }
+
+        if (pcl != null)
+            pcl.playerDevCardUpdated(player, (act == SOCDevCardAction.ADD_OLD));
     }
 
     /**

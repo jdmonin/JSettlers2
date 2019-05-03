@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2010,2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2010,2014,2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,7 +25,19 @@ import java.util.StringTokenizer;
 
 /**
  * This message contains the scores for the people at a game.
- * Used at end of game to display true scores (with VP cards).
+ * Used at end of game to display true scores (totals including points from VP cards).
+ *<P>
+ * Any game-information messages which reveal hidden state are sent
+ * before, not after, this message. When client receives this
+ * message, take it as a signal to reveal true scores and maybe
+ * show/announce other interesting information such as VP dev cards.
+ *
+ *<H3>Message sequence:</H3>
+ *<UL>
+ *<LI> {@link SOCGameState}({@link soc.game.SOCGame#OVER OVER})
+ *<LI> Any other messages revealing hidden information about game's details
+ *<LI> This message
+ *</UL>
  *
  * @author Robert S. Thomas
  */

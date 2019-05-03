@@ -31,6 +31,8 @@ import soc.game.SOCGame;
 import soc.game.SOCGameEvent;
 import soc.game.SOCGameEventListener;
 import soc.game.SOCGameOption;
+import soc.game.SOCInventory;
+import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayerEvent;
 import soc.game.SOCPlayingPiece;
@@ -2336,10 +2338,10 @@ public class SOCPlayerInterface extends Frame
      * Game is over; server has sent us the revealed scores
      * for each player.  Refresh the display.
      *
-     * @param finalScores Final score for each player position
+     * @param finalScores  Final score for each player position; length should be {@link SOCGame#maxPlayers}
      * @since 1.1.00
      */
-    public void updateAtOver(int[] finalScores)
+    public void updateAtOver(final int[] finalScores)
     {
         if (game.getGameState() != SOCGame.OVER)
         {
@@ -2347,17 +2349,29 @@ public class SOCPlayerInterface extends Frame
             return;
         }
 
-        for (int i = 0; i < finalScores.length; ++i)
-            game.getPlayer(i).forceFinalVP(finalScores[i]);
+        for (int pn = 0; pn < finalScores.length; ++pn)
+            game.getPlayer(pn).forceFinalVP(finalScores[pn]);
         if (null == game.getPlayerWithWin())
         {
             game.checkForWinner();  // Assumes "current player" set to winner already, by SETTURN msg
         }
         for (int i = 0; i < finalScores.length; ++i)
             hands[i].updateValue(PlayerClientListener.UpdateType.VictoryPoints);  // Also disables buttons, etc.
+
+        // reveal each player's VP cards
+        for (int pn = 0; pn < finalScores.length; ++pn)
+        {
+            final SOCPlayer pl = game.getPlayer(pn);
+            final List<SOCInventoryItem> vpCards = pl.getInventory().getByState(SOCInventory.KEPT);
+            if (! vpCards.isEmpty())
+                printKeyedSpecial("game.end.player.has.vpcards", pl.getName(), vpCards);
+                    // "Joe has a Gov.House (+1VP) and a Market (+1VP)"
+        }
+
         setTitle(strings.get("interface.title.game.over", game.getName()) +
                  (game.isPractice ? "" : " [" + client.getNickname() + "]"));
                 // "Settlers of Catan Game Over: {0}"
+
         boardPanel.updateMode();
         repaint();
     }
@@ -3636,6 +3650,11 @@ public class SOCPlayerInterface extends Frame
         public ClientBridge(SOCPlayerInterface pi)
         {
             this.pi = pi;
+        }
+
+        public int getClientPlayerNumber()
+        {
+            return pi.getClientPlayerNumber();
         }
 
         /**

@@ -1334,7 +1334,7 @@ public class SOCGameHandler extends GameHandler
                 unknownType = SOCDevCardConstants.UNKNOWN;
             else
                 unknownType = SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X;
-            final String cardUnknownCmd = SOCDevCardAction.toCmd(gameName, i, SOCDevCardAction.ADD_OLD, unknownType);
+            final String cardUnknownCmd = new SOCDevCardAction(gameName, i, SOCDevCardAction.ADD_OLD, unknownType).toCmd();
             for (int j = 0; j < numDevCards; j++)
             {
                 c.put(cardUnknownCmd);
@@ -2364,7 +2364,55 @@ public class SOCGameHandler extends GameHandler
         srv.messageToGameKeyed(ga, true, "stats.game.winner.withpoints", winPl.getName(), winPl.getTotalVP());
             // "{0} has won the game with {1,number} points."
 
-        /// send a message with the revealed final scores
+        ///
+        /// send a message saying what VP cards each player has;
+        /// before v2.0.00 this was sent as text messages after GameStats, not data messages before it
+        ///
+        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+        {
+            final SOCPlayer pl = ga.getPlayer(pn);
+            final List<SOCInventoryItem> vpCards = pl.getInventory().getByState(SOCInventory.KEPT);
+            if (vpCards.isEmpty())
+                continue;
+
+            List<Integer> vpCardsITypes = null;
+            if (ga.clientVersionHighest >= SOCDevCardAction.VERSION_FOR_MULTIPLE)
+            {
+                vpCardsITypes = new ArrayList<Integer>();
+                for (SOCInventoryItem i : vpCards)
+                    vpCardsITypes.add(Integer.valueOf(i.itype));
+
+                if (ga.clientVersionLowest >= SOCDevCardAction.VERSION_FOR_MULTIPLE)
+                {
+                    // clients are all 2.0 or newer
+                    srv.messageToGame(gname,
+                        new SOCDevCardAction(gname, pn, SOCDevCardAction.ADD_OLD, vpCardsITypes));
+                } else {
+                    // mixed versions:
+                    // v2.0.00 and newer clients will announce this with localized text;
+                    // older clients need it sent from the server.
+                    final String txt = SOCStringManager.getFallbackServerManagerForClient().formatSpecial
+                        (ga, "{0} has {1,dcards}.", pl.getName(), vpCards);
+                            // "Joe has a Gov.House (+1VP) and a Market (+1VP)"
+                            // I18N OK: Pre-2.0.00 clients always use english
+                    srv.messageToGameForVersions(ga, 0, SOCDevCardAction.VERSION_FOR_MULTIPLE - 1,
+                        new SOCGameTextMsg(gname, SOCServer.SERVERNAME, txt), true);
+                    srv.messageToGameForVersions(ga, SOCDevCardAction.VERSION_FOR_MULTIPLE, Integer.MAX_VALUE,
+                        new SOCDevCardAction(gname, pn, SOCDevCardAction.ADD_OLD, vpCardsITypes), true);
+                }
+            } else {
+                // clients are all 1.1.xx
+                srv.messageToGame
+                    (gname, SOCStringManager.getFallbackServerManagerForClient().formatSpecial
+                        (ga, "{0} has {1,dcards}.", pl.getName(), vpCards));
+                            // "Joe has a Gov.House (+1VP) and a Market (+1VP)"
+                            // I18N OK: Pre-2.0.00 clients always use english
+            }
+        }
+
+        /// send a message with the revealed final scores;
+        /// client can use this message as a signal to reveal
+        /// hidden interesting game info
         {
             int[] scores = new int[ga.maxPlayers];
             boolean[] isRobot = new boolean[ga.maxPlayers];
@@ -2375,21 +2423,6 @@ public class SOCGameHandler extends GameHandler
             }
             srv.messageToGame(gname, new SOCGameStats(gname, scores, isRobot));
         }
-
-        ///
-        /// send a message saying what VP cards each player has
-        ///
-        for (int i = 0; i < ga.maxPlayers; i++)
-        {
-            SOCPlayer pl = ga.getPlayer(i);
-            List<SOCInventoryItem> vpCards = pl.getInventory().getByState(SOCInventory.KEPT);
-
-            if (! vpCards.isEmpty())
-                srv.messageToGameKeyedSpecial
-                    (ga, true, "endgame.player.has.vpcards", pl.getName(), vpCards);
-                    // "Joe has a Gov.House (+1VP) and a Market (+1VP)" ["{0} has {1,dcards}."]
-
-        }  // for each player
 
         /**
          * send game-length and connect-length messages, possibly win-loss count.
@@ -3801,8 +3834,10 @@ public class SOCGameHandler extends GameHandler
                 Connection c = srv.getConnection(plName);
                 ga.pendingMessagesOut.add(new UnlocalizedString
                     ("action.built.sc_ftri.dev", plName));  // "{0} gets a Development Card as a gift from the Lost Tribe."
-                srv.messageToPlayer(c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, edge_cardType.getB()));
-                srv.messageToGameExcept(gaName, c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
+                srv.messageToPlayer
+                    (c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, edge_cardType.getB()));
+                srv.messageToGameExcept
+                    (gaName, c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
                 srv.messageToGame(gaName, new SOCSimpleAction
                     (gaName, -1, SOCSimpleAction.BOARD_EDGE_SET_SPECIAL, edge_cardType.getA(), 0));
             }

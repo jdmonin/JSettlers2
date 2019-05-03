@@ -29,6 +29,7 @@ import java.util.Map;
 
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;  // for javadocs only
+import soc.game.SOCInventory;   // for javadocs only
 import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
@@ -65,6 +66,12 @@ import soc.game.SOCSpecialItem;
  */
 public interface PlayerClientListener
 {
+    /**
+     * Get the client's player number if playing in a game.
+     * @return Client player's {@link SOCPlayer#getPlayerNumber()} if playing, or -1 if observing or not yet seated
+     */
+    int getClientPlayerNumber();
+
     /**
      * Receive a notification that the current player has rolled the dice.
      * Call this after updating game state with the roll result.
@@ -154,6 +161,7 @@ public interface PlayerClientListener
      *
      * @param player  The player
      * @param addedPlayable  True if the update added a dev card or item that's playable now
+     *     ({@link SOCInventory#OLD}, not {@link SOCInventory#NEW NEW})
      */
     void playerDevCardUpdated(SOCPlayer player, final boolean addedPlayable);
 
@@ -388,6 +396,14 @@ public interface PlayerClientListener
      * @param gameState One of the states from SOCGame, such as {@link soc.game.SOCGame#NEW}
      */
     void gameStateChanged(int gameState);
+
+    /**
+     * Update interface after game is over.
+     * Reveal actual total scores, list other players' VP cards, etc.
+     * @param scores  Each player's actual total score, including hidden VP cards.
+     *     Map contains each player object in the game, including empty seats,
+     *     so its size is {@link SOCGame#maxPlayers}.
+     */
     void gameEnded(Map<SOCPlayer, Integer> scores);
 
     /**

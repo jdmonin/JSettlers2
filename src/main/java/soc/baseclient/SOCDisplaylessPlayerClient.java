@@ -2038,13 +2038,17 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * handle the "development card action" message
+     * handle the "development card action" message for 1 card in this game.
+     * Ignores messages where {@link SOCDevCardAction#getCardTypes()} != {@code null}.
      * @param isPractice  Is the server local, or remote?  Client can be connected
      *                only to local, or remote.
      * @param mes  the message
      */
     protected void handleDEVCARDACTION(final boolean isPractice, final SOCDevCardAction mes)
     {
+        if (mes.getCardTypes() != null)
+            return;  // <--- ignore: bots don't care about game-end VP card reveals ---
+
         SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)

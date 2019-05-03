@@ -3333,12 +3333,16 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Handle a DEVCARDACTION for this game.
+     * Handle a DEVCARDACTION for 1 card in this game.
      * No brain-specific action.
+     * Ignores messages where {@link SOCDevCardAction#getCardTypes()} != {@code null}.
      * @since 1.1.08
      */
     private void handleDEVCARDACTION(SOCDevCardAction mes)
     {
+        if (mes.getCardTypes() != null)
+            return;  // <--- ignore: bots don't care about game-end VP card reveals ---
+
         SOCInventory cardsInv = game.getPlayer(mes.getPlayerNumber()).getInventory();
         final int cardType = mes.getCardType();
 

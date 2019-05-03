@@ -62,7 +62,7 @@ public class SOCPlayerElement extends SOCMessage
      * {@link #RESOURCE_COUNT}, {@link #PLAYED_DEV_CARD_FLAG}, {@link #LAST_SETTLEMENT_NODE}.
      * Send older clients {@link SOCSetPlayedDevCard} or other appropriate messages instead.
      *<P>
-     * Same version as {@link SOCPlayerElements#MIN_VERSION}.
+     * Same version as {@link SOCPlayerElements#MIN_VERSION} and {@link SOCDevCardAction#VERSION_FOR_MULTIPLE}.
      * @since 2.0.00
      */
     public static final int VERSION_FOR_CARD_ELEMENTS = 2000;
