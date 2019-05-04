@@ -77,6 +77,7 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A server for Settlers of Catan
@@ -1007,13 +1008,13 @@ public class SOCServer extends Server
 
     /**
      * Client version count stats since startup (includes bots).
-     * Incremented from {@link #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)};
-     * currently assumes single-threaded access to this map.
-     *<P>
      * Key = version number, Value = client count.
+     * Incremented from {@link #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)}.
+     * Must synchronize on the map when modifying its contents.
+     *
      * @since 1.1.19
      */
-    protected HashMap<Integer, Integer> clientPastVersionStats;
+    protected HashMap<Integer, AtomicInteger> clientPastVersionStats;
 
     /**
      * Number of robot-only games not yet started (optional feature).
@@ -1661,7 +1662,7 @@ public class SOCServer extends Server
         numberOfGamesStarted = 0;
         numberOfGamesFinished = 0;
         numberOfUsers = 0;
-        clientPastVersionStats = new HashMap<Integer, Integer>();
+        clientPastVersionStats = new HashMap<Integer, AtomicInteger>();
         numRobotOnlyGamesRemaining = getConfigIntProperty(PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0);
         if (numRobotOnlyGamesRemaining > 0)
         {
@@ -5567,14 +5568,18 @@ public class SOCServer extends Server
                     (SOCStatusMessage.SV_OK, cvers, warnMsg));
         }
 
-        // Increment version stats; currently assumes single-threaded access to the map.
+        // Increment version stats; this method is called from per-client threads.
         // We don't know yet if client is a bot, so bots are included in the stats.
         // (If this is not wanted, the bot could be subtracted at handleIMAROBOT.)
         final Integer cversObj = Integer.valueOf(cvers);
-        final int prevCount;
-        Integer prevCObj = clientPastVersionStats.get(cversObj);
-        prevCount = (prevCObj != null) ? prevCObj.intValue() : 0;
-        clientPastVersionStats.put(cversObj, Integer.valueOf(1 + prevCount));
+        synchronized(clientPastVersionStats)
+        {
+            AtomicInteger prevCountInt = clientPastVersionStats.get(cversObj);
+            if (prevCountInt != null)
+                prevCountInt.incrementAndGet();
+            else
+                clientPastVersionStats.put(cversObj, new AtomicInteger(1));
+        }
 
         // This client version is OK to connect
         return true;
