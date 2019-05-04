@@ -1890,15 +1890,16 @@ public class SOCRobotBrain extends Thread
                             if (((SOCDiceResult) mes).getResult() == 7)
                             {
                                 final boolean robWithoutRobber = game.isGameOptionSet(SOCGameOption.K_SC_PIRI);
+                                    // In scenario SC_PIRI there's no robber to be moved. Instead,
+                                    // current player will be prompted soon to choose a player to rob on 7
 
                                 if (! robWithoutRobber)
                                     moveRobberOnSeven = true;
 
                                 if (ourPlayerData.getResources().getTotal() > 7)
-                                    expectDISCARD = true;
-
-                                else if (ourTurn)
                                 {
+                                    expectDISCARD = true;
+                                } else if (ourTurn) {
                                     if (! robWithoutRobber)
                                         expectPLACING_ROBBER = true;
                                     else

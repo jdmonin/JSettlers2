@@ -122,6 +122,10 @@ public class SOCScenario
      *<LI> If your scenario has special winning conditions, see {@link SOCGame#checkForWinner()}.
      *<LI> Rarely, a scenario changes the pirate or robber behavior.  If the new scenario does this,
      *   see {@link SOCGame#canChooseMovePirate()} or {@link SOCGame#rollDice()}.
+     *   Currently no scenarios have a pirate but no robber, besides special case {@link #K_SC_PIRI SC_PIRI}
+     *   where pirate fleet movement isn't controlled by the player. If adding a scenario with pirate but no robber,
+     *   the client and robot would need changes to handle that; probably a {@link SOCGameOption} should be created
+     *   for it and used in the scenario opts, client, and robot code.
      *<LI> Not all scenarios require a game option.  {@link #K_SC_TTD SC_TTD} has only a board layout,
      *   and doesn't change any game behavior from standard, so there is no {@code "_SC_TTD"} SOCGameOption.
      *<LI> Add the scenario's key to the list of "game scenario keynames"

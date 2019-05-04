@@ -958,11 +958,12 @@ public class SOCGame implements Serializable, Cloneable
     private int oldGameState;
 
     /**
-     * If true, and if state is {@link #PLACING_ROBBER},
+     * If true, and if state is {@link #PLACING_ROBBER}
+     * or {@link #WAITING_FOR_ROBBER_OR_PIRATE},
      * the robber is being moved because a knight card
-     * has just been played.  Thus, if {@link #forceEndTurn()}
-     * is called, the knight card should then be returned to
-     * the player's hand.
+     * has just been played: {@link #playKnight()}.
+     * If {@link #forceEndTurn()} is called, the knight card
+     * should be returned to the player's hand.
      */
     private boolean placingRobberForKnightCard;
 
