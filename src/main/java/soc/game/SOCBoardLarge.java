@@ -439,7 +439,7 @@ public class SOCBoardLarge extends SOCBoard
          0,-2,  -2,-1   // W, NW
     };
 
-    // TODO hexLayoutLg, numberLayoutLg: Will only need half the rows, half the columns
+    // Note: hexLayoutLg, numberLayoutLg: Will only need half the rows, half the columns
     //    The unused elements are wasted space locally but aren't sent over the network.
 
     /**
@@ -749,10 +749,7 @@ public class SOCBoardLarge extends SOCBoard
         }
     }
 
-    // TODO hexLayoutLg, numberLayoutLg will only ever use the odd row numbers
-
-    // TODO unlike roads, is there ever a time when sea edges are _not_ legal?
-    //  (assuming water hexes on one or both sides of the edge)
+    // Note: hexLayoutLg, numberLayoutLg will only ever use the odd row numbers
 
 
     ////////////////////////////////////////////
@@ -3621,10 +3618,13 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Is this an edge coordinate within the board's boundaries,
+     * Is this a node coordinate within the board's boundaries,
      * not overlapping or off the side of the board?
-     * TODO description... valid range for nodes(corners) of hexes laid out,
-     * but doesn't check for "misalignment" in the middle of the board.
+     * Checks whether {@code r} and {@code c} are within bounds
+     * ({@link #getBoardHeight()}, {@link #getBoardWidth()})
+     * but doesn't check for "misalignment" in the middle of the board
+     * where the coordinate would be in the middle of a hex or vertical edge
+     * and not a valid node.
      * @param r  Node coordinate's row
      * @param c  Node coordinate's column
      * @see #isHexInBounds(int, int)
@@ -3674,8 +3674,11 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Is this an edge coordinate within the board's boundaries,
      * not overlapping or off the side of the board?
-     * TODO description... valid range for edges(sides) of hexes laid out,
-     * but doesn't check for "misalignment" in the middle of the board.
+     * Checks whether {@code r} and {@code c} are within bounds
+     * ({@link #getBoardHeight()}, {@link #getBoardWidth()})
+     * but doesn't check for "misalignment" in the middle of the board
+     * where the coordinate would be in the middle of a hex
+     * and not a valid edge.
      * @param r  Edge coordinate's row
      * @param c  Edge coordinate's column
      * @see #isHexInBounds(int, int)
