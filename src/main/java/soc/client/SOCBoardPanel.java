@@ -6367,7 +6367,7 @@ import javax.swing.JComponent;
 
             if ((hilight != 0) && (player != null) && (x == ptrOldX) && (y == ptrOldY))
             {
-                SOCPlayerClient client = playerInterface.getClient();
+                final GameMessageMaker messageMaker = playerInterface.getClient().getGameMessageMaker();
 
                 switch (mode)
                 {
@@ -6385,7 +6385,7 @@ import javax.swing.JComponent;
                         hilight = 0;  // Road on edge 0x00
                     if (player.isPotentialRoad(hilight) && ! hilightIsShip)
                     {
-                        client.getGameMessageMaker().putPiece(game, new SOCRoad(player, hilight, board));
+                        messageMaker.putPiece(game, new SOCRoad(player, hilight, board));
 
                         // Now that we've placed, clear the mode and the hilight.
                         clearModeAndHilight(SOCPlayingPiece.ROAD);
@@ -6394,11 +6394,12 @@ import javax.swing.JComponent;
                     }
                     else if (game.canPlaceShip(player, hilight))  // checks isPotentialShip, pirate ship
                     {
-                        if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI) && ((SOCBoardLarge) board).canRemovePort(hilight))
+                        if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI)
+                            && ((SOCBoardLarge) board).canRemovePort(hilight))
                         {
                             java.awt.EventQueue.invokeLater(new ConfirmPlaceShipDialog(hilight, false, -1));
                         } else {
-                            client.getGameMessageMaker().putPiece(game, new SOCShip(player, hilight, board));
+                            messageMaker.putPiece(game, new SOCShip(player, hilight, board));
 
                             // Now that we've placed, clear the mode and the hilight.
                             clearModeAndHilight(SOCPlayingPiece.SHIP);
@@ -6428,7 +6429,7 @@ import javax.swing.JComponent;
 
                     if (player.canPlaceSettlement(hilight))
                     {
-                        client.getGameMessageMaker().putPiece(game, new SOCSettlement(player, hilight, board));
+                        messageMaker.putPiece(game, new SOCSettlement(player, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
                         if (tempChangedMode)
                             hoverTip.hideHoverAndPieces();
@@ -6440,7 +6441,7 @@ import javax.swing.JComponent;
 
                     if (player.isPotentialCity(hilight))
                     {
-                        client.getGameMessageMaker().putPiece(game, new SOCCity(player, hilight, board));
+                        messageMaker.putPiece(game, new SOCCity(player, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.CITY);
                         if (tempChangedMode)
                             hoverTip.hideHoverAndPieces();
@@ -6451,11 +6452,12 @@ import javax.swing.JComponent;
                 case PLACE_SHIP:
                     if (game.canPlaceShip(player, hilight))  // checks isPotentialShip, pirate ship
                     {
-                        if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI) && ((SOCBoardLarge) board).canRemovePort(hilight))
+                        if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI)
+                            && ((SOCBoardLarge) board).canRemovePort(hilight))
                         {
                             java.awt.EventQueue.invokeLater(new ConfirmPlaceShipDialog(hilight, false, -1));
                         } else {
-                            client.getGameMessageMaker().putPiece(game, new SOCShip(player, hilight, board));
+                            messageMaker.putPiece(game, new SOCShip(player, hilight, board));
                             clearModeAndHilight(SOCPlayingPiece.SHIP);
                         }
                         if (tempChangedMode)
@@ -6488,7 +6490,7 @@ import javax.swing.JComponent;
                         else
                         {
                             // ask server to move it
-                            client.getGameMessageMaker().moveRobber(game, player, hilight);
+                            messageMaker.moveRobber(game, player, hilight);
                             clearModeAndHilight(-1);
                         }
                     }
@@ -6520,7 +6522,7 @@ import javax.swing.JComponent;
                         else
                         {
                             // ask server to move it
-                            client.getGameMessageMaker().moveRobber(game, player, -hilight);
+                            messageMaker.moveRobber(game, player, -hilight);
                             clearModeAndHilight(-1);
                         }
                     }
@@ -6536,7 +6538,7 @@ import javax.swing.JComponent;
                         if (game.canPlacePort(player, edge))
                         {
                             // Ask server to place here.
-                            client.getGameMessageMaker().sendSimpleRequest
+                            messageMaker.sendSimpleRequest
                                 (player, SOCSimpleRequest.TRADE_PORT_PLACE, hilight, 0);
                             hilight = 0;
                         }
@@ -6546,7 +6548,7 @@ import javax.swing.JComponent;
                 case CONSIDER_LM_SETTLEMENT:
                     if (otherPlayer.canPlaceSettlement(hilight))
                     {
-                        client.getGameMessageMaker().considerMove
+                        messageMaker.considerMove
                             (game, otherPlayer, new SOCSettlement(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
                     }
@@ -6555,7 +6557,7 @@ import javax.swing.JComponent;
                 case CONSIDER_LM_ROAD:
                     if (otherPlayer.isPotentialRoad(hilight))
                     {
-                        client.getGameMessageMaker().considerMove
+                        messageMaker.considerMove
                             (game, otherPlayer, new SOCRoad(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.ROAD);
                     }
@@ -6564,7 +6566,7 @@ import javax.swing.JComponent;
                 case CONSIDER_LM_SHIP:
                     if (otherPlayer.isPotentialShip(hilight))
                     {
-                        client.getGameMessageMaker().considerMove
+                        messageMaker.considerMove
                             (game, otherPlayer, new SOCShip(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.SHIP);
                     }
@@ -6573,7 +6575,7 @@ import javax.swing.JComponent;
                 case CONSIDER_LM_CITY:
                     if (otherPlayer.isPotentialCity(hilight))
                     {
-                        client.getGameMessageMaker().considerMove
+                        messageMaker.considerMove
                             (game, otherPlayer, new SOCCity(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.CITY);
                     }
@@ -6582,7 +6584,7 @@ import javax.swing.JComponent;
                 case CONSIDER_LT_SETTLEMENT:
                     if (otherPlayer.canPlaceSettlement(hilight))
                     {
-                        client.getGameMessageMaker().considerTarget
+                        messageMaker.considerTarget
                             (game, otherPlayer, new SOCSettlement(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
                     }
@@ -6591,7 +6593,7 @@ import javax.swing.JComponent;
                 case CONSIDER_LT_ROAD:
                     if (otherPlayer.isPotentialRoad(hilight))
                     {
-                        client.getGameMessageMaker().considerTarget
+                        messageMaker.considerTarget
                             (game, otherPlayer, new SOCRoad(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.ROAD);
                     }
@@ -6600,7 +6602,7 @@ import javax.swing.JComponent;
                 case CONSIDER_LT_SHIP:
                     if (otherPlayer.isPotentialShip(hilight))
                     {
-                        client.getGameMessageMaker().considerTarget
+                        messageMaker.considerTarget
                             (game, otherPlayer, new SOCShip(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.SHIP);
                     }
@@ -6609,7 +6611,7 @@ import javax.swing.JComponent;
                 case CONSIDER_LT_CITY:
                     if (otherPlayer.isPotentialCity(hilight))
                     {
-                        client.getGameMessageMaker().considerTarget
+                        messageMaker.considerTarget
                             (game, otherPlayer, new SOCCity(otherPlayer, hilight, board));
                         clearModeAndHilight(SOCPlayingPiece.CITY);
                     }
@@ -9212,28 +9214,28 @@ import javax.swing.JComponent;
             if (! playerInterface.clientIsCurrentPlayer())
                 return;  // Stale request, player's already changed
 
-            SOCPlayerClient client = playerInterface.getClient();
+            final GameMessageMaker messageMaker = playerInterface.getClient().getGameMessageMaker();
 
             switch (pieceType)
             {
             case SOCPlayingPiece.ROAD:
                 if (player.isPotentialRoad(buildLoc))
-                    client.getGameMessageMaker().putPiece(game, new SOCRoad(player, buildLoc, board));
+                    messageMaker.putPiece(game, new SOCRoad(player, buildLoc, board));
                 break;
 
             case SOCPlayingPiece.SETTLEMENT:
                 if (player.canPlaceSettlement(buildLoc))
-                    client.getGameMessageMaker().putPiece(game, new SOCSettlement(player, buildLoc, board));
+                    messageMaker.putPiece(game, new SOCSettlement(player, buildLoc, board));
                 break;
 
             case SOCPlayingPiece.CITY:
                 if (player.isPotentialCity(buildLoc))
-                    client.getGameMessageMaker().putPiece(game, new SOCCity(player, buildLoc, board));
+                    messageMaker.putPiece(game, new SOCCity(player, buildLoc, board));
                 break;
 
             case SOCPlayingPiece.SHIP:
                 if (game.canPlaceShip(player, buildLoc))  // checks isPotentialShip, pirate ship
-                    client.getGameMessageMaker().putPiece(game, new SOCShip(player, buildLoc, board));
+                    messageMaker.putPiece(game, new SOCShip(player, buildLoc, board));
                 break;
             }
 
