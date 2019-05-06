@@ -43,8 +43,8 @@ public interface MainDisplay
     /** Returns the overall Client. */
     SOCPlayerClient getClient();
 
-    /** Returns this client's GameMessageMaker. */
-    GameMessageMaker getGameMessageMaker();
+    /** Returns this client's GameMessageSender. */
+    GameMessageSender getGameMessageSender();
 
     /**
      * Returns this display's top-level GUI element: Panel, JPanel, etc.
@@ -218,7 +218,7 @@ public interface MainDisplay
      *
      * @param chName   the name of the channel
      * @param mes  the message text or local command
-     * @see GameMessageMaker#sendText(SOCGame, String)
+     * @see GameMessageSender#sendText(SOCGame, String)
      */
     void sendToChannel(String chName, String mes);
 

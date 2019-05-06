@@ -245,11 +245,12 @@ import javax.swing.SwingConstants;
 
             if (rsrcs.getTotal() == numPickNeeded)
             {
-                SOCPlayerClient pcli = playerInterface.getClient();
+                final GameMessageSender messageSender = playerInterface.getClient().getGameMessageSender();
                 if (isDiscard)
-                    pcli.getGameMessageMaker().discard(playerInterface.getGame(), rsrcs);
+                    messageSender.discard(playerInterface.getGame(), rsrcs);
                 else
-                    pcli.getGameMessageMaker().pickResources(playerInterface.getGame(), rsrcs);
+                    messageSender.pickResources(playerInterface.getGame(), rsrcs);
+
                 dispose();
             }
         }

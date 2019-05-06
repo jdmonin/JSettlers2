@@ -60,8 +60,8 @@ import soc.util.Version;
  * Messages from server to client are received in either {@link NetReadTask} or {@link LocalStringReaderTask},
  * which call the client's {@link MessageHandler#handle(SOCMessage, boolean)}.
  *<br>
- * Messages from client to server are formed in {@link GameMessageMaker} or other classes,
- * and sent here to the server here via {@link #putNet(String)} or {@link #putPractice(String)}.
+ * Messages from client to server are formed in {@link GameMessageSender} or other classes,
+ * which call back here to send the server here via {@link #putNet(String)} or {@link #putPractice(String)}.
  *<br>
  * Network shutdown is {@link #disconnect()} or {@link #dispose()}.
  *<P>
@@ -535,7 +535,7 @@ import soc.util.Version;
      *
      * @param s  the message
      * @return true if the message was sent, false if not
-     * @see GameMessageMaker#put(String, boolean)
+     * @see GameMessageSender#put(String, boolean)
      */
     public synchronized boolean putNet(String s)
     {
@@ -576,7 +576,7 @@ import soc.util.Version;
      *
      * @param s  the message
      * @return true if the message was sent, false if not
-     * @see GameMessageMaker#put(String, boolean)
+     * @see GameMessageSender#put(String, boolean)
      * @throws IllegalArgumentException if {@code s} is {@code null}
      * @since 1.1.00
      */

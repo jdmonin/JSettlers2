@@ -236,7 +236,7 @@ public interface PlayerClientListener
      * This player must choose a player for robbery.
      * @param choices   The potential victim players to choose from
      * @param isNoneAllowed  If true, player can choose to rob no one (game scenario <tt>SC_PIRI</tt>)
-     * @see GameMessageMaker#choosePlayer(SOCGame, int)
+     * @see GameMessageSender#choosePlayer(SOCGame, int)
      */
     void requestedChoosePlayer(List<SOCPlayer> choices, boolean isNoneAllowed);
 

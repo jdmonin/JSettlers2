@@ -79,7 +79,7 @@ import soc.util.Version;
  *<P>
  * Once connected, messages from the server are processed in {@link MessageHandler#handle(SOCMessage, boolean)}.
  *<P>
- * Messages to the server are formed and sent using {@link GameMessageMaker}.
+ * Messages to the server are formed and sent using {@link GameMessageSender}.
  *<P>
  * If network trouble or applet shutdown occurs, calls {@link #shutdownFromNetwork()};
  * may still be able to play practice games locally.
@@ -233,7 +233,7 @@ public class SOCPlayerClient
      * Helper object to form and send outgoing network traffic to the server.
      * @since 2.0.00
      */
-    private final GameMessageMaker gameMessageMaker;
+    private final GameMessageSender gameMessageSender;
 
     /**
      * Display for the main user interface, including and beyond the list of games and chat channels.
@@ -422,7 +422,7 @@ public class SOCPlayerClient
             UserPreferences.clear(debug_clearPrefs);
 
         net = new ClientNetwork(this);
-        gameMessageMaker = new GameMessageMaker(this, clientListeners);
+        gameMessageSender = new GameMessageSender(this, clientListeners);
         messageHandler = new MessageHandler(this);
     }
 
@@ -519,12 +519,12 @@ public class SOCPlayerClient
 
 
     /**
-     * Get this client's GameMessageMaker.
+     * Get this client's GameMessageSender for making and sending messages to the server.
      * @since 2.0.00
      */
-    public GameMessageMaker getGameMessageMaker()
+    public GameMessageSender getGameMessageSender()
     {
-        return gameMessageMaker;
+        return gameMessageSender;
     }
 
     /**

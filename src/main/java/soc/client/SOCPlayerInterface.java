@@ -424,12 +424,12 @@ public class SOCPlayerInterface extends Frame
     /**
      * the client main display that spawned us
      */
-    protected MainDisplay mainDisplay;
+    protected final MainDisplay mainDisplay;
 
-    protected SOCPlayerClient client;
+    protected final SOCPlayerClient client;
 
     /**
-     * the game associated with this interface
+     * the game associated with this interface. This reference changes if board is reset.
      */
     protected SOCGame game;
 
@@ -1673,7 +1673,7 @@ public class SOCPlayerInterface extends Frame
 
             final String msg = s + '\n';
             if (! doLocalCommand(msg))
-                client.getGameMessageMaker().sendText(game, msg);
+                client.getGameMessageSender().sendText(game, msg);
 
             if (sOverflow != null)
             {
@@ -1839,7 +1839,7 @@ public class SOCPlayerInterface extends Frame
     public void leaveGame()
     {
         mainDisplay.leaveGame(game);
-        client.getGameMessageMaker().leaveGame(game);
+        client.getGameMessageSender().leaveGame(game);
         dispose();
     }
 
@@ -1884,7 +1884,7 @@ public class SOCPlayerInterface extends Frame
         }
         SOCPlayer pl = game.getPlayer(clientHandPlayerNum);
         if (! pl.hasAskedBoardReset())
-            client.getGameMessageMaker().resetBoardRequest(game);
+            client.getGameMessageSender().resetBoardRequest(game);
         else
             textDisplay.append("*** " + strings.get("reset.you.may.ask.once") + "\n");
                 // "You may ask only once per turn to reset the board."
@@ -2545,7 +2545,7 @@ public class SOCPlayerInterface extends Frame
      *                If <tt>allowChooseNone</tt>, pnums.length must be at least <tt>count + 1</tt>
      *                to leave room for "no player".
      * @param allowChooseNone  if true, player can choose to rob no one (game scenario <tt>SC_PIRI</tt>)
-     * @see GameMessageMaker#choosePlayer(SOCGame, int)
+     * @see GameMessageSender#choosePlayer(SOCGame, int)
      * @see #showChooseRobClothOrResourceDialog(int)
      */
     public void showChoosePlayerDialog(final int count, final int[] pnums, final boolean allowChooseNone)
@@ -4464,7 +4464,7 @@ public class SOCPlayerInterface extends Frame
         @Override
         public void button1Chosen()
         {
-            md.getGameMessageMaker().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), true);
+            md.getGameMessageSender().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), true);
             pi.resetBoardClearDia();
         }
 
@@ -4474,7 +4474,7 @@ public class SOCPlayerInterface extends Frame
         @Override
         public void button2Chosen()
         {
-            md.getGameMessageMaker().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), false);
+            md.getGameMessageSender().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), false);
             pi.resetBoardClearDia();
         }
 
@@ -4499,8 +4499,8 @@ public class SOCPlayerInterface extends Frame
     /**
      * Modal dialog to ask whether to move the robber or the pirate ship.
      * Use the AWT event thread to show, so message treating can continue while the dialog is showing.
-     * When the choice is made, calls {@link GameMessageMaker#chooseRobber(SOCGame)}
-     * or {@link GameMessageMaker#choosePirate(SOCGame)}.
+     * When the choice is made, calls {@link GameMessageSender#chooseRobber(SOCGame)}
+     * or {@link GameMessageSender#choosePirate(SOCGame)}.
      *
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 2.0.00
@@ -4526,22 +4526,22 @@ public class SOCPlayerInterface extends Frame
 
         /**
          * React to the Move Robber button.
-         * Call {@link GameMessageMaker#choosePlayer(SOCGame, int) pcli.choosePlayer(CHOICE_MOVE_ROBBER)}.
+         * Call {@link GameMessageSender#choosePlayer(SOCGame, int) pcli.choosePlayer(CHOICE_MOVE_ROBBER)}.
          */
         @Override
         public void button1Chosen()
         {
-            md.getGameMessageMaker().chooseRobber(game);
+            md.getGameMessageSender().chooseRobber(game);
         }
 
         /**
          * React to the Move Pirate button.
-         * Call {@link GameMessageMaker#choosePlayer(SOCGame, int) pcli.choosePlayer(CHOICE_MOVE_PIRATE)}.
+         * Call {@link GameMessageSender#choosePlayer(SOCGame, int) pcli.choosePlayer(CHOICE_MOVE_PIRATE)}.
          */
         @Override
         public void button2Chosen()
         {
-            md.getGameMessageMaker().choosePirate(game);
+            md.getGameMessageSender().choosePirate(game);
         }
 
         /**
@@ -4555,7 +4555,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * Modal dialog to ask whether to rob cloth or a resource from the victim.
      * Start a new thread to show, so message treating can continue while the dialog is showing.
-     * When the choice is made, calls {@link GameMessageMaker#choosePlayer(SOCGame, int)}.
+     * When the choice is made, calls {@link GameMessageSender#choosePlayer(SOCGame, int)}.
      *
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 2.0.00
@@ -4585,22 +4585,22 @@ public class SOCPlayerInterface extends Frame
 
         /**
          * React to the Steal Cloth button.
-         * Call {@link GameMessageMaker#choosePlayer(SOCGame, int) pcli.choosePlayer(-(vpn + 1))}.
+         * Call {@link GameMessageSender#choosePlayer(SOCGame, int) pcli.choosePlayer(-(vpn + 1))}.
          */
         @Override
         public void button1Chosen()
         {
-            md.getGameMessageMaker().choosePlayer(game, -(vpn + 1));
+            md.getGameMessageSender().choosePlayer(game, -(vpn + 1));
         }
 
         /**
          * React to the Steal Resource button.
-         * Call {@link GameMessageMaker#choosePlayer(SOCGame, int) pcli.choosePlayer(vpn)}.
+         * Call {@link GameMessageSender#choosePlayer(SOCGame, int) pcli.choosePlayer(vpn)}.
          */
         @Override
         public void button2Chosen()
         {
-            md.getGameMessageMaker().choosePlayer(game, vpn);
+            md.getGameMessageSender().choosePlayer(game, vpn);
         }
 
         /**

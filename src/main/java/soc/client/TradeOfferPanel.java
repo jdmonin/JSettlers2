@@ -1258,7 +1258,7 @@ import javax.swing.SwingConstants;
                             new SOCTradeOffer (game.getName(),
                                                player.getPlayerNumber(),
                                                to, giveSet, getSet);
-                        hp.getClient().getGameMessageMaker().offerTrade(game, tradeOffer);
+                        hp.getClient().getGameMessageSender().offerTrade(game, tradeOffer);
 
                         setCounterOfferVisible(true);
                     }
@@ -1282,7 +1282,7 @@ import javax.swing.SwingConstants;
                 //squares.getValues(tempGive, tempGet);
 
                 cancelRejectCountdown();
-                hp.getClient().getGameMessageMaker().acceptOffer(hp.getGame(), from);
+                hp.getClient().getGameMessageSender().acceptOffer(hp.getGame(), from);
                 hp.disableBankUndoButton();
             }
             } catch (Throwable th) {

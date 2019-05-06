@@ -534,7 +534,7 @@ import javax.swing.border.EmptyBorder;
                 // during other players' turns.
 
                 final SOCGame ga = pi.getGame();
-                final GameMessageMaker gmm = pi.getClient().getGameMessageMaker();
+                final GameMessageSender messageSender = pi.getClient().getGameMessageSender();
                 boolean askedSBP = false;
                 if (! pi.clientIsCurrentPlayer())
                 {
@@ -544,7 +544,7 @@ import javax.swing.border.EmptyBorder;
                         // Can't build on other players' turns, but can request SBP.
                         // Consistent with what happens when clicking Buy for a road,
                         // city, etc on another player's turn in 6-player game.
-                        gmm.buildRequest(ga, -1);
+                        messageSender.buildRequest(ga, -1);
                         askedSBP = true;
                     }
                     // else: Fall through, send PICK request, server will
@@ -553,7 +553,7 @@ import javax.swing.border.EmptyBorder;
                 }
 
                 if (! askedSBP)
-                    gmm.pickSpecialItem(ga, typeKey, 1 + i, 0);
+                    messageSender.pickSpecialItem(ga, typeKey, 1 + i, 0);
 
                 nbddListenerCalled = true;
                 dispose();

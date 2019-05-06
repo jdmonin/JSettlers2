@@ -69,17 +69,17 @@ import soc.util.Version;
 /*package*/ final class MessageHandler
 {
     private final SOCPlayerClient client;
-    private final GameMessageMaker gmm;
+    private final GameMessageSender gms;
 
     MessageHandler(SOCPlayerClient client)
     {
         if (client == null)
             throw new IllegalArgumentException("client is null");
         this.client = client;
-        gmm = client.getGameMessageMaker();
+        gms = client.getGameMessageSender();
 
-        if (gmm == null)
-            throw new IllegalArgumentException("client game message maker is null");
+        if (gms == null)
+            throw new IllegalArgumentException("client GameMessageSender is null");
     }
 
     /**
@@ -753,7 +753,7 @@ import soc.util.Version;
             // Same version: Ask for all localized option descs if available.
             if (! isPractice)
                 client.getMainDisplay().optionsRequested();
-            gmm.put(SOCGameOptionGetInfos.toCmd(null, withTokenI18n, withTokenI18n && sameVersion), isPractice);
+            gms.put(SOCGameOptionGetInfos.toCmd(null, withTokenI18n, withTokenI18n && sameVersion), isPractice);
             // sends "-" and/or "?I18N"
         }
         else if ((client.sVersion < cliVersion) && ! isPractice)
@@ -791,13 +791,13 @@ import soc.util.Version;
                 {
                     if (! isPractice)
                         client.getMainDisplay().optionsRequested();
-                    gmm.put(SOCGameOptionGetInfos.toCmd(tooNewOpts, withTokenI18n, false), isPractice);
+                    gms.put(SOCGameOptionGetInfos.toCmd(tooNewOpts, withTokenI18n, false), isPractice);
                 }
                 else if (withTokenI18n && ! isPractice)
                 {
                     // server is older than client but understands i18n: request gameopt localized strings
 
-                    gmm.put(SOCGameOptionGetInfos.toCmd(null, true, false), false);  // sends opt list "-,?I18N"
+                    gms.put(SOCGameOptionGetInfos.toCmd(null, true, false), false);  // sends opt list "-,?I18N"
                 }
             } else {
                 // server is too old to understand options. Can't happen with local practice srv,
@@ -1290,7 +1290,7 @@ import soc.util.Version;
                 if (! ga.isBoardReset() && (ga.getGameState() < SOCGame.START1A))
                 {
                     ga.getPlayer(mesPN).setFaceId(client.lastFaceChange);
-                    gmm.changeFace(ga, client.lastFaceChange);
+                    gms.changeFace(ga, client.lastFaceChange);
                 }
             }
         }
@@ -1334,7 +1334,7 @@ import soc.util.Version;
         int timeval = mes.getSleepTime();
         if (timeval != -1)
         {
-            gmm.put(mes.toCmd(), isPractice);
+            gms.put(mes.toCmd(), isPractice);
         } else {
             client.getNet().ex = new RuntimeException(client.strings.get("pcli.error.kicked.samename"));
                 // "Kicked by player with same name."
@@ -2358,7 +2358,7 @@ import soc.util.Version;
             if (! isPractice)
                 client.getMainDisplay().optionsRequested();
 
-            gmm.put(SOCGameOptionGetInfos.toCmd(unknowns, client.wantsI18nStrings(isPractice), false), isPractice);
+            gms.put(SOCGameOptionGetInfos.toCmd(unknowns, client.wantsI18nStrings(isPractice), false), isPractice);
         } else {
             opts.newGameWaitingForOpts = false;
             client.getMainDisplay().optionsReceived(opts, isPractice);

@@ -257,7 +257,8 @@ import javax.swing.SwingConstants;
         {
             if (target == buttons[i])
             {
-                playerInterface.getClient().getGameMessageMaker().choosePlayer(playerInterface.getGame(), players[i]);
+                playerInterface.getClient().getGameMessageSender()
+                    .choosePlayer(playerInterface.getGame(), players[i]);
                 dispose();
 
                 break;

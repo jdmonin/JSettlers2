@@ -121,7 +121,7 @@ import javax.swing.JPanel;
                 /**
                  * Note: This works because SOCResourceConstants.CLAY == 1 and so on, in same order as rsrcBut buttons
                  */
-                playerInterface.getClient().getGameMessageMaker().pickResourceType(playerInterface.getGame(), i + 1);
+                playerInterface.getClient().getGameMessageSender().pickResourceType(playerInterface.getGame(), i + 1);
                 dispose();
 
                 break;

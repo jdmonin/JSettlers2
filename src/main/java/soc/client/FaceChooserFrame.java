@@ -305,7 +305,7 @@ import soc.game.SOCGame;
      */
     public void changeButtonChosen()
     {
-        pcli.getGameMessageMaker().changeFace(pi.getGame(), fcl.currentFaceId);
+        pcli.getGameMessageSender().changeFace(pi.getGame(), fcl.currentFaceId);
     }
 
     /**

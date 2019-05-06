@@ -66,7 +66,7 @@ import soc.message.SOCSitDown;
 import soc.message.SOCStartGame;
 
 /**
- * Client class to form outgoing messages (putting) and call {@link ClientNetwork} to send them to the server.
+ * Client class to form outgoing messages and call {@link ClientNetwork} methods to send them to the server.
  * In-game actions and requests each have their own methods, such as {@link #buyDevCard(SOCGame)}.
  * General messages can be sent using {@link #put(String, boolean)}.
  *<P>
@@ -75,13 +75,13 @@ import soc.message.SOCStartGame;
  * @author paulbilnoski
  * @since 2.0.00
  */
-/*package*/ class GameMessageMaker
+/*package*/ class GameMessageSender
 {
     private final SOCPlayerClient client;
     private final ClientNetwork net;
     private final Map<String, PlayerClientListener> clientListeners;
 
-    GameMessageMaker(final SOCPlayerClient client, Map<String, PlayerClientListener> clientListeners)
+    GameMessageSender(final SOCPlayerClient client, Map<String, PlayerClientListener> clientListeners)
     {
         this.client = client;
         if (client == null)
@@ -93,8 +93,8 @@ import soc.message.SOCStartGame;
     }
 
     /**
-     * Write a message to the net or practice server.
-     * Because the player can be in both network games and practice games,
+     * Write a message to the net or practice server by calling {@link ClientNetwork} methods.
+     * This is a convenience method. Because the player can be in both network games and practice games,
      * we must route to the appropriate client-server connection.
      *
      * @param s  the message command, formatted by a {@code soc.message} class's {@code toCmd()}
@@ -112,7 +112,8 @@ import soc.message.SOCStartGame;
 
         if (isPractice)
             return net.putPractice(s);
-        return net.putNet(s);
+        else
+            return net.putNet(s);
     }
 
     /**

@@ -717,9 +717,9 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         return client;
     }
 
-    public GameMessageMaker getGameMessageMaker()
+    public final GameMessageSender getGameMessageSender()
     {
-        return client.getGameMessageMaker();
+        return client.getGameMessageSender();
     }
 
     public final Container getGUIContainer()
@@ -1808,13 +1808,13 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             //   In both cases that request is sent as an empty 'changes' list and MARKER_ANY_CHANGED.
 
             if ((cliVers != client.sVersion) || client.wantsI18nStrings(false))
-                client.getGameMessageMaker().put(new SOCScenarioInfo(changes, true).toCmd(), false);
+                client.getGameMessageSender().put(new SOCScenarioInfo(changes, true).toCmd(), false);
         }
 
         opts.newGameWaitingForOpts = true;
         opts.askedDefaultsAlready = true;
         opts.askedDefaultsTime = System.currentTimeMillis();
-        client.getGameMessageMaker().put(SOCGameOptionGetDefaults.toCmd(null), forPracticeServer);
+        client.getGameMessageSender().put(SOCGameOptionGetDefaults.toCmd(null), forPracticeServer);
 
         if (gameOptsDefsTask != null)
             gameOptsDefsTask.cancel();
