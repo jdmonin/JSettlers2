@@ -240,7 +240,7 @@ public class SOCScenario
              + "Each Wonder has its own requirements before you may start it, such as "
              + "several cities built or a port at a certain location. To win you "
              + "must complete your Wonder's 4 levels, or reach 10 VP and complete "
-             + "more levels than any other player.",
+             + "more levels than any other player. Has no pirate ship.",
              "_SC_WOND=t,SBL=t,VP=t10,_SC_SANY=t"));  // win condition: Complete Wonder, or 10 VP _and_ built the most levels
                 // The "all 4 levels" win condition is also stored in SOCSpecialItem.SC_WOND_WIN_LEVEL.
 
