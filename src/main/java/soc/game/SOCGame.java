@@ -5154,8 +5154,9 @@ public class SOCGame implements Serializable, Cloneable
      * and then {@link #movePirate(int, int, int)}:
      * Check {@link RollResult#sc_piri_fleetAttackVictim} and {@link RollResult#sc_piri_fleetAttackRsrcs}.
      * Note that if player's warships are stronger than the pirate fleet, <tt>sc_piri_loot</tt> will contain
-     * {@link SOCResourceConstants#GOLD_LOCAL}, and that player's {@link SOCPlayer#setNeedToPickGoldHexResources(int)}
-     * will be set to include the free pick.
+     * {@link SOCResourceConstants#GOLD_LOCAL}, that player's {@link SOCPlayer#setNeedToPickGoldHexResources(int)}
+     * will be set to include the free pick, and game state becomes {@link #WAITING_FOR_PICK_GOLD_RESOURCE}.
+     * If a 7 was rolled, the free pick happens before any discards.
      *<P>
      * Called at server only.
      * @return The roll results: Dice numbers, and any scenario-specific results
@@ -8836,8 +8837,10 @@ public class SOCGame implements Serializable, Cloneable
          *<P>
          * Each time the dice is rolled, the fleet is moved and this field is updated; may be null.
          *<P>
-         * If the victim wins against the attack, they gain a resource of their choice, but
-         * that chosen resource would be in a different game state, not part of the RollResult.
+         * If the victim wins against the attack, they will gain a resource of their choice,
+         * meanwhile this resource set contains {@link SOCResourceConstants#GOLD_LOCAL} to indicate the win.
+         * State became {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE} and the caller of {@code rollDice()}
+         * will need to prompt the player to choose their free resource.
          */
         public SOCResourceSet sc_piri_fleetAttackRsrcs;
 

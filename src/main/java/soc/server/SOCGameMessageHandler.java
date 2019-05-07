@@ -413,6 +413,9 @@ public class SOCGameMessageHandler
                 }
                 handler.sendGameState(ga);  // For 7, give visual feedback before sending discard request
 
+                /** if true but noPlayersGained, will change announcement wording from "No player gets anything". */
+                boolean someoneWonFreeRsrc = false;
+
                 if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
                 {
                     // pirate moves on every roll
@@ -436,6 +439,7 @@ public class SOCGameMessageHandler
 
                             if (won)
                             {
+                                someoneWonFreeRsrc = true;
                                 srv.messageToGameKeyed
                                     (ga, true, "action.rolled.sc_piri.player.won.pick.free", vicName, strength);
                                     // "{0} won against the pirate fleet (strength {1}) and will pick a free resource."
@@ -468,7 +472,7 @@ public class SOCGameMessageHandler
                  */
                 if (ga.getCurrentDice() != 7)
                 {
-                    boolean noPlayersGained = true;
+                    boolean noPlayersGained = true;  // see also someoneWonFreeRsrc
 
                     /**
                      * Clients v2.0.00 and newer get an i18n-neutral SOCDiceResultResources message.
@@ -523,9 +527,13 @@ public class SOCGameMessageHandler
                     {
                         String key;
                         if (roll.cloth == null)
-                            key = "action.rolled.no.player.gets.anything";  // "No player gets anything."
+                            key = (someoneWonFreeRsrc)
+                                ? "action.rolled.no_other_player_gets.anything"  // "No other player gets anything."
+                                : "action.rolled.no_player_gets.anything";       // "No player gets anything."
                         else
-                            key = "action.rolled.no.player.gets.resources";  // "No player gets resources."
+                            key = (someoneWonFreeRsrc)
+                                ? "action.rolled.no_other_player_gets.resources"  // "No other player gets resources."
+                                : "action.rolled.no_player_gets.resources";       // "No player gets resources."
                         // debug_printPieceDiceNumbers(ga, message);
                         srv.messageToGameKeyed(ga, true, key);
                     } else {
