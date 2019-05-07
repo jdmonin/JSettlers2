@@ -61,7 +61,7 @@ import soc.util.Version;
  * which call the client's {@link MessageHandler#handle(SOCMessage, boolean)}.
  *<br>
  * Messages from client to server are formed in {@link GameMessageSender} or other classes,
- * which call back here to send the server here via {@link #putNet(String)} or {@link #putPractice(String)}.
+ * which call back here to send to the server via {@link #putNet(String)} or {@link #putPractice(String)}.
  *<br>
  * Network shutdown is {@link #disconnect()} or {@link #dispose()}.
  *<P>
@@ -289,6 +289,7 @@ import soc.util.Version;
     {
         if (localTCPServer == null)
             return 0;
+
         return localTCPServer.getPort();
     }
 
@@ -320,6 +321,7 @@ import soc.util.Version;
             mainDisplay.showErrorDialog
                 (client.strings.get("pcli.error.startingserv") + "\n" + th,  // "Problem starting server:"
                  client.strings.get("base.cancel"));
+
             return false;
         }
 
@@ -396,17 +398,15 @@ import soc.util.Version;
                 client.gotPassword = false;
             }
 
-            final SocketAddress srvAddr;
-            if (host != null)
-                srvAddr = new InetSocketAddress(host, port);
-            else
-                srvAddr = new InetSocketAddress(InetAddress.getByName(null), port);  // loopback
-
+            final SocketAddress srvAddr = (host != null)
+                ? new InetSocketAddress(host, port)
+                : new InetSocketAddress(InetAddress.getByName(null), port);  // loopback
             s = new Socket();
             s.connect(srvAddr, CONNECT_TIMEOUT_MS);
             in = new DataInputStream(s.getInputStream());
             out = new DataOutputStream(s.getOutputStream());
             connected = true;
+
             (reader = new Thread(new NetReadTask(client, this))).start();
             // send VERSION right away (1.1.06 and later)
             sendVersion(false);
