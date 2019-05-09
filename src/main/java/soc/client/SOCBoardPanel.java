@@ -2287,7 +2287,7 @@ import javax.swing.JComponent;
      * A playing piece's value was updated:
      * {@code _SC_CLVI} village cloth count, or
      * {@code _SC_PIRI} pirate fortress strength.
-     * Repaint that piece (if needed) on the board.
+     * Repaint that piece on the board if necessary.
      * @param piece  Piece that was updated, includes its new value
      * @since 2.0.00
      */
@@ -2296,12 +2296,20 @@ import javax.swing.JComponent;
         if (piece instanceof SOCFortress)
         {
             final SOCFortress fort = (SOCFortress) piece;
+            final int strength = fort.getStrength();
 
-            if ((0 == fort.getStrength()) && (0 == ((SOCBoardLarge) board).getPirateHex()))
+            if (0 == strength)
             {
-                // All players have recaptured their fortresses: The pirate fleet & path is removed.
-                flushBoardLayoutAndRepaint();
-                return;  // <--- Early return: repaint whole board ---
+                if (0 == ((SOCBoardLarge) board).getPirateHex())
+                {
+                    // All players have recaptured their fortresses: The pirate fleet & path is removed.
+                    flushBoardLayoutAndRepaint();
+                }
+                // else
+                //  Server is about to send a game message to put a settlement where fortress was.
+                //  Don't paint now; that message will cause another repaint.
+
+                return;  // <--- Early return: fortress removed; repaint or another piece coming soon ---
             }
 
             final int pn = piece.getPlayerNumber();
@@ -2311,12 +2319,15 @@ import javax.swing.JComponent;
             {
                 public void run()
                 {
-                    Image ibuf = buffer;  // Local var in case field becomes null in other thread during paint
+                    final boolean xlat = (panelMarginX != 0) || (panelMarginY != 0);
+
+                    final Image ibuf = buffer;  // Local var in case field becomes null in other thread during paint
                     if (ibuf != null)
-                        drawFortress(ibuf.getGraphics(), fort, pn, false);
-                    Graphics bpanG = getGraphics();
-                    if (bpanG != null)
-                        drawFortress(bpanG, fort, pn, false);
+                        drawFortress(ibuf.getGraphics(), fort, pn, false, xlat);
+
+                    Graphics bgr = getGraphics();
+                    if (bgr != null)
+                        drawFortress(bgr, fort, pn, false, xlat);
                     else
                         repaint();
                 }
@@ -2324,8 +2335,10 @@ import javax.swing.JComponent;
         }
         else if (piece instanceof SOCVillage)
         {
+            // Villages are drawn once in drawBoardEmpty, then kept in an image buffer.
             // If village cloth count becomes 0, redraw it in gray.
-            // Otherwise no update needed, village cloth count is handled in tooltip hover.
+            // Otherwise no update needed, village cloth count isn't shown in the drawn piece
+            // (shown in tooltip hover instead).
             if (((SOCVillage) piece).getCloth() == 0)
                 flushBoardLayoutAndRepaint();
         }
@@ -3040,7 +3053,7 @@ import javax.swing.JComponent;
      * Redraw the board using double buffering. Don't call this directly, use
      * {@link Component#repaint()} instead.
      *<P>
-     * See {@link #drawBoard(Graphics)} for related painting methods.
+     * Calls {@link #drawBoard(Graphics)} to do the actual work.
      *<P>
      * To protect against bugs, paint contains a try-catch that will
      * print stack traces to the player chat print area.
@@ -3833,21 +3846,32 @@ import javax.swing.JComponent;
 
     /**
      * Draw a pirate fortress, for scenario <tt>SC_PIRI</tt>.
+     * If {@link SOCFortress#getStrength()} is 0, won't draw it:
+     * A game message from the server will soon replace this piece
+     * with a settlement.
      * @param fo  Fortress
      * @param pn  Player number, for fortress color
      * @param isHilight  Use hilight/ghosted player color?
+     * @param doTranslate  If true call {@link Graphics#translate(int, int)} before and after drawing,
+     *     to account for any ({@link #panelMarginX}, {@link #panelMarginY}) offset.
+     *     Intended for calls from not inside the "draw all pieces" loop.
      * @since 2.0.00
      */
     private final void drawFortress
-        (Graphics g, final SOCFortress fo, final int pn, final boolean isHilight)
+        (Graphics g, final SOCFortress fo, final int pn, final boolean isHilight, final boolean doTranslate)
     {
+        final int strength = fo.getStrength();
+        if (strength == 0)
+            return;
+
+        if (doTranslate)
+            g.translate(panelMarginX, panelMarginY);
+
+        g.setColor((isHilight)
+            ? playerInterface.getPlayerColor(pn, true)
+            : playerInterface.getPlayerColor(pn));
+
         final int[] nodexy = nodeToXY(fo.getCoordinates());
-
-        if (isHilight)
-            g.setColor(playerInterface.getPlayerColor(pn, true));
-        else
-            g.setColor(playerInterface.getPlayerColor(pn));
-
         g.translate(nodexy[0], nodexy[1]);
 
         g.fillPolygon(scaledFortressX, scaledFortressY, scaledFortressY.length);
@@ -3858,13 +3882,16 @@ import javax.swing.JComponent;
         g.drawPolygon(scaledFortressX, scaledFortressY, scaledFortressY.length);
 
         // strength
-        final String numstr = Integer.toString(fo.getStrength());
+        final String numstr = Integer.toString(strength);
         int x = -diceNumberCircleFM.stringWidth(numstr) / 2;
         int y = (diceNumberCircleFM.getAscent() - diceNumberCircleFM.getDescent()) * 2 / 3;  // slightly below centered
         g.setFont(diceNumberCircleFont);
         g.drawString(numstr, x, y);
 
         g.translate(-nodexy[0], -nodexy[1]);
+
+        if (doTranslate)
+            g.translate(-panelMarginX, -panelMarginY);
     }
 
     /**
@@ -4303,7 +4330,7 @@ import javax.swing.JComponent;
                  */
                 SOCFortress fo = pl.getFortress();
                 if (fo != null)
-                    drawFortress(g, fo, pn, false);
+                    drawFortress(g, fo, pn, false, false);
             }
         }
 
