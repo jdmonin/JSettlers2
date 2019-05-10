@@ -911,7 +911,8 @@ import javax.swing.JComponent;
 
     /**
      * Unscaled (internal pixel, but rotated if needed) panel width for
-     * {@link #scaleToActual(int)} and {@link #scaleFromActual(int)}.
+     * {@link #scaleToActual(int)} and {@link #scaleFromActual(int)};
+     * does not include margins like {@link #scaledPanelW} does.
      * See {@link #scaledPanelW} for scaled (actual screen pixel) width.
      * Unlike {@link #panelMinBW}, is same axis as {@code scaledPanelW} when {@link #isRotated}.
      * @see #isScaled
@@ -3034,11 +3035,12 @@ import javax.swing.JComponent;
                  + Integer.toHexString(board.getBoardWidth()) + ",0x" + Integer.toHexString(board.getBoardHeight())
                  + ", VS (down, right) = " + vs[0] + "," + vs[1]);
             System.err.println
-                ("  Panel size (width, height): unscaled = "
-                 + panelMinBW + "," + panelMinBH + ((isRotated) ? ", rotated" : "")
-                 + ", current = " + scaledBoardW + " of " + scaledPanelW + "," + scaledPanelH
-                 + ", margin (left, top) = " + panelMarginX + "," + panelMarginY
-                 + ", unscaled shift (right, down) = " + panelShiftBX + "," + panelShiftBY);
+                ("  Panel size (width, height): unscaled = ("
+                 + panelMinBW + "," + panelMinBH + ')' + ((isRotated) ? ", rotated" : "")
+                 + ", current = (" + scaledBoardW + " of " + scaledPanelW + "," + scaledPanelH
+                 + "), margin (left, top) = (" + panelMarginX + "," + panelMarginY
+                 + "), unscaled shift (right, down) = " + panelShiftBX + "," + panelShiftBY
+                 + ')' );
             int w = playerInterface.getWidth(), h = playerInterface.getHeight();
             Insets ins = playerInterface.getInsets();
             System.err.println
@@ -4637,6 +4639,9 @@ import javax.swing.JComponent;
             // (r,c) are board coordinates.
             // (x,y) are unscaled pixel coordinates.
 
+            /** Because of panelMarginX, might be != unscaledPanelW */
+            final int currUnscaledPanelW = scaleFromActual(scaledPanelW);
+
             // Top border rows:
 
             final int bMarginX = scaleFromActual(panelMarginX),
@@ -4647,18 +4652,14 @@ import javax.swing.JComponent;
             {
                 final int y = -halfdeltaY - deltaY,
                           xmin = -(deltaX * marginNumHex) - halfdeltaX;
-                for (int x = xmin; x < panelMinBW; x += deltaX)
-                {
+                for (int x = xmin; x < currUnscaledPanelW; x += deltaX)
                     drawHex(g, x, y, SOCBoard.WATER_HEX, -1, -1);
-                }
             }
 
             // Top border ("row -1"): Easier to draw it separately than deal with row coord -1 in main loop.
             // The initial x-coord formula aligns just enough water hexes to cover -panelMarginX.
-            for (int x = -(deltaX * marginNumHex); x < panelMinBW; x += deltaX)
-            {
+            for (int x = -(deltaX * marginNumHex); x < currUnscaledPanelW; x += deltaX)
                 drawHex(g, x, -halfdeltaY, SOCBoard.WATER_HEX, -1, -1);
-            }
 
             // In-bounds board hexes and bottom border:
             final int bw = board.getBoardWidth(), bh = board.getBoardHeight();
@@ -4702,7 +4703,7 @@ import javax.swing.JComponent;
                 }
 
                 // If board is narrower than panel, fill in with water
-                int xmax = panelMinBW - 1;
+                int xmax = currUnscaledPanelW - 1;
                 if (panelMarginX < 0)
                     xmax -= panelMarginX;
                 while (x < xmax)
