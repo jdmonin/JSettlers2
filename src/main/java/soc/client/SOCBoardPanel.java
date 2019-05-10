@@ -761,7 +761,7 @@ import javax.swing.JComponent;
      * Used by {@link #getMinimumSize()}.
      * @since 1.1.08
      * @see #panelMinBW
-     * @see #unscaledPanelW
+     * @see #unscaledBoardW
      * @see #rescaleBoard(int, int, boolean)
      */
     private Dimension minSize;
@@ -843,8 +843,8 @@ import javax.swing.JComponent;
      * from {@link #panelShiftBX}, {@link #panelShiftBY}. Updated in {@link #rescaleBoard(int, int, boolean)}
      * when called with {@code changedMargins == true} from {@link #flushBoardLayoutAndRepaint()}.
      *<P>
-     * See {@link #unscaledPanelW} for unscaled (internal pixel) width.
-     * See {@link #scaledBoardW} for width within {@code scaledPanelW} containing board hexes from game data.
+     * See {@link #scaledBoardW} for board width within {@code scaledPanelW}, containing board hexes from game data
+     * but not including margins. See {@link #unscaledBoardW} for unscaled (internal pixel) board width.
      *<P>
      * Before v2.0.00 these fields were {@code scaledPanelX, scaledPanelY}.
      */
@@ -855,7 +855,7 @@ import javax.swing.JComponent;
      * If {@code scaledPanelW > scaledBoardW}, that margin will be filled by water hexes.
      *<P>
      * Used for {@link #scaleToActual(int)} and {@link #scaleFromActual(int)}:
-     * Scaling ratio is {@code #scaledBoardW} / {@link #unscaledPanelW}.
+     * Scaling ratio is {@code scaledBoardW} / {@link #unscaledBoardW}.
      *
      * @since 2.0.00
      */
@@ -874,7 +874,7 @@ import javax.swing.JComponent;
      *<P>
      * Differs from {@link #minSize} because minSize takes {@link #isRotated} into account.
      *<P>
-     * Rescaling formulas use {@link #scaledBoardW} and {@link #unscaledPanelW} instead of these fields,
+     * Rescaling formulas use {@link #scaledBoardW} and {@link #unscaledBoardW} instead of these fields,
      * to avoid distortion from rotation or board size aspect ratio changes.
      * @since 1.1.08
      */
@@ -911,15 +911,15 @@ import javax.swing.JComponent;
 
     /**
      * Unscaled (internal pixel, but rotated if needed) panel width for
-     * {@link #scaleToActual(int)} and {@link #scaleFromActual(int)};
-     * does not include margins like {@link #scaledPanelW} does.
-     * See {@link #scaledPanelW} for scaled (actual screen pixel) width.
+     * {@link #scaleToActual(int)} and {@link #scaleFromActual(int)}
+     * based on board size; does not include margins like {@link #scaledPanelW} does.
+     * See {@link #scaledBoardW} or {@link #scaledPanelW} for scaled (actual screen pixel) width.
      * Unlike {@link #panelMinBW}, is same axis as {@code scaledPanelW} when {@link #isRotated}.
      * @see #isScaled
      * @see #minSize
      * @since 2.0.00
      */
-    private int unscaledPanelW;
+    private int unscaledBoardW;
 
     /**
      * The board is currently scaled up, larger than
@@ -1596,7 +1596,7 @@ import javax.swing.JComponent;
         }
 
         minSize = new Dimension(scaledPanelW, scaledPanelH);
-        unscaledPanelW = scaledPanelW;
+        unscaledBoardW = scaledPanelW;  // also == panelMinBW (panelMinBH if rotated) at this point
         scaledBoardW = scaledPanelW;
         hasCalledSetSize = false;
         debugShowPotentials = new boolean[10];
@@ -2472,7 +2472,7 @@ import javax.swing.JComponent;
      * @param changedMargins  True if the server has sent a board layout which includes values
      *   for Visual Shift ("VS"). When true, caller should update the {@link #panelShiftBX}, {@link #panelShiftBY},
      *   {@link #panelMinBW}, and {@link #panelMinBH} fields before calling, but <B>not</B> update {@link #minSize}
-     *   or {@link #unscaledPanelW} which will be updated here from {@code panelMinBW}, {@code panelMinBH},
+     *   or {@link #unscaledBoardW} which will be updated here from {@code panelMinBW}, {@code panelMinBH},
      *   and {@link SOCPlayerInterface#displayScale}.
      *   <P>
      *   Before and after calling, caller should check {@link #scaledPanelW} and {@link #scaledPanelH}
@@ -2504,7 +2504,7 @@ import javax.swing.JComponent;
             {
                 minSize.width = w;
                 minSize.height = h;
-                unscaledPanelW = w;
+                unscaledBoardW = w;
 
                 // Change requested new size if required by larger changed margin.
                 // From javadoc the caller knows this might happen and will check for it.
@@ -2516,7 +2516,7 @@ import javax.swing.JComponent;
                     newH = h;
 
                 // Other fields will be updated below as needed by calling scaleToActual,
-                // which will use the new scaledBoardW:unscaledPanelW ratio
+                // which will use the new scaledBoardW:unscaledBoardW ratio
             }
         }
 
@@ -2530,7 +2530,7 @@ import javax.swing.JComponent;
         isScaled = true;      // also needed for that call
         if (scaleToActual(minSize.height) > newH)
         {
-            // Using scaledPanelW:unscaledPanelW as a scaling ratio, newH wouldn't fit contents of board.
+            // Using scaledPanelW:unscaledBoardW as a scaling ratio, newH wouldn't fit contents of board.
             // So, calc ratio based on newH:minSize.height instead
             float ratio = newH / (float) minSize.height;
             scaledBoardW = (int) (ratio * minSize.width);
@@ -2923,7 +2923,7 @@ import javax.swing.JComponent;
     {
         int[] xs = new int[orig.length];
         for (int i = orig.length - 1; i >= 0; --i)
-            xs[i] = (int) ((orig[i] * (long) scaledBoardW) / unscaledPanelW);
+            xs[i] = (int) ((orig[i] * (long) scaledBoardW) / unscaledBoardW);
         return xs;
     }
 
@@ -2943,7 +2943,7 @@ import javax.swing.JComponent;
             xr[i] = width - yorig[i];
         if (rescale)
             for (int i = yorig.length - 1; i >= 0; --i)
-                xr[i] = (int) ((xr[i] * (long) scaledBoardW) / unscaledPanelW);
+                xr[i] = (int) ((xr[i] * (long) scaledBoardW) / unscaledBoardW);
 
         return xr;
     }
@@ -4637,10 +4637,10 @@ import javax.swing.JComponent;
         } else {
             // Large Board has a rectangular array of hexes.
             // (r,c) are board coordinates.
-            // (x,y) are unscaled pixel coordinates.
+            // (x,y) are unscaled board-pixel coordinates.
 
-            /** Because of panelMarginX, might be != unscaledPanelW */
-            final int currUnscaledPanelW = scaleFromActual(scaledPanelW);
+            /** Panel width in board coordinates; because of panelMarginX, might be > unscaledBoardW */
+            final int unscaledPanelW = scaleFromActual(scaledPanelW);
 
             // Top border rows:
 
@@ -4652,13 +4652,13 @@ import javax.swing.JComponent;
             {
                 final int y = -halfdeltaY - deltaY,
                           xmin = -(deltaX * marginNumHex) - halfdeltaX;
-                for (int x = xmin; x < currUnscaledPanelW; x += deltaX)
+                for (int x = xmin; x < unscaledPanelW; x += deltaX)
                     drawHex(g, x, y, SOCBoard.WATER_HEX, -1, -1);
             }
 
             // Top border ("row -1"): Easier to draw it separately than deal with row coord -1 in main loop.
             // The initial x-coord formula aligns just enough water hexes to cover -panelMarginX.
-            for (int x = -(deltaX * marginNumHex); x < currUnscaledPanelW; x += deltaX)
+            for (int x = -(deltaX * marginNumHex); x < unscaledPanelW; x += deltaX)
                 drawHex(g, x, -halfdeltaY, SOCBoard.WATER_HEX, -1, -1);
 
             // In-bounds board hexes and bottom border:
@@ -4703,7 +4703,7 @@ import javax.swing.JComponent;
                 }
 
                 // If board is narrower than panel, fill in with water
-                int xmax = currUnscaledPanelW - 1;
+                int xmax = unscaledPanelW - 1;
                 if (panelMarginX < 0)
                     xmax -= panelMarginX;
                 while (x < xmax)
@@ -5318,7 +5318,7 @@ import javax.swing.JComponent;
         if (! isScaled)
             return;
         for (int i = xa.length - 1; i >= 0; --i)
-            xa[i] = (int) ((xa[i] * (long) scaledBoardW) / unscaledPanelW);
+            xa[i] = (int) ((xa[i] * (long) scaledBoardW) / unscaledBoardW);
     }
 
     /**
@@ -5339,7 +5339,7 @@ import javax.swing.JComponent;
         if (! isScaled)
             return x;
         else
-            return (int) ((x * (long) scaledBoardW) / unscaledPanelW);
+            return (int) ((x * (long) scaledBoardW) / unscaledBoardW);
     }
 
     /**
@@ -5360,7 +5360,7 @@ import javax.swing.JComponent;
         if (! isScaled)
             return x;
         else
-            return (int) ((x * (long) unscaledPanelW) / scaledBoardW);
+            return (int) ((x * (long) unscaledBoardW) / scaledBoardW);
     }
 
     /**
