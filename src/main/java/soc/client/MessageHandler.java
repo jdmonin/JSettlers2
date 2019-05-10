@@ -1704,7 +1704,7 @@ import soc.util.Version;
      * @since 2.0.00
      */
     protected void handleGAMEELEMENT
-    (final SOCGame ga, final int etype, final int value)
+        (final SOCGame ga, final int etype, final int value)
     {
         if (ga == null)
             return;

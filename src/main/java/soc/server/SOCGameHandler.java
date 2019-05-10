@@ -706,8 +706,8 @@ public class SOCGameHandler extends GameHandler
      * </UL>
      * @param ga Game to force end turn
      * @param plName Current player's name. Needed because if they have been disconnected by
-     *               {@link #leaveGame(SOCGame, Connection)},
-     *               their name within game object is already null.
+     *          {@link #leaveGame(SOCGame, Connection)},
+     *          their name within game object is already null.
      * @return true if the turn was ended and game is still active;
      *          false if we find that all players have left and
      *          the gamestate has been changed here to {@link SOCGame#OVER}.
@@ -916,11 +916,10 @@ public class SOCGameHandler extends GameHandler
      * @param gameData Game to join
      * @param c        The connection of joining client
      * @param isReset  Game is a board-reset of an existing game.  This is always false when
-     *                 called from SOCServer instead of from inside the SOCGameHandler.
+     *          called from SOCServer instead of from inside the SOCGameHandler.
      * @param isTakingOver  Client is re-joining; this connection replaces an earlier one which
-     *                      is defunct because of a network problem.
-     *                      If <tt>isTakingOver</tt>, don't send anything to other players.
-     *
+     *          is defunct because of a network problem.
+     *          If <tt>isTakingOver</tt>, don't send anything to other players.
      * @see SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, Map)
      */
     @SuppressWarnings("unchecked")  // for new ArrayList<SOCSpecialItem>[]
@@ -2248,11 +2247,11 @@ public class SOCGameHandler extends GameHandler
      * @param ga  Game object
      * @param gname  Game name
      * @param playerCon  <tt>null</tt>, or current player's client connection to send the
-     *                   {@code PROMPT_PICK_RESOURCES} if they are the only one to pick gold.
-     *                   If more than 1 player has {@link SOCPlayer#getNeedToPickGoldHexResources()},
-     *                   no message will be sent to <tt>playerCon</tt>.
+     *          {@code PROMPT_PICK_RESOURCES} if they are the only one to pick gold.
+     *          If more than 1 player has {@link SOCPlayer#getNeedToPickGoldHexResources()},
+     *          no message will be sent to <tt>playerCon</tt>.
      * @param roll  For gold gained from dice rolls, the roll details, otherwise null.
-     *                   In scenario SC_PIRI, is used to avoid announcing twice for a pick from victory against pirate fleet.
+     *          In scenario SC_PIRI, is used to avoid announcing twice for a pick after victory against pirate fleet.
      * @since 2.0.00
      */
     final void sendGameState_sendGoldPickAnnounceText
@@ -2544,8 +2543,8 @@ public class SOCGameHandler extends GameHandler
      * @param pe  the perpetrator
      * @param vi  the victim
      * @param rsrc  type of resource stolen, as in {@link SOCResourceConstants#SHEEP},
-     *              or {@link SOCResourceConstants#CLOTH_STOLEN_LOCAL} for cloth
-     *              (scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}).
+     *          or {@link SOCResourceConstants#CLOTH_STOLEN_LOCAL} for cloth
+     *          (scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}).
      */
     void reportRobbery(SOCGame ga, SOCPlayer pe, SOCPlayer vi, final int rsrc)
     {
@@ -2625,7 +2624,6 @@ public class SOCGameHandler extends GameHandler
      * @param ga        the game
      * @param offering  the number of the player making the offer
      * @param accepting the number of the player accepting the offer
-     *
      * @see #reportBankTrade(SOCGame, SOCResourceSet, SOCResourceSet)
      */
     void reportTrade(SOCGame ga, int offering, int accepting)
@@ -2659,7 +2657,6 @@ public class SOCGameHandler extends GameHandler
      * @param ga        the game
      * @param give      the number of the player making the offer
      * @param get       the number of the player accepting the offer
-     *
      * @see #reportTrade(SOCGame, int, int)
      */
     void reportBankTrade(SOCGame ga, SOCResourceSet give, SOCResourceSet get)

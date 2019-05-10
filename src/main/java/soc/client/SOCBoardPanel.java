@@ -8747,9 +8747,9 @@ import javax.swing.JComponent;
                         } else {
                             buildShipItem.setLabel(strings.get("board.build.ship"));
                             buildShipItem.setEnabled
-                            ( game.canPlaceShip(player, hSh) &&
-                              (debugPP ? (player.getNumPieces(SOCPlayingPiece.SHIP) > 0)
-                                       : game.couldBuildShip(cpn)) );
+                                ( game.canPlaceShip(player, hSh) &&
+                                  (debugPP ? (player.getNumPieces(SOCPlayingPiece.SHIP) > 0)
+                                           : game.couldBuildShip(cpn)) );
                         }
                       }
                   }
