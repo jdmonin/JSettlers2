@@ -277,6 +277,7 @@ import javax.swing.JComponent;
      * The vertical offset for A-nodes vs Y-nodes along a road;
      * the height of the sloped top/bottom hex edges.
      * @since 2.0.00
+     * @see #HEXHEIGHT
      * @see #hexCornersY
      * @see #halfdeltaY
      */
@@ -669,12 +670,14 @@ import javax.swing.JComponent;
      * @see #deltaX
      * @see #deltaY
      * @see #HALF_HEXHEIGHT
+     * @see #HEXY_OFF_SLOPE_HEIGHT
      */
     private static final int HEXWIDTH = 55, HEXHEIGHT = 64;
 
     /**
      * Half of {@link #HEXHEIGHT}, in unscaled internal pixels, for use with various board graphics.
      * Also == {@link #halfdeltaY} + 9.
+     * @see #HEXY_OFF_SLOPE_HEIGHT
      * @since 2.0.00
      */
     private static final int HALF_HEXHEIGHT = 32;
@@ -3039,7 +3042,7 @@ import javax.swing.JComponent;
                  + panelMinBW + "," + panelMinBH + ')' + ((isRotated) ? ", rotated" : "")
                  + ", current = (" + scaledBoardW + " of " + scaledPanelW + "," + scaledPanelH
                  + "), margin (left, top) = (" + panelMarginX + "," + panelMarginY
-                 + "), unscaled shift (right, down) = " + panelShiftBX + "," + panelShiftBY
+                 + "), unscaled shift (right, down) = (" + panelShiftBX + "," + panelShiftBY
                  + ')' );
             int w = playerInterface.getWidth(), h = playerInterface.getHeight();
             Insets ins = playerInterface.getInsets();
@@ -4608,13 +4611,31 @@ import javax.swing.JComponent;
             // Draw water hexes to all edges of the panel;
             // these are outside the board coordinate system.
 
-            boolean isRowOffset = isRotated;
-            final int hxMin =
-                (panelMarginX <= 0) ? 0 : deltaX * (int) Math.floor(-scaleFromActual(panelMarginX) / (float) deltaX);
-            final int hxMax =
-                (scaledBoardW == scaledPanelW) ? panelMinBW : scaleFromActual(scaledPanelW - panelMarginX);
-            final int hyMax = scaleFromActual(scaledPanelH);  // often same as panelMinBH
-            for (int hy = -deltaY; hy < hyMax; hy += deltaY, isRowOffset = ! isRowOffset)
+            final int hxMin, hxMax, hyMin, hyMax;
+            boolean isRowOffset;
+            if (isRotated)
+            {
+                // Swap X, Y because hex-coords are rotated, screen-coords aren't. Can ignore panelMarginX.
+                hxMin = 0;
+                hxMax = scaleFromActual(getHeight());
+                final int nTopRows =  // at top in board coords; at right in screen coords
+                    (scaledBoardW == scaledPanelW)
+                    ? 1
+                    : 1 + (scaleFromActual(scaledPanelW + HEXY_OFF_SLOPE_HEIGHT - scaledBoardW) / deltaY);
+                hyMin = -deltaY * nTopRows;
+                hyMax = panelMinBH;
+                isRowOffset = (1 == (nTopRows % 2));
+            } else {
+                hxMin =
+                    (panelMarginX <= 0) ? 0 : deltaX * (int) Math.floor(-scaleFromActual(panelMarginX) / (float) deltaX);
+                hxMax =
+                    (scaledBoardW == scaledPanelW) ? panelMinBW : scaleFromActual(scaledPanelW - panelMarginX);
+                hyMin = -deltaY;
+                hyMax = scaleFromActual(scaledPanelH);  // often same as panelMinBH
+                isRowOffset = false;
+            }
+
+            for (int hy = hyMin; hy < hyMax; hy += deltaY, isRowOffset = ! isRowOffset)
             {
                 int hx = hxMin;
                 if (isRowOffset)
