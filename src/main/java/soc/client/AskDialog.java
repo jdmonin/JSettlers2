@@ -75,6 +75,12 @@ public abstract class AskDialog extends JDialog
     implements ActionListener, WindowListener, KeyListener, MouseListener, Runnable
 {
     /**
+     * i18n text strings; will use same locale as SOCPlayerClient's string manager.
+     * @since 2.0.00
+     */
+    protected static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+
+    /**
      * Border width around {@link #msg}.
      */
     private static final int MSG_BORDER = 5;

@@ -38,9 +38,6 @@ import java.awt.Frame;
 @SuppressWarnings("serial")
 public class NotifyDialog extends AskDialog
 {
-    /** i18n text strings */
-    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
-
     /**
      * Creates and shows a new NotifyDialog.
      * Calls {@link EventQueue#invokeLater(Runnable)} to ensure it displays from the proper thread.

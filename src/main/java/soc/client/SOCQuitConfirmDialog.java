@@ -20,7 +20,6 @@
 package soc.client;
 
 import soc.game.SOCGame;
-import soc.util.SOCStringManager;
 
 
 /**
@@ -33,11 +32,6 @@ import soc.util.SOCStringManager;
 @SuppressWarnings("serial")
 /*package*/ class SOCQuitConfirmDialog extends AskDialog
 {
-    /** i18n text strings.
-     *  @since 2.0.00
-     */
-    private static final SOCStringManager strings = SOCStringManager.getClientManager();
-
     /**
      * Creates and shows a new SOCQuitConfirmDialog.
      * If the game is over, the "Quit" button is the default;

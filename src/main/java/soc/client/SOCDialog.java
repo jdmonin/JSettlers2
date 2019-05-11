@@ -58,6 +58,7 @@ import javax.swing.WindowConstants;
  * <LI> {@link #styleButtonsAndLabels(Container)}
  * <LI> {@link #makeJPanel(Font)}
  * <LI> {@link #playerInterface}
+ * <LI> {@link #strings}
  *</UL>
  *
  * Like most GUI classes, SOCDialog is not thread-safe.
@@ -71,6 +72,12 @@ import javax.swing.WindowConstants;
 public abstract class SOCDialog
     extends JDialog implements Runnable
 {
+    /**
+     * i18n text strings; will use same locale as SOCPlayerClient's string manager.
+     * @since 2.0.00
+     */
+    protected static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+
     /** Player interface that's the parent of this dialog, or {@code null}, as passed to constructor */
     protected final SOCPlayerInterface playerInterface;
 
