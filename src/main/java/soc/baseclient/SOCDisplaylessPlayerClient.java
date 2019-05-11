@@ -1013,12 +1013,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
         gotPassword = true;
 
         SOCGame ga = new SOCGame(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            ga.isPractice = isPractice;
-            games.put(mes.getGame(), ga);
-        }
+        ga.isPractice = isPractice;
+        games.put(mes.getGame(), ga);
     }
 
     /**
@@ -1035,18 +1034,15 @@ public class SOCDisplaylessPlayerClient implements Runnable
     {
         String gn = (mes.getGame());
         SOCGame ga = games.get(gn);
+        if (ga == null)
+            return;
 
-        if (ga != null)
+        SOCPlayer player = ga.getPlayer(mes.getNickname());
+
+        if (player != null)
         {
-            SOCPlayer player = ga.getPlayer(mes.getNickname());
-
-            if (player != null)
-            {
-                //
-                //  This user was not a spectator
-                //
-                ga.removePlayer(mes.getNickname());
-            }
+            //  This user was not a spectator
+            ga.removePlayer(mes.getNickname());
         }
     }
 
@@ -1141,29 +1137,28 @@ public class SOCDisplaylessPlayerClient implements Runnable
          * tell the game that a player is sitting
          */
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
+        ga.takeMonitor();
+
+        try
         {
-            ga.takeMonitor();
+            ga.addPlayer(mes.getNickname(), mes.getPlayerNumber());
 
-            try
-            {
-                ga.addPlayer(mes.getNickname(), mes.getPlayerNumber());
-
-                /**
-                 * set the robot flag
-                 */
-                ga.getPlayer(mes.getPlayerNumber()).setRobotFlag(mes.isRobot(), false);
-            }
-            catch (Exception e)
-            {
-                ga.releaseMonitor();
-                System.out.println("Exception caught - " + e);
-                e.printStackTrace();
-            }
-
-            ga.releaseMonitor();
+            /**
+             * set the robot flag
+             */
+            ga.getPlayer(mes.getPlayerNumber()).setRobotFlag(mes.isRobot(), false);
         }
+        catch (Exception e)
+        {
+            ga.releaseMonitor();
+            System.out.println("Exception caught - " + e);
+            e.printStackTrace();
+        }
+
+        ga.releaseMonitor();
     }
 
     /**
@@ -1173,16 +1168,15 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleBOARDLAYOUT(SOCBoardLayout mes)
     {
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            // BOARDLAYOUT is always the v1 board encoding (oldest format)
-            SOCBoard bd = ga.getBoard();
-            bd.setHexLayout(mes.getHexLayout());
-            bd.setNumberLayout(mes.getNumberLayout());
-            bd.setRobberHex(mes.getRobberHex(), false);
-            ga.updateAtBoardLayout();
-        }
+        // BOARDLAYOUT is always the v1 board encoding (oldest format)
+        SOCBoard bd = ga.getBoard();
+        bd.setHexLayout(mes.getHexLayout());
+        bd.setNumberLayout(mes.getNumberLayout());
+        bd.setRobberHex(mes.getRobberHex(), false);
+        ga.updateAtBoardLayout();
     }
 
     /**
@@ -1835,11 +1829,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleDICERESULT(SOCDiceResult mes)
     {
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            ga.setCurrentDice(mes.getResult());
-        }
+        ga.setCurrentDice(mes.getResult());
     }
 
     /**
@@ -1852,44 +1845,44 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public static void handlePUTPIECE(final SOCPutPiece mes, SOCGame ga)
     {
-        if (ga != null)
+        if (ga == null)
+            return;
+
+        final int pieceType = mes.getPieceType();
+        final int coord = mes.getCoordinates();
+        final SOCPlayer pl = (pieceType != SOCPlayingPiece.VILLAGE)
+            ? ga.getPlayer(mes.getPlayerNumber())
+            : null;
+
+        switch (pieceType)
         {
-            final int pieceType = mes.getPieceType();
-            final int coord = mes.getCoordinates();
-            final SOCPlayer pl = (pieceType != SOCPlayingPiece.VILLAGE)
-                ? ga.getPlayer(mes.getPlayerNumber())
-                : null;
+        case SOCPlayingPiece.ROAD:
+            ga.putPiece(new SOCRoad(pl, coord, null));
+            break;
 
-            switch (pieceType)
-            {
-            case SOCPlayingPiece.ROAD:
-                ga.putPiece(new SOCRoad(pl, coord, null));
-                break;
+        case SOCPlayingPiece.SETTLEMENT:
+            ga.putPiece(new SOCSettlement(pl, coord, null));
+            break;
 
-            case SOCPlayingPiece.SETTLEMENT:
-                ga.putPiece(new SOCSettlement(pl, coord, null));
-                break;
+        case SOCPlayingPiece.CITY:
+            ga.putPiece(new SOCCity(pl, coord, null));
+            break;
 
-            case SOCPlayingPiece.CITY:
-                ga.putPiece(new SOCCity(pl, coord, null));
-                break;
+        case SOCPlayingPiece.SHIP:
+            ga.putPiece(new SOCShip(pl, coord, null));
+            break;
 
-            case SOCPlayingPiece.SHIP:
-                ga.putPiece(new SOCShip(pl, coord, null));
-                break;
+        case SOCPlayingPiece.FORTRESS:
+            ga.putPiece(new SOCFortress(pl, coord, ga.getBoard()));
+            break;
 
-            case SOCPlayingPiece.FORTRESS:
-                ga.putPiece(new SOCFortress(pl, coord, ga.getBoard()));
-                break;
+        case SOCPlayingPiece.VILLAGE:
+            ga.putPiece(new SOCVillage(coord, ga.getBoard()));
+            break;
 
-            case SOCPlayingPiece.VILLAGE:
-                ga.putPiece(new SOCVillage(coord, ga.getBoard()));
-                break;
-
-            default:
-                System.err.println
-                    ("Displayless.handlePUTPIECE: game " + ga.getName() + ": Unknown pieceType " + pieceType);
-            }
+        default:
+            System.err.println
+                ("Displayless.handlePUTPIECE: game " + ga.getName() + ": Unknown pieceType " + pieceType);
         }
     }
 
@@ -1952,20 +1945,19 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleMOVEROBBER(SOCMoveRobber mes)
     {
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            /**
-             * Note: Don't call ga.moveRobber() because that will call the
-             * functions to do the stealing.  We just want to say where
-             * the robber moved without seeing if something was stolen.
-             */
-            final int newHex = mes.getCoordinates();
-            if (newHex > 0)
-                ga.getBoard().setRobberHex(newHex, true);
-            else
-                ((SOCBoardLarge) ga.getBoard()).setPirateHex(-newHex, true);
-        }
+        /**
+         * Note: Don't call ga.moveRobber() because that will call the
+         * functions to do the stealing.  We just want to say where
+         * the robber moved without seeing if something was stolen.
+         */
+        final int newHex = mes.getCoordinates();
+        if (newHex > 0)
+            ga.getBoard().setRobberHex(newHex, true);
+        else
+            ((SOCBoardLarge) ga.getBoard()).setPirateHex(-newHex, true);
     }
 
     /**
@@ -1987,12 +1979,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleMAKEOFFER(SOCMakeOffer mes)
     {
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            SOCTradeOffer offer = mes.getOffer();
-            ga.getPlayer(offer.getFrom()).setCurrentOffer(offer);
-        }
+        SOCTradeOffer offer = mes.getOffer();
+        ga.getPlayer(offer.getFrom()).setCurrentOffer(offer);
     }
 
     /**
@@ -2002,17 +1993,16 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleCLEAROFFER(SOCClearOffer mes)
     {
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
+        final int pn = mes.getPlayerNumber();
+        if (pn != -1)
         {
-            final int pn = mes.getPlayerNumber();
-            if (pn != -1)
-            {
-                ga.getPlayer(pn).setCurrentOffer(null);
-            } else {
-                for (int i = 0; i < ga.maxPlayers; ++i)
-                    ga.getPlayer(i).setCurrentOffer(null);
-            }
+            ga.getPlayer(pn).setCurrentOffer(null);
+        } else {
+            for (int i = 0; i < ga.maxPlayers; ++i)
+                ga.getPlayer(i).setCurrentOffer(null);
         }
     }
 
@@ -2050,38 +2040,37 @@ public class SOCDisplaylessPlayerClient implements Runnable
             return;  // <--- ignore: bots don't care about game-end VP card reveals ---
 
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
+        SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+
+        int ctype = mes.getCardType();
+        if ((! isPractice) && (sVersion < SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES))
         {
-            SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+            if (ctype == SOCDevCardConstants.KNIGHT_FOR_VERS_1_X)
+                ctype = SOCDevCardConstants.KNIGHT;
+            else if (ctype == SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X)
+                ctype = SOCDevCardConstants.UNKNOWN;
+        }
 
-            int ctype = mes.getCardType();
-            if ((! isPractice) && (sVersion < SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES))
-            {
-                if (ctype == SOCDevCardConstants.KNIGHT_FOR_VERS_1_X)
-                    ctype = SOCDevCardConstants.KNIGHT;
-                else if (ctype == SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X)
-                    ctype = SOCDevCardConstants.UNKNOWN;
-            }
+        switch (mes.getAction())
+        {
+        case SOCDevCardAction.DRAW:
+            player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
+            break;
 
-            switch (mes.getAction())
-            {
-            case SOCDevCardAction.DRAW:
-                player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
-                break;
+        case SOCDevCardAction.PLAY:
+            player.getInventory().removeDevCard(SOCInventory.OLD, ctype);
+            break;
 
-            case SOCDevCardAction.PLAY:
-                player.getInventory().removeDevCard(SOCInventory.OLD, ctype);
-                break;
+        case SOCDevCardAction.ADD_OLD:
+            player.getInventory().addDevCard(1, SOCInventory.OLD, ctype);
+            break;
 
-            case SOCDevCardAction.ADD_OLD:
-                player.getInventory().addDevCard(1, SOCInventory.OLD, ctype);
-                break;
-
-            case SOCDevCardAction.ADD_NEW:
-                player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
-                break;
-            }
+        case SOCDevCardAction.ADD_NEW:
+            player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
+            break;
         }
     }
 
@@ -2092,11 +2081,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleSETPLAYEDDEVCARD(SOCSetPlayedDevCard mes)
     {
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-            handlePLAYERELEMENT_simple
-                (ga, null, mes.getPlayerNumber(), SOCPlayerElement.SET,
-                 SOCPlayerElement.PLAYED_DEV_CARD_FLAG, mes.hasPlayedDevCard() ? 1 : 0, null);
+        handlePLAYERELEMENT_simple
+            (ga, null, mes.getPlayerNumber(), SOCPlayerElement.SET,
+             SOCPlayerElement.PLAYED_DEV_CARD_FLAG, mes.hasPlayedDevCard() ? 1 : 0, null);
     }
 
     /**
@@ -2220,12 +2210,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleCHANGEFACE(SOCChangeFace mes)
     {
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
-            player.setFaceId(mes.getFaceId());
-        }
+        SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+        player.setFaceId(mes.getFaceId());
     }
 
     /**
@@ -2264,7 +2253,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleSETSEATLOCK(SOCSetSeatLock mes)
     {
         SOCGame ga = games.get(mes.getGame());
-
         if (ga == null)
             return;
 
@@ -2977,4 +2965,5 @@ public class SOCDisplaylessPlayerClient implements Runnable
         new Thread(ex1).start();
         Thread.yield();
     }
+
 }

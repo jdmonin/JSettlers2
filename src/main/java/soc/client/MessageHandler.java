@@ -1144,24 +1144,21 @@ import soc.util.Version;
     {
         String gn = mes.getGame();
         SOCGame ga = client.games.get(gn);
+        if (ga == null)
+            return;
 
-        if (ga != null)
+        final String name = mes.getNickname();
+        final SOCPlayer player = ga.getPlayer(name);
+
+        // Give the listener a chance to clean up while the player is still in the game
+        PlayerClientListener pcl = client.getClientListener(gn);
+        pcl.playerLeft(name, player);
+
+        if (player != null)
         {
-            final String name = mes.getNickname();
-            final SOCPlayer player = ga.getPlayer(name);
-
-            // Give the listener a chance to clean up while the player is still in the game
-            PlayerClientListener pcl = client.getClientListener(gn);
-            pcl.playerLeft(name, player);
-
-            if (player != null)
-            {
-                //
-                //  This user was not a spectator.
-                //  Remove first from listener, then from game data.
-                //
-                ga.removePlayer(name);
-            }
+            //  This user was not a spectator.
+            //  Remove first from listener, then from game data.
+            ga.removePlayer(name);
         }
     }
 
@@ -1248,50 +1245,49 @@ import soc.util.Version;
          * tell the game that a player is sitting
          */
         final SOCGame ga = client.games.get(mes.getGame());
-        if (ga != null)
+        if (ga == null)
+            return;
+        final int mesPN = mes.getPlayerNumber();
+
+        ga.takeMonitor();
+        SOCPlayer player = null;
+        try
         {
-            final int mesPN = mes.getPlayerNumber();
+            ga.addPlayer(mes.getNickname(), mesPN);
 
-            ga.takeMonitor();
-            SOCPlayer player = null;
-            try
-            {
-                ga.addPlayer(mes.getNickname(), mesPN);
+            player = ga.getPlayer(mesPN);
+            player.setRobotFlag(mes.isRobot(), false);
+        }
+        catch (Exception e)
+        {
+            System.out.println("Exception caught - " + e);
+            e.printStackTrace();
 
-                player = ga.getPlayer(mesPN);
-                player.setRobotFlag(mes.isRobot(), false);
-            }
-            catch (Exception e)
-            {
-                System.out.println("Exception caught - " + e);
-                e.printStackTrace();
+            return;
+        }
+        finally
+        {
+            ga.releaseMonitor();
+        }
 
-                return;
-            }
-            finally
-            {
-                ga.releaseMonitor();
-            }
+        /**
+         * tell the GUI that a player is sitting
+         */
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
+        pcl.playerSitdown(mesPN, mes.getNickname());
 
+        /**
+         * let the board panel & building panel find our player object if we sat down
+         */
+        if (client.getNickname().equals(mes.getNickname()))
+        {
             /**
-             * tell the GUI that a player is sitting
+             * change the face (this is so that old faces don't 'stick')
              */
-            PlayerClientListener pcl = client.getClientListener(mes.getGame());
-            pcl.playerSitdown(mesPN, mes.getNickname());
-
-            /**
-             * let the board panel & building panel find our player object if we sat down
-             */
-            if (client.getNickname().equals(mes.getNickname()))
+            if (! ga.isBoardReset() && (ga.getGameState() < SOCGame.START1A))
             {
-                /**
-                 * change the face (this is so that old faces don't 'stick')
-                 */
-                if (! ga.isBoardReset() && (ga.getGameState() < SOCGame.START1A))
-                {
-                    ga.getPlayer(mesPN).setFaceId(client.lastFaceChange);
-                    gms.changeFace(ga, client.lastFaceChange);
-                }
+                ga.getPlayer(mesPN).setFaceId(client.lastFaceChange);
+                gms.changeFace(ga, client.lastFaceChange);
             }
         }
     }
@@ -1305,19 +1301,18 @@ import soc.util.Version;
     {
         System.err.println("L2561 boardlayout at " + System.currentTimeMillis());
         SOCGame ga = client.games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            // BOARDLAYOUT is always the v1 board encoding (oldest format)
-            SOCBoard bd = ga.getBoard();
-            bd.setHexLayout(mes.getHexLayout());
-            bd.setNumberLayout(mes.getNumberLayout());
-            bd.setRobberHex(mes.getRobberHex(), false);
-            ga.updateAtBoardLayout();
+        // BOARDLAYOUT is always the v1 board encoding (oldest format)
+        SOCBoard bd = ga.getBoard();
+        bd.setHexLayout(mes.getHexLayout());
+        bd.setNumberLayout(mes.getNumberLayout());
+        bd.setRobberHex(mes.getRobberHex(), false);
+        ga.updateAtBoardLayout();
 
-            PlayerClientListener pcl = client.getClientListener(mes.getGame());
-            pcl.boardLayoutUpdated();
-        }
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
+        pcl.boardLayoutUpdated();
     }
 
     /**
@@ -1786,7 +1781,7 @@ import soc.util.Version;
         final String gameName = mes.getGame();
         SOCGame ga = client.games.get(gameName);
         if (ga == null)
-            throw new IllegalStateException("No game found for name '"+gameName+"'");
+            return;
 
         final int cpn = ga.getCurrentPlayerNumber();
         SOCPlayer p = null;
@@ -1894,27 +1889,26 @@ import soc.util.Version;
     protected void handleMOVEROBBER(SOCMoveRobber mes)
     {
         SOCGame ga = client.games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
+        /**
+         * Note: Don't call ga.moveRobber() because that will call the
+         * functions to do the stealing.  We just want to say where
+         * the robber moved without seeing if something was stolen.
+         */
+        int newHex = mes.getCoordinates();
+        final boolean isPirate = (newHex <= 0);
+        if (! isPirate)
         {
-            /**
-             * Note: Don't call ga.moveRobber() because that will call the
-             * functions to do the stealing.  We just want to say where
-             * the robber moved without seeing if something was stolen.
-             */
-            int newHex = mes.getCoordinates();
-            final boolean isPirate = (newHex <= 0);
-            if (! isPirate)
-            {
-                ga.getBoard().setRobberHex(newHex, true);
-            } else {
-                newHex = -newHex;
-                ((SOCBoardLarge) ga.getBoard()).setPirateHex(newHex, true);
-            }
-
-            PlayerClientListener pcl = client.getClientListener(mes.getGame());
-            pcl.robberMoved(newHex, isPirate);
+            ga.getBoard().setRobberHex(newHex, true);
+        } else {
+            newHex = -newHex;
+            ((SOCBoardLarge) ga.getBoard()).setPirateHex(newHex, true);
         }
+
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
+        pcl.robberMoved(newHex, isPirate);
     }
 
     /**
@@ -2009,23 +2003,22 @@ import soc.util.Version;
     protected void handleCLEAROFFER(final SOCClearOffer mes)
     {
         final SOCGame ga = client.games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            final int pn = mes.getPlayerNumber();
-            SOCPlayer player = null;
-            if (pn != -1)
-                player = ga.getPlayer(pn);
+        final int pn = mes.getPlayerNumber();
+        SOCPlayer player = null;
+        if (pn != -1)
+            player = ga.getPlayer(pn);
 
-            if (pn != -1)
-                ga.getPlayer(pn).setCurrentOffer(null);
-            else
-                for (int i = 0; i < ga.maxPlayers; ++i)
-                    ga.getPlayer(i).setCurrentOffer(null);
+        if (pn != -1)
+            ga.getPlayer(pn).setCurrentOffer(null);
+        else
+            for (int i = 0; i < ga.maxPlayers; ++i)
+                ga.getPlayer(i).setCurrentOffer(null);
 
-            PlayerClientListener pcl = client.getClientListener(mes.getGame());
-            pcl.requestedTradeClear(player, false);
-        }
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
+        pcl.requestedTradeClear(player, false);
     }
 
     /**
@@ -2152,11 +2145,12 @@ import soc.util.Version;
     protected void handleSETPLAYEDDEVCARD(SOCSetPlayedDevCard mes)
     {
         SOCGame ga = client.games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
-                (ga, null, mes.getPlayerNumber(), SOCPlayerElement.SET,
-                 SOCPlayerElement.PLAYED_DEV_CARD_FLAG, mes.hasPlayedDevCard() ? 1 : 0, null);
+        SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
+            (ga, null, mes.getPlayerNumber(), SOCPlayerElement.SET,
+             SOCPlayerElement.PLAYED_DEV_CARD_FLAG, mes.hasPlayedDevCard() ? 1 : 0, null);
     }
 
     /**
@@ -2186,14 +2180,13 @@ import soc.util.Version;
     protected void handleCHANGEFACE(SOCChangeFace mes)
     {
         SOCGame ga = client.games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
-            PlayerClientListener pcl = client.getClientListener(mes.getGame());
-            player.setFaceId(mes.getFaceId());
-            pcl.playerFaceChanged(player, mes.getFaceId());
-        }
+        SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
+        player.setFaceId(mes.getFaceId());
+        pcl.playerFaceChanged(player, mes.getFaceId());
     }
 
     /**

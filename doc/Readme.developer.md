@@ -430,6 +430,9 @@ ideas.
 - Refactor `SOCRobotClient`: Move simple handle-methods which don't put the
   message into brainQ, but only update game fields/methods, into
   SOCDisplayless if possible.
+- Refactor `SOCDisplaylessPlayerClient` like SOCPlayerClient: Move handler methods into
+  a class like MessageHandler, and sender methods into a class like GameMessageSender.
+  Watch for method calls from the `soc.robot` and `soc.client` packages.
 - Refactor: `SOCGameOption` static methods to check and change values within a set
 - Refactor: name of dev-cards consolidate
 - Refactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
