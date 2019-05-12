@@ -2491,7 +2491,8 @@ public class SOCBoardAtServer extends SOCBoardLarge
      *     If {@code maxPlayers} == 4 and {@code gameOpts} contains {@code "PL"},
      *     that overrides {@code maxPlayers} using the same logic as in {@link #makeNewBoard(Map)}.
      * @return encoded size (0xRRCC), the same format as game option {@code "_BHW"}
-     * @see SOCBoardLarge#getBoardSize(Map, int)
+     * @see SOCBoardLarge#getBoardSize(Map)
+     * @see #getBoardShift(Map)
      */
     private static int getBoardSize(final Map<String, SOCGameOption> gameOpts, final int maxPlayers)
     {
@@ -2563,10 +2564,14 @@ public class SOCBoardAtServer extends SOCBoardLarge
     /**
      * Given max players and scenario from {@code gameOpts},
      * get this board's Visual Shift amount if any (layout part "VS").
-     * See {@link #getAddedLayoutPart(String)} javadoc for details on "VS".
+     * Determined at board creation, does not vary based on the specific layout details
+     * randomly generated later at {@link SOCGame#startGame()}.
+     *<P>
+     * See {@link SOCBoardLarge#getAddedLayoutPart(String)} javadoc for details on "VS".
      * @param gameOpts  Game options, or null.
      *     Looks for {@code "PL"} for max players and {@code "SC"} for scenario name key.
      * @return array with vsDown, vsRight, or {@code null}
+     * @see #getBoardSize(Map, int)
      */
     private static int[] getBoardShift
         (final Map<String, SOCGameOption> gameOpts)

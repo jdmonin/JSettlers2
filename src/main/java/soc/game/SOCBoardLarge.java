@@ -1251,6 +1251,10 @@ public class SOCBoardLarge extends SOCBoard
      *         of water of size 2/4 of a hex above, and 3/4 of a hex to the left of, the board's in-game boundary.
      *         The client should show the board's entire {@link #getBoardHeight()} and {@link #getBoardWidth()}
      *         plus this margin.
+     *         <P>
+     *         A board's {@code "VS"} is determined at its creation using only the scenario/options and player count,
+     *         and doesn't vary based on the specific layout details randomly generated later
+     *         at {@link SOCGame#startGame()}. See {@link soc.server.SOCBoardAtServer#getBoardShift(Map)}.
      *</UL>
      * The "CE" and "VE" layout parts are lists of Special Edges on the board.  During game play, these
      * edges may change.  The server announces each change with a

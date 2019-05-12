@@ -2220,7 +2220,8 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         playerInterfaces.remove(game.getName());
     }
 
-    public PlayerClientListener gameJoined(SOCGame game, final Map<String, Object> localPrefs)
+    public PlayerClientListener gameJoined
+        (final SOCGame game, final int[] layoutVS, final Map<String, Object> localPrefs)
     {
         nick.setEditable(false);
         pass.setEditable(false);
@@ -2236,7 +2237,8 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             hasJoinedServer = true;
         }
 
-        SOCPlayerInterface pi = new SOCPlayerInterface(game.getName(), SwingMainDisplay.this, game, localPrefs);
+        final SOCPlayerInterface pi = new SOCPlayerInterface
+            (game.getName(), SwingMainDisplay.this, game, layoutVS, localPrefs);
         System.err.println("L2325 new pi at " + System.currentTimeMillis());
         pi.setVisible(true);
         System.err.println("L2328 visible at " + System.currentTimeMillis());

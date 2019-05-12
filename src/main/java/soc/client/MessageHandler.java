@@ -1114,7 +1114,7 @@ import soc.util.Version;
         {
             ga.isPractice = isPractice;
             PlayerClientListener clientListener =
-                client.getMainDisplay().gameJoined(ga, client.getGameReqLocalPrefs().get(gaName));
+                client.getMainDisplay().gameJoined(ga, mes.getLayoutVS(), client.getGameReqLocalPrefs().get(gaName));
             client.getClientListeners().put(gaName, clientListener);
             client.games.put(gaName, ga);
         }

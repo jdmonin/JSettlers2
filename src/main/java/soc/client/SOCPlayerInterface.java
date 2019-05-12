@@ -156,8 +156,9 @@ public class SOCPlayerInterface extends Frame
     /**
      * Minimum frame width calculated in constructor from this game's player count and board,
      * based on {@link #WIDTH_MIN_4PL} and {@link #displayScale}.
-     * Updated only in {@link #updateAtNewBoard()} if board layout part
-     * Visual Shift ("VS") increases {@link #boardPanel}'s size.
+     * Optional board layout part Visual Shift ("VS") may increase {@link #boardPanel}'s size
+     * and {@code width_base}.
+     * @see #height_base
      * @since 1.2.00
      */
     private int width_base;
@@ -165,8 +166,9 @@ public class SOCPlayerInterface extends Frame
     /**
      * Minimum frame height calculated in constructor from this game's player count and board,
      * based on {@link #HEIGHT_MIN_4PL} and {@link #displayScale}.
-     * Updated only in {@link #updateAtNewBoard()} if board layout part
-     * Visual Shift ("VS") increases {@link #boardPanel}'s size.
+     * Optional board layout part Visual Shift ("VS") may increase {@link #boardPanel}'s size
+     * and {@code height_base}.
+     * @see #width_base
      * @since 1.2.00
      */
     private int height_base;
@@ -457,6 +459,13 @@ public class SOCPlayerInterface extends Frame
     protected boolean gameHasErrorOrDeletion;
 
     /**
+     * Optional board layout "visual shift" (Added Layout Part "VS") to use
+     * when sizing and laying out the game's {@link SOCBoardPanel}, or {@code null}.
+     * @since 2.0.00
+     */
+    private final int[] layoutVS;
+
+    /**
      * this other player has requested a board reset; voting is under way.
      * Null if no board reset vote is under way.
      *
@@ -623,6 +632,8 @@ public class SOCPlayerInterface extends Frame
      * @param title  title for this interface - game name
      * @param md     the client main display that spawned us
      * @param ga     the game associated with this interface; must not be {@code null}
+     * @param layoutVS  Optional board layout "visual shift" (Added Layout Part "VS")
+     *     to use when sizing and laying out the new game's {@link SOCBoardPanel}, or {@code null}
      * @param localPrefs  optional map of per-game local preferences to use in this {@code SOCPlayerInterface},
      *     or {@code null}. Preference name keys are {@link #PREF_SOUND_MUTE}, etc.
      *     Values for boolean prefs should be {@link Boolean#TRUE} or {@code .FALSE}.
@@ -631,7 +642,8 @@ public class SOCPlayerInterface extends Frame
      * @throws IllegalArgumentException if a {@code localPrefs} value isn't the expected type
      *     ({@link Integer} or {@link Boolean}) based on its key's javadoc.
      */
-    public SOCPlayerInterface(String title, MainDisplay md, SOCGame ga, final Map<String, Object> localPrefs)
+    public SOCPlayerInterface
+        (String title, MainDisplay md, SOCGame ga, final int[] layoutVS, final Map<String, Object> localPrefs)
         throws IllegalArgumentException
     {
         super(strings.get("interface.title.game", title)
@@ -648,6 +660,7 @@ public class SOCPlayerInterface extends Frame
         game = ga;
         game.setGameEventListener(this);
         knowsGameState = (game.getGameState() != 0);
+        this.layoutVS = layoutVS;
         clientListener = new ClientBridge(this);
         gameStats = new SOCGameStatistics(game);
         gameIsStarting = false;
@@ -990,7 +1003,7 @@ public class SOCPlayerInterface extends Frame
         /**
          * initialize the game board display and add it to the interface
          */
-        boardPanel = new SOCBoardPanel(this);
+        boardPanel = new SOCBoardPanel(this, layoutVS);
         boardPanel.setBackground(new Color(63, 86, 139));  // sea blue; briefly visible at start before water tiles are drawn
         boardPanel.setForeground(Color.black);
         boardPanel.setFont(sans10Font);
@@ -1504,6 +1517,7 @@ public class SOCPlayerInterface extends Frame
      * @return our player's hand interface, or null if not in a game.
      * @see #clientIsCurrentPlayer()
      * @see #isClientPlayer(SOCPlayer)
+     * @see #getClientPlayerNumber()
      * @since 1.1.00
      */
     public SOCHandPanel getClientHand()
@@ -1511,12 +1525,14 @@ public class SOCPlayerInterface extends Frame
         return clientHand;
     }
 
-    /** Update the client player's SOCHandPanel interface, for joining
-     *  or leaving a game.
+    /**
+     * Update the client player's {@link SOCHandPanel} reference, for joining
+     * or leaving a game.
      *
-     *  Set by SOCHandPanel's removePlayer() and addPlayer() methods.
+     * Set by SOCHandPanel's removePlayer() and addPlayer() methods.
      *
      * @param h  The SOCHandPanel for us, or null if none (leaving).
+     * @see #getClientHand()
      * @since 1.1.00
      */
     public void setClientHand(SOCHandPanel h)
@@ -2588,25 +2604,16 @@ public class SOCPlayerInterface extends Frame
     /**
      * Update interface after the server sends us a new board layout.
      * Call after setting game data and board data.
-     * Calls {@link SOCBoardPanel#flushBoardLayoutAndRepaint()}, which
-     * may change its minimum size if board has Layout Part "VS".
+     * Calls {@link SOCBoardPanel#flushBoardLayoutAndRepaint()}.
      * Updates display of board-related counters, such as {@link soc.game.SOCBoardLarge#getCloth()}.
      * Not needed if calling {@link #resetBoard(SOCGame, int, int)}.
      * @since 2.0.00
      */
     public void updateAtNewBoard()
     {
-        Dimension sizeChange = boardPanel.flushBoardLayoutAndRepaint();
+        boardPanel.flushBoardLayoutAndRepaint();
         if (game.isGameOptionSet(SOCGameOption.K_SC_CLVI))
             buildingPanel.updateClothCount();
-        if (sizeChange != null)
-        {
-            final int dw = sizeChange.width, dh = sizeChange.height;
-            width_base += dw;
-            height_base += dh;
-            invalidate();
-            setSize(getWidth() + dw, getHeight() + dh);
-        }
     }
 
     /**

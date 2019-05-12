@@ -939,7 +939,12 @@ public class SOCGameHandler extends GameHandler
                 srv.sendGameScenarioInfo(gameScen, null, c, false);
 
             // Now, join game
-            c.put(SOCJoinGameAuth.toCmd(gameName));
+            final SOCBoard board = gameData.getBoard();
+            final int[] boardVS =
+                (board instanceof SOCBoardLarge)
+                ? ((SOCBoardLarge) board).getAddedLayoutPart("VS")  // might be null, is ok
+                : null;
+            c.put(new SOCJoinGameAuth(gameName, boardVS).toCmd());
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_OK, c.getLocalized("member.welcome")));  // "Welcome to Java Settlers of Catan!"
         }

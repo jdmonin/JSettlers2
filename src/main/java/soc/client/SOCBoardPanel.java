@@ -128,8 +128,8 @@ import javax.swing.JComponent;
  *<H3>Sequence for loading, rendering, and drawing images:</H3>
  *<UL>
  *  <LI> Constructor calls {@link #loadImages(Component, boolean)} and {@link #rescaleCoordinateArrays()}
- *  <LI> Layout manager calls {@code setSize(..)} which calls {@link #rescaleBoard(int, int, boolean)}.
- *  <LI> {@link #rescaleBoard(int, int, boolean) rescaleBoard(..)} scales hex images, calls
+ *  <LI> Layout manager calls {@code setSize(..)} which calls {@link #rescaleBoard(int, int)}.
+ *  <LI> {@link #rescaleBoard(int, int) rescaleBoard(..)} scales hex images, calls
  *       {@link #renderBorderedHex(Image, Image, Color)} and {@link #renderPortImages()}
  *       into image buffers to use for redrawing the board
  *  <LI> {@link #paint(Graphics)} calls {@link #drawBoard(Graphics)}
@@ -470,7 +470,7 @@ import javax.swing.JComponent;
     /**
      * Border colors for hex rendering.
      * Same indexes as {@link #hexes}.
-     * Used in {@link #rescaleBoard(int, int, boolean)} with mask {@code hexBorder.gif}.
+     * Used in {@link #rescaleBoard(int, int)} with mask {@code hexBorder.gif}.
      * @see #ROTAT_HEX_BORDER_COLORS
      * @since 1.1.20
      */
@@ -485,7 +485,7 @@ import javax.swing.JComponent;
     /**
      * Border colors for hex rendering when {@link #isRotated}.
      * Same indexes as {@link #rotatHexes}.
-     * Used in {@link #rescaleBoard(int, int, boolean)} with mask {@code hexBorder.gif}.
+     * Used in {@link #rescaleBoard(int, int)} with mask {@code hexBorder.gif}.
      * @see #HEX_BORDER_COLORS
      * @since 1.1.20
      */
@@ -765,7 +765,7 @@ import javax.swing.JComponent;
      * @since 1.1.08
      * @see #panelMinBW
      * @see #unscaledBoardW
-     * @see #rescaleBoard(int, int, boolean)
+     * @see #rescaleBoard(int, int)
      */
     private Dimension minSize;
 
@@ -843,8 +843,7 @@ import javax.swing.JComponent;
      * actual size on-screen, not internal-pixels size
      * ({@link #panelMinBW}, {@link #panelMinBH}).
      * Includes any positive {@link #panelMarginX}/{@link #panelMarginY}
-     * from {@link #panelShiftBX}, {@link #panelShiftBY}. Updated in {@link #rescaleBoard(int, int, boolean)}
-     * when called with {@code changedMargins == true} from {@link #flushBoardLayoutAndRepaint()}.
+     * from {@link #panelShiftBX}, {@link #panelShiftBY}.
      *<P>
      * See {@link #scaledBoardW} for board width within {@code scaledPanelW}, containing board hexes from game data
      * but not including margins. See {@link #unscaledBoardW} for unscaled (internal pixel) board width.
@@ -867,10 +866,9 @@ import javax.swing.JComponent;
     /**
      * <tt>panelMinBW</tt> and <tt>panelMinBH</tt> are the minimum width and height,
      * in board-internal pixel coordinates (not rotated or scaled). Based on board's
-     * {@link SOCBoard#getBoardWidth()} and {@link SOCBoard#getBoardHeight()}
-     * plus any top or left margin from the Visual Shift layout part "VS":
-     * {@link #panelShiftBX}, {@link #panelShiftBY}. Updated in {@link #rescaleBoard(int, int, boolean)}
-     * when called with {@code changedMargins == true} from {@link #flushBoardLayoutAndRepaint()}.
+     * {@link SOCBoard#getBoardWidth()} and {@link SOCBoard#getBoardHeight()},
+     * plus any top or left margin from the Visual Shift layout part "VS"
+     * passed into our constructor: {@link #panelShiftBX}, {@link #panelShiftBY}.
      *<P>
      * Differs from static {@link #PANELX}, {@link #PANELY} for {@link #is6player 6-player board}
      * and the {@link #isLargeBoard large board}.
@@ -885,10 +883,9 @@ import javax.swing.JComponent;
 
     /**
      * Margin size, in board-internal pixels (not rotated or scaled),
-     * for the Visual Shift layout part ("VS") if any.
+     * for the Visual Shift layout part ("VS") if any passed into our constructor.
      * For actual-pixels size see {@link #panelMarginX}, {@link #panelMarginY}.
-     * The board's Visual Shift is unknown at panel construction, but is learned a few messages later when
-     * {@link #flushBoardLayoutAndRepaint()} is called because server has sent the Board Layout.
+     *<P>
      * For more info on "VS" see the "Added Layout Parts" section of
      * {@link SOCBoardLarge#getAddedLayoutPart(String) BL.getAddedLayoutPart("VS")}'s javadoc.
      * @since 2.0.00
@@ -907,7 +904,7 @@ import javax.swing.JComponent;
      *<P>
      * Used only when not {@link #isRotated}, and either {@link #isLargeBoard} or
      * {@link #scaledBoardW} &lt; {@link #scaledPanelW}; otherwise 0.
-     * Updated in {@link #rescaleBoard(int, int, boolean)}.
+     * Updated in {@link #rescaleBoard(int, int)}.
      * @since 2.0.00
      */
     protected int panelMarginX, panelMarginY;
@@ -937,7 +934,7 @@ import javax.swing.JComponent;
      *
      * @see #isScaledOrRotated
      * @see #scaledAt
-     * @see #rescaleBoard(int, int, boolean)
+     * @see #rescaleBoard(int, int)
      */
     protected boolean isScaled;
 
@@ -1532,12 +1529,14 @@ import javax.swing.JComponent;
 
     /**
      * create a new board panel in a game interface.
-     * The minimum size needed on-screen is based on the game options.
+     * The minimum size needed on-screen is based on the game options and {@code layoutVS}.
      * After construction, call {@link #getMinimumSize()} to read it.
      *
      * @param pi  the player interface that spawned us
+     * @param layoutVS  Optional board layout "visual shift" (Added Layout Part "VS")
+     *     to use when setting minimum size of this {@code SOCBoardPanel}, or {@code null}
      */
-    public SOCBoardPanel(SOCPlayerInterface pi)
+    public SOCBoardPanel(final SOCPlayerInterface pi, final int[] layoutVS)
     {
         super();
         setOpaque(true);
@@ -1585,15 +1584,33 @@ import javax.swing.JComponent;
                     bw = BOARDWIDTH_VISUAL_MIN;
                 scaledPanelW = halfdeltaX * bw + PANELPAD_LBOARD_RT;
                 scaledPanelH = halfdeltaY * bh + PANELPAD_LBOARD_BTM + HEXY_OFF_SLOPE_HEIGHT;
-                // Any panelShiftBX, panelShiftBY won't be known until later when the
-                // layout is generated and sent to us, so keep them 0 for now and
-                // check later in flushBoardLayoutAndRepaint().
+
+                if (layoutVS != null)
+                {
+                    final int sBX, sBY;
+                    sBY = (layoutVS[0] * halfdeltaY) / 2;
+                    sBX = (layoutVS[1] * halfdeltaX) / 2;
+
+                    if (sBX != 0)
+                    {
+                        panelMarginX = panelShiftBX = sBX;
+                        if (sBX > 0)
+                            scaledPanelW += sBX;
+                    }
+                    if (sBY != 0)
+                    {
+                        panelMarginY = panelShiftBY = sBY;
+                        if (sBY > 0)
+                            scaledPanelH += sBY;
+                    }
+                }
             } else {
                 scaledPanelW = PANELX;
                 scaledPanelH = PANELY;
                 panelShiftBX = -halfdeltaX / 2;  // center the classic 4-player board
                 panelMarginX = panelShiftBX;
             }
+
             panelMinBW = scaledPanelW;
             panelMinBH = scaledPanelH;
         }
@@ -2174,7 +2191,8 @@ import javax.swing.JComponent;
      * Minimum size is set in the constructor.
      * On the classic 4-player and 6-player boards, the size is based on {@link #PANELX} and {@link #PANELY}.
      * When {@link SOCGame#hasSeaBoard}, the size is based on {@link SOCBoard#getBoardWidth()}
-     * and {@link SOCBoard#getBoardHeight() .getBoardHeight()}.
+     * and {@link SOCBoard#getBoardHeight() .getBoardHeight()} plus any positive optional
+     * {@link SOCBoardLarge#getAddedLayoutPart(String) SOCBoardLarge.getAddedLayoutPart("VS")}.
      *
      * @return minimum size
      * @see #getExtraSizeFromBoard()
@@ -2188,9 +2206,11 @@ import javax.swing.JComponent;
     /**
      * Get the amount of our current width and height that comes from the board being larger than
      * the standard 4-player board size. Compares {@link SOCBoard#getBoardWidth()}, {@link SOCBoard#getBoardHeight()}
-     * against {@link SOCBoardPanel#BOARDWIDTH_VISUAL_MIN}, {@link SOCBoardPanel#BOARDHEIGHT_VISUAL_MIN}, and
-     * adjusts for SOCBoardPanel padding constants.
-     * @return extra size, in screen pixels
+     * against {@link SOCBoardPanel#BOARDWIDTH_VISUAL_MIN}, {@link SOCBoardPanel#BOARDHEIGHT_VISUAL_MIN}.
+     * Adjusts for SOCBoardPanel padding constants and any space added by a positive optional
+     * {@link SOCBoardLarge#getAddedLayoutPart(String) SOCBoardLarge.getAddedLayoutPart("VS")}.
+     *
+     * @return extra size in screen pixels, or (0, 0)
      * @since 2.0.00
      */
     public Dimension getExtraSizeFromBoard()
@@ -2216,9 +2236,15 @@ import javax.swing.JComponent;
         bh -= SOCBoard.HEIGHT_VISUAL_ORIGINAL;
         bw -= SOCBoard.WIDTH_VISUAL_ORIGINAL;
 
+        int w = bw * halfdeltaX, h = bh * halfdeltaY;
+        if (panelShiftBX > 0)
+            w += panelShiftBX;
+        if (panelShiftBY > 0)
+            h += panelShiftBY;
+
         return new Dimension
-            (scaleToActual((bw * halfdeltaX) - PANELPAD_CBOARD4_WIDTH + PANELPAD_LBOARD_RT),
-             scaleToActual((bh * halfdeltaY) - PANELPAD_CBOARD4_HEIGHT + PANELPAD_LBOARD_BTM));
+            (scaleToActual(w - PANELPAD_CBOARD4_WIDTH + PANELPAD_LBOARD_RT),
+             scaleToActual(h - PANELPAD_CBOARD4_HEIGHT + PANELPAD_LBOARD_BTM));
             // ignore HEXY_OFF_SLOPE_HEIGHT: it adds same amount to classic & sea board height
     }
 
@@ -2240,7 +2266,7 @@ import javax.swing.JComponent;
 
         // If below min-size, rescaleBoard throws
         // IllegalArgumentException. Pass to our caller.
-        rescaleBoard(newW, newH, false);
+        rescaleBoard(newW, newH);
 
         // Resize
         super.setSize(newW, newH);
@@ -2281,9 +2307,8 @@ import javax.swing.JComponent;
         throws IllegalArgumentException
     {
         if ((w != scaledPanelW) || (h != scaledPanelH))
-        {
-            rescaleBoard(w, h, false);
-        }
+            rescaleBoard(w, h);
+
         super.setBounds(x, y, w, h);
     }
 
@@ -2355,74 +2380,12 @@ import javax.swing.JComponent;
 
     /**
      * Clear the board layout (as rendered in the empty-board buffer) and trigger a repaint.
-     *<P>
-     * If needed, update margins and visual shift from Added Layout Part {@code "VS"}.
-     * Doing so will call {@link #rescaleBoard(int, int, boolean)} and may change
-     * the board panel's minimum size and/or actual current size. Returns true if current size changes
-     * here: If so, caller must re-do layout of this panel within its container.
-     *<P>
-     * "VS" is part of the initial board layout from the server and its value won't change at
-     * start of the game. This method and {@code rescaleBoard} check for zero or changed margins because
-     * the board layout and margins are unknown (0) at SOCBoardPanel construction time.
      *
-     * @return  Null unless current {@link #getSize()} has changed from Visual Shift ({@code "VS"}).
-     *     If not null, the delta change (new - old) in this panel's actual width and height,
-     *     which has been multiplied by {@link SOCPlayerInterface#displayScale}
      * @since 1.1.08
      * @see SOCPlayerInterface#updateAtNewBoard()
      */
-    public Dimension flushBoardLayoutAndRepaint()
+    public void flushBoardLayoutAndRepaint()
     {
-        Dimension ret = null;
-
-        if (board instanceof SOCBoardLarge)
-        {
-            final int prevSBX = panelShiftBX, prevSBY = panelShiftBY;
-            final int sBX, sBY;
-            boolean changed = false;
-            int[] boardVS = ((SOCBoardLarge) board).getAddedLayoutPart("VS");
-            if (boardVS != null)
-            {
-                sBY = (boardVS[0] * halfdeltaY) / 2;
-                sBX = (boardVS[1] * halfdeltaX) / 2;
-            } else {
-                sBY = 0;
-                sBX = 0;
-            }
-
-            if (sBX != prevSBX)
-            {
-                if (prevSBX > 0)
-                    panelMinBW -= prevSBX;
-                panelShiftBX = sBX;
-                changed = true;
-                if (sBX > 0)
-                    panelMinBW += sBX;
-            }
-            if (sBY != prevSBY)
-            {
-                if (prevSBY > 0)
-                    panelMinBH -= prevSBY;
-                panelShiftBY = sBY;
-                changed = true;
-                if (sBY > 0)
-                    panelMinBH += sBY;
-            }
-
-            if (changed)
-            {
-                final int w = scaledPanelW, h = scaledPanelH;
-                rescaleBoard(w, h, true);
-                   // Updates scaledPanelH, minSize, panelMarginX, etc.
-                   // If margins increased, also may have updated minSize, panelMinBW, scaledPanelH, etc.
-                if ((w != scaledPanelW) || (h != scaledPanelH))
-                {
-                    ret = new Dimension(scaledPanelW - w, scaledPanelH - h);
-                    super.setSize(scaledPanelW, scaledPanelH);
-                }
-            }
-        }
-
         if (emptyBoardBuffer != null)
         {
             emptyBoardBuffer.flush();
@@ -2435,8 +2398,6 @@ import javax.swing.JComponent;
         }
 
         repaint();
-
-        return ret;
     }
 
     /**
@@ -2472,56 +2433,17 @@ import javax.swing.JComponent;
      *
      * @param newW New width in pixels, no less than {@link #PANELX} (or if rotated, {@link #PANELY})
      * @param newH New height in pixels, no less than {@link #PANELY} (or if rotated, {@link #PANELX})
-     * @param changedMargins  True if the server has sent a board layout which includes values
-     *   for Visual Shift ("VS"). When true, caller should update the {@link #panelShiftBX}, {@link #panelShiftBY},
-     *   {@link #panelMinBW}, and {@link #panelMinBH} fields before calling, but <B>not</B> update {@link #minSize}
-     *   or {@link #unscaledBoardW} which will be updated here from {@code panelMinBW}, {@code panelMinBH},
-     *   and {@link SOCPlayerInterface#displayScale}.
-     *   <P>
-     *   Before and after calling, caller should check {@link #scaledPanelW} and {@link #scaledPanelH}
-     *   to see if the current size fields had to be changed. If so, caller must call
-     *   {@code super.setSize(scaledPanelW, scaledPanelH)} and otherwise ensure our container's layout stays consistent.
      * @throws IllegalArgumentException if newW or newH is below {@link #minSize} but not 0.
      *   During initial layout, the layoutmanager may cause calls to rescaleBoard(0,0);
      *   such a call is ignored, no rescaling of graphics is done.
      */
-    private void rescaleBoard(int newW, int newH, final boolean changedMargins)
+    private void rescaleBoard(int newW, int newH)
         throws IllegalArgumentException
     {
         if ((newW == 0) || (newH == 0))
             return;
         if ((newW < minSize.width) || (newH < minSize.height))
             throw new IllegalArgumentException("Below minimum size");
-
-        if (changedMargins)
-        {
-            int w = panelMinBW, h = panelMinBH;
-            if (isRotated)
-            {
-                int swap = w;
-                w = h;
-                h = swap;
-            }
-
-            if ((w != minSize.width) || (h != minSize.height))
-            {
-                minSize.width = w;
-                minSize.height = h;
-                unscaledBoardW = w;
-
-                // Change requested new size if required by larger changed margin.
-                // From javadoc the caller knows this might happen and will check for it.
-                w *= playerInterface.displayScale;
-                h *= playerInterface.displayScale;
-                if (newW < w)
-                    newW = w;
-                if (newH < h)
-                    newH = h;
-
-                // Other fields will be updated below as needed by calling scaleToActual,
-                // which will use the new scaledBoardW:unscaledBoardW ratio
-            }
-        }
 
         /**
          * Set vars
@@ -2787,7 +2709,7 @@ import javax.swing.JComponent;
      * Scale coordinate arrays for drawing pieces
      * (from internal coordinates to actual on-screen pixels),
      * or (if not isScaled) point to static arrays.
-     * Called from constructor and {@link #rescaleBoard(int, int, boolean)}.
+     * Called from constructor and {@link #rescaleBoard(int, int)}.
      */
     private void rescaleCoordinateArrays()
     {
