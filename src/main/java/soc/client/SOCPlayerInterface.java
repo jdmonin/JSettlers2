@@ -3278,7 +3278,7 @@ public class SOCPlayerInterface extends Frame
         int hw = 0;   // each handpanel's width; height is hh
         int tah = 0;  // textareas' height (not including tfh): calculated soon
 
-        boolean canScaleBoard = (bw >= (1.15f * bMinW));
+        boolean canScaleBoard = (bw >= (1.08f * bMinW));  // unless at least 8%, don't bother to scale up
 
         if (canScaleBoard)
         {
