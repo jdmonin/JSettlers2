@@ -988,13 +988,10 @@ public class SOCGameHandler extends GameHandler
 
         /**
          * Send board layout info.
-         * Optimization: For original 4- and 6-player board layouts (not sea board), and if
-         * the game is still forming, client already has data for the empty board.
-         * Sea Board must be sent, to set the VS layout part and other data useful for initial rendering.
+         * Optimization: If the game is still forming, client already has data for the empty board.
          */
         if ((gameState != SOCGame.NEW)
-            || (cliVers < SOCBoardLayout.VERSION_FOR_OMIT_IF_EMPTY_NEW_GAME)
-            || (gameData.getBoard().getBoardEncodingFormat() >= SOCBoard.BOARD_ENCODING_LARGE))
+            || (cliVers < SOCBoardLayout.VERSION_FOR_OMIT_IF_EMPTY_NEW_GAME))
         {
             c.put(getBoardLayoutMessage(gameData).toCmd());
             //    No need to catch IllegalArgumentException:

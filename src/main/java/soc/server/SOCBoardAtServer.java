@@ -160,8 +160,9 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * The layout contents are set up later by calling {@link #makeNewBoard(Map)} when the game is about to begin,
      * see {@link SOCBoardLarge} class javadoc for how the layout is sent to clients.
      *<P>
-     * If the board should have a Visual Shift at the client, this constructor sets Added Layout Part "VS";
-     * see {@link #getAddedLayoutPart(String)} javadoc for details on "VS".
+     * If the board should have a Visual Shift at the client, this constructor sets Added Layout Part "VS"
+     * based on {@code gameOpts}/scenario and {@code maxPlayers}.
+     * See {@link #getAddedLayoutPart(String)} javadoc for details on "VS".
      *
      * @param gameOpts  Game's options if any, otherwise null
      * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
