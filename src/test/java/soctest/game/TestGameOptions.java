@@ -98,6 +98,54 @@ public class TestGameOptions
         assertTrue(newOpts.containsKey("VP"));
     }
 
+    /**
+     * Test adding a new known option and removing it.
+     */
+    @Test
+    public void testAddKnownOption()
+    {
+        // add known
+        final SOCGameOption newKnown = new SOCGameOption
+            ("_TESTF", 2000, 2000, false, 0, "For unit test");
+        assertNull(SOCGameOption.getOption("_TESTF", false));
+        SOCGameOption.addKnownOption(newKnown);
+        final SOCGameOption opt = SOCGameOption.getOption("_TESTF", false);
+        assertNotNull(opt);
+        assertEquals(SOCGameOption.OTYPE_BOOL, opt.optType);
+
+        // cleanup/remove known
+        SOCGameOption.addKnownOption(new SOCGameOption("_TESTF"));
+        assertNull(SOCGameOption.getOption("_TESTF", false));
+    }
+
+    /**
+     * Test server-side behavior of {@link SOCGameOption#FLAG_INTERNAL_GAME_PROPERTY}.
+     * Currently can't test client-side because it's part of NewGameOptionsFrame GUI code.
+     */
+    @Test
+    public void testFlagInternalGameProperty()
+    {
+        // setup
+        final SOCGameOption newKnown = new SOCGameOption
+            ("_TESTF", 2000, 2000, 0, 0, 0xFFFF, SOCGameOption.FLAG_INTERNAL_GAME_PROPERTY,
+             "For unit test");
+        assertNull(SOCGameOption.getOption("_TESTF", false));
+        SOCGameOption.addKnownOption(newKnown);
+        assertNotNull(SOCGameOption.getOption("_TESTF", false));
+
+        // should remove internal option if sent from "client" to "server"
+        final Map<String, SOCGameOption> newGameOpts = new HashMap<String, SOCGameOption>();
+        final SOCGameOption opt = SOCGameOption.getOption("_TESTF", true);
+        opt.setIntValue(0x2211);
+        newGameOpts.put("_TESTF", opt);
+        SOCGameOption.adjustOptionsToKnown(newGameOpts, null, true);
+        assertNull(newGameOpts.get("_TESTF"));
+
+        // cleanup
+        SOCGameOption.addKnownOption(new SOCGameOption("_TESTF"));
+        assertNull(SOCGameOption.getOption("_TESTF", false));
+    }
+
     public static void main(String[] args)
     {
         org.junit.runner.JUnitCore.main("soctest.game.TestGameOptions");
