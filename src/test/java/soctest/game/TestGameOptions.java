@@ -104,16 +104,26 @@ public class TestGameOptions
     @Test
     public void testAddKnownOption()
     {
-        // add known
+        // add known opt
         final SOCGameOption newKnown = new SOCGameOption
             ("_TESTF", 2000, 2000, false, 0, "For unit test");
         assertNull(SOCGameOption.getOption("_TESTF", false));
         SOCGameOption.addKnownOption(newKnown);
-        final SOCGameOption opt = SOCGameOption.getOption("_TESTF", false);
-        assertNotNull(opt);
-        assertEquals(SOCGameOption.OTYPE_BOOL, opt.optType);
 
-        // cleanup/remove known
+        // getOption without clone should be same object
+        SOCGameOption opt = SOCGameOption.getOption("_TESTF", false);
+        assertTrue(newKnown == opt);
+
+        // getOption with clone should be different object with same field values
+        opt = SOCGameOption.getOption("_TESTF", true);
+        assertTrue(newKnown != opt);
+        assertNotNull(opt);
+        assertEquals("_TESTF", opt.key);
+        assertEquals(SOCGameOption.OTYPE_BOOL, opt.optType);
+        assertEquals(2000, opt.minVersion);
+        assertEquals(2000, opt.lastModVersion);
+
+        // cleanup/remove known opt
         SOCGameOption.addKnownOption(new SOCGameOption("_TESTF"));
         assertNull(SOCGameOption.getOption("_TESTF", false));
     }
