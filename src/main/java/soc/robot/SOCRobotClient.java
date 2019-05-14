@@ -236,10 +236,11 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     private Hashtable<String, Integer> seatRequests = new Hashtable<String, Integer>();
 
     /**
-     * options for all games on the server we've been asked to join.
+     * Options for all games on the server we've been asked to join.
      * Some games may have no options, so will have no entry here,
      * although they will have an entry in {@link #games} once joined.
-     * Key = game name, Value = map of game's {@link SOCGameOption}s.
+     * Key = game name.
+     *<P>
      * Entries are added in {@link #handleBOTJOINGAMEREQUEST(SOCBotJoinGameRequest)}.
      * Since the robot and server are the same version, the
      * set of "known options" will always be in sync.
@@ -915,6 +916,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * handle the "join game authorization" message
      * @param mes  the message
      * @param isPractice Is the server local for practice, or remote?
+     * @throws IllegalStateException if board size {@link SOCGameOption} "_BHW" isn't defined (unlikely internal error)
      */
     @Override
     protected void handleJOINGAMEAUTH(SOCJoinGameAuth mes, final boolean isPractice)
@@ -923,7 +925,20 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         final String gaName = mes.getGame();
 
-        SOCGame ga = new SOCGame(gaName, true, gameOptions.get(gaName));
+        final Map<String, SOCGameOption> gameOpts = gameOptions.get(gaName);
+        final int bh = mes.getBoardHeight(), bw = mes.getBoardWidth();
+        if ((bh != 0) || (bw != 0))
+        {
+            // Encode board size to pass through game constructor.
+            // gameOpts won't be null, because bh, bw are from SOCBoardLarge which requires a gameopt to use.
+            SOCGameOption opt = SOCGameOption.getOption("_BHW", true);
+            if (opt == null)
+                throw new IllegalStateException("Internal error: Game opt _BHW not known");
+            opt.setIntValue((bh << 8) | bw);
+            gameOpts.put("_BHW", opt);
+        }
+
+        SOCGame ga = new SOCGame(gaName, gameOpts);
         ga.isPractice = isPractice;
         games.put(gaName, ga);
 

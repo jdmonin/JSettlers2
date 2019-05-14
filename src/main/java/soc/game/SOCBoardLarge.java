@@ -281,7 +281,7 @@ public class SOCBoardLarge extends SOCBoard
     protected static final int MAX_LAND_HEX_LG = FOG_HEX;
 
     /**
-     * Default size of the large board.
+     * Default size of the large board: 16 rows x 18 columns of half-hex units.
      * Can override in constructor.
      * See {@link SOCBoard#getBoardHeight() getBoardHeight()}, {@link SOCBoard#getBoardWidth() getBoardWidth()}.
      */
@@ -655,28 +655,14 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Create a new Settlers of Catan Board, with the v3 encoding.
-     * The board will be empty (all hexes are water, no dice numbers on any hex), see class javadoc
-     * for how the board is filled when the game begins.
-     * Board height and width will be the default, {@link #BOARDHEIGHT_LARGE} by {@link #BOARDWIDTH_LARGE}.
-     *<P>
-     * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
-     * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
-     * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
-     */
-    public SOCBoardLarge(final Map<String,SOCGameOption> gameOpts, int maxPlayers)
-        throws IllegalArgumentException
-    {
-        this(gameOpts, maxPlayers, getBoardSize(gameOpts));
-    }
-
-    /**
-     * Create a new Settlers of Catan Board, with the v3 encoding and a certain size.
+     * Size must be passed using {@code boardHeightWidth}; ignores {@link SOCGameOption} "_BHW".
      * The board will be empty (all hexes are water, no dice numbers on any hex), see class javadoc
      * for how the board is filled when the game begins.
      * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
-     * @param boardHeightWidth  Board's height and width.
-     *        The constants for default size are {@link #BOARDHEIGHT_LARGE}, {@link #BOARDWIDTH_LARGE}.
+     * @param boardHeightWidth  Board's height and width. Caller can use convenience method {@link #getBoardSize(Map)}
+     *     to either get default size ({@link #BOARDHEIGHT_LARGE}, {@link #BOARDWIDTH_LARGE})
+     *     or extract from {@link SOCGameOption} "_BHW".
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6, or <tt>boardHeightWidth</tt> is null
      */
     public SOCBoardLarge
@@ -726,15 +712,15 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Get the board size for client's constructor:
+     * Convenience method to get the board size required for constructor:
      * Default size {@link #BOARDHEIGHT_LARGE} by {@link #BOARDWIDTH_LARGE},
-     * unless <tt>gameOpts</tt> contains <tt>"_BHW"</tt> Board Height and Width.
+     * unless {@code gameOpts} contains client-only option {@code "_BHW"} Board Height and Width.
      * @param gameOpts  Game options, or null
      * @param maxPlayers  Maximum players; must be default 4, or 6 from game option "PL" &gt; 4 or "PLB".
      * @return a new IntPair(height, width)
      * @see soc.server.SOCBoardAtServer#getBoardSize(Map, int)
      */
-    private static IntPair getBoardSize(final Map<String, SOCGameOption> gameOpts)
+    public static IntPair getBoardSize(final Map<String, SOCGameOption> gameOpts)
     {
         SOCGameOption bhwOpt = null;
         if (gameOpts != null)

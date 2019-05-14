@@ -21,6 +21,7 @@
 package soc.message;
 
 import java.util.StringTokenizer;
+import soc.game.SOCBoard;       // for javadocs only
 import soc.game.SOCBoardLarge;  // for javadocs only
 
 
@@ -30,8 +31,9 @@ import soc.game.SOCBoardLarge;  // for javadocs only
  * all relevant game and player information (see {@link SOCGameMembers}).
  * Their joining is then announced to all game members with {@link SOCJoinGame}.
  *<P>
- * To help create the client's user interface to show this game, includes the
- * board layout's optional "VS" part if any. Otherwise that wouldn't be sent until
+ * To help create the client's user interface to show this game,
+ * if game options call for {@link SOCBoardLarge} this message includes the board layout's
+ * height, width, and optional "VS" part if any. Otherwise that wouldn't be sent until
  * a later {@link SOCBoardLayout2} message, after the interface was already sized and laid out.
  * See {@link #getLayoutVS()}.
  *<P>
@@ -55,8 +57,14 @@ public class SOCJoinGameAuth extends SOCMessage
     private final String game;
 
     /**
+     * Board height and width for {@link SOCBoardLarge}, or 0.
+     * @since 2.0.00
+     */
+    private final int boardHeight, boardWidth;
+
+    /**
      * Optional Visual Shift of board layout, from Layout Extra Part "VS":
-     * See {@link #getLayoutVS()}.
+     * See {@link #getLayoutVS()} for details.
      * @since 2.0.00
      */
     private final int[] layoutVS;
@@ -66,11 +74,11 @@ public class SOCJoinGameAuth extends SOCMessage
      * This message can be sent to any client version.
      *
      * @param gaName  name of game
-     * @see #SOCJoinGameAuth(String, int[])
+     * @see #SOCJoinGameAuth(String, int, int, int[])
      */
     public SOCJoinGameAuth(final String gaName)
     {
-        this(gaName, null);
+        this(gaName, 0, 0, null);
     }
 
     /**
@@ -78,16 +86,20 @@ public class SOCJoinGameAuth extends SOCMessage
      * That parameter can be sent only to client version 2.0.00 or newer ({@link SOCBoardLarge#MIN_VERSION}).
      *
      * @param gaName  Game name
+     * @param height  Board height for {@link SOCBoardLarge} from {@link SOCBoard#getBoardHeight()}, or 0
+     * @param width   Board width for {@link SOCBoardLarge} from {@link SOCBoard#getBoardWidth()}, or 0
      * @param layoutVS  Optional Visual Shift of board layout, or {@code null}; see {@link #getLayoutVS()}.
      * @throws IllegalArgumentException if {@code layoutVS} != {@code null} but its length != 2
      * @see #SOCJoinGameAuth(String)
      * @since 2.0.00
      */
-    public SOCJoinGameAuth(final String gaName, final int[] layoutVS)
+    public SOCJoinGameAuth(final String gaName, final int height, final int width, final int[] layoutVS)
         throws IllegalArgumentException
     {
         messageType = JOINGAMEAUTH;
         game = gaName;
+        this.boardHeight = height;
+        this.boardWidth = width;
         if ((layoutVS != null) && (layoutVS.length != 2))
             throw new IllegalArgumentException("layoutVS");
         this.layoutVS = layoutVS;
@@ -102,7 +114,29 @@ public class SOCJoinGameAuth extends SOCMessage
     }
 
     /**
-     * Get this message's optional Visual Shift of board layout, from Layout Extra Part "VS".
+     * Get this message's board height, if server sent it for this game's board type and layout.
+     * @return Board height if game uses {@link SOCBoardLarge}, from {@link SOCBoard#getBoardHeight()}, or 0
+     * @see #getBoardWidth()
+     * @since 2.0.00
+     */
+    public int getBoardHeight()
+    {
+        return boardHeight;
+    }
+
+    /**
+     * Get this message's board width, if server sent it for this game's board type and layout.
+     * @return Board width if game uses {@link SOCBoardLarge}, from {@link SOCBoard#getBoardWidth()}, or 0
+     * @see #getBoardHeight()
+     * @since 2.0.00
+     */
+    public int getBoardWidth()
+    {
+        return boardWidth;
+    }
+
+    /**
+     * Get this message's optional Visual Shift for the board layout, from Layout Extra Part "VS".
      * A signed int array of length 2, or {@code null}.
      * See {@link SOCBoardLarge#getAddedLayoutPart(String) SOCBoardLarge.getAddedLayoutPart("VS")}
      * for more details on "VS".
@@ -112,6 +146,8 @@ public class SOCJoinGameAuth extends SOCMessage
      * any game which uses {@link SOCBoardLarge}.
      *
      * @return Board layout's optional "VS" part, or {@code null}
+     * @see #getBoardHeight()
+     * @see #getBoardWidth()
      * @since 2.0.00
      */
     public int[] getLayoutVS()
@@ -120,20 +156,37 @@ public class SOCJoinGameAuth extends SOCMessage
     }
 
     /**
-     * JOINGAMEAUTH sep game
+     * JOINGAMEAUTH sep game [sep2 height sep2 width [sep2 'S' sep2 layoutVS[0] sep2 layoutVS[1]]]
      *
      * @return the command String
      */
     public String toCmd()
     {
-        return JOINGAMEAUTH + sep + game
-            + ((layoutVS != null)
-               ? (sep2 + layoutVS[0] + sep2 + layoutVS[1])
-               : "");
+        StringBuilder sb = new StringBuilder(JOINGAMEAUTH + sep + game);
+
+        if ((boardHeight != 0) || (boardWidth != 0))
+        {
+            sb.append(sep2_char);
+            sb.append(boardHeight);
+            sb.append(sep2_char);
+            sb.append(boardWidth);
+            if (layoutVS != null)
+            {
+                sb.append(sep2_char);
+                sb.append('S');  // in case a later version adds other optional fields
+                sb.append(sep2_char);
+                sb.append(layoutVS[0]);
+                sb.append(sep2_char);
+                sb.append(layoutVS[1]);
+            }
+        }
+
+        return sb.toString();
     }
 
     /**
-     * Parse the command String into a JoinGameAuth message, which may have a {@link #getLayoutVS()}.
+     * Parse the command String into a JoinGameAuth message, which may have a
+     * height, width, and optional {@link #getLayoutVS()}.
      *
      * @param s   the String to parse
      * @return    a JoinGameAuth message, or null if the data is garbled
@@ -141,19 +194,29 @@ public class SOCJoinGameAuth extends SOCMessage
     public static SOCJoinGameAuth parseDataStr(String s)
     {
         if (-1 == s.indexOf(sep2_char))
-            return new SOCJoinGameAuth(s, null);
+            return new SOCJoinGameAuth(s, 0, 0, null);
 
         try
         {
             final StringTokenizer st = new StringTokenizer(s, sep2);
             final String gaName = st.nextToken();
-            final int[] vs = new int[2];
-            vs[0] = Integer.parseInt(st.nextToken());
-            vs[1] = Integer.parseInt(st.nextToken());
+            final int bh = Integer.parseInt(st.nextToken()),
+                      bw = Integer.parseInt(st.nextToken());
+            final int[] vs;
+            if (st.hasMoreTokens())
+            {
+                if (! st.nextToken().equals("S"))
+                    return null;  // unrecognized optional-field marker
+                vs = new int[2];
+                vs[0] = Integer.parseInt(st.nextToken());
+                vs[1] = Integer.parseInt(st.nextToken());
+            } else {
+                vs = null;
+            }
 
-            return new SOCJoinGameAuth(gaName, vs);
+            return new SOCJoinGameAuth(gaName, bh, bw, vs);
         }
-        catch (Exception e) {}
+        catch (Exception e) {}  // NoSuchElementException, NumberFormatException, etc
 
         return null;
     }
@@ -163,11 +226,15 @@ public class SOCJoinGameAuth extends SOCMessage
      */
     public String toString()
     {
-        String s = "SOCJoinGameAuth:game=" + game;
-        if (layoutVS != null)
-            s += "|vs={" + layoutVS[0] + ", " + layoutVS[1] + '}';
+        StringBuilder sb = new StringBuilder("SOCJoinGameAuth:game=" + game);
+        if ((boardHeight != 0) || (boardWidth != 0))
+        {
+            sb.append("|bh=" + boardHeight + "|bw=" + boardWidth);
+            if (layoutVS != null)
+                sb.append("|vs={" + layoutVS[0] + ", " + layoutVS[1] + '}');
+        }
 
-        return s;
+        return sb.toString();
     }
 
 }

@@ -89,7 +89,7 @@ public class TestBoardLarge
     @Test
     public void test_getNodeBetweenAdjacentEdges()
     {
-        SOCBoardLarge b = new SOCBoardLarge(null, 4);
+        SOCBoardLarge b = new SOCBoardLarge(null, 4, SOCBoardLarge.getBoardSize(null));
 
         // adjacent to vertical "|" edge
         doTestPair_getNodeBetweenAdjacentEdges(b, 0x505, 0x404, 0x405, false);

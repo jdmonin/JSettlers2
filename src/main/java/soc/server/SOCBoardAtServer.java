@@ -152,7 +152,8 @@ public class SOCBoardAtServer extends SOCBoardLarge
     private int piratePathIndex;
 
     /**
-     * Create a new Settlers of Catan Board, with the v3 encoding.
+     * Create a new server-side Settlers of Catan Board, with the v3 encoding.
+     * Size must be passed using {@code boardHeightWidth}.
      * Called by {@link SOCBoardAtServer.BoardFactoryAtServer#createBoard(Map, boolean, int)}
      * to get the right board size and layout based on game options and optional {@link SOCScenario}.
      *<P>
@@ -166,8 +167,8 @@ public class SOCBoardAtServer extends SOCBoardLarge
      *
      * @param gameOpts  Game's options if any, otherwise null
      * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
-     * @param boardHeightWidth  Board's height and width.
-     *        The constants for default size are {@link #BOARDHEIGHT_LARGE}, {@link #BOARDWIDTH_LARGE}.
+     * @param boardHeightWidth  Board's height and width. Server-side caller should use a lookup method
+     *     to determine proper board size for scenario and player count.
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6, or <tt>boardHeightWidth</tt> is null
      */
     public SOCBoardAtServer
@@ -2482,20 +2483,17 @@ public class SOCBoardAtServer extends SOCBoardLarge
     /**
      * Get the board size for
      * {@link BoardFactoryAtServer#createBoard(Map, boolean, int) BoardFactoryAtServer.createBoard}:
-     * The default size {@link SOCBoardLarge#BOARDHEIGHT_LARGE BOARDHEIGHT_LARGE} by
-     * {@link SOCBoardLarge#BOARDWIDTH_LARGE BOARDWIDTH_LARGE},
+     * The default size from {@link #FALLBACK_BOARDSIZE},
      * unless <tt>gameOpts</tt> contains a scenario (<tt>"SC"</tt>) whose layout has a custom height/width.
-     * The fallback 6-player layout size is taller,
-     * {@link SOCBoardLarge#BOARDHEIGHT_LARGE BOARDHEIGHT_LARGE} + 3 by {@link SOCBoardLarge#BOARDWIDTH_LARGE BOARDWIDTH_LARGE}.
      * @param gameOpts  Game options, or null
      * @param maxPlayers  Maximum players; must be 4 or 6 (from game option {@code "PL"} &gt; 4 or {@code "PLB"}).
      *     If {@code maxPlayers} == 4 and {@code gameOpts} contains {@code "PL"},
      *     that overrides {@code maxPlayers} using the same logic as in {@link #makeNewBoard(Map)}.
-     * @return encoded size (0xRRCC), the same format as game option {@code "_BHW"}
+     * @return a new IntPair(height, width)
      * @see SOCBoardLarge#getBoardSize(Map)
      * @see #getBoardShift(Map)
      */
-    private static int getBoardSize(final Map<String, SOCGameOption> gameOpts, final int maxPlayers)
+    private static IntPair getBoardSize(final Map<String, SOCGameOption> gameOpts, final int maxPlayers)
     {
         int heightWidth = 0;
 
@@ -2559,7 +2557,8 @@ public class SOCBoardAtServer extends SOCBoardLarge
             heightWidth = FALLBACK_BOARDSIZE[(maxPl == 6) ? 1 : 0];
         }
 
-        return heightWidth;
+        final int bH = heightWidth >> 8, bW = heightWidth & 0xFF;
+        return new IntPair(bH, bW);
     }
 
     /**
@@ -2816,6 +2815,10 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * Fallback sea board layout board size:
      * 4 players max 0x11, 0x13.
      * 6 players max 0x13, 0x13.
+     *<P>
+     * {@link SOCBoardLarge}'s default size is slightly larger:<BR>
+     * {@link SOCBoardLarge#BOARDHEIGHT_LARGE BOARDHEIGHT_LARGE} by
+     * {@link SOCBoardLarge#BOARDWIDTH_LARGE BOARDWIDTH_LARGE}.
      */
     private static final int FALLBACK_BOARDSIZE[] = { 0x1113, 0x1313 };
 
@@ -4963,18 +4966,15 @@ public class SOCBoardAtServer extends SOCBoardLarge
     {
         /**
          * Create a new Settlers of Catan Board based on <tt>gameOpts</tt>; this is a factory method.
-         * Board size is based on <tt>maxPlayers</tt> and optional scenario (game option <tt>"SC"</tt>).
+         * Board size is based on <tt>maxPlayers</tt> and optional scenario (game option <tt>"SC"</tt>),
+         * determined by {@link SOCBoardAtServer#getBoardSize(Map, int) getBoardSize(Map, int)}.
          *<P>
          * From v1.1.11 through all v1.x.xx, this was SOCBoard.createBoard.  Moved to new factory class in 2.0.00.
          *
-         * @param gameOpts  if game has options, its map of {@link SOCGameOption}; otherwise null.
-         *                  If <tt>largeBoard</tt>, and
-         *                  {@link SOCBoardAtServer#getBoardSize(Map, int) getBoardSize(Map, int)}
-         *                  gives a non-default size, <tt>"_BHW"</tt> will be added to <tt>gameOpts</tt>.
+         * @param gameOpts  Game's options if any, otherwise null
          * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding)
          * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
-         *                  or (unlikely internal error) game option "_BHW" isn't known in SOCGameOption.getOption.
          */
         public SOCBoard createBoard
             (final Map<String,SOCGameOption> gameOpts, final boolean largeBoard, final int maxPlayers)
@@ -4984,35 +4984,8 @@ public class SOCBoardAtServer extends SOCBoardLarge
             {
                 return DefaultBoardFactory.staticCreateBoard(gameOpts, false, maxPlayers);
             } else {
-                // Check board size, set _BHW if not default.
-                final int boardHeightWidth = getBoardSize(gameOpts, maxPlayers);
-                final int bH = boardHeightWidth >> 8, bW = boardHeightWidth & 0xFF;
-
-                if (gameOpts != null)
-                {
-                    // gameOpts should never be null if largeBoard: largeBoard requires opt "SBL".
-                    int bhw = 0;
-                    SOCGameOption bhwOpt = gameOpts.get("_BHW");
-                    if (bhwOpt != null)
-                        bhw = bhwOpt.getIntValue();
-
-                    if (((bH != SOCBoardLarge.BOARDHEIGHT_LARGE) || (bW != SOCBoardLarge.BOARDWIDTH_LARGE))
-                        && (bhw != boardHeightWidth))
-                    {
-                        if (bhwOpt == null)
-                            bhwOpt = SOCGameOption.getOption("_BHW", true);
-                        if (bhwOpt != null)
-                        {
-                            bhwOpt.setIntValue(boardHeightWidth);
-                            gameOpts.put("_BHW", bhwOpt);
-                        } else {
-                            throw new IllegalArgumentException("Internal error: Game opt _BHW not known");
-                        }
-                    }
-                }
-
                 return new SOCBoardAtServer
-                    (gameOpts, maxPlayers, new IntPair(bH, bW));
+                    (gameOpts, maxPlayers, getBoardSize(gameOpts, maxPlayers));
             }
         }
 

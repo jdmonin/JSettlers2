@@ -1280,9 +1280,6 @@ public class SOCGame implements Serializable, Cloneable
         if (boardFactory == null)
             boardFactory = new SOCBoard.DefaultBoardFactory();
         board = boardFactory.createBoard(op, hasSeaBoard, maxPlayers);
-            // At server, createBoard might add "_BHW" to op if SOCBoardLarge with non-default size.
-            // If so, op won't be null because SOCBoardLarge requires game opt "SBL".
-
         opts = op;
 
         players = new SOCPlayer[maxPlayers];

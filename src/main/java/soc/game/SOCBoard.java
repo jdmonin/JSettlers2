@@ -3329,7 +3329,8 @@ public abstract class SOCBoard implements Serializable, Cloneable
          * Static for fallback access from other factory implementations.
          *
          * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
-         * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding)
+         * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding).
+         *     If so, will take size from client-only SOCGameOption "_BHW" if in {@code gameOpts}.
          * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
          */
@@ -3344,7 +3345,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
                 else
                     return new SOCBoard4p(gameOpts);
             } else {
-                return new SOCBoardLarge(gameOpts, maxPlayers);
+                return new SOCBoardLarge(gameOpts, maxPlayers, SOCBoardLarge.getBoardSize(gameOpts));
             }
         }
 
@@ -3354,7 +3355,8 @@ public abstract class SOCBoard implements Serializable, Cloneable
          * From v1.1.11 through all 1.x.xx, this was SOCBoard.createBoard.  Moved to new factory class in 2.0.00.
          *
          * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
-         * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding)
+         * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding).
+         *     If so, will take size from client-only SOCGameOption "_BHW" if in {@code gameOpts}.
          * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
          */

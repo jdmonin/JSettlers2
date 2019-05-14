@@ -1012,10 +1012,20 @@ public class SOCDisplaylessPlayerClient implements Runnable
     {
         gotPassword = true;
 
-        SOCGame ga = new SOCGame(mes.getGame());
-        if (ga == null)
-            return;
+        final Map<String, SOCGameOption> opts;
+        final int bh = mes.getBoardHeight(), bw = mes.getBoardWidth();
+        if ((bh != 0) || (bw != 0))
+        {
+            // Encode board size to pass through game constructor.
+            opts = new HashMap<String, SOCGameOption>();
+            SOCGameOption opt = SOCGameOption.getOption("_BHW", true);
+            opt.setIntValue((bh << 8) | bw);
+            opts.put("_BHW", opt);
+        } else {
+            opts = null;
+        }
 
+        final SOCGame ga = new SOCGame(mes.getGame(), opts);
         ga.isPractice = isPractice;
         games.put(mes.getGame(), ga);
     }

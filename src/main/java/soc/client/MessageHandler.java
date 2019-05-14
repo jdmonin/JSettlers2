@@ -1088,14 +1088,16 @@ import soc.util.Version;
      * {@link SOCPlayerInterface} so user can join the game
      * @param mes  the message
      * @param isPractice server is practiceServer (not normal tcp network)
+     * @throws IllegalStateException if board size {@link SOCGameOption} "_BHW" isn't defined (unlikely internal error)
      */
     protected void handleJOINGAMEAUTH(SOCJoinGameAuth mes, final boolean isPractice)
+        throws IllegalStateException
     {
         System.err.println("L2299 joingameauth at " + System.currentTimeMillis());
         client.gotPassword = true;
 
         final String gaName = mes.getGame();
-        Map<String,SOCGameOption> gameOpts;
+        Map<String, SOCGameOption> gameOpts;
         if (isPractice)
         {
             gameOpts = client.getNet().practiceServer.getGameOptions(gaName);
@@ -1108,6 +1110,18 @@ import soc.util.Version;
                 gameOpts = null;
         }
         System.err.println("L2318 past opts at " + System.currentTimeMillis());
+
+        final int bh = mes.getBoardHeight(), bw = mes.getBoardWidth();
+        if ((bh != 0) || (bw != 0))
+        {
+            // Encode board size to pass through game constructor.
+            // gameOpts won't be null, because bh, bw are from SOCBoardLarge which requires a gameopt to use.
+            SOCGameOption opt = SOCGameOption.getOption("_BHW", true);
+            if (opt == null)
+                throw new IllegalStateException("Internal error: Game opt _BHW not known");
+            opt.setIntValue((bh << 8) | bw);
+            gameOpts.put("_BHW", opt);
+        }
 
         SOCGame ga = new SOCGame(gaName, gameOpts);
         if (ga != null)

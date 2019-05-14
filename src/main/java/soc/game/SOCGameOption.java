@@ -368,7 +368,9 @@ public class SOCGameOption
      *<LI> NT  No trading allowed
      *<LI> VP  Victory points (10-15)
      *<LI> SC  Game Scenario (optional groups of rules; see {@link SOCScenario})
-     *<LI> _BHW  Board height and width, if not default, for {@link SOCBoardLarge}: 0xRRCC
+     *<LI> _BHW  Board height and width, if not default, for {@link SOCBoardLarge}: 0xRRCC.
+     *           Used only at client, for board size received in JoinGame message from server
+     *           to pass through SOCGame constructor into SOCBoard factory
      *</UL>
      *  * Grouping: PLB is 3 characters, not 2, and its first 2 characters match an
      *    existing option.  So in NewGameOptionsFrame, it appears on the line following
@@ -522,7 +524,7 @@ public class SOCGameOption
                 ("SBL", 2000, 2000, false, FLAG_DROP_IF_UNUSED, "Use sea board"));  // see also SOCBoardLarge
         opt.put("_BHW", new SOCGameOption
                 ("_BHW", 2000, 2000, 0, 0, 0xFFFF, FLAG_DROP_IF_UNUSED | FLAG_INTERNAL_GAME_PROPERTY,
-                 "Large board's height and width (0xRRCC) if not default"));
+                 "Large board's height and width (0xRRCC) if not default (local to client only)"));
         opt.put("RD", new SOCGameOption
                 ("RD", -1, 1107, false, 0, "Robber can't return to the desert"));
         opt.put("N7", new SOCGameOption
@@ -1543,7 +1545,7 @@ public class SOCGameOption
     }
 
     /**
-     * Get information about a known option.
+     * Get information about a known option. See {@link #initAllOptions()} for a summary of each known option.
      * @param key  Option key
      * @param clone  True if a copy of the option is needed; set this true
      *               unless you're sure you won't be changing any fields of

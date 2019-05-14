@@ -940,11 +940,18 @@ public class SOCGameHandler extends GameHandler
 
             // Now, join game
             final SOCBoard board = gameData.getBoard();
-            final int[] boardVS =
-                (board instanceof SOCBoardLarge)
-                ? ((SOCBoardLarge) board).getAddedLayoutPart("VS")  // might be null, is ok
-                : null;
-            c.put(new SOCJoinGameAuth(gameName, boardVS).toCmd());
+            final int bh, bw;
+            final int[] boardVS;
+            if (board instanceof SOCBoardLarge)
+            {
+                bh = board.getBoardHeight();
+                bw = board.getBoardWidth();
+                boardVS = ((SOCBoardLarge) board).getAddedLayoutPart("VS");  // might be null, is OK
+            } else {
+                bh = bw = 0;
+                boardVS = null;
+            }
+            c.put(new SOCJoinGameAuth(gameName, bh, bw, boardVS).toCmd());
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_OK, c.getLocalized("member.welcome")));  // "Welcome to Java Settlers of Catan!"
         }
