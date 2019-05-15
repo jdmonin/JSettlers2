@@ -877,7 +877,7 @@ public class SOCGameOption
         final boolean defaultValue, final int flags, final String desc)
         throws IllegalArgumentException
     {
-	this(OTYPE_BOOL, key, minVers, lastModVers, defaultValue, 0, 0, 0, null, flags, desc);
+        this(OTYPE_BOOL, key, minVers, lastModVers, defaultValue, 0, 0, 0, null, flags, desc);
     }
 
     /**
@@ -910,8 +910,8 @@ public class SOCGameOption
         final int flags, final String desc)
         throws IllegalArgumentException
     {
-	this(OTYPE_INT, key, minVers, lastModVers, false, defaultValue,
-	     minValue, maxValue, null, flags, desc);
+        this(OTYPE_INT, key, minVers, lastModVers, false, defaultValue,
+             minValue, maxValue, null, flags, desc);
     }
 
     /**
@@ -939,8 +939,8 @@ public class SOCGameOption
         final int minValue, final int maxValue, final int flags, final String desc)
         throws IllegalArgumentException
     {
-	this(OTYPE_INTBOOL, key, minVers, lastModVers, defaultBoolValue, defaultIntValue,
-	     minValue, maxValue, null, flags, desc);
+        this(OTYPE_INTBOOL, key, minVers, lastModVers, defaultBoolValue, defaultIntValue,
+             minValue, maxValue, null, flags, desc);
     }
 
     /**
@@ -1030,14 +1030,14 @@ public class SOCGameOption
      *        or if minVers or lastModVers is under 1000 but not -1
      */
     public SOCGameOption(final String key, final int minVers, final int lastModVers,
-	final int maxLength, final boolean hideTyping, final int flags, final String desc)
+        final int maxLength, final boolean hideTyping, final int flags, final String desc)
         throws IllegalArgumentException
     {
-	this( (hideTyping ? OTYPE_STRHIDE : OTYPE_STR ),
-	     key, minVers, lastModVers, false, 0,
-	     0, maxLength, null, flags, desc);
-	if ((maxLength < 1) || (maxLength > TEXT_OPTION_MAX_LENGTH))
-	    throw new IllegalArgumentException("maxLength");
+        this( (hideTyping ? OTYPE_STRHIDE : OTYPE_STR ),
+             key, minVers, lastModVers, false, 0,
+             0, maxLength, null, flags, desc);
+        if ((maxLength < 1) || (maxLength > TEXT_OPTION_MAX_LENGTH))
+            throw new IllegalArgumentException("maxLength");
     }
 
     /**
@@ -1096,12 +1096,12 @@ public class SOCGameOption
         if ((minVers < VERSION_FOR_LONGER_OPTNAMES) && key.contains("_"))
             throw new IllegalArgumentException("Key with '_' needs minVers 2000 or newer: " + key);
 
-	optType = otype;
-	this.defaultBoolValue = defaultBoolValue;
-	this.defaultIntValue = defaultIntValue;
-	minIntValue = minValue;
-	maxIntValue = maxValue;
-	optFlags = flags;
+        optType = otype;
+        this.defaultBoolValue = defaultBoolValue;
+        this.defaultIntValue = defaultIntValue;
+        minIntValue = minValue;
+        maxIntValue = maxValue;
+        optFlags = flags;
         this.enumVals = enumVals;
 
         if (enumVals != null)
@@ -1111,12 +1111,12 @@ public class SOCGameOption
                     throw new IllegalArgumentException("enumVal fails isSingleLineAndSafe");
         }
 
-	// starting values (= defaults)
-	boolValue = defaultBoolValue;
-	intValue = defaultIntValue;
-	strValue = null;
-	if ((intValue < minIntValue) || (intValue > maxIntValue))
-	    throw new IllegalArgumentException("defaultIntValue");
+        // starting values (= defaults)
+        boolValue = defaultBoolValue;
+        intValue = defaultIntValue;
+        strValue = null;
+        if ((intValue < minIntValue) || (intValue > maxIntValue))
+            throw new IllegalArgumentException("defaultIntValue");
     }
 
     /**
@@ -1212,10 +1212,10 @@ public class SOCGameOption
      */
     public String getStringValue()
     {
-	if (strValue != null)
-	    return strValue;
-	else
-	    return "";
+        if (strValue != null)
+            return strValue;
+        else
+            return "";
     }
 
     /**
@@ -1230,7 +1230,7 @@ public class SOCGameOption
      *          multi-line or otherwise fails {@link SOCMessage#isSingleLineAndSafe(String)}.
      */
     public void setStringValue(String v)
-	throws IllegalArgumentException
+        throws IllegalArgumentException
     {
         if (v != null)
         {
@@ -1440,28 +1440,28 @@ public class SOCGameOption
      */
     public static boolean addKnownOption(SOCGameOption onew)
     {
-	final String oKey = onew.key;
-	final boolean hadIt;
+        final String oKey = onew.key;
+        final boolean hadIt;
 
-	synchronized (allOptions)
-	{
-	    final SOCGameOption oldcopy = allOptions.remove(oKey);
-	    hadIt = (oldcopy != null);
+        synchronized (allOptions)
+        {
+            final SOCGameOption oldcopy = allOptions.remove(oKey);
+            hadIt = (oldcopy != null);
 
-	    if (onew.optType != OTYPE_UNKNOWN)
-	    {
-	        if (hadIt)
-	        {
+            if (onew.optType != OTYPE_UNKNOWN)
+            {
+                if (hadIt)
+                {
                     final ChangeListener cl = oldcopy.getChangeListener();
                     if (cl != null)
                         onew.addChangeListener(cl);
-	        }
+                }
 
-	        allOptions.put(oKey, onew);
-	    }
-	}
+                allOptions.put(oKey, onew);
+            }
+        }
 
-	return ! hadIt;
+        return ! hadIt;
     }
 
     /**
@@ -1628,7 +1628,7 @@ public class SOCGameOption
      */
     public static String packOptionsToString
         (final Map<String, SOCGameOption> omap, boolean hideEmptyStringOpts)
-	throws ClassCastException
+        throws ClassCastException
     {
         return packOptionsToString(omap, hideEmptyStringOpts, -2);
     }
@@ -1654,63 +1654,63 @@ public class SOCGameOption
      * @see #packValue(StringBuilder)
      */
     public static String packOptionsToString
-	(final Map<String, SOCGameOption> omap, boolean hideEmptyStringOpts, final int cliVers)
-	throws ClassCastException
+        (final Map<String, SOCGameOption> omap, boolean hideEmptyStringOpts, final int cliVers)
+        throws ClassCastException
     {
-	if ((omap == null) || omap.size() == 0)
-	    return "-";
+        if ((omap == null) || omap.size() == 0)
+            return "-";
 
-	// If the "PLB" option is set, old client versions
-	//  may need adjustment of the "PL" option.
-	final boolean hasOptPLB = (cliVers > -2) && omap.containsKey("PLB")
-	    && omap.get("PLB").boolValue;
+        // If the "PLB" option is set, old client versions
+        //  may need adjustment of the "PL" option.
+        final boolean hasOptPLB = (cliVers > -2) && omap.containsKey("PLB")
+            && omap.get("PLB").boolValue;
 
-	// Pack all non-unknown options:
-	StringBuilder sb = new StringBuilder();
-	boolean hadAny = false;
-	for (SOCGameOption op : omap.values())
-	{
-	    if (op.optType == OTYPE_UNKNOWN)
-		continue;  // <-- Skip this one --
-	    if (hideEmptyStringOpts
-		&& ((op.optType == OTYPE_STR) || (op.optType == OTYPE_STRHIDE))  // OTYPE_* - add here if string-valued
-		&& op.getStringValue().length() == 0)
-		    continue;  // <-- Skip this one --
-	    if ((cliVers == -3) && ((op.key.length() > 3) || op.key.contains("_")))
-		continue;  // <-- Skip this one -- (VERSION_FOR_LONGER_OPTNAMES)
+        // Pack all non-unknown options:
+        StringBuilder sb = new StringBuilder();
+        boolean hadAny = false;
+        for (SOCGameOption op : omap.values())
+        {
+            if (op.optType == OTYPE_UNKNOWN)
+                continue;  // <-- Skip this one --
+            if (hideEmptyStringOpts
+                && ((op.optType == OTYPE_STR) || (op.optType == OTYPE_STRHIDE))  // OTYPE_* - add here if string-valued
+                && op.getStringValue().length() == 0)
+                    continue;  // <-- Skip this one --
+            if ((cliVers == -3) && ((op.key.length() > 3) || op.key.contains("_")))
+                continue;  // <-- Skip this one -- (VERSION_FOR_LONGER_OPTNAMES)
 
-	    if (hadAny)
-		sb.append(SOCMessage.sep2_char);
-	    else
-		hadAny = true;
-	    sb.append(op.key);
-	    sb.append('=');
+            if (hadAny)
+                sb.append(SOCMessage.sep2_char);
+            else
+                hadAny = true;
+            sb.append(op.key);
+            sb.append('=');
 
-	    boolean wroteValueAlready = false;
-	    if (cliVers > -2)
-	    {
-		if (hasOptPLB && op.key.equals("PL")
-		    && (cliVers < 1113) && (op.intValue < 5))
-		{
-		    // When "PLB" is used (Use 6-player board)
-		    // but the client is too old to recognize PLB,
-		    // make sure "PL" is large enough to make the
-		    // client use that board.
+            boolean wroteValueAlready = false;
+            if (cliVers > -2)
+            {
+                if (hasOptPLB && op.key.equals("PL")
+                    && (cliVers < 1113) && (op.intValue < 5))
+                {
+                    // When "PLB" is used (Use 6-player board)
+                    // but the client is too old to recognize PLB,
+                    // make sure "PL" is large enough to make the
+                    // client use that board.
 
-		    final int realValue = op.intValue;
-		    op.intValue = 5;  // big enough for 6-player
-		    op.packValue(sb);
-			wroteValueAlready = true;
-		    op.intValue = realValue;
-		}
+                    final int realValue = op.intValue;
+                    op.intValue = 5;  // big enough for 6-player
+                    op.packValue(sb);
+                        wroteValueAlready = true;
+                    op.intValue = realValue;
+                }
 
-		// NEW_OPTION - Check your option vs old clients here.
-	    }
-	    if (! wroteValueAlready)
-		op.packValue(sb);
-	}
+                // NEW_OPTION - Check your option vs old clients here.
+            }
+            if (! wroteValueAlready)
+                op.packValue(sb);
+        }
 
-	return sb.toString();
+        return sb.toString();
     }
 
     /**
@@ -2267,27 +2267,27 @@ public class SOCGameOption
 
         // use Iterator in loop, so we can remove from the hash if needed
         for (Iterator<Map.Entry<String, SOCGameOption>> ikv = newOpts.entrySet().iterator();
-	     ikv.hasNext(); )
-	{
-	    Map.Entry<String, SOCGameOption> okv = ikv.next();
+             ikv.hasNext(); )
+        {
+            Map.Entry<String, SOCGameOption> okv = ikv.next();
 
-	    SOCGameOption op;
-	    try {
-	        op = okv.getValue();
-	    }
-	    catch (ClassCastException ce)
-	    {
+            SOCGameOption op;
+            try {
+                op = okv.getValue();
+            }
+            catch (ClassCastException ce)
+            {
                 throw new IllegalArgumentException("wrong class, expected gameoption");
-	    }
-	    SOCGameOption knownOp = knownOpts.get(op.key);
-	    if (knownOp == null)
-	    {
+            }
+            SOCGameOption knownOp = knownOpts.get(op.key);
+            if (knownOp == null)
+            {
                 allKnown = false;
                 optProblems.append(op.key);
                 optProblems.append(": unknown. ");
-	    }
-	    else if (knownOp.optType != op.optType)
-	    {
+            }
+            else if (knownOp.optType != op.optType)
+            {
                 allKnown = false;
                 optProblems.append(op.key);
                 optProblems.append(": optType mismatch (");
@@ -2295,38 +2295,38 @@ public class SOCGameOption
                 optProblems.append(" != ");
                 optProblems.append(op.optType);
                 optProblems.append("). ");
-	    } else {
-	        // Clip int values, check default values, check dropIfUnused
+            } else {
+                // Clip int values, check default values, check dropIfUnused
 
-		if (knownOp.lastModVersion != op.lastModVersion)
-		{
-		    allKnown = false;
-		    optProblems.append(op.key);
-		    optProblems.append(": lastModVersion mismatch (");
-		    optProblems.append(knownOp.lastModVersion);
-		    optProblems.append(" != ");
+                if (knownOp.lastModVersion != op.lastModVersion)
+                {
+                    allKnown = false;
+                    optProblems.append(op.key);
+                    optProblems.append(": lastModVersion mismatch (");
+                    optProblems.append(knownOp.lastModVersion);
+                    optProblems.append(" != ");
                     optProblems.append(op.lastModVersion);
                     optProblems.append("). ");
-		}
+                }
 
-		switch (op.optType)  // OTYPE_*
-		{
-		case OTYPE_INT:
-		case OTYPE_INTBOOL:
-		case OTYPE_ENUM:
+                switch (op.optType)  // OTYPE_*
+                {
+                case OTYPE_INT:
+                case OTYPE_INTBOOL:
+                case OTYPE_ENUM:
                 case OTYPE_ENUMBOOL:
-		    {
-			int iv = op.intValue;
-			if (iv < knownOp.minIntValue)
-			{
-			    iv = knownOp.minIntValue;
-			    op.setIntValue(iv);
-			}
-			else if (iv > knownOp.maxIntValue)
-			{
-			    iv = knownOp.maxIntValue;
-			    op.setIntValue(iv);
-			}
+                    {
+                        int iv = op.intValue;
+                        if (iv < knownOp.minIntValue)
+                        {
+                            iv = knownOp.minIntValue;
+                            op.setIntValue(iv);
+                        }
+                        else if (iv > knownOp.maxIntValue)
+                        {
+                            iv = knownOp.maxIntValue;
+                            op.setIntValue(iv);
+                        }
 
                         if (knownOp.hasFlag(FLAG_DROP_IF_UNUSED)
                             && (iv == knownOp.defaultIntValue))
@@ -2335,13 +2335,13 @@ public class SOCGameOption
                             if ((op.optType == OTYPE_INT) || (op.optType == OTYPE_ENUM) || ! op.boolValue)
                                 ikv.remove();
                         }
-		    }
-		    break;
+                    }
+                    break;
 
-		case OTYPE_BOOL:
+                case OTYPE_BOOL:
                     if (knownOp.hasFlag(FLAG_DROP_IF_UNUSED) && ! op.boolValue)
                         ikv.remove();
-		    break;
+                    break;
 
                 case OTYPE_STR:
                 case OTYPE_STRHIDE:
@@ -2352,14 +2352,14 @@ public class SOCGameOption
 
                 // no default: all types should be handled above.
 
-		}  // endsw
-	    }
-	}
+                }  // endsw
+            }
+        }
 
-	if (allKnown)
-	    return null;
-	else
-	    return optProblems;
+        if (allKnown)
+            return null;
+        else
+            return optProblems;
     }
 
     /**

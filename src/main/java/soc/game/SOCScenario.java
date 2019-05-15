@@ -565,13 +565,13 @@ public class SOCScenario
      */
     public static boolean addKnownScenario(SOCScenario scNew)
     {
-	final String scKey = scNew.key;
-	final boolean hadIt = allScenarios.containsKey(scKey);
-	if (hadIt)
-	    allScenarios.remove(scKey);
-	allScenarios.put(scKey, scNew);
+        final String scKey = scNew.key;
+        final boolean hadIt = allScenarios.containsKey(scKey);
+        if (hadIt)
+            allScenarios.remove(scKey);
+        allScenarios.put(scKey, scNew);
 
-	return ! hadIt;
+        return ! hadIt;
     }
 
     /**
@@ -752,47 +752,46 @@ public class SOCScenario
      *            </UL>
      */
     public static StringBuilder adjustScenariosToKnown
-	(Map<String, SOCScenario> newScens, Map<String, SOCScenario> knownScenarios,
-	 final boolean doServerPreadjust)
+        (Map<String, SOCScenario> newScens, Map<String, SOCScenario> knownScenarios,
+         final boolean doServerPreadjust)
     {
-	if (knownScenarios == null)
-	    knownScenarios = allScenarios;
+        if (knownScenarios == null)
+            knownScenarios = allScenarios;
 
-	StringBuilder scProblems = new StringBuilder();
+        StringBuilder scProblems = new StringBuilder();
 
-	// use Iterator in loop, so we can remove from the map if needed
-	boolean allKnown = true;
-	for (Iterator<Map.Entry<String, SOCScenario>> ikv = newScens.entrySet().iterator();
-	     ikv.hasNext(); )
-	{
-	    Map.Entry<String, SOCScenario> sckv = ikv.next();
+        // use Iterator in loop, so we can remove from the map if needed
+        boolean allKnown = true;
+        for (Iterator<Map.Entry<String, SOCScenario>> ikv = newScens.entrySet().iterator();
+             ikv.hasNext(); )
+        {
+            Map.Entry<String, SOCScenario> sckv = ikv.next();
 
-	    SOCScenario sc = sckv.getValue();
-	    SOCScenario knownSc = knownScenarios.get(sc.key);
-	    if (knownSc == null)
-	    {
-		allKnown = false;
-		scProblems.append(sc.key);
-		scProblems.append(": unknown. ");
-	    } else {
-		if (knownSc.lastModVersion != sc.lastModVersion)
-		{
-		    allKnown = false;
-		    scProblems.append(sc.key);
-		    scProblems.append(": lastModVersion mismatch (");
-		    scProblems.append(knownSc.lastModVersion);
-		    scProblems.append(" != ");
-		    scProblems.append(sc.lastModVersion);
-		    scProblems.append("). ");
-		}
+            SOCScenario sc = sckv.getValue();
+            SOCScenario knownSc = knownScenarios.get(sc.key);
+            if (knownSc == null)
+            {
+                allKnown = false;
+                scProblems.append(sc.key);
+                scProblems.append(": unknown. ");
+            } else {
+                if (knownSc.lastModVersion != sc.lastModVersion)
+                {
+                    allKnown = false;
+                    scProblems.append(sc.key);
+                    scProblems.append(": lastModVersion mismatch (");
+                    scProblems.append(knownSc.lastModVersion);
+                    scProblems.append(" != ");
+                    scProblems.append(sc.lastModVersion);
+                    scProblems.append("). ");
+                }
+            }
+        }
 
-	    }
-	}
-
-	if (allKnown)
-	    return null;
-	else
-	    return scProblems;
+        if (allKnown)
+            return null;
+        else
+            return scProblems;
     }
 
     /**
