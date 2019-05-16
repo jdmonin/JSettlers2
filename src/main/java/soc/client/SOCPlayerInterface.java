@@ -185,12 +185,6 @@ public class SOCPlayerInterface extends Frame
     protected SOCBoardPanel boardPanel;
 
     /**
-     * Is the boardpanel stretched beyond normal size in {@link #doLayout()}?
-     * @see SOCBoardPanel#isScaled()
-     */
-    protected boolean boardIsScaled;
-
-    /**
      * Is this game using the 6-player board?
      * Checks {@link SOCGame#maxPlayers}.
      * @since 1.1.08
@@ -1009,7 +1003,6 @@ public class SOCPlayerInterface extends Frame
         boardPanel.setFont(sans10Font);
         Dimension bpMinSz = boardPanel.getMinimumSize();
         boardPanel.setSize(bpMinSz.width * displayScale, bpMinSz.height * displayScale);
-        boardIsScaled = (displayScale != 1);
         add(boardPanel);
         if (game.isGameOptionDefined("PL"))
         {
@@ -3222,8 +3215,8 @@ public class SOCPlayerInterface extends Frame
          * Classic Sizing
          * (board size was fixed, cannot scale)
          *
-        int bw = SOCBoardPanel.getPanelX();
-        int bh = SOCBoardPanel.getPanelY();
+        int bw = SOCBoardPanel.PANELX;
+        int bh = SOCBoardPanel.PANELY;
         int hw = (dim.width - bw - 16) / 2;
         int hh = (dim.height - 12) / 2;
         int kw = bw;
@@ -3235,9 +3228,8 @@ public class SOCPlayerInterface extends Frame
         /**
          * "Stretch" Scaleable-board Sizing:
          *
-         * If board can be at least 15% larger than minimum board width,
-         * without violating minimum handpanel width, scale it larger.
-         * Otherwise, use minimum board width (widen handpanels instead).
+         * Make board as wide as possible without violating minimum handpanel width.
+         * Boardpanel will center or scale up board hexes if needed to fill the larger space.
          *
          * Handpanel height:
          * - If 4-player, 1/2 of window height
@@ -3275,26 +3267,28 @@ public class SOCPlayerInterface extends Frame
             bw = (int) ((bh * (long) bMinW) / bMinH);
         }
 
-        int hw = 0;   // each handpanel's width; height is hh
+        boolean canStretchBoard = (bw >= bMinW) && (bh >= bMinH);
+
+        if (bw > bMinW)
+        {
+            // Make board wider if possible
+            int spareW = dim.width - (hpMinW * 2) - bw - pix16;
+            if (spareW > 0)
+                bw += (4 * spareW / 5);  // give 4/5 to boardpanel width, the rest to hw
+        }
+
+        int hw = (dim.width - bw - pix16) / 2;  // each handpanel's width; height is hh
         int tah = 0;  // textareas' height (not including tfh): calculated soon
 
-        boolean canScaleBoard = (bw >= (1.08f * bMinW));  // unless at least 8%, don't bother to scale up
-
-        if (canScaleBoard)
+        if (canStretchBoard)
         {
             // Now that we have minimum board height/width,
-            // make taller if possible
-            int spare = (dim.height - buildph - pix16 - (int)(5.5f * tfh)) - bh;
-            if (spare > 0)
-                bh += (2 * spare / 3);  // give 2/3 to boardpanel height, the rest to tah
-
-            // and wider if possible
-            spare = dim.width - (hpMinW * 2) - bw - pix16;
-            if (spare > 0)
-                bw += (4 * spare / 5);  // give 4/5 to boardpanel width, the rest to hw
+            // make it taller if possible
+            int spareH = (dim.height - buildph - pix16 - (int)(5.5f * tfh)) - bh;
+            if (spareH > 0)
+                bh += (2 * spareH / 3);  // give 2/3 to boardpanel height, the rest to tah
 
             tah = dim.height - bh - buildph - tfh - pix16;
-            hw = (dim.width - bw - pix16) / 2;
 
             // Scale it
             try
@@ -3303,15 +3297,13 @@ public class SOCPlayerInterface extends Frame
             }
             catch (IllegalArgumentException e)
             {
-                canScaleBoard = false;
+                canStretchBoard = false;
             }
         }
 
-        if (! canScaleBoard)
+        if (! canStretchBoard)
         {
-            bw = bMinW;
             bh = bMinH;
-            hw = (dim.width - bw - pix16) / 2;
             tah = dim.height - bh - buildph - tfh - pix16;
             try
             {
@@ -3319,14 +3311,35 @@ public class SOCPlayerInterface extends Frame
             }
             catch (IllegalArgumentException ee)
             {
+                // fall back to safe sizes
+
                 bw = boardPanel.getWidth();
                 bh = boardPanel.getHeight();
                 hw = (dim.width - bw - pix16) / 2;
+                if ((hw < hpMinW) && (bw > bMinW))
+                {
+                    // prevent gradually-widening boardpanel.getWidth() from squeezing handpanels too narrow
+                    int widthAvail = dim.width - bMinW - (2 * hpMinW) - pix16;
+                    if (widthAvail > 0)
+                    {
+                        int boardAvail = widthAvail / 5;
+                        bw = bMinW + boardAvail;
+                        hw = hpMinW + (widthAvail - boardAvail);
+
+                        boardPanel.setSize(bw, bh, true);  // won't throw yet another exception
+
+                        // because setSize may have ignored bw or bh:
+                        bw = boardPanel.getWidth();
+                        bh = boardPanel.getHeight();
+                        hw = (dim.width - bw - pix16) / 2;
+                    }
+                }
+
                 tah = dim.height - bh - buildph - tfh - pix16;
                 boardPanel.setLocation(i.left + hw + pix8, i.top + tfh + tah + pix8);
             }
         }
-        boardIsScaled = canScaleBoard;  // set field, now that we know if it works
+
         final int halfplayers = (is6player) ? 3 : 2;
         final int hh = (dim.height - pix12) / halfplayers;  // handpanel height
         final int kw = bw;

@@ -95,7 +95,7 @@ import javax.swing.JComponent;
  *
  *<H3>Interaction:</H3>
  * When the mouse is over the game board, a tooltip shows information
- * such as a hex's resource, a piece's owner, a port's ratio, or the
+ * such as a hex's resource, a piece's owner, a port's trading ratio, or the
  * number under the robber. See {@link #hoverTip}.
  *<P>
  * During game play, moving the mouse over the board shows ghosted roads,
@@ -128,11 +128,12 @@ import javax.swing.JComponent;
  *<H3>Sequence for loading, rendering, and drawing images:</H3>
  *<UL>
  *  <LI> Constructor calls {@link #loadImages(Component, boolean)} and {@link #rescaleCoordinateArrays()}
- *  <LI> Layout manager calls {@code setSize(..)} which calls {@link #rescaleBoard(int, int)}.
- *  <LI> {@link #rescaleBoard(int, int) rescaleBoard(..)} scales hex images, calls
+ *  <LI> Layout manager calls {@code setSize(..)} or {@code setBounds(..)},
+ *       which calls {@link #rescaleBoard(int, int)}
+ *  <LI> {@link #rescaleBoard(int, int)} scales hex images, calls
  *       {@link #renderBorderedHex(Image, Image, Color)} and {@link #renderPortImages()}
  *       into image buffers to use for redrawing the board
- *  <LI> {@link #paint(Graphics)} calls {@link #drawBoard(Graphics)}
+ *  <LI> {@link #paintComponent(Graphics)} calls {@link #drawBoard(Graphics)}
  *  <LI> First call to {@code drawBoard(..)} calls {@link #drawBoardEmpty(Graphics)} which renders into a buffer image
  *  <LI> {@code drawBoard(..)} draws the placed pieces over the buffered board image from {@code drawBoardEmpty(..)}
  *</UL>
@@ -150,6 +151,14 @@ import javax.swing.JComponent;
      * {@link #scaledHexes}, and {@link #scaledPorts} arrays.
      */
     private static String IMAGEDIR = "/resources/images";
+
+    /**
+     * For {@link #isScaled}, minimum acceptable scaling factor.
+     * Will use unscaled graphics if panel width or height isn't at least
+     * this ratio * {@link #minSize}.
+     * @since 2.0.00
+     */
+    private static float SCALE_FACTOR_MIN = 1.08f;
 
     /**
      * When {@link #isLargeBoard},
@@ -2251,18 +2260,43 @@ import javax.swing.JComponent;
     /**
      * Set the board to a new size, rescale graphics and repaint if needed.
      *
-     * @param newW New width in pixels, no less than {@link #getMinimumSize()}.width
-     * @param newH New height in pixels, no less than {@link #getMinimumSize()}.height
+     * @param newW  New width in pixels, no less than {@link #getMinimumSize()}.width
+     * @param newH  New height in pixels, no less than {@link #getMinimumSize()}.height
      * @throws IllegalArgumentException if newW or newH is too small but not 0.
      *   During initial layout, the layoutmanager may make calls to setSize(0,0);
      *   such a call is passed to super without scaling graphics.
+     *   To not throw this exception, call {@link #setSize(int, int, boolean)} instead.
      */
     @Override
     public void setSize(int newW, int newH)
         throws IllegalArgumentException
     {
+        setSize(newW, newH, false);
+    }
+
+    /**
+     * Set the board to a new size, rescale graphics and repaint if needed.
+     *
+     * @param newW  New width in pixels, no less than {@link #getMinimumSize()}.width
+     * @param newH  New height in pixels, no less than {@link #getMinimumSize()}.height
+     * @param noException  If true, don't throw an exception, increase newW or newH instead.
+     *     If false, throw if newW or newH too small; see {@link #setSize(int, int)} for details.
+     * @throws IllegalArgumentException if newW or newH is too small but not 0:
+     *     See {@link #setSize(int, int)} for details.
+     */
+    public void setSize(int newW, int newH, final boolean noException)
+        throws IllegalArgumentException
+    {
         if ((newW == scaledPanelW) && (newH == scaledPanelH) && hasCalledSetSize)
             return;  // Already sized.
+
+        if (noException)
+        {
+            if ((newW != 0) && (newW < minSize.width))
+                newW = minSize.width;
+            if ((newH != 0) && (newH < minSize.height))
+                newH = minSize.height;
+        }
 
         // If below min-size, rescaleBoard throws
         // IllegalArgumentException. Pass to our caller.
@@ -2294,10 +2328,10 @@ import javax.swing.JComponent;
      * Set the board to a new location and size, rescale graphics and repaint if needed.
      * Called from {@link SOCPlayerInterface#doLayout()}.
      *
-     * @param x New location's x-coordinate
-     * @param y new location's y-coordinate
-     * @param w New width in pixels, no less than {@link #PANELX} (or if rotated, {@link #PANELY})
-     * @param h New height in pixels, no less than {@link #PANELY} (or if rotated, {@link #PANELX})
+     * @param x  New location's x-coordinate
+     * @param y  new location's y-coordinate
+     * @param w  New width in pixels, no less than {@link #getMinimumSize()}.width
+     * @param h  New height in pixels, no less than {@link #getMinimumSize()}.height
      * @throws IllegalArgumentException if w or h is too small but not 0.
      *   During initial layout, the layoutmanager may make calls to setBounds(0,0,0,0);
      *   such a call is passed to super without scaling graphics.
@@ -2431,8 +2465,8 @@ import javax.swing.JComponent;
      * Updates {@link #isScaledOrRotated}, {@link #scaledPanelW}, {@link #panelMarginX}, and other fields.
      * Calls {@link #renderBorderedHex(Image, Image, Color)} and {@link #renderPortImages()}.
      *
-     * @param newW New width in pixels, no less than {@link #PANELX} (or if rotated, {@link #PANELY})
-     * @param newH New height in pixels, no less than {@link #PANELY} (or if rotated, {@link #PANELX})
+     * @param newW  New width in pixels, no less than {@link #minSize}.width
+     * @param newH  New height in pixels, no less than {@link #minSize}.height
      * @throws IllegalArgumentException if newW or newH is below {@link #minSize} but not 0.
      *   During initial layout, the layoutmanager may cause calls to rescaleBoard(0,0);
      *   such a call is ignored, no rescaling of graphics is done.
@@ -2461,7 +2495,15 @@ import javax.swing.JComponent;
             scaledBoardW = (int) (ratio * minSize.width);
         }
 
-        isScaled = ((scaledPanelW != minSize.width) || (scaledPanelH != minSize.height));
+        if ((scaledPanelW != minSize.width) || (scaledPanelH != minSize.height))
+        {
+            isScaled = ((scaledPanelW / (float) minSize.width) >= SCALE_FACTOR_MIN)
+                && ((scaledPanelH / (float) minSize.height) >= SCALE_FACTOR_MIN);
+            if (! isScaled)
+            {
+                scaledBoardW = minSize.width;
+            }
+        }
         scaledAt = System.currentTimeMillis();
         isScaledOrRotated = (isScaled || isRotated);
         if (isRotated)
@@ -2470,7 +2512,7 @@ import javax.swing.JComponent;
         } else {
             final int hexesWidth = halfdeltaX * board.getBoardWidth();
             panelMarginX = scaleToActual(panelMinBW - hexesWidth) / 2;  // take half, to center
-            if (panelMarginX < (halfdeltaX / 4))  // also if negative (larger than panelMinBW)
+            if (panelMarginX < (halfdeltaX / 4))  // and also if negative (larger than panelMinBW)
                 panelMarginX = 0;
             if (scaledBoardW < scaledPanelW)
                 panelMarginX += (scaledPanelW - scaledBoardW) / 2;
