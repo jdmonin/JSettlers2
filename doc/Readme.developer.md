@@ -248,7 +248,15 @@ its `build.gradle` into other IDEs.
 - Hit Finish
 - Eclipse should import the project and do an initial build
 - Project -> Properties
-    - Resource: Text file encoding: UTF-8
+    - Resource:
+        - Text file encoding: UTF-8
+        - Resource Filters -> Add  
+            To speed up project-wide file text searches:
+            - Type: Exclude all
+            - Applies to: Folders
+            - [X] All children (recursive)
+            - Name matches: `.git`
+            - OK
     - Java Compiler:
 	    - Enable project specific settings
 	    - JDK compliance
