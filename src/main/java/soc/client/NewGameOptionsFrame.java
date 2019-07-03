@@ -48,15 +48,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JRootPane;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
@@ -452,6 +458,20 @@ import soc.util.Version;
         getRootPane().setDefaultButton(readOnly ? cancel : create);
 
         add(btnPan, BorderLayout.SOUTH);
+
+        // Keyboard shortcut setup
+        {
+            final JRootPane rp = getRootPane();
+            final InputMap im = rp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+            final ActionMap am = rp.getActionMap();
+
+            // ESC to cancel/close dialog, even if nothing has keyboard focus (as seen on MacOSX)
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
+            am.put("cancel", new AbstractAction()
+            {
+                public void actionPerformed(ActionEvent ae) { clickCancel(); }
+            });
+        }
 
         // Final assembly setup
         bp.validate();
