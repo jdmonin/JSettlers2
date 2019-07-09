@@ -252,7 +252,9 @@ public interface PlayerClientListener
     void playerBankTrade(SOCPlayer player, SOCResourceSet give, SOCResourceSet get);
 
     /**
-     * This player has just made a trade offer to other players.
+     * The player {@code offerer} has just made a trade offer to other players,
+     * or updated the resources of their already-displayed offer.
+     * Show its details in their part of the game interface.
      * For offer details call {@code offerer.}{@link SOCPlayer#getCurrentOffer() getCurrentOffer()}.
      * @param offerer  Player with a new trade offer
      */
@@ -268,6 +270,12 @@ public interface PlayerClientListener
      */
     void requestedTradeClear(SOCPlayer offerer, final boolean isBankTrade);
 
+    /**
+     * A player has rejected the current trade offer(s).
+     * Indicate that in the display, for example by showing something like "no thanks"
+     * in their part of the game interface.
+     * @param rejecter  Player rejecting all trade offers
+     */
     void requestedTradeRejection(SOCPlayer rejecter);
 
     /**
