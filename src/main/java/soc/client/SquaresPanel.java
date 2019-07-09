@@ -28,11 +28,14 @@ import java.awt.event.MouseListener;
 
 import javax.swing.JPanel;
 
+import soc.game.SOCResourceConstants;
+import soc.game.SOCResourceSet;
+
 /**
  * Display grid of give/get resources
  * for trade and bank/port offers.
- * 2 rows of 5 columns:  1 column per resource
- * type: Clay, ore, sheep, wheat, wood.
+ * 2 rows of 5 columns of {@link ColorSquareLarger}:
+ * 1 column per resource type: Clay, ore, sheep, wheat, wood.
  *
  * @author Robert S Thomas
  *
@@ -201,21 +204,63 @@ import javax.swing.JPanel;
     }
 
     /**
-     * DOCUMENT ME!
+     * Set trading squares' values from int arrays.
      *
      * @param give DOCUMENT ME!
      * @param get DOCUMENT ME!
+     * @see #setValues(SOCResourceSet, SOCResourceSet)
      */
     public void setValues(int[] give, int[] get)
     {
         boolean notAllZ = false;
+
         for (int i = 0; i < 5; i++)
         {
             this.give[i].setIntValue(give[i]);
             this.get[i].setIntValue(get[i]);
-            if ((give[i]!=0) || (get[i]!=0))
+            if ((give[i] != 0) || (get[i] != 0))
                 notAllZ = true;
         }
+
+        notAllZero = notAllZ;
+    }
+
+    /**
+     * Set or clear trading squares' values from resource set contents.
+     * @param give  Trade resources to use in Line 1; will clear all to 0 if null
+     * @param get   Trade resources to use in Line 2; will clear all to 0 if null
+     * @since 2.0.00
+     */
+    public void setValues(final SOCResourceSet give, final SOCResourceSet get)
+    {
+        boolean notAllZ = false;
+
+        if (give != null)
+        {
+            for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
+            {
+                int amt = give.getAmount(res);
+                notAllZ |= (amt != 0);
+                this.give[res - 1].setIntValue(amt);
+            }
+        } else {
+            for (int i = 0; i < 5; ++i)
+                this.give[i].setIntValue(0);
+        }
+
+        if (get != null)
+        {
+            for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
+            {
+                int amt = get.getAmount(res);
+                notAllZ |= (amt != 0);
+                this.get[res - 1].setIntValue(amt);
+            }
+        } else {
+            for (int i = 0; i < 5; ++i)
+                this.get[i].setIntValue(0);
+        }
+
         notAllZero = notAllZ;
     }
 

@@ -25,7 +25,7 @@ import soc.game.SOCPlayer;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
 
-import java.awt.CardLayout;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -38,23 +38,11 @@ import java.util.TimerTask;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 
 
 /**
- * Two-mode panel to display either a short status message, or a
- * resource trade offer (and counter-offer) from another player.
- *<P>
- * The status message mode is used for tasks such as:
- *<UL>
- *  <LI> Saying "no thanks" to a trade offer
- *  <LI> Showing vote on a board reset request
- *  <LI> Showing the player is deciding what to discard
- *</UL>
- *<P>
- * To use message mode, call {@link #setMessage(String)}.
- * To use trade offer mode, show {@link #setOffer(SOCTradeOffer)}.
- * To show or hide the panel in either mode, call {@link #setVisible(boolean)}.
+ * Panel to display a resource trade offer (and counter-offer) from another player.
+ * To show, update, or clear the trade offer, show {@link #setOffer(SOCTradeOffer)}.
  *<P>
  * This panel is written for use in {@link SOCHandPanel}, so its layout conventions are nonstandard.
  * To help determine {@link #getPreferredSize()}, call {@link #setAvailableSpace(int, int)} when known.
@@ -76,20 +64,6 @@ import javax.swing.SwingConstants;
     /** i18n text strings; will use same locale as SOCPlayerClient's string manager.
      *  @since 2.0.00 */
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
-
-    /**
-     * Mode to show a trade offer, not a message.
-     * Made visible via {@link #setOffer(SOCTradeOffer)}.
-     * @see #MESSAGE_MODE
-     */
-    public static final String OFFER_MODE = "offer";  // shows OfferPanel
-
-    /**
-     * Mode to show a message, not a trade offer.
-     * Made visible via {@link #setMessage(String)}.
-     * @see #OFFER_MODE
-     */
-    public static final String MESSAGE_MODE = "message";  // shows MessagePanel
 
     /**
      * Typical button height, for doLayouts. Not scaled.
@@ -244,17 +218,6 @@ import javax.swing.SwingConstants;
      */
     private final int displayScale;
 
-    /**
-     * Current mode: {@link #MESSAGE_MODE} to show {@link #messagePanel},
-     * or {@link #OFFER_MODE} to show {@link #offerPanel}.
-     */
-    String mode;
-
-    /** Layout which shows either {@link #messagePanel} or {@link #offerPanel}. */
-    final CardLayout cardLayout;
-
-    final MessagePanel messagePanel;
-
     final OfferPanel offerPanel;
 
     /**
@@ -291,20 +254,15 @@ import javax.swing.SwingConstants;
      */
     public TradeOfferPanel(SOCHandPanel hp, int from)
     {
+        super(new BorderLayout());
+
         this.hp = hp;
         this.from = from;
         pi = hp.getPlayerInterface();
         displayScale = pi.displayScale;
 
-        messagePanel = new MessagePanel();
         offerPanel = new OfferPanel();
-
-        cardLayout = new CardLayout();
-        setLayout(cardLayout);
-
-        add(messagePanel, MESSAGE_MODE); // first added = first shown
-        add(offerPanel, OFFER_MODE);
-        mode = MESSAGE_MODE;
+        add(offerPanel, BorderLayout.CENTER);  // Is temporary, since this class has only OfferPanel now
 
         addPlayer();  // set isFromRobot, etc
 
@@ -349,225 +307,53 @@ import javax.swing.SwingConstants;
     {
         int prefW, prefH;
 
-        if (mode.equals(MESSAGE_MODE))
+        prefW = OFFER_MIN_WIDTH * displayScale;
+        final int labelWidthChg = offerPanel.calcLabelWidth() - (OfferPanel.GIVES_MIN_WIDTH * displayScale);
+        if (labelWidthChg > 0)
+            prefW = Math.max
+                (OFFER_MIN_WIDTH_FROM_BUTTONS * displayScale,
+                 OFFER_MIN_WIDTH_FROM_LABELS * displayScale + labelWidthChg);
+
+        if (! offerPanel.counterOfferMode)
         {
-            prefW = OFFER_MIN_WIDTH * displayScale;
-            prefH = messagePanel.calcLabelMinHeight(true);
+            prefH = OFFER_HEIGHT * displayScale;
         } else {
-            prefW = OFFER_MIN_WIDTH * displayScale;
-            final int labelWidthChg = offerPanel.calcLabelWidth() - (OfferPanel.GIVES_MIN_WIDTH * displayScale);
-            if (labelWidthChg > 0)
-                prefW = Math.max
-                    (OFFER_MIN_WIDTH_FROM_BUTTONS * displayScale,
-                     OFFER_MIN_WIDTH_FROM_LABELS * displayScale + labelWidthChg);
+            final boolean wasCompact = counterCompactMode;
 
-            if (! offerPanel.counterOfferMode)
+            prefH = (OFFER_HEIGHT - OFFER_BUTTONS_ADDED_HEIGHT + OFFER_COUNTER_HEIGHT) * displayScale;
+            if (availableHeight >= prefH)
             {
-                prefH = OFFER_HEIGHT * displayScale;
+                counterCompactMode = false;
             } else {
-                final boolean wasCompact = counterCompactMode;
-
-                prefH = (OFFER_HEIGHT - OFFER_BUTTONS_ADDED_HEIGHT + OFFER_COUNTER_HEIGHT) * displayScale;
-                if (availableHeight >= prefH)
-                {
-                    counterCompactMode = false;
-                } else {
-                    counterCompactMode = true;
-                    prefH -= ((BUTTON_HEIGHT + 2) * displayScale);
-                    prefW = OFFER_COMPACT_MIN_WIDTH * displayScale;
-                    if (labelWidthChg > 0)
-                        prefW += labelWidthChg;
-                }
-
-                if (wasCompact != counterCompactMode)
-                    repaint();
+                counterCompactMode = true;
+                prefH -= ((BUTTON_HEIGHT + 2) * displayScale);
+                prefW = OFFER_COMPACT_MIN_WIDTH * displayScale;
+                if (labelWidthChg > 0)
+                    prefW += labelWidthChg;
             }
 
-            if (! (offerPanel.counterOfferMode && counterCompactMode))
-            {
-                if (offerPanel.wantsRejectCountdown())
-                    prefH += (LABEL_LINE_HEIGHT * displayScale);
-            } else {
-                prefH -= (SpeechBalloon.BALLOON_POINT_SIZE * displayScale);
-            }
+            if (wasCompact != counterCompactMode)
+                repaint();
+        }
+
+        if (! (offerPanel.counterOfferMode && counterCompactMode))
+        {
+            if (offerPanel.wantsRejectCountdown())
+                prefH += (LABEL_LINE_HEIGHT * displayScale);
+        } else {
+            prefH -= (SpeechBalloon.BALLOON_POINT_SIZE * displayScale);
         }
 
         if ((availableWidth != 0) && (availableWidth < prefW))
             prefW = availableWidth;
         if ((availableHeight != 0) && (availableHeight < prefH))
             prefH = availableHeight;
+
         setPreferredSize(new Dimension(prefW, prefH));
     }
 
     /**
-     * Panel to show when in {@link TradeOfferPanel#MESSAGE_MODE MESSAGE_MODE},
-     * not {@link TradeOfferPanel#OFFER_MODE OFFER_MODE}.
-     * @see OfferPanel
-     */
-    private class MessagePanel extends SpeechBalloon
-    {
-        /**
-         * For 1 line of text, {@link #msg} contains the entire text.
-         * For 2 lines separated by <tt>\n</tt>, {@link #msg} and {@link #msg2} are used.
-         * @see #msgLines
-         */
-        private final JLabel msg, msg2;
-
-        /**
-         * Height of the text in one label, from <tt>getFontMetrics({@link #msg}.getFont()).getHeight()</tt>.
-         * Should be less than {@link #msgHeight}. 0 if unknown.
-         */
-        private int oneLineHeight;
-
-        /**
-         * Height of each label ({@link #msg}, {@link #msg2}). Should be {@link #oneLineHeight} + insets.
-         * 0 if unknown.
-         */
-        private int msgHeight;
-
-        /**
-         * Number of lines of text; 1, or 2 if text contains <tt>\n</tt>.
-         * After changing this, set {@link #msgHeight} = 0 and call {@link #validate()}.
-         * @since 2.0.00
-         */
-        private int msgLines;
-
-        /**
-         * Creates a new MessagePanel object.
-         * Give room for 1 or 2 centered lines of text.
-         */
-        public MessagePanel()
-        {
-            super(pi.getPlayerColor(from), displayScale, null);  // custom doLayout
-
-            final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true, false);
-            if (colors != null)
-            {
-                setForeground(colors[0]);  // Color.BLACK
-                setBackground(colors[2]);  // SwingMainDisplay.DIALOG_BG_GOLDENROD
-            }
-
-            final Font msgFont = new Font("SansSerif", Font.PLAIN, 18 * displayScale);
-
-            msg = new JLabel(" ", SwingConstants.CENTER);
-            msg.setFont(msgFont);
-            msg.setForeground(null);
-
-            msg2 = new JLabel(" ", SwingConstants.CENTER);
-            msg2.setVisible(false);
-            msg2.setFont(msgFont);
-            msg2.setForeground(null);
-
-            msgLines = 1;
-            add(msg);
-            add(msg2);
-
-            setSize(INITIAL_SIZE);
-            setMinimumSize(INITIAL_SIZE);
-            setPreferredSize(INITIAL_SIZE);
-        }
-
-        /**
-         * Update the text shown in this messagepanel.
-         * Does not show or hide the panel, only changes the label text.
-         * @param message message to display, or null for no text
-         */
-        public void update(final String message)
-        {
-            String newText;
-            int newMsgLines, newlineIndex;
-            if (message != null)
-            {
-                newText = message;
-                newlineIndex = message.indexOf('\n');
-                newMsgLines = (newlineIndex >= 0) ? 2 : 1;
-            } else {
-                newText = " ";
-                newlineIndex = -1;
-                newMsgLines = 1;
-            }
-            if (newMsgLines == 1)
-            {
-                msg.setText(newText);
-                msg2.setText(" ");
-            } else {
-                msg.setText(newText.substring(0, newlineIndex));
-                msg2.setText(newText.substring(newlineIndex + 1));
-            }
-            if (msgLines != newMsgLines)
-            {
-                msgLines = newMsgLines;
-                msgHeight = 0;
-                msg2.setVisible(newMsgLines != 1);
-                validate();
-            }
-        }
-
-        /**
-         * Calculate some fields for this panel's minimum height based on {@link #msgHeight}.
-         * Ignores getSize() and {@link TradeOfferPanel#availableHeight}.
-         *<P>
-         * Used by {@link #doLayout()} which wants those field calcs, and
-         * {@link TradeOfferPanel#setAvailableSpace(int, int)} which also wants
-         * an overall minimum height.
-         *<P>
-         * If not yet done (value 0), first calculate the values for {@link #oneLineHeight} and {@link #msgHeight}
-         * based on {@link #msgLines} and getFontMetrics({@link #msg}.getFont()).
-         *
-         * @return  Minimum panel height if {@code wantHeight}, otherwise 0
-         * @see OfferPanel#calcLabelWidth(boolean)
-         * @since 2.0.00
-         */
-        int calcLabelMinHeight(final boolean wantHeight)
-        {
-            if (oneLineHeight == 0)
-                oneLineHeight = getFontMetrics(msg.getFont()).getHeight();
-            if (msgHeight == 0)
-                msgHeight = oneLineHeight + 4 * displayScale;
-
-            if (! wantHeight)
-                return 0;
-
-            return 3 * msgHeight + (4 + SpeechBalloon.BALLOON_POINT_SIZE + SpeechBalloon.SHADOW_SIZE) * displayScale;
-                // actual minimum needs 2 * msgHeight; add another msgHeight for margins
-        }
-
-        /**
-         * Custom layout for just the message panel.
-         * To center {@link #msg} and {@link #msg2} vertically after changing {@link #msgLines},
-         * set {@link #msgHeight} to 0 before calling.
-         */
-        public void doLayout()
-        {
-            final Dimension dim = getSize();  // includes BALLOON_POINT_SIZE at top, SHADOW_SIZE at bottom
-            final int inset = 2 * SpeechBalloon.SHADOW_SIZE * displayScale;
-
-            calcLabelMinHeight(false);  // if 0, set oneLineHeight, msgHeight
-
-            int h = dim.height - ((SpeechBalloon.BALLOON_POINT_SIZE + SpeechBalloon.SHADOW_SIZE) * displayScale);
-            if ((msgHeight * msgLines) > h)
-                msgHeight = h / msgLines;
-            int msgY = (h - msgHeight) / 2 + (SpeechBalloon.BALLOON_POINT_SIZE * displayScale);
-            if (msgLines != 1)
-                msgY -= (oneLineHeight / 2);  // move up to make room for msg2
-            if (msgY < 0)
-                msgY = 0;
-
-            int msgW = dim.width - (2 * inset) - ((SpeechBalloon.SHADOW_SIZE * displayScale) / 2);
-            msg.setBounds
-                (inset, msgY, msgW, msgHeight);
-            if (msgLines != 1)
-            {
-                msgY += oneLineHeight;
-                msg2.setBounds
-                    (inset, msgY, msgW, msgHeight);
-            }
-        }
-    }
-
-    /**
-     * Panel to show a trade offer when in {@link TradeOfferPanel#OFFER_MODE OFFER_MODE},
-     * not {@link TradeOfferPanel#MESSAGE_MODE}.
+     * Panel to show a trade offer.
      * Contains both offer and counter-offer; see {@link #setCounterOfferVisible(boolean)}.
      * @see MessagePanel
      */
@@ -840,8 +626,7 @@ import javax.swing.SwingConstants;
 
         /**
          * Update the displayed offer.
-         * Should be called when already in {@link TradeOfferPanel#OFFER_MODE},
-         * or about to switch to it via {@link TradeOfferPanel#setOffer(SOCTradeOffer)}.
+         * Should be called when already showing an offer or about to switch to doing so.
          *
          * @param  offer  the trade offer, with set of resources being given and asked for
          */
@@ -1305,9 +1090,7 @@ import javax.swing.SwingConstants;
         /**
          * Show or hide the Accept button, based on client player resources
          * and whether this offer is offered to client player.
-         *<P>
-         * This should be called when in {@link TradeOfferPanel#OFFER_MODE},
-         * not in {@link TradeOfferPanel#MESSAGE_MODE}.
+         *
          * @since 1.1.20
          */
         public void updateOfferButtons()
@@ -1331,9 +1114,6 @@ import javax.swing.SwingConstants;
          * show or hide our counter-offer panel, below the trade-offer panel.
          * Also shows or hides {@link #acceptBut} based on client player resources,
          * {@link #offered}, and ! {@code visible}; see also {@link #updateOfferButtons()}.
-         *<P>
-         * This should be called when in {@link TradeOfferPanel#OFFER_MODE},
-         * not in {@link TradeOfferPanel#MESSAGE_MODE}.
          */
         private void setCounterOfferVisible(boolean visible)
         {
@@ -1436,8 +1216,7 @@ import javax.swing.SwingConstants;
 
             public void run()
             {
-                if ((mode != OFFER_MODE)
-                    || ! (rejCountdownLab.isVisible() && TradeOfferPanel.OfferPanel.this.isVisible()))
+                if (! (rejCountdownLab.isVisible() && TradeOfferPanel.OfferPanel.this.isVisible()))
                 {
                     rejCountdownLab.setText("");
                     cancel();
@@ -1469,34 +1248,6 @@ import javax.swing.SwingConstants;
     }
 
     /**
-     * Switch to the Message from another player, or clear
-     * its most recent contents.
-     * If <tt>message</tt> is null, only clear the message text,
-     * don't change the visibility.
-     * Otherwise, set the message text and show the Message.
-     * If an offer/counteroffer were visible, they are
-     * not lost; call {@link #setOffer(SOCTradeOffer)} to
-     * show them again.
-     *
-     * @param  message  the message message to show, or null.
-     *      Null does not show or hide the panel, only clears the label text.
-     *      Message can be 1 line, or 2 lines with <tt>'\n'</tt>;
-     *      will not automatically wrap based on message length.
-     */
-    public void setMessage(String message)
-    {
-        messagePanel.update(message);
-
-        if (message != null)
-        {
-            cardLayout.show(this, mode = MESSAGE_MODE);
-            recalcPreferredSize();
-            validate();
-            repaint();
-        }
-    }
-
-    /**
      * Update to view the of an offer from another player.
      * If counter-offer was previously shown, show it again.
      * This lets us restore the offer view after message mode.
@@ -1508,12 +1259,10 @@ import javax.swing.SwingConstants;
      * call {@link #clearOffer()}.
      *
      * @param  currentOffer the trade being proposed
-     * @see #setMessage(String)
      * @see #isOfferToClientPlayer()
      */
     public void setOffer(SOCTradeOffer currentOffer)
     {
-        cardLayout.show(this, mode = OFFER_MODE);
         offerPanel.update(currentOffer);
         recalcPreferredSize();
         invalidate();
@@ -1530,7 +1279,7 @@ import javax.swing.SwingConstants;
      */
     public void updateOfferButtons()
     {
-        if (! (isVisible() && mode.equals(OFFER_MODE)))
+        if (! isVisible())
             return;
 
         offerPanel.updateOfferButtons();
@@ -1566,22 +1315,13 @@ import javax.swing.SwingConstants;
 
     /**
      * Is panel in offer mode and is its current offer made to the client player?
-     * @return  True only if {@link #isVisible()} in {@link #OFFER_MODE} and current offer's "made to" players list
+     * @return  True only if {@link #isVisible()} and current offer's "made to" players list
      *     includes the client player, if any.
      * @since 1.2.01
      */
     public boolean isOfferToClientPlayer()
     {
-        return isVisible() && mode.equals(OFFER_MODE) && offerPanel.offered;
-    }
-
-    /**
-     * Returns current mode, which has been set by using
-     * {@link #setOffer} or {@link #setMessage}.
-     * @return {@link #OFFER_MODE} or {@link #MESSAGE_MODE}
-     */
-    public String getMode() {
-        return mode;
+        return isVisible() && offerPanel.offered;
     }
 
     /**
@@ -1608,6 +1348,17 @@ import javax.swing.SwingConstants;
             return;
         counterHidesBalloonPoint = hide;
         offerPanel.balloon.setBalloonPoint(! hide);
+    }
+
+    /**
+     * Set or clear panel's visibility, including its OfferPanel.
+     * @since 2.0.00
+     */
+    @Override
+    public void setVisible(final boolean vis)
+    {
+        super.setVisible(vis);
+        offerPanel.setVisible(vis);
     }
 
     /**
