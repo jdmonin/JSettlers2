@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2008-2009,2012-2015,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2009,2012-2015,2017,2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -381,6 +381,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      *
      * @param a   set A, cannot be {@code null}
      * @param b   set B, can be {@code null} for an empty resource set
+     * @see #contains(ResourceSet)
      */
     static public boolean gte(ResourceSet a, ResourceSet b)
     {
@@ -493,10 +494,38 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
         return needComma;  // Did we append anything?
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     * @see #contains(int[])
+     */
     public boolean contains(ResourceSet other)
     {
         return gte(this, other);
+    }
+
+    /**
+     * Does this set contain all resources of another set?
+     * @param other resource set to test against, of length 5 (clay, ore, sheep, wheat, wood) or 6 (with unknown),
+     *    or {@code null} for an empty resource subset.
+     * @return true if this set contains at least the resource amounts in {@code other}
+     *     for each of its resource types
+     * @throws IllegalArgumentException if a non-null {@code other}'s length is not 5 or 6
+     */
+    public boolean contains(final int[] other)
+        throws IllegalArgumentException
+    {
+        if (other == null)
+            return true;
+        if ((other.length != 5) && (other.length != 6))
+            throw new IllegalArgumentException("other");
+
+        for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
+            if (resources[rtype] < other[rtype - 1])
+                return false;
+        if ((other.length == 6) && (resources[SOCResourceConstants.UNKNOWN] < other[5]))
+            return false;
+
+        return true;
     }
 
     /**
