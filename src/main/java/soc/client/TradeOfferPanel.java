@@ -20,7 +20,6 @@
  **/
 package soc.client;
 
-import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
@@ -632,108 +631,7 @@ import javax.swing.JPanel;
          */
         public void update(SOCTradeOffer offer)
         {
-            this.give = offer.getGiveSet();
-            this.get = offer.getGetSet();
-            boolean[] offerList = offer.getTo();
-
-            SOCPlayer player = hp.getGame().getPlayer(hp.getClient().getNickname());
-
-            if (player != null)
-            {
-                if (! counterOffer_playerInit)
-                {
-                    // do we have to fill in opponent's name for 1st time?
-                    counterOfferToWhom.setText
-                        (strings.get("trade.counter.to.x", hp.getPlayer().getName()));  // "Counter to {0}:"
-
-                    counterOffer_playerInit = true;
-                }
-                offered = offerList[player.getPlayerNumber()];
-            }
-            else
-            {
-                offered = false;
-            }
-
-            SOCGame ga = hp.getGame();
-
-            /**
-             * Build the list of player names, retrieve i18n-localized, then wrap at maxChars.
-             */
-            StringBuilder names = new StringBuilder();
-
-            int cnt = 0;
-            for (; cnt < ga.maxPlayers; cnt++)
-            {
-                if (offerList[cnt] && ! ga.isSeatVacant(cnt))
-                {
-                    names.append(ga.getPlayer(cnt).getName());
-                    break;
-                }
-            }
-
-            cnt++;
-
-            for (; cnt < ga.maxPlayers; cnt++)
-            {
-                if (offerList[cnt] && ! ga.isSeatVacant(cnt))
-                {
-                    names.append(", ");
-                    names.append(ga.getPlayer(cnt).getName());
-                }
-            }
-
-            final int maxChars = ((ga.maxPlayers > 4) || ga.hasSeaBoard) ? 30 : 25;
-            String names1 = strings.get("trade.offered.to", names);  // "Offered to: p1, p2, p3"
-            String names2 = null;
-            if (names1.length() > maxChars)
-            {
-                // wrap into names2
-                int i = names1.lastIndexOf(", ", maxChars);
-                if (i != -1)
-                {
-                    ++i;  // +1 to keep ','
-                    names2 = names1.substring(i).trim();
-                    names1 = names1.substring(0, i).trim();
-                }
-            }
-
-            toWhom1.setText(names1);
-            toWhom2.setText(names2 != null ? names2 : "");
-
-            /**
-             * Note: this only works if SOCResourceConstants.CLAY == 1
-             */
-            for (int i = 0; i < 5; i++)
-            {
-                giveInt[i] = give.getAmount(i + 1);
-                getInt[i] = get.getAmount(i + 1);
-            }
-            squares.setValues(giveInt, getInt);
-
-            if (rejCountdownLab != null)
-            {
-                if (rejTimerTask != null)
-                    rejTimerTask.cancel();  // cancel any previous
-
-                final int sec = pi.getBotTradeRejectSec();
-                if ((sec > 0) && offered && isFromRobot && ! counterOfferMode)
-                {
-                    rejCountdownLab.setText(" ");  // clear any previous; not entirely blank, for other status checks
-                    rejCountdownLab.setVisible(true);
-                    rejTimerTask = new AutoRejectTask(sec);
-                    pi.getEventTimer().scheduleAtFixedRate(rejTimerTask, 300 /* ms */, 1000 /* ms */ );
-                        // initial 300ms delay, so OfferPanel should be visible at first AutoRejectTask.run()
-                } else {
-                    rejCountdownLab.setVisible(false);
-                    rejCountdownLab.setText("");
-                }
-            }
-
-            // enables accept,reject,offer Buttons if 'offered' is true
-            setCounterOfferVisible(counterOfferMode);
-
-            validate();
+            // moved to TradePanel.setTradeOffer
         }
 
         /**
@@ -772,6 +670,8 @@ import javax.swing.JPanel;
          */
         int calcLabelWidth()
         {
+            // Moved to TradePanel.calcLabelWidth
+
             if (givesYouLabWidth == 0)
             {
                 final FontMetrics fm = getFontMetrics(givesYouLab.getFont());
@@ -1000,54 +900,7 @@ import javax.swing.JPanel;
             }
             else if (target == SEND)
             {
-                cancelRejectCountdown();
-
-                SOCGame game = hp.getGame();
-                SOCPlayer player = game.getPlayer(pi.getClient().getNickname());
-
-                if (game.getGameState() == SOCGame.PLAY1)
-                {
-                    // slot for each resource, plus one for 'unknown' (remains 0)
-                    int[] give = new int[5];
-                    int[] get = new int[5];
-                    int giveSum = 0;
-                    int getSum = 0;
-                    counterOfferSquares.getValues(give, get);
-
-                    for (int i = 0; i < 5; i++)
-                    {
-                        giveSum += give[i];
-                        getSum += get[i];
-                    }
-
-                    SOCResourceSet giveSet = new SOCResourceSet(give);
-                    SOCResourceSet getSet = new SOCResourceSet(get);
-
-                    if (! player.getResources().contains(giveSet))
-                    {
-                        pi.print("*** " + strings.get("trade.msg.cant.offer"));  // "You can't offer what you don't have."
-                    }
-                    else if ((giveSum == 0) || (getSum == 0))
-                    {
-                        pi.print("*** " + strings.get("trade.msg.must.contain"));
-                            // "A trade must contain at least one resource from each player." (v1.x.xx: ... resource card ...)
-                    }
-                    else
-                    {
-                        // arrays of bools are initially false
-                        boolean[] to = new boolean[game.maxPlayers];
-                        // offer to the player that made the original offer
-                        to[from] = true;
-
-                        SOCTradeOffer tradeOffer =
-                            new SOCTradeOffer (game.getName(),
-                                               player.getPlayerNumber(),
-                                               to, giveSet, getSet);
-                        hp.getClient().getGameMessageSender().offerTrade(game, tradeOffer);
-
-                        setCounterOfferVisible(true);
-                    }
-                }
+                // moved to SOCHandPanel.clickCounterOfferSendButton
             }
 
             if (target == CANCEL)
@@ -1062,13 +915,7 @@ import javax.swing.JPanel;
 
             if (target == ACCEPT)
             {
-                //int[] tempGive = new int[5];
-                //int[] tempGet = new int[5];
-                //squares.getValues(tempGive, tempGet);
-
-                cancelRejectCountdown();
-                hp.getClient().getGameMessageSender().acceptOffer(hp.getGame(), from);
-                hp.disableBankUndoButton();
+                // moved to SOCHandPanel.clickOfferAcceptButton
             }
             } catch (Throwable th) {
                 pi.chatPrintStackTrace(th);
@@ -1082,9 +929,7 @@ import javax.swing.JPanel;
          */
         private void clickRejectButton()
         {
-            setVisible(false);
-            cancelRejectCountdown();
-            hp.rejectOfferAtClient();
+            // moved to SOCHandPanel.clickOfferRejectButton
         }
 
         /**
@@ -1321,6 +1166,8 @@ import javax.swing.JPanel;
      */
     public boolean isOfferToClientPlayer()
     {
+        // moved to TradePanel.isOfferToPlayer
+
         return isVisible() && offerPanel.offered;
     }
 

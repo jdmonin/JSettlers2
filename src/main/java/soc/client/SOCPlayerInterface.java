@@ -2227,9 +2227,11 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * a player has sat down to play
+     * A player has sat down to play. Update the display.
+     * Calls {@link SOCHandPanel#addPlayer(String)}, which does additional actions if the
+     * player sitting down now is the client (not another human or robot).
      *
-     * @param n   the name of the player
+     * @param n   the name of the player. Checks if is client player by calling {@link SOCPlayerClient#getNickname()}.
      * @param pn  the seat number of the player
      */
     public void addPlayer(String n, int pn)
@@ -2245,6 +2247,7 @@ public class SOCPlayerInterface extends Frame
                     hands[i].addSittingRobotLockBut();
                 }
             }
+
             if (is6player)
             {
                 // handpanel sizes change when client sits
