@@ -975,19 +975,25 @@ import javax.swing.UIManager;
         messagePanel.setVisible(false);
         add(messagePanel);
 
-        // For trade between players, panels to show a non-client player's offer and make counteroffers
+        // For trade between players, panels to show a non-client player's offer and make counteroffers.
+        // Construct these only after setting handpanel's background color.
+
         if (playerTradingDisabled)
         {
             offerPanel = null;
             counterOfferPanel = null;
         } else {
+            final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true, false);
+            final Color tradeInteriorColor =
+                (colors != null) ? colors[2] : null; /* SwingMainDisplay.DIALOG_BG_GOLDENROD */
+
             offerPanel = new TradePanel
                 (new String[]{ strings.get("trade.accept"), strings.get("trade.reject"), strings.get("trade.counter") },
                     // "Accept", "Reject", "Counter"
                  new String[]{  strings.get("trade.gives.you"), strings.get("trade.they.get"),
                     strings.get("trade.opponent.gives"), strings.get("trade.you.give") },
                     // "Gives You:", "They Get:", tooltips "Opponent gives to you", "You give to opponent"
-                 false, true, true, this, new TradePanel.TPListener()
+                 false, true, true, this, tradeInteriorColor, new TradePanel.TPListener()
                  {
                      public void button1Clicked() { clickOfferAcceptButton(); }
                      public void button2Clicked() { clickOfferRejectButton(); }
@@ -1002,7 +1008,7 @@ import javax.swing.UIManager;
                  new String[]{ strings.get("trade.they.get"), strings.get("trade.gives.you"),
                     strings.get("trade.give.to.opponent"), strings.get("trade.opponent.gives") },
                     // "They Get:", "Gives You:", tooltips "Give to opponent", "Opponent gives to you"
-                 true, false, false, this, new TradePanel.TPListener()
+                 true, false, false, this, tradeInteriorColor, new TradePanel.TPListener()
                  {
                      public void button1Clicked() { clickCounterOfferSendButton(); }
                      public void button2Clicked() { clickCounterOfferClearButton(); }

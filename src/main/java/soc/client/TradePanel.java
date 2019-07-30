@@ -31,7 +31,6 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
@@ -49,6 +48,7 @@ import soc.util.SOCStringManager;
  *      updated by {@link #setTradeOffer(SOCTradeOffer)} or {@link #setTradeResources(SOCResourceSet, SOCResourceSet)}
  * <LI> 3 buttons, appearing below the trading squares, or to their right if no room below ("compact mode")
  * <LI> Optional text below the trading squares
+ * <LI> Solid shadow along bottom and right edge, {@link ShadowedBox#SHADOW_SIZE} pixels wide
  *</UL>
  *<P>
  * The parent SOCHandPanel controls this panel's size, position, and visibility.
@@ -63,7 +63,7 @@ import soc.util.SOCStringManager;
  * @since 2.0.00
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
-public class TradePanel extends JPanel
+public class TradePanel extends ShadowedBox
     implements ActionListener
 {
     private static final long serialVersionUID = 2000L;
@@ -119,6 +119,15 @@ public class TradePanel extends JPanel
      * Not scaled by {@link #displayScale}.
      */
     private static final int SQUARES_LAB_MARGIN_RIGHT = 6;
+
+    /**
+     * Minimum width from the 3 buttons, including {@link ShadowedBox#SHADOW_SIZE},
+     * in unscaled pixels.  doLayout uses 5 pixels between buttons, centered across panel width
+     * (excluding SHADOW_SIZE). This constant also uses 5 pixels for left and right margins at panel's edge.
+     * Not used in Compact Mode.
+     */
+    private static final int MIN_WIDTH_FROM_BUTTON_ROW
+        = (2 * (5+5) + 3 * BUTTON_WIDTH) + SHADOW_SIZE;
 
     /**
      * Optional player for {@link #canPlayerGiveTradeResources()}, or null.
@@ -210,6 +219,8 @@ public class TradePanel extends JPanel
 
     /**
      * Make a new TradePanel to hold a trade offer or counter-offer.
+     * The empty part of the panel will be {@code tradeInteriorColor}, not the background color.
+     * Uses parent {@code hpan}'s current background color for the corners that aren't in shadow.
      *
      * @param buttonTexts  Array with 3 strings: Text for button 1, button 2, button 3
      * @param sqLabelTexts  Array with 2 or 4 strings: Label for row 1 of the trading squares, for row 2,
@@ -218,7 +229,9 @@ public class TradePanel extends JPanel
      *     For more info see {@link #canPlayerGiveTradeResources()}.
      * @param hasLine2  True if text above trading squares has a second line
      * @param hasLineBelow  True if the layout should leave room for text below the trading squares
-     * @param hpan  Parent handpanel, for game data callbacks
+     * @param hpan  Parent handpanel, for game data callbacks and background color
+     * @param tradeInteriorColor  Color for the box interior (like {@link SwingMainDisplay#DIALOG_BG_GOLDENROD}),
+     *     or {@code null} to use system defaults
      * @param listener   Listener for callbacks when buttons pressed; not {@code null}
      * @param displayScale  For high-DPI displays, what scaling factor to use? Unscaled is 1.
      * @throws IllegalArgumentException  if {@code buttonTexts} is null or length != 3,
@@ -227,11 +240,12 @@ public class TradePanel extends JPanel
     public TradePanel
         (final String[] buttonTexts, final String[] sqLabelTexts,
          boolean isPlayerRow1, boolean hasLine2, boolean hasLineBelow,
-         final SOCHandPanel hpan, TPListener listener, final int displayScale)
+         final SOCHandPanel hpan, final Color tradeInteriorColor, TPListener listener, final int displayScale)
         throws IllegalArgumentException
     {
-        if (hpan == null)
-            throw new IllegalArgumentException("hpan");
+        super(hpan.getBackground(), tradeInteriorColor, displayScale, null);
+            // use null LayoutManager; also, will throw NPE if null hpan
+
         if ((buttonTexts == null) || (buttonTexts.length != 3))
             throw new IllegalArgumentException("buttonTexts");
         if (listener == null)
@@ -248,7 +262,6 @@ public class TradePanel extends JPanel
         if (colors != null)
         {
             setForeground(colors[0]);  // Color.BLACK
-            setBackground(colors[2]);  // DIALOG_BG_GOLDENROD
             setOpaque(true);
         }
 
@@ -274,7 +287,6 @@ public class TradePanel extends JPanel
         buttonRowVis = true;
         button1Vis = true;
 
-        setLayout(null);
         add(line1);
         if (hasLine2)
         {
@@ -555,9 +567,9 @@ public class TradePanel extends JPanel
         if (lineBelow != null)
             ++nLines;
         h = (lineHeight + lineSpace) * nLines + lineSpace
-            + (SquaresPanel.HEIGHT + ShadowedBox.SHADOW_SIZE) * displayScale + lineSpace;
+            + (SquaresPanel.HEIGHT + SHADOW_SIZE) * displayScale + lineSpace;
         if ((! ignoreButtonRow) && buttonRowVis)
-            h += (BUTTON_HEIGHT * displayScale) + lineSpace;
+            h += (BUTTON_HEIGHT + 2) * displayScale + lineSpace;
 
         return h;
     }
@@ -570,10 +582,13 @@ public class TradePanel extends JPanel
     @Override
     public Dimension getPreferredSize()
     {
-        int w, h;
+        int bw, w, h;
 
         w = ((2 * PANEL_MARGIN_HORIZ) + SquaresPanel.WIDTH + SQUARES_LAB_MARGIN_RIGHT)
             * displayScale + calcLabelWidth();
+        bw = MIN_WIDTH_FROM_BUTTON_ROW * displayScale;
+        if (w < bw)
+            w = bw;
 
         h = getPreferredHeight(false);
 
@@ -665,7 +680,7 @@ public class TradePanel extends JPanel
         {
             // Buttons to right of offer squares, y-centered vs. height of panel
             int buttonY =
-                (((dim.height / displayScale) - BUTTON_HEIGHT - ShadowedBox.SHADOW_SIZE - BUTTON_MARGIN_COMPACT)
+                (((dim.height / displayScale) - BUTTON_HEIGHT - SHADOW_SIZE - BUTTON_MARGIN_COMPACT)
                  - (3 * BUTTON_HEIGHT + 4))
                 * displayScale / 2;
             final int buttonX = inset + squaresLabelW + ((SquaresPanel.WIDTH + BUTTON_MARGIN_COMPACT) * displayScale),
@@ -683,7 +698,7 @@ public class TradePanel extends JPanel
         {
             // Buttons below offer squares and their labels, centered across width
             int buttonX =
-                (dim.width - (ShadowedBox.SHADOW_SIZE * displayScale) - ((3 * BUTTON_WIDTH + 10) * displayScale)) / 2;
+                (dim.width - (SHADOW_SIZE * displayScale) - ((3 * BUTTON_WIDTH + 10) * displayScale)) / 2;
             final int buttonW = BUTTON_WIDTH * displayScale,
                       buttonH = BUTTON_HEIGHT * displayScale,
                       pix5 = 5 * displayScale;

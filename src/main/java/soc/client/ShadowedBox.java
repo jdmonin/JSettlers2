@@ -56,8 +56,10 @@ import javax.swing.JPanel;
     /**
      * Constructor. Sets a small default size and assumes a layout manager will soon change that size.
      *
-     * @param bg  the background color beyond edges of the panel
-     * @param interior  the color of the box interior, or {@code null} to use system defaults
+     * @param bg  the background color, beyond edges of the drawn panel,
+     *     to be used in corners that aren't part of the shadow
+     * @param interior  the color of the box interior (like {@link SwingMainDisplay#DIALOG_BG_GOLDENROD}),
+     *     or {@code null} to use system defaults
      *     from {@link SwingMainDisplay#getForegroundBackgroundColors(boolean, boolean)}
      * @param displayScale  For high-DPI displays, what scaling factor to use? Unscaled is 1.
      * @param lm  LayoutManager to use, or {@code null}
