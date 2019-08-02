@@ -133,7 +133,7 @@ public class ColorSquare extends JComponent implements MouseListener
     int kind;
     int upperBound;
     int lowerBound;
-    final boolean interactive;
+    boolean interactive;
 
     /** Border color, BLACK by default
      * @since 1.1.13
@@ -433,6 +433,29 @@ public class ColorSquare extends JComponent implements MouseListener
 
         if (in)
             addMouseListener(this);
+    }
+
+    /**
+     * Set this square to interactive or read-only mode.
+     * If read-only, user can't click the resource amount to change it.
+     *<P>
+     * If square was non-interactive when constructor called, and then this method is
+     * called to make interactive, adds a mouse listener. Calling it again later
+     * could add a duplicate mouse listener, so don't toggle interactivity
+     * more than once.
+     *
+     * @param inter  True for interactive, false for read-only
+     * @see 2.0.00
+     */
+    public void setInteractive(final boolean inter)
+    {
+        if (inter == interactive)
+            return;
+
+        if (inter && ! interactive)
+            addMouseListener(this);  // assumes won't be set true twice
+
+        interactive = inter;
     }
 
     /**
@@ -1195,52 +1218,54 @@ public class ColorSquare extends JComponent implements MouseListener
      */
     public void mousePressed(MouseEvent evt)
     {
-        if (interactive)
+        if (! interactive)
+            return;
+
+        int oldIVal = intValue;
+        boolean bvalChanged = false;
+
+        switch (kind)
         {
-            int oldIVal = intValue;
-            boolean bvalChanged = false;
+        case YES_NO:
+        case CHECKBOX:
+            boolValue = !boolValue;
+            bvalChanged = true;
 
-            switch (kind)
+            break;
+
+        case NUMBER:
+            intValue++;
+
+            break;
+
+        case BOUNDED_INC:
+
+            if (intValue < upperBound)
             {
-            case YES_NO:
-            case CHECKBOX:
-                boolValue = !boolValue;
-                bvalChanged = true;
-
-                break;
-
-            case NUMBER:
                 intValue++;
-
-                break;
-
-            case BOUNDED_INC:
-
-                if (intValue < upperBound)
-                {
-                    intValue++;
-                }
-
-                break;
-
-            case BOUNDED_DEC:
-
-                if (intValue > lowerBound)
-                {
-                    intValue--;
-                }
-
-                break;
             }
 
-            repaint();
-            if (sqListener != null)
+            break;
+
+        case BOUNDED_DEC:
+
+            if (intValue > lowerBound)
             {
-                if (bvalChanged)
-                    sqListener.squareChanged(this, boolValue ? 0 : 1, boolValue ? 1 : 0);
-                else if (oldIVal != intValue)
-                    sqListener.squareChanged(this, oldIVal, intValue);
+                intValue--;
             }
+
+            break;
+        }
+
+        repaint();
+
+        if (sqListener != null)
+        {
+            if (bvalChanged)
+                sqListener.squareChanged(this, boolValue ? 0 : 1, boolValue ? 1 : 0);
+            else if (oldIVal != intValue)
+                sqListener.squareChanged(this, oldIVal, intValue);
         }
     }
+
 }

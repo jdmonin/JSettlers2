@@ -1016,6 +1016,9 @@ import javax.swing.UIManager;
                  }, displayScale);
             counterOfferPanel.setVisible(false);
             add(counterOfferPanel);
+
+            offerPanel.setOfferCounterPartner(false, counterOfferPanel);
+            counterOfferPanel.setOfferCounterPartner(true, offerPanel);
         }
 
         offerIsResetMessage = false;

@@ -97,7 +97,7 @@ import soc.game.SOCResourceSet;
     /**
      * Creates a new SquaresPanel object, as part of a SOCHandPanel.
      *
-     * @param in Interactive?
+     * @param in Interactive, not read-only?  Can be changed later with {@link #setInteractive(boolean)}.
      * @param hand HandPanel containing this SquaresPanel
      * @param displayScale  For high-DPI displays, what scaling factor to use? Unscaled is 1.
      */
@@ -133,6 +133,25 @@ import soc.game.SOCResourceSet;
         setSize(size);
         setMinimumSize(size);
         setPreferredSize(size);
+    }
+
+    /**
+     * Set this panel to interactive or read-only mode.
+     * If read-only, user can't click the resource amounts to change them.
+     * @param inter  True for interactive, false for read-only
+     * @see 2.0.00
+     */
+    public void setInteractive(final boolean inter)
+    {
+        if (inter == interactive)
+            return;
+
+        interactive = inter;
+        for (int i = 0; i < 5; ++i)
+        {
+            get[i].setInteractive(inter);
+            give[i].setInteractive(inter);
+        }
     }
 
     @Override

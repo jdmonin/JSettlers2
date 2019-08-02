@@ -145,6 +145,18 @@ public class TradePanel extends ShadowedBox
     private SOCPlayer player;
 
     /**
+     * The other trade panel in an offer + counter-offer pair, or null.
+     * @see #panelIsCounterOffer
+     */
+    private TradePanel panelPairOtherMember;
+
+    /**
+     * True if panel is the counter-offer part of an offer + counter-offer pair.
+     * Ignore if {@link #panelPairOtherMember} is null.
+     */
+    private boolean panelIsCounterOffer;
+
+    /**
      * Optional button number (1-3) to enable only when {@link #player} has sufficient resources
      * in their row of the resource panel, or 0.
      * Set by {@link #setPlayer(SOCPlayer, int)}, used by {@link #setTradeOffer(SOCTradeOffer)}
@@ -244,6 +256,9 @@ public class TradePanel extends ShadowedBox
      * Make a new TradePanel to hold a trade offer or counter-offer.
      * The empty part of the panel will be {@code tradeInteriorColor}, not the background color.
      * Uses parent {@code hpan}'s current background color for the corners that aren't in shadow.
+     *<P>
+     * After constructing both members of an offer + counter-offer pair of panels, call each one's
+     * {@link #setOfferCounterPartner(boolean, TradePanel)} to designate roles.
      *
      * @param buttonTexts  Array with 3 strings: Text for button 1, button 2, button 3
      * @param sqLabelTexts  Array with 2 or 4 strings: Label for row 1 of the trading squares, for row 2,
@@ -340,6 +355,25 @@ public class TradePanel extends ShadowedBox
     }
 
     /**
+     * Set this panel's role and other member in an offer + counter-offer pair.
+     * @param thisIsCounterOffer  True if this panel (not {@code otherMember)} is used for showing the counter-offer,
+     *     not the offer
+     * @param otherMember  Other member of the pair of panels
+     * @throws IllegalArgumentException if otherMember is this panel itself or {@code null}
+     */
+    public void setOfferCounterPartner(final boolean thisIsCounterOffer, final TradePanel otherMember)
+        throws IllegalArgumentException
+    {
+        if ((otherMember == null) || (otherMember == this))
+            throw new IllegalArgumentException("otherMember");
+
+        panelIsCounterOffer = thisIsCounterOffer;
+        panelPairOtherMember = otherMember;
+
+        squares.setInteractive(thisIsCounterOffer);
+    }
+
+    /**
      * Get resource sets for each of the 2 resource square lines.
      * Does not validate that total &gt; 0 or that give/get totals are equal.
      * @return Array with a resource set for line 1, and a set for line 2,
@@ -414,8 +448,10 @@ public class TradePanel extends ShadowedBox
         final boolean[] offerList = offer.getTo();
 
         setTradeResources(give, get);
-        if (! buttonRowVis)
-            setButtonRowVisible(true);  // TODO if counter-offer visible, probably shouldn't make row visible
+
+        // show buttons, unless counter-offer is visible
+        if ((! buttonRowVis) && ((panelPairOtherMember == null) || ! panelPairOtherMember.isVisible()))
+            setButtonRowVisible(true);
 
         isOfferToPlayer = (player != null) && offerList[player.getPlayerNumber()];
 
