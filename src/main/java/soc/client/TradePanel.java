@@ -56,6 +56,11 @@ import soc.util.SOCStringManager;
  * If not tall enough to include the row of buttons, compact mode moves them to the right.
  * See {@link #getCompactPreferredSize()}.
  *<P>
+ * When panel is used for showing trade offers to the client player, call {@link #setTradeOffer(SOCTradeOffer)}
+ * to update fields and show/hide the Accept button.<BR>
+ * When used for counter-offers, call {@link #setTradeResources(SOCResourceSet, SOCResourceSet)} instead.
+ * Its Send button is never hidden.
+ *<P>
  * Any reference to "unscaled pixels" means a dimension not yet multiplied by {@link SOCPlayerInterface#displayScale}.
  *<P>
  * Before v2.0.00 the trade interface combined offer and counter-offer in class {@code TradeOfferPanel}.
@@ -132,11 +137,21 @@ public class TradePanel extends ShadowedBox
     /**
      * Optional player for {@link #canPlayerGiveTradeResources()}, or null.
      * Current convention sets this field to client player, if any.
-     * @see #setPlayer(SOCPlayer)
+     * @see #setPlayer(SOCPlayer, int)
+     * @see #playerResourceButtonNumber
      * @see #playerIsRow1
      * @see #offeredToPlayer
      */
     private SOCPlayer player;
+
+    /**
+     * Optional button number (1-3) to enable only when {@link #player} has sufficient resources
+     * in their row of the resource panel, or 0.
+     * Set by {@link #setPlayer(SOCPlayer, int)}, used by {@link #setTradeOffer(SOCTradeOffer)}
+     * and squares listener.
+     * Player's row is determined by {@link #isPlayerRow1}.
+     */
+    private int playerResourceButtonNumber;
 
     /**
      * For Offer panel (not counter-offer): True if the current offer's "offered to" includes {@link #player}.
@@ -180,22 +195,30 @@ public class TradePanel extends ShadowedBox
 
     /**
      * Buttons with user-specified text.
-     * Some or all can be hidden.
+     * One ({@link #buttonVis}) or all ({@link #buttonRowVis}) can be hidden.
      * When clicked by user, callback methods are called.
+     * To access these in a loop, use {@link #btns} instead.
      */
     private final JButton btn1, btn2, btn3;
 
     /**
+     * Array containing {@link #btn1}, {@link #btn2}, {@link #btn3}.
+     */
+    private final JButton[] btns;
+
+    /**
      * Is the button row visible? Panel is less tall when hidden.
      * Visible by default, changed by {@link #setButtonRowVisible(boolean)}.
+     * @see #buttonVis
      */
     private boolean buttonRowVis;
 
     /**
-     * Visibility of {@link #btn1}. Visible by default, changed by {@link #setButton1Visible(boolean)}.
+     * Visibility of {@link #btns}[{@link #playerResourceButtonNumber}], if any.
+     * Visible by default, changed by {@link #setTradeOffer(SOCTradeOffer)}.
      * Field is needed because {@link #setButtonRowVisible(boolean)} will hide all buttons.
      */
-    private boolean button1Vis;
+    private boolean buttonVis;
 
     /**
      * Trade offer's resources.
@@ -285,7 +308,7 @@ public class TradePanel extends ShadowedBox
         this.displayScale = displayScale;
 
         buttonRowVis = true;
-        button1Vis = true;
+        buttonVis = true;
 
         add(line1);
         if (hasLine2)
@@ -300,20 +323,20 @@ public class TradePanel extends ShadowedBox
         }
         add(squares);
 
-        JButton[] bs = new JButton[3];
+        btns = new JButton[3];
         final int pix2 = 2 * displayScale;
         final Insets minButtonMargin = new Insets(pix2, pix2, pix2, pix2);  // avoid text cutoff on win32 JButtons
         for (int i = 0; i < 3; ++i)
         {
-            bs[i] = new JButton(buttonTexts[i]);
-            bs[i].setFont(panelFont);
-            bs[i].setMargin(minButtonMargin);
-            add(bs[i]);
-            bs[i].addActionListener(this);
+            btns[i] = new JButton(buttonTexts[i]);
+            btns[i].setFont(panelFont);
+            btns[i].setMargin(minButtonMargin);
+            add(btns[i]);
+            btns[i].addActionListener(this);
         }
-        btn1 = bs[0];
-        btn2 = bs[1];
-        btn3 = bs[2];
+        btn1 = btns[0];
+        btn2 = btns[1];
+        btn3 = btns[2];
     }
 
     /**
@@ -350,7 +373,7 @@ public class TradePanel extends ShadowedBox
      * Is the currently visible {@link #setTradeOffer(SOCTradeOffer)} offered to
      * the client player?
      * @return  True only if {@link #isVisible()} and current offer's "made to" players list
-     *     includes the client player (designated earlier by calling {@link #setPlayer(SOCPlayer)}).
+     *     includes the client player (designated earlier by calling {@link #setPlayer(SOCPlayer, int)}).
      */
     public boolean isOfferToPlayer()
     {
@@ -375,7 +398,13 @@ public class TradePanel extends ShadowedBox
         {
             setTradeResources(null, null);
             isOfferToPlayer = false;
-            return;
+            if ((playerResourceButtonNumber != 0) && (player != null))
+            {
+                buttonVis = false;
+                btns[playerResourceButtonNumber - 1].setVisible(false);
+            }
+
+            return;  // <--- Early return: Nothing else to do ---
         }
 
         // Reminder: Offer panel's line 1 is "Gives You", line 2 is "They Get"
@@ -384,7 +413,17 @@ public class TradePanel extends ShadowedBox
         final SOCResourceSet give = offer.getGiveSet(), get = offer.getGetSet();
         final boolean[] offerList = offer.getTo();
 
+        setTradeResources(give, get);
+        if (! buttonRowVis)
+            setButtonRowVisible(true);  // TODO if counter-offer visible, probably shouldn't make row visible
+
         isOfferToPlayer = (player != null) && offerList[player.getPlayerNumber()];
+
+        if ((playerResourceButtonNumber != 0) && (player != null))
+        {
+            buttonVis = isOfferToPlayer && canPlayerGiveTradeResources();
+            btns[playerResourceButtonNumber - 1].setVisible(buttonVis && buttonRowVis);
+        }
 
         final SOCGame ga = hpan.getGame();
 
@@ -432,11 +471,6 @@ public class TradePanel extends ShadowedBox
         line1.setText(names1);
         line2.setText(names2 != null ? names2 : "");
 
-        setTradeResources(give, get);
-
-        if (! buttonRowVis)
-            setButtonRowVisible(true);
-
         // TODO SOCHandPanel: implement rejCountdownLab soon (based on TradeOfferPanel)
         /*
         if (rejCountdownLab != null)
@@ -471,11 +505,11 @@ public class TradePanel extends ShadowedBox
 
     /**
      * Does the player have enough resources to give what's shown in the panel?
-     * The player is null until set by calling {@link #setPlayer(SOCPlayer)}.
+     * The player is null until set by calling {@link #setPlayer(SOCPlayer, int)}.
      * Whether the player's resources are in row 1 or row 2 was designated by a constructor parameter.
      * @return  True if, given the resources currently in the panel for the player's half of the trade
      *    (player's row of the panel), they have those resources to give.
-     *    False if {@link #setPlayer(SOCPlayer)} hasn't been called to set a non-null player.
+     *    False if {@link #setPlayer(SOCPlayer, int)} hasn't been called to set a non-null player.
      */
     public boolean canPlayerGiveTradeResources()
     {
@@ -488,19 +522,30 @@ public class TradePanel extends ShadowedBox
     }
 
     /**
-     * Set or clear the optional player used by {@link #canPlayerGiveTradeResources()}.
+     * Set or clear the optional player used by {@link #canPlayerGiveTradeResources()}
+     * and {@link #setTradeOffer(SOCTradeOffer)}.
      * Current convention sets to client player if any, or null.
      * @param pl  Player to use, or {@code null} to clear
+     * @param playerResourceButtonNumber  Optional button number (1-3) to enable
+     *     only when {@code pn} has sufficient resources
+     *     in their row of the resource panel, or 0.
      */
-    public void setPlayer(final SOCPlayer pl)
+    public void setPlayer(final SOCPlayer pl, final int playerResourceButtonNumber)
     {
+        if ((this.playerResourceButtonNumber != 0) && (playerResourceButtonNumber == 0))
+        {
+            buttonVis = true;
+            if (buttonRowVis)
+                btns[playerResourceButtonNumber - 1].setVisible(true);
+        }
+
         player = pl;
+        this.playerResourceButtonNumber = playerResourceButtonNumber;
     }
 
     /**
      * Show or hide the entire row of buttons. Also calls {@link #invalidate()}.
      * When hidden and not in Compact Mode, the panel's {@link #getPreferredSize()} is less tall.
-     * Overrides setting of {@link #setButton1Visible(boolean)}.
      * @param shown  True to show, false to hide
      */
     public void setButtonRowVisible(final boolean shown)
@@ -508,25 +553,17 @@ public class TradePanel extends ShadowedBox
         if (shown == buttonRowVis)
             return;
 
+        final int btnVisIdx = playerResourceButtonNumber - 1;  // if field is 0, local gets -1, that's fine
+
         buttonRowVis = shown;
-        btn1.setVisible(shown && button1Vis);
-        btn2.setVisible(shown);
-        btn3.setVisible(shown);
+        for (int b = 0; b < 3; ++b)
+        {
+            if (b != btnVisIdx)
+                btns[b].setVisible(shown);
+            else
+                btns[b].setVisible(shown && buttonVis);
+        }
         invalidate();
-    }
-
-    /**
-     * Show or hide Button 1.
-     * Is initially visible when TradePanel is created.
-     * @param shown  True to show, false to hide
-     */
-    public void setButton1Visible(final boolean shown)
-    {
-        if (shown == button1Vis)
-            return;
-
-        button1Vis = shown;
-        btn1.setVisible(shown && buttonRowVis);
     }
 
     /**
@@ -688,11 +725,11 @@ public class TradePanel extends ShadowedBox
                       buttonH = BUTTON_HEIGHT * displayScale,
                       buttonMar = BUTTON_MARGIN_COMPACT * displayScale;
 
-            btn1.setBounds(buttonX, buttonY, buttonW, buttonH);
-            buttonY += buttonH + buttonMar;
-            btn2.setBounds(buttonX, buttonY, buttonW, buttonH);
-            buttonY += buttonH + buttonMar;
-            btn3.setBounds(buttonX, buttonY, buttonW, buttonH);
+            for (int b = 0; b < 3; ++b)
+            {
+                btns[b].setBounds(buttonX, buttonY, buttonW, buttonH);
+                buttonY += buttonH + buttonMar;
+            }
         }
         else if (buttonRowVis)
         {
@@ -703,11 +740,11 @@ public class TradePanel extends ShadowedBox
                       buttonH = BUTTON_HEIGHT * displayScale,
                       pix5 = 5 * displayScale;
 
-            btn1.setBounds(buttonX, y, buttonW, buttonH);
-            buttonX += pix5 + buttonW;
-            btn2.setBounds(buttonX, y, buttonW, buttonH);
-            buttonX += pix5 + buttonW;
-            btn3.setBounds(buttonX, y, buttonW, buttonH);
+            for (int b = 0; b < 3; ++b)
+            {
+                btns[b].setBounds(buttonX, y, buttonW, buttonH);
+                buttonX += pix5 + buttonW;
+            }
 
             y += lineSpace + (BUTTON_HEIGHT * displayScale);
         }

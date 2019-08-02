@@ -1680,10 +1680,13 @@ import javax.swing.UIManager;
     {
         if (! offerPanel.canPlayerGiveTradeResources())
         {
-            // This message is temporary, TradePanel is WIP
-            // TODO instead, disable accept button when offer changes but can't accept
+            // This is here just in case but shouldn't be needed, because
+            // TradePanel should have disabled or hid Accept when player
+            // doesn't have the resources to accept the offer. So, we "borrow"
+            // a localized message that's meant for a related task.
 
-            playerInterface.print("You do not have resources to accept this trade offer.");
+            playerInterface.print("*** " + strings.get("trade.msg.cant.offer"));
+                // "You can't offer what you don't have."
             return;
         }
 
@@ -1993,8 +1996,8 @@ import javax.swing.UIManager;
                             continue;
 
                         final SOCHandPanel hpan = playerInterface.getPlayerHandPanel(pn);
-                        hpan.offerPanel.setPlayer(null);
-                        hpan.counterOfferPanel.setPlayer(null);
+                        hpan.offerPanel.setPlayer(null, 0);
+                        hpan.counterOfferPanel.setPlayer(null, 0);
                     }
                 }
             }
@@ -2286,8 +2289,8 @@ import javax.swing.UIManager;
                 if ((! playerTradingDisabled) && (pn != playerNumber))
                 {
                     // set it to client player, since trades are presented from client player's viewpoint
-                    hpan.offerPanel.setPlayer(player);
-                    hpan.counterOfferPanel.setPlayer(player);
+                    hpan.offerPanel.setPlayer(player, 1);
+                    hpan.counterOfferPanel.setPlayer(player, 1);
                 }
             }
 
