@@ -4049,18 +4049,35 @@ import javax.swing.UIManager;
                 // If not, they will be hid when offer is visible.
                 final boolean isCounterOfferMode = counterOfferPanel.isVisible();
                 final Dimension offerPrefSize = offerPanel.getPreferredSize();
-                int offerMinHeight = offerPrefSize.height;
+                int offerMinHeight = offerPrefSize.height,
+                    counterOfferHeight = counterOfferPanel.getPreferredHeight(false);
                 if (isCounterOfferMode)
-                    offerMinHeight += counterOfferPanel.getPreferredHeight(false) + space;
+                    offerMinHeight += counterOfferHeight + space;
                 // TODO chk num lines here
                 final int numBottomLines = (hasTakeoverBut || hasSittingRobotLockBut) ? 5 : 4,
                           availHeightNoHide = (dim.height - (inset + faceW + space) - (numBottomLines * (lineH + space)));
+
+                if (availHeightNoHide < offerMinHeight)
+                {
+                    // Use compact mode; maybe won't have to hide other controls.
+                    // Update trade panel width/height vars
+
+                    int[] prefSz = offerPanel.getCompactPreferredSize();
+                    offerPrefSize.width = prefSz[0];
+                    offerPrefSize.height = prefSz[1];
+                    offerMinHeight = prefSz[1];
+                    if (isCounterOfferMode)
+                    {
+                        prefSz = counterOfferPanel.getCompactPreferredSize();
+                        counterOfferHeight = prefSz[1];
+                        offerMinHeight += counterOfferHeight + space;
+                    }
+                }
+
                 offerHidesControls = offerHidingControls
                     || (availHeightNoHide < offerMinHeight);
                 if (offerHidesControls)
                 {
-                    // TODO consider whether compact mode would fit better, instead of hiding other things
-
                     // This flag is set here based on newly calculated layout,
                     // for use later when changing offerCounterHidingFace
                     offerCounterHidesFace =
@@ -4078,14 +4095,14 @@ import javax.swing.UIManager;
                         // messagePanel is hidden, since offerCounterHidingFace.
                         offerPanel.setBounds(inset, inset, offerW, ph);
                         counterOfferPanel.setBounds
-                            (inset, inset + ph + space, offerW, counterOfferPanel.getPreferredHeight(false));
+                            (inset, inset + ph + space, offerW, counterOfferHeight);
                     } else {
                         int ph = Math.min(dim.height - (inset + faceW + 2 * space), offerPrefSize.height);
                         messagePanel.setBounds(inset, inset + faceW + space, offerW, ph);
                         offerPanel.setBounds
                             (inset, inset + faceW + space, offerW, ph);
                         counterOfferPanel.setBounds
-                            (inset, inset + faceW + ph + 2 * space, offerW, counterOfferPanel.getPreferredHeight(false));
+                            (inset, inset + faceW + ph + 2 * space, offerW, counterOfferHeight);
                     }
                 } else {
                     int py = inset + faceW + space;
@@ -4093,9 +4110,9 @@ import javax.swing.UIManager;
                     offerPanel.setBounds(inset, py, offerPrefSize.width, offerPrefSize.height);
                     if (isCounterOfferMode)
                     {
-                        py += offerPrefSize.height + py;
+                        py += offerPrefSize.height + space;
                         counterOfferPanel.setBounds
-                            (inset, py, offerPrefSize.width, counterOfferPanel.getPreferredHeight(false));
+                            (inset, py, offerPrefSize.width, counterOfferHeight);
                     }
                     offerCounterHidesFace = false;
                 }

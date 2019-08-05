@@ -95,6 +95,7 @@ public class TradePanel extends ShadowedBox
     /**
      * Margin around buttons in compact mode, in unscaled pixels:
      * Vertically between buttons, and to their left (between squares panel and buttons).
+     * Is also the spacing between get/give labels and squares panel.
      */
     private static final int BUTTON_MARGIN_COMPACT = 2;
 
@@ -621,7 +622,7 @@ public class TradePanel extends ShadowedBox
     } */
 
     /**
-     * Get our preferred height to use when not in Compact Mode.
+     * Get our preferred height to use in Normal or Compact Mode.
      * Same calc as {@link #getPreferredSize()}, but without creating a Dimension or any other object.
      * @param ignoreButtonRow  If true, assume button row is hidden; useful for Compact Mode.
      *     If false, uses {@link #setButtonRowVisible(boolean)} flag value.
@@ -678,8 +679,7 @@ public class TradePanel extends ShadowedBox
     {
         int w, h;
 
-        // TODO is compactMode spacing smaller than SQUARES_LAB_MARGIN_RIGHT?
-        w = ((2 * PANEL_MARGIN_HORIZ) + SQUARES_LAB_MARGIN_RIGHT + BUTTON_MARGIN_COMPACT + BUTTON_WIDTH)
+        w = ((2 * PANEL_MARGIN_HORIZ) + SquaresPanel.WIDTH + (2 * BUTTON_MARGIN_COMPACT) + BUTTON_WIDTH)
             * displayScale + calcLabelWidth();
 
         h = getPreferredHeight(true);
@@ -706,10 +706,10 @@ public class TradePanel extends ShadowedBox
 
         final int inset = PANEL_MARGIN_HORIZ * displayScale;
 
-        // Label text's width may increase required panel width
-        //int w = OFFER_MIN_WIDTH * displayScale;
-        final int squaresLabelW = calcLabelWidth() + (SQUARES_LAB_MARGIN_RIGHT * displayScale);
-            // from theyGetLab, givesYouLab FontMetrics; +SQUARES_LAB_MARGIN_RIGHT for margin before ColorSquares
+        // Label text's width may increase required panel width.
+        final int squaresLabelW = calcLabelWidth() +
+            ((compactMode ? BUTTON_MARGIN_COMPACT : SQUARES_LAB_MARGIN_RIGHT) * displayScale);
+
         /*
         {
             int d = giveW - ((GIVES_MIN_WIDTH + SQUARES_LAB_MARGIN_RIGHT) * displayScale);
@@ -739,10 +739,9 @@ public class TradePanel extends ShadowedBox
             y += (lineSpace + lineHeight);
         }
 
-        // - labels & trading squares
-        //     TODO does compact mode have smaller space than SQUARES_LAB_MARGIN_RIGHT between label & sqpanel?
+        // - labels & trading squares; squaresLabelW includes margin between label & resource squarepanel
         sqLabRow1.setBounds(inset, y, squaresLabelW, lineHeight);
-        squares.setLocation(inset + squaresLabelW + (SQUARES_LAB_MARGIN_RIGHT * displayScale), y);
+        squares.setLocation(inset + squaresLabelW, y);
         y += (ColorSquareLarger.HEIGHT_L * displayScale);
         sqLabRow2.setBounds(inset, y, squaresLabelW, lineHeight);
         y += (ColorSquareLarger.HEIGHT_L * displayScale) + lineSpace;
@@ -752,14 +751,13 @@ public class TradePanel extends ShadowedBox
         if (compactMode)
         {
             // Buttons to right of offer squares, y-centered vs. height of panel
-            int buttonY =
-                (((dim.height / displayScale) - BUTTON_HEIGHT - SHADOW_SIZE - BUTTON_MARGIN_COMPACT)
-                 - (3 * BUTTON_HEIGHT + 4))
-                * displayScale / 2;
             final int buttonX = inset + squaresLabelW + ((SquaresPanel.WIDTH + BUTTON_MARGIN_COMPACT) * displayScale),
                       buttonW = BUTTON_WIDTH * displayScale,
                       buttonH = BUTTON_HEIGHT * displayScale,
                       buttonMar = BUTTON_MARGIN_COMPACT * displayScale;
+            int buttonY =
+                (((dim.height / displayScale) - SHADOW_SIZE - (3 * BUTTON_HEIGHT))
+                 * displayScale - (2 * buttonMar)) / 2;
 
             for (int b = 0; b < 3; ++b)
             {
