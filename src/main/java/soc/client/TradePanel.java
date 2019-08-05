@@ -563,13 +563,13 @@ public class TradePanel extends ShadowedBox
      * and {@link #setTradeOffer(SOCTradeOffer)}.
      * Current convention sets to client player if any, or null.
      * @param pl  Player to use, or {@code null} to clear
-     * @param playerResourceButtonNumber  Optional button number (1-3) to enable
+     * @param playerResButtonNumber  Optional button number (1-3) to enable
      *     only when {@code pn} has sufficient resources
      *     in their row of the resource panel, or 0.
      */
-    public void setPlayer(final SOCPlayer pl, final int playerResourceButtonNumber)
+    public void setPlayer(final SOCPlayer pl, final int playerResButtonNumber)
     {
-        if ((this.playerResourceButtonNumber != 0) && (playerResourceButtonNumber == 0))
+        if ((playerResourceButtonNumber != 0) && (playerResButtonNumber == 0))
         {
             buttonVis = true;
             if (buttonRowVis)
@@ -577,7 +577,7 @@ public class TradePanel extends ShadowedBox
         }
 
         player = pl;
-        this.playerResourceButtonNumber = playerResourceButtonNumber;
+        playerResourceButtonNumber = playerResButtonNumber;
     }
 
     /**
