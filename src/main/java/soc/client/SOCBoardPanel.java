@@ -461,11 +461,14 @@ import javax.swing.JComponent;
     private static final int ARROW_SZ = 37;
 
     /**
-     * Current-player arrow color: cyan: r=106,g=183,b=183
+     * Current-player arrow color: Light gray: #EEEEEE.
+     *<P>
+     * Before v2.0.00 this was cyan #6AB7B7 (r=106, g=183, b=183).
+     *
      * @see #ARROW_COLOR_PLACING
      * @since 1.1.00
      */
-    private static final Color ARROW_COLOR = new Color(106, 183, 183);
+    private static final Color ARROW_COLOR = new Color(238, 238, 238);
 
     /**
      * Player arrow color when game is over,
