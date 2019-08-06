@@ -940,19 +940,7 @@ import javax.swing.JPanel;
          */
         public void updateOfferButtons()
         {
-            final boolean haveResources;
-            if (! offered)
-            {
-                haveResources = false;
-            } else {
-                final int cpn = hp.getPlayerInterface().getClientPlayerNumber();
-                if (cpn == -1)
-                    return;
-                SOCPlayer player = hp.getGame().getPlayer(cpn);
-                haveResources = player.getResources().contains(get);
-            }
-
-            acceptBut.setVisible(haveResources);
+            // moved to TradePanel
         }
 
         /**

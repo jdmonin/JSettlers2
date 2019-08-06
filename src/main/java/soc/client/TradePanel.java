@@ -159,7 +159,8 @@ public class TradePanel extends ShadowedBox
 
     /**
      * True if panel is the counter-offer part of an offer + counter-offer pair.
-     * Ignore if {@link #panelPairOtherMember} is null.
+     * If true, {@link #panelPairOtherMember} is not null; if false, check whether
+     * that field is null.
      */
     private boolean panelIsCounterOffer;
 
@@ -409,15 +410,22 @@ public class TradePanel extends ShadowedBox
     /**
      * Set trade panel's resource contents, or clear to 0.
      *<P>
+     * If panel is showing an offer (not counter-offer):
      * To also set the "Offered To" text, call {@link #setTradeOffer(SOCTradeOffer)} instead.
+     *<P>
+     * If panel is showing a counter-offer, calls {@link #updateOfferButtons()} to enable or disable
+     * the Send button based on player's current resources.
      *
      * @param line1  Trade resources to use in Line 1; will clear all to 0 if null
      * @param line2  Trade resources to use in Line 2; will clear all to 0 if null
      * @see #getTradeResources()
+     * @see #updateOfferButtons()
      */
     public void setTradeResources(SOCResourceSet line1, SOCResourceSet line2)
     {
         squares.setValues(line1, line2);
+        if (panelIsCounterOffer)
+            updateOfferButtons();
     }
 
     /**
@@ -444,6 +452,7 @@ public class TradePanel extends ShadowedBox
      * @param currentOffer  Trade offer details from hand panel's non-client player,
      *     or null to only clear resource squares to 0 and clear {@link #isOfferToPlayer()} flag.
      * @see #setTradeResources(SOCResourceSet, SOCResourceSet)
+     * @see #updateOfferButtons()
      * @see #isOfferToPlayer()
      */
     public void setTradeOffer(SOCTradeOffer offer)
@@ -565,6 +574,39 @@ public class TradePanel extends ShadowedBox
                 validate();
             }
         });
+    }
+
+    /**
+     * Re-check client player's current resources and based on panel's role, do one of:
+     *<UL>
+     * <LI> Show the offer's Accept button if {@link #isOfferToPlayer()}, hide it otherwise
+     * <LI> Enable or disable the counter-offer Send button
+     * <LI> If {@link #setPlayer(SOCPlayer, int)} hasn't been called to set
+     *      the client player and "resource button" number, do nothing
+     *</UL>
+     * Does not do anything to the auto-reject timer.
+     * If entire button row is hidden, does not show it.
+     */
+    public void updateOfferButtons()
+    {
+        if (playerResourceButtonNumber == 0)
+            return;
+
+        final JButton btn = btns[playerResourceButtonNumber - 1];
+        final boolean hasRes = canPlayerGiveTradeResources();  // OK (false) if player is null
+
+        if (panelIsCounterOffer || (panelPairOtherMember == null))
+        {
+            if (btn.isEnabled() != hasRes)
+                btn.setEnabled(hasRes);
+        } else {
+            final boolean canAccept = isOfferToPlayer && hasRes;
+            if (buttonVis != canAccept)
+            {
+                buttonVis = canAccept;
+                btn.setVisible(buttonRowVis && buttonVis);
+            }
+        }
     }
 
     /**

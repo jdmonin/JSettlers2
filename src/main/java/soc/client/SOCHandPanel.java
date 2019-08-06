@@ -2786,7 +2786,7 @@ import javax.swing.UIManager;
      * @param isNewOffer  If true this is for a newly made trade offer,
      *    not a refresh based on other game or player info.
      * @param resourcesOnly  If true, instead of updating the entire offer,
-     *    only show or hide "Accept" button based on the client player's resources.
+     *    only show or hide "Accept" button based on the client player's current resources.
      *    Calls {@link TradeOfferPanel#updateOfferButtons()}.
      *    If no offer is currently visible, does nothing.
      */
@@ -2796,8 +2796,10 @@ import javax.swing.UIManager;
         {
             if (resourcesOnly)
             {
-                // TODO add this functionality to TradePanel
-                // offer.updateOfferButtons();
+                offerPanel.updateOfferButtons();
+                if (counterOfferPanel.isVisible())
+                    counterOfferPanel.updateOfferButtons();
+
                 return;
             }
 
