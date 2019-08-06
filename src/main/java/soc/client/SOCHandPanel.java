@@ -993,7 +993,7 @@ import javax.swing.UIManager;
                  new String[]{  strings.get("trade.gives.you"), strings.get("trade.they.get"),
                     strings.get("trade.opponent.gives"), strings.get("trade.you.give") },
                     // "Gives You:", "They Get:", tooltips "Opponent gives to you", "You give to opponent"
-                 false, true, true, this, tradeInteriorColor, new TradePanel.TPListener()
+                 false, true, this, tradeInteriorColor, new TradePanel.TPListener()
                  {
                      public void button1Clicked() { clickOfferAcceptButton(); }
                      public void button2Clicked() { clickOfferRejectButton(); }
@@ -1008,7 +1008,7 @@ import javax.swing.UIManager;
                  new String[]{ strings.get("trade.they.get"), strings.get("trade.gives.you"),
                     strings.get("trade.give.to.opponent"), strings.get("trade.opponent.gives") },
                     // "They Get:", "Gives You:", tooltips "Give to opponent", "Opponent gives to you"
-                 true, false, false, this, tradeInteriorColor, new TradePanel.TPListener()
+                 true, false, this, tradeInteriorColor, new TradePanel.TPListener()
                  {
                      public void button1Clicked() { clickCounterOfferSendButton(); }
                      public void button2Clicked() { clickCounterOfferClearButton(); }
@@ -1718,7 +1718,8 @@ import javax.swing.UIManager;
     }
 
     /**
-     * Handle a click on the trade offer Counter button by showing the counter-offer panel.
+     * Handle a click on the trade offer Counter button by showing the counter-offer panel
+     * and clearing the auto-reject countdown (if any).
      *<P>
      * Before v2.0.00 this was handled in {@code TradeOfferPanel.OfferPanel.actionPerformed}.
      * @since 2.0.00
@@ -1726,7 +1727,7 @@ import javax.swing.UIManager;
     private void clickOfferCounterButton()
     {
         counterOfferPanel.setVisible(true);
-        offerPanel.setButtonRowVisible(false);
+        offerPanel.setButtonRowVisible(false, true);
         checkTradePanelLayoutSize();
     }
 
@@ -1795,7 +1796,7 @@ import javax.swing.UIManager;
     private void clickCounterOfferCancelButton()
     {
         counterOfferPanel.setVisible(false);
-        offerPanel.setButtonRowVisible(true);
+        offerPanel.setButtonRowVisible(true, false);
         checkTradePanelLayoutSize();
     }
 

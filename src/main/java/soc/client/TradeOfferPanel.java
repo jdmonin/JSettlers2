@@ -1024,14 +1024,7 @@ import javax.swing.JPanel;
          */
         private void cancelRejectCountdown()
         {
-            if (rejTimerTask != null)
-                rejTimerTask.cancel();
-
-            if (rejCountdownLab != null)
-            {
-                rejCountdownLab.setVisible(false);
-                rejCountdownLab.setText("");
-            }
+            // moved to TradePanel
         }
 
         /**
@@ -1061,23 +1054,8 @@ import javax.swing.JPanel;
 
             public void run()
             {
-                if (! (rejCountdownLab.isVisible() && TradeOfferPanel.OfferPanel.this.isVisible()))
-                {
-                    rejCountdownLab.setText("");
-                    cancel();
-                    return;
-                }
-
-                if (secRemain > 0)
-                {
-                    rejCountdownLab.setText
-                        (strings.get("hpan.trade.auto_reject_countdown", Integer.valueOf(secRemain)));
-                        // "Auto-Reject in: 5"
-                    --secRemain;
-                } else {
-                    clickRejectButton();
-                    cancel();  // End of countdown for this timer
-                }
+                // moved to TradePanel
+                cancel();
             }
         }
     }
