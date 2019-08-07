@@ -1187,7 +1187,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * Get this game interface's current setting for the starting value of the countdown to auto-reject bot trades,
      * from {@link SOCPlayerClient#PREF_BOT_TRADE_REJECT_SEC}.
-     * If &gt; 0, {@link TradeOfferPanel} will start the countdown when any robot offers a trade.
+     * If &gt; 0, {@link TradePanel} will start the countdown when any robot offers a trade.
      * Negative values or 0 turn off the auto-reject countdown feature, to keep the setting's
      * value for its "Options" dialog without also having a separate enabled/disabled flag.
      * @return This game interface's current setting, positive or negative, in seconds

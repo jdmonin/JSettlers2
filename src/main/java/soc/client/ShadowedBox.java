@@ -30,7 +30,8 @@ import javax.swing.JPanel;
 
 /**
  * This is a shadowed box for use in the hand panel.
- * Both {@code ShadowedBox} and {@link SpeechBalloon} are used in {@link TradeOfferPanel}.
+ * {@code ShadowedBox} is used by {@link TradePanel},
+ * and related {@link SpeechBalloon} is used in {@link MessagePanel}.
  *
  * @author Robert S. Thomas
  */
@@ -117,7 +118,7 @@ import javax.swing.JPanel;
         return new Dimension(width, height);
     }
 
-    // TODO To help TradeOfferPanel doLayout, actually set insets and paint here as a custom Border
+    // TODO To help TradePanel doLayout, actually set insets and paint here as a custom Border
 
     /**
      * Draw this ShadowedBox.

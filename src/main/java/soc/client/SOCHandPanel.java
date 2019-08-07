@@ -2550,9 +2550,9 @@ import javax.swing.UIManager;
     }
 
     /**
-     * Callback from {@link TradeOfferPanel} when counter-offer is shown or hidden.
+     * Callback from {@link TradePanel} buttons when counter-offer is shown or hidden.
      * For players who aren't the client:
-     * If our {@link TradeOfferPanel} shows/hides the counter offer,
+     * If this handpanel shows/hides the counter offer,
      * may need to rearrange or hide controls under it.
      * This should be called only when showing a trade offer.
      *<P>
@@ -2794,7 +2794,7 @@ import javax.swing.UIManager;
      *    not a refresh based on other game or player info.
      * @param resourcesOnly  If true, instead of updating the entire offer,
      *    only show or hide "Accept" button based on the client player's current resources.
-     *    Calls {@link TradeOfferPanel#updateOfferButtons()}.
+     *    Calls {@link TradePanel#updateOfferButtons()}.
      *    If no offer is currently visible, does nothing.
      */
     public void updateCurrentOffer(final boolean isNewOffer, final boolean resourcesOnly)
@@ -2914,7 +2914,7 @@ import javax.swing.UIManager;
      * other methods do that, and then if {@link #offerHidesControls},
      * call this method to show/hide the controls that would be obscured by it.
      *<P>
-     * If {@link #offerCounterHidesFace}, will check {@link TradeOfferPanel#isCounterOfferMode()}
+     * If {@link #offerCounterHidesFace}, will check if counter-offer is visible
      * and redo layout (to hide/move) if needed.
      *
      * @param hideTradeMsg True if hiding the trade offer message panel and should show other controls;

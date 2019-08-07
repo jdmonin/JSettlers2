@@ -155,11 +155,9 @@ import javax.swing.SwingConstants;
 
     /**
      * Calculate some fields for this panel's minimum height based on {@link #msgHeight}.
-     * Ignores getSize() and {@link TradeOfferPanel#availableHeight}.
+     * Ignores getSize() and {@link TradePanel#getPreferredHeight(boolean)}.
      *<P>
-     * Used by {@link #doLayout()} which wants those field calcs, and
-     * {@link TradeOfferPanel#setAvailableSpace(int, int)} which also wants
-     * an overall minimum height.
+     * Used by {@link #doLayout()} which wants those field calcs.
      *<P>
      * If not yet done (value 0), first calculate the values for {@link #oneLineHeight} and {@link #msgHeight}
      * based on {@link #msgLines} and getFontMetrics({@link #msg}.getFont()).

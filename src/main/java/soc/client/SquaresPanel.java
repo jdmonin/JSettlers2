@@ -40,7 +40,7 @@ import soc.game.SOCResourceSet;
  * @author Robert S Thomas
  *
  * @see SOCHandPanel
- * @see TradeOfferPanel
+ * @see TradePanel
  */
 @SuppressWarnings("serial")
 /*package*/ class SquaresPanel

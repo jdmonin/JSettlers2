@@ -69,7 +69,8 @@ import soc.util.SOCStringManager;
  *<P>
  * Any reference to "unscaled pixels" means a dimension not yet multiplied by {@link SOCPlayerInterface#displayScale}.
  *<P>
- * Before v2.0.00 the trade interface was class {@code TradeOfferPanel}, which handled the offer and counter-offer.
+ * Before v2.0.00 the trade interface was class {@code TradeOfferPanel}, which handled the offer and counter-offer
+ * and also included {@link MessagePanel}.
  *
  * @since 2.0.00
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -907,13 +908,18 @@ public class TradePanel extends ShadowedBox
     /** Handle button clicks/activations by calling our {@link TPListener}. */
     public void actionPerformed(ActionEvent e)
     {
-        final Object src = e.getSource();
-        if (src == btn1)
-            listener.button1Clicked();
-        else if (src == btn2)
-            listener.button2Clicked();
-        else if (src == btn3)
-            listener.button3Clicked();
+        try
+        {
+            final Object src = e.getSource();
+            if (src == btn1)
+                listener.button1Clicked();
+            else if (src == btn2)
+                listener.button2Clicked();
+            else if (src == btn3)
+                listener.button3Clicked();
+        } catch (Throwable th) {
+            pi.chatPrintStackTrace(th);
+        }
     }
 
     /**

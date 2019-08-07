@@ -30,7 +30,8 @@ import javax.swing.JPanel;
 
 /**
  * This is a rectangular speech balloon shape for use in the hand panel.
- * Both {@code SpeechBalloon} and {@link ShadowedBox} are used in {@link TradeOfferPanel}.
+ * {@link ShadowedBox} is used in {@link MessagePanel},
+ * and related {@code SpeechBalloon} is used by {@link TradePanel}.
  *<P>
  * By default, it shows a pointed tip near the left side of its top edge:<PRE>
  * __|\________________
@@ -170,7 +171,7 @@ import javax.swing.JPanel;
         repaint();
     }
 
-    // TODO To help TradeOfferPanel doLayout, actually set insets and paint here as a custom Border
+    // TODO To help MessagePanel doLayout, actually set insets and paint here as a custom Border
 
     /**
      * Draw this balloon.

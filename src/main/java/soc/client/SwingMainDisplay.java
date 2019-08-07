@@ -141,7 +141,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     /**
      * The classic JSettlers goldenrod dialog background color; pale yellow-orange tint #FFE6A2.
      * Typically used with foreground {@link Color#BLACK}, like in game/chat text areas,
-     * {@link TradeOfferPanel}, and {@link AskDialog}.
+     * {@link TradePanel}, {@link MessagePanel}, and {@link AskDialog}.
      * @see #getForegroundBackgroundColors(boolean)
      * @see #JSETTLERS_BG_GREEN
      * @since 2.0.00
