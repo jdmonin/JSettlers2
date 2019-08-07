@@ -1808,6 +1808,10 @@ import javax.swing.UIManager;
      */
     private void checkTradePanelLayoutSize()
     {
+        final boolean isCounterVis = counterOfferPanel.isVisible();
+        if (offerPanel.isVisible() || isCounterVis)
+            offerCounterOfferVisibleChanged(isCounterVis);  // call validate(), repaint()
+
         // TODO check visibility of tradepanel, messagepanel, counteroffer;
         // check flags like offerHidesControls, offerCounterHidesFace, offerHideingControls, offerCounterHidingFace.
         // If need to call invalidate/validate, try to do so on AWT/UI thread.
@@ -2816,6 +2820,7 @@ import javax.swing.UIManager;
                         offerPanel.setVisible(true);
                         if (offerHidesControls)
                             hideTradeMsgShowOthers(false);
+                        checkTradePanelLayoutSize();
                         offerPanel.repaint();
 
                         if (isNewOffer && offerPanel.isOfferToPlayer())
@@ -2985,7 +2990,7 @@ import javax.swing.UIManager;
 
             offerCounterHidingFace = counterIsShowing;
             invalidate();
-            doLayout();  // must move offer panel
+            validate();  // must move offer panel
             repaint();
         }
     }
