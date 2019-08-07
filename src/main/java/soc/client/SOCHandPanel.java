@@ -538,6 +538,7 @@ import javax.swing.UIManager;
      * Text panel to show text for player's status or response, usually about trade offers.
      * Also used to display board-reset vote messages.
      * Normally hidden.
+     *<P>
      * Does not apply to client's hand panel ({@link #playerIsClient} == true).
      *<P>
      * If the handpanel is not tall enough, other controls will be obscured by this one.
@@ -552,9 +553,11 @@ import javax.swing.UIManager;
     private final MessagePanel messagePanel;
 
     /**
-     * If true, the handpanel isn't tall enough, so when the {@link #offer} message panel
-     * is showing something, we must hide other controls.
-     * Does not apply to client's hand panel.
+     * If true, the handpanel isn't tall enough, so when {@link #messagePanel}
+     * or {@link #offerPanel}/{@link #counterOfferPanel} are showing something,
+     * we must hide other controls.
+     *<P>
+     * Not used with client's hand panel.
      *
      * @see #hideTradeMsgShowOthers(boolean)
      * @see #offerCounterHidingFace
@@ -571,13 +574,13 @@ import javax.swing.UIManager;
     private boolean offerHidingControls, offerCounterHidingFace;
 
     /**
-     * Board-reset voting: If true, {@link #offer} is holding a message related to a board-reset vote.
+     * Board-reset voting: If true, {@link #messagePanel} is holding a message related to a board-reset vote.
      * @see #offerIsDiscardOrPickMessage
      */
     protected boolean offerIsResetMessage;
 
     /**
-     * Board-reset voting: If true, {@link #offer} is holding a discard message
+     * Board-reset voting: If true, {@link #messagePanel} is holding a discard message
      * ({@link #TRADEMSG_DISCARD}) or a gold hex pick-resources message
      * ({@link #TRADEMSG_PICKING}).
      * Set by {@link #setDiscardOrPickMsg(boolean)},
@@ -587,7 +590,7 @@ import javax.swing.UIManager;
     private boolean offerIsDiscardOrPickMessage;
 
     /**
-     * Board-reset voting: If true, {@link #offer} was holding an active trade offer
+     * Board-reset voting: If true, {@link #offerPanel} was holding an active trade offer
      * before {@link #offerIsResetMessage} or {@link #offerIsDiscardOrPickMessage} was set.
      */
     protected boolean offerIsMessageWasTrade;
@@ -2782,7 +2785,7 @@ import javax.swing.UIManager;
     /**
      * Display or update this player's trade offer, or hide if none.
      * If a game reset request is in progress, don't show the offer, because
-     * they use the same display component ({@link #offer}).  In that case
+     * their components overlap visually in the handpanel.  In that case
      * the trade offer will be refreshed after the reset is cancelled.
      *<P>
      * Does not display if playerIsClient.
@@ -2879,12 +2882,16 @@ import javax.swing.UIManager;
     }
 
     /**
-     * If the trade-offer panel is showing a message
+     * If the message panel is showing a message
      * (not a trade offer), clear and hide it.
-     * Assumes this hand's player is not the client.
-     * @see #tradeSetMessage(String)
+     *<P>
+     * Does nothing if client player's hand, because message panel is never shown.
+     *<P>
+     * Before v2.0.00 this method was {@code clearTradeMsg}.
+     *
+     * @see #showMessage(String)
      */
-    public void clearTradeMsg()
+    public void hideMessage()
     {
         if (messagePanel.isVisible()
             && ! (offerIsResetMessage || offerIsDiscardOrPickMessage))
@@ -2899,8 +2906,8 @@ import javax.swing.UIManager;
     }
 
     /**
-     * If non-client player's handpanel isn't tall enough, when
-     * the {@link #offer} message panel is showing, we must hide
+     * If non-client player's handpanel isn't tall enough, when the {@link #messagePanel}
+     * or {@link #offerPanel}/{@link #counterOfferPanel} showing, we must hide
      * other controls like {@link #knightsLab} and {@link #resourceSq}.
      *<P>
      * This method does <b>not</b> hide/show the trade offer;
@@ -2912,8 +2919,8 @@ import javax.swing.UIManager;
      *
      * @param hideTradeMsg True if hiding the trade offer message panel and should show other controls;
      *     false if showing trade offer and should hide others
-     * @see #tradeSetMessage(String)
-     * @see #clearTradeMsg()
+     * @see #showMessage(String)
+     * @see #hideMessage()
      * @see #offerHidesControls
      * @since 1.1.08
      */
@@ -3064,16 +3071,19 @@ import javax.swing.UIManager;
     }
 
     /**
-     * Show or hide a message in the trade-panel.
-     * Should not be client player, only other players.
+     * Show or hide a message in our {@link MessagePanel}.
+     * Not for use with client player's hand, only other players.
      * Sets offerIsMessageWasTrade, but does not set boolean modes (offerIsResetMessage, offerIsDiscardMessage, etc.)
      * Will clear the boolean modes if message is {@code null}.
+     *<P>
+     * Before v2.0.00 this method was {@code tradeSetMessage}.
      *
      * @param message Message to show, or null to hide (and return tradepanel to previous display, if any).
      *      Message can be 1 line, or 2 lines with <tt>'\n'</tt>;
      *      will not automatically wrap based on message length.
+     * @see #hideMessage()
      */
-    private void tradeSetMessage(String message)
+    private void showMessage(String message)
     {
         if (playerIsClient)
             return;
@@ -3095,7 +3105,7 @@ import javax.swing.UIManager;
             offerIsDiscardOrPickMessage = false;
             offerIsResetMessage = false;
             if ((! offerIsMessageWasTrade) || (! inPlay))
-                clearTradeMsg();
+                hideMessage();
             else
                 updateCurrentOffer(false, false);
         }
@@ -3115,7 +3125,7 @@ import javax.swing.UIManager;
         if (offerIsDiscardOrPickMessage)
             throw new IllegalStateException("Cannot call resetmessage when discard msg");
 
-        tradeSetMessage(message);
+        showMessage(message);
         offerIsResetMessage = (message != null);
     }
 
@@ -3140,13 +3150,13 @@ import javax.swing.UIManager;
         if (offerIsResetMessage)
             return false;
 
-        tradeSetMessage(isDiscard ? TRADEMSG_DISCARD : TRADEMSG_PICKING);
+        showMessage(isDiscard ? TRADEMSG_DISCARD : TRADEMSG_PICKING);
         offerIsDiscardOrPickMessage = true;
         return true;
     }
 
     /**
-     * Clear the "discarding..." or "picking resources..." message in the trade panel.
+     * Clear the "discarding..." or "picking resources..." message in the panel.
      * Assumes player can't be discarding and asking for board-reset at same time.
      * If wasn't in discardMessage mode, do nothing.
      * @see #setDiscardOrPickMsg(boolean)
@@ -3156,7 +3166,7 @@ import javax.swing.UIManager;
         if (! offerIsDiscardOrPickMessage)
             return;
 
-        tradeSetMessage(null);
+        showMessage(null);
         offerIsDiscardOrPickMessage = false;
     }
 

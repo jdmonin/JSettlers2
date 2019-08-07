@@ -1430,19 +1430,22 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * If the player's trade-offer panel is showing a message
-     * (not a trade offer), clear and hide it.
+     * If the player's hand panel is showing a message
+     * (not a trade offer), clear and hide that message.
+     *<P>
+     * Before v2.0.00 this method was {@code clearTradeMsg}.
+     *
      * @param pn  Player number, or -1 for all players
-     * @see SOCHandPanel#clearTradeMsg()
+     * @see SOCHandPanel#hideMessage()
      * @since 1.1.12
      */
-    void clearTradeMsg(final int pn)
+    void hideHandMessage(final int pn)
     {
         if (pn != -1)
-            hands[pn].clearTradeMsg();
+            hands[pn].hideMessage();
         else
             for (int i = 0; i < game.maxPlayers; ++i)
-                hands[i].clearTradeMsg();
+                hands[i].hideMessage();
     }
 
     /**
@@ -4426,7 +4429,7 @@ public class SOCPlayerInterface extends Frame
         public void requestedTradeReset(SOCPlayer playerToReset)
         {
             final int pn = (playerToReset != null) ? playerToReset.getPlayerNumber() : -1;
-            pi.clearTradeMsg(pn);
+            pi.hideHandMessage(pn);
         }
 
         public void requestedDiceRoll(final int pn)
