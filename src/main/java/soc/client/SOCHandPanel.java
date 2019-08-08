@@ -1812,7 +1812,7 @@ import javax.swing.UIManager;
     private void checkTradePanelLayoutSize()
     {
         final boolean isCounterVis = counterOfferPanel.isVisible();
-        if (offerPanel.isVisible() || isCounterVis)
+        if (offerPanel.isVisible() || isCounterVis || ! faceImg.isVisible())
             offerCounterOfferVisibleChanged(isCounterVis);  // call validate(), repaint()
 
         // TODO check visibility of tradepanel, messagepanel, counteroffer;
@@ -2565,7 +2565,7 @@ import javax.swing.UIManager;
     public void offerCounterOfferVisibleChanged(final boolean counterVisible)
     {
         invalidate();
-        if (offerCounterHidesFace || offerHidingControls)
+        if (offerCounterHidesFace || offerHidingControls || offerCounterHidingFace)
         {
             hideTradeMsgShowOthers(false);  // move 'offer' around if needed, hide/show faceImg
         }
@@ -2926,7 +2926,7 @@ import javax.swing.UIManager;
      */
     private void hideTradeMsgShowOthers(final boolean hideTradeMsg)
     {
-        if ((! offerHidesControls) && resourceSq.isVisible())
+        if ((! offerHidesControls) && resourceSq.isVisible() && faceImg.isVisible())
             return;
 
         if (offerHidingControls == hideTradeMsg)
@@ -2971,8 +2971,15 @@ import javax.swing.UIManager;
             offerHidingControls = ! hideTradeMsg;
         }
 
-        if (! offerCounterHidesFace)
+        final boolean faceHidden = ! faceImg.isVisible();
+        if (faceHidden && ! offerCounterHidingFace)
+        {
+            offerCounterHidingFace = true;  // correct the flag field; don't return
+        }
+        else if (! (faceHidden || offerCounterHidesFace))
+        {
             return;
+        }
 
         final boolean counterIsShowing = counterOfferPanel.isVisible();
         if (offerCounterHidingFace != counterIsShowing)
@@ -4073,7 +4080,8 @@ import javax.swing.UIManager;
                     offerMinHeight += counterOfferHeight + space;
                 // TODO chk num lines here
                 final int numBottomLines = (hasTakeoverBut || hasSittingRobotLockBut) ? 5 : 4,
-                          availHeightNoHide = (dim.height - (inset + faceW + space) - (numBottomLines * (lineH + space)));
+                          topFaceAreaHeight = inset + faceW + space,
+                          availHeightNoHide = (dim.height - topFaceAreaHeight - (numBottomLines * (lineH + space)));
 
                 if (availHeightNoHide < offerMinHeight)
                 {
@@ -4099,7 +4107,7 @@ import javax.swing.UIManager;
                     // This flag is set here based on newly calculated layout,
                     // for use later when changing offerCounterHidingFace
                     offerCounterHidesFace =
-                        (dim.height - offerMinHeight) < faceW;
+                        (dim.height - offerMinHeight) < topFaceAreaHeight;
 
                     final int offerW = Math.min(dim.width - (2 * inset), offerPrefSize.width);
 
@@ -4223,7 +4231,7 @@ import javax.swing.UIManager;
                 cityLab.setBounds(dim.width - inset - stlmtsW - sqSize - space, lowerY + (3 * (lineH + space)), stlmtsW, lineH);
                 citySq.setLocation(dim.width - inset - sqSize, lowerY + (3 * (lineH + space)));
 
-                if (wasHidesControls != offerHidesControls)
+                if ((wasHidesControls != offerHidesControls) || (offerCounterHidingFace != offerCounterHidesFace))
                     hideTradeMsgShowOthers(false);
             }
         }
