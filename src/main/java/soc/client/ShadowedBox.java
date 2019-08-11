@@ -60,7 +60,7 @@ import javax.swing.JPanel;
      * @param bg  the background color, beyond edges of the drawn panel,
      *     to be used in corners that aren't part of the shadow
      * @param interior  the color of the box interior (like {@link SwingMainDisplay#DIALOG_BG_GOLDENROD}),
-     *     or {@code null} to use system defaults
+     *     or {@code null} to use system defaults (especially if high-contrast mode)
      *     from {@link SwingMainDisplay#getForegroundBackgroundColors(boolean, boolean)}
      * @param displayScale  For high-DPI displays, what scaling factor to use? Unscaled is 1.
      * @param lm  LayoutManager to use, or {@code null}
@@ -78,12 +78,14 @@ import javax.swing.JPanel;
             setForeground(Color.black);
             this.interior = interior;
         } else {
+            // probably high-contrast mode
             final Color[] sysColors = SwingMainDisplay.getForegroundBackgroundColors(false, true);
             interior = sysColors[2];
             setBackground(interior);
             setForeground(sysColors[0]);
             this.interior = interior;
         }
+        setOpaque(true);
 
         // nonzero size helps when adding to a JPanel
         Dimension initSize = new Dimension(width, height);

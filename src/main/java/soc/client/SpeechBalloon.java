@@ -66,7 +66,8 @@ import javax.swing.JPanel;
     public static final int BALLOON_POINT_SIZE = 12;
 
     /**
-     * Background color for our parent panel beyond the edges of SpeechBalloon.
+     * Background color for our parent panel beyond the edges of SpeechBalloon,
+     * or {@code null} to not draw that outside portion.
      * @see #balloonColor
      * @since 2.0.00
      */
@@ -98,15 +99,14 @@ import javax.swing.JPanel;
      * background color in balloon interior will be {@link SwingMainDisplay#DIALOG_BG_GOLDENROD}.
      * Sets a small default size and assumes a layout manager will soon change that size.
      *
-     * @param behindColor  the background color beyond edges of the panel
+     * @param behindColor  the background color beyond edges of the panel,
+     *     or {@code null} to not draw that outside portion
      * @param displayScale  For high-DPI displays, what scaling factor to use? Unscaled is 1.
      * @param lm  LayoutManager to use, or {@code null}
      */
     public SpeechBalloon(Color behindColor, final int displayScale, LayoutManager lm)
     {
         super(lm);
-        if (behindColor == null)
-            throw new IllegalArgumentException("behindColor");
 
         height = 50;
         width = 50;
@@ -115,7 +115,7 @@ import javax.swing.JPanel;
 
         Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true, false);
         if (colors == null)
-            colors = SwingMainDisplay.getForegroundBackgroundColors(false, true);  // system colors
+            colors = SwingMainDisplay.getForegroundBackgroundColors(false, true);  // system colors (high-contrast mode)
 
         balloonColor = colors[2];  // SwingMainDisplay.DIALOG_BG_GOLDENROD
         setBackground(balloonColor);
@@ -188,8 +188,11 @@ import javax.swing.JPanel;
         final int bpSize = BALLOON_POINT_SIZE * displayScale;
 
         g.setPaintMode();
-        g.setColor(behindColor);
-        g.fillRect(0, 0, w, h);
+        if (behindColor != null)
+        {
+            g.setColor(behindColor);
+            g.fillRect(0, 0, w, h);
+        }
 
         g.setColor(balloonColor);
         if (balloonPoint)

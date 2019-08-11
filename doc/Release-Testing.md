@@ -341,6 +341,8 @@ On most recent and less-recent OSX and Windows; oldest JRE (java 6) and a new JR
     - Test debug jvm property `-Djsettlers.uiContrastMode=light`
     - On Windows, test high-contrast dark and light themes, and high-contrast accessibility mode
     - On Windows, test debug jvm property `-Djsettlers.uiContrastMode=dark` while using a dark theme
+    - Those test-runs should include offering, counter-offering, and rejecting a trade offer,
+      and auto-rejecting a bot's trade, to check visibility of Trade Panel and Message Panel text
 - SQLite database setup, from instructions in [Database.md](Database.md)
 
 ## Instructions and Setup

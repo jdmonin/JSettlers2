@@ -21,6 +21,7 @@
 package soc.client;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -318,20 +319,15 @@ public class TradePanel extends ShadowedBox
         setFont(panelFont);
         final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true, false);
         if (colors != null)
-        {
             setForeground(colors[0]);  // Color.BLACK
-            setOpaque(true);
-        }
+        // else, parent class ShadowedBox has set fg/bg colors from system defaults
 
         line1 = new JLabel();
-        line1.setFont(panelFont);
         line2 = (hasLine2) ? new JLabel() : null;
         lineBelow = new JLabel();
         squares = new SquaresPanel(true, displayScale);
         sqLabRow1 = new JLabel(sqLabelTexts[0]);
         sqLabRow2 = new JLabel(sqLabelTexts[1]);
-        sqLabRow1.setFont(panelFont);
-        sqLabRow2.setFont(panelFont);
         add(sqLabRow1);
         add(sqLabRow2);
         if (sqLabelTexts.length == 4)
@@ -347,12 +343,8 @@ public class TradePanel extends ShadowedBox
 
         add(line1);
         if (hasLine2)
-        {
-            line2.setFont(panelFont);
             add(line2);
-        }
         lineBelow.setVisible(false);
-        lineBelow.setFont(panelFont);
         add(lineBelow);
 
         add(squares);
@@ -371,6 +363,18 @@ public class TradePanel extends ShadowedBox
         btn1 = btns[0];
         btn2 = btns[1];
         btn3 = btns[2];
+
+        // All labels: inherit font and bg/fg color from this panel
+        //     (simplified from SOCDialog.styleButtonsAndLabels)
+        for (Component co : getComponents())
+        {
+            if (! (co instanceof JLabel))
+                continue;
+
+            co.setFont(panelFont);
+            co.setForeground(null);
+            co.setBackground(null);
+        }
     }
 
     /**

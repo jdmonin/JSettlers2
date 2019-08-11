@@ -418,6 +418,15 @@ public class SOCPlayerInterface extends Frame
     protected Color[] playerColors, playerColorsGhost;
 
     /**
+     * Color to use when painting borders when in high-contrast mode; {@code null} otherwise.
+     * Used by {@link #paintBordersHandColumn(Graphics, SOCHandPanel)}.
+     * Will be the system foreground color, for contrast against panel backgrounds.
+     * When {@code null}, uses {@link Graphics#clearRect(int, int, int, int)} to clear to background color instead.
+     * @since 2.0.00
+     */
+    private final Color highContrastBorderColor;
+
+    /**
      * the client main display that spawned us
      */
     protected final MainDisplay mainDisplay;
@@ -706,8 +715,12 @@ public class SOCPlayerInterface extends Frame
          */
         if (! SwingMainDisplay.isOSColorHighContrast())
         {
+            highContrastBorderColor = null;
             setBackground(Color.BLACK);
             setForeground(Color.WHITE);
+        } else {
+            final Color[] sysColors = SwingMainDisplay.getForegroundBackgroundColors(false, true);
+            highContrastBorderColor = sysColors[0];
         }
         setFont(new Font("SansSerif", Font.PLAIN, 10 * displayScale));
 
@@ -1074,7 +1087,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Paint the borders after a resize, and set {@link #needRepaintBorders} false.
-     * {@link #prevSize} should be set before calling.
+     * {@link #prevSize} must be set before calling.
      * @param g  Graphics as passed to <tt>update()</tt>
      * @since 1.1.11
      */
@@ -1099,7 +1112,6 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Paint the borders of one column of handpanels.
-     * {@link #prevSize} must be set before calling.
      * @param g  Graphics as passed to <tt>update()</tt>
      * @param middlePanel  The middle (6-player) or the bottom (4-player) handpanel in this column
      * @since 1.1.11
@@ -1110,24 +1122,46 @@ public class SOCPlayerInterface extends Frame
             return;  // if called during board reset
 
         final int w = middlePanel.getWidth();  // handpanel's width
+        final int winH = getHeight();
         final int bw = 4 * displayScale;  // border width
+
+        final boolean isHighContrast;
+        if (highContrastBorderColor != null)
+        {
+            g.setColor(highContrastBorderColor);
+            isHighContrast = true;
+        } else {
+            isHighContrast = false;
+        }
 
         // left side, entire height
         int x = middlePanel.getX();
-        g.clearRect(x - bw, 0, bw, prevSize.height);
+        if (isHighContrast)
+            g.fillRect(x - bw, 0, bw, winH);
+        else
+            g.clearRect(x - bw, 0, bw, winH);
 
         // right side, entire height
         x += w;
-        g.clearRect(x, 0, bw, prevSize.height);
+        if (isHighContrast)
+            g.fillRect(x, 0, bw, winH);
+        else
+            g.clearRect(x, 0, bw, winH);
 
         // above middle panel
         x = middlePanel.getX();
         int y = middlePanel.getY();
-        g.clearRect(x, y - bw, w, bw);
+        if (isHighContrast)
+            g.fillRect(x, y - bw, w, bw);
+        else
+            g.clearRect(x, y - bw, w, bw);
 
         // below middle panel
         y += middlePanel.getHeight();
-        g.clearRect(x, y, w, bw);
+        if (isHighContrast)
+            g.fillRect(x, y, w, bw);
+        else
+            g.clearRect(x, y, w, bw);
     }
 
     /**

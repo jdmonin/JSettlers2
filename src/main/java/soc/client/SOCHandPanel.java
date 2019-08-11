@@ -651,16 +651,24 @@ import javax.swing.UIManager;
         final int displayScale = pi.displayScale,
                   sqSize = ColorSquare.WIDTH * displayScale;
         final Color pcolor = playerInterface.getPlayerColor(playerNumber);
-        setBackground(pcolor);
-        setForeground(COLOR_FOREGROUND);
-        setOpaque(true);
+        final boolean isOSColorHighContrast = SwingMainDisplay.isOSColorHighContrast();
+        if (! isOSColorHighContrast)
+        {
+            setBackground(pcolor);
+            setForeground(COLOR_FOREGROUND);
+            setOpaque(true);
+        }
         setFont(new Font("SansSerif", Font.PLAIN, 10 * displayScale));
 
-        blankStandIn = new ColorSquare(pcolor, strings.get("hpan.one.moment"));  // "One moment..."
+        blankStandIn = new ColorSquare
+            (((isOSColorHighContrast) ? ColorSquare.GREY : pcolor),
+             strings.get("hpan.one.moment"));  // "One moment..."
         blankStandIn.setVisible(false);
         // playerinterface.initInterfaceElements will add blankStandIn to its layout, and set its size/position.
 
         faceImg = new SOCFaceButton(playerInterface, playerNumber);
+        if (isOSColorHighContrast)
+            faceImg.setBackground(pcolor);  // only this bordered graphic will have the player color background
         add(faceImg);
 
         pname = new JLabel();
@@ -974,7 +982,7 @@ import javax.swing.UIManager;
         quitBut.setEnabled(interactive);
         add(quitBut);
 
-        messagePanel = new MessagePanel(pcolor, displayScale);
+        messagePanel = new MessagePanel(((isOSColorHighContrast) ? null : pcolor), displayScale);
         messagePanel.setVisible(false);
         add(messagePanel);
 

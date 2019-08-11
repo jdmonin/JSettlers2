@@ -78,7 +78,8 @@ import javax.swing.SwingConstants;
     /**
      * Creates a new MessagePanel.
      * Has room for 1 or 2 centered lines of text.
-     * @param bgColor  Background color outside of speech balloon, from {@link SOCPlayerInterface#getPlayerColor(int)}
+     * @param bgColor  Background color outside of speech balloon, from {@link SOCPlayerInterface#getPlayerColor(int)},
+     *     or {@code null} to not draw that outside portion
      * @param displayScale  For high-DPI displays, what scaling factor to use? Unscaled is 1.
      */
     public MessagePanel(final Color bgColor, final int displayScale)
