@@ -20,6 +20,7 @@ and backport minor new features until `2.0.00` is ready.
 - Game Scenario and special-rules support
 - Client:
 	- High-DPI support, based on screen resolution or running with JVM parameter `-Djsettlers.uiScale=2`
+	- Board graphics can use higher-resolution hex images
 	- Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard dialog)
 	- Trade counter-offer: For legibility use light background color, not player color
 	- Bank trades: If server declines trade, don't enable Undo Trade button or clear Give/Get resources to 0

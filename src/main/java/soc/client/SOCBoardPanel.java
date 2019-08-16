@@ -934,6 +934,23 @@ import javax.swing.JComponent;
     private int unscaledBoardW;
 
     /**
+     * If true, some hex images are a larger or nonuniform size and so
+     * their images must always be rescaled for {@link #drawBoardEmpty(Graphics)},
+     * even when boardpanel dimensions are standard size (! {@link #isScaled}).
+     * {@link #scaledHexes} contains those images scaled for the current panel size.
+     *<P>
+     * Is set in constructor from {@link #hexesMustAlwaysScale}, or {@link #rotatHexesMustAlwaysScale}
+     * if {@link #isRotated}. See those static fields for more info.
+     *<P>
+     * This flag refers to the static hex image sizes, not the overall panel size/geometry
+     * tracked by {@link #isScaled}. It may be true even when {@code isScaled} is false,
+     * and doesn't change when the panel is resized.
+     *
+     * @since 2.0.00
+     */
+    private boolean isHexesAlwaysScaled;
+
+    /**
      * The board is currently scaled up, larger than
      * {@link #panelMinBW} x {@link #panelMinBH} pixels.
      * Use {@link #scaleToActual(int)}, {@link #scaleFromActual(int)},
@@ -942,11 +959,14 @@ import javax.swing.JComponent;
      * When the board is also {@link #isRotated rotated}, go in this order:
      * Rotate clockwise, then scale up; Scale down, then rotate counterclockwise.
      *<P>
-     * When this flag is set true, also sets {@link #scaledAt}.
+     * When this flag is set true, also sets {@link #scaledAt}. A copy of the static board graphic images
+     * will be rescaled to match the scaled-up size and stored in {@link #scaledHexes},
+     * {@link #scaledPorts}, etc.
      *
      * @see #isScaledOrRotated
      * @see #scaledAt
      * @see #rescaleBoard(int, int)
+     * @see #isHexesAlwaysScaled
      */
     protected boolean isScaled;
 
@@ -958,7 +978,8 @@ import javax.swing.JComponent;
     protected long scaledAt;
 
     /**
-     * Flag used while drawing a scaled board. If board size
+     * Flag used while drawing a scaled board ({@link #isScaled}
+     * or {@link #isHexesAlwaysScaled}). If board size
      * was recently changed, could be waiting for an image to resize.
      * If it still hasn't appeared after 7 seconds, we'll give
      * up and create a new one.  (This can happen due to AWT bugs.)
@@ -1080,8 +1101,13 @@ import javax.swing.JComponent;
 
     /**
      * Hex images - shared unscaled original-resolution from {@link #IMAGEDIR}'s GIF files.
-     * Image references are copied to {@link #scaledHexes} from here.
+     * Image references from here are copied to {@link #scaledHexes},
+     * then image objects are copied and scaled up if {@link #isScaled}.
      * Also contains {@code hexBorder.gif}, and {@code miscPort.gif} for drawing 3:1 ports' base image.
+     *<P>
+     * {@link #hexesMustAlwaysScale} was set true by {@code loadHexesAndImages}
+     * if any of these are a larger or nonuniform size.
+     *<P>
      * For indexes, see {@link #loadHexesAndImages(Image[], String, MediaTracker, Toolkit, Class, boolean)}
      * and {@link #HEX_BORDER_IDX_FROM_LEN}.
      *<P>
@@ -1093,18 +1119,59 @@ import javax.swing.JComponent;
     private static Image[] hexes;
 
     /**
+     * If true, some images in {@link #hexes} are a larger or nonuniform size
+     * (not all {@link #HEXWIDTH} x {@link #HEXHEIGHT} pixels) and so
+     * their images must always be rescaled for {@link #drawBoardEmpty(Graphics)},
+     * even when boardpanel dimensions are standard size (! {@link #isScaled}):
+     * If ! {@link #isRotated}, a boardpanel instance's {@link #scaledHexes}
+     * contains those images scaled for the current panel size.
+     *<P>
+     * Is used to set {@link #isHexesAlwaysScaled} in constructor.
+     * Is set only by {@link #loadImages(Component, boolean)} called earlier in constructor.
+     *
+     * @see #rotatHexesMustAlwaysScale
+     * @since 2.0.00
+     */
+    private static boolean hexesMustAlwaysScale;
+
+    /**
      * Hex images - rotated board; from <tt><i>{@link #IMAGEDIR}</i>/rotat</tt>'s GIF files.
-     * Images from here are copied and/or scaled to {@link #scaledHexes}/{@link #scaledPorts}.
+     * Images from here are copied to {@link #scaledHexes},
+     * then image objects are copied and scaled up if {@link #isScaled}.
+     *<P>
+     * {@link #rotatHexesMustAlwaysScale} was set true by {@code loadHexesAndImages}
+     * if any of these are a larger or nonuniform size.
+     *<P>
      * For indexes, see {@link #loadHexesAndImages(Image[], String, MediaTracker, Toolkit, Class, boolean)}
      * and {@link #HEX_BORDER_IDX_FROM_LEN}.
+     *
      * @see #hexes
      * @since 1.1.08
      */
     private static Image[] rotatHexes;
 
     /**
-     * Hex images - private scaled copy, if {@link #isScaled}. Otherwise points to static copies,
-     * either {@link #hexes} or {@link #rotatHexes}
+     * If true, some images in {@link #rotatHexes} are a larger or nonuniform size
+     * (not all {@link #HEXHEIGHT} x {@link #HEXWIDTH} pixels) and so
+     * their images must always be rescaled for {@link #drawBoardEmpty(Graphics)},
+     * even when boardpanel dimensions are standard size (! {@link #isScaled}):
+     * If {@link #isRotated}, a boardpanel instance's {@link #scaledHexes}
+     * contains those images scaled for the current panel size.
+     *<P>
+     * Is used to set {@link #isHexesAlwaysScaled} in constructor.
+     * Is set only by {@link #loadImages(Component, boolean)} called earlier in constructor.
+     *
+     * @see #hexesMustAlwaysScale
+     * @since 2.0.00
+     */
+    private static boolean rotatHexesMustAlwaysScale;
+
+    /**
+     * Hex images - private scaled copy, if {@link #isScaled} or {@link #isHexesAlwaysScaled}.
+     * Otherwise points to static copies: Either {@link #hexes} or {@link #rotatHexes}.
+     *<P>
+     * For port overlay images, see {@link #scaledPorts}.
+     *
      * @see #scaledHexFail
      */
     private Image[] scaledHexes;
@@ -1113,12 +1180,17 @@ import javax.swing.JComponent;
      * Port images - private copy, rotated and/or scaled if necessary.
      * Contains the 6 per-facing port overlays built in {@link #renderPortImages()}.
      * {@code miscPort.gif} is in {@link #hexes} along with the land hex images used for 2:1 ports.
+     *<P>
+     * For the rest of the hex images, see {@link #scaledHexes}.
+     *
      * @see #scaledPortFail
      */
     private Image[] scaledPorts;
 
     /**
-     * Hex/port images - Per-image flag to check if rescaling failed, if {@link #isScaled}.
+     * Hex/port images - Per-image flag to check if rescaling failed, if {@link #isScaled}
+     * or {@link #isHexesAlwaysScaled}.
+     *
      * @see #scaledHexes
      * @see #drawHex(Graphics, int)
      */
@@ -1691,13 +1763,16 @@ import javax.swing.JComponent;
         // load the static images
         loadImages(this, isRotated);
 
-        // point to static images, unless we're later resized
+        // Point to static images, unless we're later resized.
+        // Now that we've called loadImages, update isHexesAlwaysScaled.
         Image[] h;
         if (isRotated)
         {
             h = rotatHexes;
+            isHexesAlwaysScaled = rotatHexesMustAlwaysScale;
         } else {
             h = hexes;
+            isHexesAlwaysScaled = hexesMustAlwaysScale;
         }
 
         scaledHexes = new Image[h.length];
@@ -2428,7 +2503,7 @@ import javax.swing.JComponent;
             emptyBoardBuffer.flush();
             emptyBoardBuffer = null;
         }
-        if (isScaled)
+        if (isScaled || isHexesAlwaysScaled)
         {
             scaledAt = System.currentTimeMillis();  // reset the image-scaling timeout
             scaledMissedImage = false;
@@ -2549,46 +2624,46 @@ import javax.swing.JComponent;
         /**
          * Scale and render images, or point to static arrays.
          */
-        final Image[] hex;  // hex type images
+        final Image[] staticHex;  // hex type images
         final Color[] BC;  // border colors
         if (isRotated)
         {
-            hex = rotatHexes;
+            staticHex = rotatHexes;
             BC = ROTAT_HEX_BORDER_COLORS;
         } else {
-            hex = hexes;
+            staticHex = hexes;
             BC = HEX_BORDER_COLORS;
         }
-        final int i_hexBorder = hex.length - HEX_BORDER_IDX_FROM_LEN;
+        final int i_hexBorder = staticHex.length - HEX_BORDER_IDX_FROM_LEN;
 
-        if (! isScaled)
+        if (! (isScaled || isHexesAlwaysScaled))
         {
-            final Image hexBorder = hex[i_hexBorder];
+            final Image hexBorder = staticHex[i_hexBorder];
 
             for (int i = scaledHexes.length - 1; i>=0; --i)
                 if (i < BC.length)
-                    scaledHexes[i] = renderBorderedHex(hex[i], hexBorder, BC[i]);
+                    scaledHexes[i] = renderBorderedHex(staticHex[i], hexBorder, BC[i]);
                 else
-                    scaledHexes[i] = hex[i];
+                    scaledHexes[i] = staticHex[i];
         }
         else
         {
-            int w = scaleToActual(hex[0].getWidth(null));
-            int h = scaleToActual(hex[0].getHeight(null));
+            final int w = scaleToActual((isRotated) ? HEXHEIGHT : HEXWIDTH),
+                      h = scaleToActual((isRotated) ? HEXWIDTH : HEXHEIGHT);
 
             for (int i = scaledHexes.length - 1; i>=0; --i)
             {
-                if (hex[i] != null)
+                if (staticHex[i] != null)
                 {
                     Image hi;
                     if (i != i_hexBorder)
                     {
-                        hi = getScaledImageUp(hex[i], w, h);
+                        hi = getScaledImageUp(staticHex[i], w, h);
                         if (i < BC.length)
                             hi = renderBorderedHex(hi, null, BC[i]);
                     } else {
                         // don't scale or render this image, it's unused when board is scaled
-                        hi = hex[i];
+                        hi = staticHex[i];
                     }
 
                     scaledHexes[i] = hi;
@@ -3230,9 +3305,11 @@ import javax.swing.JComponent;
                 g.translate(-x, -y);
 
                 missedDraw = true;
-                if (isScaled && (RESCALE_MAX_RETRY_MS < (drawnEmptyAt - scaledAt)))
+                if ((isScaled || isHexesAlwaysScaled)
+                    && (RESCALE_MAX_RETRY_MS < (drawnEmptyAt - scaledAt)))
                 {
-                    // rescale the image or give up
+                    // rescale the image, or if that failed already, give up and use fallback
+
                     if (scaledHexFail[htypeIdx])
                     {
                         scaledHexes[htypeIdx] = hexis[htypeIdx];  // fallback
@@ -3240,8 +3317,8 @@ import javax.swing.JComponent;
                     else
                     {
                         scaledHexFail[htypeIdx] = true;
-                        int w = scaleToActual(hexis[0].getWidth(null));
-                        int h = scaleToActual(hexis[0].getHeight(null));
+                        final int w = scaleToActual((isRotated) ? HEXHEIGHT : HEXWIDTH),
+                                  h = scaleToActual((isRotated) ? HEXWIDTH : HEXHEIGHT);
                         scaledHexes[htypeIdx] = getScaledImageUp(hexis[htypeIdx], w, h);
                     }
                 }
@@ -3268,8 +3345,8 @@ import javax.swing.JComponent;
             if (isScaled && (scaledPorts[ptypeIdx] == hexes[htypeIdx]))
             {
                 recenterPrevMiss = true;
-                int w = hexes[0].getWidth(null);  // assumes all fallback hex images are same w, h
-                int h = hexes[0].getHeight(null);
+                int w = hexes[htypeIdx].getWidth(null);
+                int h = hexes[htypeIdx].getHeight(null);
                 xm = (scaleToActual(w) - w) / 2;
                 ym = (scaleToActual(h) - h) / 2;
                 x += xm;
@@ -3280,7 +3357,8 @@ import javax.swing.JComponent;
             {
                 g.drawImage(hexes[htypeIdx], x, y, null);  // show smaller unscaled hex graphic, instead of a blank space
                 missedDraw = true;
-                if (isScaled && (RESCALE_MAX_RETRY_MS < (drawnEmptyAt - scaledAt)))
+                if ((isScaled || isHexesAlwaysScaled)
+                    && (RESCALE_MAX_RETRY_MS < (drawnEmptyAt - scaledAt)))
                 {
                     if (scaledPortFail[ptypeIdx])
                     {
@@ -7161,6 +7239,10 @@ import javax.swing.JComponent;
      * Load the images for the board: {@link #hexes} and {@link #rotatHexes}.
      * Loads all hex types, up through {@link SOCBoardLarge#FOG_HEX},
      * because {@link #hexes} is static for all boards and all game options.
+     *<P>
+     * May change value of {@link #hexesMustAlwaysScale} and/or {@link #rotatHexesMustAlwaysScale}:
+     * If those hexes are loaded, calls {@link #checkNonstandardHexesSize(Image[], boolean)}.
+     *
      * @param c  Our component, to load image resource files with getToolkit and getResource
      * @param wantsRotated  True for the 6-player non-sea board
      *          (v2 encoding {@link SOCBoard#BOARD_ENCODING_6PLAYER}), false otherwise.
@@ -7193,6 +7275,8 @@ import javax.swing.JComponent;
             {
                 System.out.println("Error loading board images");
             }
+
+            hexesMustAlwaysScale = checkNonstandardHexesSize(hexes, false);
         }
 
         if (wantsRotated && (rotatHexes == null))
@@ -7212,6 +7296,8 @@ import javax.swing.JComponent;
             {
                 System.out.println("Error loading rotated board images");
             }
+
+            rotatHexesMustAlwaysScale = checkNonstandardHexesSize(rotatHexes, true);
         }
     }
 
@@ -7263,6 +7349,34 @@ import javax.swing.JComponent;
         {
             tracker.addImage(newHexes[i], 0);
         }
+    }
+
+    /**
+     * Check whether any of the just-loaded hex images are a nonstandard size.
+     * Standard size is {@link #HEXWIDTH} x {@link #HEXHEIGHT}.
+     * When rotated, swap those constants for standard width x height.
+     *
+     * @param loaded  Hex images loaded by
+     *     {@link #loadHexesAndImages(Image[], String, MediaTracker, Toolkit, Class, boolean)},
+     *     with same indexes as {@link #hexes} or {@link #rotatHexes}
+     * @param isRotated  True if these images are rotated, and should be checked against
+     *     size {@code HEXHEIGHT} x {@code HEXWIDTH}
+     * @return  True if any are nonstandard, false if all hexes are standard size.
+     * @since 2.0.00
+     */
+    private static boolean checkNonstandardHexesSize
+        (final Image[] loaded, final boolean isRotated)
+    {
+        final int wantW = (isRotated) ? HEXHEIGHT : HEXWIDTH,
+                  wantH = (isRotated) ? HEXWIDTH : HEXHEIGHT;
+
+        for (final Image hexi : loaded)
+        {
+            if ((hexi.getWidth(null) != wantW) || (hexi.getHeight(null) != wantH))
+                return true;
+        }
+
+        return false;
     }
 
     ///
