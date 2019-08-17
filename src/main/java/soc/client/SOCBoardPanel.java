@@ -150,7 +150,7 @@ import javax.swing.JComponent;
      * The images are loaded into the {@link #hexes}, {@link #rotatHexes},
      * {@link #scaledHexes}, and {@link #scaledPorts} arrays.
      */
-    private static String IMAGEDIR = "/resources/images";
+    private static String IMAGEDIR = "/resources/hexes/classic";
 
     /**
      * For {@link #isScaled}, minimum acceptable scaling factor.
