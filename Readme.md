@@ -397,9 +397,15 @@ and some constants, javadocs, throws declarations added by Jeremy D Monin.
 org.fedorahosted.tennera.antgettext.StringUtil is licensed under the
 "Lesser GPL" (LGPL) license, and is from the JBoss Ant-Gettext utilities.
 
-The hex and port images were created by Jeremy Monin, and are licensed
+The classic hex and port images were created by Jeremy Monin, and are licensed
 Creative Commons Attribution Share Alike (cc-by-sa 3.0 US) or Creative
 Commons Attribution (CC-BY 3.0 US); see each image's gif comments for details.
-goldHex.gif is based on a 2010-12-21 CC-BY 2.0 image by Xuan Che, available at
-http://www.flickr.com/photos/rosemania/5431942688/ , of ancient Greek coins.
+classic/goldHex.gif is based on a 2010-12-21 CC-BY 2.0 image by Xuan Che,
+available at http://www.flickr.com/photos/rosemania/5431942688/ , of
+ancient Greek coins.
+
+The pastel hex images were created and contributed by qubodup, (C) 2019,
+licensed CC-BY-SA 3.0, and were retrieved 2019-08-17 from
+https://github.com/qubodup/pastel-tiles (rendered with that repo's `hex.sh` script).
+
 doc/graf/Logo.svg is (C) 2017 Ruud Poutsma.
