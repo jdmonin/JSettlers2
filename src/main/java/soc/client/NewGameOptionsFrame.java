@@ -970,7 +970,15 @@ import soc.util.Version;
 
         // reminder: same gbc widths/weights are used in initInterface_Opt1
 
-        // PREF_SOUND_ON
+        // PREF_HEX_GRAPHICS_SET is an integer for future expansion,
+        // but right now there's only 2 options, so use checkbox for simpler UI
+        boolean bval = (1 == UserPreferences.getPref(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, 0));
+        localPrefs.put(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, Boolean.valueOf(bval));
+        initInterface_Pref1
+            (bp, gbl, gbc, SOCPlayerClient.PREF_HEX_GRAPHICS_SET,
+             strings.get("game.options.hex.classic.all"),  // "Hex graphics: Use Classic theme (All games)"
+             true, false,
+             bval, 0, null);
 
         initInterface_Pref1
             (bp, gbl, gbc, null,
@@ -989,9 +997,7 @@ import soc.util.Version;
         // Per-PI prefs:
         if (withPerGamePrefs)
         {
-            // PREF_SOUND_MUTE
-
-            boolean bval = (pi != null) ? pi.isSoundMuted() : false;
+            bval = (pi != null) ? pi.isSoundMuted() : false;
             localPrefs.put(SOCPlayerInterface.PREF_SOUND_MUTE, Boolean.valueOf(bval));
             initInterface_Pref1
                 (bp, gbl, gbc, null,
@@ -1007,8 +1013,6 @@ import soc.util.Version;
                              localPrefs.put(SOCPlayerInterface.PREF_SOUND_MUTE, Boolean.valueOf(check));
                      }
                  });
-
-            // PREF_BOT_TRADE_REJECT_SEC
 
             int ival = (pi != null)
                 ? pi.getBotTradeRejectSec()
@@ -1052,7 +1056,7 @@ import soc.util.Version;
         throws IllegalArgumentException
     {
         if ((key == null) && (pcl == null))
-            throw new IllegalArgumentException("null key, pcl");
+            throw new IllegalArgumentException("null key & pcl");
 
         final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
 
@@ -1480,6 +1484,18 @@ import soc.util.Version;
                 pi.setBotTradeRejectSec(iv);
             if (iv != 0)
                 UserPreferences.putPref(k, iv);
+        }
+
+        k = SOCPlayerClient.PREF_HEX_GRAPHICS_SET;
+        v = localPrefs.get(k);
+        if (v != null)
+        {
+            int setIdx = (Boolean.TRUE.equals(v)) ? 1 : 0;
+            if (setIdx != UserPreferences.getPref(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, 0))
+            {
+                UserPreferences.putPref(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, setIdx);
+                // TODO change in all current PIs
+            }
         }
     }
 

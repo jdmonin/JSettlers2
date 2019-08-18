@@ -145,12 +145,24 @@ import javax.swing.JComponent;
     private static final SOCStringManager strings = SOCStringManager.getClientManager();
 
     /**
-     * Hex and port graphics are in this directory.
-     * The rotated versions for the 6-player non-sea board are in <tt><i>IMAGEDIR</i>/rotat</tt>.
+     * Hex and port graphics sets are in subdirectories of this directory
+     * (see {@link #HEX_GRAPHICS_SET_SUBDIRS}). Within each set,
+     * the rotated versions for the 6-player non-sea board are in <tt><i>DIRNAME</i>/rotat</tt>.
      * The images are loaded into the {@link #hexes}, {@link #rotatHexes},
      * {@link #scaledHexes}, and {@link #scaledPorts} arrays.
      */
-    private static String IMAGEDIR = "/resources/hexes/classic";
+    private static String IMAGEDIR = "/resources/hexes";
+
+    /**
+     * List of subdirectories for each hex and port graphics set, within {@link #IMAGEDIR}.
+     * Indexes are the known values of {@link SOCPlayerClient#PREF_HEX_GRAPHICS_SET}.
+     *<P>
+     * Each set includes hexes for all land types and water, a subdir <tt>rotat</tt> for rotated hexes,
+     * and related graphics like <tt>miscPort.gif</tt> and the <tt>hexBorder.gif</tt> mask.
+     *
+     * @since 2.0.00
+     */
+    private static String[] HEX_GRAPHICS_SET_SUBDIRS = { "pastel", "classic" };
 
     /**
      * For {@link #isScaled}, minimum acceptable scaling factor.
@@ -7257,13 +7269,21 @@ import javax.swing.JComponent;
         Toolkit tk = c.getToolkit();
         Class<?> clazz = c.getClass();
 
+        final String hexSetDirBase;
+        {
+            int setIdx = UserPreferences.getPref(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, 0);
+            if ((setIdx < 0) || (setIdx >= HEX_GRAPHICS_SET_SUBDIRS.length))
+                setIdx = 0;
+            hexSetDirBase = IMAGEDIR + "/" + HEX_GRAPHICS_SET_SUBDIRS[setIdx];
+        }
+
         if (hexes == null)
         {
             MediaTracker tracker = new MediaTracker(c);
 
             hexes = new Image[11];  // water, desert, 5 resources, gold, fog, hex border mask, 3:1 port
 
-            loadHexesAndImages(hexes, IMAGEDIR, tracker, tk, clazz, false);
+            loadHexesAndImages(hexes, hexSetDirBase, tracker, tk, clazz, false);
 
             try
             {
@@ -7284,7 +7304,7 @@ import javax.swing.JComponent;
             MediaTracker tracker = new MediaTracker(c);
 
             rotatHexes = new Image[9];  // only 9, not 11: large board (gold,fog) is not rotated
-            loadHexesAndImages(rotatHexes, IMAGEDIR + "/rotat", tracker, tk, clazz, true);
+            loadHexesAndImages(rotatHexes, hexSetDirBase + "/rotat", tracker, tk, clazz, true);
 
             try
             {
@@ -7307,7 +7327,8 @@ import javax.swing.JComponent;
      * Before v1.1.20, this method was called {@code loadHexesPortsImages(..)}.
      *
      * @param newHexes Array to store hex images and 3:1 port image into; {@link #hexes} or {@link #rotatHexes}
-     * @param imageDir Location for {@link Class#getResource(String)}: normal or rotated {@link #IMAGEDIR}
+     * @param imageDir Location for {@link Class#getResource(String)}: normal or rotated, under {@link #IMAGEDIR}
+     *     including subdirectory from {@link #HEX_GRAPHICS_SET_SUBDIRS}
      * @param tracker Track image loading progress here
      * @param tk   Toolkit to load image from resource
      * @param clazz  Class for getResource

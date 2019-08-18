@@ -94,7 +94,7 @@ public class SOCPlayerClient
      * The {@code SOCPlayerClient} constructor will call {@link UserPreferences#clear(String)}.
      *<P>
      * Format: String of comma-separated preference key names: {@link #PREF_PI__WIDTH}, {@link #PREF_SOUND_ON},
-     * {@link #PREF_BOT_TRADE_REJECT_SEC}, etc.
+     * {@link #PREF_BOT_TRADE_REJECT_SEC}, {@link #PREF_HEX_GRAPHICS_SET}, etc.
      * @since 1.2.00
      */
     public static final String PROP_JSETTLERS_DEBUG_CLEAR__PREFS = "jsettlers.debug.clear_prefs";
@@ -134,6 +134,7 @@ public class SOCPlayerClient
      * To set this value for a new {@link SOCPlayerInterface}, use
      * {@link SOCPlayerInterface#PREF_SOUND_MUTE} as the key within
      * its {@code localPrefs} map.
+     *
      * @see UserPreferences#getPref(String, boolean)
      * @see SOCPlayerInterface#isSoundMuted()
      * @since 1.2.00
@@ -150,11 +151,25 @@ public class SOCPlayerClient
      * This key name can be used with the {@link SOCPlayerInterface} constructor's {@code localPrefs} map
      * during game setup. If negative there, auto-reject will be disabled until turned on from that {@code PI}'s
      * "Options" button.
+     *
      * @see UserPreferences#getPref(String, int)
      * @see SOCPlayerInterface#getBotTradeRejectSec()
      * @since 1.2.00
      */
     public static final String PREF_BOT_TRADE_REJECT_SEC = "botTradeRejectSec";
+
+    /**
+     * Integer persistent {@link Preferences} key for choice of hex graphics set.
+     *<UL>
+     * <LI> 0 or missing: Default set: Pastel, added in v2.0.00
+     * <LI> 1: Classic set, from v1.x.xx
+     * <LI> Any other value: Default set
+     *</UL>
+     *
+     * @see UserPreferences#getPref(String, int)
+     * @since 2.0.00
+     */
+    public static final String PREF_HEX_GRAPHICS_SET = "hexGraphicsSet";
 
     /**
      * i18n text strings in our {@link #cliLocale}.
