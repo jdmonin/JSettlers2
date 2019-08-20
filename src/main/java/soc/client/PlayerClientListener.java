@@ -313,13 +313,19 @@ public interface PlayerClientListener
      */
     void membersListed(List<String> names);
 
-    /** An entire board layout has been received from the server. */
+    /**
+     * An entire board layout has been received from the server.
+     * Calls {@link #boardUpdated()} and also updates
+     * related counters/displays elsewhere in the game's UI.
+     */
     void boardLayoutUpdated();
 
     /**
      * Part of the board contents have been updated.
      * For example, a fog hex was revealed, or a trade port
      * was removed from or added to the board.
+     * Redraws all layers of the entire board.
+     * @see #boardLayoutUpdated()
      */
     void boardUpdated();
 

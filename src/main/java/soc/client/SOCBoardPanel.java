@@ -85,6 +85,8 @@ import javax.swing.JComponent;
  *<H3>Graphics:</H3>
  * This panel loads its hex texture images and dice result numbers from a directory named {@code images}
  * in the same directory as this class. Everything else is drawn as lines, circles, polygons, and text.
+ * If the user's preferred set of hex images changes after creating a {@code SOCBoardPanel},
+ * call {@link #reloadBoardGraphics(Component)} and {@link #flushBoardLayoutAndRepaint()}.
  *<P>
  * The main drawing methods are {@link #drawBoardEmpty(Graphics)} for hexes and ports,
  * and {@link #drawBoard(Graphics)} for placed pieces like settlements and the robber.
@@ -173,17 +175,17 @@ import javax.swing.JComponent;
     private static float SCALE_FACTOR_MIN = 1.08f;
 
     /**
-     * When {@link #isLargeBoard},
-     * Minimum visual {@link SOCBoard#getBoardWidth()} = 18 for good-looking aspect ratio, and
-     * enough width for {@link SOCBuildingPanel} contents below.
+     * When {@link #isLargeBoard}, the minimum visual {@link SOCBoard#getBoardWidth()}
+     * for good-looking aspect ratio, and enough width for {@link SOCBuildingPanel} contents below:
+     * 18 half-hex units.
      * @since 2.0.00
      */
     private static final int BOARDWIDTH_VISUAL_MIN = 18;
 
     /**
-     * When {@link #isLargeBoard},
-     * Minimum visual {@link SOCBoard#getBoardHeight()} = 17 for
-     * enough height for {@link SOCHandPanel}s to left and right.
+     * When {@link #isLargeBoard}, the minimum visual {@link SOCBoard#getBoardHeight()}
+     * for enough height for {@link SOCHandPanel}s to left and right:
+     * 17 half-hex units.
      * @since 2.0.00
      */
     private static final int BOARDHEIGHT_VISUAL_MIN = 17;
@@ -1127,6 +1129,7 @@ import javax.swing.JComponent;
      *
      * @see #scaledHexes
      * @see #rotatHexes
+     * @see #hexesGraphicsSetIndex
      */
     private static Image[] hexes;
 
@@ -1147,6 +1150,16 @@ import javax.swing.JComponent;
     private static boolean hexesMustAlwaysScale;
 
     /**
+     * From user pref {@link SOCPlayerClient#PREF_HEX_GRAPHICS_SET},
+     * the index within {@link #HEX_GRAPHICS_SET_SUBDIRS} from which
+     * hex graphics were loaded by {@link #loadImages(Component, boolean)}
+     * into {@link #hexes} and {@link #rotatHexes}.
+     * @see #scaledHexesGraphicsSetIndex
+     * @since 2.0.00
+     */
+    private static int hexesGraphicsSetIndex;
+
+    /**
      * Hex images - rotated board; from <tt><i>{@link #IMAGEDIR}</i>/rotat</tt>'s GIF files.
      * Images from here are copied to {@link #scaledHexes},
      * then image objects are copied and scaled up if {@link #isScaled}.
@@ -1158,6 +1171,7 @@ import javax.swing.JComponent;
      * and {@link #HEX_BORDER_IDX_FROM_LEN}.
      *
      * @see #hexes
+     * @see #hexesGraphicsSetIndex
      * @since 1.1.08
      */
     private static Image[] rotatHexes;
@@ -1198,6 +1212,16 @@ import javax.swing.JComponent;
      * @see #scaledPortFail
      */
     private Image[] scaledPorts;
+
+    /**
+     * When {@link #scaledHexes} was created for this instance, the value of {@link #hexesGraphicsSetIndex}.
+     * See that field for more details.
+     *<P>
+     * Checked at {@link #flushBoardLayoutAndRepaint()} in case
+     * {@link #reloadBoardGraphics(Component)} has recently been called.
+     * @since 2.0.00
+     */
+    private int scaledHexesGraphicsSetIndex;
 
     /**
      * Hex/port images - Per-image flag to check if rescaling failed, if {@link #isScaled}
@@ -1789,8 +1813,9 @@ import javax.swing.JComponent;
 
         scaledHexes = new Image[h.length];
         scaledPorts = new Image[6];
-        for (i = h.length - 1; i>=0; --i)
+        for (i = h.length - 1; i >= 0; --i)
             scaledHexes[i] = h[i];
+        scaledHexesGraphicsSetIndex = hexesGraphicsSetIndex;
         scaledHexFail = new boolean[h.length];
         scaledPortFail = new boolean[scaledPorts.length];
 
@@ -2521,6 +2546,15 @@ import javax.swing.JComponent;
             scaledMissedImage = false;
         }
 
+        if ((scaledHexes != null) && (scaledHexesGraphicsSetIndex != hexesGraphicsSetIndex))
+        {
+            // force overwrite of hexes having previous graphics set
+            try
+            {
+                rescaleBoard(scaledPanelW, scaledPanelH);
+            } catch (IllegalArgumentException e) {}
+        }
+
         repaint();
     }
 
@@ -2577,6 +2611,7 @@ import javax.swing.JComponent;
 
         scaledBoardW = newW;  // for use in next scaleToActual call
         isScaled = true;      // also needed for that call
+        scaledHexesGraphicsSetIndex = hexesGraphicsSetIndex;
         if (scaleToActual(minSize.height) > newH)
         {
             // Using scaledPanelW:unscaledBoardW as a scaling ratio, newH wouldn't fit contents of board.
@@ -2612,7 +2647,7 @@ import javax.swing.JComponent;
 
         /**
          * Off-screen buffer is now the wrong size.
-         * paint() will create a new one.
+         * paintComponent() will create a new one.
          */
         if (buffer != null)
         {
@@ -2652,7 +2687,7 @@ import javax.swing.JComponent;
         {
             final Image hexBorder = staticHex[i_hexBorder];
 
-            for (int i = scaledHexes.length - 1; i>=0; --i)
+            for (int i = scaledHexes.length - 1; i >= 0; --i)
                 if (i < BC.length)
                     scaledHexes[i] = renderBorderedHex(staticHex[i], hexBorder, BC[i]);
                 else
@@ -2663,7 +2698,7 @@ import javax.swing.JComponent;
             final int w = scaleToActual((isRotated) ? HEXHEIGHT : HEXWIDTH),
                       h = scaleToActual((isRotated) ? HEXWIDTH : HEXHEIGHT);
 
-            for (int i = scaledHexes.length - 1; i>=0; --i)
+            for (int i = scaledHexes.length - 1; i >= 0; --i)
             {
                 if (staticHex[i] != null)
                 {
@@ -2686,7 +2721,7 @@ import javax.swing.JComponent;
                 }
             }
 
-            for (int i = scaledPorts.length - 1; i>=0; --i)
+            for (int i = scaledPorts.length - 1; i >= 0; --i)
                 scaledPortFail[i] = false;
         }
 
@@ -3129,11 +3164,11 @@ import javax.swing.JComponent;
                 buffer = ibuf;
             }
 
-            // Because of message timing during placement, watch for
-            // the board's lists of roads, settlements, ships, etc
+            // Try-catch: Because of message timing during placement,
+            // watch for the board's lists of roads, settlements, ships, etc
             // being modified as we're drawing them.
-            // Happens with java 5 foreach loop iteration; wasn't
-            // previously an issue with java 1.4 piece enumerations.
+            // Happens with foreach loop iteration; wasn't an issue
+            // in v1.x.xx with older-java piece enumerations.
             try
             {
                 drawBoard(ibuf.getGraphics());  // Do the actual drawing
@@ -4221,7 +4256,7 @@ import javax.swing.JComponent;
 
         final int[] portsFacing = board.getPortsFacing();
         final int[] portsEdges = board.getPortsEdges();
-        for (int i = board.getPortsCount()-1; i>=0; --i)
+        for (int i = board.getPortsCount()-1; i >= 0; --i)
         {
             // The (x,y) graphic location for this port isn't in hexX/hexY, because
             // the port is just beyond the coordinate system.  Get its facing land hex
@@ -4262,7 +4297,7 @@ import javax.swing.JComponent;
 
         final int[] portsFacing = board.getPortsFacing();
         final int[] portsEdges = board.getPortsEdges();
-        for (int i = board.getPortsCount()-1; i>=0; --i)
+        for (int i = board.getPortsCount()-1; i >= 0; --i)
         {
             final int edge = portsEdges[i];
             if (edge < 0)
@@ -7248,9 +7283,31 @@ import javax.swing.JComponent;
     }
 
     /**
+     * Flush and reload the set of hex graphics currently selected in user preference
+     * {@link SOCPlayerClient#PREF_HEX_GRAPHICS_SET}.
+     *<P>
+     * Note: Afterwards, you must call each current instance's {@link #flushBoardLayoutAndRepaint()}.
+     *
+     * @param c  Any {@link SOCBoardPanel} or other UI component packaged in the same jar,
+     *     to load image resource files with getToolkit and getResource
+     * @since 2.0.00
+     */
+    /* package */ static synchronized void reloadBoardGraphics(final Component c)
+    {
+        final boolean hadAnyRotated = (rotatHexes != null);
+        if (hexes == null)
+            return;  // Not loaded yet: nothing to do
+
+        hexes = null;
+        rotatHexes = null;
+        loadImages(c, hadAnyRotated);
+    }
+
+    /**
      * Load the images for the board: {@link #hexes} and {@link #rotatHexes}.
      * Loads all hex types, up through {@link SOCBoardLarge#FOG_HEX},
      * because {@link #hexes} is static for all boards and all game options.
+     * Checks {@link SOCPlayerClient#PREF_HEX_GRAPHICS_SET} for which graphics set to load.
      *<P>
      * May change value of {@link #hexesMustAlwaysScale} and/or {@link #rotatHexesMustAlwaysScale}:
      * If those hexes are loaded, calls {@link #checkNonstandardHexesSize(Image[], boolean)}.
@@ -7261,7 +7318,7 @@ import javax.swing.JComponent;
      *          The large board (v3 encoding)'s fog-hex and gold-hex images have no rotated version,
      *          because that board layout is never rotated.
      */
-    private static synchronized void loadImages(Component c, final boolean wantsRotated)
+    private static synchronized void loadImages(final Component c, final boolean wantsRotated)
     {
         if ((hexes != null) && ((rotatHexes != null) || ! wantsRotated))
             return;
@@ -7269,16 +7326,15 @@ import javax.swing.JComponent;
         Toolkit tk = c.getToolkit();
         Class<?> clazz = c.getClass();
 
-        final String hexSetDirBase;
-        {
-            int setIdx = UserPreferences.getPref(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, 0);
-            if ((setIdx < 0) || (setIdx >= HEX_GRAPHICS_SET_SUBDIRS.length))
-                setIdx = 0;
-            hexSetDirBase = IMAGEDIR + "/" + HEX_GRAPHICS_SET_SUBDIRS[setIdx];
-        }
+        int setIdx = UserPreferences.getPref(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, 0);
+        if ((setIdx < 0) || (setIdx >= HEX_GRAPHICS_SET_SUBDIRS.length))
+            setIdx = 0;
+        final String hexSetDirBase = IMAGEDIR + "/" + HEX_GRAPHICS_SET_SUBDIRS[setIdx];
 
         if (hexes == null)
         {
+            hexesGraphicsSetIndex = setIdx;
+
             MediaTracker tracker = new MediaTracker(c);
 
             hexes = new Image[11];  // water, desert, 5 resources, gold, fog, hex border mask, 3:1 port

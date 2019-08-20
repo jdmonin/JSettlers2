@@ -175,7 +175,7 @@ public class SOCPlayerClient
      * i18n text strings in our {@link #cliLocale}.
      * @since 2.0.00
      */
-    final soc.util.SOCStringManager strings; // TODO: not a very good name
+    final soc.util.SOCStringManager strings;
 
     /**
      * Prefix text to indicate a game this client cannot join: "(cannot join) "<BR>
@@ -525,13 +525,35 @@ public class SOCPlayerClient
     }
 
     /**
+     * Flush and reload the set of hex graphics currently selected in user preference {@link #PREF_HEX_GRAPHICS_SET}.
+     * Redraw board in all game interfaces: Calls each one's {@link PlayerClientListener#boardUpdated()}
+     * in the UI thread.
+     *<P>
+     * Call if the user picks a different hex graphics set (using {@link NewGameOptionsFrame}),
+     * which affects all {@link SOCPlayerInterface}s.
+     *
+     * @since 2.0.00
+     */
+    /*package*/ void reloadBoardGraphics()
+    {
+        EventQueue.invokeLater(new Runnable()
+        {
+            public void run()
+            {
+                SOCBoardPanel.reloadBoardGraphics(mainDisplay.getGUIContainer());
+                for (final PlayerClientListener pcl : clientListeners.values())
+                    pcl.boardUpdated();
+            }
+        });
+    }
+
+    /**
      * @return the local game preferences of this SOCPlayerClient object.
      */
     /*package*/ HashMap<String, Map<String, Object>> getGameReqLocalPrefs()
     {
         return gameReqLocalPrefs;
     }
-
 
     /**
      * Get this client's GameMessageSender for making and sending messages to the server.

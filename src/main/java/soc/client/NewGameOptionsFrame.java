@@ -91,6 +91,8 @@ import soc.util.Version;
  *<P>
  * Changes to the {@code PREF_SOUND_ON} or {@code PREF_SOUND_MUTE} checkboxes
  * take effect immediately so the user can mute sound effects with minimal frustration.
+ * Other user preferences take effect only when Create/OK button is pressed,
+ * and not if Cancel or Escape key is pressed.
  *<P>
  * If this window already exists and you'd like to make it topmost,
  * call {@link #setVisible(boolean)} instead of {@link #requestFocus()}.
@@ -130,6 +132,10 @@ import soc.util.Version;
      */
     private final SOCPlayerInterface pi;
 
+    /**
+     * UI's main display, with list of games and channels and status bar.
+     * Never null.
+     */
     private final MainDisplay mainDisplay;
 
     /** should this be sent to the remote tcp server, or local practice server? */
@@ -1494,7 +1500,7 @@ import soc.util.Version;
             if (setIdx != UserPreferences.getPref(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, 0))
             {
                 UserPreferences.putPref(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, setIdx);
-                // TODO change in all current PIs
+                mainDisplay.getClient().reloadBoardGraphics();  // refresh all current PIs
             }
         }
     }
