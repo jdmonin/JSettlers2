@@ -133,7 +133,7 @@ import javax.swing.JComponent;
  *  <LI> Layout manager calls {@code setSize(..)} or {@code setBounds(..)},
  *       which calls {@link #rescaleBoard(int, int)}
  *  <LI> {@link #rescaleBoard(int, int)} scales hex images, calls
- *       {@link #renderBorderedHex(Image, Image, Color)} and {@link #renderPortImages()}
+ *       {@link #renderBorderedHex(Image, Color)} and {@link #renderPortImages()}
  *       into image buffers to use for redrawing the board
  *  <LI> {@link #paintComponent(Graphics)} calls {@link #drawBoard(Graphics)}
  *  <LI> First call to {@code drawBoard(..)} calls {@link #drawBoardEmpty(Graphics)} which renders into a buffer image
@@ -160,7 +160,7 @@ import javax.swing.JComponent;
      * Indexes are the known values of {@link SOCPlayerClient#PREF_HEX_GRAPHICS_SET}.
      *<P>
      * Each set includes hexes for all land types and water, a subdir <tt>rotat</tt> for rotated hexes,
-     * and related graphics like <tt>miscPort.gif</tt> and the <tt>hexBorder.gif</tt> mask.
+     * and related graphics like <tt>miscPort.gif</tt>.
      *
      * @since 2.0.00
      */
@@ -496,7 +496,7 @@ import javax.swing.JComponent;
     /**
      * Border colors for hex rendering.
      * Same indexes as {@link #hexes}.
-     * Used in {@link #rescaleBoard(int, int)} with mask {@code hexBorder.gif}.
+     * Used in {@link #rescaleBoard(int, int)}.
      * @see #ROTAT_HEX_BORDER_COLORS
      * @since 1.1.20
      */
@@ -511,7 +511,7 @@ import javax.swing.JComponent;
     /**
      * Border colors for hex rendering when {@link #isRotated}.
      * Same indexes as {@link #rotatHexes}.
-     * Used in {@link #rescaleBoard(int, int)} with mask {@code hexBorder.gif}.
+     * Used in {@link #rescaleBoard(int, int)}.
      * @see #HEX_BORDER_COLORS
      * @since 1.1.20
      */
@@ -521,17 +521,6 @@ import javax.swing.JComponent;
         new Color(120,36,0), HEX_BORDER_COLORS[2], HEX_BORDER_COLORS[3],  // clay, ore, sheep
         HEX_BORDER_COLORS[4], new Color(9,54,11), HEX_BORDER_COLORS[6]  // wheat, wood, desert
     };
-
-    /**
-     * To access {@code hexBorder.gif} hex border mask within variable-length {@link #scaledHexes}[],
-     * subtract this "index" from the length:
-     *<P>
-     * <code>
-     *  img = scaledHexes[scaledHexes.length - HEX_BORDER_IDX_FROM_LEN];
-     * </code>
-     * @since 1.1.20
-     */
-    private static final int HEX_BORDER_IDX_FROM_LEN = 2;
 
     /**
      * For repaint when retrying a failed rescale-image,
@@ -1117,13 +1106,12 @@ import javax.swing.JComponent;
      * Hex images - shared unscaled original-resolution from {@link #IMAGEDIR}'s GIF files.
      * Image references from here are copied to {@link #scaledHexes},
      * then image objects are copied and scaled up if {@link #isScaled}.
-     * Also contains {@code hexBorder.gif}, and {@code miscPort.gif} for drawing 3:1 ports' base image.
+     * Also contains {@code miscPort.gif} for drawing 3:1 ports' base image.
      *<P>
      * {@link #hexesMustAlwaysScale} was set true by {@code loadHexesAndImages}
      * if any of these are a larger or nonuniform size.
      *<P>
-     * For indexes, see {@link #loadHexesAndImages(Image[], String, MediaTracker, Toolkit, Class, boolean)}
-     * and {@link #HEX_BORDER_IDX_FROM_LEN}.
+     * For indexes, see {@link #loadHexesAndImages(Image[], String, MediaTracker, Toolkit, Class, boolean)}.
      *<P>
      * {@link #scaledPorts} stores the 6 per-facing port overlays from {@link #renderPortImages()}.
      *
@@ -1305,7 +1293,7 @@ import javax.swing.JComponent;
 
     /**
      * Hex polygon's corner coordinates, clockwise from top-center,
-     * as located in waterHex.gif, hexBorder.gif, and other hex graphics:
+     * as located in hex graphics like waterHex.gif:
      * (27,0) (54,16) (54,46) (27,62) (0,46) (0,16).
      *  If rotated 90deg clockwise, clockwise from center-right, would be:
      * (62,27) (46,54) (16,54) (0,27) (16,0) (46,0);
@@ -2587,7 +2575,7 @@ import javax.swing.JComponent;
      * Set the board fields to a new size, and rescale graphics if needed.
      * Does not call repaint or setSize.
      * Updates {@link #isScaledOrRotated}, {@link #scaledPanelW}, {@link #panelMarginX}, and other fields.
-     * Calls {@link #renderBorderedHex(Image, Image, Color)} and {@link #renderPortImages()}.
+     * Calls {@link #renderBorderedHex(Image, Color)} and {@link #renderPortImages()}.
      *
      * @param newW  New width in pixels, no less than {@link #minSize}.width
      * @param newH  New height in pixels, no less than {@link #minSize}.height
@@ -2681,15 +2669,12 @@ import javax.swing.JComponent;
             staticHex = hexes;
             BC = HEX_BORDER_COLORS;
         }
-        final int i_hexBorder = staticHex.length - HEX_BORDER_IDX_FROM_LEN;
 
         if (! (isScaled || isHexesAlwaysScaled))
         {
-            final Image hexBorder = staticHex[i_hexBorder];
-
             for (int i = scaledHexes.length - 1; i >= 0; --i)
                 if (i < BC.length)
-                    scaledHexes[i] = renderBorderedHex(staticHex[i], hexBorder, BC[i]);
+                    scaledHexes[i] = renderBorderedHex(staticHex[i], BC[i]);
                 else
                     scaledHexes[i] = staticHex[i];
         }
@@ -2702,16 +2687,9 @@ import javax.swing.JComponent;
             {
                 if (staticHex[i] != null)
                 {
-                    Image hi;
-                    if (i != i_hexBorder)
-                    {
-                        hi = getScaledImageUp(staticHex[i], w, h);
-                        if (i < BC.length)
-                            hi = renderBorderedHex(hi, null, BC[i]);
-                    } else {
-                        // don't scale or render this image, it's unused when board is scaled
-                        hi = staticHex[i];
-                    }
+                    Image hi = getScaledImageUp(staticHex[i], w, h);
+                    if (i < BC.length)
+                        hi = renderBorderedHex(hi, BC[i]);
 
                     scaledHexes[i] = hi;
                     scaledHexFail[i] = false;
@@ -2738,15 +2716,13 @@ import javax.swing.JComponent;
     /**
      * Render a border around the edge of this hex, returning a new image.
      * @param hex  Un-bordered hex image
-     * @param hexBorder  Hex border pixel mask from {@code hexBorder.gif},
-     *     or {@code null} to draw vector border
      * @param borderColor  Color to paint the rendered border,
      *     from {@link #HEX_BORDER_COLORS} or {@link #ROTAT_HEX_BORDER_COLORS},
      *     or {@code null} to not render a border
      * @return a new Image for the bordered hex, or the original {@code hex} if {@code borderColor} was null
      * @since 1.1.20
      */
-    private Image renderBorderedHex(final Image hex, final Image hexBorder, final Color borderColor)
+    private Image renderBorderedHex(final Image hex, final Color borderColor)
     {
         if (borderColor == null)
             return hex;
@@ -2756,26 +2732,14 @@ import javax.swing.JComponent;
         final BufferedImage bHex = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
         final Graphics2D g = bHex.createGraphics();
 
-        if (hexBorder != null)
-        {
-            g.drawImage(hexBorder, 0, 0, w, h, null);  // draw the border pixel mask; all other pixels will be transparent
+        g.drawImage(hex, 0, 0, w, h, null);
 
-            g.setComposite(AlphaComposite.SrcIn);  // source (fillRect) color, dest (bHex) transparency
-            g.setColor(borderColor);
-            g.fillRect(0, 0, w, h);  // fill only the non-transparent mask pixels, because of SRC_IN
-
-            g.setComposite(AlphaComposite.DstOver);  // avoid overwriting overlap (border)
-            g.drawImage(hex, 0, 0, w, h, null);  // change only the transparent (non-border) pixels, because of DST_OVER
-        } else {
-            g.drawImage(hex, 0, 0, w, h, null);
-
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g.setStroke(new BasicStroke(scaleToActual(13) / 10f));  // border line width 1.3px
-            g.setColor(borderColor);
-            if (isRotated)
-                g.translate(scaleToActual(1), 0);  // overlap pixel border properly, especially on right-hand side
-            g.drawPolyline(scaledHexCornersX, scaledHexCornersY, 7);
-        }
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setStroke(new BasicStroke(scaleToActual(13) / 10f));  // border line width 1.3px
+        g.setColor(borderColor);
+        if (isRotated)
+            g.translate(scaleToActual(1), 0);  // overlap pixel border properly, especially on right-hand side
+        g.drawPolyline(scaledHexCornersX, scaledHexCornersY, 7);
 
         g.dispose();
         return bHex;
@@ -7337,7 +7301,7 @@ import javax.swing.JComponent;
 
             MediaTracker tracker = new MediaTracker(c);
 
-            hexes = new Image[11];  // water, desert, 5 resources, gold, fog, hex border mask, 3:1 port
+            hexes = new Image[10];  // water, desert, 5 resources, gold, fog, 3:1 port
 
             loadHexesAndImages(hexes, hexSetDirBase, tracker, tk, clazz, false);
 
@@ -7359,7 +7323,7 @@ import javax.swing.JComponent;
         {
             MediaTracker tracker = new MediaTracker(c);
 
-            rotatHexes = new Image[9];  // only 9, not 11: large board (gold,fog) is not rotated
+            rotatHexes = new Image[8];  // only 8, not 10: large board (gold,fog) is not rotated
             loadHexesAndImages(rotatHexes, hexSetDirBase + "/rotat", tracker, tk, clazz, true);
 
             try
@@ -7412,20 +7376,16 @@ import javax.swing.JComponent;
         newHexes[6] = tk.getImage(clazz.getResource(imageDir + "/desertHex.gif"));
         if (wantsRotated)
         {
-            numHexImage = 9;
+            numHexImage = 8;
         } else {
-            numHexImage = 11;
+            numHexImage = 10;
             newHexes[7] = tk.getImage(clazz.getResource(imageDir + "/goldHex.gif"));
             newHexes[8] = tk.getImage(clazz.getResource(imageDir + "/fogHex.gif"));
         }
-        // reminder: if array length changes, update HEX_BORDER_IDX_FROM_LEN
-        newHexes[numHexImage - 2] = tk.getImage(clazz.getResource(imageDir + "/hexBorder.gif"));
         newHexes[numHexImage - 1] = tk.getImage(clazz.getResource(imageDir + "/miscPort.gif"));
 
         for (int i = 0; i < numHexImage; i++)
-        {
             tracker.addImage(newHexes[i], 0);
-        }
     }
 
     /**
