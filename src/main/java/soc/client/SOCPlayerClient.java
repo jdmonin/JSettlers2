@@ -299,7 +299,7 @@ public class SOCPlayerClient
      * the nickname; null until validated and set by
      * {@link SwingMainDisplay#getValidNickname(boolean) getValidNickname(true)}
      */
-    protected String nickname = null; // TODO: private
+    protected String nickname = null;
 
     /**
      * the password for {@link #nickname} from {@link #pass}, or {@code null} if no valid password yet.
@@ -340,7 +340,7 @@ public class SOCPlayerClient
      * The games we're currently playing.
      * Accessed from GUI thread and network {@link MessageHandler} thread.
      */
-    protected Hashtable<String, SOCGame> games = new Hashtable<String, SOCGame>(); // TODO: make private
+    protected Hashtable<String, SOCGame> games = new Hashtable<String, SOCGame>();
 
     /**
      * all announced game names on the remote server, including games which we can't
@@ -356,7 +356,7 @@ public class SOCPlayerClient
      *   is called.
      * @since 1.1.07
      */
-    protected SOCGameList serverGames = null; // TODO: make private
+    protected SOCGameList serverGames = null;
 
     /**
      * the unjoinable game names from {@link #serverGames} that player has asked to join,

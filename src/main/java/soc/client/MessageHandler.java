@@ -952,11 +952,6 @@ import soc.util.Version;
         }
     }
 
-    /* 
-     * TODO: consider that many of these "handlers" simply pass the message off to mainDisplay
-     * In the short term (moving MessageHandler out of SOCPlayerClient, we will mark this as a TODO.
-     */
-
     /**
      * handle the "join channel authorization" message
      * @param mes  the message

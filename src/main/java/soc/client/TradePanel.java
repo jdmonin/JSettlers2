@@ -708,12 +708,6 @@ public class TradePanel extends ShadowedBox
         line1.setText(txt);
     }
 
-    /*
-    public void setLineBelow(final String txt);  // TODO
-    {
-        
-    } */
-
     /**
      * Get our preferred height to use in Normal or Compact Mode.
      * Same calc as {@link #getPreferredSize()}, but without creating a Dimension or any other object.
