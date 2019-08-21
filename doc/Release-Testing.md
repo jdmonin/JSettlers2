@@ -84,6 +84,30 @@ When preparing to release a new version, testing should include:
      - Start server with vm property: `-Djsettlers.debug.board.fog=Y`
      - Start and test a game with the Use Sea Board option; place an initial settlement at a fog hex
      - Start and test a game with the Fog Islands scenario
+- Client preferences
+    - Hex Graphics Sets: Test switching between "Classic" and new-for-2.0 "Pastel":
+        - All games mentioned here are Practice games, no server needed. "Start a game" here means to
+          create a game, sit down, and start the game so a board will be generated.
+        - For clean first run: Launch client with jvm property `-Djsettlers.debug.clear_prefs=hexGraphicsSet`
+        - Start a practice game, default options (board graphics should appear as pastel)
+        - Options button: [X] Hex graphics: Use Classic theme; close window instead of hit OK (board should not change)
+        - Options button: [X] Hex graphics: Use Classic theme; hit OK (board should change to Classic)
+        - Leave that game running, start another game
+            - In New Game options: Fog scenario, 6 players, and un-check Use Classic theme
+            - Create Game, start as usual
+            - (Both games' boards should now be pastel)
+        - Options: Change theme to Classic (Both games should change)
+        - Leave running, Start another: Un-check Scenario, 6-player board, un-check Sea board (Should also be Classic)
+        - Options: Un-check Use Classic (All 3 games should change to pastel)
+        - Options: Use Classic (All 3 should change)
+        - Close client main window: Quit all games
+        - Re-launch client, without any jvm properties
+        - Start game: 4 players, no scenario (should remember preference & be classic)
+        - Start another: 6 players (should also be classic)
+        - Options: Un-check Use Classic (Both should change)
+        - Close client main window: Quit all games
+        - Re-launch client
+        - Start a game (should remember preference & be pastel)
 - Version compatibility testing
     - Other versions to use: **1.1.06** (before Game Options); **1.1.11** (has 6-player option and client bugfixes);
       latest **1.x.xx**; latest **2.0.xx**
