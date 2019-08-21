@@ -85,6 +85,10 @@ When preparing to release a new version, testing should include:
      - Start and test a game with the Use Sea Board option; place an initial settlement at a fog hex
      - Start and test a game with the Fog Islands scenario
 - Client preferences
+    - Auto-reject bot trade offers:
+        - Practice game: Test UI's trade behavior with and without preference
+        - Re-launch client, new practice game, check setting is remembered
+    - Sound: See section "Platform-specific"
     - Hex Graphics Sets: Test switching between "Classic" and new-for-2.0 "Pastel":
         - All games mentioned here are Practice games, no server needed. "Start a game" here means to
           create a game, sit down, and start the game so a board will be generated.
