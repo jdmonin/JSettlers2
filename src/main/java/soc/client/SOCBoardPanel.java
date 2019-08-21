@@ -158,9 +158,12 @@ import javax.swing.JComponent;
     /**
      * List of subdirectories for each hex and port graphics set, within {@link #IMAGEDIR}.
      * Indexes are the known values of {@link SOCPlayerClient#PREF_HEX_GRAPHICS_SET}.
+     * The currently-used index is {@link #hexesGraphicsSetIndex}.
      *<P>
      * Each set includes hexes for all land types and water, a subdir <tt>rotat</tt> for rotated hexes,
      * and related graphics like <tt>miscPort.gif</tt>.
+     *<P>
+     * Water border color varies by Graphics Set; see {@link #HEX_GRAPHICS_SET_BORDER_WATER_COLORS}.
      *
      * @since 2.0.00
      */
@@ -497,12 +500,17 @@ import javax.swing.JComponent;
      * Border colors for hex rendering.
      * Same indexes as {@link #hexes}.
      * Used in {@link #rescaleBoard(int, int)}.
+     *<P>
+     * Water hex border color varies by hex Graphics Set;
+     * use {@link #HEX_GRAPHICS_SET_BORDER_WATER_COLORS}
+     * instead of index 0 here.
+     *
      * @see #ROTAT_HEX_BORDER_COLORS
      * @since 1.1.20
      */
     private static final Color[] HEX_BORDER_COLORS =
     {
-        new Color(38,60,113),  // water
+        null,  // water
         new Color(78,16,0), new Color(58,59,57), new Color(20,113,0),  // clay, ore, sheep
         new Color(142,109,0), new Color(9,54,13), new Color(203,180,73),  // wheat, wood, desert
         null, new Color(188,188,188)  // gold (no border), fog
@@ -512,14 +520,33 @@ import javax.swing.JComponent;
      * Border colors for hex rendering when {@link #isRotated}.
      * Same indexes as {@link #rotatHexes}.
      * Used in {@link #rescaleBoard(int, int)}.
+     *<P>
+     * Water hex border color varies by hex Graphics Set;
+     * use {@link #HEX_GRAPHICS_SET_BORDER_WATER_COLORS}
+     * instead of index 0 here.
+     *
      * @see #HEX_BORDER_COLORS
      * @since 1.1.20
      */
     private static final Color[] ROTAT_HEX_BORDER_COLORS =
     {
-        HEX_BORDER_COLORS[0],  // water
+        null,  // water
         new Color(120,36,0), HEX_BORDER_COLORS[2], HEX_BORDER_COLORS[3],  // clay, ore, sheep
         HEX_BORDER_COLORS[4], new Color(9,54,11), HEX_BORDER_COLORS[6]  // wheat, wood, desert
+    };
+
+    /**
+     * Water hex border color, based on {@code waterHex.gif} average color, which varies by hex Graphics Set.
+     * Currently-used index is {@link #hexesGraphicsSetIndex}.
+     * Same indexes as {@link #HEX_GRAPHICS_SET_SUBDIRS}; see that javadoc for details.
+     *<P>
+     * For non-water borders, instead use {@link #HEX_BORDER_COLORS} or {@link #ROTAT_HEX_BORDER_COLORS}.
+     * @since 2.0.00
+     */
+    private static final Color[] HEX_GRAPHICS_SET_BORDER_WATER_COLORS =
+    {
+        new Color(80, 138, 181),  // pastel.  waterHex.gif HSV 205, 48, 87: Border HSV 205, 56, 71
+        new Color(38,  60, 113),  // classic. waterHex.gif HSV 222, 60, 55: Border HSV 222, 66, 44
     };
 
     /**
@@ -2658,9 +2685,11 @@ import javax.swing.JComponent;
 
         /**
          * Scale and render images, or point to static arrays.
+         * For water hex borders, loops assume SOCBoard.WATER_HEX == index 0 in BC.
          */
         final Image[] staticHex;  // hex type images
         final Color[] BC;  // border colors
+        final Color waterBC;  // water border color
         if (isRotated)
         {
             staticHex = rotatHexes;
@@ -2669,12 +2698,13 @@ import javax.swing.JComponent;
             staticHex = hexes;
             BC = HEX_BORDER_COLORS;
         }
+        waterBC = HEX_GRAPHICS_SET_BORDER_WATER_COLORS[hexesGraphicsSetIndex];
 
         if (! (isScaled || isHexesAlwaysScaled))
         {
             for (int i = scaledHexes.length - 1; i >= 0; --i)
                 if (i < BC.length)
-                    scaledHexes[i] = renderBorderedHex(staticHex[i], BC[i]);
+                    scaledHexes[i] = renderBorderedHex(staticHex[i], (i != 0) ? BC[i] : waterBC);
                 else
                     scaledHexes[i] = staticHex[i];
         }
@@ -2689,7 +2719,7 @@ import javax.swing.JComponent;
                 {
                     Image hi = getScaledImageUp(staticHex[i], w, h);
                     if (i < BC.length)
-                        hi = renderBorderedHex(hi, BC[i]);
+                        hi = renderBorderedHex(hi, (i != 0) ? BC[i] : waterBC);
 
                     scaledHexes[i] = hi;
                     scaledHexFail[i] = false;
