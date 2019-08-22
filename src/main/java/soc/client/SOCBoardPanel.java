@@ -849,7 +849,7 @@ import javax.swing.JComponent;
 
     /**
      * The board is visually rotated 90 degrees clockwise (classic 6-player: game opt PL > 4)
-     * compared to its internal pixel coordinates.
+     * compared to its internal pixel coordinates. "Top" in board coords is "at right" in screen coords.
      *<P>
      * Use this for rotation:
      *<UL>
@@ -935,7 +935,7 @@ import javax.swing.JComponent;
     protected int panelShiftBX, panelShiftBY;
 
     /**
-     * Scaled (actual pixels) panel x-margin on left and y-margin on top, for narrow boards
+     * Scaled (actual pixels) panel x-margin on left and y-margin on top, to center board visually
      * if board's unscaled width is less than {@link #panelMinBW}. Includes any Visual Shift
      * (Added Layout Part "VS") from {@link #panelShiftBX}, {@link #panelShiftBY}.
      *<P>
@@ -944,9 +944,8 @@ import javax.swing.JComponent;
      * {@link #drawSettlement(Graphics, int, int, boolean, boolean)}, so those
      * pieces' methods can ignore the {@code panelMarginX} value.
      *<P>
-     * Used only when not {@link #isRotated}, and either {@link #isLargeBoard} or
-     * {@link #scaledBoardW} &lt; {@link #scaledPanelW}; otherwise 0.
      * Updated in {@link #rescaleBoard(int, int)}.
+     * Won't be negative if {@link #isRotated}, which is used only with classic 6-player board.
      * @since 2.0.00
      */
     protected int panelMarginX, panelMarginY;
@@ -2646,19 +2645,37 @@ import javax.swing.JComponent;
         }
         scaledAt = System.currentTimeMillis();
         isScaledOrRotated = (isScaled || isRotated);
+
+        /**
+         * Margins and centering board within wider or taller panel
+         */
         if (isRotated)
         {
-            panelMarginX = 0;
+            // Because rotated, scaled on-screen width checks board height
+
+            final int hexesWidth = halfdeltaY * (board.getBoardHeight() + 2)  + HALF_HEXHEIGHT + HEXY_OFF_SLOPE_HEIGHT;
+                // getBoardHeight needs +2 to cover all of portsRing
+            panelMarginX = scaleToActual(panelMinBH - hexesWidth) / 2;  // take half, to center
+
+            final int hexesHeight = halfdeltaX * (board.getBoardWidth() - 1),  // width - 1 from portsRing's extra margin
+                      scaledBoardH = scaleToActual(hexesHeight);
+            panelMarginY = (scaledPanelH - scaledBoardH) / 2;
         } else {
             final int hexesWidth = halfdeltaX * board.getBoardWidth();
             panelMarginX = scaleToActual(panelMinBW - hexesWidth) / 2;  // take half, to center
-            if (panelMarginX < (halfdeltaX / 4))  // and also if negative (larger than panelMinBW)
-                panelMarginX = 0;
-            if (scaledBoardW < scaledPanelW)
-                panelMarginX += (scaledPanelW - scaledBoardW) / 2;
+            panelMarginY = (scaledPanelH - scaleToActual(panelMinBH)) / 2;
         }
+
+        if (panelMarginX < (halfdeltaX / 4))  // and also if negative (larger than panelMinBW)
+            panelMarginX = 0;
+        if (scaledBoardW < scaledPanelW)
+            panelMarginX += (scaledPanelW - scaledBoardW) / 2;
+
+        if (panelMarginY < (halfdeltaY / 4))  // and also if negative (larger than panelMinBW)
+            panelMarginY = 0;
+
         panelMarginX += scaleToActual(panelShiftBX);
-        panelMarginY = scaleToActual(panelShiftBY);
+        panelMarginY += scaleToActual(panelShiftBY);
 
         /**
          * Off-screen buffer is now the wrong size.
@@ -4701,24 +4718,34 @@ import javax.swing.JComponent;
             boolean isRowOffset;
             if (isRotated)
             {
-                // Swap X, Y because hex-coords are rotated, screen-coords aren't. Can ignore panelMarginX.
-                hxMin = 0;
+                // Swap X, Y because hex-coords are rotated, screen-coords aren't.
+                // Nonzero panelMarginY can cause blank areas visually above board
+                // ("to left of" in board coordinates).
+                // Nonzero panelMarginX can cause blank areas visually to left of board
+                // ("below" in board coordinates).
+                hxMin =
+                    (panelMarginY <= 0) ? 0 : deltaX * (int) Math.floor(-scaleFromActual(panelMarginY) / (float) deltaX);
                 hxMax = scaleFromActual(getHeight());
                 final int nTopRows =  // at top in board coords; at right in screen coords
                     (scaledBoardW == scaledPanelW)
                     ? 1
                     : 1 + (scaleFromActual(scaledPanelW + HEXY_OFF_SLOPE_HEIGHT - scaledBoardW) / deltaY);
                 hyMin = -deltaY * nTopRows;
-                hyMax = panelMinBH;
+                hyMax = panelMinBH +
+                    ((panelMarginX <= 0) ? 0 : scaleFromActual(panelMarginX));
                 isRowOffset = (1 == (nTopRows % 2));
             } else {
                 hxMin =
                     (panelMarginX <= 0) ? 0 : deltaX * (int) Math.floor(-scaleFromActual(panelMarginX) / (float) deltaX);
                 hxMax =
                     (scaledBoardW == scaledPanelW) ? panelMinBW : scaleFromActual(scaledPanelW - panelMarginX);
-                hyMin = -deltaY;
+                final int nTopRows =
+                    (panelMarginY <= 0)
+                    ? 1
+                    : 1 + (int) Math.ceil(panelMarginY / (float) deltaY);
+                hyMin = -deltaY * nTopRows;
                 hyMax = scaleFromActual(scaledPanelH);  // often same as panelMinBH
-                isRowOffset = false;
+                isRowOffset = (0 == (nTopRows % 2));
             }
 
             for (int hy = hyMin; hy < hyMax; hy += deltaY, isRowOffset = ! isRowOffset)
