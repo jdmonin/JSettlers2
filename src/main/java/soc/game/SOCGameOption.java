@@ -1964,6 +1964,7 @@ public class SOCGameOption
                 copyOpt = new SOCGameOption(optkey);  // OTYPE_UNKNOWN
             }
         }
+
         return copyOpt;
     }
 
@@ -2173,9 +2174,11 @@ public class SOCGameOption
      *            (Added in 1.1.13)
      * @return <tt>null</tt> if all are known; or, a human-readable problem description if:
      *            <UL>
-     *            <LI> any of <tt>newOpts</tt> are unknown
+     *            <LI> any of {@code newOpts} are unknown
      *            <LI> or an opt's type differs from that in knownOpts
      *            <LI> or an opt's {@link #lastModVersion} differs from in knownOpts
+     *            <LI> opt {@code "SC"} is in {@code newOpts} but its scenario name isn't known
+     *                 by {@link SOCScenario#getScenario(String)}
      *            </UL>
      * @throws IllegalArgumentException if newOpts contains a non-SOCGameOption
      */
@@ -2255,14 +2258,14 @@ public class SOCGameOption
 
         boolean allKnown;
 
-        if (unknownScenario == null)
+        if (unknownScenario != null)
         {
-            allKnown = true;  // might be set false in loop below
-        } else {
             allKnown = false;
             optProblems.append("SC: unknown scenario ");
             optProblems.append(unknownScenario);
             optProblems.append(". ");
+        } else {
+            allKnown = true;  // might be set false in loop below
         }
 
         // use Iterator in loop, so we can remove from the hash if needed

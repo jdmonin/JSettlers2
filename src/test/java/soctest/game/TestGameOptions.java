@@ -38,6 +38,23 @@ import soc.game.SOCGameOption;
 public class TestGameOptions
 {
     /**
+     * Test that {@link SOCGameOption#setIntValue(int)} works and that, instead of throwing an exception,
+     * values outside of min/max range are clipped to that range; uses intbool option {@code "VP"}.
+     */
+    @Test
+    public void testSetIntValueRange()
+    {
+        final SOCGameOption vp = SOCGameOption.getOption("VP", true);
+        assertNotNull(vp);
+        vp.setIntValue(12);   // is within range
+        assertEquals(12, vp.getIntValue());
+        vp.setIntValue(2);  // too low
+        assertEquals("should clip to min", vp.minIntValue, vp.getIntValue());
+        vp.setIntValue(vp.maxIntValue + 999);  // too high
+        assertEquals("should clip to max", vp.maxIntValue, vp.getIntValue());
+    }
+
+    /**
      * Test that keys of {@link SOCGameOption#initAllOptions()} and {@link SOCGameOption#getAllKnownOptions()}
      * are consistent internally and with each other. Each option's map key must be its option key.
      */

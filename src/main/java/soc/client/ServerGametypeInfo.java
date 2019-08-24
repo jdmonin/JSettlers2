@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2015,2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2018-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>:
  *     - parameterize types
  * This file's contents were formerly part of SOCPlayerClient.java:
@@ -187,17 +187,17 @@ import soc.message.SOCNewGameWithOptions;
     /**
      * Set of default options has been received from the server, examine them.
      * Sets allOptionsReceived, defaultsReceived, optionSet.  If we already have non-null optionSet,
-     * merge (update the values) instead of replacing the entire set with servOpts.
+     * use servOpts to replace its {@link SOCGameOption} references instead of creating a new Map.
      *
-     * @param servOpts The allowable {@link SOCGameOption} received from the server.
+     * @param servOpts The allowable {@link SOCGameOption}s received from the server.
      *                 Assumes has been parsed already against the locally known opts,
-     *                 so ones that we don't know are {@link SOCGameOption#OTYPE_UNKNOWN}.
+     *                 so any opts that we don't know are {@link SOCGameOption#OTYPE_UNKNOWN}.
      * @return null if all are known, or a list of key names for unknown options.
      */
-    public List<String> receiveDefaults(final Map<String,SOCGameOption> servOpts)
+    public List<String> receiveDefaults(final Map<String, SOCGameOption> servOpts)
     {
-        // Although javadoc says "update the values", replacing the option objects does the
-        // same thing; we already have parsed servOpts for all obj fields, including current value.
+        // Replacing the changed option objects is effectively the same as updating their default values;
+        // we already parsed these servOpts for all SGO fields, including current value.
         // Option objects are always accessed by key name, so replacement is OK.
 
         if ((optionSet == null) || optionSet.isEmpty())
@@ -217,6 +217,7 @@ import soc.message.SOCNewGameWithOptions;
         List<String> unknowns = SOCVersionedItem.findUnknowns(servOpts);
         allOptionsReceived = (unknowns == null);
         defaultsReceived = true;
+
         return unknowns;
     }
 
