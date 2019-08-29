@@ -180,7 +180,7 @@ import javax.swing.UIManager;
     /**
      * Show that a non-client player is picking resources for the gold hex.
      * Uses same variables and methods as {@link #TRADEMSG_DISCARD}:
-     * {@link #offerIsDiscardOrPickMessage}, {@link #setDiscardOrPickMsg(boolean)}, etc.
+     * {@link #messageIsDiscardOrPick}, {@link #setDiscardOrPickMsg(boolean)}, etc.
      * @since 2.0.00
      */
     private static final String TRADEMSG_PICKING = strings.get("hpan.picking.rsrcs");  // "Picking\nResources..."
@@ -546,8 +546,8 @@ import javax.swing.UIManager;
      *<P>
      * Before v2.0.00 this was part of {@code TradeOfferPanel}.
      *
-     * @see #offerIsResetMessage
-     * @see #offerIsDiscardOrPickMessage
+     * @see #messageIsReset
+     * @see #messageIsDiscardOrPick
      * @since 2.0.00
      */
     private final MessagePanel messagePanel;
@@ -575,9 +575,13 @@ import javax.swing.UIManager;
 
     /**
      * Board-reset voting: If true, {@link #messagePanel} is holding a message related to a board-reset vote.
-     * @see #offerIsDiscardOrPickMessage
+     *<P>
+     * Before v2.0.00 this field was {@code offerIsResetMessage}.
+     *
+     * @see #messageIsDiscardOrPick
+     * @see #offerIsHiddenByMessage
      */
-    protected boolean offerIsResetMessage;
+    protected boolean messageIsReset;
 
     /**
      * Board-reset voting: If true, {@link #messagePanel} is holding a discard message
@@ -585,15 +589,22 @@ import javax.swing.UIManager;
      * ({@link #TRADEMSG_PICKING}).
      * Set by {@link #setDiscardOrPickMsg(boolean)},
      * cleared by {@link #clearDiscardOrPickMsg()}.
-     * @see #offerIsResetMessage
+     *<P>
+     * Before v2.0.00 this field was {@code offerIsDiscardOrPickMessage}.
+     *
+     * @see #messageIsReset
+     * @see #offerIsHiddenByMessage
      */
-    private boolean offerIsDiscardOrPickMessage;
+    private boolean messageIsDiscardOrPick;
 
     /**
      * Board-reset voting: If true, {@link #offerPanel} was holding an active trade offer
-     * before {@link #offerIsResetMessage} or {@link #offerIsDiscardOrPickMessage} was set.
+     * before {@link #messageIsReset} or {@link #messageIsDiscardOrPick} was set
+     * and the message was temporarily hidden.
+     *<P>
+     * Before v2.0.00 this field was {@code offerIsMessageWasTrade}.
      */
-    protected boolean offerIsMessageWasTrade;
+    protected boolean offerIsHiddenByMessage;
 
     // End of Trading interface/message balloon fields.
 
@@ -1032,7 +1043,7 @@ import javax.swing.UIManager;
             counterOfferPanel.setOfferCounterPartner(true, offerPanel);
         }
 
-        offerIsResetMessage = false;
+        messageIsReset = false;
 
         // Set tooltip appearance to look like rest of SOCHandPanel; currently only this panel uses Swing tooltips
         if (! didSwingTooltipDefaults)
@@ -2822,7 +2833,7 @@ import javax.swing.UIManager;
 
             if (currentOffer != null)
             {
-                if (! (offerIsResetMessage || offerIsDiscardOrPickMessage))
+                if (! (messageIsReset || messageIsDiscardOrPick))
                 {
                     if (! playerIsClient)
                     {
@@ -2839,7 +2850,7 @@ import javax.swing.UIManager;
                     }
                 }
                 else
-                    offerIsMessageWasTrade = true;  // Will show after voting
+                    offerIsHiddenByMessage = true;  // Will show after voting
             }
             else
             {
@@ -2902,7 +2913,7 @@ import javax.swing.UIManager;
     public void hideMessage()
     {
         if (messagePanel.isVisible()
-            && ! (offerIsResetMessage || offerIsDiscardOrPickMessage))
+            && ! (messageIsReset || messageIsDiscardOrPick))
         {
             messagePanel.setText(null);
             messagePanel.setVisible(false);
@@ -3033,7 +3044,7 @@ import javax.swing.UIManager;
         messagePanel.setText(null);
         messagePanel.setVisible(false);
 
-        if (! offerIsResetMessage)
+        if (! messageIsReset)
         {
             offerPanel.setVisible(false);
             offerPanel.setTradeOffer(null);
@@ -3088,7 +3099,8 @@ import javax.swing.UIManager;
     /**
      * Show or hide a message in our {@link MessagePanel}.
      * Not for use with client player's hand, only other players.
-     * Sets offerIsMessageWasTrade, but does not set boolean modes (offerIsResetMessage, offerIsDiscardMessage, etc.)
+     * Sets {@link #offerIsHiddenByMessage}, but does not set boolean modes
+     * ({@link #messageIsReset}, {@link #messageIsDiscardOrPick}, etc.)
      * Will clear the boolean modes if message is {@code null}.
      *<P>
      * Before v2.0.00 this method was {@code tradeSetMessage}.
@@ -3105,7 +3117,7 @@ import javax.swing.UIManager;
 
         if (message != null)
         {
-            offerIsMessageWasTrade = offerPanel.isVisible();
+            offerIsHiddenByMessage = offerPanel.isVisible();
             messagePanel.setText(message);
 
             if (offerHidesControls)
@@ -3117,9 +3129,9 @@ import javax.swing.UIManager;
         } else {
             // restore previous state of offer panel
             messagePanel.setVisible(false);
-            offerIsDiscardOrPickMessage = false;
-            offerIsResetMessage = false;
-            if ((! offerIsMessageWasTrade) || (! inPlay))
+            messageIsDiscardOrPick = false;
+            messageIsReset = false;
+            if ((! offerIsHiddenByMessage) || (! inPlay))
                 hideMessage();
             else
                 updateCurrentOffer(false, false);
@@ -3137,11 +3149,11 @@ import javax.swing.UIManager;
     {
         if (! inPlay)
             return;
-        if (offerIsDiscardOrPickMessage)
+        if (messageIsDiscardOrPick)
             throw new IllegalStateException("Cannot call resetmessage when discard msg");
 
         showMessage(message);
-        offerIsResetMessage = (message != null);
+        messageIsReset = (message != null);
     }
 
     /**
@@ -3162,11 +3174,11 @@ import javax.swing.UIManager;
     {
         if (! inPlay)
             return false;
-        if (offerIsResetMessage)
+        if (messageIsReset)
             return false;
 
         showMessage(isDiscard ? TRADEMSG_DISCARD : TRADEMSG_PICKING);
-        offerIsDiscardOrPickMessage = true;
+        messageIsDiscardOrPick = true;
         return true;
     }
 
@@ -3178,11 +3190,11 @@ import javax.swing.UIManager;
      */
     public void clearDiscardOrPickMsg()
     {
-        if (! offerIsDiscardOrPickMessage)
+        if (! messageIsDiscardOrPick)
             return;
 
         showMessage(null);
-        offerIsDiscardOrPickMessage = false;
+        messageIsDiscardOrPick = false;
     }
 
     /**
@@ -3557,7 +3569,7 @@ import javax.swing.UIManager;
         {
             resourceSq.setIntValue(player.getResources().getTotal());
 
-            if (offerIsDiscardOrPickMessage)
+            if (messageIsDiscardOrPick)
             {
                 final int gs = game.getGameState();
                 if (gs != SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
@@ -3583,7 +3595,7 @@ import javax.swing.UIManager;
      */
     public void updatePickGoldHexResources()
     {
-        if (offerIsDiscardOrPickMessage && (0 == player.getNeedToPickGoldHexResources()))
+        if (messageIsDiscardOrPick && (0 == player.getNeedToPickGoldHexResources()))
         {
             clearDiscardOrPickMsg();
             // Clear is handled here.
