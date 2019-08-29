@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -329,26 +329,26 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
             // won't find any EMPTYSTR unless data was malformed when passed to toCmd() at server
 
         final int L = pa.size();
-	final String s = pa.get(0);  // may throw IndexOutOfBoundsException if empty
-	final boolean startswithCliListMarker = s.equals(MARKER_SCEN_NAME_LIST);
+        final String s = pa.get(0);  // may throw IndexOutOfBoundsException if empty
+        final boolean startswithCliListMarker = s.equals(MARKER_SCEN_NAME_LIST);
 
-	isFromServer = ! (startswithCliListMarker || s.equals(MARKER_ANY_CHANGED));
+        isFromServer = ! (startswithCliListMarker || s.equals(MARKER_ANY_CHANGED));
 
-	if (! isFromServer)
-	{
-	    // remove MARKER_SCEN_NAME_LIST marker from param list
-	    if (startswithCliListMarker)
-	    {
-	        pa.remove(0);
+        if (! isFromServer)
+        {
+            // remove MARKER_SCEN_NAME_LIST marker from param list
+            if (startswithCliListMarker)
+            {
+                pa.remove(0);
                 if (pa.isEmpty())
                     throw new IndexOutOfBoundsException();
-	    }
+            }
 
-	    scKey = null;
-	    isKeyUnknown = false;
-	    noMoreScens = false;
-	} else {
-	    scKey = s;
+            scKey = null;
+            isKeyUnknown = false;
+            noMoreScens = false;
+        } else {
+            scKey = s;
             noMoreScens = (scKey.equals(MARKER_NO_MORE_SCENS));
             if (! noMoreScens)
             {
@@ -363,7 +363,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
             } else {
                 isKeyUnknown = false;
             }
-	}
+        }
     }
 
     /**

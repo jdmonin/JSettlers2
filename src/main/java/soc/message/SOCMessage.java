@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -872,23 +872,23 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case VERSION:            // cli-serv versioning, 20080807, v1.1.00
                 return SOCVersion.parseDataStr(data);
 
-	    case NEWGAMEWITHOPTIONS:     // per-game options, 20090601, v1.1.07
-		return SOCNewGameWithOptions.parseDataStr(data);
+            case NEWGAMEWITHOPTIONS:     // per-game options, 20090601, v1.1.07
+                return SOCNewGameWithOptions.parseDataStr(data);
 
             case NEWGAMEWITHOPTIONSREQUEST:  // per-game options, 20090601, v1.1.07
                 return SOCNewGameWithOptionsRequest.parseDataStr(data);
 
-	    case GAMEOPTIONGETDEFAULTS:  // per-game options, 20090601, v1.1.07
-		return SOCGameOptionGetDefaults.parseDataStr(data);
+            case GAMEOPTIONGETDEFAULTS:  // per-game options, 20090601, v1.1.07
+                return SOCGameOptionGetDefaults.parseDataStr(data);
 
-	    case GAMEOPTIONGETINFOS:     // per-game options, 20090601, v1.1.07
-		return SOCGameOptionGetInfos.parseDataStr(data);
+            case GAMEOPTIONGETINFOS:     // per-game options, 20090601, v1.1.07
+                return SOCGameOptionGetInfos.parseDataStr(data);
 
-	    case GAMEOPTIONINFO:         // per-game options, 20090601, v1.1.07
-	        return SOCGameOptionInfo.parseDataStr(multiData);
+            case GAMEOPTIONINFO:         // per-game options, 20090601, v1.1.07
+                return SOCGameOptionInfo.parseDataStr(multiData);
 
-	    case GAMESWITHOPTIONS:       // per-game options, 20090601, v1.1.07
-	        return SOCGamesWithOptions.parseDataStr(multiData);
+            case GAMESWITHOPTIONS:       // per-game options, 20090601, v1.1.07
+                return SOCGamesWithOptions.parseDataStr(multiData);
 
             case BOARDLAYOUT2:      // 6-player board, 20091104, v1.1.08
                 return SOCBoardLayout2.parseDataStr(data);
