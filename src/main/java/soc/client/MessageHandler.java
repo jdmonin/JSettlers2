@@ -1088,7 +1088,6 @@ import soc.util.Version;
     protected void handleJOINGAMEAUTH(SOCJoinGameAuth mes, final boolean isPractice)
         throws IllegalStateException
     {
-        System.err.println("L2299 joingameauth at " + System.currentTimeMillis());
         client.gotPassword = true;
 
         final String gaName = mes.getGame();
@@ -1104,7 +1103,6 @@ import soc.util.Version;
             else
                 gameOpts = null;
         }
-        System.err.println("L2318 past opts at " + System.currentTimeMillis());
 
         final int bh = mes.getBoardHeight(), bw = mes.getBoardWidth();
         if ((bh != 0) || (bw != 0))
@@ -1127,7 +1125,6 @@ import soc.util.Version;
             client.getClientListeners().put(gaName, clientListener);
             client.games.put(gaName, ga);
         }
-        System.err.println("L2332 handlejoin done at " + System.currentTimeMillis());
     }
 
     /**
@@ -1308,7 +1305,6 @@ import soc.util.Version;
      */
     protected void handleBOARDLAYOUT(SOCBoardLayout mes)
     {
-        System.err.println("L2561 boardlayout at " + System.currentTimeMillis());
         SOCGame ga = client.games.get(mes.getGame());
         if (ga == null)
             return;
@@ -2174,7 +2170,6 @@ import soc.util.Version;
     protected void handlePOTENTIALSETTLEMENTS(SOCPotentialSettlements mes)
             throws IllegalStateException
     {
-        System.err.println("L3292 potentialsettles at " + System.currentTimeMillis());
         SOCDisplaylessPlayerClient.handlePOTENTIALSETTLEMENTS(mes, client.games);
 
         PlayerClientListener pcl = client.getClientListener(mes.getGame());
@@ -2407,7 +2402,6 @@ import soc.util.Version;
      */
     private void handleNEWGAMEWITHOPTIONS(SOCNewGameWithOptions mes, final boolean isPractice)
     {
-        System.err.println("L3609 newgamewithopts at " + System.currentTimeMillis());
         String gname = mes.getGame();
         String opts = mes.getOptionsString();
         boolean canJoin = (mes.getMinVersion() <= Version.versionNumber());

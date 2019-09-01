@@ -2239,9 +2239,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
         final SOCPlayerInterface pi = new SOCPlayerInterface
             (game.getName(), SwingMainDisplay.this, game, layoutVS, localPrefs);
-        System.err.println("L2325 new pi at " + System.currentTimeMillis());
         pi.setVisible(true);
-        System.err.println("L2328 visible at " + System.currentTimeMillis());
         playerInterfaces.put(game.getName(), pi);
 
         return pi.getClientListener();
