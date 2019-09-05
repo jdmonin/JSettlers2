@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012,2014-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012,2014-2017,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -43,11 +43,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -226,19 +228,22 @@ public class SOCDBHelper
 
     /**
      * Original JSettlers schema version (1.0.00), before any new extra tables/fields.
-     * @see #SCHEMA_VERSION_1200
+     * Next version (but not latest) is {@link #SCHEMA_VERSION_1200}.
+     *
      * @see #SCHEMA_VERSION_LATEST
      * @since 1.2.00
      */
     public static final int SCHEMA_VERSION_ORIGINAL = 1000;
 
     /**
-     * First new JSettlers schema version (1.2.00) which adds any new extra tables/fields.
+     * First updated JSettlers schema version (1.2.00) which adds any new extra tables/fields.
      *<UL>
      * <LI> {@code db_version} table with upgrade history
      * <LI> {@code settings} table
-     * <LI> Added fields to {@code games} and {@code users}; see {@code VERSIONS.TXT} for details
-     *</LI>
+     * <LI> Added fields to {@code games} and {@code users}; see {@code Versions.md} for details
+     *</UL>
+     * Next version is {@link #SCHEMA_VERSION_2000}.
+     *
      * @see #SCHEMA_VERSION_ORIGINAL
      * @see #SCHEMA_VERSION_LATEST
      * @since 1.2.00
@@ -246,11 +251,28 @@ public class SOCDBHelper
     public static final int SCHEMA_VERSION_1200 = 1200;
 
     /**
-     * Latest version of the JSettlers schema, currently 1.2.00.
+     * JSettlers schema version 2.0.00, with extra tables/fields added since {@link #SCHEMA_VERSION_1200}.
+     *<UL>
+     * <LI> {@code users}: Added games_won, games_lost fields
+     * <LI> {@code games}: Obsoleted by {@code games2}. Upgrade won't delete it, but new games won't be added to it
+     * <LI> {@code games2}: Normalized {@code games} table with per-player sub-table, also added scenario field
+     * <LI> {@code games2_players}: Sub-table: Score for 1 player in a game
+     *</UL>
+     *
+     * @see #SCHEMA_VERSION_ORIGINAL
+     * @see #SCHEMA_VERSION_LATEST
+     * @since 2.0.00
+     */
+    public static final int SCHEMA_VERSION_2000 = 2000;
+
+    /**
+     * Latest version of the JSettlers schema, currently 2.0.00 ({@link #SCHEMA_VERSION_2000}).
      * @see #isSchemaLatestVersion()
      * @since 1.2.00
      */
-    public static final int SCHEMA_VERSION_LATEST = 1200;
+    public static final int SCHEMA_VERSION_LATEST = SCHEMA_VERSION_2000;
+        // Value should match the version hardcoded into
+        // jsettlers-tables-tmpl.sql "INSERT INTO db_version" command
 
     // Password encoding schemes, as seen in schema v1200's users.pw_scheme field
     // If a scheme is added, do where-used on these constants to find places that might need an update
@@ -505,11 +527,18 @@ public class SOCDBHelper
         "INSERT INTO users(nickname,host,password,email,lastlogin) VALUES (?,?,?,?,?);";
 
     /**
-     * {@link #createAccountCommand} for schema &gt;= {@link #SCHEMA_VERSION_1200}.
+     * {@link #createAccountCommand} for schema {@link #SCHEMA_VERSION_1200}.
      * @since 1.2.00
      */
     private static final String CREATE_ACCOUNT_COMMAND_1200 =
         "INSERT INTO users(nickname,host,password,email,lastlogin,nickname_lc,pw_scheme,pw_store) VALUES (?,?,'!',?,?,?,?,?);";
+
+    /**
+     * {@link #createAccountCommand} for schema &gt;= {@link #SCHEMA_VERSION_2000}.
+     * @since 2.0.00
+     */
+    private static final String CREATE_ACCOUNT_COMMAND_2000 =
+        "INSERT INTO users(nickname,host,password,email,lastlogin,nickname_lc,pw_scheme,pw_store,games_won,games_lost) VALUES (?,?,'!',?,?,?,?,?,0,0);";
 
     private static final String RECORD_LOGIN_COMMAND = "INSERT INTO logins VALUES (?,?,?);";
 
@@ -554,12 +583,35 @@ public class SOCDBHelper
         + " VALUES (?,?,?,?,?,?,?,?,?,?);";
 
     /**
-     * {@link #saveGameCommand} for schema &gt;= {@link #SCHEMA_VERSION_1200}.
+     * {@link #saveGameCommand} for schema {@link #SCHEMA_VERSION_1200}.
      * @since 1.2.00
      */
     private static final String SAVE_GAME_COMMAND_1200 =
         "INSERT INTO games(gamename,player1,player2,player3,player4,player5,player6,score1,score2,score3,score4,score5,score6,"
         + "starttime,duration_sec,winner,gameopts) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+
+    /**
+     * {@link #saveGameCommand} for schema &gt;= {@link #SCHEMA_VERSION_2000}.
+     * Primary key is in {@link #SAVE_GAME_COMMAND_2000_GEN_KEY}.
+     * @see #SAVE_GAME_PLAYER_COMMAND
+     * @since 2.0.00
+     */
+    private static final String SAVE_GAME_COMMAND_2000 =
+        "INSERT INTO games2(gamename,starttime,duration_sec,winner,gameopts,scenario) VALUES (?,?,?,?,?,?);";
+
+    /**
+     * Primary-key name array ({@code ["gameid"]}) for {@link #saveGameCommand}'s
+     * {@link Connection#prepareStatement(String, String[])} call.
+     * @since 2.0.00
+     */
+    private static final String[] SAVE_GAME_COMMAND_2000_GEN_KEY = {"gameid"};
+
+    /**
+     * Per-player {@link #saveGamePlayerCommand}, for use with {@link #SAVE_GAME_COMMAND_2000}.
+     * @since 2.0.00
+     */
+    private static final String SAVE_GAME_PLAYER_COMMAND =
+        "INSERT INTO games2_players(gameid,player,score) VALUES (?,?,?);";
 
     private static final String ROBOT_PARAMS_QUERY = "SELECT * FROM robotparams WHERE robotname = ?;";
     private static final String USER_COUNT_QUERY = "SELECT count(*) FROM users;";
@@ -577,13 +629,43 @@ public class SOCDBHelper
      */
     private static final String USER_EXISTS_QUERY_1200 = "SELECT nickname FROM users WHERE nickname_lc = ?;";
 
-    /** Create a new account in {@code users}: {@link #CREATE_ACCOUNT_COMMAND_1200} */
+    /**
+     * {@link #userIncrWonCommand} for schema &gt;= {@link #SCHEMA_VERSION_2000}.
+     * @see #USER_INCREMENT_LOST_COMMAND
+     * @since 2.0.00
+     */
+    private static final String USER_INCREMENT_WON_COMMAND =
+        "UPDATE users SET games_won = 1 + coalesce(games_won, 0) WHERE nickname = ?;";
+
+    /**
+     * {@link #userIncrLostCommand} for schema &gt;= {@link #SCHEMA_VERSION_2000}.
+     * @see #USER_INCREMENT_WON_COMMAND
+     * @since 2.0.00
+     */
+    private static final String USER_INCREMENT_LOST_COMMAND =
+        "UPDATE users SET games_lost = 1 + coalesce(games_lost, 0) WHERE nickname = ?;";
+
+    /** Create a new account in {@code users}: {@link #CREATE_ACCOUNT_COMMAND_2000} */
     private static PreparedStatement createAccountCommand = null;
 
     private static PreparedStatement recordLoginCommand = null;
 
     /** Query whether a user nickname exists in {@code users}: {@link #USER_EXISTS_QUERY_1200} */
     private static PreparedStatement userExistsQuery = null;
+
+    /**
+     * If statement not {@code null}, add 1 to user's {@code games_won}: {@link #USER_INCREMENT_WON_COMMAND}.
+     * Is {@code null} if schema &lt; {@link #SCHEMA_VERSION_2000}.
+     * @see #userIncrLostCommand
+     */
+    private static PreparedStatement userIncrWonCommand = null;
+
+    /**
+     * If statement not {@code null}, add 1 to user's {@code games_lost}: {@link #USER_INCREMENT_LOST_COMMAND}.
+     * Is {@code null} if schema &lt; {@link #SCHEMA_VERSION_2000}.
+     * @see #userIncrWonCommand
+     */
+    private static PreparedStatement userIncrLostCommand = null;
 
     /** Query for a user's password and original-cased nickname in {@code users}: {@link #USER_PASSWORD_QUERY_1200} */
     private static PreparedStatement userPasswordQuery = null;
@@ -598,8 +680,20 @@ public class SOCDBHelper
      */
     private static PreparedStatement passwordUpdateCommand = null;
 
-    /** Completed-game info insert into {@code games}: {@link #SAVE_GAME_COMMAND_1200} */
+    /**
+     * Completed-game info insert into {@code games2} or old-schema {@code games}: {@link #SAVE_GAME_COMMAND_2000}
+     * or {@link #SAVE_GAME_COMMAND_1200}.
+     * @see #saveGamePlayerCommand
+     */
     private static PreparedStatement saveGameCommand = null;
+
+    /**
+     * Completed-game per-player info insert into {@code games2_players}: {@link #SAVE_GAME_PLAYER_COMMAND}.
+     * {@code null} if schema is older than {@link #SCHEMA_VERSION_2000}.
+     * @see #saveGameCommand
+     * @since 2.0.00
+     */
+    private static PreparedStatement saveGamePlayerCommand = null;
 
     /** Query all robot parameters for a bot name; {@link #ROBOT_PARAMS_QUERY}.
      *  Used in {@link #retrieveRobotParams(String)}.
@@ -1090,25 +1184,44 @@ public class SOCDBHelper
 
     /**
      * Prepare statements like {@link #createAccountCommand} based on {@link #schemaVersion}.
+     * @throws SQLFeatureNotSupportedException  if JDBC driver doesn't support {@link Statement#RETURN_GENERATED_KEYS}
+     *     needed for schema v2.0.00. This is a subclass of {@link SQLException}.
      * @throws SQLException if any unexpected problem occurs during {@link Connection#prepareStatement(String)} calls
      * @since 1.2.00
      */
     private static void prepareStatements()
-        throws SQLException
+        throws SQLFeatureNotSupportedException, SQLException
     {
         createAccountCommand = connection.prepareStatement
-            ((schemaVersion >= SCHEMA_VERSION_1200) ? CREATE_ACCOUNT_COMMAND_1200 : CREATE_ACCOUNT_COMMAND_1000);
+            ((schemaVersion >= SCHEMA_VERSION_2000)
+             ? CREATE_ACCOUNT_COMMAND_2000
+             : ((schemaVersion == SCHEMA_VERSION_1200) ? CREATE_ACCOUNT_COMMAND_1200 : CREATE_ACCOUNT_COMMAND_1000));
         recordLoginCommand = connection.prepareStatement(RECORD_LOGIN_COMMAND);
         userExistsQuery = connection.prepareStatement
             ((schemaVersion >= SCHEMA_VERSION_1200) ? USER_EXISTS_QUERY_1200 : USER_EXISTS_QUERY_1000);
+        if (schemaVersion >= SCHEMA_VERSION_2000)
+        {
+            userIncrWonCommand = connection.prepareStatement(USER_INCREMENT_WON_COMMAND);
+            userIncrLostCommand = connection.prepareStatement(USER_INCREMENT_LOST_COMMAND);
+        }
         userPasswordQuery = connection.prepareStatement
             ((schemaVersion >= SCHEMA_VERSION_1200) ? USER_PASSWORD_QUERY_1200 : USER_PASSWORD_QUERY_1000);
         hostQuery = connection.prepareStatement(HOST_QUERY);
         lastloginUpdate = connection.prepareStatement(LASTLOGIN_UPDATE);
         passwordUpdateCommand = connection.prepareStatement
             ((schemaVersion >= SCHEMA_VERSION_1200) ? PASSWORD_UPDATE_COMMAND_1200 : PASSWORD_UPDATE_COMMAND_1000);
-        saveGameCommand = connection.prepareStatement
-            ((schemaVersion >= SCHEMA_VERSION_1200) ? SAVE_GAME_COMMAND_1200 : SAVE_GAME_COMMAND_1000);
+        if (schemaVersion < SCHEMA_VERSION_2000)
+        {
+            saveGameCommand = connection.prepareStatement
+                ((schemaVersion == SCHEMA_VERSION_1200) ? SAVE_GAME_COMMAND_1200 : SAVE_GAME_COMMAND_1000);
+        } else {
+            // use prepareStatement variant with primary-key field name array,
+            // not Statement.RETURN_GENERATED_KEYS, because postgres prefers it
+            // (per their developer comments) and other DBs are OK with it.
+            saveGameCommand = connection.prepareStatement
+                (SAVE_GAME_COMMAND_2000, SAVE_GAME_COMMAND_2000_GEN_KEY);
+            saveGamePlayerCommand = connection.prepareStatement(SAVE_GAME_PLAYER_COMMAND);
+        }
         robotParamsQuery = connection.prepareStatement(ROBOT_PARAMS_QUERY);
         userCountQuery = connection.prepareStatement(USER_COUNT_QUERY);
     }
@@ -1525,6 +1638,7 @@ public class SOCDBHelper
                         sqlE.initCause(e);
                         throw sqlE;  // caught, printed, re-thrown below
                     }
+                    // SCHEMA_VERSION_2000 adds fields, but its sql has same number of params (the new fields get 0)
                 }
 
                 createAccountCommand.executeUpdate();
@@ -1771,29 +1885,130 @@ public class SOCDBHelper
 
             try
             {
-                saveGameCommand.setString(1, ga.getName());
-                int i = 2;
-                for (int pn = 0; pn < db_max_players; ++i, ++pn)
-                    saveGameCommand.setString(i, names[pn]);
-                for (int pn = 0; pn < db_max_players; ++i, ++pn)
-                    if ((scores[pn] != 0) || (names[pn] != null))
-                        saveGameCommand.setShort(i, scores[pn]);
-                    else
-                        saveGameCommand.setNull(i, Types.SMALLINT);
-                saveGameCommand.setTimestamp(i, new Timestamp(ga.getStartTime().getTime()));  ++i;
+                final String gaName = ga.getName();
+                final long startTimeMillis = ga.getStartTime().getTime();
+                final Map<String, SOCGameOption> opts = ga.getGameOptions();
+                final String optsStr = (opts == null) ? null : SOCGameOption.packOptionsToString(opts, false);
+                final int newGameID;  // PK from insertGames2Row
 
-                if (schemaVersion >= SCHEMA_VERSION_1200)
+                if (schemaVersion >= SCHEMA_VERSION_2000)
                 {
-                    saveGameCommand.setInt(i, gameLengthSeconds);  ++i;
+                    SOCGameOption scOpt = opts.get("SC");
+                    final String scen = (scOpt != null) ? scOpt.getStringValue() : null;
 
-                    saveGameCommand.setString(i, winner.getName());  ++i;
+                    newGameID = insertGames2Row
+                        (gaName, winner.getName(), startTimeMillis, gameLengthSeconds, optsStr, scen);
 
-                    final Map<String, SOCGameOption> opts = ga.getGameOptions();
-                    final String optsStr = (opts == null) ? null : SOCGameOption.packOptionsToString(opts, false);
-                    saveGameCommand.setString(i, optsStr);
+                    // Per-player scores will be stored below, in a transaction
+
+                } else {
+                    // schemaVersion < SCHEMA_VERSION_2000: no games2 table
+                    saveGameCommand.setString(1, gaName);
+                    int i = 2;
+
+                    for (int pn = 0; pn < db_max_players; ++i, ++pn)
+                        saveGameCommand.setString(i, names[pn]);
+                    for (int pn = 0; pn < db_max_players; ++i, ++pn)
+                        if ((scores[pn] != 0) || (names[pn] != null))
+                            saveGameCommand.setShort(i, scores[pn]);
+                        else
+                            saveGameCommand.setNull(i, Types.SMALLINT);
+
+                    saveGameCommand.setTimestamp(i, new Timestamp(startTimeMillis));  ++i;
+
+                    if (schemaVersion >= SCHEMA_VERSION_1200)
+                    {
+                        saveGameCommand.setInt(i, gameLengthSeconds);  ++i;
+                        saveGameCommand.setString(i, winner.getName());  ++i;
+                        saveGameCommand.setString(i, optsStr);  ++i;
+                    }
+
+                    newGameID = 0;
+
+                    saveGameCommand.executeUpdate();
                 }
 
-                saveGameCommand.executeUpdate();
+                if (userIncrWonCommand != null)
+                {
+                    // In a transaction:
+                    // - Save per-player scores.
+                    // - Update per-user win/loss records for any players who exist in DB
+                    // Applies to schemaVersion >= SCHEMA_VERSION_2000
+
+                    String winnerName = winner.getName();
+                    if ((winnerName == null) || winnerName.isEmpty())
+                        winnerName = "?";  // could happen if disconnected before save
+
+                    final boolean was_conn_autocommit = connection.getAutoCommit();
+
+                    // begin transaction
+                    if (was_conn_autocommit)
+                        connection.setAutoCommit(false);
+                    else
+                        try {
+                            connection.commit();  // end previous transaction, if any
+                        } catch (SQLException e) {}
+
+                    try
+                    {
+                        // Per-player scores:
+
+                        boolean hadAnyPlayers = false;
+                        saveGamePlayerCommand.clearBatch();
+                        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                        {
+                            if (ga.isSeatVacant(pn))
+                                continue;
+                            final String plName = names[pn];
+                            final int plScore = scores[pn];
+                            if ((plScore == 0) || (plName == null) || plName.isEmpty())
+                                continue;  // initial settlements give starting score of 2: no one would have 0 at game end
+
+                            hadAnyPlayers = true;
+                            saveGamePlayerCommand.setInt(1, newGameID);
+                            saveGamePlayerCommand.setString(2, plName);
+                            saveGamePlayerCommand.setInt(3, plScore);
+                            saveGamePlayerCommand.addBatch();
+                        }
+                        if (hadAnyPlayers)
+                            saveGamePlayerCommand.executeBatch();
+
+                        // Per-user win/loss records:
+
+                        if ((winnerName != null) && (winnerName.length() > 0))
+                        {
+                            userIncrWonCommand.setString(1, winnerName);
+                            userIncrWonCommand.executeUpdate();
+                        }
+
+                        int nLost = 0;
+                        final int winnerPN = winner.getPlayerNumber();
+                        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                        {
+                            if (pn == winnerPN)
+                                continue;
+                            if (ga.isSeatVacant(pn))
+                                continue;
+                            String pname = names[pn];
+                            if ((pname == null) || pname.isEmpty())
+                                continue;
+
+                            userIncrLostCommand.setString(1, pname);
+                            userIncrLostCommand.addBatch();
+                            ++nLost;
+                        }
+                        if (nLost > 0)
+                            userIncrLostCommand.executeBatch();
+
+                        connection.commit();
+                    } catch (SQLException e) {
+                        connection.rollback();
+                        throw e;
+                    } finally {
+                        if (was_conn_autocommit)
+                            connection.setAutoCommit(true);
+                    }
+                }
 
                 return true;
             }
@@ -2080,6 +2295,7 @@ public class SOCDBHelper
      * Build a list of DB settings and related info like {@link #getSchemaVersion()} and the BCrypt work factor,
      * formatted for printing for an admin user: friendly names and values, not technical name keys.
      * Includes all known settings, such as {@link #SETTING_BCRYPT_WORK__FACTOR}.
+     * Also includes JDBC version, {@link DatabaseMetaData#supportsGetGeneratedKeys()}, etc.
      * @return Formatted list of DB settings. Always an even number of items, a name and then a value
      *     for each setting. Some values might be {@code null}.
      * @throws IllegalStateException  if not connected to DB (! {@link #isInitialized()})
@@ -2129,6 +2345,8 @@ public class SOCDBHelper
                 + " v" + driverinstance.getMajorVersion() + '.' + driverinstance.getMinorVersion()
                 + " (jdbc v" + meta.getJDBCMajorVersion() + '.' + meta.getJDBCMinorVersion()
                 + ")");
+            li.add("Driver supports insert getGeneratedKeys?");
+            li.add(Boolean.toString(meta.supportsGetGeneratedKeys()));
         } catch (SQLException e) {
             li.add("Error retrieving DB version info");
             li.add(e.getMessage());  // might be null
@@ -2408,6 +2626,65 @@ public class SOCDBHelper
         sql.append(';');
 
         return connection.createStatement().executeQuery(sql.toString());
+    }
+
+    /**
+     * Insert a new game-info row into the {@code games2} table and return its generated ID.
+     * Used by {@link #saveGameScores(SOCGame, int)}.
+     *
+     * @param startTimeMillis  Game start time, from {@link SOCGame#getStartTime()}{@link java.util.Date#getTime() .getTime()}
+     * @param optsStr  Null or game options, from {@link SOCGame#getGameOptions()}
+     *     passed to {@link SOCGameOption#packOptionsToString(Map, boolean)}
+     * @param scen  Scenario name key from game option {@code "SC"}, or {@code null} if none
+     * @return  Newly inserted row's primary key ID
+     * @throws IllegalStateException  If not connected and if {@link #checkConnection()} fails
+     * @throws UnsupportedOperationException if schema @lt; {@link #SCHEMA_VERSION_2000}
+     * @throws SQLException if any unexpected database problem
+     * @since 2.0.00
+     */
+    private static int insertGames2Row
+        (final String gaName, final String winnerName, final long startTimeMillis, final int gameLengthSeconds,
+         final String optsStr, final String scen)
+        throws IllegalStateException, UnsupportedOperationException, SQLException
+    {
+        try
+        {
+            if (! checkConnection())
+                throw new IllegalStateException();
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
+
+        if (schemaVersion < SCHEMA_VERSION_2000)
+            throw new UnsupportedOperationException();
+
+        // No try-catch here for SQLException: handled within caller saveGameScores
+
+        int i = 1;
+        saveGameCommand.setString(1, gaName);  ++i;
+        saveGameCommand.setTimestamp(i, new Timestamp(startTimeMillis));  ++i;
+        saveGameCommand.setInt(i, gameLengthSeconds);  ++i;
+        saveGameCommand.setString(i, winnerName);  ++i;
+        saveGameCommand.setString(i, optsStr);  ++i;  // null is OK
+        saveGameCommand.setString(i, scen);  ++i;  // null is OK
+
+        saveGameCommand.executeUpdate();
+
+        int id = 0;
+        ResultSet rs = null;
+        try
+        {
+            rs = saveGameCommand.getGeneratedKeys();
+            if (rs.next()) {
+                id = rs.getInt(1);
+            }
+        } finally {
+            if (rs != null)
+                try { rs.close(); }
+                catch (SQLException ignore) {}
+        }
+
+        return id;
     }
 
     /**
@@ -2904,8 +3181,14 @@ public class SOCDBHelper
             }
         }
 
+        if (schemaVersion < SCHEMA_VERSION_2000)
+        {
+            // TODO put statements here; try-catch like above
+        }
+
         /* mark upgrade as completed in db_version table */
         final boolean has_bg_tasks = (schemaVersion < SCHEMA_VERSION_1200);
+            // TODO does _2000 have new bg tasks?  if so, add to UpgradeBGTasksThread
         {
             PreparedStatement ps = connection.prepareStatement
                 ("UPDATE db_version SET ddl_done=?, bg_tasks_done=? WHERE to_vers=?;");
@@ -2949,8 +3232,15 @@ public class SOCDBHelper
                 hostQuery.close();
                 lastloginUpdate.close();
                 saveGameCommand.close();
+                if (saveGamePlayerCommand != null)
+                    saveGamePlayerCommand.close();
                 robotParamsQuery.close();
                 userCountQuery.close();
+                userExistsQuery.close();
+                if (userIncrWonCommand != null)
+                    userIncrWonCommand.close();
+                if (userIncrLostCommand != null)
+                    userIncrLostCommand.close();
             }
             catch (Throwable thr)
             {
@@ -3385,6 +3675,117 @@ public class SOCDBHelper
     }
 
     /**
+     * For {@link #testDBHelper()}, test ability to insert a few rows into {@code games2}
+     * and return their primary key IDs: {@link #insertGameRow(String, String, long, int, String, String)}.
+     * The new rows are SELECTed and DELETEd as part of the test.
+     *<P>
+     * Assumes connection is already initialized.
+     * If DB schema is older than {@link #SCHEMA_VERSION_2000}, does nothing.
+     *
+     * @param prepareWithArrayParam  If true, call {@link Connection#prepareStatement(String, String[])}
+     *     instead of {@link Connection#prepareStatement(String, int)} before the test-insert calls
+     * @param isRequired  True if test is required, not optional (affects only the output text, not return value)
+     * @return true if succeeded (or if schema < {@link #SCHEMA_VERSION_2000})
+     * @since 2.0.00
+     */
+    private static boolean testOne_insertGameRow(final boolean prepareWithArrayParam, final boolean isRequired)
+    {
+        final String testDesc = "testOne_insertGameRow(" + prepareWithArrayParam + ')',
+                     testFailed = (isRequired) ? "test FAIL" : "test failed but optional: ok";
+
+        if (schemaVersion < SCHEMA_VERSION_2000)
+        {
+            System.err.println("test skipped (db has old schema): " + testDesc);
+            return true;
+        }
+
+        final PreparedStatement prevPS = saveGameCommand;
+
+        try
+        {
+            final PreparedStatement ps = (prepareWithArrayParam)
+                ? connection.prepareStatement
+                    (SAVE_GAME_COMMAND_2000, new String[]{ "gameid" })
+                : connection.prepareStatement
+                    (SAVE_GAME_COMMAND_2000, Statement.RETURN_GENERATED_KEYS);
+            saveGameCommand = ps;
+        } catch(SQLFeatureNotSupportedException sfe) {
+            System.err.println(testFailed + " (SQLFeatureNotSupportedException): " + testDesc + ": " + sfe);
+            return false;
+        } catch(SQLException e) {
+            System.err.println(testFailed + " (SQLException): " + testDesc + ": " + e);
+            return false;
+        }
+
+        final long startTimeMillis = System.currentTimeMillis();
+        boolean allOK = true;
+        int[] newIDs = new int[5];
+        try
+        {
+            final PreparedStatement psSel = connection.prepareStatement
+                ("SELECT gamename,duration_sec FROM games2 WHERE gameid=?");
+
+            // test insertGameRow a few times
+            for (int i = 0; i < newIDs.length; ++i)
+                newIDs[i] = insertGames2Row
+                    ("db_testOne_ins" + i, "winner", startTimeMillis, i+1, null, null);
+
+            // check their IDs (reasonable gameid, can SELECT expected contents)
+            for (int i = 0; i < newIDs.length; ++i)
+            {
+                final int id = newIDs[i];
+                if ((id <= 0) || (id > 9999999))
+                {
+                    System.err.println("Unreasonable gameid=" + id + " for inserted games2 row");
+                    allOK = false;
+                    continue;
+                }
+
+                psSel.setInt(1, id);
+                ResultSet rs = psSel.executeQuery();
+                if (! rs.next())
+                {
+                    System.err.println("Can't select from games2 where gameid=" + id);
+                    allOK = false;
+                } else {
+                    String gaName = rs.getString(1);
+                    int gaSec = rs.getInt(2);
+                    if ((gaSec != (i+1)) || ! ("db_testOne_ins" + i).equals(gaName))
+                    {
+                        System.err.println("Wrong test data: gameid=" + id);
+                        allOK = false;
+                    }
+                }
+                rs.close();
+            }
+            psSel.close();
+
+            // for cleanup/removal, see "finally" clause below
+        } catch (SQLException e) {
+            System.err.println(testFailed + " (SQLException): " + testDesc + ": " + e);
+            return false;
+        } finally {
+            for (final int id : newIDs)
+                if (id != 0)
+                    try
+                    {
+                        connection.createStatement().executeUpdate
+                            ("DELETE FROM games2 WHERE gameid=" + id);
+                    } catch (SQLException e) {
+                        System.err.println
+                            ("* Cleanup failed: couldn't delete temporary games2 where gameid=" + id + ": " + e);
+                    }
+
+            saveGameCommand = prevPS;
+        }
+
+        System.err.println
+            (((allOK) ? "test ok: " : (testFailed + ": ")) + testDesc + ": gameIDs " + Arrays.toString(newIDs));
+
+        return allOK;
+    }
+
+    /**
      * For {@link #testDBHelper()}, run a DDL command to create or remove a test fixture.
      * See {@link #runDDL(String)} for details and exception descriptions.
      * @param desc Description to print as part of testing log; will be preceded by "For testing: "
@@ -3411,15 +3812,20 @@ public class SOCDBHelper
      * Called from {@link SOCServer#initSocServer(String, String)}
      * if {@link SOCServer#PROP_JSETTLERS_TEST_DB} flag is set.
      *<P>
-     * <B>Security note:</B> To run some tests, the DB connect username must have authorization grants to
+     * <B>Security note:</B> To run some tests, the DB connect username must be granted authorization to
      * run DDL commands, add or alter tables, etc.
      *
+     * @throws IllegalStateException if {@link #initialize(String, String, Properties)} hasn't yet been called,
+     *     or if DB has no tables. To avoid throwing this, don't call this method if ! {@link #isInitialized()}.
      * @throws SQLException  if connection fails or any required tests failed
      * @since 2.0.00
      */
     public static final void testDBHelper()
-        throws SQLException
+        throws IllegalStateException, SQLException
     {
+        if (! initialized)
+            throw new IllegalStateException();
+
         final boolean was_conn_autocommit = connection.getAutoCommit();
         boolean anyFailed = false;
 
@@ -3431,7 +3837,8 @@ public class SOCDBHelper
                  + " v" + driverinstance.getMajorVersion() + '.' + driverinstance.getMinorVersion()
                  + " (jdbc v" + meta.getJDBCMajorVersion() + '.' + meta.getJDBCMinorVersion()
                  + "), db version: " + meta.getDatabaseProductVersion()
-                 + ", autoCommit: " + was_conn_autocommit);
+                 + ", autoCommit: " + was_conn_autocommit
+                 + ", supportsGetGeneratedKeys: " + meta.supportsGetGeneratedKeys());
             // Note that ORA's getJDBCMajorVersion() reports the DB version (10, 11, etc) not JDBC's version
         }
 
@@ -3440,6 +3847,7 @@ public class SOCDBHelper
         try
         {
             System.err.println();
+
             anyFailed |= ! testOne_doesTableExist("games", true, true);
             anyFailed |= ! testOne_doesTableExist("gamesxyz", false, true);
             anyFailed |= ! testOne_doesTableExist("gam_es", false, true);  // wildcard
@@ -3447,8 +3855,8 @@ public class SOCDBHelper
             // Optional tests, OK if these fail: Case-insensitive table name search
             testOne_doesTableExist("GAMES", true, false);
             testOne_doesTableExist("Games", true, false);
-
             System.err.println();
+
             anyFailed |= ! testOne_doesTableColumnExist("games", "gamename", true, true);
             anyFailed |= ! testOne_doesTableColumnExist("games", "gamenamexyz", false, true);
             anyFailed |= ! testOne_doesTableColumnExist("gamesxyz", "xyz", false, true);
@@ -3456,6 +3864,12 @@ public class SOCDBHelper
             // Optional tests, OK if these fail: Case-insensitive column name search
             testOne_doesTableColumnExist("GAMES", "GAMENAME", true, false);
             testOne_doesTableColumnExist("Games", "gameName", true, false);
+            System.err.println();
+
+            // Insert and return rowID during save-game (schema v2000 and newer)
+            testOne_insertGameRow(false, false);  // prepared with Statement.RETURN_GENERATED_KEYS: support is optional
+            anyFailed |= ! testOne_insertGameRow(true, true);   // prepared with {PK_ARRAY}: support is required
+            System.err.println();
 
             // Any dbType-specific tests
             if (dbType == DBTYPE_POSTGRESQL)
@@ -3469,13 +3883,14 @@ public class SOCDBHelper
                     System.err.println("Test failed: upg_postgres_checkIsTableOwner(): " + e);
                     anyFailed = true;
                 }
+
+                System.err.println();
             }
 
             // Temporarily add a table and field, then test existence, then batch-insert rows.
             // Assumes current DB user has been granted ability to create and drop tables.
             if (! anyFailed)
             {
-                System.err.println();
                 boolean hasFixtureTabXYZ = false, hasFixtureFieldXYZW = false,
                     hasFixtureFieldD3 = false, didBulkIns = false;
                 boolean switchedAutoCommitOff = false;

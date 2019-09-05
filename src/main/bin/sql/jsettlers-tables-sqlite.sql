@@ -20,6 +20,11 @@
 --	users + nickname_lc, pw_scheme, pw_store, pw_change;
 --	TIMESTAMP column type now dbtype-specific;
 --	games + player5, player6, score5, score6, duration_sec, winner, gameopts
+--   2019-09-06 v2.0.00:
+--	users + games_won, games_lost
+--	games:  Obsoleted by games2. Upgrade won't delete it, but new games won't be added to it
+--	games2: Normalized "games" table with per-player sub-table; also added scenario field
+--	games2_players: Sub-table: Score for 1 player in a game
 
 -- DB Schema Version / upgrade history: Added in v1.2.00 (schema version 1200).
 -- At startup, SOCDBHelper checks max(to_vers) here for this db's schema version.
@@ -36,6 +41,7 @@ CREATE TABLE db_version (
 	PRIMARY KEY (to_vers)
 	);
 -- At DB creation, a row is added to this table to indicate current version: See bottom of this script.
+-- If this table's schema changes, also update its "CREATE TABLE" string in SOCDBHelper.upgradeSchema.
 
 
 -- General settings, especially about features using the database.
@@ -56,6 +62,7 @@ CREATE TABLE users (
 	nickname VARCHAR(20) not null, host VARCHAR(50) not null, password VARCHAR(20) not null, email VARCHAR(50), lastlogin DATE,
 	nickname_lc VARCHAR(20) not null, pw_scheme INT,  -- use original password field if pw_scheme is NULL, else use pw_store
 	pw_store VARCHAR(255), pw_change TIMESTAMP,
+	games_won INT, games_lost INT,  -- null if upgrade from <2000 in progress
 	PRIMARY KEY (nickname)
 	);
 
@@ -66,7 +73,8 @@ CREATE TABLE logins (
 	PRIMARY KEY (nickname)
 	);
 
--- Players and scores for completed games.
+-- In older schemas (version < 2000): Players and scores for completed games.
+-- Schema 2000 uses games2 instead of this table.
 -- If database schema was upgraded from an earlier version,
 -- duration_sec and winner will be null for old data rows.
 CREATE TABLE games (
@@ -81,6 +89,29 @@ CREATE TABLE games (
 
 CREATE INDEX games__n ON games(gamename);
 
+-- Info for completed games, with sub-table games2_players for normalized player scores.
+-- Replaces non-normalized "games" table in older schemas (version < 2000).
+-- If database schema was upgraded from an earlier version:
+-- duration_sec will be null for old data rows, winner may be null for some.
+CREATE TABLE games2 (
+	gameid INTEGER PRIMARY KEY,
+	gamename VARCHAR(20) not null,
+	starttime TIMESTAMP not null, duration_sec INT not null,
+	winner VARCHAR(20) not null,  -- '?' if user disconnects between win and save-game
+	gameopts VARCHAR(500),
+	scenario VARCHAR(16)  -- current max length is 8; leaving room here for later expansion
+	);
+
+CREATE TABLE games2_players (
+	gameid INT not null,
+	player VARCHAR(20) not null,
+	score SMALLINT not null,
+	PRIMARY KEY(gameid, player)
+	);
+
+CREATE INDEX games2_players__g ON games2_players(gameid);
+
+
 -- tradeFlag is always 1 or 0; using SMALLINT to be db-neutral.
 CREATE TABLE robotparams (
 	robotname VARCHAR(20) not null,
@@ -92,12 +123,12 @@ CREATE TABLE robotparams (
 -- Mark this newly created db's schema version:
 -- reminder: sqlite has no session timezone setting, only the server process's TZ
 INSERT INTO db_version(from_vers, to_vers, ddl_done, bg_tasks_done)
-	VALUES(0, 1200, strftime('%s000', 'now'), strftime('%s000', 'now'));
+	VALUES(0, 2000, strftime('%s000', 'now'), strftime('%s000', 'now'));
 
 
 -- This file is part of the JSettlers project.
 --
---  This file Copyright (C) 2012,2014-2017 Jeremy D Monin (jeremy@nand.net)
+--  This file Copyright (C) 2012,2014-2017,2019 Jeremy D Monin (jeremy@nand.net)
 --  Portions of this file Copyright (C) 2004-2005 Chadwick A McHenry (mchenryc@acm.org)
 --
 --  This program is free software: you can redistribute it and/or modify

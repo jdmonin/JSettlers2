@@ -45,6 +45,7 @@ sys_exit = 0  # for sys.exit's value if any render_one call fails
 # contains all dbtypes in known_dbtypes; each type must have same token keynames
 DB_TOKENS = {
     'mysql': {
+        'INT_AUTO_PK': 'INT NOT NULL AUTO_INCREMENT PRIMARY KEY',
         'now': 'now()',
         'TIMESTAMP': 'TIMESTAMP',  # stored in table data as unix epoch seconds
         'TIMESTAMP_NULL': 'TIMESTAMP NULL DEFAULT null',
@@ -52,12 +53,15 @@ DB_TOKENS = {
         'set_session_tz_utc': "SET TIME_ZONE='+0:00';  -- UTC not always set up in mysql as a TZ name"
         },
     'postgres': {
+        'INT_AUTO_PK': 'SERIAL PRIMARY KEY',  # is integer, not null, auto-creates sequence
         'now': 'now()',
         'TIMESTAMP': 'TIMESTAMP WITHOUT TIME ZONE',  # stored in table data as UTC
         'TIMESTAMP_NULL': 'TIMESTAMP WITHOUT TIME ZONE',
         'set_session_tz_utc': "SET TIME ZONE 'UTC';"
         },
     'sqlite': {
+        'INT_AUTO_PK': 'INTEGER PRIMARY KEY',  # omits slightly-slower AUTOINCREMENT keyword;
+             # that's OK for current jsettlers use, because games2 rows wouldn't typically be deleted
         'now': "strftime('%s000', 'now')",  # +000 for millis, not epoch seconds
         'TIMESTAMP': 'TIMESTAMP',  # zentus-sqlite stores java.sql.Timestamp in table data as epoch milliseconds
         'TIMESTAMP_NULL': 'TIMESTAMP',
@@ -206,6 +210,6 @@ parse_cmdline()  # exits if problems found
 for d in dbtypes:
     render_one(d, infile, outfile, compfile)  # sets sys_exit if problems found
 if sys_exit == 1:
-    sys.stderr.write("Must regenerate SQL script(s) from templates using render.py\n")
+    sys.stderr.write("Must regenerate SQL script(s) from templates using render.py: See doc/Readme.developer.md\n")
 sys.exit(sys_exit)
 

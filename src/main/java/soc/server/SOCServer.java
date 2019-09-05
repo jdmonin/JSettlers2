@@ -1729,7 +1729,7 @@ public class SOCServer extends Server
             System.err.println("* Config Validation Mode: No problems found.");
         }
 
-        if (test_mode_with_db)
+        if (test_mode_with_db && SOCDBHelper.isInitialized())
         {
             SOCDBHelper.testDBHelper();  // failures/errors throw SQLException for our caller to catch
         }

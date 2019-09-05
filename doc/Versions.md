@@ -85,6 +85,12 @@ and backport minor new features until `2.0.00` is ready.
 	- Some private SOCRobotClient fields made protected for use by bot developer 3rd-party subclasses
 	- If bot disconnects after server asks it to join a game that's starting,
 	  server looks for another bot so the game won't hang
+- Database:
+     - Upgraded Schema `v2.0.00` adds:
+         - users table: count of games won, lost
+         - games table: Obsoleted by games2. Upgrade won't delete it, but new games won't be added to it
+         - games2: Normalized "games" table with per-player sub-table; also added scenario field
+         - games2_players: Sub-table: Score for 1 player in a game
 - Java 5+ features, including parameterized types (thank you Paul Bilnoski)
 - SOCBoard layout refactoring to SOCBoard4p, SOCBoard6p thanks to Ruud Poutsma
 - Major client refactoring (separate UI from network interface) thanks to Paul Bilnoski;
