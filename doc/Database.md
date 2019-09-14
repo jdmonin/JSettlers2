@@ -58,6 +58,10 @@ or place them on the command line after the port number and max connections:
 
 	$ java -jar JSettlersServer.jar -Djsettlers.db.url=jdbc:mysql://localhost/socdata -Djsettlers.db.jar=mysql-connector-java-5.1.34-bin.jar 8880 20 socuser socpass
 
+All of these options can instead be placed in a `jsserver.properties` settings file.
+For more details see the main Readme file's **jsserver.properties** section.
+
+
 ### Finding a JDBC driver JAR:
 
 The default JDBC driver is com.mysql.jdbc.Driver.  PostgreSQL and SQLite are also
@@ -89,6 +93,28 @@ location as JSettlersServer.jar, and specify on the jsettlers command line:
 	-Djsettlers.db.jar=sqlite-jdbc-3.xx.y.jar
 
 (sqlite jar filename may vary, update the parameter to match it).
+
+
+### If your database server is some other type
+
+Although only MySQL, PostgreSQL, and SQLite are tested and developed for,
+the server may work with other database software. If you can create the database
+and its tables and indexes, then test for needed functionality by starting
+the JSettlers server once with the `jsettlers.db` parameters described above and
+this at the end of its command line:
+
+	-Djsettlers.test.db=Y
+
+You should be OK to use your DB if output ends with: `* All required DB tests passed.`
+
+If output does not include `User database initialized`, check your `jsettlers.db`
+parameters (driver, jar, username, password, url).
+
+If output does include `User database initialized` but not all tests pass, check the
+output for details. You may or may not be able to correct the problem(s). If you have
+corrected problems by changing code in `SOCDBHelper.java`, and all tests pass, then
+please contact us on github, giving us the full output from `-Djsettlers.test.db=Y`
+including the line which starts with `DB testing note:`.
 
 
 ### Database Creation

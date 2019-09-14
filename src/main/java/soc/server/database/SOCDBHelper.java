@@ -1489,6 +1489,7 @@ public class SOCDBHelper
                         sPassword = sPassword.substring(0, PW_MAX_LEN_SCHEME_NONE);
                     ok = dbPassword.equals(sPassword);
                     break;
+
                 case PW_SCHEME_BCRYPT:
                     try
                     {
@@ -1519,6 +1520,7 @@ public class SOCDBHelper
                     }
                     catch (UnsupportedEncodingException e) {}
                     break;
+
                 default:
                     // pw_scheme not recognized.  TODO print or log something?
                 }
@@ -1530,6 +1532,7 @@ public class SOCDBHelper
         final String ret = (ok) ? dbUserName: null;
         if ((authCallback != null) && ! ranBCryptTask)
             authCallback.authResult(ret, false);  // <--- Callback ---
+
         return ret;
     }
 
@@ -1841,6 +1844,7 @@ public class SOCDBHelper
                     return true;
             }
             catch (UnsupportedEncodingException e) {}
+
             return false;
         }
     }
@@ -2250,6 +2254,7 @@ public class SOCDBHelper
             {
                 errorCondition = true;
                 sqlE.printStackTrace();
+
                 throw sqlE;
             }
         }
@@ -2281,12 +2286,14 @@ public class SOCDBHelper
                 count = resultSet.getInt(1);
 
             resultSet.close();
+
             return count;
         }
         catch (SQLException sqlE)
         {
             errorCondition = true;
             sqlE.printStackTrace();
+
             throw sqlE;
         }
     }
@@ -2421,6 +2428,7 @@ public class SOCDBHelper
         }
 
         namesFromLC.clear();
+
         return (dupeMap.isEmpty()) ? null : dupeMap;
     }
 
