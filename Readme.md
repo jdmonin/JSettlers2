@@ -198,7 +198,9 @@ Instead of a long command line, any option can be added to `jsserver.properties`
 which is read at startup if it exists in the current directory.  Any option
 given on the command line overrides the same option in the properties file.
 Comment lines start with # .  See `src/main/bin/jsserver.properties.sample` for full
-descriptions of all available properties.
+descriptions of all available properties. (Also available online at
+https://raw.githubusercontent.com/jdmonin/JSettlers2/master/src/main/bin/jsserver.properties.sample).
+
 
 This example command line
 
@@ -315,6 +317,7 @@ and Testing". Remember that you can set server parameters and game option
 default values with a `jsserver.properties` file: Copy the sample file
 `src/main/bin/jsserver.properties.sample` to the same directory as `JSettlersServer.jar`,
 rename it to `jsserver.properties`, and edit properties as needed.
+For more details see the **jsserver.properties** section of this Readme.
 
 Remote users can simply start their clients as described there,
 and connect to your server's DNS name or IP address.
