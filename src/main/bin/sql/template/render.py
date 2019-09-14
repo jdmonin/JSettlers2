@@ -206,10 +206,13 @@ def render_one(dbtype, infile, outfile, compfile):
 
 # main:
 
-parse_cmdline()  # exits if problems found
-for d in dbtypes:
-    render_one(d, infile, outfile, compfile)  # sets sys_exit if problems found
-if sys_exit == 1:
-    sys.stderr.write("Must regenerate SQL script(s) from templates using render.py: See doc/Readme.developer.md\n")
-sys.exit(sys_exit)
+def main():
+  parse_cmdline()  # exits if problems found
+  for d in dbtypes:
+      render_one(d, infile, outfile, compfile)  # sets sys_exit if problems found
+  if sys_exit == 1:
+      sys.stderr.write("Must regenerate SQL script(s) from templates using render.py: See doc/Readme.developer.md\n")
+  sys.exit(sys_exit)
 
+if __name__ == "__main__":
+  main()

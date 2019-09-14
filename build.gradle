@@ -63,6 +63,15 @@ task testPython(type: Exec) {
     environment CLASSPATH: tasks.test.classpath.asPath
 }
 
+// Make sure sql scripts template token data is self-consistent:
+// If test_token_consistency.py finds problems, it will print a detail message.
+task testSrcDBTemplateTokens(type: Exec) {
+    executable 'python'  // expected to be in PATH
+    workingDir 'src/main/bin/sql/template'
+    args 'test_token_consistency.py', new File(sourceSets.main.java.srcDirs[0], '/soc/server/database/SOCDBHelper.java').absolutePath
+    outputs.upToDateWhen { false }  // never skip this test
+}
+
 // Make sure sql scripts are consistent with their template:
 // If render.py finds problems, it will print a message showing which script(s) must be regenerated.
 task testSrcDBTemplates(type: Exec) {
@@ -71,6 +80,7 @@ task testSrcDBTemplates(type: Exec) {
     args 'render.py', '-i', 'jsettlers-tables-tmpl.sql', '-d', 'mysql,sqlite,postgres', '-c', '../jsettlers-tables-%s.sql'
     outputs.upToDateWhen { false }  // never skip this test
 }
+
 
 tasks.withType(Test) { task ->
     task.outputs.upToDateWhen { false }  // never skip testing ("UP-TO-DATE") when it's asked for or is dependency
@@ -84,7 +94,7 @@ tasks.withType(Test) { task ->
     }
 }
 
-test.dependsOn testSrcDBTemplates
+test.dependsOn ([testSrcDBTemplateTokens, testSrcDBTemplates])
 test.finalizedBy testPython  // run java tests first; run python tests even if java fails
 
 // jars

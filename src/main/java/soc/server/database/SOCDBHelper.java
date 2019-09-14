@@ -2999,14 +2999,38 @@ public class SOCDBHelper
             }
         }
 
-        final String TIMESTAMP_NULL = (dbType == DBTYPE_POSTGRESQL)
-            ? "TIMESTAMP WITHOUT TIME ZONE"
-            : (dbType == DBTYPE_MYSQL)
-                ? "TIMESTAMP NULL DEFAULT null"
-                : "TIMESTAMP";
-        final String TIMESTAMP = (dbType == DBTYPE_POSTGRESQL)
-            ? "TIMESTAMP WITHOUT TIME ZONE"
-            : "TIMESTAMP";
+        // These dbtype-specific DDL SQL syntax tokens must be identical here and in render.py.
+        // test_token_consistency.py (in same dir as render.py) tests for that.
+        // To simplify the test script, this block uses a specific style.
+        // Any token declared here must use the same name as in render.py DB_TOKENS.
+
+        // BEGIN COMPARISON AREA -- test_token_consistency.py
+
+        final String TIMESTAMP_NULL, TIMESTAMP;
+        switch(dbType)
+        {
+        case DBTYPE_MYSQL:
+            TIMESTAMP = "TIMESTAMP";
+            TIMESTAMP_NULL = "TIMESTAMP NULL DEFAULT null";
+            break;
+
+        case DBTYPE_POSTGRESQL:
+            TIMESTAMP = "TIMESTAMP WITHOUT TIME ZONE";
+            TIMESTAMP_NULL = "TIMESTAMP WITHOUT TIME ZONE";
+            break;
+
+        case DBTYPE_SQLITE:
+            TIMESTAMP = "TIMESTAMP";
+            TIMESTAMP_NULL = "TIMESTAMP";
+            break;
+
+        default:
+            TIMESTAMP = "TIMESTAMP";
+            TIMESTAMP_NULL = "TIMESTAMP";
+            break;
+        }
+
+        // END COMPARISON AREA -- test_token_consistency.py
 
         /* 1.2.00: First, create db_version table */
         if (schemaVersion < SCHEMA_VERSION_1200)
