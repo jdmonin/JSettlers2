@@ -20,8 +20,8 @@
 --	users + nickname_lc, pw_scheme, pw_store, pw_change;
 --	TIMESTAMP column type now dbtype-specific;
 --	games + player5, player6, score5, score6, duration_sec, winner, gameopts
---   2019-09-06 v2.0.00:
---	users + games_won, games_lost
+--   2019-09-16 v2.0.00:
+--	users: + games_won, games_lost
 --	games:  Obsoleted by games2. Upgrade won't delete it, but new games won't be added to it
 --	games2: Normalized "games" table with per-player sub-table; also added scenario field
 --	games2_players: Sub-table: Score for 1 player in a game
@@ -92,7 +92,7 @@ CREATE INDEX games__n ON games(gamename);
 -- Info for completed games, with sub-table games2_players for normalized player scores.
 -- Replaces non-normalized "games" table in older schemas (version < 2000).
 -- If database schema was upgraded from an earlier version:
--- duration_sec will be null for old data rows, winner may be null for some.
+-- For old data rows: duration_sec may be null, winner may be '?'.
 CREATE TABLE games2 (
 	gameid INTEGER PRIMARY KEY,
 	gamename VARCHAR(20) not null,
@@ -102,14 +102,14 @@ CREATE TABLE games2 (
 	scenario VARCHAR(16)  -- current max length is 8; leaving room here for later expansion
 	);
 
+CREATE INDEX games2__s ON games2(starttime);
+
 CREATE TABLE games2_players (
 	gameid INT not null,
 	player VARCHAR(20) not null,
 	score SMALLINT not null,
 	PRIMARY KEY(gameid, player)
 	);
-
-CREATE INDEX games2_players__g ON games2_players(gameid);
 
 
 -- tradeFlag is always 1 or 0; using SMALLINT to be db-neutral.

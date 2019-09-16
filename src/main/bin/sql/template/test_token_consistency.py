@@ -74,7 +74,7 @@ def check_java_token_values_vs_py(dbh_java_fullpath):
     token_dbtype_vals = {}   # key = dbtype or 'default', val = dict with tokennames & values
     with open(dbh_java_fullpath) as f:
        # Read lines until we see "BEGIN COMPARISON AREA".
-       # At that point read and "parse".
+       # At that point read and "parse"; ignore comment-only lines.
        # When we see "END COMPARISON AREA" (hopefully at expected time), stop reading.
        f_line = ""
        saw_begin_line = False
@@ -101,6 +101,8 @@ def check_java_token_values_vs_py(dbh_java_fullpath):
             else:
               break    # <--- Normal read-loop termination ---
          else:
+           if f_line.startswith("//"):
+             continue
            if state == 'decl':
              # assumes 2 or more tokens are declared, all on same line
              if f_line.startswith("final String "):
