@@ -3183,7 +3183,8 @@ public class SOCDBHelper
 
             } catch (SQLException e) {
                 System.err.println
-                    ("*** Problem occurred during schema upgrade: Will attempt to roll back.\n" + e + "\n");
+                    ("*** Problem occurred during schema upgrade to v1200:\n"
+                     + e + "\n\n* Will attempt to roll back to schema v1000.");
 
                 boolean couldRollback = true;
 
@@ -3213,20 +3214,177 @@ public class SOCDBHelper
                     System.err.println
                         ("*** Could not completely roll back failed upgrade: Must restore DB from backup!");
                 else
-                    System.err.println("\nAll rollbacks were successful.\n");
+                    System.err.println("\n* All rollbacks were successful.\n");
 
                 throw e;
             }
         }
 
+        /**
+         * 2.0.00:
+         * - add new tables games2, games2players, upg_tmp_games
+         * - add users fields
+         * - copy data from games into upg_tmp_games & games2
+         */
         if (schemaVersion < SCHEMA_VERSION_2000)
         {
-            // TODO put statements here; try-catch like above
+            boolean added_tab_games2 = false, added_tab_games2_pl = false,
+                added_tab_upg_tmp = false, added_user_fields = false;
+
+            try
+            {
+                // games2
+                String sql= "CREATE TABLE games2 ("
+                    + "gameid " + INT_AUTO_PK + ", gamename VARCHAR(20) not null,"
+                    + "starttime " + TIMESTAMP + " not null,"
+                    + "duration_sec INT,"  // allow null, unlike new-install sql
+                    + "winner VARCHAR(20) not null,"
+                    + "gameopts VARCHAR(500), scenario VARCHAR(16) ); ";
+                runDDL(sql);
+                added_tab_games2 = true;
+
+                runDDL("CREATE INDEX games2__s ON games2(starttime);");
+
+                // games2_players
+                sql = "CREATE TABLE games2_players ("
+                    + "gameid INT not null, player VARCHAR(20) not null, score SMALLINT not null,"
+                    + "PRIMARY KEY(gameid, player) ); ";
+                runDDL(sql);
+                added_tab_games2_pl = true;
+
+                // upg_tmp_games: temporary for upgrade, until BG tasks done
+                sql = "CREATE TABLE upg_tmp_games ("
+                    + "gameid " + INT_AUTO_PK + ", gamename VARCHAR(20) not null,"
+                    + "player1 VARCHAR(20), player2 VARCHAR(20), player3 VARCHAR(20), player4 VARCHAR(20), player5 VARCHAR(20), player6 VARCHAR(20),"
+                    + "score1 SMALLINT, score2 SMALLINT, score3 SMALLINT, score4 SMALLINT, score5 SMALLINT, score6 SMALLINT,"
+                    + "starttime " + TIMESTAMP + " not null, duration_sec INT, winner VARCHAR(20) not null, gameopts VARCHAR(500), mig_done SMALLINT );";
+                runDDL(sql);
+                added_tab_upg_tmp = true;
+
+                runDDL("CREATE INDEX upg_tmp_games__m ON upg_tmp_games(mig_done);");
+
+                // copy data from games into upg_tmp_games & games2:
+                // has no "added" var; during rollback these tables will be deleted
+
+                final boolean was_conn_autocommit = connection.getAutoCommit();
+                // begin transaction:
+                if (was_conn_autocommit)
+                    connection.setAutoCommit(false);
+                else
+                    try {
+                        connection.commit();  // end previous transaction, if any
+                    } catch (SQLException e) {}
+
+                Statement st = null;
+                try
+                {
+                    st = connection.createStatement();
+                    st.executeUpdate
+                        ("INSERT INTO upg_tmp_games(gamename,player1,player2,player3,player4,player5,player6,"
+                         + "score1,score2,score3,score4,score5,score6,starttime,duration_sec,winner,gameopts)"
+                         + " SELECT gamename,player1,player2,player3,player4,player5,player6,score1,score2,score3,score4,score5,score6,"
+                         + "starttime,duration_sec,coalesce(winner,'?'),gameopts FROM games ORDER BY starttime;");
+                    connection.commit();
+                    st.close();
+                    st = null;
+
+                    // 2nd transaction
+                    st = connection.createStatement();
+                    st.executeUpdate
+                        ("INSERT INTO games2(gameid,gamename,starttime,duration_sec,winner,gameopts)"
+                         + " SELECT gameid,gamename,starttime,duration_sec,winner,gameopts FROM upg_tmp_games ORDER BY gameid;");
+                    connection.commit();
+                    st.close();
+                    st = null;
+
+                    // If postgres, must update games2's PK sequence after inserting rows which specify gameid.
+                    // The sequence update doesn't have to be committed, and can't be rolled back:
+                    // https://www.postgresql.org/docs/11/functions-sequence.html
+                    if (dbType == DBTYPE_POSTGRESQL)
+                    {
+                        // TODO add a test for pg_get_serial_sequence
+
+                        String seqname = null;
+
+                        st = connection.createStatement();
+                        ResultSet rs = st.executeQuery
+                            ("SELECT pg_get_serial_sequence('games2', 'gameid');");  // supported by v8.1 or earlier
+                        if (rs.next())
+                            seqname = rs.getString(1);  // 'public.games2_gameid_seq'  (etc)
+                        st.close();  // also closes rs
+                        st = null;
+
+                        if (seqname != null)
+                        {
+                            PreparedStatement ps = connection.prepareStatement
+                                ("SELECT setval(?, (SELECT max(gameid) FROM games2), true);");
+                            ps.setString(1, seqname);
+                            ps.executeQuery();  // setval returns a resultset we ignore,
+                                // but executeUpdate would throw an exception because resultset is returned
+                            ps.close();  // also closes the ignored resultset
+                        } else {
+                            // TODO ???  Print a warning? Stop the upgrade? Is this situation even possible?
+                        }
+                    }
+
+                } catch (SQLException e) {
+                    connection.rollback();
+                    throw e;
+                } finally {
+                    try {
+                        if (st != null)
+                            st.close();
+                    } catch (SQLException e) {}
+
+                    if (was_conn_autocommit)
+                        connection.setAutoCommit(true);
+                }
+
+                // users
+                // sqlite can't add multiple fields at once
+                runDDL("ALTER TABLE users ADD COLUMN games_won INT;");
+                added_user_fields = true;
+                runDDL("ALTER TABLE users ADD COLUMN games_lost INT;");
+
+            } catch (SQLException e) {
+                System.err.println
+                    ("*** Problem occurred during schema upgrade to v2000:\n"
+                     + e + "\n\n* Will attempt to roll back to schema v1200.\n");
+
+                boolean couldRollback = true;
+
+                if (couldRollback && added_user_fields)
+                {
+                    final String[] cols = {"games_won", "games_lost"};
+                    if ((dbType == DBTYPE_SQLITE)
+                        || ! runDDL_dropCols("users", cols))
+                        couldRollback = false;
+                }
+
+                if (couldRollback && added_tab_upg_tmp && ! runDDL_rollback("DROP TABLE upg_tmp_games;"))
+                    couldRollback = false;
+
+                if (couldRollback && added_tab_games2_pl && ! runDDL_rollback("DROP TABLE games2_players;"))
+                    couldRollback = false;
+
+                if (couldRollback && added_tab_games2 && ! runDDL_rollback("DROP TABLE games2;"))
+                    couldRollback = false;
+
+                if (! couldRollback)
+                    System.err.println
+                        ("*** Could not completely roll back failed upgrade: Must restore DB from backup!");
+                else
+                    System.err.println("\n* All rollbacks were successful.\n");
+
+                // TODO what if orig schemaVersion was v1000? Should it put an entry in upg table from 1000 to 1200?
+
+                throw e;
+            }
         }
 
         /* mark upgrade as completed in db_version table */
         final boolean has_bg_tasks = (schemaVersion < SCHEMA_VERSION_1200);
-            // TODO does _2000 have new bg tasks?  if so, add to UpgradeBGTasksThread
+            // TODO _2000 will have new bg tasks; add to UpgradeBGTasksThread
         {
             PreparedStatement ps = connection.prepareStatement
                 ("UPDATE db_version SET ddl_done=?, bg_tasks_done=? WHERE to_vers=?;");
@@ -3581,7 +3739,7 @@ public class SOCDBHelper
             ("SELECT i_value FROM settings WHERE s_name='" + settingKey + "';");
         if (rs.next())
             v = rs.getInt(1);
-        rs.close();
+        s.close();  // also closes rs
 
         return v;
     }
