@@ -24,6 +24,7 @@ import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
 import soc.server.SOCServer;  // solely for javadocs and ROBOT_PARAMS_*
+import soc.util.IntPair;
 import soc.util.SOCRobotParameters;
 
 import java.io.BufferedReader;
@@ -3383,8 +3384,7 @@ public class SOCDBHelper
         }
 
         /* mark upgrade as completed in db_version table */
-        final boolean has_bg_tasks = (schemaVersion < SCHEMA_VERSION_1200);
-            // TODO _2000 will have new bg tasks; add to UpgradeBGTasksThread
+        final boolean has_bg_tasks = (schemaVersion < SCHEMA_VERSION_2000);
         {
             PreparedStatement ps = connection.prepareStatement
                 ("UPDATE db_version SET ddl_done=?, bg_tasks_done=? WHERE to_vers=?;");
@@ -4371,17 +4371,25 @@ public class SOCDBHelper
             {
                 while ((schemaUpgBGTasks_fromVersion < SCHEMA_VERSION_LATEST) && ! doShutdown)
                 {
-                    if (schemaUpgBGTasks_fromVersion == 0)
+                    final int fromVers = schemaUpgBGTasks_fromVersion;
+                    if (fromVers == 0)
                         break;
 
-                    if (schemaUpgBGTasks_fromVersion != SCHEMA_VERSION_ORIGINAL)
+                    switch (fromVers)
                     {
-                        System.err.println("UpgradeBGTasksThread: Unknown fromVersion: " + schemaUpgBGTasks_fromVersion);
+                    case SCHEMA_VERSION_ORIGINAL:
+                        upgradeBGTasks_1000_1200();  // SCHEMA_VERSION_ORIGINAL -> SCHEMA_VERSION_1200
+                        break;
+
+                    case SCHEMA_VERSION_1200:
+                        upgradeBGTasks_1200_2000();
+                        break;
+
+                    default:
+                        System.err.println("*** UpgradeBGTasksThread: Unknown fromVersion: " + fromVers);
 
                         return;  // <--- Early return: Unknown version ----
                     }
-
-                    upgradeBGTasks_1000_1200();  // SCHEMA_VERSION_ORIGINAL -> SCHEMA_VERSION_1200
                 }
             } catch (SQLException e) {
                 if (! doShutdown)
@@ -4451,11 +4459,241 @@ public class SOCDBHelper
             } while (! (doShutdown || users.isEmpty()));
 
             if (! doShutdown)
-                System.err.println("Schema upgrade: User password encoding complete");
+                System.err.println("Schema upgrade: User password encoding: Completed");
 
             schemaUpgBGTasks_fromVersion = SCHEMA_VERSION_1200;
         }
 
+        /**
+         * Upgrade from {@link SOCDBHelper#SCHEMA_VERSION_1200 SCHEMA_VERSION_1200}
+         * to {@link SOCDBHelper#SCHEMA_VERSION_2000 SCHEMA_VERSION_2000}:
+         *<UL>
+         * <LI> Normalize {@code games} into {@code games2} and {@code games2_players}, from {@code upg_tmp_games} copy
+         * <LI> Update DB {@code users}' win/loss records while doing so
+         *</UL>
+         * @since 2.0.00
+         */
+        private void upgradeBGTasks_1200_2000()
+            throws SQLException
+        {
+            final int UPG_BATCH = UPG_BATCH_MAX / 3 + 1;
+                // less than max, because loop body includes many tables' updates in same transaction
+
+            System.err.println("Schema upgrade: Normalizing games into games2");
+
+            // key = nickname_lc, value = nickname
+            final HashMap<String, String> allDBUsers = new HashMap<String, String>();
+            Statement st = connection.createStatement();
+            ResultSet rs = st.executeQuery("SELECT nickname_lc, nickname FROM users");
+            while (rs.next())
+                allDBUsers.put(rs.getString(1), rs.getString(2));
+            st.close();  // also closes rs
+
+            PreparedStatement psInsPlayer = connection.prepareStatement
+                ("INSERT INTO games2_players(gameid,player,score) VALUES(?,?,?);");
+            PreparedStatement psSetWinner = connection.prepareStatement
+                ("UPDATE games2 SET winner=? WHERE gameid=?;");
+            PreparedStatement psAddUserWins = connection.prepareStatement
+                ("UPDATE users SET games_won = coalesce(games_won,0) + ? WHERE nickname=?;");
+            PreparedStatement psAddUserLosses = connection.prepareStatement
+                ("UPDATE users SET games_lost = coalesce(games_lost,0) + ? WHERE nickname=?;");
+            PreparedStatement psAddUserWinsLosses = connection.prepareStatement
+                ("UPDATE users SET games_won = coalesce(games_won,0) + ?, games_lost = coalesce(games_lost,0) + ? WHERE nickname=?;");
+
+            boolean hasGames;  // if so, some games were converted: should call psInsPlayer.executeBatch()
+            boolean hasSetWinners;  // if so, some game winners were determined: psSetWinner.executeBatch()
+            HashMap<String, IntPair> winLossDBUsers = new HashMap<String, IntPair>();  // users' win,loss adds in this batch
+
+            do
+            {
+                // Iterate through copied games (UPG_BATCH at a time):
+                // - Normalize per-player info into games2_players table
+                // - If players are users in DB, their names get normalized, including games2 winner field
+
+                hasGames = false;
+                hasSetWinners = false;
+
+                StringBuilder sbMarkUpg = new StringBuilder
+                    ("UPDATE upg_tmp_games SET mig_done=1 WHERE gameid IN (");
+
+                rs = selectWithLimit
+                    ("SELECT gameid,winner,player1,player2,player3,player4,player5,player6,score1,score2,score3,score4,score5,score6"
+                     + " FROM upg_tmp_games WHERE mig_done IS NULL", UPG_BATCH);
+                for (int i = 0; (i < UPG_BATCH) && rs.next(); ++i)
+                {
+                    final int gameid = rs.getInt(1);
+                    String winner = rs.getString(2);
+                    if ((winner != null) && winner.equals("?"))
+                        winner = null;
+                    final String[] plNames = new String[6];
+                    final int[] plScores = new int[6];
+                    for (int pn = 0; pn < 6; ++pn)
+                        plNames[pn] = rs.getString(pn + 3);
+                    for (int pn = 0; pn < 6; ++pn)
+                        plScores[pn] = rs.getInt(pn + 3 + 6);
+
+                    /** if true, update this field: currently either '?' or non-normalized name of a DB user */
+                    boolean setWinnerInGames2 = false;
+
+                    String winner_LC = null;  // lowercase, for normalized-username lookups in DB
+                    final boolean winnerWasNull = (winner == null);
+                    if (winnerWasNull)
+                    {
+                        // try to determine winnner from scores; if tied, don't pick one
+
+                        int highscore = 0, winPN = -1;
+                        boolean hadTie = false;
+                        for (int pn = 0; pn < 6; ++pn)
+                        {
+                            if (plNames[pn] == null)
+                                continue;
+                            final int score = plScores[pn];
+                            if (score > highscore)
+                            {
+                                highscore = score;
+                                hadTie = false;
+                                winPN = pn;
+                            } else if (score == highscore) {
+                                hadTie = true;
+                            }
+                        }
+
+                        if ((winPN != -1) && ! hadTie)
+                        {
+                            winner = plNames[winPN];
+                            winner_LC = winner.toLowerCase(Locale.US);
+                            setWinnerInGames2 = true;
+
+                            // normalize nickname if in DB
+                            final String dbName = allDBUsers.get(winner_LC);
+                            if (dbName != null)
+                                winner = dbName;
+                        }
+                    } else {
+                        winner_LC = winner.toLowerCase(Locale.US);
+                    }
+
+                    // Set per-player scores:
+
+                    for (int pn = 0; pn < 6; ++pn)
+                    {
+                        String name = plNames[pn];
+                        if (name == null)
+                            continue;
+
+                        final String name_LC = name.toLowerCase(Locale.US);
+                        final boolean playerWon = name_LC.equals(winner_LC);
+
+                        // If player is user in DB, see if need to normalize username. If so:
+                        //   Normalize for storage in games2_players
+                        //   If player is winner:
+                        //     If ! winnerWasNull, see if need to normalize winner name
+                        //       If so, normalize winner var & set setWinnerInGames2 flag
+
+                        final String dbName = allDBUsers.get(name_LC);
+                        if (dbName != null)
+                        {
+                            name = dbName;
+
+                            IntPair userWinLoss = winLossDBUsers.get(dbName);
+                            if (userWinLoss == null)
+                            {
+                                userWinLoss = new IntPair(0, 0);
+                                winLossDBUsers.put(dbName, userWinLoss);
+                            }
+
+                            if (playerWon)
+                            {
+                                userWinLoss.a++;
+                                if (! (winnerWasNull || winner.equals(dbName)))
+                                {
+                                    winner = dbName;
+                                    setWinnerInGames2 = true;
+                                }
+                            } else {
+                                userWinLoss.b++;
+                            }
+                        }
+
+                        psInsPlayer.setInt(1, gameid);
+                        psInsPlayer.setString(2, name);
+                        psInsPlayer.setInt(3, plScores[pn]);
+                        psInsPlayer.addBatch();
+                    }
+
+                    if (i > 0)
+                        sbMarkUpg.append(',');
+                    else
+                        hasGames = true;
+                    sbMarkUpg.append(gameid);
+
+                    if (setWinnerInGames2)
+                    {
+                        psSetWinner.setString(1, winner);
+                        psSetWinner.setInt(2, gameid);
+                        psSetWinner.addBatch();
+                        hasSetWinners = true;
+                    }
+                }
+                rs.close();
+
+                if (hasGames)
+                {
+                    // TODO begin trans
+
+                    psInsPlayer.executeBatch();
+
+                    if (! winLossDBUsers.isEmpty())
+                    {
+                        for (final String dbUser : winLossDBUsers.keySet())
+                        {
+                            final IntPair WL = winLossDBUsers.get(dbUser);
+                            final int wins = WL.a, losses = WL.b;
+                            if (wins != 0)
+                            {
+                                if (losses != 0)
+                                {
+                                    psAddUserWinsLosses.setInt(1, wins);
+                                    psAddUserWinsLosses.setInt(2, losses);
+                                    psAddUserWinsLosses.setString(3, dbUser);
+                                    psAddUserWinsLosses.executeUpdate();
+                                } else {
+                                    psAddUserWins.setInt(1, wins);
+                                    psAddUserWins.setString(2, dbUser);
+                                    psAddUserWins.executeUpdate();
+                                }
+                            } else {
+                                psAddUserLosses.setInt(1, losses);
+                                psAddUserLosses.setString(2, dbUser);
+                                psAddUserLosses.executeUpdate();
+                            }
+                        }
+
+                        winLossDBUsers.clear();
+                    }
+
+                    if (hasSetWinners)
+                        psSetWinner.executeBatch();
+
+                    sbMarkUpg.append(");");
+                    st = connection.createStatement();
+                    st.executeUpdate(sbMarkUpg.toString());  // UPDATE upg_tmp_games SET mig_done=1 WHERE gameid IN (...)
+                    st.close();
+
+                    // TODO end trans
+                }
+
+            } while (hasGames && ! doShutdown);
+
+            if (! doShutdown)
+            {
+                runDDL("DROP TABLE upg_tmp_games;");
+
+                System.err.println("Schema upgrade: Normalizing games into games2: Completed");
+            }
+
+            schemaUpgBGTasks_fromVersion = SCHEMA_VERSION_2000;
+        }
     }
 
 }
