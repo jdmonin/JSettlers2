@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,7 +21,11 @@
 package soc.util;
 
 /**
- * An ordered pair of 2 ints.
+ * A semi-ordered pair of 2 ints.
+ * ({@link #equals(IntPair)} ignores order of A, B.)
+ *<P>
+ * Not thread-safe: Direct public access to fields.
+ *
  * @see IntTriple
  */
 public class IntPair
@@ -53,14 +57,8 @@ public class IntPair
      */
     public boolean equals(IntPair ip)
     {
-        if (((ip.a == a) && (ip.b == b)) || ((ip.a == b) && (ip.b == a)))
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return ((ip.a == a) && (ip.b == b))
+            || ((ip.a == b) && (ip.b == a));
     }
 
     /**
@@ -81,26 +79,6 @@ public class IntPair
     public int getB()
     {
         return b;
-    }
-
-    /**
-     * Set the first int of this pair.
-     *
-     * @param val New value for {@link #a}
-     */
-    public void setA(int val)
-    {
-        a = val;
-    }
-
-    /**
-     * Set the second int of this pair.
-     *
-     * @param val New value for {@link #b}
-     */
-    public void setB(int val)
-    {
-        b = val;
     }
 
     /**
