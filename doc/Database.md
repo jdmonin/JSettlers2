@@ -141,7 +141,8 @@ Run these commands, which will ask for the mysql root password:
 If the scripts run without any errors, they will produce no output.
 To validate, you can list tables with this command:
 
-    $ mysql -u root -D socdata -p -e "show tables"
+    $ mysql -u socuser -D socdata -p -e "show tables"
+	Enter password: socpass
 	+-------------------+
 	| Tables_in_socdata |
 	+-------------------+
