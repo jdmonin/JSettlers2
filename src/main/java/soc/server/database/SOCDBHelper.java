@@ -112,6 +112,12 @@ import java.util.concurrent.Executors;
  * using {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR}, and save it to the settings table
  * using {@link #checkSettings(boolean, boolean) checkSettings(true, true)}.
  *
+ *<H3>Transactions:</H3>
+ * Some database types and drivers use an "auto-commit" mode by default, others might not, for individual
+ * SQL commands. To account for this when a longer transaction is needed, and abstract it a bit,
+ * call methods {@link #enterTransactionMode()} and {@link #exitTransactionMode(boolean)} around your
+ * transaction's SQL commands. See those methods' javadocs for details.
+ *
  * @author Robert S. Thomas
  */
 public class SOCDBHelper
@@ -1944,15 +1950,8 @@ public class SOCDBHelper
                     if ((winnerName == null) || winnerName.isEmpty())
                         winnerName = "?";  // could happen if disconnected before save
 
-                    final boolean was_conn_autocommit = connection.getAutoCommit();
-
                     // begin transaction
-                    if (was_conn_autocommit)
-                        connection.setAutoCommit(false);
-                    else
-                        try {
-                            connection.commit();  // end previous transaction, if any
-                        } catch (SQLException e) {}
+                    final boolean wasConnAutocommit = enterTransactionMode();
 
                     try
                     {
@@ -2010,8 +2009,7 @@ public class SOCDBHelper
                         connection.rollback();
                         throw e;
                     } finally {
-                        if (was_conn_autocommit)
-                            connection.setAutoCommit(true);
+                        exitTransactionMode(wasConnAutocommit);
                     }
                 }
 
@@ -2827,6 +2825,76 @@ public class SOCDBHelper
     }
 
     /****************************************
+     * Other utility methods
+     ****************************************/
+
+    /**
+     * Puts {@link #connection} into a mode where it always expects explicit begin transaction
+     * and commit/rollback commands, and calls {@code BEGIN TRANSACTION} now.
+     *<UL>
+     * <LI> The call to this function should be in its own {@code try/catch}({@link SQLException}) block,
+     *      not the same one as your transaction's SQL statements/commands
+     * <LI> After calling this function, you should run SQL statements/commands as usual,
+     *      within a {@code try/catch}({@link SQLException}) block
+     * <LI> Then, call {@link {@link Connection#commit()} or {@link Connection#rollback()} as needed
+     *      within the same {@code try} block. (Maybe call {@link Connection#rollback()} in the
+     *      {@code catch}({@link SQLException}) block of that {@code try/catch}.)
+     * <LI> Once done with transaction(s), call {@link #exitTransactionMode(boolean)}
+     *      in the {@code finally} block of that {@code try/catch}
+     *</UL>
+     *
+     * @return  Status value from {@link Connection#getAutoCommit()} about
+     *     {@link #connection}'s behavior before entering transaction mode.
+     *     This value must be saved (use a {@code final} local) and, after your
+     *     transactions, passed to {@link #exitTransactionMode(boolean)}.
+     * @throws SQLException  if an unexpected DB error occurs or the connection is closed
+     * @since 2.0.00
+     */
+    private static boolean enterTransactionMode()
+        throws SQLException
+    {
+        // Note: if this method's code changes, also update testDBHelper() to match.
+
+        final boolean wasConnAutocommit = connection.getAutoCommit();
+
+        // begin transaction
+        if (wasConnAutocommit)
+            connection.setAutoCommit(false);
+        else
+            try {
+                connection.commit();  // end previous transaction, if any
+            } catch (SQLException e) {}
+
+        return wasConnAutocommit;
+    }
+
+    /**
+     * After you've completed your transaction(s) and called {@link Connection#commit()}
+     * or {@link Connection#rollback()} for the last time, call this method to take
+     * SOCDBHelper out of "transaction mode" and return it to single-statement mode.
+     *<P>
+     * The call to this method is probably best placed in the {@code finally} block of the
+     * {@code try/catch} that contains the transaction's SQL commands and commit(s).
+     *
+     * @param wasConnAutocommit  The value returned from {@link #enterTransactionMode()},
+     *     to restore {@link #connection}'s behavior to how it was before transaction mode.
+     * @throws SQLException  if an unexpected DB error occurs or the connection is closed,
+     *     or (unlikely) a distributed transaction was in progress when
+     *     {@link Connection#setAutoCommit(boolean)} was called
+     * @since 2.0.00
+     */
+    private static void exitTransactionMode(final boolean wasConnAutocommit)
+        throws SQLException
+    {
+        // Note: if this method's code changes, also update testDBHelper() to match.
+
+        if (wasConnAutocommit)
+            connection.setAutoCommit(true);
+        // else,
+        //   nothing to do since caller has called commit() or rollback()
+    }
+
+    /****************************************
      * DB install, schema upgrade
      ****************************************/
 
@@ -3121,18 +3189,11 @@ public class SOCDBHelper
                 // This is much quicker to calculate and update than pw_store, so we won't do that field yet.
                 if (! upg_1200_allUsers.isEmpty())
                 {
-                    final boolean was_conn_autocommit = connection.getAutoCommit();
-
                     PreparedStatement ps = connection.prepareStatement
                         ("UPDATE users SET nickname_lc=? WHERE nickname=?");
 
                     // begin transaction
-                    if (was_conn_autocommit)
-                        connection.setAutoCommit(false);
-                    else
-                        try {
-                            connection.commit();  // end previous transaction, if any
-                        } catch (SQLException e) {}
+                    final boolean wasConnAutocommit = enterTransactionMode();
 
                     try
                     {
@@ -3156,8 +3217,7 @@ public class SOCDBHelper
                         connection.rollback();
                         throw e;
                     } finally {
-                        if (was_conn_autocommit)
-                            connection.setAutoCommit(true);
+                        exitTransactionMode(wasConnAutocommit);
                     }
 
                 }
@@ -3267,14 +3327,8 @@ public class SOCDBHelper
                 // copy data from games into upg_tmp_games & games2:
                 // has no "added" var; during rollback these tables will be deleted
 
-                final boolean was_conn_autocommit = connection.getAutoCommit();
                 // begin transaction:
-                if (was_conn_autocommit)
-                    connection.setAutoCommit(false);
-                else
-                    try {
-                        connection.commit();  // end previous transaction, if any
-                    } catch (SQLException e) {}
+                final boolean wasConnAutocommit = enterTransactionMode();
 
                 Statement st = null;
                 try
@@ -3337,8 +3391,7 @@ public class SOCDBHelper
                             st.close();
                     } catch (SQLException e) {}
 
-                    if (was_conn_autocommit)
-                        connection.setAutoCommit(true);
+                    exitTransactionMode(wasConnAutocommit);
                 }
 
                 // users
@@ -3528,17 +3581,11 @@ public class SOCDBHelper
             return false;  // <--- Early return: Nothing to do ---
         }
 
-        final boolean wasConnAutocommit = connection.getAutoCommit();
         PreparedStatement ps = connection.prepareStatement
             ("UPDATE users SET password='!', pw_scheme=" + PW_SCHEME_BCRYPT + ", pw_store=? WHERE nickname=?");
 
         // begin transaction
-        if (wasConnAutocommit)
-            connection.setAutoCommit(false);
-        else
-            try {
-                connection.commit();  // end previous transaction, if any
-            } catch (SQLException e) {}
+        final boolean wasConnAutocommit = enterTransactionMode();
 
         try
         {
@@ -3562,8 +3609,7 @@ public class SOCDBHelper
             connection.rollback();
             throw e;
         } finally {
-            if (wasConnAutocommit)
-                connection.setAutoCommit(true);
+            exitTransactionMode(wasConnAutocommit);
         }
 
         if (doneText != null)
@@ -4022,7 +4068,10 @@ public class SOCDBHelper
         if (! initialized)
             throw new IllegalStateException();
 
-        final boolean was_conn_autocommit = connection.getAutoCommit();
+        final boolean wasConnAutocommit = connection.getAutoCommit();
+            // autocommit mode/transaction tests here use the
+            // same idiom as enterTransactionMode() / exitTransactionMode(..)
+
         boolean anyFailed = false;
 
         System.err.println();
@@ -4033,7 +4082,7 @@ public class SOCDBHelper
                  + " v" + driverinstance.getMajorVersion() + '.' + driverinstance.getMinorVersion()
                  + " (jdbc v" + meta.getJDBCMajorVersion() + '.' + meta.getJDBCMinorVersion()
                  + "), db version: " + meta.getDatabaseProductVersion()
-                 + ", autoCommit: " + was_conn_autocommit
+                 + ", autoCommit: " + wasConnAutocommit
                  + ", supportsGetGeneratedKeys: " + meta.supportsGetGeneratedKeys());
             // Note that ORA's getJDBCMajorVersion() reports the DB version (10, 11, etc) not JDBC's version
         }
@@ -4141,7 +4190,7 @@ public class SOCDBHelper
                             ("INSERT INTO gamesxyz2(name,xyzw) VALUES(?,?)");
 
                         // begin transaction
-                        if (was_conn_autocommit)
+                        if (wasConnAutocommit)
                         {
                             connection.setAutoCommit(false);
                             switchedAutoCommitOff = true;
