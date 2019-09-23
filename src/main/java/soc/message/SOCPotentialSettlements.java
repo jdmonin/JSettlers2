@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010-2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2014,2017-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -32,15 +32,20 @@ import java.util.StringTokenizer;
  *<P>
  * In version 2.0.00 and newer:
  *<UL>
+ *<LI> This message is sent before any {@link SOCPutPiece}.
+ *   So even if game is in progress, each player receives their unique potential settlement node list,
+ *   to populate their legal node/edge sets if using {@link soc.game.SOCBoardLarge SOCBoardLarge},
+ *   before seeing any of their piece locations.
  *<LI> <tt>playerNumber</tt> can be -1
  *   to indicate this message applies to all players.  For the
- *   SOCBoardLarge encoding only, this will also indicate
+ *   SOCBoardLarge encoding only, that also indicates
  *   the legal settlements should be set and the
  *   legal roads recalculated from this message's list of potentials.
  *   <P>
  *   If the game has already started, Land Area contents are sent when
  *   <tt>playerNumber</tt> == 0 and board's legal roads should be
- *   calculated at that point.
+ *   calculated at that point, before calculating any player's
+ *   legal or potential sets.
  *<LI> More than one "land area" (group of islands, or subset of islands)
  *   can be designated; can also require the player to start
  *   the game in a certain land area ({@link #startingLandArea}).
@@ -193,6 +198,7 @@ public class SOCPotentialSettlements extends SOCMessage
      * @throws IllegalArgumentException  if <tt>ln[pan] == null</tt> and <tt>pan != 0</tt>,
      *            or if <tt>ln[<i>i</i>]</tt> == <tt>null</tt> for any <i>i</i> &gt; 0
      * @see #SOCPotentialSettlements(String, int, List)
+     * @since 2.0.00
      */
     public SOCPotentialSettlements(String ga, int pn, final int pan, HashSet<Integer>[] lan, final int[][] lse)
         throws IllegalArgumentException

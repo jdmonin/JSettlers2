@@ -1039,8 +1039,8 @@ import javax.swing.JComponent;
     private boolean debugShowCoordsTooltip = false;
 
     /**
-     * For debugging, flags to show player 0's potential/legal coordinate sets.
-     * Sets flagged as shown are drawn in {@link #drawBoardEmpty(Graphics)}.
+     * For debugging, flags to show board and player potential/legal coordinate sets for
+     * client {@link #player}. Sets flagged as shown are drawn in {@link #drawBoardEmpty(Graphics)}.
      * Currently implemented only for the sea board layout ({@link SOCBoardLarge}).
      *<P>
      * Stored in same order as piece types:
@@ -1060,6 +1060,8 @@ import javax.swing.JComponent;
      * Changed via {@link #setDebugShowPotentialsFlag(int, boolean, boolean)} with
      * SOCPlayerInterface debug command {@code =*= show: n} or {@code =*= hide: n},
      * where {@code n} is an index shown above or {@code all}.
+     *<P>
+     * If {@link #player} is null, shows for player 0.
      *<P>
      * Has package-level visibility, for use by {@link SOCPlayerInterface#updateAtPutPiece(int, int, int, boolean, int)}.
      * @see #debugShowCoordsTooltip
@@ -1588,13 +1590,14 @@ import javax.swing.JComponent;
     /**
      * The player that is using this interface;
      * initially {@code null} when first joining or observing a game.
+     * Set by {@link #setPlayer(SOCPlayer)}.
      * @see #playerNumber
      */
     private SOCPlayer player;
 
     /**
      * player number of our {@link #player} if in a game, or -1
-     * when first joining or observing a game.
+     * when first joining or observing a game. Set by {@link #setPlayer(SOCPlayer)}.
      * @since 1.1.00
      */
     private int playerNumber;
@@ -5024,7 +5027,7 @@ import javax.swing.JComponent;
     /**
      * If any bit in {@link #debugShowPotentials}[] is set, besides 8,
      * draw it on the board. Shows potential/legal placement locations for
-     * client's {@link #playerNumber} if playing, or player 0 if observing.
+     * client {@link #player} if playing, or player 0 if observing.
      * (<tt>debugShowPotentials[8]</tt> is drawn in the per-hex loop
      *  of {@link #drawBoardEmpty(Graphics)}).
      *<P>
@@ -5038,7 +5041,7 @@ import javax.swing.JComponent;
         if (! isLargeBoard)
             throw new IllegalStateException("not supported yet");
 
-        final SOCPlayer pl = game.getPlayer((playerNumber >= 0) ? playerNumber : 0);
+        final SOCPlayer pl = (player != null) ? player : game.getPlayer(0);
         final int bw = board.getBoardWidth();
 
         if (debugShowPotentials[2])
@@ -5802,6 +5805,7 @@ import javax.swing.JComponent;
     /**
      * Set the player that is using this board panel to be the client's player in this game.
      * Called when observing user sits down to become a player.
+     * @see #setPlayer(SOCPlayer)
      */
     public void setPlayer()
     {
@@ -5814,6 +5818,7 @@ import javax.swing.JComponent;
      * Also used for temporary change during {@link SOCGame#debugFreePlacement} mode.
      * @param pl Player to set, or null to change back to the client player
      * @see #getPlayerNumber()
+     * @see #setPlayer()
      * @since 1.1.12
      */
     void setPlayer(SOCPlayer pl)

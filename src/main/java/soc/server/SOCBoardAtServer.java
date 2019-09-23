@@ -73,10 +73,8 @@ import soc.util.IntTriple;
  * {@link #getPlayerExcludedLandAreas() excluded} from placing in some land areas.
  *<P>
  * It's also possible for an island to have more than one landarea (as in scenario SC_TTD).
- * In this case you should have a border zone of hexes with no landarea, because the landareas
- * are tracked by their hexes' nodes, not by the hexes, and a node can't be in multiple LAs.
  *<P>
- * <H3> To Add a New Board:</H3>
+ * <H3>To Add a New Board:</H3>
  * To add a new board layout type, for a new game option or scenario:
  * You'll need to declare all parts of its layout, recognize its
  * scenario or game option in makeNewBoard, and call methods to set up the structure.
@@ -84,8 +82,8 @@ import soc.util.IntTriple;
  *<P>
  * A good example is SC_PIRI "Pirate Islands"; see commits 57073cb, f9623e5, and 112e289,
  * or search this class for the string SC_PIRI.
- *<P>
- * Parts of the layout:
+ *
+ * <H4>Parts of the new board's layout:</H4>
  *<UL>
  * <LI> Its height and width, if not default; set in {@link #getBoardSize(Map, int)}
  * <LI> Its set of land hex types, usually shuffled *
@@ -102,6 +100,45 @@ import soc.util.IntTriple;
  * For example, scenario {@code _SC_PIRI} adds {@code "PP"} for the path followed by the pirate fleet.
  * See the list of Added Layout Parts documented at {@link SOCBoardLarge#getAddedLayoutPart(String)}.
  *
+ * <H4>Layout placement rules for special situations:</H4>
+ *<UL>
+ * <LI><B>If player shouldn't build on an island</B> (like scenario SC_CLVI):<BR>
+ *   Don't place that island's hexes in a Land Area: Use LA # 0 when calling
+ *   {@code makeNewBoard_placeHexes(..)}.
+ * <LI><B>If an island has more than one Land Area</B> (like scenario SC_TTD):<BR>
+ *   Separate those areas with a 1-hex-wide border zone of land hex types having no Land Area.
+ *   This is because the Land Areas are tracked by their hexes' nodes, not by the hex coordinates
+ *   themselves, and a node can't be in multiple LAs.
+ * <LI><B>Fog-hidden hexes contain some Water</B> (like scenario SC_FOG):<BR>
+ *   Such hexes can't be part of the Initial Placement Land Area(s), for settlement placement
+ *   reasons and because of assumptions in the code that generates Legal Edges. However, the
+ *   player can be allowed to build to reach them after game play begins.
+ *</UL>
+ *
+ * <H5>If any of those situations apply to your new board layout:</H5>
+ *
+ * Test with the client to make sure the client sees potential/legal nodes and edges correctly,
+ * including leaving/rejoining the game before placement, during initial placement, and again
+ * after regular game play has started.
+ *<P>
+ * For each test:
+ *<UL>
+ * <LI> Sit down at a player position
+ * <LI> Show the client's legal and potential nodes and edges by entering this command in the
+ *      chat text field:<BR>
+ *      <tt>=*= show: all</tt>
+ * <LI> Note the revealed nodes and edges, possibly by taking a screenshot.
+ *      For this test you don't need to know the details of what each shape and color means,
+ *      only be able to compare their patterns now and after leaving/rejoining the game.
+ * <LI> Exit that game by closing its window
+ * <LI> Rejoin the game; sit at the same position
+ * <LI> Again show the legal and potential nodes with <tt>=*= show: all</tt>
+ * <LI> Compare the revealed nodes and edges to your previous screenshot or notes
+ *</UL>
+ *
+ * To avoid missing a problem because of how some board data is sent along with player 0's potentials
+ * data: Test while playing as player 0 (top-left corner) and as another player.
+ *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */
@@ -109,7 +146,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
 {
     /**
      * Flag property {@code jsettlers.debug.board.fog}: When present, about 20% of the board's
-     * land hexes will be randomly covered by fog during {@code makeNewBoard} generation.
+     * land hexes will be randomly covered by fog during {@code makeNewBoard(..)} generation.
      * Ignored if {@link SOCGameOption#K_SC_FOG} is set.
      *
      * @see #PROP_JSETTLERS_DEBUG_BOARD_FOG__GOLD
@@ -245,7 +282,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * Shuffle the hex tiles and layout a board.
      * Sets up land hex types, water, ports, dice numbers, Land Areas' contents, starting Land Area if any,
      * and the legal/potential node sets ({@link SOCBoardLarge#getLegalSettlements()}).
-     * Sets up any Added Layout Parts such as {@code "PP", "CE", "VE", "N1"}, etc.
+     * Sets up any Added Layout Parts such as {@code "PP", "CE", "VE", "AL", "N1"}, etc.
      *<P>
      * This is called at server, but not at client;
      * client instead calls methods such as {@link #setLandHexLayout(int[])}
@@ -280,6 +317,9 @@ public class SOCBoardAtServer extends SOCBoardLarge
         /** _SC_4ISL doesn't require startingLandArea, it remains 0; all other scenarios require it. */
         final boolean hasScenario4ISL = scen.equals(SOCScenario.K_SC_4ISL);
 
+        // Before reading the "overview" comment paragraphs here, read
+        // the class javadoc's "To Add a New Board" section for context.
+
         // For scenario boards, use 3-player or 4-player or 6-player layout?
         // Always test maxPl for ==6 or < 4 ; actual value may be 6, 4, 3, or 2.
         // Same maxPl initialization as in getBoardShift(opts) and getBoardSize(..).
@@ -302,7 +342,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
         if (! hasScenario4ISL)
             startingLandArea = 1;
 
-        // shuffle and place the land hexes, numbers, and robber:
+        // Shuffle and place the land hexes, numbers, and robber:
         // sets robberHex, contents of hexLayout[] and numberLayout[].
         // Adds to landHexLayout and nodesOnLand.
         // Clears cachedGetlandHexCoords.
@@ -653,16 +693,17 @@ public class SOCBoardAtServer extends SOCBoardLarge
         }
 
         // Set up legalRoadEdges:
+        //     Although Added Layout Part "AL" (for SC_WOND) could throw an exception here if malformed,
+        //     unit test method TestBoardLayout.testSingleLayout would catch that, so it shouldn't occur
+        //     while server is running.
         initLegalRoadsFromLandNodes();
         initLegalShipEdges();
 
-        // consistency-check land areas
+        // Make sure land area nodes array has data for every area
         if (landAreasLegalNodes != null)
-        {
             for (int i = 1; i < landAreasLegalNodes.length; ++i)
                 if (landAreasLegalNodes[i] == null)
                     throw new IllegalStateException("inconsistent landAreasLegalNodes: null idx " + i);
-        }
 
         if (newBoardProgressListener != null)
             newBoardProgressListener.boardProgress(this, opts, NewBoardProgressListener.ALL_HEXES_PLACED);
@@ -703,13 +744,13 @@ public class SOCBoardAtServer extends SOCBoardLarge
             return;  // <--- Early return: No ports to place ---
         }
 
-        // check port locations & facings, make sure no overlap with land hexes
+        // Check port locations & facings, make sure no overlap with land hexes
         if (PORTS_TYPES_MAINLAND != null)
             makeNewBoard_checkPortLocationsConsistent(PORT_LOC_FACING_MAINLAND);
         if (PORT_LOC_FACING_ISLANDS != null)
             makeNewBoard_checkPortLocationsConsistent(PORT_LOC_FACING_ISLANDS);
 
-        // copy and shuffle the ports, and check vs game option BC
+        // Copy and shuffle the ports, and check vs game option BC
         int[] portTypes_main;
         int[] portTypes_islands;
         if (PORTS_TYPES_MAINLAND != null)
@@ -742,7 +783,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
             portTypes_islands = null;
         }
 
-        // copy port types to beginning of portsLayout[]
+        // Copy port types to beginning of portsLayout[]
         final int pcountMain = (PORTS_TYPES_MAINLAND != null) ? portTypes_main.length : 0;
         portsCount = pcountMain;
         if (PORTS_TYPES_ISLANDS != null)
@@ -755,7 +796,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
             System.arraycopy(portTypes_islands, 0,
                 portsLayout, pcountMain, portTypes_islands.length);
 
-        // place the ports (hex numbers and facing) within portsLayout[] and nodeIDtoPortType.
+        // Place the ports (hex numbers and facing) within portsLayout[] and nodeIDtoPortType.
         // fill out the ports[] lists with node coordinates where a trade port can be placed.
         nodeIDtoPortType = new HashMap<Integer, Integer>();
 

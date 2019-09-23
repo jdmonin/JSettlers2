@@ -134,7 +134,10 @@ public class TestBoardLayouts
                 try
                 {
                     ga.addPlayer("player", 1);
-                    ga.startGame();  // SOCBoard/SOCBoardAtServer.makeNewBoard is called here
+                    ga.startGame();  // SOCBoardAtServer.makeNewBoard is called here (SOCBoard if classic/no scenario).
+                        // If board has Added Layout Part "AL" (SC_WOND), it's parsed and consistency-checked
+                        // during makeNewBoard, which calls SOCBoardLarge.initLegalRoadsFromLandNodes()
+
                     gl.deleteGame(gaName);
                 }
                 catch (Exception e)
@@ -151,7 +154,8 @@ public class TestBoardLayouts
 
     /**
      * Test board layouts for classic games and all {@link SOCScenario}s for 2, 3, 4 and 6 players.
-     * Tests each one for {@link #roundCount} rounds, with and without game option {@code "BC=t3"}.
+     * Tests each one for {@link #roundCount} rounds, with and without game option {@code "BC=t3"},
+     * by calling {@link #testSingleLayout(SOCScenario, int)}.
      * @see SOCGameListAtServer#createGame(String, String, String, Map, soc.server.GameHandler)
      * @see SOCBoardAtServer#makeNewBoard(Map)
      */

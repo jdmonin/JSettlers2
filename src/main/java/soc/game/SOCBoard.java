@@ -1338,6 +1338,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * Because the v3 board layout varies:
      * At the server, call this after {@link #makeNewBoard(Map)}.
      * At the client, call this after {@link SOCBoardLarge#setLegalSettlements(java.util.Collection, int, HashSet[])}.
+     * See override {@link SOCBoardLarge#initPlayerLegalRoads()}.
      *
      * @return the set of legal edge coordinates for roads, as a new Set of {@link Integer}s
      * @since 1.1.12

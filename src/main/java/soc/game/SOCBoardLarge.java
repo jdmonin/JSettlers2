@@ -43,7 +43,7 @@ import soc.util.IntPair;
  * and keep the board logic simple.  Game rules should be enforced at the game, not the board.
  * Calling board methods won't change the game state.
  *<P>
- * To generate a new game's board layout, use subclass {@code soc.server.SOCBoardAtServer}.
+ * To generate a new game's board layout, use subclass {@link soc.server.SOCBoardAtServer}.
  * Game boards are initially all water.  The layout contents are set up later by calling
  * {@code SOCBoardAtServer.makeNewBoard(Map)} when the game is about to begin,
  * then sent to the clients over the network.  The client calls methods such as {@link #setLandHexLayout(int[])},
@@ -766,6 +766,14 @@ public class SOCBoardLarge extends SOCBoard
      * are established from land hexes, fill {@link #legalRoadEdges}.
      * Not iterative; clears all previous legal roads.
      *<P>
+     * Any {@link #FOG_HEX}es are treated as land when checking for water hexes,
+     * although there's a chance some may later be revealed as water.
+     *<P>
+     * About corners/concave parts: <BR>
+     * The set of valid land nodes will contain both ends of the edge;
+     * to guard against concave edges crossing a bay or lake,
+     * checks that at least one side of the edge is a land hex.
+     *<P>
      * For scenarios, if Added Layout Part {@code "AL"} is present, checks it for
      * references to node lists (Parts {@code "N1", "N2"}, etc) and if found, adds their
      * edges now so that initial settlements' roads can be built towards those nodes.
@@ -783,10 +791,6 @@ public class SOCBoardLarge extends SOCBoard
     protected void initLegalRoadsFromLandNodes()
         throws IllegalStateException
     {
-        // About corners/concave parts:
-        //   Set of the valid nodes will contain both ends of the edge;
-        //   anything concave across a sea would be missing at least 1 node, in the water along the way.
-
         legalRoadEdges.clear();
 
         // Go from nodesOnLand.  If Part "AL" refers to node lists, build and
@@ -832,7 +836,7 @@ public class SOCBoardLarge extends SOCBoard
             }
         }
 
-        // Go from nodesOnLand or landNodes, iterate all nodes:
+        // Go from nodesOnLand or temporary landNodes, iterate all nodes:
 
         for (Integer nodeVal : landNodes)
         {
@@ -909,12 +913,16 @@ public class SOCBoardLarge extends SOCBoard
      * Contains all 6 edges of each water hex.
      * Contains all coastal edges of each land hex at the edges of the board.
      *<P>
+     * Any {@link #FOG_HEX}es are treated as land as usual, although there's
+     * a chance some may later be revealed as water.
+     *<P>
      * Not iterative; clears all previous legal ship edges.
-     * Call this only after the very last call to
+     * At server, call this only after the very last call to
      * {@code SOCBoardAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int, boolean)}
      * so that all land hexes are already placed.
      *<P>
      * Called at server and at client.
+     *
      * @see #initPlayerLegalShips()
      * @see #initLegalRoadsFromLandNodes()
      */
@@ -931,11 +939,10 @@ public class SOCBoardLarge extends SOCBoard
             final int rshift = (r << 8);
             int c;
             if (((r/2) % 2) == 1)
-            {
                 c = 1;  // odd hex row hexes start at 1
-            } else {
+            else
                 c = 2;  // top row, even row hexes start at 2
-            }
+
             for (; c < boardWidth; c += 2)
             {
                 if (hexLayoutLg[r][c] == WATER_HEX)

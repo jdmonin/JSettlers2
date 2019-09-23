@@ -1007,8 +1007,9 @@ public class SOCGameHandler extends GameHandler
         }
 
         /**
-         * if game hasn't started yet, each player's potentialSettlements are
-         * identical, so send that info once for all players.
+         * If game hasn't started yet, each player's potentialSettlements are identical,
+         * so send that info once for all players (unless clients are too old).
+         *
          * Otherwise send each player's unique potential settlement list,
          * to populate legal sets before sending any of their PutPieces.
          */
@@ -1041,7 +1042,8 @@ public class SOCGameHandler extends GameHandler
 
             if (lan == null)
             {
-                c.put(SOCPotentialSettlements.toCmd(gameName, -1, new ArrayList<Integer>(psList)));
+                c.put(SOCPotentialSettlements.toCmd
+                    (gameName, -1, new ArrayList<Integer>(psList)));
             } else {
                 c.put(SOCPotentialSettlements.toCmd
                     (gameName, -1, pan, lan, SOCBoardAtServer.getLegalSeaEdges(gameData, -1)));
@@ -1066,8 +1068,8 @@ public class SOCGameHandler extends GameHandler
                 final HashSet<Integer>[] lan;
                 if (gameData.hasSeaBoard && (pn == 0))
                 {
-                    // send this info once, not per-player:
-                    // Note: Assumes all players have same legal nodes.
+                    // Send legal node info once, not per-player.
+                    // Assumes all players have same legal nodes.
                     final SOCBoardLarge bl = (SOCBoardLarge) gameData.getBoard();
                     lan = bl.getLandAreasLegalNodes();
                     if (lan != null)
@@ -1078,7 +1080,8 @@ public class SOCGameHandler extends GameHandler
 
                 if (lan == null)
                 {
-                    c.put(SOCPotentialSettlements.toCmd(gameName, pn, new ArrayList<Integer>(psList)));
+                    c.put(SOCPotentialSettlements.toCmd
+                        (gameName, pn, new ArrayList<Integer>(psList)));
                 } else {
                     c.put(SOCPotentialSettlements.toCmd
                         (gameName, pn, 0, lan, SOCBoardAtServer.getLegalSeaEdges(gameData, pn)));
@@ -2880,7 +2883,8 @@ public class SOCGameHandler extends GameHandler
             }
             if (ga.hasSeaBoard)
             {
-                // See also joinGame which has very similar code.
+                // See also joinGame which has very similar code,
+                // and sends classic game's sole SOCPotentialSettlements message.
 
                 // Send the updated Potential/Legal Settlement node list
                 // Note: Assumes all players have same potential settlements

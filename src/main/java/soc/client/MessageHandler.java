@@ -2164,8 +2164,8 @@ import soc.util.Version;
      * @throws IllegalStateException if the board has
      *     {@link SOCBoardLarge#getAddedLayoutPart(String) SOCBoardLarge.getAddedLayoutPart("AL")} != {@code null} but
      *     badly formed (node list number 0, or a node list number not followed by a land area number).
-     *     This Added Layout Part is rarely used, and this would be discovered quickly while testing
-     *     the board layout that contained it.
+     *     This Added Layout Part is rarely used, and that would be discovered quickly while testing
+     *     the board layout that contained it (see TestBoardLayout.testSingleLayout).
      */
     protected void handlePOTENTIALSETTLEMENTS(SOCPotentialSettlements mes)
             throws IllegalStateException

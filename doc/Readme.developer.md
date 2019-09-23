@@ -432,11 +432,14 @@ ideas.
   - If any exceptions thrown, System.exit(1)
 - Add more sound effects
 - Add more functional and unit tests, in `src/extraTest/` and `src/test/` directories
+  - Medium-level example: Add a board-geometry unit test to `soctest.game.TestBoardLayouts`
+    to check all scenarios' layouts against the "Layout placement rules for special situations"
+    mentioned in `SOCBoardAtServer` class javadocs
 - Possibly: Auto-add robots when needed as server runs, with server active-game count
     - Only do so if `jsettlers.startrobots` property is set
 - Refactor: Combine ShadowedBox, SpeechBalloon: They look the same except for that balloon point
 - Refactor: Rework ShadowedBox, SpeechBalloon to use a custom-drawn Swing Border
-- Refactor: `ga.getPlayer(ga.getCurrentPlayer())` or `getClient().getClientManager()`
+- Refactor: New methods to shortcut `ga.getPlayer(ga.getCurrentPlayer())` or `getClient().getClientManager()`
 - Refactor `SOCRobotClient`: Move simple handle-methods which don't put the
   message into brainQ, but only update game fields/methods, into
   SOCDisplayless if possible.
