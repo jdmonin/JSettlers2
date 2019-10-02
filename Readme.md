@@ -46,7 +46,7 @@ and pull requests can be posted at the github page.
 
 User documentation for game play is available as .html pages located
 in the `src/site/users` directory. These can be put on a JSettlers server for
-its users using the applet.
+its users to access with a browser.
 
 Currently, this Readme and the `doc` directory are the only technical
 documentation for running the client or server, setup and other issues.
@@ -61,19 +61,23 @@ https://github.com/jdmonin/JSettlers2/blob/master/Readme.md .
 ## Requirements
 
 To play JSettlers by connecting to a remote server you will need the
-Java Runtime Version 6 or above. To connect as an applet, use any
-browser which is Java enabled (using the browser plug-in) or just
-download the JAR from http://nand.net/jsettlers/ and run it.
+Java Runtime (version 6 or higher, 9 or lower) or Java Development
+Kit (any version 6 or higher). Download JSettlers.jar from http://nand.net/jsettlers/
+or from the github repo, and run it. To instead connect with the optional
+browser applet, install the JDK's applet plug-in and visit
+http://nand.net/jsettlers/ .
 
-To Play JSettlers locally you need the Java Runtime 6 or above.
-`JSettlers-full.jar` can connect directly to any server over the Internet.
+To Play JSettlers locally you need the Java Runtime (version 6 or higher,
+9 or lower) or Java Development Kit (any version 6 or higher). `JSettlers-full.jar`
+can connect directly to any server over the Internet.
 
-To host a JSettlers server that provides a web applet for clients, you will
-need an http server such as Apache's httpd, available from http://httpd.apache.org.
+To host a JSettlers server that provides a download for the JAR, and optional
+browser applet (the same JAR), you will need an http server such as Apache's httpd
+available from http://httpd.apache.org.
 
 The JSettlers-full.jar file can also run locally as a server, without
-needing a web server.  The applet is considered more convenient,
-because you know everyone will have the same version.
+needing a web server.  Downloading the JAR from a web server (or using the
+applet) is considered more convenient, because everyone can get the same version.
 
 To build JSettlers from source, you will need Java JDK 6 or newer and
 gradle 4 or 5, or an IDE such as Eclipse which understands gradle's format.
@@ -322,8 +326,8 @@ For more details see the **jsserver.properties** section of this Readme.
 Remote users can simply start their clients as described there,
 and connect to your server's DNS name or IP address.
 
-To provide a web page from which users can run the applet, you will
-need to set up an http server such as Apache.  We assume you have
+To provide a web page from which users can download the JAR or run the applet,
+you will need to set up an http server such as Apache.  We assume you have
 installed it already, and will refer to `${docroot}` as a directory
 to place files to be served by your web server.
 
@@ -338,7 +342,7 @@ run the applet in their browser.  If you're using `account.html`, also
 un-comment `index.html`'s link to `account.html`.
 
 Next copy the `JSettlers.jar` client file to `${docroot}`. This will allow users
-to use the web browser plug-in or download it to connect from their computer.
+to download it to connect from their computer, or use the web browser applet plug-in.
 If you've downloaded it as `JSettlers-{version}-full.jar`, rename it to `JSettlers.jar`.
 
 Your web server directory structure should now contain:
@@ -360,6 +364,10 @@ It's a simple process to upgrade to the latest version of JSettlers:
   config changes made from your version to the latest version.  Occasionally
   defaults change and you'll need to add a server config option to keep the
   same behavior, so read carefully.
+- When upgrading from 1.x to 2.x, the applet class name changes
+  from `soc.client.SOCPlayerClient` to `soc.client.SOCApplet`,
+  so update the applet tag in your download page html.
+  (Most people and most browsers don't use the applet anymore.)
 - If you're using the optional database, backup the database and see
   the "Upgrading from an earlier version" section of [doc/Database.md](doc/Database.md)
   for parameter changes and other actions to take.
