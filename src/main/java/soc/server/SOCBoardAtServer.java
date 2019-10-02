@@ -113,31 +113,20 @@ import soc.util.IntTriple;
  *   Such hexes can't be part of the Initial Placement Land Area(s), for settlement placement
  *   reasons and because of assumptions in the code that generates Legal Edges. However, the
  *   player can be allowed to build to reach them after game play begins.
+ *   <P>
+ *   During board generation, fog hexes are treated as land hexes: To prevent leaking information
+ *   about what kind of hex is under the fog, all their corners are legal settlement nodes
+ *   until revealed as water. For more info, see {@link #makeNewBoard_hideHexesInFog(int[])} javadoc.
+ *   <P>
+ *   While testing: Make sure to reveal a non-coastal water hex that removes edge(s) from the
+ *   set of legal roads, and confirm that set's still accurate at client after leaving/rejoining the game.
  *</UL>
  *
  * <H5>If any of those situations apply to your new board layout:</H5>
  *
- * Test with the client to make sure the client sees potential/legal nodes and edges correctly,
- * including leaving/rejoining the game before placement, during initial placement, and again
- * after regular game play has started.
- *<P>
- * For each test:
- *<UL>
- * <LI> Sit down at a player position
- * <LI> Show the client's legal and potential nodes and edges by entering this command in the
- *      chat text field:<BR>
- *      <tt>=*= show: all</tt>
- * <LI> Note the revealed nodes and edges, possibly by taking a screenshot.
- *      For this test you don't need to know the details of what each shape and color means,
- *      only be able to compare their patterns now and after leaving/rejoining the game.
- * <LI> Exit that game by closing its window
- * <LI> Rejoin the game; sit at the same position
- * <LI> Again show the legal and potential nodes with <tt>=*= show: all</tt>
- * <LI> Compare the revealed nodes and edges to your previous screenshot or notes
- *</UL>
- *
- * To avoid missing a problem because of how some board data is sent along with player 0's potentials
- * data: Test while playing as player 0 (top-left corner) and as another player.
+ * Test to make sure the client sees potential/legal nodes and edges correctly, even if they
+ * leave/reconnect during the game: With your layout, follow the test process in {@code /doc/Release-Testing.md}
+ * section 'Client reconnect when scenario's board layout has "special situations"'.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00

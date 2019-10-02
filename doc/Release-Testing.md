@@ -5,7 +5,7 @@ When preparing to release a new version, testing should include:
 ## Quick tests and setup
 
 - Before building the JARs to be tested, `git status` should have no untracked or uncommitted changes
-    - Running `gradle distCheckSrcDirty` also checks that, listing any files with such changes
+    - Run `gradle distCheckSrcDirty` to check that and list any files with such changes
 - `gradle clean test` runs without failures, under gradle 4 and also gradle 5
 - These should print the expected version and build number:
     - `java -jar build/libs/JSettlers-2.*.jar --version`
@@ -66,8 +66,11 @@ When preparing to release a new version, testing should include:
 
 ## Regression testing
 
-- Start a remote server on a console (linux, etc), should stay up for several days including activity (bot games)
-    - v2.0.00+: Run several bot games (`jsettlers.bots.botgames.total=5`);
+- Start JSettlersServer at a shell or command prompt
+    - If you have a linux or windows server, use that instead of your laptop/desktop;
+      on linux end the command line with ` &` to keep running in background
+    - Should stay up for several days including activity (bot games)
+    - v2.0.00+: Run several bot games (`-Djsettlers.bots.botgames.total=5`);
       join one as observer to make sure the pause is shorter than normal games
 - New features in previous 2 versions from [Versions.md](Versions.md)
 - Each available game option
@@ -82,8 +85,11 @@ When preparing to release a new version, testing should include:
   Humans can vote No to reject bots auto-vote Yes; test No and Yes
 - Fog Hex reveal gives resources, during initial placement and normal game play:
      - Start server with vm property: `-Djsettlers.debug.board.fog=Y`
-     - Start and test a game with the Use Sea Board option; place an initial settlement at a fog hex
-     - Start and test a game with the Fog Islands scenario
+     - Start and begin playing a game with the Use Sea Board option
+       - Place an initial settlement at a fog hex
+     - Start and begin playing a game with the Fog Islands scenario
+       - Place initial coastal settlements next to the fog island, with initial ships to reveal hexes from the fog
+       - Keep restarting (reset the board) until you've revealed a gold hex and picked a free resource
 - Client preferences
     - Auto-reject bot trade offers:
         - Practice game: Test UI's trade behavior with and without preference
@@ -112,6 +118,39 @@ When preparing to release a new version, testing should include:
         - Close client main window: Quit all games
         - Re-launch client
         - Start a game (should remember preference & be pastel)
+- Network robustness: Client reconnect when scenario's board layout has "special situations"  
+    Tests that the board layout, including potential and legal nodes and edges, is reconstructed when
+    client leaves/rejoins the game. (For more info see "Layout placement rules for special situations"
+    in `soc.server.SOCBoardAtServer` class javadoc.)
+    - Scope:
+        - Test the **Cloth Trade**, **Fog Islands**, and **Through the Desert** scenarios
+        - Use defaults for game options, number of players, etc
+    - Test process for each scenario:
+        - Start a server
+        - Start 2 clients and have them join the same game, so each can leave/rejoin the game
+          during the other's turn
+        - Sit down 1 client at player position 0 (upper-left), and the other client at any other position.  
+          (This tests more thoroughly because some board data is sent along with player 0's potentials.)
+        - Lock some or all empty seats, to avoid waiting for bots
+        - Before starting the game, at each client, show that player's legal and potential nodes and edges
+          by entering this command in the chat text field:  
+          `=*= show: all`  
+          At first, only a yellow bounding box will be visible
+        - Start the game (server sends board layout, begins Initial Placement)
+        - Place 1 settlement and road/ship. When testing Fog Islands, that should be a coastal settlement
+          and ship to reveal a fog hex
+        - At each client player:
+            - Note the layout's legal and potential nodes and edges, possibly by taking a screenshot.
+              (Legals are yellow, potentials are green, land hexes/nodes are red.
+              For this test you don't need to know details of what each symbol means,
+              as long as you can compare their patterns now and after leaving/rejoining the game.)
+            - During the other player's turn to place, exit that game by closing the window
+            - Rejoin the game; sit at same position
+            - Show the legal and potential nodes again with `=*= show: all`
+            - Compare the revealed nodes and edges to your previous screenshot or notes; should be identical
+         - Finish Initial Placement and 1 or 2 rounds of normal game play
+         - Again have each client player note the current legals/potentials, leave and reconnect
+           during the other's turn, and compare legals/potentials using the above process
 - Version compatibility testing
     - Other versions to use: **1.1.06** (before Game Options); **1.1.11** (has 6-player option and client bugfixes);
       latest **1.x.xx**; latest **2.0.xx**

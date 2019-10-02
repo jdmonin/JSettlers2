@@ -8465,7 +8465,8 @@ import javax.swing.JComponent;
                     case SOCBoardLarge.FOG_HEX:
                         if (isLargeBoard)
                         {
-                            if (game.isInitialPlacement() && player.hasPotentialSettlementsInitialInFog())
+                            if (game.isInitialPlacement() && (player != null)
+                                && player.hasPotentialSettlementsInitialInFog())
                                 hname = "board.hex.fog.s";  // "Fog (place ships or settlements to reveal)"
                             else
                                 hname = "board.hex.fog.r";  // "Fog (place ships or roads to reveal)"
