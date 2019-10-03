@@ -194,19 +194,20 @@ import javax.swing.JComponent;
     private static final int BOARDHEIGHT_VISUAL_MIN = 17;
 
     /**
-     * How many pixels to drop for each row of hexes.
+     * How many unscaled pixels to move down for each row of hexes.
      * @see #HEXHEIGHT
      */
     private static final int deltaY = 46;
 
     /**
-     * How many pixels to move over for a new hex.
+     * How many unscaled pixels to move over for a new hex.
      * @see #HEXWIDTH
      */
     private static final int deltaX = 54;
 
     /**
-     * Each row moves a half hex over horizontally,
+     * Width of half a hex in unscaled pixels;
+     * each row moves a half hex over horizontally,
      * compared to the row above/below it.
      * @see #deltaX
      * @see #halfdeltaY
@@ -214,7 +215,7 @@ import javax.swing.JComponent;
     private static final int halfdeltaX = 27;
 
     /**
-     * How many pixels for half a hex's height.
+     * Height of half a hex in unscaled pixels.
      * Used in layout calculations when {@link #isLargeBoard}.
      * @since 2.0.00
      * @see #deltaY
@@ -225,7 +226,9 @@ import javax.swing.JComponent;
     private static final int halfdeltaY = 23;
 
     /**
-     * x-offset to move over 1 hex, for each port facing direction (1-6). 0 is unused.
+     * x-offset to move over 1 hex, for each port facing direction (1-6).
+     * Unscaled. 0 is unused.
+     *<P>
      * Facing is the direction to the land hex touching the port.
      * Facing 1 is NE, 2 is E, 3 is SE, 4 is SW, etc: see {@link SOCBoard#FACING_E} etc.
      * @see #DELTAY_FACING
@@ -237,7 +240,8 @@ import javax.swing.JComponent;
     };
 
     /**
-     * y-offset to move over 1 hex, for each port facing direction (1-6). 0 is unused.
+     * y-offset to move over 1 hex, for each port facing direction (1-6).
+     * Unscaled. 0 is unused.
      * @see #DELTAX_FACING
      * @since 1.1.08
      */
@@ -1183,8 +1187,7 @@ import javax.swing.JComponent;
      * {@link #rotatHexesMustAlwaysScale} was set true by {@code loadHexesAndImages}
      * if any of these are a larger or nonuniform size.
      *<P>
-     * For indexes, see {@link #loadHexesAndImages(Image[], String, MediaTracker, Toolkit, Class, boolean)}
-     * and {@link #HEX_BORDER_IDX_FROM_LEN}.
+     * For indexes, see {@link #loadHexesAndImages(Image[], String, MediaTracker, Toolkit, Class, boolean)}.
      *
      * @see #hexes
      * @see #hexesGraphicsSetIndex
@@ -2705,7 +2708,7 @@ import javax.swing.JComponent;
 
         /**
          * Scale and render images, or point to static arrays.
-         * For water hex borders, loops assume SOCBoard.WATER_HEX == index 0 in BC.
+         * For water hex border color, loops assume SOCBoard.WATER_HEX == index 0 in BC.
          */
         final Image[] staticHex;  // hex type images
         final Color[] BC;  // border colors
@@ -4319,7 +4322,7 @@ import javax.swing.JComponent;
 
             // For each port, get its facing land hex and base (x,y) off that. Port hex
             // is drawn on the sea side, not land side, of the edge but some ports at
-            // the borders of the board might have a sea side outside the coordinate system.
+            // the margins of the board might have a sea side outside the coordinate system.
             // So instead we calculate ports' landHexCoord (which will always be inside the
             // system) and move 1 hex away from the facing direction.
             final int landFacing = portsFacing[i];
@@ -4779,26 +4782,26 @@ import javax.swing.JComponent;
             /** Panel width in board coordinates; because of panelMarginX, might be > unscaledBoardW */
             final int unscaledPanelW = scaleFromActual(scaledPanelW);
 
-            // Top border rows:
+            // Top margin rows:
 
             final int bMarginX = scaleFromActual(panelMarginX),
-                      marginNumHex = (bMarginX + deltaX - 1) / deltaX;
+                      bMarginYAndHex = scaleFromActual(panelMarginY) + HEXHEIGHT,
+                      marginXNumHex = (bMarginX + deltaX - 1) / deltaX;
 
-            // Top border ("row -2"): Needed only when panelMarginY is +1 or more "VS" units (1/4 or more of row height)
-            if (panelMarginY >= (halfdeltaY / 2))
-            {
-                final int y = -halfdeltaY - deltaY,
-                          xmin = -(deltaX * marginNumHex) - halfdeltaX;
-                for (int x = xmin; x < unscaledPanelW; x += deltaX)
+            // Top margin ("row -1"): Easier to draw it separately than deal with row coord -1 in main loop.
+            // The initial x-coord formula aligns just enough water hexes to cover -bMarginX.
+            // Then, draw more margin rows above it until none of the row would be visible.
+            // Those other rows are needed only when bMarginY is +1 or more "VS" units
+            // (1/4 or more of row height).
+            for (int y = -halfdeltaY, xOffsetFlag = 0;
+                 -y <= bMarginYAndHex;
+                 y -= deltaY, xOffsetFlag = 1 - xOffsetFlag)
+                for (int x = -(deltaX * marginXNumHex) - (halfdeltaX * xOffsetFlag);
+                     x < unscaledPanelW;
+                     x += deltaX)
                     drawHex(g, x, y, SOCBoard.WATER_HEX, -1, -1);
-            }
 
-            // Top border ("row -1"): Easier to draw it separately than deal with row coord -1 in main loop.
-            // The initial x-coord formula aligns just enough water hexes to cover -panelMarginX.
-            for (int x = -(deltaX * marginNumHex); x < unscaledPanelW; x += deltaX)
-                drawHex(g, x, -halfdeltaY, SOCBoard.WATER_HEX, -1, -1);
-
-            // In-bounds board hexes and bottom border:
+            // In-bounds board hexes and bottom margin:
             final int bw = board.getBoardWidth(), bh = board.getBoardHeight();
             for (int r = 1, y = halfdeltaY;
                  r < bh || y < (scaledPanelH + HEXY_OFF_SLOPE_HEIGHT);
@@ -4817,7 +4820,7 @@ import javax.swing.JComponent;
 
                 if ((panelMarginX != 0) || (x != 0))
                 {
-                    // If board is narrow or row doesn't start at left side of panel, fill border with water.
+                    // If board is narrow or row doesn't start at left side of panel, fill margin with water.
                     // xleft drawn at >= 0 after g.translate for panelMarginX
                     for (int xleft = x; xleft > -(panelMarginX + deltaX); xleft -= deltaX)
                         drawHex(g, xleft, y, SOCBoard.WATER_HEX, -1, -1);
