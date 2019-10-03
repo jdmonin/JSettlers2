@@ -366,40 +366,32 @@ public abstract class SOCMessage implements Serializable, Cloneable
      *  @since 2.0.00 */
     public static final int GAMEELEMENTS = 1096;  // message sequence refactoring for v3 prep, 20171223, v2.0.00
 
-    /** {@link SOCRevealFogHex} - Reveal a hidden hex on the board.
-     *  @since 2.0.00 */
-    public static final int REVEALFOGHEX = 1097;  // fog hexes, 20121108, v2.0.00
-
-    /** {@link SOCLegalEdges} - Legal road or ship edges for the large sea board.
-     *  @since 2.0.00 */
-    public static final int LEGALEDGES = 1098;  // large sea board, 20121216, v2.0.00
-
     /** {@link SOCSVPTextMessage} - Text that a player has been awarded Special Victory Point(s).
      *  The server will also send a {@link SOCPlayerElement} with the SVP total.
      *  @since 2.0.00 */
-    public static final int SVPTEXTMSG = 1099;  // SVP text messages, 20121221, v2.0.00
+    public static final int SVPTEXTMSG = 1097;  // SVP text messages, 20121221, v2.0.00
 
     /** {@link SOCInventoryItemAction} - Add or remove a {@code SOCInventoryItem}
      *  (excluding {@code SOCDevCard}s) from a player's inventory.
      *  Used in some game scenarios.
      * @see #DEVCARDACTION
      * @since 2.0.00 */
-    public static final int INVENTORYITEMACTION = 1100;  // player inventory items, 20131126, v2.0.00
+    public static final int INVENTORYITEMACTION = 1098;  // player inventory items, 20131126, v2.0.00
 
     /** {@link SOCSetSpecialItem} - Special Item requests and change announcements.
      *  {@code SOCSpecialItem}s are used in some game scenarios.
      *  @since 2.0.00 */
-    public static final int SETSPECIALITEM = 1101;  // Special Items, 20140416, v2.0.00
+    public static final int SETSPECIALITEM = 1099;  // Special Items, 20140416, v2.0.00
 
     /** {@link SOCLocalizedStrings} - Localized i18n strings for items such as game options or scenarios.
      *  @since 2.0.00 */
-    public static final int LOCALIZEDSTRINGS = 1102;  // Localized strings, 20150111, v2.0.00
+    public static final int LOCALIZEDSTRINGS = 1100;  // Localized strings, 20150111, v2.0.00
 
     /** {@link SOCScenarioInfo} - Client's request about available {@link soc.game.SOCScenario SOCScenario}s,
      *  or server's reply about a single scenario.
      * @since 2.0.00
      */
-    public static final int SCENARIOINFO = 1103;    // Scenario info, 20150920, v2.0.00
+    public static final int SCENARIOINFO = 1101;    // Scenario info, 20150920, v2.0.00
 
 
     /////////////////////////////////////////
@@ -410,11 +402,21 @@ public abstract class SOCMessage implements Serializable, Cloneable
     // Please see class javadoc.
     /////////////////////////////////////////
 
-
     /** @since 1.1.00 */
     public static final int VERSION = 9998;   // cli-serv versioning, 20080807, v1.1.00
 
     public static final int SERVERPING = 9999;  // available in all versions
+
+    //////////////////////////////////////////////
+    // GAMETYPE-SPECIFIC MESSAGES for JSettlers //
+    //////////////////////////////////////////////
+
+    /**
+     * {@link SOCRevealFogHex} - Reveal a hidden hex on the board.
+     * @since 2.0.00
+     */
+    public static final int REVEALFOGHEX = 10001;  // fog hexes, 20121108, v2.0.00
+
 
 
     /**
@@ -929,12 +931,6 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case GAMEELEMENTS:      // game status fields, 20171223, v2.0.00
                 return SOCGameElements.parseDataStr(multiData);
 
-            case REVEALFOGHEX:      // fog hexes, 20121108, v2.0.00
-                return SOCRevealFogHex.parseDataStr(data);
-
-            case LEGALEDGES:        // large sea board, 20121216, v2.0.00
-                return SOCLegalEdges.parseDataStr(data);
-
             case SVPTEXTMSG:        // SVP text messages, 20121221, v2.0.00
                 return SOCSVPTextMessage.parseDataStr(data);
 
@@ -949,6 +945,11 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case SCENARIOINFO:         // Scenario info, 20150920, v2.0.00
                 return SOCScenarioInfo.parseDataStr(multiData, data);
+
+            // gametype-specific messages:
+
+            case REVEALFOGHEX:      // fog hexes, 20121108, v2.0.00
+                return SOCRevealFogHex.parseDataStr(data);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);
