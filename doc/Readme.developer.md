@@ -277,6 +277,7 @@ patch submissions; to set up Eclipse now to use that style, see section
 Before building, make sure you have the Java Development Kit version 6 or later.
 If you simply want to run the client or server, you only need the Java Runtime
 (JRE). Extra tests in the build want python 2.7 or later for unittest discovery.
+Other scripts, like `bin/sql/template/render.py`, use python 2.6 or later.
 
 If you wish to maintain a user database for your server, you need MySQL
 or PostgreSQL installed and configured, or the sqlite jdbc driver for a

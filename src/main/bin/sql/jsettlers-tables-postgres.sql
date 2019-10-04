@@ -14,6 +14,8 @@
 -- For multi-line SQLs, indent so that SOCDBHelper.runSetupScript can combine them.
 -- Comments must begin with a space: "-- ".
 
+
+
 -- Schema upgrades:
 --   See SOCDBHelper.upgradeSchema(). DDL here must be kept in sync with what's found there.
 --   2017-06-09 v1.2.00: Add db_version and settings tables;
@@ -41,7 +43,7 @@ CREATE TABLE db_version (
 	PRIMARY KEY (to_vers)
 	);
 -- At DB creation, a row is added to this table to indicate current version: See bottom of this script.
--- If this table's schema changes, also update its "CREATE TABLE" string in SOCDBHelper.upgradeSchema.
+
 
 
 -- General settings, especially about features using the database.

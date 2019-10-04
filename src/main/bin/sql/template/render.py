@@ -5,9 +5,11 @@
 #     -d recognized types are: mysql,postgres,sqlite
 #     -c or -o filename can contain %s placeholder for dbtype string
 #   Returns: 0 on success, 1 if error reading/writing or failed comparison, 2 if problems with command line
+#   Token format: {{now}}, {{TIMESTAMP}}, etc
 #   Assumes utf-8 encoding for infile, outfile, comparefile
+#   Requires python 2.6 or later
 #
-# Typical usage if you see the message "Must regenerate SQL script(s) from templates using render.py":
+# Typical usage, if you see the message "Must regenerate SQL script(s) from templates using render.py":
 #   cd src/main/bin/sql/template
 #   ./render.py -i jsettlers-tables-tmpl.sql -d mysql,sqlite,postgres -o ../jsettlers-tables-%s.sql
 #   git status
@@ -176,6 +178,10 @@ def render_one(dbtype, infile, outfile, compfile):
             file_in = codecs.open(infile, 'r', encoding='utf8')
         with file_in:
             in_str = file_in.read()
+
+        # ignore any whole-line ---- comments in template:
+        # uses (?m) for re.MULTILINE flag, because re.sub flags param not added until python 2.7
+        in_str = re.sub(r'(?m)^\s*---- .+$', '', in_str)
 
         out_str = render(in_str)
 

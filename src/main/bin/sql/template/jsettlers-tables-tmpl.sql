@@ -13,6 +13,8 @@
 -- For indexes, use the table name + __ + one lowercase letter.
 -- For multi-line SQLs, indent so that SOCDBHelper.runSetupScript can combine them.
 -- Comments must begin with a space: "-- ".
+---- Comments meant for the template only, not copied into the output files, use 4 dashes "---- "
+---- and must use the entire line, without any SQL code to the left of the comment.
 
 -- Schema upgrades:
 --   See SOCDBHelper.upgradeSchema(). DDL here must be kept in sync with what's found there.
@@ -41,7 +43,7 @@ CREATE TABLE db_version (
 	PRIMARY KEY (to_vers)
 	);
 -- At DB creation, a row is added to this table to indicate current version: See bottom of this script.
--- If this table's schema changes, also update its "CREATE TABLE" string in SOCDBHelper.upgradeSchema.
+---- If this table's schema changes, also update its "CREATE TABLE" string in SOCDBHelper.upgradeSchema.
 
 
 -- General settings, especially about features using the database.
