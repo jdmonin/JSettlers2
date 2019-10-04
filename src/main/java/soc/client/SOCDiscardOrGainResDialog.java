@@ -136,8 +136,9 @@ import javax.swing.SwingConstants;
         keep = new ColorSquare[5];
         pick = new ColorSquare[5];
 
-        JPanel keepPanel = new JPanel(new GridLayout(1, 0, ColorSquareLarger.WIDTH_L, 0));
-        JPanel pickPanel = new JPanel(new GridLayout(1, 0, ColorSquareLarger.WIDTH_L, 0));
+        final int sqSize = ColorSquareLarger.WIDTH_L * pi.displayScale;
+        JPanel keepPanel = new JPanel(new GridLayout(1, 0, sqSize, 0));
+        JPanel pickPanel = new JPanel(new GridLayout(1, 0, sqSize, 0));
         if (! isOSHighContrast)
         {
             keepPanel.setBackground(null);
@@ -150,8 +151,8 @@ import javax.swing.SwingConstants;
         {
             final Color sqColor = ColorSquare.RESOURCE_COLORS[i];
 
-            keep[i] = new ColorSquareLarger(ColorSquare.BOUNDED_DEC, false, sqColor);
-            pick[i] = new ColorSquareLarger(ColorSquare.BOUNDED_INC, false, sqColor);
+            keep[i] = new ColorSquare(ColorSquare.BOUNDED_DEC, false, sqSize, sqSize, sqColor);
+            pick[i] = new ColorSquare(ColorSquare.BOUNDED_INC, false, sqSize, sqSize, sqColor);
             keepPanel.add(keep[i]);
             pickPanel.add(pick[i]);
             keep[i].addMouseListener(this);

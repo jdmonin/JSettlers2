@@ -40,9 +40,14 @@ import javax.swing.JComponent;
  * interactive, or non-interactive.  The possible
  * colors of the box correspond to resources in SoC.
  *<P>
- * Default size and minimum size are {@link #WIDTH} by {@link #HEIGHT} pixels: Call {@link #setSize(int, int)} to change
- * size, {@link #setMinimumSize(Dimension)} to change minimum. Minimum isn't set by setSize, to avoid a "disappearing"
- * 0-height or 0-width square when layout manager calls setSize or setBounds.
+ * Default size and minimum size are {@link #WIDTH} by {@link #HEIGHT} pixels,
+ * unless you call a constructor which overrides the default size.
+ * Those constructors will also increase font size of a larger ColorSquare;
+ * calling {@code setSize} or {@code setMinimumSize} won't change the font size.
+ *<P>
+ * You can call method {@link #setSize(int, int)} to change current size,
+ * {@link #setMinimumSize(Dimension)} to change minimum. Minimum isn't set by setSize,
+ * to avoid a "disappearing" 0-height or 0-width square when layout manager calls setSize or setBounds.
  *<P>
  * Most colorsquares in JSettlers are actually {@link ColorSquareLarger} instances:
  * Creating that subclass was easier than changing the values of {@link #WIDTH} and {@link #HEIGHT} here,
@@ -563,7 +568,7 @@ public class ColorSquare extends JComponent implements MouseListener
     }
 
     /**
-     * Set the size of this ColorSquare; overriden to call {@link #setSize(int, int)}.
+     * Set the size of this ColorSquare; overridden to call {@link #setSize(int, int)}.
      * @since 2.0.00
      */
     @Override
