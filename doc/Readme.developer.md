@@ -425,7 +425,7 @@ ideas.
 - Occasionally the board does not re-scale at game reset
 - Add more scenarios' unit tests to `soctest.game.TestScenarioRules`
 - Kick robots if inactive but current player in game, assume they're buggy (use forceEndTurn)
-- Control the speed of robots in practice games
+- Control the speed of robots, in practice games and with other humans
   - Adjust `SOCRobotBrain.pause`, `ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS`, etc
 - For bot test runs with `-Djsettlers.bots.botgames.shutdown=Y` (`SOCServer.PROP_JSETTLERS_BOTS_BOTGAMES_SHUTDOWN`):
   - Print a summary at the end in a machine-readable format like YAML: Number of games, average length, etc
@@ -441,16 +441,17 @@ ideas.
 - Refactor: Combine ShadowedBox, SpeechBalloon: They look the same except for that balloon point
 - Refactor: Rework ShadowedBox, SpeechBalloon to use a custom-drawn Swing Border
 - Refactor: New methods to shortcut `ga.getPlayer(ga.getCurrentPlayer())` or `getClient().getClientManager()`
+- Refactor: `SOCGameOption` static methods to check and change values within a set
+- Refactor: name of dev-cards consolidate
+- Refactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
+    - Currently in 2 places: `SOCResourceConstants.CLAY` vs `SOCPlayerElement.CLAY`
+- Customize bot names (txt file or startup property) in SOCServer.setupLocalRobots
 - Refactor `SOCRobotClient`: Move simple handle-methods which don't put the
   message into brainQ, but only update game fields/methods, into
   SOCDisplayless if possible.
 - Refactor `SOCDisplaylessPlayerClient` like SOCPlayerClient: Move handler methods into
   a class like MessageHandler, and sender methods into a class like GameMessageSender.
   Watch for method calls from the `soc.robot` and `soc.client` packages.
-- Refactor: `SOCGameOption` static methods to check and change values within a set
-- Refactor: name of dev-cards consolidate
-- Refactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
-    - Currently in 2 places: `SOCResourceConstants.CLAY` vs `SOCPlayerElement.CLAY`
 - Track a limited supply of resource cards
     - Currently unlimited
     - Official game rules have a supply limit. Paraphrasing 5th edition rules:
@@ -478,7 +479,6 @@ ideas.
 - Property for read-only database use without errors
 - Game "owner" with extra powers (kick out player, etc)
     - What happens if owner loses connection?
-- Customize bot names (txt file or startup property) in srv.setupLocalRobots
 - "Hot seat" mode (multiple human players sharing a screen on 1 client)
 - Monitoring: Command line utility or html-based dashboard: Uptime, health of
   bots, currently active/total games from `*STATS*` cmd, client versions, any
