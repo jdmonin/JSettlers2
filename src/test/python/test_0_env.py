@@ -11,7 +11,8 @@ import os, sys, unittest
 class test_0_env(unittest.TestCase):
 
     def test_env(self):
-        print("test_0_env.py running; pwd is " + os.getcwd())
+        # Note: expected current dir is repodir/src/test/python
+        #     print("test_0_env.py running; pwd is " + os.getcwd())
 
         if sys.version_info[0] > 2:
             print("Warning: python3 not supported; some tests might not be tested under 3 or unicode-ready",
