@@ -123,7 +123,7 @@ When preparing to release a new version, testing should include:
     client leaves/rejoins the game. (For more info see "Layout placement rules for special situations"
     in `soc.server.SOCBoardAtServer` class javadoc.)
     - Scope:
-        - Test the **Cloth Trade**, **Fog Islands**, and **Through the Desert** scenarios
+        - Test the **Cloth Trade**, **Fog Islands**, **Through the Desert**, and **Wonders** scenarios
         - Use defaults for game options, number of players, etc
     - Test process for each scenario:
         - Start a server
@@ -137,8 +137,10 @@ When preparing to release a new version, testing should include:
           `=*= show: all`  
           At first, only a yellow bounding box will be visible
         - Start the game (server sends board layout, begins Initial Placement)
-        - Place 1 settlement and road/ship. When testing Fog Islands, that should be a coastal settlement
-          and ship to reveal a fog hex
+        - Place 1 settlement and road/ship
+            - For Fog Islands: Should be a coastal settlement and ship to reveal a fog hex
+            - For Wonders: Have one player place next to and towards the off-limits Strait's
+              colored diamonds, other player place a coastal settlement and ship towards a small island
         - At each client player:
             - Note the layout's legal and potential nodes and edges, possibly by taking a screenshot.
               (Legals are yellow, potentials are green, land hexes/nodes are red.
