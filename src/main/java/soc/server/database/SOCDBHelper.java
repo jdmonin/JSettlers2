@@ -83,7 +83,7 @@ import java.util.concurrent.Executors;
  *
  *<H3>Schema Upgrades:</H3>
  * Sometimes a new JSettlers version adds to the DB schema. When starting the JSettlers server, call
- * {@link #isSchemaLatestVersion()} to check, and if needed {@link #upgradeSchema()}.
+ * {@link #isSchemaLatestVersion()} to check, and if needed {@link #upgradeSchema(Set)}.
  * To improve flexibility, currently we let the server's admin defer upgrades and continue running
  * with the old schema until they have time to upgrade it.
  *<P>
@@ -201,7 +201,7 @@ public class SOCDBHelper
     public static final String PROP_JSETTLERS_DB_SCRIPT_SETUP = "jsettlers.db.script.setup";
 
     /**
-     * Boolean property {@code jsettlers.db.upgrade_schema} to run {@link #upgradeSchema()}
+     * Boolean property {@code jsettlers.db.upgrade_schema} to run {@link #upgradeSchema(Set)}
      * at server startup, then exit. To activate this mode, set this to true.
      *<P>
      * Same SOCServer semantics/exceptions as {@link #PROP_JSETTLERS_DB_SCRIPT_SETUP},
@@ -383,7 +383,7 @@ public class SOCDBHelper
     private static final char DBTYPE_UNKNOWN = '?';
 
     /**
-     * During {@link #upgradeSchema()} if a data conversion batch gets this many rows, execute and start a new batch.
+     * During {@link #upgradeSchema(Set)}, if a data conversion batch gets this many rows, execute and start a new batch.
      * @since 1.2.00
      */
     private static final int UPG_BATCH_MAX = 100;
@@ -967,7 +967,7 @@ public class SOCDBHelper
 
     /**
      * Get the detected schema version of the currently connected database.
-     * To upgrade an older schema to the latest available, see {@link #upgradeSchema()}.
+     * To upgrade an older schema to the latest available, see {@link #upgradeSchema(Set)}.
      * @return Schema version, such as {@link #SCHEMA_VERSION_ORIGINAL} or {@link #SCHEMA_VERSION_1200}
      * @see #SCHEMA_VERSION_LATEST
      * @see #isSchemaLatestVersion()
@@ -983,7 +983,7 @@ public class SOCDBHelper
      * ({@link #SCHEMA_VERSION_LATEST})
      * @return True if DB schema is the most up-to-date version
      * @throws IllegalStateException  if not connected to DB (! {@link #isInitialized()})
-     * @see #upgradeSchema()
+     * @see #upgradeSchema(Set)
      * @see #getSchemaVersion()
      * @see #doesSchemaUpgradeNeedBGTasks()
      * @since 1.2.00
@@ -1002,7 +1002,7 @@ public class SOCDBHelper
      * If so, start those tasks by calling {@link #startSchemaUpgradeBGTasks()}.
      *<P>
      * Background tasks would typically be data conversions to populate new fields, which will gradually activate
-     * new functionality such as per-user password encoding. The tasks are idempotent operations and will cleanly resume
+     * new functionality such as per-user password encoding. The tasks are self-checkpointing and will cleanly resume
      * if interrupted by server shutdown.
      *<P>
      * This flag is determined at {@link #initialize(String, String, Properties)}, by reading the
@@ -3107,6 +3107,8 @@ public class SOCDBHelper
 
         // END COMPARISON AREA -- test_token_consistency.py
 
+        final int from_vers = schemaVersion;
+
         /* 1.2.00: First, create db_version table */
         if (schemaVersion < SCHEMA_VERSION_1200)
         {
@@ -3120,11 +3122,8 @@ public class SOCDBHelper
         }
 
         /* add upgrade in progress to db_version history table */
-        final int from_vers = schemaVersion;
         try
         {
-            // no rollback needed if fails, unless schemaVersion < SCHEMA_VERSION_1200
-
             PreparedStatement ps = connection.prepareStatement
                 ("INSERT into db_version(from_vers, to_vers, ddl_done, bg_tasks_done) VALUES(?,?,null,null);");
             ps.setInt(1, from_vers);
@@ -3132,6 +3131,8 @@ public class SOCDBHelper
             ps.executeUpdate();
             ps.close();
         } catch (SQLException e) {
+            // no rollback needed if fails, unless schemaVersion < SCHEMA_VERSION_1200
+
             if (schemaVersion < SCHEMA_VERSION_1200)
             {
                 try {
@@ -3271,6 +3272,9 @@ public class SOCDBHelper
                         couldRollback = false;
                 }
 
+                // nothing successfully upgraded, so remove in-progress db_version table entry
+                upgradeSchema_setDBVersionTable(false, from_vers, 0, false);
+
                 if (! couldRollback)
                     System.err.println
                         ("*** Could not completely roll back failed upgrade: Must restore DB from backup!");
@@ -3324,7 +3328,7 @@ public class SOCDBHelper
 
                 runDDL("CREATE INDEX upg_tmp_games__m ON upg_tmp_games(mig_done);");
 
-                // copy data from games into upg_tmp_games & games2:
+                // Copy data from games into upg_tmp_games & games2:
                 // has no "added" var; during rollback these tables will be deleted
 
                 // begin transaction:
@@ -3430,26 +3434,27 @@ public class SOCDBHelper
                 else
                     System.err.println("\n* All rollbacks were successful.\n");
 
-                // TODO what if orig schemaVersion was v1000? Should it put an entry in upg table from 1000 to 1200?
+                // clean up in-progress db_version table entry
+                if (from_vers < SCHEMA_VERSION_1200)
+                    // if orig schemaVersion was v1000, update to 1200 not 2000
+                    upgradeSchema_setDBVersionTable(false, from_vers, SCHEMA_VERSION_1200, true);
+                else
+                    // orig was 1200 -> nothing successfully done, so delete entry
+                    upgradeSchema_setDBVersionTable(false, from_vers, 0, false);
 
                 throw e;
             }
         }
 
-        /* mark upgrade as completed in db_version table */
         final boolean has_bg_tasks = (schemaVersion < SCHEMA_VERSION_2000);
+
+        /* mark upgrade as completed in db_version table */
+        try
         {
-            PreparedStatement ps = connection.prepareStatement
-                ("UPDATE db_version SET ddl_done=?, bg_tasks_done=? WHERE to_vers=?;");
-            final Timestamp now = new Timestamp(System.currentTimeMillis());
-            ps.setTimestamp(1, now);
-            if (has_bg_tasks)
-                ps.setNull(2, Types.TIMESTAMP);
-            else
-                ps.setTimestamp(2, now);
-            ps.setInt(3, SCHEMA_VERSION_LATEST);
-            ps.executeUpdate();
-            ps.close();
+            upgradeSchema_setDBVersionTable(true, from_vers, SCHEMA_VERSION_LATEST, has_bg_tasks);
+        } catch (SQLException e) {
+            System.err.println
+                ("* Upgrade was successful except for final db_version table update; please manually update db_version as described above.");
         }
 
         if (has_bg_tasks)
@@ -3459,6 +3464,73 @@ public class SOCDBHelper
 
         /* upgrade is completed. */
         System.err.println("* DB schema upgrade completed.\n\n");
+    }
+
+    /**
+     * Update the {@code db_version} table at the end of an upgrade (or rollback) based on the versions involved.
+     * The table then accurately indicates whether the upgrade was complately successful; partially successful
+     * up to a certain schema version but rolled back from latest version; or complately failed and rolled back.
+     *<P>
+     * This is a followup to the start of {@link #upgradeSchema(Set)}, which adds a row to {@code db_version}
+     * with {@code from_vers=}<em>fromVers</em> before trying any DDL statements.
+     *<P>
+     * Called from {@link #upgradeSchema(Set)} after its DDL statements; not called from BG tasks thread.
+     *
+     * @param throwExcepIfError  If any problem comes up while updating the table, the Exception is always printed here
+     *     along with the updated statement being attempted. If true, also throws it for caller to catch.
+     * @param fromVers  Version being upgraded from; schema version of the database
+     *     before {@link #upgradeSchema(Set)} was called
+     * @param successfulToVers  Version up to which all upgrade changes were successful, or 0 if rollback was needed
+     *     before any intermediate version was reached. If not 0, the {@code ddl_done} field
+     *     will get the current timestamp. If 0, the {@code db_version} row for this upgrade with
+     *     {@code from_vers=}<em>fromVers</em> is deleted.
+     * @param hasBGTasks  If true, the upgrade DDL was successful but some background tasks remain;
+     *     the {@code bg_tasks_done} field should remain {@code null}. If false, that field should get
+     *     the current timestamp. Ignored if {@code successfulToVers} is 0.
+     * @throws SQLException if an error occurred and {@code throwExcepIfError} is true
+     * @since 2.0.00
+     */
+    private static void upgradeSchema_setDBVersionTable
+        (final boolean throwExcepIfError, final int fromVers, final int successfulToVers, final boolean hasBGTasks)
+        throws SQLException
+    {
+        try
+        {
+            final PreparedStatement ps;
+            if (successfulToVers == 0)
+            {
+                ps = connection.prepareStatement
+                    ("DELETE FROM db_version WHERE from_vers=?;");
+                ps.setInt(1, fromVers);
+            } else {
+                ps = connection.prepareStatement
+                    ("UPDATE db_version SET to_vers=?, ddl_done=?, bg_tasks_done=? WHERE from_vers=?;");
+                final Timestamp now = new Timestamp(System.currentTimeMillis());
+                ps.setInt(1, successfulToVers);
+                ps.setTimestamp(2, now);
+                if (hasBGTasks)
+                    ps.setNull(3, Types.TIMESTAMP);
+                else
+                    ps.setTimestamp(3, now);
+                ps.setInt(4, fromVers);
+            }
+
+            ps.executeUpdate();
+            ps.close();
+        } catch (SQLException e) {
+            System.err.println("*** SQLException while updating db_version table: " + e);
+            if (successfulToVers == 0)
+                System.err.println
+                    ("    Cleanup needed: DELETE FROM db_version WHERE from_vers=" + fromVers + ';');
+            else
+                System.err.println
+                    ("    Cleanup needed: Restore from backup, or UPDATE db_version SET to_vers=" + successfulToVers
+                     + ", ddl_done=(timestamp), bg_tasks_done=" + ((hasBGTasks) ? "null": "(timestamp)")
+                     + " WHERE from_vers=" + fromVers + ';');
+
+            if (throwExcepIfError)
+                throw e;
+        }
     }
 
     /****************************************
@@ -4418,7 +4490,7 @@ public class SOCDBHelper
 
             try
             {
-                while ((schemaUpgBGTasks_fromVersion < SCHEMA_VERSION_LATEST) && ! doShutdown)
+                while ((schemaUpgBGTasks_fromVersion < schemaVersion) && ! doShutdown)
                 {
                     final int fromVers = schemaUpgBGTasks_fromVersion;
                     if (fromVers == 0)
