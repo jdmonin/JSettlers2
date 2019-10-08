@@ -2529,13 +2529,13 @@ public class SOCServer extends Server
      * @param destroyIfEmpty  if true, this method will destroy the game if it's now empty.
      *           If false, the caller must call {@link #destroyGame(String)}
      *           before calling {@link SOCGameList#releaseMonitor()}.
-     * @param gameListLock  true if we have the {@link SOCGameList#takeMonitor()} lock when called;
+     * @param gameListLock  true if caller holds the {@link SOCGameList#takeMonitor()} lock when called;
      *           false if it must be acquired and released within this method
-     * @return true if the game was destroyed, or if it would have been destroyed but {@code destroyIfEmpty} is false.
+     * @return true only if the game was destroyed, or if it would have been destroyed but {@code destroyIfEmpty} is false
      * @throws IllegalArgumentException if both {@code ga} and {@code gm} are null
      */
     public boolean leaveGame
-        (Connection c, SOCGame ga, String gm, final boolean destroyIfEmpty, final boolean gameListLock)
+        (final Connection c, SOCGame ga, String gm, final boolean destroyIfEmpty, final boolean gameListLock)
         throws IllegalArgumentException
     {
         if (c == null)
@@ -7371,21 +7371,20 @@ public class SOCServer extends Server
      */
 
     /**
-     * Save game stats in the database.
-     * if all the players stayed for the whole game,
-     * or if the game has any human players,
-     * record the winner and scores in the database.
+     * Save game stats in the database: Record the winner, scores, and game options.
+     * For players whose users exist in the database, update their win-loss counts.
      *<P>
-     * Does nothing unless property {@code jsettlers.db.save.games}
-     * is true. ({@link SOCDBHelper#PROP_JSETTLERS_DB_SAVE_GAMES})
+     * Does nothing unless game has a human player and all players stayed for the entire game.
+     *<P>
+     * Win-loss records require schema version &gt;= {@link SOCDBHelper#SCHEMA_VERSION_2000}.
+     * If property {@code jsettlers.db.save.games} is false ({@link SOCDBHelper#PROP_JSETTLERS_DB_SAVE_GAMES}),
+     * will only update users' win-loss counts, not store game details.
      *
      * @param ga  the game; state should be {@link SOCGame#OVER}
      */
     protected void storeGameScores(SOCGame ga)
     {
         if ((ga == null) || ! SOCDBHelper.isInitialized())
-            return;
-        if (! getConfigBoolProperty(SOCDBHelper.PROP_JSETTLERS_DB_SAVE_GAMES, false))
             return;
 
         //D.ebugPrintln("allOriginalPlayers for "+ga.getName()+" : "+ga.allOriginalPlayers());
@@ -7396,7 +7395,8 @@ public class SOCServer extends Server
         try
         {
             final int gameSeconds = (int) (((System.currentTimeMillis() - ga.getStartTime().getTime())+500L) / 1000L);
-            SOCDBHelper.saveGameScores(ga, gameSeconds);
+            SOCDBHelper.saveGameScores
+                (ga, gameSeconds, ! getConfigBoolProperty(SOCDBHelper.PROP_JSETTLERS_DB_SAVE_GAMES, false));
         }
         catch (Exception e)
         {

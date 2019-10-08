@@ -210,9 +210,14 @@ public class SOCDBHelper
      */
     public static final String PROP_JSETTLERS_DB_UPGRADE__SCHEMA = "jsettlers.db.upgrade_schema";
 
-    /** Property <tt>jsettlers.db.save.games</tt> to ask to save
+    /**
+     * Property <tt>jsettlers.db.save.games</tt> to ask to save
      * all game results in the database.
      * Set this to 1 or Y to activate this feature.
+     *<P>
+     * If not set, but DB schema is new enough to save users' win-loss counts
+     * ({@link #SCHEMA_VERSION_2000}), those per-user counts will still be updated.
+     *
      * @since 1.1.15
      */
     public static final String PROP_JSETTLERS_DB_SAVE_GAMES = "jsettlers.db.save.games";
@@ -235,6 +240,8 @@ public class SOCDBHelper
 
     /**
      * Original JSettlers schema version (1.0.00), before any new extra tables/fields.
+     * {@code games} table has columns for only 4 players' names and scores, not 6.
+     *<P>
      * Next version (but not latest) is {@link #SCHEMA_VERSION_1200}.
      *
      * @see #SCHEMA_VERSION_LATEST
@@ -957,7 +964,7 @@ public class SOCDBHelper
      * True if db is connected and available; false if never initialized,
      * or if {@link #cleanup(boolean)} was called.
      *
-     * @return  True if available
+     * @return  True if database available
      * @since 1.1.14
      */
     public static boolean isInitialized()
@@ -1051,11 +1058,11 @@ public class SOCDBHelper
     }
 
     /**
-     * Checks if connection is supposed to be present and attempts to reconnect
+     * Checks if connection is supposed to be up and available, and attempts to reconnect
      * if there was previously an error.  Reconnecting closes the current
      * {@link #connection}, opens a new one, and re-initializes the prepared statements.
      *
-     * @return true if the connection is established upon return
+     * @return true if the connection is established, false if DB connection was never initialized
      */
     private static boolean checkConnection() throws SQLException
     {
@@ -1857,50 +1864,63 @@ public class SOCDBHelper
     }
 
     /**
-     * Record this completed game's time, players, and scores in the database.
+     * Record this completed game's time, players, scores, and game options in the database.
+     * For players whose users exist in the database, update their win-loss counts.
+     *<P>
+     * User win-loss records require schema version &gt;= {@link SOCDBHelper#SCHEMA_VERSION_2000}.
      *
      * @param ga  Game that's just completed
      * @param gameLengthSeconds  Duration of game
+     * @param winLossOnly  If true don't store game details, only update users' win-loss counts.
+     *     Caller should negate value of {@link #PROP_JSETTLERS_DB_SAVE_GAMES} to set this parameter.
      *
      * @return true if the save succeeded
      * @throws IllegalArgumentException if {@link SOCGame#getPlayerWithWin() ga.getPlayerWithWin()} is null
      * @throws SQLException if an error occurs
      */
     public static boolean saveGameScores
-        (final SOCGame ga, final int gameLengthSeconds)
+        (final SOCGame ga, final int gameLengthSeconds, final boolean winLossOnly)
         throws IllegalArgumentException, SQLException
     {
         final SOCPlayer winner = ga.getPlayerWithWin();
         if (winner == null)
             throw new IllegalArgumentException("no winner");
 
-        if (checkConnection())
+        if ((winLossOnly && (userIncrWonCommand == null))
+            || ! checkConnection())
         {
-            String[] names = new String[SOCGame.MAXPLAYERS];  // DB max 6; ga.maxPlayers max 4 or 6
-            short[] scores = new short[SOCGame.MAXPLAYERS];
-            for (int pn = 0; pn < ga.maxPlayers; ++pn)
-            {
-                SOCPlayer pl = ga.getPlayer(pn);
-                names[pn] = pl.getName();
-                scores[pn] = (short) pl.getTotalVP();
-            }
+            return false;  // <--- Early return: nothing to save, or conn was never initialized ---
+        }
 
-            final int db_max_players = (schemaVersion < SCHEMA_VERSION_1200) ? 4 : 6;
-            if ((ga.maxPlayers > db_max_players)
-                && ! (ga.isSeatVacant(4) && ga.isSeatVacant(5)))
-            {
-                // Need to try and fit player 5 and/or player 6
-                // into the 4 db slots (backwards-compatibility)
-                saveGameScores_fit6pInto4(ga, names, scores);
-            }
+        String[] names = new String[SOCGame.MAXPLAYERS];  // DB max 6; ga.maxPlayers max 4 or 6
+        short[] scores = new short[SOCGame.MAXPLAYERS];
+        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+        {
+            SOCPlayer pl = ga.getPlayer(pn);
+            names[pn] = pl.getName();
+            scores[pn] = (short) pl.getTotalVP();
+        }
 
-            try
+        try
+        {
+            int newGameID = -1;  // PK from insertGames2Row, unless winLossOnly
+
+            if (! winLossOnly)
             {
+
+                final int db_max_players = (schemaVersion < SCHEMA_VERSION_1200) ? 4 : 6;
+                if ((ga.maxPlayers > db_max_players)
+                    && ! (ga.isSeatVacant(4) && ga.isSeatVacant(5)))
+                {
+                    // Need to try and fit player 5 and/or player 6
+                    // into the 4 db slots (backwards-compatibility)
+                    saveGameScores_fit6pInto4(ga, names, scores);
+                }
+
                 final String gaName = ga.getName();
                 final long startTimeMillis = ga.getStartTime().getTime();
                 final Map<String, SOCGameOption> opts = ga.getGameOptions();
                 final String optsStr = (opts == null) ? null : SOCGameOption.packOptionsToString(opts, false);
-                final int newGameID;  // PK from insertGames2Row
 
                 if (schemaVersion >= SCHEMA_VERSION_2000)
                 {
@@ -1938,22 +1958,25 @@ public class SOCDBHelper
 
                     saveGameCommand.executeUpdate();
                 }
+            }
 
-                if (userIncrWonCommand != null)
+            if (userIncrWonCommand != null)
+            {
+                // In a transaction:
+                // - Save per-player scores.
+                // - Update per-user win/loss records for any players who exist in DB
+                // Applies to schemaVersion >= SCHEMA_VERSION_2000
+
+                String winnerName = winner.getName();
+                if ((winnerName == null) || winnerName.isEmpty())
+                    winnerName = "?";  // could happen if disconnected before save
+
+                // begin transaction
+                final boolean wasConnAutocommit = enterTransactionMode();
+
+                try
                 {
-                    // In a transaction:
-                    // - Save per-player scores.
-                    // - Update per-user win/loss records for any players who exist in DB
-                    // Applies to schemaVersion >= SCHEMA_VERSION_2000
-
-                    String winnerName = winner.getName();
-                    if ((winnerName == null) || winnerName.isEmpty())
-                        winnerName = "?";  // could happen if disconnected before save
-
-                    // begin transaction
-                    final boolean wasConnAutocommit = enterTransactionMode();
-
-                    try
+                    if (! winLossOnly)
                     {
                         // Per-player scores:
 
@@ -1976,59 +1999,57 @@ public class SOCDBHelper
                         }
                         if (hadAnyPlayers)
                             saveGamePlayerCommand.executeBatch();
-
-                        // Per-user win/loss records:
-
-                        if ((winnerName != null) && (winnerName.length() > 0))
-                        {
-                            userIncrWonCommand.setString(1, winnerName);
-                            userIncrWonCommand.executeUpdate();
-                        }
-
-                        int nLost = 0;
-                        final int winnerPN = winner.getPlayerNumber();
-                        for (int pn = 0; pn < ga.maxPlayers; ++pn)
-                        {
-                            if (pn == winnerPN)
-                                continue;
-                            if (ga.isSeatVacant(pn))
-                                continue;
-                            String pname = names[pn];
-                            if ((pname == null) || pname.isEmpty())
-                                continue;
-
-                            userIncrLostCommand.setString(1, pname);
-                            userIncrLostCommand.addBatch();
-                            ++nLost;
-                        }
-                        if (nLost > 0)
-                            userIncrLostCommand.executeBatch();
-
-                        connection.commit();
-                    } catch (SQLException e) {
-                        connection.rollback();
-                        throw e;
-                    } finally {
-                        exitTransactionMode(wasConnAutocommit);
                     }
-                }
 
-                return true;
+                    // Per-user win/loss records:
+
+                    if ((winnerName != null) && (winnerName.length() > 0))
+                    {
+                        userIncrWonCommand.setString(1, winnerName);
+                        userIncrWonCommand.executeUpdate();
+                    }
+
+                    int nLost = 0;
+                    final int winnerPN = winner.getPlayerNumber();
+                    for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                    {
+                        if ((pn == winnerPN) || ga.isSeatVacant(pn))
+                            continue;
+                        String pname = names[pn];
+                        if ((pname == null) || pname.isEmpty())
+                            continue;
+
+                        userIncrLostCommand.setString(1, pname);
+                        userIncrLostCommand.addBatch();
+                        ++nLost;
+                    }
+                    if (nLost > 0)
+                        userIncrLostCommand.executeBatch();
+
+                    connection.commit();
+                } catch (SQLException e) {
+                    connection.rollback();
+                    throw e;
+                } finally {
+                    exitTransactionMode(wasConnAutocommit);
+                }
             }
-            catch (SQLException sqlE)
-            {
-                errorCondition = true;
-                sqlE.printStackTrace();
-                throw sqlE;
-            }
+
+        }
+        catch (SQLException sqlE)
+        {
+            errorCondition = true;
+            sqlE.printStackTrace();
+            throw sqlE;
         }
 
-        return false;
+        return true;
     }
 
     /**
      * Try and fit names and scores of player 5 and/or player 6
-     * into the 4 db slots, for backwards-compatibility.
+     * into the 4 db slots, for backwards-compatibility with
+     * {@link #SCHEMA_VERSION_ORIGINAL}.
      * Checks {@link SOCGame#isSeatVacant(int) ga.isSeatVacant(pn)}
      * and {@link SOCPlayer#isRobot() ga.getPlayer(pn).isRobot()}
      * for the first 4 player numbers, and copies player 5 and 6's
@@ -2637,7 +2658,7 @@ public class SOCDBHelper
 
     /**
      * Insert a new game-info row into the {@code games2} table and return its generated ID.
-     * Used by {@link #saveGameScores(SOCGame, int)}.
+     * Used by {@link #saveGameScores(SOCGame, int, boolean)}.
      *
      * @param startTimeMillis  Game start time, from {@link SOCGame#getStartTime()}{@link java.util.Date#getTime() .getTime()}
      * @param optsStr  Null or game options, from {@link SOCGame#getGameOptions()}

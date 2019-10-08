@@ -59,6 +59,8 @@ and backport minor new features until `2.0.00` is ready.
          - games table: Obsoleted by games2. Upgrade won't delete it, but new games won't be added to it
          - games2: Normalized "games" table with per-player sub-table; also added scenario field
          - games2_players: Sub-table: Score for 1 player in a game
+     - Users' win/loss counts are updated when game won or lost, even if flag property
+       `jsettlers.db.save.games` isn't set
      - Server `--pw-reset` now hides the password text
 - Game option key names can now be longer (8 characters)
 - Some game options are meant to be set by the server during game creation, not requested by the client.
