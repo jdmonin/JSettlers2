@@ -161,9 +161,13 @@ import javax.swing.SwingConstants;
 
         resPanel.add(keepPanel);
 
+        // "Discard this:"/"Discard these:" or "Gain this:"/"Gain these:"
         final JLabel pickThese = new JLabel
-            (strings.get(isDiscard ? "dialog.discard.these" : "dialog.discard.gain.these"), SwingConstants.LEFT);
-             // "Discard these:" or "Gain these:"
+            (strings.get
+                ((numPickNeeded == 1)
+                  ? (isDiscard ? "dialog.discard.this" : "dialog.discard.gain.this")
+                  : (isDiscard ? "dialog.discard.this.plural" : "dialog.discard.gain.this.plural")),
+             SwingConstants.LEFT);
         pickThese.setAlignmentX(LEFT_ALIGNMENT);
         pickThese.setBorder(BorderFactory.createEmptyBorder(20, 0, 4, 0));  // also gives 20-pixel margin above.
         resPanel.add(pickThese);
