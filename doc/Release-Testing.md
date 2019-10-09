@@ -279,7 +279,9 @@ When preparing to release a new version, testing should include:
     - To launch SOCAccountClient, use: `java -cp JSettlers.jar soc.client.SOCAccountClient yourserver.example.com 8880`
     - At connect, should see a message like "This server does not use accounts"
 
-**Test all of the following** with supported DB types: sqlite first, mysql, postgres.
+### Tests for each DB type
+
+Test all of these with each supported DB type: sqlite first, mysql, postgres.
 See [Database.md](Database.md) for versions to test ("JSettlers is tested with...").
 
 - Set up a new DB with instructions from the "Database Creation" section of [Database.md](Database.md),
@@ -344,6 +346,43 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
     - Run JSettlers.jar; log in as `Adm` to test case-insensitive nicknames.  
       Make sure you can create a game, to test password encoding conversion.  
       Run the `*DBSETTINGS*` admin command to verify BCrypt password encoding is being used.
+
+### Other Database Tests
+
+Test these with any one DB type; sqlite may be the quickest to set up.
+Start with a recently-created database with latest schema/setup scripts.
+
+- Game results and player-account win/loss counts:
+    - Start a server with db-connect properties and:
+      `-Djsettlers.startrobots=0 -Djsettlers.accounts.open=Y -Djsettlers.allow.debug=Y -Djsettlers.db.save.games=Y`
+    - Create 3 test-user player accounts: TU1 TU2 TU3
+        - `java -cp JSettlers-2.*.jar soc.client.SOCAccountClient localhost 8880`
+    - Play each game listed below, checking the DB afterwards for results
+        - Players will be: The `debug` user; sometimes players with accounts in the DB
+          (`TU1` etc); sometimes players without accounts (`non1` etc)
+        - Hint to speed up games: The `debug` user can give a player the resources
+          to win (build and upgrade to 4 cities, connected by Longest Road) with:  
+          `rsrcs: 8 12 2 10 8 #0`  
+          Change `#0` to their player number as needed.
+        - sqlite command to check DB results after each game: Shows test-user win-loss records,
+          and latest game's details if jsettlers.db.save.games=Y:  
+          `sqlite3 t.sqlite3 "select nickname,games_won,games_lost from users where nickname_lc like 'tu%' order by nickname; select * from games2_players where gameid=(select max(gameid) from games2);"`
+    - Games to play and win, with defaults for game options:
+        - No players in db: debug, non2, non3 (let any player win)
+        - Winner TU2 in db, other players aren't: debug, non2
+        - Loser TU3 in db, others aren't: debug
+        - Winner TU1 and 1 loser TU2 in db, other isn't: debug
+        - 6-player game with winner TU1 (sits in position # 4 or 5), 2 losers in db: TU2, TU3, other isn't: debug
+    - Win-loss counts in DB after those games (see SQL above) should be:  
+      TU1: W 2 L 0  
+      TU2: W 1 L 2  
+      TU3: W 0 L 2
+    - Stop and restart server, but with `-Djsettlers.db.save.games=N`
+    - Re-run each of those games; server should update win-loss counts in DB, but not add any new games
+    - Win-loss counts in DB after those games (see SQL above) should be:  
+      TU1: W 4 L 0  
+      TU2: W 2 L 4  
+      TU3: W 0 L 4
 
 ## Other misc testing
 
