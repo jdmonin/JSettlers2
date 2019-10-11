@@ -383,6 +383,77 @@ Start with a recently-created database with latest schema/setup scripts.
       TU1: W 4 L 0  
       TU2: W 2 L 4  
       TU3: W 0 L 4
+- DB schema upgrade rollback/recovery
+    - Get a copy of the original schema SQL file (not latest version):
+        - `git show release-1.1.20:src/bin/sql/jsettlers-tables.sql > ../tmp/jsettlers-tables-1120.sql`
+        - If not using sqlite, you'll need more sql files; search this doc for "Files to test upgrade from original schema"
+    - Create a DB with that schema
+        - Rough example: `java -jar JSettlersServer.jar -Djsettlers.db.jar=sqlite-jdbc.jar -Djsettlers.db.url=jdbc:sqlite:uptest.sqlite3 -Djsettlers.db.script.setup=../tmp/jsettlers-tables-1120.sql`
+        - That example creates `uptest.sqlite3`
+        - See [Database.md](Database.md) for instructions if needed
+    - Start a server including these parameters:  
+      `-Djsettlers.accounts.open=Y -Djsettlers.allow.debug=Y -Djsettlers.db.save.games=Y`
+    - Create 3 users: UPTEST1 UpTest2 uptest3
+        - `java -cp JSettlers-2.*.jar soc.client.SOCAccountClient localhost 8880`
+    - Shut down the server
+    - To 'sabotage' an upgrade to the latest schema, make a table that will conflict with the upgrade's new tables
+        - SQL: `CREATE TABLE upg_tmp_games (sabotage_field varchar(20));`
+    - Run the server in DB upgrade mode
+        - Use these parameters: `-Djsettlers.db.upgrade_schema=Y -Djsettlers.db.bcrypt.work_factor=9`
+        - You should see output:
+
+                User database initialized.
+                *** Problem occurred during schema upgrade to v2000:
+                org.sqlite.SQLiteException: [SQLITE_ERROR] SQL error or missing database (table upg_tmp_games already exists)
+                
+                * Will attempt to roll back to schema v1200.
+                
+                * All rollbacks were successful.
+                
+                org.sqlite.SQLiteException: (repeat of above error message)
+                
+                * DB schema upgrade failed. Exiting now.
+
+    - Verify that the 3 users have been upgraded to schema v1200, gaining nickname_lc:
+        - SQL: `SELECT nickname,nickname_lc FROM users WHERE nickname_lc LIKE 'uptest%' ORDER BY nickname_lc;`
+    - Run the server normally, including parameters:  
+	  `-Djsettlers.allow.debug=Y -Djsettlers.db.save.games=Y`
+        - You should see output:
+
+                * Schema upgrade: Beginning background tasks
+                
+                Schema upgrade: Encoding passwords for users
+                Schema upgrade: User password encoding: Completed
+                
+                * Schema upgrade: Completed background tasks
+
+    - Play and win a game named `uptestgame`
+        - Log in as one of the uptest users
+        - To speed up gameplay, have the `debug` user join the game and give resources to a player
+        - Game results will be saved to the DB
+    - Shut down the server
+    - Clean up the 'sabotage' so a normal schema upgrade to v2000 can succeed
+        - SQL: `DROP TABLE upg_tmp_games;`
+    - Run the server in DB upgrade mode
+        - Use this parameter: `-Djsettlers.db.upgrade_schema=Y`
+        - You should see output:  
+          `DB schema upgrade was successful; some upgrade tasks will complete in the background during normal server operation. Exiting now.`
+    - Start the server normally
+        - No special parameters are needed
+        - Shut it down after you see this output:
+
+                * Schema upgrade: Beginning background tasks
+                
+                Schema upgrade: Normalizing games into games2
+                Schema upgrade: Normalizing games into games2: Completed
+                
+                * Schema upgrade: Completed background tasks
+
+    - Verify that `uptestgame` has been upgraded to schema v2000
+        - SQL:  
+          `SELECT gameid,gamename,duration_sec,winner FROM games2 WHERE gamename='uptestgame';`  
+          `SELECT * from games2_players WHERE gameid=(SELECT gameid FROM games2 WHERE gamename='uptestgame');`
+        - If each SQL statement shows 1 or more rows, upgrade was successful
 
 ## Other misc testing
 
