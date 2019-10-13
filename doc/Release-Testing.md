@@ -396,8 +396,8 @@ Start with a recently-created database with latest schema/setup scripts.
     - Create 3 users: UPTEST1 UpTest2 uptest3
         - `java -cp JSettlers-2.*.jar soc.client.SOCAccountClient localhost 8880`
     - Shut down the server
-    - To 'sabotage' an upgrade to the latest schema, make a table that will conflict with the upgrade's new tables
-        - SQL: `CREATE TABLE upg_tmp_games (sabotage_field varchar(20));`
+    - To temporarily prevent an upgrade to the latest schema, make a table that will conflict with the upgrade's new tables
+        - SQL: `CREATE TABLE upg_tmp_games (upg_stop_field varchar(20));`
     - Run the server in DB upgrade mode
         - Use these parameters: `-Djsettlers.db.upgrade_schema=Y -Djsettlers.db.bcrypt.work_factor=9`
         - You should see output:
@@ -432,7 +432,7 @@ Start with a recently-created database with latest schema/setup scripts.
         - To speed up gameplay, have the `debug` user join the game and give resources to a player
         - Game results will be saved to the DB
     - Shut down the server
-    - Clean up the 'sabotage' so a normal schema upgrade to v2000 can succeed
+    - Clean up the deliberate schema-breakage so a normal schema upgrade to v2000 can succeed
         - SQL: `DROP TABLE upg_tmp_games;`
     - Run the server in DB upgrade mode
         - Use this parameter: `-Djsettlers.db.upgrade_schema=Y`

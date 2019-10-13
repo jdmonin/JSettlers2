@@ -3388,7 +3388,7 @@ public class SOCDBHelper
 
                         st = connection.createStatement();
                         ResultSet rs = st.executeQuery
-                            ("SELECT pg_get_serial_sequence('games2', 'gameid');");  // supported by v8.1 or earlier
+                            ("SELECT pg_get_serial_sequence('games2', 'gameid');");  // supported by v8.0 and above (maybe also earlier)
                         if (rs.next())
                             seqname = rs.getString(1);  // 'public.games2_gameid_seq'  (etc)
                         st.close();  // also closes rs
