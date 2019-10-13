@@ -3985,23 +3985,24 @@ import javax.swing.UIManager;
                 }
 
                 // Various item counts, to the right of give/get/offer/trade area
+                int x = dim.width - inset - sqSize;  // squares' x-pos; labels will be to their left
                 if (clothSq != null)
                 {
-                    clothLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY - (lineH + space), knightsW, lineH);
-                    clothSq.setLocation(dim.width - inset - sqSize, tradeY - (lineH + space));
+                    clothLab.setBounds(x - knightsW - space, tradeY - (lineH + space), knightsW, lineH);
+                    clothSq.setLocation(x, tradeY - (lineH + space));
                 }
-                knightsLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY, knightsW, lineH);
-                knightsSq.setLocation(dim.width - inset - sqSize, tradeY);
-                roadLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY + lineH + space, knightsW, lineH);
-                roadSq.setLocation(dim.width - inset - sqSize, tradeY + lineH + space);
-                settlementLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY + (2 * (lineH + space)), knightsW, lineH);
-                settlementSq.setLocation(dim.width - inset - sqSize, tradeY + (2 * (lineH + space)));
-                cityLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY + (3 * (lineH + space)), knightsW, lineH);
-                citySq.setLocation(dim.width - inset - sqSize, tradeY + (3 * (lineH + space)));
+                knightsLab.setBounds(x - knightsW - space, tradeY, knightsW, lineH);
+                knightsSq.setLocation(x, tradeY);
+                roadLab.setBounds(x - knightsW - space, tradeY + lineH + space, knightsW, lineH);
+                roadSq.setLocation(x, tradeY + lineH + space);
+                settlementLab.setBounds(x - knightsW - space, tradeY + (2 * (lineH + space)), knightsW, lineH);
+                settlementSq.setLocation(x, tradeY + (2 * (lineH + space)));
+                cityLab.setBounds(x - knightsW - space, tradeY + (3 * (lineH + space)), knightsW, lineH);
+                citySq.setLocation(x, tradeY + (3 * (lineH + space)));
                 if (shipSq != null)
                 {
-                    shipLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY + (4 * (lineH + space)), knightsW, lineH);
-                    shipSq.setLocation(dim.width - inset - sqSize, tradeY + (4 * (lineH + space)));
+                    shipLab.setBounds(x - knightsW - space, tradeY + (4 * (lineH + space)), knightsW, lineH);
+                    shipSq.setLocation(x, tradeY + (4 * (lineH + space)));
                 }
 
                 // Player's resource counts
@@ -4238,18 +4239,25 @@ import javax.swing.UIManager;
                 }
 
                 // Lower-right: Column of piece counts:
-                // Ships, Roads, Settlements, Cities
+                // Roads, Settlements, Cities, Ships
+                int x = dim.width - inset - sqSize;  // squares' x-pos; labels will be to their left
+                y = lowerY;
+                if (shipSq == null)
+                    y += (lineH + space);
+                roadLab.setBounds(x - stlmtsW - space, y, stlmtsW, lineH);
+                roadSq.setLocation(x, y);
+                y += (lineH + space);
+                settlementLab.setBounds(x - stlmtsW - space, y, stlmtsW, lineH);
+                settlementSq.setLocation(x, y);
+                y += (lineH + space);
+                cityLab.setBounds(x - stlmtsW - space, y, stlmtsW, lineH);
+                citySq.setLocation(x, y);
                 if (shipSq != null)
                 {
-                    shipLab.setBounds(dim.width - inset - stlmtsW - sqSize - space, lowerY, stlmtsW, lineH);
-                    shipSq.setLocation(dim.width - inset - sqSize, lowerY);
+                    y += (lineH + space);
+                    shipLab.setBounds(x - stlmtsW - space, y, stlmtsW, lineH);
+                    shipSq.setLocation(x, y);
                 }
-                roadLab.setBounds(dim.width - inset - stlmtsW - sqSize - space, lowerY + (lineH + space), stlmtsW, lineH);
-                roadSq.setLocation(dim.width - inset - sqSize, lowerY + (lineH + space));
-                settlementLab.setBounds(dim.width - inset - stlmtsW - sqSize - space, lowerY + (2 * (lineH + space)), stlmtsW, lineH);
-                settlementSq.setLocation(dim.width - inset - sqSize, lowerY + (2 * (lineH + space)));
-                cityLab.setBounds(dim.width - inset - stlmtsW - sqSize - space, lowerY + (3 * (lineH + space)), stlmtsW, lineH);
-                citySq.setLocation(dim.width - inset - sqSize, lowerY + (3 * (lineH + space)));
 
                 if ((wasHidesControls != offerHidesControls) || (offerCounterHidingFace != offerCounterHidesFace))
                     hideTradeMsgShowOthers(false);
