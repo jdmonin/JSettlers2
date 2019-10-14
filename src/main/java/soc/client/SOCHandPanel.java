@@ -4259,7 +4259,8 @@ import javax.swing.UIManager;
                     shipSq.setLocation(x, y);
                 }
 
-                if ((wasHidesControls != offerHidesControls) || (offerCounterHidingFace != offerCounterHidesFace))
+                if (((wasHidesControls != offerHidesControls) || (offerCounterHidingFace != offerCounterHidesFace))
+                    && (offerPanel.isVisible() || messagePanel.isVisible()))
                     hideTradeMsgShowOthers(false);
             }
         }
