@@ -669,7 +669,9 @@ robot-only games, start the server with `-Djsettlers.bots.botgames.shutdown=Y` .
 If `jsettlers.bots.botgames.total` != 0 (including < 0), at any time the client
 can create a new game, join but not sit down at a seat, and start that game as
 bots-only using the debug command `*STARTBOTGAME* [maxBots]` to test the bots
-with any given combination of game options and scenarios.
+with any given combination of game options and scenarios. (Only the `debug` user
+can run debug commands on standalone servers. To enable the debug user, start
+the server with `-Djsettlers.allow.debug=Y` .)
 
 For robustness testing, the `SOCRobotClient.debugRandomPause` flag can be enabled
 by editing its declaration to inject random delays into handling messages and
