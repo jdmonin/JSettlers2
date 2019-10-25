@@ -766,9 +766,13 @@ public class SOCPlayerInterface extends Frame
                 if ((width_base != (WIDTH_MIN_4PL * displayScale))
                     || (height_base != (HEIGHT_MIN_4PL * displayScale)))
                 {
-                    // pref size is based on minimum board size, but this game's board is bigger
-                    piWidth = (prefWidth * width_base) / (WIDTH_MIN_4PL * displayScale);
-                    piHeight = (prefHeight * height_base) / (HEIGHT_MIN_4PL * displayScale);
+                    // Pref size is based on minimum board size, but this game's board is bigger.
+                    // This "scale-up" calc is the reverse of the one in frameResizeDone which scales down for
+                    // getExtraSizeFromBoard; if you change it here, change it there too.
+                    // (Unlike in frameResizeDone, this calc needs to apply displayScale)
+
+                    piWidth = prefWidth + (boardExtraSize.width * displayScale);
+                    piHeight = prefHeight + (boardExtraSize.height * displayScale);
                 } else {
                     piWidth = prefWidth;
                     piHeight = prefHeight;
@@ -1312,6 +1316,9 @@ public class SOCPlayerInterface extends Frame
     {
         final Dimension siz = getSize();
         int w = siz.width, h = siz.height;
+
+        // This "scale-down" calc is the reverse of the one in constructor which scales up for
+        // getExtraSizeFromBoard; if you change it here, change it there too
 
         Dimension boardExtraSize = boardPanel.getExtraSizeFromBoard();
         w -= boardExtraSize.width;
