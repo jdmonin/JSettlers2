@@ -159,6 +159,7 @@ public class SOCPlayerInterface extends Frame
      * Optional board layout part Visual Shift ("VS") may increase {@link #boardPanel}'s size
      * and {@code width_base}.
      * @see #height_base
+     * @see #widthOrig
      * @since 1.2.00
      */
     private int width_base;
@@ -169,9 +170,30 @@ public class SOCPlayerInterface extends Frame
      * Optional board layout part Visual Shift ("VS") may increase {@link #boardPanel}'s size
      * and {@code height_base}.
      * @see #width_base
+     * @see #heightOrig
      * @since 1.2.00
      */
     private int height_base;
+
+    /**
+     * Frame's original width, as calculated in constructor.
+     * Used with {@link #wasResized} in {@link #frameResizeDone()}.
+     *
+     * @see #heightOrig
+     * @see #width_base
+     * @since 2.0.00
+     */
+    private int widthOrig;
+
+    /**
+     * Frame's original height, as calculated in constructor.
+     * Used with {@link #wasResized} in {@link #frameResizeDone()}.
+     *
+     * @see #widthOrig
+     * @see #height_base
+     * @since 2.0.00
+     */
+    private int heightOrig;
 
     /**
      * For high-DPI displays, what scaling factor to use? Unscaled is 1.
@@ -197,6 +219,14 @@ public class SOCPlayerInterface extends Frame
      * @since 1.1.06
      */
     private boolean layoutNotReadyYet;
+
+    /**
+     * True only if window size has been changed from {@link #widthOrig} x {@link #heightOrig}.
+     * Prevents rewriting/changing size prefs unnecessarily in {@link #frameResizeDone()}.
+     * (This flag is needed in case it's changed back to that size afterwards.)
+     * @since 2.0.00
+     */
+    private boolean wasResized;
 
     /**
      * To avoid sound-effect spam while receiving board layout info
@@ -743,7 +773,9 @@ public class SOCPlayerInterface extends Frame
         /**
          * more initialization stuff
          */
-        final Dimension boardExtraSize = boardPanel.getExtraSizeFromBoard();
+
+        final Dimension boardExtraSize = boardPanel.getExtraSizeFromBoard(false);
+            // use unscaled board-internal pixels, to simplify assumptions at this early part of init/layout setup
 
         int piHeight = HEIGHT_MIN_4PL;
         if ((is6player || game.hasSeaBoard) && SOCPlayerClient.IS_PLATFORM_WINDOWS)
@@ -814,6 +846,9 @@ public class SOCPlayerInterface extends Frame
             }
         }
 
+        widthOrig = piWidth;
+        heightOrig = piHeight;
+        wasResized = false;
         setSize(piWidth, piHeight);
         validate();
 
@@ -1310,6 +1345,10 @@ public class SOCPlayerInterface extends Frame
      * Uses current size, with scaling factor for 6-player and sea board games.
      *<P>
      * Call only if {@link #isVisible()} and ! {@link #layoutNotReadyYet}.
+     *<P>
+     * This method also gets called once after constructor and initial doLayout,
+     * even though the user hasn't manually resized the window.
+     *
      * @since 1.2.00
      */
     private void frameResizeDone()
@@ -1317,10 +1356,20 @@ public class SOCPlayerInterface extends Frame
         final Dimension siz = getSize();
         int w = siz.width, h = siz.height;
 
+        if (! wasResized)
+        {
+            if ((w == widthOrig) && (h == heightOrig))
+            {
+                return;  // <--- user hasn't changed it yet ---
+            }
+
+            wasResized = true;
+        }
+
         // This "scale-down" calc is the reverse of the one in constructor which scales up for
         // getExtraSizeFromBoard; if you change it here, change it there too
 
-        Dimension boardExtraSize = boardPanel.getExtraSizeFromBoard();
+        Dimension boardExtraSize = boardPanel.getExtraSizeFromBoard(true);
         w -= boardExtraSize.width;
         h -= boardExtraSize.height;
 

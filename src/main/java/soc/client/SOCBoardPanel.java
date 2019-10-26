@@ -2339,7 +2339,7 @@ import javax.swing.JComponent;
      * {@link SOCBoardLarge#getAddedLayoutPart(String) SOCBoardLarge.getAddedLayoutPart("VS")}.
      *
      * @return minimum size
-     * @see #getExtraSizeFromBoard()
+     * @see #getExtraSizeFromBoard(boolean)
      */
     @Override
     public Dimension getMinimumSize()
@@ -2354,21 +2354,31 @@ import javax.swing.JComponent;
      * Adjusts for SOCBoardPanel padding constants and any space added by a positive optional
      * {@link SOCBoardLarge#getAddedLayoutPart(String) SOCBoardLarge.getAddedLayoutPart("VS")}.
      *
-     * @return extra size in screen pixels, or (0, 0)
+     * @param doScale  If true, the returned extra width & height are scaled screen pixels, not board-internal;
+     *      calls {@link #scaleToActual(int)}
+     * @return extra size in pixels, or (0, 0)
      * @since 2.0.00
      */
-    public Dimension getExtraSizeFromBoard()
+    public Dimension getExtraSizeFromBoard(final boolean doScale)
     {
         // Based on constructor's size calcs for panelMinBW, panelMinBH
 
         if (! isLargeBoard)
         {
             if (isRotated)
+            {
                 // standard 6pl
-                return new Dimension(scaleToActual(2 * deltaY), scaleToActual(halfdeltaY));
-            else
+                int retW = 2 * deltaY, retH = halfdeltaY;
+                if (doScale)
+                {
+                    retW = scaleToActual(retW);
+                    retH = scaleToActual(retH);
+                }
+                return new Dimension(retW, retH);
+            } else {
                 // standard 4pl
                 return new Dimension(0, 0);
+            }
         }
 
         int bh = board.getBoardHeight(), bw = board.getBoardWidth();
@@ -2386,10 +2396,16 @@ import javax.swing.JComponent;
         if (panelShiftBY > 0)
             h += panelShiftBY;
 
-        return new Dimension
-            (scaleToActual(w - PANELPAD_CBOARD4_WIDTH + PANELPAD_LBOARD_RT),
-             scaleToActual(h - PANELPAD_CBOARD4_HEIGHT + PANELPAD_LBOARD_BTM));
-            // ignore HEXY_OFF_SLOPE_HEIGHT: it adds same amount to classic & sea board height
+        int retW = w - PANELPAD_CBOARD4_WIDTH + PANELPAD_LBOARD_RT,
+            retH = h - PANELPAD_CBOARD4_HEIGHT + PANELPAD_LBOARD_BTM;
+                // ignore HEXY_OFF_SLOPE_HEIGHT: it adds same amount to classic & sea board height
+        if (doScale)
+        {
+            retW = scaleToActual(retW);
+            retH = scaleToActual(retH);
+        }
+
+        return new Dimension(retW, retH);
     }
 
     /**
