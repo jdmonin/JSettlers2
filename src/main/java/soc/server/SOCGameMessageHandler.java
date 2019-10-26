@@ -1180,7 +1180,10 @@ public class SOCGameMessageHandler
         final String gaName = ga.getName();
         if (ga.isGameOptionSet("NT"))
         {
-            srv.messageToPlayer(c, gaName, "Trading is not allowed in this game.");
+            // Check here as a fallback;
+            // client should know not to show trade-offer UI when game has option NT
+            srv.messageToPlayer(c, gaName, "Trading is not allowed in this game.");  // i18n OK: is fallback only
+
             return;  // <---- Early return: No Trading ----
         }
 
