@@ -2500,6 +2500,10 @@ public class SOCGameOption
     /**
      * If this game option is displayed on-screen, refresh it;
      * call this after changing the value.
+     *<P>
+     * Should be called when value has changed programatically through setters or other methods,
+     * not when user has changed the value on-screen in client GUI code.
+     *
      * @since 1.1.13
      */
     public void refreshDisplay()
@@ -2508,6 +2512,7 @@ public class SOCGameOption
             refreshList = new ArrayList<SOCGameOption>();
         else if (refreshList.contains(this))
             return;
+
         refreshList.add(this);
     }
 

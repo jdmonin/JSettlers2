@@ -675,7 +675,7 @@ import soc.util.Version;
             }
 
             scenDropdown = jcb;
-            initInterface_Opt1(op, jcb, true, true, bp, gbl, gbc);
+            initInterface_Opt1(op, jcb, true, true, false, bp, gbl, gbc);
                 // adds jcb, and a checkbox which will toggle this OTYPE_STR's op.boolValue
             jcb.addActionListener(this);  // when item selected, enable/disable Scenario Info button
 
@@ -713,7 +713,7 @@ import soc.util.Version;
         case SOCGameOption.OTYPE_BOOL:
             {
                 JCheckBox cb = new JCheckBox();
-                initInterface_Opt1(op, cb, true, false, bp, gbl, gbc);
+                initInterface_Opt1(op, cb, true, false, false, bp, gbl, gbc);
                 cb.addItemListener(this);
             }
             break;
@@ -722,7 +722,7 @@ import soc.util.Version;
         case SOCGameOption.OTYPE_INTBOOL:
             {
                 final boolean hasCheckbox = (op.optType == SOCGameOption.OTYPE_INTBOOL);
-                initInterface_Opt1(op, initOption_int(op), hasCheckbox, true, bp, gbl, gbc);
+                initInterface_Opt1(op, initOption_int(op), hasCheckbox, true, true, bp, gbl, gbc);
             }
             break;
 
@@ -731,7 +731,7 @@ import soc.util.Version;
             // JComboBox (popup menu)
             {
                 final boolean hasCheckbox = (op.optType == SOCGameOption.OTYPE_ENUMBOOL);
-                initInterface_Opt1(op, initOption_enum(op), hasCheckbox, true, bp, gbl, gbc);
+                initInterface_Opt1(op, initOption_enum(op), hasCheckbox, true, true, bp, gbl, gbc);
             }
             break;
 
@@ -752,7 +752,7 @@ import soc.util.Version;
                     tfDoc.putProperty("owner", txtc);
                     tfDoc.addDocumentListener(this);  // for gameopt.ChangeListener and userChanged
                 }
-                initInterface_Opt1(op, txtc, false, false, bp, gbl, gbc);
+                initInterface_Opt1(op, txtc, false, false, false, bp, gbl, gbc);
             }
             break;
 
@@ -772,13 +772,16 @@ import soc.util.Version;
      * @param hasCB  Add a checkbox?  If oc is {@link JCheckbox}, set this true;
      *            it won't add a second checkbox.
      *            The checkbox will be added to {@link #boolOptCheckboxes} and {@link #controlsOpts}.
+     * @param ocHasListener  If true, {@code oc} already has its ItemListener, KeyListener, DocumentListener, etc
+     *            (probably added by {@link #initOption_int(SOCGameOption)} or {@link #initOption_enum(SOCGameOption)})
+     *            and this method shouldn't add another one
      * @param allowPH  Allow the "#" placeholder within option desc?
      * @param bp  Add to this panel
      * @param gbl Use this layout
      * @param gbc Use these constraints; gridwidth will be set to 1 and then REMAINDER
      */
     private void initInterface_Opt1(SOCGameOption op, Component oc,
-            boolean hasCB, boolean allowPH,
+            final boolean hasCB, final boolean allowPH, final boolean ocHasListener,
             JPanel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
         final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
@@ -853,7 +856,9 @@ import soc.util.Version;
             controlsOpts.put(oc, op);
             oc.setEnabled(! readOnly);
             optp.add(oc);
-            if (hasCB && ! readOnly)
+
+            // add listeners, unless initOption_int or initOption_enum already did so
+            if (hasCB && ! (readOnly || ocHasListener))
             {
                 if (oc instanceof JTextField)
                 {
@@ -920,22 +925,25 @@ import soc.util.Version;
             int twidth = 1 + (int) Math.ceil(Math.log10(magn));
             if (twidth < 3)
                 twidth = 3;
+
             c = new IntTextField(op.getIntValue(), twidth);
+            c.addKeyListener(this);   // for ESC/ENTER
 
             Document tfDoc = ((IntTextField) c).getDocument();
             tfDoc.putProperty("owner", c);
             tfDoc.addDocumentListener(this);  // for op.ChangeListener and userChanged
         } else {
-            JComboBox<String> ch = new JComboBox<String>();
+            JComboBox<String> combo = new JComboBox<String>();
             for (int i = op.minIntValue; i <= op.maxIntValue; ++i)
-                ch.addItem(Integer.toString(i));
+                combo.addItem(Integer.toString(i));
 
             int defaultIdx = op.getIntValue() - op.minIntValue;
             if (defaultIdx > 0)
-                ch.setSelectedIndex(defaultIdx);
-            ch.addItemListener(this);  // for op.ChangeListener and userChanged
-            c = ch;
+                combo.setSelectedIndex(defaultIdx);
+            combo.addItemListener(this);  // for op.ChangeListener and userChanged
+            c = combo;
         }
+
         return c;
     }
 
@@ -1718,6 +1726,7 @@ import soc.util.Version;
             SOCGameOption opt = controlsOpts.get(srcObj);
             if (opt == null)
                 return;
+
             final String oldText = opt.getStringValue();
             boolean validChange = false;
             boolean otypeIsInt;
@@ -1731,8 +1740,8 @@ import soc.util.Version;
                 {
                     opt.setStringValue(newText);
                     validChange = true;
-                } catch (IllegalArgumentException ex)
-                { }
+                }
+                catch (IllegalArgumentException ex) {}
             } else {
                 otypeIsInt = true;
                 try   // OTYPE_INT, OTYPE_INTBOOL
@@ -1742,8 +1751,8 @@ import soc.util.Version;
                     opt.setIntValue(iv);  // ignored if outside min,max range
                     if (iv == opt.getIntValue())
                         validChange = true;
-                } catch (NumberFormatException ex)
-                { }
+                }
+                catch (NumberFormatException ex) {}
             }
 
             if (validChange && ! opt.userChanged)
@@ -1903,6 +1912,11 @@ import soc.util.Version;
      * gameopts' values on-screen if needed.
      * If <tt>oldValue</tt>.equals(<tt>newValue</tt>), nothing happens and
      * the ChangeListener is not called.
+     *<P>
+     * To avoid redundant calls and avoid setting {@link SOCGameOption#userChanged} flag
+     * from a programmatic value change, removes and re-adds {@code this} NGOF
+     * from gameopts' Swing widget listeners.
+     *
      * @param cl  The ChangeListener; must not be null
      * @param opt  The game option
      * @param oldValue  Old value, string or boxed primitive
@@ -1937,31 +1951,54 @@ import soc.util.Version;
 
         // Refresh each one now, depending on type:
         if (optsControls == null)
-            return;  // should only be null if readOnly, and thus no changes to values anyway
+            return;  // <--- Early return; should be null only if readOnly, and thus no changes to values anyway ---
+
         for (int i = refresh.size() - 1; i >= 0; --i)
         {
             final SOCGameOption op = refresh.get(i);
             final Component opComp = optsControls.get(op.key);
 
+            // reminder: Swing widget listeners are added in initInterface_OptLine, initInterface_Opt1, initOption_int,
+            // initOption_enum; see those methods to confirm which widget types get which listeners
+
             switch (op.optType)  // OTYPE_*
             {
             case SOCGameOption.OTYPE_BOOL:
-                ((JCheckBox) opComp).setSelected(op.getBoolValue());
+                {
+                    final JCheckBox cb = (JCheckBox) opComp;
+                    cb.removeItemListener(this);
+                    cb.setSelected(op.getBoolValue());
+                    cb.addItemListener(this);
+                }
                 break;
 
             case SOCGameOption.OTYPE_INT:
             case SOCGameOption.OTYPE_INTBOOL:
                 {
                     if (opComp instanceof JTextField)
-                        ((JTextField) opComp).setText(Integer.toString(op.getIntValue()));
-                    else
-                        ((JComboBox<?>) opComp).setSelectedIndex(op.getIntValue() - op.minIntValue);
+                    {
+                        final JTextField tf = (JTextField) opComp;
+                        final Document doc = tf.getDocument();
+                        doc.removeDocumentListener(this);
+                        tf.setText(Integer.toString(op.getIntValue()));
+                        doc.addDocumentListener(this);
+                    } else {
+                        final JComboBox<?> combo = (JComboBox<?>) opComp;
+                        combo.removeItemListener(this);
+                        combo.setSelectedIndex(op.getIntValue() - op.minIntValue);
+                        combo.addItemListener(this);
+                    }
+
                     final boolean hasCheckbox = (op.optType == SOCGameOption.OTYPE_INTBOOL);
                     if (hasCheckbox)
                     {
                         JCheckBox cb = boolOptCheckboxes.get(op.key);
                         if (cb != null)
+                        {
+                            cb.removeItemListener(this);
                             cb.setSelected(op.getBoolValue());
+                            cb.addItemListener(this);
+                        }
                     }
                 }
                 break;
@@ -1969,20 +2006,34 @@ import soc.util.Version;
             case SOCGameOption.OTYPE_ENUM:
             case SOCGameOption.OTYPE_ENUMBOOL:
                 {
-                    ((JComboBox<?>) opComp).setSelectedIndex(op.getIntValue() - op.minIntValue);
+                    final JComboBox<?> combo = (JComboBox<?>) opComp;
+                    combo.removeItemListener(this);
+                    combo.setSelectedIndex(op.getIntValue() - op.minIntValue);
+                    combo.addItemListener(this);
+
                     final boolean hasCheckbox = (op.optType == SOCGameOption.OTYPE_ENUMBOOL);
                     if (hasCheckbox)
                     {
                         JCheckBox cb = boolOptCheckboxes.get(op.key);
                         if (cb != null)
+                        {
+                            cb.removeItemListener(this);
                             cb.setSelected(op.getBoolValue());
+                            cb.addItemListener(this);
+                        }
                     }
                 }
                 break;
 
             case SOCGameOption.OTYPE_STR:
             case SOCGameOption.OTYPE_STRHIDE:
-                ((JTextField) opComp).setText(op.getStringValue());
+                {
+                    final JTextField tf = (JTextField) opComp;
+                    final Document doc = tf.getDocument();
+                    doc.removeDocumentListener(this);
+                    tf.setText(op.getStringValue());
+                    doc.addDocumentListener(this);
+                }
                 break;
 
                 // default: unknown, see above
