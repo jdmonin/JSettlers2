@@ -604,6 +604,14 @@ import soc.util.Version;
         }  // for(opts)
 
         initInterface_UserPrefs(bp, gbl, gbc);
+
+        // Check if there's a default/current scenario; if so, set other options' values from it (VP, etc)
+        if (! readOnly)
+        {
+            final SOCGameOption optSC = opts.get("SC");
+            if ((optSC != null) && ! optSC.getStringValue().isEmpty())
+                fireUserChangedOptListeners(optSC, scenDropdown, true, false);
+        }
     }
 
     /**
@@ -652,11 +660,12 @@ import soc.util.Version;
                 scens = sl;
             }
 
+            final String currScen = op.getStringValue();  // or "" if none
             for (final SOCScenario sc : scens)
             {
                 ++i;
                 jcb.addItem(sc);  // sc.toString() == sc.desc
-                if (sc.key.equals(op.getStringValue()))
+                if (sc.key.equals(currScen))
                     sel = i;
             }
             if (sel != 0)
