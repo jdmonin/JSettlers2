@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,9 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Message from server for i18n localization of item types such as game options or scenarios,
- * such as {@link #TYPE_GAMEOPT} or {@link #TYPE_SCENARIO}, or request from client to get
- * localized strings for specific keys of certain item types.
+ * Message from server with i18n localization strings for certain item types such as game options or scenarios
+ * ({@link #TYPE_GAMEOPT} or {@link #TYPE_SCENARIO}), or request from client to get
+ * localized strings for specific keys of those certain item types.
  *<P>
  * This message is always about one string type.  The meaning of the keys and their strings may differ per
  * string type.  For example, keys for {@link #TYPE_SCENARIO} are the same as in {@code SOCScenario}
@@ -38,11 +38,11 @@ import java.util.List;
  * to read about them and maybe choose one.  The server's message includes the string type such as
  * {@link #TYPE_SCENARIO}, the flags field, and then each key and its string(s) as described above.
  *<P>
- * This message is not commonly sent from client to server, which is included to allow clients
- * to get localized strings for scenarios or gameopts newer than the client or changed since
+ * This message is not commonly sent from client to server, but client can do so to ask for
+ * localized strings for scenarios or gameopts newer than the client or changed since
  * the client's release.  The client's request includes the string type such as {@link #TYPE_SCENARIO},
- * the flags field, and then any keys for which it wants localized strings, or an empty list if message also sets
- * {@link #FLAG_REQ_ALL} to request all items. The server's response is as described above, including all
+ * the flags field, and then any keys for which it wants localized strings (or an empty list if message also sets
+ * {@link #FLAG_REQ_ALL} to request all items). The server's response is as described above, including all
  * keys requested by the client. If a key isn't known at the server,
  * in the response that key will be followed by {@link #MARKER_KEY_UNKNOWN} instead of by its string(s).
  *<P>

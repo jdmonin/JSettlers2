@@ -73,8 +73,9 @@ import soc.util.SOCFeatureSet;  // for javadocs only
  * This scenario info sync protocol for different versions is very similar to that done for {@link SOCGameOption}s
  * at client connect with {@link SOCGameOptionGetInfos}/{@link SOCGameOptionInfo}. The list can be calculated with
  * {@link SOCVersionedItem#itemsNewerThanVersion(int, boolean, java.util.Map)}.
- *<P>
- * <B>I18N:</B> Because client has previously sent {@link SOCGameOptionGetInfos} if needed,
+ *
+ * <H5>I18N:</H5>
+ * Because client has previously sent {@link SOCGameOptionGetInfos} if needed,
  * the server knows whether the client wants localized strings, so {@code SOCScenarioInfo} has
  * no i18n flag like {@link SOCGameOptionGetInfos#OPTKEY_GET_I18N_DESCS}.
  *
