@@ -398,8 +398,6 @@ jsettlers JAR from the command line, not running inside the IDE.
 - Network message system:
   - Finish corner cases for I18N SOCLocalizedStrings
   - Consider a common handler/constant for EMPTYSTR token
-- Server:
-  - DB schema additions
 - Review documentation, especially for v2.0 changes
 
 

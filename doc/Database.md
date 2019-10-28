@@ -340,27 +340,35 @@ JSettlersServer.
 
 ## Upgrading from an earlier version of JSettlers
 
-If you're upgrading from an earlier version of JSettlers, check
-[Versions.md](Versions.md) for new features, bug fixes, and config changes.
-Before starting the upgrade, read this section and also the
-"Upgrading from an earlier version" section of [Readme.md](../Readme.md).
+Use the docs to plan before starting your upgrade:
 
-Most versions won't have any DB schema changes or require a DB upgrade.
-In [Versions.md](Versions.md) look for the word "schema" in the list of changes.
+- Read this entire section of this file
+  - A few steps and commands mention the `socuser` DB username. If you've set up
+    the database with a different username, make a note to use that instead
+- Read the "Upgrading from an earlier version" section of [Readme.md](../Readme.md)
+- Check [Versions.md](Versions.md) for new features, bug fixes, and config changes
+  since the old version
+  - Most versions won't have any DB schema changes or require a DB upgrade.
+    In [Versions.md](Versions.md) look for the word "**schema**" in the list of changes.
 
-### Before starting the upgrade:
+### Checklist before starting the upgrade:
 - Make a DB backup or export its contents. JSettlers **1.2.00** is the first
   version which has schema changes, which are recommended but optional
   (see below). Technical problems during the upgrade are very unlikely;
   having the backup gives you more flexibility if a problem comes up.
-- If you're upgrading from JSettlers **1.1.20** or earlier, to create more
-  users you must have an account admin list configured
+- If you're upgrading from JSettlers **1.1.20** or earlier:  
+  To create more users, you must have an account admin list configured
   (`jsettlers.accounts.admins` property, in the `jsserver.properties`
   file or command line) unless your server is in "open registration" mode.
-- If you're upgrading from JSettlers **1.1.18** or earlier, for security
-  reasons newer versions by default disallow user account
+- If you're upgrading from JSettlers **1.1.20** or earlier:  
+  Test bcrypt speed, to decide on and set the work_factor property,
+  before starting the upgrade process. For details search for
+  "Password Encryption (BCrypt)" in this file.
+- If you're upgrading from JSettlers **1.1.18** or earlier:  
+  For security reasons, newer versions by default disallow user account
   self-registration. If you still want to use that option, search this
   doc for "open registration".
+
 
 ### When starting up the server using the new version:
 
@@ -376,15 +384,9 @@ In [Versions.md](Versions.md) look for the word "schema" in the list of changes.
 
         DB schema upgrade was successful. Exiting now.
 
-  The schema version and upgrade history is kept in the db_version table. The
-  upgrade_schema flag is not used during day-to-day operation of the server.
-
-  **Note:** If you've been using jsettlers **1.1.20** or older, test bcrypt speed and
-  set the work_factor property before starting the upgrade process. For details
-  search for "Password Encryption (BCrypt)" in this file.
-
-  **Note:** If you've been using jsettlers **1.1.20** or older with postgresql,
-  the upgrade may tell you to change your tables' owner to socuser first:
+#### Postgresql note:
+  If you've been using jsettlers **1.1.20** or older with postgresql,
+  the upgrade may tell you to change your tables' owner to `socuser` first:
 
         * To begin schema upgrade, please fix and rerun:
         Must change table owner to socuser from postgres
@@ -396,6 +398,13 @@ In [Versions.md](Versions.md) look for the word "schema" in the list of changes.
         psql -d socdata --file jsettlers-upg-prep-postgres-owner.sql -v to=socuser
 	
   Then, run the schema upgrade command.
+
+### Completing the upgrade:
+- The upgrade is technically complete once you've seen this output:  
+  `DB schema upgrade was successful. Exiting now.`
+- Make a new DB backup or export its contents
+- The upgrade_schema command-line flag is not used during day-to-day operation of the server
+- Note: The schema version and upgrade history is kept in the db_version table
 
 
 ## Settings Table and Checking Info about the DB
