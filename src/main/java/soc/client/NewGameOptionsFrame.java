@@ -1433,6 +1433,16 @@ import soc.util.Version;
      */
     private void clickCancel()
     {
+        if (! readOnly)
+        {
+            // If scenario checkbox was manually cleared, clear scenario-name dropdown selection
+            // for next time this dialog is shown to create a new game
+
+            final SOCGameOption optSC = opts.get("SC");
+            if ((optSC != null) && ! optSC.getBoolValue())
+                optSC.setStringValue("");
+        }
+
         dispose();
     }
 
