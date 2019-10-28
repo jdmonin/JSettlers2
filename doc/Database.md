@@ -5,12 +5,16 @@ Setup and info about using the optional database for JSettlers user accounts and
 ## Introduction
 
 The JSettlers server can optionally use a database to store player account
-information and game stats.  A client java app to create user accounts is
+information and/or game stats. These features can be individually turned on
+in the server config. A client java app to create user accounts is
 also provided.
 
 ## Contents
 
 -  Database Setup (Installing a JSettlers DB)
+-  JSettlers Features which use the Database
+   - Game Stats and Scores
+   - Player Accounts
 -  Security, Admin Users, Admin Commands
 -  Upgrading from an earlier version of JSettlers
 -  Settings Table and Checking Info about the DB
@@ -230,17 +234,28 @@ see section "Settings Table and Checking Info about the DB" below. For security
 you should also read section "Password Encryption (BCrypt)", which includes
 timing tests to find the right Work Factor for your server.
 
-### Storing Game Scores in the DB (optional)
 
-Game scores can optionally be saved for reports or community-building. To
-automatically save all completed game results in the database, use this option
-when starting the JSettlers server:
+## JSettlers Features which use the Database
 
-	-Djsettlers.db.save.games=Y
+### Storing Game Stats and Scores in the DB (optional)
 
-Or, in your server's jsserver.properties file, add the line:
+Game scores and stats can optionally be saved for reports or community-building.
 
-	jsettlers.db.save.games=Y
+- For players whose account/nickname is in the database (optional),
+  their total wins and losses are counted in the `users` table
+- You can save all completed game results and stats in the database:
+  Winner name, per-player scores, game options, duration.
+  This isn't active by default, and must be turned on in the server config:
+  Either use this option when starting the JSettlers server:
+
+        -Djsettlers.db.save.games=Y
+
+  Or, in your server's jsserver.properties file, add the line:
+
+        jsettlers.db.save.games=Y
+
+  Game stats and scores are kept in the `games2` and `games2_players` tables.
+  (Or if DB hasn't been upgraded, `games`.)
 
 ### Creating JSettlers Player Accounts in the DB (optional)
 
@@ -272,7 +287,10 @@ server will allow anyone to create the first account.  Please be sure to
 create that first user account soon after you set up the database. The first
 account created must be on the account admins list.
 
-### Password Encryption (BCrypt)
+Player accounts are stored in the `users` table. Their total wins and losses
+are also tracked there.
+
+#### Password Encryption (BCrypt)
 
 Player account passwords are encrypted using BCrypt. For tuning, BCrypt includes
 a "Work Factor" parameter; the hashing algorithm runs for 2 ^ WorkFactor rounds,
