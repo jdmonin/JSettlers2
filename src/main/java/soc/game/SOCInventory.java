@@ -27,7 +27,8 @@ import java.util.List;
 
 
 /**
- * This represents a player's collection of development cards, and occasional scenario-specific items.
+ * This represents a player's collection of development cards ({@link SOCDevCard})
+ * and occasional scenario-specific items ({@link SOCInventoryItem}).
  * Organized to help lifecycle management (new-to-old, playable versus keep until end of game)
  * of player's inventory items.
  *<P>

@@ -86,8 +86,8 @@ import soc.message.SOCMessage;  // strictly for isSingleLineAndSafe
  *    When sending a PICK request, the wonder's game item index and player item index must meet the requirements
  *    of {@link SOCScenario#K_SC_WOND}.
  * <LI> Game state must be {@link SOCGame#PLAY1 PLAY1}
- * <LI> There are requirements ({@link #req}) to pick each wonder, different wonders have different requirements
- * <LI> There is a resource cost to build each level, different wonders have different costs
+ * <LI> There are requirements ({@link #req}) to pick each wonder; different wonders have different requirements
+ * <LI> There is a resource cost to build each level; different wonders have different costs
  * <LI> When the player first picks a Wonder to build its first level, player loses 1 ship.
  *    (In the physical game the ship becomes a marker on the Wonder card.)
  * <LI> Can build several levels per turn; each level is built with a {@code PICK} request
@@ -167,13 +167,15 @@ public class SOCSpecialItem
 
     /**
      * Optional cost to buy, use, or build the next level, or {@code null}.
-     * Not sent over the network; see {@link SOCSpecialItem class javadoc}.
+     * Not sent over the network; see {@link SOCSpecialItem class javadoc}
+     * and {@link #makeKnownItem(String, int)}.
      */
     protected SOCResourceSet cost;
 
     /**
      * Optional requirements to buy, use, or build the next level, or {@code null}.
-     * Not sent over the network; see {@link SOCSpecialItem class javadoc}.
+     * Not sent over the network; see {@link SOCSpecialItem class javadoc}
+     * and {@link #makeKnownItem(String, int)}.
      */
     public final List<Requirement> req;
 

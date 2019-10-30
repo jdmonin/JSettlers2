@@ -23,8 +23,8 @@ import soc.util.SOCStringManager;
 
 /**
  * An inventory item, such as a {@link SOCDevCard} or a scenario-specific item, held
- * in a player's hand to be played later or kept until scoring at the end of the game.
- * Except {@code SOCDevCard}s, these items aren't subject to the rule of playing at most
+ * in a player's hand ({@link SOCInventory}) to be played later or kept until scoring at the end of the game.
+ * Except for {@code SOCDevCard}s, these items aren't subject to the rule of playing at most
  * 1 Development Card per turn: The player can play a Dev Card on the same turn as an item.
  *<P>
  * To see if a player can currently play an inventory item, use {@link SOCGame#canPlayInventoryItem(int, int)}.

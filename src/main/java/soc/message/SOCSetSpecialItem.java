@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,18 +27,19 @@ import soc.game.SOCPlayer;  // for javadocs only
 import soc.game.SOCSpecialItem;  // for javadocs only
 
 /**
- * This message is to pick, set, or clear a {@link SOCSpecialItem} in the game and/or owning player's Special Item list.
- * Within the game data, items are held in per-game and/or per-player Special Item lists.
+ * This message is to pick, set, or clear a {@link SOCSpecialItem} in the game and/or the Special Item list
+ * of the player owning the item. Within the game data, lists track the per-game (unowned or game-wide) and/or
+ * per-player Special Item lists. The same Special Item object instance may be in both lists.
  *<P>
- * Sent for the Wonders chosen by players in the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
+ * Is sent for the Wonders chosen by players in the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
  *<P>
- * The message conveys which object is affected ({@link #typeKey}, {@link #gameItemIndex}, {@link #playerItemIndex})
+ * This message conveys which object is affected ({@link #typeKey}, {@link #gameItemIndex}, {@link #playerItemIndex})
  * and the object data fields ({@link #playerNumber}, {@link #coord}, {@link #level}, {@link #sv}).
  * When a Special Item is held in the game's list and also its owning player's list,
  * the message can update both lists at once.
  *<P>
- * A client player can request that a player or game Special Item list index be picked, set, or cleared.
- * The server can decline that request, or announce a change or pick to all members of the game.
+ * A client player can request that the item at an index within a per-player or game-wide Special Item list be picked,
+ * set, or cleared. The server can decline that request, or announce a change or pick to all members of the game.
  * The server can also send a {@code SOCSetSpecialItem} message when anything happens in-game that causes a change.
  * If the special item change has also caused a change to game state, the server will announce that
  * after sending the special item message(s).
@@ -49,8 +50,8 @@ import soc.game.SOCSpecialItem;  // for javadocs only
  * pay the cost.
  *<P>
  * If client joins the game after it starts, these messages will be sent after the {@link SOCBoardLayout2} message.
- * So, {@link SOCGame#updateAtBoardLayout()} will have been called at the client and created Special Item objects
- * before any {@code SOCSetSpecialItem} is received.
+ * So, {@link SOCGame#updateAtBoardLayout()} has already been called at that client and created Special Item objects
+ * before it receives any {@code SOCSetSpecialItem}.
  *<P>
  * For message traffic/protocol details see {@link #OP_SET}, {@link #OP_CLEAR}, {@link #OP_PICK} and
  * {@link #OP_DECLINE} javadocs; client requests typically use {@link #OP_PICK}.  For game details see
