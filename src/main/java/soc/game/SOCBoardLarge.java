@@ -609,6 +609,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * For some scenarios, villages on the board. Null otherwise.
+     * Map key is village's node coordinate.
      * Each village has a {@link SOCVillage#diceNum dice number} and a {@link SOCVillage#getCloth() cloth count}.
      */
     protected HashMap<Integer, SOCVillage> villages;

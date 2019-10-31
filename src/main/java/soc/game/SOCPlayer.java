@@ -1394,7 +1394,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param idx  Index within the list of special items of that type; if this is past the list's current size,
      *     {@code null} elements will be inserted as needed until {@code idx} is a valid index
      *     If {@code idx} is within the list, the current element at that index will be replaced.
-     * @param itm  Item object to set within the list
+     * @param itm  Item object to set within the list.
+     *     Method does not set or change {@link SOCSpecialItem#getPlayer() itm.getPlayer()}.
      * @return  The item previously at this index, or {@code null} if none
      * @throws IndexOutOfBoundsException  if {@code idx} &lt; 0
      * @see SOCGame#setSpecialItem(String, int, SOCSpecialItem)

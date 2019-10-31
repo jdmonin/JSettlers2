@@ -37,9 +37,11 @@ import soc.message.SOCMessage;  // strictly for isSingleLineAndSafe
  * Special Items are per-game and/or per-player.  In {@link SOCGame} and {@link SOCPlayer}
  * they're accessed by an item type key.  For compatibility among scenarios and expansions,
  * this key should be a {@link SOCGameOption} keyname; if an option has more than one
- * special item type, {@code typeKey} should be optionName + "/" + a short alphanumeric key of your choosing.
+ * special item type, {@code typeKey} should be optionName + "/" + a short alphanumeric key.
  * Please document the Special Item type(s) in the SOCGameOption's javadoc, including
  * whether each is per-game, per-player, or both (for more convenient access).
+ * If the game option is for a scenario, instead mention the Special Item in the game option's javadoc
+ * and document its use in the {@link SOCScenario} constant's javadoc.
  *<P>
  * In some scenarios, Special Items may have requirements for players to build or use them.
  * See {@link SOCSpecialItem.Requirement} javadoc for more details.  To check requirements,
@@ -53,8 +55,8 @@ import soc.message.SOCMessage;  // strictly for isSingleLineAndSafe
  * During game setup, {@link #makeKnownItem(String, int)} can be called for convenience at both the
  * server and client from {@link SOCGame#updateAtBoardLayout()}:
  *<P>
- * The cost and requirement fields are initialized at the server and at the client, not sent over the network.
- * Because of their limited and known use, it's easier to set them up in a factory method here than to create,
+ * The cost and requirement constant fields are initialized at the server and at the client, not sent over the network.
+ * Because of their specific scope and known use, it's easier to set them up in a factory method here than to create,
  * send, and parse messages with all details of the game's Special Items.  If a new Special Item type is created
  * for a new scenario or expansion, the client would most likely need new code to handle that scenario or
  * expansion, so the new item type's field initialization can be added to the factory at that time.
@@ -68,7 +70,8 @@ import soc.message.SOCMessage;  // strictly for isSingleLineAndSafe
  *
  *<H5>Current scenarios and {@code typeKey}s:</H5>
  *
- *<H6>{@link SOCGameOption#K_SC_WOND _SC_WOND}</H6>
+ *<H6>{@link SOCGameOption#K_SC_WOND _SC_WOND} - Wonders</H6>
+ *
  *  In this scenario, the game has a list of unique "Wonders", indexed 1 to {@link SOCGame#maxPlayers} + 1.
  *  (The 6-player game includes another copy of the first two wonders.)
  *  To win the game, a player must take ownership of exactly one of these, and build 4 levels of it.
@@ -102,6 +105,10 @@ import soc.message.SOCMessage;  // strictly for isSingleLineAndSafe
 public class SOCSpecialItem
     implements Cloneable
 {
+
+    // Per-scenario static data:
+
+    // SC_WOND: Wonders
 
     /**
      * To win the game in {@link SOCGameOption#K_SC_WOND _SC_WOND}, player can build this many
@@ -138,12 +145,14 @@ public class SOCSpecialItem
     };
 
     /**
-     * {@link #sv} for the Wonders in the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
+     * {@link #sv} string keys for the Wonders in the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
      * {@code sv} is used in this scenario to identify the wonder with a localized name.
      * Index 0 unused.  The 6-player game includes another copy of the first two wonders.
      * Used by {@link #makeKnownItem(String, int)}.
      */
     private static final String[] SV_SC_WOND = { null, "w1", "w2", "w3", "w4", "w5", "w1", "w2" };
+
+    // End of per-scenario static data
 
     /**
      * Item's optional game item index, or -1, as used with {@link SOCGame#getSpecialItem(String, int, int, int)}.
@@ -162,7 +171,10 @@ public class SOCSpecialItem
     /** Optional level of construction or strength, or 0. */
     protected int level;
 
-    /** Optional string value field, or null; this field's meaning is specific to the item's {@code typeKey}. */
+    /**
+     * Optional string value field, or null; this field's meaning is specific to the item's {@code typeKey}.
+     * See {@link #getStringValue()} for details.
+     */
     protected String sv;
 
     /**
@@ -194,7 +206,7 @@ public class SOCSpecialItem
      *
      * @param typeKey  Special item type.  Typically a {@link SOCGameOption} keyname;
      *    see {@link SOCSpecialItem class javadoc} for details.
-     * @param idx  Index within game's Special Item list
+     * @param idx  Index within game's Special Item list, or -1 if not part of that list
      * @return A Special Item at no coordinate (-1) and unowned by any player, with cost/requirements if known,
      *     or {@code null} cost and requirements otherwise.
      */
@@ -202,17 +214,22 @@ public class SOCSpecialItem
     {
         // If you update this method or add a scenario here, update soctest.game.TestSpecialItem method testMakeKnownItem.
 
-        if (! typeKey.equals(SOCGameOption.K_SC_WOND))
+        final String[] typeReqs, typeSV;  // Per-index requirements and SV, or null
+        final int[][] typeCosts;    // Per-index costs, or null
+        final int itemLevel;    // initial level
+
+        if (typeKey.equals(SOCGameOption.K_SC_WOND))
         {
+            typeReqs = REQ_SC_WOND;
+            typeSV = SV_SC_WOND;
+            typeCosts = COST_SC_WOND;
+            itemLevel = 0;
+        } else {
             return new SOCSpecialItem(null, -1, null, null);  // <--- Early return: Unknown typeKey ---
         }
 
-        final String[] typeReqs = REQ_SC_WOND;
-        final int[][] typeCosts = COST_SC_WOND;
-        final String[] typeSV = SV_SC_WOND;
-
         final SOCResourceSet costRS;
-        if ((idx < 0) || (idx >= typeCosts.length))
+        if ((typeCosts == null) || (idx < 0) || (idx >= typeCosts.length))
         {
             costRS = null;
         } else {
@@ -220,10 +237,16 @@ public class SOCSpecialItem
             costRS = (cost == null) ? null : new SOCResourceSet(cost);
         }
 
-        final String req = ((idx < 0) || (idx >= typeReqs.length)) ? null : typeReqs[idx];
-        final String sv = ((idx < 0) || (idx >= typeSV.length)) ? null : typeSV[idx];
+        final String req =
+            (typeReqs != null)
+            ? (((idx < 0) || (idx >= typeReqs.length)) ? null : typeReqs[idx])
+            : null;
+        final String sv =
+            (typeSV != null)
+            ? (((idx < 0) || (idx >= typeSV.length)) ? null : typeSV[idx])
+            : null;
 
-        final SOCSpecialItem si = new SOCSpecialItem(null, -1, 0, sv, costRS, req);
+        final SOCSpecialItem si = new SOCSpecialItem(null, -1, itemLevel, sv, costRS, req);
         si.setGameIndex(idx);
 
         return si;
@@ -408,7 +431,7 @@ public class SOCSpecialItem
         return gameItemIndex;
     }
 
-    /** Set this item's {@link #getGameIndex(). */
+    /** Set this item's {@link #getGameIndex()}. Use -1 to clear to "none". */
     public void setGameIndex(final int gi)
     {
         gameItemIndex = gi;
@@ -469,7 +492,12 @@ public class SOCSpecialItem
 
     /**
      * Get the current string value, if any, of this special item.
-     * This is an optional field whose meaning is specific to the item type (typeKey).
+     * This is an optional field whose meaning is specific to the item type (typeKey):
+     *<UL>
+     * <LI> {@link SOCGameOption#K_SC_WOND _SC_WOND}:
+     *     At client, localized i18n string key is {@code "game.specitem.sc_wond." + item.getStringValue()}
+     *</UL>
+     *
      * @return  Current string value, or {@code null}
      */
     public String getStringValue()

@@ -255,7 +255,7 @@ public class SOCGameOption
     public static final String K_SC_CLVI = "_SC_CLVI";
 
     /**
-     * Scenario key <tt>_SC_PIRI</tt> for Pirate Islands and {@link SOCFortress fortresses}.
+     * Scenario key <tt>_SC_PIRI</tt> for Pirate Islands and {@link SOCFortress Fortresses}.
      * Fortresses and player warships are in a game only if this option is set.
      * For more details and special rules see {@link SOCScenario#K_SC_PIRI}.
      * @since 2.0.00
@@ -273,7 +273,7 @@ public class SOCGameOption
     /**
      * Scenario key {@code _SC_WOND} for Wonders.
      * Special unique "wonders" claimed by players and built up to several levels. No pirate ship.
-     * For more details, special rules, and Special Items, see {@link SOCScenario#K_SC_WOND}.
+     * For more details, special rules, and {@link SOCSpecialItem Special Item}s, see {@link SOCScenario#K_SC_WOND}.
      * @since 2.0.00
      */
     public static final String K_SC_WOND = "_SC_WOND";

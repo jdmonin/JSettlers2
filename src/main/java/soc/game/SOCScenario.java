@@ -312,7 +312,7 @@ public class SOCScenario
     public static final String K_SC_CLVI = "SC_CLVI";
 
     /**
-     * Scenario key {@code SC_PIRI} for Pirate Islands and {@link SOCFortress fortresses}.
+     * Scenario key {@code SC_PIRI} for Pirate Islands and {@link SOCFortress Fortresses}.
      * Main option is {@link SOCGameOption#K_SC_PIRI}.
      *<P>
      * A pirate fleet circulates on a predefined path, stealing resources from weak players with
@@ -326,6 +326,8 @@ public class SOCScenario
      *<P>
      * The pirate fleet moves with every dice roll. When a 7 is rolled, the fleet moves and any
      * battle is resolved before the usual discards. Players may choose to not rob from anyone on 7.
+     *<P>
+     * When a player defeats their Fortress, it's replaced by a {@link SOCSettlement}.
      */
     public static final String K_SC_PIRI = "SC_PIRI";
 
