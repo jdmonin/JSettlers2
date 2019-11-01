@@ -119,6 +119,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * with this, the token value fails {@link #isSingleLineAndSafe(String)}.
      *
      * @see #GAME_NONE
+     * @see SOCMessageTemplateMs#parseData_FindEmptyStrs(java.util.List)
      * @since 2.0.00
      */
     public static final String EMPTYSTR = "\t";

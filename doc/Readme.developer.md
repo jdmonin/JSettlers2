@@ -393,11 +393,9 @@ jsettlers JAR from the command line, not running inside the IDE.
 
 - Game/scenario framework:
   - Review scenarios' description text
-  - Other expansions should be possible to add later within the framework
-    released with 2.0.00
+  - Various per-scenario win-condition test runs for corner cases
 - Network message system:
   - Finish corner cases for I18N SOCLocalizedStrings
-  - Consider a common handler/constant for EMPTYSTR token
 - Review documentation, especially for v2.0 changes
 
 

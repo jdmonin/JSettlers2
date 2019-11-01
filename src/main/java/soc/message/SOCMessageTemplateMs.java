@@ -163,7 +163,7 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
 
     /**
      * Parse helper method: Iterate over the received parameter list
-     * and replace any {@link SOCMessage#EMPTYSTR} parameter with "" in place.
+     * and replace any {@link SOCMessage#EMPTYSTR} in place with "".
      * Used in child classes' {@code parseDataStr(..)} methods.
      * Ignores {@link #GAME_NONE}.
      * @param slist  The String parameters received over the network, or {@code null} to do nothing
