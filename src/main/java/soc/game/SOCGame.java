@@ -8036,9 +8036,9 @@ public class SOCGame implements Serializable, Cloneable
      * Some game scenarios have other special win conditions ({@link #hasScenarioWinCondition}):
      *<UL>
      *<LI> Scenario {@link SOCGameOption#K_SC_CLVI _SC_CLVI} will end the game if
-     *     less than half the {@link SOCVillage}s have cloth remaining.  The player
+     *     fewer than 4 of the {@link SOCVillage}s have cloth remaining.  The player
      *     with the most VP wins; if tied, the tied player with the most cloth wins.
-     *     The winner is not necessarily the current player.
+     *     Winner is not necessarily the current player.
      *<LI> Scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI} requires the player to
      *     defeat and recapture 'their' pirate fortress to win.
      *<LI> Scenario {@link SOCGameOption#K_SC_WOND _SC_WOND} requires the player to
@@ -8122,11 +8122,14 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Check if less than half the villages have cloth remaining.
-     * (If half or more still have cloth, return false without changing game state.)
-     * If so, end the game; see {@link #checkForWinner()} for details.
-     * Sets state to {@link #OVER}.  Returns true.
+     * Check how many villages have cloth remaining, in scenario {@code SC_CLVI}.
+     * Called by {@link #checkForWinner()}. Game ends immediately if fewer than 4 villages still
+     * have cloth ({@link SOCScenario#SC_CLVI_VILLAGES_CLOTH_REMAINING_MIN}).
+     * Otherwise, returns false without changing game state.
+     *<P>
+     * Sets state to {@link #OVER}. Returns true.
      * Caller should fire {@link SOCGameEvent#SGE_CLVI_WIN_VILLAGE_CLOTH_EMPTY}.
+     *
      * @return true if game has ended with a winner under this special condition
      * @since 2.0.00
      */
@@ -8135,10 +8138,14 @@ public class SOCGame implements Serializable, Cloneable
         int nv = 0;
         final HashMap<Integer, SOCVillage> allv = ((SOCBoardLarge) board).getVillages();
         for (SOCVillage v : allv.values())
+        {
             if (v.getCloth() > 0)
+            {
                 ++nv;
-        if (nv >= (allv.size()+1) / 2)
-            return false;  // at least half the villages have cloth; +1 is for odd # of villages (int 7 / 2 = 3)
+                if (nv >= SOCScenario.SC_CLVI_VILLAGES_CLOTH_REMAINING_MIN)
+                    return false;
+            }
+        }
 
         gameState = OVER;
 

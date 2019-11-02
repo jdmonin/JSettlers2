@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,6 +29,8 @@ import java.util.List;
  *<P>
  * Villages belong to the game board, not to any player, and new villages cannot be built after the game starts.
  * Trying to call {@link SOCPlayingPiece#getPlayer() village.getPlayer()} will throw an exception.
+ *
+ * @see SOCScenario#SC_CLVI_VILLAGES_CLOTH_REMAINING_MIN
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */

@@ -207,9 +207,10 @@ public class SOCScenario
             (K_SC_CLVI, 2000, 2000,
              "Cloth Trade with neutral villages",
              "The small islands' villages give you Cloth; every 2 cloth you have is 1 extra Victory Point. To gain cloth, "
-             + "build ships to a village. Each player to reach a village gets 1 of its cloth at that time, and 1 more "
-             + "whenever its number is rolled, until the village runs out. You can't move the pirate until you've "
-             + "reached a village. If more than half the villages run out of cloth, the game ends and the player "
+             + "build ships to a village. You can't move the pirate until you've reached a village. "
+             + "Each player to reach a village gets 1 of its cloth at that time, and 1 more "
+             + "whenever its number is rolled, until the village runs out. "
+             + "If fewer than 4 villages still have cloth, the game ends and the player "
              + "with the most VP wins. (If tied, player with most cloth wins.)",
              "_SC_CLVI=t,SBL=t,VP=t14,_SC_3IP=t,_SC_0RVP=t"));
 
@@ -305,11 +306,22 @@ public class SOCScenario
      * Scenario key {@code SC_CLVI} for {@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}:
      * Cloth Trade with neutral {@link SOCVillage villages}.
      * Main option is {@link SOCGameOption#K_SC_CLVI}.
+     * Game ends immediately if fewer than 4 villages still have cloth ({@link #SC_CLVI_VILLAGES_CLOTH_REMAINING_MIN}).
      *<P>
      * While starting a new game, the neutral villages are placed and sent to clients as part {@code "CV"}
      * of the board layout message while game state is still &lt; {@link SOCGame#START1A START1A}.
      */
     public static final String K_SC_CLVI = "SC_CLVI";
+
+    /**
+     * In scenario {@link #K_SC_CLVI SC_CLVI}, game ends immediately if
+     * fewer than this many {@link SOCVillage villages} (4) still have cloth.
+     * Per scenario rules, 4- and 6-player games use the same number here;
+     * the 6-player layout has more villages and more players to reach them.
+     */
+    public static final int SC_CLVI_VILLAGES_CLOTH_REMAINING_MIN = 4;
+        // If this value changes, must update scenario description text
+        // and its translations (keys: gamescen.SC_CLVI.d, event.sc_clvi.game.ending.villages)
 
     /**
      * Scenario key {@code SC_PIRI} for Pirate Islands and {@link SOCFortress Fortresses}.

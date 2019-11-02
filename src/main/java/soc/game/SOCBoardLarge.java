@@ -1896,7 +1896,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * Index 0 is the board's "general supply" cloth count {@link #getCloth()}.
      * Index 1 is each village's starting cloth count, from {@link SOCVillage#STARTING_CLOTH}.
-     * Then, 2 int elements per village: Coordinate, Dice Number.
+     * Then, 2 int elements per village (village order may vary): Coordinate, Dice Number.
      * If any village has a different amount of cloth, server should follow with
      * messages to set those villages' cloth counts.
      * @return the layout, or null if no villages.
@@ -1910,7 +1910,7 @@ public class SOCBoardLarge extends SOCBoard
 
         int[] vcl = new int[ (2 * villages.size()) + 2 ];
         vcl[0] = numCloth;
-        vcl[1] = SOCVillage.STARTING_CLOTH;  // in case it changes in a later version
+        vcl[1] = SOCVillage.STARTING_CLOTH;  // include for compat, in case STARTING_CLOTH changes in a later version
         int i=2;
         Iterator<SOCVillage> villIter = villages.values().iterator();
         while (villIter.hasNext())
