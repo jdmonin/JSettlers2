@@ -383,7 +383,8 @@ import javax.swing.UIManager;
 
     /**
      * Game option NT: If true, only bank trading is allowed,
-     * trading between players is disabled.
+     * trading between players is disabled,
+     * and {@link #offerPanel} and {@link #counterOfferPanel} are null.
      * @since 1.1.07
      */
     protected boolean playerTradingDisabled;
@@ -1830,6 +1831,9 @@ import javax.swing.UIManager;
      */
     private void checkTradePanelLayoutSize()
     {
+        if (offerPanel == null)
+            return;
+
         final boolean isCounterVis = counterOfferPanel.isVisible();
         if (offerPanel.isVisible() || isCounterVis || ! faceImg.isVisible())
             offerCounterOfferVisibleChanged(isCounterVis);  // call validate(), repaint()
@@ -1996,8 +2000,11 @@ import javax.swing.UIManager;
             wonderLab.setVisible(false);
         }
 
-        offerPanel.setVisible(false);
-        counterOfferPanel.setVisible(false);
+        if (offerPanel != null)
+        {
+            offerPanel.setVisible(false);
+            counterOfferPanel.setVisible(false);
+        }
 
         larmyLab.setVisible(false);
         lroadLab.setVisible(false);
@@ -2807,7 +2814,7 @@ import javax.swing.UIManager;
      * their components overlap visually in the handpanel.  In that case
      * the trade offer will be refreshed after the reset is cancelled.
      *<P>
-     * Does not display if playerIsClient.
+     * Does not display if playerIsClient. Does nothing if {@link #playerTradingDisabled}.
      *
      * @param isNewOffer  If true this is for a newly made trade offer,
      *    not a refresh based on other game or player info.
@@ -2818,6 +2825,9 @@ import javax.swing.UIManager;
      */
     public void updateCurrentOffer(final boolean isNewOffer, final boolean resourcesOnly)
     {
+        if (playerTradingDisabled)
+            return;
+
         if (inPlay)
         {
             if (resourcesOnly)
@@ -3000,7 +3010,7 @@ import javax.swing.UIManager;
             return;
         }
 
-        final boolean counterIsShowing = counterOfferPanel.isVisible();
+        final boolean counterIsShowing = (counterOfferPanel != null) && counterOfferPanel.isVisible();
         if (offerCounterHidingFace != counterIsShowing)
         {
             faceImg.setVisible(! counterIsShowing);
@@ -3044,7 +3054,7 @@ import javax.swing.UIManager;
         messagePanel.setText(null);
         messagePanel.setVisible(false);
 
-        if (! messageIsReset)
+        if (! (messageIsReset || playerTradingDisabled))
         {
             offerPanel.setVisible(false);
             offerPanel.setTradeOffer(null);
@@ -3117,13 +3127,16 @@ import javax.swing.UIManager;
 
         if (message != null)
         {
-            offerIsHiddenByMessage = offerPanel.isVisible();
+            offerIsHiddenByMessage = (offerPanel != null) && offerPanel.isVisible();
             messagePanel.setText(message);
 
             if (offerHidesControls)
                 hideTradeMsgShowOthers(false);
-            offerPanel.setVisible(false);
-            counterOfferPanel.setVisible(false);
+            if (offerPanel != null)
+            {
+                offerPanel.setVisible(false);
+                counterOfferPanel.setVisible(false);
+            }
             messagePanel.setVisible(true);
             repaint();
         } else {
@@ -4093,10 +4106,14 @@ import javax.swing.UIManager;
 
                 // Are we tall enough for room, under trading panel(s), for other controls?
                 // If not, they will be hid when offer is visible.
-                final boolean isCounterOfferMode = counterOfferPanel.isVisible();
-                final Dimension offerPrefSize = offerPanel.getPreferredSize();
+                final boolean isCounterOfferMode = (counterOfferPanel != null) && counterOfferPanel.isVisible();
+                final Dimension offerPrefSize = (offerPanel != null)
+                    ? offerPanel.getPreferredSize()
+                    : vpSq.getSize();  // if player trading disabled, use vpSq as small stand-in
                 int offerMinHeight = offerPrefSize.height,
-                    counterOfferHeight = counterOfferPanel.getPreferredHeight(false);
+                    counterOfferHeight = (counterOfferPanel != null)
+                        ? counterOfferPanel.getPreferredHeight(false)
+                        : ColorSquare.HEIGHT;
                 if (isCounterOfferMode)
                     offerMinHeight += counterOfferHeight + space;
                 // TODO chk num lines here
@@ -4104,7 +4121,7 @@ import javax.swing.UIManager;
                           topFaceAreaHeight = inset + faceW + space,
                           availHeightNoHide = (dim.height - topFaceAreaHeight - (numBottomLines * (lineH + space)));
 
-                if (availHeightNoHide < offerMinHeight)
+                if ((availHeightNoHide < offerMinHeight) && ! playerTradingDisabled)
                 {
                     // Use compact mode; maybe won't have to hide other controls.
                     // Update trade panel width/height vars
@@ -4122,8 +4139,8 @@ import javax.swing.UIManager;
                 }
 
                 offerHidesControls = offerHidingControls
-                    || (availHeightNoHide < offerMinHeight);
-                if (offerHidesControls)
+                    || ((availHeightNoHide < offerMinHeight) && ! playerTradingDisabled);
+                if (offerHidesControls && ! playerTradingDisabled)
                 {
                     // This flag is set here based on newly calculated layout,
                     // for use later when changing offerCounterHidingFace
@@ -4154,18 +4171,24 @@ import javax.swing.UIManager;
                 } else {
                     int py = inset + faceW + space;
                     messagePanel.setBounds(inset, py, offerPrefSize.width, offerPrefSize.height);
-                    offerPanel.setBounds(inset, py, offerPrefSize.width, offerPrefSize.height);
-                    if (isCounterOfferMode)
+                    if (offerPanel != null)
                     {
-                        py += offerPrefSize.height + space;
-                        counterOfferPanel.setBounds
-                            (inset, py, offerPrefSize.width, counterOfferHeight);
+                        offerPanel.setBounds(inset, py, offerPrefSize.width, offerPrefSize.height);
+                        if (isCounterOfferMode)
+                        {
+                            py += offerPrefSize.height + space;
+                            counterOfferPanel.setBounds
+                                (inset, py, offerPrefSize.width, counterOfferHeight);
+                        }
                     }
                     offerCounterHidesFace = false;
                 }
-                offerPanel.validate();
-                if (isCounterOfferMode)
-                    counterOfferPanel.validate();
+                if (offerPanel != null)
+                {
+                    offerPanel.validate();
+                    if (isCounterOfferMode)
+                        counterOfferPanel.validate();
+                }
                 messagePanel.validate();
 
                 // Calc stlmtsW, dcardsW minimum widths needed from label texts
@@ -4260,7 +4283,7 @@ import javax.swing.UIManager;
                 }
 
                 if (((wasHidesControls != offerHidesControls) || (offerCounterHidingFace != offerCounterHidesFace))
-                    && (offerPanel.isVisible() || messagePanel.isVisible()))
+                    && (messagePanel.isVisible() || ((offerPanel != null) && offerPanel.isVisible())))
                     hideTradeMsgShowOthers(false);
             }
         }
