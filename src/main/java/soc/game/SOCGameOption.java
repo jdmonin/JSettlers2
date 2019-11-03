@@ -537,7 +537,9 @@ public class SOCGameOption
         opt.put("NT", new SOCGameOption
                 ("NT", 1107, 1107, false, FLAG_DROP_IF_UNUSED, "No trading allowed between players"));
         opt.put("VP", new SOCGameOption
-                ("VP", -1, 1114, false, 10, 10, 15, FLAG_DROP_IF_UNUSED, "Victory points to win: #"));
+                ("VP", -1, 2000, false, 10, 10, 20, FLAG_DROP_IF_UNUSED, "Victory points to win: #"));
+                // If min or max changes, test client to make sure New Game dialog still shows it as a dropdown
+                // (not a text box) for user convenience
         final SOCGameOption sc = new SOCGameOption
                 ("SC", 2000, 2000, 8, false, FLAG_DROP_IF_UNUSED, "Game Scenario: #");
         opt.put("SC", sc);
