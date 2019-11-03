@@ -90,6 +90,18 @@ When preparing to release a new version, testing should include:
      - Start and begin playing a game with the Fog Islands scenario
        - Place initial coastal settlements next to the fog island, with initial ships to reveal hexes from the fog
        - Keep restarting (reset the board) until you've revealed a gold hex and picked a free resource
+- Scenario-specific behaviors:
+     - Cloth Trade
+       - Start a game on the 6-player board
+       - Hover over village: Should show remaining cloth amount
+       - Build ships to multiple villages, including 2 villages with the same dice number
+       - Player receives 1 cloth when building ship to a village (establishing trade)
+       - As game is played, make sure distribution of cloth to players is correct,
+         including from 2 villages with the same dice number
+       - Check for depletion of villages (should turn gray when cloth is depleted)
+       - Check that when a village has 1 remaining cloth, but 2 established players,
+         the board's general supply gives cloth to the 2nd player
+       - Leave and rejoin game: Hover over villages; cloth counts should be accurate
 - Client preferences
     - Auto-reject bot trade offers:
         - Practice game: Test UI's trade behavior with and without preference

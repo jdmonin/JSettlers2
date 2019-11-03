@@ -589,26 +589,26 @@ public class SOCGameMessageHandler
                     {
                         // Send village cloth trade distribution
 
-                        final int coord = roll.cloth[1];
-                        final SOCBoardLarge board = (SOCBoardLarge) (ga.getBoard());
-                        SOCVillage vi = board.getVillageAtNode(coord);
-                        if (vi != null)
-                            srv.messageToGame(gn, new SOCPieceValue
-                                (gn, SOCPlayingPiece.VILLAGE, coord, vi.getCloth(), 0));
+                        if (roll.clothVillages != null)
+                            for (final SOCVillage vi : roll.clothVillages)
+                                srv.messageToGame(gn, new SOCPieceValue
+                                    (gn, SOCPlayingPiece.VILLAGE, vi.getCoordinates(), vi.getCloth(), 0));
 
                         if (roll.cloth[0] > 0)
                             // some taken from board general supply
                             srv.messageToGame(gn, new SOCPlayerElement
-                                (gn, -1, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, board.getCloth()));
+                                (gn, -1, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT,
+                                 ((SOCBoardLarge) ga.getBoard()).getCloth()));
 
                         String clplName = null;   // name of first player to receive cloth
+                        int    clplAmount = 0;
                         ArrayList<String> clpls = null;  // names of all players receiving cloth, if more than one
-                        for (int i = 2; i < roll.cloth.length; ++i)
+                        for (int i = 1; i < roll.cloth.length; ++i)
                         {
                             if (roll.cloth[i] == 0)
                                 continue;  // this player didn't receive cloth
 
-                            final int pn = i - 2;
+                            final int pn = i - 1;
                             final SOCPlayer clpl = ga.getPlayer(pn);
                             srv.messageToGame(gn, new SOCPlayerElement
                                 (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, clpl.getCloth()));
@@ -617,6 +617,7 @@ public class SOCGameMessageHandler
                             {
                                 // first pl to receive cloth
                                 clplName = clpl.getName();
+                                clplAmount = roll.cloth[i];
                             } else {
                                 // second or further player
                                 if (clpls == null)
@@ -629,11 +630,11 @@ public class SOCGameMessageHandler
                         }
 
                         if (clpls == null)
-                            srv.messageToGameKeyed(ga, true, "action.rolled.sc_clvi.received.cloth.1", clplName);
-                                // "{0} received 1 cloth from a village."
+                            srv.messageToGameKeyed(ga, true, "action.rolled.sc_clvi.received.cloth.1", clplName, clplAmount);
+                                // "{0} received {1} cloth from the villages."
                         else
                             srv.messageToGameKeyedSpecial(ga, true, "action.rolled.sc_clvi.received.cloth.n", clpls);
-                                // "{0,list} each received 1 cloth from a village."
+                                // "{0,list} each received cloth from the villages."
                     }
 
                     if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)

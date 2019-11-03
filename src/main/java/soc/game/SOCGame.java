@@ -906,7 +906,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * The current dice result, including any scenario items such as
-     * {@link SOCVillage#distributeCloth(SOCGame)} results.
+     * {@link SOCVillage#distributeCloth(SOCGame, RollResult)} results.
      * This is the object returned from {@link #rollDice()} each turn.
      * @since 2.0.00
      * @see #currentDice
@@ -5144,7 +5144,7 @@ public class SOCGame implements Serializable, Cloneable
      * and N7C: Roll no 7s until a city is built.
      *<P>
      * For scenario option {@link SOCGameOption#K_SC_CLVI}, calls
-     * {@link SOCBoardLarge#distributeClothFromRoll(SOCGame, int)}:
+     * {@link SOCBoardLarge#distributeClothFromRoll(SOCGame, RollResult, int)}.
      * Cloth are worth VP, so check for game state {@link #OVER} if results include {@link RollResult#cloth}.
      *<P>
      * For scenario option {@link SOCGameOption#K_SC_PIRI}, calls {@link SOCBoardLarge#movePirateHexAlongPath(int)}
@@ -5268,13 +5268,9 @@ public class SOCGame implements Serializable, Cloneable
              */
             if (hasSeaBoard && isGameOptionSet(SOCGameOption.K_SC_CLVI))
             {
-                // distribute will usually return null
-                final int[] rollCloth = ((SOCBoardLarge) board).distributeClothFromRoll(this, currentDice);
-                if (rollCloth != null)
-                {
-                    currentRoll.cloth = rollCloth;
+                // distribute will usually return false; most rolls don't hit dice#s which distribute cloth
+                if (((SOCBoardLarge) board).distributeClothFromRoll(this, currentRoll, currentDice))
                     checkForWinner();
-                }
             }
 
             /**
@@ -8804,10 +8800,23 @@ public class SOCGame implements Serializable, Cloneable
         public int diceA, diceB;
 
         /**
-         * Null, or distributed cloth (for game scenario SC_CLVI), in the same
-         * format as {@link SOCVillage#distributeCloth(SOCGame)}.
+         * Null, or distributed cloth (for game scenario SC_CLVI) in this format:
+         *   [ Cloth amount taken from general supply,
+         *     Cloth amount given to player 0, to player 1, ..., to player n ].
+         * Any {@link SOCVillage}s with matching dice numbers which took part are in {@link #clothVillages}.
+         * @see SOCBoardLarge#distributeClothFromRoll(SOCGame, RollResult, int)
          */
         public int[] cloth;
+
+        /**
+         * Null, empty, or any village(s) with matching dice numbers which had cloth remaining,
+         * and may have distributed some of the cloth in {@link #cloth}
+         * and changed their {@link SOCVillage#getCloth()} amounts.
+         *<P>
+         * The 4-player board won't put more than 1 village in this list,
+         * but the 6-player layout has dice numbers with multiple villages.
+         */
+        public List<SOCVillage> clothVillages;
 
         /**
          * Robber/pirate fleet victims in some scenarios, otherwise null.
@@ -8848,12 +8857,17 @@ public class SOCGame implements Serializable, Cloneable
          */
         public SOCResourceSet sc_piri_fleetAttackRsrcs;
 
-        /** Convenience: Set diceA and dice, null out {@link #cloth} and {@link #sc_robPossibleVictims}. */
-        public void update (final int dA, int dB)
+        /**
+         * Convenience: Set diceA and diceB; null out {@link #cloth} and {@link #sc_robPossibleVictims};
+         * empty {@link #clothVillages} if not null.
+         */
+        public void update(final int dA, final int dB)
         {
             diceA = dA;
             diceB = dB;
             cloth = null;
+            if (clothVillages != null)
+                clothVillages.clear();
             sc_robPossibleVictims = null;
         }
 
