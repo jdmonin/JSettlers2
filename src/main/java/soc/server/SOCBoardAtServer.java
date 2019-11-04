@@ -220,12 +220,54 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
     // javadoc inherited from SOCBoardLarge.
     // If this scenario has dev cards or items waiting to be claimed by any player, draw the next item from that stack.
+    @Override
     public Integer drawItemFromStack()
     {
         if ((drawStack == null) || drawStack.isEmpty())
             return null;
 
         return drawStack.pop();
+    }
+
+
+    ////////////////////////////////////////////
+    //
+    // Scenario-specific methods
+    //
+
+
+    /**
+     * Game action: Distribute cloth to players on a dice roll.
+     * Calls {@link SOCVillage#distributeCloth(SOCGame, soc.game.SOCGame.RollResult)}
+     * for any village(s) with matching dice number.
+     * That calls {@link #takeCloth(int)}, {@link SOCPlayer#setCloth(int)}, etc.
+     * Each player trading with that village gets at most 1 cloth.
+     *<P>
+     * Used for scenario game option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}.
+     *
+     * @param game  Game with this board
+     * @param rollRes  {@code game}'s roll results, to add cloth distribution into:
+     *   Updates {@link SOCGame.RollResult#cloth}, {@link SOCGame.RollResult#clothVillages} fields
+     * @param dice  Rolled dice number
+     * @return true if any cloth was distributed
+     */
+    public boolean distributeClothFromRoll(SOCGame game, SOCGame.RollResult rollRes, final int dice)
+    {
+        if ((villages == null) || villages.isEmpty())
+            return false;
+
+        boolean hadAny = false;
+        Iterator<SOCVillage> villIter = villages.values().iterator();
+        while (villIter.hasNext())
+        {
+            SOCVillage v = villIter.next();
+            if (v.diceNum != dice)
+                continue;
+
+            hadAny |= v.distributeCloth(game, rollRes);
+        }
+
+        return hadAny;
     }
 
     /**
@@ -258,6 +300,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
         setPirateHex(ph, true);
         return ph;
     }
+
 
     ////////////////////////////////////////////
     //
