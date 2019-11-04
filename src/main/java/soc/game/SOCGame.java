@@ -26,6 +26,7 @@ package soc.game;
 import soc.disableDebug.D;
 
 import soc.message.SOCMessage;  // For static calls only; SOCGame does not interact with network messages
+import soc.server.SOCBoardAtServer;  // For calling server-only methods like distributeClothFromRoll
 import soc.util.IntPair;
 import soc.util.SOCFeatureSet;
 import soc.util.SOCGameBoardReset;
@@ -3228,7 +3229,7 @@ public class SOCGame implements Serializable, Cloneable
      * and set the player's {@link SOCPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA} flag.
      *<P>
      * Some scenarios use extra initial pieces in fixed locations, placed in
-     * {@code SOCBoardAtServer.startGame_putInitPieces}.  To prevent the state or current player from
+     * {@link SOCBoardAtServer#startGame_putInitPieces(SOCGame)}.  To prevent the state or current player from
      * advancing, temporarily set game state {@link #READY} before calling putPiece for these.
      *<P>
      * During {@link #isDebugFreePlacement()}, the gamestate is not changed,
@@ -5144,7 +5145,7 @@ public class SOCGame implements Serializable, Cloneable
      * and N7C: Roll no 7s until a city is built.
      *<P>
      * For scenario option {@link SOCGameOption#K_SC_CLVI}, calls
-     * {@link SOCBoardLarge#distributeClothFromRoll(SOCGame, RollResult, int)}.
+     * {@link SOCBoardAtServer#distributeClothFromRoll(SOCGame, RollResult, int)}.
      * Cloth are worth VP, so check for game state {@link #OVER} if results include {@link RollResult#cloth}.
      *<P>
      * For scenario option {@link SOCGameOption#K_SC_PIRI}, calls {@link SOCBoardLarge#movePirateHexAlongPath(int)}
@@ -5156,6 +5157,7 @@ public class SOCGame implements Serializable, Cloneable
      * If a 7 was rolled, the free pick happens before any discards.
      *<P>
      * Called at server only.
+     *
      * @return The roll results: Dice numbers, and any scenario-specific results
      *         such as {@link RollResult#cloth}.  The game reuses the same instance
      *         each turn, so its field contents will change when <tt>rollDice()</tt>
@@ -5269,7 +5271,7 @@ public class SOCGame implements Serializable, Cloneable
             if (hasSeaBoard && isGameOptionSet(SOCGameOption.K_SC_CLVI))
             {
                 // distribute will usually return false; most rolls don't hit dice#s which distribute cloth
-                if (((SOCBoardLarge) board).distributeClothFromRoll(this, currentRoll, currentDice))
+                if (((SOCBoardAtServer) board).distributeClothFromRoll(this, currentRoll, currentDice))
                     checkForWinner();
             }
 
@@ -8804,7 +8806,7 @@ public class SOCGame implements Serializable, Cloneable
          *   [ Cloth amount taken from general supply,
          *     Cloth amount given to player 0, to player 1, ..., to player n ].
          * Any {@link SOCVillage}s with matching dice numbers which took part are in {@link #clothVillages}.
-         * @see SOCBoardLarge#distributeClothFromRoll(SOCGame, RollResult, int)
+         * @see SOCBoardAtServer#distributeClothFromRoll(SOCGame, RollResult, int)
          */
         public int[] cloth;
 
