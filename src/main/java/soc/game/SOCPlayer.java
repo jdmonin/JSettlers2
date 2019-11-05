@@ -1766,8 +1766,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Set by {@link #isTradeRouteFarEndClosed(SOCShip, int, HashSet, List)}
-     * if it finds a village at any far end.
-     * Not set unless {@link SOCGame#hasSeaBoard} and {@link SOCGameOption#K_SC_CLVI} are set.
+     * if it finds a {@link SOCVillage} at any far end.
+     * Not set unless both {@link SOCGame#hasSeaBoard} and {@link SOCGameOption#K_SC_CLVI} are set.
      * @since 2.0.00
      */
     private SOCVillage isTradeRouteFarEndClosed_foundVillage;
@@ -1803,9 +1803,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *               The very first vector in the list is the one farthest from the original
      *               starting ship, and the following list entries will overall move closer
      *               to the start.
-     * @return a closed route of {@link SOCShip} or null, from <tt>fromEdge</tt> to far end;
+     * @return a closed route of {@link SOCShip} or null, ordered from <tt>fromEdge</tt> to far end;
      *         may also add to <tt>alreadyVisited</tt> and <tt>encounteredSelf</tt>
-     * @throws ClassCastException if not {@link SOCGame#hasSeaBoard}.
+     * @throws ClassCastException if not {@link SOCGame#hasSeaBoard}
      * @throws IllegalArgumentException if {@link SOCShip#isClosed() edgeFirstShip.isClosed()}
      * @since 2.0.00
      */
@@ -1815,7 +1815,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         throws ClassCastException, IllegalArgumentException
     {
         if (edgeFirstShip.isClosed())
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException
+                ("closed(0x" + Integer.toHexString(edgeFirstShip.getCoordinates()) + ')');
+
         final SOCBoardLarge board = (SOCBoardLarge) game.getBoard();
         final boolean boardHasVillages = game.isGameOptionSet(SOCGameOption.K_SC_CLVI);
         Vector<SOCShip> segment = new Vector<SOCShip>();
@@ -2665,19 +2667,20 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Does not update {@link #potentialRoads}/{@link #potentialShips}; see {@link #updatePotentials(SOCPlayingPiece)}.
      * @param piece  The road or ship
      * @param board  The board
-     * @param isTempPiece  Is this a temporary piece?  If so, do not check special edges or "gift" ports.
+     * @param isTempPiece  Is this a temporary piece?  If so, do not check special edges or "gift" ports
+     *     or close a Ship Route
      * @since 2.0.00
      */
     private void putPiece_roadOrShip
         (final SOCRoutePiece piece, final SOCBoard board, final boolean isTempPiece)
     {
         /**
-         * before adding a ship, check to see if its trade route is now closed
+         * before adding a non-temporary ship, check to see if its trade route is now closed,
          * or if it's reached a Special Edge or an _SC_FTRI "gift" trade port.
          */
-        if ((piece instanceof SOCShip))
+        if ((piece instanceof SOCShip) && ! isTempPiece)
             putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges
-                ((SOCShip) piece, (SOCBoardLarge) board, isTempPiece);
+                ((SOCShip) piece, (SOCBoardLarge) board);
 
         /**
          * remember it
@@ -2780,14 +2783,18 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * In scenario {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, checks for a "gift" trade port at new ship edge.  If found,
      * calls {@link SOCGame#removePort(SOCPlayer, int)} and fires {@link SOCPlayerEvent#REMOVED_TRADE_PORT}.
      *
+     *<H5>Temporary Pieces:</H5>
+     * Do not call this method for temporary ships. Those shouldn't fire events for special edges or "gift" ports.
+     * Their trade route probably contains pieces from a real player and a temporary dummy player,
+     * and closing the route would call the real player's {@link SOCShip#setClosed()}.
+     *
      * @param newShip  Our new ship being placed in {@link #putPiece(SOCPlayingPiece, boolean)};
      *                 should not yet be added to {@link #roadsAndShips}
      * @param board  game board
-     * @param isTempPiece  Is this a temporary piece?  If so, do not check special edges or "gift" ports.
      * @since 2.0.00
      */
     private void putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges
-        (SOCShip newShip, SOCBoardLarge board, final boolean isTempPiece)
+        (final SOCShip newShip, final SOCBoardLarge board)
     {
         final boolean boardHasVillages = game.isGameOptionSet(SOCGameOption.K_SC_CLVI);
         final int edge = newShip.getCoordinates();
@@ -2832,11 +2839,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                 break;
             }
-        }
-
-        if (isTempPiece)
-        {
-            return;  // <--- Early return: Temporary piece ---
         }
 
         final int seType = board.getSpecialEdgeType(edge);
