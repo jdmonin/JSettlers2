@@ -628,7 +628,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * is done within a single thread.
      *<P>
      * Because this queue is server-only, it's null until {@link SOCGame#startGame()}.
-     * This field is also not copied by the {@link #SOCPlayer(SOCPlayer)} constructor.
+     * This field is also not copied by the {@link #SOCPlayer(SOCPlayer, String)} constructor.
      *
      * @since 2.0.00
      */
@@ -638,14 +638,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * create a copy of the player
      *
      * @param player  the player to copy
+     * @param newName  new name to give copy of player, or {@code null} to copy current name.
+     *     Useful for {@link soc.robot.SOCPlayerTracker} dummy players in debug prints.
+     *     Note that {@link #toString()} prints the name and the copied {@link #getPlayerNumber()}.
      * @throws IllegalStateException if player's dev cards can't be cloned (internal error); should not possibly occur
      */
-    public SOCPlayer(SOCPlayer player)
+    public SOCPlayer(final SOCPlayer player, final String newName)
         throws IllegalStateException
     {
         int i;
         game = player.game;
-        name = player.name;  // useful for SOCPlayerTracker dummy players in debug prints
+        name = (newName != null) ? newName : player.name;
         playerNumber = player.playerNumber;
         numPieces = player.numPieces.clone();
         pieces = new Vector<SOCPlayingPiece>(player.pieces);
@@ -4917,10 +4920,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         currentOffer = null;
     }
 
+    /**
+     * Player as string for debugging: {@code "Player["} + playerNumber + {@code " "} + playerName + {@code "]"}
+     */
     @Override
     public String toString()
     {
-        return "Player["+playerNumber+" "+name+"]";
+        return "Player[" + playerNumber + ' ' + name + ']';
     }
 
     /**

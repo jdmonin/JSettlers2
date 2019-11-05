@@ -832,7 +832,7 @@ public class SOCPlayerTracker
         //
         // expand possible roads that we've touched or added
         //
-        SOCPlayer dummy = new SOCPlayer(player);
+        SOCPlayer dummy = new SOCPlayer(player, "dummy");
         for (SOCPossibleRoad expandPR : roadsToExpand)
         {
             expandRoadOrShip(expandPR, player, dummy, trackers, expandLevel);
@@ -1717,7 +1717,7 @@ public class SOCPlayerTracker
                 //
                 // expand possible ships/roads that we've added
                 //
-                SOCPlayer dummy = new SOCPlayer(player);
+                SOCPlayer dummy = new SOCPlayer(player, "dummy");
                 for (SOCPossibleRoad expandPR : roadsToExpand)
                 {
                     final int expand = EXPAND_LEVEL + (expandPR.isRoadNotShip() ? 0 : EXPAND_LEVEL_SHIP_EXTRA);
@@ -2545,7 +2545,7 @@ public class SOCPlayerTracker
      */
     public void updateLRValues()
     {
-        SOCPlayer dummy = new SOCPlayer(player);
+        SOCPlayer dummy = new SOCPlayer(player, "dummy");
         int lrLength = player.getLongestRoadLength();
 
         //
