@@ -222,9 +222,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private int longestRoadLength;
 
     /**
-     * list of longest road / longest trade-route paths
+     * List of longest road / longest trade-route paths.
+     * Is empty (not null) if {@link SOCGameOption#K_SC_0RVP} is set.
      */
-    private Vector<SOCLRPathData> lrPaths;
+    private final Vector<SOCLRPathData> lrPaths;
 
     /**
      * how many of each resource this player has
@@ -1654,14 +1655,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @since 2.0.00
      * @throws IllegalStateException  if not {@link SOCGame#hasSeaBoard}
      */
-    private Vector<SOCShip> checkTradeRouteFarEndClosed(final SOCShip newShipEdge, final int edgeFarNode)
+    private List<SOCShip> checkTradeRouteFarEndClosed(final SOCShip newShipEdge, final int edgeFarNode)
         throws IllegalStateException
     {
         if (! game.hasSeaBoard)
             throw new IllegalStateException();
 
-        List<Vector<Object>> encounteredSelf = new ArrayList<Vector<Object>>();
-            // if route loops around, contains Vectors of node coords & SOCShips
+        List<ArrayList<Object>> encounteredSelf = new ArrayList<ArrayList<Object>>();
+            // if route loops around, contains ArrayLists of node coords & SOCShips
             // -- see isTradeRouteFarEndClosed javadoc for details
 
         HashSet<Integer> alreadyVisited = new HashSet<Integer>();  // contains Integer coords as segment is built
@@ -1672,7 +1673,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         // Note that if it becomes closed, segment will contain newShipEdge.
 
         isTradeRouteFarEndClosed_foundVillage = null;
-        Vector<SOCShip> segment = isTradeRouteFarEndClosed
+        List<SOCShip> segment = isTradeRouteFarEndClosed
             (newShipEdge, edgeFarNode, alreadyVisited, encounteredSelf);
 
         if (segment == null)
@@ -1707,14 +1708,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             // go from the farthest, inwards
             for (int i = 0; i < encounteredSelf.size(); ++i)
             {
-                Vector<Object> self = encounteredSelf.get(i);
-                final int farNode = ((Integer) self.firstElement()).intValue();
-                SOCShip nearestShip = (SOCShip) self.elementAt(1);
+                ArrayList<Object> self = encounteredSelf.get(i);
+                final int farNode = ((Integer) self.get(0)).intValue();
+                SOCShip nearestShip = (SOCShip) self.get(1);
                 if (nearestShip.isClosed())
                     continue;  // already closed
 
-                Vector<SOCShip> recheck;
-                List<Vector<Object>> reSelf = new ArrayList<Vector<Object>>();
+                List<SOCShip> recheck;
+                List<ArrayList<Object>> reSelf = new ArrayList<ArrayList<Object>>();
                 HashSet<Integer> reAlready = new HashSet<Integer>();
 
                 // check again to see if it should be closed now
@@ -1726,7 +1727,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         (nearestShip, farNode, reAlready, reSelf);
                 } else {
                     // 2 or more ships
-                    final int nextNearEdge = ((SOCShip) self.elementAt(2)).getCoordinates();
+                    final int nextNearEdge = ((SOCShip) self.get(2)).getCoordinates();
                     recheck = isTradeRouteFarEndClosed
                         (nearestShip,
                          ((SOCBoardLarge) game.getBoard()).getNodeBetweenAdjacentEdges
@@ -1793,14 +1794,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *                   board.getAdjacentNodeToEdge(edgeFirstShip.getCoordinates(), moveDir)}.
      * @param alreadyVisited   contains Integer edge coordinates as the segment is built;
      *               added to in this method
-     * @param encounteredSelf  contains Vectors, each with a node coord Integer and SOCShips;
+     * @param encounteredSelf  contains ArrayLists, each with a node coord Integer and SOCShips;
      *               might be added to in this method.
      *               Node is the "far end" of the segment from <tt>edgeFirstShip</tt>,
      *               just past the ship that was re-encountered.
      *               The SOCShips are ordered starting with <tt>edgeFirstShip</tt> and moving
      *               out to the node just past (farther than) the encounter ship.
-     *               (That ship is not in the Vector.)
-     *               The very first vector in the list is the one farthest from the original
+     *               (That ship is not in the ArrayList.)
+     *               The very first ArrayList in the list is the one farthest from the original
      *               starting ship, and the following list entries will overall move closer
      *               to the start.
      * @return a closed route of {@link SOCShip} or null, ordered from <tt>fromEdge</tt> to far end;
@@ -1809,9 +1810,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @throws IllegalArgumentException if {@link SOCShip#isClosed() edgeFirstShip.isClosed()}
      * @since 2.0.00
      */
-    private Vector<SOCShip> isTradeRouteFarEndClosed
+    private List<SOCShip> isTradeRouteFarEndClosed
         (final SOCShip edgeFirstShip, final int edgeFarNode,
-         HashSet<Integer> alreadyVisited, List<Vector<Object>> encounteredSelf)
+         HashSet<Integer> alreadyVisited, List<ArrayList<Object>> encounteredSelf)
         throws ClassCastException, IllegalArgumentException
     {
         if (edgeFirstShip.isClosed())
@@ -1820,7 +1821,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
         final SOCBoardLarge board = (SOCBoardLarge) game.getBoard();
         final boolean boardHasVillages = game.isGameOptionSet(SOCGameOption.K_SC_CLVI);
-        Vector<SOCShip> segment = new Vector<SOCShip>();
+        List<SOCShip> segment = new ArrayList<SOCShip>();
 
         SOCShip edgeShip = edgeFirstShip;
         segment.add(edgeShip);
@@ -1842,7 +1843,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             if (alreadyVisited.contains(edgeInt))
             {
                 // Build an encounteredSelf list entry.
-                Vector<Object> already = new Vector<Object>();
+                ArrayList<Object> already = new ArrayList<Object>();
                 already.add(Integer.valueOf(node));
                 already.addAll(segment);
 
@@ -1921,10 +1922,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 // Recursive call to the 2 directions out from node:
 
                 final int encounterSize = encounteredSelf.size();
-                Vector<SOCShip> shipsFrom1 = isTradeRouteFarEndClosed
+                List<SOCShip> shipsFrom1 = isTradeRouteFarEndClosed
                     (nextShip1, board.getAdjacentNodeFarEndOfEdge(nextShip1.getCoordinates(), node),
                      alreadyVisited, encounteredSelf);
-                Vector<SOCShip> shipsFrom2 = isTradeRouteFarEndClosed
+                List<SOCShip> shipsFrom2 = isTradeRouteFarEndClosed
                     (nextShip2, board.getAdjacentNodeFarEndOfEdge(nextShip2.getCoordinates(), node),
                      alreadyVisited, encounteredSelf);
 
@@ -1932,7 +1933,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 if (encounterSize != encounteredSelf.size())
                 {
                     // Build an encounteredSelf list entry.
-                    Vector<Object> already = new Vector<Object>();
+                    ArrayList<Object> already = new ArrayList<Object>();
                     already.add(Integer.valueOf(node));
                     already.addAll(segment);
 
@@ -2007,7 +2008,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Get our longest road paths.
-     * Vector is empty if {@link SOCGameOption#K_SC_0RVP} is set.
+     * Is empty (not null) if {@link SOCGameOption#K_SC_0RVP} is set.
      * @return longest road paths
      */
     public Vector<SOCLRPathData> getLRPaths()
@@ -2016,18 +2017,18 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * set the longest paths vector
-     * @param vec  the vector
+     * set the Longest Paths list.
+     * @param vec  the list of Longest Paths to use
      */
-    public void setLRPaths(List<SOCLRPathData> vec)
+    public void setLRPaths(List<SOCLRPathData> lrList)
     {
-        lrPaths.removeAllElements();
+        lrPaths.clear();
 
-        for (SOCLRPathData pd : vec)
+        for (SOCLRPathData pd : lrList)
         {
             if (D.ebugOn)
                 D.ebugPrintln("restoring pd for player " + playerNumber + " :" + pd);
-            lrPaths.addElement(pd);
+            lrPaths.add(pd);
         }
     }
 
@@ -2818,7 +2819,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
             // if pp is at edgeNodes[1], check from edgeNodes[0], or vice versa
             final int edgeFarNode = edgeNodes[1 - i];
-            final Vector<SOCShip> closedRoute = checkTradeRouteFarEndClosed(newShip, edgeFarNode);
+            final List<SOCShip> closedRoute = checkTradeRouteFarEndClosed(newShip, edgeFarNode);
             if (closedRoute != null)
             {
                 if (pp instanceof SOCVillage)
