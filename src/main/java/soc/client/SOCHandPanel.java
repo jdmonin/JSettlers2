@@ -4109,11 +4109,13 @@ import javax.swing.UIManager;
                 final boolean isCounterOfferMode = (counterOfferPanel != null) && counterOfferPanel.isVisible();
                 final Dimension offerPrefSize = (offerPanel != null)
                     ? offerPanel.getPreferredSize()
-                    : vpSq.getSize();  // if player trading disabled, use vpSq as small stand-in
-                int offerMinHeight = offerPrefSize.height,
+                    : null;  // if player trading disabled, won't use offerPrefSize for messagePanel
+                int offerMinHeight = (offerPrefSize != null)
+                        ? offerPrefSize.height
+                        : ColorSquare.HEIGHT,  // small stand-in
                     counterOfferHeight = (counterOfferPanel != null)
                         ? counterOfferPanel.getPreferredHeight(false)
-                        : ColorSquare.HEIGHT;
+                        : ColorSquare.HEIGHT;  // small stand-in
                 if (isCounterOfferMode)
                     offerMinHeight += counterOfferHeight + space;
                 // TODO chk num lines here
@@ -4169,17 +4171,29 @@ import javax.swing.UIManager;
                             (inset, inset + faceW + ph + 2 * space, offerW, counterOfferHeight);
                     }
                 } else {
+                    // usual size & position
+
                     int py = inset + faceW + space;
-                    messagePanel.setBounds(inset, py, offerPrefSize.width, offerPrefSize.height);
+
                     if (offerPanel != null)
                     {
+                        messagePanel.setBounds(inset, py, offerPrefSize.width, offerPrefSize.height);
                         offerPanel.setBounds(inset, py, offerPrefSize.width, offerPrefSize.height);
+
                         if (isCounterOfferMode)
                         {
                             py += offerPrefSize.height + space;
                             counterOfferPanel.setBounds
                                 (inset, py, offerPrefSize.width, counterOfferHeight);
                         }
+                    } else {
+                        Dimension msgPrefSize = messagePanel.getPreferredSize();
+                        if (msgPrefSize.width > (dim.width - inset))
+                            msgPrefSize.width = (dim.width - inset);
+                        if (msgPrefSize.height > availHeightNoHide)
+                            msgPrefSize.height = availHeightNoHide;
+
+                        messagePanel.setBounds(inset, py, msgPrefSize.width, msgPrefSize.height);
                     }
                     offerCounterHidesFace = false;
                 }

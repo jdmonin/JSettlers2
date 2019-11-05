@@ -45,6 +45,20 @@ import javax.swing.SwingConstants;
     private static final long serialVersionUID = 2000L;
 
     /**
+     * Margin at left and right side of panel, in unscaled pixels.
+     * Not scaled by {@link #displayScale}.
+     * @since 2.0.00
+     */
+    private static final int PANEL_MARGIN_HORIZ = 8;
+
+    /**
+     * Minimum width for contents, excluding {@link #PANEL_MARGIN_HORIZ} and {@link SpeechBalloon#SHADOW_SIZE}.
+     * Not scaled by {@link #displayScale}.
+     * @since 2.0.00
+     */
+    private static final int PANEL_INNER_WIDTH = 169;
+
+    /**
      * For 1 line of text, {@link #msg} contains the entire text.
      * For 2 lines separated by <tt>\n</tt>, {@link #msg} and {@link #msg2} are used.
      * @see #msgLines
@@ -112,7 +126,6 @@ import javax.swing.SwingConstants;
         final Dimension initSize = new Dimension(50, 50);  // TODO use constants & displayScale
         setSize(initSize);
         setMinimumSize(initSize);
-        setPreferredSize(initSize);
     }
 
     /**
@@ -155,30 +168,35 @@ import javax.swing.SwingConstants;
     }
 
     /**
-     * Calculate some fields for this panel's minimum height based on {@link #msgHeight}.
-     * Ignores getSize() and {@link TradePanel#getPreferredHeight(boolean)}.
-     *<P>
-     * Used by {@link #doLayout()} which wants those field calcs.
-     *<P>
      * If not yet done (value 0), first calculate the values for {@link #oneLineHeight} and {@link #msgHeight}
      * based on {@link #msgLines} and getFontMetrics({@link #msg}.getFont()).
      *
-     * @return  Minimum panel height if {@code wantHeight}, otherwise 0
      * @see OfferPanel#calcLabelWidth(boolean)
      * @since 2.0.00
      */
-    int calcLabelMinHeight(final boolean wantHeight)
+    private void calcLabelMinHeight()
     {
         if (oneLineHeight == 0)
             oneLineHeight = getFontMetrics(msg.getFont()).getHeight();
         if (msgHeight == 0)
             msgHeight = oneLineHeight + 4 * displayScale;
+    }
 
-        if (! wantHeight)
-            return 0;
+    /**
+     * Get our preferred size for 2 rows of text.
+     * Used only when our parent {@link SOCHandPanel} doesn't have a {@link TradePanel};
+     * otherwise will be set to same size.
+     * @since 2.0.00
+     */
+    @Override
+    public Dimension getPreferredSize()
+    {
+        calcLabelMinHeight();
 
-        return 3 * msgHeight + (4 + SpeechBalloon.BALLOON_POINT_SIZE + SpeechBalloon.SHADOW_SIZE) * displayScale;
-            // actual minimum needs 2 * msgHeight; add another msgHeight for margins
+        return new Dimension
+            ((PANEL_INNER_WIDTH + (2 * PANEL_MARGIN_HORIZ) + SHADOW_SIZE) * displayScale,
+             3 * msgHeight + (4 + BALLOON_POINT_SIZE + SHADOW_SIZE) * displayScale);
+                 // actual minimum height needs 2 * msgHeight; add another msgHeight here for margins
     }
 
     /**
@@ -189,20 +207,20 @@ import javax.swing.SwingConstants;
     public void doLayout()
     {
         final Dimension dim = getSize();  // includes BALLOON_POINT_SIZE at top, SHADOW_SIZE at bottom
-        final int inset = 2 * SpeechBalloon.SHADOW_SIZE * displayScale;
+        final int inset = 2 * SHADOW_SIZE * displayScale;
 
-        calcLabelMinHeight(false);  // if 0, set oneLineHeight, msgHeight
+        calcLabelMinHeight();
 
-        int h = dim.height - ((SpeechBalloon.BALLOON_POINT_SIZE + SpeechBalloon.SHADOW_SIZE) * displayScale);
+        int h = dim.height - ((BALLOON_POINT_SIZE + SHADOW_SIZE) * displayScale);
         if ((msgHeight * msgLines) > h)
             msgHeight = h / msgLines;
-        int msgY = (h - msgHeight) / 2 + (SpeechBalloon.BALLOON_POINT_SIZE * displayScale);
+        int msgY = (h - msgHeight) / 2 + (BALLOON_POINT_SIZE * displayScale);
         if (msgLines != 1)
             msgY -= (oneLineHeight / 2);  // move up to make room for msg2
         if (msgY < 0)
             msgY = 0;
 
-        int msgW = dim.width - (2 * inset) - ((SpeechBalloon.SHADOW_SIZE * displayScale) / 2);
+        int msgW = dim.width - (2 * inset) - ((SHADOW_SIZE * displayScale) / 2);
         msg.setBounds
             (inset, msgY, msgW, msgHeight);
         if (msgLines != 1)
@@ -212,4 +230,5 @@ import javax.swing.SwingConstants;
                 (inset, msgY, msgW, msgHeight);
         }
     }
+
 }
