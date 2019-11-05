@@ -5366,24 +5366,17 @@ public class SOCGame implements Serializable, Cloneable
     private SOCResourceSet getResourcesGainedFromRoll(SOCPlayer player, final int roll)
     {
         SOCResourceSet resources = new SOCResourceSet();
-        SOCResourceSet missedResources = new SOCResourceSet();
         final int robberHex = board.getRobberHex();
 
         /**
          * check the hexes touching settlements
          */
-        getResourcesGainedFromRollPieces(roll, resources, missedResources, robberHex, player.getSettlements(), 1);
+        getResourcesGainedFromRollPieces(roll, resources, robberHex, player.getSettlements(), 1);
 
         /**
          * check the hexes touching cities
          */
-        getResourcesGainedFromRollPieces(roll, resources, missedResources, robberHex, player.getCities(), 2);
-
-        if (missedResources.getTotal() > 0)
-        {
-            //System.out.println
-            // ("SOCGame#getResourcesGainedFromRoll Player ["+player.getName()+"] would have gotten resources, but robber stole them: "+missedResources.toString());
-        }
+        getResourcesGainedFromRollPieces(roll, resources, robberHex, player.getCities(), 2);
 
         return resources;
     }
@@ -5400,50 +5393,49 @@ public class SOCGame implements Serializable, Cloneable
      * @param roll     the total number rolled on the dice
      * @param resources  Add new resources to this set
      * @param robberHex  Robber's position, from {@link SOCBoard#getRobberHex()}
-     * @param sEnum  Enumeration of a type of the player's {@link SOCPlayingPiece}s;
+     * @param pieces  Collection of a type of the player's {@link SOCPlayingPiece}s at nodes on the board;
      *             should be either {@link SOCSettlement}s or {@link SOCCity}s
      * @param incr   Add this many resources (1 or 2) per playing piece
      * @since 1.1.17
      */
     private final void getResourcesGainedFromRollPieces
-        (final int roll, SOCResourceSet resources, SOCResourceSet missedResources,
-         final int robberHex, Collection<? extends SOCPlayingPiece> sEnum, final int incr)
+        (final int roll, SOCResourceSet resources,
+         final int robberHex, Collection<? extends SOCPlayingPiece> pieces, final int incr)
     {
-        for (SOCPlayingPiece sc : sEnum)
+        for (final SOCPlayingPiece p : pieces)
         {
-            for (final int hexCoord : board.getAdjacentHexesToNode(sc.getCoordinates()))
+            for (final int hexCoord : board.getAdjacentHexesToNode(p.getCoordinates()))
             {
-                SOCResourceSet rset = hexCoord != robberHex ? resources : missedResources;
-                if (board.getNumberOnHexFromCoord(hexCoord) == roll)
+                if ((hexCoord == robberHex) || (board.getNumberOnHexFromCoord(hexCoord) != roll))
+                    continue;
+
+                switch (board.getHexTypeFromCoord(hexCoord))
                 {
-                    switch (board.getHexTypeFromCoord(hexCoord))
-                    {
-                    case SOCBoard.CLAY_HEX:
-                        rset.add(incr, SOCResourceConstants.CLAY);
-                        break;
+                case SOCBoard.CLAY_HEX:
+                    resources.add(incr, SOCResourceConstants.CLAY);
+                    break;
 
-                    case SOCBoard.ORE_HEX:
-                        rset.add(incr, SOCResourceConstants.ORE);
-                        break;
+                case SOCBoard.ORE_HEX:
+                    resources.add(incr, SOCResourceConstants.ORE);
+                    break;
 
-                    case SOCBoard.SHEEP_HEX:
-                        rset.add(incr, SOCResourceConstants.SHEEP);
-                        break;
+                case SOCBoard.SHEEP_HEX:
+                    resources.add(incr, SOCResourceConstants.SHEEP);
+                    break;
 
-                    case SOCBoard.WHEAT_HEX:
-                        rset.add(incr, SOCResourceConstants.WHEAT);
-                        break;
+                case SOCBoard.WHEAT_HEX:
+                    resources.add(incr, SOCResourceConstants.WHEAT);
+                    break;
 
-                    case SOCBoard.WOOD_HEX:
-                        rset.add(incr, SOCResourceConstants.WOOD);
-                        break;
+                case SOCBoard.WOOD_HEX:
+                    resources.add(incr, SOCResourceConstants.WOOD);
+                    break;
 
-                    case SOCBoardLarge.GOLD_HEX:  // if not hasSeaBoard, == SOCBoard.MISC_PORT_HEX
-                        if (hasSeaBoard)
-                            rset.add(incr, SOCResourceConstants.GOLD_LOCAL);
-                        break;
-
-                    }
+                case SOCBoardLarge.GOLD_HEX:
+                    if (hasSeaBoard)
+                        resources.add(incr, SOCResourceConstants.GOLD_LOCAL);
+                        // if not hasSeaBoard, GOLD_HEX == SOCBoard.MISC_PORT_HEX
+                    break;
                 }
             }
         }
@@ -8839,7 +8831,8 @@ public class SOCGame implements Serializable, Cloneable
          * When the pirate fleet moves in game scenario {@link SOCGameOption#K_SC_PIRI},
          * they may attack the player with an adjacent settlement or city.
          * If no adjacent, or more than 1, nothing happens, and this field is null.
-         * Otherwise see {@link #sc_piri_fleetAttackRsrcs} for the result.
+         * Otherwise see {@link #sc_piri_fleetAttackRsrcs} for the result;
+         * The "victim" may win the battle and gain resource picks.
          *<P>
          * Each time the dice is rolled, the fleet is moved and this field is updated; may be null.
          */
