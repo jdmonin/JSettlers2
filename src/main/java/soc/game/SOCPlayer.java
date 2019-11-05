@@ -1075,12 +1075,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * Set the number of gold-hex resources this player must now pick,
      * after a dice roll or placing their 2nd initial settlement.
-     * 0 unless {@link SOCGame#hasSeaBoard} and player is adjacent
-     * to a {@link SOCBoardLarge#GOLD_HEX}.
-     * Game state {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}.
-     * Once the player has picked their resources, returns to 0.
+     * See {@link #getNeedToPickGoldHexResources()} for details.
      *
-     * @param numRes  Number of resources to pick, or 0 for no pick
+     * @param numRes  Number of resources to pick, or 0 for no pick/pick has been completed
      * @since 2.0.00
      */
     public void setNeedToPickGoldHexResources(final int numRes)
@@ -1097,10 +1094,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * after a dice roll or placing their 2nd initial settlement.
      * 0 unless {@link SOCGame#hasSeaBoard} and player is adjacent
      * to a {@link SOCBoardLarge#GOLD_HEX}.
-     * Game state {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}.
+     * Game state should be {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}.
      * Once the player has picked their resources, returns to 0.
      *
-     * @return  number of resources to pick
+     * @return  number of resources to pick, or 0 for no pick
      * @see #getNeedToDiscard()
      * @since 2.0.00
      */
@@ -2110,7 +2107,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             final int gold = rolled.getAmount(SOCResourceConstants.GOLD_LOCAL);
             if (gold > 0)
             {
-                needToPickGoldHexResources = gold;
+                needToPickGoldHexResources += gold;
                 resourceStats[SOCResourceConstants.GOLD_LOCAL] += gold;
                 rolled.setAmount(0, SOCResourceConstants.GOLD_LOCAL);
             }
