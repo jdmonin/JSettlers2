@@ -545,12 +545,27 @@ import javax.swing.JComponent;
      * Same indexes as {@link #HEX_GRAPHICS_SET_SUBDIRS}; see that javadoc for details.
      *<P>
      * For non-water borders, instead use {@link #HEX_BORDER_COLORS} or {@link #ROTAT_HEX_BORDER_COLORS}.
+     * @see #HEX_GRAPHICS_SET_SC_PIRI_PATH_COLORS
      * @since 2.0.00
      */
     private static final Color[] HEX_GRAPHICS_SET_BORDER_WATER_COLORS =
     {
         new Color(80, 138, 181),  // pastel.  waterHex.gif HSV 205, 48, 87: Border HSV 205, 56, 71
         new Color(38,  60, 113),  // classic. waterHex.gif HSV 222, 60, 55: Border HSV 222, 66, 44
+    };
+
+    /**
+     * Pirate Path dotted-line color, which varies by hex Graphics Set, for
+     * scenario gameopt {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     * Currently-used index is {@link #hexesGraphicsSetIndex}.
+     * Same indexes as {@link #HEX_GRAPHICS_SET_SUBDIRS}; see that javadoc for details.
+     * @see #HEX_GRAPHICS_SET_BORDER_WATER_COLORS
+     * @since 2.0.00
+     */
+    private static final Color[] HEX_GRAPHICS_SET_SC_PIRI_PATH_COLORS =
+    {
+        ColorSquare.WATER.darker(),    // pastel
+        ColorSquare.WATER.brighter(),  // classic
     };
 
     /**
@@ -3938,7 +3953,7 @@ import javax.swing.JComponent;
             final float[] dash = { hexPartWidth * 0.15f, hexPartWidth * 0.12f };  // length of dash/break
             ((Graphics2D) g).setStroke
                 (new BasicStroke
-                    ((1.5f * scaledBoardW) / panelMinBW, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
+                    ((3 * scaledBoardW) / panelMinBW, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
                      1.5f, dash, hexPartWidth * 0.1f));
             if (co == null)
                 co = playerInterface.getPlayerColor(playerNumber);
@@ -4960,7 +4975,7 @@ import javax.swing.JComponent;
             prevStroke = null;
         }
 
-        g.setColor(ColorSquare.WATER.brighter());
+        g.setColor(HEX_GRAPHICS_SET_SC_PIRI_PATH_COLORS[hexesGraphicsSetIndex]);
         for (int i = 0; i < ppath.length; ++i)
         {
             hc = ppath[i];
