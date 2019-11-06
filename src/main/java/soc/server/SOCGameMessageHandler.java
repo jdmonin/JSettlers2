@@ -2769,7 +2769,8 @@ public class SOCGameMessageHandler
                     final int npick = player.getNeedToPickGoldHexResources();
                     if (npick != rsrcs.getTotal())
                     {
-                        srv.messageToPlayer(c, gaName, "You can't pick that many resources.");  // TODO i18n
+                        srv.messageToPlayerKeyed
+                            (c, gaName, "reply.pick.gold.cannot.that_many");  // "You can't pick that many resources."
                         if ((npick > 0) && (gstate < SOCGame.OVER))
                             srv.messageToPlayer(c, new SOCSimpleRequest
                                 (gaName, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, npick));
@@ -2783,7 +2784,7 @@ public class SOCGameMessageHandler
                         srv.messageToGame(gaName,
                             "Recovering from buggy state: " + player.getName()
                             + " won free resources but game state didn't allow them to be picked; giving them anyway.");
-                            // TODO i18n
+                            // i18n OK: won't appear in normal gameplay
                         player.getResources().add(rsrcs);
                         player.setNeedToPickGoldHexResources(0);
                         handler.reportRsrcGainGold(ga, player, pn, rsrcs, true, false);
