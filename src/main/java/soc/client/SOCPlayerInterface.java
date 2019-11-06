@@ -2841,9 +2841,9 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * Handle updates after putting a piece on the board,
+     * Update game data and displays after putting a piece on the board,
      * or moving a ship that was already placed.
-     * Place or move the piece within our {@link SOCGame}
+     * Places or moves the piece within our {@link SOCGame}
      * and visually on our {@link SOCBoardPanel}.
      *
      * @param mesPn  The piece's player number

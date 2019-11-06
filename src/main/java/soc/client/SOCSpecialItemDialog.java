@@ -71,6 +71,7 @@ import javax.swing.border.EmptyBorder;
  * {@code game.specitem.sc_wond.w1} - {@code game.specitem.sc_wond.w5}.  Some Wonders require
  * a settlement or city at certain node locations, which are named as keyed strings
  * {@code board.nodelist._SC_WOND.N1} - {@code board.nodelist._SC_WOND.N3}.
+ * See also {@link SOCSpecialItem#getStringValue()}.
  *
  * @since 2.0.00
  */
@@ -81,7 +82,10 @@ import javax.swing.border.EmptyBorder;
     /** i18n text strings; will use same locale as SOCPlayerClient's string manager. */
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
-    /** Special items' {@code typeKey}, such as {@link SOCGameOption#K_SC_WOND _SC_WOND}. */
+    /**
+     * Special items' {@code typeKey}, such as {@link SOCGameOption#K_SC_WOND _SC_WOND}.
+     * See {@link #SOCSpecialItemDialog(SOCPlayerInterface, String) constructor} javadoc.
+     */
     private final String typeKey;
 
     /** Item pick buttons. */
@@ -114,7 +118,8 @@ import javax.swing.border.EmptyBorder;
      * Currently {@link SOCGameOption#K_SC_WOND _SC_WOND} is the only known {@code typeKey}.
      *
      * @param pi  PlayerInterface that owns this dialog
-     * @param typeKey  Special item type key; see the {@link SOCSpecialItem} class javadoc for details
+     * @param typeKey  Special item type key; for details see the {@link SOCSpecialItem} class javadoc
+     *     and {@link SOCSpecialItem#makeKnownItem(String, int)} javadoc's {@code typeKey} param.
      * @throws IllegalArgumentException if the {@code typeKey} is unknown here
      */
     public SOCSpecialItemDialog

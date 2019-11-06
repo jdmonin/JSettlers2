@@ -121,13 +121,13 @@ public interface PlayerClientListener
     void playerTurnSet(int playerNumber);
 
     /**
-     * A player has placed a piece on the board.
+     * A player has placed a piece on the board; update game data and displays.
      * @param pieceType A piece type identifier, such as {@link SOCPlayingPiece#CITY}
      */
     void playerPiecePlaced(SOCPlayer player, int coordinate, int pieceType);
 
     /**
-     * A player has moved a piece on the board.
+     * A player has moved a piece on the board; update game data and displays.
      * Most pieces are not movable.  {@link soc.game.SOCShip SOCShip} pieces can sometimes be moved.
      * Not used when the robber or pirate is moved; see {@link #robberMoved()}.
      * @param pieceType A piece type identifier, such as {@link SOCPlayingPiece#CITY}
