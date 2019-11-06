@@ -133,8 +133,8 @@ If you want to inspect the game object state at the server or robot:
   text message like `*BOTLIST*` or `robot2:current-plans`
 - To trace robot decisions and actions for incoming messages, set a breakpoint
   in `SOCRobotBrain.run` at `turnEventsCurrent.addElement(mes);`
-- On Linux/Unix JVMs, you can print a stack trace / thread dump at the server by
-  sending `SIGQUIT (kill -QUIT pidnumber)` . In deadlocks the thread dump won't
+- On Linux/MacOSX/Unix JVMs, you can print a stack trace / thread dump at the server by
+  sending SIGQUIT (`kill -QUIT ` _pidnumber_) . In deadlocks the thread dump won't
   show what has an object locked, but may show what's waiting on the object.
 - If you've set breakpoints in any robot code, temporarily increase
   `SOCServer.ROBOT_FORCE_ENDTURN_SECONDS` so the bot's turns won't be ended early
@@ -466,11 +466,15 @@ ideas.
     - Add house rule `SOCGameOption` for unlimited resources
 - Refactor: combine the `cli/displayless/robot` endturn-like methods. For example,
   search for `ga.setCurrentDice(0)`, or `newToOld`, or `ga.resetVoteClear`
+- Bots on sea boards: Help bots decide when it makes sense to move a ship (versus build another)
+  and have the bot do so
+    - Example: Revealing fog hexes in the middle island
+    - React properly if server rejects move-ship request
 - Docker (dockerfile in git) or other containerization, including sqlite jdbc and
   a `jsserver.properties` using sqlite
     - Related bootstrapping issue: admin doc reminder to create admin account
       right away, name that admin in jsserver.properties
-- User documentation is out of date; unsure if any user ever reads it anyway
+- User documentation is out of date; but unsure if any user ever reads it anyway
 - At board reset, game observers not currently handled properly
 - Property for read-only database use without errors
 - Game "owner" with extra powers (kick out player, etc)
