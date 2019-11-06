@@ -394,6 +394,11 @@ import javax.swing.SwingConstants;
                         // button only: layout on 1 line
                         int x = (dim.width - btnW) / 2;
                         int y = (dim.height - lineH) / 2 - 1;
+                        if (y < 0)
+                        {
+                            y = 0;
+                            lineH = dim.height;
+                        }
                         sbBut.setLocation(x, y);
                         sbBut.setSize(btnW, lineH);
                     } else {
