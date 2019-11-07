@@ -1877,7 +1877,7 @@ public class SOCRobotBrain extends Thread
                             final int pn = mpp.getPlayerNumber();
                             final int coord = mpp.getToCoord();
                             final int pieceType = mpp.getPieceType();
-                            // TODO what about getFromCoord()?
+                            // TODO what about getFromCoord()? Should mark that loc as unoccupied in trackers
                             handlePUTPIECE_updateTrackers(pn, coord, pieceType);
                         }
                         break;
@@ -1914,10 +1914,12 @@ public class SOCRobotBrain extends Thread
                         break;
 
                     case SOCMessage.SIMPLEREQUEST:
-                        // These messages can almost always be ignored by bots.
-                        // Some request types are handled at the top of the loop body;
-                        // search for SOCMessage.SIMPLEREQUEST
                         {
+                            // Some request types are handled at the top of the loop body;
+                            //   search for SOCMessage.SIMPLEREQUEST
+                            // Some are handled here
+                            // Most can be ignored by bots
+
                             final SOCSimpleRequest rqMes = (SOCSimpleRequest) mes;
                             switch (rqMes.getRequestType())
                             {
@@ -4615,7 +4617,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Respond to server's request to pick resources to gain from the Gold Hex.
-     * Use {@link #buildingPlan} or, if that's empty (initial placement),
+     * Use {@link #buildingPlan} or, if that's empty (like during initial placement),
      * pick what's rare from {@link OpeningBuildStrategy#estimateResourceRarity()}.
      * @param numChoose  Number of resources to pick
      * @since 2.0.00
