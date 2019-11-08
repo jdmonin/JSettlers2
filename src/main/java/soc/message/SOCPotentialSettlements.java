@@ -134,14 +134,20 @@ public class SOCPotentialSettlements extends SOCMessage
      * Optional field for legal sea edges per player for ships, if restricted.
      * Usually {@code null}, because all sea edges are legal except in scenario {@code _SC_PIRI}.
      *<P>
-     * If {@link #playerNumber} != -1, {@code legalSeaEdges} contains 1 array, the legal sea edges for that player.
+     * If {@link #playerNumber} != -1 and != 0,
+     * {@code legalSeaEdges} contains 1 array, the legal sea edges for that player.
      * Otherwise contains 1 array for each player position (total 4 or 6 arrays).
+     * Message for {@code playerNumber} 0 can contain either 1 array (1 player), or n arrays (all players)
+     * if client joined game after play started.
      *<P>
      * Each per-player array is the same format as in {@code SOCBoardAtServer.PIR_ISL_SEA_EDGES}:
      * A list of individual sea edge coordinates and/or ranges.
      * Ranges are designated by a pair of positive,negative numbers:
      * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
      * If a player position is vacant, their subarray may be empty (length 0) or contain a single zero: <tt>{ 0 }</tt>.
+     *<P>
+     * This field is null (is not sent) if {@link #landAreasLegalNodes} is null.
+     *
      * @since 2.0.00
      */
     public int[][] legalSeaEdges;
@@ -186,7 +192,7 @@ public class SOCPotentialSettlements extends SOCMessage
      *     then <tt>lan[0]</tt> should be <tt>null</tt>.
      *     <P>
      *     From {@link soc.game.SOCBoardLarge#getStartingLandArea()}.
-     * @param lan  Each land area's legal node lists.
+     * @param lan  Each land area's legal node lists. Not null.
      *     List at index number <tt>pan</tt> will be sent as the list of potential settlements.
      *     If <tt>pan</tt> is 0 because game has started (see above), use index 0 for the player's
      *     potentials list (which may be empty). Otherwise index 0 is unused (<tt>null</tt>).
@@ -194,7 +200,9 @@ public class SOCPotentialSettlements extends SOCMessage
      *     If the game is just starting and the player can start anywhere (<tt>pan == 0</tt>),
      *     then <tt>lan[0]</tt> should be <tt>null</tt> and the {@link #getPotentialSettlements()} list
      *     will be formed by combining <tt>lan[1] .. lan[n-1]</tt>.
-     * @param lse  Legal sea edges for ships if restricted, or {@code null}; see {@link #legalSeaEdges} field for format
+     * @param lse  Legal sea edges for ships if restricted, or {@code null}; see {@link #legalSeaEdges} field for format.
+     *     If client joins before game starts, the single message with {@code pn == -1} has all players' LSE.
+     *     If joining after game starts, there are per-player messages; the one with {@code pn == 0} has all players' LSE.
      * @throws IllegalArgumentException  if <tt>ln[pan] == null</tt> and <tt>pan != 0</tt>,
      *            or if <tt>ln[<i>i</i>]</tt> == <tt>null</tt> for any <i>i</i> &gt; 0
      * @see #SOCPotentialSettlements(String, int, List)
@@ -320,7 +328,7 @@ public class SOCPotentialSettlements extends SOCMessage
      *     which may be empty.
      *     <P>
      *     From {@link soc.game.SOCBoardLarge#getStartingLandArea()}.
-     * @param lan  Each land area's legal node lists.
+     * @param lan  Each land area's legal node lists. Not null.
      *     List at index number <tt>pan</tt> will be sent as the list of potential settlements.
      *     If <tt>pan</tt> is 0 because game has started (see above), use index 0 for the player's
      *     potentials list. Otherwise index 0 is unused (<tt>null</tt>).

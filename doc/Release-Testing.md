@@ -102,6 +102,9 @@ When preparing to release a new version, testing should include:
        - Check that when a village has 1 remaining cloth, but 2 established players,
          the board's general supply gives cloth to the 2nd player
        - Leave and rejoin game: Hover over villages; cloth counts should be accurate
+     - Pirate Islands and Fortresses
+       - As player with pn=0 and as another pn: Leave and rejoin game: Should see Legal Sea Edges
+         (dotted line from main island to your player's fortress) and be able to place boats along them
 - Client preferences
     - Auto-reject bot trade offers:
         - Practice game: Test UI's trade behavior with and without preference

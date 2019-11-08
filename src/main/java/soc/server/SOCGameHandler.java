@@ -923,7 +923,8 @@ public class SOCGameHandler extends GameHandler
      * @see SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, Map)
      */
     @SuppressWarnings("unchecked")  // for new ArrayList<SOCSpecialItem>[]
-    public void joinGame(final SOCGame gameData, final Connection c, final boolean isReset, final boolean isTakingOver)
+    public void joinGame
+        (final SOCGame gameData, final Connection c, final boolean isReset, final boolean isTakingOver)
     {
         boolean hasRobot = false;  // If game's already started, true if any bot is seated (can be taken over)
         final String gameName = gameData.getName(), cliName = c.getData();
@@ -1070,6 +1071,7 @@ public class SOCGameHandler extends GameHandler
                 {
                     // Send legal node info once, not per-player.
                     // Assumes all players have same legal nodes.
+                    // Legal Sea Edges is sent once, as a list of all players' LSE, as part of pn=0 message.
                     final SOCBoardLarge bl = (SOCBoardLarge) gameData.getBoard();
                     lan = bl.getLandAreasLegalNodes();
                     if (lan != null)
@@ -1084,7 +1086,7 @@ public class SOCGameHandler extends GameHandler
                         (gameName, pn, new ArrayList<Integer>(psList)));
                 } else {
                     c.put(SOCPotentialSettlements.toCmd
-                        (gameName, pn, 0, lan, SOCBoardAtServer.getLegalSeaEdges(gameData, pn)));
+                        (gameName, pn, 0, lan, SOCBoardAtServer.getLegalSeaEdges(gameData, -1)));
                     lan[0] = null;  // Undo change to game's copy of landAreasLegalNodes
                 }
             }

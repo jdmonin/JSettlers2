@@ -2199,7 +2199,15 @@ public class SOCDisplaylessPlayerClient implements Runnable
             if (loneSettles != null)
                 player.addLegalSettlement(loneSettles[pn], false);
             if (legalSeaEdges != null)
-                player.setRestrictedLegalShips(legalSeaEdges[0]);
+            {
+                if (legalSeaEdges.length == 1)
+                    player.setRestrictedLegalShips(legalSeaEdges[0]);
+                else
+                    // if joining game before game starts, single message with pn=-1 sends all players' LSE.
+                    // if joining game after game starts, all LSE are sent as part of message with pn=0.
+                    for (int lpn = 0; lpn < legalSeaEdges.length; ++lpn)
+                        ga.getPlayer(lpn).setRestrictedLegalShips(legalSeaEdges[lpn]);
+            }
         } else {
             for (pn = ga.maxPlayers - 1; pn >= 0; --pn)
             {
