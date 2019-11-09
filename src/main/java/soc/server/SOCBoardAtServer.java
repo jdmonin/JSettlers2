@@ -2724,10 +2724,8 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * Arranged in same player order as the Lone Settlement locations in Added Layout Part {@code "LS"}.
      *
      * @param ga  Game data, for {@link SOCGame#maxPlayers} and {@link SOCGame#isSeatVacant(int)}
-     * @param forPN  -1 for all players, or a specific player number
-     * @return  Edge data from {@link #PIR_ISL_SEA_EDGES}, containing either
-     *          one array when {@code forPN} != -1, or an array for each
-     *          player from 0 to {@code ga.maxPlayers}, where vacant players
+     * @return  Edge data from {@link #PIR_ISL_SEA_EDGES}, containing an array for each
+     *          player from 0 to {@code ga.maxPlayers - 1}, where vacant players
      *          get empty subarrays of length 0.
      *          <P>
      *          Each player's list is their individual edge coordinates and/or ranges.
@@ -2737,18 +2735,12 @@ public class SOCBoardAtServer extends SOCBoardLarge
      *          If game doesn't have {@link SOCGameOption#K_SC_PIRI}, returns {@code null}.
      * @see #startGame_putInitPieces(SOCGame)
      */
-    public static final int[][] getLegalSeaEdges(final SOCGame ga, final int forPN)
+    public static final int[][] getLegalSeaEdges(final SOCGame ga)
     {
         if (! (ga.hasSeaBoard && ga.isGameOptionSet(SOCGameOption.K_SC_PIRI)))
             return null;
 
         final int[][] LEGAL_SEA_EDGES = PIR_ISL_SEA_EDGES[(ga.maxPlayers > 4) ? 1 : 0];
-        if (forPN != -1)
-        {
-            final int[][] lse = { LEGAL_SEA_EDGES[forPN] };
-            return lse;
-        }
-
         final int[][] lseArranged = new int[ga.maxPlayers][];
 
         int i = 0;  // iterate i only when player present, to avoid spacing gaps from vacant players
@@ -2774,7 +2766,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      *<P>
      * In this order:
      *<UL>
-     * <LI> Calls {@link #getLegalSeaEdges(SOCGame, int) getLegalSeaEdges(ga, -1)}:
+     * <LI> Calls {@link #getLegalSeaEdges(SOCGame)}:
      *      In scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, that will return non-{@code null} because
      *      ship placement is restricted. If so, calls each player's {@link SOCPlayer#setRestrictedLegalShips(int[])}.
      * <LI> Calls {@link #startGame_putInitPieces(SOCGame)}:
@@ -2782,7 +2774,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      *</UL>
      *
      * @param ga  Game to set up; assumes {@link SOCGame#startGame()} has just been called
-     * @return  this board layout's {@link #getLegalSeaEdges(SOCGame, int) getLegalSeaEdges(ga, -1)}
+     * @return  this board layout's {@link #getLegalSeaEdges(SOCGame)}
      *     if placement is restricted, or {@code null}
      */
     public static int[][] startGame_scenarioSetup(final SOCGame ga)
@@ -2791,7 +2783,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
             return null;  // just in case; such a game shouldn't be using this class anyway
 
         final int[][] legalSeaEdges;  // used on sea board; if null, all are legal
-        legalSeaEdges = getLegalSeaEdges(ga, -1);
+        legalSeaEdges = getLegalSeaEdges(ga);
         if (legalSeaEdges != null)
             for (int pn = 0; pn < ga.maxPlayers; ++pn)
                 ga.getPlayer(pn).setRestrictedLegalShips(legalSeaEdges[pn]);
@@ -2830,7 +2822,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * {@link SOCPlayer#setRestrictedLegalShips(int[])} before calling this method,
      * so the legal and potential arrays will be initialized.
      *
-     * @see #getLegalSeaEdges(SOCGame, int)
+     * @see #getLegalSeaEdges(SOCGame)
      */
     public void startGame_putInitPieces(SOCGame ga)
     {
@@ -4133,14 +4125,14 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
     /**
      * Pirate Islands: Sea edges legal/valid for each player to build ships directly to their Fortress.
-     * Each player has 1 array, in same player order as {@link #PIR_ISL_INIT_PIECES}
-     * (given out to non-vacant players, not strictly matching player number).
+     * Each player has 1 array, in same player order as {@link #PIR_ISL_INIT_PIECES}:
+     * Given out to non-vacant players, not strictly matching player number.
      *<P>
      * Note {@link SOCPlayer#doesTradeRouteContinuePastNode(SOCBoard, boolean, int, int, int)}
      * assumes there is just 1 legal sea edge, not 2, next to each player's free initial settlement,
      * so it won't need to check if the ship route would branch in 2 directions there.
      *<P>
-     * See {@link #getLegalSeaEdges(SOCGame, int)} for how this is rearranged to be sent to
+     * See {@link #getLegalSeaEdges(SOCGame)} for how this is rearranged to be sent to
      * active player clients as part of a {@code SOCPotentialSettlements} message,
      * and the format of each player's array.
      */
@@ -4160,8 +4152,8 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
     /**
      * Pirate Islands: Initial piece coordinates for each player,
-     * in same player order as {@link #PIR_ISL_SEA_EDGES}
-     * (given out to non-vacant players, not strictly matching player number).
+     * in same player order as {@link #PIR_ISL_SEA_EDGES}:
+     * Given out to non-vacant players, not strictly matching player number.
      * Each player has 4 elements, starting at index <tt>4 * playerNumber</tt>:
      * Initial settlement node, initial ship edge, pirate fortress node,
      * and the node on the pirate island where they are allowed to build

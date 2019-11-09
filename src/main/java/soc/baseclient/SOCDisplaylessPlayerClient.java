@@ -2174,9 +2174,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (ga == null)
             return;
 
-        final List<Integer> vset = mes.getPotentialSettlements();
-        final HashSet<Integer>[] las = mes.landAreasLegalNodes;
-        final int[] loneSettles;  // must set for players after pl.setPotentialAndLegalSettlements, if not null
+        List<Integer> ps = mes.getPotentialSettlements(false);  // may be null if lan != null
+        final HashSet<Integer>[] lan = mes.landAreasLegalNodes;
+        final int[] loneSettles;    // usually null, except in _SC_PIRI
         final int[][] legalSeaEdges = mes.legalSeaEdges;  // usually null, except in _SC_PIRI
 
         int pn = mes.getPlayerNumber();
@@ -2185,34 +2185,32 @@ public class SOCDisplaylessPlayerClient implements Runnable
             SOCBoardLarge bl = ((SOCBoardLarge) ga.getBoard());
             if ((pn == -1) || ((pn == 0) && bl.getLegalSettlements().isEmpty()))
                 bl.setLegalSettlements
-                  (vset, mes.startingLandArea, las);  // throws IllegalStateException if board layout
-                                                      // has malformed Added Layout Part "AL"
+                  (ps, mes.startingLandArea, lan);  // throws IllegalStateException if board layout
+                                                    // has malformed Added Layout Part "AL"
             loneSettles = bl.getAddedLayoutPart("LS");  // usually null, except in _SC_PIRI
         } else {
             loneSettles = null;
         }
 
+        if (ps == null)
+            // bl.setLegalSettlements expects sometimes-null ps,
+            // but pl.setPotentialAndLegalSettlements needs non-null
+            // from lan[] nodes during game start
+            ps = mes.getPotentialSettlements(true);
+
         if (pn != -1)
         {
-            SOCPlayer player = ga.getPlayer(pn);
-            player.setPotentialAndLegalSettlements(vset, true, las);
+            SOCPlayer pl = ga.getPlayer(pn);
+            pl.setPotentialAndLegalSettlements(ps, true, lan);
             if (loneSettles != null)
-                player.addLegalSettlement(loneSettles[pn], false);
+                pl.addLegalSettlement(loneSettles[pn], false);
             if (legalSeaEdges != null)
-            {
-                if (legalSeaEdges.length == 1)
-                    player.setRestrictedLegalShips(legalSeaEdges[0]);
-                else
-                    // if joining game before game starts, single message with pn=-1 sends all players' LSE.
-                    // if joining game after game starts, all LSE are sent as part of message with pn=0.
-                    for (int lpn = 0; lpn < legalSeaEdges.length; ++lpn)
-                        ga.getPlayer(lpn).setRestrictedLegalShips(legalSeaEdges[lpn]);
-            }
+                pl.setRestrictedLegalShips(legalSeaEdges[0]);
         } else {
             for (pn = ga.maxPlayers - 1; pn >= 0; --pn)
             {
                 SOCPlayer pl = ga.getPlayer(pn);
-                pl.setPotentialAndLegalSettlements(vset, true, las);
+                pl.setPotentialAndLegalSettlements(ps, true, lan);
                 if (loneSettles != null)
                     pl.addLegalSettlement(loneSettles[pn], false);
                 if (legalSeaEdges != null)

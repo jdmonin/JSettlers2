@@ -3995,45 +3995,44 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Set which nodes are potential settlements.
-     * Called at client when joining/creating a game
+     * Called at client when joining/creating a game,
      * when game's Potential Settlements message is received.
-     * At server, unless {@link SOCGame#hasSeaBoard},
-     * the potentials list is instead copied at start
-     * of game from legalSettlements.
+     * Called at server if {@link SOCGame#hasSeaBoard},
+     * just after makeNewBoard in {@link SOCGame#startGame()};
+     * otherwise server copies the potentials list
+     * at start of game from legalSettlements.
      *<P>
-     * If our game uses the large sea board ({@link SOCGame#hasSeaBoard}),
-     * and <tt>setLegalsToo</tt>, and <tt>psList</tt> is not empty,
-     * then also update the player's legal settlements
+     * If player's game uses the large sea board ({@link SOCGame#hasSeaBoard}),
+     * and {@code setLegalsToo}: Will also update the player's legal settlements
      * and legal road sets, since they aren't constant
-     * on that type of board; don't call this method before calling
+     * on that type of board; will use {@code legalLandAreaNodes} if not null,
+     * otherwise {@code psList}. Don't call this method before calling
      * {@link SOCBoardLarge#setLegalSettlements(Collection, int, HashSet[])},
      * or the road sets won't be complete.
      *<P>
      * Call this method before, not after, calling {@link #setRestrictedLegalShips(int[])}.
      * However, if the player already has a restricted legal ship edge list, this method won't clear it.
      *<P>
-     * This method is called at the server only when <tt>game.hasSeaBoard</tt>,
-     * just after makeNewBoard in {@link SOCGame#startGame()}.
-     *<P>
-     * Before v2.0.00, this method was called <tt>setPotentialSettlements</tt>.
+     * Before v2.0.00 this method was called {@code setPotentialSettlements}.
      *
      * @param psList  the list of potential settlements,
-     *     a {@link Vector} or {@link HashSet} of
-     *     {@link Integer} node coordinates
-     * @param setLegalsToo  If true, also update legal settlements/roads/ships
-     *     if we're using the large board layout.  [Parameter added in v2.0.00]
+     *     a {@link Vector} or {@link HashSet} of {@link Integer} node coordinates; not null, but can be empty
+     * @param setLegalsToo  For the large board layout:
+     *     If true, also update legal settlements/roads/ships from {@code legalLandAreaNodes}.
      *     <P>
-     *     In scenario {@code _SC_PIRI}, for efficiency, the legal ships list will remain
+     *     In scenario {@code _SC_PIRI}, for efficiency the legal ships list will remain
      *     empty until {@link #setRestrictedLegalShips(int[])} is called.
-     * @param legalLandAreaNodes If non-null and <tt>setLegalsToo</tt>,
+     * @param legalLandAreaNodes If non-null and {@code setLegalsToo},
      *     all Land Areas' legal (but not currently potential) node coordinates.
      *     Index 0 is ignored; land area numbers start at 1.
      *     If {@code setLegalsToo} but this is null, will use
      *     {@link SOCBoardLarge#getLegalSettlements()} instead.
+     * @throws NullPointerException if {@code psList} is null
      * @see #addLegalSettlement(int, boolean)
      */
     public void setPotentialAndLegalSettlements
         (Collection<Integer> psList, final boolean setLegalsToo, final HashSet<Integer>[] legalLandAreaNodes)
+        throws NullPointerException
     {
         clearPotentialSettlements();
         potentialSettlements.addAll(psList);
@@ -4054,7 +4053,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         if (setLegalsToo && game.hasSeaBoard)
         {
             legalSettlements.clear();
-            legalSettlements.addAll(psList);
 
             final SOCBoardLarge board = (SOCBoardLarge) game.getBoard();
 
@@ -4372,6 +4370,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Is this edge a legal ship placement?
      * @return true if this edge is a legal ship
      * @param edge        the coordinates of an edge on the board
+     * @see #getRestrictedLegalShips()
      * @since 2.0.00
      */
     public boolean isLegalShip(final int edge)
@@ -4392,6 +4391,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Please treat the returned HashSet as read-only.
      *
      * @return  Legal sea edges if they're restricted, or {@code null}
+     * @see #isLegalShip(int)
      * @since 2.0.00
      */
     public HashSet<Integer> getRestrictedLegalShips()
@@ -4404,7 +4404,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * when the legal sea edges for ships are restricted
      * by the game's scenario ({@link SOCGameOption#K_SC_PIRI _SC_PIRI}).
      * @param edgeList  List of edges, same format as one player's array from
-     *   {@link soc.server.SOCBoardAtServer#getLegalSeaEdges(SOCGame, int) SOCBoardAtServer.getLegalSeaEdges(SOCGame, int)};
+     *   {@link soc.server.SOCBoardAtServer#getLegalSeaEdges(SOCGame) SOCBoardAtServer.getLegalSeaEdges(SOCGame)};
      *   or an empty array (length 0) for vacant players with no legal ship edges;
      *   or {@code null} for unrestricted ship placement.
      *   <P>
@@ -4426,6 +4426,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 legalShipsRestricted = null;
                 legalShips.addAll(((SOCBoardLarge) game.getBoard()).initPlayerLegalShips());
             }
+
             return;
         }
 

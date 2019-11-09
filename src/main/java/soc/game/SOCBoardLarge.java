@@ -524,7 +524,8 @@ public class SOCBoardLarge extends SOCBoard
      * {@link #landAreasLegalNodes}, because that set of
      * legal nodes is also the players' potential settlement nodes.
      * 0 if players can start anywhere and/or
-     * {@link #landAreasLegalNodes} == <tt>null</tt>.
+     * {@link #landAreasLegalNodes} == <tt>null</tt>, as in
+     * scenario {@link SOCScenario#K_SC_4ISL SC_4ISL}'s board layouts.
      *<P>
      * The startingLandArea and {@link #landAreasLegalNodes} are sent
      * from the server to client as part of a <tt>POTENTIALSETTLEMENTS</tt> message.
@@ -2371,18 +2372,20 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * In some scenarios ({@code _SC_PIRI}), not all sea edges are legal for ships.
      * See {@link SOCPlayer#setRestrictedLegalShips(int[])}
-     * and {@code SOCBoardAtServer.getLegalSeaEdges(SOCGame, int)}.
+     * and {@link soc.server.SOCBoardAtServer#getLegalSeaEdges(SOCGame) SOCBoardAtServer.getLegalSeaEdges(SOCGame)}.
      *<P>
      * Server doesn't need to call this method, because {@code SOCBoardAtServer.makeNewBoard(Map)}
      * sets the contents of the same data structures.
      *
-     * @param psNodes  The set of potential settlement node coordinates as {@link Integer}s;
-     *    either a {@link HashSet} or a {@link List}.
-     *    If <tt>lan == null</tt>, this will also be used as the
-     *    legal set of settlement nodes on land.
+     * @param psNodes  If {@code lan} == null, the set of potential settlement node coordinates as {@link Integer}s;
+     *    either a {@link HashSet} or a {@link List}. If {@code lan} is null, will also be used as
+     *    the legal set of settlement nodes on land.
+     *    Ignored if {@code lan} != null.
      * @param sla  The required starting Land Area number, or 0
-     * @param lan If non-null, all Land Areas' legal node coordinates.
+     * @param lan  If non-null, all Land Areas' legal node coordinates.
      *     Index 0 is ignored; land area numbers start at 1.
+     *     If null, {@code psNodes} is used instead.
+     * @throws IllegalArgumentException if both {@code psNodes} and {@code lan} are null
      * @throws IllegalStateException if Added Layout Part {@code "AL"} is present but badly formed (node list number 0,
      *     or a node list number not followed by a land area number). This Added Layout Part is rarely used,
      *     and this would be discovered quickly while testing the board layout that contained it.
@@ -2390,10 +2393,13 @@ public class SOCBoardLarge extends SOCBoard
      */
     public void setLegalSettlements
         (final Collection<Integer> psNodes, final int sla, final HashSet<Integer>[] lan)
-        throws IllegalStateException
+        throws IllegalArgumentException, IllegalStateException
     {
         if (lan == null)
         {
+            if (psNodes == null)
+                throw new IllegalArgumentException("both null");
+
             landAreasLegalNodes = null;
             startingLandArea = 0;
 
