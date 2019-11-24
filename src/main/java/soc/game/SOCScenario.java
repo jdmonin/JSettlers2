@@ -306,7 +306,9 @@ public class SOCScenario
      * Scenario key {@code SC_CLVI} for {@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}:
      * Cloth Trade with neutral {@link SOCVillage villages}.
      * Main option is {@link SOCGameOption#K_SC_CLVI}.
-     * Game ends immediately if fewer than 4 villages still have cloth ({@link #SC_CLVI_VILLAGES_CLOTH_REMAINING_MIN}).
+     *<P>
+     * Game ends immediately if fewer than 4 villages still have cloth ({@link #SC_CLVI_VILLAGES_CLOTH_REMAINING_MIN}):
+     * Winner is player with most VP, or most cloth if tied.
      *<P>
      * While starting a new game, the neutral villages are placed and sent to clients as part {@code "CV"}
      * of the board layout message while game state is still &lt; {@link SOCGame#START1A START1A}.

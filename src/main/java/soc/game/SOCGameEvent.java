@@ -70,20 +70,29 @@ public enum SOCGameEvent
 
     /**
      * Special win condition for this scenario:
-     * A player has won because less than half the villages have cloth remaining.
+     * A player has won because fewer than 4 villages have cloth remaining
+     * ({@link SOCScenario#SC_CLVI_VILLAGES_CLOTH_REMAINING_MIN}).
      * The winning player's VP total might be less than {@link SOCGame#vp_winner}.
      *<P>
      * In {@link SOCGameEventListener#gameEvent(SOCGame, SOCGameEvent, Object)},
      * <tt>detail</tt> is the winning {@link SOCPlayer}.
      *<P>
      * Checked in private method <tt>SOCGame.checkForWinner_SC_CLVI()</tt>
+     *<P>
+     * Before firing this method, game at server sets state to {@link SOCGame#OVER}
+     * and updates {@link SOCGame#getPlayerWithWin()}.
+     *<P>
+     * Triggered by game on server only, not sent to client.
      */
     SGE_CLVI_WIN_VILLAGE_CLOTH_EMPTY(0x02),
 
     /**
      * The last pirate fortress was recaptured by the current player,
      * and the pirate fleet defeated and removed from the board.
+     *<P>
      * Triggered by game on server only, not sent to client.
+     *
+     * @see SOCPlayerEvent#PIRI_FORTRESS_RECAPTURED
      */
     SGE_PIRI_LAST_FORTRESS_FLEET_DEFEATED(0);
 

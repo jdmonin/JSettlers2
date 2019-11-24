@@ -8029,11 +8029,19 @@ public class SOCGame implements Serializable, Cloneable
      *     fewer than 4 of the {@link SOCVillage}s have cloth remaining.  The player
      *     with the most VP wins; if tied, the tied player with the most cloth wins.
      *     Winner is not necessarily the current player.
+     *     <BR>
+     *     See {@link SOCGameEvent#SGE_CLVI_WIN_VILLAGE_CLOTH_EMPTY}.
      *<LI> Scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI} requires the player to
      *     defeat and recapture 'their' pirate fortress to win.
+     *     To win, they also must earn {@link SOCGame#vp_winner}.
+     *     <BR>
+     *     See {@link SOCPlayerEvent#PIRI_FORTRESS_RECAPTURED} and
+     *     {@link SOCGameEvent#SGE_PIRI_LAST_FORTRESS_FLEET_DEFEATED}.
      *<LI> Scenario {@link SOCGameOption#K_SC_WOND _SC_WOND} requires the player to
      *     build a Wonder to a higher level than any other player's Wonder; the player
      *     can win even without reaching {@link #vp_winner} VP.
+     *     <BR>
+     *     Reaching this condition does not fire a {@link SOCGameEvent} or {@link SOCPlayerEvent}.
      *</UL>
      *
      * @see #getGameState()
@@ -8112,7 +8120,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Check how many villages have cloth remaining, in scenario {@code SC_CLVI}.
+     * Check how many villages have cloth remaining, in scenario {@link SOCScenario#K_SC_CLVI SC_CLVI}.
      * Called by {@link #checkForWinner()}. Game ends immediately if fewer than 4 villages still
      * have cloth ({@link SOCScenario#SC_CLVI_VILLAGES_CLOTH_REMAINING_MIN}).
      * Otherwise, returns false without changing game state.
@@ -8139,7 +8147,7 @@ public class SOCGame implements Serializable, Cloneable
 
         gameState = OVER;
 
-        // find player with most VP, or most cloth
+        // find player with most VP, or most cloth if tied
         int p = -1;
         int numWithMax = 0;
         int maxVP = 0;

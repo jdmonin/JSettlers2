@@ -95,13 +95,28 @@ When preparing to release a new version, testing should include:
        - Start a game on the 6-player board
        - Hover over village: Should show remaining cloth amount
        - Build ships to multiple villages, including 2 villages with the same dice number
-       - Player receives 1 cloth when building ship to a village (establishing trade)
+           - Player receives 1 cloth when building ship to a village (establishing trade)
+           - Each 2 cloth is +1 total VP
+       - Move ships built elsewhere to 2 villages (will take 2 turns)
+           - Cloth, VP, and "establishing trade" should work same way as building a ship next to a village
        - As game is played, make sure distribution of cloth to players is correct,
          including from 2 villages with the same dice number
        - Check for depletion of villages (should turn gray when cloth is depleted)
        - Check that when a village has 1 remaining cloth, but 2 established players,
          the board's general supply gives cloth to the 2nd player
-       - Leave and rejoin game: Hover over villages; cloth counts should be accurate
+       - Note your cloth total, then leave and rejoin game: Hover over villages; cloth counts should be accurate
+       - Move the pirate to rob cloth from another player;
+         cloth count and VP total should update accurately  
+         (Before you can move the pirate, you must establish a shipping route with any village)
+       - Give your player an odd number of cloth, a Soldier card, and enough VP dev cards
+         to be 1 point from winning. Move the pirate to rob cloth from another player; should win game
+       - Test the scenario's special win condition: Fewer than 4 villages have cloth remaining
+           - Start a game which requires 20 VP to win
+           - Use several human players, so no player gets to 20 VP before villages are depleted
+           - This test may take a while to complete, unless you can temporarily change the source code:
+               - Lower `SOCVillage.STARTING_CLOTH`
+               - Increase `SOCScenario.SC_CLVI_VILLAGES_CLOTH_REMAINING_MIN`
+           - Player with most VP, or most cloth if tied, should win
      - Pirate Islands and Fortresses
        - As player with pn=0 and as another pn: Leave and rejoin game: Should see Legal Sea Edges
          (dotted line from main island to your player's fortress) and be able to place boats along them

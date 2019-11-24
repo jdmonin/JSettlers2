@@ -85,6 +85,11 @@ public enum SOCPlayerEvent
      * The fortress has now been recaptured as a settlement owned by the player.
      * The new {@link SOCSettlement} will be passed as {@code obj} to
      * {@link SOCGameEventListener#playerEvent(SOCGame, SOCPlayer, SOCPlayerEvent, boolean, Object)}.
+     *<P>
+     * This event doesn't always mean a player has won;
+     * they also must earn {@link SOCGame#vp_winner}.
+     *
+     * @see SOCGameEvent#SGE_PIRI_LAST_FORTRESS_FLEET_DEFEATED
      */
     PIRI_FORTRESS_RECAPTURED(0x08),
 

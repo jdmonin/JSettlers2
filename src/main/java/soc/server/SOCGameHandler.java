@@ -3728,6 +3728,9 @@ public class SOCGameHandler extends GameHandler
 
         case SGE_CLVI_WIN_VILLAGE_CLOTH_EMPTY:
             {
+                // don't need to send to client to designate this event & winning player number:
+                //   general gameOVER code will send that player number
+
                 srv.messageToGameKeyed(ga, true, "event.sc_clvi.game.ending.villages");
                     // "Game is ending: Less than half the villages have cloth remaining."
                 srv.messageToGameKeyed(ga, true, "event.won.special.cond", ((SOCPlayer) detail).getName());
