@@ -117,6 +117,17 @@ When preparing to release a new version, testing should include:
                - Lower `SOCVillage.STARTING_CLOTH`
                - Increase `SOCScenario.SC_CLVI_VILLAGES_CLOTH_REMAINING_MIN`
            - Player with most VP, or most cloth if tied, should win
+     - Forgotten Tribe
+       - Trading ports as Special Items in player inventory
+           - Add a trading port into your player's inventory
+               - Either: Use debug command `*SCEN* giveport 4 0 debug`
+               - Or: Build ships to a "gift" trade port (must place right away),
+                 then past that to a second one (goes into inventory)
+           - Leave and rejoin the game
+           - Trading port should still be in inventory
+           - Build another coastal settlement
+           - Should now be able to play that trading port out of inventory
+           - Should be able to trade that port's resources at expected ratio (not 4:1)
      - Pirate Islands and Fortresses
        - As player with pn=0 and as another pn: Leave and rejoin game: Should see Legal Sea Edges
          (dotted line from main island to your player's fortress) and be able to place boats along them
