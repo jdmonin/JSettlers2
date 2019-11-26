@@ -131,6 +131,13 @@ When preparing to release a new version, testing should include:
      - Pirate Islands and Fortresses
        - As player with pn=0 and as another pn: Leave and rejoin game: Should see Legal Sea Edges
          (dotted line from main island to your player's fortress) and be able to place boats along them
+       - Defeat all fortresses: Pirate Fleet should disappear
+           - Start a 2-player game: Debug player, 1 bot
+           - Give both players about 8 Warship cards: `dev: 9 debug`, repeat for bot name
+           - Use Free Placement mode to build ships to each player's fortress: `*FREEPLACE* 1`
+           - Take turns, upgrade to warships, attack fortress until both are defeated
+           - Pirate Fleet should disappear
+           - Play a few more rounds; should see no exceptions from bot at server console
 - Client preferences
     - Auto-reject bot trade offers:
         - Practice game: Test UI's trade behavior with and without preference

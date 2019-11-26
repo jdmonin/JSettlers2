@@ -1385,7 +1385,7 @@ public class SOCRobotBrain extends Thread
                         //
                         moveRobberOnSeven = false;
                         final int newHex = ((SOCMoveRobber) mes).getCoordinates();
-                        if (newHex >= 0)
+                        if (newHex > 0)
                             game.getBoard().setRobberHex(newHex, true);
                         else
                             ((SOCBoardLarge) game.getBoard()).setPirateHex(-newHex, true);
