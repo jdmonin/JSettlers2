@@ -308,4 +308,17 @@ public class SOCInventoryItem
         return (SOCInventoryItem) super.clone();
     }
 
+    /**
+     * For debugging, a human-readable representation of this item's contents, of the form:
+     * "SOCInventoryItem{itype=" + {@link #itype} + ", playable?=" + {@link #isPlayable()}
+     *  + ", kept?=" + {@link #isKept()}
+     *  + ", strKey=" + {@code strKey} + "}@" + Integer.toHexString({@link Object#hashCode()})
+     */
+    @Override
+    public String toString()
+    {
+        return "SOCInventoryItem{itype=" + itype + ", playable?=" + playable + ", kept?=" + kept
+            + ", strKey=" + strKey + "}@" + Integer.toHexString(hashCode());
+    }
+
 }
