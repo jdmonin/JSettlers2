@@ -585,9 +585,16 @@ On most recent and less-recent OSX and Windows; oldest JRE (java 6) and a new JR
 - Sound, including 2 clients in same game for overlapping piece-place sound
 - Start or join networked game
 - Graphics, including scaling and antialiasing after window resize
-- High-DPI support: Test layout and font appearance
-    - Run as usual (auto-detect resolution) on a low-DPI and a high-DPI display if available
-    - Override runs, using jvm property `-Djsettlers.uiScale=1` and again using `-Djsettlers.uiScale=2`
+- High-DPI support
+    - Test runs:
+      - Run as usual (auto-detect resolution) on a low-DPI and a high-DPI display if available
+      - Override default using jvm property `-Djsettlers.uiScale=1`, then run again using `-Djsettlers.uiScale=2`
+    - Things to check on each run:
+      - Font appearance and size
+      - Dialog layouts
+        - Main panel after connect
+        - Game window, especially player SOCHandPanels
+        - Discard dialog: Per-resource color squares: Square size, font size in square
 - Persistent user prefs (sound, auto-reject bot offer, window size)  
   Then, re-run to check default size with jvm property `-Djsettlers.debug.clear_prefs=PI_width,PI_height`
 - Accessibility/High-Contrast mode
