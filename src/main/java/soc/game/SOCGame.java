@@ -5152,8 +5152,8 @@ public class SOCGame implements Serializable, Cloneable
      * For scenario option {@link SOCGameOption#K_SC_PIRI}, calls {@link SOCBoardLarge#movePirateHexAlongPath(int)}
      * and then {@link #movePirate(int, int, int)}:
      * Check {@link RollResult#sc_piri_fleetAttackVictim} and {@link RollResult#sc_piri_fleetAttackRsrcs}.
-     * Note that if player's warships are stronger than the pirate fleet, <tt>sc_piri_loot</tt> will contain
-     * {@link SOCResourceConstants#GOLD_LOCAL}, that player's {@link SOCPlayer#setNeedToPickGoldHexResources(int)}
+     * Note that if player's warships are stronger than the pirate fleet, {@link SOCMoveRobberResult#sc_piri_loot}
+     * will contain {@link SOCResourceConstants#GOLD_LOCAL}, that player's {@link SOCPlayer#setNeedToPickGoldHexResources(int)}
      * will be set to include the free pick, and game state becomes {@link #WAITING_FOR_PICK_GOLD_RESOURCE}.
      * If a 7 was rolled, the free pick happens before any discards.
      *<P>
@@ -8824,40 +8824,43 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * Robber/pirate fleet victims in some scenarios, otherwise null.
          *<P>
-         * When a 7 is rolled in game scenario {@link SOCGameOption#K_SC_PIRI},
+         * When a 7 is rolled in game scenario {@link SOCScenario#K_SC_PIRI SC_PIRI},
          * there is no robber piece to move; the current player immediately picks another
          * player with resources to steal from.  In that situation, this field holds
          * the list of possible victims, and gameState is {@link #WAITING_FOR_ROB_CHOOSE_PLAYER}.
          *<P>
-         * Moving the pirate fleet might also have a different victim,
-         * see {@link #sc_piri_fleetAttackVictim} and {@link #sc_piri_fleetAttackRsrcs}.
+         * Moving the pirate fleet might also have a different victim:
+         * See {@link #sc_piri_fleetAttackVictim}, {@link #sc_piri_fleetAttackRsrcs},
+         * and {@link SOCMoveRobberResult#sc_piri_loot}.
          *
          * @see SOCGame#getPossibleVictims()
          */
         public List<SOCPlayer> sc_robPossibleVictims;
 
         /**
-         * When the pirate fleet moves in game scenario {@link SOCGameOption#K_SC_PIRI},
+         * When the pirate fleet moves in game scenario {@link SOCScenario#K_SC_PIRI SC_PIRI},
          * they may attack the player with an adjacent settlement or city.
          * If no adjacent, or more than 1, nothing happens, and this field is null.
          * Otherwise see {@link #sc_piri_fleetAttackRsrcs} for the result;
          * The "victim" may win the battle and gain resource picks.
+         * See also {@link SOCMoveRobberResult#sc_piri_loot}.
          *<P>
          * Each time the dice is rolled, the fleet is moved and this field is updated; may be null.
+         * For robbery behavior when 7 is rolled, see {@link #sc_robPossibleVictims}.
          */
         public SOCPlayer sc_piri_fleetAttackVictim;
 
         /**
-         * When the pirate fleet moves in game scenario {@link SOCGameOption#K_SC_PIRI},
+         * When the pirate fleet moves in game scenario {@link SOCScenario#K_SC_PIRI SC_PIRI},
          * resources lost when they attack the player with an adjacent settlement or city
          * ({@link #sc_piri_fleetAttackVictim}).
          *<P>
          * Each time the dice is rolled, the fleet is moved and this field is updated; may be null.
          *<P>
-         * If the victim wins against the attack, they will gain a resource of their choice,
-         * meanwhile this resource set contains {@link SOCResourceConstants#GOLD_LOCAL} to indicate the win.
-         * State became {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE} and the caller of {@code rollDice()}
-         * will need to prompt the player to choose their free resource.
+         * If the victim wins against the attack, they must soon be prompted to gain a resource of their choice.
+         * This resource set contains {@link SOCResourceConstants#GOLD_LOCAL} to indicate the win.
+         * State became {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE} and the caller of {@link SOCGame#rollDice()}
+         * must prompt the player to choose their free resource.
          */
         public SOCResourceSet sc_piri_fleetAttackRsrcs;
 

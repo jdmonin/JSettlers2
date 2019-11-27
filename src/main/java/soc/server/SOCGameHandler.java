@@ -2272,11 +2272,15 @@ public class SOCGameHandler extends GameHandler
     final void sendGameState_sendGoldPickAnnounceText
         (SOCGame ga, final String gname, Connection playerCon, SOCGame.RollResult roll)
     {
-        final int ignoreRollPirateVictory;
+        /**
+         * If not 0, this number of the free-resource picks are from
+         * winning an SC_PIRI fleet battle, not from a gold hex
+         */
+        final int ignoreAmountFromPirateFleet;
         if ((roll != null) && ga.isGameOptionSet(SOCGameOption.K_SC_PIRI) && (roll.sc_piri_fleetAttackRsrcs != null))
-            ignoreRollPirateVictory = roll.sc_piri_fleetAttackRsrcs.getAmount(SOCResourceConstants.GOLD_LOCAL);
+            ignoreAmountFromPirateFleet = roll.sc_piri_fleetAttackRsrcs.getAmount(SOCResourceConstants.GOLD_LOCAL);
         else
-            ignoreRollPirateVictory = 0;
+            ignoreAmountFromPirateFleet = 0;
 
         int count = 0, amount = 0, firstPN = -1;
         ArrayList<String> names = new ArrayList<String>();
@@ -2289,8 +2293,8 @@ public class SOCGameHandler extends GameHandler
             if (numGoldRes > 0)
             {
                 num[pn] = numGoldRes;
-                if ((ignoreRollPirateVictory > 0) && (pp == roll.sc_piri_fleetAttackVictim))
-                    numGoldRes -= ignoreRollPirateVictory;
+                if ((ignoreAmountFromPirateFleet > 0) && (pp == roll.sc_piri_fleetAttackVictim))
+                    numGoldRes -= ignoreAmountFromPirateFleet;
                 if (numGoldRes > 0)
                 {
                     names.add(pp.getName());

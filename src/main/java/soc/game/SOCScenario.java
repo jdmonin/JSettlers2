@@ -338,8 +338,10 @@ public class SOCScenario
      * Each player starts with an initial coastal settlement and ship. While starting a new game these
      * are placed and sent to clients while game state is still &lt; {@link SOCGame#START1A START1A}.
      *<P>
-     * The pirate fleet moves with every dice roll. When a 7 is rolled, the fleet moves and any
-     * battle is resolved before the usual discards. Players may choose to not rob from anyone on 7.
+     * The pirate fleet moves with every dice roll, and battles whenever 1 player's settlement/city is
+     * adjacent. See {@link SOCGame.RollResult#sc_piri_fleetAttackVictim} javadoc and fields linked there.
+     * When a 7 is rolled, the fleet moves and any battle is resolved before the usual discards/robbery.
+     * Players may choose to not rob from anyone on 7.
      *<P>
      * When a player defeats their Fortress, it's replaced by a {@link SOCSettlement}.
      */
