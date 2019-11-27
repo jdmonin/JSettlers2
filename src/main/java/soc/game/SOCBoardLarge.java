@@ -248,7 +248,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * The numeric value (7) for <tt>GOLD_HEX</tt> is the same as
      * the v1/v2 encoding's {@link SOCBoard#MISC_PORT_HEX}, but the
-     * ports aren't encoded as hexes for this encoding, so there is no ambiguity
+     * ports aren't encoded as hexes for this v3 encoding, so there is no ambiguity
      * as long as callers of {@link #getHexTypeFromCoord(int)}
      * check the board encoding format.
      */
@@ -1069,6 +1069,7 @@ public class SOCBoardLarge extends SOCBoard
                                 laln.remove(nodeObj);
                         }
                     }
+
                     wasWaterRemovedLegals = true;
                 }
             }

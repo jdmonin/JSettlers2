@@ -2873,7 +2873,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Reveal one land or water hex hidden by {@link SOCBoardLarge#FOG_HEX fog}.
      * Called at server and clients. Updates board.
-     * If a {@link SOCBoard#WATER_HEX} is revealed, updates players' legal ship edges.
+     * If a {@link SOCBoard#WATER_HEX} is revealed, updates players' legal road and ship edges.
+     * (Unrevealed fog hexes are treated as land when setting up legal and potential sets.)
      *
      * @param hexCoord  Coordinate of the hex to reveal
      * @param hexType   Revealed hex type, same value as {@link SOCBoard#getHexTypeFromCoord(int)},
