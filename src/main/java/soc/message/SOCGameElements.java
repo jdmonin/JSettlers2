@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -54,6 +54,10 @@ public class SOCGameElements extends SOCMessageTemplateMi
     /**
      * Number of development cards remaining in the deck to be bought,
      * from {@link SOCGame#getNumDevCards()}.
+     *<P>
+     * Sent to clients during game join/start. When a dev card is bought,
+     * is sent to clients as part of game data before action announcement/display:
+     * See {@link SOCBuyDevCardRequest} javadoc.
      *<P>
      * Versions before v2.0.00 sent {@link SOCDevCardCount} instead.
      */

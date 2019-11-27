@@ -37,6 +37,7 @@ import soc.game.SOCDevCardConstants;  // for javadocs only
  * the server replies to that bot with DevCardAction(-1, {@link #CANNOT_PLAY}, cardtype).
  *<P>
  * Not sent from client, which sends {@link SOCBuyDevCardRequest} or {@link SOCPlayDevCardRequest} instead.
+ * See those message types' javadocs for server's complete response sequences.
  *<P>
  * At end of game (state {@link soc.game.SOCGame#OVER OVER}), server v2.0.00 reveals players'
  * hidden Victory Point cards by announcing a DevCardAction(pn, {@link #ADD_OLD}, cardtype [, cardtype, ...])

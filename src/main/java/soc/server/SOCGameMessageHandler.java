@@ -2339,6 +2339,8 @@ public class SOCGameMessageHandler
                     int card = ga.buyDevCard();
                     final int devCount = ga.getNumDevCards();
 
+                    // Note: If this message sequence changes, update SOCBuyDevCardRequest javadoc
+
                     srv.gameList.takeMonitorForGame(gaName);
                     if (ga.clientVersionLowest >= SOCPlayerElements.MIN_VERSION)
                     {

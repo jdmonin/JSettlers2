@@ -69,6 +69,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      *<P>
      * {@code value1} is the number of cards remaining to be bought, {@code value2} is unused.
      * Follows a {@link SOCDevCardAction} which has the card's info, bots must process that message.
+     * For complete message sequence, see {@link SOCBuyDevCardRequest} javadoc.
      * @since 1.1.19
      */
     public static final int DEVCARD_BOUGHT = 1;
