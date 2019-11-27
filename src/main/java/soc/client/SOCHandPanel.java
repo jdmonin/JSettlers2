@@ -687,6 +687,7 @@ import javax.swing.UIManager;
         pname.setFont(new Font("SansSerif", Font.PLAIN, 13 * displayScale));
         pname.setVerticalAlignment(JLabel.TOP);
         pname.putClientProperty(FONT_SKIP_FLAG, Boolean.TRUE);
+        pname.addMouseListener(this);  // to select player in Debug Free Placement mode (like SOCFaceButton does)
         // pname uses panel's background color, except when current player (updateAtTurn):
         pname.setBackground(null);
         pname.setOpaque(true);
@@ -1350,11 +1351,23 @@ import javax.swing.UIManager;
     }
 
     /**
-     * Handle clicks on {@link #svpSq} or {@link #svpLab} to get more info.
+     * Handle clicks on {@link #svpSq} or {@link #svpLab} to get more info,
+     * and player-name label during Debug Free Placement Mode to set placing player.
      * @since 2.0.00
      */
     public void mouseClicked(MouseEvent e)
     {
+        if (e.getSource() == pname)
+        {
+            if (game.isDebugFreePlacement())
+            {
+                playerInterface.setDebugFreePlacementPlayer(playerNumber);
+                e.consume();
+            }
+
+            return;  // <--- Early return ---
+        }
+
         StringBuilder sb = new StringBuilder();
         sb.append(strings.get("hpan.svp.total", player.getSpecialVP()));  // "Total Special Victory Points: {0}"
 

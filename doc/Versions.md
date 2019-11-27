@@ -29,6 +29,7 @@ and backport minor new features until `2.0.00` is ready.
 	    - Show board as large as possible
 	    - Player name labels sans-serif for cleaner look
 	    - Board graphics can use higher-resolution hex images
+	    - Debug Free Placement mode: Can also click player name to change placing player, not just face icon
 	- On OSX, set app name to JSettlers in menu bar
 	- Popups (AskDialog, etc) layout fine-tuned, can wrap multi-line text
 	- When deleting a game, remove from game list using exact match, not startsWith

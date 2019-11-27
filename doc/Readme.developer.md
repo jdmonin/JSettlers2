@@ -163,8 +163,8 @@ To use the "Free Placement" debug mode, type this debug command on your turn:
 You can then build and place pieces without consuming resources, by clicking
 or right-clicking on the board.  (Don't use the "Buy" buttons for Free
 Placement.) The placements must follow game rules, except that they cost
-no resources. To place for another player, click their face icon.  You cannot
-remove a piece once it is placed.
+no resources. To place for another player, click their name or face icon.
+You cannot remove a piece once it is placed.
 
 During initial placement, you can use Free Placement for any player/bot to
 set up some or all of the initial settlements and roads/ships. The number of
