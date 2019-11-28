@@ -408,7 +408,7 @@ public class SOCDBHelper
     /**
      * The db driver type if detected, or null char if never connected. Used when certain DB types
      * need special consideration. If DB has been initialized, value will be {@link #DBTYPE_MYSQL},
-     * {@link #DBTYPE_SQLITE}, etc, or {@link #DBTYPE_UNKNOWN}.
+     * {@link #DBTYPE_SQLITE}, {@link #DBTYPE_POSTGRESQL}, etc, or {@link #DBTYPE_UNKNOWN}.
      *<P>
      * Set in {@link #initialize(String, String, Properties)} based on db URL and jdbc driver name.
      * @see #driverclass
@@ -3392,18 +3392,7 @@ public class SOCDBHelper
                     // https://www.postgresql.org/docs/11/functions-sequence.html
                     if (dbType == DBTYPE_POSTGRESQL)
                     {
-                        // TODO add a test for pg_get_serial_sequence
-
-                        String seqname = null;
-
-                        st = connection.createStatement();
-                        ResultSet rs = st.executeQuery
-                            ("SELECT pg_get_serial_sequence('games2', 'gameid');");  // supported by v8.0 and above (maybe also earlier)
-                        if (rs.next())
-                            seqname = rs.getString(1);  // 'public.games2_gameid_seq'  (etc)
-                        st.close();  // also closes rs
-                        st = null;
-
+                        String seqname = dbtypePostgresGetSerialSequence("games2", "gameid");  // 'public.games2_gameid_seq' (etc)
                         if (seqname != null)
                         {
                             PreparedStatement ps = connection.prepareStatement
@@ -3413,7 +3402,8 @@ public class SOCDBHelper
                                 // but executeUpdate would throw an exception because resultset is returned
                             ps.close();  // also closes the ignored resultset
                         } else {
-                            // TODO ???  Print a warning? Stop the upgrade? Is this situation even possible?
+                            // TODO ???  Print a warning? Stop the upgrade? Null shouldn't be possible:
+                            // INT_AUTO_PK DDL creates a sequence, is tested in testDBHelper(..)
                         }
                     }
 
@@ -3764,6 +3754,43 @@ public class SOCDBHelper
 
         return (owner.equals(curr)) ? null : owner;
     }
+
+    // dbtype-specific methods
+
+    /**
+     * On postgres, get a field's serial sequence name:
+     * {@code pg_get_serial_sequence(..)}.
+     *<P>
+     * Supported by PostgreSQL v8.0 and above (maybe also earlier).
+     *
+     * @param tabName  Name of table which has {@code fieldName}; assumes no special characters (A-Za-z0-9_ only)
+     * @param fieldName  Field name within table; assumes no special characters (A-Za-z0-9_ only)
+     * @return Sequence name like {@code "public.games2_gameid_seq"}, or null if field has no sequence
+     * @throws IllegalStateException if {@link #dbType} != {@link #DBTYPE_POSTGRESQL}
+     * @throws SQLException if {@code tabName} or {@code fieldName} doesn't exist,
+     *     or unexpected problem with executeQuery
+     * @since 2.0.00
+     */
+    private static String dbtypePostgresGetSerialSequence
+        (final String tabName, final String fieldName)
+        throws IllegalStateException, SQLException
+    {
+        if (dbType != DBTYPE_POSTGRESQL)
+            throw new IllegalStateException("dbType: " + dbType);
+
+        String seqname = null;
+
+        Statement st = connection.createStatement();
+        ResultSet rs = st.executeQuery
+            ("SELECT pg_get_serial_sequence('" + tabName + "', '" + fieldName + "');");
+        if (rs.next())
+            seqname = rs.getString(1);
+        st.close();  // also closes rs
+
+        return seqname;
+    }
+
+    // DDL methods
 
     /**
      * Run DDL to drop columns, useful during rollback. Syntax varies by DB type.
@@ -4219,7 +4246,7 @@ public class SOCDBHelper
             anyFailed |= ! testOne_insertGameRow(true, true);   // prepared with {PK_ARRAY}: support is required
             System.err.println();
 
-            // Any dbType-specific tests
+            // Any dbType-specific tests that don't need a temp table
             if (dbType == DBTYPE_POSTGRESQL)
             {
                 // Test that we can get this info without errors; test doesn't need current DB user to be tables' owner
@@ -4282,6 +4309,69 @@ public class SOCDBHelper
                     } catch (SQLException e) {
                         System.err.println("Test failed: Create unique index gamesxyz2__w: " + e);
                         anyFailed = true;
+                    }
+
+                    // Any dbType-specific tests that need a temp table
+                    if (dbType == DBTYPE_POSTGRESQL)
+                    {
+                        boolean hasFixtureTabPg = false;
+                        try {
+                            testDBHelper_runDDL
+                                ("fixture: create table gamestest_pg",
+                                 "CREATE TABLE gamestest_pg ( testid " + INT_AUTO_PK + ", ifield int not null );");
+                            hasFixtureTabPg = true;
+
+                            PreparedStatement ps = connection.prepareStatement
+                                    ("INSERT INTO gamestest_pg(ifield) VALUES(?)");
+                            for (int n = 0; n < 3; ++n)
+                            {
+                                ps.setInt(1, n);
+                                ps.executeUpdate();
+                            }
+                            ps.close();
+
+                            String seqname = dbtypePostgresGetSerialSequence("gamestest_pg", "ifield");
+                            if (seqname != null)
+                            {
+                                System.err.println("Test failed: PostgreSQL: pg_get_serial_sequence(.., 'ifield') should be null");
+                                anyFailed = true;
+                            }
+
+                            seqname = dbtypePostgresGetSerialSequence("gamestest_pg", "testid");
+                                // 'public.gamestest_testid_seq' (etc)
+                            if (seqname != null)
+                            {
+                                if (! seqname.toLowerCase(Locale.US).contains("testid"))
+                                {
+                                    System.err.println
+                                        ("Test failed: PostgreSQL: pg_get_serial_sequence(.., 'testid') returned \"" + seqname
+                                         + "\", doesn't contain \"testid\" as expected");
+                                    anyFailed = true;
+                                }
+                            } else {
+                                System.err.println("Test failed: PostgreSQL: pg_get_serial_sequence returned null");
+                                anyFailed = true;
+                            }
+
+                            if (! anyFailed)
+                                System.err.println("Test ok: PostgreSQL: pg_get_serial_sequence(\"gamestest_pg\", ...)");
+                        } catch (SQLException e) {
+                            System.err.println("Test failed: PostgreSQL: pg_get_serial_sequence: " + e);
+                            anyFailed = true;
+                        }
+
+                        // cleanup
+                        if (hasFixtureTabPg)
+                        {
+                            try
+                            {
+                                testDBHelper_runDDL
+                                    ("fixture cleanup: drop table gamestest_pg", "DROP TABLE gamestest_pg;");
+                            } catch (SQLException e) {
+                                System.err.println("Cleanup failed: Drop table gamestest_pg: " + e);
+                                anyFailed = true;
+                            }
+                        }
                     }
 
                     // batch insert/convert, as seen in upgradeSchema():
@@ -4455,7 +4545,7 @@ public class SOCDBHelper
         System.err.println();
         if (anyFailed)
         {
-            System.err.println("* Some required DB tests failed.");
+            System.err.println("*** Some required DB tests failed.");
             throw new SQLException("Required test(s) failed");
         } else {
             System.err.println("* All required DB tests passed.");
