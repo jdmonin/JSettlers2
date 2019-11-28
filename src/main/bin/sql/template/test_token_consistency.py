@@ -31,7 +31,7 @@ def exit_error(msg):
   print(progname + ": " + msg)
   sys.exit(1)
 
-# Tests:
+# Methods used by tests:
 
 def check_py_token_dbs_same_names():
   """Compare render.py DB_TOKENS key name sets among db types"""
@@ -52,6 +52,8 @@ def check_py_token_dbs_same_names():
   return all_same
 
 
+# Tests:
+
 java_all_ok = True  # for use by check_java_token_values_vs_py and its subfunction print_err
 
 def check_java_token_values_vs_py(dbh_java_fullpath):
@@ -60,7 +62,7 @@ def check_java_token_values_vs_py(dbh_java_fullpath):
   global java_all_ok
   java_all_ok = True
   line_num = 0
-  state = ""   # 'state machine' shorthand for next part of the comparison area
+  state = ""   # parser 'state machine' shorthand for next part of the comparison area
 
   def print_err(msg):
     global java_all_ok
@@ -73,10 +75,13 @@ def check_java_token_values_vs_py(dbh_java_fullpath):
     token_names = None
     token_dbtype_vals = {}   # key = dbtype or 'default', val = dict with tokennames & values
     with open(dbh_java_fullpath) as f:
-       # Read lines until we see "BEGIN COMPARISON AREA".
+       # Read lines until we see "TOKEN DECLARATION LIST".
+       # At that point parse the next line for token list.
+       # Then, read lines until we see "BEGIN COMPARISON AREA".
        # At that point read and "parse"; ignore comment-only lines.
        # When we see "END COMPARISON AREA" (hopefully at expected time), stop reading.
        f_line = ""
+       saw_decl_line = False
        saw_begin_line = False
        saw_all_expected = False
        curr_case_dbtype = None  # while parsing switch cases; 'default' can be a value here
@@ -90,9 +95,29 @@ def check_java_token_values_vs_py(dbh_java_fullpath):
          if not len(f_line):
            continue
          if not saw_begin_line:
-           if f_line == "// BEGIN COMPARISON AREA -- test_token_consistency.py":
-             saw_begin_line = True
+           if state == 'decl':
+             if f_line.startswith("//"):
+               continue
+             # assumes 2 or more tokens are declared, all on same line
+             if f_line.startswith("private static String "):
+               m = re.search(r"String\s+(\w+(,\s*\w+)+)\s*;", f_line)
+               if m:
+                 token_names = sets.Set([tokname.strip() for tokname in m.group(1).split(',')])
+                 state = ''  # will read until BEGIN COMPARISON AREA
+               else:
+                 print_err("failed regex match: private static String ...")
+             else:
+               print_err("expected: private static String")
+           elif f_line == "// TOKEN DECLARATION LIST -- test_token_consistency.py":
+             saw_decl_line = True
              state = 'decl'
+           elif f_line == "// BEGIN COMPARISON AREA -- test_token_consistency.py":
+             saw_begin_line = True
+             state = 'switch'
+             if not saw_decl_line:
+               print(progname + ': Missing "TOKEN DECLARATION LIST" before "BEGIN COMPARISON AREA" (line '
+                 + str(line_num) + ') in ' + dbh_java_fullpath)
+               java_all_ok = False
          elif f_line == "// END COMPARISON AREA -- test_token_consistency.py":
             if not saw_all_expected:
               print(progname + ': "END COMPARISON AREA" too early (line '
@@ -103,18 +128,7 @@ def check_java_token_values_vs_py(dbh_java_fullpath):
          else:
            if f_line.startswith("//"):
              continue
-           if state == 'decl':
-             # assumes 2 or more tokens are declared, all on same line
-             if f_line.startswith("final String "):
-               m = re.search(r"String\s+(\w+(,\s*\w+)+)\s*;", f_line)
-               if m:
-                 token_names = sets.Set([tokname.strip() for tokname in m.group(1).split(',')])
-                 state = 'switch'
-               else:
-                 print_err("failed regex match: final String ...")
-             else:
-               print_err("expected: final String")
-           elif state == 'switch':
+           if state == 'switch':
              if re.search(r"^switch\w*\(dbType\)$", f_line):
                state = '{'
              else:
@@ -155,6 +169,20 @@ def check_java_token_values_vs_py(dbh_java_fullpath):
       print(progname + ': Missing "BEGIN COMPARISON AREA" in ' + dbh_java_fullpath)
       java_all_ok = False
 
+    if not java_all_ok:
+      return False   # parse error(s)
+
+    # Sanity-check dbtypes found in java
+    if 'default' in token_dbtype_vals:
+      if len(token_dbtype_vals) < 3:
+        print(progname + ': switch(dbType) should have at least 2 dbTypes + default: ' + dbh_java_fullpath
+          + " near line " + str(line_num))
+        java_all_ok = False
+    else:
+      print(progname + ': switch(dbType) missing default case: ' + dbh_java_fullpath
+        + " near line " + str(line_num))
+      java_all_ok = False
+
     # Check if all dbtypes (including default) have the same set of token_names
     for dbtype in token_dbtype_vals.keys():
       diffr = (token_names ^ (sets.ImmutableSet(token_dbtype_vals[dbtype].keys())))
@@ -165,7 +193,8 @@ def check_java_token_values_vs_py(dbh_java_fullpath):
 
     # Check that dbtypes here (besides default) are same as render.DB_TOKENS
     dbtypes_set = sets.Set(token_dbtype_vals.keys())
-    dbtypes_set.remove('default')
+    if 'default' in dbtypes_set:  # should be there, prevent error if not; presence is sanity-checked in above code
+      dbtypes_set.remove('default')
     diffr = (dbtypes_set ^ (sets.ImmutableSet(render.DB_TOKENS.keys())))
     if len(diffr):
       java_all_ok = False
