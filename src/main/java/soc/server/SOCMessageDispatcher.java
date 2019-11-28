@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2016-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2016-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,9 +28,11 @@ import soc.server.genericServer.Connection;
 import soc.server.genericServer.Server;
 
 /**
- * Server class to dispatch all inbound messages.
+ * Server class to dispatch all inbound messages within a {@link SOCServer}.
  * Sole exception: The first message from a client is dispatched by
  * {@link SOCServer#processFirstCommand(SOCMessage, Connection)} instead.
+ *<P>
+ * For more details, see main handler method {@link #dispatch(SOCMessage, Connection)}.
  *<P>
  * Once server is initialized, call {@link #setServer(SOCServer, SOCGameListAtServer)}
  * before calling {@link #dispatch(SOCMessage, Connection)}.
@@ -96,7 +98,21 @@ import soc.server.genericServer.Server;
     }
 
     /**
+     * Process an inbound message from a client.
+     *<P>
+     * For general messages which aren't a {@link SOCMessageForGame}, calls
+     * {@link SOCServerMessageHandler#dispatch(SOCMessage, Connection)}.
+     *<P>
+     * For {@link SOCMessageForGame}s, calls that game's
+     * {@link GameMessageHandler#dispatch(SOCGame, SOCMessageForGame, Connection)} method
+     * (probably {@link SOCGameMessageHandler#dispatch(SOCGame, SOCMessageForGame, Connection)}).
+     * If the dispatcher doesn't recognize or handle the message, it returns {@code false},
+     * and the message falls through to the non-SOCMessageForGame handler
+     * {@link SOCServerMessageHandler#dispatch(SOCMessage, Connection)}.
+     *
+     *<H3>General notes:</H3>
      * {@inheritDoc}
+     *
      * @throws IllegalStateException if not ready to dispatch because
      *    {@link #setServer(SOCServer, SOCGameListAtServer)} hasn't been called.
      */
