@@ -25,6 +25,7 @@ package soc.client;
 import soc.client.stats.SOCGameStatistics;
 import soc.debug.D;  // JM
 
+import soc.game.SOCBoard;
 import soc.game.SOCCity;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
@@ -4239,7 +4240,11 @@ public class SOCPlayerInterface extends Frame
                     boardUpdated();
                     if (pi.clientHand != null)
                         pi.clientHand.updateResourceTradeCosts(false);
-                    pi.printKeyed("game.invitem.port.placed", pi.game.getPlayer(pn).getName());  // * "{0} has placed a trade port."
+                    pi.printKeyed
+                        ("game.invitem.port.placed",
+                         pi.game.getPlayer(pn).getName(),
+                         strings.get(SOCBoard.getPortDescForType(value2, true)));  // "a 3:1 port", "a 2:1 clay port", etc
+                        // * "{0} has placed {1}." -> "Joe has placed a 3:1 port."
                 }
                 break;
 
@@ -4296,7 +4301,9 @@ public class SOCPlayerInterface extends Frame
             case SOCSimpleAction.TRADE_PORT_REMOVED:
                 {
                     boardUpdated();
-                    pi.printKeyed("game.invitem.port.picked.up", plName);  // "{0} has picked up a trade port from the board."
+                    pi.printKeyed
+                        ("game.invitem.port.picked.up", plName, strings.get(SOCBoard.getPortDescForType(value2, true)));
+                        // "{0} has picked up {1} from the board." -> "Joe has picked up a 3:1 port from the board."
                 }
                 break;
 
