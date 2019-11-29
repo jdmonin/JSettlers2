@@ -447,7 +447,7 @@ public class SOCGameMessageHandler
                                 /**
                                  * tell the victim client that the player lost the resources
                                  */
-                                handler.reportRsrcGainLoss(gn, loot, true, true, vpn, -1, null, vCon);
+                                handler.reportRsrcGainLoss(gn, loot, true, true, vpn, -1, vCon);
                                 srv.messageToPlayerKeyedSpecial
                                     (vCon, ga, "action.rolled.sc_piri.you.lost.rsrcs.to.fleet", loot, strength);
                                     // "You lost {0,rsrcs} to the pirate fleet (strength {1,number})."
@@ -513,7 +513,7 @@ public class SOCGameMessageHandler
                                     // get it from any connection's StringManager, because that string is never localized
 
                                 // Announce SOCPlayerElement.GAIN messages
-                                handler.reportRsrcGainLoss(gn, rsrcs, false, false, pn, -1, null, null);
+                                handler.reportRsrcGainLoss(gn, rsrcs, false, false, pn, -1, null);
                             }
                         }
                     }
@@ -740,7 +740,7 @@ public class SOCGameMessageHandler
                 /**
                  * tell the player client that the player discarded the resources
                  */
-                handler.reportRsrcGainLoss(gn, res, true, false, pn, -1, null, c);
+                handler.reportRsrcGainLoss(gn, res, true, false, pn, -1, c);
 
                 /**
                  * tell everyone else that the player discarded unknown resources
@@ -2695,7 +2695,7 @@ public class SOCGameMessageHandler
                     {
                         ga.doDiscoveryAction(rsrcs);
 
-                        handler.reportRsrcGainLoss(gaName, rsrcs, false, false, pn, -1, null, null);
+                        handler.reportRsrcGainLoss(gaName, rsrcs, false, false, pn, -1, null);
                         srv.messageToGameKeyedSpecial(ga, true, "action.card.discov.received", player.getName(), rsrcs);
                             // "{0} received {1,rsrcs} from the bank."
                         handler.sendGameState(ga);
@@ -2978,6 +2978,11 @@ public class SOCGameMessageHandler
      * Calls {@link SOCSpecialItem#playerPickItem(String, SOCGame, SOCPlayer, int, int)}
      * or {@link SOCSpecialItem#playerSetItem(String, SOCGame, SOCPlayer, int, int, boolean)}
      * which provide scenario-specific responses or decline the request.
+     *<P>
+     * As with building a settlement or road, cost paid isn't reported as a text message:
+     * If that's important to the client, they already have {@link SOCSpecialItem#getCost()}
+     * and can print something when they receive the server's SOCSetSpecialItem message.
+     *
      * @param c  the connection that sent the message
      * @param mes  the message
      */
@@ -3034,8 +3039,7 @@ public class SOCGameMessageHandler
 
                     // if cost paid, send resource-loss first
                     if (paidCost && (itm != null))
-                        handler.reportRsrcGainLoss(gaName, itm.getCost(), true, false, pn, -1, null, null);
-                        // TODO i18n-neutral rsrc text to report cost paid?  or, encapsulate that into reportRsrcGainLoss
+                        handler.reportRsrcGainLoss(gaName, itm.getCost(), true, false, pn, -1, null);
 
                     // Next, send SET/CLEAR before sending PICK announcement
 
@@ -3137,8 +3141,7 @@ public class SOCGameMessageHandler
 
                     // if cost paid, send resource-loss first
                     if (paidCost && (itm != null))
-                        handler.reportRsrcGainLoss(gaName, itm.getCost(), true, false, pn, -1, null, null);
-                        // TODO i18n-neutral rsrc text to report cost paid?  or, encapsulate that into reportRsrcGainLoss
+                        handler.reportRsrcGainLoss(gaName, itm.getCost(), true, false, pn, -1, null);
 
                     // get item after SET, in case it's changed
                     if (op != SOCSetSpecialItem.OP_CLEAR)

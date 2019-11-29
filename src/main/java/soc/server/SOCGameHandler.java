@@ -24,7 +24,6 @@
 package soc.server;
 
 import java.text.DateFormat;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
@@ -755,12 +754,12 @@ public class SOCGameHandler extends GameHandler
                     reportRsrcGainGold(ga, cp, cpn, resGainLoss, true, false);
                 } else {
                     // Send SOCPlayerElement messages
-                    reportRsrcGainLoss(gaName, resGainLoss, false, false, cpn, -1, null, null);
+                    reportRsrcGainLoss(gaName, resGainLoss, false, false, cpn, -1, null);
                 }
             } else {
                 Connection c = srv.getConnection(plName);
                 if ((c != null) && c.isConnected())
-                    reportRsrcGainLoss(gaName, resGainLoss, true, true, cpn, -1, null, c);
+                    reportRsrcGainLoss(gaName, resGainLoss, true, true, cpn, -1, c);
                 int totalRes = resGainLoss.getTotal();
                 srv.messageToGameExcept
                     (gaName, c, new SOCPlayerElement
@@ -2652,8 +2651,8 @@ public class SOCGameHandler extends GameHandler
         final SOCResourceSet giveSet = offer.getGiveSet(),
                              getSet  = offer.getGetSet();
 
-        reportRsrcGainLoss(gaName, giveSet, true, false, offering, accepting, null, null);
-        reportRsrcGainLoss(gaName, getSet, false, false, offering, accepting, null, null);
+        reportRsrcGainLoss(gaName, giveSet, true, false, offering, accepting, null);
+        reportRsrcGainLoss(gaName, getSet, false, false, offering, accepting, null);
         if (ga.clientVersionLowest < SOCStringManager.VERSION_FOR_I18N)
         {
             // v2.0.00 and newer clients will announce this with localized text;
@@ -2683,8 +2682,8 @@ public class SOCGameHandler extends GameHandler
         final String gaName = ga.getName();
         final int    cpn    = ga.getCurrentPlayerNumber();
 
-        reportRsrcGainLoss(gaName, give, true, false, cpn, -1, null, null);
-        reportRsrcGainLoss(gaName, get, false, false, cpn, -1, null, null);
+        reportRsrcGainLoss(gaName, give, true, false, cpn, -1, null);
+        reportRsrcGainLoss(gaName, get, false, false, cpn, -1, null);
 
         SOCBankTrade bt = null;
         if (ga.clientVersionHighest >= SOCStringManager.VERSION_FOR_I18N)
@@ -2730,11 +2729,11 @@ public class SOCGameHandler extends GameHandler
      * Report the resources gained/lost by a player, and optionally (for trading)
      * lost/gained by a second player.
      * Sends PLAYERELEMENT messages, either to entire game, or to player only.
-     * Builds the resource-amount string used to report the trade as text.
-     * Takes and releases the gameList monitor for this game.
      *<P>
      * Used to report the resources gained from a roll, discard, or discovery (year-of-plenty) pick.
      * Also used to report the "give" or "get" half of a resource trade.
+     *<P>
+     * Takes and releases the gameList monitor for this game.
      *
      * @param gaName  Game name
      * @param resourceSet    Resource set (from a roll, or the "give" or "get" side of a trade).
@@ -2750,8 +2749,6 @@ public class SOCGameHandler extends GameHandler
      *                For each nonzero resource involved, PLAYERELEMENT messages will be sent about this player.
      * @param tradingPlayer  Player number on other side of trade, or -1 if no second player is involved.
      *                If not -1, PLAYERELEMENT messages will also be sent about this player.
-     * @param message Append resource numbers/types to this stringbuffer,
-     *                format like "3 clay,3 wood"; can be null.
      * @param playerConn     Null to announce to the entire game, or mainPlayer's connection to send messages
      *                there instead of sending to all players in game.  Because trades are public, there is no
      *                such parameter for tradingPlayer.
@@ -2765,12 +2762,10 @@ public class SOCGameHandler extends GameHandler
      */
     void reportRsrcGainLoss
         (final String gaName, final ResourceSet resourceSet, final boolean isLoss, boolean isNews,
-         final int mainPlayer, final int tradingPlayer, StringBuffer message, Connection playerConn)
+         final int mainPlayer, final int tradingPlayer, Connection playerConn)
     {
         final int losegain  = isLoss ? SOCPlayerElement.LOSE : SOCPlayerElement.GAIN;  // for pnA
         final int gainlose  = isLoss ? SOCPlayerElement.GAIN : SOCPlayerElement.LOSE;  // for pnB
-
-        boolean needComma = false;  // Has a resource already been appended to message?
 
         srv.gameList.takeMonitorForGame(gaName);
 
@@ -2790,15 +2785,6 @@ public class SOCGameHandler extends GameHandler
                 srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, tradingPlayer, gainlose, res, amt, isNews));
             if (isNews)
                 isNews = false;
-
-            if (message != null)
-            {
-                if (needComma)
-                    message.append(", ");
-                message.append
-                    (MessageFormat.format( /*I*/"{0,number} {1}"/*18N*/, amt, SOCResourceConstants.resName(res))); // "3 clay"
-                needComma = true;
-            }
         }
 
         srv.gameList.releaseMonitorForGame(gaName);
@@ -2827,7 +2813,7 @@ public class SOCGameHandler extends GameHandler
         final String gn = ga.getName();
 
         // Send SOCPlayerElement messages
-        reportRsrcGainLoss(gn, rsrcs, false, isNews, pn, -1, null, null);
+        reportRsrcGainLoss(gn, rsrcs, false, isNews, pn, -1, null);
         srv.messageToGameKeyedSpecial(ga, true,
             ((includeGoldHexText) ? "action.picked.rsrcs.goldhex" : "action.picked.rsrcs"),
             player.getName(), rsrcs);
@@ -3667,7 +3653,7 @@ public class SOCGameHandler extends GameHandler
         if (isDiscard)
         {
             if ((c != null) && c.isConnected())
-                reportRsrcGainLoss(gaName, rset, true, true, pn, -1, null, c);
+                reportRsrcGainLoss(gaName, rset, true, true, pn, -1, c);
 
             srv.messageToGameExcept
                 (gaName, c, new SOCPlayerElement

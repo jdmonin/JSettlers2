@@ -47,10 +47,15 @@ import soc.message.SOCMessage;  // strictly for isSingleLineAndSafe
  * See {@link SOCSpecialItem.Requirement} javadoc for more details.  To check requirements,
  * call {@link SOCSpecialItem#checkRequirements(SOCPlayer, boolean)}.
  *<P>
+ * All Special Items are currently "public" and their details are known to all players,
+ * not hidden by a player like Victory Point dev cards. If a future use would need some items to
+ * be hidden or "private", at that time a flag field would need to be added to the object and
+ * set in {@link #makeKnownItem(String, int)}.
+ *
  * <H5>Optional Fields:</H5>
  * Some {@code typeKey}s may use the {@link #getLevel()} and {@link #getStringValue()} fields;
  * their meaning is type-specific.
- *<P>
+ *
  * <H5>Non-Networked Fields:</H5>
  * During game setup, {@link #makeKnownItem(String, int)} can be called for convenience at both the
  * server and client from {@link SOCGame#updateAtBoardLayout()}:
@@ -178,7 +183,7 @@ public class SOCSpecialItem
     protected String sv;
 
     /**
-     * Optional cost to buy, use, or build the next level, or {@code null}.
+     * Optional constant cost to buy, use, or build the next level, or {@code null}.
      * Not sent over the network; see {@link SOCSpecialItem class javadoc}
      * and {@link #makeKnownItem(String, int)}.
      */
@@ -518,7 +523,7 @@ public class SOCSpecialItem
     }
 
     /**
-     * Get the optional cost to buy, use, or build the next level.
+     * Get the optional constant cost to buy, use, or build the next level.
      * Not sent over the network; see {@link SOCSpecialItem class javadoc}.
      * @return  Cost, or {@code null} if none
      * @see #checkCost(SOCPlayer)

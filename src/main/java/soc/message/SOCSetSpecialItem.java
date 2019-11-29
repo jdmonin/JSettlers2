@@ -30,6 +30,7 @@ import soc.game.SOCSpecialItem;  // for javadocs only
  * This message is to pick, set, or clear a {@link SOCSpecialItem} in the game and/or the Special Item list
  * of the player owning the item. Within the game data, lists track the per-game (unowned or game-wide) and/or
  * per-player Special Item lists. The same Special Item object instance may be in both lists.
+ * Special Items' status and details are currently "public" and known to all players, not hidden like VP dev cards.
  *<P>
  * Is sent for the Wonders chosen by players in the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
  *<P>
@@ -41,15 +42,18 @@ import soc.game.SOCSpecialItem;  // for javadocs only
  * A client player can request that the item at an index within a per-player or game-wide Special Item list be picked,
  * set, or cleared. The server can decline that request, or announce a change or pick to all members of the game.
  * The server can also send a {@code SOCSetSpecialItem} message when anything happens in-game that causes a change.
- * If the special item change has also caused a change to game state, the server will announce that
- * after sending the special item message(s).
  *<P>
  * In some scenarios, there may be a resource or other cost for picking, setting, or clearing an item.  If so,
  * the server will check whether the requesting player can pay, and if so, the {@code SOCSetSpecialItem} response
  * message(s) from the server will be preceded by {@link SOCPlayerElement} messages reporting the player's losses to
- * pay the cost.
+ * pay the cost. As with building a settlement or road, cost paid isn't reported as a text message:
+ * If that's important to the client, they already have {@link SOCSpecialItem#getCost()}
+ * and can print something when they receive the server's {@code SOCSetSpecialItem}.
  *<P>
- * If client joins the game after it starts, these messages will be sent after the {@link SOCBoardLayout2} message.
+ * If the special item change has also caused a change to game state, the server will announce that
+ * after sending the special item message(s).
+ *<P>
+ * If client joins the game after it starts, these messages will be sent only after the {@link SOCBoardLayout2} message.
  * So, {@link SOCGame#updateAtBoardLayout()} has already been called at that client and created Special Item objects
  * before it receives any {@code SOCSetSpecialItem}.
  *<P>
