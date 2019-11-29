@@ -26,11 +26,14 @@ import soc.message.SOCMessage;  // strictly for isSingleLineAndSafe
 
 
 /**
- * A special item in a game that uses Settlers scenarios or expansions.
+ * A Special Item in a game that uses Settlers scenarios or expansions.
+ * An item may be usable game-wide, or held by/associated with a player.
  * During game play, players may be allowed to {@code PICK} (choose), {@code SET}, or {@code CLEAR} special items;
- * the meaning of these actions is scenario-specific.  See {@code typeKey} list below for usage and meaning.
+ * the meaning of these items and actions is scenario-specific. See {@code typeKey} list below for usage and meaning.
  * See {@link #playerPickItem(String, SOCGame, SOCPlayer, int, int)} and
  * {@link #playerSetItem(String, SOCGame, SOCPlayer, int, int, boolean)} for API details.
+ *<P>
+ * Special Items are unrelated to {@link SOCInventoryItem}s.
  *<P>
  * Example use: The Wonders chosen by players in the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
  *<P>

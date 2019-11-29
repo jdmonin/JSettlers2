@@ -31,6 +31,8 @@ import soc.util.SOCStringManager;
  * Inventory items' lifecycle and play rules differ by scenario. In {@link SOCGameOption#K_SC_FTRI SC_FTRI}
  * for example, the items are "gift" trade ports which can be played immediately (cannot cancel during placement)
  * or if nowhere to place, saved for placement later (that placement can be canceled).
+ *<P>
+ * Inventory items are unrelated to {@link SOCSpecialItem}s.
  *
  *<H3>The scenario-specific inventory items:</H3>
  *<UL>
