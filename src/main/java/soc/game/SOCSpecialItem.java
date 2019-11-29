@@ -277,12 +277,15 @@ public class SOCSpecialItem
      * @param pl  Requesting player; never {@code null}
      * @param gi  Pick this index within game's Special Item list, or -1
      * @param pi  Pick this index within {@code pl}'s Special Item list, or -1
-     * @return  true if the item's cost was deducted from {@code pl}'s resources
+     * @return  true if the item's cost was deducted from {@code pl}'s resources,
+     *     false if no cost ({@link #getCost()} is null)
      * @throws IllegalStateException if {@code pl} cannot set or clear this item right now
      *     (due to cost, requirements, game state, is not their turn, or anything else),
      *     or if {@code typeKey} is unknown here, or if this {@code typeKey} doesn't
      *     use {@code PICK} requests from client players.
      * @see #playerSetItem(String, SOCGame, SOCPlayer, int, int, boolean)
+     * @see #checkCost(SOCPlayer)
+     * @see #checkRequirements(SOCPlayer, boolean)
      */
     public static boolean playerPickItem
         (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gi, final int pi)
@@ -517,7 +520,7 @@ public class SOCSpecialItem
     /**
      * Get the optional cost to buy, use, or build the next level.
      * Not sent over the network; see {@link SOCSpecialItem class javadoc}.
-     * @return  Cost, or {@code null}
+     * @return  Cost, or {@code null} if none
      * @see #checkCost(SOCPlayer)
      */
     public SOCResourceSet getCost()
