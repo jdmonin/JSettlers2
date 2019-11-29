@@ -57,9 +57,10 @@ import soc.game.SOCSpecialItem;  // for javadocs only
  * So, {@link SOCGame#updateAtBoardLayout()} has already been called at that client and created Special Item objects
  * before it receives any {@code SOCSetSpecialItem}.
  *<P>
- * For message traffic/protocol details see {@link #OP_SET}, {@link #OP_CLEAR}, {@link #OP_PICK} and
- * {@link #OP_DECLINE} javadocs; client requests typically use {@link #OP_PICK}.  For game details see
- * the {@link SOCSpecialItem} class javadoc.
+ * For game data details, see the {@link SOCSpecialItem} class javadoc.
+ * For message traffic/protocol details see operation {@link #OP_SET}, {@link #OP_CLEAR}, {@link #OP_PICK} and
+ * {@link #OP_DECLINE} javadocs; client requests typically use {@link #OP_PICK}. Server can also respond
+ * with combination ops {@link #OP_SET_PICK} or {@link #OP_CLEAR_PICK}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -107,16 +108,23 @@ public class SOCSetSpecialItem extends SOCMessage
      * If sent from server to client(s), this item has been picked for some action.  The server isn't required to
      * announce the pick to all players, only to the requesting player.  Depending on the situation in which the
      * item is being picked, it may or may not make sense to announce it.  For clarity, any change to the contents
-     * of a Special Item list must be done with {@link #OP_SET} or {@link #OP_CLEAR}, never implied by sending
-     * only {@link #OP_PICK}.
+     * of a Special Item list/item fields must be done with {@link #OP_SET} or {@link #OP_CLEAR}
+     * (or {@link #OP_SET_PICK} or {@link #OP_CLEAR_PICK}), never implied by sending only {@link #OP_PICK}.
      *<P>
      * Alternately, the server will respond to the requesting player with {@link #OP_DECLINE}.
      *<P>
      * The sequence of messages sent from the server for a player's successful PICK are:
      *<OL>
      * <LI> {@link SOCPlayerElement} message(s) to pay the cost, if any
-     * <LI> {@link #OP_SET} or {@link #OP_CLEAR} message(s) resulting from the pick
-     * <LI> {@link #OP_PICK} itself
+     * <LI> Either:
+     *  <UL>
+     *   <LI> {@link #OP_SET} or {@link #OP_CLEAR} message(s) resulting from the pick
+     *   <LI> {@link #OP_PICK} itself
+     *  </UL>
+     * <LI> Or:
+     *  <UL>
+     *   <LI> {@link #OP_SET_PICK} or {@link #OP_CLEAR_PICK} message resulting from the pick
+     *  </UL>
      * <LI> {@link SOCGameState} and related messages, if the state changed or the game is now over
      *</OL>
      *<P>
@@ -147,13 +155,32 @@ public class SOCSetSpecialItem extends SOCMessage
      */
     public static final int OP_DECLINE = 4;
 
+    /**
+     * Sent from server as a combined {@link #OP_SET} and {@link #OP_PICK} with same data fields.
+     * Client should act as if this message is {@link #OP_SET}, and then as if it was
+     * a second message which is {@link #OP_PICK}. See those ops' javadocs for details.
+     * Not sent from client.
+     */
+    public static final int OP_SET_PICK = 5;
+
+    /**
+     * Sent from server as a combined {@link #OP_CLEAR} and {@link #OP_PICK} with same data fields.
+     * Client should act as if this message is {@link #OP_CLEAR}, and then as if it was
+     * a second message which is {@link #OP_PICK}. See those ops' javadocs for details.
+     * Not sent from client.
+     */
+    public static final int OP_CLEAR_PICK = 6;
+
     /** Name of game. */
     public final String game;
 
     /** Special item type key; see the {@link SOCSpecialItem} class javadoc for details. */
     public final String typeKey;
 
-    /** The operation code: {@link #OP_SET}, {@link #OP_CLEAR}, {@link #OP_PICK} or {@link #OP_DECLINE}. */
+    /**
+     * The operation code: {@link #OP_SET}, {@link #OP_CLEAR}, {@link #OP_PICK}, {@link #OP_DECLINE},
+     * {@link #OP_SET_PICK}, or {@link #OP_CLEAR_PICK}.
+     */
     public final int op;
 
     /** Index in the game's Special Item list, or -1. */
@@ -190,7 +217,7 @@ public class SOCSetSpecialItem extends SOCMessage
      * @param typeKey  Special item type key; see the {@link SOCSpecialItem} class javadoc for details
      * @param gi  Game item index, or -1
      * @param pi  Player item index (requires {@link SOCSpecialItem#getPlayer() item.getPlayer()} != null), or -1
-     * @param item  Item for owning player, coordinate on board, and level/strength
+     * @param item  Item to copy for optional owning player, {@link #coord}, {@link #level}, and {@link #sv}
      * @throws IllegalArgumentException  if typeKey is null, or pi != -1 but item.getPlayer() is null,
      *            or gi == -1 and pi == -1
      * @throws NullPointerException if game or item is null
@@ -336,7 +363,7 @@ public class SOCSetSpecialItem extends SOCMessage
     }
 
     /** OP_* constant strings for {@link #toString()} */
-    private final static String[] OPS_STRS = { null, "SET", "CLEAR", "PICK", "DECLINE" };
+    private final static String[] OPS_STRS = { null, "SET", "CLEAR", "PICK", "DECLINE", "SET_PICK", "CLEAR_PICK" };
 
     /**
      * @return a human readable form of the message

@@ -2505,8 +2505,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * Handle the "set special item" message.
      * This method handles only {@link SOCSetSpecialItem#OP_SET OP_SET} and {@link SOCSetSpecialItem#OP_CLEAR OP_CLEAR}
-     * and ignores other operations, such as {@link SOCSetSpecialItem#OP_PICK OP_PICK}.  If your client needs to react
-     * to those other operations, override this method.
+     * (and the "set" or "clear" part of {@link SOCSetSpecialItem#OP_SET_PICK OP_SET_PICK} and
+     * {@link SOCSetSpecialItem#OP_CLEAR_PICK OP_CLEAR_PICK}), and ignores other operations
+     * such as {@link SOCSetSpecialItem#OP_PICK OP_PICK}. If your client needs to react
+     * to PICK or other operations, override this method.
      *
      * @param games  Games the client is playing, for method reuse by SOCPlayerClient
      * @param mes  the message
@@ -2524,6 +2526,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
         switch (mes.op)
         {
         case SOCSetSpecialItem.OP_CLEAR:
+            // fall through
+        case SOCSetSpecialItem.OP_CLEAR_PICK:
             {
                 if (gi != -1)
                     ga.setSpecialItem(typeKey, gi, null);
@@ -2538,6 +2542,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
             break;
 
         case SOCSetSpecialItem.OP_SET:
+            // fall through
+        case SOCSetSpecialItem.OP_SET_PICK:
             {
                 if ((gi == -1) && ((pi == -1) || (pn == -1)))
                 {

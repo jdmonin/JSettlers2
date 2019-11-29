@@ -3010,7 +3010,8 @@ public class SOCGameMessageHandler
 
                 if (op == SOCSetSpecialItem.OP_PICK)
                 {
-                    int pickCoord = -1, pickLevel = 0;  // field values to send in reply/announcement
+                    int replyPickOp = SOCSetSpecialItem.OP_PICK;  // may change to OP_SET_PICK or OP_CLEAR_PICK
+                    int pickPN = pn, pickCoord = -1, pickLevel = 0;  // field values to send in reply/announcement
                     String pickSV = null;  // sv field value to send
 
                     // When game index and player index are both given,
@@ -3049,22 +3050,21 @@ public class SOCGameMessageHandler
 
                     if ((gi == -1) || (pi == -1))
                     {
-                        // request didn't specify both gi and pi: only 1 SET/CLEAR message to send
+                        // request didn't specify both gi and pi: only 1 SET/CLEAR message to send.
+                        // gi, pi, pn fields will all be same for SET/CLEAR & PICK:
+                        // combine OP_SET or OP_CLEAR into upcoming OP_PICK reply
 
                         final SOCSpecialItem itmAfter = ga.getSpecialItem(typeKey, gi, pi, pn);
-                        final SOCSetSpecialItem msg;
                         if (itmAfter != null)
                         {
-                            msg = new SOCSetSpecialItem(ga, SOCSetSpecialItem.OP_SET, typeKey, gi, pi, itmAfter);
-
+                            replyPickOp = SOCSetSpecialItem.OP_SET_PICK;
+                            pickPN = ((itmAfter.getPlayer() != null) ? itmAfter.getPlayer().getPlayerNumber() : -1);
                             pickCoord = itmAfter.getCoordinates();
                             pickLevel = itmAfter.getLevel();
                             pickSV = itmAfter.getStringValue();
                         } else {
-                            msg = new SOCSetSpecialItem
-                                (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, pi, pn);
+                            replyPickOp = SOCSetSpecialItem.OP_CLEAR_PICK;
                         }
-                        srv.messageToGame(gaName, msg);
                     } else {
                         // request specified both gi and pi: might need to send 1 SET/CLEAR message if shared,
                         // or 2 messages if not the same object for both
@@ -3075,23 +3075,21 @@ public class SOCGameMessageHandler
 
                         if (gAfter == pAfter)
                         {
-                            final SOCSetSpecialItem msg;
+                            // same object, and gi, pi, pn fields will all be same for SET/CLEAR & PICK:
+                            // combine OP_SET or OP_CLEAR into upcoming OP_PICK reply
                             if (gAfter != null)
                             {
-                                msg = new SOCSetSpecialItem(ga, SOCSetSpecialItem.OP_SET, typeKey, gi, pi, gAfter);
-
+                                replyPickOp = SOCSetSpecialItem.OP_SET_PICK;
                                 pickCoord = gAfter.getCoordinates();
                                 pickLevel = gAfter.getLevel();
                                 pickSV = gAfter.getStringValue();
                             } else {
-                                msg = new SOCSetSpecialItem
-                                    (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, pi, pn);
+                                replyPickOp = SOCSetSpecialItem.OP_CLEAR_PICK;
                             }
-                            srv.messageToGame(gaName, msg);
                         } else {
-                            // gi and pi don't share the same object; might need to send 2 messages out if both changed.
+                            // gi and pi don't share the same object; might need to send out 2 replies if both objs changed
 
-                            boolean hasgAfterCoordLevel = false;
+                            boolean setPickFieldsFromGAfter = false;
 
                             if (gAfter == null)
                             {
@@ -3105,7 +3103,7 @@ public class SOCGameMessageHandler
                                 pickCoord = gAfter.getCoordinates();
                                 pickLevel = gAfter.getLevel();
                                 pickSV = gAfter.getStringValue();
-                                hasgAfterCoordLevel = true;
+                                setPickFieldsFromGAfter = true;
                             }
 
                             if (pAfter == null)
@@ -3116,7 +3114,7 @@ public class SOCGameMessageHandler
                             } else {
                                 srv.messageToGame(gaName, new SOCSetSpecialItem
                                     (ga, SOCSetSpecialItem.OP_SET, typeKey, -1, pi, pAfter));
-                                if (! hasgAfterCoordLevel)
+                                if (! setPickFieldsFromGAfter)
                                 {
                                     pickCoord = pAfter.getCoordinates();
                                     pickLevel = pAfter.getLevel();
@@ -3127,7 +3125,7 @@ public class SOCGameMessageHandler
                     }
 
                     srv.messageToGame(gaName, new SOCSetSpecialItem
-                            (gaName, SOCSetSpecialItem.OP_PICK, typeKey, gi, pi, pn, pickCoord, pickLevel, pickSV));
+                        (gaName, replyPickOp, typeKey, gi, pi, pickPN, pickCoord, pickLevel, pickSV));
 
                 } else {
                     // OP_SET or OP_CLEAR

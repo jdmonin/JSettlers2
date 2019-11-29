@@ -2821,6 +2821,8 @@ import soc.util.Version;
      */
     private void handleSETSPECIALITEM(final Map<String, SOCGame> games, SOCSetSpecialItem mes)
     {
+        // update game data:
+
         SOCDisplaylessPlayerClient.handleSETSPECIALITEM(games, (SOCSetSpecialItem) mes);
 
         final PlayerClientListener pcl = client.getClientListener(mes.getGame());
@@ -2830,6 +2832,8 @@ import soc.util.Version;
         final SOCGame ga = client.games.get(mes.getGame());
         if (ga == null)
             return;
+
+        // update displays:
 
         final String typeKey = mes.typeKey;
         final int gi = mes.gameItemIndex, pi = mes.playerItemIndex, pn = mes.playerNumber;
@@ -2847,6 +2851,14 @@ import soc.util.Version;
             // fall through
         case SOCSetSpecialItem.OP_DECLINE:
             pcl.playerPickSpecialItem(typeKey, ga, pl, gi, pi, (mes.op == SOCSetSpecialItem.OP_PICK),
+                mes.coord, mes.level, mes.sv);
+            break;
+
+        case SOCSetSpecialItem.OP_SET_PICK:
+            // fall through
+        case SOCSetSpecialItem.OP_CLEAR_PICK:
+            pcl.playerSetSpecialItem(typeKey, ga, pl, gi, pi, (mes.op == SOCSetSpecialItem.OP_SET_PICK));
+            pcl.playerPickSpecialItem(typeKey, ga, pl, gi, pi, true,
                 mes.coord, mes.level, mes.sv);
             break;
         }
