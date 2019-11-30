@@ -959,12 +959,14 @@ public class SOCGame implements Serializable, Cloneable
     private int oldGameState;
 
     /**
-     * If true, and if state is {@link #PLACING_ROBBER}
+     * If true, and if state is {@link #PLACING_ROBBER}, {@link #PLACING_PIRATE},
      * or {@link #WAITING_FOR_ROBBER_OR_PIRATE},
-     * the robber is being moved because a knight card
+     * the robber or pirate is being moved because a knight card
      * has just been played: {@link #playKnight()}.
      * If {@link #forceEndTurn()} is called, the knight card
      * should be returned to the player's hand.
+     *
+     * @see #robberyWithPirateNotRobber
      */
     private boolean placingRobberForKnightCard;
 
@@ -1121,7 +1123,9 @@ public class SOCGame implements Serializable, Cloneable
      * If true, victims will be based on adjacent ships, not settlements/cities.
      * Set in {@link #chooseMovePirate(boolean)}, {@link #movePirate(int, int)}, {@link #moveRobber(int, int)},
      * and other places that set gameState to {@link #PLACING_ROBBER} or {@link #PLACING_PIRATE}.
+     *
      * @see #getRobberyPirateFlag()
+     * @see #placingRobberForKnightCard
      * @since 2.0.00
      */
     private boolean robberyWithPirateNotRobber;
@@ -4287,7 +4291,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Can this player end the current turn?
+     * Can this player end the current turn without any forced actions?
      *<P>
      * In some states, the current player can't end their turn yet
      * (such as needing to move the robber, or choose resources for a
@@ -4915,21 +4919,23 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Randomly discard from this player's hand or pick random gains,
-     * and update {@link #gameState} so play can continue.
+     * Randomly discards from this player's hand or pick random gains,
+     * and updates {@link #gameState} so play can continue.
      * Does not end turn or change {@link #currentPlayerNumber}.
-     * When called, assumes {@link #isForcingEndTurn()} flag is already set.
+     * Assumes {@link #isForcingEndTurn()} flag is already set.
      *<P>
-     * If {@code isDiscard}, pick random resources from the player's hand
-     * and call {@link #discard(int, ResourceSet)},
-     * Otherwise gain random resources by calling {@link #pickGoldHexResources(int, SOCResourceSet)}.
-     * Then look at other players' hand size. If no one else must discard or pick,
-     * ready to end turn, set state {@link #PLAY1}.
-     * Otherwise must wait for them; set game state to wait
+     * If {@code isDiscard}, picks random resources from the player's hand
+     * and calls {@link #discard(int, ResourceSet)},
+     * Otherwise gains random resources by calling {@link #pickGoldHexResources(int, SOCResourceSet)}.
+     * Then, looks at other players' hand size. If no one else must discard or pick,
+     * ready to end turn, sets state {@link #PLAY1}.
+     * Otherwise must wait for them; sets game state to wait
      * ({@link #WAITING_FOR_DISCARDS} or {@link #WAITING_FOR_PICK_GOLD_RESOURCE}).
      *<P>
      * Not called for {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE},
      * which has different result types and doesn't need to check other players.
+     *<P>
+     * In version 1.x.xx this method was {@code forceEndTurnChkDiscards}.
      *
      * @param pn Player number to force to randomly discard or gain
      * @param isDiscard  True to discard resources, false to gain
@@ -5072,7 +5078,8 @@ public class SOCGame implements Serializable, Cloneable
      * Force this non-current player to discard or gain resources randomly.
      * Used at server when a player must discard or pick free resources
      * and player loses connection while the game is waiting for them,
-     * or a bot is unresponsive.
+     * or a bot is unresponsive. Calls {@link #discard(int, ResourceSet)}
+     * or {@link #pickGoldHexResources(int, SOCResourceSet)}.
      *<P>
      * On return, gameState will be:
      *<UL>
@@ -5080,7 +5087,8 @@ public class SOCGame implements Serializable, Cloneable
      * <LI> {@link #WAITING_FOR_PICK_GOLD_RESOURCE} if other players still must pick their resources
      * <LI> {@link #PLAY1} if everyone has picked (gained) resources
      * <LI> {@link #PLAY1} if everyone has discarded, and {@link #isForcingEndTurn()} is set
-     * <LI> {@link #PLACING_ROBBER} if everyone has discarded, and {@link #isForcingEndTurn()} is not set
+     * <LI> {@link #PLACING_ROBBER} or {@link #WAITING_FOR_ROBBER_OR_PIRATE},
+     *      if everyone has discarded and {@link #isForcingEndTurn()} is not set
      *</UL>
      * Before v2.0.00, this method was {@code playerDiscardRandom(..)}.
      *
@@ -5297,8 +5305,9 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * When a 7 is rolled, update the {@link #gameState}:
      * Always {@link #WAITING_FOR_DISCARDS} if any {@link SOCPlayer#getResources()} total &gt; 7.
-     * Otherwise {@link #PLACING_ROBBER}, {@link #WAITING_FOR_ROBBER_OR_PIRATE}, or for
-     * scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, {@link #WAITING_FOR_ROB_CHOOSE_PLAYER} or {@link #PLAY1}.
+     * Otherwise {@link #PLACING_ROBBER}, {@link #WAITING_FOR_ROBBER_OR_PIRATE}, or (for
+     * scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI})
+     * {@link #WAITING_FOR_ROB_CHOOSE_PLAYER} or {@link #PLAY1}.
      *<P>
      * For state {@link #WAITING_FOR_DISCARDS}, also sets {@link SOCPlayer#setNeedToDiscard(boolean)}.
      * For state {@link #PLACING_ROBBER}, also clears {@link #robberyWithPirateNotRobber}.
@@ -5329,6 +5338,9 @@ public class SOCGame implements Serializable, Cloneable
          */
         if (gameState != WAITING_FOR_DISCARDS)
         {
+            // next-state logic is similar to playKnight and discard;
+            // if you update this method, check those ones
+
             placingRobberForKnightCard = false;
             oldGameState = PLAY1;
             if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
@@ -5529,6 +5541,9 @@ public class SOCGame implements Serializable, Cloneable
 
             if (! forcingEndTurn)
             {
+                // next-state logic is similar to playKnight and rollDice_update7gameState;
+                // if you update this method, check those ones
+
                 if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
                 {
                     robberyWithPirateNotRobber = false;
@@ -6476,6 +6491,8 @@ public class SOCGame implements Serializable, Cloneable
      * When a 7 is rolled, the current player may rob from any player with resources.
      * When the pirate ship is moved (at every dice roll), the player with a
      * port settlement/city adjacent to the pirate ship's hex is attacked.
+     * Internal flag {@code robberyWithPirateNotRobber} tracks whether this robbery
+     * comes from moving the robber or the pirate.
      *<P>
      * If there are multiple adjacent players, there is no battle and no robbery victim:
      * returns an empty list. This also applies to the hex in the middle of the 6-player board
@@ -7721,11 +7738,16 @@ public class SOCGame implements Serializable, Cloneable
         lastActionWasBankTrade = false;
         players[currentPlayerNumber].setPlayedDevCard(true);
         players[currentPlayerNumber].getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.KNIGHT);
+
         if (! isWarshipConvert)
         {
             pl.incrementNumKnights();
             updateLargestArmy();
             checkForWinner();
+
+            // next-state logic is similar to discard and rollDice_update7gameState;
+            // if you update this method, check those ones
+
             placingRobberForKnightCard = true;
             oldGameState = gameState;
             if (canChooseMovePirate())

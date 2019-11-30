@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008,2010,2012-2013,2015-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008,2010,2012-2013,2015-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -119,7 +119,11 @@ public class SOCForceEndTurnResult
      */
     public static final int FORCE_ENDTURN_RSRC_DISCARD_WAIT = 8;
 
-    /** Choice lost; a development card or item may be returned to hand, see {@link #getReturnedInvItem()}. */
+    /**
+     * Choice was lost (which player to rob, which dev card to play,
+     * monopoly or year-of-plenty resource, 1st free road placement, etc).
+     * A development card or item may be returned to hand, see {@link #getReturnedInvItem()}.
+     */
     public static final int FORCE_ENDTURN_LOST_CHOICE       = 9;
 
     /** Highest valid FORCE_ENDTURN_ value for {@link SOCGame#forceEndTurn()} */
