@@ -2211,9 +2211,9 @@ import javax.swing.UIManager;
         }
         else if (wonderLab != null)
         {
-            wonderLab.setText("");  // clear previous; will be updated soon by updateValue(WonderLevel)
-            wonderLab.setToolTipText(null);
+            wonderLab.setText("");
             wonderLab.setVisible(true);
+            updateValue(PlayerClientListener.UpdateType.WonderLevel);
             // alignment is set below, after playerIsClient is known
         }
 
