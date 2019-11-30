@@ -3388,7 +3388,7 @@ public class SOCDBHelper
                     st = null;
 
                     // If postgres, must update games2's PK sequence after inserting rows which specify gameid.
-                    // The sequence update doesn't have to be committed, and can't be rolled back:
+                    // The sequence update doesn't require a commit, and can't be rolled back:
                     // https://www.postgresql.org/docs/11/functions-sequence.html
                     if (dbType == DBTYPE_POSTGRESQL)
                     {
@@ -3396,14 +3396,24 @@ public class SOCDBHelper
                         if (seqname != null)
                         {
                             PreparedStatement ps = connection.prepareStatement
-                                ("SELECT setval(?, (SELECT max(gameid) FROM games2), true);");
+                                ("SELECT setval(?, (SELECT coalesce(max(gameid),1) FROM games2), true);");
+                                // uses 1 not 0 if table is empty, to avoid this error:
+                                // ERROR:  setval: value 0 is out of bounds for sequence "games2_gameid_seq" (1..9223372036854775807)
                             ps.setString(1, seqname);
                             ps.executeQuery();  // setval returns a resultset we ignore,
                                 // but executeUpdate would throw an exception because resultset is returned
                             ps.close();  // also closes the ignored resultset
                         } else {
-                            // TODO ???  Print a warning? Stop the upgrade? Null shouldn't be possible:
-                            // INT_AUTO_PK DDL creates a sequence, is tested in testDBHelper(..)
+                            // Null shouldn't be possible:
+                            // INT_AUTO_PK DDL creates a sequence; sequence query method is tested in testDBHelper(..)
+                            // Try to help anyway:
+                            System.err.println
+                                ("* DB upgrade warning: Can't find sequence for primary key field games2.gameid\n"
+                                 + "  The upgrade will continue, but you can't save new games to the database until you correct the warning:\n"
+                                 + "  - Connect to the DB with psql\n"
+                                 + "  - Run the command \\ds and note the sequence name for games2\n"
+                                 + "  - Run this command, replacing name_of_seq with the name from \\ds:\n"
+                                 + "  - SELECT setval('name_of_seq', (SELECT coalesce(max(gameid),1) FROM games2), true);\n");
                         }
                     }
 

@@ -390,6 +390,7 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
       startup should print `Database schema upgrade is recommended`
     - Create an admin user named `adm` using SOCAccountClient
     - Run DB upgrade by running SOCServer with `-Djsettlers.db.upgrade_schema=Y` property
+      - postgres: Test at least once with an empty games table, at least once with some games saved there
     - Run SOCServer as usual; startup should print `User database initialized`
     - Run JSettlers.jar; log in as `Adm` to test case-insensitive nicknames.  
       Make sure you can create a game, to test password encoding conversion.  
