@@ -33,6 +33,7 @@ import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCRoad;
 import soc.game.SOCRoutePiece;
+import soc.game.SOCScenario;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCVillage;
@@ -138,6 +139,22 @@ import javax.swing.JComponent;
  *  <LI> {@link #paintComponent(Graphics)} calls {@link #drawBoard(Graphics)}
  *  <LI> First call to {@code drawBoard(..)} calls {@link #drawBoardEmpty(Graphics)} which renders into a buffer image
  *  <LI> {@code drawBoard(..)} draws the placed pieces over the buffered board image from {@code drawBoardEmpty(..)}
+ *</UL>
+ *
+ *<H3>Scenario-specific board items:</H3>
+ * Some scenarios have special pieces, like {@code SC_WOND}'s {@link SOCFortress}
+ * (tooltip text from keyed strings {@code board.sc_piri.*}) or {@code SC_CLVI}'s Villages.
+ *<BR>
+ * Some scenarios draw colored diamonds at specific nodes or edges, to indicate things that are part of the scenarios.
+ * Hovering over a diamond should show a tooltip for its purpose:
+ *<UL>
+ * <LI> {@link SOCScenario#K_SC_CLVI SC_CLVI}: Yellow {@link SOCVillage}s, each with a remaining-cloth count number.
+ *   Tooltip text from {@code board.sc_clvi.village}.
+ * <LI> {@link SOCScenario#K_SC_FTRI SC_FTRI}: Yellow Dev Card "gift" edges, green SVP "gift" edges.
+ *   Tooltip text from {@code board.edge.devcard}, {@code board.edge.svp}.
+ * <LI> {@link SOCScenario#K_SC_WOND SC_WOND}: Node Sets {@code N1} - {@code N3} where player cannot initially place,
+ *   or where a building is required to start building a certain Wonder. Various colors.
+ *   Tooltip text from {@code board.nodelist._SC_WOND.N1} - {@code .N3}.
  *</UL>
  */
 @SuppressWarnings("serial")
