@@ -506,6 +506,9 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
             pirateHex = FOR_TRI_PIRATE_HEX[idx];
 
+            // in this scenario, robber can't be moved to the LA#0 islands (layout part "RX")
+            setRobberExcludedLandAreas(new int[]{ 0 });
+
             // Break up ports (opt_breakClumps) for the 6-player board only.
             // The 4-player board doesn't have enough 3-for-1 ports for that to work.
             if (maxPl > 4)
@@ -544,6 +547,9 @@ public class SOCBoardAtServer extends SOCBoardLarge
                  false, false, 0, false, maxPl, null, scen, opts);
 
             pirateHex = CLVI_PIRATE_HEX[idx];
+
+            // in this scenario, robber can't be moved to the LA#0 islands (layout part "RX")
+            setRobberExcludedLandAreas(new int[]{ 0 });
 
             // Break up ports (opt_breakClumps) for the 6-player board only.
             // The 4-player board doesn't have enough 3-for-1 ports for that to work.

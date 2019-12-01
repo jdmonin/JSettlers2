@@ -572,9 +572,11 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * For some scenarios, keyed lists of additional layout parts to add to game layout when sent from server to client.
+     * See {@link #getAddedLayoutPart(String)} for list and details.
      * For example, scenario {@link SOCScenario#K_SC_PIRI SC_PIRI} adds
      * <tt>"PP" = { 0x..., 0x... }</tt> for the fixed Pirate Path, and
      * {@link SOCScenario#K_SC_CLVI SC_CLVI} adds {@code "CV"} for the cloth village locations.
+     *<P>
      * Null for most scenarios. Initialized in {@code SOCBoardAtServer.makeNewBoard}.
      */
     private HashMap<String, int[]> addedLayoutParts;
@@ -1204,8 +1206,10 @@ public class SOCBoardLarge extends SOCBoard
      *         These land hexes also may be logically grouped into several
      *         "land areas" (groups of islands, or subsets of islands).  Those areas
      *         are sent to the client using a {@code SOCPotentialSettlements} message.
-     *<LI> PX: Players are excluded from settling these land area numbers (usually none)
-     *<LI> RX: Robber is excluded from these land area numbers (usually none)
+     *<LI> PX: Players are excluded from settling these land area numbers (usually none);
+     *         from {@link #getPlayerExcludedLandAreas()}
+     *<LI> RX: Robber is excluded from these land area numbers (usually none);
+     *         from {@link #getRobberExcludedLandAreas()}
      *</UL>
      * These typical Layout Parts each use specific board methods to get or set them,
      * instead of being returned from {@code getAddedLayoutPart(..)}.
@@ -1255,6 +1259,14 @@ public class SOCBoardLarge extends SOCBoard
      * The "CE" and "VE" layout parts are lists of Special Edges on the board.  During game play, these
      * edges may change.  The server announces each change with a
      * {@code SOCSimpleAction(BOARD_EDGE_SET_SPECIAL)} message.
+     *
+     *<H4>Adding a Layout Part:</H4>
+     *
+     * If you add a Layout Part, add it to this javadoc; {@link soc.message.SOCBoardLayout2} class javadoc
+     * and its {@code KNOWN_KEYS}. Add it to the board layout in {@link soc.server.SOCBoardAtServer#makeNewBoard(Map)}.
+     * Check its value in relevant methods of the board, server, and client classes like {@link soc.client.SOCBoardPanel}.
+     * Consider search the code for a similar part, to see where else to add.
+     *<P>
      * If you add a layout part which is a Special Edge type, be sure to update
      * {@link #SPECIAL_EDGE_LAYOUT_PARTS} and {@link #SPECIAL_EDGE_TYPES}
      * so players joining during the game will get updated Special Edge data.
@@ -1479,8 +1491,12 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Get the land area numbers, if any, from which all players are excluded and cannot place settlements.
-     * Used in some game scenarios.
-     * @return land area numbers, or null if none
+     * Used in some game scenarios. Sent to client as Layout Part "PX".
+     *<P>
+     * Alternately, can place hexes/nodes into "land area 0" (LA #0) in {@code SOCBoardAtServer.makeNewBoard}
+     * to prevent player from placing on them.
+     *
+     * @return  Excluded land area numbers, or null if none
      * @see #setPlayerExcludedLandAreas(int[])
      * @see #getRobberExcludedLandAreas()
      */
@@ -1491,9 +1507,9 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Set or clear the land area numbers from which all players are excluded and cannot place settlements.
-     * Used in some game scenarios.
+     * See {@link #getPlayerExcludedLandAreas()} for details.
+     *
      * @param px  Land area numbers, or null if none
-     * @see #getPlayerExcludedLandAreas()
      * @see #setRobberExcludedLandAreas(int[])
      */
     public void setPlayerExcludedLandAreas(final int[] px)
@@ -1503,8 +1519,9 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Get the land area numbers, if any, from which the robber is excluded and cannot be placed.
-     * Used in some game scenarios.
-     * @return land area numbers, or null if none
+     * Used in some game scenarios. Sent to client as Layout Part "RX".
+     *
+     * @return  Excluded land area numbers, or null if none
      * @see #setRobberExcludedLandAreas(int[])
      * @see #getPlayerExcludedLandAreas()
      */
@@ -1515,9 +1532,9 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Set or clear the land area numbers from which the robber is excluded and cannot be placed.
-     * Used in some game scenarios.
+     * See {@link #getRobberExcludedLandAreas()} for details.
+     *
      * @param rx  Land area numbers, or null if none
-     * @see #getRobberExcludedLandAreas()
      * @see #setPlayerExcludedLandAreas(int[])
      */
     public void setRobberExcludedLandAreas(final int[] rx)
@@ -2064,6 +2081,13 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Is this hex's land area in this list of land areas?
+     * List can also contain {@code 0}, meaning not in any set within {@link #getLandAreasLegalNodes()}.
+     *<P>
+     * Because of how landareas are transmitted to the client,
+     * we don't have a list of land area hexes, only land area nodes.
+     * To contain a hex, the land area must contain all 6 of its corner nodes.
+     * To be in "land area 0", none of the hex's corner nodes can be in any {@code getLandAreasLegalNodes()} set.
+     *
      * @param hexCoord  The hex coordinate, within the board's bounds
      * @param las  List of land area numbers, or null for an empty list
      * @return  True if any landarea in <tt>las[i]</tt> contains <tt>hexCoord</tt>;
@@ -2075,37 +2099,55 @@ public class SOCBoardLarge extends SOCBoard
         if ((las == null) || (landAreasLegalNodes == null))
             return false;
 
-        // Because of how landareas are transmitted to the client,
-        // we don't have a list of land area hexes, only land area nodes.
-        // To contain a hex, the land area must contain all 6 of its corner nodes.
-
         final int[] hnodes = getAdjacentNodesToHex_arr(hexCoord);
         final Integer hnode0 = Integer.valueOf(hnodes[0]);
-        for (int a : las)
+        for (int la : las)
         {
-            if (a >= landAreasLegalNodes.length)
+            if (la >= landAreasLegalNodes.length)
                 continue;  // bad argument
 
-            final HashSet<Integer> lan = landAreasLegalNodes[a];
-            if (lan == null)
-                continue;  // index 0 is unused
-
-            if (! lan.contains(hnode0))
-                continue;  // missing at least 1 corner
-
-            // check the other 5 hex corners
-            boolean all = true;
-            for (int i = 1; i < hnodes.length; ++i)
+            if (la == 0)
             {
-                if (! lan.contains(Integer.valueOf(hnodes[i])))
-                {
-                    all = false;
-                    break;
-                }
-            }
+                // "land area 0" means not part of any land area.
+                // It has no set in landAreasLegalNodes: must check all land areas for this hex's corner nodes
 
-            if (all)
-                return true;
+                boolean foundInAny = false;
+                outer: for (Integer hnodeInt : hnodes)
+                {
+                    for (HashSet<Integer> lan : landAreasLegalNodes)
+                        if ((lan != null) && lan.contains(hnodeInt))
+                        {
+                            foundInAny = true;
+                            break outer;
+                        }
+                }
+
+                if (! foundInAny)
+                    return true;
+            } else {
+                // land area 1-n
+
+                final HashSet<Integer> lan = landAreasLegalNodes[la];
+                if (lan == null)
+                    continue;  // index 0 is unused
+
+                if (! lan.contains(hnode0))
+                    continue;  // missing at least 1 corner
+
+                // check the other 5 hex corners
+                boolean all = true;
+                for (int i = 1; i < hnodes.length; ++i)
+                {
+                    if (! lan.contains(Integer.valueOf(hnodes[i])))
+                    {
+                        all = false;
+                        break;
+                    }
+                }
+
+                if (all)
+                    return true;
+            }
         }
 
         return false;

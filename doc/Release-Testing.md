@@ -99,6 +99,7 @@ When preparing to release a new version, testing should include:
            - Each 2 cloth is +1 total VP
        - Move ships built elsewhere to 2 villages (will take 2 turns)
            - Cloth, VP, and "establishing trade" should work same way as building a ship next to a village
+       - Make sure Robber can't be moved to the small islands
        - As game is played, make sure distribution of cloth to players is correct,
          including from 2 villages with the same dice number
        - Check for depletion of villages (should turn gray when cloth is depleted)
@@ -128,6 +129,7 @@ When preparing to release a new version, testing should include:
            - Build another coastal settlement
            - Should now be able to play that trading port out of inventory
            - Should be able to trade that port's resources at expected ratio (not 4:1)
+       - Move the Robber, then make sure Robber can't be moved back to the small islands
      - Pirate Islands and Fortresses
        - As player with pn=0 and as another pn: Leave and rejoin game: Should see Legal Sea Edges
          (dotted line from main island to your player's fortress) and be able to place boats along them
