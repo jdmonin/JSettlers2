@@ -3535,8 +3535,7 @@ public class SOCGameHandler extends GameHandler
                 srv.gameList.takeMonitorForGame(gaName);
             } else {
                 /**
-                 * Cannot easily end turn.
-                 * Must back out something in progress.
+                 * Cannot easily end turn: Must back out something in progress.
                  * May or may not end turn; see javadocs
                  * of forceEndGameTurn and game.forceEndTurn.
                  * All start phases are covered here (START1A..START2B)
@@ -3835,7 +3834,7 @@ public class SOCGameHandler extends GameHandler
                 IntPair edge_cardType = (IntPair) obj;
                 Connection c = srv.getConnection(plName);
                 ga.pendingMessagesOut.add(new UnlocalizedString
-                    ("action.built.sc_ftri.dev", plName));  // "{0} gets a Development Card as a gift from the Lost Tribe."
+                    ("action.built.sc_ftri.dev", plName));  // "{0} gets a Development Card as a gift from the Forgotten Tribe."
                 srv.messageToPlayer
                     (c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, edge_cardType.getB()));
                 srv.messageToGameExcept
@@ -3847,7 +3846,7 @@ public class SOCGameHandler extends GameHandler
 
         case SVP_REACHED_SPECIAL_EDGE:
             {
-                updatePlayerSVPPendingMessage(ga, pl, 1, "event.svp.sc_ftri.gift");  // "a gift from the Lost Tribe"
+                updatePlayerSVPPendingMessage(ga, pl, 1, "event.svp.sc_ftri.gift");  // "a gift from the Forgotten Tribe"
                 sendPlayerEventsBitmask = false;
                 srv.messageToGame(gaName, new SOCSimpleAction
                     (gaName, -1, SOCSimpleAction.BOARD_EDGE_SET_SPECIAL, ((Integer) obj).intValue(), 0));
