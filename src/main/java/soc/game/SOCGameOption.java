@@ -553,10 +553,10 @@ public class SOCGameOption
 
         opt.put(K_SC_SANY, new SOCGameOption
                 (K_SC_SANY, 2000, 2000, false, FLAG_DROP_IF_UNUSED,
-                 "Scenarios: SVP for your first settlement on any island"));
+                 "Scenarios: SVP for your first settlement on any island after initial placement"));
         opt.put(K_SC_SEAC, new SOCGameOption
                 (K_SC_SEAC, 2000, 2000, false, FLAG_DROP_IF_UNUSED,
-                 "Scenarios: 2 SVP for your first settlement on each island"));
+                 "Scenarios: 2 SVP for your first settlement on each island after initial placement"));
         opt.put(K_SC_FOG, new SOCGameOption
                 (K_SC_FOG, 2000, 2000, false, FLAG_DROP_IF_UNUSED,
                  "Scenarios: Some hexes initially hidden by fog"));
