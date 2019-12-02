@@ -187,7 +187,7 @@ public class SOCScenario
         allSc.put(K_SC_4ISL, new SOCScenario
             (K_SC_4ISL, 2000, 2000,
              "The Four Islands",
-             null,
+             "Start on one or two islands. Explore and gain SVP by building to others.",
              "_SC_SEAC=t,SBL=t,VP=t12"));
 
         allSc.put(K_SC_FOG, new SOCScenario
@@ -200,7 +200,7 @@ public class SOCScenario
         allSc.put(K_SC_TTD, new SOCScenario
             (K_SC_TTD, 2000, 2000,
              "Through The Desert",
-             null,
+             "Start on the main island. Explore and gain SVP by building to the small islands, or through the desert to the coast.",
              "_SC_SEAC=t,SBL=t,VP=t12"));
 
         allSc.put(K_SC_CLVI, new SOCScenario
