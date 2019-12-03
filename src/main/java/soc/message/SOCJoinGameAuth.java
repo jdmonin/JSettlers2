@@ -28,7 +28,7 @@ import soc.game.SOCBoardLarge;  // for javadocs only
 /**
  * This message from server to a client means that the client's player
  * is allowed to join the game. After this message, the client is sent
- * all relevant game and player information (see {@link SOCGameMembers}).
+ * all relevant game and player information (see {@link SOCGameMembers} for sequence).
  * Their joining is then announced to all game members with {@link SOCJoinGame}.
  *<P>
  * To help create the client's user interface to show this game,
@@ -39,9 +39,14 @@ import soc.game.SOCBoardLarge;  // for javadocs only
  *<P>
  * <B>I18N:</B> If the game being joined uses a {@link soc.game.SOCScenario SOCScenario},
  * the client will need localized strings to explain the scenario as soon as the client
- * joins.  So, v2.0.00 sends those strings before this JOINGAMEAUTH message so that the
- * client will have them before showing the message dialog. The strings are sent using
- * {@link SOCLocalizedStrings}.
+ * joins. So, server v2.0.00 and higher may send those strings before this {@code SOCJoinGameAuth} message
+ * so the client will have them before showing the message dialog, using
+ * {@link SOCLocalizedStrings}({@link SOCLocalizedStrings#TYPE_SCENARIO TYPE_SCENARIO})
+ * or {@link SOCScenarioInfo} (see below).
+ *<P>
+ * <B>Scenarios:</B> If the game being joined uses a scenario added or modified in a version
+ * newer than the client, server may send {@link SOCScenarioInfo} before this {@code SOCJoinGameAuth} message.
+ * That message will include localized strings if available and needed by client.
  *
  * @author Robert S Thomas
  * @see SOCJoinChannelAuth

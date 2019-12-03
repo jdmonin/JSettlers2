@@ -540,8 +540,8 @@ public class SOCServerMessageHandler
      */
     private void handleLOCALIZEDSTRINGS(final Connection c, final SOCLocalizedStrings mes)
     {
-        final List<String> str = mes.getParams();
-        final String type = str.get(0);
+        final List<String> strs = mes.getParams();
+        final String type = strs.get(0);
         List<String> rets = null;  // for reply to client; built in localizeGameScenarios or other type-specific method
         int flags = 0;
 
@@ -553,12 +553,22 @@ public class SOCServerMessageHandler
         }
         else if (type.equals(SOCLocalizedStrings.TYPE_SCENARIO))
         {
-            // Handle individual scenario keys; ignores FLAG_REQ_ALL
+            // Handle individual scenario keys for any client version,
+            // or FLAG_REQ_ALL from same version as server.
+            // (If client version != server version, set of all scenarios' localized strings
+            //  are instead sent in response to client's SOCScenarioInfo message.)
 
             final SOCClientData scd = (SOCClientData) c.getAppData();
-            if (SOCServer.clientHasLocalizedStrs_gameScenarios(c))
+            if (scd.localeHasGameScenarios(c))
             {
-                rets = SOCServer.localizeGameScenarios(scd.locale, str, true, scd);
+                boolean wantsAll = mes.isFlagSet(SOCLocalizedStrings.FLAG_REQ_ALL) || (strs.size() == 1);
+                    // if list is empty after first element (string type), is requesting all
+                if (wantsAll)
+                {
+                    flags = SOCLocalizedStrings.FLAG_SENT_ALL;
+                    scd.sentAllScenarioStrings = true;
+                }
+                rets = SOCServer.localizeGameScenarios(scd.locale, strs, wantsAll, true, scd);
             } else {
                 flags = SOCLocalizedStrings.FLAG_SENT_ALL;
                 scd.sentAllScenarioStrings = true;
@@ -835,7 +845,7 @@ public class SOCServerMessageHandler
 
             if (! scd.checkedLocaleScenStrings)
             {
-                scd.localeHasScenStrings = SOCServer.clientHasLocalizedStrs_gameScenarios(c);
+                scd.localeHasScenStrings = scd.localeHasGameScenarios(c);
                 scd.checkedLocaleScenStrings = true;
             }
 
@@ -851,7 +861,7 @@ public class SOCServerMessageHandler
 
                 List<String> scenStrs;
                 if (! scKeys.isEmpty())
-                    scenStrs = SOCServer.localizeGameScenarios(scd.locale, scKeys, false, scd);
+                    scenStrs = SOCServer.localizeGameScenarios(scd.locale, scKeys, false, false, scd);
                 else
                     scenStrs = scKeys;  // re-use the empty list object
 

@@ -81,6 +81,7 @@ import soc.message.SOCGameOptionGetInfos;
 import soc.message.SOCGameOptionInfo;
 import soc.message.SOCJoinChannel;
 import soc.message.SOCJoinGame;
+import soc.message.SOCLocalizedStrings;
 import soc.message.SOCMessage;
 import soc.message.SOCNewGameWithOptions;
 import soc.message.SOCNewGameWithOptionsRequest;
@@ -1707,9 +1708,9 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                 if (! opts.allScenStringsReceived)
                 {
                     // Game scenario localized text. As with game options, the practice client and
-                    // practice server aren't started yet, so we can't request localization from there.
+                    // practice server aren't started yet, so we can't go through them to request localization.
                     client.localizeGameScenarios
-                        (SOCServer.localizeGameScenarios(client.cliLocale, null, false, null),
+                        (SOCServer.localizeGameScenarios(client.cliLocale, null, true, false, null),
                          false, true, true);
                 }
             } else {
@@ -1788,7 +1789,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
             if (cliVers > client.sVersion)
             {
-                // Client newer than server: Ask specifically about any scenarios server might not know about.
+                // Client newer than server: Ask about specific new/changed scenarios which server might not know.
 
                 final List<SOCScenario> changeScens =
                     SOCVersionedItem.itemsNewerThanVersion
@@ -1801,14 +1802,20 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                         changes.add(sc.key);
                 }
             }
-
             // Else, server is newer than our client or same version.
             //   If server is newer: Ask for any scenario changes since our version.
             //   If same version: Ask for i18n localized scenarios strings if available.
-            //   In both cases that request is sent as an empty 'changes' list and MARKER_ANY_CHANGED.
 
-            if ((cliVers != client.sVersion) || client.wantsI18nStrings(false))
-                client.getGameMessageSender().put(new SOCScenarioInfo(changes, true).toCmd(), false);
+            if (cliVers != client.sVersion)
+                client.getGameMessageSender().put
+                    (new SOCScenarioInfo(changes, true).toCmd(), false);
+                        // if cli newer: specific scenario list and MARKER_ANY_CHANGED
+                        // if srv newer: empty 'changes' list and MARKER_ANY_CHANGED
+            else if (client.wantsI18nStrings(false))
+                client.getGameMessageSender().put
+                    (SOCLocalizedStrings.toCmd
+                        (SOCLocalizedStrings.TYPE_SCENARIO, SOCLocalizedStrings.FLAG_REQ_ALL, (List<String>) null),
+                     false);
         }
 
         opts.newGameWaitingForOpts = true;

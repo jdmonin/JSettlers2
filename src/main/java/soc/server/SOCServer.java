@@ -105,7 +105,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * javadocs for more details.
  *<P>
  * The first message the server sends over the connection is its version
- * and features ({@link SOCVersion}). This is sent immediately without
+ * and features ({@link SOCVersion}). This is sent immediately, without
  * first waiting for the client to send its version.
  *<P>
  * The first message the client sends over the connection is its version and locale
@@ -1054,10 +1054,10 @@ public class SOCServer extends Server
      * String value is captured here as soon as SOCServer is referenced, in case SOCPlayerClient's
      * practice server will localize the scenario descriptions.
      *
-     * @see #clientHasLocalizedStrs_gameScenarios(Connection)
-     * @since 2.0.00
+     * @see SOCClientData#localeHasGameScenarios(Connection)
      * @see #i18n_gameopt_PL_desc
      * @see soctest.TestI18NGameoptScenStrings
+     * @since 2.0.00
      */
     final static String i18n_scenario_SC_WOND_desc;
     static
@@ -6482,30 +6482,8 @@ public class SOCServer extends Server
     }
 
     /**
-     * Does this client's locale have localized {@link SOCScenario} names and descriptions?
-     * Checks these conditions:
-     * <UL>
-     *  <LI> {@link SOCClientData#wantsI18N c.scd.wantsI18N} flag is set:
-     *      Has locale, new-enough version, has requested I18N strings (see that flag's javadocs).
-     *  <LI> {@link Connection#getLocalized(String) c.getLocalized}({@code "gamescen.SC_WOND.n"})
-     *      returns a string different than {@link #i18n_scenario_SC_WOND_desc}:
-     *      This checks whether a fallback is being used because the client's locale has no scenario strings
-     * </UL>
-     * @param c  Client connection
-     * @return  True if the client meets all the conditions listed above, false otherwise
-     * @since 2.0.00
-     */
-    public static final boolean clientHasLocalizedStrs_gameScenarios(final Connection c)
-    {
-        final SOCClientData scd = (SOCClientData) c.getAppData();
-        return
-            scd.wantsI18N
-            && ! i18n_scenario_SC_WOND_desc.equals(c.getLocalized("gamescen.SC_WOND.n"));
-    }
-
-    /**
      * Get localized strings for known {@link SOCScenario}s.  Assumes client locale has scenario strings:
-     * Call {@link #clientHasLocalizedStrs_gameScenarios(Connection)} before calling this method.
+     * Call {@link SOCClientData#localeHasGameScenarios(Connection)} before calling this method.
      * Fills and returns a list with each {@code scKeys} key, scenario name, scenario description
      * from {@code c.getLocalized("gamescen." + scKey + ".n")} and {@code ("gamescen." + scKey + ".d")}.
      *
@@ -6513,7 +6491,10 @@ public class SOCServer extends Server
      *    to simplify SOCPlayerClient's localizations before starting its practice server.
      * @param scKeys  Scenario keynames to localize, such as a {@link List} of keynames or the {@link Set}
      *    returned from {@link SOCScenario#getAllKnownScenarioKeynames()}.
-     *    If {@code null}, this method will call {@link SOCScenario#getAllKnownScenarioKeynames()}.
+     *    If is {@code null} or if {@code localizeAllKnown} true,
+     *    this method will call {@link SOCScenario#getAllKnownScenarioKeynames()}.
+     * @param localizeAllKnown  If true, localize all known scenarios,
+     *    ignoring contents of {@code scKeys} as if it was {@code null}.
      * @param checkUnknowns_skipFirst  Switch to allow calling this method from multiple places:
      *    <UL>
      *    <LI> If false, assumes {@code scKeys} has no unknown keys, will not call
@@ -6527,20 +6508,30 @@ public class SOCServer extends Server
      *         {@link SOCScenario#getScenario(String)} on each key to verify it exists.  The localized strings
      *         for each known scKey are looked up and added to the list.  If the scenario is unknown or its
      *         strings aren't localized, the key and {@link SOCLocalizedStrings#MARKER_KEY_UNKNOWN} are added instead.
+     *    <LI> If {@code localizeAllKnown} is true, treats this param as false
+     *         because that flag ignores contents of {@code scKeys}.
      *    </UL>
      * @param scd  Optional client data to track which scenario strings are sent to client, or {@code null}.
      *    This method will update {@link SOCClientData#scenariosInfoSent scd.scenariosInfoSent}.
      * @return  Localized string list, may be empty but will never be null, in same format as the message returned
      *    from server to client: Scenario keys with localized strings have 3 consecutive entries in the list:
-     *    Key, name, description.  If {@code checkUnknowns_skipFirst}, unknown scenarios have 2 consecutive entries
-     *    in the list: Key, {@link SOCLocalizedStrings#MARKER_KEY_UNKNOWN}.
+     *    Key, name (never {@code null}), description ({@code null} if none).
+     *   <P>
+     *    If {@code checkUnknowns_skipFirst}, any unknown or unlocalized scenarios from {@code scKeys} have
+     *    2 consecutive entries in the list: Key, {@link SOCLocalizedStrings#MARKER_KEY_UNKNOWN}.
+     *    If not {@code checkUnknowns_skipFirst}, any unlocalized scenario keys are omitted from the returned list.
+     *
      * @since 2.0.00
      */
     public static List<String> localizeGameScenarios
-        (final Locale loc, Collection<String> scKeys, final boolean checkUnknowns_skipFirst, final SOCClientData scd)
+        (final Locale loc, Collection<String> scKeys, final boolean localizeAllKnown,
+         boolean checkUnknowns_skipFirst, final SOCClientData scd)
     {
-        if (scKeys == null)
+        if (localizeAllKnown || (scKeys == null))
+        {
             scKeys = SOCScenario.getAllKnownScenarioKeynames();
+            checkUnknowns_skipFirst = false;
+        }
 
         final SOCStringManager sm = SOCStringManager.getServerManagerForClient(loc);
         // No need to check hasLocalDescs = ! i18n_gameopt_PL_desc.equals(sm.get("gamescen.SC_WOND.n"))
@@ -6561,13 +6552,14 @@ public class SOCServer extends Server
 
         List<String> rets = new ArrayList<String>();  // for reply to client
 
-        boolean skippedAlready = ! checkUnknowns_skipFirst;
+        boolean mustSkipFirst = checkUnknowns_skipFirst;
         for (final String scKey : scKeys)
         {
-            if (! skippedAlready)
+            if (mustSkipFirst)
             {
-                skippedAlready = true;
-                continue;  // assumes scKeys is a List
+                // assumes scKeys is a List, not an unordered Set
+                mustSkipFirst = false;
+                continue;
             }
 
             if ((scensSent != null) && ! scensSent.containsKey(scKey))
@@ -6576,13 +6568,12 @@ public class SOCServer extends Server
             String nm = null, desc = null;
 
             if (! (checkUnknowns_skipFirst && (SOCScenario.getScenario(scKey) == null)))
-            {
-                try { nm = sm.get("gamescen." + scKey + ".n"); }
+                try
+                {
+                    nm = sm.get("gamescen." + scKey + ".n");
+                    desc = sm.get("gamescen." + scKey + ".d");
+                }
                 catch (MissingResourceException e) {}
-
-                try { desc = sm.get("gamescen." + scKey + ".d"); }
-                catch (MissingResourceException e) {}
-            }
 
             if (nm != null)
             {
@@ -6689,7 +6680,7 @@ public class SOCServer extends Server
         {
             localeHasScenStrs = scd.localeHasScenStrings;
         } else {
-            localeHasScenStrs = SOCServer.clientHasLocalizedStrs_gameScenarios(c);
+            localeHasScenStrs = scd.localeHasGameScenarios(c);
 
             scd.localeHasScenStrings = localeHasScenStrs;
             scd.checkedLocaleScenStrings = true;

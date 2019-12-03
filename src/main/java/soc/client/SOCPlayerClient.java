@@ -611,7 +611,10 @@ public class SOCPlayerClient
 
     /**
      * Localize {@link SOCScenario} names and descriptions with strings from the server.
-     * Updates scenario data in {@link #practiceServGameOpts} or {@link #tcpServGameOpts}.
+     * Updates scenario data in {@link #practiceServGameOpts} or {@link #tcpServGameOpts}:
+     * Add each scenario in {@code scStrs}, add its keyname to {@link ServerGametypeInfo#scenKeys},
+     * and call {@link SOCScenario#setDesc(String, String)} unless it's marked
+     * as {@link SOCLocalizedStrings#MARKER_KEY_UNKNOWN} within {@code scStrs}.
      *
      * @param scStrs  Scenario localized strings, same format as {@link SOCLocalizedStrings} params.
      * @param skipFirst  If true skip the first element of {@code scStrs}, it isn't a scenario keyname.
@@ -708,6 +711,7 @@ public class SOCPlayerClient
         SOCGame ga = games.get(game);
         if (ga == null)
             return;  // Not playing in that game
+
         if (ga.getGameState() != SOCGame.OVER)
         {
             System.err.println("L4044: pcli.updateGameEndStats called at state " + ga.getGameState());
@@ -717,11 +721,11 @@ public class SOCPlayerClient
         PlayerClientListener pcl = clientListeners.get(game);
         if (pcl == null)
             return;
+
         Map<SOCPlayer, Integer> scoresMap = new HashMap<SOCPlayer, Integer>();
         for (int i=0; i<scores.length; ++i)
-        {
             scoresMap.put(ga.getPlayer(i), Integer.valueOf(scores[i]));
-        }
+
         pcl.gameEnded(scoresMap);
     }
 

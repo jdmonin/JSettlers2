@@ -126,14 +126,14 @@ import soc.util.SOCStringManager;  // for javadoc
     private boolean sentGameList;
 
     /**
-     * If true we've called {@link SOCServer#clientHasLocalizedStrs_gameScenarios(Connection)},
+     * If true we've called {@link #localeHasGameScenarios(Connection)},
      * storing the result in {@link #localeHasScenStrings}.
      * @since 2.0.00
      */
     public boolean checkedLocaleScenStrings;
 
     /**
-     * If true we've called {@link SOCServer#clientHasLocalizedStrs_gameScenarios(Connection)},
+     * If true we've called {@link #localeHasGameScenarios(Connection)},
      * and this client's locale is not {@code null} and has at least some localized scenario strings
      * (see that method's javadoc for details).
      * @since 2.0.00
@@ -410,6 +410,28 @@ import soc.util.SOCStringManager;  // for javadoc
     public void setSentGameList()
     {
         sentGameList = true;
+    }
+
+    /**
+     * Does this {@link SOCClientData}'s client's locale have
+     * localized {@link soc.game.SOCScenario SOCScenario} names and descriptions?
+     * Checks these conditions:
+     * <UL>
+     *  <LI> {@link #wantsI18N} flag is set:
+     *      Has locale, new-enough version, has requested I18N strings (see that flag's javadocs).
+     *  <LI> {@link Connection#getLocalized(String) con.getLocalized}({@code "gamescen.SC_WOND.n"})
+     *      returns a string different than {@link SOCServer#i18n_scenario_SC_WOND_desc}:
+     *      This checks whether a fallback is being used because the client's locale has no scenario strings
+     * </UL>
+     * @param con  Client connection for this {@code SOCClientData}
+     * @return  True if the client meets all the conditions listed above, false otherwise
+     * @since 2.0.00
+     */
+    public final boolean localeHasGameScenarios(final Connection con)
+    {
+        return
+            wantsI18N
+            && ! SOCServer.i18n_scenario_SC_WOND_desc.equals(con.getLocalized("gamescen.SC_WOND.n"));
     }
 
     /**

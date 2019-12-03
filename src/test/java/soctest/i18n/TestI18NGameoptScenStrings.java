@@ -116,7 +116,7 @@ public class TestI18NGameoptScenStrings
 
     /**
      * Test {@link SOCScenario} text strings: gamescen.*.n, some have gamescen.*.d.
-     * @see soc.server.SOCServer#clientHasLocalizedStrs_gameScenarios(soc.server.genericServer.Connection)
+     * @see soc.server.SOCClientData#localeHasGameScenarios(soc.server.genericServer.Connection)
      */
     @Test
     public void testScenariosText()

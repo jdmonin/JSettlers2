@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2012,2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2012,2014,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -31,15 +31,18 @@ import java.util.StringTokenizer;
 /**
  * This message lists all the members of a game: Players and observers.
  *<P>
- * In response to {@link SOCJoinGame JOINGAME}, the joining player is sent a specific
+ * In response to {@link SOCJoinGame}, the joining player is sent a specific
  * sequence of messages with details about the game: Board layout, player scores,
- * piece counts, etc. This sequence ends with GAMEMEMBERS, SETTURN and GAMESTATE.
- * GAMEMEMBERS thus tells the client that the server is ready for its input.
+ * piece counts, current player, etc. This sequence begins with {@link SOCJoinGameAuth}
+ * (sometimes preceded by optional {@link SOCScenarioInfo} or
+ * {@link SOCLocalizedStrings}({@link SOCLocalizedStrings#TYPE_SCENARIO TYPE_SCENARIO})),
+ * and ends with: {@link SOCGameMembers}, {@link SOCGameState}.
+ * {@code SOCGameMembers} thus tells the client that the server is ready for its input.
  *<P>
- * Robots use GAMEMEMBERS as their cue to sit down at the game, if they've been
+ * Robots use {@code SOCGameMembers} as their cue to sit down at the game, if they've been
  * asked to sit from {@link SOCBotJoinGameRequest BOTJOINGAMEREQUEST}.
  * In order for the robot to be certain it has all details about a game,
- * bots should take no action before receiving GAMEMEMBERS.
+ * bots should take no action before receiving this message.
  *<P>
  * When forming a new game, clients will be sent the sequence as described above, and
  * then will each choose a position and sit down. Any client can then send {@link SOCStartGame}

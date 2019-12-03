@@ -27,9 +27,11 @@ import java.util.List;
  * Message from server with i18n localization strings for certain item types such as game options or scenarios
  * ({@link #TYPE_GAMEOPT} or {@link #TYPE_SCENARIO}), or request from client to get
  * localized strings for specific keys of those certain item types.
+ * Is not requested by or sent to clients with locale {@code en_US}:
+ * Strings in that locale are already hardcoded in game classes for debugging.
  *<P>
  * This message is always about one string type.  The meaning of the keys and their strings may differ per
- * string type.  For example, keys for {@link #TYPE_SCENARIO} are the same as in {@code SOCScenario}
+ * string type.  For example, keys for {@link #TYPE_SCENARIO} are the same as those in {@code SOCScenario}
  * and the server sends two strings per scenario, its short and long description.
  *<P>
  * Normally sent from the server when client needs all keys or some keys for a type; see type constant javadocs.
@@ -38,10 +40,10 @@ import java.util.List;
  * to read about them and maybe choose one.  The server's message includes the string type such as
  * {@link #TYPE_SCENARIO}, the flags field, and then each key and its string(s) as described above.
  *<P>
- * This message is not commonly sent from client to server, but client can do so to ask for
- * localized strings for scenarios or gameopts newer than the client or changed since
- * the client's release.  The client's request includes the string type such as {@link #TYPE_SCENARIO},
- * the flags field, and then any keys for which it wants localized strings (or an empty list if message also sets
+ * Client can send this message to ask for localized strings for one or more specific (or use flag to request all)
+ * scenarios or gameopts, and/or for any ones added/changed in server versions newer than the client.
+ * The client's request includes the string type such as {@link #TYPE_SCENARIO}, the {@code flags} field,
+ * and then any keys for which it wants localized strings (or an empty list if message also sets
  * {@link #FLAG_REQ_ALL} to request all items). The server's response is as described above, including all
  * keys requested by the client. If a key isn't known at the server,
  * in the response that key will be followed by {@link #MARKER_KEY_UNKNOWN} instead of by its string(s).
@@ -86,11 +88,16 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      * Game Scenario localized names and descriptions, for {@link soc.game.SOCScenario}.
      *
      * <H4>From Client:</H4>
+     *
      * {@link #getParams()} is a list of scenario keys ({@link soc.game.SOCVersionedItem#key sc.key} field)
-     * for which the client is requesting localized strings.  {@link #FLAG_REQ_ALL} is not supported; to get
-     * updated strings or info for all scenarios, send {@link SOCScenarioInfo} instead.
+     * for which the client is requesting localized strings, or an empty list with {@link #FLAG_REQ_ALL}
+     * to get updated strings for all scenarios.
+     *<P>
+     * A client with a different version than server might instead send
+     * {@link SOCScenarioInfo} to ask for all scenarios' details and localized strings.
      *
      * <H4>From Server:</H4>
+     *
      * After the string type at element 0, {@link #getParams()} contents are triples of strings, each of which
      * is a game scenario keyname, localized name, and optional localized long description or "".
      * As with any string type, an unknown keyname is a pair of strings here
@@ -100,6 +107,14 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      * localized strings for those items.  Items without localized strings will not be included in the reply.
      * If none of the items are localized, server replies with an empty list with the {@link #FLAG_SENT_ALL}
      * flag.
+     *<P>
+     * If the client has requested all scenarios ({@link #FLAG_REQ_ALL}), server responds with a list
+     * including all localized scenarios in {@link soc.game.SOCScenario#getAllKnownScenarioKeynames()} and
+     * the {@link #FLAG_SENT_ALL} flag.
+     *<P>
+     * When client sends a {@link SOCJoinGame} request, if that game has a scenario and the client hasn't yet
+     * been sent the scenario's info or localized strings, server may respond with {@link SOCScenarioInfo}
+     * or {@code SOCLocalizedStrings} for the scenario before it sends {@link SOCJoinGameAuth}.
      */
     public static final String TYPE_SCENARIO = "S";
 
@@ -246,11 +261,13 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
     }
 
     /**
-     * Build the command string from a type and list of strings; used at server side.
+     * Build the command string from a type and list of strings.
+     *
      * @param type  String type such as {@link #TYPE_SCENARIO};
      *     must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param flags  Any flags such as {@link #FLAG_SENT_ALL}, or 0
      * @param strs  the list of strings, organized in a type-specific way; see {@code type} constant javadocs.
+     *     Ignored if using {@link #FLAG_SENT_ALL}.
      *     Each element must pass
      *     {@link SOCMessage#isSingleLineAndSafe(String, boolean) isSingleLineAndSafe(String, true)}:
      *     {@link SOCMessage#sep2} characters are allowed, but {@link SOCMessage#sep} are not.
@@ -372,12 +389,52 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
             final String itm = strs.get(i);
             if ((itm == null) || (itm.length() == 0))
                 continue;
-            else if (itm.charAt(0) == MARKER_PREFIX)
+
+            if (itm.charAt(0) == MARKER_PREFIX)
+            {
                 if (! itm.equals(MARKER_KEY_UNKNOWN))
                     throw new IllegalArgumentException("item " + i + ": " + itm);
-            else if ((itm.indexOf(SOCMessage.sep_char) != -1) || ! isSingleLineAndSafe(itm, true))
+            } else if ((itm.indexOf(SOCMessage.sep_char) != -1) || ! isSingleLineAndSafe(itm, true)) {
                 throw new IllegalArgumentException("item " + i + ": " + itm);
+            }
         }
+    }
+
+    /**
+     * Build and return a human-readable form of the message:
+     *<BR>
+     * {@code "SOCLocalizedStrings:type="} + {@link #getType() getType()}
+     * + {@code ",flags=0x"} + hex({@link #flags flags})
+     * + {@code strs=str1|str2|str3|...}
+     *<P>
+     * Null string elements are shown as {@code "(null)"}.
+     * If the string list is empty, builds {@code "(strs empty)"} instead.
+     *
+     * @return a human-readable form of the message
+     */
+    @Override
+    public String toString()
+    {
+        StringBuffer sb = new StringBuffer("SOCLocalizedStrings:type=");
+        sb.append(pa.get(0));
+        sb.append(",flags=0x");
+        sb.append(Integer.toHexString(flags));
+        final int L = pa.size();
+        if (L < 2)
+        {
+            sb.append(",(strs empty)");
+        } else {
+            sb.append(",strs=");
+            for (int i = 1; i < L; ++i)
+            {
+                if (i > 1)
+                    sb.append(SOCMessage.sep_char);  // '|'
+                final String p = pa.get(i);
+                sb.append((p != null) ? p : "(null)");
+            }
+        }
+
+        return sb.toString();
     }
 
 }
