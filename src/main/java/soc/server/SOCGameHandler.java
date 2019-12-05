@@ -936,7 +936,7 @@ public class SOCGameHandler extends GameHandler
 
             final String gameScen = gameData.getGameOptionStringValue("SC");
             if (gameScen != null)
-                srv.sendGameScenarioInfo(gameScen, null, c, false);
+                srv.sendGameScenarioInfo(gameScen, null, c, false, false);
 
             // Now, join game
             final SOCBoard board = gameData.getBoard();

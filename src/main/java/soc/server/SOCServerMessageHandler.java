@@ -796,7 +796,7 @@ public class SOCServerMessageHandler
         else if (L == 1)
         {
             // requesting one scenario
-            srv.sendGameScenarioInfo(params.get(0), null, c, false);
+            srv.sendGameScenarioInfo(params.get(0), null, c, true, false);
             return;
         }
 
@@ -835,7 +835,7 @@ public class SOCServerMessageHandler
         if (changes != null)
             for (final SOCScenario sc : changes)
                 if (sc.minVersion <= cliVers)
-                    srv.sendGameScenarioInfo(null, sc, c, false);
+                    srv.sendGameScenarioInfo(null, sc, c, true, false);
                 else
                     c.put(new SOCScenarioInfo(sc.key, true).toCmd());
 

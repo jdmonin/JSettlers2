@@ -6614,11 +6614,13 @@ public class SOCServer extends Server
      *     When {@code sc != null}, will always send a {@link SOCScenarioInfo} message
      *     even if {@link SOCClientData#sentAllScenarioInfo} is set, unless client version is too old.
      * @param c  Client connection
+     * @param alwaysSend  If true, send {@link SOCScenarioInfo} even if scenario hasn't been
+     *     modified since client's version
      * @param stringsOnly  If true, send only localized strings, not entire {@link SOCScenarioInfo}.
      * @since 2.0.00
      */
     void sendGameScenarioInfo
-        (String scKey, final SOCScenario sc, final Connection c, final boolean stringsOnly)
+        (String scKey, final SOCScenario sc, final Connection c, final boolean alwaysSend, final boolean stringsOnly)
     {
         if (scKey == null)
         {
@@ -6669,7 +6671,7 @@ public class SOCServer extends Server
         else if (! stringsOnly)
         {
             SOCScenario s = SOCScenario.getScenario(scKey);
-            if ((s != null) && (s.lastModVersion > cliVers))
+            if ((s != null) && ((s.lastModVersion > cliVers) || alwaysSend))
                 scSend = s;
         }
 
