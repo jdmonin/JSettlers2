@@ -141,7 +141,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
 
     /**
      * {@link #scKey} marker {@code "?"} from client to ask for any new or changed scenarios
-     * between the client and server versions.  When present, this is the last item in the parameter list.
+     * between the client and server versions. When present, this must be the last item in the parameter list.
      * The server will reply with a sequence of messages with scenario info, and a sequence-ending empty message
      * with only the {@link #noMoreScens} flag.
      */
@@ -152,6 +152,8 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
      * Indicates to parser that this message's contents are the client's list of requested
      * {@link SOCScenario} key names, not the server's reply about a single scenario.
      * Can omit if client is sending {@link #MARKER_ANY_CHANGED} as the sole field.
+     *<P>
+     * Added by client constructor, removed at server by parseDataStr/constructor.
      */
     public static final String MARKER_SCEN_NAME_LIST = "[";
 
@@ -303,6 +305,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
             for (final String sc : scKeys)
                 if (! SOCMessage.isSingleLineAndSafe(sc))
                     throw new IllegalArgumentException();
+            pa.add(0, MARKER_SCEN_NAME_LIST);  // required at start of non-empty list
         }
 
         if (addMarkerAnyChanged)

@@ -247,12 +247,15 @@ public class SOCScenario
              "_SC_WOND=t,SBL=t,VP=t10,_SC_SANY=t"));  // win condition: Complete Wonder, or 10 VP _and_ built the most levels
                 // The "all 4 levels" win condition is also stored in SOCSpecialItem.SC_WOND_WIN_LEVEL.
 
-        // Uncomment to test scenario sync/negotiation between server and client versions:
-        //    Assumes client and server are both 2.0.00 and for testing,
-        //    client or server version has been temporarily set to 2.0.01.
+        // Uncomment to test scenario sync/negotiation between server and client versions.
+        // Assumes:
+        //   - Client and server are both current version 2.0.00
+        //   - For testing, client or server version has been temporarily set to 2.0.01
+        // i18n/localization test reminder: resources/strings/server/toClient_*.properties:
+        //   gamescen.SC_TSTNC.n = test-localizedname SC_TSTNC ...
         /*
-        allSc.put("SC_TSTNB", new SOCScenario
-            ("SC_TSTNB", 2000, 2001,
+        allSc.put("SC_TSTNC", new SOCScenario
+            ("SC_TSTNC", 2000, 2001,
             "New: v2001 back-compat", null, "PLB=t,VP=t11,NT=y"));
         allSc.put("SC_TSTNO", new SOCScenario
             ("SC_TSTNO", 2001, 2001,
