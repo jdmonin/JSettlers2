@@ -78,14 +78,14 @@ import java.util.List;
 public class SOCLocalizedStrings extends SOCMessageTemplateMs
 {
     /**
-     * Game Option localized names, for {@link soc.game.SOCGameOption}.
+     * Game Option localized names, for {@link soc.game.SOCGameOption}: {@code "O"}.
      * After the string type at element 0, {@link #getParams()} contents are pairs
      * of strings, each of which is a game option keyname and its localized name or "".
      */
-    public static final String TYPE_GAMEOPT = "G";
+    public static final String TYPE_GAMEOPT = "O";
 
     /**
-     * Game Scenario localized names and descriptions, for {@link soc.game.SOCScenario}.
+     * Game Scenario localized names and descriptions, for {@link soc.game.SOCScenario}: {@code "S"}.
      *
      * <H4>From Client:</H4>
      *
