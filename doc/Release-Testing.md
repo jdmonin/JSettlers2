@@ -264,6 +264,47 @@ When preparing to release a new version, testing should include:
         - Launch a second client
         - Connect to server, join that game
         - Within that game, second client's "Game Info" dialog should show scenario info
+- i18n/Localization
+    - 3 rounds, to test with clients in english (`en_US`), spanish (`es`), and your computer's default locale:  
+      Launch each client with specified locale by using JVM parameter: `-Djsettlers.locale=es`  
+      Optionally, to show a debug trace of network messages in the terminal, use param `-Djsettlers.debug.traffic=Y`  
+    - If client's default locale is `en_US` or `es`, can combine that testing round with "default locale" round
+    - If other languages/locales are later added, don't need to do more rounds of testing for them;
+      the 3 rounds cover english (the fallback locale), non-english, and client's default locale
+
+    For each round, all these items should appear in the expected language/locale:
+
+    - Client user interface
+      - Initial connect window (welcome text, buttons, version and build-number label)
+      - Main window
+      - Game window (labels, buttons, resource-name labels, tooltips on item-count squares)
+      - Dialogs (discard, year of plenty, VP card, etc)
+        - Debug commands to get Year of Plenty, Monopoly, Soldier, and a VP card:  
+          `dev: 2 debug`  `dev: 3 debug`  `dev: 9 debug`  `dev: 4 debug`
+    - Text from server (in top center pane of game window)
+      - Start a game with at least 1 bot. Near top of server text, should see localization of: "Fetching a robot player..."
+    - Game options
+      - Launch client with the round's locale, connect to server
+        - If tracing network messages, should see `SOCLocalizedStrings:type=O` with text for every game option (except english client)
+        - Click New Game button
+        - New Game dialog: All game options and client prefs should be localized
+        - Create the game
+      - Launch other-locale client
+        - In that client, click Game Info button
+        - Game Info dialog: All game options and client prefs should be localized
+    - Game scenarios
+      - Launch client with the round's locale, connect to server
+        - Click New Game button
+        - New Game dialog: All scenarios in dropdown should be localized. Pick a scenario for this game
+        - If tracing network messages, should see `SOCLocalizedStrings:type=S` with text for every scenario (except english client)
+        - Create the game
+      - Launch other-locale client
+        - In that client, click Game Info button
+        - Game Info dialog: Click Scenario Info button: Game's scenario info should be localized
+        - If tracing network messages, should see `SOCLocalizedStrings:type=S` with text for only that game's scenario (except english client)
+        - Re-launch client
+        - Join that game
+        - Popup when joining, or game Options button: Game's scenario info should be localized
 - Client Feature handling
     - For human players:
         - Start a server (dedicated or client-hosted)
