@@ -810,12 +810,20 @@ import soc.util.Version;
                 }
             }
         } else {
-            // client.sVersion == cliVersion, so we have same code as server for getAllKnownOptions.
+            // client.sVersion == cliVersion, so we have same code as server for scenarios and getAllKnownOptions.
+
             // For practice games, optionSet may already be initialized, so check vs null.
             ServerGametypeInfo opts = (isPractice ? client.practiceServGameOpts : client.tcpServGameOpts);
             if (opts.optionSet == null)
                 opts.optionSet = SOCGameOption.getAllKnownOptions();
             opts.noMoreOptions(isPractice);  // defaults not known unless it's practice
+
+            if (! (withTokenI18n || isPractice))
+            {
+                // won't need i18n strings: set flags so we won't ask server later for scenario details
+                opts.allScenStringsReceived = true;
+                opts.allScenInfoReceived = true;
+            }
         }
     }
 

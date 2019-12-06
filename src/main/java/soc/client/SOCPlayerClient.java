@@ -272,7 +272,7 @@ public class SOCPlayerClient
     protected SOCFeatureSet sFeatures;
 
     /**
-     * Track the game options available at the remote server, at the practice server.
+     * Track the game options available at the remote server and at the practice server.
      * Initialized by {@link SwingMainDisplay#gameWithOptionsBeginSetup(boolean, boolean)}
      * and/or {@link MessageHandler#handleVERSION(boolean, SOCVersion)}.
      * These fields are never null, even if the respective server is not connected or not running.
@@ -606,7 +606,15 @@ public class SOCPlayerClient
         if ((scKey.length() == 0) || tcpServGameOpts.scenKeys.contains(scKey))
             return;
 
-        net.putNet(new SOCScenarioInfo(scKey, false).toCmd());
+        if (sVersion != Version.versionNumber())
+        {
+            // different version than client: scenario details might have changed
+            net.putNet(new SOCScenarioInfo(scKey, false).toCmd());
+        } else {
+            // same version: need localization strings, at most
+            net.putNet(SOCLocalizedStrings.toCmd(SOCLocalizedStrings.TYPE_SCENARIO, 0, scKey));
+            tcpServGameOpts.scenKeys.add(scKey);  // don't ask again later
+        }
     }
 
     /**
