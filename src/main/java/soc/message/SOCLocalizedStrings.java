@@ -153,6 +153,11 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
     /**
      * "Key is unknown" marker token, for server's response when it doesn't have a localized
      * string for the key requested by the client.
+     *<P>
+     * For known {@link soc.game.SOCGameOption SOCGameOption}s and {@link soc.game.SOCScenario SOCScenario}s,
+     * client should use the fallback text it has from the item's initializer.
+     * If the game option / scenario was unknown to the client, instead of {@code SOCLocalizedStrings}
+     * server would send a {@link SOCGameOptionInfo} / {@link SOCScenarioInfo} with those fallback texts.
      */
     public static final String MARKER_KEY_UNKNOWN = "\026K";
 

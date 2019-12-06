@@ -69,7 +69,7 @@ import soc.message.SOCMessage;
  * <B>I18N:</B><br>
  * Game scenario names and descriptions are also stored as {@code gamescen.*.n}, {@code .d}
  * in {@code server/strings/toClient_*.properties} to be sent to clients if needed.
- * A scenario's text can be localized with {@link #setDesc(String, String)}.
+ * At the client, scenario's text can be localized with {@link #setDesc(String, String)}.
  * See unit test {@link soctest.TestI18NGameoptScenStrings}.
  *<P>
  * @author Jeremy D. Monin &lt;jeremy@nand.net&gt;

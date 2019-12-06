@@ -99,7 +99,7 @@ import soc.message.SOCMessage;
  * <B>I18N:</B><br>
  * Game option descriptions are also stored as {@code gameopt.*} in
  * {@code server/strings/toClient_*.properties} to be sent to clients if needed
- * during version negotiation.  An option's text can be localized with {@link #setDesc(String)}.
+ * during version negotiation. At the client, option's text can be localized with {@link #setDesc(String)}.
  * See unit test {@link soctest.TestI18NGameoptScenStrings} and
  * {@link soc.server.SOCServerMessageHandler#handleGAMEOPTIONGETINFOS(soc.server.genericServer.Connection, soc.message.SOCGameOptionGetInfos) SOCServerMessageHandler.handleGAMEOPTIONGETINFOS(..)}.
  *<P>

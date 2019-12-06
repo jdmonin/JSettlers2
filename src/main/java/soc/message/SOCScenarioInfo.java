@@ -87,7 +87,7 @@ import soc.util.SOCFeatureSet;  // for javadocs only
  *<UL>
  * <LI> If the client is a different version than the server,
  *   a <B>sequence of {@code SOCScenarioInfo} messages</B> sends all info about each new or changed scenario,
- *   including those scenarios' localized text.
+ *   including those scenarios' localized text (or if none, its {@link SOCScenario} hardcoded name and description text).
  *   The sequence ends with a message which has the {@link #noMoreScens} flag.
  *  <P>
  *   Any scenarios too new for the client (per {@link SOCVersionedItem#minVersion sc.minVersion})
