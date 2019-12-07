@@ -73,7 +73,7 @@ public class TestI18NGameoptScenStrings
     /**
      * Test {@link SOCGameOption} text strings.
      * @see soc.server.SOCServer#localizeKnownOptions(java.util.Locale, boolean)
-     * @see soc.server.SOCServerMessageHandler#handleGAMEOPTIONGETINFOS(soc.server.genericServer.Connection, soc.message.SOCGameOptionGetInfos)
+     * @see soc.server.SOCServerMessageHandler#handleGAMEOPTIONGETINFOS(Connection, soc.message.SOCGameOptionGetInfos)
      */
     @Test
     public void testGameoptsText()
@@ -116,11 +116,22 @@ public class TestI18NGameoptScenStrings
 
     /**
      * Test {@link SOCScenario} text strings: gamescen.*.n, some have gamescen.*.d.
-     * @see soc.server.SOCClientData#localeHasGameScenarios(soc.server.genericServer.Connection)
+     * Also test that {@link SOCScenario#getScenario(String) SOCScenario.getScenario("SC_WOND")} has a description.
+     *
+     * @see soc.server.SOCClientData#localeHasGameScenarios(Connection)
      */
     @Test
     public void testScenariosText()
     {
+        // pre-test: Hardcoded string needed by SCD.localeHasGameScenarios
+        {
+            final SOCScenario scWond = SOCScenario.getScenario(SOCScenario.K_SC_WOND);
+            assertNotNull("missing required SOCScenario object SC_WOND", scWond);
+            final String desc = scWond.getDesc();
+            final int L = (desc != null) ? desc.length() : 0;
+            assertNotEquals("SOCScenario SC_WOND missing desc", 0, L);
+        }
+
         boolean allOK = true;
 
         final TreeSet<String> mismatchKeys = new TreeSet<String>(),  // use TreeSet for sorted results

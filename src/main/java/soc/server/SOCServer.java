@@ -6534,8 +6534,6 @@ public class SOCServer extends Server
         }
 
         final SOCStringManager sm = SOCStringManager.getServerManagerForClient(loc);
-        // No need to check hasLocalDescs = ! i18n_gameopt_PL_desc.equals(sm.get("gamescen.SC_WOND.n"))
-        // because caller has done so
 
         Map<String, String> scensSent;  // for optional tracking
         if (scd != null)
@@ -6565,13 +6563,28 @@ public class SOCServer extends Server
             if ((scensSent != null) && ! scensSent.containsKey(scKey))
                 scensSent.put(scKey, SOCClientData.SENT_SCEN_STRINGS);
 
+            final SOCScenario sc = SOCScenario.getScenario(scKey);
             String nm = null, desc = null;
 
-            if (! (checkUnknowns_skipFirst && (SOCScenario.getScenario(scKey) == null)))
+            if (! (checkUnknowns_skipFirst && (sc == null)))
                 try
                 {
                     nm = sm.get("gamescen." + scKey + ".n");
                     desc = sm.get("gamescen." + scKey + ".d");
+
+                    if (sc != null)
+                    {
+                        // Is it really localized? Check whether strings are from fallback locale/hardcoded text:
+                        // Can do so because of unit test TestI18NGameoptScenStrings.testScenariosText
+                        // which ensures SOCScenario strings match fallback/english localized strings.
+                        // If not localized, don't send fallback text: Client already has it
+                        // (See also similar logic in sendGameScenarioInfo)
+
+                        if ((nm != null) && nm.equals(sc.getDesc()))
+                            nm = null;
+                        else if ((desc != null) && desc.equals(sc.getLongDesc()))
+                            desc = null;
+                    }
                 }
                 catch (MissingResourceException e) {}
 
@@ -6651,18 +6664,21 @@ public class SOCServer extends Server
         // If not, send now and update scd.scenariosInfoSent.
 
         Map<String, String> scensSent = scd.scenariosInfoSent;
+        final String statusAlreadySent;  // is scenariosInfoSent(scKey)
 
         if ((sc == null) && (scensSent != null))
         {
-            final String alreadySent = scensSent.get(scKey);
-            if ((alreadySent != null)
-                && (stringsOnly || alreadySent.equals(SOCClientData.SENT_SCEN_INFO)))
+            statusAlreadySent = scensSent.get(scKey);
+            if ((statusAlreadySent != null)
+                && (stringsOnly || statusAlreadySent.equals(SOCClientData.SENT_SCEN_INFO)))
             {
-                return;  // <--- Already sent ---
+                return;  // <--- Already checked for/sent ---
             }
+        } else {
+            statusAlreadySent = null;
         }
 
-        SOCScenario scSend = null;  // If not null, send full scenario info instead of only strings
+        SOCScenario scSend = null;  // If not null, will send full scenario info instead of only strings
 
         if (sc != null)
         {
@@ -6670,10 +6686,30 @@ public class SOCServer extends Server
         }
         else if (! stringsOnly)
         {
-            SOCScenario s = SOCScenario.getScenario(scKey);
-            if ((s != null) && ((s.lastModVersion > cliVers) || alwaysSend))
-                scSend = s;
+            SOCScenario scChk = SOCScenario.getScenario(scKey);
+            if ((scChk != null) && ((scChk.lastModVersion > cliVers) || alwaysSend))
+                scSend = scChk;
         }
+
+        // Prep for remembering what we checked for/are about to send to this client
+        if (scensSent == null)
+        {
+            scensSent = new HashMap<String, String>();
+            scd.scenariosInfoSent = scensSent;
+        }
+
+        if ((scSend == null) && (statusAlreadySent != null))
+        {
+            if (! stringsOnly)
+                scensSent.put(scKey, SOCClientData.SENT_SCEN_INFO);  // scen status is now fully determined
+
+            return;  // <--- Strings already sent ---
+        }
+
+        // Remember status
+        scensSent.put(scKey, (stringsOnly) ? SOCClientData.SENT_SCEN_STRINGS : SOCClientData.SENT_SCEN_INFO);
+
+        // Check for localized strings:
 
         String nm = null, desc = null;
 
@@ -6696,19 +6732,46 @@ public class SOCServer extends Server
 
         if (localeHasScenStrs)
         {
-            try { nm = c.getLocalized("gamescen." + scKey + ".n"); }
+            try
+            {
+                nm = c.getLocalized("gamescen." + scKey + ".n");
+                desc = c.getLocalized("gamescen." + scKey + ".d");
+            }
             catch (MissingResourceException e) {}
 
-            if (nm != null)
+            if (scSend == null)
             {
-                try { desc = c.getLocalized("gamescen." + scKey + ".d"); }
-                catch (MissingResourceException e) {}
+                if (nm != null)
+                {
+                    // Sending locale strings instead of full SOCScenarioInfo:
+                    // Is it really localized? Check whether strings are from fallback locale/hardcoded text:
+                    // Can do so because of unit test TestI18NGameoptScenStrings.testScenariosText
+                    // which ensures SOCScenario strings match fallback/english localized strings.
+                    // If not localized, don't send fallback text: Client already has it
+                    // (See also similar logic in localizeGameScenarios)
+
+                    final SOCScenario scChk = SOCScenario.getScenario(scKey);
+                    if (scChk != null)
+                    {
+                        if (nm.equals(scChk.getDesc()))
+                            nm = null;
+                        else if ((desc != null) && desc.equals(scChk.getLongDesc()))
+                            desc = null;
+                    }
+                }
+
+                if (nm == null)
+                {
+                    return;  // <--- No scenario strings in locale, and no full info to send ---
+                }
             }
         }
         else if (scSend == null)
         {
             return;  // <--- No scenario strings in locale, and no full info to send ---
         }
+
+        // Actually send:
 
         if (scSend != null)
         {
@@ -6726,14 +6789,6 @@ public class SOCServer extends Server
 
             c.put(SOCLocalizedStrings.toCmd(SOCLocalizedStrings.TYPE_SCENARIO, 0, scenStrs));
         }
-
-        // Remember what we sent it
-        if (scensSent == null)
-        {
-            scensSent = new HashMap<String, String>();
-            scd.scenariosInfoSent = scensSent;
-        }
-        scensSent.put(scKey, (stringsOnly) ? SOCClientData.SENT_SCEN_STRINGS : SOCClientData.SENT_SCEN_INFO);
     }
 
     /**

@@ -196,6 +196,9 @@ import soc.util.SOCStringManager;  // for javadoc
      * If a scenario's key isn't contained in this map, nothing has been sent about it
      * unless the {@link #sentAllScenarioStrings} flag is set.
      *<P>
+     * The value can also be set after determining nothing needs to be sent,
+     * to skip doing the same determination next time it's requested.
+     *<P>
      * Null if {@link #sentAllScenarioStrings} or if client hasn't requested any
      * or joined any game that has a scenario.
      *<P>

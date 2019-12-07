@@ -248,7 +248,7 @@ When preparing to release a new version, testing should include:
       Message traffic will be shown in the terminal/client output.
     - Test client newer than server:
         - Build server JAR, make temp copy of it, and start the temp copy (has the actual current version number)
-        - In `SOCScenario.initAllScenarios()`, uncomment `SC_TSTNC` and `SC_TSTNO`
+        - In `SOCScenario.initAllScenarios()`, uncomment `SC_TSTNC` "New: v2001 back-compat" and `SC_TSTNO` "New: v2001 only"
         - In `version.info`, add 1 to versionnum and version (example: 2000 -> 2001, 2.0.00 -> 2.0.01)
         - Build and launch client (at that "new" version), don't connect to server
         - Click "Practice"; dialog's Scenario dropdown should include those 2 "new" scenarios
@@ -267,15 +267,15 @@ When preparing to release a new version, testing should include:
         - In message traffic, should see a `SOCScenarioInfo` for each of the 2 new scenarios, + 1 more to end the list of Infos
         - Should see `SC_TSTNC` but not `SC_TSTNO` in dialog's Scenario dropdown
         - Start a game using `SC_TSTNC` scenario, begin game play
-        - Launch a second client, connect to server
+        - Launch a 2nd client, connect to server
         - Click "Game Info"
         - In message traffic, should see only 1 `SOCScenarioInfo`, with that game's scenario
         - Game Info dialog should show scenario's name and info
-        - Quit & re-launch client, connect to server
+        - Quit & re-launch 2nd client, connect to server
         - Join that game
         - In message traffic, should see only 1 `SOCScenarioInfo`, with that game's scenario
         - Within game, second client's "Game Info" dialog should show scenario info
-        - Keep client and server running
+        - Quit 2nd client. Keep server and 1st client running
     - Test i18n (server still newer than client):
         - Launch another client, with a locale: `-Djsettlers.debug.traffic=Y -Djsettlers.locale=es`
         - In that client, click "Game Info"
@@ -285,12 +285,20 @@ When preparing to release a new version, testing should include:
         - Connect to server, click "New Game"
         - In message traffic, should see:
           - a `SOCScenarioInfo` for each of the 2 new scenarios (SC_TSTNC, SC_TSTNO); SC_TSTNC name should be the localized one
-          - `SOCLocalizedStrings:type=S` with all scenario texts **except** SC_TSTNC, SC_TSTNO
+          - `SOCLocalizedStrings:type=S` with all scenario texts except SC_TSTNC, SC_TSTNO
           - 1 more `SOCScenarioInfo` to end the list of Infos
         - Dialog's Scenario dropdown should show all scenarios with localized text
         - Cancel out of New Game dialog
         - Quit clients and server
 - i18n/Localization
+    - For these tests, temporarily "un-localize" SC_FOG scenario, SC_TTD description by commenting out 3 lines in `/src/main/resources/resources/strings/server/toClient_es.properties`:  
+
+          # gamescen.SC_FOG.n = ...
+          # gamescen.SC_FOG.d = ...
+          ...
+          gamescen.SC_TTD.n = ...
+          # gamescen.SC_TTD.d = ...
+
     - 3 rounds, to test with clients in english (`en_US`), spanish (`es`), and your computer's default locale:  
       Launch each client with specified locale by using JVM parameter: `-Djsettlers.locale=es`
     - If client's default locale is `en_US` or `es`, can combine that testing round with "default locale" round
@@ -322,16 +330,27 @@ When preparing to release a new version, testing should include:
     - Game scenarios
       - Launch client with the round's locale, connect to server
         - Click New Game button
-        - New Game dialog: All scenarios in dropdown should be localized. Pick a scenario for this game
         - In message traffic, should see `SOCLocalizedStrings:type=S` with text for every scenario (except english client)
-        - Create the game
+          - Should not see SC_FOG at all, or SC_TTD description, because of the temporary "un-localization"
+        - New Game dialog:
+          - All scenarios in dropdown should be localized except SC_FOG (Fog Islands)
+          - Select localized name of Through The Desert (SC_TTD)
+          - Click Scenario Info; description should be unlocalized
+        - Start a new game for each of these 3 scenarios:
+          - Fog Islands (unlocalized)
+          - Through The Desert (localized title only)
+          - Wonders (is always localized)
       - Launch other-locale client
-        - In that client, click Game Info button
-        - Game Info dialog: Click Scenario Info button: Game's scenario info should be localized
-        - In message traffic, should see `SOCLocalizedStrings:type=S` with text for only that game's scenario (except english client)
-        - Re-launch client
-        - Join that game
-        - Popup when joining, or game Options button: Game's scenario info should be localized
+        - In that client, click Game Info button for each of those 3 games
+          - Game Info dialog: Click Scenario Info button: Except Fog Islands,
+            game's scenario info should be localized as expected
+          - In message traffic, should see `SOCLocalizedStrings:type=S` with text for only that game's scenario
+            (except Fog Islands, except for english client)
+        - Join each of those 3 games
+          - In message traffic, shouldn't see another `SOCLocalizedStrings:type=S`, because server tracks already-sent ones
+        - Re-launch client, to clear that server-side and client-side tracking
+        - Join each of those 3 games
+          - Popup when joining, or game Options button: Scenario info should be localized same as Game Info dialog
 - Client Feature handling
     - For human players:
         - Start a server (dedicated or client-hosted)

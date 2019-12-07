@@ -865,6 +865,7 @@ public class SOCScenario
      *     Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *     and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param longDesc  Longer descriptive text, or null; see {@link #getLongDesc()} for requirements.
+     *     If null, keeps scenario's current (probably hardcoded unlocalized) longDesc.
      * @throws IllegalArgumentException if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or desc or longDesc fails {@link SOCMessage#isSingleLineAndSafe(String, boolean)}
      * @see SOCVersionedItem#setDesc(String)
@@ -878,10 +879,11 @@ public class SOCScenario
                 throw new IllegalArgumentException("longDesc fails isSingleLineAndSafe");
             if (longDesc.contains(SOCMessage.sep))
                 throw new IllegalArgumentException("longDesc contains " + SOCMessage.sep);
+
+            scLongDesc = longDesc;
         }
 
         setDesc(desc);  // checks isSingleLineAndSafe(desc)
-        scLongDesc = longDesc;
     }
 
     /**
