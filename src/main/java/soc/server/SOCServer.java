@@ -6609,7 +6609,7 @@ public class SOCServer extends Server
      * whether the scenario has strings in the client's locale, and whether the client has
      * already been sent this scenario's info or strings.
      *<P>
-     * Sends nothing if {@code scKey} and {@code sc} are both null.
+     * Sends nothing if {@code scKey} and {@code scData} are both null.
      * Sends nothing if client's version is older than 2.0.00 ({@link SOCScenario#VERSION_FOR_SCENARIOS}).
      * Will not send localized strings if locale is null.
      * Checks and updates the connection's {@link SOCClientData#sentAllScenarioStrings},
@@ -6621,32 +6621,34 @@ public class SOCServer extends Server
      *
      * @param scKey  Scenario keyname, from
      *     {@link SOCGame#getGameOptionStringValue(String) game.getGameOptionStringValue("SC")}, or null.
-     *     Sends nothing if {@code scKey} and {@code sc} are both null.
-     * @param sc  Scenario data if known, or null to use
+     *     Sends nothing if {@code scKey} and {@code scData} are both null.
+     * @param scData  Scenario data if known, or null to use
      *     {@link SOCScenario#getScenario(String) SOCScenario.getScenario(scKey)}.
-     *     When {@code sc != null}, will always send a {@link SOCScenarioInfo} message
-     *     even if {@link SOCClientData#sentAllScenarioInfo} is set, unless client version is too old.
+     *     When {@code scData != null}, will always send a {@link SOCScenarioInfo} message
+     *     even if {@link SOCClientData#sentAllScenarioInfo} is set, unless client version is too old
+     *     to recognize scenarios.
      * @param c  Client connection
      * @param alwaysSend  If true, send {@link SOCScenarioInfo} even if scenario hasn't been
-     *     modified since client's version
+     *     modified since client's version. Ignored if {@code stringsOnly}.
      * @param stringsOnly  If true, send only localized strings, not entire {@link SOCScenarioInfo}.
      * @since 2.0.00
      */
     void sendGameScenarioInfo
-        (String scKey, final SOCScenario sc, final Connection c, final boolean alwaysSend, final boolean stringsOnly)
+        (String scKey, final SOCScenario scData, final Connection c,
+         final boolean alwaysSend, final boolean stringsOnly)
     {
         if (scKey == null)
         {
-            if (sc == null)
+            if (scData == null)
                 return;
             else
-                scKey = sc.key;
+                scKey = scData.key;
         }
 
         final SOCClientData scd = (SOCClientData) c.getAppData();
 
         if ((scd.sentAllScenarioInfo || (stringsOnly && scd.sentAllScenarioStrings))
-            && (sc == null))
+            && (scData == null))
         {
             return;  // <--- Already checked, nothing left to send ---
         }
@@ -6666,7 +6668,7 @@ public class SOCServer extends Server
         Map<String, String> scensSent = scd.scenariosInfoSent;
         final String statusAlreadySent;  // is scenariosInfoSent(scKey)
 
-        if ((sc == null) && (scensSent != null))
+        if ((scData == null) && (scensSent != null))
         {
             statusAlreadySent = scensSent.get(scKey);
             if ((statusAlreadySent != null)
@@ -6680,15 +6682,15 @@ public class SOCServer extends Server
 
         SOCScenario scSend = null;  // If not null, will send full scenario info instead of only strings
 
-        if (sc != null)
+        if (scData != null)
         {
-            scSend = sc;
+            scSend = scData;
         }
         else if (! stringsOnly)
         {
-            SOCScenario scChk = SOCScenario.getScenario(scKey);
-            if ((scChk != null) && ((scChk.lastModVersion > cliVers) || alwaysSend))
-                scSend = scChk;
+            SOCScenario sc = SOCScenario.getScenario(scKey);
+            if ((sc != null) && ((sc.lastModVersion > cliVers) || alwaysSend))
+                scSend = sc;
         }
 
         // Prep for remembering what we checked for/are about to send to this client
@@ -6750,12 +6752,12 @@ public class SOCServer extends Server
                     // If not localized, don't send fallback text: Client already has it
                     // (See also similar logic in localizeGameScenarios)
 
-                    final SOCScenario scChk = SOCScenario.getScenario(scKey);
-                    if (scChk != null)
+                    final SOCScenario sc = SOCScenario.getScenario(scKey);
+                    if (sc != null)
                     {
-                        if (nm.equals(scChk.getDesc()))
+                        if (nm.equals(sc.getDesc()))
                             nm = null;
-                        else if ((desc != null) && desc.equals(scChk.getLongDesc()))
+                        else if ((desc != null) && desc.equals(sc.getLongDesc()))
                             desc = null;
                     }
                 }
