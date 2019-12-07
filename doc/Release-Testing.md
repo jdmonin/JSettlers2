@@ -242,35 +242,62 @@ When preparing to release a new version, testing should include:
       (which is `SV_OK_DEBUG_MODE_ON` added in 2.0.00)
     - Start a 1.2.00 client with same vm property `-Djsettlers.debug.traffic=Y`
     - That client's initial connection should get sv == 0, should see at console: `SOCStatusMessage:status=Debugging is On`
-- SOCScenario info sync/negotiation when server and client are different versions
+- SOCScenario info sync/negotiation when server and client are different versions or locales
+    - For these tests, use these JVM parameters when launching clients:  
+      `-Djsettlers.debug.traffic=Y -Djsettlers.locale=en_US`  
+      Message traffic will be shown in the terminal/client output.
     - Test client newer than server:
-        - Build server JAR and start a server from it  
-          (or, turn off code hot-replace within IDE and start server there)
-        - In `SOCScenario.initAllScenarios()`, uncomment `SC_TSTNB` and `SC_TSTNO`
+        - Build server JAR, make temp copy of it, and start the temp copy (has the actual current version number)
+        - In `SOCScenario.initAllScenarios()`, uncomment `SC_TSTNC` and `SC_TSTNO`
         - In `version.info`, add 1 to versionnum and version (example: 2000 -> 2001, 2.0.00 -> 2.0.01)
-        - Build and launch client (at that "new" version)
-        - Click "Practice"; Dialog to make a game should see those 2 "new" scenarios
-        - Quit and re-launch client
-        - Connect to server, click "New Game"; the 2 new ones are unknown at server,
-          should not appear in the dialog's Scenario dropdown
+        - Build and launch client (at that "new" version), don't connect to server
+        - Click "Practice"; dialog's Scenario dropdown should include those 2 "new" scenarios
+        - Quit and re-launch client, connect to server
+        - Click "New Game"
+        - In message traffic, should see a `SOCScenarioInfo` for each of the 2 new scenarios, + 1 more to end the list of Infos
+        - The 2 new scenarios are unknown at server; dialog's Scenario dropdown should not include them
         - Quit client and server
     - Then, test server newer than client:
-        - Build server JAR and start a server from it (at that "new" version)
-        - Reset `version.info` and `SOCScenario.initAllScenarios()` to their actual versions (2001 -> 2000, re-comment, etc)
+        - Temporarily "localize" the test-scenario by adding to `/src/main/resources/resources/strings/server/toClient_es.properties`:  
+          `gamescen.SC_TSTNC.n = test-localizedname-es`
+        - Build server JAR and start a server from it (has the "new" version number)
+        - Reset `version.info`, `toClient_es.properties`, and `SOCScenario.initAllScenarios()` to their actual versions (2001 -> 2000, re-comment, etc)
         - Build and launch client (at actual version)
-        - Connect to server, click "New Game"; should see `SC_TSTNB` but not `SC_TSTNO`
-          in the dialog's Scenario dropdown
-        - Start a game using the `SC_TSTNB` scenario, begin game play
-        - Launch a second client
-        - Connect to server, join that game
-        - Within that game, second client's "Game Info" dialog should show scenario info
+        - Connect to server, click "New Game"
+        - In message traffic, should see a `SOCScenarioInfo` for each of the 2 new scenarios, + 1 more to end the list of Infos
+        - Should see `SC_TSTNC` but not `SC_TSTNO` in dialog's Scenario dropdown
+        - Start a game using `SC_TSTNC` scenario, begin game play
+        - Launch a second client, connect to server
+        - Click "Game Info"
+        - In message traffic, should see only 1 `SOCScenarioInfo`, with that game's scenario
+        - Game Info dialog should show scenario's name and info
+        - Quit & re-launch client, connect to server
+        - Join that game
+        - In message traffic, should see only 1 `SOCScenarioInfo`, with that game's scenario
+        - Within game, second client's "Game Info" dialog should show scenario info
+        - Keep client and server running
+    - Test i18n (server still newer than client):
+        - Launch another client, with a locale: `-Djsettlers.debug.traffic=Y -Djsettlers.locale=es`
+        - In that client, click "Game Info"
+        - In message traffic, should see only 1 `SOCScenarioInfo`, with that game's SC_TSTNC scenario
+        - Game Info dialog should show scenario's info and "localized" name: "test-localizedname-es"
+        - Quit and re-launch that client
+        - Connect to server, click "New Game"
+        - In message traffic, should see:
+          - a `SOCScenarioInfo` for each of the 2 new scenarios (SC_TSTNC, SC_TSTNO); SC_TSTNC name should be the localized one
+          - `SOCLocalizedStrings:type=S` with all scenario texts **except** SC_TSTNC, SC_TSTNO
+          - 1 more `SOCScenarioInfo` to end the list of Infos
+        - Dialog's Scenario dropdown should show all scenarios with localized text
+        - Cancel out of New Game dialog
+        - Quit clients and server
 - i18n/Localization
     - 3 rounds, to test with clients in english (`en_US`), spanish (`es`), and your computer's default locale:  
-      Launch each client with specified locale by using JVM parameter: `-Djsettlers.locale=es`  
-      Optionally, to show a debug trace of network messages in the terminal, use param `-Djsettlers.debug.traffic=Y`  
+      Launch each client with specified locale by using JVM parameter: `-Djsettlers.locale=es`
     - If client's default locale is `en_US` or `es`, can combine that testing round with "default locale" round
     - If other languages/locales are later added, don't need to do more rounds of testing for them;
       the 3 rounds cover english (the fallback locale), non-english, and client's default locale
+    - Reminder: To show a debug trace of network message traffic in the terminal/client output,
+      also use JVM param `-Djsettlers.debug.traffic=Y`
 
     For each round, all these items should appear in the expected language/locale:
 
@@ -285,7 +312,7 @@ When preparing to release a new version, testing should include:
       - Start a game with at least 1 bot. Near top of server text, should see localization of: "Fetching a robot player..."
     - Game options
       - Launch client with the round's locale, connect to server
-        - If tracing network messages, should see `SOCLocalizedStrings:type=O` with text for every game option (except english client)
+        - In message traffic, should see `SOCLocalizedStrings:type=O` with text for every game option (except english client)
         - Click New Game button
         - New Game dialog: All game options and client prefs should be localized
         - Create the game
@@ -296,12 +323,12 @@ When preparing to release a new version, testing should include:
       - Launch client with the round's locale, connect to server
         - Click New Game button
         - New Game dialog: All scenarios in dropdown should be localized. Pick a scenario for this game
-        - If tracing network messages, should see `SOCLocalizedStrings:type=S` with text for every scenario (except english client)
+        - In message traffic, should see `SOCLocalizedStrings:type=S` with text for every scenario (except english client)
         - Create the game
       - Launch other-locale client
         - In that client, click Game Info button
         - Game Info dialog: Click Scenario Info button: Game's scenario info should be localized
-        - If tracing network messages, should see `SOCLocalizedStrings:type=S` with text for only that game's scenario (except english client)
+        - In message traffic, should see `SOCLocalizedStrings:type=S` with text for only that game's scenario (except english client)
         - Re-launch client
         - Join that game
         - Popup when joining, or game Options button: Game's scenario info should be localized
