@@ -392,10 +392,7 @@ jsettlers JAR from the command line, not running inside the IDE.
 ## Current work to complete for v2.0.00 release
 
 - Game/scenario framework:
-  - Review scenarios' description text
   - Various per-scenario win-condition test runs for corner cases
-- Network message system:
-  - Finish corner cases for I18N SOCLocalizedStrings
 - Review documentation, especially for v2.0 changes
 
 
@@ -419,6 +416,8 @@ ideas.
 - Show # VP when choosing where to sit, if game is in progress
 - Keyboard shortcuts for "roll", "done" buttons
 - Occasionally the board does not re-scale at game reset
+- Docs: State diagram for `SOCGame` states, or sequence of important message flows
+  (log into server, create/join game, roll dice, etc)
 - Add more scenarios' unit tests to `soctest.game.TestScenarioRules`
 - Kick robots if inactive but current player in game, assume they're buggy (use forceEndTurn)
 - Control the speed of robots, in practice games and with other humans
