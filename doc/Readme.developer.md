@@ -58,6 +58,25 @@ see initAllOptions javadoc for a list. Options have flags for their properties
 game option keynames start with `_SC_`, and provide special rules for the
 scenario.
 
+For more information about the AI, please see the "Robots (AI)" section
+and Robert S Thomas' dissertation.
+
+### Board layouts and coordinates
+
+For more information about the board coordinates, see javadocs in `soc.game.SOCBoard`
+and `soc.game.SOCBoardLarge` (or dissertation appendix A), and these diagrams:
+
+<B>Sea boards:</B> ![hexcoord-sea.png](/doc/hexcoord-sea.png)
+
+<B>4-player classic:</B> ![hexcoord.gif](/doc/hexcoord.gif)
+
+<B>6-player classic:</B> ![hexcoord-6player.gif](/doc/hexcoord-6player.gif)
+
+To show piece coordinates in the board's tooltips, in the game window chat box type: `=*= showcoords`  
+To no longer show those coordinates, type: `=*= hidecoords`
+
+### Development
+
 Coding is done in Java 6, but should compile cleanly in newer JDKs.
 (v1.2 used java 5 for backwards compatibility; earlier versions used 1.4.)
 The build system is gradle 4 or 5. Use any IDE you want, including vi.
@@ -69,14 +88,6 @@ When adding new methods or fields, describe them in javadoc, including the
 don't have that summary).
 
 When submitting patches, please send pull requests or use unified diff (`-ur`) format.
-
-For more information about the AI, please see the "Robots (AI)" section
-and Robert S Thomas' dissertation.
-
-For more information about the board coordinates, see the dissertation appendix A,
-or javadocs in `soc.game.SOCBoard`, and `/docs/hexcoord.gif` and `hexcoord-6player.gif`.
-To show piece coordinates in the board's tooltips, in the game window chat box type:
-`=*= showcoords`  To no longer show those coordinates, type: `=*= hidecoords`
 
 The client's structure was refactored in 2.0 by Paul Bilnoski.  Paul's description of this work:
 

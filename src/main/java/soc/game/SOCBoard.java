@@ -138,7 +138,7 @@ import java.util.Random;
  * <b>nodes</b> (corners of hexes; where settlements/cities are placed),
  * and <b>edges</b> (between nodes; where roads are placed),
  * share the same grid of coordinates.
- * Each hex is 2 units wide, in a 2-D coordinate system.
+ * Each hex is 2 units wide in a diagonal 2-D coordinate system.
  *<P>
  * To explore coordinates at the client, type debug command {@code =*= showcoords}
  * to show a tooltip with current board coordinates at the mouse pointer.
@@ -147,7 +147,7 @@ import java.util.Random;
  * Current coordinate encodings: v1 ({@link #BOARD_ENCODING_ORIGINAL}),
  *   v2 ({@link #BOARD_ENCODING_6PLAYER}), v3 ({@link #BOARD_ENCODING_LARGE}).
  *<P>
- * <b>On the 4-player board:</b> See <tt>src/docs/hexcoord.gif</tt><br>
+ * <b>On the 4-player board:</b> See {@code /doc/hexcoord.gif}<br>
  * Coordinates start with hex (1,1) on the far west, and go to (D,D) on the east.
  * The ring of water hexes surrounding land, is within these coordinates. (Land
  * hexes in that row are (3,3) to (B,B).
@@ -160,7 +160,7 @@ import java.util.Random;
  * Unfortunately this format means the board can't be expanded without changing its
  * encoding, which is used across the network.
  *<P>
- * <b>On the 6-player board:</b> See <tt>src/docs/hexcoord-6player.gif</tt><br>
+ * <b>On the 6-player board:</b> See {@code /doc/hexcoord-6player.gif}<br>
  * The 6-player board is rotated 90 degrees clockwise from the 4-player board,
  * so coordinates start with hex (1,1) as the northernmost land hex, and
  * hex (B,B) is the southernmost land hex.  The ring of water hexes are outside

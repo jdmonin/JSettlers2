@@ -184,13 +184,14 @@ import soc.util.IntPair;
  *<P>
  * <h4> Coordinate System: </h4>
  *
- * See <tt>src/docs/hexcoord-sea.png</tt>
+ * See {@code /doc/hexcoord-sea.png}
  *<P>
  * Unlike earlier encodings, here the "hex number" ("ID") is not an index into a dense array
  * of land hexes.  Thus it's not efficient to iterate through all hex numbers. <br>
  * Instead: Hex ID = (r &lt;&lt; 8) | c   // 2 bytes: 0xRRCC
  *<P>
- * The coordinate system is a square grid of rows and columns, different from previous encodings:
+ * The coordinate system is a square grid of rows and columns,
+ * different from {@link SOCBoard}'s classic 4- and 6-player encodings:
  *<P>
  * <b>Hexes</b> (represented as coordinate of their centers),
  * <b>nodes</b> (corners of hexes; where settlements/cities are placed),
