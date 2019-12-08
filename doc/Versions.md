@@ -64,6 +64,7 @@ and backport minor new features until `2.0.00` is ready.
      - Users' win/loss counts are updated when game won or lost, even if flag property
        `jsettlers.db.save.games` isn't set
      - Server `--pw-reset` now hides the password text
+     - If using Oracle (unsupported): Upgrading to this schema not yet implemented
 - Game option key names can now be longer (8 characters)
 - Some game options are meant to be set by the server during game creation, not requested by the client.
   Their option keynames all start with '_' and are hidden in the New Game options window.

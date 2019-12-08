@@ -3076,6 +3076,9 @@ public class SOCDBHelper
      *     or nicknames which collide with each other when lowercase) which must be manually resolved by this
      *     server's administrator before upgrade: {@link Throwable#getMessage()} will be a multi-line string with
      *     problem details to show to the server admin.
+     *    <P>
+     *     Upgrade to schema 2.0.00 for {@code DBTYPE_ORA} isn't yet implemented: Upgrade attempts
+     *     on that DB type will throw {@code MissingResourceException}.
      * @throws SQLException  if any unexpected database problem during the upgrade
      * @see {@link #isSchemaLatestVersion()}
      * @since 1.2.00
@@ -3087,6 +3090,7 @@ public class SOCDBHelper
             throw new IllegalStateException("already at latest schema");
 
         /* final pre-checks */
+
         if (dbType == DBTYPE_POSTGRESQL)
         {
             // Check table ownership since table create scripts may have ran as postgres user, not socuser
@@ -3095,6 +3099,12 @@ public class SOCDBHelper
                 throw new MissingResourceException
                     ("Must change table owner to " + dbcUserName + " from " + otherOwner, "unused", "unused");
         }
+        else if (dbType == DBTYPE_ORA)
+        {
+            throw new MissingResourceException
+                ("Upgrade on oracle to schema 2.0.00 not yet implemented", "unused", "unused");
+        }
+
         final Set<String> upg_1200_allUsers = new HashSet<String>();  // built during pre-check, used during upgrade
         if (schemaVersion < SCHEMA_VERSION_1200)
         {

@@ -386,7 +386,9 @@ Use the docs to plan before starting your upgrade:
   For security reasons, newer versions by default disallow user account
   self-registration. If you still want to use that option, search this
   doc for "open registration".
-
+- If using **Oracle**: Upgrading to the latest DB schema (v2.0.00) isn't yet implemented:
+  The upgrade and latest schema need some DB features which haven't been
+  written for that dialect of SQL or tested on that unsupported DB type.
 
 ### When starting up the server using the new version:
 
