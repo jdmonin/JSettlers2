@@ -6127,14 +6127,22 @@ import javax.swing.JComponent;
                         if (mode == MOVE_SHIP)
                         {
                             isShip = true;
-                            if (! player.isPotentialShipMoveTo(edgeNum, moveShip_fromEdge))
-                                edgeNum = 0;
 
-                            // Check edgeNum vs pirate hex:
-                            final SOCBoardLarge bL = (SOCBoardLarge) board;
-                            final int ph = bL.getPirateHex();
-                            if ((ph != 0) && bL.isEdgeAdjacentToHex(edgeNum, ph))
+                            // Check player.isPotentialShipMoveTo & pirate ship location.
+                            // Calling game.canMoveShip is unneeded overhead: That checks
+                            // the moveShip_fromEdge location, which SOCBoardPanel did
+                            // before changing its mode to MOVE_SHIP.
+
+                            if (! player.isPotentialShipMoveTo(edgeNum, moveShip_fromEdge))
+                            {
                                 edgeNum = 0;
+                            } else {
+                                // Check edgeNum vs pirate hex:
+                                final SOCBoardLarge bL = (SOCBoardLarge) board;
+                                final int ph = bL.getPirateHex();
+                                if ((ph != 0) && bL.isEdgeAdjacentToHex(edgeNum, ph))
+                                    edgeNum = 0;
+                            }
                         }
                         else {
                             if ((player.isPotentialRoad(edgeNum) && (player.getNumPieces(SOCPlayingPiece.ROAD) > 0))

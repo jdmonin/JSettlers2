@@ -4267,8 +4267,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * Is this edge coordinate a potential place to move a ship, even if another ship
-     * edge was not?  Used by {@link SOCGame#canMoveShip(int, int, int)}
+     * Is this edge coordinate a potential place this player can move a ship,
+     * even if its move-from location becomes unoccupied?
+     * Used by {@link SOCGame#canMoveShip(int, int, int)}
      * to check the ship's requested new location.
      *<P>
      * First, {@code toEdge} must be a potential ship<B>*</B> now.
@@ -4278,7 +4279,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * or has an adjacent edge with a ship of ours
      * (except {@code fromEdge}), then {@code toEdge} is potential.
      *<P>
-     * <B>*</B>In scenario {@code _SC_PIRI}, we check more carefully because
+     * Does not check pirate ship position or other requirements;
+     * see {@link SOCGame#canMoveShip(int, int, int)} for that.
+     *<P>
+     * <B>*</B> In scenario {@code _SC_PIRI}, we check more carefully because
      * after ship placement, nearby potential ships are removed to prevent
      * any branching of the ship route.  This would make it impossible to
      * move the route's newest ship to its other potential direction from

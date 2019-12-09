@@ -3848,6 +3848,9 @@ public class SOCGame implements Serializable, Cloneable
      * their trade routes and settlements/cities?
      * Must be current player.  Game state must be {@link #PLAY1}.
      *<P>
+     * Use this method to check a specific move-from location.
+     * Use {@link #canMoveShip(int, int, int)} to also check a specific move-to location.
+     *<P>
      * Only the ship at the newer end of an open trade route can be moved.
      * So, to move a ship, one of its end nodes must be clear: No
      * settlement or city, and no other adjacent ship on the other
@@ -3861,7 +3864,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pn   Player number
      * @param fromEdge  Edge coordinate to move the ship from; must contain this player's ship
-     * @return  The ship, if the player can move the ship now; null otherwise
+     * @return  The ship at {@code fromEdge} if player can move that ship now; {@code null} otherwise
      * @see #canMoveShip(int, int, int)
      * @since 2.0.00
      */
@@ -3896,6 +3899,9 @@ public class SOCGame implements Serializable, Cloneable
      * based on game state and their trade routes and settlements/cities?
      * Must be current player.  Game state must be {@link #PLAY1}.
      *<P>
+     * Use this method to check a specific move-from and move-to location pair.
+     * Use {@link #canMoveShip(int, int)} to check only the move-from.
+     *<P>
      * Only the ship at the newer end of an open trade route can be moved.
      * So, to move a ship, one of <tt>fromEdge</tt>'s end nodes must be
      * clear: No settlement or city, and no other adjacent ship on the other
@@ -3919,7 +3925,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param fromEdge  Edge coordinate to move the ship from; must contain this player's ship.
      * @param toEdge    Edge coordinate to move to; must be different than <tt>fromEdge</tt>.
      *            Checks {@link SOCPlayer#isPotentialShip(int) players[pn].isPotentialShip(toEdge)}.
-     * @return  The ship, if the player can move the ship now; null otherwise
+     * @return  The ship at {@code fromEdge} if player can move that ship now; {@code null} otherwise
      * @see #canMoveShip(int, int)
      * @see #moveShip(SOCShip, int)
      * @since 2.0.00
