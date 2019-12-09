@@ -242,30 +242,45 @@ When preparing to release a new version, testing should include:
       (which is `SV_OK_DEBUG_MODE_ON` added in 2.0.00)
     - Start a 1.2.00 client with same vm property `-Djsettlers.debug.traffic=Y`
     - That client's initial connection should get sv == 0, should see at console: `SOCStatusMessage:status=Debugging is On`
-- SOCScenario info sync/negotiation when server and client are different versions or locales
+- Game Option and Scenario info sync/negotiation when server and client are different versions/locales
     - For these tests, use these JVM parameters when launching clients:  
       `-Djsettlers.debug.traffic=Y -Djsettlers.locale=en_US`  
       Message traffic will be shown in the terminal/client output.
     - Test client newer than server:
-        - Build server JAR, make temp copy of it, and start the temp copy (has the actual current version number)
+        - Build server JAR as usual, make temp copy of it, and start the temp copy (has the actual current version number)
         - In `SOCScenario.initAllScenarios()`, uncomment `SC_TSTNC` "New: v2001 back-compat" and `SC_TSTNO` "New: v2001 only"
-        - In `version.info`, add 1 to versionnum and version (example: 2000 -> 2001, 2.0.00 -> 2.0.01)
+        - In `SOCGameOption.initAllOptions()`, scroll to the end and uncomment `DEBUGBOOL` "Test option bool".
+          Increase its second version parameter to current version + 1. Example:  
+          `("DEBUGBOOL", 2000, 2001, false, ...)`
+        - In `version.info`, add 1 to versionnum and version. Example: 2000 -> 2001, 2.0.00 -> 2.0.01
         - Build and launch client (at that "new" version), don't connect to server
-        - Click "Practice"; dialog's Scenario dropdown should include those 2 "new" scenarios
+        - Click "Practice"; dialog's game options should include DEBUGBOOL,
+          Scenario dropdown should include those 2 "new" scenarios
         - Quit and re-launch client, connect to server
+        - Message traffic should include:
+          - Client's `SOCGameOptionGetInfos` for DEBUGBOOL
+          - Server response: `SOCGameOptionInfo` for DEBUGBOOL, + 1 more Option Info to end that short list
         - Click "New Game"
         - In message traffic, should see a `SOCScenarioInfo` for each of the 2 new scenarios, + 1 more to end the list of Infos
-        - The 2 new scenarios are unknown at server; dialog's Scenario dropdown should not include them
+        - The "new" items are unknown at server: New Game dialog shouldn't have DEBUGBOOL,
+          its Scenario dropdown shouldn't have the 2 test scenarios
         - Quit client and server
     - Then, test server newer than client:
-        - Temporarily "localize" the test-scenario by adding to `/src/main/resources/resources/strings/server/toClient_es.properties`:  
-          `gamescen.SC_TSTNC.n = test-localizedname-es`
+        - Temporarily "localize" the test option and scenarios by adding to
+          `/src/main/resources/resources/strings/server/toClient_es.properties`:  
+          `gameopt.DEBUGBOOL = test debugbool localized-es`  
+          `gamescen.SC_TSTNC.n = test-localizedname-es`  
         - Build server JAR and start a server from it (has the "new" version number)
-        - Reset `version.info`, `toClient_es.properties`, and `SOCScenario.initAllScenarios()` to their actual versions (2001 -> 2000, re-comment, etc)
+        - Reset `version.info`, `toClient_es.properties`, `SOCGameOption.initAllOptions()`,
+          and `SOCScenario.initAllScenarios()` to their actual versions (2001 -> 2000, re-comment, etc)
         - Build and launch client (at actual version)
-        - Connect to server, click "New Game"
+        - Connect to server
+        - Message traffic should include:
+          - Client's generic `SOCGameOptionGetInfos` asking if any changes
+          - Server response: `SOCGameOptionInfo` for DEBUGBOOL, + 1 more Option Info to end that short list
+        - Click "New Game"
         - In message traffic, should see a `SOCScenarioInfo` for each of the 2 new scenarios, + 1 more to end the list of Infos
-        - Should see `SC_TSTNC` but not `SC_TSTNO` in dialog's Scenario dropdown
+        - Dialog should show DEBUGBOOL option. Should see `SC_TSTNC` but not `SC_TSTNO` in Scenario dropdown
         - Start a game using `SC_TSTNC` scenario, begin game play
         - Launch a 2nd client, connect to server
         - Click "Game Info"
@@ -278,16 +293,17 @@ When preparing to release a new version, testing should include:
         - Quit 2nd client. Keep server and 1st client running
     - Test i18n (server still newer than client):
         - Launch another client, with a locale: `-Djsettlers.debug.traffic=Y -Djsettlers.locale=es`
+        - In message traffic, should see a `SOCGameOptionInfo` for DEBUGBOOL with "localized" name
         - In that client, click "Game Info"
         - In message traffic, should see only 1 `SOCScenarioInfo`, with that game's SC_TSTNC scenario
-        - Game Info dialog should show scenario's info and "localized" name: "test-localizedname-es"
+        - Game Info dialog should show scenario's info and "localized" name
         - Quit and re-launch that client
         - Connect to server, click "New Game"
         - In message traffic, should see:
           - a `SOCScenarioInfo` for each of the 2 new scenarios (SC_TSTNC, SC_TSTNO); SC_TSTNC name should be the localized one
           - `SOCLocalizedStrings:type=S` with all scenario texts except SC_TSTNC, SC_TSTNO
           - 1 more `SOCScenarioInfo` to end the list of Infos
-        - Dialog's Scenario dropdown should show all scenarios with localized text
+        - Dialog should show "localized" DEBUGBOOL game option. Scenario dropdown should show all scenarios with localized text
         - Cancel out of New Game dialog
         - Quit clients and server
 - i18n/Localization
