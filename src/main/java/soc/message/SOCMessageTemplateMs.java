@@ -200,16 +200,25 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
         if (pa != null)
         {
             if (pa.isEmpty())
-                sb.append("|(pa is empty)");
-            else
+            {
+                sb.append(":(pa is empty)");
+            } else {
+                boolean first = true;
                 for (final String p : pa)
                 {
-                    sb.append("|p=");
+                    if (first)
+                    {
+                        sb.append(":p=");
+                        first = false;
+                    } else {
+                        sb.append("|p=");
+                    }
                     if (p != null)
                         sb.append(p);
                 }
+            }
         } else {
-            sb.append("|(pa is null)");
+            sb.append(":(pa is null)");
         }
 
         return sb.toString();
