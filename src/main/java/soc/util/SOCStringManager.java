@@ -47,8 +47,8 @@ import soc.game.SOCResourceSet;
  * See comments at the top of {@code .properties} files for more details on key-value formatting and message parameters.
  * Remember that {@code .properties} bundle files are encoded not in {@code UTF-8} but in {@code ISO-8859-1}:
  *<UL>
- * <LI> <A href="http://docs.oracle.com/javase/1.5.0/docs/api/java/util/Properties.html#encoding"
- *       >java.util.Properties</A> (Java 1.5)
+ * <LI> <A href="https://docs.oracle.com/javase/6/docs/api/java/util/Properties.html"
+ *       >java.util.Properties</A> (Java 6)
  * <LI> <A href="http://stackoverflow.com/questions/4659929/how-to-use-utf-8-in-resource-properties-with-resourcebundle"
  *       >Stack Overflow: How to use UTF-8 in resource properties with ResourceBundle</A> (asked on 2011-01-11)
  * <LI> Java 9 supports UTF-8 properties files, but JSettlers must also be able to run on older java versions

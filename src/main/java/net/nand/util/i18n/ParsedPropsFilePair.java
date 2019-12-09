@@ -1,6 +1,6 @@
 /*
  * nand.net i18n utilities for Java: Property file editor for translators (side-by-side source and destination languages).
- * This file Copyright (C) 2013,2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2016,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,8 +37,8 @@ import net.nand.util.i18n.PropsFileParser.KeyPairLine;
  *<P>
  * Remember that {@code .properties} bundle files are encoded not in {@code UTF-8} but in {@code ISO-8859-1}:
  *<UL>
- * <LI> <A href="http://docs.oracle.com/javase/1.5.0/docs/api/java/util/Properties.html#encoding"
- *       >java.util.Properties</A> (Java 1.5)
+ * <LI> <A href="https://docs.oracle.com/javase/6/docs/api/java/util/Properties.html"
+ *       >java.util.Properties</A> (Java 6)
  * <LI> <A href="http://stackoverflow.com/questions/4659929/how-to-use-utf-8-in-resource-properties-with-resourcebundle"
  *       >Stack Overflow: How to use UTF-8 in resource properties with ResourceBundle</A> (asked on 2011-01-11)
  *</UL>
