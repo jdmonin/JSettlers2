@@ -100,7 +100,8 @@ import soc.message.SOCMessage;  // strictly for isSingleLineAndSafe
  * <LI> There are requirements ({@link #req}) to pick each wonder; different wonders have different requirements
  * <LI> There is a resource cost to build each level; different wonders have different costs
  * <LI> When the player first picks a Wonder to build its first level, player loses 1 ship.
- *    (In the physical game the ship becomes a marker on the Wonder card.)
+ *    (In the physical game, the ship becomes an ownership marker on the Wonders card.) This "starting piece cost"
+ *    is {@link #getStartingCostPiecetype()}. All wonders have the same piece type cost: {@link SOCPlayingPiece#SHIP}.
  * <LI> Can build several levels per turn; each level is built with a {@code PICK} request
  * <LI> When level 4 is built, player wins the game, even if they have less than 10 VP
  * <LI> When a player reaches 10 VP, <b>and</b> has a higher level of wonder than any other player (no ties), they win
@@ -189,8 +190,16 @@ public class SOCSpecialItem
      * Optional constant cost to buy, use, or build the next level, or {@code null}.
      * Not sent over the network; see {@link SOCSpecialItem class javadoc}
      * and {@link #makeKnownItem(String, int)}.
+     * @see #startingCostPiecetype
      */
     protected SOCResourceSet cost;
+
+    /**
+     * Optional constant extra starting "cost" piece: A type of {@link SOCPlayingPiece}
+     * the player must give up to pick (buy, use, or build) the first level, or -1 if unused.
+     * See {@link #getStartingCostPiecetype()} for details.
+     */
+    protected int startingCostPiecetype = -1;
 
     /**
      * Optional requirements to buy, use, or build the next level, or {@code null}.
@@ -225,6 +234,7 @@ public class SOCSpecialItem
         final String[] typeReqs, typeSV;  // Per-index requirements and SV, or null
         final int[][] typeCosts;    // Per-index costs, or null
         final int itemLevel;    // initial level
+        final int startingCostPiecetype;  // piece type required for level 1, or -1
 
         if (typeKey.equals(SOCGameOption.K_SC_WOND))
         {
@@ -232,6 +242,8 @@ public class SOCSpecialItem
             typeSV = SV_SC_WOND;
             typeCosts = COST_SC_WOND;
             itemLevel = 0;
+            startingCostPiecetype = SOCPlayingPiece.SHIP;
+                // note: client SOCSpecialItemDialog assumes all items have same startingCostPiecetype; true for SC_WOND
         } else {
             return new SOCSpecialItem(null, -1, null, null);  // <--- Early return: Unknown typeKey ---
         }
@@ -255,6 +267,7 @@ public class SOCSpecialItem
             : null;
 
         final SOCSpecialItem si = new SOCSpecialItem(null, -1, itemLevel, sv, costRS, req);
+        si.startingCostPiecetype = startingCostPiecetype;
         si.setGameIndex(idx);
 
         return si;
@@ -274,6 +287,10 @@ public class SOCSpecialItem
      * paid if this method returns {@code true}.  If the caller needs to know
      * the cost paid, call that method before this one.
      *<P>
+     * If this Pick is to take ownership and build the first level of the item,
+     * this method checks {@link #getStartingCostPiecetype()}: If any, player must have at least
+     * 1 available piece of that type, which is used up by the start of building.
+     *<P>
      * Currently only {@link SOCGameOption#K_SC_WOND _SC_WOND} is recognized as a {@code typeKey} here.
      * To see which scenario and option {@code typeKey}s use this method, and scenario-specific usage details,
      * see the {@link SOCSpecialItem} class javadoc.
@@ -287,13 +304,14 @@ public class SOCSpecialItem
      * @param pi  Pick this index within {@code pl}'s Special Item list, or -1
      * @return  true if the item's cost was deducted from {@code pl}'s resources,
      *     false if no cost ({@link #getCost()} is null)
-     * @throws IllegalStateException if {@code pl} cannot set or clear this item right now
-     *     (due to cost, requirements, game state, is not their turn, or anything else),
+     * @throws IllegalStateException if {@code pl} cannot set or clear this item right now (due to
+     *     cost, requirements, game state, missing a "starting cost" piece, is not their turn, or anything else),
      *     or if {@code typeKey} is unknown here, or if this {@code typeKey} doesn't
      *     use {@code PICK} requests from client players.
      * @see #playerSetItem(String, SOCGame, SOCPlayer, int, int, boolean)
      * @see #checkCost(SOCPlayer)
      * @see #checkRequirements(SOCPlayer, boolean)
+     * @see #checkStartingCostPiecetype(SOCPlayer, boolean)
      */
     public static boolean playerPickItem
         (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gi, final int pi)
@@ -333,6 +351,13 @@ public class SOCSpecialItem
         {
             if (! itm.checkRequirements(pl, false))
                 throw new IllegalStateException("requirements");
+
+            final int startCostPT = itm.getStartingCostPiecetype();
+            if (startCostPT != -1)
+            {
+                itm.checkStartingCostPiecetype(pl, true);  // if player out of pieces, throws IllegalStateException
+                pl.setNumPieces(startCostPT, pl.getNumPieces(startCostPT) - 1);
+            }
 
             itm.setPlayer(pl);
             pl.setSpecialItem(typeKey, 0, itm);
@@ -530,6 +555,7 @@ public class SOCSpecialItem
      * Not sent over the network; see {@link SOCSpecialItem class javadoc}.
      * @return  Cost, or {@code null} if none
      * @see #checkCost(SOCPlayer)
+     * @see #getStartingCostPiecetype()
      */
     public SOCResourceSet getCost()
     {
@@ -552,10 +578,60 @@ public class SOCSpecialItem
      * @return  True if cost is {@code null} or {@link SOCPlayer#getResources() pl.getResources()} contains the cost.
      *     Always false if {@code pl} is {@code null}.
      * @see #checkRequirements(SOCPlayer, boolean)
+     * @see #checkStartingCostPiecetype(SOCPlayer, boolean)
      */
     public final boolean checkCost(final SOCPlayer pl)
     {
         return (pl != null) && ((cost == null) || pl.getResources().contains(cost));
+    }
+
+    /**
+     * Optional constant extra starting "cost" piece: A type of {@link SOCPlayingPiece}
+     * the player must give up to pick (buy, use, or build) the first level, or -1 if unused
+     * (0 would be {@link SOCPlayingPiece#ROAD}).
+     *<P>
+     * In {@link SOCScenario#K_SC_WOND SC_WOND} scenario, value is {@link SOCPlayingPiece#SHIP}.
+     *<P>
+     * Like {@link #getCost()}, not sent over the network; see {@link SOCSpecialItem class javadoc}
+     * and {@link #makeKnownItem(String, int)} code.
+     *
+     * @see #checkStartingCostPiecetype(SOCPlayer, boolean)
+     */
+    public final int getStartingCostPiecetype()
+    {
+        return startingCostPiecetype;
+    }
+
+    /**
+     * Does this player have an available {@link #getStartingCostPiecetype()}, if any, to pick this item and
+     * start its construction? See {@link #playerPickItem(String, SOCGame, SOCPlayer, int, int)} for details.
+     *<P>
+     * Does not include {@link #checkCost(SOCPlayer)} or {@link #checkRequirements(SOCPlayer, boolean)};
+     * must call those separately.
+     *
+     * @param pl  Player to check
+     * @param throwIfUnmet  If true, throw {@code IllegalStateException} if piece needed but player is out of that type
+     * @return true if player the piece to give up, or if there is no starting cost piece;
+     *     false if player would need but doesn't have that piece
+     * @throws IllegalStateException if {@code throwIfUnmet} and player has no such piece
+     * @throws ArrayIndexOutOfBoundsException if piece type is invalid:
+     *     This is an internal error, should not occur unless bug in {@link #makeKnownItem(String, int)}
+     */
+    public final boolean checkStartingCostPiecetype(final SOCPlayer pl, final boolean throwIfUnmet)
+        throws IllegalStateException, ArrayIndexOutOfBoundsException
+    {
+        if (startingCostPiecetype == -1)
+            return true;
+
+        if (pl.getNumPieces(startingCostPiecetype) >= 1)
+        {
+            return true;
+        } else {
+            if (throwIfUnmet)
+                throw new IllegalStateException("Must pay starting piece type: " + startingCostPiecetype);
+
+            return false;
+        }
     }
 
     /**
@@ -571,6 +647,7 @@ public class SOCSpecialItem
      *     this is not implemented
      * @see #checkRequirements(SOCPlayer, List)
      * @see #checkCost(SOCPlayer)
+     * @see #checkStartingCostPiecetype(SOCPlayer, boolean)
      */
     public final boolean checkRequirements(final SOCPlayer pl, final boolean checkCost)
         throws IllegalArgumentException, UnsupportedOperationException

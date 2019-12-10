@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2010,2014-2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2010,2014-2015,2017-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas
  *
  * This program is free software; you can redistribute it and/or
@@ -79,6 +79,8 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
      * @param ac  the type of action: {@link SOCPlayerElement#SET},
      *             {@link SOCPlayerElement#GAIN}, or {@link SOCPlayerElement#LOSE}
      * @param et  array of the types of element, such as {@link SOCPlayerElement#SETTLEMENTS}
+     *             or {@link SOCPlayerElement#WHEAT}. For playing pieces in general,
+     *             see {@link SOCPlayerElement#elementTypeForPieceType(int)}.
      * @param amt array of the amounts to set or change each element, corresponding to <tt>et[]</tt>
      * @throws NullPointerException if {@code et} null or {@code amt} null
      */

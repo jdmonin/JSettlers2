@@ -22,6 +22,8 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.game.SOCPlayingPiece;
+
 
 /**
  * This message from the server conveys one part of a player's status,
@@ -301,6 +303,28 @@ public class SOCPlayerElement extends SOCMessage
     private final boolean news;
 
     /**
+     * Get the element type to send for a given {@link SOCPlayingPiece} type.
+     * @param ptype  Playing piece type constant, such as {@link SOCPlayingPiece#SETTLEMENT}
+     * @return  {@code ptype}'s element type for this message, such as {@link #SETTLEMENTS}
+     * @since 2.0.00
+     */
+    public static int elementTypeForPieceType(final int ptype)
+    {
+        final int et;
+
+        switch(ptype)
+        {
+        case SOCPlayingPiece.ROAD:        et = ROADS;        break;
+        case SOCPlayingPiece.SETTLEMENT:  et = SETTLEMENTS;  break;
+        case SOCPlayingPiece.CITY:        et = CITIES;       break;
+        case SOCPlayingPiece.SHIP:        et = SHIPS;        break;
+        default:  et = 0;
+        }
+
+        return et;
+    }
+
+    /**
      * Create a PlayerElement message.
      *
      * @param ga  name of the game
@@ -310,7 +334,8 @@ public class SOCPlayerElement extends SOCMessage
      * @param ac  the type of action: {@link #SET}, {@link #GAIN}, or {@link #LOSE}.
      *            Do not use {@link #GAIN_NEWS}, {@link #SET_NEWS}, or {@link #LOSE_NEWS} here, call
      *            {@link #SOCPlayerElement(String, int, int, int, int, boolean)} instead.
-     * @param et  the type of element, such as {@link #SETTLEMENTS}
+     * @param et  the type of element, such as {@link #SETTLEMENTS} or {@link #WHEAT}.
+     *            For playing pieces in general, see {@link #elementTypeForPieceType(int)}.
      * @param amt the amount to set or change the element
      * @throws IllegalArgumentException if {@code ac} is {@link #GAIN_NEWS}, {@link #SET_NEWS}, or {@link #LOSE_NEWS}
      * @see #SOCPlayerElement(String, int, int, int, int, boolean)
@@ -331,7 +356,8 @@ public class SOCPlayerElement extends SOCMessage
      * @param ac  the type of action: {@link #SET}, {@link #GAIN}, or {@link #LOSE}.
      *            Do not use {@link #GAIN_NEWS}, {@link #SET_NEWS}, or {@link #LOSE_NEWS} here,
      *            instead set {@code isNews} parameter.
-     * @param et  the type of element, such as {@link #SETTLEMENTS}
+     * @param et  the type of element, such as {@link #SETTLEMENTS} or {@link #WHEAT}.
+     *            For playing pieces in general, see {@link #elementTypeForPieceType(int)}.
      * @param amt the amount to set or change the element
      * @param isNews  Value to give the {@link #isNews()} flag
      * @see #SOCPlayerElement(String, int, int, int, int)

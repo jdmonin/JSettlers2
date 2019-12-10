@@ -383,6 +383,7 @@ public class SOCScenario
      * Players choose a unique Wonder and can build all 4 of its levels.
      * Each Wonder has its own requirements before they may start it,
      * such as several cities built or a port at a certain location.
+     * Player must also use an unplaced {@link SOCShip} to start building a Wonder.
      *<P>
      * When a player starts to build a Wonder, it's added to their Special Items for visibility; see below.
      *<P>
@@ -405,6 +406,7 @@ public class SOCScenario
      * initialized in {@link SOCGame#updateAtBoardLayout()}.  When a player starts to build a Wonder, a reference
      * to its {@link SOCSpecialItem} is placed into index 0 of their Special Items:
      * {@link SOCPlayer#setSpecialItem(String, int, SOCSpecialItem) pl.setSpecialItem("_SC_WOND", 0, item)}.
+     * Server will subtract 1 from player's available Ship count.
      *<P>
      * The player's request to build must use player item index (pi) 0, game item index (gi) 1 to <em>n</em>.
      * Completing all 4 levels of a Wonder ({@link SOCSpecialItem#SC_WOND_WIN_LEVEL}) wins the game.

@@ -140,6 +140,11 @@ When preparing to release a new version, testing should include:
            - Take turns, upgrade to warships, attack fortress until both are defeated
            - Pirate Fleet should disappear
            - Play a few more rounds; should see no exceptions from bot at server console
+     - Wonders
+       - Player with 0 available ships (built all 15 already) can't start to build a Wonder,
+         even if they have all other requirements
+       - Starting a Wonder deducts 1 ship from player's available count
+       - If observer joins after Wonder started, sees accurate ship count
 - Client preferences
     - Auto-reject bot trade offers:
         - Practice game: Test UI's trade behavior with and without preference

@@ -209,10 +209,21 @@ import javax.swing.border.EmptyBorder;
 
         final boolean playerOwnsWonder =
             (cliPlayer != null) && (cliPlayer.getSpecialItem(SOCGameOption.K_SC_WOND, 0) != null);
+        boolean hasStartingCostShip = false;  // true only if player has available ship && ! playerOwnsWonder
+        try
+        {
+            if ((cliPlayer != null) && ! playerOwnsWonder)
+                hasStartingCostShip = ga.getSpecialItem(typeKey, 1).checkStartingCostPiecetype(cliPlayer, false);
+                // assumes all special items have same startingCostPiecetype, which is true for SC_WOND
+        }
+        catch (Throwable th) {}  // null item, etc
 
         final String buildStr = strings.get("base.build");
         if ((cliPlayer != null) && ! playerOwnsWonder)
-            subtitle_prompt.setText(strings.get("dialog.specitem._SC_WOND.prompt"));  // "Choose the Wonder you will build."
+            subtitle_prompt.setText(strings.get
+                ((hasStartingCostShip)
+                 ? "dialog.specitem._SC_WOND.prompt"             // "Choose the Wonder you will build."
+                 : "dialog.specitem._SC_WOND.starting_cost" ));  // "Starting cost: Resources shown, and 1 ship used for ownership marker"
 
         for (int i = 0; i < numWonders; ++i)
         {
@@ -236,7 +247,7 @@ import javax.swing.border.EmptyBorder;
                 && (ga.getGameState() < SOCGame.OVER)
                 && (playerOwnsWonder)
                     ? (playerOwnsThis && itm.checkCost(cliPlayer))
-                    : ((owner == null) && itm.checkRequirements(cliPlayer, true));
+                    : ((owner == null) && hasStartingCostShip && itm.checkRequirements(cliPlayer, true));
             if (playerOwnsThis || ! playerOwnsWonder)
             {
                 final JButton b = new JButton(buildStr);
@@ -327,6 +338,18 @@ import javax.swing.border.EmptyBorder;
 
             L = new JLabel(sb.toString());
             gbc.gridx = GridBagConstraints.RELATIVE;
+            gbc.gridwidth = GridBagConstraints.REMAINDER;
+            gbl.setConstraints(L, gbc);
+            cpane.add(L);
+        }
+
+        if (hasStartingCostShip)
+        {
+            // footer row with reminder
+
+            L = new JLabel(strings.get("dialog.specitem._SC_WOND.starting_cost"));
+                // "Starting cost: Resources shown, and 1 ship used for ownership marker"
+            gbc.insets = insPadLR;
             gbc.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(L, gbc);
             cpane.add(L);

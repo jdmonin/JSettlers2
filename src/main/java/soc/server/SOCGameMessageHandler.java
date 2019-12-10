@@ -3012,6 +3012,7 @@ public class SOCGameMessageHandler
                 {
                     int replyPickOp = SOCSetSpecialItem.OP_PICK;  // may change to OP_SET_PICK or OP_CLEAR_PICK
                     int pickPN = pn, pickCoord = -1, pickLevel = 0;  // field values to send in reply/announcement
+                    boolean isStartingPick = false;  // if true, player paid starting-pick cost
                     String pickSV = null;  // sv field value to send
 
                     // When game index and player index are both given,
@@ -3033,9 +3034,10 @@ public class SOCGameMessageHandler
                         pickCoord = itm.getCoordinates();
                         pickLevel = itm.getLevel();
                         pickSV = itm.getStringValue();
+                        isStartingPick = (0 == pickLevel) && (null == itm.getPlayer());
                     }
 
-                    // perform the PICK in game
+                    // perform the PICK in game; if not allowed, throws IllegalStateException
                     paidCost = SOCSpecialItem.playerPickItem(typeKey, ga, pl, gi, pi);
 
                     // if cost paid, send resource-loss first
@@ -3126,6 +3128,17 @@ public class SOCGameMessageHandler
 
                     srv.messageToGame(gaName, new SOCSetSpecialItem
                         (gaName, replyPickOp, typeKey, gi, pi, pickPN, pickCoord, pickLevel, pickSV));
+
+                    if (isStartingPick)
+                    {
+                        final int startCostPType = itm.getStartingCostPiecetype();
+                        if (startCostPType != -1)
+                            // report player's new total piecetype count, to avoid confusion if client decremented it
+                            srv.messageToGame(gaName, new SOCPlayerElement
+                                (gaName, pn, SOCPlayerElement.SET,
+                                 SOCPlayerElement.elementTypeForPieceType(startCostPType),
+                                 pl.getNumPieces(startCostPType)));
+                    }
 
                 } else {
                     // OP_SET or OP_CLEAR
