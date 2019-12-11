@@ -81,8 +81,34 @@ When preparing to release a new version, testing should include:
     - Can play dev card before dice roll
     - Can win only on your own turn
         - This can be tested using the 6-player board's Special Building Phase
-- Game reset voting, with: 1 human 2 bots, 2 humans 1 bot, 2 humans 0 bots:
-  Humans can vote No to reject bots auto-vote Yes; test No and Yes
+    - Move robber/steal resources
+        - For these tests, can use the `debug` player and debug command `*FREEPLACE* 1`
+          to quickly build players' pieces, and `dev: 9 debug` to get each Soldier card
+        - Move robber to an unoccupied hex
+        - Move to steal from 1 player
+        - Move to a hex with 2 players' settlements, choose a player to steal from
+        - Sea board: Move pirate next to another player's ship to steal
+        - Sea board: Move next to 2 players' ships, choose a player to steal from
+        - Cloth Trade scenario: Move pirate, steal cloth instead of resources
+        - Cloth Trade scenario: Move pirate to a hex with 2 players' ships, choose 1, steal cloth or resources
+    - Can win by gaining Longest Road
+        - For these tests, can use the `debug` player and debug command `*FREEPLACE* 1`
+          to quickly build players' pieces and VP totals, then `rsrcs: 3 0 1 1 3 debug` to give
+          resources to build the last few connecting roads/last settlement
+        - Win as first player to have Longest Road
+        - Build roads to take Longest Road from another player
+        - Build settlement to split another player's Longest Road, giving a 3rd player the new Longest Road:
+          3rd player should win only when their turn begins
+    - Can win by gaining Largest Army
+        - For these tests, can use the `debug` player and debug command `*FREEPLACE* 1`
+          to quickly build pieces for VP totals, and `dev: 9 debug` to get each Soldier card
+        - With 8 VP and playing 3rd Soldier card, test each item in "Move robber/steal resources" list above:
+          The card should fully play out (choose player, etc) before awarding Largest Army and winning the game
+- Game reset voting
+    - To test process for rejecting/accepting the reset, ask for reset and answer No and Yes in each of these:
+        - 1 human 2 bots
+        - 2 humans 1 bot
+        - 2 humans 0 bots
 - Fog Hex reveal gives resources, during initial placement and normal game play:
      - Start server with vm property: `-Djsettlers.debug.board.fog=Y`
      - Start and begin playing a game with the Use Sea Board option
@@ -144,6 +170,7 @@ When preparing to release a new version, testing should include:
        - Player with 0 available ships (built all 15 already) can't start to build a Wonder,
          even if they have all other requirements
        - Starting a Wonder deducts 1 ship from player's available count
+       - Building more levels of that Wonder doesn't deduct a ship
        - If observer joins after Wonder started, sees accurate ship count
 - Client preferences
     - Auto-reject bot trade offers:

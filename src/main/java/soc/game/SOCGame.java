@@ -296,10 +296,12 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Possible next game states:
      *<UL>
-     * <LI> {@link #PLAY1}, after robbing no one or the single possible victim
+     * <LI> {@link #PLAY1}, after robbing no one or the single possible victim; from {@code oldGameState}
      * <LI> {@link #WAITING_FOR_ROB_CHOOSE_PLAYER} if multiple possible victims
      * <LI> In scenario {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}
      *   if the victim has cloth and has resources
+     * <LI> {@link #OVER}, if current player just won by gaining Largest Army
+     *   (when there aren't multiple possible victims or another robber-related choice to make)
      *</UL>
      * @see #PLACING_PIRATE
      * @see #canMoveRobber(int, int)
@@ -375,7 +377,9 @@ public class SOCGame implements Serializable, Cloneable
      * Waiting for player to choose a player to rob,
      * with the robber or pirate ship, after rolling 7 or
      * playing a Knight/Soldier card.
-     * Next game state is {@link #PLAY1} or {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}.
+     * Next game state is {@link #PLAY1}, {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE},
+     * or {@link #OVER} if player just won by gaining Largest Army.
+     *<P>
      * To see whether we're moving the robber or the pirate, use {@link #getRobberyPirateFlag()}.
      * To choose the player, call {@link #choosePlayerForRobbery(int)}.
      *<P>
@@ -416,6 +420,9 @@ public class SOCGame implements Serializable, Cloneable
      * Waiting for player to choose the robber or the pirate ship,
      * after {@link #rollDice()} or {@link #playKnight()}.
      * Next game state is {@link #PLACING_ROBBER} or {@link #PLACING_PIRATE}.
+     *<P>
+     * Moving from {@code WAITING_FOR_ROBBER_OR_PIRATE} to those states preserves {@code oldGameState}.
+     *
      * @see #canChooseMovePirate()
      * @see #chooseMovePirate(boolean)
      * @see #WAITING_FOR_DISCARDS
@@ -426,7 +433,12 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Waiting for player to choose whether to rob cloth or rob a resource.
      * Previous game state is {@link #PLACING_PIRATE} or {@link #WAITING_FOR_ROB_CHOOSE_PLAYER}.
+     * Next step: Call {@link #stealFromPlayer(int, boolean)} with result of that player's choice.
+     *<P>
+     * Next game state is {@link #PLAY1}, or {@link #OVER} if player just won by gaining Largest Army.
+     *<P>
      * Used with scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}.
+     *
      * @see #movePirate(int, int)
      * @see #canChooseRobClothOrResource(int)
      * @since 2.0.00
@@ -943,7 +955,7 @@ public class SOCGame implements Serializable, Cloneable
      *        {@code oldGameState} == {@link #PLAY1} or {@link #SPECIAL_BUILDING},
      *        same advance/cancel logic as other {@code PLACING_} states mentioned above.
      *<LI> {@link #PLACING_ROBBER}, {@link #WAITING_FOR_ROBBER_OR_PIRATE}:
-     *        <tt>oldGameState</tt> = {@link #PLAY1}
+     *        <tt>oldGameState</tt> = {@link #PLAY1} or {@link #OVER}
      *<LI> {@link #WAITING_FOR_ROB_CHOOSE_PLAYER}, {@link #PLACING_PIRATE}, {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}
      *<LI> {@link #WAITING_FOR_DISCOVERY} in {@link #playDiscovery()}, {@link #doDiscoveryAction(SOCResourceSet)}
      *<LI> {@link #WAITING_FOR_MONOPOLY} in {@link #playMonopoly()}, {@link #doMonopolyAction(int)}
@@ -6628,7 +6640,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * the current player has choosen a victim to rob.
-     * perform the robbery.  Set gameState back to oldGameState.
+     * perform the robbery.  Set gameState back to {@code oldGameState}.
      * The current player gets the stolen item.
      *<P>
      * For the cloth game scenario, can steal cloth, and can gain victory points from having
@@ -6636,6 +6648,8 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Does not validate <tt>pn</tt>; assumes {@link #canChoosePlayer(int)}
      * and {@link #choosePlayerForRobbery(int)} have been called already.
+     * Assumes current game state is {@link #PLACING_ROBBER} or
+     * {@link #WAITING_FOR_ROB_CHOOSE_PLAYER}.
      *
      * @param pn  the number of the player being robbed
      * @param choseCloth  player has both resources and {@link SOCPlayer#getCloth() cloth},
