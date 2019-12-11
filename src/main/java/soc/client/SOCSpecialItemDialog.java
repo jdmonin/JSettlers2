@@ -139,7 +139,15 @@ import javax.swing.border.EmptyBorder;
         this.pi = pi;
         this.typeKey = typeKey;
 
-        final Container cpane = getContentPane();
+        final int px3 = 3 * pi.displayScale;  // for spacing
+
+        Container cpane = getContentPane();
+        if (! (cpane instanceof JPanel))
+        {
+            cpane = new JPanel();
+            setContentPane(cpane);
+        }
+        ((JPanel) cpane).setBorder(new EmptyBorder(2 * px3, 2 * px3, px3, 2 * px3));
         GridBagLayout gbl = new GridBagLayout();
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.anchor = GridBagConstraints.LINE_START;
@@ -147,9 +155,9 @@ import javax.swing.border.EmptyBorder;
         setLayout(gbl);
 
         // most components pad to avoid text against adjacent component
-        final Insets insPadLR = new Insets(0, 3, 0, 3),
-            insPadL = new Insets(0, 3, 0, 0),
-            insPadBottom = new Insets(0, 0, 15, 0),    // wide bottom insets, as gap between wonders
+        final Insets insPadLR = new Insets(0, px3, 0, px3),
+            insPadL = new Insets(0, px3, 0, 0),
+            insPadBottom = new Insets(0, 0, 5 * px3, 0),    // wide bottom insets, as gap between wonders
             insNone = gbc.insets;
 
         ga = pi.getGame();
@@ -219,7 +227,9 @@ import javax.swing.border.EmptyBorder;
         catch (Throwable th) {}  // null item, etc
 
         final String buildStr = strings.get("base.build");
-        if ((cliPlayer != null) && ! playerOwnsWonder)
+        if (ga.getGameState() < SOCGame.START1A)
+            subtitle_prompt.setText(strings.get("dialog.specitem.start_game"));  // "Must start the game to see this info."
+        else if ((cliPlayer != null) && ! playerOwnsWonder)
             subtitle_prompt.setText(strings.get
                 ((hasStartingCostShip)
                  ? "dialog.specitem._SC_WOND.prompt"             // "Choose the Wonder you will build."
@@ -229,7 +239,7 @@ import javax.swing.border.EmptyBorder;
         {
             SOCSpecialItem itm = ga.getSpecialItem(typeKey, i+1);
             if (itm == null)
-                continue;  // shouldn't ever happen, unless SOCSpecialItem.makeKnownItem has failed
+                continue;  // shouldn't happen once game starts, unless SOCSpecialItem.makeKnownItem has failed
 
             // GBL Layout rows for a Wonder:
             // [Build] wonder name [sq][sq][sq][sq][sq] (cost) - requirements

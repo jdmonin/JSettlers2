@@ -2400,6 +2400,8 @@ public class SOCGame implements Serializable, Cloneable
      * This is not the union of each player's {@code spItems}, but a separately maintained list of items.
      * Only some scenarios and expansions use Special Items.
      *<P>
+     * Item list is empty if game not started or if {@link #updateAtBoardLayout()} hasn't yet been called.
+     *<P>
      * <B>Locks:</B> This getter is not synchronized: It's assumed that the structure of Special Item lists
      * is set up at game creation time, and not often changed.  If a specific item type or access pattern
      * requires synchronization, do so outside this class and document the details.
@@ -2425,6 +2427,8 @@ public class SOCGame implements Serializable, Cloneable
      * Get a special item of a given type, by index within the list of all items of that type in this game.
      * This is not the union of each player's {@code spItems}, but a separately maintained list of items.
      * Only some scenarios and expansions use Special Items.
+     *<P>
+     * Item list is empty if game not started or if {@link #updateAtBoardLayout()} hasn't yet been called.
      *<P>
      * <B>Locks:</B> This getter is not synchronized: It's assumed that the structure of Special Item lists
      * is set up at game creation time, and not often changed.  If a specific item type or access pattern
@@ -2459,6 +2463,8 @@ public class SOCGame implements Serializable, Cloneable
      * Get a special item of a given type, by index within the game's or player's list of all items of that type.
      * When both {@code gi} and {@code pi} are used, checks game first for an existing object, and if none (null),
      * checks the player. Only some scenarios and expansions use Special Items.
+     *<P>
+     * Item list is empty if game not started or if {@link #updateAtBoardLayout()} hasn't yet been called.
      *<P>
      * <B>Locks:</B> Call {@link #takeMonitor()} before calling this method.
      *
