@@ -614,10 +614,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     // private SOCBuildingSpeedEstimate buildingSpeed;
 
     /**
-     * For games at server, a convenient queue to hold any outbound {@code SOCMessage}s during game action callbacks.
-     * Public access for use by server classes. See {@link SOCGame#pendingMessagesOut} for more details.
+     * For games at server, a convenient queue to hold any outbound {@code SOCMessage}s to this player's client
+     * during game action callbacks. Public access for use by server classes.
+     * See {@link SOCGame#pendingMessagesOut} for more details.
      * If a message contains text field(s) or is dependent on the client version, localize or resolve it
      * before adding to this queue.
+     *<P>
+     * For pending messages to send to entire game, see {@link SOCGame#pendingMessagesOut}.
      *<P>
      * To send and clear this queue's contents, call {@code SOCGameHandler.sendGamePendingMessages(SOCGame, boolean)}.
      *<P>
@@ -1401,7 +1404,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @throws IndexOutOfBoundsException  if {@code idx} &lt; 0
      * @see SOCGame#setSpecialItem(String, int, SOCSpecialItem)
      */
-    public SOCSpecialItem setSpecialItem(final String typeKey, final int idx, SOCSpecialItem itm)
+    public SOCSpecialItem setSpecialItem(final String typeKey, final int idx, final SOCSpecialItem itm)
         throws IndexOutOfBoundsException
     {
         ArrayList<SOCSpecialItem> li = spItems.get(typeKey);

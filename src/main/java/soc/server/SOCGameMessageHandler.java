@@ -2275,6 +2275,9 @@ public class SOCGameMessageHandler
             srv.messageToGame(gaName, new SOCPutPiece
                               (gaName, mes.getPlayerNumber(), pieceType, coord));
 
+            if (! (ga.pendingMessagesOut.isEmpty() && player.pendingMessagesOut.isEmpty()))
+                handler.sendGamePendingMessages(ga, true);
+
             // Check for initial settlement next to gold hex, or road/ship revealed gold from fog
             final int numGoldRes = player.getNeedToPickGoldHexResources();
             if (numGoldRes > 0)

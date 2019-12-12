@@ -3956,8 +3956,9 @@ public class SOCGameHandler extends GameHandler
     }
 
     /**
-     * Sends the contents of this game's {@link SOCGame#pendingMessagesOut}, then empties that list.
-     * To avoid unnecessary work here, check if the list is empty before calling this method.
+     * Sends the contents of this game's {@link SOCGame#pendingMessagesOut} and its players'
+     * {@link SOCPlayer#pendingMessagesOut}, then empties those lists.
+     * To avoid unnecessary work here, check if the game's pending list is empty before calling this method.
      *<P>
      * <B>I18N:</B> Checks {@code pendingMessagesOut} for {@link SOCKeyedMessage}s and handles them accordingly.
      * Currently this is the only method that checks for those, because other places send text messages
@@ -3970,6 +3971,7 @@ public class SOCGameHandler extends GameHandler
      * {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gameName)}.
      * Otherwise call {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gameName)}
      * before calling this method.
+     *
      * @param ga  game with pending messages
      * @param takeMon Should this method take and release game's monitor via
      *     {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gameName)}?

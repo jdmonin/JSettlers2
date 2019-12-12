@@ -627,6 +627,8 @@ public class SOCGame implements Serializable, Cloneable
      * the pending PLAYERELEMENT message so that the game's clients will update that player's
      * {@link SOCPlayer#setPlayerEvents(int)} or other related fields, before the GAMESTATE message.
      *<P>
+     * For pending messages to send only to one player's client, see {@link SOCPlayer#pendingMessagesOut}.
+     *<P>
      * <B>Contents:</B> When sending out to game members, the server handles queue elements by class:
      *<UL>
      * <LI> {@code SOCKeyedMessage}: Localize and send
@@ -650,7 +652,6 @@ public class SOCGame implements Serializable, Cloneable
      * <B>Locking:</B> Not thread-safe, because all of a game's message handling
      * is done within a single thread.
      *
-     * @see SOCPlayer#pendingMessagesOut
      * @since 2.0.00
      */
     public transient List<Object> pendingMessagesOut;
