@@ -209,7 +209,7 @@ public class SOCScenario
              "The small islands' villages give you Cloth; every 2 cloth you have is 1 extra Victory Point. To gain cloth, "
              + "build ships to a village. You can't move the pirate until you've reached a village. "
              + "Each player to reach a village gets 1 of its cloth at that time, and 1 more "
-             + "whenever its number is rolled, until the village runs out. "
+             + "whenever its number is rolled, until the village runs out. Pirate can steal cloth or resources. "
              + "If fewer than 4 villages still have cloth, the game ends and the player "
              + "with the most VP wins. (If tied, player with most cloth wins.)",
              "_SC_CLVI=t,SBL=t,VP=t14,_SC_3IP=t,_SC_0RVP=t"));
