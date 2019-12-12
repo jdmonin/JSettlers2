@@ -91,17 +91,27 @@ When preparing to release a new version, testing should include:
         - Sea board: Move next to 2 players' ships, choose a player to steal from
         - Cloth Trade scenario: Move pirate, steal cloth instead of resources
         - Cloth Trade scenario: Move pirate to a hex with 2 players' ships, choose 1, steal cloth or resources
-    - Can win by gaining Longest Road
+        - Make sure another player has Largest Army, then play enough Soldier cards to take it from them
+    - Gain Longest Road/Route
         - For these tests, can use the `debug` player and debug command `*FREEPLACE* 1`
-          to quickly build players' pieces and VP totals, then `rsrcs: 3 0 1 1 3 debug` to give
-          resources to build the last few connecting roads/last settlement
-        - Win as first player to have Longest Road
-        - Build roads to take Longest Road from another player
-        - Build settlement to split another player's Longest Road, giving a 3rd player the new Longest Road:
-          3rd player should win only when their turn begins
+          to quickly build players' pieces and VP totals, then `rsrcs: 3 0 3 1 3 debug` to give
+          resources to build the last few connecting roads/ships/last settlement the usual way
+        - Situations to test:
+          - Be first player to have Longest Route
+          - Build roads/ships to take Longest Route from another player
+          - Build settlement to split another player's Longest Route, giving a 3rd player the new Longest Route.
+            (Skip this situation if testing for "move a ship".)
+            If this ends the game, 3rd player should win only when their turn begins
+        - Piece types to test each situation with:
+          - Build roads only
+          - Build a route that has roads and ships (through a coastal settlement)
+          - Move a ship to gain Longest Route
+    - Can win by gaining Longest Road/Route
+        - To set up for each test, can use debug command `*FREEPLACE* 1` to quickly build pieces for VP totals;
+          be careful to not gain longest route before the test begins
+        - With 8 VP, test each item in "Gain Longest Road/Route" list above
     - Can win by gaining Largest Army
-        - For these tests, can use the `debug` player and debug command `*FREEPLACE* 1`
-          to quickly build pieces for VP totals, and `dev: 9 debug` to get each Soldier card
+        - To set up for each test, can use debug command `*FREEPLACE* 1` to quickly build pieces for VP totals
         - With 8 VP and playing 3rd Soldier card, test each item in "Move robber/steal resources" list above:
           The card should fully play out (choose player, etc) before awarding Largest Army and winning the game
 - Game reset voting
