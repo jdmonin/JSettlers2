@@ -1957,7 +1957,7 @@ public class SOCGameHandler extends GameHandler
             /**
              * make the request
              */
-            D.ebugPrintln("@@@ JOIN GAME REQUEST for " + robotConn.getData());
+            // D.ebugPrintln("@@@ JOIN GAME REQUEST for " + robotConn.getData());
 
             final int seatNumber = ((Integer) seatNumberObj).intValue();
 

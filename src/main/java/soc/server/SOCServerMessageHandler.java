@@ -1671,7 +1671,7 @@ public class SOCServerMessageHandler
         if (c == null)
             return;
 
-        D.ebugPrintln("handleJOINGAME: " + mes);
+        // D.ebugPrintln("handleJOINGAME: " + mes);
 
         /**
          * Check the client's reported version; if none, assume 1000 (1.0.00)

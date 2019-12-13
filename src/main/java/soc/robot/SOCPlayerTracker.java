@@ -810,8 +810,8 @@ public class SOCPlayerTracker
                         newPR = new SOCPossibleRoad(player, edge, null);
                     } else {
                         newPR = new SOCPossibleShip(player, edge, isCoastal, null);
-                        System.err.println
-                            ("L793: " + toString() + ": new PossibleShip(" + isCoastal + ") at 0x" + Integer.toHexString(edge));
+                        // System.err.println
+                        //     ("L793: " + toString() + ": new PossibleShip(" + isCoastal + ") at 0x" + Integer.toHexString(edge));
                     }
                     newPR.setNumberOfNecessaryRoads(roadsBetween);  // 0 unless requires settlement
                     newPossibleRoads.add(newPR);
@@ -1096,8 +1096,8 @@ public class SOCPlayerTracker
                             newPR = new SOCPossibleRoad(player, edge, neededRoads);
                         } else {
                             newPR = new SOCPossibleShip(player, edge, isCoastal, neededRoads);
-                            System.err.println
-                                ("L1072: " + toString() + ": new PossibleShip(" + isCoastal + ") at 0x" + Integer.toHexString(edge));
+                            // System.err.println
+                            //     ("L1072: " + toString() + ": new PossibleShip(" + isCoastal + ") at 0x" + Integer.toHexString(edge));
                         }
                         newPR.setNumberOfNecessaryRoads(targetRoad.getNumberOfNecessaryRoads() + incrDistance);
                         targetRoad.addNewPossibility(newPR);
@@ -1675,17 +1675,21 @@ public class SOCPlayerTracker
                     possibleNewIslandRoads.add( (isCoastline)
                         ? new SOCPossibleShip(player, edge, true, null)
                         : new SOCPossibleRoad(player, edge, null));
+                    /*
                     if (isCoastline)
                         System.err.println
                             ("L1675: " + toString() + ": new PossibleShip(true) at 0x" + Integer.toHexString(edge));
+                     */
                 }
                 else if (player.isPotentialShip(edge))
                 {
                     // A way out to a new island
+
                     SOCPossibleShip newPS = new SOCPossibleShip(player, edge, false, null);
                     possibleRoads.put(edge, newPS);
-                    System.err.println("L1685: " + toString() + ": new PossibleShip(false) at 0x" + Integer.toHexString(edge)
-                        + " from coastal settle 0x" + Integer.toHexString(settlementCoords));
+                    // System.err.println("L1685: " + toString() + ": new PossibleShip(false) at 0x" + Integer.toHexString(edge)
+                    //     + " from coastal settle 0x" + Integer.toHexString(settlementCoords));
+
                     if (roadsToExpand == null)
                         roadsToExpand = new ArrayList<SOCPossibleRoad>();
                     roadsToExpand.add(newPS);

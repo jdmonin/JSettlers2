@@ -5183,11 +5183,6 @@ public class SOCServer extends Server
          * whether a new replacement connection can "take over" the existing one.
          */
         final int nameTimeout = checkNickname(msgUser, c, (msgPass != null) && (msgPass.length() > 0), false);
-        System.err.println
-            ("L4910 past checkNickname at " + System.currentTimeMillis()
-             + (((nameTimeout == 0) || (nameTimeout == -1))
-                ? (" for " + msgUser)
-                : ""));
 
         if (nameTimeout == -1)
         {
@@ -5200,20 +5195,17 @@ public class SOCServer extends Server
                          MSG_NICKNAME_ALREADY_IN_USE));
                 return;
             }
-        } else if (nameTimeout == -2)
-        {
+        } else if (nameTimeout == -2) {
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_NAME_NOT_ALLOWED, cliVers,
                      c.getLocalized("account.auth.nickname_not_allowed")));  // "This nickname is not allowed."
             return;
-        } else if (nameTimeout <= -1000)
-        {
+        } else if (nameTimeout <= -1000) {
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                      checkNickname_getVersionText(-nameTimeout)));
             return;
-        } else if (nameTimeout > 0)
-        {
+        } else if (nameTimeout > 0) {
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                      (allowTakeover) ? checkNickname_getRetryText(nameTimeout) : MSG_NICKNAME_ALREADY_IN_USE));
@@ -5814,7 +5806,6 @@ public class SOCServer extends Server
         (Connection c, String msgUser, String msgPass,
          String gameName, final Map<String, SOCGameOption> gameOpts)
     {
-        System.err.println("L4885 createOrJoinGameIfUserOK at " + System.currentTimeMillis());
         if (gameName != null)
             gameName = gameName.trim();
         final int cliVers = c.getVersion();
@@ -5868,7 +5859,6 @@ public class SOCServer extends Server
 
             return;  // <---- Early return ----
         }
-        System.err.println("L4965 past user,pw check at " + System.currentTimeMillis());
 
         /**
          * If creating a new game, check game name format
@@ -5916,7 +5906,6 @@ public class SOCServer extends Server
          * Validate them and ensure the game doesn't already exist.
          * For SOCScenarios, adjustOptionsToKnown will recognize game opt "SC".
          */
-        System.err.println("L4965 game opts check at " + System.currentTimeMillis());
         if (gameOpts != null)
         {
             if (gameList.isGame(gameName))
@@ -5954,7 +5943,6 @@ public class SOCServer extends Server
          *<P>
          * If rejoining after a lost connection, first rejoin all their other games.
          */
-        System.err.println("L5034 ready connectToGame at " + System.currentTimeMillis());
         try
         {
             if (0 != (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME))
@@ -5991,14 +5979,9 @@ public class SOCServer extends Server
                  * send the entire state of the game to client,
                  * send client join event to other players of game
                  */
-                System.err.println("L5065 past connectToGame at " + System.currentTimeMillis());
                 SOCGame gameData = gameList.getGameData(gameName);
-
                 if (gameData != null)
-                {
                     joinGame(gameData, c, false, false);
-                }
-                System.err.println("L5072 past joinGame at " + System.currentTimeMillis());
             }
         } catch (SOCGameOptionVersionException e)
         {
@@ -6038,7 +6021,6 @@ public class SOCServer extends Server
                     + ": " + gameName));
             }
         }
-        System.err.println("L5099 done createOrJoinGameIfUserOK at " + System.currentTimeMillis());
 
     }  //  createOrJoinGameIfUserOK
 
@@ -6234,7 +6216,7 @@ public class SOCServer extends Server
             {
                 if (robotSeatsConns[i] != null)
                 {
-                    D.ebugPrintln("@@@ JOIN GAME REQUEST for " + robotSeatsConns[i].getData());
+                    // D.ebugPrintln("@@@ JOIN GAME REQUEST for " + robotSeatsConns[i].getData());
                     robotSeatsConns[i].put(SOCBotJoinGameRequest.toCmd(gname, i, gopts));
                 }
             }
@@ -7115,7 +7097,7 @@ public class SOCServer extends Server
             SOCSitDown sitMessage = new SOCSitDown(gaName, c.getData(), pn, robot);
             messageToGame(gaName, sitMessage);
 
-            D.ebugPrintln("*** sent SOCSitDown message to game ***");
+            // D.ebugPrintln("*** sent SOCSitDown message to game ***");
 
             recordGameEvent(gaName, sitMessage);
 
