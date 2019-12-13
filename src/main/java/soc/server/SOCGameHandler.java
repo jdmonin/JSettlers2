@@ -2069,7 +2069,7 @@ public class SOCGameHandler extends GameHandler
      * @param ga  the game
      * @param omitGameStateMessage  if true, don't send the {@link SOCGameState} message itself
      *    but do send any other messages as described above. For use just after sending a message which
-     *    includes a Game State field.
+     *    includes a Game State field. Ignored if gamestate >= {@link SOCGame#OVER}.
      * @param sendRollPrompt  If true and state is {@link SOCGame#ROLL_OR_CARD}, send game a {@code RollDicePrompt}.
      * @return  If true, caller ({@code sendTurn}) should send game a {@code RollDicePrompt}
      *    because {@code sendRollPrompt} is false, although they may send other messages first.
@@ -2096,7 +2096,7 @@ public class SOCGameHandler extends GameHandler
                 : new SOCSetTurn(gname, cpn));
         }
 
-        if (! omitGameStateMessage)
+        if ((! omitGameStateMessage) || (gaState >= SOCGame.OVER))
             srv.messageToGame(gname, new SOCGameState(gname, gaState));
 
         SOCPlayer player = null;

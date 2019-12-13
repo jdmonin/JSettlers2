@@ -709,16 +709,17 @@ public class SOCPlayerClient
         mainDisplay.addToGameList(hasUnjoinMarker, gameName, gameOptsStr, addToSrvList);
     }
 
-    /** If we're playing in a game that's just finished, update the scores.
-     *  This is used to show the true scores, including hidden
-     *  victory-point cards, at the game's end.
-     *  @since 1.1.00
+    /**
+     * If we're playing in or observing a game that's just finished, update the scores.
+     * This is used to show the true scores, including hidden
+     * victory-point cards, at the game's end.
+     * @since 1.1.00
      */
     public void updateGameEndStats(String game, final int[] scores)
     {
         SOCGame ga = games.get(game);
         if (ga == null)
-            return;  // Not playing in that game
+            return;  // Not playing in or observing that game
 
         if (ga.getGameState() != SOCGame.OVER)
         {

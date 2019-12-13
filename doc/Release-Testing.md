@@ -114,6 +114,13 @@ When preparing to release a new version, testing should include:
         - To set up for each test, can use debug command `*FREEPLACE* 1` to quickly build pieces for VP totals
         - With 8 VP and playing 3rd Soldier card, test each item in "Move robber/steal resources" list above:
           The card should fully play out (choose player, etc) before awarding Largest Army and winning the game
+- Game info sent to observer
+    - Start and begin playing a game as `debug` player
+    - Give another player enough Victory Point dev cards to win: `dev: 5 playername` etc
+    - Start another client, join game as observer
+    - Observer should see accurate stats for public parts of game (not cards in hand or true VP totals, etc)
+    - Let the game end
+    - Observer should see same end-of-game announcements and total VP as players, including VP totals in hand panels
 - Game reset voting
     - To test process for rejecting/accepting the reset, ask for reset and answer No and Yes in each of these:
         - 1 human 2 bots
