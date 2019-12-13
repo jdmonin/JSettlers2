@@ -112,8 +112,9 @@ When preparing to release a new version, testing should include:
         - With 8 VP, test each item in "Gain Longest Road/Route" list above
     - Can win by gaining Largest Army
         - To set up for each test, can use debug command `*FREEPLACE* 1` to quickly build pieces for VP totals
-        - With 8 VP and playing 3rd Soldier card, test each item in "Move robber/steal resources" list above:
-          The card should fully play out (choose player, etc) before awarding Largest Army and winning the game
+        - With 8 VP and playing 3rd Soldier card, test each item in "Move robber/steal resources" list above.
+          When card is played, game might immediately award Largest Army and Hand Panel might show 10 VP.
+          Card should fully play out (choose player, etc) before server announces game is over.
 - Game info sent to observer
     - Start and begin playing a game as `debug` player
     - Give another player enough Victory Point dev cards to win: `dev: 5 playername` etc

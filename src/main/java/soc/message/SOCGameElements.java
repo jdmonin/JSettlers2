@@ -79,6 +79,8 @@ public class SOCGameElements extends SOCMessageTemplateMi
 
     /**
      * Player number of player with largest army, or -1, from {@link SOCGame#getPlayerWithLargestArmy()}.
+     * Sent when a client joins a game. Not sent during game play when Largest Army player changes:
+     * Client updates that display by examining game state; see {@link SOCPlayerElement#NUMKNIGHTS}.
      *<P>
      * Versions before v2.0.00 sent {@link SOCLargestArmy} instead.
      */
@@ -86,6 +88,9 @@ public class SOCGameElements extends SOCMessageTemplateMi
 
     /**
      * Player number of player with longest road, or -1, from {@link SOCGame#getPlayerWithLongestRoad()}.
+     * Sent when a client joins a game. Not sent during game play when Longest Road player changes:
+     * Client updates that display by examining game state;
+     * see {@link SOCPutPiece}({@link soc.game.SOCPlayingPiece#ROAD ROAD}).
      *<P>
      * Versions before v2.0.00 sent {@link SOCLongestRoad} instead.
      */

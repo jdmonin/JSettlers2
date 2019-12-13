@@ -22,6 +22,8 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.game.SOCGame;    // for javadocs only
+import soc.game.SOCPlayer;  // for javadocs only
 import soc.game.SOCPlayingPiece;
 
 
@@ -109,12 +111,19 @@ public class SOCPlayerElement extends SOCMessage
 
     /**
      * Number of knights in player's army; sent after a Soldier card is played.
+     *<P>
+     * During normal gameplay, "largest army" indicator at client is updated
+     * by examining game state, not by {@link SOCGameElements#LARGEST_ARMY_PLAYER} message from server:
+     *<BR>
+     * Client should update player's number of knights with {@link SOCPlayer#setNumKnights(int)},
+     * then game's largest army by calling {@link SOCGame#updateLargestArmy()},
+     * then update any related displays.
      */
     public static final int NUMKNIGHTS = 15;
 
     /**
      * For the 6-player board, player element type for asking to build
-     * during the {@link soc.game.SOCGame#SPECIAL_BUILDING Special Building Phase}.
+     * during the {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
      * This element is {@link #SET} to 1 or 0.
      * @since 1.1.08
      */
@@ -163,10 +172,10 @@ public class SOCPlayerElement extends SOCMessage
      * For the {@link soc.game.SOCBoardLarge large sea board},
      * player element type for asking to choose
      * resources from the gold hex after a dice roll,
-     * during the {@link soc.game.SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE WAITING_FOR_PICK_GOLD_RESOURCE}
+     * during the {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE WAITING_FOR_PICK_GOLD_RESOURCE}
      * game state.
      * This element is {@link #SET} to 0 or to the number of resources to choose.
-     * Call {@link soc.game.SOCPlayer#setNeedToPickGoldHexResources(int)}.
+     * Call {@link SOCPlayer#setNeedToPickGoldHexResources(int)}.
      * @since 2.0.00
      */
     public static final int NUM_PICK_GOLD_HEX_RESOURCES = 101;
@@ -175,7 +184,7 @@ public class SOCPlayerElement extends SOCMessage
      * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
      * the player's number of Special Victory Points (SVP).
      * This element is {@link #SET} to 0 or to the player's
-     * {@link soc.game.SOCPlayer#getSpecialVP()}.
+     * {@link SOCPlayer#getSpecialVP()}.
      * @since 2.0.00
      */
     public static final int SCENARIO_SVP = 102;
@@ -184,7 +193,7 @@ public class SOCPlayerElement extends SOCMessage
      * For the {@link soc.game.SOCBoardLarge large sea board},
      * bitmask of flags related to {@link soc.game.SOCPlayerEvent}s.
      * This element is {@link #SET} to 0 or to the player's flags
-     * from {@link soc.game.SOCPlayer#getPlayerEvents()}.
+     * from {@link SOCPlayer#getPlayerEvents()}.
      * @since 2.0.00
      */
     public static final int PLAYEREVENTS_BITMASK = 103;
@@ -193,7 +202,7 @@ public class SOCPlayerElement extends SOCMessage
      * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
      * bitmask of land areas for tracking Special Victory Points (SVP).
      * This element is {@link #SET} to 0 or to the player's land areas
-     * from {@link soc.game.SOCPlayer#getScenarioSVPLandAreas()}.
+     * from {@link SOCPlayer#getScenarioSVPLandAreas()}.
      * @since 2.0.00
      */
     public static final int SCENARIO_SVP_LANDAREAS_BITMASK = 104;
@@ -210,7 +219,7 @@ public class SOCPlayerElement extends SOCMessage
      * For scenario <tt>_SC_CLVI</tt> on the {@link soc.game.SOCBoardLarge large sea board},
      * the number of cloth held by this player.
      * This element is {@link #SET} to 0 or to the player's cloth count
-     * from {@link soc.game.SOCPlayer#getCloth()}.
+     * from {@link SOCPlayer#getCloth()}.
      * After giving cloth to a player, check their total VP; 2 cloth = 1 Victory Point.
      *<P>
      * The board's "general supply" is updated with this element type
