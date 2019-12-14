@@ -1475,11 +1475,11 @@ public class SOCServerMessageHandler
              || "*".equals(ch))
         {
             c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
-                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
-              // "This game name is not permitted, please choose a different name."
+                   (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
+                    c.getLocalized("netmsg.status.common.newgame_name_rejected")));
+            // "This name is not permitted, please choose a different name."
 
-              return;  // <---- Early return ----
+            return;  // <---- Early return ----
         }
 
         /**
@@ -1490,10 +1490,9 @@ public class SOCServerMessageHandler
             && (SOCServer.CLIENT_MAX_CREATE_CHANNELS <= ((SOCClientData) c.getAppData()).getcurrentCreatedChannels()))
         {
             c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_NEWCHANNEL_TOO_MANY_CREATED, cliVers,
-                     SOCStatusMessage.MSG_SV_NEWCHANNEL_TOO_MANY_CREATED
-                     + Integer.toString(SOCServer.CLIENT_MAX_CREATE_CHANNELS)));
-            // Too many of your chat channels still active; maximum: 2
+                   (SOCStatusMessage.SV_NEWCHANNEL_TOO_MANY_CREATED, cliVers,
+                    c.getLocalized("netmsg.status.newchannel_too_many_created", SOCServer.CLIENT_MAX_CREATE_CHANNELS)));
+            // "Too many of your chat channels still active; maximum: 2"
 
             return;  // <---- Early return ----
         }

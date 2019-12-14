@@ -5174,7 +5174,8 @@ public class SOCServer extends Server
         {
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
-                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));
+                     c.getLocalized("netmsg.status.common.newgame_name_too_long", PLAYER_NAME_MAX_LENGTH)));
+                         // "Please choose a shorter name; maximum length: 20"
             return;
         }
 
@@ -5849,13 +5850,12 @@ public class SOCServer extends Server
         /**
          * Check that the game name length is ok
          */
-        // TODO I18N
         if (gameName.length() > SOCGameList.GAME_NAME_MAX_LENGTH)
         {
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
-                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + SOCGameList.GAME_NAME_MAX_LENGTH));
-            // Please choose a shorter name; maximum length: 30
+                     c.getLocalized("netmsg.status.common.newgame_name_too_long", SOCGameList.GAME_NAME_MAX_LENGTH)));
+            // "Please choose a shorter name; maximum length: 30"
 
             return;  // <---- Early return ----
         }
@@ -5873,8 +5873,8 @@ public class SOCServer extends Server
             {
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_NEWGAME_TOO_MANY_CREATED, cliVers,
-                         SOCStatusMessage.MSG_SV_NEWGAME_TOO_MANY_CREATED + Integer.toString(CLIENT_MAX_CREATE_GAMES)));
-                // Too many of your games still active; maximum: 5
+                         c.getLocalized("netmsg.status.newgame_too_many_created", CLIENT_MAX_CREATE_GAMES)));
+                // "Too many of your games still active; maximum: 5"
 
                 return;  // <---- Early return ----
             }
@@ -5884,7 +5884,7 @@ public class SOCServer extends Server
             {
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
-                         SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
+                         c.getLocalized("netmsg.status.common.newgame_name_rejected")));
                 // "This name is not permitted, please choose a different name."
 
                 return;  // <---- Early return ----
@@ -5894,7 +5894,7 @@ public class SOCServer extends Server
             {
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
-                         SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED_DIGITS_OR_PUNCT));
+                         c.getLocalized("netmsg.status.common.newgame_name_rejected_digits_or_punct")));
                 // "A name with only digits or punctuation is not permitted, please add a letter."
 
                 return;  // <---- Early return ----
@@ -5912,7 +5912,7 @@ public class SOCServer extends Server
             {
                 c.put(SOCStatusMessage.toCmd
                       (SOCStatusMessage.SV_NEWGAME_ALREADY_EXISTS, cliVers,
-                       SOCStatusMessage.MSG_SV_NEWGAME_ALREADY_EXISTS));
+                       c.getLocalized("netmsg.status.common.newgame_already_exists")));
                 // "A game with this name already exists, please choose a different name."
 
                 return;  // <---- Early return ----
@@ -6890,7 +6890,8 @@ public class SOCServer extends Server
         {
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
-                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
+                     c.getLocalized("netmsg.status.common.newgame_name_rejected")));
+                         // "This name is not permitted, please choose a different name."
             return;
         }
 
@@ -6898,7 +6899,8 @@ public class SOCServer extends Server
         {
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
-                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));
+                     c.getLocalized("netmsg.status.common.newgame_name_too_long", PLAYER_NAME_MAX_LENGTH)));
+                         // "Please choose a shorter name; maximum length: 20"
             return;
         }
 

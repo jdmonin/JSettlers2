@@ -75,7 +75,6 @@ import soc.game.SOCGameOption;
 import soc.game.SOCScenario;
 import soc.game.SOCVersionedItem;
 import soc.message.SOCMessage;
-import soc.message.SOCStatusMessage;
 import soc.util.SOCGameList;
 import soc.util.SOCStringManager;
 import soc.util.Version;
@@ -1370,18 +1369,18 @@ import soc.util.Version;
         String errMsg = null;
         if (L > SOCGameList.GAME_NAME_MAX_LENGTH)
         {
-            errMsg = SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + SOCGameList.GAME_NAME_MAX_LENGTH;
-                // "Please choose a shorter name; maximum length: "  TODO I18N
+            errMsg = strings.get("netmsg.status.common.newgame_name_too_long", SOCGameList.GAME_NAME_MAX_LENGTH);
+                // "Please choose a shorter name; maximum length: {0}"
         }
         else if (! SOCMessage.isSingleLineAndSafe(gmName))
         {
-            errMsg = SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED;
-                // "This name is not permitted, please choose a different name."  TODO I18N
+            errMsg = strings.get("netmsg.status.common.newgame_name_rejected");
+                // "This name is not permitted, please choose a different name."
         }
         else if (SOCGameList.REGEX_ALL_DIGITS_OR_PUNCT.matcher(gmName).matches())
         {
-            errMsg = SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED_DIGITS_OR_PUNCT;
-                // "A name with only digits or punctuation is not permitted, please add a letter."  TODO I18N
+            errMsg = strings.get("netmsg.status.common.newgame_name_rejected_digits_or_punct");
+                // "A name with only digits or punctuation is not permitted, please add a letter."
         }
         if (errMsg != null)
         {
@@ -1399,7 +1398,9 @@ import soc.util.Version;
          */
         if (cl.doesGameExist(gmName, forPractice))
         {
-            NotifyDialog.createAndShow(mainDisplay, this, SOCStatusMessage.MSG_SV_NEWGAME_ALREADY_EXISTS, null, true);
+            NotifyDialog.createAndShow
+                (mainDisplay, this, strings.get("netmsg.status.common.newgame_already_exists"), null, true);
+                    // "A game with this name already exists, please choose a different name."
             return;
         }
 

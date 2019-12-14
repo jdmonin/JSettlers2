@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009,2013-2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2013-2014,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -160,8 +160,6 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
         }
         catch (Exception e)
         {
-            System.err.println("L168 NGWOR.parseDataStr failed for \"" + s + "\": " + e);
-            e.printStackTrace();
             return null;
         }
 

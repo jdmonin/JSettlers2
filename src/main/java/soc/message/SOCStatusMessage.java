@@ -189,15 +189,16 @@ public class SOCStatusMessage extends SOCMessage
     public static final int SV_NEWGAME_ALREADY_EXISTS = 11;
 
     /**
-     * New game requested, but name of game or player does not meet standards = 12
+     * New game requested, but name of game or player does not meet standards = 12.
+     * May be because of special characters, is only digits or punctuation, etc.
      * @see soc.server.SOCServer#createOrJoinGameIfUserOK
      * @since 1.1.07
      */
     public static final int SV_NEWGAME_NAME_REJECTED = 12;
 
     /**
-     * New game requested, but name of game or player is too long = 13.
-     * The text returned with this status shall indicate the max permitted length.
+     * New game or auth requested, but name of game or player is too long = 13.
+     * The text returned with this status shall include the max permitted length.
      * @see soc.server.SOCServer#createOrJoinGameIfUserOK
      * @since 1.1.07
      */
@@ -319,63 +320,14 @@ public class SOCStatusMessage extends SOCMessage
     // If the message text is structured or delimited, explain its format in the new value's javadoc.
 
     /**
-     * Text for server or client to present: New game requested,
-     * but this game already exists
-     * @since 1.1.07
-     */
-    public static final String MSG_SV_NEWGAME_ALREADY_EXISTS
-        = "A game with this name already exists, please choose a different name.";
-
-    /**
-     * Text for server or client to present: New game or auth requested,
-     * but game name or player name does not meet standards
-     * @see #MSG_SV_NEWGAME_NAME_REJECTED_DIGITS_OR_PUNCT
-     * @since 1.1.07
-     */
-    public static final String MSG_SV_NEWGAME_NAME_REJECTED
-        = "This name is not permitted, please choose a different name.";
-
-    /**
-     * Text for server or client to present: New game or User auth requested,
-     * but game name or player name is only digits or punctuation, so does not meet standards
-     * @see #MSG_SV_NEWGAME_NAME_REJECTED
-     * @since 2.0.00
-     */
-    public static final String MSG_SV_NEWGAME_NAME_REJECTED_DIGITS_OR_PUNCT
-        = "A name with only digits or punctuation is not permitted, please add a letter.";
-
-    /**
-     * Text for server or client to present: New game or auth requested,
-     * but game name or player name is too long.  Maximum permitted length
-     * is appended to this message after the trailing ":".
-     * @since 1.1.07
-     */
-    public static final String MSG_SV_NEWGAME_NAME_TOO_LONG
-        = "Please choose a shorter name; maximum length: ";
-
-    /**
-     * Text for {@link #SV_NEWGAME_TOO_MANY_CREATED}.
-     * Maximum game count is appended to this after the trailing ":".
-     * @since 1.1.10
-     */
-    public static final String MSG_SV_NEWGAME_TOO_MANY_CREATED
-        = "Too many of your games still active; maximum: ";
-
-    /**
-     * Text for {@link #SV_NEWCHANNEL_TOO_MANY_CREATED}.
-     * Maximum channel count is appended to this after the trailing ":".
-     * @since 1.1.10
-     */
-    public static final String MSG_SV_NEWCHANNEL_TOO_MANY_CREATED
-        = "Too many of your chat channels still active; maximum: ";
-
-    /**
-     * Status message
+     * Status text to show user; see {@link #getStatus()}.
+     * @see #svalue
      */
     private String status;
 
     /**
      * Optional status value; defaults to 0 ({@link #SV_OK})
+     * @see #status
      * @since 1.1.06
      */
     private int svalue;
@@ -413,6 +365,13 @@ public class SOCStatusMessage extends SOCMessage
     }
 
     /**
+     * Get the status text sent to show the user.
+     * Might have details about this status and its cause.
+     *<P>
+     * <B>I18N:</B> Server v2.0.00 and newer will localize
+     * this status text for the client, if available.
+     * Not all status codes are sent frequently enough to be localized.
+     *
      * @return the status message text. Is allowed to contain {@link SOCMessage#sep2} characters.
      */
     public String getStatus()

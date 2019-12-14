@@ -86,7 +86,6 @@ import soc.message.SOCMessage;
 import soc.message.SOCNewGameWithOptions;
 import soc.message.SOCNewGameWithOptionsRequest;
 import soc.message.SOCScenarioInfo;
-import soc.message.SOCStatusMessage;
 import soc.server.SOCServer;
 import soc.util.SOCFeatureSet;
 import soc.util.SOCGameList;
@@ -1590,7 +1589,8 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
         if (! SOCMessage.isSingleLineAndSafe(n))
         {
-            status.setText(SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED);
+            status.setText(client.strings.get("netmsg.status.common.newgame_name_rejected"));
+                // "This name is not permitted, please choose a different name."
             return null;
         }
 

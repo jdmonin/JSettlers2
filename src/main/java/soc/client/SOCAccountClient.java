@@ -735,7 +735,8 @@ public class SOCAccountClient extends Applet
             nickname = nick.getText().trim();
             if (! SOCMessage.isSingleLineAndSafe(nickname))
             {
-                status.setText(SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED);  // I18N
+                status.setText(strings.get("netmsg.status.common.newgame_name_rejected"));
+                    // "This name is not permitted, please choose a different name."
                 nick.requestFocusInWindow();
 
                 return;  // Not a valid username
