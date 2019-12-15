@@ -5239,9 +5239,9 @@ public class SOCServer extends Server
 
         if (msgPass.length() > SOCAuthRequest.PASSWORD_LEN_MAX)
         {
-            final String txt  // I18N TODO: Check client; might already substitute text based on SV value
-                = /*I*/"Incorrect password for '" + msgUser + "'." /*18N*/;
-            c.put(SOCStatusMessage.toCmd(SOCStatusMessage.SV_PW_WRONG, c.getVersion(), txt));
+            c.put(SOCStatusMessage.toCmd
+                     (SOCStatusMessage.SV_PW_WRONG, c.getVersion(),
+                      c.getLocalized("netmsg.status.incorrect_password", msgUser)));  // "Incorrect password for "msgUser"."
             return;
         }
 
@@ -5305,9 +5305,9 @@ public class SOCServer extends Server
         {
             // Password too long, or user found in database but password incorrect
 
-            final String txt  // I18N TODO: Check client; might already substitute text based on SV value
-                = /*I*/"Incorrect password for '" + msgUser + "'." /*18N*/;
-            final String msg = SOCStatusMessage.toCmd(SOCStatusMessage.SV_PW_WRONG, c.getVersion(), txt);
+            final String msg = SOCStatusMessage.toCmd
+                (SOCStatusMessage.SV_PW_WRONG, c.getVersion(),
+                 c.getLocalized("netmsg.status.incorrect_password", msgUser));  // "Incorrect password for "msgUser"."
             if (hadDelay)
                 c.put(msg);
             else
@@ -5994,6 +5994,7 @@ public class SOCServer extends Server
         {
             // Let them know they can't join; include the game's version.
             // This cli asked to created it, otherwise gameOpts would be null.
+            // I18N note: If localizing "Cannot create" text, can't use sep2_char in that localized text
             c.put(SOCStatusMessage.toCmd
               (SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW, cliVers,
                 "Cannot create game with these options; requires version "
