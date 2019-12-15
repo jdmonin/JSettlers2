@@ -364,9 +364,19 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
     /**
      * Status from server, or progress/error message updated by client.
+     * @see #showStatus(String, boolean, boolean)
      * @see #clearWaitingStatus(boolean)
+     * @see #statusOKText
      */
     protected JTextField status;
+
+    /**
+     * If most recent {@link #showStatus(String, boolean, boolean)} was OK, its text.
+     * Otherwise {@code null}.
+     * @see #clearWaitingStatus(boolean)
+     * @since 2.0.00
+     */
+    private String statusOKText;
 
     /**
      * Chat channel name to create or join with {@link #jc} button.
@@ -1872,11 +1882,18 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *<P>
+     * If {@code clearStatus} is true and the most recent Server Status code is "OK",
+     * will have status line show the text from that message: Typically something like
+     * "Welcome to JSettlers!".
+     */
     public void clearWaitingStatus(final boolean clearStatus)
     {
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         if (clearStatus)
-            status.setText("");  // clear "Talking to server...", etc
+            status.setText(statusOKText != null ? statusOKText : "");  // clear "Talking to server...", etc
     }
 
     /**
@@ -2024,9 +2041,10 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             gi.setEnabled(false);  // server too old for options, so don't use that button
     }
 
-    public void showStatus(final String statusText, final boolean debugWarn)
+    public void showStatus(final String statusText, final boolean statusIsOK, final boolean debugWarn)
     {
         status.setText(statusText);
+        statusOKText = (statusIsOK) ? statusText : null;
 
         // If warning about debug during initial connect, show that.
         // That status message would be sent after VERSION.

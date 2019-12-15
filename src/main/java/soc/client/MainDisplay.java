@@ -127,6 +127,7 @@ public interface MainDisplay
     /**
      * Clear any visual indicators that we are waiting for the network or other action, like {@code WAIT_CURSOR}.
      * @param clearStatus  If true, also clear any text out of the status line.
+     * @see #showStatus(String, boolean, boolean)
      */
     void clearWaitingStatus(final boolean clearStatus);
 
@@ -180,9 +181,11 @@ public interface MainDisplay
      * Show server welcome banner or status text.
      * If status during initial connect includes warning that the server's in Debug Mode, show that.
      * @param statusText  Status message text from server
+     * @param statusIsOK  True if status code is "OK", not an error
      * @param debugWarn   True if server has Debug Mode active
+     * @see #clearWaitingStatus(boolean)
      */
-    void showStatus(String statusText, boolean debugWarn);
+    void showStatus(String statusText, boolean statusIsOK, boolean debugWarn);
 
     /** Set the contents of the nickname field. */
     void setNickname(final String nm);

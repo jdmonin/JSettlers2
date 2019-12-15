@@ -861,11 +861,16 @@ import soc.util.Version;
 
         final boolean srvDebugMode;
         if (isPractice || (client.sVersion >= 2000))
-            srvDebugMode = (sv == SOCStatusMessage.SV_OK_DEBUG_MODE_ON);
-        else
+        {
+            final boolean svIsOKDebug = (sv == SOCStatusMessage.SV_OK_DEBUG_MODE_ON);
+            srvDebugMode = svIsOKDebug;
+            if (svIsOKDebug)
+                sv = SOCStatusMessage.SV_OK;
+        } else {
             srvDebugMode = statusText.toLowerCase().contains("debug");
+        }
 
-        client.getMainDisplay().showStatus(statusText, srvDebugMode);
+        client.getMainDisplay().showStatus(statusText, (sv == SOCStatusMessage.SV_OK), srvDebugMode);
 
         // Are we waiting for auth response in order to show NGOF?
         if ((! isPractice) && client.isNGOFWaitingForAuthStatus)
