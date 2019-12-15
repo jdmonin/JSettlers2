@@ -1827,7 +1827,7 @@ public class SOCServer extends Server
                 System.err.println
                     ("** User database is currently empty: Run SOCAccountClient to create the user admin account(s) named above.");
         }
-        else if (acctsNotOpenRegButNoUsers && ! wantsUpgSchema)
+        else if (! (wantsUpgSchema || features.isActive(SOCFeatureSet.SERVER_OPEN_REG)))
         {
             System.err.println
                 ("** To create users, you must list admin names in property " + PROP_JSETTLERS_ACCOUNTS_ADMINS + ".");
