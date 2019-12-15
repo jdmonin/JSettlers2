@@ -933,7 +933,6 @@ public class SOCGameHandler extends GameHandler
         {
             // First, send updated scenario info or localized strings if needed
             // (SOCScenarioInfo or SOCLocalizedStrings); checks c.getVersion(), scd.scenariosInfoSent etc.
-
             final String gameScen = gameData.getGameOptionStringValue("SC");
             if (gameScen != null)
                 srv.sendGameScenarioInfo(gameScen, null, c, false, false);
@@ -952,11 +951,17 @@ public class SOCGameHandler extends GameHandler
                 boardVS = null;
             }
             c.put(new SOCJoinGameAuth(gameName, bh, bw, boardVS).toCmd());
-            c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_OK, c.getLocalized("member.welcome")));  // "Welcome to Java Settlers of Catan!"
+
+            final SOCClientData scd = (SOCClientData) c.getAppData();
+            if (! scd.sentPostAuthWelcome)
+            {
+                c.put(SOCStatusMessage.toCmd
+                       (SOCStatusMessage.SV_OK, c.getLocalized("netmsg.status.welcome")));
+                           // "Welcome to Java Settlers of Catan!"
+                scd.sentPostAuthWelcome = true;
+            }
         }
 
-        //c.put(SOCGameState.toCmd(gameName, gameData.getGameState()));
         for (int i = 0; i < gameData.maxPlayers; i++)
         {
             /**

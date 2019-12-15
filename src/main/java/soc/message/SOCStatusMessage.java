@@ -197,12 +197,15 @@ public class SOCStatusMessage extends SOCMessage
     public static final int SV_NEWGAME_NAME_REJECTED = 12;
 
     /**
-     * New game or auth requested, but name of game or player is too long = 13.
+     * New game or auth or account-creation requested, but name of game or player is too long = 13.
      * The text returned with this status shall include the max permitted length.
+     *<P>
+     * Before v2.0.00 this status was {@code SV_NEWGAME_NAME_TOO_LONG}.
+     *
      * @see soc.server.SOCServer#createOrJoinGameIfUserOK
      * @since 1.1.07
      */
-    public static final int SV_NEWGAME_NAME_TOO_LONG = 13;
+    public static final int SV_NAME_TOO_LONG = 13;
 
     /**
      * New game requested, but client already has created too many active games.
@@ -479,7 +482,7 @@ public class SOCStatusMessage extends SOCMessage
         case 1107:
         case 1108:
         case 1109:
-            return (statusValue <= SV_NEWGAME_NAME_TOO_LONG);
+            return (statusValue <= SV_NAME_TOO_LONG);
         case 1110:
             return (statusValue <= SV_NEWCHANNEL_TOO_MANY_CREATED);
         case 1119:

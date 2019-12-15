@@ -40,6 +40,23 @@ import soc.util.SOCStringManager;  // for javadoc
  */
 /*package*/ class SOCClientData
 {
+    /**
+     * For a scenario keyname in {@link #scenariosInfoSent}, value indicating that the client
+     * was sent localized scenario strings (not all scenario info fields), or that the client
+     * requested them and no localized strings were found for that scenario.
+     * @see #SENT_SCEN_INFO
+     * @since 2.0.00
+     */
+    public static final String SENT_SCEN_STRINGS = "S";
+
+    /**
+     * For a scenario keyname in {@link #scenariosInfoSent}, value indicating that the client
+     * was sent all scenario info fields (not only localized scenario strings).
+     * @see #SENT_SCEN_STRINGS
+     * @since 2.0.00
+     */
+    public static final String SENT_SCEN_INFO = "I";
+
     /** Number of games won and lost since client connected */
     private int wins, losses;
 
@@ -126,6 +143,14 @@ import soc.util.SOCStringManager;  // for javadoc
     private boolean sentGameList;
 
     /**
+     * Has the server already sent a "Welcome to JSettlers!" status message to client,
+     * after user authenticated, for a newly joined or created game or channel?
+     * Is tracked to skip sending for later games/channels.
+     * @since 2.0.00
+     */
+    public boolean sentPostAuthWelcome;
+
+    /**
      * If true we've called {@link #localeHasGameScenarios(Connection)},
      * storing the result in {@link #localeHasScenStrings}.
      * @since 2.0.00
@@ -168,23 +193,6 @@ import soc.util.SOCStringManager;  // for javadoc
      * @see #sentAllScenarioStrings
      */
     public boolean sentAllScenarioInfo;
-
-    /**
-     * For a scenario keyname in {@link #scenariosInfoSent}, value indicating that the client
-     * was sent localized scenario strings (not all scenario info fields), or that the client
-     * requested them and no localized strings were found for that scenario.
-     * @see #SENT_SCEN_INFO
-     * @since 2.0.00
-     */
-    public static final String SENT_SCEN_STRINGS = "S";
-
-    /**
-     * For a scenario keyname in {@link #scenariosInfoSent}, value indicating that the client
-     * was sent all scenario info fields (not only localized scenario strings).
-     * @see #SENT_SCEN_STRINGS
-     * @since 2.0.00
-     */
-    public static final String SENT_SCEN_INFO = "I";
 
     /**
      * The {@link soc.game.SOCScenario SOCScenario} keynames for which we've

@@ -510,6 +510,13 @@ public class SOCServer extends Server
     public static final String SERVERNAME = SOCGameTextMsg.SERVERNAME;  // "Server"
 
     /**
+     * Lowercase {@link #SERVERNAME} used for case-insensitive check
+     * in {@link #checkNickname(String, Connection, boolean, boolean)}.
+     * @since 2.0.00
+     */
+    private static final String SERVERNAME_LC = SERVERNAME.toLowerCase(Locale.US);  // "server"
+
+    /**
      * Minimum required client version, to connect and play a game.
      * Same format as {@link soc.util.Version#versionNumber()}.
      * Currently there is no enforced minimum (0000).
@@ -859,7 +866,7 @@ public class SOCServer extends Server
 
     /** Status Message to send, nickname already logged into the system */
     public static final String MSG_NICKNAME_ALREADY_IN_USE
-        = "Someone with that nickname is already logged into the system.";
+        = "Someone with that nickname is already logged into the system.";  // TODO i18n
 
     /**
      * Status Message to send, nickname already logged into the system.
@@ -4532,7 +4539,8 @@ public class SOCServer extends Server
     private int checkNickname
         (String n, Connection newc, final boolean withPassword, final boolean isBot)
     {
-        if (n.equals(SERVERNAME) || ! SOCMessage.isSingleLineAndSafe(n))
+        final String nLower = n.toLowerCase(Locale.US);
+        if (nLower.equals(SERVERNAME_LC) || ! SOCMessage.isSingleLineAndSafe(n))
         {
             return -2;
         }
@@ -4543,7 +4551,6 @@ public class SOCServer extends Server
         }
 
         // check "debug" and bot name prefixes used in setupLocalRobots
-        final String nLower = n.toLowerCase(Locale.US);
         if ((nLower.equals("debug") && ! isDebugUserEnabled())
             || ((! isBot)
                 && (nLower.startsWith("droid ") || nLower.startsWith("robot "))))
@@ -5173,8 +5180,8 @@ public class SOCServer extends Server
         if (msgUser.length() > PLAYER_NAME_MAX_LENGTH)
         {
             c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
-                     c.getLocalized("netmsg.status.common.newgame_name_too_long", PLAYER_NAME_MAX_LENGTH)));
+                    (SOCStatusMessage.SV_NAME_TOO_LONG, cliVers,
+                     c.getLocalized("netmsg.status.common.name_too_long", PLAYER_NAME_MAX_LENGTH)));
                          // "Please choose a shorter name; maximum length: 20"
             return;
         }
@@ -5199,7 +5206,7 @@ public class SOCServer extends Server
         } else if (nameTimeout == -2) {
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_NAME_NOT_ALLOWED, cliVers,
-                     c.getLocalized("account.auth.nickname_not_allowed")));  // "This nickname is not allowed."
+                     c.getLocalized("netmsg.status.nickname_not_allowed")));  // "This nickname is not allowed."
             return;
         } else if (nameTimeout <= -1000) {
             c.put(SOCStatusMessage.toCmd
@@ -5544,14 +5551,14 @@ public class SOCServer extends Server
         // This will be displayed in the client's status line (v1.1.17 and newer).
         if (allowDebugUser)
         {
-            StringBuilder txt = new StringBuilder(c.getLocalized("member.welcome.debug"));  // "Debugging is On."
+            StringBuilder txt = new StringBuilder(c.getLocalized("netmsg.status.welcome.debug"));  // "Debugging is On."
             txt.append(' ');
             if (warnMsg != null)
             {
                 txt.append(warnMsg);
                 txt.append(' ');
             }
-            txt.append(c.getLocalized("member.welcome"));  // "Welcome to Java Settlers of Catan!"
+            txt.append(c.getLocalized("netmsg.status.welcome"));  // "Welcome to Java Settlers of Catan!"
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_OK_DEBUG_MODE_ON, cvers, txt.toString()));
         }
@@ -5853,8 +5860,8 @@ public class SOCServer extends Server
         if (gameName.length() > SOCGameList.GAME_NAME_MAX_LENGTH)
         {
             c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
-                     c.getLocalized("netmsg.status.common.newgame_name_too_long", SOCGameList.GAME_NAME_MAX_LENGTH)));
+                    (SOCStatusMessage.SV_NAME_TOO_LONG, cliVers,
+                     c.getLocalized("netmsg.status.common.name_too_long", SOCGameList.GAME_NAME_MAX_LENGTH)));
             // "Please choose a shorter name; maximum length: 30"
 
             return;  // <---- Early return ----
@@ -5949,7 +5956,7 @@ public class SOCServer extends Server
                 c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_OK_SET_NICKNAME,
                      c.getData() + SOCMessage.sep2_char +
-                     c.getLocalized("member.welcome")));  // "Welcome to Java Settlers of Catan!"
+                     c.getLocalized("netmsg.status.welcome")));  // "Welcome to Java Settlers of Catan!"
 
             if (isTakingOver)
             {
@@ -6898,8 +6905,8 @@ public class SOCServer extends Server
         if (userName.length() > PLAYER_NAME_MAX_LENGTH)
         {
             c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
-                     c.getLocalized("netmsg.status.common.newgame_name_too_long", PLAYER_NAME_MAX_LENGTH)));
+                    (SOCStatusMessage.SV_NAME_TOO_LONG, cliVers,
+                     c.getLocalized("netmsg.status.common.name_too_long", PLAYER_NAME_MAX_LENGTH)));
                          // "Please choose a shorter name; maximum length: 20"
             return;
         }

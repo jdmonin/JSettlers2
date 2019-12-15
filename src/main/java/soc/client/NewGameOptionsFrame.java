@@ -1369,7 +1369,7 @@ import soc.util.Version;
         String errMsg = null;
         if (L > SOCGameList.GAME_NAME_MAX_LENGTH)
         {
-            errMsg = strings.get("netmsg.status.common.newgame_name_too_long", SOCGameList.GAME_NAME_MAX_LENGTH);
+            errMsg = strings.get("netmsg.status.common.name_too_long", SOCGameList.GAME_NAME_MAX_LENGTH);
                 // "Please choose a shorter name; maximum length: {0}"
         }
         else if (! SOCMessage.isSingleLineAndSafe(gmName))
