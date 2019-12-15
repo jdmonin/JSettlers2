@@ -953,7 +953,7 @@ public class SOCGameHandler extends GameHandler
             c.put(new SOCJoinGameAuth(gameName, bh, bw, boardVS).toCmd());
 
             final SOCClientData scd = (SOCClientData) c.getAppData();
-            if (! scd.sentPostAuthWelcome)
+            if ((! scd.sentPostAuthWelcome) || (c.getVersion() < SOCStringManager.VERSION_FOR_I18N))
             {
                 c.put(SOCStatusMessage.toCmd
                        (SOCStatusMessage.SV_OK, c.getLocalized("netmsg.status.welcome")));

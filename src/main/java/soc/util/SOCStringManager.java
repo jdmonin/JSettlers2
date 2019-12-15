@@ -70,6 +70,8 @@ public class SOCStringManager extends StringManager
     /**
      * Minimum version (2.0.00) of client/server with I18N localization.
      * Network messages sending localized text should check the receiver's version against this constant.
+     * Older client versions expect the server to send preformatted text in many situations
+     * where v2.0 or newer clients will display text based on game-data messages.
      */
     public static final int VERSION_FOR_I18N = 2000;
 

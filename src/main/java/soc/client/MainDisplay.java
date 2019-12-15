@@ -193,8 +193,15 @@ public interface MainDisplay
     /** Set the contents of the password field. */
     void setPassword(final String pw);
 
+    /**
+     * Server has sent authorization for client to create and/or join a channel.
+     * Client should create a UI to interact with that channel.
+     */
     void channelJoined(String channelName);
+
+    /** Another member has joined an existing channel. */
     void channelJoined(String channelName, String nickname);
+
     void channelMemberList(String channelName, Collection<String> members);
     void channelCreated(String channelName);
     void channelLeft(String channelName);

@@ -51,6 +51,7 @@ import soc.server.genericServer.StringConnection;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;
 import soc.util.SOCRobotParameters;
+import soc.util.SOCStringManager;
 import soc.util.Version;
 
 /**
@@ -1462,6 +1463,7 @@ public class SOCServerMessageHandler
     private void handleJOINCHANNEL_postAuth
         (final Connection c, final String ch, final int cliVers, final int authResult)
     {
+        final SOCClientData scd = (SOCClientData) c.getAppData();
         final boolean mustSetUsername = (0 != (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME));
         final String msgUser = c.getData();
             // if mustSetUsername, will tell client to set nickname to original case from db case-insensitive search
@@ -1491,7 +1493,7 @@ public class SOCServerMessageHandler
          */
         if ((! channelList.isChannel(ch))
             && (SOCServer.CLIENT_MAX_CREATE_CHANNELS >= 0)
-            && (SOCServer.CLIENT_MAX_CREATE_CHANNELS <= ((SOCClientData) c.getAppData()).getcurrentCreatedChannels()))
+            && (SOCServer.CLIENT_MAX_CREATE_CHANNELS <= scd.getcurrentCreatedChannels()))
         {
             c.put(SOCStatusMessage.toCmd
                    (SOCStatusMessage.SV_NEWCHANNEL_TOO_MANY_CREATED, cliVers,
@@ -1506,11 +1508,17 @@ public class SOCServerMessageHandler
          */
         final String txt = c.getLocalized("netmsg.status.welcome");  // "Welcome to Java Settlers of Catan!"
         if (! mustSetUsername)
-            c.put(SOCStatusMessage.toCmd
-                (SOCStatusMessage.SV_OK, txt));
-        else
+        {
+            if ((! scd.sentPostAuthWelcome) || (c.getVersion() < SOCStringManager.VERSION_FOR_I18N))
+            {
+                c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_OK, txt));
+                scd.sentPostAuthWelcome = true;
+            }
+        } else {
             c.put(SOCStatusMessage.toCmd
                 (SOCStatusMessage.SV_OK_SET_NICKNAME, msgUser + SOCMessage.sep2_char + txt));
+        }
         c.put(SOCJoinChannelAuth.toCmd(msgUser, ch));
 
         /**
@@ -1540,7 +1548,7 @@ public class SOCServerMessageHandler
             try
             {
                 channelList.createChannel(ch, msgUser);
-                ((SOCClientData) c.getAppData()).createdChannel();
+                scd.createdChannel();
             }
             catch (Exception e)
             {

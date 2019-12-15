@@ -146,6 +146,11 @@ import soc.util.SOCStringManager;  // for javadoc
      * Has the server already sent a "Welcome to JSettlers!" status message to client,
      * after user authenticated, for a newly joined or created game or channel?
      * Is tracked to skip sending for later games/channels.
+     *<P>
+     * Client v1.x.xx should be sent the status message with each joingame/joinchannel for cosmetic reasons;
+     * otherwise its status line shows "Talking to server..." forever, making server look unresponsive.
+     * Check client version against {@link SOCStringManager#VERSION_FOR_I18N}.
+     *
      * @since 2.0.00
      */
     public boolean sentPostAuthWelcome;

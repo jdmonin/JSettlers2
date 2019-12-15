@@ -362,7 +362,10 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     /** Password for {@link #nick} while connecting to server, or blank */
     protected JPasswordField pass;
 
-    /** Status from server, or progress/error message updated by client */
+    /**
+     * Status from server, or progress/error message updated by client.
+     * @see #clearWaitingStatus(boolean)
+     */
     protected JTextField status;
 
     /**
@@ -2056,6 +2059,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         nick.setEditable(false);
         pass.setText("");
         pass.setEditable(false);
+        clearWaitingStatus(true);
         if (! hasJoinedServer)
         {
             Container c = getParent();
@@ -2233,6 +2237,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         nick.setEditable(false);
         pass.setEditable(false);
         pass.setText("");
+        clearWaitingStatus(true);
         if (! hasJoinedServer)
         {
             Container c = getParent();
