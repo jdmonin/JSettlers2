@@ -2775,7 +2775,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void sitDown(SOCGame ga, int pn)
     {
-        put(SOCSitDown.toCmd(ga.getName(), "dummy", pn, false));
+        put(SOCSitDown.toCmd(ga.getName(), SOCMessage.EMPTYSTR, pn, false));
     }
 
     /**

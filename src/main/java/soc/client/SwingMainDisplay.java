@@ -1331,7 +1331,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
             status.setText(client.strings.get("pcli.message.talkingtoserv"));  // "Talking to server..."
             net.putNet(SOCJoinChannel.toCmd
-                (client.nickname, (client.gotPassword ? "" : client.password), net.getHost(), ch));
+                (client.nickname, (client.gotPassword ? "" : client.password), SOCMessage.EMPTYSTR, ch));
         }
         else
         {
@@ -1546,7 +1546,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                 status.setText(client.strings.get("pcli.message.talkingtoserv"));  // "Talking to server..."
                 setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
                 net.putNet(SOCJoinGame.toCmd
-                    (client.nickname, (client.gotPassword ? "" : client.password), net.getHost(), gm));
+                    (client.nickname, (client.gotPassword ? "" : client.password), SOCMessage.EMPTYSTR, gm));
             }
         }
         else
@@ -1854,9 +1854,9 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             String askMsg =
                 (client.sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
                 ? SOCNewGameWithOptionsRequest.toCmd
-                    (client.nickname, pw, net.getHost(), gmName, opts)
+                    (client.nickname, pw, SOCMessage.EMPTYSTR, gmName, opts)
                 : SOCJoinGame.toCmd
-                    (client.nickname, pw, net.getHost(), gmName);
+                    (client.nickname, pw, SOCMessage.EMPTYSTR, gmName);
             System.err.println("L1314 askStartGameWithOptions at " + System.currentTimeMillis());
             System.err.println("      Got all opts,defaults? " + client.tcpServGameOpts.allOptionsReceived
                 + " " + client.tcpServGameOpts.defaultsReceived);

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2013-2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2013-2014,2017,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -40,7 +40,7 @@ public class SOCSitDown extends SOCMessage
     private String game;
 
     /**
-     * Nickname of player; ignored from client, can send "-" but not blank
+     * Nickname of player; ignored from client, can be "-" or {@link SOCMessage#EMPTYSTR} but not blank
      */
     private String nickname;
 
@@ -58,7 +58,7 @@ public class SOCSitDown extends SOCMessage
      * Create a SitDown message.
      *
      * @param ga  the name of the game
-     * @param nk  nickname of the player; ignored from client, can send "-" but not blank
+     * @param nk  nickname of the player; ignored from client, can be "-" or {@link SOCMessage#EMPTYSTR} but not blank
      * @param pn  the seat number
      * @param rf  true if this is a robot
      */
@@ -80,7 +80,8 @@ public class SOCSitDown extends SOCMessage
     }
 
     /**
-     * @return the nickname of the player; can be "-" but not blank when sent from client
+     * @return the nickname of the player;
+     *     ignored when sent from client, can be "-" or {@link SOCMessage#EMPTYSTR} but not blank
      */
     public String getNickname()
     {
@@ -117,7 +118,7 @@ public class SOCSitDown extends SOCMessage
      * SITDOWN sep game sep2 nickname sep2 playerNumber sep2 robotFlag
      *
      * @param ga  the name of the game
-     * @param nk  nickname of the player; ignored from client, can send "-" but not blank
+     * @param nk  nickname of the player; ignored from client, can be "-" or {@link SOCMessage#EMPTYSTR} but not blank
      * @param pn  the seat number
      * @param rf  the value of the robot flag
      * @return the command string

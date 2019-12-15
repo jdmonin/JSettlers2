@@ -818,7 +818,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         }
         else
         {
-            put(SOCJoinGame.toCmd(nickname, password, host, mes.getGame()));
+            put(SOCJoinGame.toCmd(nickname, password, SOCMessage.EMPTYSTR, mes.getGame()));
         }
     }
 
@@ -885,7 +885,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             gameOptions.put(gaName, gaOpts);
 
         seatRequests.put(gaName, Integer.valueOf(mes.getPlayerNumber()));
-        if (put(SOCJoinGame.toCmd(nickname, password, host, gaName)))
+        if (put(SOCJoinGame.toCmd(nickname, password, SOCMessage.EMPTYSTR, gaName)))
         {
             D.ebugPrintln("**** sent SOCJoinGame ****");
         }
@@ -973,7 +973,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         if (pn != null)
         {
-            put(SOCSitDown.toCmd(mes.getGame(), nickname, pn.intValue(), true));
+            put(SOCSitDown.toCmd(mes.getGame(), SOCMessage.EMPTYSTR, pn.intValue(), true));
         } else {
             System.err.println("** Cannot sit down: Assert failed: null pn for game " + mes.getGame());
         }

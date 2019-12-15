@@ -63,7 +63,8 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
      *
      * @param nn  nickname, or "-" if already auth'd to server
      * @param pw  optional password, or "" if none
-     * @param hn  optional server host name, or "-"
+     * @param hn  unused; the optional server host name to which client is connected,
+     *     or "-" or {@link SOCMessage#EMPTYSTR}
      * @param ga  name of the game
      * @param optstr the game options as a string name-value pairs, as created by
      *             {@link SOCGameOption#packOptionsToString(Map, boolean)}.
@@ -100,7 +101,8 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
      *
      * @param nn  the nickname, or "-" if already auth'd to server
      * @param pw  the optional password, or "" if none; not null
-     * @param hn  the optional server host name, or "-"
+     * @param hn  unused; the optional server host name to which client is connected,
+     *     or "-" or {@link SOCMessage#EMPTYSTR}
      * @param ga  the game name
      * @param optstr the game options as a string name-value pairs, as created by
      *             {@link SOCGameOption#packOptionsToString(Map, boolean)}.
@@ -119,7 +121,8 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
      *
      * @param nn  the nickname, or "-" if already auth'd to server
      * @param pw  the optional password, or "" if none
-     * @param hn  the optional server host name, or "-"
+     * @param hn  unused; the optional server host name to which client is connected,
+     *     or "-" or {@link SOCMessage#EMPTYSTR}
      * @param ga  the game name
      * @param opts the game options ({@link SOCGameOption})
      * @return    the command string

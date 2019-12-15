@@ -273,10 +273,10 @@ import soc.util.Version;
 
         // Ask internal practice server to create the game
         if (gameOpts == null)
-            putPractice(SOCJoinGame.toCmd(client.nickname, "", getHost(), practiceGameName));
+            putPractice(SOCJoinGame.toCmd(client.nickname, "", SOCMessage.EMPTYSTR, practiceGameName));
         else
             putPractice(SOCNewGameWithOptionsRequest.toCmd
-                (client.nickname, "", getHost(), practiceGameName, gameOpts));
+                (client.nickname, "", SOCMessage.EMPTYSTR, practiceGameName, gameOpts));
 
         return true;
     }

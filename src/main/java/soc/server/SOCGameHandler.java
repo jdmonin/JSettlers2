@@ -1505,7 +1505,7 @@ public class SOCGameHandler extends GameHandler
         {
             return;
         }
-        srv.messageToGame(gameName, new SOCJoinGame(cliName, "", "dummyhost", gameName));
+        srv.messageToGame(gameName, new SOCJoinGame(cliName, "", SOCMessage.EMPTYSTR, gameName));
 
         if ((! isReset) && gameState >= SOCGame.START2A)
         {

@@ -275,7 +275,7 @@ import soc.message.SOCStartGame;
      */
     public void sitDown(SOCGame ga, int pn)
     {
-        put(SOCSitDown.toCmd(ga.getName(), "dummy", pn, false), ga.isPractice);
+        put(SOCSitDown.toCmd(ga.getName(), SOCMessage.EMPTYSTR, pn, false), ga.isPractice);
     }
 
     /**

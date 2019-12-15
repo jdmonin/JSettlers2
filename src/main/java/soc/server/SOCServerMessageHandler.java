@@ -1570,7 +1570,7 @@ public class SOCServerMessageHandler
         /**
          * let everyone know about the change
          */
-        srv.messageToChannel(ch, new SOCJoinChannel(msgUser, "", "dummyhost", ch));
+        srv.messageToChannel(ch, new SOCJoinChannel(msgUser, "", SOCMessage.EMPTYSTR, ch));
 
         /**
          * Send recap; same sequence is in SOCGameHandler.joinGame with different message type
