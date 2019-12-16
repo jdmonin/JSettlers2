@@ -1706,9 +1706,11 @@ public class SOCPlayerTracker
                 for (SOCPossibleRoad pr : possibleNewIslandRoads)
                 {
                     possibleRoads.put(Integer.valueOf(pr.getCoordinates()), pr);
+                    /*
                     System.err.println("L1396: new possible road at edge 0x"
                         + Integer.toHexString(pr.getCoordinates()) + " from coastal settle 0x"
                         + Integer.toHexString(settlementCoords));
+                     */
                     if (roadsToExpand == null)
                         roadsToExpand = new ArrayList<SOCPossibleRoad>();
                     roadsToExpand.add(pr);
