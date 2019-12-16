@@ -2596,7 +2596,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     public void leaveChannel(String ch)
     {
         channels.remove(ch);
-        put(SOCLeaveChannel.toCmd(nickname, host, ch));
+        put(SOCLeaveChannel.toCmd(nickname, "-", ch));
     }
 
     /**
@@ -2764,7 +2764,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     public void leaveGame(SOCGame ga)
     {
         games.remove(ga.getName());
-        put(SOCLeaveGame.toCmd(nickname, host, ga.getName()));
+        put(SOCLeaveGame.toCmd(nickname, "-", ga.getName()));
     }
 
     /**

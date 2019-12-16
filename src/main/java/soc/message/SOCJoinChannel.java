@@ -97,6 +97,7 @@ public class SOCJoinChannel extends SOCMessage
     /**
      * Get the optional server host name to which client is connected; unused, ignored and not used by any server version.
      * Since the client is already connected when it sends the message, this is only informational.
+     * Is always {@link SOCMessage#EMPTYSTR} when sent by v2.0.00 or newer server or client.
      * @return the unused optional server host name to which client is connected, or "-" or {@link SOCMessage#EMPTYSTR}
      */
     public String getHost()

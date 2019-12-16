@@ -264,7 +264,7 @@ import soc.message.SOCStartGame;
     {
         clientListeners.remove(ga.getName());
         client.games.remove(ga.getName());
-        put(SOCLeaveGame.toCmd(client.nickname, net.getHost(), ga.getName()), ga.isPractice);
+        put(SOCLeaveGame.toCmd(client.nickname, "-", ga.getName()), ga.isPractice);
     }
 
     /**

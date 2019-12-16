@@ -746,7 +746,7 @@ public class SOCPlayerClient
     public void leaveChannel(String ch)
     {
         mainDisplay.channelLeft(ch);
-        net.putNet(SOCLeaveChannel.toCmd(nickname, net.getHost(), ch));
+        net.putNet(SOCLeaveChannel.toCmd(nickname, "-", ch));
     }
 
     /**

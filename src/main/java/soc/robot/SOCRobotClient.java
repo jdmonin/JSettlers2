@@ -1553,7 +1553,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 System.err.flush();
             }
 
-            put(SOCLeaveGame.toCmd(nickname, host, gaName));
+            put(SOCLeaveGame.toCmd(nickname, "-", gaName));
         }
     }
 
