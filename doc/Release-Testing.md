@@ -33,15 +33,16 @@ When preparing to release a new version, testing should include:
     - Have new client join and replace bot; verify all of player info is sent
     - On own turn, leave again, bot takes over
     - Lock 1 bot seat and reset game: that seat should remain empty, no bot
-    - Lock the only remaining bot seat and reset game: no bots in new game, it begins immediately
-        - Use v2.0.xx lock button's new "Marked" state for this test
+    - Lock the only remaining bot seat (use v2.0.xx lock button's new "Marked" state) and reset game: no bots in new game, it begins immediately
 - Game play: (as debug user or in practice game)
-    - Get and play all non-VP dev card types, and give 1 VP card, with debug commands
+    - Get and play all non-VP dev card types, and give 1 VP card: Use debug commands
 
-            dev: 0 playername
-            ...
-            dev: 4 playername
-    - Road Building with 1 road left, after resource debug command to build the others
+            dev: 1 playername
+            dev: 2 playername
+            dev: 3 playername
+            dev: 5 playername
+            dev: 9 playername
+    - Road Building with 1 road left, after resource debug command to build the others:
 
             rsrcs: 10 0 0 0 10 playername
             dev: 1 playername
@@ -68,7 +69,7 @@ When preparing to release a new version, testing should include:
 
 - Start JSettlersServer at a shell or command prompt
     - If you have a linux or windows server, use that instead of your laptop/desktop;
-      on linux end the command line with ` &` to keep running in background
+      on linux, end the command line with ` &` to keep running in background
     - Should stay up for several days including activity (bot games)
     - v2.0.00+: Run several bot games (`-Djsettlers.bots.botgames.total=5`);
       join one as observer to make sure the pause is shorter than normal games
@@ -447,7 +448,7 @@ When preparing to release a new version, testing should include:
         - Should allow connect after appropriate number of seconds, and automatically rejoin the first 2 games but
 		  not the game with scenario
         - Game with scenario should disappear from game list, because there were no other human players
-	- For robot clients, which are invited to games:
+    - For standalone robot clients, which server invites to games:
         - Start a server which expects third-party bots, with these command-line parameters:
           `-Djsettlers.bots.cookie=foo  -Djsettlers.bots.percent3p=50`
         - Start the `soc.robot.sample3p.Sample3PClient` "third-party" bot, which does not have the Game Scenarios client feature, with these command-line parameters:
