@@ -174,13 +174,14 @@ import javax.swing.JComponent;
 
     /**
      * List of subdirectories for each hex and port graphics set, within {@link #IMAGEDIR}.
-     * Indexes are the known values of {@link SOCPlayerClient#PREF_HEX_GRAPHICS_SET}.
-     * The currently-used index is {@link #hexesGraphicsSetIndex}.
+     * Indexes are the known values of {@link SOCPlayerClient#PREF_HEX_GRAPHICS_SET}:
+     * 0 = pastel, 1 = classic. The currently-used index is {@link #hexesGraphicsSetIndex}.
      *<P>
      * Each set includes hexes for all land types and water, a subdir <tt>rotat</tt> for rotated hexes,
      * and related graphics like <tt>miscPort.gif</tt>.
      *<P>
-     * Water border color varies by Graphics Set; see {@link #HEX_GRAPHICS_SET_BORDER_WATER_COLORS}.
+     * Colors for water border and other items vary by Graphics Set;
+     * see {@link #HEX_GRAPHICS_SET_BORDER_WATER_COLORS}, {@link #HEX_GRAPHICS_SET_SC_PIRI_PATH_COLORS}.
      *
      * @since 2.0.00
      */
@@ -3950,6 +3951,11 @@ import javax.swing.JComponent;
      * Draw a dotted line with some thickness at each of these sea edge coordinates.
      * Unless a color is specified, client must have an active {@link #player}.
      * Calls {@link #drawSeaEdgeLine(Graphics, int)}.
+     *<P>
+     * Special case: Player 0 is blue. If {@code co == null}, and using the pastel (not classic)
+     * hex graphics, player 0's player color is too close to the water hex blue/cyan:
+     * Will use dark blue from {@link #HEX_GRAPHICS_SET_SC_PIRI_PATH_COLORS} instead.
+     *
      * @param g  Graphics
      * @param co  Color for lines, or {@code null} to use {@link SOCPlayerInterface#getPlayerColor(int)};
      *              if {@code null}, client must have an active {@link #playerNumber}.
@@ -3960,6 +3966,9 @@ import javax.swing.JComponent;
     {
         if ((lse == null) || lse.isEmpty())
             return;
+
+        if ((co == null) && (playerNumber == 0) && (hexesGraphicsSetIndex == 0))
+            co = HEX_GRAPHICS_SET_SC_PIRI_PATH_COLORS[hexesGraphicsSetIndex];  // avoid cyan-on-light-blue
 
         final Stroke prevStroke;
         if (g instanceof Graphics2D)
@@ -5882,8 +5891,13 @@ import javax.swing.JComponent;
         player = pl;
         playerNumber = player.getPlayerNumber();
 
-        // check if any debugShowPotentials flags are set, which are per-player
+        // Check for per-player Legal Sea Edges (SC_PIRI)
+        final HashSet<Integer> lse = player.getRestrictedLegalShips();
+        if (lse != null)
         {
+            flushBoardLayoutAndRepaint();
+        } else {
+            // check if any debugShowPotentials flags are set, which are per-player
             boolean any = false;
             for (int i = 0; i < debugShowPotentials.length; ++i)
                 if (debugShowPotentials[i])

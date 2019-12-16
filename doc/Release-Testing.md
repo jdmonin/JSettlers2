@@ -175,7 +175,9 @@ When preparing to release a new version, testing should include:
            - Should be able to trade that port's resources at expected ratio (not 4:1)
        - Move the Robber, then make sure Robber can't be moved back to the small islands
      - Pirate Islands and Fortresses
-       - As player with pn=0 and as another pn: Leave and rejoin game: Should see Legal Sea Edges
+       - Test visibility of Legal Sea Edges (dotted lines to fortress) for all 6 players
+         using both hex graphic themes (pastel & classic)
+       - As player with pn=0 and as another pn: Leave and rejoin game: After sitting down, should see Legal Sea Edges
          (dotted line from main island to your player's fortress) and be able to place boats along them
        - Defeat all fortresses: Pirate Fleet should disappear
            - Start a 2-player game: Debug player, 1 bot
