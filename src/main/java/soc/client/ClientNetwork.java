@@ -221,7 +221,7 @@ import soc.util.Version;
     /**
      * Start a practice game.  If needed, create and start {@link #practiceServer}.
      * @param practiceGameName  Game name
-     * @param gameOpts  Game options
+     * @param gameOpts  Game options, or {@code null}
      * @return True if the practice game request was sent, false if there was a problem
      *         starting the practice server or client
      */

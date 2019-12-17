@@ -1434,7 +1434,7 @@ import soc.util.Version;
      */
     private void clickCancel()
     {
-        if (! readOnly)
+        if ((! readOnly) && (opts != null))
         {
             // If scenario checkbox was manually cleared, clear scenario-name dropdown selection
             // for next time this dialog is shown to create a new game
