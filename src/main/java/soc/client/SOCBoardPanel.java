@@ -406,13 +406,13 @@ import javax.swing.JComponent;
          -7,-11,-11, 11,     11, 9,  9, 11 };
 
     /**
-     * village polygon. X is -13 to +13; Y is -9 to +9.
+     * village polygon. X is -14 to +14; Y is -10 to +10.
      * Used in {@link #drawVillage(Graphics, SOCVillage)}, and as a
      * generic marker in {@link #drawMarker(Graphics, int, int, Color, int)}.
      * @since 2.0.00
      */
-    private static final int[] villageX = {  0, 13, 0, -13,  0 },
-                               villageY = { -9,  0, 9,   0, -9 };
+    private static final int[] villageX = {  0,  14,  0, -14,   0 },
+                               villageY = { -10,  0, 10,   0, -10 };
         // TODO just a first draft; village graphic needs adjustment
 
     /** robber polygon. X is -4 to +4; Y is -8 to +8. */
@@ -814,7 +814,7 @@ import javax.swing.JComponent;
      * Diameter and font size (unscaled internal-pixels) for dice number circles on hexes.
      * @since 1.1.08
      */
-    private static final int DICE_NUMBER_CIRCLE_DIAMETER = 19, DICE_NUMBER_FONTPOINTS = 12;
+    private static final int DICE_NUMBER_CIRCLE_DIAMETER = 20, DICE_NUMBER_FONTPOINTS = 13;
 
     /**
      * Dice number circle background colors on hexes. <PRE>
@@ -3558,7 +3558,9 @@ import javax.swing.JComponent;
                 }
 
                 final String numstr = Integer.toString(hnl);
-                x += (dia - diceNumberCircleFM.stringWidth(numstr)) / 2;
+                x += (dia - (diceNumberCircleFM.stringWidth(numstr) - scaleToActual(1))) / 2;
+                    // -1 removes unwanted advance spacing after digit string;
+                    // if more precison needed, see java.awt.font.TextLayout.getBounds
                 y += (dia + diceNumberCircleFM.getAscent() - diceNumberCircleFM.getDescent()) / 2;
                 g.setFont(diceNumberCircleFont);
                 g.setColor(Color.BLACK);
