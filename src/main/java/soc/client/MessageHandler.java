@@ -1095,7 +1095,7 @@ import soc.util.Version;
      * handle the "join game authorization" message: create new {@link SOCGame} and
      * {@link SOCPlayerInterface} so user can join the game
      * @param mes  the message
-     * @param isPractice server is practiceServer (not normal tcp network)
+     * @param isPractice  if server is practiceServer (not normal tcp network)
      * @throws IllegalStateException if board size {@link SOCGameOption} "_BHW" isn't defined (unlikely internal error)
      */
     protected void handleJOINGAMEAUTH(SOCJoinGameAuth mes, final boolean isPractice)
@@ -1126,6 +1126,8 @@ import soc.util.Version;
             if (opt == null)
                 throw new IllegalStateException("Internal error: Game opt _BHW not known");
             opt.setIntValue((bh << 8) | bw);
+            if (gameOpts == null)
+                gameOpts = new HashMap<String,SOCGameOption>();  // unlikely: no-opts board has 0 height,width in message
             gameOpts.put("_BHW", opt);
         }
 
