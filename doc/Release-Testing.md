@@ -33,7 +33,7 @@ When preparing to release a new version, testing should include:
     - Have new client join and replace bot; verify all of player info is sent
     - On own turn, leave again, bot takes over
     - Lock 1 bot seat and reset game: that seat should remain empty, no bot
-    - Lock the only remaining bot seat (use v2.0.xx lock button's new "Marked" state) and reset game: no bots in new game, it begins immediately
+    - Lock the only remaining bot seat (use v2.x lock button's new "Marked" state) and reset game: no bots in new game, it begins immediately
 - Game play: (as debug user or in practice game)
     - Get and play all non-VP dev card types, and give 1 VP card: Use debug commands
 
@@ -209,15 +209,15 @@ When preparing to release a new version, testing should include:
             - In New Game options: Fog scenario, 6 players, and un-check Use Classic theme
             - Create Game, start as usual
             - (Both games' boards should now be pastel)
-        - Options: Change theme to Classic (Both games should change)
+        - Options: Change theme to Classic; OK (Both games should change)
         - Leave running, Start another: Un-check Scenario, 6-player board, un-check Sea board (Should also be Classic)
-        - Options: Un-check Use Classic (All 3 games should change to pastel)
-        - Options: Use Classic (All 3 should change)
+        - Options: Un-check Use Classic; OK (All 3 games should change to pastel)
+        - Options: Use Classic; OK (All 3 should change)
         - Close client main window: Quit all games
         - Re-launch client, without any jvm properties
         - Start game: 4 players, no scenario (should remember preference & be classic)
         - Start another: 6 players (should also be classic)
-        - Options: Un-check Use Classic (Both should change)
+        - Options: Un-check Use Classic; OK (Both should change)
         - Close client main window: Quit all games
         - Re-launch client
         - Start a game (should remember preference & be pastel)
@@ -240,7 +240,7 @@ When preparing to release a new version, testing should include:
           `=*= show: all`  
           At first, only a yellow bounding box will be visible
         - Start the game (server sends board layout, begins Initial Placement)
-        - Place 1 settlement and road/ship
+        - Place total of 1 settlement and 1 road/ship (not per player)
             - For Fog Islands: Should be a coastal settlement and ship to reveal a fog hex
             - For Wonders: Have one player place next to and towards the off-limits Strait's
               colored diamonds, other player place a coastal settlement and ship towards a small island
@@ -257,8 +257,8 @@ When preparing to release a new version, testing should include:
          - Again have each client player note the current legals/potentials, leave and reconnect
            during the other's turn, and compare legals/potentials using the above process
 - Version compatibility testing
-    - Other versions to use: **1.1.06** (before Game Options); **1.1.11** (has 6-player option and client bugfixes);
-      latest **1.x.xx**; latest **2.0.xx**
+    - Versions to test against: **1.1.06** (before Game Options); **1.1.11** (has 6-player option and client bugfixes);
+      latest **1.x.xx** (before Scenarios/sea boards)
     - New client, old server
     - New server, old client
     - Test these specific things for each version:
@@ -266,20 +266,21 @@ When preparing to release a new version, testing should include:
           should adapt to the older client version.  
           With a newer client connected to an older server, available new-game options
           should adapt to the older server version.  
-          This is especially visible when testing 1.x.xx against 2.0.xx.
+          This is especially visible when testing 1.x against 2.x.
         - Create and start playing a 4-player game with no options (this uses an older message type)
         - Create and start playing a 4-player game with No Trading option
         - Create and start playing a 6-player game
         - In the 6-player game, request and use the Special Building Phase
-        - Connect with a second client (same version as first client) and take over for a robot
+        - On a 2.x server, have 2.x client create game with a scenario (1.x can't join);
+          1.x client should see it in gamelist with "(cannot join)" prefix.
+        - Connect with another client (same version as first client)
+            - Should see 2nd game in list with that "(cannot join)" prefix
+            - Join 1st game, take over for a robot
             - Should see all info for the player (resources, cards, etc)
-            - Play at least 2 rounds; build something, buy a card, or trade
-        - When testing a 2.0.xx client and 1.x.xx server: In any game, test robot seat-lock button
+            - Play at least 2 rounds; trade, build something, buy and use a soldier card
+        - When testing a 2.x client and 1.x server: In any game, test robot seat-lock button
             - Click its lock button multiple times: Should only show Locked or Unlocked, never Marked
             - Lock a bot seat and reset the game: Seat should be empty in new game
-        - On a 2.0.xx server, have 2.0.xx client create game with a scenario (1.x.xx can't join),
-          1.x.xx client should see it in gamelist with "(cannot join)" prefix.
-          Start another 1.x.xx client and connect, should see in list with that same prefix
 - Server robustness: Bot disconnect/reconnect during game start
     - Start server with vm properties: `-Djsettlers.bots.test.quit_at_joinreq=30` `-Djsettlers.debug.traffic=Y`
     - Connect and start a 6-player game
@@ -431,7 +432,7 @@ When preparing to release a new version, testing should include:
     	- Launch another pair of SOCPlayerClients which report no features, using vm property `-Djsettlers.debug.client.features=`
           (empty value) and connect to server
         - In each client of that second limited pair, give a Nickname and create any game on the server, in order to authenticate.
-	      Leave those new games, to delete them.
+	      Leave those new games (close their windows) to delete them.
     	- In standard client, create a game having 6 players but no scenario
         - First pair of limited clients should connect to that game
         - Second pair of limited clients' game list should show that game as "(cannot join)"
@@ -440,8 +441,11 @@ When preparing to release a new version, testing should include:
     - For reconnecting disconnected clients:
         - Start a server without any options
         - Start a standard client under your IDE's debugger, connect to server
-        - Create & start 3 games (against bots): standard 4-player (no options); on sea board; with any Scenario
-        - Start each game, go through initial placement and into normal game play
+        - Create & start 3 games (against bots):
+        	- standard 4-player (no options)
+        	- on sea board
+        	- with any Scenario
+        - In each game, finish initial placement and begin normal game play
         - In your IDE, pause the debugged client to simulate network connection loss
         - Start a new client using vm property `-Djsettlers.debug.client.features=;6pl;sb;` and connect as that same username
 		- In the new client, double-click the standard or non-scenario sea game to rejoin
@@ -473,7 +477,14 @@ When preparing to release a new version, testing should include:
     - Server and client: `-h` / `--help` / `-?`, `--version`
     - Server: Unknown args `-x -z` should print both, then not continue startup
     - Start client w/ no args, start client with host & port on command line
-    - Game option defaults on command line, in `jsserver.properties`: `-oVP=t11 -oN7=t5 -oRD=y`
+    - Game option defaults
+        - On command line: `-oVP=t11 -oN7=t5 -oRD=y`
+        - In `jsserver.properties`:
+
+              jsettlers.gameopt.VP=t11
+              jsettlers.gameopt.N7=t5
+              jsettlers.gameopt.RD=y
+
     - Server prop for no chat channels (`jsettlers.client.maxcreatechannels=0`):  
       Client main panel should not see channel create/join/list controls
     - Start server with prop `jsettlers.startrobots=0`:  
@@ -676,7 +687,7 @@ Start with a recently-created database with latest schema/setup scripts.
 - Robot stability:
     - This test can be started and run in the background.
     - At a command line, start and run a server with 100 robot-only games:  
-      `java -jar JSettlersServer-2.0.00.jar -Djsettlers.bots.botgames.total=100 -Djsettlers.bots.botgames.parallel=20 -Djsettlers.bots.fast_pause_percent=5 -Djsettlers.bots.botgames.shutdown=Y 8118 15`
+      `java -jar JSettlersServer-2.*.jar -Djsettlers.bots.botgames.total=100 -Djsettlers.bots.botgames.parallel=20 -Djsettlers.bots.fast_pause_percent=5 -Djsettlers.bots.botgames.shutdown=Y 8118 15`
     - To optionally see progress, connect to port 8118 with a client. Game numbers start at 100 and count down.
     - These games should complete in under 10 minutes
     - Once the games complete, that server will exit
@@ -684,8 +695,7 @@ Start with a recently-created database with latest schema/setup scripts.
         - "force end turn" output, and occasional bad placements or bank trades, are expected and OK
         - If any exceptions occur: Debug, triage, document or correct them
 - Board layout generator stability:
-    - See `extraTest` section, or run as:  
-      `gradle extraTest -D 'test.single=*TestBoardLayouts*' -x :extraTestPython`
+    - See `TestBoardLayoutsRounds` in "extraTest" section
 - Build contents and built artifacts:
     - `gradle dist` runs without errors, under gradle 4 and also gradle 5
     - Full jar and server jar should include correct git commit id:
@@ -732,6 +742,8 @@ The current Extra Tests are:
       by running a couple thousand rounds of a unit test.
     - When run in this mode, each round of TestBoardLayouts performs extra checks of the layout structure.
       If any layout failures occur, that's a bug to be triaged or corrected before release.
+    - Command to run this test by itself:  
+      `gradle extraTest -D 'test.single=*TestBoardLayouts*' -x :extraTestPython`
 - Server: `test_startup_params.py`: Various argument/property combinations:
     - The test script should run for about two minutes, and end without errors
 
@@ -740,9 +752,9 @@ The current Extra Tests are:
 
 On most recent and less-recent OSX and Windows; oldest JRE (java 6) and a new JRE:
 
-- Keyboard shortcuts including game-reset dialog's esc/enter keys, FaceChooserFrame arrow keys
+- Dialog keyboard shortcuts, including New Game and Game Reset dialogs' esc/enter keys, FaceChooserFrame arrow keys
 - Sound, including 2 clients in same game for overlapping piece-place sound
-- Start or join networked game
+- Start, join networked games
 - Graphics, including scaling and antialiasing after window resize
 - High-DPI support
     - Test runs:
@@ -754,7 +766,7 @@ On most recent and less-recent OSX and Windows; oldest JRE (java 6) and a new JR
         - Main panel after connect
         - Game window, especially player SOCHandPanels
         - Discard dialog: Per-resource color squares: Square size, font size in square
-- Persistent user prefs (sound, auto-reject bot offer, window size)  
+- Persistent user prefs (sound, auto-reject bot offer, window size, hex graphics set)  
   Then, re-run to check default size with jvm property `-Djsettlers.debug.clear_prefs=PI_width,PI_height`
 - Accessibility/High-Contrast mode
     - Test debug jvm property `-Djsettlers.uiContrastMode=light`
