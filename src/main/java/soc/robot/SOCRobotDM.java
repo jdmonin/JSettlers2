@@ -2094,8 +2094,8 @@ public class SOCRobotDM
             // TODO if no other plans, consider buying another
     }
 
-    System.err.println("L1848 bot " + ourPlayerData.getName() + (isScoreNotETA ? ": best score " : ": best ETA ")
-        + bestScoreOrETA + "; card " + cardScoreOrETA + ", ship " + shipScoreOrETA + "; shipsBuilt " + shipsBuilt);
+    // System.err.println("L1848 bot " + ourPlayerData.getName() + (isScoreNotETA ? ": best score " : ": best ETA ")
+    //     + bestScoreOrETA + "; card " + cardScoreOrETA + ", ship " + shipScoreOrETA + "; shipsBuilt " + shipsBuilt);
 
     if (! (mightBuildShip || mightBuyWarshipCard))
     {
@@ -2261,8 +2261,8 @@ public class SOCRobotDM
         newEdge = edge2;
 
     buildingPlan.add(new SOCPossibleShip(ourPlayerData, newEdge, false, null));
-    System.err.println("L2112 ** " + ourPlayerData.getName()
-        + ": Planned possible ship at 0x" + Integer.toHexString(newEdge) + " towards fortress");
+    // System.err.println("L2112 ** " + ourPlayerData.getName()
+    //     + ": Planned possible ship at 0x" + Integer.toHexString(newEdge) + " towards fortress");
 
     return true;
   }
@@ -2374,8 +2374,8 @@ public class SOCRobotDM
 
     // Compare bestWond's score or ETA to our current plans
 
-    System.err.println("L2296 bot " + ourPlayerData.getName() + (isScoreNotETA ? ": best score " : ": best ETA ")
-        + bestScoreOrETA + "; card " + cardScoreOrETA + ", wondScoreOrETA " + bestWondScoreOrETA);
+    // System.err.println("L2296 bot " + ourPlayerData.getName() + (isScoreNotETA ? ": best score " : ": best ETA ")
+    //     + bestScoreOrETA + "; card " + cardScoreOrETA + ", wondScoreOrETA " + bestWondScoreOrETA);
 
     // If it scores highly: Push the scenario building plan, push it, return true
     if (isScoreNotETA)
@@ -2387,7 +2387,7 @@ public class SOCRobotDM
             return false;
     }
 
-    System.err.println("L2297 -> add to buildingPlan: gi=" + gi);
+    // System.err.println("L2297 -> add to buildingPlan: gi=" + gi);
     buildingPlan.add(new SOCPossiblePickSpecialItem
         (ourPlayerData, SOCGameOption.K_SC_WOND, gi, 0, bestETA, bestWond.getCost()));
 

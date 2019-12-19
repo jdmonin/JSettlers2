@@ -3598,9 +3598,11 @@ public class SOCRobotBrain extends Thread
             whatWeWantToBuild = new SOCShip(ourPlayerData, targetPiece.getCoordinates(), null);
             if (! whatWeWantToBuild.equals(whatWeFailedToBuild))
             {
+                /*
                 System.err.println("L2733: " + ourPlayerData.getName() + ": !!! BUILD REQUEST FOR A SHIP AT "
                     + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
                 D.ebugPrintln("!!! BUILD REQUEST FOR A SHIP AT " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
+                 */
                 client.buildRequest(game, SOCPlayingPiece.SHIP);
             } else {
                 // We already tried to build this.

@@ -2510,7 +2510,6 @@ public class SOCGameMessageHandler
                             srv.messageToGameWithMon(gaName, new SOCDevCardAction
                                 (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT));
                         } else {
-                            D.ebugPrintln("L7870: played soldier; clientVersionLowest = " + ga.clientVersionLowest);  // JM temp
                             srv.messageToGameForVersions
                                 (ga, -1, SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES - 1,
                                  new SOCDevCardAction
