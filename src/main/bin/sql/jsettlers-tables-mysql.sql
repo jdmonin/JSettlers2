@@ -1,8 +1,8 @@
 -- DB tables/indexes create script for jsettlers.
 -- Run jsettlers-create-mysql.sql or jsettlers-create-postgres.sql before this script.
 -- Make sure socdata is the database you are connected to when running this script:
---      MySQL:    $ mysql -u root -D socdata -p -e "SOURCE jsettlers-tables.sql"
---      Postgres: $ psql -d socdata --file jsettlers-tables.sql
+--      MySQL:    $ mysql -u root -D socdata -p -e "SOURCE jsettlers-tables-mysql.sql"
+--      Postgres: $ psql -d socdata --file jsettlers-tables-postgres.sql
 -- See bottom of file for copyright and license information (GPLv3+).
 
 -- Developers: Do not directly edit: Rendered from template jsettlers-tables-tmpl.sql
