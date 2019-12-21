@@ -116,6 +116,12 @@ public class SOCPlayerClient
      *<P>
      * For games with 6 players and/or the sea board, a scaling factor is applied to this preference
      * to keep consistent window sizes and width/height ratios.
+     *<P>
+     * If high-DPI mode ({@link SOCPlayerInterface#displayScale} &gt; 1)
+     * this preference is divided by {@code displayScale} when stored. That
+     * prevents sizing problems if user changes their screen resolution later
+     * which changes the {@code displayScale} computed at startup.
+     *
      * @since 1.2.00
      */
     public static final String PREF_PI__WIDTH = "PI_width";

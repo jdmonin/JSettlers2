@@ -750,7 +750,7 @@ The current Extra Tests are:
 
 ## Platform-specific
 
-On most recent and less-recent OSX and Windows; oldest JRE (java 6) and a new JRE:
+On most recent and less-recent OSX and Windows; oldest JRE (java 6) and a new JRE/JDK:
 
 - Dialog keyboard shortcuts, including New Game and Game Reset dialogs' esc/enter keys, FaceChooserFrame arrow keys
 - Sound, including 2 clients in same game for overlapping piece-place sound
@@ -759,22 +759,37 @@ On most recent and less-recent OSX and Windows; oldest JRE (java 6) and a new JR
 - High-DPI support
     - Test runs:
       - Run as usual (auto-detect resolution) on a low-DPI and a high-DPI display if available
-      - Override default using jvm property `-Djsettlers.uiScale=1`, then run again using `-Djsettlers.uiScale=2`
+      - Override default using jvm property `-Djsettlers.uiScale=2`
+      - Override default using jvm property `-Djsettlers.uiScale=1`
     - Things to check on each run:
       - Font appearance and size
       - Dialog layouts
         - Main panel after connect
         - Game window, especially player SOCHandPanels
         - Discard dialog: Per-resource color squares: Square size, font size in square
+      - Resize game window sightly, to save preference for next run
 - Persistent user prefs (sound, auto-reject bot offer, window size, hex graphics set)  
   Then, re-run to check default size with jvm property `-Djsettlers.debug.clear_prefs=PI_width,PI_height`
 - Accessibility/High-Contrast mode
     - Test debug jvm property `-Djsettlers.uiContrastMode=light`
     - On Windows, test high-contrast dark and light themes, and high-contrast accessibility mode
     - On Windows, test debug jvm property `-Djsettlers.uiContrastMode=dark` while using a dark theme
-    - Those test-runs should include offering, counter-offering, and rejecting a trade offer,
-      and auto-rejecting a bot's trade, to check visibility of Trade Panel and Message Panel text
-- SQLite database setup, from instructions in [Database.md](Database.md)
+    - Those test-runs should include:
+      - Move robber to hex with 2 opponents, choose a player to steal from
+      - Offer, counter-offer, and reject trade offers, and auto-reject a bot's trade,  
+        check visibility of Trade Panel and Message Panel text
+      - Gain Largest Army or Longest Road, check visibility of those labels
+- DB testing: SQLite
+    - SQLite database setup, from instructions in [Database.md](Database.md)
+    - Start dedicated server using that SQLite database, including command-line param `-Djsettlers.db.save.games=Y`
+    - Create a user, using SOCAccountClient directions in `Database.md`
+    - Connect and play a complete game
+    - Shut down server
+    - Check game stats with a SQLite browser
+
+          select * from games2;
+          select * from games2_players;
+          select games_won, games_lost from users;
 
 ## Instructions and Setup
 

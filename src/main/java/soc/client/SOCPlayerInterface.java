@@ -796,6 +796,9 @@ public class SOCPlayerInterface extends Frame
                 : 0;
             if (prefWidth != -1)
             {
+                prefWidth *= displayScale;
+                prefHeight *= displayScale;
+
                 if ((width_base != (WIDTH_MIN_4PL * displayScale))
                     || (height_base != (HEIGHT_MIN_4PL * displayScale)))
                 {
@@ -1377,8 +1380,8 @@ public class SOCPlayerInterface extends Frame
         if ((w < 100) || (h < 100))
             return;  // sanity check
 
-        UserPreferences.putPref(SOCPlayerClient.PREF_PI__WIDTH, w);
-        UserPreferences.putPref(SOCPlayerClient.PREF_PI__HEIGHT, h);
+        UserPreferences.putPref(SOCPlayerClient.PREF_PI__WIDTH, w / displayScale);
+        UserPreferences.putPref(SOCPlayerClient.PREF_PI__HEIGHT, h / displayScale);
     }
 
     /**

@@ -239,6 +239,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     /**
      * For high-DPI displays, what scaling factor to use? Unscaled is 1.
      * @see #checkDisplayScaleFactor(Component)
+     * @see #PROP_JSETTLERS_UI_SCALE
      */
     private final int displayScale;
 
