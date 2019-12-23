@@ -1520,7 +1520,7 @@ public class SOCServer extends Server
             // reminder: if props.getProperty(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET),
             // caller will need to prompt for and change the password
         }
-        catch (SQLException sqle)  // just a warning at this point; other code checks if db failed but is required
+        catch (SQLException sqle)  // just a warning at this point; other code here checks if db failed but is required
         {
             if (wants_upg_schema && db_err_printed)
             {
@@ -1552,6 +1552,8 @@ public class SOCServer extends Server
                 propReqDB = PROP_JSETTLERS_ACCOUNTS_REQUIRED;
             else if (props.containsKey(PROP_JSETTLERS_ACCOUNTS_ADMINS))
                 propReqDB = PROP_JSETTLERS_ACCOUNTS_ADMINS;
+            else if (getConfigBoolProperty(SOCDBHelper.PROP_JSETTLERS_DB_SAVE_GAMES, false))
+                propReqDB = SOCDBHelper.PROP_JSETTLERS_DB_SAVE_GAMES;
 
             if (propReqDB != null)
             {
