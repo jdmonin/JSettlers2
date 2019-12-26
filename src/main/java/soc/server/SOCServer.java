@@ -7518,7 +7518,16 @@ public class SOCServer extends Server
                     //
                     int minutes = (int) ((gameExpir - currentTimeMillis) / 60000);
                     if (minutes < 1)
-                        minutes = 1;  // in case of rounding down
+                    {
+                        if (hasWarned)
+                        {
+                            minutes = 1;  // in case of rounding down
+                        } else {
+                            // minutes might be negative; can happen if server was on a sleeping laptop
+                            minutes = GAME_TIME_EXPIRE_CHECK_MINUTES + 1;
+                            gameData.setExpiration(currentTimeMillis + (minutes * 60 * 1000));
+                        }
+                    }
 
                     messageToGameKeyed(gameData, true, "game.time.expire.soon.addtime", Integer.valueOf(minutes));
                         // ">>> Less than {0} minutes remaining. Type *ADDTIME* to extend this game another 30 minutes."

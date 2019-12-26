@@ -1100,6 +1100,12 @@ public class SOCServerMessageHandler
                         minAdd = gameMaxMins - minRemain;
                     exp += (minAdd * 60 * 1000);
                     minRemain += minAdd;
+                    if (minRemain < SOCServer.GAME_TIME_EXPIRE_ADDTIME_MINUTES)
+                    {
+                        // minRemain might be small or negative; can happen if server was on a sleeping laptop
+                        minRemain = SOCServer.GAME_TIME_EXPIRE_ADDTIME_MINUTES;
+                        exp = now + (minRemain * 60 * 1000);
+                    }
 
                     ga.setExpiration(exp);
                     srv.messageToGameKeyed(ga, true, "reply.addtime.extended");  // ">>> Game time has been extended."

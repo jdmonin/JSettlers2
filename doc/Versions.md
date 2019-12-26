@@ -57,11 +57,14 @@ and backport minor new features until `2.0.00` is ready.
 	- SOCBuildRequest now optional before client's SOCPutPiece request
 - Server:
 	- At server startup, if robots take up most of maxConnections, warn and use a higher value so humans can connect
+	- Game expiration: (in case of sleeping laptop as server)
+	  - First warning: If less than 6 minutes remains, auto-add a few minutes to expiration time
+	  - `*ADDTIME*` command: Make sure new expiration time gives at least 30 minutes remaining
 	- Server closes connections to rejected clients or bots
 	- Server Config Validation mode: Test the current config and exit, with new startup option:  
 	  `-t` or `--test-config`
 - Misc bugfixes:
-	- If a new game is created but no one has sat down, then someone joins and leaves it, don't delete that game
+	- If a new game is created but no one has sat down, then another client joins and leaves it, don't delete that game
 - Database:
      - Upgraded Schema `v2.0.00` adds:
          - users table: Count of games won, lost
