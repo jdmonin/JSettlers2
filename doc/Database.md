@@ -98,6 +98,26 @@ location as JSettlersServer.jar, and specify on the jsettlers command line:
 
 (sqlite jar filename may vary, update the parameter to match it).
 
+#### If SQLite gives "Operation not permitted" error at startup
+
+Recent sqlite versions extract and use a native shared library.
+On Linux and possibly other OSes, this can trigger a security feature if the library is
+extracted to default directory `/tmp` and that directory's mount point has the `noexec` flag:
+
+    Failed to load native library:sqlite-3.xx.y-...-libsqlitejdbc.so. osinfo: Linux/x86_64
+    java.lang.UnsatisfiedLinkError: /tmp/sqlite-3.xx.y-...-libsqlitejdbc.so: /tmp/sqlite-3.xx.y-...-libsqlitejdbc.so: failed to map segment from shared object: Operation not permitted
+    Warning: No user database available: Unable to initialize user database
+            java.lang.UnsatisfiedLinkError: org.sqlite.core.NativeDB._open_utf8([BI)V
+
+If sqlite gives you that "operation not permitted" error:
+
+- Choose a directory in a filesystem which isn't mounted `noexec`
+  - A user's home directory may satisfy this
+  - To check mount flags, use the command `mount -v`
+- Make a directory within that one, for example:  
+  `mkdir -p /home/jeremy/jsettlers/sqlite-tmp`
+- When starting the server, give sqlite that directory name *before* the `-jar` parameter:  
+  `java -Dorg.sqlite.tmpdir=/home/jeremy/jsettlers/sqlite-tmp -jar JSettlersServer-...`
 
 ### If your database server is some other type
 
