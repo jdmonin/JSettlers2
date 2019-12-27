@@ -7508,8 +7508,8 @@ public class SOCServer extends Server
                 {
                     final String gameName = gameData.getName();
                     expired.add(gameName);
-                    messageToGameKeyed(gameData, true, "game.time.expire.destroyed");
-                        // ">>> The time limit on this game has expired, it will now be destroyed."
+                    messageToGameKeyed(gameData, true, "game.time.expire.deleted");
+                        // ">>> The time limit on this game has expired, it will now be deleted."
                 }
                 else if ((gameExpir - warn_ms) <= currentTimeMillis)
                 {
