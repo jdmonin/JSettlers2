@@ -1587,7 +1587,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         {
             System.err.println("Java Settlers robotclient " + Version.version() +
                     ", build " + Version.buildnum());
-            System.err.println("usage: java soc.robot.SOCRobotClient host port_number userid password cookie");
+            System.err.println("usage: java soc.robot.SOCRobotClient host port_number bot_nickname password cookie");
             return;
         }
 

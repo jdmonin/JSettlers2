@@ -168,7 +168,7 @@ import javax.swing.SwingConstants;
     }
 
     /**
-     * If not yet done (value 0), first calculate the values for {@link #oneLineHeight} and {@link #msgHeight}
+     * If not yet done (value 0), calculate the values for {@link #oneLineHeight} and {@link #msgHeight}
      * based on {@link #msgLines} and getFontMetrics({@link #msg}.getFont()).
      *
      * @see OfferPanel#calcLabelWidth(boolean)

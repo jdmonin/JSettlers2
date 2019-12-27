@@ -1,6 +1,6 @@
 /*
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,8 +30,9 @@ import soc.util.SOCRobotParameters;
 /**
  * Sample of a trivially simple "third-party" subclass of {@link SOCRobotClient}
  * using {@link Sample3PBrain}. See that brain class's javadoc for what's different
- * from standard behavior. Also demonstrate how to tell the server this bot isn't
- * programmed to handle seafarers scenarios ({@link SOCFeatureSet#CLIENT_SCENARIO_VERSION}).
+ * from standard behavior. Also demonstrates how to tell the server this bot isn't
+ * programmed to handle seafarers scenarios ({@link SOCFeatureSet#CLIENT_SCENARIO_VERSION}):
+ * See {@link #buildClientFeats()}.
  *
  *<H5>Connecting to the Server:</H5>
  * Since this bot isn't started up as part of the SOCServer,
@@ -49,7 +50,7 @@ import soc.util.SOCRobotParameters;
  * See {@code /src/main/bin/jsserver.properties.sample} comments for more details on any parameter.
  *<BR>
  * All server properties can be specified in a {@code jsserver.properties} file,
- * or on the command line as {@code -Dpropertyname=propertyvalue}.
+ * or on the command line as {@code -Dpropertyname=value}.
  *<UL>
  * <LI> To use third-party bots as a certain percentage of the bots in each game:<BR>
  *      {@code jsettlers.bots.percent3p=50} (for 50%)
@@ -89,6 +90,8 @@ public class Sample3PClient extends SOCRobotClient
      * Build the set of optional client features this bot supports, to send to the server.
      * This sample client omits SOCScenario support ({@link SOCFeatureSet#CLIENT_SCENARIO_VERSION})
      * as an example.
+     *<P>
+     * Called from {@link SOCRobotClient#init()}.
      */
     @Override
     protected SOCFeatureSet buildClientFeats()
@@ -124,7 +127,7 @@ public class Sample3PClient extends SOCRobotClient
         if (args.length < 5)
         {
             System.err.println("Java Settlers sample robotclient");
-            System.err.println("usage: java " + RBCLASSNAME_SAMPLE + " hostname port_number userid password cookie");
+            System.err.println("usage: java " + RBCLASSNAME_SAMPLE + " hostname port_number bot_nickname password cookie");
 
             return;
         }
