@@ -25,7 +25,7 @@ import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.FontMetrics;
-import java.awt.Frame;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -148,7 +148,7 @@ public abstract class AskDialog extends JDialog
      *
      * @see #button3Chosen()
      */
-    protected JButton choice3But;
+    protected final JButton choice3But;
 
     /** Default button (0 for none, or button 1, 2, or 3) */
     protected final int choiceDefault;
@@ -185,7 +185,7 @@ public abstract class AskDialog extends JDialog
         boolean default1, boolean default2)
         throws IllegalArgumentException
     {
-        this(cli, (Frame) gamePI,
+        this(cli, (Window) gamePI,
             titlebar, prompt, choice1, choice2,
             default1, default2);
         if (gamePI != null)
@@ -197,16 +197,16 @@ public abstract class AskDialog extends JDialog
     /**
      * Creates a new AskDialog with one button, not about a specific game.
      * For use by {@link NotifyDialog}.
-     * parentFr cannot be null; use {@link #getParentFrame(Component)} to find it.
+     * parent cannot be null; use {@link #getParentWindow(Component)} to find it.
      * @since 1.1.06
      */
-    protected AskDialog(MainDisplay cli, Frame parentFr,
+    protected AskDialog(MainDisplay cli, Window parent,
         String titlebar, String prompt, String btnText,
         boolean hasDefault)
         throws IllegalArgumentException
     {
         this (cli,
-              parentFr,
+              parent,
               titlebar, prompt,
               btnText, null, null,
               (hasDefault ? 1 : 0)
@@ -217,7 +217,7 @@ public abstract class AskDialog extends JDialog
      * Creates a new AskDialog with two buttons, not about a specific game.
      *
      * @param cli      Player client interface; will be used for actions in subclasses when dialog buttons are chosen
-     * @param parentFr SOCPlayerClient or other parent frame
+     * @param parent   SOCPlayerClient or other parent frame or dialog
      * @param titlebar Title bar text; if text contains \n, only the portion before \n is used.
      *            If begins with \n, title is "JSettlers" instead.
      * @param prompt   Prompting text shown above buttons, or null
@@ -229,12 +229,12 @@ public abstract class AskDialog extends JDialog
      * @throws IllegalArgumentException If both default1 and default2 are true,
      *    or if any of these is null: cli, gamePI, prompt, choice1, choice2.
      */
-    public AskDialog(MainDisplay cli, Frame parentFr,
+    public AskDialog(MainDisplay cli, Window parent,
         String titlebar, String prompt, String choice1, String choice2,
         boolean default1, boolean default2)
         throws IllegalArgumentException
     {
-        this (cli, parentFr, titlebar, prompt,
+        this (cli, parent, titlebar, prompt,
               choice1, choice2, null,
               (default1 ? 1 : (default2 ? 2 : 0))
               );
@@ -265,9 +265,10 @@ public abstract class AskDialog extends JDialog
         int defaultChoice)
         throws IllegalArgumentException
     {
-        this(cli, (Frame) gamePI,
+        this(cli, (Window) gamePI,
              titlebar, prompt, choice1, choice2, choice3,
              defaultChoice);
+
         if (gamePI != null)
             pi = gamePI;
         else
@@ -279,7 +280,7 @@ public abstract class AskDialog extends JDialog
      * a specific game.
      *
      * @param md       Player client's main display; will be used for actions in subclasses when dialog buttons are chosen
-     * @param parentFr SOCPlayerClient or other parent frame
+     * @param parent   SOCPlayerClient or other parent frame or dialog
      * @param titlebar Title bar text; if text contains \n, only the portion before \n is used.
      *              If begins with \n, title is "JSettlers" instead.
      * @param prompt   Prompting text shown above buttons, or null.
@@ -290,20 +291,21 @@ public abstract class AskDialog extends JDialog
      * @param defaultChoice  Default button (1, 2, 3, or 0 for none)
      *
      * @throws IllegalArgumentException If defaultChoice out of range 0..3,
-     *    or if any of these is null: cli, parentFr, prompt, choice1, choice2,
+     *    or if any of these is null: cli, parent, prompt, choice1, choice2,
      *    or if choice3 is null and defaultChoice is 3.
      */
-    public AskDialog(MainDisplay md, Frame parentFr,
+    public AskDialog(MainDisplay md, Window parent,
         String titlebar, String prompt, String choice1, String choice2, String choice3,
         int defaultChoice)
         throws IllegalArgumentException
     {
-        super(parentFr, firstLine(titlebar), true);
+        super(parent, firstLine(titlebar));
+        setModalityType(ModalityType.DOCUMENT_MODAL);
 
         if (md == null)
             throw new IllegalArgumentException("md cannot be null");
-        if (parentFr == null)
-            throw new IllegalArgumentException("parentFr cannot be null");
+        if (parent == null)
+            throw new IllegalArgumentException("parent cannot be null");
         if (choice1 == null)
             throw new IllegalArgumentException("choice1 cannot be null");
         if ((defaultChoice < 0) || (defaultChoice > 3))
@@ -414,7 +416,7 @@ public abstract class AskDialog extends JDialog
                 msg = pScroll;
                 add(pScroll);
 
-                final int maxWid80pct = (4 * parentFr.getWidth()) / 5;
+                final int maxWid80pct = (4 * parent.getWidth()) / 5;
                 if (promptMaxWid > maxWid80pct)
                     promptMaxWid = maxWid80pct;  // text must wrap, it's too wide otherwise
 
@@ -443,7 +445,7 @@ public abstract class AskDialog extends JDialog
             // to be adjusted in windowOpened()
             setSize(wantW + 6, wantH + 20);
         }
-        setLocationRelativeTo(parentFr);
+        setLocationRelativeTo(parent);
 
         pBtns = new JPanel();
         if (! isOSHighContrast)
@@ -712,20 +714,23 @@ public abstract class AskDialog extends JDialog
     public void mouseReleased(MouseEvent e) {}
 
     /**
-     * Gets the top-level frame of c.
+     * Get a component's top-level frame or dialog.
      * All windows and applets should have one.
+     *<P>
+     * Before v2.0.00 this method was {@code getParentFrame}.
+     *
      * @param c The Component.
-     * @return The parent-frame
+     * @return The parent frame or dialog
      * @since 1.1.06
      * @throws IllegalStateException if we find a null parent
-     *         before a Frame, or if any parent == itself
+     *         before a {@link Window}, or if any parent == itself
      */
-    public static Frame getParentFrame(Component c)
+    public static Window getParentWindow(Component c)
         throws IllegalStateException
     {
         String throwMsg = null;
         Component last;
-        while (! (c instanceof Frame))
+        while (! (c instanceof Window))
         {
             last = c;
             c = c.getParent();
@@ -737,7 +742,8 @@ public abstract class AskDialog extends JDialog
                 throw new IllegalStateException
                     (throwMsg + last.getClass().getName() + " " + last);
         }
-        return (Frame) c;
+
+        return (Window) c;
     }
 
     /**

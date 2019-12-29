@@ -22,7 +22,7 @@
 package soc.client;
 
 import java.awt.EventQueue;
-import java.awt.Frame;
+import java.awt.Window;
 
 // TODO consider callback option; ActionListener
 
@@ -43,8 +43,8 @@ public class NotifyDialog extends AskDialog
      * Calls {@link EventQueue#invokeLater(Runnable)} to ensure it displays from the proper thread.
      *
      * @param md       Player client's main display
-     * @param gamePI   Current game's player interface, or another Frame for our parent window,
-     *                 or null to look for cli's Frame as parent
+     * @param gamePI   Current game's player interface, or another Frame or Dialog for our parent window,
+     *                 or null to look for cli's Frame/Dialog as parent
      * @param promptText  Prompt text appearing above button; also used for the dialog title.
      *                 If multiple lines, first line is title; if begins with \n, title is "JSettlers".
      * @param btnText  Button text, or null for "OK"
@@ -53,7 +53,7 @@ public class NotifyDialog extends AskDialog
      * @throws IllegalArgumentException If cli, promptText, or btnText is null
      */
     public static NotifyDialog createAndShow
-        (MainDisplay md, Frame gamePI, String promptText, String btnText, boolean hasDefault)
+        (MainDisplay md, Window gamePI, String promptText, String btnText, boolean hasDefault)
         throws IllegalArgumentException
     {
         if (btnText == null)
@@ -69,8 +69,8 @@ public class NotifyDialog extends AskDialog
      * Creates a new NotifyDialog.
      *
      * @param md       Player client's main display
-     * @param gamePI   Current game's player interface, or another Frame for our parent window,
-     *                 or null to look for cli's Frame as parent
+     * @param gamePI   Current game's player interface, or another Frame or Dialog for our parent window,
+     *                 or null to look for cli's Frame/Dialog as parent
      * @param promptText  Prompt text appearing above button; also used for the dialog title.
      *                 If multiple lines, first line is title; if begins with \n, title is "JSettlers".
      * @param btnText  Button text, or null for "OK"
@@ -78,12 +78,12 @@ public class NotifyDialog extends AskDialog
      * @throws IllegalArgumentException If cli or btnText is null
      */
     protected NotifyDialog
-        (MainDisplay md, Frame gamePI, String promptText, String btnText, boolean hasDefault)
+        (MainDisplay md, Window gamePI, String promptText, String btnText, boolean hasDefault)
     {
         super(md,
               ((gamePI != null)
                ? gamePI
-               : getParentFrame(md.getGUIContainer())),
+               : getParentWindow(md.getGUIContainer())),
               promptText, promptText,
               (btnText != null) ? btnText : strings.get("base.ok"),
               hasDefault);

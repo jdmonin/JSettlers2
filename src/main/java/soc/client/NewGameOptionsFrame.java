@@ -25,9 +25,9 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -55,7 +55,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JFrame;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
@@ -102,14 +102,17 @@ import soc.util.Version;
  *<P>
  * This class also contains the "Scenario Info" popup window, called from
  * this dialog's Scenario Info button, and from {@link SOCPlayerInterface}
- * when first joining a game with a scenario.
- * See {@link #showScenarioInfoDialog(SOCScenario, Map, int, MainDisplay, Frame)}.
+ * when first joining a game with a scenario:
+ * See {@link #showScenarioInfoDialog(SOCScenario, Map, int, MainDisplay, Window)}.
+ *<P>
+ * Although this class was changed in v2.0 from a Frame to a JDialog, it's still named
+ * "NewGameOptionsFrame": Many commit messages and local vars refer to "NGOF".
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
  */
 @SuppressWarnings("serial")
-/*package*/ class NewGameOptionsFrame extends JFrame
+/*package*/ class NewGameOptionsFrame extends JDialog
     implements ActionListener, DocumentListener, KeyListener, ItemListener, MouseListener
 {
     // See initInterfaceElements() for most of the UI setup.
@@ -262,13 +265,13 @@ import soc.util.Version;
         (final SOCPlayerInterface pi, final MainDisplay md, String gaName,
          Map<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
     {
-        super( readOnly
+        super( pi, readOnly
                 ? (strings.get("game.options.title", gaName))
                 : (forPractice
                     ? strings.get("game.options.title.newpractice")
                     : strings.get("game.options.title.new")));
 
-        // Uses default BorderLayout, for simple stretching when frame is resized
+        // Uses default BorderLayout, for simple stretching when window is resized
 
         this.pi = pi;
         this.mainDisplay = md;
@@ -292,12 +295,12 @@ import soc.util.Version;
                 gaName = cli.DEFAULT_PRACTICE_GAMENAME + " " + (1 + cli.numPracticeGames);
         }
 
-        // same Frame setup as in SOCPlayerClient.main
+        // same Frame/Window setup as in SOCPlayerClient.main
         if (! SwingMainDisplay.isOSColorHighContrast())
         {
             setBackground(SwingMainDisplay.JSETTLERS_BG_GREEN);
             setForeground(Color.black);
-            getRootPane().setBackground(null);  // inherit from overall frame
+            getRootPane().setBackground(null);  // inherit from overall window
             getContentPane().setBackground(null);
         }
         setLocationByPlatform(true);
@@ -333,7 +336,8 @@ import soc.util.Version;
         (SOCPlayerInterface pi, MainDisplay md, String gaName,
          Map<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
     {
-        NewGameOptionsFrame ngof = new NewGameOptionsFrame(pi, md, gaName, opts, forPractice, readOnly);
+        final NewGameOptionsFrame ngof =
+            new NewGameOptionsFrame(pi, md, gaName, opts, forPractice, readOnly);
         ngof.pack();
         ngof.setVisible(true);
 
@@ -341,8 +345,8 @@ import soc.util.Version;
     }
 
     /**
-     * Interface setup for constructor. Assumes frame is using BorderLayout.
-     * Most elements are part of a sub-panel occupying most of this Frame, and using GridBagLayout.
+     * Interface setup for constructor. Assumes dialog is using BorderLayout.
+     * Most elements are part of a sub-panel occupying most of this dialog, and using GridBagLayout.
      * Fills {@link #localPrefs}.
      */
     private void initInterfaceElements(final String gaName)
@@ -355,7 +359,7 @@ import soc.util.Version;
 
         final JPanel bp = new JPanel(gbl);  // Actual button panel
         int n = 4 * displayScale;
-        bp.setBorder(new EmptyBorder(n, n, n, n));  // need padding around edges, because panel fills the frame
+        bp.setBorder(new EmptyBorder(n, n, n, n));  // need padding around edges, because panel fills the window
         if (! isOSHighContrast)
         {
             bp.setForeground(getForeground());
@@ -364,7 +368,7 @@ import soc.util.Version;
 
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.weightx = 1;  // stretch with frame resize
+        gbc.weightx = 1;  // stretch with dialog resize
 
         if ((! readOnly) && (opts != null))
         {
@@ -1409,7 +1413,7 @@ import soc.util.Version;
             if (readOptsValuesFromControls(checkOptionsMinVers))
             {
                 // All fields OK, ready to create a new game.
-                setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));  // Immediate feedback in this frame
+                setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));  // Immediate feedback in this window
                 persistLocalPrefs();
                 mainDisplay.askStartGameWithOptions
                     (gmName, forPractice, opts, localPrefs);  // sets WAIT_CURSOR in main client frame
@@ -1429,7 +1433,7 @@ import soc.util.Version;
     }
 
     /**
-     * The "Cancel" button or window's close button was clicked, or ESC was pressed; dismiss the frame.
+     * The "Cancel" button or window's close button was clicked, or ESC was pressed; dismiss the dialog.
      * Note: Button text is "OK" in read-only mode ({@link #readOnly}) for a current game.
      */
     private void clickCancel()
@@ -1450,7 +1454,7 @@ import soc.util.Version;
     /**
      * The "Scenario Info" button was clicked.
      * Reads the current scenario, if any, from {@link #scenDropdown}.
-     * Calls {@link #showScenarioInfoDialog(SOCScenario, Map, int, MainDisplay, Frame)}.
+     * Calls {@link #showScenarioInfoDialog(SOCScenario, Map, int, MainDisplay, Window)}.
      * @since 2.0.00
      */
     private void clickScenarioInfo()
@@ -1488,7 +1492,7 @@ import soc.util.Version;
     }
 
     /**
-     * Dismiss the frame, and if client's {@link MainDisplay} has a reference to this frame,
+     * Dismiss this dialog, and if client's {@link MainDisplay} has a reference to it,
      * clear it to null there.
      */
     @Override
@@ -1499,7 +1503,7 @@ import soc.util.Version;
     }
 
     /**
-     * When frame is closing, store any updated persistent local preferences
+     * When window is closing, store any updated persistent local preferences
      * like {@link SOCPlayerClient#PREF_BOT_TRADE_REJECT_SEC}.
      * If {@link #pi} != null, update its settings too.
      *<P>
@@ -2091,12 +2095,12 @@ import soc.util.Version;
      * Calls {@link EventQueue#invokeLater(Runnable)}.
      * @param ga  Game to display scenario info for; if game option {@code "SC"} missing or blank, does nothing.
      * @param md    Player client's main display, for {@link NotifyDialog} call
-     * @param parent  Current game's player interface, or another Frame for our parent window,
-     *                or null to look for {@code cli}'s Frame as parent
+     * @param parent  Current game's player interface, or another Frame or Dialog for our parent window,
+     *                or null to look for {@code cli}'s Frame/Dialog as parent
      * @since 2.0.00
      */
     public static void showScenarioInfoDialog
-        (final SOCGame ga, final MainDisplay md, final Frame parent)
+        (final SOCGame ga, final MainDisplay md, final Window parent)
     {
         final String scKey = ga.getGameOptionStringValue("SC");
         if (scKey == null)
@@ -2116,13 +2120,13 @@ import soc.util.Version;
      * @param gameOpts  All game options if current game, or null to extract from {@code sc}'s {@link SOCScenario#scOpts}
      * @param vpWinner  Number of victory points to win, or {@link SOCGame#VP_WINNER_STANDARD}.
      * @param md     Player client's main display, required for {@link AskDialog} constructor
-     * @param parent  Current game's player interface, or another Frame for our parent window,
-     *                or null to look for {@code cli}'s Frame as parent
+     * @param parent  Current game's player interface, or another Frame or Dialog for our parent window,
+     *                or null to look for {@code cli}'s Frame/Dialog as parent
      * @since 2.0.00
      */
     public static void showScenarioInfoDialog
         (final SOCScenario sc, Map<String, SOCGameOption> gameOpts, final int vpWinner,
-         final MainDisplay md, final Frame parent)
+         final MainDisplay md, final Window parent)
     {
         if (sc == null)
             return;
