@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2018-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  *
  * This program is free software; you can redistribute it and/or
@@ -22,8 +22,8 @@ package soc.game;
 
 
 /**
- * A playing piece that connects settlements and cities and can be part of Longest Route:
- * A {@link SOCRoad} or (on the large sea board) {@link SOCShip}.
+ * A playing piece that connects settlements and cities and can be
+ * part of the Longest Route: A {@link SOCRoad} or {@link SOCShip}.
  * @since 2.0.00
  */
 public abstract class SOCRoutePiece extends SOCPlayingPiece

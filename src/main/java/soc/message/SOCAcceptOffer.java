@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2013-2014,2016-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2013-2014,2016-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,7 +29,8 @@ import java.util.StringTokenizer;
  * Sent from accepting player's client to server.
  * If the trade is allowed, announced from server to all players.
  *<UL>
- * <LI> Message to server is in response to a {@link SOCMakeOffer} sent earlier this turn to client.
+ * <LI> Client message to server is in response to a {@link SOCMakeOffer} announced earlier this turn
+ *      with client as an offered-to player.
  * <LI> Server's response (announced to game) is {@link SOCPlayerElement}s, {@link SOCGameServerText},
  *      {@code AcceptOffer}, then {@link SOCClearOffer}s.
  *</UL>

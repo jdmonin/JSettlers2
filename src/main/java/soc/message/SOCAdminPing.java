@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014,2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,6 +25,11 @@ package soc.message;
  * This message is a way for the admin to test
  * if a robot is connected and running
  * in a game where the admin user is a member.
+ *<P>
+ * Can be used as a rough bot-development/debug tool:
+ * If a robot client hears this ping and is already in the game
+ * with the admin/debug player that sent it, respond with "OK";
+ * Otherwise join that game.
  *
  * @author Robert S Thomas
  * @see SOCServerPing
