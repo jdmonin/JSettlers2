@@ -1522,14 +1522,11 @@ import soc.util.Version;
 
         k = SOCPlayerClient.PREF_HEX_GRAPHICS_SET;
         v = localPrefs.get(k);
-        if (v != null)
+        int setIdx = (Boolean.TRUE.equals(v)) ? 1 : 0;
+        if (setIdx != UserPreferences.getPref(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, 0))
         {
-            int setIdx = (Boolean.TRUE.equals(v)) ? 1 : 0;
-            if (setIdx != UserPreferences.getPref(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, 0))
-            {
-                UserPreferences.putPref(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, setIdx);
-                mainDisplay.getClient().reloadBoardGraphics();  // refresh all current PIs
-            }
+            UserPreferences.putPref(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, setIdx);
+            mainDisplay.getClient().reloadBoardGraphics();  // refresh all current PIs
         }
     }
 

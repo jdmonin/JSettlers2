@@ -546,9 +546,17 @@ public class SOCPlayerClient
         {
             public void run()
             {
-                SOCBoardPanel.reloadBoardGraphics(mainDisplay.getGUIContainer());
-                for (final PlayerClientListener pcl : clientListeners.values())
-                    pcl.boardUpdated();
+                try
+                {
+                    SOCBoardPanel.reloadBoardGraphics(mainDisplay.getGUIContainer());
+                    for (final PlayerClientListener pcl : clientListeners.values())
+                        pcl.boardUpdated();
+                } catch (Throwable th) {
+                    System.err.println("-- Error caught in reloadBoardGraphics: " + th + " --");
+                    th.printStackTrace();
+                    System.err.println("-- Error stack trace end --");
+                    System.err.println();
+                }
             }
         });
     }
