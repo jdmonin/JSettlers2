@@ -1052,6 +1052,16 @@ import soc.util.Version;
                  strings.get("game.options.bot.auto_reject"),  // "Auto-reject bot trades after # seconds"
                  true, true, bval, ival, null);
         }
+
+        int ival = UserPreferences.getPref(SOCPlayerClient.PREF_UI_SCALE_FORCE, 0);
+        localPrefs.put(SOCPlayerClient.PREF_UI_SCALE_FORCE, Integer.valueOf(ival));
+        bval = (ival > 0);
+        if (! bval)
+            ival = (ival < 0) ? (-ival) : 1;
+        initInterface_Pref1
+            (bp, gbl, gbc, SOCPlayerClient.PREF_UI_SCALE_FORCE,
+             strings.get("game.options.ui.scale.force"),  // "Force UI scale to # (requires restart)"
+             true, true, bval, ival, null);
     }
 
     /**
@@ -1522,6 +1532,16 @@ import soc.util.Version;
                 pi.setBotTradeRejectSec(iv);
             if (iv != 0)
                 UserPreferences.putPref(k, iv);
+        }
+
+        k = SOCPlayerClient.PREF_UI_SCALE_FORCE;
+        v = localPrefs.get(k);
+        if ((v != null) && (v instanceof Integer))
+        {
+            int iv = ((Integer) v).intValue();
+            if (iv > 3)
+                iv = 3;
+            UserPreferences.putPref(k, iv);
         }
 
         k = SOCPlayerClient.PREF_HEX_GRAPHICS_SET;

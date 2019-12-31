@@ -768,6 +768,8 @@ On most recent and less-recent OSX and Windows; oldest JRE (java 6) and a new JR
         - Game window, especially player SOCHandPanels
         - Discard dialog: Per-resource color squares: Square size, font size in square
       - Resize game window sightly, to save preference for next run
+    - Quick re-test with "Force UI scale" user pref unset, set to 1, set to 2;
+      make sure this pref's checkbox can be cleared
 - Persistent user prefs (sound, auto-reject bot offer, window size, hex graphics set)  
   Then, re-run to check default size with jvm property `-Djsettlers.debug.clear_prefs=PI_width,PI_height`
 - Accessibility/High-Contrast mode

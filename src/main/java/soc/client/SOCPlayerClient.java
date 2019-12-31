@@ -178,6 +178,20 @@ public class SOCPlayerClient
     public static final String PREF_HEX_GRAPHICS_SET = "hexGraphicsSet";
 
     /**
+     * Integer persistent {@link Preferences} optional key to force (2 or 3) or disable (1) UI Scaling.
+     * Negative if disabled, to keep the setting's value for {@link NewGameOptionsFrame}
+     * and "Options" dialogs without also having a separate enabled/disabled flag.
+     *<P>
+     * Default value is 0 (unused). Ignored if above 3.
+     *<P>
+     * Is overridden by command-line JVM property {@link SwingMainDisplay#PROP_JSETTLERS_UI_SCALE}.
+     *
+     * @see UserPreferences#getPref(String, int)
+     * @since 2.0.00
+     */
+    public static final String PREF_UI_SCALE_FORCE = "uiScaleForce";
+
+    /**
      * i18n text strings in our {@link #cliLocale}.
      * @since 2.0.00
      */

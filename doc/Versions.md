@@ -21,7 +21,7 @@ and backport minor new features until `2.0.00` is ready.
 	- Game Scenario and special-rules support
 	- Game option "VP" (Victory Points to win): Maximum increased to 20 from 15
 - Client:
-	- High-DPI support, based on screen resolution or running with JVM parameter `-Djsettlers.uiScale=2`
+	- High-DPI support based on screen resolution, user preference, or running with JVM parameter `-Djsettlers.uiScale=2`
 	- Added second set of hex graphics; in new-game options, can choose Classic or the new set
 	- Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard dialog)
 	- Trade counter-offer: For legibility use light background color, not player color

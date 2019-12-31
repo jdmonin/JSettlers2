@@ -124,7 +124,11 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
     /**
      * System property {@code "jsettlers.uiScale"} for UI scaling override ("high-DPI") if needed
-     * for {@link #checkDisplayScaleFactor(Component)}. Name is based on similar {@code "sun.java2d.uiScale"},
+     * for {@link #checkDisplayScaleFactor(Component)}.
+     *<P>
+     * Overrides optional user preference {@link SOCPlayerClient#PREF_UI_SCALE_FORCE}.
+     *<P>
+     * Name is based on similar {@code "sun.java2d.uiScale"},
      * but that property might not be available for all java versions.
      * @since 2.0.00
      */
@@ -647,9 +651,9 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      *<P>
      * After determining scale here, be sure to call {@link #scaleUIManagerFonts(int)} once.
      *<P>
-     * If system property {@link #PROP_JSETTLERS_UI_SCALE} is set to an integer &gt;= 1,
-     * it overrides this display check and its value will be returned, even if {@code c} is null
-     * or hasn't been added to a Container.
+     * If user preference {@link SOCPlayerClient#PREF_UI_SCALE_FORCE} or system property {@link #PROP_JSETTLERS_UI_SCALE}
+     * are set to an integer &gt;= 1, they override this display check and that value will be returned,
+     * even if {@code c} is null or hasn't been added to a Container.
      *
      * @param c  Component; not {@code null}
      * @return scaling factor based on screen height divided by {@link #DISPLAY_MIN_UNSCALED_HEIGHT},
@@ -671,12 +675,19 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                     int uiScale = Integer.parseInt(propValue);
                     if (uiScale > 0)
                     {
-                        System.err.println("L533: checkDisplayScaleFactor prop override -> scale=" + uiScale);  // TODO later: remove debug print
+                        System.err.println("L678: checkDisplayScaleFactor prop override -> scale=" + uiScale);  // TODO later: remove debug print
                         return uiScale;
                     }
                 } catch (NumberFormatException e) {}
             }
         } catch (SecurityException e) {}
+
+        int uiScaleForce = UserPreferences.getPref(SOCPlayerClient.PREF_UI_SCALE_FORCE, 0);
+        if ((uiScaleForce > 0) && (uiScaleForce <= 3))
+        {
+            System.err.println("L688: checkDisplayScaleFactor user-pref override -> scale=" + uiScaleForce);  // TODO later: remove debug print
+            return uiScaleForce;
+        }
 
         final GraphicsConfiguration gconf = c.getGraphicsConfiguration();
         if (gconf == null)
