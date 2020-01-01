@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -6065,7 +6065,7 @@ import javax.swing.JComponent;
                     ptrOldY = y;
                     boolean isShip = false;
                     edgeNum = findEdge(xb, yb, true);
-                    if (edgeNum < 0)
+                    if ((edgeNum < 0) && isLargeBoard)
                     {
                         edgeNum = -edgeNum;
                         if ((player != null) && game.canPlaceShip(player, edgeNum))
@@ -6129,7 +6129,7 @@ import javax.swing.JComponent;
                     }
 
                     boolean isShip;
-                    if (edgeNum < 0)
+                    if ((edgeNum < 0) && isLargeBoard)
                     {
                         edgeNum = -edgeNum;
                         isShip = canPlaceShip
@@ -7121,7 +7121,7 @@ import javax.swing.JComponent;
     /**
      * Find the edge coordinate, if any, of an (x, y) location from unscaled board pixels.
      *<P>
-     * <b>Note:</b> For the 6-player board, edge 0x00 is a valid edge that
+     * <b>Note:</b> For the 6-player classic board, edge 0x00 is a valid edge that
      * can be built on.  It is found here as -1, since a value of 0 marks an
      * invalid edge.
      *<P>
@@ -7136,7 +7136,7 @@ import javax.swing.JComponent;
      *           Return positive edge coordinate for land, negative edge for sea.
      *           Ignored unless {@link #isLargeBoard}.
      *           Returns positive edge for non-coastal sea edges.
-     * @return the coordinates of the edge, or 0 if none; -1 for the 6-player
+     * @return the coordinates of the edge, or 0 if none; -1 for the 6-player classic
      *     board's valid edge 0x00; -edge for the sea side of a coastal edge on the large board
      *     if {@code checkCoastal}.
      */
@@ -8002,7 +8002,7 @@ import javax.swing.JComponent;
         /**
          * Mouse is hovering during normal play; look for info for tooltip text.
          * Assumes x or y has changed since last call.
-         * Does not affect the "hilight" variable used by SOCBoardPanel during
+         * Does not affect the "{@link SOCBoardPanel#hilight hilight}" variable used by SOCBoardPanel during
          * initial placement, and during placement from clicking "Buy" buttons.
          *<P>
          * If the board mode doesn't allow hovering pieces (ghost pieces), will clear
@@ -8714,7 +8714,7 @@ import javax.swing.JComponent;
       /** If allow cancel, type of building piece ({@link SOCPlayingPiece#ROAD}, SETTLEMENT, ...) to cancel */
       private int cancelBuildType;
 
-      /** hover road edge ID, or 0, at menu-show time */
+      /** hover road edge ID, or 0, at menu-show time; can be -1 for edge 0x00 on classic 6-player board */
       private int hoverRoadID;
 
       /**
@@ -9166,7 +9166,7 @@ import javax.swing.JComponent;
               ? playerNumber   // boardpanel's temporary player number
               : playerInterface.getClientPlayerNumber();
           int buildLoc;      // location
-          boolean canBuild;  // resources, rules
+          boolean canBuild;  // checks resources, rules
           String btarget;    // button name on buildpanel
 
           // If possible, send putpiece request right now.
@@ -9188,6 +9188,8 @@ import javax.swing.JComponent;
           {
           case SOCPlayingPiece.ROAD:
               buildLoc = hoverRoadID;
+              if (buildLoc == -1)
+                  buildLoc = 0;
               canBuild = player.isPotentialRoad(buildLoc);
               if (! sendNow)
                   canBuild = canBuild && game.couldBuildRoad(cpn);
