@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,6 +20,8 @@
 package soc.client;
 
 import java.awt.EventQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -31,7 +33,7 @@ import java.util.prefs.Preferences;
  * v1.x {@code getUserPreference(..)} -> v2.x {@code UserPreferences.getPref(..)}, etc.
  *<P>
  * Because the user preference storage namespace is based on the {@code soc.client} package
- * and not a class name, preferences are shared among v1.x.xx, v2.0, and higher versions.
+ * and not a class name, preferences are shared among all JSettlers client versions.
  *<P>
  * Is public for possible use by anyone extending JSettlers in a different package.
  *
@@ -47,11 +49,30 @@ public class UserPreferences
     private static Preferences userPrefs;
     static
     {
+        /*
+         * Workaround on windows to not print this harmless JVM warning about systemNode (which this class doesn't use):
+         * WARNING: Could not open/create prefs root node Software\JavaSoft\Prefs at root 0
+         * x80000002. Windows RegCreateKeyEx(...) returned error code 5.
+         * Uses same concept as 2019-03-15 Gegomu answer to
+         * https://stackoverflow.com/questions/23720446/java-could-not-open-create-prefs-error
+         * (tested java 1.6, 13.0.1)
+         */
+        Logger logger = null;
+        Level currLevel = null;
+        try
+        {
+            logger = Logger.getLogger("java.util.prefs");
+            currLevel = logger.getLevel();
+            logger.setLevel(Level.SEVERE);
+        } catch (Throwable th) {}
+
         try
         {
             userPrefs = Preferences.userNodeForPackage(SOCPlayerInterface.class);
-        }
-        catch (Exception e) {}
+            int i = getPref("nonExistentDummy", 0);
+            if ((i != 42) && (currLevel != null))  // use i, to not optimize away getPref
+                logger.setLevel(currLevel);
+        } catch (Throwable th) {}
     }
 
     /**
@@ -128,20 +149,12 @@ public class UserPreferences
         try
         {
             userPrefs.putBoolean(prefKey, val);
+        } catch (IllegalStateException e) {
+            // unlikely
+            System.err.println("Error setting userPref " + prefKey + ": " + e);
         }
-        catch (IllegalStateException e) {}  // unlikely
 
-        EventQueue.invokeLater(new Runnable()
-        {
-            public void run()
-            {
-                try
-                {
-                    userPrefs.flush();
-                }
-                catch (BackingStoreException e) {}
-            }
-        });
+        flushSoon();
     }
 
     /**
@@ -168,9 +181,21 @@ public class UserPreferences
         try
         {
             userPrefs.putInt(prefKey, val);
+        } catch (IllegalStateException e) {
+            // unlikely
+            System.err.println("Error setting userPref " + prefKey + ": " + e);
         }
-        catch (IllegalStateException e) {}  // unlikely
 
+        flushSoon();
+    }
+
+    /**
+     * Asynchronously flush {@link #userPrefs} to persist them soon, but not this moment in this thread,
+     * via {@link EventQueue#invokeLater(Runnable)}.
+     * @since 2.0.00
+     */
+    private static void flushSoon()
+    {
         EventQueue.invokeLater(new Runnable()
         {
             public void run()
@@ -178,8 +203,9 @@ public class UserPreferences
                 try
                 {
                     userPrefs.flush();
+                } catch (BackingStoreException e) {
+                    System.err.println("Error writing userPrefs: " + e);
                 }
-                catch (BackingStoreException e) {}
             }
         });
     }
