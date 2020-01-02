@@ -7,7 +7,7 @@
 #
 # This file is part of the JSettlers project.
 #
-# This file Copyright (C) 2019 Jeremy D Monin <jeremy@nand.net>
+# This file Copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -39,7 +39,12 @@ def check_py_token_dbs_same_names():
   token_name_set = None
   token_name_set_src = ''
   for dbtype in render.DB_TOKENS.keys():
-    if token_name_set is None:
+    if dbtype in render.DBTYPES_FALLTHROUGH_ONLY:
+      tokens = render.DB_TOKENS[dbtype].keys()
+      if (len(tokens) != 1) or ('fallthrough' not in tokens):
+        all_same = False
+        print(progname + ": render.py DB_TOKEN expected only 'fallthrough' for dbtype " + dbtype)
+    elif token_name_set is None:
       token_name_set = sets.ImmutableSet(render.DB_TOKENS[dbtype].keys())
       token_name_set_src = dbtype
     else:
@@ -85,6 +90,9 @@ def check_java_token_values_vs_py(dbh_java_fullpath):
        saw_begin_line = False
        saw_all_expected = False
        curr_case_dbtype = None  # while parsing switch cases; 'default' can be a value here
+       dbtypes_fallthrough_to_next = []  # while parsing switch cases:
+         # "// fallthrough" db types to note when reaching next non-fallthrough
+         # (not otherwise used yet: if 2 DB types share all tokens, they can share the same generated template)
 
        while java_all_ok and (f_line is not None):
          f_line = f.readline()
@@ -126,7 +134,7 @@ def check_java_token_values_vs_py(dbh_java_fullpath):
             else:
               break    # <--- Normal read-loop termination ---
          else:
-           if f_line.startswith("//"):
+           if f_line.startswith("//") and (f_line != '// fallthrough'):
              continue
            if state == 'switch':
              if re.search(r"^switch\w*\(dbType\)$", f_line):
@@ -155,14 +163,21 @@ def check_java_token_values_vs_py(dbh_java_fullpath):
                else:
                  print_err("failed regex match: case DBTYPE_...")
            elif state == 'caseline':
-             if f_line == 'break;':
+             if f_line == 'break;':  # done parsing this case
+               if len(dbtypes_fallthrough_to_next):
+                 for fall_dbtype in dbtypes_fallthrough_to_next:
+                   token_dbtype_vals[fall_dbtype]['fallthrough'] = curr_case_dbtype
+                 dbtypes_fallthrough_to_next = []
+               state = 'case'
+             elif f_line == '// fallthrough':
+               dbtypes_fallthrough_to_next.append(curr_case_dbtype)
                state = 'case'
              else:
                m = re.search(r'^(\w+)\s*=\s*"([^"]*)";\s*$', f_line)
                if m:
                  token_dbtype_vals[curr_case_dbtype][m.group(1)] = m.group(2)
                else:
-                 print_err("failed regex match: var assign | break")
+                 print_err("failed regex match: var assign | break | // fallthrough")
            elif state == 'end':
              print_err("expected: END COMPARISON AREA")
     if not saw_begin_line:
@@ -185,6 +200,12 @@ def check_java_token_values_vs_py(dbh_java_fullpath):
 
     # Check if all dbtypes (including default) have the same set of token_names
     for dbtype in token_dbtype_vals.keys():
+      if dbtype in render.DBTYPES_FALLTHROUGH_ONLY:
+        tokens = token_dbtype_vals[dbtype].keys()
+        if (len(tokens) != 1) or ('fallthrough' not in tokens):
+          java_all_ok = False
+          print(progname + ": SOCDBHelper.upgradeSchema token sets: Expected fallthrough for dbtype " + dbtype)
+        continue
       diffr = (token_names ^ (sets.ImmutableSet(token_dbtype_vals[dbtype].keys())))
       if len(diffr):
         java_all_ok = False
@@ -204,7 +225,11 @@ def check_java_token_values_vs_py(dbh_java_fullpath):
     # For java token names, check token values vs render.DB_TOKENS for non-default dbtypes
     if java_all_ok:
       for dbtype in dbtypes_set:
-        for token_name in token_names:
+        if dbtype in render.DBTYPES_FALLTHROUGH_ONLY:
+          tok_list = ['fallthrough']
+        else:
+          tok_list = token_names
+        for token_name in tok_list:
           if render.DB_TOKENS[dbtype][token_name] != token_dbtype_vals[dbtype][token_name]:
             if java_all_ok:
               print(progname + ": SOCDBHelper.upgradeSchema token value differs from render.DB_TOKENS:")

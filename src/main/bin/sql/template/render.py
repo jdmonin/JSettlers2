@@ -16,7 +16,7 @@
 #
 # This file is part of the JSettlers project.
 #
-# This file Copyright (C) 2017,2019 Jeremy D Monin <jeremy@nand.net>
+# This file Copyright (C) 2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -34,6 +34,8 @@
 import codecs, getopt, re, sys
 
 known_dbtypes = ('mysql', 'postgres', 'sqlite')
+  # template generation uses mysql for mariadb, so mariadb isn't in this list
+
 # from parse_cmdline():
 dbtypes = None  # a list, from known_dbtypes
 infile = None
@@ -44,8 +46,15 @@ TOKENS = {}  # updated in setup_tokens() to include DB_TOKENS[dbtype] and tokens
 
 sys_exit = 0  # for sys.exit's value if any render_one call fails
 
-# contains all dbtypes in known_dbtypes; each type must have same token keynames
+# All the "fallthrough" DB types, for test_token_consistency.py
+DBTYPES_FALLTHROUGH_ONLY = set(['mariadb'])
+
+# contains all dbtypes in known_dbtypes; each type must have same token keynames or 'fallthrough'
+# (which is unused here for now: if 2 DB types share all tokens, they can share the same generated template)
 DB_TOKENS = {
+    'mariadb': {
+        'fallthrough': 'mysql',
+        },
     'mysql': {
         'INT_AUTO_PK': 'INT NOT NULL AUTO_INCREMENT PRIMARY KEY',
         'now': 'now()',
@@ -68,7 +77,7 @@ DB_TOKENS = {
         'TIMESTAMP': 'TIMESTAMP',  # zentus-sqlite stores java.sql.Timestamp in table data as epoch milliseconds
         'TIMESTAMP_NULL': 'TIMESTAMP',
         'set_session_tz_utc': "-- reminder: sqlite has no session timezone setting, only the server process's TZ"
-        }
+        },
 }
 
 def print_usage():

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012,2014-2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012,2014-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -372,9 +372,19 @@ public class SOCDBHelper
     public static final String SETTING_BCRYPT_WORK__FACTOR = "BCRYPT.WORK_FACTOR";
 
     // Known DB types: These constants aren't used outside the class or stored anywhere,
-    // so they can change between versions if needed. All @since 1.2.00.
+    // so they can change between versions if needed. All @since 1.2.00 unless noted.
 
-    /** Known DB type mysql for {@link #dbType}. */
+    /**
+     * Known DB type mariadb for {@link #dbType}.
+     * Treated as functionally same as {@link #DBTYPE_MYSQL}.
+     * @since 2.0.00
+     */
+    private static final char DBTYPE_MARIADB = 'A';
+
+    /**
+     * Known DB type mysql for {@link #dbType}.
+     * @see #DBTYPE_MARIADB
+     */
     private static final char DBTYPE_MYSQL = 'M';
 
     /** Unsupported known DB type ora for {@link #dbType}. */
@@ -759,9 +769,9 @@ public class SOCDBHelper
      * @throws IllegalArgumentException if there are problems with {@code props} contents:
      *         <UL>
      *           <LI> {@link #PROP_JSETTLERS_DB_URL} property doesn't use a recognized scheme
-     *               ({@code jdbc:mysql}, {@code :postgresql}, or {@code :sqlite})
+     *               ({@code jdbc:mariadb}, {@code jdbc:mysql}, {@code :postgresql}, or {@code :sqlite})
      *               but {@link #PROP_JSETTLERS_DB_DRIVER} isn't provided
-     *           <LI> {@link #PROP_JSETTLERS_DB_DRIVER} isn't recognized as mysql, postgres, or sqlite,
+     *           <LI> {@link #PROP_JSETTLERS_DB_DRIVER} isn't recognized as mariadb, mysql, postgres, or sqlite,
      *               but {@link #PROP_JSETTLERS_DB_URL} isn't provided
      *           <LI> {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR} is out of range
      *               (9 to {@link BCrypt#GENSALT_MAX_LOG2_ROUNDS}) or can't be parsed as an integer
@@ -809,6 +819,8 @@ public class SOCDBHelper
                         dbType = DBTYPE_POSTGRESQL;
                     else if (driverclass.contains("sqlite"))
                         dbType = DBTYPE_SQLITE;
+                    else if (driverclass.contains("mariadb"))
+                        dbType = DBTYPE_MARIADB;
                     else if (! driverclass.contains("mysql"))
                         dbType = DBTYPE_UNKNOWN;
                 }
@@ -822,6 +834,11 @@ public class SOCDBHelper
                     driverclass = "org.sqlite.JDBC";
                     dbType = DBTYPE_SQLITE;
                 }
+                else if (prop_dbURL.startsWith("jdbc:mariadb"))
+                {
+                    driverclass = "org.mariadb.jdbc.Driver";
+                    dbType = DBTYPE_MARIADB;
+                }
                 else if (! prop_dbURL.startsWith("jdbc:mysql"))
                 {
                     throw new IllegalArgumentException
@@ -833,7 +850,7 @@ public class SOCDBHelper
                     driverclass = prop_driverclass;
 
                 // if it's mysql, use the mysql default url above.
-                // if it's postgres or sqlite, use that.
+                // if it's postgres or sqlite or mariadb, use that.
                 // otherwise, not sure what they have.
 
                 if (driverclass.contains("postgresql"))
@@ -845,6 +862,11 @@ public class SOCDBHelper
                 {
                     dbURL = "jdbc:sqlite:socdata.sqlite";
                     dbType = DBTYPE_SQLITE;
+                }
+                else if (driverclass.contains("mariadb"))
+                {
+                    dbURL = "jdbc:mariadb://localhost/socdata";
+                    dbType = DBTYPE_MARIADB;
                 }
                 else if (! driverclass.contains("mysql"))
                 {
@@ -894,12 +916,15 @@ public class SOCDBHelper
         // Any token initialized here must use the same name and value as in render.py DB_TOKENS,
         // and be declared at marker comment "TOKEN DECLARATION LIST".
         // test_token_consistency.py (in same dir as render.py) tests for that.
-        // To simplify the test script, this block uses a specific style. Comment-only lines are ignored.
+        // To simplify the test script, this block uses a specific style.
+        // Comment-only lines are ignored except for "// fallthrough".
 
         // BEGIN COMPARISON AREA -- test_token_consistency.py
 
         switch(dbType)
         {
+        case DBTYPE_MARIADB:
+            // fallthrough
         case DBTYPE_MYSQL:
             INT_AUTO_PK = "INT NOT NULL AUTO_INCREMENT PRIMARY KEY";
             TIMESTAMP = "TIMESTAMP";
@@ -2663,7 +2688,7 @@ public class SOCDBHelper
 
     /**
      * Build and run a SELECT query, with a LIMIT clause appropriate to the DB type if possible.
-     * Currently possible for MySQL, Postgres, SQLite, and semi-supported ORA.
+     * Currently possible for MariaDB, MySQL, Postgres, SQLite, and semi-supported ORA.
      * Otherwise this will be a standard SELECT without any LIMIT clause.
      * @param selectStmt  SQL statement, beginning with SELECT, omitting trailing {@code ';'}.
      *     <BR>
@@ -2683,6 +2708,7 @@ public class SOCDBHelper
 
         switch (dbType)
         {
+        case DBTYPE_MARIADB:
         case DBTYPE_MYSQL:
         case DBTYPE_POSTGRESQL:
         case DBTYPE_SQLITE:
@@ -3192,7 +3218,7 @@ public class SOCDBHelper
         // - Keep your DDL SQL syntax consistent with the commands tested in testDBHelper().
         // - Be prepared to rollback to a known-good state if a problem occurs.
         //   Each unrelated part of an upgrade must completely succeed or fail.
-        //   That requirement is for postgresql and mysql: sqlite can't drop any added columns;
+        //   That requirement is for postgresql and mysql/mariadb: sqlite can't drop any added columns;
         //   the server's admin must back up their sqlite db before running the upgrade.
 
         /**
@@ -3828,7 +3854,8 @@ public class SOCDBHelper
             throw new IllegalStateException("sqlite cannot drop columns");
 
         try {
-            if ((dbType == DBTYPE_MYSQL) || (dbType == DBTYPE_POSTGRESQL) || (dbType == DBTYPE_ORA))
+            if ((dbType == DBTYPE_MARIADB) || (dbType == DBTYPE_MYSQL)
+                || (dbType == DBTYPE_POSTGRESQL) || (dbType == DBTYPE_ORA))
             {
                 // These dbTypes can drop multiple columns as a single statement; see 2013-09-01 item
                 // https://stackoverflow.com/questions/6346120/how-do-i-drop-multiple-columns-with-a-single-alter-table-statement
@@ -4507,7 +4534,7 @@ public class SOCDBHelper
                         // test index-drop syntax:
                         try
                         {
-                            String sql = (dbType != DBTYPE_MYSQL)
+                            String sql = ((dbType != DBTYPE_MYSQL) && (dbType != DBTYPE_MARIADB))
                                 ? "DROP INDEX gamesxyz2__w;"
                                 : "DROP INDEX gamesxyz2__w ON gamesxyz2;";
                             testDBHelper_runDDL("fixture cleanup: drop index gamesxyz2__w", sql);
