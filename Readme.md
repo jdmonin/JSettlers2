@@ -17,9 +17,10 @@ The server can optionally use a database to store player account
 information and game stats (details below).  A client java app to
 create user accounts is also provided.
 
-If you're upgrading from an earlier version of JSettlers, check
-[doc/Versions.md](doc/Versions.md) for new features, bug fixes, and config changes
-and see **Upgrading from an earlier version** section below.
+If you're upgrading from an earlier version of JSettlers: Check
+[doc/Versions.md](doc/Versions.md) for new features, bug fixes, and
+config changes, then see **Upgrading from an earlier version** section
+of this Readme.
 
 JSettlers is an open-source project licensed under the GPL. The
 project is hosted at https://github.com/jdmonin/JSettlers2/ and
@@ -60,26 +61,20 @@ https://github.com/jdmonin/JSettlers2/blob/master/Readme.md .
 
 ## Requirements
 
-To play JSettlers by connecting to a remote server you will need the
-Java Runtime (version 6 or higher, 9 or lower) or Java Development
-Kit (any version 6 or higher). Download JSettlers.jar from http://nand.net/jsettlers/
-or from the github repo, and run it. To instead connect with the optional
-browser applet, install the JDK's applet plug-in and visit
-http://nand.net/jsettlers/ .
+To play JSettlers you will need either the Java Development Kit (JDK)
+version 6 or higher, or version 8 or earlier of the smaller Java Runtime (JRE).
+Then download JSettlers-full.jar from either
+https://github.com/jdmonin/JSettlers2/releases or http://nand.net/jsettlers/
+and run it.
 
-To Play JSettlers locally you need the Java Runtime (version 6 or higher,
-9 or lower) or Java Development Kit (any version 6 or higher). `JSettlers-full.jar`
-can connect directly to any server over the Internet.
+To host a JSettlers server that provides a download for the full Jar,
+you will need any http server such as Apache's httpd (available from
+http://httpd.apache.org).
 
-To host a JSettlers server that provides a download for the JAR, and optional
-browser applet (the same JAR), you will need an http server such as Apache's httpd
-available from http://httpd.apache.org.
+The JSettlers-full.jar file can also run locally as a server, without needing a
+web server.
 
-The JSettlers-full.jar file can also run locally as a server, without
-needing a web server.  Downloading the JAR from a web server (or using the
-applet) is considered more convenient, because everyone can get the same version.
-
-To build JSettlers from source, you will need Java JDK 6 or newer and
+To build JSettlers from source, you will need Java JDK 6 or higher, and either
 gradle 4 or 5, or an IDE such as Eclipse which understands gradle's format.
 See [doc/Readme.developer.md](doc/Readme.developer.md) for details.
 
@@ -116,7 +111,7 @@ instead of the full tar.gz, use that filename on the command lines shown below.
 ### Server Startup
 
 Start the server with the following command
-(server requires Java 6 JRE or higher, or JDK 6 or higher):
+(server requires Java JDK 6 or higher, or JRE version 6, 7, or 8):
 
     java -jar JSettlersServer.jar
 
@@ -419,4 +414,4 @@ The pastel hex images were created and contributed by qubodup, (C) 2019,
 licensed CC-BY-SA 3.0, and were retrieved 2019-08-17 from
 https://github.com/qubodup/pastel-tiles (rendered with that repo's `hex.sh` script).
 
-doc/graf/Logo.svg is (C) 2017 Ruud Poutsma.
+doc/graf/Logo.svg was created and contributed by Ruud Poutsma, (C) 2017.

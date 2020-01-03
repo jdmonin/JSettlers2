@@ -66,11 +66,14 @@ and Robert S Thomas' dissertation.
 For more information about the board coordinates, see javadocs in `soc.game.SOCBoard`
 and `soc.game.SOCBoardLarge` (or dissertation appendix A), and these diagrams:
 
-<B>Sea boards:</B> ![hexcoord-sea.png](/doc/hexcoord-sea.png)
+**Sea boards:**  
+![hexcoord-sea.png](/doc/hexcoord-sea.png)
 
-<B>4-player classic:</B> ![hexcoord.gif](/doc/hexcoord.gif)
+**4-player classic:**  
+![hexcoord.gif](/doc/hexcoord.gif)
 
-<B>6-player classic:</B> ![hexcoord-6player.gif](/doc/hexcoord-6player.gif)
+**6-player classic:**  
+![hexcoord-6player.gif](/doc/hexcoord-6player.gif)
 
 To show piece coordinates in the board's tooltips, in the game window chat box type: `=*= showcoords`  
 To no longer show those coordinates, type: `=*= hidecoords`
@@ -285,9 +288,12 @@ patch submissions; to set up Eclipse now to use that style, see section
 
 ## Build Setup and Results
 
-Before building, make sure you have the Java Development Kit version 6 or later.
-If you simply want to run the client or server, you only need the Java Runtime
-(JRE). Extra tests in the build want python 2.7 or later for unittest discovery.
+Before building, make sure you have the Java Development Kit (JDK) version 6 or higher.
+If you only want to run the client or server, you can use either the JDK, or
+version 8 or earlier of the smaller Java Runtime (JRE).
+
+Extra tests in the build want python 2.7 or later for unittest discovery.
+Java unit tests and extraTests use JUnit 4, which is downloaded by `build.gradle`.
 Other scripts, like `bin/sql/template/render.py`, use python 2.6 or later.
 
 If you wish to maintain a user database for your server, you need MySQL
@@ -447,6 +453,8 @@ ideas.
 - Refactor: Combine ShadowedBox, SpeechBalloon: They look the same except for that balloon point
 - Refactor: Rework ShadowedBox, SpeechBalloon to use a custom-drawn Swing Border
 - Refactor: New methods to shortcut `ga.getPlayer(ga.getCurrentPlayer())` or `getClient().getClientManager()`
+- Refactor: `SOCGame` buy methods (`couldBuyDevCard`, `buyRoad`, etc): Call SOCResourceSet.gte(SOCResourceSet),
+  subtract(SOCResourceSet) with playing piece `COST` constants
 - Refactor: `SOCGameOption` static methods to check and change values within a set
 - Refactor: name of dev-cards consolidate
 - Refactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
@@ -494,7 +502,7 @@ ideas.
   bots, currently active/total games from `*STATS*` cmd, client versions, any
   errors, etc
 - Per-game thread/message queue at server (use SOCMessageForGame.getGame)
-- HTML5 client
+- HTML5 client (see v3 branch for protobuf/JSON over websockets)
 - Cities & Knights support
     - UI mock-ups
     - state change / network message plans
@@ -516,7 +524,7 @@ welcomes contributions. Please keep these things in mind:
 - The DB is an optional part of jsettlers, other functions can't rely on it.
 - DB code should be vendor-neutral and run on mysql, postgres, sqlite, oracle, etc.
   Please test against sqlite and at least one other db type before sending a pull request.
-- See [Readme.md](../Readme.md) for JDBC driver download sites, URL syntax,
+- See [Database.md](Database.md) for JDBC driver download sites, URL syntax,
   and server command-line arguments.
 - For test runs inside Eclipse, add the JDBC driver to the project's
   build path -> Libraries -> Add External JAR, or add it to the classpath tab of
@@ -895,27 +903,24 @@ Patches can be sent by email or by pull request.
 Please make sure your patch follows the project coding style.
 
 The master branch receives new features and enhancements for the next 'minor'
-release.  As soon as a bug is fixed or a feature's design is fairly stable, it
-should be committed to master.
-
-The master branch has new 2.0.xx development.  Until 2.0.00 is ready,
-there's a stable-1.x.xx branch in case of urgent bugfixes, so we can release
-new stable versions.  Most work on 1.x.xx is backported from 2.0; changeset
-comments often mention a hash from a master commit.  Version 2.0.00 was
-split off right after releasing version 1.1.13.
+release. As soon as a bug is fixed or a feature's design is fairly stable,
+it should be committed to master.
 
 v3 is the experimental branch with major architectural changes.
 
-Once 2.0.00 is out, we'll follow the usual jsettlers model: Because
-jsettlers2.x.xx is mature at this point, Each minor release is a
-stable release.
+While v2.0.00 was being developed, several 1.x.xx releases came out.
+2.0 work began (and stable-1.x.xx branch split from master)
+right after releasing version 1.1.13. Most work on 1.x.xx was backported
+from 2.0 to the stable-1.x.xx git branch; changeset comments often mention
+a hash from a master commit.
 
-Each release's files are tagged for the release ("release-1.1.14").
-The last commit for the release updates VERSIONS.txt with the final build number,
-with a commit message like: Version 1.1.14 is build OV20120930
-Then: git tag -a release-1.1.14 -m 'Version 1.1.14 is build OV20120930'
+There will be periodic v2.x minor releases. Each release's files are tagged for
+the release (older example: "release-1.1.14"). The last commit for the release
+updates VERSIONS.txt with the final build number, with a commit message like:
+"Version 1.1.14 is build OV20120930"  
+Then: `git tag -a release-1.1.14 -m 'Version 1.1.14 is build OV20120930'`
 
-The github repo includes the full JSettlers2 CVS history formerly hosted at
+The github repo includes the JSettlers2 v1.1.xx CVS history formerly hosted at
 http://sourceforge.net/projects/jsettlers2/ through 2012-09-28.
-The old old source history from Robert S Thomas (2004-2005) can be found at
+The old 1.0.x source history from Robert S Thomas (2004-2005) can be found at
 http://sourceforge.net/projects/jsettlers/ .
