@@ -300,7 +300,7 @@ a debug user.)
 
 #### Checklist:
 
-- If using the optional database, start MySQL or PostgreSQL server  
+- If using the optional database, start MariaDB, MySQL, or PostgreSQL server  
   (file-based sqlite is another lightweight DB option)
 - Copy and edit `jsserver.properties` (optional)
 - Start JSettlers Server
@@ -310,8 +310,8 @@ a debug user.)
 #### Details:
 
 If you want to maintain user accounts or save scores of all completed games,
-you will need to set up a MySQL, SQLite, or PostgreSQL database. This database
-is optional. If you will use a MySQL or PostgreSQL database, be sure to start
+you will need to set up a MariaDB, MySQL, SQLite, or PostgreSQL database. This database
+is optional. If you will use a non-SQLite database, be sure to start
 the database server software before installing JSettlers. For DB setup details
 see the "Database Setup" section of [doc/Database.md](doc/Database.md)
 (available online at https://github.com/jdmonin/JSettlers2/blob/master/doc/Database.md).

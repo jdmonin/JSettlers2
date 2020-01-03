@@ -794,7 +794,7 @@ public class SOCDBHelper
         initialized = false;
 
         // Driver types and URLs recognized here should
-        // be the same as those listed in README.txt.
+        // be the same as those listed in Readme.md and Database.md.
 
         driverclass = "com.mysql.jdbc.Driver";
         dbType = DBTYPE_MYSQL;
@@ -850,7 +850,7 @@ public class SOCDBHelper
                     driverclass = prop_driverclass;
 
                 // if it's mysql, use the mysql default url above.
-                // if it's postgres or sqlite or mariadb, use that.
+                // if it's mariadb or postgres or sqlite, use appropriate url.
                 // otherwise, not sure what they have.
 
                 if (driverclass.contains("postgresql"))

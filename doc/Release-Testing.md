@@ -504,7 +504,7 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
 - Set up a new DB with instructions from the "Database Creation" section of [Database.md](Database.md),
   including (for any 1 DB type) running `-Djsettlers.db.bcrypt.work_factor=test`
   and then specifying a non-default `jsettlers.db.bcrypt.work_factor` when running the SQL setup script
-- (v2.0.00+) After setup, run SOCServer automated DB tests with `-Djsettlers.test.db=y`
+- After setup, run SOCServer automated DB tests with `-Djsettlers.test.db=y`
 - Start up SOCServer with DB parameters and `-Djsettlers.accounts.admins=adm,name2,etc`
 - Run SOCAccountClient to create those admin accounts, some non-admin accounts
 - Run SOCAccountClient again: Should allow only admin accounts to log in: Try a non-admin, should fail
@@ -521,40 +521,41 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
   Play a complete game, check for results there: `select * from games;`
 - Test creating as old schema (before v2.0.00 or 1.2.00) and upgrading
     - Get the old schema SQL files you'll need from the git repo by using an earlier release tag
-    - Files to test upgrade from schema v1.2.00:
-      - mysql:
+      - Files to test upgrade from schema v1.2.00:
+        - mysql:
 
-            git show release-1.2.00:src/bin/sql/jsettlers-create-mysql.sql > ../tmp/jsettlers-create-mysql-1200.sql
-            git show release-1.2.00:src/bin/sql/jsettlers-tables-mysql.sql > ../tmp/jsettlers-tables-mysql-1200.sql
+              git show release-1.2.00:src/bin/sql/jsettlers-create-mysql.sql > ../tmp/jsettlers-create-mysql-1200.sql
+              git show release-1.2.00:src/bin/sql/jsettlers-tables-mysql.sql > ../tmp/jsettlers-tables-mysql-1200.sql
 
-      - postgres:
+        - postgres:
 
-            git show release-1.2.00:src/bin/sql/jsettlers-create-postgres.sql > ../tmp/jsettlers-create-postgres-1200.sql
-            git show release-1.2.00:src/bin/sql/jsettlers-tables-postgres.sql > ../tmp/jsettlers-tables-postgres-1200.sql
-            git show release-1.2.00:src/bin/sql/jsettlers-sec-postgres.sql > ../tmp/jsettlers-sec-postgres-1200.sql
+              git show release-1.2.00:src/bin/sql/jsettlers-create-postgres.sql > ../tmp/jsettlers-create-postgres-1200.sql
+              git show release-1.2.00:src/bin/sql/jsettlers-tables-postgres.sql > ../tmp/jsettlers-tables-postgres-1200.sql
+              git show release-1.2.00:src/bin/sql/jsettlers-sec-postgres.sql > ../tmp/jsettlers-sec-postgres-1200.sql
 
-      - sqlite:
+        - sqlite:
 
-            git show release-1.2.00:src/bin/sql/jsettlers-tables-sqlite.sql > ../tmp/jsettlers-tables-sqlite-1200.sql
+              git show release-1.2.00:src/bin/sql/jsettlers-tables-sqlite.sql > ../tmp/jsettlers-tables-sqlite-1200.sql
 
-    - Files to test upgrade from original schema:
-      - mysql:
+      - Files to test upgrade from original schema:
+        - mysql:
 
-            git show release-1.1.20:src/bin/sql/jsettlers-create-mysql.sql > ../tmp/jsettlers-create-mysql-1120.sql
-            git show release-1.1.20:src/bin/sql/jsettlers-tables.sql > ../tmp/jsettlers-tables-1120.sql
+              git show release-1.1.20:src/bin/sql/jsettlers-create-mysql.sql > ../tmp/jsettlers-create-mysql-1120.sql
+              git show release-1.1.20:src/bin/sql/jsettlers-tables.sql > ../tmp/jsettlers-tables-1120.sql
 
-      - postgres:
+        - postgres:
 
-            git show release-1.1.20:src/bin/sql/jsettlers-create-postgres.sql > ../tmp/jsettlers-create-postgres-1120.sql
-            git show release-1.1.20:src/bin/sql/jsettlers-sec-postgres.sql > ../tmp/jsettlers-sec-postgres-1120.sql
-            git show release-1.1.20:src/bin/sql/jsettlers-tables.sql > ../tmp/jsettlers-tables-1120.sql
+              git show release-1.1.20:src/bin/sql/jsettlers-create-postgres.sql > ../tmp/jsettlers-create-postgres-1120.sql
+              git show release-1.1.20:src/bin/sql/jsettlers-sec-postgres.sql > ../tmp/jsettlers-sec-postgres-1120.sql
+              git show release-1.1.20:src/bin/sql/jsettlers-tables.sql > ../tmp/jsettlers-tables-1120.sql
 
-      - sqlite:
+        - sqlite:
 
-            git show release-1.1.20:src/bin/sql/jsettlers-tables.sql > ../tmp/jsettlers-tables-1120.sql
+              git show release-1.1.20:src/bin/sql/jsettlers-tables.sql > ../tmp/jsettlers-tables-1120.sql
 
     - Run DB setup scripts with instructions from the "Database Creation" section of [Database.md](Database.md)
       and beginning-of-file comments in jsettlers-create-mysql.sql or -postgres.sql
+      (which might have slightly different instructions for the old schema version)
     - Run SOCServer with the old schema and property `-Djsettlers.accounts.admins=adm`;
       startup should print `Database schema upgrade is recommended`
     - Create an admin user named `adm` using SOCAccountClient

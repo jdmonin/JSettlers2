@@ -23,7 +23,7 @@ also provided.
 ## Database Setup (Installing a JSettlers DB)
 
 If you want to maintain user accounts or save scores of all completed games,
-you will need to set up a MySQL, SQLite, or PostgreSQL database. This will
+you will need to set up a MySQL/MariaDB, SQLite, or PostgreSQL database. This will
 eliminate the "No user database available" console message seen when starting
 the server.
 
@@ -31,32 +31,29 @@ This section first describes setting up the database and the JSettlers server's
 connection to it, and then how to turn on optional features for Game Scores
 or User Accounts.
 
-For these instructions we'll assume you already installed the PostgreSQL or
+For these instructions we'll assume you already installed the PostgreSQL, MariaDB, or
 MySQL software, or will download a SQLite JAR to avoid database server setup.
-JSettlers is tested with sqlite 3.15.1, mysql 5.5, and postgresql 8.4 and 9.5.
+JSettlers is tested with sqlite 3.27.2.1, mariadb 10.4, mysql 5.5, and
+postgresql 8.4, 9.5, 11.6, 12.1.
 
 You will need a JDBC driver JAR file in your classpath or the same directory as
-the JSettlers JAR, see below for details. Besides PostgreSQL, MySQL, or SQLite
+the JSettlers JAR, see below for details. Besides PostgreSQL, MySQL, MariaDB, or SQLite
 any JDBC database can be used, including Oracle or MS SQL Server; however only
-those three db types are tested in depth with JSettlers.
+that list of db types are tested in depth with JSettlers.
 
 The default type and name for the database is MySQL and "socdata". To use
 another db type or another name, you'll need to specify it as a JDBC URL on
-the command line, such as:
+the command line, such as:  
+`-Djsettlers.db.url=jdbc:mariadb://localhost/socdata`  
+or  
+`-Djsettlers.db.url=jdbc:mysql://localhost/socdata`  
+or  
+`-Djsettlers.db.url=jdbc:postgresql://localhost/socdata`  
+or  
+`-Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite`
 
-	-Djsettlers.db.url=jdbc:mysql://localhost/socdata
-
-or
-
-	-Djsettlers.db.url=jdbc:postgresql://localhost/socdata
-
-or
-
-	-Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite
-
-If needed you can also specify a database username and password as:
-
-	-Djsettlers.db.user=socuser -Djsettlers.db.pass=socpass
+If needed you can also specify a database username and password as:  
+`-Djsettlers.db.user=socuser -Djsettlers.db.pass=socpass`  
 
 or place them on the command line after the port number and max connections:
 
@@ -68,8 +65,8 @@ For more details see the main Readme file's **jsserver.properties** section.
 
 ### Finding a JDBC driver JAR:
 
-The default JDBC driver is com.mysql.jdbc.Driver.  PostgreSQL and SQLite are also
-recognized.  To use PostgreSQL, use a postgresql URL like the one shown above,
+The default JDBC driver is com.mysql.jdbc.Driver. MariaDB, PostgreSQL, and SQLite are also
+recognized. To use MariaDB or PostgreSQL, use a db URL like the ones shown above,
 or specify the driver on the SOCServer command line:
 
 	-Djsettlers.db.driver=org.postgresql.Driver
@@ -86,6 +83,7 @@ Depending on your computer's setup, you may need to point JSettlers at the
 appropriate JDBC drivers, by placing them in your java classpath.
 Your database system's JDBC drivers can be downloaded at these locations:
 
+- MariaDB: https://downloads.mariadb.org/ -> Connector/J
 - MySQL:   http://www.mysql.com/products/connector/
 - PostgreSQL:  http://jdbc.postgresql.org/download.html
 - SQLite:  https://bitbucket.org/xerial/sqlite-jdbc/downloads/
@@ -100,7 +98,7 @@ location as JSettlersServer.jar, and specify on the jsettlers command line:
 
 #### If SQLite gives "Operation not permitted" error at startup
 
-Recent sqlite versions extract and use a native shared library.
+Recent sqlite-jdbc versions extract and use a native shared library.
 On Linux and possibly other OSes, this can trigger a security feature if the library is
 extracted to default directory `/tmp` and that directory's mount point has the `noexec` flag:
 
@@ -116,20 +114,20 @@ If sqlite gives you that "operation not permitted" error:
   - To check mount flags, use the command `mount -v`
 - Make a directory within that one, for example:  
   `mkdir -p /home/jeremy/jsettlers/sqlite-tmp`
-- When starting the server, give sqlite that directory name *before* the `-jar` parameter:  
+- When starting the server, give sqlite-jdbc that directory name *before* the `-jar` parameter:  
   `java -Dorg.sqlite.tmpdir=/home/jeremy/jsettlers/sqlite-tmp -jar JSettlersServer-...`
 
-### If your database server is some other type
+### If your database server isn't a type listed above
 
-Although only MySQL, PostgreSQL, and SQLite are tested and developed for,
-the server may work with other database software. If you can create the database
+Although only MariaDB, MySQL, PostgreSQL, and SQLite are tested,
+JSettlers may work with other database software. Create the database
 and its tables and indexes, then test for needed functionality by starting
-the JSettlers server once with the `jsettlers.db` parameters described above and
-this at the end of its command line:
+the JSettlers server once with the `jsettlers.db` parameters described above
+plus this at the end of its command line:  
+`-Djsettlers.test.db=Y`
 
-	-Djsettlers.test.db=Y
-
-You should be OK to use your DB if output ends with: `* All required DB tests passed.`
+You should be OK to use your DB if output ends with:  
+`* All required DB tests passed.`
 
 If output does not include `User database initialized`, check your `jsettlers.db`
 parameters (driver, jar, username, password, url).
@@ -155,9 +153,9 @@ from https://github.com/jdmonin/JSettlers2/tree/master/src/main/bin/sql .
 To get each script needed for your DB type: Click the SQL file to view it;
 click Raw; save to the folder containing your JSettlers JAR.
 
-#### For mysql:
+#### For mysql or mariadb:
 
-Run these commands, which will ask for the mysql root password:
+Run these commands, which will ask for the mariadb/mysql root password:
 
     $ mysql -u root -p -e "SOURCE jsettlers-create-mysql.sql"
     $ mysql -u root -D socdata -p -e "SOURCE jsettlers-tables-mysql.sql"
@@ -178,7 +176,7 @@ To validate, you can list tables with this command:
 	| users             |
 	+-------------------+
 
-If mysql gives the error: `Unknown character set: 'utf8mb4'`
+If mariadb/mysql gives the error: `Unknown character set: 'utf8mb4'`
 you will need to make a small change to jsettlers-create-mysql.sql
 and re-run the commands; see comments at the top of that script.
 
@@ -442,6 +440,10 @@ Use the docs to plan before starting your upgrade:
 ### Completing the upgrade:
 - The upgrade is technically complete once you've seen this output:  
   `DB schema upgrade was successful. Exiting now.`
+- If you see this output:  
+  `some upgrade tasks will complete in the background during normal server operation.`  
+  There are some table conversions or other tasks remaining, which the JSettlers server
+  will automatically take care of in small batches while it's running as usual
 - Make a new DB backup or export its contents
 - The upgrade_schema command-line flag is not used during day-to-day operation of the server
 - Note: The schema version and upgrade history is kept in the db_version table
