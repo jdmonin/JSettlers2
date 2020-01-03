@@ -7,15 +7,15 @@ Unless otherwise indicated, JARs for JSettlers versions are hosted at
 and (for older versions) [http://nand.net/jsettlers/devel/](http://nand.net/jsettlers/devel/) .
 
 From `1.0` up through `1.1.13`, there was a single line of development.
-Right after `1.1.13` the main development branch became `2.0.00`, with a
+Right after `1.1.13` the master branch began `2.0.00`, with a
 stable branch for further `1.x.xx` version releases to bring out bugfixes
-and backport minor new features until `2.0.00` is ready.
+and backport minor new features until `2.0.00` was ready.
 
-## `3.0.00` (build JX201xxxxx)
+## `3.0.00` (build JX202xxxxx)
 - Experimental features: protobuf
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
 
-## `2.0.00` (build JM2019xxxx)
+## `2.0.00` (build JM20200102)
 - Game play:
 	- Large board (sea board) support
 	- Game Scenario and special-rules support
