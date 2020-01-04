@@ -1,2 +1,2 @@
-# eclipse and ant want protobuf-java-3.0.0.jar here, maven should ignore the /lib dir.
+# eclipse wants jars for protobuf, websocket-api, servlet-api here; gradle ignores the /lib dir.
 *.jar
