@@ -32,6 +32,7 @@ and pull requests can be posted at the github page.
 
 ## Contents
 
+-  Screenshots
 -  Documentation
 -  Requirements
 -  Client Command Line
@@ -41,6 +42,21 @@ and pull requests can be posted at the github page.
 -  Upgrading from an earlier version
 -  Security and Admin Users
 -  Development and Building JSettlers
+
+
+## Screenshots
+
+New Game options:  
+![New Game options](doc/screenshots/screenshot-game-opts-20200103-cloth.gif)
+
+Classic 4-player board:  
+![Classic 4-player board](doc/screenshots/screenshot-play3-20161013.png)
+
+Classic 6-player board:  
+![Classic 6-player board](doc/screenshots/screenshot-play6-20161013.gif)
+
+Sea board: Cloth Villages scenario:  
+![Sea board with scenario](doc/screenshots/screenshot-playCloth-20200103.gif)
 
 
 ## Documentation
