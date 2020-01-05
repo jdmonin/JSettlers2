@@ -2,18 +2,22 @@
 
 Project home and source history are at [https://github.com/jdmonin/JSettlers2](https://github.com/jdmonin/JSettlers2)
 
-Unless otherwise indicated, JARs for JSettlers versions are hosted at
-[https://github.com/jdmonin/JSettlers2/releases](https://github.com/jdmonin/JSettlers2/releases)
-and (for older versions) [http://nand.net/jsettlers/devel/](http://nand.net/jsettlers/devel/) .
+JARs for recent JSettlers versions can be downloaded from
+[https://github.com/jdmonin/JSettlers2/releases](https://github.com/jdmonin/JSettlers2/releases) .
 
 From `1.0` up through `1.1.13`, there was a single line of development.
-Right after `1.1.13` the master branch began `2.0.00`, with a
-stable branch for further `1.x.xx` version releases to bring out bugfixes
+Right after `1.1.13` the master branch started work on 2.0, with a
+stable branch for further 1.x versions to release bugfixes
 and backport minor new features until `2.0.00` was ready.
 
 ## `3.0.00` (build JX202xxxxx)
 - Experimental features: protobuf
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
+
+
+## `2.1.00` (build JM2020xxxx)
+- Currently being developed
+
 
 ## `2.0.00` (build JM20200102)
 - Game play:

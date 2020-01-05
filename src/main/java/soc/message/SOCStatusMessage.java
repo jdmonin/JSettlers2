@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012-2014,2016-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012-2014,2016-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -500,7 +500,8 @@ public class SOCStatusMessage extends SOCMessage
             else if (cliVersion < 2000)  // for 1201 - 1999 inclusive
                 return (statusValue < SV_OK_DEBUG_MODE_ON);
             else
-                // our version or newer; check vs highest constant that we know
+                // 2000 or newer; check vs highest constant that we know
+                // (since none has been added yet after 2000)
                 return (statusValue <= SV_GAME_CLIENT_FEATURES_NEEDED);
             }
         }
