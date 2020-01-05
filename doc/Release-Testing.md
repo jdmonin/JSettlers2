@@ -8,8 +8,8 @@ When preparing to release a new version, testing should include:
     - Run `gradle distCheckSrcDirty` to check that and list any files with such changes
 - `gradle clean test` runs without failures, under gradle 4 and also gradle 5
 - These should print the expected version and build number:
-    - `java -jar build/libs/JSettlers-2.*.jar --version`
-    - `java -jar build/libs/JSettlersServer-2.*.jar --version`
+    - `java -jar build/libs/JSettlers-3.*.jar --version`
+    - `java -jar build/libs/JSettlersServer-3.*.jar --version`
 - Message Traffic debug prints during all tests, to help debugging if needed:  
   Run server and clients with JVM property `-Djsettlers.debug.traffic=Y`
 
@@ -258,7 +258,7 @@ When preparing to release a new version, testing should include:
            during the other's turn, and compare legals/potentials using the above process
 - Version compatibility testing
     - Versions to test against: **1.1.06** (before Game Options); **1.1.11** (has 6-player option and client bugfixes);
-      latest **1.x.xx** (before Scenarios/sea boards)
+      latest **1.x.xx** (before Scenarios/sea boards); latest **2.x.xx** (doesn't use SOCBoardLarge for classic boards)
     - New client, old server
     - New server, old client
     - Test these specific things for each version:
@@ -266,19 +266,19 @@ When preparing to release a new version, testing should include:
           should adapt to the older client version.  
           With a newer client connected to an older server, available new-game options
           should adapt to the older server version.  
-          This is especially visible when testing 1.x against 2.x.
+          This is especially visible when testing 1.x against 2.x or 3.x.
         - Create and start playing a 4-player game with no options (this uses an older message type)
         - Create and start playing a 4-player game with No Trading option
         - Create and start playing a 6-player game
         - In the 6-player game, request and use the Special Building Phase
-        - On a 2.x server, have 2.x client create game with a scenario (1.x can't join);
+        - On a 3.x server, have 3.x client create game with a scenario (1.x can't join);
           1.x client should see it in gamelist with "(cannot join)" prefix.
         - Connect with another client (same version as first client)
             - Should see 2nd game in list with that "(cannot join)" prefix
             - Join 1st game, take over for a robot
             - Should see all info for the player (resources, cards, etc)
             - Play at least 2 rounds; trade, build something, buy and use a soldier card
-        - When testing a 2.x client and 1.x server: In any game, test robot seat-lock button
+        - When testing a 3.x client and 1.x server: In any game, test robot seat-lock button
             - Click its lock button multiple times: Should only show Locked or Unlocked, never Marked
             - Lock a bot seat and reset the game: Seat should be empty in new game
 - Server robustness: Bot disconnect/reconnect during game start
@@ -305,8 +305,8 @@ When preparing to release a new version, testing should include:
         - In `SOCScenario.initAllScenarios()`, uncomment `SC_TSTNC` "New: v2001 back-compat" and `SC_TSTNO` "New: v2001 only"
         - In `SOCGameOption.initAllOptions()`, scroll to the end and uncomment `DEBUGBOOL` "Test option bool".
           Increase its second version parameter to current version + 1. Example:  
-          `("DEBUGBOOL", 2000, 2001, false, ...)`
-        - In `version.info`, add 1 to versionnum and version. Example: 2000 -> 2001, 2.0.00 -> 2.0.01
+          `("DEBUGBOOL", 3000, 3001, false, ...)`
+        - In `version.info`, add 1 to versionnum and version. Example: 3000 -> 3001, 3.0.00 -> 3.0.01
         - Build and launch client (at that "new" version), don't connect to server
         - Click "Practice"; dialog's game options should include DEBUGBOOL,
           Scenario dropdown should include those 2 "new" scenarios
@@ -326,7 +326,7 @@ When preparing to release a new version, testing should include:
           `gamescen.SC_TSTNC.n = test-localizedname-es`  
         - Build server JAR and start a server from it (has the "new" version number)
         - Reset `version.info`, `toClient_es.properties`, `SOCGameOption.initAllOptions()`,
-          and `SOCScenario.initAllScenarios()` to their actual versions (2001 -> 2000, re-comment, etc)
+          and `SOCScenario.initAllScenarios()` to their actual versions (3001 -> 3000, re-comment, etc)
         - Build and launch client (at actual version)
         - Connect to server
         - Message traffic should include:
@@ -575,7 +575,7 @@ Start with a recently-created database with latest schema/setup scripts.
     - Start a server with db-connect properties and:
       `-Djsettlers.startrobots=0 -Djsettlers.accounts.open=Y -Djsettlers.allow.debug=Y -Djsettlers.db.save.games=Y`
     - Create 3 test-user player accounts: TU1 TU2 TU3
-        - `java -cp JSettlers-2.*.jar soc.client.SOCAccountClient localhost 8880`
+        - `java -cp JSettlers-3.*.jar soc.client.SOCAccountClient localhost 8880`
     - Play each game listed below, checking the DB afterwards for results
         - Players will be: The `debug` user; sometimes players with accounts in the DB
           (`TU1` etc); sometimes players without accounts (`non1` etc)
@@ -613,7 +613,7 @@ Start with a recently-created database with latest schema/setup scripts.
     - Start a server including these parameters:  
       `-Djsettlers.accounts.open=Y -Djsettlers.allow.debug=Y -Djsettlers.db.save.games=Y`
     - Create 3 users: UPTEST1 UpTest2 uptest3
-        - `java -cp JSettlers-2.*.jar soc.client.SOCAccountClient localhost 8880`
+        - `java -cp JSettlers-3.*.jar soc.client.SOCAccountClient localhost 8880`
     - Shut down the server
     - To temporarily prevent an upgrade to the latest schema, make a table that will conflict with the upgrade's new tables
         - SQL: `CREATE TABLE upg_tmp_games (upg_stop_field varchar(20));`
@@ -688,7 +688,7 @@ Start with a recently-created database with latest schema/setup scripts.
 - Robot stability:
     - This test can be started and run in the background.
     - At a command line, start and run a server with 100 robot-only games:  
-      `java -jar JSettlersServer-2.*.jar -Djsettlers.bots.botgames.total=100 -Djsettlers.bots.botgames.parallel=20 -Djsettlers.bots.fast_pause_percent=5 -Djsettlers.bots.botgames.shutdown=Y 8118 15`
+      `java -jar JSettlersServer-3.*.jar -Djsettlers.bots.botgames.total=100 -Djsettlers.bots.botgames.parallel=20 -Djsettlers.bots.fast_pause_percent=5 -Djsettlers.bots.botgames.shutdown=Y 8118 15`
     - To optionally see progress, connect to port 8118 with a client. Game numbers start at 100 and count down.
     - These games should complete in under 10 minutes
     - Once the games complete, that server will exit
@@ -703,9 +703,9 @@ Start with a recently-created database with latest schema/setup scripts.
         - `unzip -q -c build/libs/JSettlers-*.jar META-INF/MANIFEST.MF | grep Build-Revision`
         - `unzip -q -c build/libs/JSettlersServer-*.jar META-INF/MANIFEST.MF | grep Build-Revision`
     - Diff list of files from `gradle dist` outputs in `build/distributions/`:
-        - `unzip -t jsettlers-2.*-full.zip | sort`
-        - `tar tzf jsettlers-2.*-full.tar.gz | sort` (same files as above)
-        - `tar tzf jsettlers-2.*-src.tar.gz | sort` (same but without *.jar)
+        - `unzip -t jsettlers-3.*-full.zip | sort`
+        - `tar tzf jsettlers-3.*-full.tar.gz | sort` (same files as above)
+        - `tar tzf jsettlers-3.*-src.tar.gz | sort` (same but without *.jar)
     - Diff that list of files against previously released version's `full.tar.gz`
         - Make sure any missing/moved/removed files are deliberate (from refactoring, etc)
     - In a temp dir, do a fresh git checkout and compare contents:  
