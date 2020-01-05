@@ -29,7 +29,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import soc.util.IntPair;
 
@@ -45,7 +44,7 @@ import soc.util.IntPair;
  * and keep the board logic simple.  Game rules should be enforced at the game, not the board.
  * Calling board methods won't change the game state.
  *<P>
- * To generate a new game's board layout, use subclass {@code soc.server.SOCBoardAtServer}.
+ * To generate a new game's board layout, use subclass {@link soc.server.SOCBoardAtServer}.
  * Game boards are initially all water.  The layout contents are set up later by calling
  * {@code SOCBoardAtServer.makeNewBoard(Map)} when the game is about to begin,
  * then sent to the clients over the network.  The client calls methods such as {@link #setLandHexLayout(int[])},
@@ -186,13 +185,14 @@ import soc.util.IntPair;
  *<P>
  * <h4> Coordinate System: </h4>
  *
- * See <tt>src/docs/hexcoord-sea.png</tt>
+ * See {@code /doc/hexcoord-sea.png}
  *<P>
  * Unlike earlier encodings, here the "hex number" ("ID") is not an index into a dense array
  * of land hexes.  Thus it's not efficient to iterate through all hex numbers. <br>
  * Instead: Hex ID = (r &lt;&lt; 8) | c   // 2 bytes: 0xRRCC
  *<P>
- * The coordinate system is a square grid of rows and columns, different from previous encodings:
+ * The coordinate system is a square grid of rows and columns,
+ * different from {@link SOCBoard}'s classic 4- and 6-player encodings:
  *<P>
  * <b>Hexes</b> (represented as coordinate of their centers),
  * <b>nodes</b> (corners of hexes; where settlements/cities are placed),
@@ -250,7 +250,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * The numeric value (7) for <tt>GOLD_HEX</tt> is the same as
      * the v1/v2 encoding's {@link SOCBoard#MISC_PORT_HEX}, but the
-     * ports aren't encoded as hexes for this encoding, so there is no ambiguity
+     * ports aren't encoded as hexes for this v3 encoding, so there is no ambiguity
      * as long as callers of {@link #getHexTypeFromCoord(int)}
      * check the board encoding format.
      */
@@ -283,7 +283,7 @@ public class SOCBoardLarge extends SOCBoard
     protected static final int MAX_LAND_HEX_LG = FOG_HEX;
 
     /**
-     * Default size of the large board.
+     * Default size of the large board: 16 rows x 18 columns of half-hex units.
      * Can override in constructor.
      * See {@link SOCBoard#getBoardHeight() getBoardHeight()}, {@link SOCBoard#getBoardWidth() getBoardWidth()}.
      */
@@ -309,8 +309,8 @@ public class SOCBoardLarge extends SOCBoard
      *</UL>
      *<P>
      * The Special Edge Types are constants such as {@link #SPECIAL_EDGE_DEV_CARD}
-     * or {@link #SPECIAL_EDGE_SVP} used by game and board logic.  Game events or
-     * {@link SOCScenarioPlayerEvent}s can happen when something occurs at such an edge.
+     * or {@link #SPECIAL_EDGE_SVP} used by game and board logic.  {@link SOCGameEvent}s or
+     * {@link SOCPlayerEvent}s can happen when something occurs at such an edge.
      * Often these will clear the edge's type, it will no longer be special.
      *<P>
      * During board setup, lists of edges of a special type are sent with the board layout as
@@ -326,7 +326,7 @@ public class SOCBoardLarge extends SOCBoard
      * <LI> {@link #setAddedLayoutPart(String, int[])}
      * <LI> {@link #setAddedLayoutParts(HashMap)}
      * <LI> {@link #SPECIAL_EDGE_TYPES}
-     * <LI> {@link SOCPlayer#putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges(SOCShip, SOCBoardLarge, boolean)}
+     * <LI> {@link SOCPlayer#putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges(SOCShip, SOCBoardLarge)}
      * <LI> SOCBoardPanel.drawBoardEmpty_specialEdges
      * <LI> SOCBoardPanel.BoardToolTip.handleHover
      * <LI> Any game or board code that needs to check for relevant actions at edges
@@ -441,7 +441,7 @@ public class SOCBoardLarge extends SOCBoard
          0,-2,  -2,-1   // W, NW
     };
 
-    // TODO hexLayoutLg, numberLayoutLg: Will only need half the rows, half the columns
+    // Note: hexLayoutLg, numberLayoutLg: Will only need half the rows, half the columns
     //    The unused elements are wasted space locally but aren't sent over the network.
 
     /**
@@ -538,7 +538,8 @@ public class SOCBoardLarge extends SOCBoard
      * {@link #landAreasLegalNodes}, because that set of
      * legal nodes is also the players' potential settlement nodes.
      * 0 if players can start anywhere and/or
-     * {@link #landAreasLegalNodes} == <tt>null</tt>.
+     * {@link #landAreasLegalNodes} == <tt>null</tt>, as in
+     * scenario {@link SOCScenario#K_SC_4ISL SC_4ISL}'s board layouts.
      *<P>
      * The startingLandArea and {@link #landAreasLegalNodes} are sent
      * from the server to client as part of a <tt>POTENTIALSETTLEMENTS</tt> message.
@@ -586,9 +587,11 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * For some scenarios, keyed lists of additional layout parts to add to game layout when sent from server to client.
+     * See {@link #getAddedLayoutPart(String)} for list and details.
      * For example, scenario {@link SOCScenario#K_SC_PIRI SC_PIRI} adds
      * <tt>"PP" = { 0x..., 0x... }</tt> for the fixed Pirate Path, and
      * {@link SOCScenario#K_SC_CLVI SC_CLVI} adds {@code "CV"} for the cloth village locations.
+     *<P>
      * Null for most scenarios. Initialized in {@code SOCBoardAtServer.makeNewBoard}.
      */
     private HashMap<String, int[]> addedLayoutParts;
@@ -624,6 +627,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * For some scenarios, villages on the board. Null otherwise.
+     * Map key is village's node coordinate.
      * Each village has a {@link SOCVillage#diceNum dice number} and a {@link SOCVillage#getCloth() cloth count}.
      */
     protected HashMap<Integer, SOCVillage> villages;
@@ -669,31 +673,16 @@ public class SOCBoardLarge extends SOCBoard
     private int prevPirateHex;
 
     /**
-     * Create a new Settlers of Catan Board, with the v3 encoding.
-     * The board will be empty (all hexes are water, no dice numbers on any hex), see class javadoc
-     * for how the board is filled when the game begins.
-     * Board height and width will be the default, {@link #BOARDHEIGHT_LARGE} by {@link #BOARDWIDTH_LARGE}.
-     *<P>
-     * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
-     *     Used for {@link #isSeaBoard} from "SBL", and board size based on scenario options.
-     * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
-     * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
-     */
-    public SOCBoardLarge(final Map<String,SOCGameOption> gameOpts, int maxPlayers)
-        throws IllegalArgumentException
-    {
-        this(gameOpts, maxPlayers, getBoardSize(gameOpts));
-    }
-
-    /**
      * Create a new Settlers of Catan Board, with the v3 encoding and a certain size.
+     * Size must be passed using {@code boardHeightWidth}; ignores {@link SOCGameOption} "_BHW".
      * The board will be empty (all hexes are water, no dice numbers on any hex), see class javadoc
      * for how the board is filled when the game begins.
      * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
      *     Used for {@link #isSeaBoard} from "SBL", and board size based on scenario options.
      * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
-     * @param boardHeightWidth  Board's height and width.
-     *        The constants for default size are {@link #BOARDHEIGHT_LARGE}, {@link #BOARDWIDTH_LARGE}.
+     * @param boardHeightWidth  Board's height and width. Caller can use convenience method {@link #getBoardSize(Map)}
+     *     to either get default size ({@link #BOARDHEIGHT_LARGE}, {@link #BOARDWIDTH_LARGE})
+     *     or extract from {@link SOCGameOption} "_BHW".
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6, or <tt>boardHeightWidth</tt> is null
      */
     public SOCBoardLarge
@@ -744,15 +733,15 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Get the board size for client's constructor:
+     * Convenience method to get the board size required for constructor:
      * Default size {@link #BOARDHEIGHT_LARGE} by {@link #BOARDWIDTH_LARGE},
-     * unless <tt>gameOpts</tt> contains <tt>"_BHW"</tt> Board Height and Width.
+     * unless {@code gameOpts} contains client-only option {@code "_BHW"} Board Height and Width.
      * @param gameOpts  Game options, or null
      * @param maxPlayers  Maximum players; must be default 4, or 6 from game option "PL" &gt; 4 or "PLB".
      * @return a new IntPair(height, width)
      * @see soc.server.SOCBoardAtServer#getBoardSize(Map, int)
      */
-    private static IntPair getBoardSize(final Map<String, SOCGameOption> gameOpts)
+    public static IntPair getBoardSize(final Map<String, SOCGameOption> gameOpts)
     {
         SOCGameOption bhwOpt = null;
         if (gameOpts != null)
@@ -767,10 +756,7 @@ public class SOCBoardLarge extends SOCBoard
         }
     }
 
-    // TODO hexLayoutLg, numberLayoutLg will only ever use the odd row numbers
-
-    // TODO unlike roads, is there ever a time when sea edges are _not_ legal?
-    //  (assuming water hexes on one or both sides of the edge)
+    // Note: hexLayoutLg, numberLayoutLg will only ever use the odd row numbers
 
 
     ////////////////////////////////////////////
@@ -785,6 +771,14 @@ public class SOCBoardLarge extends SOCBoard
      * Once the legal settlement/city nodes ({@link #nodesOnLand})
      * are established from land hexes, fill {@link #legalRoadEdges}.
      * Not iterative; clears all previous legal roads.
+     *<P>
+     * Any {@link #FOG_HEX}es are treated as land when checking for water hexes,
+     * although there's a chance some may later be revealed as water.
+     *<P>
+     * About corners/concave parts: <BR>
+     * The set of valid land nodes will contain both ends of the edge;
+     * to guard against concave edges crossing a bay or lake,
+     * checks that at least one side of the edge is a land hex.
      *<P>
      * For scenarios, if Added Layout Part {@code "AL"} is present, checks it for
      * references to node lists (Parts {@code "N1", "N2"}, etc) and if found, adds their
@@ -803,10 +797,6 @@ public class SOCBoardLarge extends SOCBoard
     protected void initLegalRoadsFromLandNodes()
         throws IllegalStateException
     {
-        // About corners/concave parts:
-        //   Set of the valid nodes will contain both ends of the edge;
-        //   anything concave across a sea would be missing at least 1 node, in the water along the way.
-
         legalRoadEdges.clear();
 
         // Go from nodesOnLand.  If Part "AL" refers to node lists, build and
@@ -852,7 +842,7 @@ public class SOCBoardLarge extends SOCBoard
             }
         }
 
-        // Go from nodesOnLand or landNodes, iterate all nodes:
+        // Go from nodesOnLand or temporary landNodes, iterate all nodes:
 
         for (Integer nodeVal : landNodes)
         {
@@ -930,12 +920,16 @@ public class SOCBoardLarge extends SOCBoard
      * Contains all coastal edges of each land hex at the edges of the board.
      * Empty if ! {@link #isSeaBoard}.
      *<P>
+     * Any {@link #FOG_HEX}es are treated as land as usual, although there's
+     * a chance some may later be revealed as water.
+     *<P>
      * Not iterative; clears all previous legal ship edges.
-     * Call this only after the very last call to
+     * At server, call this only after the very last call to
      * {@code SOCBoardAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int, boolean)}
      * so that all land hexes are already placed.
      *<P>
      * Called at server and at client.
+     *
      * @see #initPlayerLegalShips()
      * @see #initLegalRoadsFromLandNodes()
      */
@@ -955,11 +949,10 @@ public class SOCBoardLarge extends SOCBoard
             final int rshift = (r << 8);
             int c;
             if (((r/2) % 2) == 1)
-            {
                 c = 1;  // odd hex row hexes start at 1
-            } else {
+            else
                 c = 2;  // top row, even row hexes start at 2
-            }
+
             for (; c < boardWidth; c += 2)
             {
                 if (hexLayoutLg[r][c] == WATER_HEX)
@@ -1084,6 +1077,7 @@ public class SOCBoardLarge extends SOCBoard
                                 laln.remove(nodeObj);
                         }
                     }
+
                     wasWaterRemovedLegals = true;
                 }
             }
@@ -1218,8 +1212,10 @@ public class SOCBoardLarge extends SOCBoard
      *         These land hexes also may be logically grouped into several
      *         "land areas" (groups of islands, or subsets of islands).  Those areas
      *         are sent to the client using a {@code SOCPotentialSettlements} message.
-     *<LI> PX: Players are excluded from settling these land area numbers (usually none)
-     *<LI> RX: Robber is excluded from these land area numbers (usually none)
+     *<LI> PX: Players are excluded from settling these land area numbers (usually none);
+     *         from {@link #getPlayerExcludedLandAreas()}
+     *<LI> RX: Robber is excluded from these land area numbers (usually none);
+     *         from {@link #getRobberExcludedLandAreas()}
      *</UL>
      * These typical Layout Parts each use specific board methods to get or set them,
      * instead of being returned from {@code getAddedLayoutPart(..)}.
@@ -1253,16 +1249,30 @@ public class SOCBoardLarge extends SOCBoard
      *         scenario, and/or for additional legal edges (see layout part {@code "AL"}).
      *<LI> N1 through N9: Special node lists, originally for {@code _SC_WOND}.  Can be used for any purpose by a
      *         scenario, and/or for additional legal nodes (see layout part {@code "AL"}).
-     *<LI> VS: Visual Shift rightwards and/or downwards to use when rendering the board at the client.
-     *         Right and Down are positive, Up and Left are negative. Unit is 1/4 of hex size. For example,
-     *         a Visual Shift of {Down 2, Right 3} would have {@code SOCBoardPanel} render a "margin" of
-     *         water of size 2/4 of a hex above, and 3/4 of a hex to the left of, the board's in-game boundary.
+     *<LI> VS: Visual Shift rightwards and/or downwards to use when rendering the board at the client:
+     *         Array holding [Down, Right] shift amounts. Right and Down are positive, Up and Left are negative.
+     *         Unit is 1/4 of hex size.
+     *         <BR>
+     *         For example, a Visual Shift of [Down 2, Right 3] would have {@code SOCBoardPanel} render a "margin"
+     *         of water of size 2/4 of a hex above, and 3/4 of a hex to the left of, the board's in-game boundary.
      *         The client should show the board's entire {@link #getBoardHeight()} and {@link #getBoardWidth()}
      *         plus this margin.
+     *         <P>
+     *         A board's {@code "VS"} is determined at its creation using only the scenario/options and player count,
+     *         and doesn't vary based on the specific layout details randomly generated later
+     *         at {@link SOCGame#startGame()}. See {@link soc.server.SOCBoardAtServer#getBoardShift(Map)}.
      *</UL>
      * The "CE" and "VE" layout parts are lists of Special Edges on the board.  During game play, these
      * edges may change.  The server announces each change with a
      * {@code SOCSimpleAction(BOARD_EDGE_SET_SPECIAL)} message.
+     *
+     *<H4>Adding a Layout Part:</H4>
+     *
+     * If you add a Layout Part, add it to this javadoc; {@link soc.message.SOCBoardLayout2} class javadoc
+     * and its {@code KNOWN_KEYS}. Add it to the board layout in {@link soc.server.SOCBoardAtServer#makeNewBoard(Map)}.
+     * Check its value in relevant methods of the board, server, and client classes like {@link soc.client.SOCBoardPanel}.
+     * Consider search the code for a similar part, to see where else to add.
+     *<P>
      * If you add a layout part which is a Special Edge type, be sure to update
      * {@link #SPECIAL_EDGE_LAYOUT_PARTS} and {@link #SPECIAL_EDGE_TYPES}
      * so players joining during the game will get updated Special Edge data.
@@ -1487,8 +1497,12 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Get the land area numbers, if any, from which all players are excluded and cannot place settlements.
-     * Used in some game scenarios.
-     * @return land area numbers, or null if none
+     * Used in some game scenarios. Sent to client as Layout Part "PX".
+     *<P>
+     * Alternately, can place hexes/nodes into "land area 0" (LA #0) in {@code SOCBoardAtServer.makeNewBoard}
+     * to prevent player from placing on them.
+     *
+     * @return  Excluded land area numbers, or null if none
      * @see #setPlayerExcludedLandAreas(int[])
      * @see #getRobberExcludedLandAreas()
      */
@@ -1499,9 +1513,9 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Set or clear the land area numbers from which all players are excluded and cannot place settlements.
-     * Used in some game scenarios.
+     * See {@link #getPlayerExcludedLandAreas()} for details.
+     *
      * @param px  Land area numbers, or null if none
-     * @see #getPlayerExcludedLandAreas()
      * @see #setRobberExcludedLandAreas(int[])
      */
     public void setPlayerExcludedLandAreas(final int[] px)
@@ -1511,8 +1525,9 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Get the land area numbers, if any, from which the robber is excluded and cannot be placed.
-     * Used in some game scenarios.
-     * @return land area numbers, or null if none
+     * Used in some game scenarios. Sent to client as Layout Part "RX".
+     *
+     * @return  Excluded land area numbers, or null if none
      * @see #setRobberExcludedLandAreas(int[])
      * @see #getPlayerExcludedLandAreas()
      */
@@ -1523,9 +1538,9 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Set or clear the land area numbers from which the robber is excluded and cannot be placed.
-     * Used in some game scenarios.
+     * See {@link #getRobberExcludedLandAreas()} for details.
+     *
      * @param rx  Land area numbers, or null if none
-     * @see #getRobberExcludedLandAreas()
      * @see #setPlayerExcludedLandAreas(int[])
      */
     public void setRobberExcludedLandAreas(final int[] rx)
@@ -1910,7 +1925,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * Index 0 is the board's "general supply" cloth count {@link #getCloth()}.
      * Index 1 is each village's starting cloth count, from {@link SOCVillage#STARTING_CLOTH}.
-     * Then, 2 int elements per village: Coordinate, Dice Number.
+     * Then, 2 int elements per village (village order may vary): Coordinate, Dice Number.
      * If any village has a different amount of cloth, server should follow with
      * messages to set those villages' cloth counts.
      * @return the layout, or null if no villages.
@@ -1924,7 +1939,7 @@ public class SOCBoardLarge extends SOCBoard
 
         int[] vcl = new int[ (2 * villages.size()) + 2 ];
         vcl[0] = numCloth;
-        vcl[1] = SOCVillage.STARTING_CLOTH;  // in case it changes in a later version
+        vcl[1] = SOCVillage.STARTING_CLOTH;  // include for compat, in case STARTING_CLOTH changes in a later version
         int i=2;
         Iterator<SOCVillage> villIter = villages.values().iterator();
         while (villIter.hasNext())
@@ -1983,7 +1998,7 @@ public class SOCBoardLarge extends SOCBoard
      * This supply is used if a village's {@link SOCVillage#takeCloth(int)}
      * returns less than the amount needed.
      * @see #takeCloth(int)
-     * @see #distributeClothFromRoll(SOCGame, int)
+     * @see soc.server.SOCBoardAtServer#distributeClothFromRoll(SOCGame, soc.game.SOCGame.RollResult, int)
      * @see #getVillageAtNode(int)
      */
     public int getCloth()
@@ -2006,7 +2021,7 @@ public class SOCBoardLarge extends SOCBoard
      * @param numTake  Number of cloth to try and take
      * @return  Number of cloth actually taken, a number from 0 to <tt>numTake</tt>.
      * @see #getCloth()
-     * @see #distributeClothFromRoll(SOCGame, int)
+     * @see soc.server.SOCBoardAtServer#distributeClothFromRoll(SOCGame, soc.game.SOCGame.RollResult, int)
      * @see SOCVillage#takeCloth(int)
      */
     public int takeCloth(int numTake)
@@ -2019,37 +2034,6 @@ public class SOCBoardLarge extends SOCBoard
             numCloth -= numTake;
         }
         return numTake;
-    }
-
-    /**
-     * Game action: Distribute cloth to players on a dice roll.
-     * Calls {@link SOCVillage#distributeCloth(SOCGame)} for matching village, if any.
-     * That calls {@link #takeCloth(int)}, {@link SOCPlayer#setCloth(int)}, etc.
-     * Each player trading with that village gets at most 1 cloth.
-     * For scenario game option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}.
-     * This and any other dice-roll methods are called at server only.
-     * @param game  Game with this board
-     * @param dice  Rolled dice number
-     * @return  null, or results as an array:
-     *   [ Cloth amount taken from general supply, Matching village node coordinate,
-     *     Cloth amount given to player 0, to player 1, ... to player n ].
-     */
-    public int[] distributeClothFromRoll(SOCGame game, final int dice)
-    {
-        if ((villages == null) || villages.isEmpty())
-            return null;
-
-        Iterator<SOCVillage> villIter = villages.values().iterator();
-        while (villIter.hasNext())
-        {
-            SOCVillage v = villIter.next();
-            if (v.diceNum != dice)
-                continue;
-
-            return v.distributeCloth(game);
-        }
-
-        return null;
     }
 
     /**
@@ -2105,12 +2089,19 @@ public class SOCBoardLarge extends SOCBoard
         // Water, or off the board, aren't included.
         // So if there are 6, hex isn't coastal.
 
-        final Vector<Integer> adjac = getAdjacentHexesToHex(hexCoord, false);
+        final List<Integer> adjac = getAdjacentHexesToHex(hexCoord, false);
         return (adjac == null) || (adjac.size() < 6);
     }
 
     /**
      * Is this hex's land area in this list of land areas?
+     * List can also contain {@code 0}, meaning not in any set within {@link #getLandAreasLegalNodes()}.
+     *<P>
+     * Because of how landareas are transmitted to the client,
+     * we don't have a list of land area hexes, only land area nodes.
+     * To contain a hex, the land area must contain all 6 of its corner nodes.
+     * To be in "land area 0", none of the hex's corner nodes can be in any {@code getLandAreasLegalNodes()} set.
+     *
      * @param hexCoord  The hex coordinate, within the board's bounds
      * @param las  List of land area numbers, or null for an empty list
      * @return  True if any landarea in <tt>las[i]</tt> contains <tt>hexCoord</tt>;
@@ -2122,37 +2113,55 @@ public class SOCBoardLarge extends SOCBoard
         if ((las == null) || (landAreasLegalNodes == null))
             return false;
 
-        // Because of how landareas are transmitted to the client,
-        // we don't have a list of land area hexes, only land area nodes.
-        // To contain a hex, the land area must contain all 6 of its corner nodes.
-
         final int[] hnodes = getAdjacentNodesToHex_arr(hexCoord);
         final Integer hnode0 = Integer.valueOf(hnodes[0]);
-        for (int a : las)
+        for (int la : las)
         {
-            if (a >= landAreasLegalNodes.length)
+            if (la >= landAreasLegalNodes.length)
                 continue;  // bad argument
 
-            final HashSet<Integer> lan = landAreasLegalNodes[a];
-            if (lan == null)
-                continue;  // index 0 is unused
-
-            if (! lan.contains(hnode0))
-                continue;  // missing at least 1 corner
-
-            // check the other 5 hex corners
-            boolean all = true;
-            for (int i = 1; i < hnodes.length; ++i)
+            if (la == 0)
             {
-                if (! lan.contains(Integer.valueOf(hnodes[i])))
-                {
-                    all = false;
-                    break;
-                }
-            }
+                // "land area 0" means not part of any land area.
+                // It has no set in landAreasLegalNodes: must check all land areas for this hex's corner nodes
 
-            if (all)
-                return true;
+                boolean foundInAny = false;
+                outer: for (Integer hnodeInt : hnodes)
+                {
+                    for (HashSet<Integer> lan : landAreasLegalNodes)
+                        if ((lan != null) && lan.contains(hnodeInt))
+                        {
+                            foundInAny = true;
+                            break outer;
+                        }
+                }
+
+                if (! foundInAny)
+                    return true;
+            } else {
+                // land area 1-n
+
+                final HashSet<Integer> lan = landAreasLegalNodes[la];
+                if (lan == null)
+                    continue;  // index 0 is unused
+
+                if (! lan.contains(hnode0))
+                    continue;  // missing at least 1 corner
+
+                // check the other 5 hex corners
+                boolean all = true;
+                for (int i = 1; i < hnodes.length; ++i)
+                {
+                    if (! lan.contains(Integer.valueOf(hnodes[i])))
+                    {
+                        all = false;
+                        break;
+                    }
+                }
+
+                if (all)
+                    return true;
+            }
         }
 
         return false;
@@ -2424,18 +2433,20 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * In some scenarios ({@code _SC_PIRI}), not all sea edges are legal for ships.
      * See {@link SOCPlayer#setRestrictedLegalShips(int[])}
-     * and {@code SOCBoardAtServer.getLegalSeaEdges(SOCGame, int)}.
+     * and {@link soc.server.SOCBoardAtServer#getLegalSeaEdges(SOCGame) SOCBoardAtServer.getLegalSeaEdges(SOCGame)}.
      *<P>
      * Server doesn't need to call this method, because {@code SOCBoardAtServer.makeNewBoard(Map)}
      * sets the contents of the same data structures.
      *
-     * @param psNodes  The set of potential settlement node coordinates as {@link Integer}s;
-     *    either a {@link HashSet} or {@link Vector}.
-     *    If <tt>lan == null</tt>, this will also be used as the
-     *    legal set of settlement nodes on land.
+     * @param psNodes  If {@code lan} == null, the set of potential settlement node coordinates as {@link Integer}s;
+     *    either a {@link HashSet} or a {@link List}. If {@code lan} is null, will also be used as
+     *    the legal set of settlement nodes on land.
+     *    Ignored if {@code lan} != null.
      * @param sla  The required starting Land Area number, or 0
-     * @param lan If non-null, all Land Areas' legal node coordinates.
+     * @param lan  If non-null, all Land Areas' legal node coordinates.
      *     Index 0 is ignored; land area numbers start at 1.
+     *     If null, {@code psNodes} is used instead.
+     * @throws IllegalArgumentException if both {@code psNodes} and {@code lan} are null
      * @throws IllegalStateException if Added Layout Part {@code "AL"} is present but badly formed (node list number 0,
      *     or a node list number not followed by a land area number). This Added Layout Part is rarely used,
      *     and this would be discovered quickly while testing the board layout that contained it.
@@ -2443,10 +2454,13 @@ public class SOCBoardLarge extends SOCBoard
      */
     public void setLegalSettlements
         (final Collection<Integer> psNodes, final int sla, final HashSet<Integer>[] lan)
-        throws IllegalStateException
+        throws IllegalArgumentException, IllegalStateException
     {
         if (lan == null)
         {
+            if (psNodes == null)
+                throw new IllegalArgumentException("both null");
+
             landAreasLegalNodes = null;
             startingLandArea = 0;
 
@@ -2526,16 +2540,16 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @param hexCoord  Coordinate ("ID") of this hex; not checked for validity
      * @param includeWater  Should water hexes be returned (not only land ones)?
-     * @return the hexes that touch this hex, as a Vector of Integer coordinates,
-     *         or null if none are adjacent (will <b>not</b> return a 0-length vector)
+     * @return the hex coordinates that touch this hex,
+     *         or null if none are adjacent (will <b>not</b> return a 0-length list)
      * @see #isHexAdjacentToHex(int, int)
      * @see #isHexInBounds(int, int)
      * @see #isHexCoastline(int)
      */
     @Override
-    public Vector<Integer> getAdjacentHexesToHex(final int hexCoord, final boolean includeWater)
+    public List<Integer> getAdjacentHexesToHex(final int hexCoord, final boolean includeWater)
     {
-        Vector<Integer> hexes = new Vector<Integer>();
+        List<Integer> hexes = new ArrayList<Integer>();
 
         final int r = hexCoord >> 8,
                   c = hexCoord & 0xFF;
@@ -2551,13 +2565,13 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Check one possible coordinate for getAdjacentHexesToHex.
-     * @param addTo the list we're building of hexes that touch this hex, as a Vector of Integer coordinates.
+     * @param addTo the coordinate list we're building of hexes that touch this hex
      * @param includeWater Should water hexes be returned (not only land ones)?
      * @param r  Hex row coordinate
      * @param c  Hex column coordinate
      */
     private final void getAdjacentHexes2Hex_AddIfOK
-        (Vector<Integer> addTo, final boolean includeWater, final int r, final int c)
+        (List<Integer> addTo, final boolean includeWater, final int r, final int c)
     {
         if (! isHexInBounds(r, c))  // also checks that it's a valid hex row
             return;
@@ -2566,7 +2580,7 @@ public class SOCBoardLarge extends SOCBoard
             || ((hexLayoutLg[r][c] <= MAX_LAND_HEX_LG)
                 && (hexLayoutLg[r][c] != WATER_HEX)) )
         {
-            addTo.addElement(Integer.valueOf((r << 8) | c));
+            addTo.add(Integer.valueOf((r << 8) | c));
         }
     }
 
@@ -2911,12 +2925,12 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Get the edge coordinates of the 2 to 4 edges adjacent to this edge.
      * @param coord  Edge coordinate; not checked for validity
-     * @return the valid adjacent edges to this edge, as a Vector of Integer coordinates.
+     * @return the valid adjacent edge coordinates to this edge.
      *     If {@code coord} is off the board, none of its adjacents will be in bounds,
      *     and this method will return an empty list; never returns {@code null}.
      */
     @Override
-    public Vector<Integer> getAdjacentEdgesToEdge(final int coord)
+    public List<Integer> getAdjacentEdgesToEdge(final int coord)
     {
         final int r = (coord >> 8),
                   c = (coord & 0xFF);
@@ -2934,14 +2948,15 @@ public class SOCBoardLarge extends SOCBoard
             offs = A_EDGE2EDGE[dir];
         }
 
-        Vector<Integer> edge = new Vector<Integer>(4);
+        List<Integer> edge = new ArrayList<Integer>(4);
         for (int i = 0; i < 8; )
         {
             final int er = r + offs[i];  ++i;
             final int ec = c + offs[i];  ++i;
             if (isEdgeInBounds(er, ec))
-                edge.addElement(Integer.valueOf( (er << 8) | ec ));
+                edge.add(Integer.valueOf( (er << 8) | ec ));
         }
+
         return edge;
     }
 
@@ -3031,17 +3046,19 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Adjacent node coordinates to an edge (that is, the nodes that are the two ends of the edge).
-     * @return the nodes that touch this edge, as a Vector of Integer coordinates
+     * @return the node coordinates that touch this edge
      * @see #getAdjacentNodesToEdge_arr(int)
      * @see #getAdjacentNodeToEdge(int, int)
      */
     @Override
-    public Vector<Integer> getAdjacentNodesToEdge(final int coord)
+    public List<Integer> getAdjacentNodesToEdge(final int coord)
     {
-        Vector<Integer> nodes = new Vector<Integer>(2);
+        List<Integer> nodes = new ArrayList<Integer>(2);
+
         final int[] narr = getAdjacentNodesToEdge_arr(coord);
-        nodes.addElement(Integer.valueOf(narr[0]));
-        nodes.addElement(Integer.valueOf(narr[1]));
+        nodes.add(Integer.valueOf(narr[0]));
+        nodes.add(Integer.valueOf(narr[1]));
+
         return nodes;
     }
 
@@ -3086,8 +3103,10 @@ public class SOCBoardLarge extends SOCBoard
      * @param edgeB  Edge coordinate adjacent to <tt>edgeA</tt>; not checked for validity
      * @return  node coordinate between edgeA and edgeB
      * @see #getAdjacentNodesToEdge(int)
+     * @see #getAdjacentNodeFarEndOfEdge(int, int)
      * @throws IllegalArgumentException  if edgeA and edgeB aren't adjacent
      */
+    @Override
     public int getNodeBetweenAdjacentEdges(final int edgeA, final int edgeB)
         throws IllegalArgumentException
     {
@@ -3135,18 +3154,27 @@ public class SOCBoardLarge extends SOCBoard
             // 'A' node, north and SW edges:
 
             case (0x0100 - 0x01):  // edgeA is north, edgeB is SW (r+1, c-1)
-                node = edgeB + 1;
+                if ((((edgeA >> 8) % 2) == 1) && ((edgeA >> 8) < (edgeB >> 8)))
+                    node = edgeB + 1;
+                else
+                    node = -9;  // non-adjacent such as vertical south edgeA, horiz gap to east, then southeast edgeB
                 break;
 
             case (0x01 - 0x0100):  // edgeA is SW, edgeB is north (r-1, c+1)
-                node = edgeA + 1;
+                if ((((edgeB >> 8) % 2) == 1) && ((edgeA >> 8) > (edgeB >> 8)))
+                    node = edgeA + 1;
+                else
+                    node = -9;
                 break;
 
             default:
-                throw new IllegalArgumentException
-                    ("Edges not adjacent: 0x" + Integer.toHexString(edgeA)
-                     + ", 0x" + Integer.toHexString(edgeB));
+                node = -9;
         }
+
+        if (node == -9)
+            throw new IllegalArgumentException
+                ("Edges not adjacent: 0x" + Integer.toHexString(edgeA)
+                 + ", 0x" + Integer.toHexString(edgeB));
 
         return node;
     }
@@ -3171,7 +3199,7 @@ public class SOCBoardLarge extends SOCBoard
      *         because hex coordinates (their centers) are fully within the board.
      */
     @Override
-    public Vector<Integer> getAdjacentHexesToNode(final int nodeCoord)
+    public List<Integer> getAdjacentHexesToNode(final int nodeCoord)
     {
         // Determining (r,c) node direction: Y or A
         //  s = r/2
@@ -3180,41 +3208,41 @@ public class SOCBoardLarge extends SOCBoard
         // Bounds check for hexes: r > 0, c > 0, r < height, c < width
 
         final int r = (nodeCoord >> 8), c = (nodeCoord & 0xFF);
-        Vector<Integer> hexes = new Vector<Integer>(3);
+        List<Integer> hexes = new ArrayList<Integer>(3);
 
         final boolean nodeIsY = ( (c % 2) != ((r/2) % 2) );
         if (nodeIsY)
         {
             // North: (r-1, c)
             if (r > 1)
-                hexes.addElement(Integer.valueOf(nodeCoord - 0x0100));
+                hexes.add(Integer.valueOf(nodeCoord - 0x0100));
 
             if (r < (boardHeight-1))
             {
                 // SW: (r+1, c-1)
                 if (c > 1)
-                    hexes.addElement(Integer.valueOf((nodeCoord + 0x0100) - 1));
+                    hexes.add(Integer.valueOf((nodeCoord + 0x0100) - 1));
 
                 // SE: (r+1, c+1)
                 if (c < (boardWidth-1))
-                    hexes.addElement(Integer.valueOf((nodeCoord + 0x0100) + 1));
+                    hexes.add(Integer.valueOf((nodeCoord + 0x0100) + 1));
             }
         }
         else
         {
             // South: (r+1, c)
             if (r < (boardHeight-1))
-                hexes.addElement(Integer.valueOf(nodeCoord + 0x0100));
+                hexes.add(Integer.valueOf(nodeCoord + 0x0100));
 
             if (r > 1)
             {
                 // NW: (r-1, c-1)
                 if (c > 1)
-                    hexes.addElement(Integer.valueOf((nodeCoord - 0x0100) - 1));
+                    hexes.add(Integer.valueOf((nodeCoord - 0x0100) - 1));
 
                 // NE: (r-1, c+1)
                 if (c < (boardWidth-1))
-                    hexes.addElement(Integer.valueOf((nodeCoord - 0x0100) + 1));
+                    hexes.add(Integer.valueOf((nodeCoord - 0x0100) + 1));
             }
         }
 
@@ -3630,10 +3658,13 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Is this an edge coordinate within the board's boundaries,
+     * Is this a node coordinate within the board's boundaries,
      * not overlapping or off the side of the board?
-     * TODO description... valid range for nodes(corners) of hexes laid out,
-     * but doesn't check for "misalignment" in the middle of the board.
+     * Checks whether {@code r} and {@code c} are within bounds
+     * ({@link #getBoardHeight()}, {@link #getBoardWidth()})
+     * but doesn't check for "misalignment" in the middle of the board
+     * where the coordinate would be in the middle of a hex or vertical edge
+     * and not a valid node.
      * @param r  Node coordinate's row
      * @param c  Node coordinate's column
      * @see #isHexInBounds(int, int)
@@ -3683,8 +3714,11 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Is this an edge coordinate within the board's boundaries,
      * not overlapping or off the side of the board?
-     * TODO description... valid range for edges(sides) of hexes laid out,
-     * but doesn't check for "misalignment" in the middle of the board.
+     * Checks whether {@code r} and {@code c} are within bounds
+     * ({@link #getBoardHeight()}, {@link #getBoardWidth()})
+     * but doesn't check for "misalignment" in the middle of the board
+     * where the coordinate would be in the middle of a hex
+     * and not a valid edge.
      * @param r  Edge coordinate's row
      * @param c  Edge coordinate's column
      * @see #isHexInBounds(int, int)
@@ -3775,7 +3809,7 @@ public class SOCBoardLarge extends SOCBoard
         else
             nodeIDtoPortType.clear();
         for (int i = 0; i < ports.length; ++i)
-            ports[i].removeAllElements();
+            ports[i].clear();
 
         // Place the new ports
         for (int i = 0; i < portsCount; ++i)

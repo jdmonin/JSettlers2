@@ -10,11 +10,13 @@
 # To use a properties file with the server, name it jsserver.properties
 # and place it in the directory where the JSettlers Server will run.
 # Remove the leading comment character ("#") from the line of any property that
-# you want to change from its default value. The file is read at startup,
-# but not re-read afterwards if it's updated. Any server option given on
-# the command line overrides the same option's value in the properties file.
-# To determine if the server is reading the properties file, look for this text
-# near the start of the console output:
+# you want to change from its default value. Make sure to not have any
+# whitespace at end of the line, or it will become part of the value.
+#
+# The file is read at startup, but not re-read afterwards if it's updated.
+# Any server option given on the command line overrides the same option's value
+# in the properties file. To determine if the server is reading the properties
+# file, look for this text near the start of the console output:
 #   Reading startup properties from jsserver.properties
 
 # -- Beginning of list of recognized available properties --

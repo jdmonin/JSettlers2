@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2008-2009,2014-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2009,2014-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,6 +28,9 @@ package soc.message;
  * Message type containing multiple field groups, each of which may have fields.  <BR>
  * Format: MESSAGETYPECONST SEP fieldgroup1 SEP fieldgroup2 SEP fieldgroup3 SEP ...    <BR>
  * Example format of a field group:  field1 SEP2 field2 SEP2 field3
+ *<P>
+ * This allows for more flexible message formats, and messages whose fields contain
+ * the usual field separator {@link SOCMessage#sep2 SEP2}.
  *<P>
  * {@code MessageMulti}s are treated specially in {@link SOCMessage#toMsg(String)}.
  * Multiple {@link SOCMessage#sep_char} are allowed, separating each field group.

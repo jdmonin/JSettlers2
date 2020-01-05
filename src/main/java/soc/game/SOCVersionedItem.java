@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2015,2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015,2017,2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file from SOCGameOption.java Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -48,7 +48,12 @@ public abstract class SOCVersionedItem implements Cloneable
 {
 
     /**
-     * Item key name: Short alphanumeric name (uppercase, starting with a letter, '_' permitted).
+     * Item key name: Short alphanumeric name (uppercase, starting with a letter, '_' permitted)
+     * to identify the item in a compact language-independent way.
+     * See {@link #isAlphanumericUpcaseAscii(String)} for format.
+     *<P>
+     * This abstract parent class doesn't have a max length for {@code key},
+     * but subclasses like {@link SOCGameOption} and {@link SOCScenario} do.
      */
     public final String key;
 
@@ -90,8 +95,10 @@ public abstract class SOCVersionedItem implements Cloneable
     /**
      * Create a new unknown item ({@link #isKnown == false}).
      * Minimum version will be {@link Integer#MAX_VALUE}. Desc == key.
-     * @param key   Alphanumeric 2-character code for this item;
-     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
+     * @param key  Alphanumeric code to identify this item in a compact language-independent way.
+     *          See {@link #isAlphanumericUpcaseAscii(String)} for format.
+     *          This abstract parent class doesn't have a max length for {@code key},
+     *          but subclasses like {@link SOCGameOption} and {@link SOCScenario} do.
      * @throws IllegalArgumentException if key length is > 3 or not alphanumeric,
      *        or if minVers or lastModVers is under 1000 but not -1
      */
@@ -104,8 +111,10 @@ public abstract class SOCVersionedItem implements Cloneable
     /**
      * Create a new versioned item.
      *
-     * @param key     Alphanumeric code for this item;
-     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
+     * @param key  Alphanumeric code to identify this item in a compact language-independent way.
+     *          See {@link #isAlphanumericUpcaseAscii(String)} for format.
+     *          This abstract parent class doesn't have a max length for {@code key},
+     *          but subclasses like {@link SOCGameOption} and {@link SOCScenario} do.
      * @param minVers Minimum client version where this item is included, or -1
      * @param lastModVers Last-modified version for this item, or version which added it
      * @param isKnown  True if this item is known at the client or server version we're dealing with

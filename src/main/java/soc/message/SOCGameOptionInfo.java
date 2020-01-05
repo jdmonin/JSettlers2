@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009,2012-2013,2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2012-2013,2015,2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,7 +31,7 @@ import soc.game.SOCVersionedItem;
  * Information on one available {@link SOCGameOption} game option.
  * Is reply from server to a client's {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS} message:
  * Provides the option's information, including default value and current value at the
- * server for new games.  In v2.0.00+ the option description can be localized for the client;
+ * server for new games.  In v2.0.00+ the option description text sent may be localized for the client if available;
  * see also {@link SOCLocalizedStrings}({@link SOCLocalizedStrings#TYPE_GAMEOPT TYPE_GAMEOPT}).
  *<P>
  * If the server doesn't know this option, the returned option type is
@@ -147,81 +147,81 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
     protected SOCGameOptionInfo(List<String> pal)
         throws IllegalArgumentException, NumberFormatException
     {
-	super(GAMEOPTIONINFO, pal);
-	final int L = pal.size();
-	if (L < 11)
-	    throw new IllegalArgumentException("pal.size");
+        super(GAMEOPTIONINFO, pal);
+        final int L = pal.size();
+        if (L < 11)
+            throw new IllegalArgumentException("pal.size");
 
-	parseData_FindEmptyStrs(pal);  // EMPTYSTR -> ""
-	final String[] pa = pal.toArray(new String[L]);
+        parseData_FindEmptyStrs(pal);  // EMPTYSTR -> ""
+        final String[] pa = pal.toArray(new String[L]);
 
-	// OTYPE_*
-	int otyp = Integer.parseInt(pa[1]);
+        // OTYPE_*
+        int otyp = Integer.parseInt(pa[1]);
         if ((otyp < SOCGameOption.OTYPE_MIN) || (otyp > SOCGameOption.OTYPE_MAX))
             otyp = SOCGameOption.OTYPE_UNKNOWN;
 
         final int oversmin = Integer.parseInt(pa[2]);
-	final int oversmod = Integer.parseInt(pa[3]);
-	final boolean bval_def = (pa[4].equals("t"));
-	final int ival_def = Integer.parseInt(pa[5]);
-	final int ival_min = Integer.parseInt(pa[6]);
-	final int ival_max = Integer.parseInt(pa[7]);
-	final boolean bval_cur = (pa[8].equals("t"));
-	final int ival_cur;
-	String sval_cur;
-	if ((otyp == SOCGameOption.OTYPE_STR) || (otyp == SOCGameOption.OTYPE_STRHIDE))
-	{
-	    ival_cur = 0;
-	    sval_cur = pa[9];
-	    if (sval_cur.length() == 0)
-	        sval_cur = null;
-	} else {
-	    ival_cur = Integer.parseInt(pa[9]);
-	    sval_cur = null;
-	}
-	final int opt_flags;
-	if (pa[10].equals("t"))
-	    opt_flags = SOCGameOption.FLAG_DROP_IF_UNUSED;
-	else if (pa[10].equals("f") || (pa[10].length() == 0))
-	    opt_flags = 0;
-	else
-	    opt_flags = Integer.parseInt(pa[10]);
+        final int oversmod = Integer.parseInt(pa[3]);
+        final boolean bval_def = (pa[4].equals("t"));
+        final int ival_def = Integer.parseInt(pa[5]);
+        final int ival_min = Integer.parseInt(pa[6]);
+        final int ival_max = Integer.parseInt(pa[7]);
+        final boolean bval_cur = (pa[8].equals("t"));
+        final int ival_cur;
+        String sval_cur;
+        if ((otyp == SOCGameOption.OTYPE_STR) || (otyp == SOCGameOption.OTYPE_STRHIDE))
+        {
+            ival_cur = 0;
+            sval_cur = pa[9];
+            if (sval_cur.length() == 0)
+                sval_cur = null;
+        } else {
+            ival_cur = Integer.parseInt(pa[9]);
+            sval_cur = null;
+        }
+        final int opt_flags;
+        if (pa[10].equals("t"))
+            opt_flags = SOCGameOption.FLAG_DROP_IF_UNUSED;
+        else if (pa[10].equals("f") || (pa[10].length() == 0))
+            opt_flags = 0;
+        else
+            opt_flags = Integer.parseInt(pa[10]);
 
         if ((pa.length != 11) && (pa.length != 12)
               && (otyp != SOCGameOption.OTYPE_ENUM)
               && (otyp != SOCGameOption.OTYPE_ENUMBOOL))
-	    throw new IllegalArgumentException("pa.length");
+            throw new IllegalArgumentException("pa.length");
 
-	switch (otyp)  // OTYPE_*
-	{
-	case SOCGameOption.OTYPE_UNKNOWN:
-	    opt = new SOCGameOption(pa[0]);
-	    break;
+        switch (otyp)  // OTYPE_*
+        {
+        case SOCGameOption.OTYPE_UNKNOWN:
+            opt = new SOCGameOption(pa[0]);
+            break;
 
-	case SOCGameOption.OTYPE_BOOL:
-	    opt = new SOCGameOption(pa[0], oversmin, oversmod, bval_def, opt_flags, pa[11]);
-	    opt.setBoolValue(bval_cur);
-	    break;
+        case SOCGameOption.OTYPE_BOOL:
+            opt = new SOCGameOption(pa[0], oversmin, oversmod, bval_def, opt_flags, pa[11]);
+            opt.setBoolValue(bval_cur);
+            break;
 
-	case SOCGameOption.OTYPE_INT:
-	    opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, ival_min, ival_max, opt_flags, pa[11]);
-	    opt.setIntValue(ival_cur);
-	    break;
+        case SOCGameOption.OTYPE_INT:
+            opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, ival_min, ival_max, opt_flags, pa[11]);
+            opt.setIntValue(ival_cur);
+            break;
 
-	case SOCGameOption.OTYPE_INTBOOL:
-	    opt = new SOCGameOption(pa[0], oversmin, oversmod, bval_def, ival_def, ival_min, ival_max, opt_flags, pa[11]);
-	    opt.setBoolValue(bval_cur);
-	    opt.setIntValue(ival_cur);
-	    break;
+        case SOCGameOption.OTYPE_INTBOOL:
+            opt = new SOCGameOption(pa[0], oversmin, oversmod, bval_def, ival_def, ival_min, ival_max, opt_flags, pa[11]);
+            opt.setBoolValue(bval_cur);
+            opt.setIntValue(ival_cur);
+            break;
 
-	case SOCGameOption.OTYPE_ENUM:
-	    {
-		String[] choices = new String[ival_max];
-		System.arraycopy(pa, 12, choices, 0, ival_max);
-	        opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, choices, opt_flags, pa[11]);
-	        opt.setIntValue(ival_cur);
+        case SOCGameOption.OTYPE_ENUM:
+            {
+                String[] choices = new String[ival_max];
+                System.arraycopy(pa, 12, choices, 0, ival_max);
+                opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, choices, opt_flags, pa[11]);
+                opt.setIntValue(ival_cur);
             }
-	    break;
+            break;
 
         case SOCGameOption.OTYPE_ENUMBOOL:
             {
@@ -234,16 +234,16 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
             break;
 
         case SOCGameOption.OTYPE_STR:
-	case SOCGameOption.OTYPE_STRHIDE:
-	    opt = new SOCGameOption
-		(pa[0], oversmin, oversmod, ival_max, (otyp == SOCGameOption.OTYPE_STRHIDE), opt_flags, pa[11]);
-	    opt.setStringValue(sval_cur);
-	    break;
+        case SOCGameOption.OTYPE_STRHIDE:
+            opt = new SOCGameOption
+                (pa[0], oversmin, oversmod, ival_max, (otyp == SOCGameOption.OTYPE_STRHIDE), opt_flags, pa[11]);
+            opt.setStringValue(sval_cur);
+            break;
 
-	default:
-	    throw new IllegalArgumentException("optType");
+        default:
+            throw new IllegalArgumentException("optType");
 
-	}  // switch (otyp)
+        }  // switch (otyp)
     }
 
     /**

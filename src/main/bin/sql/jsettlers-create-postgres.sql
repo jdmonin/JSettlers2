@@ -3,7 +3,7 @@
 -- If you're using the pgAdmin GUI, you can create the socdata db with the
 --   Create Database dialog, then bring up the SQL window (Query Tool) and
 --   paste the rest of this file into there.
--- Run jsettlers-tables.sql in the new db socdata as socuser right after this script.
+-- Run jsettlers-tables-postgres.sql in the new db socdata as socuser right after this script.
 -- Then, run jsettlers-sec-postgres.sql in socdata as 'postgres' or another admin user.
 -- See bottom of file for copyright and license information (GPLv3).
 
@@ -20,12 +20,12 @@ CREATE ROLE socuser LOGIN PASSWORD 'socpass'
 -- # TYPE  DATABASE    USER        CIDR-ADDRESS          METHOD
 -- host    all         all         127.0.0.1/32          md5
 
--- Tested with postgres 8.4 and 9.5 on centos 6
+-- Tested with postgres 8.4 and 9.5 on centos 6, postgres 11.6 and 12.1 on centos7
 
 
 -- This file is part of the JSettlers project.
 --
---  This file Copyright (C) 2014,2016-2017 Jeremy D Monin (jeremy@nand.net)
+--  This file Copyright (C) 2014,2016-2017,2020 Jeremy D Monin (jeremy@nand.net)
 --
 --  This program is free software: you can redistribute it and/or modify
 --  it under the terms of the GNU General Public License as published by

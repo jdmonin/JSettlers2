@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2013,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2013,2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,6 +28,9 @@ import soc.proto.Message;
  * Client player is asking to move, or server is announcing a move of,
  * a piece on the board to a new location. Currently, ships are the
  * only piece type that can be moved.
+ *<P>
+ * Scenario {@code SC_FTRI} has a rule about moving trade ports, but those are part of the
+ * board layout and not considered pieces.
  *
  *<H3>From requesting client:</H3>
  * Requests moving a piece that's already on the board to a new location.
@@ -63,7 +66,7 @@ public class SOCMovePiece extends SOCMessageTemplate4i
         super(MOVEPIECE, ga, pn, ptype, fromCoord, toCoord);
 
         if (ptype < 0)
-            throw new IllegalArgumentException("pt: " + ptype);
+            throw new IllegalArgumentException("pt < 0: " + ptype);
         if (fromCoord < 0)
             throw new IllegalArgumentException("fromCoord < 0");
         if (toCoord < 0)
@@ -117,7 +120,7 @@ public class SOCMovePiece extends SOCMessageTemplate4i
         throws IllegalArgumentException
     {
         if (ptype < 0)
-            throw new IllegalArgumentException("pt: " + ptype);
+            throw new IllegalArgumentException("pt < 0: " + ptype);
         if (fromCoord < 0)
             throw new IllegalArgumentException("fromCoord < 0");
         if (toCoord < 0)

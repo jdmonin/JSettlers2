@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012,2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012,2014,2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,8 +29,8 @@ import soc.proto.Message;
  *
  *<H5>Current uses (v2.0.00):</H5>
  *<UL>
- * <LI> Cloth count for a village in the {@code SC_CLVI} cloth trade scenario
- * <LI> Fortress strength in the {@code SC_PIRI} pirate islands scenario
+ * <LI> Cloth count for a village in the {@code SC_CLVI} Cloth Villages scenario
+ * <LI> Fortress strength in the {@code SC_PIRI} Pirate Islands scenario
  *</UL>
  *
  *<H5>Parameters:</H5>
@@ -56,7 +56,7 @@ public class SOCPieceValue extends SOCMessageTemplate4i
      * @param pt  Type of the piece to be updated, such as {@link soc.game.SOCPlayingPiece#FORTRESS}
      * @param coord  Coordinate of the piece
      * @param pv1    New value for the piece
-     * @param pv2    New secondary value (if piece has 2 value fields), or 0
+     * @param pv2    New secondary value if piece has 2 value fields, or 0
      */
     public SOCPieceValue(final String ga, final int pt, final int coord, final int pv1, final int pv2)
     {
@@ -75,7 +75,7 @@ public class SOCPieceValue extends SOCMessageTemplate4i
         int pt;  // piece type
         int co;  // the piece coordinate
         int pv1; // value field 1
-        int pv2; // value field 2
+        int pv2; // value field 2, or 0
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 
@@ -112,7 +112,7 @@ public class SOCPieceValue extends SOCMessageTemplate4i
 
     /**
      * Minimum version where this message type is used.
-     * PIECEVALUE introduced in 2.0.00 for the cloth villages and pirate islands scenarios.
+     * PIECEVALUE introduced in 2.0.00 for the Cloth Villages and Pirate Islands scenarios.
      * @return Version number, 2000 for JSettlers 2.0.00.
      */
     public int getMinimumVersion() { return 2000; }

@@ -56,12 +56,6 @@ import javax.swing.SwingConstants;
 {
 
     /**
-     * i18n text strings; will use same locale as SOCPlayerClient's string manager.
-     * @since 2.0.00
-     */
-    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
-
-    /**
      * Are we discarding, not gaining?
      * @since 2.0.00
      */
@@ -142,8 +136,9 @@ import javax.swing.SwingConstants;
         keep = new ColorSquare[5];
         pick = new ColorSquare[5];
 
-        JPanel keepPanel = new JPanel(new GridLayout(1, 0, ColorSquareLarger.WIDTH_L, 0));
-        JPanel pickPanel = new JPanel(new GridLayout(1, 0, ColorSquareLarger.WIDTH_L, 0));
+        final int sqSize = ColorSquareLarger.WIDTH_L * pi.displayScale;
+        JPanel keepPanel = new JPanel(new GridLayout(1, 0, sqSize, 0));
+        JPanel pickPanel = new JPanel(new GridLayout(1, 0, sqSize, 0));
         if (! isOSHighContrast)
         {
             keepPanel.setBackground(null);
@@ -156,8 +151,8 @@ import javax.swing.SwingConstants;
         {
             final Color sqColor = ColorSquare.RESOURCE_COLORS[i];
 
-            keep[i] = new ColorSquareLarger(ColorSquare.BOUNDED_DEC, false, sqColor);
-            pick[i] = new ColorSquareLarger(ColorSquare.BOUNDED_INC, false, sqColor);
+            keep[i] = new ColorSquare(ColorSquare.BOUNDED_DEC, false, sqSize, sqSize, sqColor);
+            pick[i] = new ColorSquare(ColorSquare.BOUNDED_INC, false, sqSize, sqSize, sqColor);
             keepPanel.add(keep[i]);
             pickPanel.add(pick[i]);
             keep[i].addMouseListener(this);
@@ -166,9 +161,13 @@ import javax.swing.SwingConstants;
 
         resPanel.add(keepPanel);
 
+        // "Discard this:"/"Discard these:" or "Gain this:"/"Gain these:"
         final JLabel pickThese = new JLabel
-            (strings.get(isDiscard ? "dialog.discard.these" : "dialog.discard.gain.these"), SwingConstants.LEFT);
-             // "Discard these:" or "Gain these:"
+            (strings.get
+                ((numPickNeeded == 1)
+                  ? (isDiscard ? "dialog.discard.this" : "dialog.discard.gain.this")
+                  : (isDiscard ? "dialog.discard.this.plural" : "dialog.discard.gain.this.plural")),
+             SwingConstants.LEFT);
         pickThese.setAlignmentX(LEFT_ALIGNMENT);
         pickThese.setBorder(BorderFactory.createEmptyBorder(20, 0, 4, 0));  // also gives 20-pixel margin above.
         resPanel.add(pickThese);
@@ -245,11 +244,12 @@ import javax.swing.SwingConstants;
 
             if (rsrcs.getTotal() == numPickNeeded)
             {
-                SOCPlayerClient pcli = playerInterface.getClient();
+                final GameMessageSender messageSender = playerInterface.getClient().getGameMessageSender();
                 if (isDiscard)
-                    pcli.getGameMessageMaker().discard(playerInterface.getGame(), rsrcs);
+                    messageSender.discard(playerInterface.getGame(), rsrcs);
                 else
-                    pcli.getGameMessageMaker().pickResources(playerInterface.getGame(), rsrcs);
+                    messageSender.pickResources(playerInterface.getGame(), rsrcs);
+
                 dispose();
             }
         }

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012,2014,2016-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012,2014,2016-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -35,7 +35,8 @@ import soc.util.DataUtils;
  * This message sends the classic board layout for the original
  * 4-player game, {@link #BOARD_ENCODING_ORIGINAL}.
  * As of version 1.1.08 there are newer board layouts for game expansions
- * and 6-player extensions: See {@link SOCBoardLayout2 BOARDLAYOUT2}.
+ * and 6-player extensions: {@link SOCBoardLayout2} is sent instead
+ * for games with those features.
  *<P>
  * Unlike {@link SOCBoardLayout2}, the dice numbers are mapped before sending
  * over the network, and unmapped when received.  This is because of a change in

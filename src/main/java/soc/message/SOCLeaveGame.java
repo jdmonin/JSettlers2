@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012-2014,2016-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012-2014,2016-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -52,8 +52,7 @@ public class SOCLeaveGame extends SOCMessage
     private String game;
 
     /**
-     * Optional host name of server hosting game, or "-", when sent from client.
-     * Unused ("-") when sent from server.
+     * Unused optional host name of server hosting the game, or "-"; see {@link #getHost()}.
      */
     private String host;
 
@@ -61,7 +60,7 @@ public class SOCLeaveGame extends SOCMessage
      * Create a LeaveGame message.
      *
      * @param nn  nickname; ignored from client, can send "-" but not blank
-     * @param hn  optional host name, or "-" if unused or if sending from server to all players.
+     * @param hn  unused optional host name, or "-"
      *            (Length 0 would fail {@link #parseDataStr(String)} at the receiver)
      * @param ga  name of game
      */
@@ -82,9 +81,10 @@ public class SOCLeaveGame extends SOCMessage
     }
 
     /**
-     * Get the optional host name of the server hosting game, or "-", when sent from client.
-     * Unused ("-") when sent from server v1.1.17 or newer.
+     * Get the unused optional host name of server hosting the game, or "-".
+     * Is always "-" when sent from server v1.1.17 or newer, or client v2.0.00 or newer.
      * @return the host name, or "-"
+     * @see SOCMessageTemplateJoinGame#getHost()
      */
     public String getHost()
     {
@@ -113,7 +113,7 @@ public class SOCLeaveGame extends SOCMessage
      * LEAVEGAME sep nickname sep2 host sep2 game
      *
      * @param nn  the nickname; ignored from client, can send "-" but not blank
-     * @param hn  the optional host name, or "-"
+     * @param hn  unused; the optional host name, or "-"
      * @param ga  the name of the game
      * @return    the command string
      */
@@ -169,4 +169,5 @@ public class SOCLeaveGame extends SOCMessage
 
         return s;
     }
+
 }

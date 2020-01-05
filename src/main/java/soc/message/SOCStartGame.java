@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2013-2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2013-2014,2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,7 +37,7 @@ import soc.proto.Message;
  *<P>
  * If a client joins a game in progress, it won't be sent a {@code SOCStartGame} message,
  * only the game's current {@code SOCGameState} and other parts of the game's and
- * players' current status.
+ * players' current status: See {@link SOCJoinGameAuth}.
  *
  * @author Robert S. Thomas
  */

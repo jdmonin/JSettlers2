@@ -43,8 +43,8 @@ public interface MainDisplay
     /** Returns the overall Client. */
     SOCPlayerClient getClient();
 
-    /** Returns this client's GameMessageMaker. */
-    GameMessageMaker getGameMessageMaker();
+    /** Returns this client's GameMessageSender. */
+    GameMessageSender getGameMessageSender();
 
     /**
      * Returns this display's top-level GUI element: Panel, JPanel, etc.
@@ -127,6 +127,7 @@ public interface MainDisplay
     /**
      * Clear any visual indicators that we are waiting for the network or other action, like {@code WAIT_CURSOR}.
      * @param clearStatus  If true, also clear any text out of the status line.
+     * @see #showStatus(String, boolean, boolean)
      */
     void clearWaitingStatus(final boolean clearStatus);
 
@@ -180,9 +181,11 @@ public interface MainDisplay
      * Show server welcome banner or status text.
      * If status during initial connect includes warning that the server's in Debug Mode, show that.
      * @param statusText  Status message text from server
+     * @param statusIsOK  True if status code is "OK", not an error
      * @param debugWarn   True if server has Debug Mode active
+     * @see #clearWaitingStatus(boolean)
      */
-    void showStatus(String statusText, boolean debugWarn);
+    void showStatus(String statusText, boolean statusIsOK, boolean debugWarn);
 
     /** Set the contents of the nickname field. */
     void setNickname(final String nm);
@@ -193,8 +196,15 @@ public interface MainDisplay
     /** Set the contents of the password field. */
     void setPassword(final String pw);
 
+    /**
+     * Server has sent authorization for client to create and/or join a channel.
+     * Client should create a UI to interact with that channel.
+     */
     void channelJoined(String channelName);
+
+    /** Another member has joined an existing channel. */
     void channelJoined(String channelName, String nickname);
+
     void channelMemberList(String channelName, Collection<String> members);
     void channelCreated(String channelName);
     void channelLeft(String channelName);
@@ -218,7 +228,7 @@ public interface MainDisplay
      *
      * @param chName   the name of the channel
      * @param mes  the message text or local command
-     * @see GameMessageMaker#sendText(SOCGame, String)
+     * @see GameMessageSender#sendText(SOCGame, String)
      */
     void sendToChannel(String chName, String mes);
 
@@ -251,7 +261,17 @@ public interface MainDisplay
      */
     void dialogClosed(NewGameOptionsFrame ngof);
 
-    PlayerClientListener gameJoined(SOCGame game, Map<String, Object> localPrefs);
+    /**
+     * Server has sent authorization for client to join a game.
+     * Client should create a UI to watch or interact with that game.
+     * @param game  New game's data received from server
+     * @param layoutVS  Optional board layout "visual shift" (Added Layout Part "VS")
+     *     to use when sizing and drawing the new game's board, or {@code null}
+     * @param localPrefs  Local prefs relevant to the new game
+     * @return  A new {@link PlayerClientListener} for interacting with that game or its UI
+     */
+    PlayerClientListener gameJoined
+        (SOCGame game, int[] layoutVS, Map<String, Object> localPrefs);
 
     /**
      * Want to start a new game, on a server which supports options.

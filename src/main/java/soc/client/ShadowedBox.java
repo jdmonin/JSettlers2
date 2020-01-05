@@ -30,7 +30,8 @@ import javax.swing.JPanel;
 
 /**
  * This is a shadowed box for use in the hand panel.
- * Both {@code ShadowedBox} and {@link SpeechBalloon} are used in {@link TradeOfferPanel}.
+ * {@code ShadowedBox} is used by {@link TradePanel},
+ * and related {@link SpeechBalloon} is used in {@link MessagePanel}.
  *
  * @author Robert S. Thomas
  */
@@ -56,8 +57,10 @@ import javax.swing.JPanel;
     /**
      * Constructor. Sets a small default size and assumes a layout manager will soon change that size.
      *
-     * @param bg  the background color beyond edges of the panel
-     * @param interior  the color of the box interior, or {@code null} to use system defaults
+     * @param bg  the background color, beyond edges of the drawn panel,
+     *     to be used in corners that aren't part of the shadow
+     * @param interior  the color of the box interior (like {@link SwingMainDisplay#DIALOG_BG_GOLDENROD}),
+     *     or {@code null} to use system defaults (especially if high-contrast mode)
      *     from {@link SwingMainDisplay#getForegroundBackgroundColors(boolean, boolean)}
      * @param displayScale  For high-DPI displays, what scaling factor to use? Unscaled is 1.
      * @param lm  LayoutManager to use, or {@code null}
@@ -75,12 +78,14 @@ import javax.swing.JPanel;
             setForeground(Color.black);
             this.interior = interior;
         } else {
+            // probably high-contrast mode
             final Color[] sysColors = SwingMainDisplay.getForegroundBackgroundColors(false, true);
             interior = sysColors[2];
             setBackground(interior);
             setForeground(sysColors[0]);
             this.interior = interior;
         }
+        setOpaque(true);
 
         // nonzero size helps when adding to a JPanel
         Dimension initSize = new Dimension(width, height);
@@ -115,7 +120,7 @@ import javax.swing.JPanel;
         return new Dimension(width, height);
     }
 
-    // TODO To help TradeOfferPanel doLayout, actually set insets and paint here as a custom Border
+    // TODO To help TradePanel doLayout, actually set insets and paint here as a custom Border
 
     /**
      * Draw this ShadowedBox.

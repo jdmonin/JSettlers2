@@ -67,6 +67,28 @@ see initAllOptions javadoc for a list. Options have flags for their properties
 game option keynames start with `_SC_`, and provide special rules for the
 scenario.
 
+For more information about the AI, please see the "Robots (AI)" section
+and Robert S Thomas' dissertation.
+
+### Board layouts and coordinates
+
+For more information about the board coordinates, see javadocs in `soc.game.SOCBoard`
+and `soc.game.SOCBoardLarge` (or dissertation appendix A), and these diagrams:
+
+**Sea boards:**  
+![hexcoord-sea.png](/doc/hexcoord-sea.png)
+
+**4-player classic:**  
+![hexcoord.gif](/doc/hexcoord.gif)
+
+**6-player classic:**  
+![hexcoord-6player.gif](/doc/hexcoord-6player.gif)
+
+To show piece coordinates in the board's tooltips, in the game window chat box type: `=*= showcoords`  
+To no longer show those coordinates, type: `=*= hidecoords`
+
+### Development
+
 Coding is done in Java 8, but should compile cleanly in newer JDKs.
 (v2.0 used java 6 for backwards compatibility; earlier versions used 1.4 or 5.)
 The build system is gradle 4 or 5. Use any IDE you want, including vi.
@@ -78,14 +100,6 @@ When adding new methods or fields, describe them in javadoc, including the
 don't have that summary).
 
 When submitting patches, please send pull requests or use unified diff (`-ur`) format.
-
-For more information about the AI, please see the "Robots (AI)" section
-and Robert S Thomas' dissertation.
-
-For more information about the board coordinates, see the dissertation appendix A,
-or javadocs in `soc.game.SOCBoard`, and `/docs/hexcoord.gif` and `hexcoord-6player.gif`.
-To show piece coordinates in the board's tooltips, in the game window chat box type:
-`=*= showcoords`  To no longer show those coordinates, type: `=*= hidecoords`
 
 The client's structure was refactored in 2.0 by Paul Bilnoski.  Paul's description of this work:
 
@@ -142,8 +156,8 @@ If you want to inspect the game object state at the server or robot:
   text message like `*BOTLIST*` or `robot2:current-plans`
 - To trace robot decisions and actions for incoming messages, set a breakpoint
   in `SOCRobotBrain.run` at `turnEventsCurrent.addElement(mes);`
-- On Linux/Unix JVMs, you can print a stack trace / thread dump at the server by
-  sending `SIGQUIT (kill -QUIT pidnumber)` . In deadlocks the thread dump won't
+- On Linux/MacOSX/Unix JVMs, you can print a stack trace / thread dump at the server by
+  sending SIGQUIT (`kill -QUIT ` _pidnumber_) . In deadlocks the thread dump won't
   show what has an object locked, but may show what's waiting on the object.
 - If you've set breakpoints in any robot code, temporarily increase
   `SOCServer.ROBOT_FORCE_ENDTURN_SECONDS` so the bot's turns won't be ended early
@@ -172,8 +186,8 @@ To use the "Free Placement" debug mode, type this debug command on your turn:
 You can then build and place pieces without consuming resources, by clicking
 or right-clicking on the board.  (Don't use the "Buy" buttons for Free
 Placement.) The placements must follow game rules, except that they cost
-no resources. To place for another player, click their face icon.  You cannot
-remove a piece once it is placed.
+no resources. To place for another player, click their name or face icon.
+You cannot remove a piece once it is placed.
 
 During initial placement, you can use Free Placement for any player/bot to
 set up some or all of the initial settlements and roads/ships. The number of
@@ -257,7 +271,15 @@ its `build.gradle` into other IDEs.
 - Hit Finish
 - Eclipse should import the project and do an initial build
 - Project -> Properties
-    - Resource: Text file encoding: UTF-8
+    - Resource:
+        - Text file encoding: UTF-8
+        - Resource Filters -> Add  
+            To speed up project-wide file text searches:
+            - Type: Exclude all
+            - Applies to: Folders
+            - [X] All children (recursive)
+            - Name matches: `.git`
+            - OK
     - Java Compiler:
 	    - Enable project specific settings
 	    - JDK compliance
@@ -282,8 +304,8 @@ its `build.gradle` into other IDEs.
 - Gradle downloads the project's required library JARs, and the import wizard
   adds them to the project's Dependencies list. Those JARs are also listed below
   in the "Reference: Required library JARs" section.
-- You may need to run the `assemble` or `build` gradle task once
-  before you run JSettlers, to copy resources from `src/main/resources/`.
+- Run the `assemble` or `build` gradle task now to copy resources from `src/main/resources/`.  
+  To do so: Gradle tasks tab -> jsettlers -> build -> assemble
 
 Continue reading to see how to set up the builds and the run configs in Eclipse.
 A later section walks through the coding style expected for pull requests or
@@ -293,9 +315,13 @@ patch submissions; to set up Eclipse now to use that style, see section
 
 ## Build Setup and Results
 
-Before building, make sure you have the Java Development Kit version 8 or later.
-If you simply want to run the client or server, you only need the Java Runtime
-(JRE). Extra tests in the build want python 2.7 or later for unittest discovery.
+Before building, make sure you have the Java Development Kit (JDK) version 8 or higher.
+If you only want to run the client or server, you can use either the JDK, or
+version 8 of the smaller Java Runtime (JRE).
+
+Extra tests in the build want python 2.7 or later for unittest discovery.
+Java unit tests and extraTests use JUnit 4, which is downloaded by `build.gradle`.
+Other scripts, like `bin/sql/template/render.py`, use python 2.6 or later.
 
 If you wish to maintain a user database for your server, you need MySQL
 or PostgreSQL installed and configured, or the sqlite jdbc driver for a
@@ -323,13 +349,11 @@ There are several gradle build tasks. Here are the main ones:
 - `clean`: clean the project of all generated files
 
 **Note**: Even if you're in an IDE running SOCServer or SOCPlayerClient as Java apps,
-you may need to first run either the `build` or `assemble` gradle task to copy resources
+you should first run the `build` or `assemble` gradle task to copy resources
 to their built location from `src/main/resources`; otherwise startup will
 fail with this error:
 
     Packaging error: Cannot determine JSettlers version
-
-To do so in Eclipse: Gradle tasks tab -> jsettlers -> build -> assemble
 
 
 ## Recommended debug/run configurations for testing
@@ -343,12 +367,12 @@ In my IDE's JSettlers project, I've created these debug/run configurations:
         socserver: soc.server.SOCServer
             program arguments: -o N7=t7 -Djsettlers.startrobots=7 -Djsettlers.allow.debug=Y
 
-        socserver-protobuf: soc.server.SOCServer   [optional]
+        socserver-protobuf (optional): soc.server.SOCServer
             program arguments: -o N7=t7 -o RD=y -Djsettlers.startrobots=7
                 -Dserver.protobuf=Y -Djsettlers.bots.cookie=PRO
                 -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
 
-        socserver-sqlite: soc.server.SOCServer   [optional]
+        socserver-sqlite (optional): soc.server.SOCServer
             program arguments: -o N7=t7 -o RD=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite
                 -Djsettlers.startrobots=7 -Djsettlers.allow.debug=Y
                 -Djsettlers.accounts.admins=adm 8880 20 dbuser dbpass
@@ -525,9 +549,11 @@ ideas.
 - Show # VP when choosing where to sit, if game is in progress
 - Keyboard shortcuts for "roll", "done" buttons
 - Occasionally the board does not re-scale at game reset
+- Docs: State diagram for `SOCGame` states, or sequence of important message flows
+  (log into server, create/join game, roll dice, etc)
 - Add more scenarios' unit tests to `soctest.game.TestScenarioRules`
 - Kick robots if inactive but current player in game, assume they're buggy (use forceEndTurn)
-- Control the speed of robots in practice games
+- Control the speed of robots, in practice games and with other humans
   - Adjust `SOCRobotBrain.pause`, `ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS`, etc
 - For bot test runs with `-Djsettlers.bots.botgames.shutdown=Y` (`SOCServer.PROP_JSETTLERS_BOTS_BOTGAMES_SHUTDOWN`):
   - Print a summary at the end in a machine-readable format like YAML: Number of games, average length, etc
@@ -535,16 +561,27 @@ ideas.
   - If any exceptions thrown, System.exit(1)
 - Add more sound effects
 - Add more functional and unit tests, in `src/extraTest/` and `src/test/` directories
-- Possible: Auto-add robots when needed as server runs, with server active-game count
+  - Medium-level example: Add a board-geometry unit test to `soctest.game.TestBoardLayouts`
+    to check all scenarios' layouts against the "Layout placement rules for special situations"
+    mentioned in `SOCBoardAtServer` class javadocs
+- Possibly: Auto-add robots when needed as server runs, with server active-game count
     - Only do so if `jsettlers.startrobots` property is set
-- refactor: `ga.getPlayer(ga.getCurrentPlayer())` or `getClient().getClientManager()`
-- Refactor `SOCRobotClient`: Move simple handle-methods which don't put the
-  message into brainQ, but only update game fields/methods, into
-  SOCDisplayless if possible.
+- Refactor: Combine ShadowedBox, SpeechBalloon: They look the same except for that balloon point
+- Refactor: Rework ShadowedBox, SpeechBalloon to use a custom-drawn Swing Border
+- Refactor: New methods to shortcut `ga.getPlayer(ga.getCurrentPlayer())` or `getClient().getClientManager()`
+- Refactor: `SOCGame` buy methods (`couldBuyDevCard`, `buyRoad`, etc): Call SOCResourceSet.gte(SOCResourceSet),
+  subtract(SOCResourceSet) with playing piece `COST` constants
 - Refactor: `SOCGameOption` static methods to check and change values within a set
 - Refactor: name of dev-cards consolidate
 - Refactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
     - Currently in 2 places: `SOCResourceConstants.CLAY` vs `SOCPlayerElement.CLAY`
+- Customize bot names (txt file or startup property) in SOCServer.setupLocalRobots
+- Refactor `SOCRobotClient`: Move simple handle-methods which don't put the
+  message into brainQ, but only update game fields/methods, into
+  SOCDisplayless if possible.
+- Refactor `SOCDisplaylessPlayerClient` like SOCPlayerClient: Move handler methods into
+  a class like MessageHandler, and sender methods into a class like GameMessageSender.
+  Watch for method calls from the `soc.robot` and `soc.client` packages.
 - Track a limited supply of resource cards
     - Currently unlimited
     - Official game rules have a supply limit. Paraphrasing 5th edition rules:
@@ -563,22 +600,25 @@ ideas.
     - Add house rule `SOCGameOption` for unlimited resources
 - Refactor: combine the `cli/displayless/robot` endturn-like methods. For example,
   search for `ga.setCurrentDice(0)`, or `newToOld`, or `ga.resetVoteClear`
+- Bots on sea boards: Help bots decide when it makes sense to move a ship (versus build another)
+  and have the bot do so
+    - Example: Revealing fog hexes in the middle island
+    - React properly if server rejects move-ship request
 - Docker (dockerfile in git) or other containerization, including sqlite jdbc and
   a `jsserver.properties` using sqlite
     - Related bootstrapping issue: admin doc reminder to create admin account
       right away, name that admin in jsserver.properties
-- User documentation is out of date; unsure if any user ever reads it anyway
+- User documentation is out of date; but unsure if any user ever reads it anyway
 - At board reset, game observers not currently handled properly
 - Property for read-only database use without errors
 - Game "owner" with extra powers (kick out player, etc)
     - What happens if owner loses connection?
-- Customize bot names (txt file or startup property) in srv.setupLocalRobots
 - "Hot seat" mode (multiple human players sharing a screen on 1 client)
 - Monitoring: Command line utility or html-based dashboard: Uptime, health of
   bots, currently active/total games from `*STATS*` cmd, client versions, any
   errors, etc
 - Per-game thread/message queue at server (use SOCMessageForGame.getGame)
-- HTML5 client
+- HTML5 client (see v3 branch for protobuf/JSON over websockets)
 - Cities & Knights support
     - UI mock-ups
     - state change / network message plans
@@ -600,7 +640,7 @@ welcomes contributions. Please keep these things in mind:
 - The DB is an optional part of jsettlers, other functions can't rely on it.
 - DB code should be vendor-neutral and run on mysql, postgres, sqlite, oracle, etc.
   Please test against sqlite and at least one other db type before sending a pull request.
-- See [Readme.md](../Readme.md) for JDBC driver download sites, URL syntax,
+- See [Database.md](Database.md) for JDBC driver download sites, URL syntax,
   and server command-line arguments.
 - For test runs inside Eclipse, add the JDBC driver to the project's
   build path -> Libraries -> Add External JAR, or add it to the classpath tab of
@@ -684,11 +724,6 @@ agents, so there's some instrumentation for the bots but it's not entirely
 documented.  For a technical overview of how the bots plan their actions, start
 at the SOCRobotBrain class javadoc.
 
-There are a few bot debugging commands, such as print-vars and stats. To send
-them, type `botname:command` into the chat textbox while playing or observing a
-game with bots: `robot 7:stats`. See `SOCRobotClient.handleGAMETEXTMSG_debug`
-for more details.
-
 You can also build pieces for the bots using "Free Placement" debug mode (see
 above) to help set up debugging or testing situations, including the game's
 initial placement.
@@ -700,6 +735,28 @@ few seconds to send the command. On the other hand if you want the bots to move
 quickly, use the No Trading house rule and play on the 6-player board, where the
 bots have shorter delays since there might be more players (but you can also use
 this board with 2-4 players).
+
+There are a few bot debugging commands, such as print-vars and stats. To send
+them, type `botname:command` into the chat textbox while playing or observing a
+game with bots: `robot 7:stats`. See `SOCRobotClient.handleGAMETEXTMSG_debug`
+for more details. For some commands, you must first send a `:debug-on` command
+to start recording stats.
+
+Some of the bot debugging commands can ask about those stats for an empty
+location where the bot's considering to build (`:consider-move`) or building
+to counter another player's builds (`:consider-target`). You can ask the client
+to let you click on these locations to send the right coordinate to the bot.
+These client-helper debug commands are recognized in the chat textbox. Type one,
+then click the location you're asking the bot about:
+
+| Command | Bot debug command sent after clicking location |
+| --- | --- |
+| `\clm-road ` _botname_ | _botname_`:consider-move road ` _coord_ |
+| `\clm-set ` _botname_  |  _botname_`:consider-move settlement ` _coord_ |
+| `\clm-city ` _botname_ | _botname_`:consider-move city ` _coord_ |
+| `\clt-road ` _botname_ | _botname_`:consider-target road ` _coord_ |
+| `\clt-set ` _botname_  |  _botname_`:consider-target settlement ` _coord_ |
+| `\clt-city ` _botname_ | _botname_`:consider-target city ` _coord_ |
 
 When they join a game, third-party bots can be sent configuration or debug
 settings using `SOCGameOption.K__EXT_BOT`. This game option's string value can
@@ -745,7 +802,9 @@ robot-only games, start the server with `-Djsettlers.bots.botgames.shutdown=Y` .
 If `jsettlers.bots.botgames.total` != 0 (including < 0), at any time the client
 can create a new game, join but not sit down at a seat, and start that game as
 bots-only using the debug command `*STARTBOTGAME* [maxBots]` to test the bots
-with any given combination of game options and scenarios.
+with any given combination of game options and scenarios. (Only the `debug` user
+can run debug commands on standalone servers. To enable the debug user, start
+the server with `-Djsettlers.allow.debug=Y` .)
 
 For robustness testing, the `SOCRobotClient.debugRandomPause` flag can be enabled
 by editing its declaration to inject random delays into handling messages and
@@ -895,7 +954,7 @@ You will also want this to have this, which disables auto-reindenting:
         Click "Enable Project Specific Settings", then New
         {
             Profile name: 'jsettlers'
-            "based on Eclipse built-in standard"
+            Initialize with profile: Eclipse (built-in)
             [X] Open the edit dialog now
 
             (Indentation)
@@ -904,7 +963,7 @@ You will also want this to have this, which disables auto-reindenting:
             Tab size: 8
             confirm is unchecked: Indent: [ ] Empty lines
 
-            (Brace positions)
+            (Braces)
             All 'next line' except:
             Blocks in case stmt: Next line indented
             Array init: Next line indented
@@ -918,6 +977,10 @@ You will also want this to have this, which disables auto-reindenting:
             [X] Keep 'else if' on one line
             [ ] (all other options)
 
+            (Line Wrapping)
+            Maximum line width: 120
+            [x] Never join already-wrapped lines
+
             (All other tabs)
             Take defaults
         }
@@ -927,6 +990,7 @@ You will also want this to have this, which disables auto-reindenting:
         restart eclipse
 
         go to prefs -> java -> code style -> formatter
+        click Configure Project Specific Settings
         if it's not active: set active profile to jsettlers & restart eclipse
 
 When you hit enter twice to skip a line in Eclipse, watch for unwanted whitespace because
@@ -958,30 +1022,27 @@ Patches can be sent by email or by pull request.
 Please make sure your patch follows the project coding style.
 
 The master branch receives new features and enhancements for the next 'minor'
-release.  As soon as a bug is fixed or a feature's design is fairly stable, it
-should be committed to master.
-
-The master branch has new 2.0.xx development.  Until 2.0.00 is ready,
-there's a stable-1.x.xx branch in case of urgent bugfixes, so we can release
-new stable versions.  Most work on 1.x.xx is backported from 2.0; changeset
-comments often mention a hash from a master commit.  Version 2.0.00 was
-split off right after releasing version 1.1.13.
+release. As soon as a bug is fixed or a feature's design is fairly stable,
+it should be committed to master.
 
 v3 is the experimental branch with major architectural changes.
 Protobuf replaces the homegrown SOCMessage protocol.
 
-Once 2.0.00 is out, we'll follow the usual jsettlers model: Because
-jsettlers2.x.xx is mature at this point, Each minor release is a
-stable release.
+While v2.0.00 was being developed, several 1.x.xx releases came out.
+2.0 work began (and stable-1.x.xx branch split from master)
+right after releasing version 1.1.13. Most work on 1.x.xx was backported
+from 2.0 to the stable-1.x.xx git branch; changeset comments often mention
+a hash from a master commit.
 
-Each release's files are tagged for the release ("release-1.1.14").
-The last commit for the release updates VERSIONS.txt with the final build number,
-with a commit message like: Version 1.1.14 is build OV20120930
-Then: git tag -a release-1.1.14 -m 'Version 1.1.14 is build OV20120930'
+There will be periodic v2.x minor releases. Each release's files are tagged for
+the release (older example: "release-1.1.14"). The last commit for the release
+updates VERSIONS.txt with the final build number, with a commit message like:
+"Version 1.1.14 is build OV20120930"  
+Then: `git tag -a release-1.1.14 -m 'Version 1.1.14 is build OV20120930'`
 
-The github repo includes the full JSettlers2 CVS history formerly hosted at
+The github repo includes the JSettlers2 v1.1.xx CVS history formerly hosted at
 http://sourceforge.net/projects/jsettlers2/ through 2012-09-28.
-The old old source history from Robert S Thomas (2004-2005) can be found at
+The old 1.0.x source history from Robert S Thomas (2004-2005) can be found at
 http://sourceforge.net/projects/jsettlers/ .
 
 

@@ -79,7 +79,7 @@ import soc.util.Version;
  *<P>
  * Once connected, messages from the server are processed in {@link MessageHandler#handle(SOCMessage, boolean)}.
  *<P>
- * Messages to the server are formed and sent using {@link GameMessageMaker}.
+ * Messages to the server are formed and sent using {@link GameMessageSender}.
  *<P>
  * If network trouble or applet shutdown occurs, calls {@link #shutdownFromNetwork()};
  * may still be able to play practice games locally.
@@ -94,7 +94,7 @@ public class SOCPlayerClient
      * The {@code SOCPlayerClient} constructor will call {@link UserPreferences#clear(String)}.
      *<P>
      * Format: String of comma-separated preference key names: {@link #PREF_PI__WIDTH}, {@link #PREF_SOUND_ON},
-     * {@link #PREF_BOT_TRADE_REJECT_SEC}, etc.
+     * {@link #PREF_BOT_TRADE_REJECT_SEC}, {@link #PREF_HEX_GRAPHICS_SET}, etc.
      * @since 1.2.00
      */
     public static final String PROP_JSETTLERS_DEBUG_CLEAR__PREFS = "jsettlers.debug.clear_prefs";
@@ -116,6 +116,12 @@ public class SOCPlayerClient
      *<P>
      * For games with 6 players and/or the sea board, a scaling factor is applied to this preference
      * to keep consistent window sizes and width/height ratios.
+     *<P>
+     * If high-DPI mode ({@link SOCPlayerInterface#displayScale} &gt; 1)
+     * this preference is divided by {@code displayScale} when stored. That
+     * prevents sizing problems if user changes their screen resolution later
+     * which changes the {@code displayScale} computed at startup.
+     *
      * @since 1.2.00
      */
     public static final String PREF_PI__WIDTH = "PI_width";
@@ -134,6 +140,7 @@ public class SOCPlayerClient
      * To set this value for a new {@link SOCPlayerInterface}, use
      * {@link SOCPlayerInterface#PREF_SOUND_MUTE} as the key within
      * its {@code localPrefs} map.
+     *
      * @see UserPreferences#getPref(String, boolean)
      * @see SOCPlayerInterface#isSoundMuted()
      * @since 1.2.00
@@ -150,6 +157,7 @@ public class SOCPlayerClient
      * This key name can be used with the {@link SOCPlayerInterface} constructor's {@code localPrefs} map
      * during game setup. If negative there, auto-reject will be disabled until turned on from that {@code PI}'s
      * "Options" button.
+     *
      * @see UserPreferences#getPref(String, int)
      * @see SOCPlayerInterface#getBotTradeRejectSec()
      * @since 1.2.00
@@ -157,10 +165,37 @@ public class SOCPlayerClient
     public static final String PREF_BOT_TRADE_REJECT_SEC = "botTradeRejectSec";
 
     /**
+     * Integer persistent {@link Preferences} key for choice of hex graphics set.
+     *<UL>
+     * <LI> 0 or missing: Default set: Pastel, added in v2.0.00
+     * <LI> 1: Classic set, from v1.x.xx
+     * <LI> Any other value: Default set
+     *</UL>
+     *
+     * @see UserPreferences#getPref(String, int)
+     * @since 2.0.00
+     */
+    public static final String PREF_HEX_GRAPHICS_SET = "hexGraphicsSet";
+
+    /**
+     * Integer persistent {@link Preferences} optional key to force (2 or 3) or disable (1) UI Scaling.
+     * Negative if disabled, to keep the setting's value for {@link NewGameOptionsFrame}
+     * and "Options" dialogs without also having a separate enabled/disabled flag.
+     *<P>
+     * Default value is 0 (unused). Ignored if above 3.
+     *<P>
+     * Is overridden by command-line JVM property {@link SwingMainDisplay#PROP_JSETTLERS_UI_SCALE}.
+     *
+     * @see UserPreferences#getPref(String, int)
+     * @since 2.0.00
+     */
+    public static final String PREF_UI_SCALE_FORCE = "uiScaleForce";
+
+    /**
      * i18n text strings in our {@link #cliLocale}.
      * @since 2.0.00
      */
-    final soc.util.SOCStringManager strings; // TODO: not a very good name
+    final soc.util.SOCStringManager strings;
 
     /**
      * Prefix text to indicate a game this client cannot join: "(cannot join) "<BR>
@@ -233,7 +268,7 @@ public class SOCPlayerClient
      * Helper object to form and send outgoing network traffic to the server.
      * @since 2.0.00
      */
-    private final GameMessageMaker gameMessageMaker;
+    private final GameMessageSender gameMessageSender;
 
     /**
      * Display for the main user interface, including and beyond the list of games and chat channels.
@@ -257,7 +292,7 @@ public class SOCPlayerClient
     protected SOCFeatureSet sFeatures;
 
     /**
-     * Track the game options available at the remote server, at the practice server.
+     * Track the game options available at the remote server and at the practice server.
      * Initialized by {@link SwingMainDisplay#gameWithOptionsBeginSetup(boolean, boolean)}
      * and/or {@link MessageHandler#handleVERSION(boolean, SOCVersion)}.
      * These fields are never null, even if the respective server is not connected or not running.
@@ -284,7 +319,7 @@ public class SOCPlayerClient
      * the nickname; null until validated and set by
      * {@link SwingMainDisplay#getValidNickname(boolean) getValidNickname(true)}
      */
-    protected String nickname = null; // TODO: private
+    protected String nickname = null;
 
     /**
      * the password for {@link #nickname} from {@link #pass}, or {@code null} if no valid password yet.
@@ -325,7 +360,7 @@ public class SOCPlayerClient
      * The games we're currently playing.
      * Accessed from GUI thread and network {@link MessageHandler} thread.
      */
-    protected Hashtable<String, SOCGame> games = new Hashtable<String, SOCGame>(); // TODO: make private
+    protected Hashtable<String, SOCGame> games = new Hashtable<String, SOCGame>();
 
     /**
      * all announced game names on the remote server, including games which we can't
@@ -341,7 +376,7 @@ public class SOCPlayerClient
      *   is called.
      * @since 1.1.07
      */
-    protected SOCGameList serverGames = null; // TODO: make private
+    protected SOCGameList serverGames = null;
 
     /**
      * the unjoinable game names from {@link #serverGames} that player has asked to join,
@@ -422,7 +457,7 @@ public class SOCPlayerClient
             UserPreferences.clear(debug_clearPrefs);
 
         net = new ClientNetwork(this);
-        gameMessageMaker = new GameMessageMaker(this, clientListeners);
+        gameMessageSender = new GameMessageSender(this, clientListeners);
         messageHandler = new MessageHandler(this);
     }
 
@@ -510,6 +545,37 @@ public class SOCPlayerClient
     }
 
     /**
+     * Flush and reload the set of hex graphics currently selected in user preference {@link #PREF_HEX_GRAPHICS_SET}.
+     * Redraw board in all game interfaces: Calls each one's {@link PlayerClientListener#boardUpdated()}
+     * in the UI thread.
+     *<P>
+     * Call if the user picks a different hex graphics set (using {@link NewGameOptionsFrame}),
+     * which affects all {@link SOCPlayerInterface}s.
+     *
+     * @since 2.0.00
+     */
+    /*package*/ void reloadBoardGraphics()
+    {
+        EventQueue.invokeLater(new Runnable()
+        {
+            public void run()
+            {
+                try
+                {
+                    SOCBoardPanel.reloadBoardGraphics(mainDisplay.getGUIContainer());
+                    for (final PlayerClientListener pcl : clientListeners.values())
+                        pcl.boardUpdated();
+                } catch (Throwable th) {
+                    System.err.println("-- Error caught in reloadBoardGraphics: " + th + " --");
+                    th.printStackTrace();
+                    System.err.println("-- Error stack trace end --");
+                    System.err.println();
+                }
+            }
+        });
+    }
+
+    /**
      * @return the local game preferences of this SOCPlayerClient object.
      */
     /*package*/ HashMap<String, Map<String, Object>> getGameReqLocalPrefs()
@@ -517,14 +583,13 @@ public class SOCPlayerClient
         return gameReqLocalPrefs;
     }
 
-
     /**
-     * Get this client's GameMessageMaker.
+     * Get this client's GameMessageSender for making and sending messages to the server.
      * @since 2.0.00
      */
-    public GameMessageMaker getGameMessageMaker()
+    public GameMessageSender getGameMessageSender()
     {
-        return gameMessageMaker;
+        return gameMessageSender;
     }
 
     /**
@@ -569,12 +634,23 @@ public class SOCPlayerClient
         if ((scKey.length() == 0) || tcpServGameOpts.scenKeys.contains(scKey))
             return;
 
-        net.putNet(new SOCScenarioInfo(scKey, false).toCmd());
+        if (sVersion != Version.versionNumber())
+        {
+            // different version than client: scenario details might have changed
+            net.putNet(new SOCScenarioInfo(scKey, false).toCmd());
+        } else {
+            // same version: need localization strings, at most
+            net.putNet(SOCLocalizedStrings.toCmd(SOCLocalizedStrings.TYPE_SCENARIO, 0, scKey));
+            tcpServGameOpts.scenKeys.add(scKey);  // don't ask again later
+        }
     }
 
     /**
      * Localize {@link SOCScenario} names and descriptions with strings from the server.
-     * Updates scenario data in {@link #practiceServGameOpts} or {@link #tcpServGameOpts}.
+     * Updates scenario data in {@link #practiceServGameOpts} or {@link #tcpServGameOpts}:
+     * Add each scenario in {@code scStrs}, add its keyname to {@link ServerGametypeInfo#scenKeys},
+     * and call {@link SOCScenario#setDesc(String, String)} unless it's marked
+     * as {@link SOCLocalizedStrings#MARKER_KEY_UNKNOWN} within {@code scStrs}.
      *
      * @param scStrs  Scenario localized strings, same format as {@link SOCLocalizedStrings} params.
      * @param skipFirst  If true skip the first element of {@code scStrs}, it isn't a scenario keyname.
@@ -661,16 +737,18 @@ public class SOCPlayerClient
         mainDisplay.addToGameList(hasUnjoinMarker, gameName, gameOptsStr, addToSrvList);
     }
 
-    /** If we're playing in a game that's just finished, update the scores.
-     *  This is used to show the true scores, including hidden
-     *  victory-point cards, at the game's end.
-     *  @since 1.1.00
+    /**
+     * If we're playing in or observing a game that's just finished, update the scores.
+     * This is used to show the true scores, including hidden
+     * victory-point cards, at the game's end.
+     * @since 1.1.00
      */
     public void updateGameEndStats(String game, final int[] scores)
     {
         SOCGame ga = games.get(game);
         if (ga == null)
-            return;  // Not playing in that game
+            return;  // Not playing in or observing that game
+
         if (ga.getGameState() != SOCGame.OVER)
         {
             System.err.println("L4044: pcli.updateGameEndStats called at state " + ga.getGameState());
@@ -680,11 +758,11 @@ public class SOCPlayerClient
         PlayerClientListener pcl = clientListeners.get(game);
         if (pcl == null)
             return;
+
         Map<SOCPlayer, Integer> scoresMap = new HashMap<SOCPlayer, Integer>();
         for (int i=0; i<scores.length; ++i)
-        {
             scoresMap.put(ga.getPlayer(i), Integer.valueOf(scores[i]));
-        }
+
         pcl.gameEnded(scoresMap);
     }
 
@@ -696,7 +774,7 @@ public class SOCPlayerClient
     public void leaveChannel(String ch)
     {
         mainDisplay.channelLeft(ch);
-        net.putNet(SOCLeaveChannel.toCmd(nickname, net.getHost(), ch));
+        net.putNet(SOCLeaveChannel.toCmd(nickname, "-", ch));
     }
 
     /**

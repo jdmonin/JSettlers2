@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2014,2017,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,6 +30,12 @@ import java.util.StringTokenizer;
  * Also sent for each player's SVPs when client is joining a game in progress,
  * before client sits down at a seat.
  *
+ *<H4>I18N:</H4>
+ * Like any {@link SOCKeyedMessage} type, server code uses a string key when
+ * constructing this message, then the server's net code localizes that key
+ * when sending to each client. This allows new SVP actions and descriptions
+ * without client changes.
+ *
  * @see SOCGameServerText
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -56,8 +62,7 @@ public class SOCSVPTextMessage extends SOCMessage
 
     /**
      * Description of the player's action that led to the SVP.
-     * At the server this is an I18N string key, at the client it's localized text sent from the server.
-     * This allows new SVP actions and descriptions without client changes.
+     * At the server this is an I18N string key, at the client it's text which was localized by and sent from the server.
      * Constructor checks this against {@link SOCMessage#isSingleLineAndSafe(String, boolean)}.
      */
     public final String desc;
@@ -76,9 +81,9 @@ public class SOCSVPTextMessage extends SOCMessage
      * @param pn  Player number
      * @param svp  Number of Special Victory Points (SVP) awarded
      * @param desc  Description of the player's action that led to the SVP.
-     *     At the server this is an I18N string key which the server must localize before sending,
-     *     at the client it's localized text sent from the server. This allows new SVP actions
-     *     and descriptions without client changes.
+     *     At the server this is an I18N string key which the server will localize before sending,
+     *     at the client it's text which was localized by and sent from the server.
+     *     This allows new SVP actions and descriptions without client changes.
      * @throws IllegalArgumentException if <tt>desc</tt> is null or
      *     fails {@link SOCMessage#isSingleLineAndSafe(String, boolean) SOCMessage.isSingleLineAndSafe(desc, true)}
      */

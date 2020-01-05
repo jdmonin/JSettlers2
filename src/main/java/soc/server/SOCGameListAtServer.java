@@ -350,17 +350,15 @@ public class SOCGameListAtServer extends SOCGameList
 
         List<SOCGame> unjoinables = new ArrayList<SOCGame>();
 
-        System.err.println("L212: replaceMemberAllGames(" + oldConn + ", " + newConn + ")");  // JM TEMP
         final boolean sameVersion = (oldConn.getVersion() == newConn.getVersion());
         final SOCClientData scd = (SOCClientData) newConn.getAppData();
         final boolean cliHasLimitedFeats = scd.hasLimitedFeats;
+
         for (String gaName : getGameNames())
         {
             Vector<Connection> members = gameMembers.get(gaName);
             if ((members != null) && members.contains(oldConn))
             {
-                System.err.println("L221: for game " + gaName + ":");  // JM TEMP
-
                 if (cliHasLimitedFeats)
                 {
                     SOCGame ga = getGameData(gaName);
@@ -374,10 +372,7 @@ public class SOCGameListAtServer extends SOCGameList
 
                 if (sameVersion)
                 {
-                    if (members.remove(oldConn))
-                        System.err.println("   OK");
-                    else
-                        System.err.println("   ** not found");
+                    members.remove(oldConn);
                     members.addElement(newConn);
                 } else {
                     removeMember(oldConn, gaName);

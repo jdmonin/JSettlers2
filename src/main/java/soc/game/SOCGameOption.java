@@ -81,7 +81,7 @@ import soc.message.SOCMessage;
  *<P>
  * <B>Sea Board Scenarios:</B><br>
  * Game scenarios were introduced with the large sea board in 2.0.00.
- * Game options are used to indicate which {@link SOCScenarioPlayerEvent scenario events}
+ * Game options are used to indicate which {@link SOCGameEvent}s, {@link SOCPlayerEvent}s,
  * and rules are possible in the current game.
  * These all start with <tt>"_SC_"</tt> and have a static key string;
  * an example is {@link #K_SC_SANY} for scenario game option <tt>"_SC_SANY"</tt>.
@@ -99,7 +99,7 @@ import soc.message.SOCMessage;
  * <B>I18N:</B><br>
  * Game option descriptions are also stored as {@code gameopt.*} in
  * {@code server/strings/toClient_*.properties} to be sent to clients if needed
- * during version negotiation.  An option's text can be localized with {@link #setDesc(String)}.
+ * during version negotiation. At the client, option's text can be localized with {@link #setDesc(String)}.
  * See unit test {@link soctest.TestI18NGameoptScenStrings} and
  * {@link soc.server.SOCServerMessageHandler#handleGAMEOPTIONGETINFOS(soc.server.genericServer.Connection, soc.message.SOCGameOptionGetInfos) SOCServerMessageHandler.handleGAMEOPTIONGETINFOS(..)}.
  *<P>
@@ -214,19 +214,19 @@ public class SOCGameOption
     // Not all scenario keynames have scenario events, some are just properties of the game.
 
     /**
-     * Scenario key <tt>_SC_SANY</tt> for {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}.
+     * Scenario key <tt>_SC_SANY</tt> for {@link SOCPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}.
      * @since 2.0.00
      */
     public static final String K_SC_SANY = "_SC_SANY";
 
     /**
-     * Scenario key <tt>_SC_SEAC</tt> for {@link SOCScenarioPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA}.
+     * Scenario key <tt>_SC_SEAC</tt> for {@link SOCPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA}.
      * @since 2.0.00
      */
     public static final String K_SC_SEAC = "_SC_SEAC";
 
     /**
-     * Scenario key <tt>_SC_FOG</tt> for {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}.
+     * Scenario key <tt>_SC_FOG</tt> for {@link SOCGameEvent#SGE_FOG_HEX_REVEALED}.
      * @see SOCScenario#K_SC_FOG
      * @since 2.0.00
      */
@@ -246,7 +246,7 @@ public class SOCGameOption
     public static final String K_SC_3IP = "_SC_3IP";
 
     /**
-     * Scenario key <tt>_SC_CLVI</tt> for {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}:
+     * Scenario key <tt>_SC_CLVI</tt> for {@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}:
      * Cloth Trade with neutral {@link SOCVillage villages}.
      * Villages and cloth are in a game only if this option is set.
      * @since 2.0.00
@@ -255,7 +255,7 @@ public class SOCGameOption
     public static final String K_SC_CLVI = "_SC_CLVI";
 
     /**
-     * Scenario key <tt>_SC_PIRI</tt> for Pirate Islands and {@link SOCFortress fortresses}.
+     * Scenario key <tt>_SC_PIRI</tt> for Pirate Islands and {@link SOCFortress Fortresses}.
      * Fortresses and player warships are in a game only if this option is set.
      * For more details and special rules see {@link SOCScenario#K_SC_PIRI}.
      * @since 2.0.00
@@ -273,7 +273,7 @@ public class SOCGameOption
     /**
      * Scenario key {@code _SC_WOND} for Wonders.
      * Special unique "wonders" claimed by players and built up to several levels. No pirate ship.
-     * For more details, special rules, and Special Items, see {@link SOCScenario#K_SC_WOND}.
+     * For more details, special rules, and {@link SOCSpecialItem Special Item}s, see {@link SOCScenario#K_SC_WOND}.
      * @since 2.0.00
      */
     public static final String K_SC_WOND = "_SC_WOND";
@@ -368,7 +368,9 @@ public class SOCGameOption
      *<LI> NT  No trading allowed
      *<LI> VP  Victory points (10-15)
      *<LI> SC  Game Scenario (optional groups of rules; see {@link SOCScenario})
-     *<LI> _BHW  Board height and width, if not default, for {@link SOCBoardLarge}: 0xRRCC
+     *<LI> _BHW  Board height and width, if not default, for {@link SOCBoardLarge}: 0xRRCC.
+     *           Used only at client, for board size received in JoinGame message from server
+     *           to pass through SOCGame constructor into SOCBoard factory
      *</UL>
      *  * Grouping: PLB is 3 characters, not 2, and its first 2 characters match an
      *    existing option.  So in NewGameOptionsFrame, it appears on the line following
@@ -377,11 +379,11 @@ public class SOCGameOption
      * <h3>Current Game Scenario options:</h3>
      *<UL>
      *<LI> {@link #K_SC_SANY _SC_SANY}  SVP to settle in any new land area:
-     *                                  {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}
+     *         {@link SOCPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}
      *<LI> {@link #K_SC_SEAC _SC_SEAC}  2 SVP each time settle in another new land area:
-     *                                  {@link SOCScenarioPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA}
+     *         {@link SOCPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA}
      *<LI> {@link #K_SC_FOG  _SC_FOG}   A hex has been revealed from behind fog:
-     *                                  {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}: See {@link SOCScenario#K_SC_FOG}
+     *         {@link SOCGameEvent#SGE_FOG_HEX_REVEALED}: See {@link SOCScenario#K_SC_FOG}
      *<LI> {@link #K_SC_0RVP _SC_0RVP}  No VP for longest road / longest trade route
      *<LI> {@link #K_SC_3IP  _SC_3IP}   Third initial settlement and road/ship placement
      *<LI> {@link #K_SC_CLVI _SC_CLVI}  Cloth trade with neutral {@link SOCVillage villages}: See {@link SOCScenario#K_SC_CLVI}
@@ -522,7 +524,7 @@ public class SOCGameOption
                 ("SBL", 2000, 2000, false, FLAG_DROP_IF_UNUSED, "Use sea board"));  // see also SOCBoardLarge
         opt.put("_BHW", new SOCGameOption
                 ("_BHW", 2000, 2000, 0, 0, 0xFFFF, FLAG_DROP_IF_UNUSED | FLAG_INTERNAL_GAME_PROPERTY,
-                 "Large board's height and width (0xRRCC) if not default"));
+                 "Large board's height and width (0xRRCC) if not default (local to client only)"));
         opt.put("RD", new SOCGameOption
                 ("RD", -1, 1107, false, 0, "Robber can't return to the desert"));
         opt.put("N7", new SOCGameOption
@@ -535,7 +537,9 @@ public class SOCGameOption
         opt.put("NT", new SOCGameOption
                 ("NT", 1107, 1107, false, FLAG_DROP_IF_UNUSED, "No trading allowed between players"));
         opt.put("VP", new SOCGameOption
-                ("VP", -1, 1114, false, 10, 10, 15, FLAG_DROP_IF_UNUSED, "Victory points to win: #"));
+                ("VP", -1, 2000, false, 10, 10, 20, FLAG_DROP_IF_UNUSED, "Victory points to win: #"));
+                // If min or max changes, test client to make sure New Game dialog still shows it as a dropdown
+                // (not a text box) for user convenience
         final SOCGameOption sc = new SOCGameOption
                 ("SC", 2000, 2000, 8, false, FLAG_DROP_IF_UNUSED, "Game Scenario: #");
         opt.put("SC", sc);
@@ -549,10 +553,10 @@ public class SOCGameOption
 
         opt.put(K_SC_SANY, new SOCGameOption
                 (K_SC_SANY, 2000, 2000, false, FLAG_DROP_IF_UNUSED,
-                 "Scenarios: SVP for your first settlement on any island"));
+                 "Scenarios: SVP for your first settlement on any island after initial placement"));
         opt.put(K_SC_SEAC, new SOCGameOption
                 (K_SC_SEAC, 2000, 2000, false, FLAG_DROP_IF_UNUSED,
-                 "Scenarios: 2 SVP for your first settlement on each island"));
+                 "Scenarios: 2 SVP for your first settlement on each island after initial placement"));
         opt.put(K_SC_FOG, new SOCGameOption
                 (K_SC_FOG, 2000, 2000, false, FLAG_DROP_IF_UNUSED,
                  "Scenarios: Some hexes initially hidden by fog"));
@@ -875,7 +879,7 @@ public class SOCGameOption
         final boolean defaultValue, final int flags, final String desc)
         throws IllegalArgumentException
     {
-	this(OTYPE_BOOL, key, minVers, lastModVers, defaultValue, 0, 0, 0, null, flags, desc);
+        this(OTYPE_BOOL, key, minVers, lastModVers, defaultValue, 0, 0, 0, null, flags, desc);
     }
 
     /**
@@ -908,8 +912,8 @@ public class SOCGameOption
         final int flags, final String desc)
         throws IllegalArgumentException
     {
-	this(OTYPE_INT, key, minVers, lastModVers, false, defaultValue,
-	     minValue, maxValue, null, flags, desc);
+        this(OTYPE_INT, key, minVers, lastModVers, false, defaultValue,
+             minValue, maxValue, null, flags, desc);
     }
 
     /**
@@ -937,8 +941,8 @@ public class SOCGameOption
         final int minValue, final int maxValue, final int flags, final String desc)
         throws IllegalArgumentException
     {
-	this(OTYPE_INTBOOL, key, minVers, lastModVers, defaultBoolValue, defaultIntValue,
-	     minValue, maxValue, null, flags, desc);
+        this(OTYPE_INTBOOL, key, minVers, lastModVers, defaultBoolValue, defaultIntValue,
+             minValue, maxValue, null, flags, desc);
     }
 
     /**
@@ -1028,14 +1032,14 @@ public class SOCGameOption
      *        or if minVers or lastModVers is under 1000 but not -1
      */
     public SOCGameOption(final String key, final int minVers, final int lastModVers,
-	final int maxLength, final boolean hideTyping, final int flags, final String desc)
+        final int maxLength, final boolean hideTyping, final int flags, final String desc)
         throws IllegalArgumentException
     {
-	this( (hideTyping ? OTYPE_STRHIDE : OTYPE_STR ),
-	     key, minVers, lastModVers, false, 0,
-	     0, maxLength, null, flags, desc);
-	if ((maxLength < 1) || (maxLength > TEXT_OPTION_MAX_LENGTH))
-	    throw new IllegalArgumentException("maxLength");
+        this( (hideTyping ? OTYPE_STRHIDE : OTYPE_STR ),
+             key, minVers, lastModVers, false, 0,
+             0, maxLength, null, flags, desc);
+        if ((maxLength < 1) || (maxLength > TEXT_OPTION_MAX_LENGTH))
+            throw new IllegalArgumentException("maxLength");
     }
 
     /**
@@ -1094,12 +1098,12 @@ public class SOCGameOption
         if ((minVers < VERSION_FOR_LONGER_OPTNAMES) && key.contains("_"))
             throw new IllegalArgumentException("Key with '_' needs minVers 2000 or newer: " + key);
 
-	optType = otype;
-	this.defaultBoolValue = defaultBoolValue;
-	this.defaultIntValue = defaultIntValue;
-	minIntValue = minValue;
-	maxIntValue = maxValue;
-	optFlags = flags;
+        optType = otype;
+        this.defaultBoolValue = defaultBoolValue;
+        this.defaultIntValue = defaultIntValue;
+        minIntValue = minValue;
+        maxIntValue = maxValue;
+        optFlags = flags;
         this.enumVals = enumVals;
 
         if (enumVals != null)
@@ -1109,12 +1113,12 @@ public class SOCGameOption
                     throw new IllegalArgumentException("enumVal fails isSingleLineAndSafe");
         }
 
-	// starting values (= defaults)
-	boolValue = defaultBoolValue;
-	intValue = defaultIntValue;
-	strValue = null;
-	if ((intValue < minIntValue) || (intValue > maxIntValue))
-	    throw new IllegalArgumentException("defaultIntValue");
+        // starting values (= defaults)
+        boolValue = defaultBoolValue;
+        intValue = defaultIntValue;
+        strValue = null;
+        if ((intValue < minIntValue) || (intValue > maxIntValue))
+            throw new IllegalArgumentException("defaultIntValue");
     }
 
     /**
@@ -1210,10 +1214,10 @@ public class SOCGameOption
      */
     public String getStringValue()
     {
-	if (strValue != null)
-	    return strValue;
-	else
-	    return "";
+        if (strValue != null)
+            return strValue;
+        else
+            return "";
     }
 
     /**
@@ -1228,7 +1232,7 @@ public class SOCGameOption
      *          multi-line or otherwise fails {@link SOCMessage#isSingleLineAndSafe(String)}.
      */
     public void setStringValue(String v)
-	throws IllegalArgumentException
+        throws IllegalArgumentException
     {
         if (v != null)
         {
@@ -1438,28 +1442,28 @@ public class SOCGameOption
      */
     public static boolean addKnownOption(SOCGameOption onew)
     {
-	final String oKey = onew.key;
-	final boolean hadIt;
+        final String oKey = onew.key;
+        final boolean hadIt;
 
-	synchronized (allOptions)
-	{
-	    final SOCGameOption oldcopy = allOptions.remove(oKey);
-	    hadIt = (oldcopy != null);
+        synchronized (allOptions)
+        {
+            final SOCGameOption oldcopy = allOptions.remove(oKey);
+            hadIt = (oldcopy != null);
 
-	    if (onew.optType != OTYPE_UNKNOWN)
-	    {
-	        if (hadIt)
-	        {
+            if (onew.optType != OTYPE_UNKNOWN)
+            {
+                if (hadIt)
+                {
                     final ChangeListener cl = oldcopy.getChangeListener();
                     if (cl != null)
                         onew.addChangeListener(cl);
-	        }
+                }
 
-	        allOptions.put(oKey, onew);
-	    }
-	}
+                allOptions.put(oKey, onew);
+            }
+        }
 
-	return ! hadIt;
+        return ! hadIt;
     }
 
     /**
@@ -1543,7 +1547,7 @@ public class SOCGameOption
     }
 
     /**
-     * Get information about a known option.
+     * Get information about a known option. See {@link #initAllOptions()} for a summary of each known option.
      * @param key  Option key
      * @param clone  True if a copy of the option is needed; set this true
      *               unless you're sure you won't be changing any fields of
@@ -1626,7 +1630,7 @@ public class SOCGameOption
      */
     public static String packOptionsToString
         (final Map<String, SOCGameOption> omap, boolean hideEmptyStringOpts)
-	throws ClassCastException
+        throws ClassCastException
     {
         return packOptionsToString(omap, hideEmptyStringOpts, -2);
     }
@@ -1652,63 +1656,63 @@ public class SOCGameOption
      * @see #packValue(StringBuilder)
      */
     public static String packOptionsToString
-	(final Map<String, SOCGameOption> omap, boolean hideEmptyStringOpts, final int cliVers)
-	throws ClassCastException
+        (final Map<String, SOCGameOption> omap, boolean hideEmptyStringOpts, final int cliVers)
+        throws ClassCastException
     {
-	if ((omap == null) || omap.size() == 0)
-	    return "-";
+        if ((omap == null) || omap.size() == 0)
+            return "-";
 
-	// If the "PLB" option is set, old client versions
-	//  may need adjustment of the "PL" option.
-	final boolean hasOptPLB = (cliVers > -2) && omap.containsKey("PLB")
-	    && omap.get("PLB").boolValue;
+        // If the "PLB" option is set, old client versions
+        //  may need adjustment of the "PL" option.
+        final boolean hasOptPLB = (cliVers > -2) && omap.containsKey("PLB")
+            && omap.get("PLB").boolValue;
 
-	// Pack all non-unknown options:
-	StringBuilder sb = new StringBuilder();
-	boolean hadAny = false;
-	for (SOCGameOption op : omap.values())
-	{
-	    if (op.optType == OTYPE_UNKNOWN)
-		continue;  // <-- Skip this one --
-	    if (hideEmptyStringOpts
-		&& ((op.optType == OTYPE_STR) || (op.optType == OTYPE_STRHIDE))  // OTYPE_* - add here if string-valued
-		&& op.getStringValue().length() == 0)
-		    continue;  // <-- Skip this one --
-	    if ((cliVers == -3) && ((op.key.length() > 3) || op.key.contains("_")))
-		continue;  // <-- Skip this one -- (VERSION_FOR_LONGER_OPTNAMES)
+        // Pack all non-unknown options:
+        StringBuilder sb = new StringBuilder();
+        boolean hadAny = false;
+        for (SOCGameOption op : omap.values())
+        {
+            if (op.optType == OTYPE_UNKNOWN)
+                continue;  // <-- Skip this one --
+            if (hideEmptyStringOpts
+                && ((op.optType == OTYPE_STR) || (op.optType == OTYPE_STRHIDE))  // OTYPE_* - add here if string-valued
+                && op.getStringValue().length() == 0)
+                    continue;  // <-- Skip this one --
+            if ((cliVers == -3) && ((op.key.length() > 3) || op.key.contains("_")))
+                continue;  // <-- Skip this one -- (VERSION_FOR_LONGER_OPTNAMES)
 
-	    if (hadAny)
-		sb.append(SOCMessage.sep2_char);
-	    else
-		hadAny = true;
-	    sb.append(op.key);
-	    sb.append('=');
+            if (hadAny)
+                sb.append(SOCMessage.sep2_char);
+            else
+                hadAny = true;
+            sb.append(op.key);
+            sb.append('=');
 
-	    boolean wroteValueAlready = false;
-	    if (cliVers > -2)
-	    {
-		if (hasOptPLB && op.key.equals("PL")
-		    && (cliVers < 1113) && (op.intValue < 5))
-		{
-		    // When "PLB" is used (Use 6-player board)
-		    // but the client is too old to recognize PLB,
-		    // make sure "PL" is large enough to make the
-		    // client use that board.
+            boolean wroteValueAlready = false;
+            if (cliVers > -2)
+            {
+                if (hasOptPLB && op.key.equals("PL")
+                    && (cliVers < 1113) && (op.intValue < 5))
+                {
+                    // When "PLB" is used (Use 6-player board)
+                    // but the client is too old to recognize PLB,
+                    // make sure "PL" is large enough to make the
+                    // client use that board.
 
-		    final int realValue = op.intValue;
-		    op.intValue = 5;  // big enough for 6-player
-		    op.packValue(sb);
-			wroteValueAlready = true;
-		    op.intValue = realValue;
-		}
+                    final int realValue = op.intValue;
+                    op.intValue = 5;  // big enough for 6-player
+                    op.packValue(sb);
+                        wroteValueAlready = true;
+                    op.intValue = realValue;
+                }
 
-		// NEW_OPTION - Check your option vs old clients here.
-	    }
-	    if (! wroteValueAlready)
-		op.packValue(sb);
-	}
+                // NEW_OPTION - Check your option vs old clients here.
+            }
+            if (! wroteValueAlready)
+                op.packValue(sb);
+        }
 
-	return sb.toString();
+        return sb.toString();
     }
 
     /**
@@ -1962,6 +1966,7 @@ public class SOCGameOption
                 copyOpt = new SOCGameOption(optkey);  // OTYPE_UNKNOWN
             }
         }
+
         return copyOpt;
     }
 
@@ -2171,9 +2176,11 @@ public class SOCGameOption
      *            (Added in 1.1.13)
      * @return <tt>null</tt> if all are known; or, a human-readable problem description if:
      *            <UL>
-     *            <LI> any of <tt>newOpts</tt> are unknown
+     *            <LI> any of {@code newOpts} are unknown
      *            <LI> or an opt's type differs from that in knownOpts
      *            <LI> or an opt's {@link #lastModVersion} differs from in knownOpts
+     *            <LI> opt {@code "SC"} is in {@code newOpts} but its scenario name isn't known
+     *                 by {@link SOCScenario#getScenario(String)}
      *            </UL>
      * @throws IllegalArgumentException if newOpts contains a non-SOCGameOption
      */
@@ -2253,39 +2260,39 @@ public class SOCGameOption
 
         boolean allKnown;
 
-        if (unknownScenario == null)
+        if (unknownScenario != null)
         {
-            allKnown = true;  // might be set false in loop below
-        } else {
             allKnown = false;
             optProblems.append("SC: unknown scenario ");
             optProblems.append(unknownScenario);
             optProblems.append(". ");
+        } else {
+            allKnown = true;  // might be set false in loop below
         }
 
         // use Iterator in loop, so we can remove from the hash if needed
         for (Iterator<Map.Entry<String, SOCGameOption>> ikv = newOpts.entrySet().iterator();
-	     ikv.hasNext(); )
-	{
-	    Map.Entry<String, SOCGameOption> okv = ikv.next();
+             ikv.hasNext(); )
+        {
+            Map.Entry<String, SOCGameOption> okv = ikv.next();
 
-	    SOCGameOption op;
-	    try {
-	        op = okv.getValue();
-	    }
-	    catch (ClassCastException ce)
-	    {
+            SOCGameOption op;
+            try {
+                op = okv.getValue();
+            }
+            catch (ClassCastException ce)
+            {
                 throw new IllegalArgumentException("wrong class, expected gameoption");
-	    }
-	    SOCGameOption knownOp = knownOpts.get(op.key);
-	    if (knownOp == null)
-	    {
+            }
+            SOCGameOption knownOp = knownOpts.get(op.key);
+            if (knownOp == null)
+            {
                 allKnown = false;
                 optProblems.append(op.key);
                 optProblems.append(": unknown. ");
-	    }
-	    else if (knownOp.optType != op.optType)
-	    {
+            }
+            else if (knownOp.optType != op.optType)
+            {
                 allKnown = false;
                 optProblems.append(op.key);
                 optProblems.append(": optType mismatch (");
@@ -2293,38 +2300,38 @@ public class SOCGameOption
                 optProblems.append(" != ");
                 optProblems.append(op.optType);
                 optProblems.append("). ");
-	    } else {
-	        // Clip int values, check default values, check dropIfUnused
+            } else {
+                // Clip int values, check default values, check dropIfUnused
 
-		if (knownOp.lastModVersion != op.lastModVersion)
-		{
-		    allKnown = false;
-		    optProblems.append(op.key);
-		    optProblems.append(": lastModVersion mismatch (");
-		    optProblems.append(knownOp.lastModVersion);
-		    optProblems.append(" != ");
+                if (knownOp.lastModVersion != op.lastModVersion)
+                {
+                    allKnown = false;
+                    optProblems.append(op.key);
+                    optProblems.append(": lastModVersion mismatch (");
+                    optProblems.append(knownOp.lastModVersion);
+                    optProblems.append(" != ");
                     optProblems.append(op.lastModVersion);
                     optProblems.append("). ");
-		}
+                }
 
-		switch (op.optType)  // OTYPE_*
-		{
-		case OTYPE_INT:
-		case OTYPE_INTBOOL:
-		case OTYPE_ENUM:
+                switch (op.optType)  // OTYPE_*
+                {
+                case OTYPE_INT:
+                case OTYPE_INTBOOL:
+                case OTYPE_ENUM:
                 case OTYPE_ENUMBOOL:
-		    {
-			int iv = op.intValue;
-			if (iv < knownOp.minIntValue)
-			{
-			    iv = knownOp.minIntValue;
-			    op.setIntValue(iv);
-			}
-			else if (iv > knownOp.maxIntValue)
-			{
-			    iv = knownOp.maxIntValue;
-			    op.setIntValue(iv);
-			}
+                    {
+                        int iv = op.intValue;
+                        if (iv < knownOp.minIntValue)
+                        {
+                            iv = knownOp.minIntValue;
+                            op.setIntValue(iv);
+                        }
+                        else if (iv > knownOp.maxIntValue)
+                        {
+                            iv = knownOp.maxIntValue;
+                            op.setIntValue(iv);
+                        }
 
                         if (knownOp.hasFlag(FLAG_DROP_IF_UNUSED)
                             && (iv == knownOp.defaultIntValue))
@@ -2333,13 +2340,13 @@ public class SOCGameOption
                             if ((op.optType == OTYPE_INT) || (op.optType == OTYPE_ENUM) || ! op.boolValue)
                                 ikv.remove();
                         }
-		    }
-		    break;
+                    }
+                    break;
 
-		case OTYPE_BOOL:
+                case OTYPE_BOOL:
                     if (knownOp.hasFlag(FLAG_DROP_IF_UNUSED) && ! op.boolValue)
                         ikv.remove();
-		    break;
+                    break;
 
                 case OTYPE_STR:
                 case OTYPE_STRHIDE:
@@ -2350,14 +2357,14 @@ public class SOCGameOption
 
                 // no default: all types should be handled above.
 
-		}  // endsw
-	    }
-	}
+                }  // endsw
+            }
+        }
 
-	if (allKnown)
-	    return null;
-	else
-	    return optProblems;
+        if (allKnown)
+            return null;
+        else
+            return optProblems;
     }
 
     /**
@@ -2495,6 +2502,10 @@ public class SOCGameOption
     /**
      * If this game option is displayed on-screen, refresh it;
      * call this after changing the value.
+     *<P>
+     * Should be called when value has changed programatically through setters or other methods,
+     * not when user has changed the value on-screen in client GUI code.
+     *
      * @since 1.1.13
      */
     public void refreshDisplay()
@@ -2503,6 +2514,7 @@ public class SOCGameOption
             refreshList = new ArrayList<SOCGameOption>();
         else if (refreshList.contains(this))
             return;
+
         refreshList.add(this);
     }
 

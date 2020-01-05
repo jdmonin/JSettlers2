@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009,2011,2013-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011,2013-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -32,9 +32,8 @@ import soc.util.SOCGameList;
 /**
  * List of all games currently on the server, including
  * their {@link soc.game.SOCGameOption game options}.
- * It's constructed and sent for each connecting client
- * which can understand game options (1.1.07 and newer),
- * by calling {@link #SOCGamesWithOptions(List, int)}.
+ * Sent to each connecting client which can
+ * understand game options (1.1.07 and newer).
  *<P>
  * Robot clients don't need to know about or handle this message type,
  * because they don't create games.

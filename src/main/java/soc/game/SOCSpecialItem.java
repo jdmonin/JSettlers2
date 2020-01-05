@@ -26,35 +26,45 @@ import soc.message.SOCMessage;  // strictly for isSingleLineAndSafe
 
 
 /**
- * A special item in a game that uses Settlers scenarios or expansions.
+ * A Special Item in a game that uses Settlers scenarios or expansions.
+ * An item may be usable game-wide, or held by/associated with a player.
  * During game play, players may be allowed to {@code PICK} (choose), {@code SET}, or {@code CLEAR} special items;
- * the meaning of these actions is scenario-specific.  See {@code typeKey} list below for usage and meaning.
+ * the meaning of these items and actions is scenario-specific. See {@code typeKey} list below for usage and meaning.
  * See {@link #playerPickItem(String, SOCGame, SOCPlayer, int, int)} and
  * {@link #playerSetItem(String, SOCGame, SOCPlayer, int, int, boolean)} for API details.
+ *<P>
+ * Special Items are unrelated to {@link SOCInventoryItem}s.
  *<P>
  * Example use: The Wonders chosen by players in the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
  *<P>
  * Special Items are per-game and/or per-player.  In {@link SOCGame} and {@link SOCPlayer}
  * they're accessed by an item type key.  For compatibility among scenarios and expansions,
  * this key should be a {@link SOCGameOption} keyname; if an option has more than one
- * special item type, {@code typeKey} should be optionName + "/" + a short alphanumeric key of your choosing.
+ * special item type, {@code typeKey} should be optionName + "/" + a short alphanumeric key.
  * Please document the Special Item type(s) in the SOCGameOption's javadoc, including
  * whether each is per-game, per-player, or both (for more convenient access).
+ * If the game option is for a scenario, instead mention the Special Item in the game option's javadoc
+ * and document its use in the {@link SOCScenario} constant's javadoc.
  *<P>
  * In some scenarios, Special Items may have requirements for players to build or use them.
  * See {@link SOCSpecialItem.Requirement} javadoc for more details.  To check requirements,
  * call {@link SOCSpecialItem#checkRequirements(SOCPlayer, boolean)}.
  *<P>
+ * All Special Items are currently "public" and their details are known to all players,
+ * not hidden by a player like Victory Point dev cards. If a future use would need some items to
+ * be hidden or "private", at that time a flag field would need to be added to the object and
+ * set in {@link #makeKnownItem(String, int)}.
+ *
  * <H5>Optional Fields:</H5>
  * Some {@code typeKey}s may use the {@link #getLevel()} and {@link #getStringValue()} fields;
  * their meaning is type-specific.
- *<P>
+ *
  * <H5>Non-Networked Fields:</H5>
  * During game setup, {@link #makeKnownItem(String, int)} can be called for convenience at both the
  * server and client from {@link SOCGame#updateAtBoardLayout()}:
  *<P>
- * The cost and requirement fields are initialized at the server and at the client, not sent over the network.
- * Because of their limited and known use, it's easier to set them up in a factory method here than to create,
+ * The cost and requirement constant fields are initialized at the server and at the client, not sent over the network.
+ * Because of their specific scope and known use, it's easier to set them up in a factory method here than to create,
  * send, and parse messages with all details of the game's Special Items.  If a new Special Item type is created
  * for a new scenario or expansion, the client would most likely need new code to handle that scenario or
  * expansion, so the new item type's field initialization can be added to the factory at that time.
@@ -68,7 +78,8 @@ import soc.message.SOCMessage;  // strictly for isSingleLineAndSafe
  *
  *<H5>Current scenarios and {@code typeKey}s:</H5>
  *
- *<H6>{@link SOCGameOption#K_SC_WOND _SC_WOND}</H6>
+ *<H6>{@link SOCGameOption#K_SC_WOND _SC_WOND} - Wonders</H6>
+ *
  *  In this scenario, the game has a list of unique "Wonders", indexed 1 to {@link SOCGame#maxPlayers} + 1.
  *  (The 6-player game includes another copy of the first two wonders.)
  *  To win the game, a player must take ownership of exactly one of these, and build 4 levels of it.
@@ -86,10 +97,11 @@ import soc.message.SOCMessage;  // strictly for isSingleLineAndSafe
  *    When sending a PICK request, the wonder's game item index and player item index must meet the requirements
  *    of {@link SOCScenario#K_SC_WOND}.
  * <LI> Game state must be {@link SOCGame#PLAY1 PLAY1}
- * <LI> There are requirements ({@link #req}) to pick each wonder, different wonders have different requirements
- * <LI> There is a resource cost to build each level, different wonders have different costs
+ * <LI> There are requirements ({@link #req}) to pick each wonder; different wonders have different requirements
+ * <LI> There is a resource cost to build each level; different wonders have different costs
  * <LI> When the player first picks a Wonder to build its first level, player loses 1 ship.
- *    (In the physical game the ship becomes a marker on the Wonder card.)
+ *    (In the physical game, the ship becomes an ownership marker on the Wonders card.) This "starting piece cost"
+ *    is {@link #getStartingCostPiecetype()}. All wonders have the same piece type cost: {@link SOCPlayingPiece#SHIP}.
  * <LI> Can build several levels per turn; each level is built with a {@code PICK} request
  * <LI> When level 4 is built, player wins the game, even if they have less than 10 VP
  * <LI> When a player reaches 10 VP, <b>and</b> has a higher level of wonder than any other player (no ties), they win
@@ -102,6 +114,10 @@ import soc.message.SOCMessage;  // strictly for isSingleLineAndSafe
 public class SOCSpecialItem
     implements Cloneable
 {
+
+    // Per-scenario static data:
+
+    // SC_WOND: Wonders
 
     /**
      * To win the game in {@link SOCGameOption#K_SC_WOND _SC_WOND}, player can build this many
@@ -138,12 +154,14 @@ public class SOCSpecialItem
     };
 
     /**
-     * {@link #sv} for the Wonders in the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
+     * {@link #sv} string keys for the Wonders in the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
      * {@code sv} is used in this scenario to identify the wonder with a localized name.
      * Index 0 unused.  The 6-player game includes another copy of the first two wonders.
      * Used by {@link #makeKnownItem(String, int)}.
      */
     private static final String[] SV_SC_WOND = { null, "w1", "w2", "w3", "w4", "w5", "w1", "w2" };
+
+    // End of per-scenario static data
 
     /**
      * Item's optional game item index, or -1, as used with {@link SOCGame#getSpecialItem(String, int, int, int)}.
@@ -162,18 +180,31 @@ public class SOCSpecialItem
     /** Optional level of construction or strength, or 0. */
     protected int level;
 
-    /** Optional string value field, or null; this field's meaning is specific to the item's {@code typeKey}. */
+    /**
+     * Optional string value field, or null; this field's meaning is specific to the item's {@code typeKey}.
+     * See {@link #getStringValue()} for details.
+     */
     protected String sv;
 
     /**
-     * Optional cost to buy, use, or build the next level, or {@code null}.
-     * Not sent over the network; see {@link SOCSpecialItem class javadoc}.
+     * Optional constant cost to buy, use, or build the next level, or {@code null}.
+     * Not sent over the network; see {@link SOCSpecialItem class javadoc}
+     * and {@link #makeKnownItem(String, int)}.
+     * @see #startingCostPiecetype
      */
     protected SOCResourceSet cost;
 
     /**
+     * Optional constant extra starting "cost" piece: A type of {@link SOCPlayingPiece}
+     * the player must give up to pick (buy, use, or build) the first level, or -1 if unused.
+     * See {@link #getStartingCostPiecetype()} for details.
+     */
+    protected int startingCostPiecetype = -1;
+
+    /**
      * Optional requirements to buy, use, or build the next level, or {@code null}.
-     * Not sent over the network; see {@link SOCSpecialItem class javadoc}.
+     * Not sent over the network; see {@link SOCSpecialItem class javadoc}
+     * and {@link #makeKnownItem(String, int)}.
      */
     public final List<Requirement> req;
 
@@ -192,7 +223,7 @@ public class SOCSpecialItem
      *
      * @param typeKey  Special item type.  Typically a {@link SOCGameOption} keyname;
      *    see {@link SOCSpecialItem class javadoc} for details.
-     * @param idx  Index within game's Special Item list
+     * @param idx  Index within game's Special Item list, or -1 if not part of that list
      * @return A Special Item at no coordinate (-1) and unowned by any player, with cost/requirements if known,
      *     or {@code null} cost and requirements otherwise.
      */
@@ -200,17 +231,25 @@ public class SOCSpecialItem
     {
         // If you update this method or add a scenario here, update soctest.game.TestSpecialItem method testMakeKnownItem.
 
-        if (! typeKey.equals(SOCGameOption.K_SC_WOND))
+        final String[] typeReqs, typeSV;  // Per-index requirements and SV, or null
+        final int[][] typeCosts;    // Per-index costs, or null
+        final int itemLevel;    // initial level
+        final int startingCostPiecetype;  // piece type required for level 1, or -1
+
+        if (typeKey.equals(SOCGameOption.K_SC_WOND))
         {
+            typeReqs = REQ_SC_WOND;
+            typeSV = SV_SC_WOND;
+            typeCosts = COST_SC_WOND;
+            itemLevel = 0;
+            startingCostPiecetype = SOCPlayingPiece.SHIP;
+                // note: client SOCSpecialItemDialog assumes all items have same startingCostPiecetype; true for SC_WOND
+        } else {
             return new SOCSpecialItem(null, -1, null, null);  // <--- Early return: Unknown typeKey ---
         }
 
-        final String[] typeReqs = REQ_SC_WOND;
-        final int[][] typeCosts = COST_SC_WOND;
-        final String[] typeSV = SV_SC_WOND;
-
         final SOCResourceSet costRS;
-        if ((idx < 0) || (idx >= typeCosts.length))
+        if ((typeCosts == null) || (idx < 0) || (idx >= typeCosts.length))
         {
             costRS = null;
         } else {
@@ -218,10 +257,17 @@ public class SOCSpecialItem
             costRS = (cost == null) ? null : new SOCResourceSet(cost);
         }
 
-        final String req = ((idx < 0) || (idx >= typeReqs.length)) ? null : typeReqs[idx];
-        final String sv = ((idx < 0) || (idx >= typeSV.length)) ? null : typeSV[idx];
+        final String req =
+            (typeReqs != null)
+            ? (((idx < 0) || (idx >= typeReqs.length)) ? null : typeReqs[idx])
+            : null;
+        final String sv =
+            (typeSV != null)
+            ? (((idx < 0) || (idx >= typeSV.length)) ? null : typeSV[idx])
+            : null;
 
-        final SOCSpecialItem si = new SOCSpecialItem(null, -1, 0, sv, costRS, req);
+        final SOCSpecialItem si = new SOCSpecialItem(null, -1, itemLevel, sv, costRS, req);
+        si.startingCostPiecetype = startingCostPiecetype;
         si.setGameIndex(idx);
 
         return si;
@@ -241,6 +287,10 @@ public class SOCSpecialItem
      * paid if this method returns {@code true}.  If the caller needs to know
      * the cost paid, call that method before this one.
      *<P>
+     * If this Pick is to take ownership and build the first level of the item,
+     * this method checks {@link #getStartingCostPiecetype()}: If any, player must have at least
+     * 1 available piece of that type, which is used up by the start of building.
+     *<P>
      * Currently only {@link SOCGameOption#K_SC_WOND _SC_WOND} is recognized as a {@code typeKey} here.
      * To see which scenario and option {@code typeKey}s use this method, and scenario-specific usage details,
      * see the {@link SOCSpecialItem} class javadoc.
@@ -252,12 +302,16 @@ public class SOCSpecialItem
      * @param pl  Requesting player; never {@code null}
      * @param gi  Pick this index within game's Special Item list, or -1
      * @param pi  Pick this index within {@code pl}'s Special Item list, or -1
-     * @return  true if the item's cost was deducted from {@code pl}'s resources
-     * @throws IllegalStateException if {@code pl} cannot set or clear this item right now
-     *     (due to cost, requirements, game state, is not their turn, or anything else),
+     * @return  true if the item's cost was deducted from {@code pl}'s resources,
+     *     false if no cost ({@link #getCost()} is null)
+     * @throws IllegalStateException if {@code pl} cannot set or clear this item right now (due to
+     *     cost, requirements, game state, missing a "starting cost" piece, is not their turn, or anything else),
      *     or if {@code typeKey} is unknown here, or if this {@code typeKey} doesn't
      *     use {@code PICK} requests from client players.
      * @see #playerSetItem(String, SOCGame, SOCPlayer, int, int, boolean)
+     * @see #checkCost(SOCPlayer)
+     * @see #checkRequirements(SOCPlayer, boolean)
+     * @see #checkStartingCostPiecetype(SOCPlayer, boolean)
      */
     public static boolean playerPickItem
         (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gi, final int pi)
@@ -297,6 +351,13 @@ public class SOCSpecialItem
         {
             if (! itm.checkRequirements(pl, false))
                 throw new IllegalStateException("requirements");
+
+            final int startCostPT = itm.getStartingCostPiecetype();
+            if (startCostPT != -1)
+            {
+                itm.checkStartingCostPiecetype(pl, true);  // if player out of pieces, throws IllegalStateException
+                pl.setNumPieces(startCostPT, pl.getNumPieces(startCostPT) - 1);
+            }
 
             itm.setPlayer(pl);
             pl.setSpecialItem(typeKey, 0, itm);
@@ -406,7 +467,7 @@ public class SOCSpecialItem
         return gameItemIndex;
     }
 
-    /** Set this item's {@link #getGameIndex(). */
+    /** Set this item's {@link #getGameIndex()}. Use -1 to clear to "none". */
     public void setGameIndex(final int gi)
     {
         gameItemIndex = gi;
@@ -467,7 +528,12 @@ public class SOCSpecialItem
 
     /**
      * Get the current string value, if any, of this special item.
-     * This is an optional field whose meaning is specific to the item type (typeKey).
+     * This is an optional field whose meaning is specific to the item type (typeKey):
+     *<UL>
+     * <LI> {@link SOCGameOption#K_SC_WOND _SC_WOND}:
+     *     At client, localized i18n string key is {@code "game.specitem.sc_wond." + item.getStringValue()}
+     *</UL>
+     *
      * @return  Current string value, or {@code null}
      */
     public String getStringValue()
@@ -485,10 +551,11 @@ public class SOCSpecialItem
     }
 
     /**
-     * Get the optional cost to buy, use, or build the next level.
+     * Get the optional constant cost to buy, use, or build the next level.
      * Not sent over the network; see {@link SOCSpecialItem class javadoc}.
-     * @return  Cost, or {@code null}
+     * @return  Cost, or {@code null} if none
      * @see #checkCost(SOCPlayer)
+     * @see #getStartingCostPiecetype()
      */
     public SOCResourceSet getCost()
     {
@@ -511,10 +578,60 @@ public class SOCSpecialItem
      * @return  True if cost is {@code null} or {@link SOCPlayer#getResources() pl.getResources()} contains the cost.
      *     Always false if {@code pl} is {@code null}.
      * @see #checkRequirements(SOCPlayer, boolean)
+     * @see #checkStartingCostPiecetype(SOCPlayer, boolean)
      */
     public final boolean checkCost(final SOCPlayer pl)
     {
         return (pl != null) && ((cost == null) || pl.getResources().contains(cost));
+    }
+
+    /**
+     * Optional constant extra starting "cost" piece: A type of {@link SOCPlayingPiece}
+     * the player must give up to pick (buy, use, or build) the first level, or -1 if unused
+     * (0 would be {@link SOCPlayingPiece#ROAD}).
+     *<P>
+     * In {@link SOCScenario#K_SC_WOND SC_WOND} scenario, value is {@link SOCPlayingPiece#SHIP}.
+     *<P>
+     * Like {@link #getCost()}, not sent over the network; see {@link SOCSpecialItem class javadoc}
+     * and {@link #makeKnownItem(String, int)} code.
+     *
+     * @see #checkStartingCostPiecetype(SOCPlayer, boolean)
+     */
+    public final int getStartingCostPiecetype()
+    {
+        return startingCostPiecetype;
+    }
+
+    /**
+     * Does this player have an available {@link #getStartingCostPiecetype()}, if any, to pick this item and
+     * start its construction? See {@link #playerPickItem(String, SOCGame, SOCPlayer, int, int)} for details.
+     *<P>
+     * Does not include {@link #checkCost(SOCPlayer)} or {@link #checkRequirements(SOCPlayer, boolean)};
+     * must call those separately.
+     *
+     * @param pl  Player to check
+     * @param throwIfUnmet  If true, throw {@code IllegalStateException} if piece needed but player is out of that type
+     * @return true if player the piece to give up, or if there is no starting cost piece;
+     *     false if player would need but doesn't have that piece
+     * @throws IllegalStateException if {@code throwIfUnmet} and player has no such piece
+     * @throws ArrayIndexOutOfBoundsException if piece type is invalid:
+     *     This is an internal error, should not occur unless bug in {@link #makeKnownItem(String, int)}
+     */
+    public final boolean checkStartingCostPiecetype(final SOCPlayer pl, final boolean throwIfUnmet)
+        throws IllegalStateException, ArrayIndexOutOfBoundsException
+    {
+        if (startingCostPiecetype == -1)
+            return true;
+
+        if (pl.getNumPieces(startingCostPiecetype) >= 1)
+        {
+            return true;
+        } else {
+            if (throwIfUnmet)
+                throw new IllegalStateException("Must pay starting piece type: " + startingCostPiecetype);
+
+            return false;
+        }
     }
 
     /**
@@ -530,6 +647,7 @@ public class SOCSpecialItem
      *     this is not implemented
      * @see #checkRequirements(SOCPlayer, List)
      * @see #checkCost(SOCPlayer)
+     * @see #checkStartingCostPiecetype(SOCPlayer, boolean)
      */
     public final boolean checkRequirements(final SOCPlayer pl, final boolean checkCost)
         throws IllegalArgumentException, UnsupportedOperationException

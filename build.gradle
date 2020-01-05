@@ -64,6 +64,23 @@ tasks.withType(JavaCompile) {
 
 // unit tests
 
+// run all python unit tests, using PyUnit (unittest module); returns 0 if no failures
+task testPython(type: Exec) {
+    executable 'python'  // expected to be in PATH
+    workingDir 'src/test/python'
+    args '-m', 'unittest', 'discover'  // discover requires python 2.7 or higher
+    environment CLASSPATH: tasks.test.classpath.asPath
+}
+
+// Make sure sql scripts template token data is self-consistent:
+// If test_token_consistency.py finds problems, it will print a detail message.
+task testSrcDBTemplateTokens(type: Exec) {
+    executable 'python'  // expected to be in PATH
+    workingDir 'src/main/bin/sql/template'
+    args 'test_token_consistency.py', new File(sourceSets.main.java.srcDirs[0], '/soc/server/database/SOCDBHelper.java').absolutePath
+    outputs.upToDateWhen { false }  // never skip this test
+}
+
 // Make sure sql scripts are consistent with their template:
 // If render.py finds problems, it will print a message showing which script(s) must be regenerated.
 task testSrcDBTemplates(type: Exec) {
@@ -72,6 +89,7 @@ task testSrcDBTemplates(type: Exec) {
     args 'render.py', '-i', 'jsettlers-tables-tmpl.sql', '-d', 'mysql,sqlite,postgres', '-c', '../jsettlers-tables-%s.sql'
     outputs.upToDateWhen { false }  // never skip this test
 }
+
 
 tasks.withType(Test) { task ->
     task.outputs.upToDateWhen { false }  // never skip testing ("UP-TO-DATE") when it's asked for or is dependency
@@ -85,7 +103,8 @@ tasks.withType(Test) { task ->
     }
 }
 
-test.dependsOn testSrcDBTemplates
+test.dependsOn ([testSrcDBTemplateTokens, testSrcDBTemplates])
+test.finalizedBy testPython  // run java tests first; run python tests even if java fails
 
 // jars
 
@@ -315,12 +334,13 @@ javadoc {    // generates into build/docs/javadoc/
 task extraTest(type: Test) {
     testClassesDirs = sourceSets.extraTest.output.classesDirs
     classpath = sourceSets.extraTest.runtimeClasspath
+    testLogging.showStandardStreams = true  // make it easy to see System.out, System.err from sometimes-lengthy tests
     reports.junitXml.destination = file("$buildDir/extraTest-results")  // unit tests use buildDir/test-results
     reports.html.destination = file("$buildDir/reports/extraTests")     // unit tests use buildDir/reports/tests
     outputs.upToDateWhen { false }  // never skip running it
 }
 
-// run all python tests using PyUnit (unittest); returns 0 if no failures
+// run all python extra tests, using PyUnit (unittest module); returns 0 if no failures
 task extraTestPython(type: Exec) {
     executable 'python'  // expected to be in PATH
     workingDir 'src/extraTest/python'
@@ -333,6 +353,7 @@ extraTest.finalizedBy extraTestPython  // run java tests first; run python tests
 
 clean {
     // also remove python bytecode files
+    delete fileTree("src/test/python").matching{ include "**/*.pyc" }
     delete fileTree("src/extraTest/python").matching{ include "**/*.pyc" }
 }
 

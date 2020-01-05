@@ -51,6 +51,7 @@ import soc.server.genericServer.StringConnection;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;
 import soc.util.SOCRobotParameters;
+import soc.util.SOCStringManager;
 import soc.util.Version;
 
 /**
@@ -428,13 +429,17 @@ public class SOCServerMessageHandler
             }
         }
 
-        final String txt = c.getLocalized("member.welcome");  // "Welcome to Java Settlers of Catan!"
+        final String txt = c.getLocalized("netmsg.status.welcome");  // "Welcome to Java Settlers of Catan!"
         if (0 == (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME))
             c.put(new SOCStatusMessage
                 (SOCStatusMessage.SV_OK, txt));
         else
             c.put(new SOCStatusMessage
                 (SOCStatusMessage.SV_OK_SET_NICKNAME, c.getData() + SOCMessage.sep2_char + txt));
+
+        final SOCClientData scd = (SOCClientData) c.getAppData();
+        if (scd != null)  // very unlikely to be null; checks here anyway to be extra-careful during auth
+            scd.sentPostAuthWelcome = true;
     }
 
     /**
@@ -540,8 +545,8 @@ public class SOCServerMessageHandler
      */
     private void handleLOCALIZEDSTRINGS(final Connection c, final SOCLocalizedStrings mes)
     {
-        final List<String> str = mes.getParams();
-        final String type = str.get(0);
+        final List<String> strs = mes.getParams();
+        final String type = strs.get(0);
         List<String> rets = null;  // for reply to client; built in localizeGameScenarios or other type-specific method
         int flags = 0;
 
@@ -553,12 +558,22 @@ public class SOCServerMessageHandler
         }
         else if (type.equals(SOCLocalizedStrings.TYPE_SCENARIO))
         {
-            // Handle individual scenario keys; ignores FLAG_REQ_ALL
+            // Handle individual scenario keys for any client version,
+            // or FLAG_REQ_ALL from same version as server.
+            // (If client version != server version, set of all scenarios' localized strings
+            //  are instead sent in response to client's SOCScenarioInfo message.)
 
             final SOCClientData scd = (SOCClientData) c.getAppData();
-            if (SOCServer.clientHasLocalizedStrs_gameScenarios(c))
+            if (scd.localeHasGameScenarios(c))
             {
-                rets = SOCServer.localizeGameScenarios(scd.locale, str, true, scd);
+                boolean wantsAll = mes.isFlagSet(SOCLocalizedStrings.FLAG_REQ_ALL) || (strs.size() == 1);
+                    // if list is empty after first element (string type), is requesting all
+                if (wantsAll)
+                {
+                    flags = SOCLocalizedStrings.FLAG_SENT_ALL;
+                    scd.sentAllScenarioStrings = true;
+                }
+                rets = SOCServer.localizeGameScenarios(scd.locale, strs, wantsAll, true, scd);
             } else {
                 flags = SOCLocalizedStrings.FLAG_SENT_ALL;
                 scd.sentAllScenarioStrings = true;
@@ -786,7 +801,7 @@ public class SOCServerMessageHandler
         else if (L == 1)
         {
             // requesting one scenario
-            srv.sendGameScenarioInfo(params.get(0), null, c, false);
+            srv.sendGameScenarioInfo(params.get(0), null, c, true, false);
             return;
         }
 
@@ -825,7 +840,7 @@ public class SOCServerMessageHandler
         if (changes != null)
             for (final SOCScenario sc : changes)
                 if (sc.minVersion <= cliVers)
-                    srv.sendGameScenarioInfo(null, sc, c, false);
+                    srv.sendGameScenarioInfo(null, sc, c, true, false);
                 else
                     c.put(new SOCScenarioInfo(sc.key, true));
 
@@ -835,7 +850,7 @@ public class SOCServerMessageHandler
 
             if (! scd.checkedLocaleScenStrings)
             {
-                scd.localeHasScenStrings = SOCServer.clientHasLocalizedStrs_gameScenarios(c);
+                scd.localeHasScenStrings = scd.localeHasGameScenarios(c);
                 scd.checkedLocaleScenStrings = true;
             }
 
@@ -851,7 +866,7 @@ public class SOCServerMessageHandler
 
                 List<String> scenStrs;
                 if (! scKeys.isEmpty())
-                    scenStrs = SOCServer.localizeGameScenarios(scd.locale, scKeys, false, scd);
+                    scenStrs = SOCServer.localizeGameScenarios(scd.locale, scKeys, false, false, scd);
                 else
                     scenStrs = scKeys;  // re-use the empty list object
 
@@ -1085,6 +1100,12 @@ public class SOCServerMessageHandler
                         minAdd = gameMaxMins - minRemain;
                     exp += (minAdd * 60 * 1000);
                     minRemain += minAdd;
+                    if (minRemain < SOCServer.GAME_TIME_EXPIRE_ADDTIME_MINUTES)
+                    {
+                        // minRemain might be small or negative; can happen if server was on a sleeping laptop
+                        minRemain = SOCServer.GAME_TIME_EXPIRE_ADDTIME_MINUTES;
+                        exp = now + (minRemain * 60 * 1000);
+                    }
 
                     ga.setExpiration(exp);
                     srv.messageToGameKeyed(ga, true, "reply.addtime.extended");  // ">>> Game time has been extended."
@@ -1448,6 +1469,7 @@ public class SOCServerMessageHandler
     private void handleJOINCHANNEL_postAuth
         (final Connection c, final String ch, final int cliVers, final int authResult)
     {
+        final SOCClientData scd = (SOCClientData) c.getAppData();
         final boolean mustSetUsername = (0 != (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME));
         final String msgUser = c.getData();
             // if mustSetUsername, will tell client to set nickname to original case from db case-insensitive search
@@ -1465,11 +1487,11 @@ public class SOCServerMessageHandler
              || "*".equals(ch))
         {
             c.put(new SOCStatusMessage
-                    (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
-                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
-              // "This game name is not permitted, please choose a different name."
+                   (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
+                    c.getLocalized("netmsg.status.common.newgame_name_rejected")));
+            // "This name is not permitted, please choose a different name."
 
-              return;  // <---- Early return ----
+            return;  // <---- Early return ----
         }
 
         /**
@@ -1477,13 +1499,12 @@ public class SOCServerMessageHandler
          */
         if ((! channelList.isChannel(ch))
             && (SOCServer.CLIENT_MAX_CREATE_CHANNELS >= 0)
-            && (SOCServer.CLIENT_MAX_CREATE_CHANNELS <= ((SOCClientData) c.getAppData()).getcurrentCreatedChannels()))
+            && (SOCServer.CLIENT_MAX_CREATE_CHANNELS <= scd.getcurrentCreatedChannels()))
         {
             c.put(new SOCStatusMessage
-                    (SOCStatusMessage.SV_NEWCHANNEL_TOO_MANY_CREATED, cliVers,
-                     SOCStatusMessage.MSG_SV_NEWCHANNEL_TOO_MANY_CREATED
-                     + Integer.toString(SOCServer.CLIENT_MAX_CREATE_CHANNELS)));
-            // Too many of your chat channels still active; maximum: 2
+                   (SOCStatusMessage.SV_NEWCHANNEL_TOO_MANY_CREATED, cliVers,
+                    c.getLocalized("netmsg.status.newchannel_too_many_created", SOCServer.CLIENT_MAX_CREATE_CHANNELS)));
+            // "Too many of your chat channels still active; maximum: 2"
 
             return;  // <---- Early return ----
         }
@@ -1491,13 +1512,19 @@ public class SOCServerMessageHandler
         /**
          * Tell the client that everything is good to go
          */
-        final String txt = c.getLocalized("member.welcome");  // "Welcome to Java Settlers of Catan!"
+        final String txt = c.getLocalized("netmsg.status.welcome");  // "Welcome to Java Settlers of Catan!"
         if (! mustSetUsername)
-            c.put(new SOCStatusMessage
-                (SOCStatusMessage.SV_OK, txt));
-        else
+        {
+            if ((! scd.sentPostAuthWelcome) || (c.getVersion() < SOCStringManager.VERSION_FOR_I18N))
+            {
+                c.put(new SOCStatusMessage
+                    (SOCStatusMessage.SV_OK, txt));
+                scd.sentPostAuthWelcome = true;
+            }
+        } else {
             c.put(new SOCStatusMessage
                 (SOCStatusMessage.SV_OK_SET_NICKNAME, msgUser + SOCMessage.sep2_char + txt));
+        }
         c.put(new SOCJoinChannelAuth(msgUser, ch));
 
         /**
@@ -1527,7 +1554,7 @@ public class SOCServerMessageHandler
             try
             {
                 channelList.createChannel(ch, msgUser);
-                ((SOCClientData) c.getAppData()).createdChannel();
+                scd.createdChannel();
             }
             catch (Exception e)
             {
@@ -1557,7 +1584,7 @@ public class SOCServerMessageHandler
         /**
          * let everyone know about the change
          */
-        srv.messageToChannel(ch, new SOCJoinChannel(msgUser, "", "dummyhost", ch));
+        srv.messageToChannel(ch, new SOCJoinChannel(msgUser, "", SOCMessage.EMPTYSTR, ch));
 
         /**
          * Send recap; same sequence is in SOCGameHandler.joinGame with different message type
@@ -1661,7 +1688,7 @@ public class SOCServerMessageHandler
         if (c == null)
             return;
 
-        D.ebugPrintln("handleJOINGAME: " + mes);
+        // D.ebugPrintln("handleJOINGAME: " + mes);
 
         /**
          * Check the client's reported version; if none, assume 1000 (1.0.00)

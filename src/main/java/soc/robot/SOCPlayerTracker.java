@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -810,8 +810,8 @@ public class SOCPlayerTracker
                         newPR = new SOCPossibleRoad(player, edge, null);
                     } else {
                         newPR = new SOCPossibleShip(player, edge, isCoastal, null);
-                        System.err.println
-                            ("L793: " + toString() + ": new PossibleShip(" + isCoastal + ") at 0x" + Integer.toHexString(edge));
+                        // System.err.println
+                        //     ("L793: " + toString() + ": new PossibleShip(" + isCoastal + ") at 0x" + Integer.toHexString(edge));
                     }
                     newPR.setNumberOfNecessaryRoads(roadsBetween);  // 0 unless requires settlement
                     newPossibleRoads.add(newPR);
@@ -832,7 +832,7 @@ public class SOCPlayerTracker
         //
         // expand possible roads that we've touched or added
         //
-        SOCPlayer dummy = new SOCPlayer(player);
+        SOCPlayer dummy = new SOCPlayer(player, "dummy");
         for (SOCPossibleRoad expandPR : roadsToExpand)
         {
             expandRoadOrShip(expandPR, player, dummy, trackers, expandLevel);
@@ -966,11 +966,9 @@ public class SOCPlayerTracker
             //
             // check adjacent edges to road or ship
             //
-            Enumeration<Integer> adjEdgesEnum = board.getAdjacentEdgesToEdge(tgtRoadEdge).elements();
-            while (adjEdgesEnum.hasMoreElements())
+            for (final Integer adjEdgeInt : board.getAdjacentEdgesToEdge(tgtRoadEdge))
             {
-                Integer adjEdge = adjEdgesEnum.nextElement();
-                final int edge = adjEdge.intValue();
+                final int edge = adjEdgeInt.intValue();
 
                 if (isShipInSC_PIRI)
                 {
@@ -1028,7 +1026,7 @@ public class SOCPlayerTracker
                     //
                     // see if possible road is already in the list
                     //
-                    SOCPossibleRoad pr = possibleRoads.get(adjEdge);
+                    SOCPossibleRoad pr = possibleRoads.get(adjEdgeInt);
 
                     if (pr != null)
                     {
@@ -1098,8 +1096,8 @@ public class SOCPlayerTracker
                             newPR = new SOCPossibleRoad(player, edge, neededRoads);
                         } else {
                             newPR = new SOCPossibleShip(player, edge, isCoastal, neededRoads);
-                            System.err.println
-                                ("L1072: " + toString() + ": new PossibleShip(" + isCoastal + ") at 0x" + Integer.toHexString(edge));
+                            // System.err.println
+                            //     ("L1072: " + toString() + ": new PossibleShip(" + isCoastal + ") at 0x" + Integer.toHexString(edge));
                         }
                         newPR.setNumberOfNecessaryRoads(targetRoad.getNumberOfNecessaryRoads() + incrDistance);
                         targetRoad.addNewPossibility(newPR);
@@ -1626,7 +1624,7 @@ public class SOCPlayerTracker
             final List<Integer> adjacEdges = board.getAdjacentEdgesToNode(settlementCoords);
 
             // First, loop to check for settleAlreadyHasRoad
-            for (Integer edge : adjacEdges)
+            for (final Integer edge : adjacEdges)
             {
                 if (possibleRoads.get(edge) != null)
                     continue;  // already a possible road or ship here
@@ -1640,7 +1638,7 @@ public class SOCPlayerTracker
             }
 
             // Now, possibly add new roads/ships/coastals
-            for (Integer edge : adjacEdges)
+            for (final Integer edge : adjacEdges)
             {
                 // TODO remove these debug prints soon
                 //System.err.println("L1348: examine edge 0x"
@@ -1677,17 +1675,21 @@ public class SOCPlayerTracker
                     possibleNewIslandRoads.add( (isCoastline)
                         ? new SOCPossibleShip(player, edge, true, null)
                         : new SOCPossibleRoad(player, edge, null));
+                    /*
                     if (isCoastline)
                         System.err.println
                             ("L1675: " + toString() + ": new PossibleShip(true) at 0x" + Integer.toHexString(edge));
+                     */
                 }
                 else if (player.isPotentialShip(edge))
                 {
                     // A way out to a new island
+
                     SOCPossibleShip newPS = new SOCPossibleShip(player, edge, false, null);
                     possibleRoads.put(edge, newPS);
-                    System.err.println("L1685: " + toString() + ": new PossibleShip(false) at 0x" + Integer.toHexString(edge)
-                        + " from coastal settle 0x" + Integer.toHexString(settlementCoords));
+                    // System.err.println("L1685: " + toString() + ": new PossibleShip(false) at 0x" + Integer.toHexString(edge)
+                    //     + " from coastal settle 0x" + Integer.toHexString(settlementCoords));
+
                     if (roadsToExpand == null)
                         roadsToExpand = new ArrayList<SOCPossibleRoad>();
                     roadsToExpand.add(newPS);
@@ -1704,9 +1706,11 @@ public class SOCPlayerTracker
                 for (SOCPossibleRoad pr : possibleNewIslandRoads)
                 {
                     possibleRoads.put(Integer.valueOf(pr.getCoordinates()), pr);
+                    /*
                     System.err.println("L1396: new possible road at edge 0x"
                         + Integer.toHexString(pr.getCoordinates()) + " from coastal settle 0x"
                         + Integer.toHexString(settlementCoords));
+                     */
                     if (roadsToExpand == null)
                         roadsToExpand = new ArrayList<SOCPossibleRoad>();
                     roadsToExpand.add(pr);
@@ -1719,7 +1723,7 @@ public class SOCPlayerTracker
                 //
                 // expand possible ships/roads that we've added
                 //
-                SOCPlayer dummy = new SOCPlayer(player);
+                SOCPlayer dummy = new SOCPlayer(player, "dummy");
                 for (SOCPossibleRoad expandPR : roadsToExpand)
                 {
                     final int expand = EXPAND_LEVEL + (expandPR.isRoadNotShip() ? 0 : EXPAND_LEVEL_SHIP_EXTRA);
@@ -2061,60 +2065,53 @@ public class SOCPlayerTracker
                  * look for possible settlements that can block this road
                  */
                 final int[] adjNodesToPosRoad = board.getAdjacentNodesToEdge_arr(posRoad.getCoordinates());
-                Enumeration<Integer> adjEdgeEnum = board.getAdjacentEdgesToEdge(posRoad.getCoordinates()).elements();
 
-                while (adjEdgeEnum.hasMoreElements())
+                for (final int adjEdge : board.getAdjacentEdgesToEdge(posRoad.getCoordinates()))
                 {
-                    final int adjEdge = adjEdgeEnum.nextElement().intValue();
-                    Enumeration<SOCRoutePiece> realRoadEnum = player.getRoadsAndShips().elements();
+                    final SOCRoutePiece realRoad = player.getRoadOrShip(adjEdge);
 
-                    while (realRoadEnum.hasMoreElements())
+                    if (realRoad != null)
                     {
-                        SOCRoutePiece realRoad = realRoadEnum.nextElement();
+                        /**
+                         * found an adjacent supporting road, now find the node between
+                         * the supporting road and the possible road
+                         */
+                        final int[] adjNodesToRealRoad = realRoad.getAdjacentNodes();
 
-                        if (adjEdge == realRoad.getCoordinates())
+                        for (int pi = 0; pi < 2; ++pi)
                         {
-                            /**
-                             * found an adjacent supporting road, now find the node between
-                             * the supporting road and the possible road
-                             */
-                            final int[] adjNodesToRealRoad = realRoad.getAdjacentNodes();
+                            final int adjNodeToPosRoad = adjNodesToPosRoad[pi];
 
-                            for (int pi = 0; pi < 2; ++pi)
+                            for (int ri = 0; ri < 2; ++ri)
                             {
-                                final int adjNodeToPosRoad = adjNodesToPosRoad[pi];
+                                final int adjNodeToRealRoad = adjNodesToRealRoad[ri];
 
-                                for (int ri = 0; ri < 2; ++ri)
+                                if (adjNodeToPosRoad == adjNodeToRealRoad)
                                 {
-                                    final int adjNodeToRealRoad = adjNodesToRealRoad[ri];
+                                    /**
+                                     * we found the common node
+                                     * now see if there is a possible enemy settlement
+                                     */
+                                    final Integer adjNodeToPosRoadInt = Integer.valueOf(adjNodeToPosRoad);
+                                    Iterator<SOCPlayerTracker> trackersIter = trackers.values().iterator();
 
-                                    if (adjNodeToPosRoad == adjNodeToRealRoad)
+                                    while (trackersIter.hasNext())
                                     {
-                                        /**
-                                         * we found the common node
-                                         * now see if there is a possible enemy settlement
-                                         */
-                                        final Integer adjNodeToPosRoadInt = Integer.valueOf(adjNodeToPosRoad);
-                                        Iterator<SOCPlayerTracker> trackersIter = trackers.values().iterator();
+                                        SOCPlayerTracker tracker = trackersIter.next();
 
-                                        while (trackersIter.hasNext())
+                                        if (tracker.getPlayer().getPlayerNumber() != playerNumber)
                                         {
-                                            SOCPlayerTracker tracker = trackersIter.next();
+                                            SOCPossibleSettlement posEnemySet
+                                                = tracker.getPossibleSettlements().get(adjNodeToPosRoadInt);
 
-                                            if (tracker.getPlayer().getPlayerNumber() != playerNumber)
+                                            if (posEnemySet != null)
                                             {
-                                                SOCPossibleSettlement posEnemySet
-                                                    = tracker.getPossibleSettlements().get(adjNodeToPosRoadInt);
+                                                /**
+                                                 * we found a settlement that threatens our possible road
+                                                 */
 
-                                                if (posEnemySet != null)
-                                                {
-                                                    /**
-                                                     * we found a settlement that threatens our possible road
-                                                     */
-
-                                                    //D.ebugPrintln("&&&& adding threat from settlement at "+Integer.toHexString(posEnemySet.getCoordinates()));
-                                                    posRoad.addThreat(posEnemySet);
-                                                }
+                                                //D.ebugPrintln("&&&& adding threat from settlement at "+Integer.toHexString(posEnemySet.getCoordinates()));
+                                                posRoad.addThreat(posEnemySet);
                                             }
                                         }
                                     }
@@ -2554,7 +2551,7 @@ public class SOCPlayerTracker
      */
     public void updateLRValues()
     {
-        SOCPlayer dummy = new SOCPlayer(player);
+        SOCPlayer dummy = new SOCPlayer(player, "dummy");
         int lrLength = player.getLongestRoadLength();
 
         //
@@ -2640,12 +2637,8 @@ public class SOCPlayerTracker
         {
             noMoreExpansion = false;
 
-            Enumeration<Integer> adjEdgeEnum = board.getAdjacentEdgesToEdge(dummyRS.getCoordinates()).elements();
-
-            while (adjEdgeEnum.hasMoreElements())
+            for (final int adjEdge : board.getAdjacentEdgesToEdge(dummyRS.getCoordinates()))
             {
-                final int adjEdge = adjEdgeEnum.nextElement().intValue();
-
                 if ( (dummyRS.isRoadNotShip() && dummy.isPotentialRoad(adjEdge))
                      || ((! dummyRS.isRoadNotShip()) && dummy.isPotentialShip(adjEdge)) )
                 {
@@ -2675,11 +2668,8 @@ public class SOCPlayerTracker
             //
             // we need to add new roads/ships adjacent to dummyRoad, and recurse
             //
-            Enumeration<Integer> adjEdgeEnum = board.getAdjacentEdgesToEdge(dummyRS.getCoordinates()).elements();
-            while (adjEdgeEnum.hasMoreElements())
+            for (final int adjEdge : board.getAdjacentEdgesToEdge(dummyRS.getCoordinates()))
             {
-                final int adjEdge = adjEdgeEnum.nextElement().intValue();
-
                 if ( (dummyRS.isRoadNotShip() && dummy.isPotentialRoad(adjEdge))
                      || ((! dummyRS.isRoadNotShip()) && dummy.isPotentialShip(adjEdge)) )
                 {

@@ -71,6 +71,7 @@ import javax.swing.border.EmptyBorder;
  * {@code game.specitem.sc_wond.w1} - {@code game.specitem.sc_wond.w5}.  Some Wonders require
  * a settlement or city at certain node locations, which are named as keyed strings
  * {@code board.nodelist._SC_WOND.N1} - {@code board.nodelist._SC_WOND.N3}.
+ * See also {@link SOCSpecialItem#getStringValue()}.
  *
  * @since 2.0.00
  */
@@ -81,7 +82,10 @@ import javax.swing.border.EmptyBorder;
     /** i18n text strings; will use same locale as SOCPlayerClient's string manager. */
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
-    /** Special items' {@code typeKey}, such as {@link SOCGameOption#K_SC_WOND _SC_WOND}. */
+    /**
+     * Special items' {@code typeKey}, such as {@link SOCGameOption#K_SC_WOND _SC_WOND}.
+     * See {@link #SOCSpecialItemDialog(SOCPlayerInterface, String) constructor} javadoc.
+     */
     private final String typeKey;
 
     /** Item pick buttons. */
@@ -114,7 +118,8 @@ import javax.swing.border.EmptyBorder;
      * Currently {@link SOCGameOption#K_SC_WOND _SC_WOND} is the only known {@code typeKey}.
      *
      * @param pi  PlayerInterface that owns this dialog
-     * @param typeKey  Special item type key; see the {@link SOCSpecialItem} class javadoc for details
+     * @param typeKey  Special item type key; for details see the {@link SOCSpecialItem} class javadoc
+     *     and {@link SOCSpecialItem#makeKnownItem(String, int)} javadoc's {@code typeKey} param.
      * @throws IllegalArgumentException if the {@code typeKey} is unknown here
      */
     public SOCSpecialItemDialog
@@ -134,7 +139,15 @@ import javax.swing.border.EmptyBorder;
         this.pi = pi;
         this.typeKey = typeKey;
 
-        final Container cpane = getContentPane();
+        final int px3 = 3 * pi.displayScale;  // for spacing
+
+        Container cpane = getContentPane();
+        if (! (cpane instanceof JPanel))
+        {
+            cpane = new JPanel();
+            setContentPane(cpane);
+        }
+        ((JPanel) cpane).setBorder(new EmptyBorder(2 * px3, 2 * px3, px3, 2 * px3));
         GridBagLayout gbl = new GridBagLayout();
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.anchor = GridBagConstraints.LINE_START;
@@ -142,9 +155,9 @@ import javax.swing.border.EmptyBorder;
         setLayout(gbl);
 
         // most components pad to avoid text against adjacent component
-        final Insets insPadLR = new Insets(0, 3, 0, 3),
-            insPadL = new Insets(0, 3, 0, 0),
-            insPadBottom = new Insets(0, 0, 15, 0),    // wide bottom insets, as gap between wonders
+        final Insets insPadLR = new Insets(0, px3, 0, px3),
+            insPadL = new Insets(0, px3, 0, 0),
+            insPadBottom = new Insets(0, 0, 5 * px3, 0),    // wide bottom insets, as gap between wonders
             insNone = gbc.insets;
 
         ga = pi.getGame();
@@ -204,16 +217,29 @@ import javax.swing.border.EmptyBorder;
 
         final boolean playerOwnsWonder =
             (cliPlayer != null) && (cliPlayer.getSpecialItem(SOCGameOption.K_SC_WOND, 0) != null);
+        boolean hasStartingCostShip = false;  // true only if player has available ship && ! playerOwnsWonder
+        try
+        {
+            if ((cliPlayer != null) && ! playerOwnsWonder)
+                hasStartingCostShip = ga.getSpecialItem(typeKey, 1).checkStartingCostPiecetype(cliPlayer, false);
+                // assumes all special items have same startingCostPiecetype, which is true for SC_WOND
+        }
+        catch (Throwable th) {}  // null item, etc
 
         final String buildStr = strings.get("base.build");
-        if ((cliPlayer != null) && ! playerOwnsWonder)
-            subtitle_prompt.setText(strings.get("dialog.specitem._SC_WOND.prompt"));  // "Choose the Wonder you will build."
+        if (ga.getGameState() < SOCGame.START1A)
+            subtitle_prompt.setText(strings.get("dialog.specitem.start_game"));  // "Must start the game to see this info."
+        else if ((cliPlayer != null) && ! playerOwnsWonder)
+            subtitle_prompt.setText(strings.get
+                ((hasStartingCostShip)
+                 ? "dialog.specitem._SC_WOND.prompt"             // "Choose the Wonder you will build."
+                 : "dialog.specitem._SC_WOND.starting_cost" ));  // "Starting cost: Resources shown, and 1 ship used for ownership marker"
 
         for (int i = 0; i < numWonders; ++i)
         {
             SOCSpecialItem itm = ga.getSpecialItem(typeKey, i+1);
             if (itm == null)
-                continue;  // shouldn't ever happen, unless SOCSpecialItem.makeKnownItem has failed
+                continue;  // shouldn't happen once game starts, unless SOCSpecialItem.makeKnownItem has failed
 
             // GBL Layout rows for a Wonder:
             // [Build] wonder name [sq][sq][sq][sq][sq] (cost) - requirements
@@ -231,7 +257,7 @@ import javax.swing.border.EmptyBorder;
                 && (ga.getGameState() < SOCGame.OVER)
                 && (playerOwnsWonder)
                     ? (playerOwnsThis && itm.checkCost(cliPlayer))
-                    : ((owner == null) && itm.checkRequirements(cliPlayer, true));
+                    : ((owner == null) && hasStartingCostShip && itm.checkRequirements(cliPlayer, true));
             if (playerOwnsThis || ! playerOwnsWonder)
             {
                 final JButton b = new JButton(buildStr);
@@ -322,6 +348,18 @@ import javax.swing.border.EmptyBorder;
 
             L = new JLabel(sb.toString());
             gbc.gridx = GridBagConstraints.RELATIVE;
+            gbc.gridwidth = GridBagConstraints.REMAINDER;
+            gbl.setConstraints(L, gbc);
+            cpane.add(L);
+        }
+
+        if (hasStartingCostShip)
+        {
+            // footer row with reminder
+
+            L = new JLabel(strings.get("dialog.specitem._SC_WOND.starting_cost"));
+                // "Starting cost: Resources shown, and 1 ship used for ownership marker"
+            gbc.insets = insPadLR;
             gbc.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(L, gbc);
             cpane.add(L);
@@ -534,7 +572,7 @@ import javax.swing.border.EmptyBorder;
                 // during other players' turns.
 
                 final SOCGame ga = pi.getGame();
-                final GameMessageMaker gmm = pi.getClient().getGameMessageMaker();
+                final GameMessageSender messageSender = pi.getClient().getGameMessageSender();
                 boolean askedSBP = false;
                 if (! pi.clientIsCurrentPlayer())
                 {
@@ -544,7 +582,7 @@ import javax.swing.border.EmptyBorder;
                         // Can't build on other players' turns, but can request SBP.
                         // Consistent with what happens when clicking Buy for a road,
                         // city, etc on another player's turn in 6-player game.
-                        gmm.buildRequest(ga, -1);
+                        messageSender.buildRequest(ga, -1);
                         askedSBP = true;
                     }
                     // else: Fall through, send PICK request, server will
@@ -553,7 +591,7 @@ import javax.swing.border.EmptyBorder;
                 }
 
                 if (! askedSBP)
-                    gmm.pickSpecialItem(ga, typeKey, 1 + i, 0);
+                    messageSender.pickSpecialItem(ga, typeKey, 1 + i, 0);
 
                 nbddListenerCalled = true;
                 dispose();

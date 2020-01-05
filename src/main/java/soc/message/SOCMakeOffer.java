@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2010,2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2010,2014,2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,7 +30,11 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message means that a player wants to trade with other players
+ * This message means that a player wants to trade with other players.
+ *<P>
+ * From client: A request to make or update an offer to 1 or more other players. <BR>
+ * From server: A validated offer announced to the game. Will be followed immediately by
+ * a {@link SOCClearTradeMsg} to clear responses from any previous offer.
  *
  * @author Robert S. Thomas
  */

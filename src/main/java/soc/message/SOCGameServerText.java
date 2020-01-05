@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2014,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  *
  * This program is free software; you can redistribute it and/or
@@ -30,16 +30,16 @@ import java.util.StringTokenizer;
  *<P>
  * Robots ignore this message type so they won't be dependent on brittle
  * text parsing. For the benefit of robots and to help client responsiveness,
- * the server often sends this message type preceded by data-only messages
+ * the server often precedes this message type with data-only messages
  * such as {@link SOCAcceptOffer}.
  *<P>
  * Occasionally, game text is sent with additional information
- * via {@link SOCSVPTextMessage}, instead of using this message type.
- * Some simple actions are sent by the server with {@link SOCSimpleAction}
- * or {@link SOCSimpleRequest} instead of text.
+ * via {@link SOCSVPTextMessage} instead of using this message type.
+ * Some simple actions or prompts are sent by the server with {@link SOCSimpleAction}
+ * or {@link SOCSimpleRequest} instead of as text.
  *<P>
  * This class was introduced in version 2.0.00; earlier versions of the server
- * and client use {@link SOCGameTextMsg} for server announcements and messages.
+ * and client used {@link SOCGameTextMsg} for server announcements and messages.
  *
  * @author Jeremy D Monin
  * @since 2.0.00

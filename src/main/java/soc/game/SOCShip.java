@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2013,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2013,2017-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -26,7 +26,7 @@ package soc.game;
  * A ship playing piece, on the large sea board ({@link SOCBoardLarge}).
  * To simplify some game code, ships and {@link SOCRoad}s have a common superclass.
  *<P>
- * Ships are open until their route has a settlement or city on both ends.
+ * Ships are open until their route has a settlement, city, or village on both ends.
  * Ships can be moved any turn after the turn they're placed, until {@link #isClosed()} is true.
  *<P>
  * In scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
@@ -69,6 +69,7 @@ public class SOCShip extends SOCRoutePiece
 
     /**
      * Is this ship part of a closed trade route, not an open one?
+     * See {@link SOCShip class javadoc} for details.
      * @return  True if {@link #setClosed()} has been called
      */
     public boolean isClosed()

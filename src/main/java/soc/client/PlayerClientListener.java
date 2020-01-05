@@ -29,6 +29,7 @@ import java.util.Map;
 
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;  // for javadocs only
+import soc.game.SOCInventory;   // for javadocs only
 import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
@@ -65,6 +66,12 @@ import soc.game.SOCSpecialItem;
  */
 public interface PlayerClientListener
 {
+    /**
+     * Get the client's player number if playing in a game.
+     * @return Client player's {@link SOCPlayer#getPlayerNumber()} if playing, or -1 if observing or not yet seated
+     */
+    int getClientPlayerNumber();
+
     /**
      * Receive a notification that the current player has rolled the dice.
      * Call this after updating game state with the roll result.
@@ -114,13 +121,13 @@ public interface PlayerClientListener
     void playerTurnSet(int playerNumber);
 
     /**
-     * A player has placed a piece on the board.
+     * A player has placed a piece on the board; update game data and displays.
      * @param pieceType A piece type identifier, such as {@link SOCPlayingPiece#CITY}
      */
     void playerPiecePlaced(SOCPlayer player, int coordinate, int pieceType);
 
     /**
-     * A player has moved a piece on the board.
+     * A player has moved a piece on the board; update game data and displays.
      * Most pieces are not movable.  {@link soc.game.SOCShip SOCShip} pieces can sometimes be moved.
      * Not used when the robber or pirate is moved; see {@link #robberMoved()}.
      * @param pieceType A piece type identifier, such as {@link SOCPlayingPiece#CITY}
@@ -154,6 +161,7 @@ public interface PlayerClientListener
      *
      * @param player  The player
      * @param addedPlayable  True if the update added a dev card or item that's playable now
+     *     ({@link SOCInventory#OLD}, not {@link SOCInventory#NEW NEW})
      */
     void playerDevCardUpdated(SOCPlayer player, final boolean addedPlayable);
 
@@ -228,7 +236,7 @@ public interface PlayerClientListener
      * This player must choose a player for robbery.
      * @param choices   The potential victim players to choose from
      * @param isNoneAllowed  If true, player can choose to rob no one (game scenario <tt>SC_PIRI</tt>)
-     * @see GameMessageMaker#choosePlayer(SOCGame, int)
+     * @see GameMessageSender#choosePlayer(SOCGame, int)
      */
     void requestedChoosePlayer(List<SOCPlayer> choices, boolean isNoneAllowed);
 
@@ -244,7 +252,9 @@ public interface PlayerClientListener
     void playerBankTrade(SOCPlayer player, SOCResourceSet give, SOCResourceSet get);
 
     /**
-     * This player has just made a trade offer to other players.
+     * The player {@code offerer} has just made a trade offer to other players,
+     * or updated the resources of their already-displayed offer.
+     * Show its details in their part of the game interface.
      * For offer details call {@code offerer.}{@link SOCPlayer#getCurrentOffer() getCurrentOffer()}.
      * @param offerer  Player with a new trade offer
      */
@@ -260,6 +270,12 @@ public interface PlayerClientListener
      */
     void requestedTradeClear(SOCPlayer offerer, final boolean isBankTrade);
 
+    /**
+     * A player has rejected the current trade offer(s).
+     * Indicate that in the display, for example by showing something like "no thanks"
+     * in their part of the game interface.
+     * @param rejecter  Player rejecting all trade offers
+     */
     void requestedTradeRejection(SOCPlayer rejecter);
 
     /**
@@ -297,13 +313,19 @@ public interface PlayerClientListener
      */
     void membersListed(List<String> names);
 
-    /** An entire board layout has been received from the server. */
+    /**
+     * An entire board layout has been received from the server.
+     * Calls {@link #boardUpdated()} and also updates
+     * related counters/displays elsewhere in the game's UI.
+     */
     void boardLayoutUpdated();
 
     /**
      * Part of the board contents have been updated.
      * For example, a fog hex was revealed, or a trade port
      * was removed from or added to the board.
+     * Redraws all layers of the entire board.
+     * @see #boardLayoutUpdated()
      */
     void boardUpdated();
 
@@ -388,6 +410,14 @@ public interface PlayerClientListener
      * @param gameState One of the states from SOCGame, such as {@link soc.game.SOCGame#NEW}
      */
     void gameStateChanged(int gameState);
+
+    /**
+     * Update interface after game is over.
+     * Reveal actual total scores, list other players' VP cards, etc.
+     * @param scores  Each player's actual total score, including hidden VP cards.
+     *     Map contains each player object in the game, including empty seats,
+     *     so its size is {@link SOCGame#maxPlayers}.
+     */
     void gameEnded(Map<SOCPlayer, Integer> scores);
 
     /**

@@ -38,6 +38,23 @@ import soc.game.SOCGameOption;
 public class TestGameOptions
 {
     /**
+     * Test that {@link SOCGameOption#setIntValue(int)} works and that, instead of throwing an exception,
+     * values outside of min/max range are clipped to that range; uses intbool option {@code "VP"}.
+     */
+    @Test
+    public void testSetIntValueRange()
+    {
+        final SOCGameOption vp = SOCGameOption.getOption("VP", true);
+        assertNotNull(vp);
+        vp.setIntValue(12);   // is within range
+        assertEquals(12, vp.getIntValue());
+        vp.setIntValue(2);  // too low
+        assertEquals("should clip to min", vp.minIntValue, vp.getIntValue());
+        vp.setIntValue(vp.maxIntValue + 999);  // too high
+        assertEquals("should clip to max", vp.maxIntValue, vp.getIntValue());
+    }
+
+    /**
      * Test that keys of {@link SOCGameOption#initAllOptions()} and {@link SOCGameOption#getAllKnownOptions()}
      * are consistent internally and with each other. Each option's map key must be its option key.
      */
@@ -96,6 +113,64 @@ public class TestGameOptions
         sb = SOCGameOption.adjustOptionsToKnown(newOpts, knownOpts, true);
         assertNull(sb);
         assertTrue(newOpts.containsKey("VP"));
+    }
+
+    /**
+     * Test adding a new known option and removing it.
+     */
+    @Test
+    public void testAddKnownOption()
+    {
+        // add known opt
+        final SOCGameOption newKnown = new SOCGameOption
+            ("_TESTF", 2000, 2000, false, 0, "For unit test");
+        assertNull(SOCGameOption.getOption("_TESTF", false));
+        SOCGameOption.addKnownOption(newKnown);
+
+        // getOption without clone should be same object
+        SOCGameOption opt = SOCGameOption.getOption("_TESTF", false);
+        assertTrue(newKnown == opt);
+
+        // getOption with clone should be different object with same field values
+        opt = SOCGameOption.getOption("_TESTF", true);
+        assertTrue(newKnown != opt);
+        assertNotNull(opt);
+        assertEquals("_TESTF", opt.key);
+        assertEquals(SOCGameOption.OTYPE_BOOL, opt.optType);
+        assertEquals(2000, opt.minVersion);
+        assertEquals(2000, opt.lastModVersion);
+
+        // cleanup/remove known opt
+        SOCGameOption.addKnownOption(new SOCGameOption("_TESTF"));
+        assertNull(SOCGameOption.getOption("_TESTF", false));
+    }
+
+    /**
+     * Test server-side behavior of {@link SOCGameOption#FLAG_INTERNAL_GAME_PROPERTY}.
+     * Currently can't test client-side because it's part of NewGameOptionsFrame GUI code.
+     */
+    @Test
+    public void testFlagInternalGameProperty()
+    {
+        // setup
+        final SOCGameOption newKnown = new SOCGameOption
+            ("_TESTF", 2000, 2000, 0, 0, 0xFFFF, SOCGameOption.FLAG_INTERNAL_GAME_PROPERTY,
+             "For unit test");
+        assertNull(SOCGameOption.getOption("_TESTF", false));
+        SOCGameOption.addKnownOption(newKnown);
+        assertNotNull(SOCGameOption.getOption("_TESTF", false));
+
+        // should remove internal option if sent from "client" to "server"
+        final Map<String, SOCGameOption> newGameOpts = new HashMap<String, SOCGameOption>();
+        final SOCGameOption opt = SOCGameOption.getOption("_TESTF", true);
+        opt.setIntValue(0x2211);
+        newGameOpts.put("_TESTF", opt);
+        SOCGameOption.adjustOptionsToKnown(newGameOpts, null, true);
+        assertNull(newGameOpts.get("_TESTF"));
+
+        // cleanup
+        SOCGameOption.addKnownOption(new SOCGameOption("_TESTF"));
+        assertNull(SOCGameOption.getOption("_TESTF", false));
     }
 
     public static void main(String[] args)

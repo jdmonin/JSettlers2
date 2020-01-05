@@ -21,7 +21,9 @@ package soctest.game;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.junit.BeforeClass;
@@ -29,6 +31,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import soc.game.SOCBoard;
+import soc.game.SOCBoardLarge;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCScenario;
@@ -118,6 +121,7 @@ public class TestBoardLayouts
         currentNumPlayers = pl;
 
         final String gaName = layoutNameKey(sc, pl);
+        final boolean checkSC_CLVI = ((sc != null) && sc.key.equals(SOCScenario.K_SC_CLVI));
         boolean noFails = true;
 
         for (int i = roundCount; i >= 1; --i)
@@ -134,7 +138,13 @@ public class TestBoardLayouts
                 try
                 {
                     ga.addPlayer("player", 1);
-                    ga.startGame();  // SOCBoard/SOCBoardAtServer.makeNewBoard is called here
+                    ga.startGame();  // SOCBoardAtServer.makeNewBoard is called here (SOCBoard if classic/no scenario).
+                        // If board has Added Layout Part "AL" (SC_WOND), it's parsed and consistency-checked
+                        // during makeNewBoard, which calls SOCBoardLarge.initLegalRoadsFromLandNodes()
+
+                    if (checkSC_CLVI)
+                        testLayout_SC_CLVI(ga);
+
                     gl.deleteGame(gaName);
                 }
                 catch (Exception e)
@@ -150,8 +160,72 @@ public class TestBoardLayouts
     }
 
     /**
+     * For a layout of scenario {@link SOCScenario#K_SC_CLVI SC_CLVI}:
+     *<UL>
+     * <LI> Checks that Added Layout Part {@code "CV"} has the same contents as
+     *   {@link SOCBoardLarge#getVillageAndClothLayout()}.
+     *   In the unlikely event of a mismatch, will fail various Assertions
+     * <LI> Check village count from {@code "CV"} against
+     *   {@link SOCScenario#SC_CLVI_VILLAGES_CLOTH_REMAINING_MIN}:
+     *   Should be at least 3 more
+     *</UL>
+     *
+     * @param ga  Game with scenario SC_CLVI
+     * @throws IllegalStateException  if "CV" mismatch or not enough villages
+     */
+    private void testLayout_SC_CLVI(SOCGame ga)
+        throws IllegalStateException
+    {
+        final int[] cvPart = ((SOCBoardLarge) ga.getBoard()).getAddedLayoutPart("CV");
+        if (cvPart == null)
+            throw new IllegalStateException("null CV");
+        final int[] cvLayout = ((SOCBoardLarge) ga.getBoard()).getVillageAndClothLayout();
+        if (cvLayout == null)
+            throw new IllegalStateException("null getVillageAndClothLayout()");
+        assertEquals("CV length", cvPart.length, cvLayout.length);
+
+        final int nVillages = (cvPart.length / 2) - 1;  // per getVillageAndClothLayout() javadoc
+        if (nVillages < (3 + SOCScenario.SC_CLVI_VILLAGES_CLOTH_REMAINING_MIN))
+            throw new IllegalStateException
+                ("Only " + nVillages + " villages; should have at least "
+                 + (3 + SOCScenario.SC_CLVI_VILLAGES_CLOTH_REMAINING_MIN)
+                 + " for SOCScenario.SC_CLVI_VILLAGES_CLOTH_REMAINING_MIN");
+
+        // to compare CV contents, must sort them by village location
+        assertEquals("CV[0]", cvPart[0], cvLayout[0]);
+        assertEquals("CV[1]", cvPart[1], cvLayout[1]);
+        TreeMap<Integer, Integer> partMap = new TreeMap<Integer, Integer>(),
+            layoutMap = new TreeMap<Integer, Integer>();
+        for (int i = 2; i < cvPart.length; i += 2)  // arrays have equal length
+        {
+            partMap.put(cvPart[i], cvPart[i+1]);
+            layoutMap.put(cvLayout[i], cvLayout[i+1]);
+        }
+
+        // equal length: compare by iterating both of them
+        Iterator<Integer> partI = partMap.keySet().iterator(),
+            layoutI = layoutMap.keySet().iterator();
+        while (partI.hasNext() && layoutI.hasNext())
+        {
+            Integer partKey = partI.next(), layoutKey = layoutI.next();
+            if (! partKey.equals(layoutKey))
+                throw new IllegalStateException
+                    ("village coord mismatch: CV 0x" + Integer.toHexString(partKey)
+                     + ", layout 0x" + Integer.toHexString(layoutKey));
+            int partValue = partMap.get(partKey), layoutValue = layoutMap.get(layoutKey);
+            if (partValue != layoutValue)
+                throw new IllegalStateException
+                    ("village[0x" + Integer.toHexString(partKey) + "] diceNum mismatch: CV "
+                     + partValue + ", layout " + layoutValue);
+        }
+        assertFalse(partI.hasNext());
+        assertFalse(layoutI.hasNext());
+    }
+
+    /**
      * Test board layouts for classic games and all {@link SOCScenario}s for 2, 3, 4 and 6 players.
-     * Tests each one for {@link #roundCount} rounds, with and without game option {@code "BC=t3"}.
+     * Tests each one for {@link #roundCount} rounds, with and without game option {@code "BC=t3"},
+     * by calling {@link #testSingleLayout(SOCScenario, int)}.
      * @see SOCGameListAtServer#createGame(String, String, String, Map, soc.server.GameHandler)
      * @see SOCBoardAtServer#makeNewBoard(Map)
      */

@@ -407,10 +407,14 @@ public class SOCGameMessageHandler
                     // because pre-2.0.00 clients don't understand SOCGameServerText messages.
                     srv.messageToGameForVersions(ga, 0, SOCGameTextMsg.VERSION_FOR_DICE_RESULT_INSTEAD - 1,
                         new SOCGameTextMsg
-                            (gn, SOCGameTextMsg.SERVERNAME, plName + " rolled a " + roll.diceA + " and a " + roll.diceB + "."), // I18N
+                            (gn, SOCGameTextMsg.SERVERNAME,
+                             plName + " rolled a " + roll.diceA + " and a " + roll.diceB + "."), // I18N
                         true);
                 }
                 handler.sendGameState(ga);  // For 7, give visual feedback before sending discard request
+
+                /** if true but noPlayersGained, will change announcement wording from "No player gets anything". */
+                boolean someoneWonFreeRsrc = false;
 
                 if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
                 {
@@ -435,6 +439,7 @@ public class SOCGameMessageHandler
 
                             if (won)
                             {
+                                someoneWonFreeRsrc = true;
                                 srv.messageToGameKeyed
                                     (ga, true, "action.rolled.sc_piri.player.won.pick.free", vicName, strength);
                                     // "{0} won against the pirate fleet (strength {1}) and will pick a free resource."
@@ -442,7 +447,7 @@ public class SOCGameMessageHandler
                                 /**
                                  * tell the victim client that the player lost the resources
                                  */
-                                handler.reportRsrcGainLoss(gn, loot, true, true, vpn, -1, null, vCon);
+                                handler.reportRsrcGainLoss(gn, loot, true, true, vpn, -1, vCon);
                                 srv.messageToPlayerKeyedSpecial
                                     (vCon, ga, "action.rolled.sc_piri.you.lost.rsrcs.to.fleet", loot, strength);
                                     // "You lost {0,rsrcs} to the pirate fleet (strength {1,number})."
@@ -467,7 +472,7 @@ public class SOCGameMessageHandler
                  */
                 if (ga.getCurrentDice() != 7)
                 {
-                    boolean noPlayersGained = true;
+                    boolean noPlayersGained = true;  // see also someoneWonFreeRsrc
 
                     /**
                      * Clients v2.0.00 and newer get an i18n-neutral SOCDiceResultResources message.
@@ -508,7 +513,7 @@ public class SOCGameMessageHandler
                                     // get it from any connection's StringManager, because that string is never localized
 
                                 // Announce SOCPlayerElement.GAIN messages
-                                handler.reportRsrcGainLoss(gn, rsrcs, false, false, pn, -1, null, null);
+                                handler.reportRsrcGainLoss(gn, rsrcs, false, false, pn, -1, null);
                             }
                         }
                     }
@@ -522,9 +527,13 @@ public class SOCGameMessageHandler
                     {
                         String key;
                         if (roll.cloth == null)
-                            key = "action.rolled.no.player.gets.anything";  // "No player gets anything."
+                            key = (someoneWonFreeRsrc)
+                                ? "action.rolled.no_other_player_gets.anything"  // "No other player gets anything."
+                                : "action.rolled.no_player_gets.anything";       // "No player gets anything."
                         else
-                            key = "action.rolled.no.player.gets.resources";  // "No player gets resources."
+                            key = (someoneWonFreeRsrc)
+                                ? "action.rolled.no_other_player_gets.resources"  // "No other player gets resources."
+                                : "action.rolled.no_player_gets.resources";       // "No player gets resources."
                         // debug_printPieceDiceNumbers(ga, message);
                         srv.messageToGameKeyed(ga, true, key);
                     } else {
@@ -580,26 +589,26 @@ public class SOCGameMessageHandler
                     {
                         // Send village cloth trade distribution
 
-                        final int coord = roll.cloth[1];
-                        final SOCBoardLarge board = (SOCBoardLarge) (ga.getBoard());
-                        SOCVillage vi = board.getVillageAtNode(coord);
-                        if (vi != null)
-                            srv.messageToGame(gn, new SOCPieceValue
-                                (gn, SOCPlayingPiece.VILLAGE, coord, vi.getCloth(), 0));
+                        if (roll.clothVillages != null)
+                            for (final SOCVillage vi : roll.clothVillages)
+                                srv.messageToGame(gn, new SOCPieceValue
+                                    (gn, SOCPlayingPiece.VILLAGE, vi.getCoordinates(), vi.getCloth(), 0));
 
                         if (roll.cloth[0] > 0)
                             // some taken from board general supply
                             srv.messageToGame(gn, new SOCPlayerElement
-                                (gn, -1, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, board.getCloth()));
+                                (gn, -1, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT,
+                                 ((SOCBoardLarge) ga.getBoard()).getCloth()));
 
                         String clplName = null;   // name of first player to receive cloth
+                        int    clplAmount = 0;
                         ArrayList<String> clpls = null;  // names of all players receiving cloth, if more than one
-                        for (int i = 2; i < roll.cloth.length; ++i)
+                        for (int i = 1; i < roll.cloth.length; ++i)
                         {
                             if (roll.cloth[i] == 0)
                                 continue;  // this player didn't receive cloth
 
-                            final int pn = i - 2;
+                            final int pn = i - 1;
                             final SOCPlayer clpl = ga.getPlayer(pn);
                             srv.messageToGame(gn, new SOCPlayerElement
                                 (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, clpl.getCloth()));
@@ -608,6 +617,7 @@ public class SOCGameMessageHandler
                             {
                                 // first pl to receive cloth
                                 clplName = clpl.getName();
+                                clplAmount = roll.cloth[i];
                             } else {
                                 // second or further player
                                 if (clpls == null)
@@ -620,11 +630,11 @@ public class SOCGameMessageHandler
                         }
 
                         if (clpls == null)
-                            srv.messageToGameKeyed(ga, true, "action.rolled.sc_clvi.received.cloth.1", clplName);
-                                // "{0} received 1 cloth from a village."
+                            srv.messageToGameKeyed(ga, true, "action.rolled.sc_clvi.received.cloth.1", clplName, clplAmount);
+                                // "{0} received {1} cloth from the villages."
                         else
                             srv.messageToGameKeyedSpecial(ga, true, "action.rolled.sc_clvi.received.cloth.n", clpls);
-                                // "{0,list} each received 1 cloth from a village."
+                                // "{0,list} each received cloth from the villages."
                     }
 
                     if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
@@ -670,7 +680,8 @@ public class SOCGameMessageHandler
                                 if (con != null)
                                 {
                                     srv.messageToGame(gn, new SOCPlayerElement
-                                        (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, numPick));
+                                        (gn, pn, SOCPlayerElement.SET,
+                                         SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, numPick));
                                     con.put
                                         (new SOCSimpleRequest
                                             (gn, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, numPick, 0));
@@ -729,7 +740,7 @@ public class SOCGameMessageHandler
                 /**
                  * tell the player client that the player discarded the resources
                  */
-                handler.reportRsrcGainLoss(gn, res, true, false, pn, -1, null, c);
+                handler.reportRsrcGainLoss(gn, res, true, false, pn, -1, c);
 
                 /**
                  * tell everyone else that the player discarded unknown resources
@@ -917,7 +928,8 @@ public class SOCGameMessageHandler
                     else if (ga.canChoosePlayer(choice))
                     {
                         final int rsrc = ga.choosePlayerForRobbery(choice);
-                        final boolean waitingClothOrRsrc = (ga.getGameState() == SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE);
+                        final boolean waitingClothOrRsrc =
+                            (ga.getGameState() == SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE);
                         if (! waitingClothOrRsrc)
                         {
                             handler.reportRobbery
@@ -1169,7 +1181,10 @@ public class SOCGameMessageHandler
         final String gaName = ga.getName();
         if (ga.isGameOptionSet("NT"))
         {
-            srv.messageToPlayer(c, gaName, "Trading is not allowed in this game.");
+            // Check here as a fallback;
+            // client should know not to show trade-offer UI when game has option NT
+            srv.messageToPlayer(c, gaName, "Trading is not allowed in this game.");  // i18n OK: is fallback only
+
             return;  // <---- Early return: No Trading ----
         }
 
@@ -1723,7 +1738,8 @@ public class SOCGameMessageHandler
                         ga.undoPutInitSettlement(pp);
                         srv.messageToGame(gaName, mes);  // Re-send to all clients to announce it
                             // (Safe since we've validated all message parameters)
-                        srv.messageToGameKeyed(ga, true, "action.built.stlmt.cancel", player.getName());  //  "{0} cancelled this settlement placement."
+                        srv.messageToGameKeyed(ga, true, "action.built.stlmt.cancel", player.getName());
+                            //  "{0} cancelled this settlement placement."
                         // The handler.sendGameState below is redundant if client reaction changes game state
                     } else {
                         srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a settlement."/*18N*/ );
@@ -2259,6 +2275,9 @@ public class SOCGameMessageHandler
             srv.messageToGame(gaName, new SOCPutPiece
                               (gaName, mes.getPlayerNumber(), pieceType, coord));
 
+            if (! (ga.pendingMessagesOut.isEmpty() && player.pendingMessagesOut.isEmpty()))
+                handler.sendGamePendingMessages(ga, true);
+
             // Check for initial settlement next to gold hex, or road/ship revealed gold from fog
             final int numGoldRes = player.getNeedToPickGoldHexResources();
             if (numGoldRes > 0)
@@ -2323,6 +2342,8 @@ public class SOCGameMessageHandler
                     int card = ga.buyDevCard();
                     final int devCount = ga.getNumDevCards();
 
+                    // Note: If this message sequence changes, update SOCBuyDevCardRequest javadoc
+
                     srv.gameList.takeMonitorForGame(gaName);
                     if (ga.clientVersionLowest >= SOCPlayerElements.MIN_VERSION)
                     {
@@ -2342,20 +2363,24 @@ public class SOCGameMessageHandler
                     }
                     srv.gameList.releaseMonitorForGame(gaName);
 
-                    if ((card == SOCDevCardConstants.KNIGHT) && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+                    if ((card == SOCDevCardConstants.KNIGHT)
+                        && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES))
                         card = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
                     srv.messageToPlayer(c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, card));
 
-                    if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
+                    if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES)
                     {
-                        srv.messageToGameExcept(gaName, c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
+                        srv.messageToGameExcept(gaName, c, new SOCDevCardAction
+                            (gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
                     } else {
                         srv.messageToGameForVersionsExcept
-                            (ga, -1, SOCDevCardConstants.VERSION_FOR_NEW_TYPES - 1,
-                             c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X), true);
+                            (ga, -1, SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES - 1,
+                             c, new SOCDevCardAction
+                                 (gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X), true);
                         srv.messageToGameForVersionsExcept
-                            (ga, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
-                             c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
+                            (ga, SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES, Integer.MAX_VALUE,
+                             c, new SOCDevCardAction
+                                 (gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
                     }
 
                     final int remain = ga.getNumDevCards();
@@ -2387,7 +2412,8 @@ public class SOCGameMessageHandler
                         case 1:
                             remainTxt = "There is 1 card left.";  break;
                         default:
-                            remainTxt = MessageFormat.format("There are {0,number} cards left.", ga.getNumDevCards());  // I18N OK: for old version compat
+                            remainTxt = MessageFormat.format("There are {0,number} cards left.", ga.getNumDevCards());
+                                // I18N OK: for old version compat
                         }
                         srv.messageToGameForVersions(ga, -1, SOCSimpleAction.VERSION_FOR_SIMPLEACTION - 1,
                                 new SOCGameTextMsg(gaName, SOCGameTextMsg.SERVERNAME, remainTxt), false);
@@ -2412,7 +2438,8 @@ public class SOCGameMessageHandler
                     try
                     {
                         ga.askSpecialBuild(pn, true);
-                        srv.messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
+                        srv.messageToGame(gaName, new SOCPlayerElement
+                            (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
                     } catch (IllegalStateException e) {
                         srv.messageToPlayer(c, gaName, "You can't ask to buy a card now.");
                     }
@@ -2457,7 +2484,7 @@ public class SOCGameMessageHandler
 
                 int ctype = mes.getDevCard();
                 if ((ctype == SOCDevCardConstants.KNIGHT_FOR_VERS_1_X)
-                    && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+                    && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES))
                     ctype = SOCDevCardConstants.KNIGHT;
 
                 switch (ctype)
@@ -2478,17 +2505,19 @@ public class SOCGameMessageHandler
                             : "action.card.soldier";         // "played a Soldier card."
                         srv.gameList.takeMonitorForGame(gaName);
                         srv.messageToGameKeyed(ga, false, cardplayed, player.getName());
-                        if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
+                        if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES)
                         {
-                            srv.messageToGameWithMon(gaName, new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT));
+                            srv.messageToGameWithMon(gaName, new SOCDevCardAction
+                                (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT));
                         } else {
-                            D.ebugPrintln("L7870: played soldier; clientVersionLowest = " + ga.clientVersionLowest);  // JM temp
                             srv.messageToGameForVersions
-                                (ga, -1, SOCDevCardConstants.VERSION_FOR_NEW_TYPES - 1,
-                                 new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X), false);
+                                (ga, -1, SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES - 1,
+                                 new SOCDevCardAction
+                                     (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X), false);
                             srv.messageToGameForVersions
-                                (ga, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
-                                 new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT), false);
+                                (ga, SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES, Integer.MAX_VALUE,
+                                 new SOCDevCardAction
+                                     (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT), false);
                         }
                         if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
                             srv.messageToGameWithMon(gaName, new SOCPlayerElement
@@ -2516,13 +2545,15 @@ public class SOCGameMessageHandler
                         ga.playRoadBuilding();
 
                         srv.gameList.takeMonitorForGame(gaName);
-                        srv.messageToGameWithMon(gaName, new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.ROADS));
+                        srv.messageToGameWithMon(gaName, new SOCDevCardAction
+                            (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.ROADS));
                         if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
                             srv.messageToGameWithMon(gaName, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.PLAYED_DEV_CARD_FLAG, 1));
                         else
                             srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
-                        srv.messageToGameKeyed(ga, false, "action.card.roadbuilding", player.getName());  // "played a Road Building card."
+                        srv.messageToGameKeyed(ga, false, "action.card.roadbuilding", player.getName());
+                            // "played a Road Building card."
                         srv.gameList.releaseMonitorForGame(gaName);
                         handler.sendGameState(ga);
                         if (ga.getGameState() == SOCGame.PLACING_FREE_ROAD1)
@@ -2546,7 +2577,8 @@ public class SOCGameMessageHandler
                         ga.playDiscovery();
 
                         srv.gameList.takeMonitorForGame(gaName);
-                        srv.messageToGameWithMon(gaName, new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.DISC));
+                        srv.messageToGameWithMon(gaName, new SOCDevCardAction
+                            (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.DISC));
                         if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
                             srv.messageToGameWithMon(gaName, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.PLAYED_DEV_CARD_FLAG, 1));
@@ -2569,7 +2601,8 @@ public class SOCGameMessageHandler
                         ga.playMonopoly();
 
                         srv.gameList.takeMonitorForGame(gaName);
-                        srv.messageToGameWithMon(gaName, new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.MONO));
+                        srv.messageToGameWithMon(gaName, new SOCDevCardAction
+                            (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.MONO));
                         if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
                             srv.messageToGameWithMon(gaName, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.PLAYED_DEV_CARD_FLAG, 1));
@@ -2664,12 +2697,13 @@ public class SOCGameMessageHandler
                     {
                         ga.doDiscoveryAction(rsrcs);
 
-                        handler.reportRsrcGainLoss(gaName, rsrcs, false, false, pn, -1, null, null);
+                        handler.reportRsrcGainLoss(gaName, rsrcs, false, false, pn, -1, null);
                         srv.messageToGameKeyedSpecial(ga, true, "action.card.discov.received", player.getName(), rsrcs);
                             // "{0} received {1,rsrcs} from the bank."
                         handler.sendGameState(ga);
                     } else {
-                        srv.messageToPlayerKeyed(c, gaName, "action.card.discov.notlegal");  // "That is not a legal Year of Plenty pick."
+                        srv.messageToPlayerKeyed(c, gaName, "action.card.discov.notlegal");
+                            // "That is not a legal Year of Plenty pick."
                     }
                 } else {
                     srv.messageToPlayerKeyed(c, gaName, "reply.not.your.turn");  // "It's not your turn."
@@ -2740,7 +2774,8 @@ public class SOCGameMessageHandler
                     final int npick = player.getNeedToPickGoldHexResources();
                     if (npick != rsrcs.getTotal())
                     {
-                        srv.messageToPlayer(c, gaName, "You can't pick that many resources.");  // TODO i18n
+                        srv.messageToPlayerKeyed
+                            (c, gaName, "reply.pick.gold.cannot.that_many");  // "You can't pick that many resources."
                         if ((npick > 0) && (gstate < SOCGame.OVER))
                             srv.messageToPlayer(c, new SOCSimpleRequest
                                 (gaName, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, npick));
@@ -2754,7 +2789,7 @@ public class SOCGameMessageHandler
                         srv.messageToGame(gaName,
                             "Recovering from buggy state: " + player.getName()
                             + " won free resources but game state didn't allow them to be picked; giving them anyway.");
-                            // TODO i18n
+                            // i18n OK: won't appear in normal gameplay
                         player.getResources().add(rsrcs);
                         player.setNeedToPickGoldHexResources(0);
                         handler.reportRsrcGainGold(ga, player, pn, rsrcs, true, false);
@@ -2946,6 +2981,11 @@ public class SOCGameMessageHandler
      * Calls {@link SOCSpecialItem#playerPickItem(String, SOCGame, SOCPlayer, int, int)}
      * or {@link SOCSpecialItem#playerSetItem(String, SOCGame, SOCPlayer, int, int, boolean)}
      * which provide scenario-specific responses or decline the request.
+     *<P>
+     * As with building a settlement or road, cost paid isn't reported as a text message:
+     * If that's important to the client, they already have {@link SOCSpecialItem#getCost()}
+     * and can print something when they receive the server's SOCSetSpecialItem message.
+     *
      * @param c  the connection that sent the message
      * @param mes  the message
      */
@@ -2973,7 +3013,9 @@ public class SOCGameMessageHandler
 
                 if (op == SOCSetSpecialItem.OP_PICK)
                 {
-                    int pickCoord = -1, pickLevel = 0;  // field values to send in reply/announcement
+                    int replyPickOp = SOCSetSpecialItem.OP_PICK;  // may change to OP_SET_PICK or OP_CLEAR_PICK
+                    int pickPN = pn, pickCoord = -1, pickLevel = 0;  // field values to send in reply/announcement
+                    boolean isStartingPick = false;  // if true, player paid starting-pick cost
                     String pickSV = null;  // sv field value to send
 
                     // When game index and player index are both given,
@@ -2995,15 +3037,15 @@ public class SOCGameMessageHandler
                         pickCoord = itm.getCoordinates();
                         pickLevel = itm.getLevel();
                         pickSV = itm.getStringValue();
+                        isStartingPick = (0 == pickLevel) && (null == itm.getPlayer());
                     }
 
-                    // perform the PICK in game
+                    // perform the PICK in game; if not allowed, throws IllegalStateException
                     paidCost = SOCSpecialItem.playerPickItem(typeKey, ga, pl, gi, pi);
 
                     // if cost paid, send resource-loss first
                     if (paidCost && (itm != null))
-                        handler.reportRsrcGainLoss(gaName, itm.getCost(), true, false, pn, -1, null, null);
-                        // TODO i18n-neutral rsrc text to report cost paid?  or, encapsulate that into reportRsrcGainLoss
+                        handler.reportRsrcGainLoss(gaName, itm.getCost(), true, false, pn, -1, null);
 
                     // Next, send SET/CLEAR before sending PICK announcement
 
@@ -3013,22 +3055,21 @@ public class SOCGameMessageHandler
 
                     if ((gi == -1) || (pi == -1))
                     {
-                        // request didn't specify both gi and pi: only 1 SET/CLEAR message to send
+                        // request didn't specify both gi and pi: only 1 SET/CLEAR message to send.
+                        // gi, pi, pn fields will all be same for SET/CLEAR & PICK:
+                        // combine OP_SET or OP_CLEAR into upcoming OP_PICK reply
 
                         final SOCSpecialItem itmAfter = ga.getSpecialItem(typeKey, gi, pi, pn);
-                        final SOCSetSpecialItem msg;
                         if (itmAfter != null)
                         {
-                            msg = new SOCSetSpecialItem(ga, SOCSetSpecialItem.OP_SET, typeKey, gi, pi, itmAfter);
-
+                            replyPickOp = SOCSetSpecialItem.OP_SET_PICK;
+                            pickPN = ((itmAfter.getPlayer() != null) ? itmAfter.getPlayer().getPlayerNumber() : -1);
                             pickCoord = itmAfter.getCoordinates();
                             pickLevel = itmAfter.getLevel();
                             pickSV = itmAfter.getStringValue();
                         } else {
-                            msg = new SOCSetSpecialItem
-                                (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, pi, pn);
+                            replyPickOp = SOCSetSpecialItem.OP_CLEAR_PICK;
                         }
-                        srv.messageToGame(gaName, msg);
                     } else {
                         // request specified both gi and pi: might need to send 1 SET/CLEAR message if shared,
                         // or 2 messages if not the same object for both
@@ -3039,23 +3080,21 @@ public class SOCGameMessageHandler
 
                         if (gAfter == pAfter)
                         {
-                            final SOCSetSpecialItem msg;
+                            // same object, and gi, pi, pn fields will all be same for SET/CLEAR & PICK:
+                            // combine OP_SET or OP_CLEAR into upcoming OP_PICK reply
                             if (gAfter != null)
                             {
-                                msg = new SOCSetSpecialItem(ga, SOCSetSpecialItem.OP_SET, typeKey, gi, pi, gAfter);
-
+                                replyPickOp = SOCSetSpecialItem.OP_SET_PICK;
                                 pickCoord = gAfter.getCoordinates();
                                 pickLevel = gAfter.getLevel();
                                 pickSV = gAfter.getStringValue();
                             } else {
-                                msg = new SOCSetSpecialItem
-                                    (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, pi, pn);
+                                replyPickOp = SOCSetSpecialItem.OP_CLEAR_PICK;
                             }
-                            srv.messageToGame(gaName, msg);
                         } else {
-                            // gi and pi don't share the same object; might need to send 2 messages out if both changed.
+                            // gi and pi don't share the same object; might need to send out 2 replies if both objs changed
 
-                            boolean hasgAfterCoordLevel = false;
+                            boolean setPickFieldsFromGAfter = false;
 
                             if (gAfter == null)
                             {
@@ -3069,7 +3108,7 @@ public class SOCGameMessageHandler
                                 pickCoord = gAfter.getCoordinates();
                                 pickLevel = gAfter.getLevel();
                                 pickSV = gAfter.getStringValue();
-                                hasgAfterCoordLevel = true;
+                                setPickFieldsFromGAfter = true;
                             }
 
                             if (pAfter == null)
@@ -3080,7 +3119,7 @@ public class SOCGameMessageHandler
                             } else {
                                 srv.messageToGame(gaName, new SOCSetSpecialItem
                                     (ga, SOCSetSpecialItem.OP_SET, typeKey, -1, pi, pAfter));
-                                if (! hasgAfterCoordLevel)
+                                if (! setPickFieldsFromGAfter)
                                 {
                                     pickCoord = pAfter.getCoordinates();
                                     pickLevel = pAfter.getLevel();
@@ -3091,7 +3130,18 @@ public class SOCGameMessageHandler
                     }
 
                     srv.messageToGame(gaName, new SOCSetSpecialItem
-                            (gaName, SOCSetSpecialItem.OP_PICK, typeKey, gi, pi, pn, pickCoord, pickLevel, pickSV));
+                        (gaName, replyPickOp, typeKey, gi, pi, pickPN, pickCoord, pickLevel, pickSV));
+
+                    if (isStartingPick)
+                    {
+                        final int startCostPType = itm.getStartingCostPiecetype();
+                        if (startCostPType != -1)
+                            // report player's new total piecetype count, to avoid confusion if client decremented it
+                            srv.messageToGame(gaName, new SOCPlayerElement
+                                (gaName, pn, SOCPlayerElement.SET,
+                                 SOCPlayerElement.elementTypeForPieceType(startCostPType),
+                                 pl.getNumPieces(startCostPType)));
+                    }
 
                 } else {
                     // OP_SET or OP_CLEAR
@@ -3105,8 +3155,7 @@ public class SOCGameMessageHandler
 
                     // if cost paid, send resource-loss first
                     if (paidCost && (itm != null))
-                        handler.reportRsrcGainLoss(gaName, itm.getCost(), true, false, pn, -1, null, null);
-                        // TODO i18n-neutral rsrc text to report cost paid?  or, encapsulate that into reportRsrcGainLoss
+                        handler.reportRsrcGainLoss(gaName, itm.getCost(), true, false, pn, -1, null);
 
                     // get item after SET, in case it's changed
                     if (op != SOCSetSpecialItem.OP_CLEAR)

@@ -1,4 +1,4 @@
--- DB Create script for jsettlers.  Run jsettlers-tables.sql right after this script.
+-- DB Create script for jsettlers in mysql/mariadb. Run jsettlers-tables-mysql.sql right after this script.
 -- See bottom of file for copyright and license information (GPLv3).
 
 CREATE DATABASE socdata
@@ -14,12 +14,12 @@ GRANT ALL PRIVILEGES
   TO 'socuser'@'localhost'
   IDENTIFIED BY 'socpass';
 
--- Tested with mysql 5.1 and 5.5 on centos 6, 5.5 on MacOSX 10.9
+-- Tested with mysql 5.1 and 5.5 on centos 6, 5.5 on MacOSX 10.9, mariadb 10.4 on centos 7
 
 
 -- This file is part of the JSettlers project.
 --
---  This file Copyright (C) 2012,2017 Jeremy D Monin (jeremy@nand.net)
+--  This file Copyright (C) 2012,2017,2020 Jeremy D Monin (jeremy@nand.net)
 --  Portions of this file Copyright (C) 2004-2005 Chadwick A McHenry (mchenryc@acm.org)
 --
 --  This program is free software: you can redistribute it and/or modify

@@ -5,16 +5,18 @@
 #     -d recognized types are: mysql,postgres,sqlite
 #     -c or -o filename can contain %s placeholder for dbtype string
 #   Returns: 0 on success, 1 if error reading/writing or failed comparison, 2 if problems with command line
+#   Token format: {{now}}, {{TIMESTAMP}}, etc
 #   Assumes utf-8 encoding for infile, outfile, comparefile
+#   Requires python 2.6 or later
 #
-# Typical usage if you see the message "Must regenerate SQL script(s) from templates using render.py":
+# Typical usage, if you see the message "Must regenerate SQL script(s) from templates using render.py":
 #   cd src/main/bin/sql/template
 #   ./render.py -i jsettlers-tables-tmpl.sql -d mysql,sqlite,postgres -o ../jsettlers-tables-%s.sql
 #   git status
 #
 # This file is part of the JSettlers project.
 #
-# This file Copyright (C) 2017,2019 Jeremy D Monin <jeremy@nand.net>
+# This file Copyright (C) 2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,6 +34,8 @@
 import codecs, getopt, re, sys
 
 known_dbtypes = ('mysql', 'postgres', 'sqlite')
+  # template generation uses mysql for mariadb, so mariadb isn't in this list
+
 # from parse_cmdline():
 dbtypes = None  # a list, from known_dbtypes
 infile = None
@@ -42,9 +46,17 @@ TOKENS = {}  # updated in setup_tokens() to include DB_TOKENS[dbtype] and tokens
 
 sys_exit = 0  # for sys.exit's value if any render_one call fails
 
-# contains all dbtypes in known_dbtypes; each type must have same token keynames
+# All the "fallthrough" DB types, for test_token_consistency.py
+DBTYPES_FALLTHROUGH_ONLY = set(['mariadb'])
+
+# contains all dbtypes in known_dbtypes; each type must have same token keynames or 'fallthrough'
+# (which is unused here for now: if 2 DB types share all tokens, they can share the same generated template)
 DB_TOKENS = {
+    'mariadb': {
+        'fallthrough': 'mysql',
+        },
     'mysql': {
+        'INT_AUTO_PK': 'INT NOT NULL AUTO_INCREMENT PRIMARY KEY',
         'now': 'now()',
         'TIMESTAMP': 'TIMESTAMP',  # stored in table data as unix epoch seconds
         'TIMESTAMP_NULL': 'TIMESTAMP NULL DEFAULT null',
@@ -52,17 +64,20 @@ DB_TOKENS = {
         'set_session_tz_utc': "SET TIME_ZONE='+0:00';  -- UTC not always set up in mysql as a TZ name"
         },
     'postgres': {
+        'INT_AUTO_PK': 'SERIAL PRIMARY KEY',  # is integer, not null, auto-creates sequence
         'now': 'now()',
         'TIMESTAMP': 'TIMESTAMP WITHOUT TIME ZONE',  # stored in table data as UTC
         'TIMESTAMP_NULL': 'TIMESTAMP WITHOUT TIME ZONE',
         'set_session_tz_utc': "SET TIME ZONE 'UTC';"
         },
     'sqlite': {
+        'INT_AUTO_PK': 'INTEGER PRIMARY KEY',  # omits slightly-slower AUTOINCREMENT keyword;
+             # that's OK for current jsettlers use, because games2 rows wouldn't typically be deleted
         'now': "strftime('%s000', 'now')",  # +000 for millis, not epoch seconds
         'TIMESTAMP': 'TIMESTAMP',  # zentus-sqlite stores java.sql.Timestamp in table data as epoch milliseconds
         'TIMESTAMP_NULL': 'TIMESTAMP',
         'set_session_tz_utc': "-- reminder: sqlite has no session timezone setting, only the server process's TZ"
-        }
+        },
 }
 
 def print_usage():
@@ -173,6 +188,10 @@ def render_one(dbtype, infile, outfile, compfile):
         with file_in:
             in_str = file_in.read()
 
+        # ignore any whole-line ---- comments in template:
+        # uses (?m) for re.MULTILINE flag, because re.sub flags param not added until python 2.7
+        in_str = re.sub(r'(?m)^\s*---- .+$', '', in_str)
+
         out_str = render(in_str)
 
         if compfile is not None:
@@ -202,10 +221,13 @@ def render_one(dbtype, infile, outfile, compfile):
 
 # main:
 
-parse_cmdline()  # exits if problems found
-for d in dbtypes:
-    render_one(d, infile, outfile, compfile)  # sets sys_exit if problems found
-if sys_exit == 1:
-    sys.stderr.write("Must regenerate SQL script(s) from templates using render.py\n")
-sys.exit(sys_exit)
+def main():
+  parse_cmdline()  # exits if problems found
+  for d in dbtypes:
+      render_one(d, infile, outfile, compfile)  # sets sys_exit if problems found
+  if sys_exit == 1:
+      sys.stderr.write("Must regenerate SQL script(s) from templates using render.py: See doc/Readme.developer.md\n")
+  sys.exit(sys_exit)
 
+if __name__ == "__main__":
+  main()

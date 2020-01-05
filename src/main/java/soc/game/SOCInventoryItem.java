@@ -23,14 +23,16 @@ import soc.util.SOCStringManager;
 
 /**
  * An inventory item, such as a {@link SOCDevCard} or a scenario-specific item, held
- * in a player's hand to be played later or kept until scoring at the end of the game.
- * Except {@code SOCDevCard}s, these items aren't subject to the rule of playing at most
+ * in a player's hand ({@link SOCInventory}) to be played later or kept until scoring at the end of the game.
+ * Except for {@code SOCDevCard}s, these items aren't subject to the rule of playing at most
  * 1 Development Card per turn: The player can play a Dev Card on the same turn as an item.
  *<P>
  * To see if a player can currently play an inventory item, use {@link SOCGame#canPlayInventoryItem(int, int)}.
  * Inventory items' lifecycle and play rules differ by scenario. In {@link SOCGameOption#K_SC_FTRI SC_FTRI}
  * for example, the items are "gift" trade ports which can be played immediately (cannot cancel during placement)
  * or if nowhere to place, saved for placement later (that placement can be canceled).
+ *<P>
+ * Inventory items are unrelated to {@link SOCSpecialItem}s.
  *
  *<H3>The scenario-specific inventory items:</H3>
  *<UL>
@@ -306,6 +308,19 @@ public class SOCInventoryItem
         throws CloneNotSupportedException
     {
         return (SOCInventoryItem) super.clone();
+    }
+
+    /**
+     * For debugging, a human-readable representation of this item's contents, of the form:
+     * "SOCInventoryItem{itype=" + {@link #itype} + ", playable?=" + {@link #isPlayable()}
+     *  + ", kept?=" + {@link #isKept()}
+     *  + ", strKey=" + {@code strKey} + "}@" + Integer.toHexString({@link Object#hashCode()})
+     */
+    @Override
+    public String toString()
+    {
+        return "SOCInventoryItem{itype=" + itype + ", playable?=" + playable + ", kept?=" + kept
+            + ", strKey=" + strKey + "}@" + Integer.toHexString(hashCode());
     }
 
 }

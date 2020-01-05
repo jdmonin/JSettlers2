@@ -41,6 +41,8 @@ import static org.junit.Assert.*;
  * A few tests for per-{@link SOCScenario} rules in {@link SOCGame}.
  * Nowhere near comprehensive at this point:
  * Currently tests only a few rules for {@link SOCScenario#K_SC_PIRI SC_PIRI}.
+ * See also {@link TestBoardLayouts#testLayout_SC_CLVI(SOCGame)}.
+ *
  * @since 2.0.00
  */
 public class TestScenarioRules

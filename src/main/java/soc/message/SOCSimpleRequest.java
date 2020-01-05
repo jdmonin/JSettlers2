@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2015-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -142,11 +142,11 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
      *
      * @param ga  the name of the game
      * @param pn  the requester's player number
-     * @param reqtype  the request type; below 1000 is general, 1000+ is specific to one kind of game
+     * @param reqType  the request type; below 1000 is general, 1000+ is specific to one kind of game
      */
-    public SOCSimpleRequest(final String ga, final int pn, final int reqtype)
+    public SOCSimpleRequest(final String ga, final int pn, final int reqType)
     {
-        this(ga, pn, reqtype, 0, 0);
+        this(ga, pn, reqType, 0, 0);
     }
 
     /**
@@ -154,13 +154,13 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
      *
      * @param ga  the name of the game
      * @param pn  the requester's player number
-     * @param reqtype  the request type; below 1000 is general, 1000+ is specific to one kind of game
+     * @param reqType  the request type; below 1000 is general, 1000+ is specific to one kind of game
      * @param value1  Optional detail value, or 0.  Use {@link #getValue1()}, not {@link #getParam1()}, to get
      *     this value from a {@code SOCSimpleRequest} message.
      */
-    public SOCSimpleRequest(final String ga, final int pn, final int reqtype, final int value1)
+    public SOCSimpleRequest(final String ga, final int pn, final int reqType, final int value1)
     {
-        this(ga, pn, reqtype, value1, 0);
+        this(ga, pn, reqType, value1, 0);
     }
 
     /**
@@ -168,15 +168,15 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
      *
      * @param ga  the name of the game
      * @param pn  the requester's player number
-     * @param reqtype  the request type; below 1000 is general, 1000+ is specific to one kind of game
+     * @param reqType  the request type; below 1000 is general, 1000+ is specific to one kind of game
      * @param value1  First optional detail value, or 0.  Use {@link #getValue1()}, not {@link #getParam1()}, to get
      *     this value from a {@code SOCSimpleRequest} message.
      * @param value2  Second optional detail value, or 0. Use {@link #getValue2()}, not {@link #getParam2()}, to get
      *     this value from a {@code SOCSimpleRequest} message.
      */
-    public SOCSimpleRequest(final String ga, final int pn, final int reqtype, final int value1, final int value2)
+    public SOCSimpleRequest(final String ga, final int pn, final int reqType, final int value1, final int value2)
     {
-        super(SIMPLEREQUEST, ga, pn, reqtype, value1, value2);
+        super(SIMPLEREQUEST, ga, pn, reqType, value1, value2);
     }
 
     /**
@@ -212,25 +212,25 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
     }
 
     /**
-     * {@link SOCMessage#SIMPLEREQUEST SIMPLEREQUEST} sep game sep2 playernumber sep2 reqtype sep2 value1 sep2 value2
+     * {@link SOCMessage#SIMPLEREQUEST SIMPLEREQUEST} sep game sep2 playernumber sep2 reqType sep2 value1 sep2 value2
      *
      * @param ga  the name of the game
      * @param pn  the requester's player number
-     * @param reqtype  the request type; below 1000 is general, 1000+ is specific to one kind of game
+     * @param reqType  the request type; below 1000 is general, 1000+ is specific to one kind of game
      * @param value1  First optional detail value, or 0
      * @param value2  Second optional detail value, or 0
      * @return the command string
      */
-    public static String toCmd(final String ga, final int pn, final int reqtype, final int value1, final int value2)
+    public static String toCmd(final String ga, final int pn, final int reqType, final int value1, final int value2)
     {
-        return SOCMessageTemplate4i.toCmd(SIMPLEREQUEST, ga, pn, reqtype, value1, value2);
+        return SOCMessageTemplate4i.toCmd(SIMPLEREQUEST, ga, pn, reqType, value1, value2);
     }
 
     /**
      * Parse the command String into a SOCSimpleRequest message
      *
      * @param s   the String to parse: {@link SOCMessage#SIMPLEREQUEST SIMPLEREQUEST}
-     *            sep game sep2 playernumber sep2 reqtype sep2 value1 sep2 value2
+     *            sep game sep2 playernumber sep2 reqType sep2 value1 sep2 value2
      * @return    a SOCSimpleRequest message, or {@code null} if the data is garbled
      */
     public static SOCSimpleRequest parseDataStr(final String s)
@@ -296,7 +296,7 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
     public String toString()
     {
         return "SOCSimpleRequest:game=" + game
-            + "|pn=" + p1 + "|rtype=" + p2
+            + "|pn=" + p1 + "|reqType=" + p2
             + "|v1=" + p3 + "|v2=" + p4;
     }
 

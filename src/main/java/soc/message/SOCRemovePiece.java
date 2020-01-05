@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2018-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,14 +30,15 @@ import soc.proto.Message;
  * Ships are removed when the player makes an attack on their Pirate Fortress and fails to win.
  * Currently, no other piece types are removed in any scenario, but the message allows for other types
  * in case that changes in a later version.
- *<P>
- * Param 1: Player number owning the piece <br>
- * Param 2: Type of playing piece, such as {@link soc.game.SOCPlayingPiece#SHIP} <br>
- * Param 3: Coordinates of the piece to remove
+ *<UL>
+ * <LI> Param 1: Player number owning the piece
+ * <LI> Param 2: Type of playing piece, such as {@link soc.game.SOCPlayingPiece#SHIP}
+ * <LI> Param 3: Coordinates of the piece to remove
+ *</UL>
  *<P>
  * (These parameters are in the same order as in {@link SOCPutPiece#toCmd(String, int, int, int)}.)
  *<P>
- * Introduced in v2.0.00 for the pirate islands scenario (_SC_PIRI).
+ * Introduced in v2.0.00 for the Pirate Islands scenario ({@code _SC_PIRI}).
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -119,7 +120,7 @@ public class SOCRemovePiece extends SOCMessageTemplate3i
 
     /**
      * Minimum version where this message type is used.
-     * REMOVEPIECE introduced in 2.0.00 for the pirate islands scenario (_SC_PIRI).
+     * REMOVEPIECE introduced in 2.0.00 for the Pirate Islands scenario ({@code _SC_PIRI}).
      * @return Version number, 2000 for JSettlers 2.0.00.
      */
     public int getMinimumVersion() { return 2000; }

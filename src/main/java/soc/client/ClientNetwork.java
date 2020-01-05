@@ -60,8 +60,8 @@ import soc.util.Version;
  * Messages from server to client are received in either {@link NetReadTask} or {@link LocalStringReaderTask},
  * which call the client's {@link MessageHandler#handle(SOCMessage, boolean)}.
  *<br>
- * Messages from client to server are formed in {@link GameMessageMaker} or other classes,
- * and sent here to the server here via {@link #putNet(String)} or {@link #putPractice(String)}.
+ * Messages from client to server are formed in {@link GameMessageSender} or other classes,
+ * which call back here to send to the server via {@link #putNet(String)} or {@link #putPractice(String)}.
  *<br>
  * Network shutdown is {@link #disconnect()} or {@link #dispose()}.
  *<P>
@@ -221,7 +221,7 @@ import soc.util.Version;
     /**
      * Start a practice game.  If needed, create and start {@link #practiceServer}.
      * @param practiceGameName  Game name
-     * @param gameOpts  Game options
+     * @param gameOpts  Game options, or {@code null}
      * @return True if the practice game request was sent, false if there was a problem
      *         starting the practice server or client
      */
@@ -273,10 +273,10 @@ import soc.util.Version;
 
         // Ask internal practice server to create the game
         if (gameOpts == null)
-            putPractice(SOCJoinGame.toCmd(client.nickname, "", getHost(), practiceGameName));
+            putPractice(SOCJoinGame.toCmd(client.nickname, "", SOCMessage.EMPTYSTR, practiceGameName));
         else
             putPractice(SOCNewGameWithOptionsRequest.toCmd
-                (client.nickname, "", getHost(), practiceGameName, gameOpts));
+                (client.nickname, "", SOCMessage.EMPTYSTR, practiceGameName, gameOpts));
 
         return true;
     }
@@ -289,6 +289,7 @@ import soc.util.Version;
     {
         if (localTCPServer == null)
             return 0;
+
         return localTCPServer.getPort();
     }
 
@@ -320,6 +321,7 @@ import soc.util.Version;
             mainDisplay.showErrorDialog
                 (client.strings.get("pcli.error.startingserv") + "\n" + th,  // "Problem starting server:"
                  client.strings.get("base.cancel"));
+
             return false;
         }
 
@@ -396,17 +398,15 @@ import soc.util.Version;
                 client.gotPassword = false;
             }
 
-            final SocketAddress srvAddr;
-            if (host != null)
-                srvAddr = new InetSocketAddress(host, port);
-            else
-                srvAddr = new InetSocketAddress(InetAddress.getByName(null), port);  // loopback
-
+            final SocketAddress srvAddr = (host != null)
+                ? new InetSocketAddress(host, port)
+                : new InetSocketAddress(InetAddress.getByName(null), port);  // loopback
             s = new Socket();
             s.connect(srvAddr, CONNECT_TIMEOUT_MS);
             in = new DataInputStream(s.getInputStream());
             out = new DataOutputStream(s.getOutputStream());
             connected = true;
+
             (reader = new Thread(new NetReadTask(client, this))).start();
             // send VERSION right away (1.1.06 and later)
             sendVersion(false);
@@ -535,7 +535,7 @@ import soc.util.Version;
      *
      * @param s  the message
      * @return true if the message was sent, false if not
-     * @see GameMessageMaker#put(String, boolean)
+     * @see GameMessageSender#put(String, boolean)
      */
     public synchronized boolean putNet(String s)
     {
@@ -576,7 +576,7 @@ import soc.util.Version;
      *
      * @param s  the message
      * @return true if the message was sent, false if not
-     * @see GameMessageMaker#put(String, boolean)
+     * @see GameMessageSender#put(String, boolean)
      * @throws IllegalArgumentException if {@code s} is {@code null}
      * @since 1.1.00
      */

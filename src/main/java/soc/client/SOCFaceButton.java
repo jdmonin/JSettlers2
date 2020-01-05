@@ -630,7 +630,7 @@ import java.net.URL;
                 }
 
                 evt.consume();
-                pi.getClient().getGameMessageMaker().changeFace(game, currentImageNum);
+                pi.getClient().getGameMessageSender().changeFace(game, currentImageNum);
                 repaint();
             }
             } catch (Throwable th) {

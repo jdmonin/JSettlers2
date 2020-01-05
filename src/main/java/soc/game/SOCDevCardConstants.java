@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2012-2013,2016-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2012-2013,2016-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -38,23 +38,23 @@ package soc.game;
  * If you add VP card types, update {@link SOCDevCard#isVPCard(int)}.
  *<P>
  * In version 2.0.00, the values for {@link #KNIGHT} and {@link #UNKNOWN}
- * were swapped to make room for new card types.  For compatibility with
+ * were swapped to make room to add more card types later. For compatibility with
  * older versions, constants {@link #KNIGHT_FOR_VERS_1_X} and
- * {@link #UNKNOWN_FOR_VERS_1_X} were added.  See {@link #VERSION_FOR_NEW_TYPES}.
+ * {@link #UNKNOWN_FOR_VERS_1_X} were added.  See {@link #VERSION_FOR_RENUMBERED_TYPES}.
  *
  * @see SOCDevCard#getCardTypeName(int, SOCGame, boolean, soc.util.SOCStringManager)
  */
 public interface SOCDevCardConstants
 {
     /**
-     * First version number (2.0.00) that has the new card types and
-     * has swapped values for {@link #UNKNOWN} and {@link #KNIGHT}.
+     * First version number (2.0.00) where card type constants
+     * have swapped values for {@link #UNKNOWN} and {@link #KNIGHT}.
      * At server, check against {@link SOCGame#clientVersionLowest}
      * before sending these constants to clients.
      * Send older clients {@link #UNKNOWN_FOR_VERS_1_X} and
      * {@link #KNIGHT_FOR_VERS_1_X} instead.
      */
-    public static final int VERSION_FOR_NEW_TYPES = 2000;
+    public static final int VERSION_FOR_RENUMBERED_TYPES = 2000;
 
     /** Previous value for {@link #UNKNOWN} card type, for version 1.x clients or servers */
     public static final int UNKNOWN_FOR_VERS_1_X = 9;

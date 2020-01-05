@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2014,2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2014,2018-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@ package soc.game;
 import soc.util.SOCStringManager;
 
 /**
- * A single Dev Card, probably within a player's {@link SOCInventory}.
+ * A single Development Card, probably within a player's {@link SOCInventory}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -152,7 +152,7 @@ public class SOCDevCard
         this(type, isVPCard(type), isNew);
     }
 
-    /** constructor to call super, to avoid 3 isVPCard(type) calls */
+    /** Constructor that calls {@code super(..)} instead of {@code this(..)}, to avoid 3 isVPCard(type) calls */
     private SOCDevCard(final int type, final boolean isVPCard, final boolean isNew)
     {
         super(type, ! (isNew || isVPCard), isVPCard, isVPCard, false,
@@ -177,6 +177,7 @@ public class SOCDevCard
     //  (see there for javadoc)
     //
 
+    @Override
     public String getItemName
         (final SOCGame game, final boolean withArticle, final SOCStringManager strings)
     {

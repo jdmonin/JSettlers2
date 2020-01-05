@@ -21,10 +21,12 @@
 
 package soctest.game;
 
-import org.junit.Test;
+import java.util.Arrays;
+
+import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.proto.Data;
-
+import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
@@ -112,6 +114,49 @@ public class TestResourceSet
         assertEquals(1, rs.getAmount(Data.ResourceType.SHEEP_VALUE));
         assertEquals(1, rs.getAmount(Data.ResourceType.WOOD_VALUE));
         assertEquals(1, rs.getAmount(Data.ResourceType.WHEAT_VALUE));
+    }
+
+    @Test
+    public void containsArray()
+    {
+        SOCResourceSet rs = onePerType();
+        int[] other = new int[5];
+
+        assertTrue(rs.contains(other));  // all 0s
+        other[1] = 1;
+        assertTrue(rs.contains(other));  // subset
+        Arrays.fill(other, 1);
+        assertTrue(rs.contains(other));  // equal
+        other[0] = 2;
+        assertFalse(rs.contains(other));  // no longer subset
+
+        other = new int[6];
+        assertTrue(rs.contains(other));  // all 0s
+        other[1] = 1;
+        assertTrue(rs.contains(other));  // subset
+        Arrays.fill(other, 1);
+        assertFalse(rs.contains(other));  // no longer subset, because of unknowns
+        other[5] = 0;
+        assertTrue(rs.contains(other));  // now equal again: no unknowns
+        other[2] = 2;
+        assertFalse(rs.contains(other));  // no longer subset
+
+        other = null;
+        assertTrue(rs.contains(other));  // null is a subset
+    }
+
+    @Test(expected=IllegalArgumentException.class)
+    public void containsArrayLengthThrow4()
+    {
+        SOCResourceSet rs = onePerType();
+        rs.contains(new int[4]);  // too short
+    }
+
+    @Test(expected=IllegalArgumentException.class)
+    public void containsArrayLengthThrow7()
+    {
+        SOCResourceSet rs = onePerType();
+        rs.contains(new int[7]);  // too long
     }
 
     @Test

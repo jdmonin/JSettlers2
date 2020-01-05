@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,6 +29,8 @@ import java.util.List;
  *<P>
  * Villages belong to the game board, not to any player, and new villages cannot be built after the game starts.
  * Trying to call {@link SOCPlayingPiece#getPlayer() village.getPlayer()} will throw an exception.
+ *
+ * @see SOCScenario#SC_CLVI_VILLAGES_CLOTH_REMAINING_MIN
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */
@@ -171,17 +173,28 @@ public class SOCVillage extends SOCPlayingPiece
      * established trade first.
      *
      * @param game  Game with this village
-     * @return  null, or results as an array:
-     *   [ Cloth amount taken from general supply, Matching village node coordinate,
-     *     Cloth amount given to player 0, to player 1, ... to player n ].
+     * @param rollRes  {@code game}'s roll results, to add cloth distribution into:
+     *     Updates {@link SOCGame.RollResult#cloth}, {@link SOCGame.RollResult#clothVillages} fields
+     * @return  True if this village had cloth and trading partners to distribute cloth to
+     *     (from the village or general supply)
      */
-    public int[] distributeCloth(SOCGame game)
+    public boolean distributeCloth(final SOCGame game, final SOCGame.RollResult rollRes)
     {
         if ((numCloth == 0) || (traders == null) || traders.isEmpty())
-            return null;
+            return false;
 
-        int[] results = new int[game.maxPlayers + 2];
-        results[1] = coord;
+        if (rollRes.clothVillages == null)
+            rollRes.clothVillages = new ArrayList<SOCVillage>();
+        rollRes.clothVillages.add(this);
+
+        final int[] results;
+        if (rollRes.cloth != null)
+        {
+            results = rollRes.cloth;
+        } else {
+            results = new int[1 + game.maxPlayers];
+            rollRes.cloth = results;
+        }
 
         final int n = traders.size();
         final int nFromHere = takeCloth(n);  // will be > 0 because numCloth != 0
@@ -189,7 +202,7 @@ public class SOCVillage extends SOCPlayingPiece
         if (nFromHere < n)
         {
             nFromGeneral = ((SOCBoardLarge) board).takeCloth(n - nFromHere);
-            results[0] = nFromGeneral;
+            results[0] += nFromGeneral;
         } else {
             nFromGeneral = 0;
         }
@@ -207,7 +220,7 @@ public class SOCVillage extends SOCPlayingPiece
             if (traders.contains(currPl))
             {
                 currPl.setCloth(1 + currPl.getCloth());
-                results[2 + cpn] = 1;
+                ++results[1 + cpn];
                 --remain;
             }
         }
@@ -220,10 +233,11 @@ public class SOCVillage extends SOCPlayingPiece
                 continue;  // already gave
 
             pl.setCloth(1 + pl.getCloth());
-            results[2 + pn] = 1;
+            ++results[1 + pn];
             --remain;
         }
 
-        return results;
+        return true;
     }
+
 }

@@ -36,10 +36,6 @@ import javax.swing.JPanel;
 {
     final JButton[] rsrcBut;
 
-    /** i18n text strings; will use same locale as SOCPlayerClient's string manager.
-     *  @since 2.0.00 */
-    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
-
     /**
      * Creates a new SOCMonopolyDialog object.
      *
@@ -121,7 +117,7 @@ import javax.swing.JPanel;
                 /**
                  * Note: This works because SOCResourceConstants.CLAY == 1 and so on, in same order as rsrcBut buttons
                  */
-                playerInterface.getClient().getGameMessageMaker().pickResourceType(playerInterface.getGame(), i + 1);
+                playerInterface.getClient().getGameMessageSender().pickResourceType(playerInterface.getGame(), i + 1);
                 dispose();
 
                 break;

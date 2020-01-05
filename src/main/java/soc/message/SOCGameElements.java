@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -58,6 +58,10 @@ public class SOCGameElements extends SOCMessageTemplateMi
      * Number of development cards remaining in the deck to be bought,
      * from {@link SOCGame#getNumDevCards()}.
      *<P>
+     * Sent to clients during game join/start. When a dev card is bought,
+     * is sent to clients as part of game data before action announcement/display:
+     * See {@link SOCBuyDevCardRequest} javadoc.
+     *<P>
      * Versions before v2.0.00 sent {@link SOCDevCardCount} instead.
      */
     public static final int DEV_CARD_COUNT = 2;
@@ -78,6 +82,8 @@ public class SOCGameElements extends SOCMessageTemplateMi
 
     /**
      * Player number of player with largest army, or -1, from {@link SOCGame#getPlayerWithLargestArmy()}.
+     * Sent when a client joins a game. Not sent during game play when Largest Army player changes:
+     * Client updates that display by examining game state; see {@link SOCPlayerElement#NUMKNIGHTS}.
      *<P>
      * Versions before v2.0.00 sent {@link SOCLargestArmy} instead.
      */
@@ -85,6 +91,9 @@ public class SOCGameElements extends SOCMessageTemplateMi
 
     /**
      * Player number of player with longest road, or -1, from {@link SOCGame#getPlayerWithLongestRoad()}.
+     * Sent when a client joins a game. Not sent during game play when Longest Road player changes:
+     * Client updates that display by examining game state;
+     * see {@link SOCPutPiece}({@link soc.game.SOCPlayingPiece#ROAD ROAD}).
      *<P>
      * Versions before v2.0.00 sent {@link SOCLongestRoad} instead.
      */

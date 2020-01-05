@@ -700,13 +700,16 @@ public class SOCRobotBrain extends Thread
     protected SOCRobotPinger pinger;
 
     /**
-     * an object for recording debug information that can
-     * be accessed interactively
+     * An object for recording a building plan's debug information that can
+     * be accessed interactively.
+     * See {@link #getDRecorder()} and debug commands in
+     * {@link SOCRobotClient#handleGAMETEXTMSG_debug}.
      */
     protected DebugRecorder[] dRecorder;
 
     /**
-     * keeps track of which dRecorder is current
+     * keeps track of which dRecorder is current.
+     * When the bot starts a new building plan, it switches dRecorders.
      */
     protected int currentDRecorder;
 
@@ -909,6 +912,8 @@ public class SOCRobotBrain extends Thread
 
     /**
      * turns the debug recorders on
+     * @see #getDRecorder()
+     * @see #turnOffDRecorder()
      */
     public void turnOnDRecorder()
     {
@@ -918,6 +923,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * turns the debug recorders off
+     * @see #turnOnDRecorder()
      */
     public void turnOffDRecorder()
     {
@@ -926,7 +932,12 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
+     * Get this bot's current Debug Recorder data.
+     * The Debug Recorder is an object for recording a building plan's debug information that can
+     * be accessed interactively.
      * @return the debug recorder
+     * @see #getOldDRecorder()
+     * @see #turnOnDRecorder()
      */
     public DebugRecorder getDRecorder()
     {
@@ -934,7 +945,9 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
+     * Get this bot's Debug Recorder data for the previously built piece.
      * @return the old debug recorder
+     * @see #getDRecorder()
      */
     public DebugRecorder getOldDRecorder()
     {
@@ -1390,7 +1403,7 @@ public class SOCRobotBrain extends Thread
                         //
                         moveRobberOnSeven = false;
                         final int newHex = ((SOCMoveRobber) mes).getCoordinates();
-                        if (newHex >= 0)
+                        if (newHex > 0)
                             game.getBoard().setRobberHex(newHex, true);
                         else
                             ((SOCBoardLarge) game.getBoard()).setPirateHex(-newHex, true);
@@ -1882,7 +1895,7 @@ public class SOCRobotBrain extends Thread
                             final int pn = mpp.getPlayerNumber();
                             final int coord = mpp.getToCoord();
                             final int pieceType = mpp.getPieceType();
-                            // TODO what about getFromCoord()?
+                            // TODO what about getFromCoord()? Should mark that loc as unoccupied in trackers
                             handlePUTPIECE_updateTrackers(pn, coord, pieceType);
                         }
                         break;
@@ -1895,15 +1908,16 @@ public class SOCRobotBrain extends Thread
                             if (((SOCDiceResult) mes).getResult() == 7)
                             {
                                 final boolean robWithoutRobber = game.isGameOptionSet(SOCGameOption.K_SC_PIRI);
+                                    // In scenario SC_PIRI there's no robber to be moved. Instead,
+                                    // current player will be prompted soon to choose a player to rob on 7
 
                                 if (! robWithoutRobber)
                                     moveRobberOnSeven = true;
 
                                 if (ourPlayerData.getResources().getTotal() > 7)
-                                    expectDISCARD = true;
-
-                                else if (ourTurn)
                                 {
+                                    expectDISCARD = true;
+                                } else if (ourTurn) {
                                     if (! robWithoutRobber)
                                         expectPLACING_ROBBER = true;
                                     else
@@ -1918,10 +1932,12 @@ public class SOCRobotBrain extends Thread
                         break;
 
                     case SOCMessage.SIMPLEREQUEST:
-                        // These messages can almost always be ignored by bots.
-                        // Some request types are handled at the top of the loop body;
-                        // search for SOCMessage.SIMPLEREQUEST
                         {
+                            // Some request types are handled at the top of the loop body;
+                            //   search for SOCMessage.SIMPLEREQUEST
+                            // Some are handled here
+                            // Most can be ignored by bots
+
                             final SOCSimpleRequest rqMes = (SOCSimpleRequest) mes;
                             switch (rqMes.getRequestType())
                             {
@@ -3338,12 +3354,16 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Handle a DEVCARDACTION for this game.
+     * Handle a DEVCARDACTION for 1 card in this game.
      * No brain-specific action.
+     * Ignores messages where {@link SOCDevCardAction#getCardTypes()} != {@code null}.
      * @since 1.1.08
      */
     private void handleDEVCARDACTION(SOCDevCardAction mes)
     {
+        if (mes.getCardTypes() != null)
+            return;  // <--- ignore: bots don't care about game-end VP card reveals ---
+
         SOCInventory cardsInv = game.getPlayer(mes.getPlayerNumber()).getInventory();
         final int cardType = mes.getCardType();
 
@@ -3596,9 +3616,11 @@ public class SOCRobotBrain extends Thread
             whatWeWantToBuild = new SOCShip(ourPlayerData, targetPiece.getCoordinates(), null);
             if (! whatWeWantToBuild.equals(whatWeFailedToBuild))
             {
+                /*
                 System.err.println("L2733: " + ourPlayerData.getName() + ": !!! BUILD REQUEST FOR A SHIP AT "
                     + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
                 D.ebugPrintln("!!! BUILD REQUEST FOR A SHIP AT " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
+                 */
                 client.buildRequest(game, SOCPlayingPiece.SHIP);
             } else {
                 // We already tried to build this.
@@ -3973,50 +3995,42 @@ public class SOCRobotBrain extends Thread
         /// see if this settlement bisected someone else's road
         ///
         int[] roadCount = { 0, 0, 0, 0, 0, 0 };  // Length should be SOCGame.MAXPLAYERS
-        SOCBoard board = game.getBoard();
-        Enumeration<Integer> adjEdgeEnum = board.getAdjacentEdgesToNode(newSettlement.getCoordinates()).elements();
+        final SOCBoard board = game.getBoard();
 
-        while (adjEdgeEnum.hasMoreElements())
+        for (final int adjEdge : board.getAdjacentEdgesToNode(newSettlement.getCoordinates()))
         {
-            final int adjEdge = adjEdgeEnum.nextElement().intValue();
-            Enumeration<SOCRoutePiece> roadEnum = board.getRoadsAndShips().elements();
+            final SOCRoutePiece rs = board.roadOrShipAtEdge(adjEdge);
+            if (rs == null)
+                continue;
 
-            while (roadEnum.hasMoreElements())
+            final int roadPN = rs.getPlayerNumber();
+
+            roadCount[roadPN]++;
+
+            if (roadCount[roadPN] == 2)
             {
-                final SOCRoutePiece rs = roadEnum.nextElement();
-
-                if (rs.getCoordinates() == adjEdge)
+                if (roadPN != ourPlayerNumber)
                 {
-                    final int roadPN = rs.getPlayerNumber();
+                    ///
+                    /// this settlement bisects another players road
+                    ///
+                    trackersIter = playerTrackers.values().iterator();
 
-                    roadCount[roadPN]++;
-
-                    if (roadCount[roadPN] == 2)
+                    while (trackersIter.hasNext())
                     {
-                        if (roadPN != ourPlayerNumber)
+                        SOCPlayerTracker tracker = trackersIter.next();
+
+                        if (tracker.getPlayer().getPlayerNumber() == roadPN)
                         {
-                            ///
-                            /// this settlement bisects another players road
-                            ///
-                            trackersIter = playerTrackers.values().iterator();
-
-                            while (trackersIter.hasNext())
-                            {
-                                SOCPlayerTracker tracker = trackersIter.next();
-
-                                if (tracker.getPlayer().getPlayerNumber() == roadPN)
-                                {
-                                    //D.ebugPrintln("$$ updating LR Value for player "+tracker.getPlayer().getPlayerNumber());
-                                    //tracker.updateLRValues();
-                                }
-
-                                //tracker.recalcLongestRoadETA();
-                            }
+                            //D.ebugPrintln("$$ updating LR Value for player "+tracker.getPlayer().getPlayerNumber());
+                            //tracker.updateLRValues();
                         }
 
-                        break;
+                        //tracker.recalcLongestRoadETA();
                     }
                 }
+
+                break;
             }
         }
 
@@ -4623,7 +4637,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Respond to server's request to pick resources to gain from the Gold Hex.
-     * Use {@link #buildingPlan} or, if that's empty (initial placement),
+     * Use {@link #buildingPlan} or, if that's empty (like during initial placement),
      * pick what's rare from {@link OpeningBuildStrategy#estimateResourceRarity()}.
      * @param numChoose  Number of resources to pick
      * @since 2.0.00

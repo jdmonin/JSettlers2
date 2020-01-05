@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2015,2017-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -50,8 +50,8 @@ public class SOCDiceResultResources extends SOCMessageTemplateMi
 {
     /**
      * Minimum version number (2.0.00) where the server sends dice roll result resources
-     * and players' resource totals as a single {@link SOCDiceResultResources} message,
-     * not several other message types.
+     * and players' resource totals as this single {@link SOCDiceResultResources} message,
+     * not a sequence of several other message types.
      */
     public static final int VERSION_FOR_DICERESULTRESOURCES = 2000;
 
@@ -118,7 +118,7 @@ public class SOCDiceResultResources extends SOCMessageTemplateMi
 
     /**
      * Constructor for server to tell clients about players' gained resources and new total counts.
-     * The int array will be built from {@code pn} and {@code rsrc}. The {@link #playerNum},
+     * The encoded int list will be built from {@code pn} and {@code rsrc}. The {@link #playerNum},
      * {@link #playerRsrc}, and {@link #playerResTotal} list fields will be left blank,
      * we don't need them to send the ints to clients.
      *

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -69,6 +69,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      *<P>
      * {@code value1} is the number of cards remaining to be bought, {@code value2} is unused.
      * Follows a {@link SOCDevCardAction} which has the card's info, bots must process that message.
+     * For complete message sequence, see {@link SOCBuyDevCardRequest} javadoc.
      * @since 1.1.19
      */
     public static final int DEVCARD_BOUGHT = 1;
@@ -171,11 +172,11 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      *
      * @param ga  the name of the game
      * @param pn  the player acting or acted on, or -1 if this action isn't about a specific player
-     * @param acttype  the action type; below 1000 is general, 1000+ is specific to one kind of game
+     * @param actType  the action type; below 1000 is general, 1000+ is specific to one kind of game
      */
-    public SOCSimpleAction(final String ga, final int pn, final int acttype)
+    public SOCSimpleAction(final String ga, final int pn, final int actType)
     {
-        this(ga, pn, acttype, 0, 0);
+        this(ga, pn, actType, 0, 0);
     }
 
     /**
@@ -183,13 +184,13 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      *
      * @param ga  the name of the game
      * @param pn  the player acting or acted on, or -1 if this action isn't about a specific player
-     * @param acttype  the action type; below 1000 is general, 1000+ is specific to one kind of game
+     * @param actType  the action type; below 1000 is general, 1000+ is specific to one kind of game
      * @param value1  Optional detail value, or 0.  Use {@link #getValue1()}, not {@link #getParam1()}, to get
      *     this value from a {@code SOCSimpleAction} message.
      */
-    public SOCSimpleAction(final String ga, final int pn, final int acttype, final int value1)
+    public SOCSimpleAction(final String ga, final int pn, final int actType, final int value1)
     {
-        this(ga, pn, acttype, value1, 0);
+        this(ga, pn, actType, value1, 0);
     }
 
     /**
@@ -197,15 +198,15 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      *
      * @param ga  the name of the game
      * @param pn  the player acting or acted on, or -1 if this action isn't about a specific player
-     * @param acttype  the action type; below 1000 is general, 1000+ is specific to one kind of game
+     * @param actType  the action type; below 1000 is general, 1000+ is specific to one kind of game
      * @param value1  First optional detail value, or 0.  Use {@link #getValue1()}, not {@link #getParam1()}, to get
      *     this value from a {@code SOCSimpleAction} message.
      * @param value2  Second optional detail value, or 0.  Use {@link #getValue2()}, not {@link #getParam2()}, to get
      *     this value from a {@code SOCSimpleAction} message.
      */
-    public SOCSimpleAction(final String ga, final int pn, final int acttype, final int value1, final int value2)
+    public SOCSimpleAction(final String ga, final int pn, final int actType, final int value1, final int value2)
     {
-        super(SIMPLEACTION, ga, pn, acttype, value1, value2);
+        super(SIMPLEACTION, ga, pn, actType, value1, value2);
     }
 
     /**
@@ -244,7 +245,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * Parse the command String into a SOCSimpleAction message
      *
      * @param s   the String to parse: {@link SOCMessage#SIMPLEACTION SIMPLEACTION}
-     *            sep game sep2 playernumber sep2 acttype sep2 value1 sep2 value2
+     *            sep game sep2 playernumber sep2 actType sep2 value1 sep2 value2
      * @return    a SOCSimpleAction message, or {@code null} if the data is garbled
      */
     public static SOCSimpleAction parseDataStr(final String s)
@@ -290,7 +291,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
     public String toString()
     {
         return "SOCSimpleAction:game=" + game
-            + "|pn=" + p1 + "|atype=" + p2
+            + "|pn=" + p1 + "|actType=" + p2
             + "|v1=" + p3 + "|v2=" + p4;
     }
 

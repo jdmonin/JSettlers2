@@ -1,7 +1,8 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
+ * Portions of this file Copyright (C) 2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.util;
 
@@ -32,6 +33,11 @@ import java.util.Vector;
  * The debugging information is in the form of a vector
  * of strings.  Each debugging vector is stored in a
  * table under a key that is supplied by the user.
+ *<P>
+ * The {@link soc.robot.SOCRobotBrain} and related classes use 2 recorders
+ * to capture info about its current building plan.
+ * When the bot begins planning a new piece, it swaps which of its
+ * recorders are active/previous.
  */
 public class DebugRecorder
 {
@@ -53,7 +59,9 @@ public class DebugRecorder
     }
 
     /**
-     * turn the recorder on
+     * Turn the recorder on. This is an overall switch.
+     * To start recording information on a specific item or topic, call {@link #startRecording(Object)}.
+     * @see #turnOff()
      */
     public void turnOn()
     {
@@ -66,7 +74,8 @@ public class DebugRecorder
     }
 
     /**
-     * turn the recorder off
+     * turn the overall recorder off
+     * @see #turnOn()
      */
     public void turnOff()
     {
@@ -88,7 +97,9 @@ public class DebugRecorder
     /**
      * Start recording the current plan information
      *
-     * @param key  the key to use to index this recording
+     * @param key  the item or topic key to use to index this recording
+     * @see #stopRecording()
+     * @see #suspend()
      */
     public void startRecording(Object key)
     {
@@ -98,7 +109,8 @@ public class DebugRecorder
     }
 
     /**
-     * stop recording and store the vector in the table
+     * Done recording the current record: Store the vector in the table
+     * @see #startRecording(Object)
      */
     public void stopRecording()
     {
@@ -111,7 +123,8 @@ public class DebugRecorder
     }
 
     /**
-     * suspend recording
+     * Suspend recording the current record
+     * @see #resume()
      */
     public void suspend()
     {
@@ -128,6 +141,7 @@ public class DebugRecorder
 
     /**
      * Add a string to the current record
+     * which was started by {@link #startRecording(Object)}
      *
      * @param s  the string to add
      */

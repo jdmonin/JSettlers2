@@ -71,17 +71,17 @@ import soc.util.Version;
 /*package*/ final class MessageHandler
 {
     private final SOCPlayerClient client;
-    private final GameMessageMaker gmm;
+    private final GameMessageSender gms;
 
     MessageHandler(SOCPlayerClient client)
     {
         if (client == null)
             throw new IllegalArgumentException("client is null");
         this.client = client;
-        gmm = client.getGameMessageMaker();
+        gms = client.getGameMessageSender();
 
-        if (gmm == null)
-            throw new IllegalArgumentException("client game message maker is null");
+        if (gms == null)
+            throw new IllegalArgumentException("client GameMessageSender is null");
     }
 
     /**
@@ -129,478 +129,439 @@ import soc.util.Version;
                 handleSERVERPING((SOCServerPing) mes, isPractice);
                 break;
 
-                /**
-                 * server's version message
-                 */
+            /**
+             * server's version message
+             */
             case SOCMessage.VERSION:
                 handleVERSION(isPractice, (SOCVersion) mes);
-
                 break;
 
-                /**
-                 * status message
-                 */
+            /**
+             * status message
+             */
             case SOCMessage.STATUSMESSAGE:
                 handleSTATUSMESSAGE((SOCStatusMessage) mes, isPractice);
-
                 break;
 
-                /**
-                 * join channel authorization
-                 */
+            /**
+             * join channel authorization
+             */
             case SOCMessage.JOINCHANNELAUTH:
                 handleJOINCHANNELAUTH((SOCJoinChannelAuth) mes);
-
                 break;
 
-                /**
-                 * someone joined a channel
-                 */
+            /**
+             * someone joined a channel
+             */
             case SOCMessage.JOINCHANNEL:
                 handleJOINCHANNEL((SOCJoinChannel) mes);
-
                 break;
 
-                /**
-                 * list of members for a chat channel
-                 */
+            /**
+             * list of members for a chat channel
+             */
             case SOCMessage.CHANNELMEMBERS:
                 handleCHANNELMEMBERS((SOCChannelMembers) mes);
-
                 break;
 
-                /**
-                 * a new chat channel has been created
-                 */
+            /**
+             * a new chat channel has been created
+             */
             case SOCMessage.NEWCHANNEL:
                 handleNEWCHANNEL((SOCNewChannel) mes);
-
                 break;
 
-                /**
-                 * List of chat channels on the server: Server connection is complete.
-                 * (sent at connect after VERSION, even if no channels)
-                 * Show main panel if not already showing; see handleCHANNELS javadoc.
-                 */
+            /**
+             * List of chat channels on the server: Server connection is complete.
+             * (sent at connect after VERSION, even if no channels)
+             * Show main panel if not already showing; see handleCHANNELS javadoc.
+             */
             case SOCMessage.CHANNELS:
                 handleCHANNELS((SOCChannels) mes, isPractice);
-
                 break;
 
-                /**
-                 * text message to a chat channel
-                 */
+            /**
+             * text message to a chat channel
+             */
             case SOCMessage.CHANNELTEXTMSG:
                 handleCHANNELTEXTMSG((SOCChannelTextMsg) mes);
-
                 break;
 
-                /**
-                 * someone left the chat channel
-                 */
+            /**
+             * someone left the chat channel
+             */
             case SOCMessage.LEAVECHANNEL:
                 handleLEAVECHANNEL((SOCLeaveChannel) mes);
-
                 break;
 
-                /**
-                 * delete a chat channel
-                 */
+            /**
+             * delete a chat channel
+             */
             case SOCMessage.DELETECHANNEL:
                 handleDELETECHANNEL((SOCDeleteChannel) mes);
-
                 break;
 
-                /**
-                 * list of games on the server
-                 */
+            /**
+             * list of games on the server
+             */
             case SOCMessage.GAMES:
                 handleGAMES((SOCGames) mes, isPractice);
-
                 break;
 
-                /**
-                 * join game authorization
-                 */
+            /**
+             * join game authorization
+             */
             case SOCMessage.JOINGAMEAUTH:
                 handleJOINGAMEAUTH((SOCJoinGameAuth) mes, isPractice);
-
                 break;
 
-                /**
-                 * someone joined a game
-                 */
+            /**
+             * someone joined a game
+             */
             case SOCMessage.JOINGAME:
                 handleJOINGAME((SOCJoinGame) mes);
-
                 break;
 
-                /**
-                 * someone left a game
-                 */
+            /**
+             * someone left a game
+             */
             case SOCMessage.LEAVEGAME:
                 handleLEAVEGAME((SOCLeaveGame) mes);
-
                 break;
 
-                /**
-                 * new game has been created
-                 */
+            /**
+             * new game has been created
+             */
             case SOCMessage.NEWGAME:
                 handleNEWGAME((SOCNewGame) mes, isPractice);
-
                 break;
 
-                /**
-                 * game has been destroyed
-                 */
+            /**
+             * game has been destroyed
+             */
             case SOCMessage.DELETEGAME:
                 handleDELETEGAME((SOCDeleteGame) mes, isPractice);
-
                 break;
 
-                /**
-                 * list of game members
-                 */
+            /**
+             * list of game members
+             */
             case SOCMessage.GAMEMEMBERS:
                 handleGAMEMEMBERS((SOCGameMembers) mes);
-
                 break;
 
-                /**
-                 * game stats
-                 */
+            /**
+             * game stats
+             */
             case SOCMessage.GAMESTATS:
                 handleGAMESTATS((SOCGameStats) mes);
-
                 break;
 
-                /**
-                 * game text message
-                 */
+            /**
+             * game text message
+             */
             case SOCMessage.GAMETEXTMSG:
                 handleGAMETEXTMSG((SOCGameTextMsg) mes);
                 break;
 
-                /**
-                 * broadcast text message
-                 */
+            /**
+             * broadcast text message
+             */
             case SOCMessage.BCASTTEXTMSG:
                 handleBCASTTEXTMSG((SOCBCastTextMsg) mes);
                 break;
 
-                /**
-                 * someone is sitting down
-                 */
+            /**
+             * someone is sitting down
+             */
             case SOCMessage.SITDOWN:
                 handleSITDOWN((SOCSitDown) mes);
-
                 break;
 
-                /**
-                 * receive a board layout
-                 */
+            /**
+             * receive a board layout
+             */
             case SOCMessage.BOARDLAYOUT:
                 handleBOARDLAYOUT((SOCBoardLayout) mes);
-
                 break;
 
-                /**
-                 * receive a board layout (new format, as of 20091104 (v 1.1.08))
-                 */
+            /**
+             * receive a board layout (new format, as of 20091104 (v 1.1.08))
+             */
             case SOCMessage.BOARDLAYOUT2:
                 handleBOARDLAYOUT2((SOCBoardLayout2) mes);
                 break;
 
-                /**
-                 * message that the game is starting
-                 */
+            /**
+             * message that the game is starting
+             */
             case SOCMessage.STARTGAME:
                 handleSTARTGAME((SOCStartGame) mes);
                 break;
 
-                /**
-                 * update the state of the game
-                 */
+            /**
+             * update the state of the game
+             */
             case SOCMessage.GAMESTATE:
                 handleGAMESTATE((SOCGameState) mes);
                 break;
 
-                /**
-                 * set the current turn
-                 */
+            /**
+             * set the current turn
+             */
             case SOCMessage.SETTURN:
                 handleGAMEELEMENT(ga, SOCGameElements.CURRENT_PLAYER, ((SOCSetTurn) mes).getPlayerNumber());
                 break;
 
-                /**
-                 * set who the first player is
-                 */
+            /**
+             * set who the first player is
+             */
             case SOCMessage.FIRSTPLAYER:
                 handleGAMEELEMENT(ga, SOCGameElements.FIRST_PLAYER, ((SOCFirstPlayer) mes).getPlayerNumber());
                 break;
 
-                /**
-                 * update who's turn it is
-                 */
+            /**
+             * update who's turn it is
+             */
             case SOCMessage.TURN:
                 handleTURN((SOCTurn) mes);
                 break;
 
-                /**
-                 * receive player information
-                 */
+            /**
+             * receive player information
+             */
             case SOCMessage.PLAYERELEMENT:
                 handlePLAYERELEMENT((SOCPlayerElement) mes);
                 break;
 
-                /**
-                 * receive player information.
-                 * Added 2017-12-10 for v2.0.00.
-                 */
+            /**
+             * receive player information.
+             * Added 2017-12-10 for v2.0.00.
+             */
             case SOCMessage.PLAYERELEMENTS:
                 handlePLAYERELEMENTS((SOCPlayerElements) mes);
                 break;
 
-                /**
-                 * update game element information.
-                 * Added 2017-12-24 for v2.0.00.
-                 */
+            /**
+             * update game element information.
+             * Added 2017-12-24 for v2.0.00.
+             */
             case SOCMessage.GAMEELEMENTS:
                 handleGAMEELEMENTS((SOCGameElements) mes);
                 break;
 
-                /**
-                 * receive resource count
-                 */
+            /**
+             * receive resource count
+             */
             case SOCMessage.RESOURCECOUNT:
                 handleRESOURCECOUNT((SOCResourceCount) mes);
                 break;
 
-                /**
-                 * receive player's last settlement location.
-                 * Added 2017-12-23 for v2.0.00.
-                 */
+            /**
+             * receive player's last settlement location.
+             * Added 2017-12-23 for v2.0.00.
+             */
             case SOCMessage.LASTSETTLEMENT:
                 SOCDisplaylessPlayerClient.handleLASTSETTLEMENT
-                ((SOCLastSettlement) mes, client.games.get(((SOCLastSettlement) mes).getGame()));
+                    ((SOCLastSettlement) mes, client.games.get(((SOCLastSettlement) mes).getGame()));
                 break;
 
-                /**
-                 * the latest dice result
-                 */
+            /**
+             * the latest dice result
+             */
             case SOCMessage.DICERESULT:
                 handleDICERESULT((SOCDiceResult) mes);
-
                 break;
 
-                /**
-                 * a player built something
-                 */
+            /**
+             * a player built something
+             */
             case SOCMessage.PUTPIECE:
                 handlePUTPIECE((SOCPutPiece) mes);
-
                 break;
 
-                /**
-                 * the current player has cancelled an initial settlement,
-                 * or has tried to place a piece illegally.
-                 */
+            /**
+             * the current player has cancelled an initial settlement,
+             * or has tried to place a piece illegally.
+             */
             case SOCMessage.CANCELBUILDREQUEST:
                 handleCANCELBUILDREQUEST((SOCCancelBuildRequest) mes);
-
                 break;
 
-                /**
-                 * the robber or pirate moved
-                 */
+            /**
+             * the robber or pirate moved
+             */
             case SOCMessage.MOVEROBBER:
                 handleMOVEROBBER((SOCMoveRobber) mes);
-
                 break;
 
-                /**
-                 * the server wants this player to discard
-                 */
+            /**
+             * prompt this player to discard
+             */
             case SOCMessage.DISCARDREQUEST:
                 handleDISCARDREQUEST((SOCDiscardRequest) mes);
-
                 break;
 
-                /**
-                 * the server wants this player to choose a player to rob
-                 */
+            /**
+             * prompt this player to choose a player to rob
+             */
             case SOCMessage.CHOOSEPLAYERREQUEST:
                 handleCHOOSEPLAYERREQUEST((SOCChoosePlayerRequest) mes);
-
                 break;
 
-                /**
-                 * The server wants this player to choose to rob cloth or rob resources.
-                 * Added 2012-11-17 for v2.0.00.
-                 */
+            /**
+             * Prompt this player to choose to rob cloth or rob resources.
+             * Added 2012-11-17 for v2.0.00.
+             */
             case SOCMessage.CHOOSEPLAYER:
                 handleCHOOSEPLAYER((SOCChoosePlayer) mes);
                 break;
 
-                /**
-                 * a player has made a bank/port trade
-                 */
+            /**
+             * a player has made a bank/port trade
+             */
             case SOCMessage.BANKTRADE:
                 handleBANKTRADE((SOCBankTrade) mes);
                 break;
 
-                /**
-                 * a player has made an offer
-                 */
+            /**
+             * a player has made an offer
+             */
             case SOCMessage.MAKEOFFER:
                 handleMAKEOFFER((SOCMakeOffer) mes);
-
                 break;
 
-                /**
-                 * a player has cleared her offer
-                 */
+            /**
+             * a player has cleared her offer
+             */
             case SOCMessage.CLEAROFFER:
                 handleCLEAROFFER((SOCClearOffer) mes);
-
                 break;
 
-                /**
-                 * a player has rejected an offer
-                 */
+            /**
+             * a player has rejected an offer
+             */
             case SOCMessage.REJECTOFFER:
                 handleREJECTOFFER((SOCRejectOffer) mes);
-
                 break;
 
-                /**
-                 * a player has accepted a trade offer
-                 */
+            /**
+             * a player has accepted a trade offer
+             */
             case SOCMessage.ACCEPTOFFER:
                 handleACCEPTOFFER((SOCAcceptOffer) mes);
                 break;
 
-                /**
-                 * the trade message needs to be cleared
-                 */
+            /**
+             * the trade message needs to be cleared
+             */
             case SOCMessage.CLEARTRADEMSG:
                 handleCLEARTRADEMSG((SOCClearTradeMsg) mes);
-
                 break;
 
-                /**
-                 * the current number of development cards
-                 */
+            /**
+             * the current number of development cards
+             */
             case SOCMessage.DEVCARDCOUNT:
                 handleGAMEELEMENT(ga, SOCGameElements.DEV_CARD_COUNT, ((SOCDevCardCount) mes).getNumDevCards());
                 break;
 
-                /**
-                 * a dev card action, either draw, play, or add to hand
-                 */
+            /**
+             * a dev card action, either draw, play, or add to hand
+             */
             case SOCMessage.DEVCARDACTION:
                 handleDEVCARDACTION(isPractice, (SOCDevCardAction) mes);
                 break;
 
-                /**
-                 * set the flag that tells if a player has played a
-                 * development card this turn
-                 */
+            /**
+             * set the flag that tells if a player has played a
+             * development card this turn
+             */
             case SOCMessage.SETPLAYEDDEVCARD:
                 handleSETPLAYEDDEVCARD((SOCSetPlayedDevCard) mes);
                 break;
 
-                /**
-                 * get a list of all the potential settlements for a player
-                 */
+            /**
+             * receive a list of all the potential settlements for a player
+             */
             case SOCMessage.POTENTIALSETTLEMENTS:
                 handlePOTENTIALSETTLEMENTS((SOCPotentialSettlements) mes);
-
                 break;
 
-                /**
-                 * handle the change face message
-                 */
+            /**
+             * handle the change face message
+             */
             case SOCMessage.CHANGEFACE:
                 handleCHANGEFACE((SOCChangeFace) mes);
-
                 break;
 
-                /**
-                 * handle the reject connection message
-                 */
+            /**
+             * handle the reject connection message
+             */
             case SOCMessage.REJECTCONNECTION:
                 handleREJECTCONNECTION((SOCRejectConnection) mes);
-
                 break;
 
-                /**
-                 * handle the longest road message
-                 */
+            /**
+             * handle the longest road message
+             */
             case SOCMessage.LONGESTROAD:
                 handleGAMEELEMENT(ga, SOCGameElements.LONGEST_ROAD_PLAYER, ((SOCLongestRoad) mes).getPlayerNumber());
                 break;
 
-                /**
-                 * handle the largest army message
-                 */
+            /**
+             * handle the largest army message
+             */
             case SOCMessage.LARGESTARMY:
                 handleGAMEELEMENT(ga, SOCGameElements.LARGEST_ARMY_PLAYER, ((SOCLargestArmy) mes).getPlayerNumber());
                 break;
 
-                /**
-                 * handle the seat lock state message
-                 */
+            /**
+             * handle the seat lock state message
+             */
             case SOCMessage.SETSEATLOCK:
                 handleSETSEATLOCK((SOCSetSeatLock) mes);
-
                 break;
 
-                /**
-                 * handle the roll dice prompt message
-                 * (it is now x's turn to roll the dice)
-                 */
+            /**
+             * handle the roll dice prompt message
+             * (it is now x's turn to roll the dice)
+             */
             case SOCMessage.ROLLDICEPROMPT:
                 handleROLLDICEPROMPT((SOCRollDicePrompt) mes);
-
                 break;
 
-                /**
-                 * handle board reset (new game with same players, same game name, new layout).
-                 */
+            /**
+             * handle board reset (new game with same players, same game name, new layout).
+             */
             case SOCMessage.RESETBOARDAUTH:
                 handleRESETBOARDAUTH((SOCResetBoardAuth) mes);
-
                 break;
 
-                /**
-                 * another player is requesting a board reset: we must vote
-                 */
+            /**
+             * another player is requesting a board reset: we must vote
+             */
             case SOCMessage.RESETBOARDVOTEREQUEST:
                 handleRESETBOARDVOTEREQUEST((SOCResetBoardVoteRequest) mes);
-
                 break;
 
-                /**
-                 * another player has voted on a board reset request
-                 */
+            /**
+             * another player has voted on a board reset request
+             */
             case SOCMessage.RESETBOARDVOTE:
                 handleRESETBOARDVOTE((SOCResetBoardVote) mes);
-
                 break;
 
-                /**
-                 * voting complete, board reset request rejected
-                 */
+            /**
+             * voting complete, board reset request rejected
+             */
             case SOCMessage.RESETBOARDREJECT:
                 handleRESETBOARDREJECT((SOCResetBoardReject) mes);
-
                 break;
 
-                /**
-                 * for game options (1.1.07)
-                 */
+            /**
+             * for game options (1.1.07)
+             */
             case SOCMessage.GAMEOPTIONGETDEFAULTS:
                 handleGAMEOPTIONGETDEFAULTS((SOCGameOptionGetDefaults) mes, isPractice);
                 break;
@@ -617,121 +578,121 @@ import soc.util.Version;
                 handleGAMESWITHOPTIONS((SOCGamesWithOptions) mes, isPractice);
                 break;
 
-                /**
-                 * player stats (as of 20100312 (v 1.1.09))
-                 */
+            /**
+             * player stats (as of 20100312 (v 1.1.09))
+             */
             case SOCMessage.PLAYERSTATS:
                 handlePLAYERSTATS((SOCPlayerStats) mes);
                 break;
 
-                /**
-                 * debug piece Free Placement (as of 20110104 (v 1.1.12))
-                 */
+            /**
+             * debug piece Free Placement (as of 20110104 (v 1.1.12))
+             */
             case SOCMessage.DEBUGFREEPLACE:
                 handleDEBUGFREEPLACE((SOCDebugFreePlace) mes);
                 break;
 
-                /**
-                 * generic 'simple request' response from the server.
-                 * Added 2013-02-19 for v1.1.18.
-                 */
+            /**
+             * generic 'simple request' response from the server.
+             * Added 2013-02-19 for v1.1.18.
+             */
             case SOCMessage.SIMPLEREQUEST:
                 handleSIMPLEREQUEST((SOCSimpleRequest) mes);
                 break;
 
-                /**
-                 * generic "simple action" announcements from the server.
-                 * Added 2013-09-04 for v1.1.19.
-                 */
+            /**
+             * generic "simple action" announcements from the server.
+             * Added 2013-09-04 for v1.1.19.
+             */
             case SOCMessage.SIMPLEACTION:
                 handleSIMPLEACTION((SOCSimpleAction) mes);
                 break;
 
-                /**
-                 * game server text and announcements.
-                 * Added 2013-09-05 for v2.0.00.
-                 */
+            /**
+             * game server text and announcements.
+             * Added 2013-09-05 for v2.0.00.
+             */
             case SOCMessage.GAMESERVERTEXT:
                 handleGAMESERVERTEXT((SOCGameServerText) mes);
                 break;
 
-                /**
-                 * All players' dice roll result resources.
-                 * Added 2013-09-20 for v2.0.00.
-                 */
+            /**
+             * All players' dice roll result resources.
+             * Added 2013-09-20 for v2.0.00.
+             */
             case SOCMessage.DICERESULTRESOURCES:
                 handleDICERESULTRESOURCES((SOCDiceResultResources) mes);
                 break;
 
-                /**
-                 * move a previous piece (a ship) somewhere else on the board.
-                 * Added 2011-12-05 for v2.0.00.
-                 */
+            /**
+             * move a previous piece (a ship) somewhere else on the board.
+             * Added 2011-12-05 for v2.0.00.
+             */
             case SOCMessage.MOVEPIECE:
                 handleMOVEPIECE((SOCMovePiece) mes);
                 break;
 
-                /**
-                 * remove a piece (a ship) from the board in certain scenarios.
-                 * Added 2013-02-19 for v2.0.00.
-                 */
+            /**
+             * remove a piece (a ship) from the board in certain scenarios.
+             * Added 2013-02-19 for v2.0.00.
+             */
             case SOCMessage.REMOVEPIECE:
                 handleREMOVEPIECE((SOCRemovePiece) mes);
                 break;
 
-                /**
-                 * reveal a hidden hex on the board.
-                 * Added 2012-11-08 for v2.0.00.
-                 */
+            /**
+             * reveal a hidden hex on the board.
+             * Added 2012-11-08 for v2.0.00.
+             */
             case SOCMessage.REVEALFOGHEX:
                 handleREVEALFOGHEX((SOCRevealFogHex) mes);
                 break;
 
-                /**
-                 * update a village piece's value on the board (cloth remaining).
-                 * Added 2012-11-16 for v2.0.00.
-                 */
+            /**
+             * update a village piece's value on the board (cloth remaining).
+             * Added 2012-11-16 for v2.0.00.
+             */
             case SOCMessage.PIECEVALUE:
                 handlePIECEVALUE((SOCPieceValue) mes);
                 break;
 
-                /**
-                 * Text that a player has been awarded Special Victory Point(s).
-                 * Added 2012-12-21 for v2.0.00.
-                 */
+            /**
+             * Text that a player has been awarded Special Victory Point(s).
+             * Added 2012-12-21 for v2.0.00.
+             */
             case SOCMessage.SVPTEXTMSG:
                 handleSVPTEXTMSG((SOCSVPTextMessage) mes);
                 break;
 
-                /**
-                 * a special inventory item action: either add or remove,
-                 * or we cannot play our requested item.
-                 * Added 2013-11-26 for v2.0.00.
-                 */
+            /**
+             * a special inventory item action: either add or remove,
+             * or we cannot play our requested item.
+             * Added 2013-11-26 for v2.0.00.
+             */
             case SOCMessage.INVENTORYITEMACTION:
                 handleINVENTORYITEMACTION((SOCInventoryItemAction) mes);
                 break;
 
-                /**
-                 * Special Item change announcements.
-                 * Added 2014-04-16 for v2.0.00.
-                 */
+            /**
+             * Special Item change announcements.
+             * Added 2014-04-16 for v2.0.00.
+             */
             case SOCMessage.SETSPECIALITEM:
                 handleSETSPECIALITEM(client.games, (SOCSetSpecialItem) mes);
                 break;
 
-                /**
-                 * Localized i18n strings for game items.
-                 * Added 2015-01-11 for v2.0.00.
-                 */
+            /**
+             * Localized i18n strings for game items.
+             * Added 2015-01-11 for v2.0.00.
+             */
             case SOCMessage.LOCALIZEDSTRINGS:
                 handleLOCALIZEDSTRINGS((SOCLocalizedStrings) mes, isPractice);
                 break;
 
-                /**
-                 * Updated scenario info.
-                 * Added 2015-09-21 for v2.0.00.
-                 */
+            /**
+             * Updated scenario info.
+             * Added 2015-09-21 for v2.0.00.
+             */
             case SOCMessage.SCENARIOINFO:
                 handleSCENARIOINFO((SOCScenarioInfo) mes, isPractice);
                 break;
@@ -768,9 +729,9 @@ import soc.util.Version;
             client.sVersion = vers;
             client.sFeatures = (vers >= SOCFeatureSet.VERSION_FOR_SERVERFEATURES)
                     ? new SOCFeatureSet(mes.feats)
-                            : new SOCFeatureSet(true, true);
+                    : new SOCFeatureSet(true, true);
 
-                    client.getMainDisplay().showVersion(vers, mes.getVersionString(), mes.getBuild(), client.sFeatures);
+            client.getMainDisplay().showVersion(vers, mes.getVersionString(), mes.getBuild(), client.sFeatures);
         }
 
         // If we ever require a minimum server version, would check that here.
@@ -784,17 +745,17 @@ import soc.util.Version;
         final int cliVersion = Version.versionNumber();
         final boolean sameVersion = (client.sVersion == cliVersion);
         final boolean withTokenI18n =
-                (client.cliLocale != null) && (isPractice || (client.sVersion >= SOCStringManager.VERSION_FOR_I18N))
-                && ! ("en".equals(client.cliLocale.getLanguage()) && "US".equals(client.cliLocale.getCountry()));
+            (client.cliLocale != null) && (isPractice || (client.sVersion >= SOCStringManager.VERSION_FOR_I18N))
+            && ! ("en".equals(client.cliLocale.getLanguage()) && "US".equals(client.cliLocale.getCountry()));
 
         if ( ((! isPractice) && (client.sVersion > cliVersion))
-                || (withTokenI18n && (isPractice || sameVersion)))
+             || (withTokenI18n && (isPractice || sameVersion)) )
         {
             // Newer server: Ask it to list any options we don't know about yet.
             // Same version: Ask for all localized option descs if available.
             if (! isPractice)
                 client.getMainDisplay().optionsRequested();
-            gmm.put(SOCGameOptionGetInfos.toCmd(null, withTokenI18n, withTokenI18n && sameVersion), isPractice);
+            gms.put(SOCGameOptionGetInfos.toCmd(null, withTokenI18n, withTokenI18n && sameVersion), isPractice);
             // sends "-" and/or "?I18N"
         }
         else if ((client.sVersion < cliVersion) && ! isPractice)
@@ -803,8 +764,10 @@ import soc.util.Version;
             {
                 // Older server: Look for options created or changed since server's version.
                 // Ask it what it knows about them.
-                List<SOCGameOption> tooNewOpts = SOCGameOption.optionsNewerThanVersion(client.sVersion, false, false, null);
-                if ((tooNewOpts != null) && (client.sVersion < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES) && ! isPractice)
+                List<SOCGameOption> tooNewOpts =
+                    SOCGameOption.optionsNewerThanVersion(client.sVersion, false, false, null);
+                if ((tooNewOpts != null) && (client.sVersion < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES)
+                    && ! isPractice)
                 {
                     // Server is older than 2.0.00; we can't send it any long option names.
                     // Remove them from our set of options for games at this server.
@@ -830,13 +793,13 @@ import soc.util.Version;
                 {
                     if (! isPractice)
                         client.getMainDisplay().optionsRequested();
-                    gmm.put(SOCGameOptionGetInfos.toCmd(tooNewOpts, withTokenI18n, false), isPractice);
+                    gms.put(SOCGameOptionGetInfos.toCmd(tooNewOpts, withTokenI18n, false), isPractice);
                 }
                 else if (withTokenI18n && ! isPractice)
                 {
                     // server is older than client but understands i18n: request gameopt localized strings
 
-                    gmm.put(SOCGameOptionGetInfos.toCmd(null, true, false), false);  // sends opt list "-,?I18N"
+                    gms.put(SOCGameOptionGetInfos.toCmd(null, true, false), false);  // sends opt list "-,?I18N"
                 }
             } else {
                 // server is too old to understand options. Can't happen with local practice srv,
@@ -849,12 +812,20 @@ import soc.util.Version;
                 }
             }
         } else {
-            // client.sVersion == cliVersion, so we have same code as server for getAllKnownOptions.
+            // client.sVersion == cliVersion, so we have same code as server for scenarios and getAllKnownOptions.
+
             // For practice games, optionSet may already be initialized, so check vs null.
             ServerGametypeInfo opts = (isPractice ? client.practiceServGameOpts : client.tcpServGameOpts);
             if (opts.optionSet == null)
                 opts.optionSet = SOCGameOption.getAllKnownOptions();
             opts.noMoreOptions(isPractice);  // defaults not known unless it's practice
+
+            if (! (withTokenI18n || isPractice))
+            {
+                // won't need i18n strings: set flags so we won't ask server later for scenario details
+                opts.allScenStringsReceived = true;
+                opts.allScenInfoReceived = true;
+            }
         }
     }
 
@@ -892,11 +863,16 @@ import soc.util.Version;
 
         final boolean srvDebugMode;
         if (isPractice || (client.sVersion >= 2000))
-            srvDebugMode = (sv == SOCStatusMessage.SV_OK_DEBUG_MODE_ON);
-        else
+        {
+            final boolean svIsOKDebug = (sv == SOCStatusMessage.SV_OK_DEBUG_MODE_ON);
+            srvDebugMode = svIsOKDebug;
+            if (svIsOKDebug)
+                sv = SOCStatusMessage.SV_OK;
+        } else {
             srvDebugMode = statusText.toLowerCase().contains("debug");
+        }
 
-        client.getMainDisplay().showStatus(statusText, srvDebugMode);
+        client.getMainDisplay().showStatus(statusText, (sv == SOCStatusMessage.SV_OK), srvDebugMode);
 
         // Are we waiting for auth response in order to show NGOF?
         if ((! isPractice) && client.isNGOFWaitingForAuthStatus)
@@ -940,7 +916,7 @@ import soc.util.Version;
 
                 StringBuffer opts = new StringBuffer();
                 final Map<String, SOCGameOption> knowns =
-                        isPractice ? client.practiceServGameOpts.optionSet : client.tcpServGameOpts.optionSet;
+                    (isPractice) ? client.practiceServGameOpts.optionSet : client.tcpServGameOpts.optionSet;
                 for (String oname : optNames)
                 {
                     opts.append('\n');
@@ -990,11 +966,6 @@ import soc.util.Version;
         break;
         }
     }
-
-    /* 
-     * TODO: consider that many of these "handlers" simply pass the message off to mainDisplay
-     * In the short term (moving MessageHandler out of SOCPlayerClient, we will mark this as a TODO.
-     */
 
     /**
      * handle the "join channel authorization" message
@@ -1052,12 +1023,12 @@ import soc.util.Version;
      */
     protected void handleBCASTTEXTMSG(SOCBCastTextMsg mes)
     {
-        client.getMainDisplay().chatMessageBroadcast(mes.getText());
+        final String txt = mes.getText();
+
+        client.getMainDisplay().chatMessageBroadcast(txt);
 
         for (PlayerClientListener pcl : client.getClientListeners().values())
-        {
-            pcl.messageBroadcast(mes.getText());
-        }
+            pcl.messageBroadcast(txt);
     }
 
     /**
@@ -1126,15 +1097,16 @@ import soc.util.Version;
      * handle the "join game authorization" message: create new {@link SOCGame} and
      * {@link SOCPlayerInterface} so user can join the game
      * @param mes  the message
-     * @param isPractice server is practiceServer (not normal tcp network)
+     * @param isPractice  if server is practiceServer (not normal tcp network)
+     * @throws IllegalStateException if board size {@link SOCGameOption} "_BHW" isn't defined (unlikely internal error)
      */
     protected void handleJOINGAMEAUTH(SOCJoinGameAuth mes, final boolean isPractice)
+        throws IllegalStateException
     {
-        System.err.println("L2299 joingameauth at " + System.currentTimeMillis());
         client.gotPassword = true;
 
         final String gaName = mes.getGame();
-        Map<String,SOCGameOption> gameOpts;
+        Map<String, SOCGameOption> gameOpts;
         if (isPractice)
         {
             gameOpts = client.getNet().practiceServer.getGameOptions(gaName);
@@ -1146,18 +1118,30 @@ import soc.util.Version;
             else
                 gameOpts = null;
         }
-        System.err.println("L2318 past opts at " + System.currentTimeMillis());
+
+        final int bh = mes.getBoardHeight(), bw = mes.getBoardWidth();
+        if ((bh != 0) || (bw != 0))
+        {
+            // Encode board size to pass through game constructor.
+            // gameOpts won't be null, because bh, bw are from SOCBoardLarge which requires a gameopt to use.
+            SOCGameOption opt = SOCGameOption.getOption("_BHW", true);
+            if (opt == null)
+                throw new IllegalStateException("Internal error: Game opt _BHW not known");
+            opt.setIntValue((bh << 8) | bw);
+            if (gameOpts == null)
+                gameOpts = new HashMap<String,SOCGameOption>();  // unlikely: no-opts board has 0 height,width in message
+            gameOpts.put("_BHW", opt);
+        }
 
         SOCGame ga = new SOCGame(gaName, gameOpts);
         if (ga != null)
         {
             ga.isPractice = isPractice;
-            PlayerClientListener clientListener = client.getMainDisplay().gameJoined(
-                    ga, client.getGameReqLocalPrefs().get(gaName));
+            PlayerClientListener clientListener =
+                client.getMainDisplay().gameJoined(ga, mes.getLayoutVS(), client.getGameReqLocalPrefs().get(gaName));
             client.getClientListeners().put(gaName, clientListener);
             client.games.put(gaName, ga);
         }
-        System.err.println("L2332 handlejoin done at " + System.currentTimeMillis());
     }
 
     /**
@@ -1183,24 +1167,21 @@ import soc.util.Version;
     {
         String gn = mes.getGame();
         SOCGame ga = client.games.get(gn);
+        if (ga == null)
+            return;
 
-        if (ga != null)
+        final String name = mes.getNickname();
+        final SOCPlayer player = ga.getPlayer(name);
+
+        // Give the listener a chance to clean up while the player is still in the game
+        PlayerClientListener pcl = client.getClientListener(gn);
+        pcl.playerLeft(name, player);
+
+        if (player != null)
         {
-            final String name = mes.getNickname();
-            final SOCPlayer player = ga.getPlayer(name);
-
-            // Give the listener a chance to clean up while the player is still in the game
-            PlayerClientListener pcl = client.getClientListener(gn);
-            pcl.playerLeft(name, player);
-
-            if (player != null)
-            {
-                //
-                //  This user was not a spectator.
-                //  Remove first from listener, then from game data.
-                //
-                ga.removePlayer(name);
-            }
+            //  This user was not a spectator.
+            //  Remove first from listener, then from game data.
+            ga.removePlayer(name);
         }
     }
 
@@ -1287,53 +1268,49 @@ import soc.util.Version;
          * tell the game that a player is sitting
          */
         final SOCGame ga = client.games.get(mes.getGame());
-        if (ga != null)
+        if (ga == null)
+            return;
+        final int mesPN = mes.getPlayerNumber();
+
+        ga.takeMonitor();
+        SOCPlayer player = null;
+        try
         {
-            final int mesPN = mes.getPlayerNumber();
+            ga.addPlayer(mes.getNickname(), mesPN);
 
-            ga.takeMonitor();
-            SOCPlayer player = null;
-            try
-            {
-                ga.addPlayer(mes.getNickname(), mesPN);
+            player = ga.getPlayer(mesPN);
+            player.setRobotFlag(mes.isRobot(), false);
+        }
+        catch (Exception e)
+        {
+            System.out.println("Exception caught - " + e);
+            e.printStackTrace();
 
-                player = ga.getPlayer(mesPN);
-                /**
-                 * set the robot flag
-                 */
-                player.setRobotFlag(mes.isRobot(), false);
-            }
-            catch (Exception e)
-            {
-                System.out.println("Exception caught - " + e);
-                e.printStackTrace();
+            return;
+        }
+        finally
+        {
+            ga.releaseMonitor();
+        }
 
-                return;
-            }
-            finally
-            {
-                ga.releaseMonitor();
-            }
+        /**
+         * tell the GUI that a player is sitting
+         */
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
+        pcl.playerSitdown(mesPN, mes.getNickname());
 
+        /**
+         * let the board panel & building panel find our player object if we sat down
+         */
+        if (client.getNickname().equals(mes.getNickname()))
+        {
             /**
-             * tell the GUI that a player is sitting
+             * change the face (this is so that old faces don't 'stick')
              */
-            PlayerClientListener pcl = client.getClientListener(mes.getGame());
-            pcl.playerSitdown(mesPN, mes.getNickname());
-
-            /**
-             * let the board panel & building panel find our player object if we sat down
-             */
-            if (client.getNickname().equals(mes.getNickname()))
+            if (! ga.isBoardReset() && (ga.getGameState() < SOCGame.START1A))
             {
-                /**
-                 * change the face (this is so that old faces don't 'stick')
-                 */
-                if (! ga.isBoardReset() && (ga.getGameState() < SOCGame.START1A))
-                {
-                    ga.getPlayer(mesPN).setFaceId(client.lastFaceChange);
-                    gmm.changeFace(ga, client.lastFaceChange);
-                }
+                ga.getPlayer(mesPN).setFaceId(client.lastFaceChange);
+                gms.changeFace(ga, client.lastFaceChange);
             }
         }
     }
@@ -1345,21 +1322,19 @@ import soc.util.Version;
      */
     protected void handleBOARDLAYOUT(SOCBoardLayout mes)
     {
-        System.err.println("L2561 boardlayout at " + System.currentTimeMillis());
         SOCGame ga = client.games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            // BOARDLAYOUT is always the v1 board encoding (oldest format)
-            SOCBoard bd = ga.getBoard();
-            bd.setHexLayout(mes.getHexLayout());
-            bd.setNumberLayout(mes.getNumberLayout());
-            bd.setRobberHex(mes.getRobberHex(), false);
-            ga.updateAtBoardLayout();
+        // BOARDLAYOUT is always the v1 board encoding (oldest format)
+        SOCBoard bd = ga.getBoard();
+        bd.setHexLayout(mes.getHexLayout());
+        bd.setNumberLayout(mes.getNumberLayout());
+        bd.setRobberHex(mes.getRobberHex(), false);
+        ga.updateAtBoardLayout();
 
-            PlayerClientListener pcl = client.getClientListener(mes.getGame());
-            pcl.boardLayoutUpdated();
-        }
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
+        pcl.boardLayoutUpdated();
     }
 
     /**
@@ -1376,9 +1351,10 @@ import soc.util.Version;
         int timeval = mes.getSleepTime();
         if (timeval != -1)
         {
-            gmm.put(mes.toCmd(), isPractice);
+            gms.put(mes.toCmd(), isPractice);
         } else {
-            client.getNet().ex = new RuntimeException(client.strings.get("pcli.error.kicked.samename"));  // "Kicked by player with same name."
+            client.getNet().ex = new RuntimeException(client.strings.get("pcli.error.kicked.samename"));
+                // "Kicked by player with same name."
             client.shutdownFromNetwork();
         }
     }
@@ -1502,7 +1478,7 @@ import soc.util.Version;
 
         for (int i = 0; i < etypes.length; ++i)
             handlePLAYERELEMENT
-            (pcl, ga, pl, pn, action, etypes[i], amounts[i], false);
+                (pcl, ga, pl, pn, action, etypes[i], amounts[i], false);
     }
 
     /**
@@ -1521,7 +1497,7 @@ import soc.util.Version;
         final int etype = mes.getElementType();
 
         handlePLAYERELEMENT
-        (client.getClientListener(mes.getGame()), ga, null, pn, action, etype, amount, mes.isNews());
+            (client.getClientListener(mes.getGame()), ga, null, pn, action, etype, amount, mes.isNews());
     }
 
     /**
@@ -1546,8 +1522,8 @@ import soc.util.Version;
      * @since 2.0.00
      */
     private void handlePLAYERELEMENT
-    (final PlayerClientListener pcl, final SOCGame ga, SOCPlayer pl, final int pn,
-            final int action, final int etype, final int amount, final boolean isNews)
+        (final PlayerClientListener pcl, final SOCGame ga, SOCPlayer pl, final int pn,
+         final int action, final int etype, final int amount, final boolean isNews)
     {
         if (ga == null)
             return;
@@ -1561,25 +1537,25 @@ import soc.util.Version;
         {
         case SOCPlayerElement.ROADS:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-            (pl, action, SOCPlayingPiece.ROAD, amount);
+                (pl, action, SOCPlayingPiece.ROAD, amount);
             utype = PlayerClientListener.UpdateType.Road;
             break;
 
         case SOCPlayerElement.SETTLEMENTS:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-            (pl, action, SOCPlayingPiece.SETTLEMENT, amount);
+                (pl, action, SOCPlayingPiece.SETTLEMENT, amount);
             utype = PlayerClientListener.UpdateType.Settlement;
             break;
 
         case SOCPlayerElement.CITIES:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-            (pl, action, SOCPlayingPiece.CITY, amount);
+                (pl, action, SOCPlayingPiece.CITY, amount);
             utype = PlayerClientListener.UpdateType.City;
             break;
 
         case SOCPlayerElement.SHIPS:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-            (pl, action, SOCPlayingPiece.SHIP, amount);
+                (pl, action, SOCPlayingPiece.SHIP, amount);
             utype = PlayerClientListener.UpdateType.Ship;
             break;
 
@@ -1588,7 +1564,7 @@ import soc.util.Version;
         {
             final SOCPlayer oldLargestArmyPlayer = ga.getPlayerWithLargestArmy();
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numKnights
-            (ga, pl, action, amount);
+                (ga, pl, action, amount);
             utype = PlayerClientListener.UpdateType.Knight;
 
             // Check for change in largest-army player; update handpanels'
@@ -1600,31 +1576,31 @@ import soc.util.Version;
 
         case SOCPlayerElement.CLAY:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-            (pl, action, Data.ResourceType.CLAY_VALUE, amount);
+                (pl, action, Data.ResourceType.CLAY_VALUE, amount);
             utype = PlayerClientListener.UpdateType.Clay;
             break;
 
         case SOCPlayerElement.ORE:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-            (pl, action, Data.ResourceType.ORE_VALUE, amount);
+                (pl, action, Data.ResourceType.ORE_VALUE, amount);
             utype = PlayerClientListener.UpdateType.Ore;
             break;
 
         case SOCPlayerElement.SHEEP:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-            (pl, action, Data.ResourceType.SHEEP_VALUE, amount);
+                (pl, action, Data.ResourceType.SHEEP_VALUE, amount);
             utype = PlayerClientListener.UpdateType.Sheep;
             break;
 
         case SOCPlayerElement.WHEAT:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-            (pl, action, Data.ResourceType.WHEAT_VALUE, amount);
+                (pl, action, Data.ResourceType.WHEAT_VALUE, amount);
             utype = PlayerClientListener.UpdateType.Wheat;
             break;
 
         case SOCPlayerElement.WOOD:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-            (pl, action, Data.ResourceType.WOOD_VALUE, amount);
+                (pl, action, Data.ResourceType.WOOD_VALUE, amount);
             utype = PlayerClientListener.UpdateType.Wood;
             break;
 
@@ -1635,13 +1611,13 @@ import soc.util.Version;
              * then remove mes's unknown resources from player.
              */
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-            (pl, action, Data.ResourceType.UNKNOWN_VALUE, amount);
+                (pl, action, Data.ResourceType.UNKNOWN_VALUE, amount);
             utype = PlayerClientListener.UpdateType.Unknown;
             break;
 
         case SOCPlayerElement.ASK_SPECIAL_BUILD:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
-            (ga, pl, pn, action, etype, amount, client.getNickname());
+                (ga, pl, pn, action, etype, amount, client.getNickname());
             // This case is not really an element update, so route as a 'request'
             pcl.requestedSpecialBuild(pl);
             break;
@@ -1673,7 +1649,7 @@ import soc.util.Version;
 
         case SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
-            (ga, pl, pn, action, etype, amount, client.getNickname());
+                (ga, pl, pn, action, etype, amount, client.getNickname());
             pcl.requestedGoldResourceCountUpdated(pl, 0);
             break;
 
@@ -1694,13 +1670,13 @@ import soc.util.Version;
 
         case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
-            (ga, pl, pn, action, etype, amount, client.getNickname());
+                (ga, pl, pn, action, etype, amount, client.getNickname());
             utype = PlayerClientListener.UpdateType.Warship;
             break;
 
         default:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
-            (ga, pl, pn, action, etype, amount, client.getNickname());
+                (ga, pl, pn, action, etype, amount, client.getNickname());
         }
 
         if ((pcl != null) && (utype != null))
@@ -1744,7 +1720,7 @@ import soc.util.Version;
      * @since 2.0.00
      */
     protected void handleGAMEELEMENT
-    (final SOCGame ga, final int etype, final int value)
+        (final SOCGame ga, final int etype, final int value)
     {
         if (ga == null)
             return;
@@ -1813,8 +1789,8 @@ import soc.util.Version;
             return;
 
         handlePLAYERELEMENT
-        (client.getClientListener(mes.getGame()), ga, null, mes.getPlayerNumber(),
-                SOCPlayerElement.SET, SOCPlayerElement.RESOURCE_COUNT, mes.getCount(), false);
+            (client.getClientListener(mes.getGame()), ga, null, mes.getPlayerNumber(),
+             SOCPlayerElement.SET, SOCPlayerElement.RESOURCE_COUNT, mes.getCount(), false);
     }
 
     /**
@@ -1826,7 +1802,7 @@ import soc.util.Version;
         final String gameName = mes.getGame();
         SOCGame ga = client.games.get(gameName);
         if (ga == null)
-            throw new IllegalStateException("No game found for name '"+gameName+"'");
+            return;
 
         final int cpn = ga.getCurrentPlayerNumber();
         SOCPlayer p = null;
@@ -1934,27 +1910,26 @@ import soc.util.Version;
     protected void handleMOVEROBBER(SOCMoveRobber mes)
     {
         SOCGame ga = client.games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
+        /**
+         * Note: Don't call ga.moveRobber() because that will call the
+         * functions to do the stealing.  We just want to say where
+         * the robber moved without seeing if something was stolen.
+         */
+        int newHex = mes.getCoordinates();
+        final boolean isPirate = (newHex <= 0);
+        if (! isPirate)
         {
-            /**
-             * Note: Don't call ga.moveRobber() because that will call the
-             * functions to do the stealing.  We just want to say where
-             * the robber moved without seeing if something was stolen.
-             */
-            int newHex = mes.getCoordinates();
-            final boolean isPirate = (newHex <= 0);
-            if (! isPirate)
-            {
-                ga.getBoard().setRobberHex(newHex, true);
-            } else {
-                newHex = -newHex;
-                ((SOCBoardLarge) ga.getBoard()).setPirateHex(newHex, true);
-            }
-
-            PlayerClientListener pcl = client.getClientListener(mes.getGame());
-            pcl.robberMoved(newHex, isPirate);
+            ga.getBoard().setRobberHex(newHex, true);
+        } else {
+            newHex = -newHex;
+            ((SOCBoardLarge) ga.getBoard()).setPirateHex(newHex, true);
         }
+
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
+        pcl.robberMoved(newHex, isPirate);
     }
 
     /**
@@ -2049,27 +2024,22 @@ import soc.util.Version;
     protected void handleCLEAROFFER(final SOCClearOffer mes)
     {
         final SOCGame ga = client.games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            final int pn = mes.getPlayerNumber();
-            SOCPlayer player = null;
-            if (pn != -1)
-                player = ga.getPlayer(pn);
+        final int pn = mes.getPlayerNumber();
+        SOCPlayer player = null;
+        if (pn != -1)
+            player = ga.getPlayer(pn);
 
-            if (pn != -1)
-            {
-                ga.getPlayer(pn).setCurrentOffer(null);
-            } else {
-                for (int i = 0; i < ga.maxPlayers; ++i)
-                {
-                    ga.getPlayer(i).setCurrentOffer(null);
-                }
-            }
+        if (pn != -1)
+            ga.getPlayer(pn).setCurrentOffer(null);
+        else
+            for (int i = 0; i < ga.maxPlayers; ++i)
+                ga.getPlayer(i).setCurrentOffer(null);
 
-            PlayerClientListener pcl = client.getClientListener(mes.getGame());
-            pcl.requestedTradeClear(player, false);
-        }
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
+        pcl.requestedTradeClear(player, false);
     }
 
     /**
@@ -2101,7 +2071,7 @@ import soc.util.Version;
             return;
 
         pcl.playerTradeAccepted
-        (ga.getPlayer(mes.getOfferingNumber()), ga.getPlayer(mes.getAcceptingNumber()));
+            (ga.getPlayer(mes.getOfferingNumber()), ga.getPlayer(mes.getAcceptingNumber()));
     }
 
     /**
@@ -2127,47 +2097,66 @@ import soc.util.Version;
     protected void handleDEVCARDACTION(final boolean isPractice, final SOCDevCardAction mes)
     {
         SOCGame ga = client.games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
+        final SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+        final PlayerClientListener pcl = client.getClientListener(mes.getGame());
+        final int clientPN = (pcl != null) ? pcl.getClientPlayerNumber() : -2;  // not -1: message may have that
+        final int act = mes.getAction();
+
+        final List<Integer> ctypes = mes.getCardTypes();
+        if (ctypes != null)
         {
-            final int mesPN = mes.getPlayerNumber();
-            SOCPlayer player = ga.getPlayer(mesPN);
-
+            for (final int ctype : ctypes)
+                handleDEVCARDACTION(ga, player, act, ctype, pcl, clientPN);
+        } else {
             int ctype = mes.getCardType();
-            if ((! isPractice) && (client.sVersion < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+            if ((! isPractice) && (client.sVersion < SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES))
             {
                 if (ctype == SOCDevCardConstants.KNIGHT_FOR_VERS_1_X)
                     ctype = SOCDevCardConstants.KNIGHT;
                 else if (ctype == SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X)
                     ctype = SOCDevCardConstants.UNKNOWN;
             }
-
-            final int act = mes.getAction();
-            switch (act)
-            {
-            case SOCDevCardAction.DRAW:
-                player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
-                break;
-
-            case SOCDevCardAction.PLAY:
-                player.getInventory().removeDevCard(SOCInventory.OLD, ctype);
-                // JM temp debug:
-                if (ctype != mes.getCardType())
-                    System.out.println("L3947: play dev card type " + ctype + "; srv has " + mes.getCardType());
-                break;
-
-            case SOCDevCardAction.ADD_OLD:
-                player.getInventory().addDevCard(1, SOCInventory.OLD, ctype);
-                break;
-
-            case SOCDevCardAction.ADD_NEW:
-                player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
-                break;
-            }
-
-            PlayerClientListener pcl = client.getClientListener(mes.getGame());
-            pcl.playerDevCardUpdated(player, (act == SOCDevCardAction.ADD_OLD));
+            handleDEVCARDACTION(ga, player, act, ctype, pcl, clientPN);
         }
+    }
+
+    /**
+     * Handle one dev card for {@link #handleDEVCARDACTION(boolean, SOCDevCardAction)},
+     * which may have multiple cards in its message. Updates game data and calls
+     * {@link PlayerClientListener#playerDevCardUpdated(SOCPlayer, boolean)}.
+     */
+    private void handleDEVCARDACTION
+        (final SOCGame ga, final SOCPlayer player, final int act, final int ctype,
+         final PlayerClientListener pcl, final int clientPN)
+    {
+        switch (act)
+        {
+        case SOCDevCardAction.DRAW:
+            player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
+            break;
+
+        case SOCDevCardAction.PLAY:
+            player.getInventory().removeDevCard(SOCInventory.OLD, ctype);
+            break;
+
+        case SOCDevCardAction.ADD_OLD:
+            if ((player.getPlayerNumber() == clientPN) && (ga.getGameState() == SOCGame.OVER))
+            {
+                return;  // ignore messages at OVER about our own VP dev cards
+            }
+            player.getInventory().addDevCard(1, SOCInventory.OLD, ctype);
+            break;
+
+        case SOCDevCardAction.ADD_NEW:
+            player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
+            break;
+        }
+
+        if (pcl != null)
+            pcl.playerDevCardUpdated(player, (act == SOCDevCardAction.ADD_OLD));
     }
 
     /**
@@ -2177,11 +2166,12 @@ import soc.util.Version;
     protected void handleSETPLAYEDDEVCARD(SOCSetPlayedDevCard mes)
     {
         SOCGame ga = client.games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
+        SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
             (ga, null, mes.getPlayerNumber(), SOCPlayerElement.SET,
-                    SOCPlayerElement.PLAYED_DEV_CARD_FLAG, mes.hasPlayedDevCard() ? 1 : 0, null);
+             SOCPlayerElement.PLAYED_DEV_CARD_FLAG, mes.hasPlayedDevCard() ? 1 : 0, null);
     }
 
     /**
@@ -2190,13 +2180,12 @@ import soc.util.Version;
      * @throws IllegalStateException if the board has
      *     {@link SOCBoardLarge#getAddedLayoutPart(String) SOCBoardLarge.getAddedLayoutPart("AL")} != {@code null} but
      *     badly formed (node list number 0, or a node list number not followed by a land area number).
-     *     This Added Layout Part is rarely used, and this would be discovered quickly while testing
-     *     the board layout that contained it.
+     *     This Added Layout Part is rarely used, and that would be discovered quickly while testing
+     *     the board layout that contained it (see TestBoardLayout.testSingleLayout).
      */
     protected void handlePOTENTIALSETTLEMENTS(SOCPotentialSettlements mes)
             throws IllegalStateException
     {
-        System.err.println("L3292 potentialsettles at " + System.currentTimeMillis());
         SOCDisplaylessPlayerClient.handlePOTENTIALSETTLEMENTS(mes, client.games);
 
         PlayerClientListener pcl = client.getClientListener(mes.getGame());
@@ -2211,14 +2200,13 @@ import soc.util.Version;
     protected void handleCHANGEFACE(SOCChangeFace mes)
     {
         SOCGame ga = client.games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
-            PlayerClientListener pcl = client.getClientListener(mes.getGame());
-            player.setFaceId(mes.getFaceId());
-            pcl.playerFaceChanged(player, mes.getFaceId());
-        }
+        SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
+        player.setFaceId(mes.getFaceId());
+        pcl.playerFaceChanged(player, mes.getFaceId());
     }
 
     /**
@@ -2375,7 +2363,7 @@ import soc.util.Version;
         {
             // receiveDefaults sets opts.defaultsReceived, may set opts.allOptionsReceived
             unknowns = opts.receiveDefaults
-                    (SOCGameOption.parseOptionsToMap((mes.getOpts())));
+                (SOCGameOption.parseOptionsToMap((mes.getOpts())));
         }
 
         if (unknowns != null)
@@ -2383,7 +2371,7 @@ import soc.util.Version;
             if (! isPractice)
                 client.getMainDisplay().optionsRequested();
 
-            gmm.put(SOCGameOptionGetInfos.toCmd(unknowns, client.wantsI18nStrings(isPractice), false), isPractice);
+            gms.put(SOCGameOptionGetInfos.toCmd(unknowns, client.wantsI18nStrings(isPractice), false), isPractice);
         } else {
             opts.newGameWaitingForOpts = false;
             client.getMainDisplay().optionsReceived(opts, isPractice);
@@ -2430,7 +2418,6 @@ import soc.util.Version;
      */
     private void handleNEWGAMEWITHOPTIONS(SOCNewGameWithOptions mes, final boolean isPractice)
     {
-        System.err.println("L3609 newgamewithopts at " + System.currentTimeMillis());
         String gname = mes.getGame();
         String opts = mes.getOptionsString();
         boolean canJoin = (mes.getMinVersion() <= Version.versionNumber());
@@ -2471,9 +2458,8 @@ import soc.util.Version;
         }
 
         for (String gaName : msgGames.getGameNames())
-        {
-            client.getMainDisplay().addToGameList(msgGames.isUnjoinableGame(gaName), gaName, msgGames.getGameOptionsString(gaName), false);
-        }
+            client.getMainDisplay().addToGameList
+                (msgGames.isUnjoinableGame(gaName), gaName, msgGames.getGameOptionsString(gaName), false);
     }
 
     /**
@@ -2504,7 +2490,7 @@ import soc.util.Version;
         else if (type.equals(SOCLocalizedStrings.TYPE_SCENARIO))
         {
             client.localizeGameScenarios
-            (strs, true, mes.isFlagSet(SOCLocalizedStrings.FLAG_SENT_ALL), isPractice);
+                (strs, true, mes.isFlagSet(SOCLocalizedStrings.FLAG_SENT_ALL), isPractice);
         }
         else
         {
@@ -2564,7 +2550,7 @@ import soc.util.Version;
         final int[] rstat = mes.getParams();
 
         EnumMap<PlayerClientListener.UpdateType, Integer> stats
-        = new EnumMap<PlayerClientListener.UpdateType, Integer>(PlayerClientListener.UpdateType.class);
+            = new EnumMap<PlayerClientListener.UpdateType, Integer>(PlayerClientListener.UpdateType.class);
         stats.put(PlayerClientListener.UpdateType.Clay, Integer.valueOf(rstat[Data.ResourceType.CLAY_VALUE]));
         stats.put(PlayerClientListener.UpdateType.Ore, Integer.valueOf(rstat[Data.ResourceType.ORE_VALUE]));
         stats.put(PlayerClientListener.UpdateType.Sheep, Integer.valueOf(rstat[Data.ResourceType.SHEEP_VALUE]));
@@ -2641,7 +2627,7 @@ import soc.util.Version;
         default:
             // ignore unknown types
             System.err.println
-            ("handleSIMPLEACTION: Unknown type ignored: " + atype + " in game " + gaName);
+                ("handleSIMPLEACTION: Unknown type ignored: " + atype + " in game " + gaName);
         }
     }
 
@@ -2681,8 +2667,8 @@ import soc.util.Version;
         final int n = mes.playerNum.size();
         for (int i = 0; i < n; ++i)
             handlePLAYERELEMENT
-            (client.getClientListener(mes.getGame()), ga, null, mes.playerNum.get(i),
-                    SOCPlayerElement.SET, SOCPlayerElement.RESOURCE_COUNT, mes.playerResTotal.get(i), false);
+                (client.getClientListener(mes.getGame()), ga, null, mes.playerNum.get(i),
+                 SOCPlayerElement.SET, SOCPlayerElement.RESOURCE_COUNT, mes.playerResTotal.get(i), false);
     }
 
     /**
@@ -2802,10 +2788,12 @@ import soc.util.Version;
         final SOCPlayer pl = ga.getPlayer(mes.pn);
         if (pl == null)
             return;
+
         pl.addSpecialVPInfo(mes.svp, mes.desc);
         PlayerClientListener pcl = client.getClientListener(gaName);
         if (pcl == null)
             return;
+
         pcl.playerSVPAwarded(pl, mes.svp, mes.desc);
     }
 
@@ -2831,7 +2819,7 @@ import soc.util.Version;
             {
                 final SOCPlayer pl = ga.getPlayer(mes.playerNumber);
                 pcl.playerDevCardUpdated
-                (pl, (mes.action == SOCInventoryItemAction.ADD_PLAYABLE));
+                    (pl, (mes.action == SOCInventoryItemAction.ADD_PLAYABLE));
                 if (mes.action == SOCInventoryItemAction.PLAYED)
                     pcl.playerCanCancelInvItemPlay(pl, mes.canCancelPlay);
             }
@@ -2849,6 +2837,8 @@ import soc.util.Version;
      */
     private void handleSETSPECIALITEM(final Map<String, SOCGame> games, SOCSetSpecialItem mes)
     {
+        // update game data:
+
         SOCDisplaylessPlayerClient.handleSETSPECIALITEM(games, (SOCSetSpecialItem) mes);
 
         final PlayerClientListener pcl = client.getClientListener(mes.getGame());
@@ -2858,6 +2848,8 @@ import soc.util.Version;
         final SOCGame ga = client.games.get(mes.getGame());
         if (ga == null)
             return;
+
+        // update displays:
 
         final String typeKey = mes.typeKey;
         final int gi = mes.gameItemIndex, pi = mes.playerItemIndex, pn = mes.playerNumber;
@@ -2875,7 +2867,15 @@ import soc.util.Version;
             // fall through
         case SOCSetSpecialItem.OP_DECLINE:
             pcl.playerPickSpecialItem(typeKey, ga, pl, gi, pi, (mes.op == SOCSetSpecialItem.OP_PICK),
-                    mes.coord, mes.level, mes.sv);
+                mes.coord, mes.level, mes.sv);
+            break;
+
+        case SOCSetSpecialItem.OP_SET_PICK:
+            // fall through
+        case SOCSetSpecialItem.OP_CLEAR_PICK:
+            pcl.playerSetSpecialItem(typeKey, ga, pl, gi, pi, (mes.op == SOCSetSpecialItem.OP_SET_PICK));
+            pcl.playerPickSpecialItem(typeKey, ga, pl, gi, pi, true,
+                mes.coord, mes.level, mes.sv);
             break;
         }
     }

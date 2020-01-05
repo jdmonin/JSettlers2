@@ -394,6 +394,11 @@ import javax.swing.SwingConstants;
                         // button only: layout on 1 line
                         int x = (dim.width - btnW) / 2;
                         int y = (dim.height - lineH) / 2 - 1;
+                        if (y < 0)
+                        {
+                            y = 0;
+                            lineH = dim.height;
+                        }
                         sbBut.setLocation(x, y);
                         sbBut.setSize(btnW, lineH);
                     } else {
@@ -838,8 +843,9 @@ import javax.swing.SwingConstants;
             (isCurrent)
             ? ((gstate == SOCGame.PLAY1) || (gstate == SOCGame.SPECIAL_BUILDING))
             : canAskSBP;
+        final GameMessageSender messageSender = client.getGameMessageSender();
 
-        int sendBuildRequest = -9;  // send client.buildRequest if this changes
+        int sendBuildRequest = -9;  // will send buildRequest if this changes
 
         // TODO i18n: don't rely on label text
 
@@ -854,7 +860,7 @@ import javax.swing.SwingConstants;
             }
             else if ((pieceButtonsState == SOCGame.PLACING_ROAD) || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD2))
             {
-                client.getGameMessageMaker().cancelBuildRequest(game, SOCPlayingPiece.ROAD);
+                messageSender.cancelBuildRequest(game, SOCPlayingPiece.ROAD);
             }
         }
         else if (target == STLMT)
@@ -868,7 +874,7 @@ import javax.swing.SwingConstants;
             }
             else if (pieceButtonsState == SOCGame.PLACING_SETTLEMENT)
             {
-                client.getGameMessageMaker().cancelBuildRequest(game, SOCPlayingPiece.SETTLEMENT);
+                messageSender.cancelBuildRequest(game, SOCPlayingPiece.SETTLEMENT);
             }
         }
         else if (target == CITY)
@@ -882,7 +888,7 @@ import javax.swing.SwingConstants;
             }
             else if (pieceButtonsState == SOCGame.PLACING_CITY)
             {
-                client.getGameMessageMaker().cancelBuildRequest(game, SOCPlayingPiece.CITY);
+                messageSender.cancelBuildRequest(game, SOCPlayingPiece.CITY);
             }
         }
         else if (target == CARD)
@@ -891,7 +897,7 @@ import javax.swing.SwingConstants;
             {
                 if (stateBuyOK || canAskSBP)
                 {
-                    client.getGameMessageMaker().buyDevCard(game);
+                    messageSender.buyDevCard(game);
                     pi.getClientHand().disableBankUndoButton();
                 }
             }
@@ -907,7 +913,7 @@ import javax.swing.SwingConstants;
             }
             else if ((pieceButtonsState == SOCGame.PLACING_SHIP) || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD2))
             {
-                client.getGameMessageMaker().cancelBuildRequest(game, SOCPlayingPiece.SHIP);
+                messageSender.cancelBuildRequest(game, SOCPlayingPiece.SHIP);
             }
         }
         else if (target == SBP)
@@ -922,7 +928,7 @@ import javax.swing.SwingConstants;
             if (isCurrent && (sendBuildRequest == -1))
                 chp.setRollPrompt(null, true);  // clear the auto-roll countdown
 
-            client.getGameMessageMaker().buildRequest(game, sendBuildRequest);
+            messageSender.buildRequest(game, sendBuildRequest);
             chp.disableBankUndoButton();
         }
     }

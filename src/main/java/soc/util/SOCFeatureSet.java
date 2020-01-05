@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,13 +26,16 @@ import soc.game.SOCGameOption;  // for javadocs only
  * Sent during connect via {@link soc.message.SOCVersion} message fields.
  * Each feature can be a flag (active or not) or, in v2.0.00 and newer, integer-valued.
  *<P>
- * Server features were added in v1.1.19 ({@link #VERSION_FOR_SERVERFEATURES}); earlier clients assume the server is
+ * Server features were added in v1.1.19 ({@link #VERSION_FOR_SERVERFEATURES})
+ * to allow features (accounts, chat rooms, etc) to be turned off and to let clients know they're off.
+ * Earlier clients assume the server is
  * using the features defined in 1.1.19. Use the {@link #SOCFeatureSet(boolean, boolean) SOCFeatureSet(true, true)}
  * constructor when connecting to a server older than 1.1.19. See that constructor's javadoc for the list of
  * server features always assumed active before 1.1.19.
  *<P>
- * Client features were added in v2.0.00 ({@link #VERSION_FOR_CLIENTFEATURES}); earlier servers assume the client is
- * using the features that standard JSettlers implements. Use the
+ * Client features were added in v2.0.00 ({@link #VERSION_FOR_CLIENTFEATURES})
+ * to simplify development of third-party bots and clients, which might not want to implement all features.
+ * Earlier servers assume the client is using the features that standard JSettlers implements. Use the
  * {@link #SOCFeatureSet(boolean, boolean) SOCFeatureSet(true, false)} constructor when connecting to a client older
  * than 2.0.00. See that constructor's javadoc for the list of client features always assumed active before 2.0.00.
  *<P>

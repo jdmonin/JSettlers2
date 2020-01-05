@@ -81,11 +81,11 @@ import soc.message.SOCGameOptionGetInfos;
 import soc.message.SOCGameOptionInfo;
 import soc.message.SOCJoinChannel;
 import soc.message.SOCJoinGame;
+import soc.message.SOCLocalizedStrings;
 import soc.message.SOCMessage;
 import soc.message.SOCNewGameWithOptions;
 import soc.message.SOCNewGameWithOptionsRequest;
 import soc.message.SOCScenarioInfo;
-import soc.message.SOCStatusMessage;
 import soc.server.SOCServer;
 import soc.util.SOCFeatureSet;
 import soc.util.SOCGameList;
@@ -124,7 +124,11 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
     /**
      * System property {@code "jsettlers.uiScale"} for UI scaling override ("high-DPI") if needed
-     * for {@link #checkDisplayScaleFactor(Component)}. Name is based on similar {@code "sun.java2d.uiScale"},
+     * for {@link #checkDisplayScaleFactor(Component)}.
+     *<P>
+     * Overrides optional user preference {@link SOCPlayerClient#PREF_UI_SCALE_FORCE}.
+     *<P>
+     * Name is based on similar {@code "sun.java2d.uiScale"},
      * but that property might not be available for all java versions.
      * @since 2.0.00
      */
@@ -141,7 +145,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     /**
      * The classic JSettlers goldenrod dialog background color; pale yellow-orange tint #FFE6A2.
      * Typically used with foreground {@link Color#BLACK}, like in game/chat text areas,
-     * {@link TradeOfferPanel}, and {@link AskDialog}.
+     * {@link TradePanel}, {@link MessagePanel}, and {@link AskDialog}.
      * @see #getForegroundBackgroundColors(boolean)
      * @see #JSETTLERS_BG_GREEN
      * @since 2.0.00
@@ -239,6 +243,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     /**
      * For high-DPI displays, what scaling factor to use? Unscaled is 1.
      * @see #checkDisplayScaleFactor(Component)
+     * @see #PROP_JSETTLERS_UI_SCALE
      */
     private final int displayScale;
 
@@ -362,8 +367,21 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     /** Password for {@link #nick} while connecting to server, or blank */
     protected JPasswordField pass;
 
-    /** Status from server, or progress/error message updated by client */
+    /**
+     * Status from server, or progress/error message updated by client.
+     * @see #showStatus(String, boolean, boolean)
+     * @see #clearWaitingStatus(boolean)
+     * @see #statusOKText
+     */
     protected JTextField status;
+
+    /**
+     * If most recent {@link #showStatus(String, boolean, boolean)} was OK, its text.
+     * Otherwise {@code null}.
+     * @see #clearWaitingStatus(boolean)
+     * @since 2.0.00
+     */
+    private String statusOKText;
 
     /**
      * Chat channel name to create or join with {@link #jc} button.
@@ -633,9 +651,9 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      *<P>
      * After determining scale here, be sure to call {@link #scaleUIManagerFonts(int)} once.
      *<P>
-     * If system property {@link #PROP_JSETTLERS_UI_SCALE} is set to an integer &gt;= 1,
-     * it overrides this display check and its value will be returned, even if {@code c} is null
-     * or hasn't been added to a Container.
+     * If user preference {@link SOCPlayerClient#PREF_UI_SCALE_FORCE} or system property {@link #PROP_JSETTLERS_UI_SCALE}
+     * are set to an integer &gt;= 1, they override this display check and that value will be returned,
+     * even if {@code c} is null or hasn't been added to a Container.
      *
      * @param c  Component; not {@code null}
      * @return scaling factor based on screen height divided by {@link #DISPLAY_MIN_UNSCALED_HEIGHT},
@@ -657,12 +675,19 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                     int uiScale = Integer.parseInt(propValue);
                     if (uiScale > 0)
                     {
-                        System.err.println("L533: checkDisplayScaleFactor prop override -> scale=" + uiScale);  // TODO later: remove debug print
+                        System.err.println("L678: checkDisplayScaleFactor prop override -> scale=" + uiScale);  // TODO later: remove debug print
                         return uiScale;
                     }
                 } catch (NumberFormatException e) {}
             }
         } catch (SecurityException e) {}
+
+        int uiScaleForce = UserPreferences.getPref(SOCPlayerClient.PREF_UI_SCALE_FORCE, 0);
+        if ((uiScaleForce > 0) && (uiScaleForce <= 3))
+        {
+            System.err.println("L688: checkDisplayScaleFactor user-pref override -> scale=" + uiScaleForce);  // TODO later: remove debug print
+            return uiScaleForce;
+        }
 
         final GraphicsConfiguration gconf = c.getGraphicsConfiguration();
         if (gconf == null)
@@ -717,9 +742,9 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         return client;
     }
 
-    public GameMessageMaker getGameMessageMaker()
+    public final GameMessageSender getGameMessageSender()
     {
-        return client.getGameMessageMaker();
+        return client.getGameMessageSender();
     }
 
     public final Container getGUIContainer()
@@ -1331,7 +1356,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
             status.setText(client.strings.get("pcli.message.talkingtoserv"));  // "Talking to server..."
             net.putNet(SOCJoinChannel.toCmd
-                (client.nickname, (client.gotPassword ? "" : client.password), net.getHost(), ch));
+                (client.nickname, (client.gotPassword ? "" : client.password), SOCMessage.EMPTYSTR, ch));
         }
         else
         {
@@ -1546,7 +1571,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                 status.setText(client.strings.get("pcli.message.talkingtoserv"));  // "Talking to server..."
                 setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
                 net.putNet(SOCJoinGame.toCmd
-                    (client.nickname, (client.gotPassword ? "" : client.password), net.getHost(), gm));
+                    (client.nickname, (client.gotPassword ? "" : client.password), SOCMessage.EMPTYSTR, gm));
             }
         }
         else
@@ -1589,7 +1614,8 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
         if (! SOCMessage.isSingleLineAndSafe(n))
         {
-            status.setText(SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED);
+            status.setText(client.strings.get("netmsg.status.common.newgame_name_rejected"));
+                // "This name is not permitted, please choose a different name."
             return null;
         }
 
@@ -1707,9 +1733,9 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                 if (! opts.allScenStringsReceived)
                 {
                     // Game scenario localized text. As with game options, the practice client and
-                    // practice server aren't started yet, so we can't request localization from there.
+                    // practice server aren't started yet, so we can't go through them to request localization.
                     client.localizeGameScenarios
-                        (SOCServer.localizeGameScenarios(client.cliLocale, null, false, null),
+                        (SOCServer.localizeGameScenarios(client.cliLocale, null, true, false, null),
                          false, true, true);
                 }
             } else {
@@ -1788,7 +1814,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
             if (cliVers > client.sVersion)
             {
-                // Client newer than server: Ask specifically about any scenarios server might not know about.
+                // Client newer than server: Ask about specific new/changed scenarios which server might not know.
 
                 final List<SOCScenario> changeScens =
                     SOCVersionedItem.itemsNewerThanVersion
@@ -1801,20 +1827,26 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                         changes.add(sc.key);
                 }
             }
-
             // Else, server is newer than our client or same version.
             //   If server is newer: Ask for any scenario changes since our version.
             //   If same version: Ask for i18n localized scenarios strings if available.
-            //   In both cases that request is sent as an empty 'changes' list and MARKER_ANY_CHANGED.
 
-            if ((cliVers != client.sVersion) || client.wantsI18nStrings(false))
-                client.getGameMessageMaker().put(new SOCScenarioInfo(changes, true).toCmd(), false);
+            if (cliVers != client.sVersion)
+                client.getGameMessageSender().put
+                    (new SOCScenarioInfo(changes, true).toCmd(), false);
+                        // if cli newer: specific scenario list and MARKER_ANY_CHANGED
+                        // if srv newer: empty 'changes' list and MARKER_ANY_CHANGED
+            else if (client.wantsI18nStrings(false))
+                client.getGameMessageSender().put
+                    (SOCLocalizedStrings.toCmd
+                        (SOCLocalizedStrings.TYPE_SCENARIO, SOCLocalizedStrings.FLAG_REQ_ALL, (List<String>) null),
+                     false);
         }
 
         opts.newGameWaitingForOpts = true;
         opts.askedDefaultsAlready = true;
         opts.askedDefaultsTime = System.currentTimeMillis();
-        client.getGameMessageMaker().put(SOCGameOptionGetDefaults.toCmd(null), forPracticeServer);
+        client.getGameMessageSender().put(SOCGameOptionGetDefaults.toCmd(null), forPracticeServer);
 
         if (gameOptsDefsTask != null)
             gameOptsDefsTask.cancel();
@@ -1847,9 +1879,9 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             String askMsg =
                 (client.sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
                 ? SOCNewGameWithOptionsRequest.toCmd
-                    (client.nickname, pw, net.getHost(), gmName, opts)
+                    (client.nickname, pw, SOCMessage.EMPTYSTR, gmName, opts)
                 : SOCJoinGame.toCmd
-                    (client.nickname, pw, net.getHost(), gmName);
+                    (client.nickname, pw, SOCMessage.EMPTYSTR, gmName);
             System.err.println("L1314 askStartGameWithOptions at " + System.currentTimeMillis());
             System.err.println("      Got all opts,defaults? " + client.tcpServGameOpts.allOptionsReceived
                 + " " + client.tcpServGameOpts.defaultsReceived);
@@ -1862,11 +1894,18 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *<P>
+     * If {@code clearStatus} is true and the most recent Server Status code is "OK",
+     * will have status line show the text from that message: Typically something like
+     * "Welcome to JSettlers!".
+     */
     public void clearWaitingStatus(final boolean clearStatus)
     {
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         if (clearStatus)
-            status.setText("");  // clear "Talking to server...", etc
+            status.setText(statusOKText != null ? statusOKText : "");  // clear "Talking to server...", etc
     }
 
     /**
@@ -2014,9 +2053,10 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             gi.setEnabled(false);  // server too old for options, so don't use that button
     }
 
-    public void showStatus(final String statusText, final boolean debugWarn)
+    public void showStatus(final String statusText, final boolean statusIsOK, final boolean debugWarn)
     {
         status.setText(statusText);
+        statusOKText = (statusIsOK) ? statusText : null;
 
         // If warning about debug during initial connect, show that.
         // That status message would be sent after VERSION.
@@ -2049,6 +2089,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         nick.setEditable(false);
         pass.setText("");
         pass.setEditable(false);
+        clearWaitingStatus(true);
         if (! hasJoinedServer)
         {
             Container c = getParent();
@@ -2220,11 +2261,13 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         playerInterfaces.remove(game.getName());
     }
 
-    public PlayerClientListener gameJoined(SOCGame game, final Map<String, Object> localPrefs)
+    public PlayerClientListener gameJoined
+        (final SOCGame game, final int[] layoutVS, final Map<String, Object> localPrefs)
     {
         nick.setEditable(false);
         pass.setEditable(false);
         pass.setText("");
+        clearWaitingStatus(true);
         if (! hasJoinedServer)
         {
             Container c = getParent();
@@ -2236,10 +2279,9 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             hasJoinedServer = true;
         }
 
-        SOCPlayerInterface pi = new SOCPlayerInterface(game.getName(), SwingMainDisplay.this, game, localPrefs);
-        System.err.println("L2325 new pi at " + System.currentTimeMillis());
+        final SOCPlayerInterface pi = new SOCPlayerInterface
+            (game.getName(), SwingMainDisplay.this, game, layoutVS, localPrefs);
         pi.setVisible(true);
-        System.err.println("L2328 visible at " + System.currentTimeMillis());
         playerInterfaces.put(game.getName(), pi);
 
         return pi.getClientListener();

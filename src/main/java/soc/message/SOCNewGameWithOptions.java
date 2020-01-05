@@ -71,7 +71,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      * @param optstr Requested game options, in the format returned by
      *            {@link soc.game.SOCGameOption#packOptionsToString(Map, boolean) SOCGameOption.packOptionsToString(opts, false)},
      *            or null
-     * @param minVers Minimum client version required for this game, or -1.
+     * @param minVers Minimum client version required for this game, or -1
      */
     public SOCNewGameWithOptions(final String ga, final String optstr, final int minVers)
     {

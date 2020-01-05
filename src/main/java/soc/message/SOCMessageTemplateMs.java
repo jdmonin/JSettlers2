@@ -163,7 +163,7 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
 
     /**
      * Parse helper method: Iterate over the received parameter list
-     * and replace any {@link SOCMessage#EMPTYSTR} parameter with "" in place.
+     * and replace any {@link SOCMessage#EMPTYSTR} in place with "".
      * Used in child classes' {@code parseDataStr(..)} methods.
      * Ignores {@link #GAME_NONE}.
      * @param slist  The String parameters received over the network, or {@code null} to do nothing
@@ -200,16 +200,25 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
         if (pa != null)
         {
             if (pa.isEmpty())
-                sb.append("|(pa is empty)");
-            else
+            {
+                sb.append(":(pa is empty)");
+            } else {
+                boolean first = true;
                 for (final String p : pa)
                 {
-                    sb.append("|p=");
+                    if (first)
+                    {
+                        sb.append(":p=");
+                        first = false;
+                    } else {
+                        sb.append("|p=");
+                    }
                     if (p != null)
                         sb.append(p);
                 }
+            }
         } else {
-            sb.append("|(pa is null)");
+            sb.append(":(pa is null)");
         }
 
         return sb.toString();

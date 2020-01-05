@@ -181,7 +181,7 @@ import javax.swing.UIManager;
     /**
      * Show that a non-client player is picking resources for the gold hex.
      * Uses same variables and methods as {@link #TRADEMSG_DISCARD}:
-     * {@link #offerIsDiscardOrPickMessage}, {@link #setDiscardOrPickMsg(boolean)}, etc.
+     * {@link #messageIsDiscardOrPick}, {@link #setDiscardOrPickMsg(boolean)}, etc.
      * @since 2.0.00
      */
     private static final String TRADEMSG_PICKING = strings.get("hpan.picking.rsrcs");  // "Picking\nResources..."
@@ -384,7 +384,8 @@ import javax.swing.UIManager;
 
     /**
      * Game option NT: If true, only bank trading is allowed,
-     * trading between players is disabled.
+     * trading between players is disabled,
+     * and {@link #offerPanel} and {@link #counterOfferPanel} are null.
      * @since 1.1.07
      */
     protected boolean playerTradingDisabled;
@@ -462,20 +463,25 @@ import javax.swing.UIManager;
 
     protected final SOCPlayerInterface playerInterface;
     protected final SOCPlayerClient client;
+    private final GameMessageSender messageSender;
     protected final SOCGame game;
 
     /**
-     * Our player if: {@link #inPlay}, not null, and {@link SOCPlayer#getName()} not null.
+     * Our player; should use only when {@link #inPlay} and {@link SOCPlayer#getName()} is not null.
      * @see #playerNumber
+     * @see #playerIsClient
+     * @see #playerIsCurrent
      */
-    protected SOCPlayer player;
+    protected final SOCPlayer player;
 
     /**
-     * Our player number.  Set in {@link #creation(SOCPlayerInterface, SOCPlayer, boolean)}
-     * to {@link #player}.{@link SOCPlayer#getPlayerNumber() getPlayerNumber()}
+     * Our player number.  Set in constructor
+     * to {@link #player}.{@link SOCPlayer#getPlayerNumber() getPlayerNumber()}.
+     * @see #playerIsClient
+     * @see #playerIsCurrent
      * @since 1.1.16
      */
-    private int playerNumber = -1;
+    private final int playerNumber;
 
     /** Does this panel represent our client's own hand?  If true, implies {@link #interactive}. */
     protected boolean playerIsClient;
@@ -501,24 +507,59 @@ import javax.swing.UIManager;
     protected int[] playerSendMap;
 
     /**
-     * Display other players' trade offers and related messages.
-     * Does not apply to client's hand panel (<tt>playerIsClient</tt> == true).
-     * Both offer and counter-offer display are part of this object.
-     * Also used to display board-reset vote messages.
-     * When displaying a message, looks like a {@link SpeechBalloon}.
+     * Panel to display this other player's trade offers to client player.
+     * Usually hidden. When visible, row 1 and row 2 of the panel's trade resources
+     * are labled "Gives You:", "They Get:". Client player can accept or reject
+     * the trade offer, or use a button to show {@link #counterOfferPanel} to
+     * make and send a counter-offer.
+     *<P>
+     * Null if {@link #playerTradingDisabled}.<BR>
+     * Does not apply to client's hand panel ({@link #playerIsClient} == true).
      *<P>
      * If the handpanel is not tall enough, other controls will be obscured by this one.
      * This low height is indicated by {@link #offerHidesControls} and possibly {@link #offerCounterHidesFace}.
-     *
-     * @see #offerIsResetMessage
-     * @see #offerIsDiscardOrPickMessage
+     *<P>
+     * Before v2.0.00 this and {@link #counterOfferPanel} were both part of {@code soc.client.TradeOfferPanel}.
      */
-    protected TradeOfferPanel offer;
+    private final TradePanel offerPanel;
 
     /**
-     * If true, the handpanel isn't tall enough, so when the {@link #offer} message panel
-     * is showing something, we must hide other controls.
-     * Does not apply to client's hand panel.
+     * Panel to display this client player's counteroffer to other player's trade offer
+     * shown in {@link #offerPanel}. Usually hidden. When visible, row 1 and row 2 of the
+     * panel's trade resources are labled "They Get:", "Gives You:".
+     * Client player can form and send their counteroffer, or hit Cancel to hide this panel.
+     *<P>
+     * Null if {@link #playerTradingDisabled}.<BR>
+     * Does not apply to client's hand panel ({@link #playerIsClient} == true).
+     *<P>
+     * Before v2.0.00 this and {@link #offerPanel} were both part of {@code soc.client.TradeOfferPanel}.
+     */
+    private final TradePanel counterOfferPanel;
+
+    /**
+     * Text panel to show text for player's status or response, usually about trade offers.
+     * Also used to display board-reset vote messages.
+     * Normally hidden.
+     *<P>
+     * Does not apply to client's hand panel ({@link #playerIsClient} == true).
+     *<P>
+     * If the handpanel is not tall enough, other controls will be obscured by this one.
+     * This low height is indicated by {@link #offerHidesControls} and possibly {@link #offerCounterHidesFace}.
+     *<P>
+     * Before v2.0.00 this was part of {@code TradeOfferPanel}.
+     *
+     * @see #messageIsReset
+     * @see #messageIsDiscardOrPick
+     * @since 2.0.00
+     */
+    private final MessagePanel messagePanel;
+
+    /**
+     * If true, the handpanel isn't tall enough, so when {@link #messagePanel}
+     * or {@link #offerPanel}/{@link #counterOfferPanel} are showing something,
+     * we must hide other controls.
+     *<P>
+     * Not used with client's hand panel.
      *
      * @see #hideTradeMsgShowOthers(boolean)
      * @see #offerCounterHidingFace
@@ -535,26 +576,37 @@ import javax.swing.UIManager;
     private boolean offerHidingControls, offerCounterHidingFace;
 
     /**
-     * Board-reset voting: If true, {@link #offer} is holding a message related to a board-reset vote.
-     * @see #offerIsDiscardOrPickMessage
+     * Board-reset voting: If true, {@link #messagePanel} is holding a message related to a board-reset vote.
+     *<P>
+     * Before v2.0.00 this field was {@code offerIsResetMessage}.
+     *
+     * @see #messageIsDiscardOrPick
+     * @see #offerIsHiddenByMessage
      */
-    protected boolean offerIsResetMessage;
+    protected boolean messageIsReset;
 
     /**
-     * Board-reset voting: If true, {@link #offer} is holding a discard message
+     * Board-reset voting: If true, {@link #messagePanel} is holding a discard message
      * ({@link #TRADEMSG_DISCARD}) or a gold hex pick-resources message
      * ({@link #TRADEMSG_PICKING}).
      * Set by {@link #setDiscardOrPickMsg(boolean)},
      * cleared by {@link #clearDiscardOrPickMsg()}.
-     * @see #offerIsResetMessage
+     *<P>
+     * Before v2.0.00 this field was {@code offerIsDiscardOrPickMessage}.
+     *
+     * @see #messageIsReset
+     * @see #offerIsHiddenByMessage
      */
-    private boolean offerIsDiscardOrPickMessage;
+    private boolean messageIsDiscardOrPick;
 
     /**
-     * Board-reset voting: If true, {@link #offer} was holding an active trade offer
-     * before {@link #offerIsResetMessage} or {@link #offerIsDiscardOrPickMessage} was set.
+     * Board-reset voting: If true, {@link #offerPanel} was holding an active trade offer
+     * before {@link #messageIsReset} or {@link #messageIsDiscardOrPick} was set
+     * and the message was temporarily hidden.
+     *<P>
+     * Before v2.0.00 this field was {@code offerIsMessageWasTrade}.
      */
-    protected boolean offerIsMessageWasTrade;
+    protected boolean offerIsHiddenByMessage;
 
     // End of Trading interface/message balloon fields.
 
@@ -569,7 +621,10 @@ import javax.swing.UIManager;
      * For details see {@link #SOCHandPanel(SOCPlayerInterface, SOCPlayer, boolean)}.
      *
      * @param pi  the interface that this panel is a part of
-     * @param pl  the player associated with this panel; cannot be {@code null}
+     * @param pl  the player associated with this panel; cannot be {@code null}.
+     *     Remember that {@link SOCGame#getPlayer(int)} returns a non-null player
+     *     even for an empty seat; that player object's {@link SOCPlayer#getName()} is updated
+     *     during game formation when a player sits there.
      */
     public SOCHandPanel(final SOCPlayerInterface pi, final SOCPlayer pl)
     {
@@ -581,7 +636,10 @@ import javax.swing.UIManager;
      * Calls {@link #removePlayer()}.
      *
      * @param pi  the interface that this panel is a part of
-     * @param pl  the player associated with this panel; cannot be {@code null}
+     * @param pl  the player associated with this panel; cannot be {@code null}.
+     *     Remember that {@link SOCGame#getPlayer(int)} returns a non-null player
+     *     even for an empty seat; that player object's {@link SOCPlayer#getName()} is updated
+     *     during game formation when a player sits there.
      * @param isInteractive  true if is or might become interactive, with a seated player
      */
     public SOCHandPanel(final SOCPlayerInterface pi, final SOCPlayer pl, final boolean isInteractive)
@@ -590,6 +648,7 @@ import javax.swing.UIManager;
 
         playerInterface = pi;
         client = pi.getClient();
+        messageSender = client.getGameMessageSender();
         game = pi.getGame();
         player = pl;
         playerNumber = player.getPlayerNumber();
@@ -605,22 +664,31 @@ import javax.swing.UIManager;
         final int displayScale = pi.displayScale,
                   sqSize = ColorSquare.WIDTH * displayScale;
         final Color pcolor = playerInterface.getPlayerColor(playerNumber);
-        setBackground(pcolor);
-        setForeground(COLOR_FOREGROUND);
-        setOpaque(true);
+        final boolean isOSColorHighContrast = SwingMainDisplay.isOSColorHighContrast();
+        if (! isOSColorHighContrast)
+        {
+            setBackground(pcolor);
+            setForeground(COLOR_FOREGROUND);
+            setOpaque(true);
+        }
         setFont(new Font("SansSerif", Font.PLAIN, 10 * displayScale));
 
-        blankStandIn = new ColorSquare(pcolor, strings.get("hpan.one.moment"));  // "One moment..."
+        blankStandIn = new ColorSquare
+            (((isOSColorHighContrast) ? ColorSquare.GREY : pcolor),
+             strings.get("hpan.one.moment"));  // "One moment..."
         blankStandIn.setVisible(false);
         // playerinterface.initInterfaceElements will add blankStandIn to its layout, and set its size/position.
 
         faceImg = new SOCFaceButton(playerInterface, playerNumber);
+        if (isOSColorHighContrast)
+            faceImg.setBackground(pcolor);  // only this bordered graphic will have the player color background
         add(faceImg);
 
         pname = new JLabel();
         pname.setFont(new Font("SansSerif", Font.PLAIN, 13 * displayScale));
         pname.setVerticalAlignment(JLabel.TOP);
         pname.putClientProperty(FONT_SKIP_FLAG, Boolean.TRUE);
+        pname.addMouseListener(this);  // to select player in Debug Free Placement mode (like SOCFaceButton does)
         // pname uses panel's background color, except when current player (updateAtTurn):
         pname.setBackground(null);
         pname.setOpaque(true);
@@ -928,10 +996,57 @@ import javax.swing.UIManager;
         quitBut.setEnabled(interactive);
         add(quitBut);
 
-        offer = new TradeOfferPanel(this, playerNumber);
-        offer.setVisible(false);
-        offerIsResetMessage = false;
-        add(offer);
+        messagePanel = new MessagePanel(((isOSColorHighContrast) ? null : pcolor), displayScale);
+        messagePanel.setVisible(false);
+        add(messagePanel);
+
+        // For trade between players, panels to show a non-client player's offer and make counteroffers.
+        // Construct these only after setting handpanel's background color.
+
+        if (playerTradingDisabled)
+        {
+            offerPanel = null;
+            counterOfferPanel = null;
+        } else {
+            final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true, false);
+            final Color tradeInteriorColor =
+                (colors != null) ? colors[2] : null; /* SwingMainDisplay.DIALOG_BG_GOLDENROD */
+
+            offerPanel = new TradePanel
+                (new String[]{ strings.get("trade.accept"), strings.get("trade.reject"), strings.get("trade.counter") },
+                    // "Accept", "Reject", "Counter"
+                 new String[]{  strings.get("trade.gives.you"), strings.get("trade.they.get"),
+                    strings.get("trade.opponent.gives"), strings.get("trade.you.give") },
+                    // "Gives You:", "They Get:", tooltips "Opponent gives to you", "You give to opponent"
+                 false, true, this, tradeInteriorColor, new TradePanel.TPListener()
+                 {
+                     public void button1Clicked() { clickOfferAcceptButton(); }
+                     public void button2Clicked() { clickOfferRejectButton(); }
+                     public void button3Clicked() { clickOfferCounterButton(); }
+                 }, displayScale);
+            offerPanel.setVisible(false);
+            add(offerPanel);
+
+            counterOfferPanel = new TradePanel
+                (new String[]{ strings.get("base.send"), strings.get("base.clear"), strings.get("base.cancel") },
+                    // "Send", "Clear", "Cancel"
+                 new String[]{ strings.get("trade.they.get"), strings.get("trade.gives.you"),
+                    strings.get("trade.give.to.opponent"), strings.get("trade.opponent.gives") },
+                    // "They Get:", "Gives You:", tooltips "Give to opponent", "Opponent gives to you"
+                 true, false, this, tradeInteriorColor, new TradePanel.TPListener()
+                 {
+                     public void button1Clicked() { clickCounterOfferSendButton(); }
+                     public void button2Clicked() { clickCounterOfferClearButton(); }
+                     public void button3Clicked() { clickCounterOfferCancelButton(); }
+                 }, displayScale);
+            counterOfferPanel.setVisible(false);
+            add(counterOfferPanel);
+
+            offerPanel.setOfferCounterPartner(false, counterOfferPanel);
+            counterOfferPanel.setOfferCounterPartner(true, offerPanel);
+        }
+
+        messageIsReset = false;
 
         // Set tooltip appearance to look like rest of SOCHandPanel; currently only this panel uses Swing tooltips
         if (! didSwingTooltipDefaults)
@@ -1046,30 +1161,27 @@ import javax.swing.UIManager;
         try {
         String target = e.getActionCommand();
 
-        SOCPlayerClient client = playerInterface.getClient();
-        SOCGame game = playerInterface.getGame();
-
         if (target == LOCKSEAT)
         {
             // Seat Lock while game forming (gamestate NEW); see below for ROBOTLOCKBUT_L etc
-            client.getGameMessageMaker().setSeatLock(game, playerNumber, SOCGame.SeatLockState.LOCKED);
+            messageSender.setSeatLock(game, playerNumber, SOCGame.SeatLockState.LOCKED);
         }
         else if (target == UNLOCKSEAT)
         {
             // Unlock while game forming
-            client.getGameMessageMaker().setSeatLock(game, playerNumber, SOCGame.SeatLockState.UNLOCKED);
+            messageSender.setSeatLock(game, playerNumber, SOCGame.SeatLockState.UNLOCKED);
         }
         else if (target == TAKEOVER)
         {
-            client.getGameMessageMaker().sitDown(game, playerNumber);
+            messageSender.sitDown(game, playerNumber);
         }
         else if (target == SIT)
         {
-            client.getGameMessageMaker().sitDown(game, playerNumber);
+            messageSender.sitDown(game, playerNumber);
         }
         else if ((target == START) && startBut.isVisible())
         {
-            client.getGameMessageMaker().startGame(game);
+            messageSender.startGame(game);
 
             // checks isVisible to guard against button action from hitting spacebar
             // when hidden but has focus because startBut is the first button added to panel;
@@ -1095,7 +1207,7 @@ import javax.swing.UIManager;
         else if (target == DONE)
         {
             // sqPanel.setValues(zero, zero);
-            client.getGameMessageMaker().endTurn(game);
+            messageSender.endTurn(game);
         }
         else if (target == DONE_RESTART)
         {
@@ -1106,7 +1218,7 @@ import javax.swing.UIManager;
             clearOffer(true);    // Zero the square panel numbers, unless board-reset vote in progress
             if (game.getGameState() == SOCGame.PLAY1)
             {
-                client.getGameMessageMaker().clearOffer(game);
+                messageSender.clearOffer(game);
             }
         }
         else if (target == BANK)
@@ -1132,7 +1244,7 @@ import javax.swing.UIManager;
         {
             if ((bankGive != null) && (bankGet != null))
             {
-                client.getGameMessageMaker().bankTrade(game, bankGet, bankGive);  // undo by reversing previous request
+                messageSender.bankTrade(game, bankGet, bankGive);  // undo by reversing previous request
                 bankGive = null;
                 bankGet = null;
                 bankUndoBut.setEnabled(false);
@@ -1221,7 +1333,7 @@ import javax.swing.UIManager;
                             new SOCTradeOffer(game.getName(),
                                               playerNumber,
                                               to, giveSet, getSet);
-                        client.getGameMessageMaker().offerTrade(game, tradeOffer);
+                        messageSender.offerTrade(game, tradeOffer);
                         disableBankUndoButton();
                     }
                 }
@@ -1240,11 +1352,23 @@ import javax.swing.UIManager;
     }
 
     /**
-     * Handle clicks on {@link #svpSq} or {@link #svpLab} to get more info.
+     * Handle clicks on {@link #svpSq} or {@link #svpLab} to get more info,
+     * and player-name label during Debug Free Placement Mode to set placing player.
      * @since 2.0.00
      */
     public void mouseClicked(MouseEvent e)
     {
+        if (e.getSource() == pname)
+        {
+            if (game.isDebugFreePlacement())
+            {
+                playerInterface.setDebugFreePlacementPlayer(playerNumber);
+                e.consume();
+            }
+
+            return;  // <--- Early return ---
+        }
+
         StringBuilder sb = new StringBuilder();
         sb.append(strings.get("hpan.svp.total", player.getSpecialVP()));  // "Total Special Victory Points: {0}"
 
@@ -1297,11 +1421,11 @@ import javax.swing.UIManager;
             // must take some actions now instead of when that message is received
 
         if (isFromTradePanel && (isOldServer || (player.getCurrentOffer() != null)))
-            client.getGameMessageMaker().clearOffer(game);
+            messageSender.clearOffer(game);
 
         SOCResourceSet giveSet = new SOCResourceSet(give);
         SOCResourceSet getSet = new SOCResourceSet(get);
-        client.getGameMessageMaker().bankTrade(game, giveSet, getSet);
+        messageSender.bankTrade(game, giveSet, getSet);
 
         bankGive = giveSet;
         bankGet = getSet;
@@ -1370,7 +1494,7 @@ import javax.swing.UIManager;
             break;
         }
 
-        client.getGameMessageMaker().setSeatLock(game, playerNumber, slNext);
+        messageSender.setSeatLock(game, playerNumber, slNext);
     }
 
 
@@ -1390,7 +1514,7 @@ import javax.swing.UIManager;
         // Check first for "Cancel"
         if (game.getGameState() == SOCGame.PLACING_INV_ITEM)
         {
-            client.getGameMessageMaker().cancelBuildRequest(game, SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL);
+            messageSender.cancelBuildRequest(game, SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL);
             return;
         }
 
@@ -1554,7 +1678,7 @@ import javax.swing.UIManager;
 
         if (cardTypeToPlay != -1)
         {
-            client.getGameMessageMaker().playDevCard(game, cardTypeToPlay);
+            messageSender.playDevCard(game, cardTypeToPlay);
             disableBankUndoButton();
         }
     }
@@ -1568,7 +1692,7 @@ import javax.swing.UIManager;
     private final void clickPlayInventorySpecialItem(final SOCInventoryItem item)
     {
         if (item.isPlayable())
-            client.getGameMessageMaker().playInventoryItem(game, item.itype);
+            messageSender.playInventoryItem(game, item.itype);
         // else isKept, or is new;
         // clickPlayCardButton checks these and prints a message to the user.
     }
@@ -1580,8 +1704,157 @@ import javax.swing.UIManager;
     {
         if (rollPromptInUse)
             setRollPrompt(null, false);  // Clear it
-        client.getGameMessageMaker().rollDice(game);
+        messageSender.rollDice(game);
         rollBut.setEnabled(false);  // Only one roll per turn
+    }
+
+    /**
+     * Handle a click on the trade offer Accept button. Check if player can accept the offer,
+     * given their resources. If not, print a message and return. Otherwise:
+     * Hide trade offer panel(s), call {@link GameMessageSender#acceptOffer(SOCGame, int)}.
+     *<P>
+     * Before v2.0.00 this was handled in {@code TradeOfferPanel.OfferPanel.actionPerformed}.
+     * @since 2.0.00
+     */
+    private void clickOfferAcceptButton()
+    {
+        if (! offerPanel.canPlayerGiveTradeResources())
+        {
+            // This is here just in case but shouldn't be needed, because
+            // TradePanel should have disabled or hid Accept when player
+            // doesn't have the resources to accept the offer. So, we "borrow"
+            // a localized message that's meant for a related task.
+
+            playerInterface.print("*** " + strings.get("trade.msg.cant.offer"));
+                // "You can't offer what you don't have."
+            return;
+        }
+
+        offerPanel.setVisible(false);
+        counterOfferPanel.setVisible(false);  // might already be hidden
+        checkTradePanelLayoutSize();
+
+        client.getGameMessageSender().acceptOffer(game, playerNumber);
+        disableBankUndoButton();
+    }
+
+    /**
+     * Handle a click on the trade offer Reject button.
+     * Hide trade offer panel(s), call {@link #rejectOfferAtClient()}.
+     *<P>
+     * Before v2.0.00 this was handled in {@code TradeOfferPanel.OfferPanel.actionPerformed}.
+     * @since 2.0.00
+     */
+    private void clickOfferRejectButton()
+    {
+        offerPanel.setVisible(false);
+        counterOfferPanel.setVisible(false);  // might already be hidden
+        checkTradePanelLayoutSize();
+
+        rejectOfferAtClient();
+    }
+
+    /**
+     * Handle a click on the trade offer Counter button by showing the counter-offer panel
+     * and clearing the auto-reject countdown (if any).
+     *<P>
+     * Before v2.0.00 this was handled in {@code TradeOfferPanel.OfferPanel.actionPerformed}.
+     * @since 2.0.00
+     */
+    private void clickOfferCounterButton()
+    {
+        counterOfferPanel.setVisible(true);
+        offerPanel.setButtonRowVisible(false, true);
+        checkTradePanelLayoutSize();
+    }
+
+    /**
+     * Handle a click on the trade counter-offer Send button.
+     * Check resources and, if possible, make the trade offer.
+     *<P>
+     * Before v2.0.00 this was handled in {@code TradeOfferPanel.OfferPanel.actionPerformed}.
+     * @since 2.0.00
+     */
+    private void clickCounterOfferSendButton()
+    {
+        // cancelRejectCountdown();  -- TODO soon
+
+        final SOCPlayer cliPlayer = game.getPlayer(client.getNickname());
+
+        if (game.getGameState() != SOCGame.PLAY1)
+            return;  // send button should've been disabled
+
+        final SOCResourceSet giveSet, getSet;  // what client player gives and gets in the counter-offer
+        {
+            SOCResourceSet[] giveget = counterOfferPanel.getTradeResources();  // "They Get:", "Gives You:"
+            giveSet = giveget[0];
+            getSet  = giveget[1];
+        }
+
+        if (! cliPlayer.getResources().contains(giveSet))
+        {
+            playerInterface.print("*** " + strings.get("trade.msg.cant.offer"));
+                // "You can't offer what you don't have."
+        }
+        else if ((giveSet.getKnownTotal() == 0) || (getSet.getKnownTotal() == 0))
+        {
+            playerInterface.print("*** " + strings.get("trade.msg.must.contain"));
+                // "A trade must contain at least one resource from each player." (v1.x.xx: ... resource card ...)
+        }
+        else
+        {
+            // offer to only the player that made the original offer
+            boolean[] to = new boolean[game.maxPlayers];
+            to[playerNumber] = true;
+
+            client.getGameMessageSender().offerTrade
+                (game, new SOCTradeOffer
+                    (game.getName(), cliPlayer.getPlayerNumber(), to, giveSet, getSet));
+        }
+    }
+
+    /**
+     * Handle a click on the trade counter-offer Clear button.
+     *<P>
+     * Before v2.0.00 this was handled in {@code TradeOfferPanel.OfferPanel.actionPerformed}.
+     * @since 2.0.00
+     */
+    private void clickCounterOfferClearButton()
+    {
+        counterOfferPanel.setTradeResources(null, null);
+    }
+
+    /**
+     * Handle a click on the trade counter-offer Cancel button by hiding the counter-offer panel.
+     *<P>
+     * Before v2.0.00 this was handled in {@code TradeOfferPanel.OfferPanel.actionPerformed}.
+     * @since 2.0.00
+     */
+    private void clickCounterOfferCancelButton()
+    {
+        counterOfferPanel.setVisible(false);
+        offerPanel.setButtonRowVisible(true, false);
+        checkTradePanelLayoutSize();
+    }
+
+    /**
+     * Re-checks trade panel size vs rest of the hand panel.
+     * Call after showing/hiding the trade panel or counter-offer panel.
+     * If needed, will invalidate layout.
+     * @since 2.0.00
+     */
+    private void checkTradePanelLayoutSize()
+    {
+        if (offerPanel == null)
+            return;
+
+        final boolean isCounterVis = counterOfferPanel.isVisible();
+        if (offerPanel.isVisible() || isCounterVis || ! faceImg.isVisible())
+            offerCounterOfferVisibleChanged(isCounterVis);  // call validate(), repaint()
+
+        // TODO check visibility of tradepanel, messagepanel, counteroffer;
+        // check flags like offerHidesControls, offerCounterHidesFace, offerHideingControls, offerCounterHidingFace.
+        // If need to call invalidate/validate, try to do so on AWT/UI thread.
     }
 
     /**
@@ -1741,7 +2014,11 @@ import javax.swing.UIManager;
             wonderLab.setVisible(false);
         }
 
-        offer.setVisible(false);
+        if (offerPanel != null)
+        {
+            offerPanel.setVisible(false);
+            counterOfferPanel.setVisible(false);
+        }
 
         larmyLab.setVisible(false);
         lroadLab.setVisible(false);
@@ -1756,7 +2033,25 @@ import javax.swing.UIManager;
         {
             // Clean up, since we're leaving the game
             if (playerInterface.getClientHand() == this)
+            {
                 playerInterface.setClientHand(null);
+
+                if (! playerTradingDisabled)
+                {
+                    // clear trade panels' designated "player", since trades are
+                    // presented from client player's viewpoint
+
+                    for (int pn = 0; pn < game.maxPlayers; ++pn)
+                    {
+                        if (pn == playerNumber)
+                            continue;
+
+                        final SOCHandPanel hpan = playerInterface.getPlayerHandPanel(pn);
+                        hpan.offerPanel.setPlayer(null, 0);
+                        hpan.counterOfferPanel.setPlayer(null, 0);
+                    }
+                }
+            }
             playerIsClient = false;
         } else if (game.getGameState() == SOCGame.NEW)
         {
@@ -1869,6 +2164,7 @@ import javax.swing.UIManager;
      * Also update ALL OTHER handpanels in our {@link #playerInterface} this way:
      * Remove all of the sit and take over buttons.
      * If game still forming, can lock seats (for fewer players/robots).
+     * If client player is sitting down, calls {@link SOCPlayerInterface#setClientHand(SOCHandPanel)}.
      *
      * @param name Name of player to add
      * @see #removePlayer()
@@ -1916,9 +2212,9 @@ import javax.swing.UIManager;
         }
         else if (wonderLab != null)
         {
-            wonderLab.setText("");  // clear previous; will be updated soon by updateValue(WonderLevel)
-            wonderLab.setToolTipText(null);
+            wonderLab.setText("");
             wonderLab.setVisible(true);
+            updateValue(PlayerClientListener.UpdateType.WonderLevel);
             // alignment is set below, after playerIsClient is known
         }
 
@@ -2031,13 +2327,22 @@ import javax.swing.UIManager;
             // Remove all of the sit and take over buttons.
             // If game still forming, can lock seats (for fewer players/robots).
             boolean gameForming = (game.getGameState() == SOCGame.NEW);
-            for (int i = 0; i < game.maxPlayers; i++)
+            for (int pn = 0; pn < game.maxPlayers; ++pn)
             {
-                playerInterface.getPlayerHandPanel(i).removeTakeOverBut();
-                if (gameForming && (i != playerNumber) && game.isSeatVacant(i))
-                    playerInterface.getPlayerHandPanel(i).renameSitButLock();
+                final SOCHandPanel hpan = playerInterface.getPlayerHandPanel(pn);
+
+                hpan.removeTakeOverBut();
+                if (gameForming && (pn != playerNumber) && game.isSeatVacant(pn))
+                    hpan.renameSitButLock();
                 else
-                    playerInterface.getPlayerHandPanel(i).removeSitBut();
+                    hpan.removeSitBut();
+
+                if ((! playerTradingDisabled) && (pn != playerNumber))
+                {
+                    // set it to client player, since trades are presented from client player's viewpoint
+                    hpan.offerPanel.setPlayer(player, 1);
+                    hpan.counterOfferPanel.setPlayer(player, 1);
+                }
             }
 
             updateButtonsAtAdd();  // Enable,disable the proper buttons
@@ -2077,12 +2382,13 @@ import javax.swing.UIManager;
                 removeSittingRobotLockBut();
             }
 
-            offer.addPlayer();
-
             vpLab.setVisible(true);
             vpSq.setVisible(true);
             resourceSq.setBorderColor(Color.BLACK);
             resourceLab.setText(RESOURCES);
+            if (counterOfferPanel != null)
+                counterOfferPanel.setLine1Text
+                    (strings.get("trade.counter.to.x", player.getName()));  // "Counter to {0}:"
 
             developmentLab.setVisible(true);
             developmentSq.setVisible(true);
@@ -2284,12 +2590,11 @@ import javax.swing.UIManager;
     }
 
     /**
-     * Callback from {@link TradeOfferPanel} when counter-offer is shown or hidden.
+     * Callback from {@link TradePanel} buttons when counter-offer is shown or hidden.
      * For players who aren't the client:
-     * If our {@link TradeOfferPanel} shows/hides the counter offer,
+     * If this handpanel shows/hides the counter offer,
      * may need to rearrange or hide controls under it.
-     * This should be called when in {@link TradeOfferPanel#OFFER_MODE},
-     * not in {@link TradeOfferPanel#MESSAGE_MODE}.
+     * This should be called only when showing a trade offer.
      *<P>
      * After any component show/hide and rearrangement, calls {@link #validate()} and {@link #repaint()};
      * this is necessary on win32 to avoid layout cutoff/repaint problems on Swing.
@@ -2300,7 +2605,7 @@ import javax.swing.UIManager;
     public void offerCounterOfferVisibleChanged(final boolean counterVisible)
     {
         invalidate();
-        if (offerCounterHidesFace || offerHidingControls)
+        if (offerCounterHidesFace || offerHidingControls || offerCounterHidingFace)
         {
             hideTradeMsgShowOthers(false);  // move 'offer' around if needed, hide/show faceImg
         }
@@ -2520,25 +2825,31 @@ import javax.swing.UIManager;
     /**
      * Display or update this player's trade offer, or hide if none.
      * If a game reset request is in progress, don't show the offer, because
-     * they use the same display component ({@link #offer}).  In that case
+     * their components overlap visually in the handpanel.  In that case
      * the trade offer will be refreshed after the reset is cancelled.
      *<P>
-     * Does not display if playerIsClient.
+     * Does not display if playerIsClient. Does nothing if {@link #playerTradingDisabled}.
      *
      * @param isNewOffer  If true this is for a newly made trade offer,
      *    not a refresh based on other game or player info.
      * @param resourcesOnly  If true, instead of updating the entire offer,
-     *    only show or hide "Accept" button based on the client player's resources.
-     *    Calls {@link TradeOfferPanel#updateOfferButtons()}.
+     *    only show or hide "Accept" button based on the client player's current resources.
+     *    Calls {@link TradePanel#updateOfferButtons()}.
      *    If no offer is currently visible, does nothing.
      */
     public void updateCurrentOffer(final boolean isNewOffer, final boolean resourcesOnly)
     {
+        if (playerTradingDisabled)
+            return;
+
         if (inPlay)
         {
             if (resourcesOnly)
             {
-                offer.updateOfferButtons();
+                offerPanel.updateOfferButtons();
+                if (counterOfferPanel.isVisible())
+                    counterOfferPanel.updateOfferButtons();
+
                 return;
             }
 
@@ -2546,22 +2857,24 @@ import javax.swing.UIManager;
 
             if (currentOffer != null)
             {
-                if (! (offerIsResetMessage || offerIsDiscardOrPickMessage))
+                if (! (messageIsReset || messageIsDiscardOrPick))
                 {
                     if (! playerIsClient)
                     {
-                        offer.setOffer(currentOffer);
-                        offer.setVisible(true);
+                        messagePanel.setVisible(false);
+                        offerPanel.setTradeOffer(currentOffer);
+                        offerPanel.setVisible(true);
                         if (offerHidesControls)
                             hideTradeMsgShowOthers(false);
-                        offer.repaint();
+                        checkTradePanelLayoutSize();
+                        offerPanel.repaint();
 
-                        if (isNewOffer && offer.isOfferToClientPlayer())
+                        if (isNewOffer && offerPanel.isOfferToPlayer())
                             playerInterface.playSound(SOCPlayerInterface.SOUND_OFFERED_TRADE);
                     }
                 }
                 else
-                    offerIsMessageWasTrade = true;  // Will show after voting
+                    offerIsHiddenByMessage = true;  // Will show after voting
             }
             else
             {
@@ -2582,10 +2895,13 @@ import javax.swing.UIManager;
         if (player.isRobot() && ! game.hasTradeOffers())
             return;
 
-        offer.setMessage(strings.get("base.no.thanks.sentenc"));  // "No thanks."
         if (offerHidesControls)
             hideTradeMsgShowOthers(false);
-        offer.setVisible(true);
+        offerPanel.setVisible(false);
+        counterOfferPanel.setVisible(false);
+        messagePanel.setText(strings.get("base.no.thanks.sentenc"));  // "No thanks."
+        messagePanel.setVisible(true);
+
         //validate();
         repaint();
     }
@@ -2597,55 +2913,63 @@ import javax.swing.UIManager;
      */
     public void rejectOfferAtClient()
     {
-        client.getGameMessageMaker().rejectOffer(game);
-        offer.setMessage(null);
-        offer.setVisible(false);
+        messageSender.rejectOffer(game);
+        messagePanel.setText(null);
+        messagePanel.setVisible(false);
+        offerPanel.setVisible(false);
+        counterOfferPanel.setVisible(false);
         if (offerHidesControls)
             hideTradeMsgShowOthers(true);
+
         repaint();
     }
 
     /**
-     * If the trade-offer panel is showing a message
+     * If the message panel is showing a message
      * (not a trade offer), clear and hide it.
-     * Assumes this hand's player is not the client.
-     * @see #tradeSetMessage(String)
+     *<P>
+     * Does nothing if client player's hand, because message panel is never shown.
+     *<P>
+     * Before v2.0.00 this method was {@code clearTradeMsg}.
+     *
+     * @see #showMessage(String)
      */
-    public void clearTradeMsg()
+    public void hideMessage()
     {
-        if ((offer.getMode() == TradeOfferPanel.MESSAGE_MODE)
-            && ! (offerIsResetMessage || offerIsDiscardOrPickMessage))
+        if (messagePanel.isVisible()
+            && ! (messageIsReset || messageIsDiscardOrPick))
         {
-            offer.setMessage(null);
-            offer.setVisible(false);
+            messagePanel.setText(null);
+            messagePanel.setVisible(false);
             if (offerHidesControls)
                 hideTradeMsgShowOthers(true);
+
             repaint();
         }
     }
 
     /**
-     * If non-client player's handpanel isn't tall enough, when
-     * the {@link #offer} message panel is showing, we must hide
+     * If non-client player's handpanel isn't tall enough, when the {@link #messagePanel}
+     * or {@link #offerPanel}/{@link #counterOfferPanel} showing, we must hide
      * other controls like {@link #knightsLab} and {@link #resourceSq}.
      *<P>
      * This method does <b>not</b> hide/show the trade offer;
      * other methods do that, and then if {@link #offerHidesControls},
      * call this method to show/hide the controls that would be obscured by it.
      *<P>
-     * If {@link #offerCounterHidesFace}, will check {@link TradeOfferPanel#isCounterOfferMode()}
+     * If {@link #offerCounterHidesFace}, will check if counter-offer is visible
      * and redo layout (to hide/move) if needed.
      *
      * @param hideTradeMsg True if hiding the trade offer message panel and should show other controls;
      *     false if showing trade offer and should hide others
-     * @see #tradeSetMessage(String)
-     * @see #clearTradeMsg()
+     * @see #showMessage(String)
+     * @see #hideMessage()
      * @see #offerHidesControls
      * @since 1.1.08
      */
     private void hideTradeMsgShowOthers(final boolean hideTradeMsg)
     {
-        if ((! offerHidesControls) && resourceSq.isVisible())
+        if ((! offerHidesControls) && resourceSq.isVisible() && faceImg.isVisible())
             return;
 
         if (offerHidingControls == hideTradeMsg)
@@ -2690,10 +3014,17 @@ import javax.swing.UIManager;
             offerHidingControls = ! hideTradeMsg;
         }
 
-        if (! offerCounterHidesFace)
+        final boolean faceHidden = ! faceImg.isVisible();
+        if (faceHidden && ! offerCounterHidingFace)
+        {
+            offerCounterHidingFace = true;  // correct the flag field; don't return
+        }
+        else if (! (faceHidden || offerCounterHidesFace))
+        {
             return;
+        }
 
-        final boolean counterIsShowing = offer.isCounterOfferMode();
+        final boolean counterIsShowing = (counterOfferPanel != null) && counterOfferPanel.isVisible();
         if (offerCounterHidingFace != counterIsShowing)
         {
             faceImg.setVisible(! counterIsShowing);
@@ -2716,7 +3047,7 @@ import javax.swing.UIManager;
 
             offerCounterHidingFace = counterIsShowing;
             invalidate();
-            doLayout();  // must move offer panel
+            validate();  // must move offer panel
             repaint();
         }
     }
@@ -2734,10 +3065,15 @@ import javax.swing.UIManager;
      */
     public void clearOffer(boolean updateSendCheckboxes)
     {
-        if (! offerIsResetMessage)
+        messagePanel.setText(null);
+        messagePanel.setVisible(false);
+
+        if (! (messageIsReset || playerTradingDisabled))
         {
-            offer.setVisible(false);
-            offer.clearOffer();  // Clear to zero the offer and counter-offer
+            offerPanel.setVisible(false);
+            offerPanel.setTradeOffer(null);
+            counterOfferPanel.setVisible(false);
+            counterOfferPanel.setTradeResources(null, null);
         }
 
         if (playerIsClient)
@@ -2785,32 +3121,45 @@ import javax.swing.UIManager;
     }
 
     /**
-     * Show or hide a message in the trade-panel.
-     * Should not be client player, only other players.
-     * Sets offerIsMessageWasTrade, but does not set boolean modes (offerIsResetMessage, offerIsDiscardMessage, etc.)
-     * Will clear boolean modes if message null.
+     * Show or hide a message in our {@link MessagePanel}.
+     * Not for use with client player's hand, only other players.
+     * Sets {@link #offerIsHiddenByMessage}, but does not set boolean modes
+     * ({@link #messageIsReset}, {@link #messageIsDiscardOrPick}, etc.)
+     * Will clear the boolean modes if message is {@code null}.
+     *<P>
+     * Before v2.0.00 this method was {@code tradeSetMessage}.
      *
-     * @param message Message to show, or null to hide (and return tradepanel to previous display, if any)
+     * @param message Message to show, or null to hide (and return tradepanel to previous display, if any).
+     *      Message can be 1 line, or 2 lines with <tt>'\n'</tt>;
+     *      will not automatically wrap based on message length.
+     * @see #hideMessage()
      */
-    private void tradeSetMessage(String message)
+    private void showMessage(String message)
     {
         if (playerIsClient)
             return;
 
         if (message != null)
         {
-            offerIsMessageWasTrade = (offer.isVisible() && (offer.getMode() == TradeOfferPanel.OFFER_MODE));
-            offer.setMessage(message);
+            offerIsHiddenByMessage = (offerPanel != null) && offerPanel.isVisible();
+            messagePanel.setText(message);
+
             if (offerHidesControls)
                 hideTradeMsgShowOthers(false);
-            offer.setVisible(true);
+            if (offerPanel != null)
+            {
+                offerPanel.setVisible(false);
+                counterOfferPanel.setVisible(false);
+            }
+            messagePanel.setVisible(true);
             repaint();
         } else {
             // restore previous state of offer panel
-            offerIsDiscardOrPickMessage = false;
-            offerIsResetMessage = false;
-            if ((! offerIsMessageWasTrade) || (! inPlay))
-                clearTradeMsg();
+            messagePanel.setVisible(false);
+            messageIsDiscardOrPick = false;
+            messageIsReset = false;
+            if ((! offerIsHiddenByMessage) || (! inPlay))
+                hideMessage();
             else
                 updateCurrentOffer(false, false);
         }
@@ -2827,11 +3176,11 @@ import javax.swing.UIManager;
     {
         if (! inPlay)
             return;
-        if (offerIsDiscardOrPickMessage)
+        if (messageIsDiscardOrPick)
             throw new IllegalStateException("Cannot call resetmessage when discard msg");
 
-        tradeSetMessage(message);
-        offerIsResetMessage = (message != null);
+        showMessage(message);
+        messageIsReset = (message != null);
     }
 
     /**
@@ -2852,27 +3201,27 @@ import javax.swing.UIManager;
     {
         if (! inPlay)
             return false;
-        if (offerIsResetMessage)
+        if (messageIsReset)
             return false;
 
-        tradeSetMessage(isDiscard ? TRADEMSG_DISCARD : TRADEMSG_PICKING);
-        offerIsDiscardOrPickMessage = true;
+        showMessage(isDiscard ? TRADEMSG_DISCARD : TRADEMSG_PICKING);
+        messageIsDiscardOrPick = true;
         return true;
     }
 
     /**
-     * Clear the "discarding..." or "picking resources..." message in the trade panel.
+     * Clear the "discarding..." or "picking resources..." message in the panel.
      * Assumes player can't be discarding and asking for board-reset at same time.
      * If wasn't in discardMessage mode, do nothing.
      * @see #setDiscardOrPickMsg(boolean)
      */
     public void clearDiscardOrPickMsg()
     {
-        if (! offerIsDiscardOrPickMessage)
+        if (! messageIsDiscardOrPick)
             return;
 
-        tradeSetMessage(null);
-        offerIsDiscardOrPickMessage = false;
+        showMessage(null);
+        messageIsDiscardOrPick = false;
     }
 
     /**
@@ -3247,7 +3596,7 @@ import javax.swing.UIManager;
         {
             resourceSq.setIntValue(player.getResources().getTotal());
 
-            if (offerIsDiscardOrPickMessage)
+            if (messageIsDiscardOrPick)
             {
                 final int gs = game.getGameState();
                 if (gs != SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
@@ -3273,7 +3622,7 @@ import javax.swing.UIManager;
      */
     public void updatePickGoldHexResources()
     {
-        if (offerIsDiscardOrPickMessage && (0 == player.getNeedToPickGoldHexResources()))
+        if (messageIsDiscardOrPick && (0 == player.getNeedToPickGoldHexResources()))
         {
             clearDiscardOrPickMsg();
             // Clear is handled here.
@@ -3663,23 +4012,24 @@ import javax.swing.UIManager;
                 }
 
                 // Various item counts, to the right of give/get/offer/trade area
+                int x = dim.width - inset - sqSize;  // squares' x-pos; labels will be to their left
                 if (clothSq != null)
                 {
-                    clothLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY - (lineH + space), knightsW, lineH);
-                    clothSq.setLocation(dim.width - inset - sqSize, tradeY - (lineH + space));
+                    clothLab.setBounds(x - knightsW - space, tradeY - (lineH + space), knightsW, lineH);
+                    clothSq.setLocation(x, tradeY - (lineH + space));
                 }
-                knightsLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY, knightsW, lineH);
-                knightsSq.setLocation(dim.width - inset - sqSize, tradeY);
-                roadLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY + lineH + space, knightsW, lineH);
-                roadSq.setLocation(dim.width - inset - sqSize, tradeY + lineH + space);
-                settlementLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY + (2 * (lineH + space)), knightsW, lineH);
-                settlementSq.setLocation(dim.width - inset - sqSize, tradeY + (2 * (lineH + space)));
-                cityLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY + (3 * (lineH + space)), knightsW, lineH);
-                citySq.setLocation(dim.width - inset - sqSize, tradeY + (3 * (lineH + space)));
+                knightsLab.setBounds(x - knightsW - space, tradeY, knightsW, lineH);
+                knightsSq.setLocation(x, tradeY);
+                roadLab.setBounds(x - knightsW - space, tradeY + lineH + space, knightsW, lineH);
+                roadSq.setLocation(x, tradeY + lineH + space);
+                settlementLab.setBounds(x - knightsW - space, tradeY + (2 * (lineH + space)), knightsW, lineH);
+                settlementSq.setLocation(x, tradeY + (2 * (lineH + space)));
+                cityLab.setBounds(x - knightsW - space, tradeY + (3 * (lineH + space)), knightsW, lineH);
+                citySq.setLocation(x, tradeY + (3 * (lineH + space)));
                 if (shipSq != null)
                 {
-                    shipLab.setBounds(dim.width - inset - knightsW - sqSize - space, tradeY + (4 * (lineH + space)), knightsW, lineH);
-                    shipSq.setLocation(dim.width - inset - sqSize, tradeY + (4 * (lineH + space)));
+                    shipLab.setBounds(x - knightsW - space, tradeY + (4 * (lineH + space)), knightsW, lineH);
+                    shipSq.setLocation(x, tradeY + (4 * (lineH + space)));
                 }
 
                 // Player's resource counts
@@ -3735,14 +4085,11 @@ import javax.swing.UIManager;
                 /* This is another player's hand */
 
                 // Top has name, VP count, largest army, longest road; SVP under VP count if applicable
-                // Trade offers appear in center when a trade is active
+                // MessagePanel or Trade offer/counteroffer appears in center when a trade is active
                 // Bottom has columns of item counts on left, right, having 3 or 4 rows:
                 //   Cloth (if that scenario), Soldiers, Res, Dev Cards to left;
                 //   Ships (if sea board), Roads, Settlements, Cities to right
                 //   Robot lock button (during play) in bottom center
-
-                int balloonH = dim.height - (inset + (4 * (lineH + space)) + inset);  // offer-message panel
-                offer.setAvailableSpace(dim.width - 2 * inset, balloonH);  // recalc offer.getPreferredSize()
 
                 final boolean wasHidesControls = offerHidesControls;  // if changes here, will call hideTradeMsgShowOthers
 
@@ -3771,25 +4118,50 @@ import javax.swing.UIManager;
                     }
                 }
 
-                // Are we tall enough for room, after the offer, for other controls?
+                // Are we tall enough for room, under trading panel(s), for other controls?
                 // If not, they will be hid when offer is visible.
-                final Dimension offerPrefSize = offer.getPreferredSize();
-                int offerMinHeight = offer.isCounterOfferMode()
-                    ? (TradeOfferPanel.OFFER_HEIGHT + TradeOfferPanel.OFFER_COUNTER_HEIGHT
-                       - TradeOfferPanel.OFFER_BUTTONS_ADDED_HEIGHT)
-                    : TradeOfferPanel.OFFER_HEIGHT;
-                if (offer.offerPanel.wantsRejectCountdown())
-                    offerMinHeight += TradeOfferPanel.LABEL_LINE_HEIGHT;
-                offerMinHeight *= displayScale;
-                final int numBottomLines = (hasTakeoverBut || hasSittingRobotLockBut) ? 5 : 4;
+                final boolean isCounterOfferMode = (counterOfferPanel != null) && counterOfferPanel.isVisible();
+                final Dimension offerPrefSize = (offerPanel != null)
+                    ? offerPanel.getPreferredSize()
+                    : null;  // if player trading disabled, won't use offerPrefSize for messagePanel
+                int offerMinHeight = (offerPrefSize != null)
+                        ? offerPrefSize.height
+                        : ColorSquare.HEIGHT,  // small stand-in
+                    counterOfferHeight = (counterOfferPanel != null)
+                        ? counterOfferPanel.getPreferredHeight(false)
+                        : ColorSquare.HEIGHT;  // small stand-in
+                if (isCounterOfferMode)
+                    offerMinHeight += counterOfferHeight + space;
+                // TODO chk num lines here
+                final int numBottomLines = (hasTakeoverBut || hasSittingRobotLockBut) ? 5 : 4,
+                          topFaceAreaHeight = inset + faceW + space,
+                          availHeightNoHide = (dim.height - topFaceAreaHeight - (numBottomLines * (lineH + space)));
+
+                if ((availHeightNoHide < offerMinHeight) && ! playerTradingDisabled)
+                {
+                    // Use compact mode; maybe won't have to hide other controls.
+                    // Update trade panel width/height vars
+
+                    int[] prefSz = offerPanel.getCompactPreferredSize();
+                    offerPrefSize.width = prefSz[0];
+                    offerPrefSize.height = prefSz[1];
+                    offerMinHeight = prefSz[1];
+                    if (isCounterOfferMode)
+                    {
+                        prefSz = counterOfferPanel.getCompactPreferredSize();
+                        counterOfferHeight = prefSz[1];
+                        offerMinHeight += counterOfferHeight + space;
+                    }
+                }
+
                 offerHidesControls = offerHidingControls
-                    || ((dim.height - (inset + faceW + space) - (numBottomLines * (lineH + space))) < offerMinHeight);
-                if (offerHidesControls)
+                    || ((availHeightNoHide < offerMinHeight) && ! playerTradingDisabled);
+                if (offerHidesControls && ! playerTradingDisabled)
                 {
                     // This flag is set here based on newly calculated layout,
                     // for use later when changing offerCounterHidingFace
                     offerCounterHidesFace =
-                        (dim.height - offerMinHeight) < faceW;
+                        (dim.height - offerMinHeight) < topFaceAreaHeight;
 
                     final int offerW = Math.min(dim.width - (2 * inset), offerPrefSize.width);
 
@@ -3799,19 +4171,53 @@ import javax.swing.UIManager;
                     // pname, vpLab and vpSq, to make room for it.
                     if (offerCounterHidingFace)
                     {
-                        offer.setBounds
-                            (inset, inset, offerW, Math.min(dim.height - (2 * inset), offerPrefSize.height));
+                        int ph = Math.min(dim.height - (2 * inset), offerPrefSize.height);
+                        // messagePanel is hidden, since offerCounterHidingFace.
+                        offerPanel.setBounds(inset, inset, offerW, ph);
+                        counterOfferPanel.setBounds
+                            (inset, inset + ph + space, offerW, counterOfferHeight);
                     } else {
-                        offer.setBounds
-                            (inset, inset + faceW + space, offerW,
-                             Math.min(dim.height - (inset + faceW + 2 * space), offerPrefSize.height));
+                        int ph = Math.min(dim.height - (inset + faceW + 2 * space), offerPrefSize.height);
+                        messagePanel.setBounds(inset, inset + faceW + space, offerW, ph);
+                        offerPanel.setBounds
+                            (inset, inset + faceW + space, offerW, ph);
+                        counterOfferPanel.setBounds
+                            (inset, inset + faceW + ph + 2 * space, offerW, counterOfferHeight);
                     }
-                    offer.setCounterHidesBalloonPoint(offerCounterHidingFace);
                 } else {
-                    offer.setBounds(inset, inset + faceW + space, offerPrefSize.width, offerPrefSize.height);
+                    // usual size & position
+
+                    int py = inset + faceW + space;
+
+                    if (offerPanel != null)
+                    {
+                        messagePanel.setBounds(inset, py, offerPrefSize.width, offerPrefSize.height);
+                        offerPanel.setBounds(inset, py, offerPrefSize.width, offerPrefSize.height);
+
+                        if (isCounterOfferMode)
+                        {
+                            py += offerPrefSize.height + space;
+                            counterOfferPanel.setBounds
+                                (inset, py, offerPrefSize.width, counterOfferHeight);
+                        }
+                    } else {
+                        Dimension msgPrefSize = messagePanel.getPreferredSize();
+                        if (msgPrefSize.width > (dim.width - inset))
+                            msgPrefSize.width = (dim.width - inset);
+                        if (msgPrefSize.height > availHeightNoHide)
+                            msgPrefSize.height = availHeightNoHide;
+
+                        messagePanel.setBounds(inset, py, msgPrefSize.width, msgPrefSize.height);
+                    }
                     offerCounterHidesFace = false;
                 }
-                offer.validate();
+                if (offerPanel != null)
+                {
+                    offerPanel.validate();
+                    if (isCounterOfferMode)
+                        counterOfferPanel.validate();
+                }
+                messagePanel.validate();
 
                 // Calc stlmtsW, dcardsW minimum widths needed from label texts
                 final int stlmtsW;
@@ -3884,20 +4290,28 @@ import javax.swing.UIManager;
                 }
 
                 // Lower-right: Column of piece counts:
-                // Ships, Roads, Settlements, Cities
+                // Roads, Settlements, Cities, Ships
+                int x = dim.width - inset - sqSize;  // squares' x-pos; labels will be to their left
+                y = lowerY;
+                if (shipSq == null)
+                    y += (lineH + space);
+                roadLab.setBounds(x - stlmtsW - space, y, stlmtsW, lineH);
+                roadSq.setLocation(x, y);
+                y += (lineH + space);
+                settlementLab.setBounds(x - stlmtsW - space, y, stlmtsW, lineH);
+                settlementSq.setLocation(x, y);
+                y += (lineH + space);
+                cityLab.setBounds(x - stlmtsW - space, y, stlmtsW, lineH);
+                citySq.setLocation(x, y);
                 if (shipSq != null)
                 {
-                    shipLab.setBounds(dim.width - inset - stlmtsW - sqSize - space, lowerY, stlmtsW, lineH);
-                    shipSq.setLocation(dim.width - inset - sqSize, lowerY);
+                    y += (lineH + space);
+                    shipLab.setBounds(x - stlmtsW - space, y, stlmtsW, lineH);
+                    shipSq.setLocation(x, y);
                 }
-                roadLab.setBounds(dim.width - inset - stlmtsW - sqSize - space, lowerY + (lineH + space), stlmtsW, lineH);
-                roadSq.setLocation(dim.width - inset - sqSize, lowerY + (lineH + space));
-                settlementLab.setBounds(dim.width - inset - stlmtsW - sqSize - space, lowerY + (2 * (lineH + space)), stlmtsW, lineH);
-                settlementSq.setLocation(dim.width - inset - sqSize, lowerY + (2 * (lineH + space)));
-                cityLab.setBounds(dim.width - inset - stlmtsW - sqSize - space, lowerY + (3 * (lineH + space)), stlmtsW, lineH);
-                citySq.setLocation(dim.width - inset - sqSize, lowerY + (3 * (lineH + space)));
 
-                if (wasHidesControls != offerHidesControls)
+                if (((wasHidesControls != offerHidesControls) || (offerCounterHidingFace != offerCounterHidesFace))
+                    && (messagePanel.isVisible() || ((offerPanel != null) && offerPanel.isVisible())))
                     hideTradeMsgShowOthers(false);
             }
         }

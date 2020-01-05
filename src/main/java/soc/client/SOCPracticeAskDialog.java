@@ -34,10 +34,6 @@ package soc.client;
 /*package*/ class SOCPracticeAskDialog extends AskDialog
 {
 
-    /** i18n text strings; will use same locale as SOCPlayerClient's string manager.
-     *  @since 2.0.00 */
-    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
-
     /**
      * Creates a new SOCPracticeAskDialog.
      *

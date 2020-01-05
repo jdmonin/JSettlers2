@@ -3,6 +3,7 @@
  * This file copyright (C) 2019 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -66,7 +67,7 @@ import soc.message.SOCSitDown;
 import soc.message.SOCStartGame;
 
 /**
- * Client class to form outgoing messages (putting) and call {@link ClientNetwork} to send them to the server.
+ * Client class to form outgoing messages and call {@link ClientNetwork} methods to send them to the server.
  * In-game actions and requests each have their own methods, such as {@link #buyDevCard(SOCGame)}.
  * General messages can be sent using {@link #put(String, boolean)}.
  *<P>
@@ -75,13 +76,13 @@ import soc.message.SOCStartGame;
  * @author paulbilnoski
  * @since 2.0.00
  */
-/*package*/ class GameMessageMaker
+/*package*/ class GameMessageSender
 {
     private final SOCPlayerClient client;
     private final ClientNetwork net;
     private final Map<String, PlayerClientListener> clientListeners;
 
-    GameMessageMaker(final SOCPlayerClient client, Map<String, PlayerClientListener> clientListeners)
+    GameMessageSender(final SOCPlayerClient client, Map<String, PlayerClientListener> clientListeners)
     {
         this.client = client;
         if (client == null)
@@ -93,12 +94,12 @@ import soc.message.SOCStartGame;
     }
 
     /**
-     * Write a message to the net or practice server.
-     * Because the player can be in both network games and practice games,
-     * we must route to the appropriate client-server connection.
+     * Send a message to the net or practice server by calling {@link ClientNetwork} methods.
+     * This is a convenience method. Because the player can be in both network games and practice games,
+     * uses {@code isPractice} to route to the appropriate client-server connection.
      *
      * @param s  the message command, formatted by a {@code soc.message} class's {@code toCmd()}
-     * @param isPractice  Put to the practice server, not tcp network?
+     * @param isPractice  Send to the practice server, not tcp network?
      *                {@link ClientNetwork#localTCPServer} is considered "network" here.
      *                Use <tt>isPractice</tt> only with {@link ClientNetwork#practiceServer}.
      * @return true if the message was sent, false if not
@@ -112,7 +113,8 @@ import soc.message.SOCStartGame;
 
         if (isPractice)
             return net.putPractice(s);
-        return net.putNet(s);
+        else
+            return net.putNet(s);
     }
 
     /**
@@ -152,7 +154,7 @@ import soc.message.SOCStartGame;
 
     /**
      * put a piece on the board, using the {@link SOCPutPiece} message.
-     * If the game is in {@link SOCGame#debugFreePlacement} mode,
+     * If the game is in {@link SOCGame#isDebugFreePlacement()} mode,
      * send the {@link SOCDebugFreePlace} message instead.
      *
      * @param ga  the game where the action is taking place
@@ -164,15 +166,10 @@ import soc.message.SOCStartGame;
         throws IllegalArgumentException
     {
         final int co = pp.getCoordinates();
-        String ppm;
-        if (ga.isDebugFreePlacement())
-            ppm = SOCDebugFreePlace.toCmd(ga.getName(), pp.getPlayerNumber(), pp.getType(), co);
-        else
-            ppm = SOCPutPiece.toCmd(ga.getName(), pp.getPlayerNumber(), pp.getType(), co);
+        final String ppm = (ga.isDebugFreePlacement())
+            ? SOCDebugFreePlace.toCmd(ga.getName(), pp.getPlayerNumber(), pp.getType(), co)
+            : SOCPutPiece.toCmd(ga.getName(), pp.getPlayerNumber(), pp.getType(), co);
 
-        /**
-         * send the command
-         */
         put(ppm, ga.isPractice);
     }
 
@@ -267,7 +264,7 @@ import soc.message.SOCStartGame;
     {
         clientListeners.remove(ga.getName());
         client.games.remove(ga.getName());
-        put(SOCLeaveGame.toCmd(client.nickname, net.getHost(), ga.getName()), ga.isPractice);
+        put(SOCLeaveGame.toCmd(client.nickname, "-", ga.getName()), ga.isPractice);
     }
 
     /**
@@ -278,7 +275,7 @@ import soc.message.SOCStartGame;
      */
     public void sitDown(SOCGame ga, int pn)
     {
-        put(SOCSitDown.toCmd(ga.getName(), "dummy", pn, false), ga.isPractice);
+        put(SOCSitDown.toCmd(ga.getName(), SOCMessage.EMPTYSTR, pn, false), ga.isPractice);
     }
 
     /**
@@ -436,7 +433,7 @@ import soc.message.SOCStartGame;
      */
     public void playDevCard(SOCGame ga, int dc)
     {
-        if ((! ga.isPractice) && (client.sVersion < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+        if ((! ga.isPractice) && (client.sVersion < SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES))
         {
             if (dc == SOCDevCardConstants.KNIGHT)
                 dc = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
@@ -545,80 +542,82 @@ import soc.message.SOCStartGame;
         put(SOCResetBoardVote.toCmd(ga.getName(), pn, voteYes), ga.isPractice);
     }
 
-        /**
-         * Send a {@code :consider-move} command text message to the server
-         * asking a robot to show the debug info for
-         * a possible move </B>after</B> a move has been made.
-         *<P>
-         * To show debug info <B>before</B> making a move, see
-         * {@link #considerTarget(SOCGame, SOCPlayer, SOCPlayingPiece)}.
-         *
-         * @param ga  the game
-         * @param robotPlayer  the robot player; will call {@link SOCPlayer#getName() getName()}
-         * @param piece  the piece type and coordinate to consider
-         */
-        public void considerMove(final SOCGame ga, final SOCPlayer robotPlayer, final SOCPlayingPiece piece)
+    /**
+     * Send a {@code :consider-move} command text message to the server
+     * asking a robot to show the debug info for
+     * a possible move </B>after</B> a move has been made.
+     *<P>
+     * To show debug info <B>before</B> making a move, see
+     * {@link #considerTarget(SOCGame, SOCPlayer, SOCPlayingPiece)}.
+     *
+     * @param ga  the game
+     * @param robotPlayer  the robot player; will call {@link SOCPlayer#getName() getName()}
+     * @param piece  the piece type and coordinate to consider
+     */
+    public void considerMove(final SOCGame ga, final SOCPlayer robotPlayer, final SOCPlayingPiece piece)
+    {
+        String msg = robotPlayer.getName() + ":consider-move ";  // i18n OK: Is a formatted command to a robot
+
+        switch (piece.getType())
         {
-            String msg = robotPlayer.getName() + ":consider-move ";  // i18n OK: Is a formatted command to a robot
+        case SOCPlayingPiece.SETTLEMENT:
+            msg += "settlement";
+            break;
 
-            switch (piece.getType())
-            {
-            case SOCPlayingPiece.SETTLEMENT:
-                msg += "settlement";
+        case SOCPlayingPiece.ROAD:
+            msg += "road";
+            break;
 
-                break;
+        case SOCPlayingPiece.SHIP:
+            msg += "ship";
+            break;
 
-            case SOCPlayingPiece.ROAD:
-                msg += "road";
-
-                break;
-
-            case SOCPlayingPiece.CITY:
-                msg += "city";
-
-                break;
-            }
-
-            msg += (" " + piece.getCoordinates());
-            put(SOCGameTextMsg.toCmd(ga.getName(), client.nickname, msg), ga.isPractice);
+        case SOCPlayingPiece.CITY:
+            msg += "city";
+            break;
         }
 
-        /**
-         * Send a {@code :consider-target} command text message to the server
-         * asking a robot to show the debug info for
-         * a possible move <B>before</B> a move has been made.
-         *<P>
-         * To show debug info <B>after</B> making a move, see
-         * {@link #considerMove(SOCGame, SOCPlayer, SOCPlayingPiece)}.
-         *
-         * @param ga  the game
-         * @param robotPlayer  the robot player; will call {@link SOCPlayer#getName() getName()}
-         * @param piece  the piece type and coordinate to consider
-         */
-        public void considerTarget(final SOCGame ga, final SOCPlayer robotPlayer, final SOCPlayingPiece piece)
+        msg += (" " + piece.getCoordinates());
+        put(SOCGameTextMsg.toCmd(ga.getName(), client.nickname, msg), ga.isPractice);
+    }
+
+    /**
+     * Send a {@code :consider-target} command text message to the server
+     * asking a robot to show the debug info for
+     * a possible move <B>before</B> a move has been made.
+     *<P>
+     * To show debug info <B>after</B> making a move, see
+     * {@link #considerMove(SOCGame, SOCPlayer, SOCPlayingPiece)}.
+     *
+     * @param ga  the game
+     * @param robotPlayer  the robot player; will call {@link SOCPlayer#getName() getName()}
+     * @param piece  the piece type and coordinate to consider
+     */
+    public void considerTarget(final SOCGame ga, final SOCPlayer robotPlayer, final SOCPlayingPiece piece)
+    {
+        String msg = robotPlayer.getName() + ":consider-target ";  // i18n OK: Is a formatted command to a robot
+
+        switch (piece.getType())
         {
-            String msg = robotPlayer.getName() + ":consider-target ";  // i18n OK: Is a formatted command to a robot
+        case SOCPlayingPiece.SETTLEMENT:
+            msg += "settlement";
+            break;
 
-            switch (piece.getType())
-            {
-            case SOCPlayingPiece.SETTLEMENT:
-                msg += "settlement";
+        case SOCPlayingPiece.ROAD:
+            msg += "road";
+            break;
 
-                break;
+        case SOCPlayingPiece.SHIP:
+            msg += "ship";
+            break;
 
-            case SOCPlayingPiece.ROAD:
-                msg += "road";
-
-                break;
-
-            case SOCPlayingPiece.CITY:
-                msg += "city";
-
-                break;
-            }
-
-            msg += (" " + piece.getCoordinates());
-            put(SOCGameTextMsg.toCmd(ga.getName(), client.nickname, msg), ga.isPractice);
+        case SOCPlayingPiece.CITY:
+            msg += "city";
+            break;
         }
+
+        msg += (" " + piece.getCoordinates());
+        put(SOCGameTextMsg.toCmd(ga.getName(), client.nickname, msg), ga.isPractice);
+    }
 
 }

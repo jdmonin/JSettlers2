@@ -23,7 +23,7 @@
 package soc.game;
 
 import java.io.Serializable;
-import java.util.Vector;
+import java.util.List;
 
 
 /**
@@ -138,7 +138,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
      * Package access for SOCPlayer's benefit.
      * @since 2.0.00
      */
-    SOCScenarioPlayerEvent specialVPEvent;
+    SOCPlayerEvent specialVPEvent;
 
     /**
      * Make a new piece, which is owned by a player.
@@ -191,7 +191,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
      * Should not be called for roads, because they aren't placed at a node.
      * @return edges touching this piece, same format as {@link SOCBoard#getAdjacentEdgesToNode(int)}
      */
-    public Vector<Integer> getAdjacentEdges()
+    public List<Integer> getAdjacentEdges()
     {
         return board.getAdjacentEdgesToNode(coord);
     }

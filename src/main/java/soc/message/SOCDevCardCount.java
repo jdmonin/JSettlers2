@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014,2017,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,6 +28,9 @@ import java.util.StringTokenizer;
  *<P>
  * In games where all clients are v2.0.00 or newer, send {@link SOCGameElements#DEV_CARD_COUNT}
  * instead: Check clients' version against {@link SOCGameElements#MIN_VERSION}.
+ *<P>
+ * For message sequence, see {@link SOCGameElements#DEV_CARD_COUNT} javadoc:
+ * This message is sent to older clients whenever {@code DEV_CARD_COUNT} would be sent.
  *
  * @author Robert S. Thomas
  */

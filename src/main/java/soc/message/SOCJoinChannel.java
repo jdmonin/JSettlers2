@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2014,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -59,8 +59,7 @@ public class SOCJoinChannel extends SOCMessage
     private String channel;
 
     /**
-     * Optional server host name to which the client is connecting, or "-".
-     * Since the client is already connected when it sends the message, this is informational.
+     * Unused; server host name to which the client is connected; see {@link #getHost()}
      */
     private String host;
 
@@ -69,7 +68,7 @@ public class SOCJoinChannel extends SOCMessage
      *
      * @param nn  nickname, or "-" if already auth'd to server
      * @param pw  optional password, or "" if none
-     * @param hn  optional server host name, or "-"
+     * @param hn  unused; optional server host name, or "-" or {@link SOCMessage#EMPTYSTR}
      * @param ch  name of chat channel
      */
     public SOCJoinChannel(String nn, String pw, String hn, String ch)
@@ -98,9 +97,10 @@ public class SOCJoinChannel extends SOCMessage
     }
 
     /**
-     * Get the optional server host name to which the client is connecting, or "-".
+     * Get the optional server host name to which client is connected; unused, ignored and not used by any server version.
      * Since the client is already connected when it sends the message, this is only informational.
-     * @return the host name
+     * Is always {@link SOCMessage#EMPTYSTR} when sent by v2.0.00 or newer server or client.
+     * @return the unused optional server host name to which client is connected, or "-" or {@link SOCMessage#EMPTYSTR}
      */
     public String getHost()
     {
@@ -130,7 +130,7 @@ public class SOCJoinChannel extends SOCMessage
      *
      * @param nn  the nickname, or "-" if already auth'd to server
      * @param pw  the optional password, or "" if none
-     * @param hn  the optional server host name, or "-"
+     * @param hn  unused; optional server host name, or "-" or {@link SOCMessage#EMPTYSTR}
      * @param ch  the channel name
      * @return    the command string
      */

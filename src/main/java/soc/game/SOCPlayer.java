@@ -223,9 +223,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private int longestRoadLength;
 
     /**
-     * list of longest road / longest trade-route paths
+     * List of longest road / longest trade-route paths.
+     * Is empty (not null) if {@link SOCGameOption#K_SC_0RVP} is set.
      */
-    private Vector<SOCLRPathData> lrPaths;
+    private final Vector<SOCLRPathData> lrPaths;
 
     /**
      * how many of each resource this player has
@@ -299,7 +300,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * The details behind the total SVP count in {@link #specialVP}, or null if none.
      * This is filled at the server (because it has the text strings) when
-     * {@link SOCGame#scenarioEventListener} != null, and sent out to clients.
+     * {@link SOCGame#gameEventListener} != null, and sent out to clients.
      * @see #addSpecialVPInfo(int, String)
      */
     private ArrayList<SpecialVPInfo> svpInfo;
@@ -536,19 +537,19 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Track one-time player events for scenarios on the {@link SOCGame#hasSeaBoard large sea board}.
-     * As events occur during a game, each one's {@link SOCScenarioPlayerEvent#flagValue} bit is set here.
+     * As events occur during a game, each one's {@link SOCPlayerEvent#flagValue} bit is set here.
      *<P>
-     * Example events: {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA},
-     * {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
+     * Example events: {@link SOCPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA},
+     * {@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
      *<P>
      * Bits are kept here, not in separate boolean fields, to keep them together and send over the network.
      * Not all player events are here; some can't be represented in a single flag bit,
      * such as {@link #scenario_svpFromEachLandArea_bitmask}.
      *
-     * @see #getScenarioPlayerEvents()
+     * @see #getPlayerEvents()
      * @since 2.0.00
      */
-    private int scenario_playerEvents_bitmask;
+    private int playerEvents_bitmask;
 
     /**
      * For some scenarios on the {@link SOCGame#hasSeaBoard large sea board},
@@ -556,8 +557,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * a settlement in a given new land area.
      * The bit value is (1 &lt;&lt; (landAreaNumber - 1)).
      *
-     * @see SOCScenarioPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA
-     * @see #scenario_playerEvents_bitmask
+     * @see SOCPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA
+     * @see #playerEvents_bitmask
      * @see #getScenarioSVPLandAreas()
      * @since 2.0.00
      */
@@ -614,10 +615,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     // private SOCBuildingSpeedEstimate buildingSpeed;
 
     /**
-     * For games at server, a convenient queue to hold any outbound {@code SOCMessage}s during game action callbacks.
-     * Public access for use by server classes. See {@link SOCGame#pendingMessagesOut} for more details.
+     * For games at server, a convenient queue to hold any outbound {@code SOCMessage}s to this player's client
+     * during game action callbacks. Public access for use by server classes.
+     * See {@link SOCGame#pendingMessagesOut} for more details.
      * If a message contains text field(s) or is dependent on the client version, localize or resolve it
      * before adding to this queue.
+     *<P>
+     * For pending messages to send to entire game, see {@link SOCGame#pendingMessagesOut}.
      *<P>
      * To send and clear this queue's contents, call {@code SOCGameHandler.sendGamePendingMessages(SOCGame, boolean)}.
      *<P>
@@ -628,7 +632,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * is done within a single thread.
      *<P>
      * Because this queue is server-only, it's null until {@link SOCGame#startGame()}.
-     * This field is also not copied by the {@link #SOCPlayer(SOCPlayer)} constructor.
+     * This field is also not copied by the {@link #SOCPlayer(SOCPlayer, String)} constructor.
      *
      * @since 2.0.00
      */
@@ -638,14 +642,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * create a copy of the player
      *
      * @param player  the player to copy
+     * @param newName  new name to give copy of player, or {@code null} to copy current name.
+     *     Useful for {@link soc.robot.SOCPlayerTracker} dummy players in debug prints.
+     *     Note that {@link #toString()} prints the name and the copied {@link #getPlayerNumber()}.
      * @throws IllegalStateException if player's dev cards can't be cloned (internal error); should not possibly occur
      */
-    public SOCPlayer(SOCPlayer player)
+    public SOCPlayer(final SOCPlayer player, final String newName)
         throws IllegalStateException
     {
         int i;
         game = player.game;
-        name = player.name;  // useful for SOCPlayerTracker dummy players in debug prints
+        name = (newName != null) ? newName : player.name;
         playerNumber = player.playerNumber;
         numPieces = player.numPieces.clone();
         pieces = new Vector<SOCPlayingPiece>(player.pieces);
@@ -745,7 +752,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             currentOffer = null;
         }
 
-        scenario_playerEvents_bitmask = player.scenario_playerEvents_bitmask;
+        playerEvents_bitmask = player.playerEvents_bitmask;
         scenario_svpFromEachLandArea_bitmask = player.scenario_svpFromEachLandArea_bitmask;
         startingLandArea1 = player.startingLandArea1;
         startingLandArea2 = player.startingLandArea2;
@@ -1063,12 +1070,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * Set the number of gold-hex resources this player must now pick,
      * after a dice roll or placing their 2nd initial settlement.
-     * 0 unless {@link SOCGame#hasSeaBoard} and player is adjacent
-     * to a {@link SOCBoardLarge#GOLD_HEX}.
-     * Game state {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}.
-     * Once the player has picked their resources, returns to 0.
+     * See {@link #getNeedToPickGoldHexResources()} for details.
      *
-     * @param numRes  Number of resources to pick, or 0 for no pick
+     * @param numRes  Number of resources to pick, or 0 for no pick/pick has been completed
      * @since 2.0.00
      */
     public void setNeedToPickGoldHexResources(final int numRes)
@@ -1085,10 +1089,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * after a dice roll or placing their 2nd initial settlement.
      * 0 unless {@link SOCGame#hasSeaBoard} and player is adjacent
      * to a {@link SOCBoardLarge#GOLD_HEX}.
-     * Game state {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}.
+     * Game state should be {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}.
      * Once the player has picked their resources, returns to 0.
      *
-     * @return  number of resources to pick
+     * @return  number of resources to pick, or 0 for no pick
      * @see #getNeedToDiscard()
      * @since 2.0.00
      */
@@ -1386,12 +1390,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param idx  Index within the list of special items of that type; if this is past the list's current size,
      *     {@code null} elements will be inserted as needed until {@code idx} is a valid index
      *     If {@code idx} is within the list, the current element at that index will be replaced.
-     * @param itm  Item object to set within the list
+     * @param itm  Item object to set within the list.
+     *     Method does not set or change {@link SOCSpecialItem#getPlayer() itm.getPlayer()}.
      * @return  The item previously at this index, or {@code null} if none
      * @throws IndexOutOfBoundsException  if {@code idx} &lt; 0
      * @see SOCGame#setSpecialItem(String, int, SOCSpecialItem)
      */
-    public SOCSpecialItem setSpecialItem(final String typeKey, final int idx, SOCSpecialItem itm)
+    public SOCSpecialItem setSpecialItem(final String typeKey, final int idx, final SOCSpecialItem itm)
         throws IndexOutOfBoundsException
     {
         ArrayList<SOCSpecialItem> li = spItems.get(typeKey);
@@ -1631,7 +1636,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * {@link SOCVillage Villages} are present only with scenario game option {@link SOCGameOption#K_SC_CLVI}.
      * If this route becomes closed and is the player's first Cloth Trade route with a village,
      * this method sets that player event flag and fires
-     * {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
+     * {@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
      *<P>
      * Valid only when {@link SOCGame#hasSeaBoard}.
      *
@@ -1645,14 +1650,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @since 2.0.00
      * @throws IllegalStateException  if not {@link SOCGame#hasSeaBoard}
      */
-    private Vector<SOCShip> checkTradeRouteFarEndClosed(final SOCShip newShipEdge, final int edgeFarNode)
+    private List<SOCShip> checkTradeRouteFarEndClosed(final SOCShip newShipEdge, final int edgeFarNode)
         throws IllegalStateException
     {
         if (! game.hasSeaBoard)
             throw new IllegalStateException();
 
-        List<Vector<Object>> encounteredSelf = new ArrayList<Vector<Object>>();
-            // if route loops around, contains Vectors of node coords & SOCShips
+        List<ArrayList<Object>> encounteredSelf = new ArrayList<ArrayList<Object>>();
+            // if route loops around, contains ArrayLists of node coords & SOCShips
             // -- see isTradeRouteFarEndClosed javadoc for details
 
         HashSet<Integer> alreadyVisited = new HashSet<Integer>();  // contains Integer coords as segment is built
@@ -1663,7 +1668,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         // Note that if it becomes closed, segment will contain newShipEdge.
 
         isTradeRouteFarEndClosed_foundVillage = null;
-        Vector<SOCShip> segment = isTradeRouteFarEndClosed
+        List<SOCShip> segment = isTradeRouteFarEndClosed
             (newShipEdge, edgeFarNode, alreadyVisited, encounteredSelf);
 
         if (segment == null)
@@ -1676,15 +1681,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         {
             final boolean gotCloth = isTradeRouteFarEndClosed_foundVillage.addTradingPlayer(this);
             final boolean flagNew =
-                ! hasScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+                ! hasPlayerEvent(SOCPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
 
             if (flagNew)
-                setScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+                setPlayerEvent(SOCPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
             if (flagNew || gotCloth)
             {
-                if (game.scenarioEventListener != null)
-                    game.scenarioEventListener.playerEvent
-                        (game, this, SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE,
+                if (game.gameEventListener != null)
+                    game.gameEventListener.playerEvent
+                        (game, this, SOCPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE,
                          flagNew, isTradeRouteFarEndClosed_foundVillage);
             }
         }
@@ -1698,14 +1703,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             // go from the farthest, inwards
             for (int i = 0; i < encounteredSelf.size(); ++i)
             {
-                Vector<Object> self = encounteredSelf.get(i);
-                final int farNode = ((Integer) self.firstElement()).intValue();
-                SOCShip nearestShip = (SOCShip) self.elementAt(1);
+                ArrayList<Object> self = encounteredSelf.get(i);
+                final int farNode = ((Integer) self.get(0)).intValue();
+                SOCShip nearestShip = (SOCShip) self.get(1);
                 if (nearestShip.isClosed())
                     continue;  // already closed
 
-                Vector<SOCShip> recheck;
-                List<Vector<Object>> reSelf = new ArrayList<Vector<Object>>();
+                List<SOCShip> recheck;
+                List<ArrayList<Object>> reSelf = new ArrayList<ArrayList<Object>>();
                 HashSet<Integer> reAlready = new HashSet<Integer>();
 
                 // check again to see if it should be closed now
@@ -1717,7 +1722,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         (nearestShip, farNode, reAlready, reSelf);
                 } else {
                     // 2 or more ships
-                    final int nextNearEdge = ((SOCShip) self.elementAt(2)).getCoordinates();
+                    final int nextNearEdge = ((SOCShip) self.get(2)).getCoordinates();
                     recheck = isTradeRouteFarEndClosed
                         (nearestShip,
                          ((SOCBoardLarge) game.getBoard()).getNodeBetweenAdjacentEdges
@@ -1737,15 +1742,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 {
                     final boolean gotCloth = isTradeRouteFarEndClosed_foundVillage.addTradingPlayer(this);
                     final boolean flagNew =
-                        ! hasScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+                        ! hasPlayerEvent(SOCPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
 
                     if (flagNew)
-                        setScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+                        setPlayerEvent(SOCPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
                     if (flagNew || gotCloth)
                     {
-                        if (game.scenarioEventListener != null)
-                            game.scenarioEventListener.playerEvent
-                                (game, this, SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE,
+                        if (game.gameEventListener != null)
+                            game.gameEventListener.playerEvent
+                                (game, this, SOCPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE,
                                  flagNew, isTradeRouteFarEndClosed_foundVillage);
                     }
                 }
@@ -1757,8 +1762,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Set by {@link #isTradeRouteFarEndClosed(SOCShip, int, HashSet, List)}
-     * if it finds a village at any far end.
-     * Not set unless {@link SOCGame#hasSeaBoard} and {@link SOCGameOption#K_SC_CLVI} are set.
+     * if it finds a {@link SOCVillage} at any far end.
+     * Not set unless both {@link SOCGame#hasSeaBoard} and {@link SOCGameOption#K_SC_CLVI} are set.
      * @since 2.0.00
      */
     private SOCVillage isTradeRouteFarEndClosed_foundVillage;
@@ -1784,32 +1789,34 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *                   board.getAdjacentNodeToEdge(edgeFirstShip.getCoordinates(), moveDir)}.
      * @param alreadyVisited   contains Integer edge coordinates as the segment is built;
      *               added to in this method
-     * @param encounteredSelf  contains Vectors, each with a node coord Integer and SOCShips;
+     * @param encounteredSelf  contains ArrayLists, each with a node coord Integer and SOCShips;
      *               might be added to in this method.
      *               Node is the "far end" of the segment from <tt>edgeFirstShip</tt>,
      *               just past the ship that was re-encountered.
      *               The SOCShips are ordered starting with <tt>edgeFirstShip</tt> and moving
      *               out to the node just past (farther than) the encounter ship.
-     *               (That ship is not in the Vector.)
-     *               The very first vector in the list is the one farthest from the original
+     *               (That ship is not in the ArrayList.)
+     *               The very first ArrayList in the list is the one farthest from the original
      *               starting ship, and the following list entries will overall move closer
      *               to the start.
-     * @return a closed route of {@link SOCShip} or null, from <tt>fromEdge</tt> to far end;
+     * @return a closed route of {@link SOCShip} or null, ordered from <tt>fromEdge</tt> to far end;
      *         may also add to <tt>alreadyVisited</tt> and <tt>encounteredSelf</tt>
-     * @throws ClassCastException if not {@link SOCGame#hasSeaBoard}.
+     * @throws ClassCastException if not {@link SOCGame#hasSeaBoard}
      * @throws IllegalArgumentException if {@link SOCShip#isClosed() edgeFirstShip.isClosed()}
      * @since 2.0.00
      */
-    private Vector<SOCShip> isTradeRouteFarEndClosed
+    private List<SOCShip> isTradeRouteFarEndClosed
         (final SOCShip edgeFirstShip, final int edgeFarNode,
-         HashSet<Integer> alreadyVisited, List<Vector<Object>> encounteredSelf)
+         HashSet<Integer> alreadyVisited, List<ArrayList<Object>> encounteredSelf)
         throws ClassCastException, IllegalArgumentException
     {
         if (edgeFirstShip.isClosed())
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException
+                ("closed(0x" + Integer.toHexString(edgeFirstShip.getCoordinates()) + ')');
+
         final SOCBoardLarge board = (SOCBoardLarge) game.getBoard();
         final boolean boardHasVillages = game.isGameOptionSet(SOCGameOption.K_SC_CLVI);
-        Vector<SOCShip> segment = new Vector<SOCShip>();
+        List<SOCShip> segment = new ArrayList<SOCShip>();
 
         SOCShip edgeShip = edgeFirstShip;
         segment.add(edgeShip);
@@ -1831,7 +1838,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             if (alreadyVisited.contains(edgeInt))
             {
                 // Build an encounteredSelf list entry.
-                Vector<Object> already = new Vector<Object>();
+                ArrayList<Object> already = new ArrayList<Object>();
                 already.add(Integer.valueOf(node));
                 already.addAll(segment);
 
@@ -1910,10 +1917,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 // Recursive call to the 2 directions out from node:
 
                 final int encounterSize = encounteredSelf.size();
-                Vector<SOCShip> shipsFrom1 = isTradeRouteFarEndClosed
+                List<SOCShip> shipsFrom1 = isTradeRouteFarEndClosed
                     (nextShip1, board.getAdjacentNodeFarEndOfEdge(nextShip1.getCoordinates(), node),
                      alreadyVisited, encounteredSelf);
-                Vector<SOCShip> shipsFrom2 = isTradeRouteFarEndClosed
+                List<SOCShip> shipsFrom2 = isTradeRouteFarEndClosed
                     (nextShip2, board.getAdjacentNodeFarEndOfEdge(nextShip2.getCoordinates(), node),
                      alreadyVisited, encounteredSelf);
 
@@ -1921,7 +1928,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 if (encounterSize != encounteredSelf.size())
                 {
                     // Build an encounteredSelf list entry.
-                    Vector<Object> already = new Vector<Object>();
+                    ArrayList<Object> already = new ArrayList<Object>();
                     already.add(Integer.valueOf(node));
                     already.addAll(segment);
 
@@ -1996,7 +2003,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Get our longest road paths.
-     * Vector is empty if {@link SOCGameOption#K_SC_0RVP} is set.
+     * Is empty (not null) if {@link SOCGameOption#K_SC_0RVP} is set.
      * @return longest road paths
      */
     public Vector<SOCLRPathData> getLRPaths()
@@ -2005,18 +2012,18 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * set the longest paths vector
-     * @param vec  the vector
+     * set the Longest Paths list.
+     * @param vec  the list of Longest Paths to use
      */
-    public void setLRPaths(List<SOCLRPathData> vec)
+    public void setLRPaths(List<SOCLRPathData> lrList)
     {
-        lrPaths.removeAllElements();
+        lrPaths.clear();
 
-        for (SOCLRPathData pd : vec)
+        for (SOCLRPathData pd : lrList)
         {
             if (D.ebugOn)
                 D.ebugPrintln("restoring pd for player " + playerNumber + " :" + pd);
-            lrPaths.addElement(pd);
+            lrPaths.add(pd);
         }
     }
 
@@ -2095,7 +2102,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             final int gold = rolled.getAmount(SOCResourceConstants.GOLD_LOCAL);
             if (gold > 0)
             {
-                needToPickGoldHexResources = gold;
+                needToPickGoldHexResources += gold;
                 resourceStats[SOCResourceConstants.GOLD_LOCAL] += gold;
                 rolled.setAmount(0, SOCResourceConstants.GOLD_LOCAL);
             }
@@ -2287,7 +2294,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * Add details on Special Victory Points (SVP) just awarded.
      * This is called at the server (because it has the text strings) when
-     * {@link SOCGame#scenarioEventListener} != null, and sent out to clients.
+     * {@link SOCGame#gameEventListener} != null, and sent out to clients.
      * Clients call it from the network message handler.
      * @param svp  Number of SVP
      * @param desc  Description of player's action that led to the SVP.
@@ -2317,72 +2324,72 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Gets one-time player events for scenarios on the {@link SOCGame#hasSeaBoard large sea board}.
-     * As events occur during a game, each one's {@link SOCScenarioPlayerEvent#flagValue} bit is set.
+     * As events occur during a game, each one's {@link SOCPlayerEvent#flagValue} bit is set.
      *<P>
-     * Example events: {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA},
-     * {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
+     * Example events: {@link SOCPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA},
+     * {@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
      * Not all player events are returned here; some can't be represented in a single flag bit.
      *
      * @return Player events which have occurred so far this game
-     * @see #hasScenarioPlayerEvent(SOCScenarioPlayerEvent)
+     * @see #hasPlayerEvent(SOCPlayerEvent)
      * @since 2.0.00
      */
-    public int getScenarioPlayerEvents()
+    public int getPlayerEvents()
     {
-        return scenario_playerEvents_bitmask;
+        return playerEvents_bitmask;
     }
 
     /**
-     * At client, set the player's {@link #getScenarioPlayerEvents()} based on a server message.
+     * At client, set the player's {@link #getPlayerEvents()} based on a server message.
      * @param events  Player event flags to set; all others will be cleared.
      * @since 2.0.00
      */
-    public void setScenarioPlayerEvents(final int events)
+    public void setPlayerEvents(final int events)
     {
-        scenario_playerEvents_bitmask = events;
+        playerEvents_bitmask = events;
     }
 
     /**
      * Does this player have a certain scenario player event flag?
      * Flag bits are set as per-player events occur during a game.
-     * @param spe  Player event, such as {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}
+     * @param spe  Player event, such as {@link SOCPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}
      * @return  True if event flag is set for this player
-     * @see #getScenarioPlayerEvents()
+     * @see #getPlayerEvents()
      * @since 2.0.00
      */
-    public final boolean hasScenarioPlayerEvent(final SOCScenarioPlayerEvent spe)
+    public final boolean hasPlayerEvent(final SOCPlayerEvent spe)
     {
-        return (0 != (scenario_playerEvents_bitmask & spe.flagValue));
+        return (0 != (playerEvents_bitmask & spe.flagValue));
     }
 
     /**
      * Set a certain scenario player event flag.
      * Can be set once per game.
-     * @param spe  Player event, such as {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}
+     * @param spe  Player event, such as {@link SOCPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}
      * @throws IllegalStateException if this flag is already set.
      *             This is checked at server, not client, due to message timing:
      *             Game events happen at the server before they happen at the client.
-     * @see #clearScenarioPlayerEvent(SOCScenarioPlayerEvent)
+     * @see #clearPlayerEvent(SOCPlayerEvent)
      * @since 2.0.00
      */
-    private final void setScenarioPlayerEvent(final SOCScenarioPlayerEvent spe)
+    private final void setPlayerEvent(final SOCPlayerEvent spe)
         throws IllegalStateException
     {
         final int bit = spe.flagValue;
-        if (game.isAtServer && (0 != (scenario_playerEvents_bitmask & bit)))
+        if (game.isAtServer && (0 != (playerEvents_bitmask & bit)))
             throw new IllegalStateException("Already set: 0x" + Integer.toHexString(bit));
-        scenario_playerEvents_bitmask |= bit;
+        playerEvents_bitmask |= bit;
     }
 
     /**
      * Clear a certain scenario player event flag.
-     * @param spe  Player event, such as {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}
-     * @see #setScenarioPlayerEvent(SOCScenarioPlayerEvent)
+     * @param spe  Player event, such as {@link SOCPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}
+     * @see #setPlayerEvent(SOCPlayerEvent)
      * @since 2.0.00
      */
-    private final void clearScenarioPlayerEvent(final SOCScenarioPlayerEvent spe)
+    private final void clearPlayerEvent(final SOCPlayerEvent spe)
     {
-        scenario_playerEvents_bitmask &= (~ spe.flagValue);
+        playerEvents_bitmask &= (~ spe.flagValue);
     }
 
     /**
@@ -2398,7 +2405,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * At client, set the player's {@link #getScenarioPlayerEvents()} based on a server message.
+     * At client, set the player's {@link #getPlayerEvents()} based on a server message.
      * @param las  Land areas to set in player's bitmask; all others will be cleared.
      * @since 2.0.00
      */
@@ -2496,9 +2503,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Call this before calling {@link SOCBoard#putPiece(SOCPlayingPiece)}.
      *<P>
      * For some scenarios on the {@link SOCGame#hasSeaBoard large sea board}, placing
-     * a settlement in a new Land Area may award the player a Special Victory Point (SVP).
-     * This method will increment {@link #specialVP}
-     * and set the {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA} flag.
+     * a settlement in a new Land Area may award the player Special Victory Points (SVP).
+     * If so, this method will update {@link #getSpecialVP()} and
+     * {@link #getPlayerEvents()} / {@link #getScenarioSVPLandAreas()}
+     * and fire a {@link SOCPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA} or
+     * {@link SOCPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA}.
      *<P>
      * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
      * call with <tt>piece</tt> = {@link SOCFortress} to set the single "pirate fortress"
@@ -2509,7 +2518,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *
      * @param piece        The piece to be put into play; coordinates are not checked for validity.
      * @param isTempPiece  Is this a temporary piece?  If so, do not call the
-     *                     game's {@link SOCScenarioEventListener}.
+     *                     game's {@link SOCGameEventListener}.
      * @throws IllegalArgumentException  only if piece is a {@link SOCFortress}, and either
      *                     <tt>isTempPiece</tt>, or player already has a fortress set.
      */
@@ -2586,7 +2595,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         }
 
                         /**
-                         * do we get an SVP for reaching a new land area?
+                         * do we get any SVP for reaching a new land area?
                          */
                         else
                         {
@@ -2654,19 +2663,20 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Does not update {@link #potentialRoads}/{@link #potentialShips}; see {@link #updatePotentials(SOCPlayingPiece)}.
      * @param piece  The road or ship
      * @param board  The board
-     * @param isTempPiece  Is this a temporary piece?  If so, do not check special edges or "gift" ports.
+     * @param isTempPiece  Is this a temporary piece?  If so, do not check special edges or "gift" ports
+     *     or close a Ship Route
      * @since 2.0.00
      */
     private void putPiece_roadOrShip
         (final SOCRoutePiece piece, final SOCBoard board, final boolean isTempPiece)
     {
         /**
-         * before adding a ship, check to see if its trade route is now closed
+         * before adding a non-temporary ship, check to see if its trade route is now closed,
          * or if it's reached a Special Edge or an _SC_FTRI "gift" trade port.
          */
-        if ((piece instanceof SOCShip))
+        if ((piece instanceof SOCShip) && ! isTempPiece)
             putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges
-                ((SOCShip) piece, (SOCBoardLarge) board, isTempPiece);
+                ((SOCShip) piece, (SOCBoardLarge) board);
 
         /**
          * remember it
@@ -2760,23 +2770,27 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * will be closed.  Close it if so.
      *<P>
      * If the route becomes closed and is the player's first Cloth Trade route with a {@link SOCVillage},
-     * this method sets that player flag and fires {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
+     * this method sets that player flag and fires {@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
      *<P>
      * If the board layout has Special Edges, check if the new ship has reached one, and if so
-     * reward the player and fire an event like {@link SOCScenarioPlayerEvent#SVP_REACHED_SPECIAL_EDGE}
-     * or {@link SOCScenarioPlayerEvent#DEV_CARD_REACHED_SPECIAL_EDGE}.
+     * reward the player and fire an event like {@link SOCPlayerEvent#SVP_REACHED_SPECIAL_EDGE}
+     * or {@link SOCPlayerEvent#DEV_CARD_REACHED_SPECIAL_EDGE}.
      *<P>
      * In scenario {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, checks for a "gift" trade port at new ship edge.  If found,
-     * calls {@link SOCGame#removePort(SOCPlayer, int)} and fires {@link SOCScenarioPlayerEvent#REMOVED_TRADE_PORT}.
+     * calls {@link SOCGame#removePort(SOCPlayer, int)} and fires {@link SOCPlayerEvent#REMOVED_TRADE_PORT}.
+     *
+     *<H5>Temporary Pieces:</H5>
+     * Do not call this method for temporary ships. Those shouldn't fire events for special edges or "gift" ports.
+     * Their trade route probably contains pieces from a real player and a temporary dummy player,
+     * and closing the route would call the real player's {@link SOCShip#setClosed()}.
      *
      * @param newShip  Our new ship being placed in {@link #putPiece(SOCPlayingPiece, boolean)};
      *                 should not yet be added to {@link #roadsAndShips}
      * @param board  game board
-     * @param isTempPiece  Is this a temporary piece?  If so, do not check special edges or "gift" ports.
      * @since 2.0.00
      */
     private void putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges
-        (SOCShip newShip, SOCBoardLarge board, final boolean isTempPiece)
+        (final SOCShip newShip, final SOCBoardLarge board)
     {
         final boolean boardHasVillages = game.isGameOptionSet(SOCGameOption.K_SC_CLVI);
         final int edge = newShip.getCoordinates();
@@ -2800,32 +2814,27 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
             // if pp is at edgeNodes[1], check from edgeNodes[0], or vice versa
             final int edgeFarNode = edgeNodes[1 - i];
-            final Vector<SOCShip> closedRoute = checkTradeRouteFarEndClosed(newShip, edgeFarNode);
+            final List<SOCShip> closedRoute = checkTradeRouteFarEndClosed(newShip, edgeFarNode);
             if (closedRoute != null)
             {
                 if (pp instanceof SOCVillage)
                 {
                     final boolean gotCloth = ((SOCVillage) pp).addTradingPlayer(this);
                     final boolean flagNew =
-                        ! hasScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+                        ! hasPlayerEvent(SOCPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
 
                     if (flagNew)
-                        setScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+                        setPlayerEvent(SOCPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
                     if (flagNew || gotCloth)
                     {
-                        if (game.scenarioEventListener != null)
-                            game.scenarioEventListener.playerEvent
-                                (game, this, SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE, flagNew, pp);
+                        if (game.gameEventListener != null)
+                            game.gameEventListener.playerEvent
+                                (game, this, SOCPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE, flagNew, pp);
                     }
                 }
 
                 break;
             }
-        }
-
-        if (isTempPiece)
-        {
-            return;  // <--- Early return: Temporary piece ---
         }
 
         final int seType = board.getSpecialEdgeType(edge);
@@ -2849,9 +2858,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         cardtype = SOCDevCardConstants.UNKNOWN;
                     }
 
-                    if (game.scenarioEventListener != null)
-                        game.scenarioEventListener.playerEvent
-                            (game, currentPlayer, SOCScenarioPlayerEvent.DEV_CARD_REACHED_SPECIAL_EDGE,
+                    if (game.gameEventListener != null)
+                        game.gameEventListener.playerEvent
+                            (game, currentPlayer, SOCPlayerEvent.DEV_CARD_REACHED_SPECIAL_EDGE,
                              false, new soc.util.IntPair(edge, cardtype));
                 }
                 break;
@@ -2863,11 +2872,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     ++specialVP;
                     ++newShip.specialVP;
                     if (newShip.specialVP == 1)
-                        newShip.specialVPEvent = SOCScenarioPlayerEvent.SVP_REACHED_SPECIAL_EDGE;
+                        newShip.specialVPEvent = SOCPlayerEvent.SVP_REACHED_SPECIAL_EDGE;
 
-                    if (game.scenarioEventListener != null)
-                        game.scenarioEventListener.playerEvent
-                            (game, currentPlayer, SOCScenarioPlayerEvent.SVP_REACHED_SPECIAL_EDGE,
+                    if (game.gameEventListener != null)
+                        game.gameEventListener.playerEvent
+                            (game, currentPlayer, SOCPlayerEvent.SVP_REACHED_SPECIAL_EDGE,
                              false, edge);
                 }
                 break;
@@ -2883,7 +2892,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
          */
         if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI) && board.canRemovePort(edge))
         {
-            game.removePort(this, edge);  // updates game state, fires SOCScenarioPlayerEvent.REMOVED_TRADE_PORT
+            game.removePort(this, edge);  // updates game state, fires SOCPlayerEvent.REMOVED_TRADE_PORT
         }
 
     }
@@ -2926,30 +2935,31 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Does the player get a Special Victory Point (SVP) for reaching a new land area?
      * Call when a settlement has been placed in a land area different from
      * {@link #startingLandArea1} and {@link #startingLandArea2}.
-     * Used with game options {@link SOCGameOption#K_SC_SANY _SC_SANY} and {@link SOCGameOption#K_SC_SEAC _SC_SEAC}.
+     * If player gets Special Victory Points because of game option
+     * {@link SOCGameOption#K_SC_SANY _SC_SANY} or {@link SOCGameOption#K_SC_SEAC _SC_SEAC},
+     * will update fields and fire a {@link SOCPlayerEvent} as described in
+     * {@link #putPiece(SOCPlayingPiece, boolean)}.
+     *
      * @param newSettle  Newly placed settlement
      * @param newSettleArea  Land area number of new settlement's location
      * @param isTempPiece  Is this a temporary piece?  If so, do not call the
-     *                     game's {@link SOCScenarioEventListener}.
+     *            game's {@link SOCGameEventListener}.
      * @since 2.0.00
      */
     private final void putPiece_settlement_checkScenarioSVPs
         (final SOCSettlement newSettle, final int newSettleArea, final boolean isTempPiece)
     {
-        if ((! hasScenarioPlayerEvent(SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA))
+        if ((! hasPlayerEvent(SOCPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA))
              && game.isGameOptionSet(SOCGameOption.K_SC_SANY))
         {
-            setScenarioPlayerEvent(SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA);
+            setPlayerEvent(SOCPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA);
             ++specialVP;
             newSettle.specialVP = 1;
-            newSettle.specialVPEvent = SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA;
+            newSettle.specialVPEvent = SOCPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA;
 
-            if ((game.scenarioEventListener != null) && ! isTempPiece)
-            {
-                // Notify (server or GUI)
-                game.scenarioEventListener.playerEvent
-                    (game, this, SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA, true, newSettle);
-            }
+            if ((game.gameEventListener != null) && ! isTempPiece)
+                game.gameEventListener.playerEvent
+                    (game, this, SOCPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA, true, newSettle);
         }
 
         final int laBit = (1 << (newSettleArea - 1));
@@ -2958,14 +2968,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             scenario_svpFromEachLandArea_bitmask |= laBit;
             specialVP += 2;
             newSettle.specialVP = 2;
-            newSettle.specialVPEvent = SOCScenarioPlayerEvent.SVP_SETTLED_EACH_NEW_LANDAREA;
+            newSettle.specialVPEvent = SOCPlayerEvent.SVP_SETTLED_EACH_NEW_LANDAREA;
 
-            if ((game.scenarioEventListener != null) && ! isTempPiece)
-            {
-                // Notify (server or GUI)
-                game.scenarioEventListener.playerEvent
-                    (game, this, SOCScenarioPlayerEvent.SVP_SETTLED_EACH_NEW_LANDAREA, true, newSettle);
-            }
+            if ((game.gameEventListener != null) && ! isTempPiece)
+                game.gameEventListener.playerEvent
+                    (game, this, SOCPlayerEvent.SVP_SETTLED_EACH_NEW_LANDAREA, true, newSettle);
         }
     }
 
@@ -3038,7 +3045,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 // on our roads/ships that are adjacent to
                 // this edge
                 //
-                Vector<Integer> adjEdges = board.getAdjacentEdgesToEdge(pieceCoord);
+                List<Integer> adjEdges = board.getAdjacentEdgesToEdge(pieceCoord);
 
                 for (SOCRoutePiece rs : roadsAndShips)
                 {
@@ -3081,11 +3088,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             //
             // check adjacent nodes
             //
-            Vector<Integer> adjNodesEnum = board.getAdjacentNodesToNode(pieceCoord);
-
-            for (Integer adjNodeObj : adjNodesEnum)
+            for (final int adjNode : board.getAdjacentNodesToNode(pieceCoord))
             {
-                final int adjNode = adjNodeObj.intValue();
                 undoPutPieceAuxSettlement(adjNode);
             }
 
@@ -3136,14 +3140,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         //
         boolean haveNeighbor = false;
         SOCBoard board = game.getBoard();
-        Vector<Integer> adjNodes = board.getAdjacentNodesToNode(settlementNode);
+        final List<Integer> adjNodes = board.getAdjacentNodesToNode(settlementNode);
 
         for (SOCSettlement settlement : board.getSettlements())
         {
-            for (Integer adjNodeObj : adjNodes)
+            for (final int adjNode : adjNodes)
             {
-                final int adjNode = adjNodeObj.intValue();
-
                 if (adjNode == settlement.getCoordinates())
                 {
                     haveNeighbor = true;
@@ -3163,10 +3165,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         {
             for (SOCCity city : board.getCities())
             {
-                for (Integer adjNodeObj : adjNodes)
+                for (final int adjNode : adjNodes)
                 {
-                    final int adjNode = adjNodeObj.intValue();
-
                     if (adjNode == city.getCoordinates())
                     {
                         haveNeighbor = true;
@@ -3210,14 +3210,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         //
                         //D.ebugPrintln(")))) checking for adjacent roads");
                         boolean adjRoad = false;
-                        Vector<Integer> adjEdges = board.getAdjacentEdgesToNode(settlementNode);
+                        final List<Integer> adjEdges = board.getAdjacentEdgesToNode(settlementNode);
 
                         for (SOCRoutePiece rs : roadsAndShips)
                         {
-                            for (Integer adjEdgeObj : adjEdges)
+                            for (final int adjEdge : adjEdges)
                             {
-                                final int adjEdge = adjEdgeObj.intValue();
-
                                 if (rs.getCoordinates() == adjEdge)
                                 {
                                     //D.ebugPrintln("))) found adj road at "+Integer.toHexString(adjEdge.intValue()));
@@ -3323,24 +3321,24 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         Collection<Integer> nodes = board.getAdjacentNodesToEdge(pieceCoord);
                         int i = 0;
 
-                        for (Integer node : nodes)
+                        for (final Integer nodeInt : nodes)
                         {
-                            edgeNodeCoords[i] = node.intValue();
+                            edgeNodeCoords[i] = nodeInt.intValue();
                             i++;
 
                             /**
                              * only remove a node if none of our roads/ships are touching it
                              */
-                            Collection<Integer> adjEdges = board.getAdjacentEdgesToNode(node.intValue());
+                            final Collection<Integer> adjEdges = board.getAdjacentEdgesToNode(nodeInt.intValue());
                             boolean match = false;
 
                             for (SOCRoutePiece rs : roadsAndShips)
                             {
                                 final int rdEdge = rs.getCoordinates();
 
-                                for (Integer adjEdgeObj : adjEdges)
+                                for (final int adjEdge : adjEdges)
                                 {
-                                    if (rdEdge == adjEdgeObj)
+                                    if (rdEdge == adjEdge)
                                     {
                                         match = true;
                                         break;
@@ -3355,8 +3353,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                             if (! match)
                             {
-                                roadNodes.removeElement(node);
-                                potentialSettlements.remove(node);
+                                roadNodes.removeElement(nodeInt);
+                                potentialSettlements.remove(nodeInt);
                             }
                         }
                     }
@@ -3436,11 +3434,20 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                      * potential road
                      */
                     // TODO roads/ships are not interchangeable here
-                    Collection<Integer> adjEdgesEnum = board.getAdjacentEdgesToEdge(pieceCoord);
+                    Collection<Integer> adjEdges = board.getAdjacentEdgesToEdge(pieceCoord);
 
-                    for (Integer adjEdge : adjEdgesEnum)
+                    for (Integer adjEdge : adjEdges)
                     {
                         if (! (potentialRoads.contains(adjEdge) || potentialShips.contains(adjEdge)))
+                            continue;
+
+                        /**
+                         * if we have a settlement or city between adjEdge and removed piece's edge,
+                         * adjEdge remains potential because it's adjacent to that settlement/city.
+                         */
+                        final int nodeBetween = board.getNodeBetweenAdjacentEdges(adjEdge, pieceCoord);
+                        final SOCPlayingPiece settleBetween = board.settlementAtNode(nodeBetween);
+                        if ((settleBetween != null) && (settleBetween.getPlayerNumber() == playerNumber))
                             continue;
 
                         boolean isPotentialRoad = false;  // or, isPotentialShip
@@ -3456,7 +3463,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         {
                             boolean blocked = false;  // Are we blocked in this node's direction?
                             final int adjNode = adjNodes[ni];
-                            final SOCPlayingPiece aPiece = board.settlementAtNode(adjNode);
+                            final SOCPlayingPiece aPiece =
+                                (adjNode == nodeBetween) ? settleBetween : board.settlementAtNode(adjNode);
                             if ((aPiece != null)
                                 && (aPiece.getPlayerNumber() != playerNumber))
                             {
@@ -3468,12 +3476,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                             if (! blocked)
                             {
-                                Collection<Integer> adjAdjEdgesEnum = board.getAdjacentEdgesToNode(adjNode);
-
-                                for (Integer adjAdjEdgesObj : adjAdjEdgesEnum)
+                                for (final int adjAdjEdge : board.getAdjacentEdgesToNode(adjNode))
                                 {
-                                    final int adjAdjEdge = adjAdjEdgesObj.intValue();
-
                                     if (adjAdjEdge != adjEdgeID)
                                     {
                                         for (SOCRoutePiece ourRS : roadsAndShips)
@@ -3545,7 +3549,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         switch (p.specialVPEvent)
         {
         case SVP_SETTLED_ANY_NEW_LANDAREA:
-            clearScenarioPlayerEvent(p.specialVPEvent);
+            clearPlayerEvent(p.specialVPEvent);
             break;
 
         default:
@@ -3986,39 +3990,40 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Set which nodes are potential settlements.
-     * Called at client when joining or starting a game
+     * Called at client when joining or starting a game,
      * when game's Potential Settlements message is received.
      * Called at server just after makeNewBoard in {@link SOCGame#startGame()}.
      *<P>
-     * If <tt>setLegalsToo</tt>, and <tt>psList</tt> is not empty,
-     * then also update the player's legal settlements
+     * If {@code setLegalsToo}: Will also update the player's legal settlements
      * and legal road sets, since they aren't constant
-     * on that type of board; don't call this method before calling
+     * on that type of board; will use {@code legalLandAreaNodes} if not null,
+     * otherwise {@code psList}. Don't call this method before calling
      * {@link SOCBoardLarge#setLegalSettlements(Collection, int, HashSet[])},
      * or the road sets won't be complete.
      *<P>
      * Call this method before, not after, calling {@link #setRestrictedLegalShips(int[])}.
      * However, if the player already has a restricted legal ship edge list, this method won't clear it.
      *<P>
-     * Before v2.0.00, this method was called <tt>setPotentialSettlements</tt>.
+     * Before v2.0.00 this method was called {@code setPotentialSettlements}.
      *
      * @param psList  the list of potential settlements,
-     *     a {@link Vector} or {@link HashSet} of
-     *     {@link Integer} node coordinates
-     * @param setLegalsToo  If true, also update legal settlements/roads/ships.
+     *     a {@link Vector} or {@link HashSet} of {@link Integer} node coordinates; not null, but can be empty
+     * @param setLegalsToo  If true, also update legal settlements/roads/ships from {@code legalLandAreaNodes}.
      *     [Parameter added in v2.0.00 for use with {@link SOCBoardLarge}]
      *     <P>
-     *     In scenario {@code _SC_PIRI}, for efficiency, the legal ships list will remain
+     *     In scenario {@code _SC_PIRI}, for efficiency the legal ships list will remain
      *     empty until {@link #setRestrictedLegalShips(int[])} is called.
-     * @param legalLandAreaNodes If non-null and <tt>setLegalsToo</tt>,
+     * @param legalLandAreaNodes If non-null and {@code setLegalsToo},
      *     all Land Areas' legal (but not currently potential) node coordinates.
      *     Index 0 is ignored; land area numbers start at 1.
      *     If {@code setLegalsToo} but this is null, will use
      *     {@link SOCBoardLarge#getLegalSettlements()} instead.
+     * @throws NullPointerException if {@code psList} is null
      * @see #addLegalSettlement(int, boolean)
      */
     public void setPotentialAndLegalSettlements
         (Collection<Integer> psList, final boolean setLegalsToo, final HashSet<Integer>[] legalLandAreaNodes)
+        throws NullPointerException
     {
         clearPotentialSettlements();
         potentialSettlements.addAll(psList);
@@ -4039,7 +4044,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         if (setLegalsToo)
         {
             legalSettlements.clear();
-            legalSettlements.addAll(psList);
 
             final SOCBoardLarge board = (SOCBoardLarge) game.getBoard();
 
@@ -4254,8 +4258,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * Is this edge coordinate a potential place to move a ship, even if another ship
-     * edge was not?  Used by {@link SOCGame#canMoveShip(int, int, int)}
+     * Is this edge coordinate a potential place this player can move a ship,
+     * even if its move-from location becomes unoccupied?
+     * Used by {@link SOCGame#canMoveShip(int, int, int)}
      * to check the ship's requested new location.
      *<P>
      * First, {@code toEdge} must be a potential ship<B>*</B> now.
@@ -4265,7 +4270,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * or has an adjacent edge with a ship of ours
      * (except {@code fromEdge}), then {@code toEdge} is potential.
      *<P>
-     * <B>*</B>In scenario {@code _SC_PIRI}, we check more carefully because
+     * Does not check pirate ship position or other requirements;
+     * see {@link SOCGame#canMoveShip(int, int, int)} for that.
+     *<P>
+     * <B>*</B> In scenario {@code _SC_PIRI}, we check more carefully because
      * after ship placement, nearby potential ships are removed to prevent
      * any branching of the ship route.  This would make it impossible to
      * move the route's newest ship to its other potential direction from
@@ -4357,6 +4365,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Is this edge a legal ship placement?
      * @return true if this edge is a legal ship
      * @param edge        the coordinates of an edge on the board
+     * @see #getRestrictedLegalShips()
      * @since 2.0.00
      */
     public boolean isLegalShip(final int edge)
@@ -4377,6 +4386,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Please treat the returned HashSet as read-only.
      *
      * @return  Legal sea edges if they're restricted, or {@code null}
+     * @see #isLegalShip(int)
      * @since 2.0.00
      */
     public HashSet<Integer> getRestrictedLegalShips()
@@ -4389,7 +4399,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * when the legal sea edges for ships are restricted
      * by the game's scenario ({@link SOCGameOption#K_SC_PIRI _SC_PIRI}).
      * @param edgeList  List of edges, same format as one player's array from
-     *   {@link soc.server.SOCBoardAtServer#getLegalSeaEdges(SOCGame, int) SOCBoardAtServer.getLegalSeaEdges(SOCGame, int)};
+     *   {@link soc.server.SOCBoardAtServer#getLegalSeaEdges(SOCGame) SOCBoardAtServer.getLegalSeaEdges(SOCGame)};
      *   or an empty array (length 0) for vacant players with no legal ship edges;
      *   or {@code null} for unrestricted ship placement.
      *   <P>
@@ -4411,6 +4421,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 legalShipsRestricted = null;
                 legalShips.addAll(((SOCBoardLarge) game.getBoard()).initPlayerLegalShips());
             }
+
             return;
         }
 
@@ -4902,10 +4913,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         currentOffer = null;
     }
 
+    /**
+     * Player as string for debugging: {@code "Player["} + playerNumber + {@code " "} + playerName + {@code "]"}
+     */
     @Override
     public String toString()
     {
-        return "Player["+playerNumber+" "+name+"]";
+        return "Player[" + playerNumber + ' ' + name + ']';
     }
 
     /**

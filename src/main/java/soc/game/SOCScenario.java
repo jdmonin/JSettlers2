@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -69,7 +69,7 @@ import soc.message.SOCMessage;
  * <B>I18N:</B><br>
  * Game scenario names and descriptions are also stored as {@code gamescen.*.n}, {@code .d}
  * in {@code server/strings/toClient_*.properties} to be sent to clients if needed.
- * A scenario's text can be localized with {@link #setDesc(String, String)}.
+ * At the client, scenario's text can be localized with {@link #setDesc(String, String)}.
  * See unit test {@link soctest.TestI18NGameoptScenStrings}.
  *<P>
  * @author Jeremy D. Monin &lt;jeremy@nand.net&gt;
@@ -122,6 +122,10 @@ public class SOCScenario
      *<LI> If your scenario has special winning conditions, see {@link SOCGame#checkForWinner()}.
      *<LI> Rarely, a scenario changes the pirate or robber behavior.  If the new scenario does this,
      *   see {@link SOCGame#canChooseMovePirate()} or {@link SOCGame#rollDice()}.
+     *   Currently no scenarios have a pirate but no robber, besides special case {@link #K_SC_PIRI SC_PIRI}
+     *   where pirate fleet movement isn't controlled by the player. If adding a scenario with pirate but no robber,
+     *   the client and robot would need changes to handle that; probably a {@link SOCGameOption} should be created
+     *   for it and used in the scenario opts, client, and robot code.
      *<LI> Not all scenarios require a game option.  {@link #K_SC_TTD SC_TTD} has only a board layout,
      *   and doesn't change any game behavior from standard, so there is no {@code "_SC_TTD"} SOCGameOption.
      *<LI> Add the scenario's key to the list of "game scenario keynames"
@@ -183,7 +187,7 @@ public class SOCScenario
         allSc.put(K_SC_4ISL, new SOCScenario
             (K_SC_4ISL, 2000, 2000,
              "The Four Islands",
-             null,
+             "Start on one or two islands. Explore and gain SVP by building to others.",
              "_SC_SEAC=t,SBL=t,VP=t12"));
 
         allSc.put(K_SC_FOG, new SOCScenario
@@ -196,27 +200,31 @@ public class SOCScenario
         allSc.put(K_SC_TTD, new SOCScenario
             (K_SC_TTD, 2000, 2000,
              "Through The Desert",
-             null,
+             "Start on the main island. Explore and gain SVP by building to the small islands, or through the desert to the coast.",
              "_SC_SEAC=t,SBL=t,VP=t12"));
 
         allSc.put(K_SC_CLVI, new SOCScenario
             (K_SC_CLVI, 2000, 2000,
              "Cloth Trade with neutral villages",
              "The small islands' villages give you Cloth; every 2 cloth you have is 1 extra Victory Point. To gain cloth, "
-             + "build ships to a village. Each player to reach a village gets 1 of its cloth at that time, and 1 more "
-             + "whenever its number is rolled, until the village runs out. You can't move the pirate until you've "
-             + "reached a village. If more than half the villages run out of cloth, the game ends and the player "
+             + "build ships to a village. You can't move the pirate until you've reached a village. "
+             + "Each player to reach a village gets 1 of its cloth at that time, and 1 more "
+             + "whenever its number is rolled, until the village runs out. Pirate can steal cloth or resources. "
+             + "If fewer than 4 villages still have cloth, the game ends and the player "
              + "with the most VP wins. (If tied, player with most cloth wins.)",
              "_SC_CLVI=t,SBL=t,VP=t14,_SC_3IP=t,_SC_0RVP=t"));
 
         allSc.put(K_SC_PIRI, new SOCScenario
             (K_SC_PIRI, 2000, 2000,
              "Pirate Islands and Fortresses",
-             "A pirate fleet patrols, stealing resources from weak players with adjacent settlements/cities until "
-             + "the player upgrades their ships to warships.  To win, you must build ships directly to the Fortress "
-             + "with your color, which the pirates have captured from you, and defeat it 3 times using warships.  "
-             + "So, ship routes can't branch in different directions, only extend from their ends.  "
-             + "No robber or largest army.  When 7 is rolled, any pirate fleet attack happens before the usual discards.",
+             "A pirate fleet patrols, attacking to steal resources from weak players with adjacent settlements/cities until "
+             + "the player builds a strong fleet of Warships. Build ships directly to the "
+             + "Fortress of your color, which the pirates have captured from you. To win the game, you must reach the "
+             + "victory point goal and defeat the Fortress 3 times using warships. "
+             + "Ship routes can't branch out, only follow dotted lines to the Fortress. "
+             + "Strengthen your fleet by playing Warship development cards to upgrade your ships. "
+             + "When the pirate fleet attacks, you win if you have more Warships than the pirate fleet strength (randomly 1-6). "
+             + "No robber or largest army. When 7 is rolled, any pirate fleet attack happens before the usual discards.",
              "_SC_PIRI=t,SBL=t,VP=t10,_SC_0RVP=t"));  // win condition: 10 VP _and_ defeat a pirate fortress
 
         allSc.put(K_SC_FTRI, new SOCScenario
@@ -235,16 +243,19 @@ public class SOCScenario
              + "Each Wonder has its own requirements before you may start it, such as "
              + "several cities built or a port at a certain location. To win you "
              + "must complete your Wonder's 4 levels, or reach 10 VP and complete "
-             + "more levels than any other player.",
+             + "more levels than any other player. Has no pirate ship.",
              "_SC_WOND=t,SBL=t,VP=t10,_SC_SANY=t"));  // win condition: Complete Wonder, or 10 VP _and_ built the most levels
                 // The "all 4 levels" win condition is also stored in SOCSpecialItem.SC_WOND_WIN_LEVEL.
 
-        // Uncomment to test scenario sync/negotiation between server and client versions:
-        //    Assumes client and server are both 2.0.00 and for testing,
-        //    client or server version has been temporarily set to 2.0.01.
+        // Uncomment to test scenario sync/negotiation between server and client versions.
+        // Assumes:
+        //   - Client and server are both current version 2.0.00
+        //   - For testing, client or server version has been temporarily set to 2.0.01
+        // i18n/localization test reminder: resources/strings/server/toClient_*.properties:
+        //   gamescen.SC_TSTNC.n = test-localizedname SC_TSTNC ...
         /*
-        allSc.put("SC_TSTNB", new SOCScenario
-            ("SC_TSTNB", 2000, 2001,
+        allSc.put("SC_TSTNC", new SOCScenario
+            ("SC_TSTNC", 2000, 2001,
             "New: v2001 back-compat", null, "PLB=t,VP=t11,NT=y"));
         allSc.put("SC_TSTNO", new SOCScenario
             ("SC_TSTNO", 2001, 2001,
@@ -285,7 +296,7 @@ public class SOCScenario
     public static final String K_SC_4ISL = "SC_4ISL";
 
     /**
-     * Scenario key {@code SC_FOG} for {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED} (The Fog Islands scenario).
+     * Scenario key {@code SC_FOG} for {@link SOCGameEvent#SGE_FOG_HEX_REVEALED} (The Fog Islands scenario).
      * Main option is {@link SOCGameOption#K_SC_FOG}.
      */
     public static final String K_SC_FOG = "SC_FOG";
@@ -297,9 +308,12 @@ public class SOCScenario
     public static final String K_SC_TTD = "SC_TTD";
 
     /**
-     * Scenario key {@code SC_CLVI} for {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}:
+     * Scenario key {@code SC_CLVI} for {@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}:
      * Cloth Trade with neutral {@link SOCVillage villages}.
      * Main option is {@link SOCGameOption#K_SC_CLVI}.
+     *<P>
+     * Game ends immediately if fewer than 4 villages still have cloth ({@link #SC_CLVI_VILLAGES_CLOTH_REMAINING_MIN}):
+     * Winner is player with most VP, or most cloth if tied.
      *<P>
      * While starting a new game, the neutral villages are placed and sent to clients as part {@code "CV"}
      * of the board layout message while game state is still &lt; {@link SOCGame#START1A START1A}.
@@ -307,7 +321,17 @@ public class SOCScenario
     public static final String K_SC_CLVI = "SC_CLVI";
 
     /**
-     * Scenario key {@code SC_PIRI} for Pirate Islands and {@link SOCFortress fortresses}.
+     * In scenario {@link #K_SC_CLVI SC_CLVI}, game ends immediately if
+     * fewer than this many {@link SOCVillage villages} (4) still have cloth.
+     * Per scenario rules, 4- and 6-player games use the same number here;
+     * the 6-player layout has more villages and more players to reach them.
+     */
+    public static final int SC_CLVI_VILLAGES_CLOTH_REMAINING_MIN = 4;
+        // If this value changes, must update scenario description text
+        // and its translations (keys: gamescen.SC_CLVI.d, event.sc_clvi.game.ending.villages)
+
+    /**
+     * Scenario key {@code SC_PIRI} for Pirate Islands and {@link SOCFortress Fortresses}.
      * Main option is {@link SOCGameOption#K_SC_PIRI}.
      *<P>
      * A pirate fleet circulates on a predefined path, stealing resources from weak players with
@@ -319,8 +343,12 @@ public class SOCScenario
      * Each player starts with an initial coastal settlement and ship. While starting a new game these
      * are placed and sent to clients while game state is still &lt; {@link SOCGame#START1A START1A}.
      *<P>
-     * The pirate fleet moves with every dice roll. When a 7 is rolled, the fleet moves and any
-     * battle is resolved before the usual discards. Players may choose to not rob from anyone on 7.
+     * The pirate fleet moves with every dice roll, and battles whenever 1 player's settlement/city is
+     * adjacent. See {@link SOCGame.RollResult#sc_piri_fleetAttackVictim} javadoc and fields linked there.
+     * When a 7 is rolled, the fleet moves and any battle is resolved before the usual discards/robbery.
+     * Players may choose to not rob from anyone on 7.
+     *<P>
+     * When a player defeats their Fortress, it's replaced by a {@link SOCSettlement}.
      */
     public static final String K_SC_PIRI = "SC_PIRI";
 
@@ -338,8 +366,8 @@ public class SOCScenario
      * player to place later when they have such a coastal settlement.
      *<P>
      * When a player reaches a Special Edge and is awarded a gift, the game clears that edge's special
-     * type, then fires a {@link SOCScenarioPlayerEvent#DEV_CARD_REACHED_SPECIAL_EDGE} or
-     * {@link SOCScenarioPlayerEvent#SVP_REACHED_SPECIAL_EDGE} event.
+     * type, then fires a {@link SOCPlayerEvent#DEV_CARD_REACHED_SPECIAL_EDGE} or
+     * {@link SOCPlayerEvent#SVP_REACHED_SPECIAL_EDGE} event.
      *<P>
      * When a player reaches a "gift" trade port, either the port is added to their inventory
      * as a {@link SOCInventoryItem} for later placement, or they must immediately place it:
@@ -355,6 +383,7 @@ public class SOCScenario
      * Players choose a unique Wonder and can build all 4 of its levels.
      * Each Wonder has its own requirements before they may start it,
      * such as several cities built or a port at a certain location.
+     * Player must also use an unplaced {@link SOCShip} to start building a Wonder.
      *<P>
      * When a player starts to build a Wonder, it's added to their Special Items for visibility; see below.
      *<P>
@@ -377,6 +406,7 @@ public class SOCScenario
      * initialized in {@link SOCGame#updateAtBoardLayout()}.  When a player starts to build a Wonder, a reference
      * to its {@link SOCSpecialItem} is placed into index 0 of their Special Items:
      * {@link SOCPlayer#setSpecialItem(String, int, SOCSpecialItem) pl.setSpecialItem("_SC_WOND", 0, item)}.
+     * Server will subtract 1 from player's available Ship count.
      *<P>
      * The player's request to build must use player item index (pi) 0, game item index (gi) 1 to <em>n</em>.
      * Completing all 4 levels of a Wonder ({@link SOCSpecialItem#SC_WOND_WIN_LEVEL}) wins the game.
@@ -514,7 +544,7 @@ public class SOCScenario
      *<LI> {@link #K_SC_NSHO SC_NSHO}  New Shores
      *<LI> {@link #K_SC_4ISL SC_4ISL}  The Four Islands (Six on the 6-player board)
      *<LI> {@link #K_SC_FOG  SC_FOG}   A hex has been revealed from behind fog:
-     *                                  {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}
+     *                                  {@link SOCGameEvent#SGE_FOG_HEX_REVEALED}
      *<LI> {@link #K_SC_TTD  SC_TTD}   Through The Desert
      *<LI> {@link #K_SC_CLVI SC_CLVI}  Cloth trade with neutral {@link SOCVillage villages}
      *<LI> {@link #K_SC_PIRI SC_PIRI}  Pirate Islands and {@link SOCFortress fortresses}
@@ -560,13 +590,13 @@ public class SOCScenario
      */
     public static boolean addKnownScenario(SOCScenario scNew)
     {
-	final String scKey = scNew.key;
-	final boolean hadIt = allScenarios.containsKey(scKey);
-	if (hadIt)
-	    allScenarios.remove(scKey);
-	allScenarios.put(scKey, scNew);
+        final String scKey = scNew.key;
+        final boolean hadIt = allScenarios.containsKey(scKey);
+        if (hadIt)
+            allScenarios.remove(scKey);
+        allScenarios.put(scKey, scNew);
 
-	return ! hadIt;
+        return ! hadIt;
     }
 
     /**
@@ -747,47 +777,46 @@ public class SOCScenario
      *            </UL>
      */
     public static StringBuilder adjustScenariosToKnown
-	(Map<String, SOCScenario> newScens, Map<String, SOCScenario> knownScenarios,
-	 final boolean doServerPreadjust)
+        (Map<String, SOCScenario> newScens, Map<String, SOCScenario> knownScenarios,
+         final boolean doServerPreadjust)
     {
-	if (knownScenarios == null)
-	    knownScenarios = allScenarios;
+        if (knownScenarios == null)
+            knownScenarios = allScenarios;
 
-	StringBuilder scProblems = new StringBuilder();
+        StringBuilder scProblems = new StringBuilder();
 
-	// use Iterator in loop, so we can remove from the map if needed
-	boolean allKnown = true;
-	for (Iterator<Map.Entry<String, SOCScenario>> ikv = newScens.entrySet().iterator();
-	     ikv.hasNext(); )
-	{
-	    Map.Entry<String, SOCScenario> sckv = ikv.next();
+        // use Iterator in loop, so we can remove from the map if needed
+        boolean allKnown = true;
+        for (Iterator<Map.Entry<String, SOCScenario>> ikv = newScens.entrySet().iterator();
+             ikv.hasNext(); )
+        {
+            Map.Entry<String, SOCScenario> sckv = ikv.next();
 
-	    SOCScenario sc = sckv.getValue();
-	    SOCScenario knownSc = knownScenarios.get(sc.key);
-	    if (knownSc == null)
-	    {
-		allKnown = false;
-		scProblems.append(sc.key);
-		scProblems.append(": unknown. ");
-	    } else {
-		if (knownSc.lastModVersion != sc.lastModVersion)
-		{
-		    allKnown = false;
-		    scProblems.append(sc.key);
-		    scProblems.append(": lastModVersion mismatch (");
-		    scProblems.append(knownSc.lastModVersion);
-		    scProblems.append(" != ");
-		    scProblems.append(sc.lastModVersion);
-		    scProblems.append("). ");
-		}
+            SOCScenario sc = sckv.getValue();
+            SOCScenario knownSc = knownScenarios.get(sc.key);
+            if (knownSc == null)
+            {
+                allKnown = false;
+                scProblems.append(sc.key);
+                scProblems.append(": unknown. ");
+            } else {
+                if (knownSc.lastModVersion != sc.lastModVersion)
+                {
+                    allKnown = false;
+                    scProblems.append(sc.key);
+                    scProblems.append(": lastModVersion mismatch (");
+                    scProblems.append(knownSc.lastModVersion);
+                    scProblems.append(" != ");
+                    scProblems.append(sc.lastModVersion);
+                    scProblems.append("). ");
+                }
+            }
+        }
 
-	    }
-	}
-
-	if (allKnown)
-	    return null;
-	else
-	    return scProblems;
+        if (allKnown)
+            return null;
+        else
+            return scProblems;
     }
 
     /**
@@ -838,6 +867,7 @@ public class SOCScenario
      *     Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *     and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param longDesc  Longer descriptive text, or null; see {@link #getLongDesc()} for requirements.
+     *     If null, keeps scenario's current (probably hardcoded unlocalized) longDesc.
      * @throws IllegalArgumentException if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or desc or longDesc fails {@link SOCMessage#isSingleLineAndSafe(String, boolean)}
      * @see SOCVersionedItem#setDesc(String)
@@ -851,10 +881,11 @@ public class SOCScenario
                 throw new IllegalArgumentException("longDesc fails isSingleLineAndSafe");
             if (longDesc.contains(SOCMessage.sep))
                 throw new IllegalArgumentException("longDesc contains " + SOCMessage.sep);
+
+            scLongDesc = longDesc;
         }
 
         setDesc(desc);  // checks isSingleLineAndSafe(desc)
-        scLongDesc = longDesc;
     }
 
     /**

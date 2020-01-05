@@ -30,7 +30,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.Vector;
 
 
 /**
@@ -94,6 +93,7 @@ import java.util.Vector;
  *      {@link #getAdjacentNodesToEdge(int)} <br>
  *      {@link #getAdjacentNodesToEdge_arr(int)} <br>
  *      {@link #getAdjacentNodeFarEndOfEdge(int, int)}
+ *      {@link #getNodeBetweenAdjacentEdges(int, int)}
  *    </td>
  *    <td><!-- Node adjac to node -->
  *      {@link #getAdjacentNodeToNode(int, int)} <br>
@@ -138,7 +138,7 @@ import java.util.Vector;
  * <b>nodes</b> (corners of hexes; where settlements/cities are placed),
  * and <b>edges</b> (between nodes; where roads are placed),
  * share the same grid of coordinates.
- * Each hex is 2 units wide, in a 2-D coordinate system.
+ * Each hex is 2 units wide in a diagonal 2-D coordinate system.
  *<P>
  * To explore coordinates at the client, type debug command {@code =*= showcoords}
  * to show a tooltip with current board coordinates at the mouse pointer.
@@ -643,33 +643,33 @@ public abstract class SOCBoard implements Serializable, Cloneable
     /**
      * where the ports of each type are; coordinates per port type.
      * Indexes are port types, {@link #MISC_PORT} to {@link #WOOD_PORT}.
-     * Values are Vectors of Integer node coordinates; each port
-     *    will have 2 Integers because it touches 2 nodes.
+     * Values are lists of Integer node coordinates; each port type
+     *    will have at least 2 node coords because each port touches 2 nodes.
      *    So, the number of ports of a type is ports[type].size() / 2.
      * @see #portsLayout
      * @see #getPortsEdges()
      */
     @SuppressWarnings("unchecked")
-    protected Vector<Integer>[] ports = new Vector[6];  // 1 per resource type, MISC_PORT to WOOD_PORT
+    protected List<Integer>[] ports = new ArrayList[6];  // 1 per resource type, MISC_PORT to WOOD_PORT
 
     /**
-     * roads on the board; Vector of {@link SOCRoad}s.
+     * roads on the board; a list of of {@link SOCRoad}s.
      * On the large sea board ({@link SOCBoardLarge}), also
      * contains all {@link SOCShip}s on the board.
      *<P>
      * Before v2.0.00 this field was {@code roads}.
      */
-    protected Vector<SOCRoutePiece> roadsAndShips = new Vector<SOCRoutePiece>(60);
+    protected List<SOCRoutePiece> roadsAndShips = new ArrayList<SOCRoutePiece>(60);
 
     /**
      * settlements on the board
      */
-    protected Vector<SOCSettlement> settlements = new Vector<SOCSettlement>(20);
+    protected List<SOCSettlement> settlements = new ArrayList<SOCSettlement>(20);
 
     /**
      * cities on the board
      */
-    protected Vector<SOCCity> cities = new Vector<SOCCity>(16);
+    protected List<SOCCity> cities = new ArrayList<SOCCity>(16);
 
     /**
      * random number generator
@@ -716,12 +716,9 @@ public abstract class SOCBoard implements Serializable, Cloneable
         // Reminder: Most field initialization is done at its declaration
         // (robberHex, prevRobberHex, roads, settlements, cities)
 
-        /**
-         * initialize the port vector array
-         */
-        ports[MISC_PORT] = new Vector<Integer>(8);
+        ports[MISC_PORT] = new ArrayList<Integer>(8);
         for (int i = CLAY_PORT; i <= WOOD_PORT; i++)
-            ports[i] = new Vector<Integer>(2);
+            ports[i] = new ArrayList<Integer>(2);
     }
 
     /**
@@ -884,7 +881,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * Before v2.0.00, this was part of makeNewBoard_placeHexes.
      *
      * @param unvisited  Contains each land hex's coordinate as an Integer;
-     *          <b>Note:</b> This vector will be modified by the method. <br>
+     *          <b>Note:</b> This list will be modified by the method. <br>
      *          See note above about occasional water hex coordinates in <tt>univisited</tt>.
      * @param clumpSize  Clumps of this size or more are too large.
      *          Minimum value is 3, smaller values will always return false.
@@ -892,7 +889,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * @throws IllegalArgumentException if a hex type is -1 (uninitialized or not a valid hex coordinate)
      * @since 2.0.00
      */
-    protected boolean makeNewBoard_checkLandHexResourceClumps(Vector<Integer> unvisited, final int clumpSize)
+    protected boolean makeNewBoard_checkLandHexResourceClumps(List<Integer> unvisited, final int clumpSize)
         throws IllegalArgumentException
     {
         if (clumpSize < 3)
@@ -910,14 +907,14 @@ public abstract class SOCBoard implements Serializable, Cloneable
          * size is larger than the allowed size.
          *
          * Pseudocode:
-        // Using vectors to represent sets.
+        // Using lists to represent sets, for iteration in a repeatable order.
         //   Sets will contain each land hex's coordinate ("ID").
         //
-        // - clumps := new empty set (will be a vector of vectors)
+        // - clumps := new empty set (will be a list of lists)
         //     At end of search, each element of this set will be
-        //       a subset (a vector) of adjacent hexes
+        //       a subset (a list) of adjacent hexes
         // - clumpsNotOK := false
-        // - unvisited-set := new set (vector) of all land hexes
+        // - unvisited-set := new set (or list) of all land hexes
         // - iterate through unvisited-set; for each hex:
         //     - remove this from unvisited-set
         //     - if hex is water, done looking at this hex
@@ -926,15 +923,15 @@ public abstract class SOCBoard implements Serializable, Cloneable
         //                     and this is the top-level loop
         //     - if none, done looking at this hex
         //     - remove all adj-of-same-type from unvisited-set
-        //     - build a new clump-vector of this + all adj of same type
-        //     - grow the clump: iterate through each hex in clump-vector (skip its first hex,
+        //     - build a new clump-list of this + all adj of same type
+        //     - grow the clump: iterate through each hex in clump-list (skip its first hex,
         //       because we already have its adjacent hexes)
-        //          precondition: each hex already in the clump set, is not in unvisited-vec
+        //          precondition: each hex already in the clump set, is not in unvisited-list
         //          - look at its adjacent unvisited hexes of same type
         //          - if none, done looking at this hex
         //          - remove same-type adjacents from unvisited-set
-        //          - insert them into clump-vector (will continue the iteration with them)
-        //     - add clump-vector to set-of-all-clumps
+        //          - insert them into clump-list (will continue the iteration with them)
+        //     - add clump-list to set-of-all-clumps
         //          OR, immediately check its size vs clumpSize
         //   postcondition: have visited each hex
         // - iterate through set-of-all-clumps
@@ -944,17 +941,17 @@ public abstract class SOCBoard implements Serializable, Cloneable
 
         // Actual code along with pseudocode:
 
-        // Using vectors to represent sets.
+        // Using lists to represent sets.
         //   Sets will contain each land hex's coordinate ("ID").
         //   We're operating on Integer instances, which is okay because
-        //   vector methods such as contains() and remove() test obj.equals()
+        //   list methods such as contains() and remove() test obj.equals()
         //   to determine if the Integer is a member.
         //   (getAdjacent() returns Integers with the same value
         //    as unvisited's members.)
 
         boolean clumpsNotOK = false;    // will set true in while-loop body
 
-        // - unvisited-set := new set (vector) of all land hexes
+        // - unvisited-set := new set (list) of all land hexes
         // - iterate through unvisited-set
 
         while (unvisited.size() > 0)
@@ -962,10 +959,10 @@ public abstract class SOCBoard implements Serializable, Cloneable
             //   for each hex:
 
             //     - remove this from unvisited-set
-            Integer hexCoordObj = unvisited.elementAt(0);
+            Integer hexCoordObj = unvisited.remove(0);
             final int hexCoord = hexCoordObj.intValue();
             final int resource = getHexTypeFromCoord(hexCoord);
-            unvisited.removeElementAt(0);
+
             if (resource == -1)  // would cause inf loop, this "clump" can't be broken up
                 throw new IllegalArgumentException("hex type -1 at coord 0x" + Integer.toHexString(hexCoord));
 
@@ -977,63 +974,61 @@ public abstract class SOCBoard implements Serializable, Cloneable
             //          assertion: they are all unvisited, because this hex was unvisited
             //                     and this is the top-level loop
             //     - if none, done looking at this hex
-            //     - build a new clump-vector of this + all adj of same type
+            //     - build a new clump-list of this + all adj of same type
             //     - remove all adj-of-same-type from unvisited-set
 
             // set of adjacent will become the clump, or be emptied completely
-            Vector<Integer> adjacent = getAdjacentHexesToHex(hexCoord, false);
+            final List<Integer> adjacent = getAdjacentHexesToHex(hexCoord, false);
             if (adjacent == null)
                 continue;
 
-            Vector<Integer> clump = null;
-            for (int i = 0; i < adjacent.size(); ++i)
+            ArrayList<Integer> clump = null;
+            for (final Integer adjCoordInt : adjacent)
             {
-                Integer adjCoordObj = adjacent.elementAt(i);
-                final int adjCoord = adjCoordObj.intValue();
+                final int adjCoord = adjCoordInt.intValue();
                 if (resource == getHexTypeFromCoord(adjCoord))
                 {
                     // keep this one
                     if (clump == null)
-                        clump = new Vector<Integer>();
-                    clump.addElement(adjCoordObj);
-                    unvisited.remove(adjCoordObj);
+                        clump = new ArrayList<Integer>();
+                    clump.add(adjCoordInt);
+                    unvisited.remove((Object) adjCoordInt);  // explicit cast to avoid calling remove(int)
                 }
             }
             if (clump == null)
                 continue;
 
-            clump.insertElementAt(hexCoordObj, 0);  // put the first hex into clump
+            clump.add(0, hexCoordObj);  // put the first hex into clump
 
-            //     - grow the clump: iterate through each hex in clump-vector (skip its first hex,
+            //     - grow the clump: iterate through each hex in clump-list (skip its first hex,
             //       because we already have its adjacent hexes)
             for (int ic = 1; ic < clump.size(); )  // ++ic is within loop body, if nothing inserted
             {
-                // precondition: each hex already in clump set, is not in unvisited-vec
-                final int chexCoord = clump.elementAt(ic);
+                // precondition: each hex already in clump set, is not in unvisited-set
+                final int chexCoord = clump.get(ic);
 
                 //  - look at its adjacent unvisited hexes of same type
                 //  - if none, done looking at this hex
                 //  - remove same-type adjacents from unvisited-set
-                //  - insert them into clump-vector
+                //  - insert them into clump-list
                 //    (will continue the iteration with them)
 
-                Vector<Integer> adjacent2 = getAdjacentHexesToHex(chexCoord, false);
+                final List<Integer> adjacent2 = getAdjacentHexesToHex(chexCoord, false);
                 if (adjacent2 == null)
                 {
                     ++ic;
                     continue;
                 }
                 boolean didInsert = false;
-                for (int ia = 0; ia < adjacent2.size(); ++ia)
+                for (final Integer adjCoordInt : adjacent2)
                 {
-                    Integer adjCoordObj = adjacent2.elementAt(ia);
-                    final int adjCoord = adjCoordObj;
+                    final int adjCoord = adjCoordInt;
                     if ((resource == getHexTypeFromCoord(adjCoord))
-                        && unvisited.contains(adjCoordObj))
+                        && unvisited.contains(adjCoordInt))
                     {
                         // keep this one
-                        clump.insertElementAt(adjCoordObj, ic);
-                        unvisited.remove(adjCoordObj);
+                        clump.add(ic, adjCoordInt);
+                        unvisited.remove((Object) adjCoordInt);  // explicit cast to avoid calling remove(int)
                         didInsert = true;
                     }
                 }
@@ -1050,6 +1045,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
             }
 
         }  // for each in unvisited
+
         return clumpsNotOK;
     }
 
@@ -1184,8 +1180,8 @@ public abstract class SOCBoard implements Serializable, Cloneable
         nodeIDtoPortType.put(node1Int, ptypeInt);
         nodeIDtoPortType.put(node2Int, ptypeInt);
 
-        ports[ptype].addElement(node1Int);
-        ports[ptype].addElement(node2Int);
+        ports[ptype].add(node1Int);
+        ports[ptype].add(node2Int);
     }
 
     /**
@@ -1198,6 +1194,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * Because the v3 board layout varies:
      * At the server, call this after {@link #makeNewBoard(Map)}.
      * At the client, call this after {@link SOCBoardLarge#setLegalSettlements(java.util.Collection, int, HashSet[])}.
+     * See override {@link SOCBoardLarge#initPlayerLegalRoads()}.
      *
      * @return the set of legal edge coordinates for roads, as a new Set of {@link Integer}s
      * @since 1.1.12
@@ -1588,7 +1585,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * @see #getPortsLayout()
      * @see #getPortsEdges()
      */
-    public Vector<Integer> getPortCoordinates(int portType)
+    public List<Integer> getPortCoordinates(int portType)
     {
         return ports[portType];
     }
@@ -1794,15 +1791,15 @@ public abstract class SOCBoard implements Serializable, Cloneable
         {
         case SOCPlayingPiece.SHIP:  // fall through to ROAD
         case SOCPlayingPiece.ROAD:
-            roadsAndShips.addElement((SOCRoutePiece) pp);
+            roadsAndShips.add((SOCRoutePiece) pp);
             break;
 
         case SOCPlayingPiece.SETTLEMENT:
-            settlements.addElement((SOCSettlement) pp);
+            settlements.add((SOCSettlement) pp);
             break;
 
         case SOCPlayingPiece.CITY:
-            cities.addElement((SOCCity) pp);
+            cities.add((SOCCity) pp);
             break;
 
         }
@@ -1819,24 +1816,24 @@ public abstract class SOCBoard implements Serializable, Cloneable
      */
     public void removePiece(SOCPlayingPiece piece)
     {
-        // Vector.removeElement works because SOCPlayingPiece.equals compares
+        // List.remove works because SOCPlayingPiece.equals compares
         // the piece type, player number, and coordinate.
         // Even if piece isn't the same object (reference) as the one in
-        // the vector, it's removed from the vector if those fields are equal.
+        // the list, it's removed if those fields are equal.
 
         switch (piece.getType())
         {
         case SOCPlayingPiece.SHIP:  // fall through to ROAD
         case SOCPlayingPiece.ROAD:
-            roadsAndShips.removeElement(piece);
+            roadsAndShips.remove(piece);
             break;
 
         case SOCPlayingPiece.SETTLEMENT:
-            settlements.removeElement(piece);
+            settlements.remove(piece);
             break;
 
         case SOCPlayingPiece.CITY:
-            cities.removeElement(piece);
+            cities.remove(piece);
             break;
         }
     }
@@ -1846,7 +1843,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *<P>
      * Before v2.0.00 this method was {@code getRoads}.
      */
-    public Vector<SOCRoutePiece> getRoadsAndShips()
+    public List<SOCRoutePiece> getRoadsAndShips()
     {
         return roadsAndShips;
     }
@@ -1854,7 +1851,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
     /**
      * get the list of settlements
      */
-    public Vector<SOCSettlement> getSettlements()
+    public List<SOCSettlement> getSettlements()
     {
         return settlements;
     }
@@ -1862,7 +1859,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
     /**
      * get the list of cities
      */
-    public Vector<SOCCity> getCities()
+    public List<SOCCity> getCities()
     {
         return cities;
     }
@@ -1942,17 +1939,19 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *   or {@link SOCBoard6p#MINNODE_V2} to {@link #MAXNODE}.
      * For v3 encoding, nodes are around all valid land or water hexes,
      *   and the board size is {@link #getBoardHeight()} x {@link #getBoardHeight()}.
-     * @return the nodes that touch this edge, as a Vector of Integer coordinates
+     * @return the node coordinates that touch this edge
      * @see #getAdjacentNodesToEdge_arr(int)
      */
-    public Vector<Integer> getAdjacentNodesToEdge(final int coord)
+    public List<Integer> getAdjacentNodesToEdge(final int coord)
     {
-        Vector<Integer> nodes = new Vector<Integer>(2);
+        List<Integer> nodes = new ArrayList<Integer>(2);
+
         final int[] narr = getAdjacentNodesToEdge_arr(coord);
         if ((narr[0] >= minNode) && (narr[0] <= MAXNODE))
-            nodes.addElement(Integer.valueOf(narr[0]));
+            nodes.add(Integer.valueOf(narr[0]));
         if ((narr[1] >= minNode) && (narr[1] <= MAXNODE))
-            nodes.addElement(Integer.valueOf(narr[1]));
+            nodes.add(Integer.valueOf(narr[1]));
+
         return nodes;
     }
 
@@ -1964,6 +1963,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * @return the nodes that touch this edge, as an array of 2 integer coordinates
      * @see #getAdjacentNodesToEdge(int)
      * @see #getAdjacentNodeFarEndOfEdge(int, int)
+     * @see #getNodeBetweenAdjacentEdges(int, int)
      * @since 1.1.08
      */
     public int[] getAdjacentNodesToEdge_arr(final int coord)
@@ -1997,6 +1997,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * @param nodeCoord  Node at one end of <tt>edgeCoord</tt>; the opposite end node
      *           will be returned.
      * @return the edge's other end node, opposite <tt>nodeCoord</tt>
+     * @see #getNodeBetweenAdjacentEdges(int, int)
      * @since 2.0.00
      */
     public int getAdjacentNodeFarEndOfEdge(final int edgeCoord, final int nodeCoord)
@@ -2009,14 +2010,87 @@ public abstract class SOCBoard implements Serializable, Cloneable
     }
 
     /**
+     * Given a pair of adjacent edge coordinates, get the node coordinate
+     * that connects them.
+     *<P>
+     * Does not check actual roads or other pieces on the board, only uses the
+     * calculations in Robert S Thomas' dissertation figures A.11 - A.13.
+     *
+     * @param edgeA  Edge coordinate adjacent to <tt>edgeB</tt>; not checked for validity
+     * @param edgeB  Edge coordinate adjacent to <tt>edgeA</tt>; not checked for validity
+     * @return  node coordinate between edgeA and edgeB
+     * @throws IllegalArgumentException  if edgeA and edgeB aren't adjacent
+     * @see #getAdjacentNodesToEdge(int)
+     * @since 2.0.00
+     */
+    public int getNodeBetweenAdjacentEdges(final int edgeA, final int edgeB)
+        throws IllegalArgumentException
+    {
+        // A.11:  Adjacent hexes, nodes, and edges to an [Even,Odd] Edge
+        // A.12:  Adjacent hexes, nodes, and edges to an [Odd,Even] Edge
+        // A.13:  Adjacent hexes, nodes, and edges to an [Even,Even] Edge
+
+        final int node;
+
+        if ((((edgeA & 0x0F) + (edgeA >> 4)) % 2) == 0)
+        {
+            /**
+             * edgeA is [Even,Even]: vertical
+             */
+            switch (edgeB - edgeA)  // edgeA to edgeB: fig. A.13
+            {
+            case  0x01:  // B is NE of A
+            case -0x10:  // NW of A
+                node = edgeA + 0x01;
+                break;
+
+            case -0x01:  // SW of A
+            case  0x10:  // SE of A
+                node = edgeA + 0x10;
+                break;
+
+            default:
+                node = -9;  // not adjacent or invalid edge coord
+            }
+        } else {
+            /**
+             * edgeA is [Even,Odd] or [Odd,Even]
+             */
+            switch (edgeB - edgeA)  // edgeA to edgeB: fig. A.11, A.12
+            {
+            case -0x11:  // B is diagonal W of A
+            case -0x10:  // vertical NW of A
+            case -0x01:  // vertical SW of A
+                node = edgeA;
+                break;
+
+            case 0x11:  // diagonal E of A
+            case 0x01:  // vertical NE of A
+            case 0x10:  // vertical SE of A
+                node = edgeA + 0x11;
+                break;
+
+            default:
+                node = -9;  // not adjacent or invalid edge coord
+            }
+        }
+
+        if (node == -9)
+            throw new IllegalArgumentException
+                ("Edges not adjacent: 0x" + Integer.toHexString(edgeA)
+                 + ", 0x" + Integer.toHexString(edgeB));
+        return node;
+    }
+
+    /**
      * Get the edge coordinates of the 2 to 4 edges adjacent to this edge.
      * @param coord  Edge coordinate; for the 6-player encoding, use 0, not -1, for edge 0x00.
      *    Not checked for validity.
-     * @return the valid adjacent edges to this edge, as a Vector of 2 to 4 Integer coordinates
+     * @return the valid adjacent edges to this edge, as a list of 2 to 4 Integer coordinates
      */
-    public Vector<Integer> getAdjacentEdgesToEdge(int coord)
+    public List<Integer> getAdjacentEdgesToEdge(int coord)
     {
-        Vector<Integer> edges = new Vector<Integer>(4);
+        List<Integer> edges = new ArrayList<Integer>(4);
         int tmp;
 
         /**
@@ -2028,30 +2102,22 @@ public abstract class SOCBoard implements Serializable, Cloneable
             tmp = coord - 0x10;
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
-            {
-                edges.addElement(Integer.valueOf(tmp));
-            }
+                edges.add(Integer.valueOf(tmp));
 
             tmp = coord + 0x01;
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
-            {
-                edges.addElement(Integer.valueOf(tmp));
-            }
+                edges.add(Integer.valueOf(tmp));
 
             tmp = coord + 0x10;
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
-            {
-                edges.addElement(Integer.valueOf(tmp));
-            }
+                edges.add(Integer.valueOf(tmp));
 
             tmp = coord - 0x01;
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
-            {
-                edges.addElement(Integer.valueOf(tmp));
-            }
+                edges.add(Integer.valueOf(tmp));
         }
 
         /**
@@ -2063,30 +2129,22 @@ public abstract class SOCBoard implements Serializable, Cloneable
             tmp = coord - 0x11;
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
-            {
-                edges.addElement(Integer.valueOf(tmp));
-            }
+                edges.add(Integer.valueOf(tmp));
 
             tmp = coord + 0x01;
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
-            {
-                edges.addElement(Integer.valueOf(tmp));
-            }
+                edges.add(Integer.valueOf(tmp));
 
             tmp = coord + 0x11;
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
-            {
-                edges.addElement(Integer.valueOf(tmp));
-            }
+                edges.add(Integer.valueOf(tmp));
 
             tmp = coord - 0x01;
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
-            {
-                edges.addElement(Integer.valueOf(tmp));
-            }
+                edges.add(Integer.valueOf(tmp));
         }
         else
         {
@@ -2097,30 +2155,22 @@ public abstract class SOCBoard implements Serializable, Cloneable
             tmp = coord - 0x10;
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
-            {
-                edges.addElement(Integer.valueOf(tmp));
-            }
+                edges.add(Integer.valueOf(tmp));
 
             tmp = coord + 0x11;
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
-            {
-                edges.addElement(Integer.valueOf(tmp));
-            }
+                edges.add(Integer.valueOf(tmp));
 
             tmp = coord + 0x10;
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
-            {
-                edges.addElement(Integer.valueOf(tmp));
-            }
+                edges.add(Integer.valueOf(tmp));
 
             tmp = coord - 0x11;
 
             if ((tmp >= minEdge) && (tmp <= maxEdge))
-            {
-                edges.addElement(Integer.valueOf(tmp));
-            }
+                edges.add(Integer.valueOf(tmp));
         }
 
         return edges;
@@ -2132,9 +2182,9 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * @param coord  Node coordinate.  Is not checked for validity.
      * @return the coordinates (Integers) of the 1 to 3 hexes touching this node
      */
-    public Vector<Integer> getAdjacentHexesToNode(int coord)
+    public List<Integer> getAdjacentHexesToNode(final int coord)
     {
-        Vector<Integer> hexes = new Vector<Integer>(3);
+        List<Integer> hexes = new ArrayList<Integer>(3);
         int tmp;
 
         /**
@@ -2144,25 +2194,16 @@ public abstract class SOCBoard implements Serializable, Cloneable
         if (((coord >> 4) % 2) == 0)
         {
             tmp = coord - 0x10;
-
             if ((tmp >= MINHEX) && (tmp <= MAXHEX))
-            {
-                hexes.addElement(Integer.valueOf(tmp));
-            }
+                hexes.add(Integer.valueOf(tmp));
 
             tmp = coord + 0x10;
-
             if ((tmp >= MINHEX) && (tmp <= MAXHEX))
-            {
-                hexes.addElement(Integer.valueOf(tmp));
-            }
+                hexes.add(Integer.valueOf(tmp));
 
             tmp = coord - 0x12;
-
             if ((tmp >= MINHEX) && (tmp <= MAXHEX))
-            {
-                hexes.addElement(Integer.valueOf(tmp));
-            }
+                hexes.add(Integer.valueOf(tmp));
         }
         else
         {
@@ -2171,25 +2212,16 @@ public abstract class SOCBoard implements Serializable, Cloneable
              * and the node is 'upside down Y'.
              */
             tmp = coord - 0x21;
-
             if ((tmp >= MINHEX) && (tmp <= MAXHEX))
-            {
-                hexes.addElement(Integer.valueOf(tmp));
-            }
+                hexes.add(Integer.valueOf(tmp));
 
             tmp = coord + 0x01;
-
             if ((tmp >= MINHEX) && (tmp <= MAXHEX))
-            {
-                hexes.addElement(Integer.valueOf(tmp));
-            }
+                hexes.add(Integer.valueOf(tmp));
 
             tmp = coord - 0x01;
-
             if ((tmp >= MINHEX) && (tmp <= MAXHEX))
-            {
-                hexes.addElement(Integer.valueOf(tmp));
-            }
+                hexes.add(Integer.valueOf(tmp));
         }
 
         return hexes;
@@ -2198,16 +2230,18 @@ public abstract class SOCBoard implements Serializable, Cloneable
     /**
      * Get the valid edge coordinates adjacent to this node.
      * Calls {@link #getAdjacentEdgeToNode(int, int)}.
-     * @return the edges touching this node, as a Vector of Integer coordinates
+     * @return the edge coordinates touching this node
      * @see #getAdjacentEdgeToNode(int, int)
      */
-    public Vector<Integer> getAdjacentEdgesToNode(final int coord)
+    public List<Integer> getAdjacentEdgesToNode(final int coord)
     {
-        Vector<Integer> edges = new Vector<Integer>(3);
+        List<Integer> edges = new ArrayList<Integer>(3);
+
         int[] edgea = getAdjacentEdgesToNode_arr(coord);
         for (int i = edgea.length - 1; i>=0; --i)
             if (edgea[i] != -9)
-                edges.addElement(Integer.valueOf(edgea[i]));
+                edges.add(Integer.valueOf(edgea[i]));
+
         return edges;
     }
 
@@ -2434,16 +2468,18 @@ public abstract class SOCBoard implements Serializable, Cloneable
     /**
      * Get the valid node coordinates adjacent to this node.
      * Calls {@link #getAdjacentNodeToNode(int, int)}.
-     * @return the nodes adjacent to this node, as a Vector of Integer coordinates
+     * @return the node coordinates adjacent to this node
      * @see #isNodeAdjacentToNode(int, int)
      */
-    public Vector<Integer> getAdjacentNodesToNode(final int coord)
+    public List<Integer> getAdjacentNodesToNode(final int coord)
     {
-        Vector<Integer> nodes = new Vector<Integer>(3);
+        List<Integer> nodes = new ArrayList<Integer>(3);
+
         int[] nodea = getAdjacentNodesToNode_arr(coord);
         for (int i = nodea.length - 1; i>=0; --i)
             if (nodea[i] != -9)
-                nodes.addElement(Integer.valueOf(nodea[i]));
+                nodes.add(Integer.valueOf(nodea[i]));
+
         return nodes;
     }
 
@@ -2705,13 +2741,13 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * @param hexCoord Coordinate ("ID") of this hex; not checked for validity
      * @param includeWater Should water hexes be returned (not only land ones)?
      *         Port hexes are water hexes.
-     * @return the hexes that touch this hex, as a Vector of Integer coordinates,
-     *         or null if none are adjacent (will <b>not</b> return a 0-length vector)
+     * @return the hex coordinates that touch this hex,
+     *         or null if none are adjacent (will <b>not</b> return a 0-length list)
      * @since 1.1.07
      */
-    public Vector<Integer> getAdjacentHexesToHex(final int hexCoord, final boolean includeWater)
+    public List<Integer> getAdjacentHexesToHex(final int hexCoord, final boolean includeWater)
     {
-        Vector<Integer> hexes = new Vector<Integer>();
+        List<Integer> hexes = new ArrayList<Integer>();
 
         getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord, -2,  0);  // NW (northwest)
         getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord,  0, +2);  // NE
@@ -2728,7 +2764,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
 
     /**
      * Check one possible coordinate for getAdjacentHexesToHex.
-     * @param addTo the list we're building of hexes that touch this hex, as a Vector of Integer coordinates.
+     * @param addTo the list we're building of hex coordinates that touch this hex
      * @param includeWater Should water hexes be returned (not only land ones)?
      *         Port hexes are water hexes.
      * @param hexCoord Coordinate ("ID") of this hex
@@ -2737,7 +2773,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * @since 1.1.07
      */
     private final void getAdjacentHexes_AddIfOK
-        (Vector<Integer> addTo, final boolean includeWater, int hexCoord, final int d1, final int d2)
+        (List<Integer> addTo, final boolean includeWater, int hexCoord, final int d1, final int d2)
     {
         int a1 = ((hexCoord & 0xF0) >> 4) + d1;  // Axis-1 coordinate
         int a2 = (hexCoord & 0x0F) + d2;         // Axis-2 coordinate
@@ -2751,7 +2787,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
             && (includeWater
                 || ((hexLayout[hexIDtoNum[hexCoord]] <= MAX_LAND_HEX)
                     && (hexLayout[hexIDtoNum[hexCoord]] != WATER_HEX)) ))
-            addTo.addElement(Integer.valueOf(hexCoord));
+            addTo.add(Integer.valueOf(hexCoord));
     }
 
     /**
@@ -3001,7 +3037,8 @@ public abstract class SOCBoard implements Serializable, Cloneable
     public String nodeCoordToString(int node)
     {
         String str;
-        Vector<Integer> hexes = getAdjacentHexesToNode(node);
+
+        final List<Integer> hexes = getAdjacentHexesToNode(node);
         if (hexes.isEmpty())
         {
             // Early Return: No adjacent hexes
@@ -3125,6 +3162,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
          * Static for fallback access from other factory implementations.
          *
          * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
+         *     {@link SOCBoardLarge} will take size from client-only SOCGameOption "_BHW" if in {@code gameOpts}.
          * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
          */
@@ -3132,7 +3170,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
             (final Map<String,SOCGameOption> gameOpts, final int maxPlayers)
             throws IllegalArgumentException
         {
-            return new SOCBoardLarge(gameOpts, maxPlayers);
+            return new SOCBoardLarge(gameOpts, maxPlayers, SOCBoardLarge.getBoardSize(gameOpts));
         }
 
         /**
@@ -3141,6 +3179,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
          * From v1.1.11 through all 1.x.xx, this was SOCBoard.createBoard.  Moved to new factory class in 2.0.00.
          *
          * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
+         *     {@link SOCBoardLarge} will take size from client-only SOCGameOption "_BHW" if in {@code gameOpts}.
          * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
          */

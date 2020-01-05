@@ -35,6 +35,7 @@ import soc.server.genericServer.StringServerSocket;
 
 import soc.util.CappedQueue;
 import soc.util.CutoffExceededException;
+import soc.util.DebugRecorder;
 import soc.util.SOCFeatureSet;
 import soc.util.SOCRobotParameters;
 import soc.util.Version;
@@ -110,6 +111,12 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * @since 2.0.00
      */
     public static final String PROP_JSETTLERS_BOTS_TEST_QUIT_AT_JOINREQ = "jsettlers.bots.test.quit_at_joinreq";
+
+    /**
+     * For debugging feedback, hint text to remind user if debug recorder isn't on.
+     * @since 2.0.00
+     */
+    private static final String HINT_SEND_DEBUG_ON_FIRST = "Debug recorder isn't on. Send :debug-on command first";
 
     /**
      * For server testing, random disconnect percentage from property
@@ -229,10 +236,11 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     private Hashtable<String, Integer> seatRequests = new Hashtable<String, Integer>();
 
     /**
-     * options for all games on the server we've been asked to join.
+     * Options for all games on the server we've been asked to join.
      * Some games may have no options, so will have no entry here,
      * although they will have an entry in {@link #games} once joined.
-     * Key = game name, Value = map of game's {@link SOCGameOption}s.
+     * Key = game name.
+     *<P>
      * Entries are added in {@link #handleBOTJOINGAMEREQUEST(SOCBotJoinGameRequest)}.
      * Since the robot and server are the same version, the
      * set of "known options" will always be in sync.
@@ -810,7 +818,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         }
         else
         {
-            put(SOCJoinGame.toCmd(nickname, password, host, mes.getGame()));
+            put(SOCJoinGame.toCmd(nickname, password, SOCMessage.EMPTYSTR, mes.getGame()));
         }
     }
 
@@ -877,7 +885,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             gameOptions.put(gaName, gaOpts);
 
         seatRequests.put(gaName, Integer.valueOf(mes.getPlayerNumber()));
-        if (put(SOCJoinGame.toCmd(nickname, password, host, gaName)))
+        if (put(SOCJoinGame.toCmd(nickname, password, SOCMessage.EMPTYSTR, gaName)))
         {
             D.ebugPrintln("**** sent SOCJoinGame ****");
         }
@@ -908,6 +916,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * handle the "join game authorization" message
      * @param mes  the message
      * @param isPractice Is the server local for practice, or remote?
+     * @throws IllegalStateException if board size {@link SOCGameOption} "_BHW" isn't defined (unlikely internal error)
      */
     @Override
     protected void handleJOINGAMEAUTH(SOCJoinGameAuth mes, final boolean isPractice)
@@ -916,7 +925,20 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         final String gaName = mes.getGame();
 
-        SOCGame ga = new SOCGame(gaName, true, gameOptions.get(gaName));
+        final Map<String, SOCGameOption> gameOpts = gameOptions.get(gaName);
+        final int bh = mes.getBoardHeight(), bw = mes.getBoardWidth();
+        if ((bh != 0) || (bw != 0))
+        {
+            // Encode board size to pass through game constructor.
+            // gameOpts won't be null, because bh, bw are from SOCBoardLarge which requires a gameopt to use.
+            SOCGameOption opt = SOCGameOption.getOption("_BHW", true);
+            if (opt == null)
+                throw new IllegalStateException("Internal error: Game opt _BHW not known");
+            opt.setIntValue((bh << 8) | bw);
+            gameOpts.put("_BHW", opt);
+        }
+
+        SOCGame ga = new SOCGame(gaName, gameOpts);
         ga.isPractice = isPractice;
         games.put(gaName, ga);
 
@@ -951,7 +973,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         if (pn != null)
         {
-            put(SOCSitDown.toCmd(mes.getGame(), nickname, pn.intValue(), true));
+            put(SOCSitDown.toCmd(mes.getGame(), SOCMessage.EMPTYSTR, pn.intValue(), true));
         } else {
             System.err.println("** Cannot sit down: Assert failed: null pn for game " + mes.getGame());
         }
@@ -1011,12 +1033,13 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         } catch (IndexOutOfBoundsException e) {
             return;
         }
+        final String gaName = mes.getGame();
         final String dcmd = mes.getText().substring(nL);
 
         if (dcmd.startsWith(":debug-off"))
         {
-            SOCGame ga = games.get(mes.getGame());
-            SOCRobotBrain brain = robotBrains.get(mes.getGame());
+            SOCGame ga = games.get(gaName);
+            SOCRobotBrain brain = robotBrains.get(gaName);
 
             if (brain != null)
             {
@@ -1027,8 +1050,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         else if (dcmd.startsWith(":debug-on"))
         {
-            SOCGame ga = games.get(mes.getGame());
-            SOCRobotBrain brain = robotBrains.get(mes.getGame());
+            SOCGame ga = games.get(gaName);
+            SOCRobotBrain brain = robotBrains.get(gaName);
 
             if (brain != null)
             {
@@ -1039,61 +1062,27 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         else if (dcmd.startsWith(":current-plans") || dcmd.startsWith(":cp"))
         {
-            SOCGame ga = games.get(mes.getGame());
-            SOCRobotBrain brain = robotBrains.get(mes.getGame());
-
-            if ((brain != null) && (brain.getDRecorder().isOn()))
-            {
-                sendRecordsText(ga, brain.getDRecorder().getRecord(CURRENT_PLANS));
-            }
+            sendRecordsText(gaName, CURRENT_PLANS, false);
         }
 
         else if (dcmd.startsWith(":current-resources") || dcmd.startsWith(":cr"))
         {
-            SOCGame ga = games.get(mes.getGame());
-            SOCRobotBrain brain = robotBrains.get(mes.getGame());
-
-            if ((brain != null) && (brain.getDRecorder().isOn()))
-            {
-                sendRecordsText(ga, brain.getDRecorder().getRecord(CURRENT_RESOURCES));
-            }
+            sendRecordsText(gaName, CURRENT_RESOURCES, false);
         }
 
         else if (dcmd.startsWith(":last-plans") || dcmd.startsWith(":lp"))
         {
-            SOCRobotBrain brain = robotBrains.get(mes.getGame());
-
-            if ((brain != null) && (brain.getDRecorder().isOn()))
-            {
-                Vector<String> record = brain.getOldDRecorder().getRecord(CURRENT_PLANS);
-
-                if (record != null)
-                {
-                    SOCGame ga = games.get(mes.getGame());
-                    sendRecordsText(ga, record);
-                }
-            }
+            sendRecordsText(gaName, CURRENT_PLANS, true);
         }
 
         else if (dcmd.startsWith(":last-resources") || dcmd.startsWith(":lr"))
         {
-            SOCRobotBrain brain = robotBrains.get(mes.getGame());
-
-            if ((brain != null) && (brain.getDRecorder().isOn()))
-            {
-                Vector<String> record = brain.getOldDRecorder().getRecord(CURRENT_RESOURCES);
-
-                if (record != null)
-                {
-                    SOCGame ga = games.get(mes.getGame());
-                    sendRecordsText(ga, record);
-                }
-            }
+            sendRecordsText(gaName, CURRENT_RESOURCES, true);
         }
 
         else if (dcmd.startsWith(":last-move") || dcmd.startsWith(":lm"))
         {
-            SOCRobotBrain brain = robotBrains.get(mes.getGame());
+            SOCRobotBrain brain = robotBrains.get(gaName);
 
             if ((brain != null) && (brain.getOldDRecorder().isOn()))
             {
@@ -1126,56 +1115,45 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                         break;
                     }
 
-                    Vector<String> record = brain.getOldDRecorder().getRecord(key);
-
-                    if (record != null)
-                    {
-                        SOCGame ga = games.get(mes.getGame());
-                        sendRecordsText(ga, record);
-                    }
+                    sendRecordsText(gaName, key, true);
                 }
+            } else {
+                sendText(games.get(gaName), HINT_SEND_DEBUG_ON_FIRST);
             }
         }
 
         else if (dcmd.startsWith(":consider-move ") || dcmd.startsWith(":cm "))
         {
-            SOCRobotBrain brain = robotBrains.get(mes.getGame());
+            String[] tokens = dcmd.split(" ");  // ":consider-move road 154"
+            final int L = tokens.length;
+            String keytoken = (L > 2) ? tokens[L-2].trim() : "(missing)",
+                   lasttoken = (L > 1) ? tokens[L-1].trim() : "(missing)",
+                   key = null;
 
-            if ((brain != null) && (brain.getOldDRecorder().isOn()))
+            if (lasttoken.equals("card"))
+                key = "DEVCARD";
+            else if (keytoken.equals("road"))
+                key = "ROAD" + lasttoken;
+            else if (keytoken.equals("ship"))
+                key = "SHIP" + lasttoken;
+            else if (keytoken.equals("settlement"))
+                key = "SETTLEMENT" + lasttoken;
+            else if (keytoken.equals("city"))
+                key = "CITY" + lasttoken;
+
+            final SOCGame ga = games.get(gaName);
+            if (key == null)
             {
-                String[] tokens = mes.getText().split(" ");
-                String key = null;
-
-                if (tokens[1].trim().equals("card"))
-                {
-                    key = "DEVCARD";
-                }
-                else if (tokens[1].equals("road"))
-                {
-                    key = "ROAD" + tokens[2].trim();
-                }
-                else if (tokens[1].equals("settlement"))
-                {
-                    key = "SETTLEMENT" + tokens[2].trim();
-                }
-                else if (tokens[1].equals("city"))
-                {
-                    key = "CITY" + tokens[2].trim();
-                }
-
-                Vector<String> record = brain.getOldDRecorder().getRecord(key);
-
-                if (record != null)
-                {
-                    SOCGame ga = games.get(mes.getGame());
-                    sendRecordsText(ga, record);
-                }
+                sendText(ga, "Unknown :consider-move type: " + keytoken);
+                return;
             }
+
+            sendRecordsText(gaName, key, true);
         }
 
         else if (dcmd.startsWith(":last-target") || dcmd.startsWith(":lt"))
         {
-            SOCRobotBrain brain = robotBrains.get(mes.getGame());
+            SOCRobotBrain brain = robotBrains.get(gaName);
 
             if ((brain != null) && (brain.getDRecorder().isOn()))
             {
@@ -1208,62 +1186,51 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                         break;
                     }
 
-                    Vector<String> record = brain.getDRecorder().getRecord(key);
-
-                    if (record != null)
-                    {
-                        SOCGame ga = games.get(mes.getGame());
-                        sendRecordsText(ga, record);
-                    }
+                    sendRecordsText(gaName, key, false);
                 }
+            } else {
+                sendText(games.get(gaName), HINT_SEND_DEBUG_ON_FIRST);
             }
         }
 
         else if (dcmd.startsWith(":consider-target ") || dcmd.startsWith(":ct "))
         {
-            SOCRobotBrain brain = robotBrains.get(mes.getGame());
+            String[] tokens = dcmd.split(" ");  // ":consider-target road 154"
+            final int L = tokens.length;
+            String keytoken = (L > 2) ? tokens[L-2].trim() : "(missing)",
+                   lasttoken = (L > 1) ? tokens[L-1].trim() : "(missing)",
+                   key = null;
 
-            if ((brain != null) && (brain.getDRecorder().isOn()))
+            if (lasttoken.equals("card"))
+                key = "DEVCARD";
+            else if (keytoken.equals("road"))
+                key = "ROAD" + lasttoken;
+            else if (keytoken.equals("ship"))
+                key = "SHIP" + lasttoken;
+            else if (keytoken.equals("settlement"))
+                key = "SETTLEMENT" + lasttoken;
+            else if (keytoken.equals("city"))
+                key = "CITY" + lasttoken;
+
+            final SOCGame ga = games.get(gaName);
+            if (key == null)
             {
-                String[] tokens = mes.getText().split(" ");
-                String key = null;
-
-                if (tokens[1].trim().equals("card"))
-                {
-                    key = "DEVCARD";
-                }
-                else if (tokens[1].equals("road"))
-                {
-                    key = "ROAD" + tokens[2].trim();
-                }
-                else if (tokens[1].equals("settlement"))
-                {
-                    key = "SETTLEMENT" + tokens[2].trim();
-                }
-                else if (tokens[1].equals("city"))
-                {
-                    key = "CITY" + tokens[2].trim();
-                }
-
-                Vector<String> record = brain.getDRecorder().getRecord(key);
-
-                if (record != null)
-                {
-                    SOCGame ga = games.get(mes.getGame());
-                    sendRecordsText(ga, record);
-                }
+                sendText(ga, "Unknown :consider-target type: " + keytoken);
+                return;
             }
+
+            sendRecordsText(gaName, key, false);
         }
 
         else if (dcmd.startsWith(":print-vars") || dcmd.startsWith(":pv"))
         {
             // "prints" the results as series of SOCGameTextMsg to game
-            debugPrintBrainStatus(mes.getGame(), true);
+            debugPrintBrainStatus(gaName, true);
         }
 
         else if (dcmd.startsWith(":stats"))
         {
-            SOCGame ga = games.get(mes.getGame());
+            SOCGame ga = games.get(gaName);
             sendText(ga, "Games played:" + gamesPlayed);
             sendText(ga, "Games finished:" + gamesFinished);
             sendText(ga, "Games won:" + gamesWon);
@@ -1277,7 +1244,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         else if (dcmd.startsWith(":gc"))
         {
-            SOCGame ga = games.get(mes.getGame());
+            SOCGame ga = games.get(gaName);
             Runtime rt = Runtime.getRuntime();
             rt.gc();
             sendText(ga, "Free Memory:" + rt.freeMemory());
@@ -1495,19 +1462,38 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     }
 
     /**
-     * Call sendText on each string element of record.
-     * @param ga Game to sendText to
-     * @param record Strings to send, or null
+     * Call sendText on each string element of a record
+     * from {@link SOCRobotBrain#getDRecorder()} or {@link SOCRobotBrain#getOldDRecorder() .getOldDRecorder()}.
+     * If no records found or ! {@link DebugRecorder#isOn()}, sends text to let the user know.
+     *
+     * @param gaName  Game name; if no brain found for game, does nothing
+     * @param key  Recorder key for strings to send; not {@code null}
+     * @param oldNotCurrent  True if should use {@link SOCRobotBrain#getOldDRecorder()
+     *     instead of {@link SOCRobotBrain#getDRecorder() .getDRecorder()}
      */
-    protected void sendRecordsText(SOCGame ga, Vector<String> record)
+    protected void sendRecordsText
+        (final String gaName, final String key, final boolean oldNotCurrent)
     {
-        if (record != null)
+        final SOCRobotBrain brain = robotBrains.get(gaName);
+        if (brain == null)
+            return;
+
+        final SOCGame ga = games.get(gaName);
+
+        final DebugRecorder recorder = (oldNotCurrent) ? brain.getOldDRecorder(): brain.getDRecorder();
+        if (! recorder.isOn())
         {
-            for (String str : record)
-            {
-                sendText(ga, str);
-            }
+            sendText(ga, HINT_SEND_DEBUG_ON_FIRST);
+            return;
         }
+
+        final List<String> record = recorder.getRecord(key);
+
+        if (record != null)
+            for (String str : record)
+                sendText(ga, str);
+        else
+            sendText(ga, "No debug records for " + key);
     }
 
     /**
@@ -1567,7 +1553,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 System.err.flush();
             }
 
-            put(SOCLeaveGame.toCmd(nickname, host, gaName));
+            put(SOCLeaveGame.toCmd(nickname, "-", gaName));
         }
     }
 
@@ -1601,7 +1587,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         {
             System.err.println("Java Settlers robotclient " + Version.version() +
                     ", build " + Version.buildnum());
-            System.err.println("usage: java soc.robot.SOCRobotClient host port_number userid password cookie");
+            System.err.println("usage: java soc.robot.SOCRobotClient host port_number bot_nickname password cookie");
             return;
         }
 

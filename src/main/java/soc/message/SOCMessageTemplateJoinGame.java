@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2010,2013-2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2010,2013-2014,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,6 +33,7 @@ package soc.message;
  *<P>
  * v2.0.00: No longer implements {@link SOCMessageForGame}, to avoid server looking
  * for a {@code GameHandler} for our new game which doesn't exist yet.
+ * Suggest {@link SOCMessage#EMPTYSTR} for unused host parameter.
  *
  * @author Robert S Thomas
  * @since 1.1.07
@@ -57,8 +58,7 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
     protected String game;
 
     /**
-     * Optional server host name to which the client is connecting, or "-".
-     * Since the client is already connected when it sends the message, this is only informational.
+     * Unused; server host name to which the client is connected; see {@link #getHost()}
      */
     protected String host;
 
@@ -67,7 +67,7 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
      *
      * @param nn  nickname, or "-" if already auth'd to server
      * @param pw  optional password, or ""
-     * @param hn  optional server host name, or "-"
+     * @param hn  unused; optional server host name, or "-" or {@link SOCMessage#EMPTYSTR}
      * @param ga  name of the game
      */
     public SOCMessageTemplateJoinGame(String nn, String pw, String hn, String ga)
@@ -96,7 +96,10 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
     }
 
     /**
-     * @return the optional server host name to which client is connecting, or "-"
+     * Get the optional server host name to which client is connected; unused, ignored and not used by any server version.
+     * Since the client is already connected when it sends the message, this is only informational.
+     * Is always {@link SOCMessage#EMPTYSTR} when sent by v2.0.00 or newer server or client.
+     * @return the unused optional server host name to which client is connected, or "-" or {@link SOCMessage#EMPTYSTR}
      */
     public String getHost()
     {

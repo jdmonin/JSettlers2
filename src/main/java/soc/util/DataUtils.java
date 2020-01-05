@@ -70,29 +70,31 @@ public abstract class DataUtils
     }
 
     /**
-     * For use in toString: Append string collection's contents to a StringBuilder,
+     * For use in toString: Append collection's contents to a StringBuilder,
      * formatted as "a,b,c,d,e".
      *<P>
      * Before v2.0.00 this method was {@code enumIntoStringBuf}.
      *
-     * @param sc  Collection of Strings to append. 0 length is allowed, null is not allowed.
+     * @param sc  Collection to append. 0 length is allowed, null is not allowed.
+     *     Each element's {@link Object#toString()} will be called.
      * @param sb  StringBuilder to which {@code sc} will be appended as "a,b,c,d,e"
      * @throws NullPointerException if {@code sc} or {@code sb} is null
      * @since 1.1.09
      */
-    public static final void listIntoStringBuilder(final Collection<String> sc, final StringBuilder sb)
+    public static final void listIntoStringBuilder(final Collection<?> sc, final StringBuilder sb)
         throws NullPointerException
     {
         if (sc.isEmpty())
             return;
 
         boolean any = false;
-        for (String s : sc)
+        for (Object s : sc)
         {
             if (any)
                 sb.append(',');
             else
                 any = true;
+
             sb.append(s);
         }
     }

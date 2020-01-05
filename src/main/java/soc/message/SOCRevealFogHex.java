@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012,2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012,2014,2017,2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,11 +29,11 @@ import soc.game.SOCBoard;  // for javadocs only
  * This message is sent out before the {@link SOCPutPiece} or {@link SOCMovePiece} for the road
  * or ship, to reveal the hex so the piece message can update players' potential placement edge sets.
  * Client should call {@link soc.game.SOCGame#revealFogHiddenHex(int, int, int)}.
- *<P>
- * Param 1: Coordinate of the land hex to reveal <br>
- * Param 2: Revealed hex type, same value as {@link SOCBoard#getHexTypeFromCoord(int)} <br>
- * Param 3: Revealed hex dice number, same value as {@link SOCBoard#getNumberOnHexFromCoord(int)}, or 0
- *<P>
+ *<UL>
+ * <LI> Param 1: Coordinate of the land hex to reveal <br>
+ * <LI> Param 2: Revealed hex type, same value as {@link SOCBoard#getHexTypeFromCoord(int)} <br>
+ * <LI> Param 3: Revealed hex dice number, same value as {@link SOCBoard#getNumberOnHexFromCoord(int)}, or 0
+ *</UL>
  * Used with game option/scenario {@link soc.game.SOCGameOption#K_SC_FOG SOCGameOption.K_SC_FOG}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -64,10 +64,10 @@ public class SOCRevealFogHex extends SOCMessageTemplate3i
      */
     public static SOCRevealFogHex parseDataStr(String s)
     {
-        String ga; // the game name
-        int hc; // the hex coordinate
-        int ht; // hex type
-        int dn; // dice number
+        String ga; // game name
+        int hc;    // hex coordinate
+        int ht;    // hex type
+        int dn;    // dice number
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 

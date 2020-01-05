@@ -305,7 +305,7 @@ import soc.game.SOCGame;
      */
     public void changeButtonChosen()
     {
-        pcli.getGameMessageMaker().changeFace(pi.getGame(), fcl.currentFaceId);
+        pcli.getGameMessageSender().changeFace(pi.getGame(), fcl.currentFaceId);
     }
 
     /**
@@ -604,7 +604,7 @@ import soc.game.SOCGame;
         {
             if ((newRow < 0) || (newRow >= rowCount))
                 throw new IllegalArgumentException
-                ("newRow not in range (0 to " + (rowCount-1) + "): " + newRow);
+                    ("newRow not in range (0 to " + (rowCount-1) + "): " + newRow);
             if ((newRow >= currentRow) && (newRow < (currentRow + faceRowsHeight)))
             {
                 return;  // <--- Early return: Already showing ---

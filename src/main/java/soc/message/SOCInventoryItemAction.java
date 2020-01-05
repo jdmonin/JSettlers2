@@ -33,7 +33,7 @@ import soc.proto.Message;
  * This message is a client player request, or server response or announcement,
  * about {@link SOCInventoryItem}s in a player's inventory.
  *<P>
- * Inventory items are held by a player like {@code SOCDevCard}s.
+ * Inventory items are held by a player like {@link soc.game.SOCDevCard SOCDevCard}s.
  * These special items are used by certain scenarios, and the meaning of
  * each one's {@link #itemType} is specific to the scenario.
  * An item's current state can be NEW and not yet playable; PLAYABLE now; or KEPT until end of game.
@@ -61,7 +61,7 @@ import soc.proto.Message;
  * Based on {@link SOCDevCardAction}.
  *<P>
  *
- * <H5>Usage for scenarios' special items:</H5>
+ * <H5>Usage for specific scenarios' special items:</H5>
  *<UL>
  * <LI> {@link SOCGameOption#K_SC_FTRI _SC_FTRI}: Trade ports received as gifts. <BR>
  *   In state {@link SOCGame#PLAY1} or {@link SOCGame#SPECIAL_BUILDING}, current player sends this when they
@@ -69,7 +69,7 @@ import soc.proto.Message;
  *  <P>
  *   If they can place now, server broadcasts SOCInventoryItemAction({@link #PLAYED}) to the game to remove
  *   it from player's inventory, then sends {@link SOCGameState}({@link SOCGame#PLACING_INV_ITEM PLACING_INV_ITEM}).
- *   (Player interface shouldn't let them place before the new game state is sent.)
+ *   (Player's client UI shouldn't let them place before the new game state is sent.)
  *   When the requesting client receives this PLAYED message, it will call {@link SOCGame#setPlacingItem(SOCInventoryItem)}
  *   because {@link SOCInventoryItem#isPlayForPlacement(SOCGame, int)} is true for {@code _SC_FTRI}.
  *  <P>

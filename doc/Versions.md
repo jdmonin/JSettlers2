@@ -7,11 +7,11 @@ Unless otherwise indicated, JARs for JSettlers versions are hosted at
 and (for older versions) [http://nand.net/jsettlers/devel/](http://nand.net/jsettlers/devel/) .
 
 From `1.0` up through `1.1.13`, there was a single line of development.
-Right after `1.1.13` the main development branch became `2.0.00`, with a
+Right after `1.1.13` the master branch began `2.0.00`, with a
 stable branch for further `1.x.xx` version releases to bring out bugfixes
-and backport minor new features until `2.0.00` is ready.
+and backport minor new features until `2.0.00` was ready.
 
-## `3.0.00` (build JX201xxxxx)
+## `3.0.00` (build JX202xxxxx)
 - Experimental features: protobuf
 - Major refactoring: SOCBoard types combined, removing 'classic' v1.x.xx coordinate system:
   Connecting clients or servers must now be v2.0.00 or higher.
@@ -19,46 +19,74 @@ and backport minor new features until `2.0.00` is ready.
 - Build requires Java 7 or newer
 
 
-## `2.0.00` (build JM2019xxxx)
-- Large board (sea board) support
-- Game Scenario and special-rules support
+## `2.0.00` (build JM20200102)
+- Game play:
+	- Large board (sea board) support
+	- Game Scenario and special-rules support
+	- Game option "VP" (Victory Points to win): Maximum increased to 20 from 15
 - Client:
-	- High-DPI support, based on screen resolution or running with JVM parameter `-Djsettlers.uiScale=2`
+	- High-DPI support based on screen resolution, user preference, or running with JVM parameter `-Djsettlers.uiScale=2`
+	- Added second set of hex graphics; in new-game options, can choose Classic or the new set (contributed by qubodup)
 	- Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard dialog)
 	- Trade counter-offer: For legibility use light background color, not player color
 	- Bank trades: If server declines trade, don't enable Undo Trade button or clear Give/Get resources to 0
 	- When joining a game or chat channel, server sends a "recap" of recent player chat
-	- Game windows: Show board as large as possible; player name labels sans-serif for cleaner look
-	- On OSX, set app name to JSettlers in menu bar
+	- Game windows:
+	    - Show board as large as possible
+	    - Player name labels sans-serif for cleaner look
+	    - Board graphics can use higher-resolution hex images
+	    - Game Options dialog stays in front of its game window
+	    - Debug Free Placement mode: Can also click player name to change placing player, not just face icon
 	- Popups (AskDialog, etc) layout fine-tuned, can wrap multi-line text
 	- When deleting a game, remove from game list using exact match, not startsWith
 	- Use Swing framework to help performance and accessibility
 	- On Windows, detects High-Contrast mode/theme and uses appropriate colors
-- If a new game is created but no one has sat down, then someone joins and leaves it, don't delete that game
-- If a bot is slow and its turn has been ended several times, shorten its timeout so other players won't have to wait so long (KotCzarny idea)
-- Shorten bot trade timeout after human players have declined (KotCzarny idea)
-- I18N framework in place, started by Luis A. Ramirez; thank you Luis. Jeremy wrote more I18N utilities (package net.nand.util.i18n).
-- Game names and user nicknames can't be a number or punctuation: Must contain a non-digit, non-punctuation character
-- Applet class is now `soc.client.SOCApplet`
-- Message traffic:
+	- Applet class is now `soc.client.SOCApplet`
+- New I18N framework:
+	- Languages: English, Spanish
+	- Started by Luis A. Ramirez; thank you Luis
+	- Jeremy wrote more I18N utilities (package net.nand.util.i18n)
+- Bots/AI:
+	- If a bot is slow and its turn has been ended several times, shorten its timeout so other players won't have to wait so long (KotCzarny idea)
+	- Shorten bot trade timeout after human players have declined (KotCzarny idea)
+- Network/Message traffic:
 	- When joining game in progress, server sends current round to update client's "*n* rounds left for No 7s" display
 	- More efficient game-setup messages over network
 		- If new game request has VP option but with a false boolean part, remove that VP option
 		- When forming a new game with a classic non-sea board, don't send the empty board layout:
 		  Client already has data for an empty board
-	- SOCBuildRequest now optional before client's SOCPutPiece request
 	- After a player discards, but others still must pick their discards: Don't send redundant SOCGameState,
 	  only the text prompt. This also prevents client from redisplaying "Discarding..." for players who've
 	  discarded but still have more than 7 resources
-- Server Config Validation mode: Test the current config and exit, with new startup option:
-	`-t` or `--test-config`
-- At server startup, if robots take up most of maxConnections, warn and use a higher value so humans can connect
-- Server `--pw-reset` now hides the password text
-- Game option key names can now be longer (8 characters)
-- Some game options are meant to be set by the server during game creation, not requested by the client.
-  Their option keynames all start with '_' and are hidden in the New Game options window.
-- Player's inventory can hold more than just development cards
-- Server closes connections to rejected clients or bots
+	- Game names and user nicknames can't be a number or punctuation: Must contain a non-digit, non-punctuation character
+	- SOCBuildRequest now optional before client's SOCPutPiece request
+- Server:
+	- At server startup, if robots take up most of maxConnections, warn and use a higher value so humans can connect
+	- Game expiration: (in case of sleeping laptop as server)
+	  - First warning: If less than 6 minutes remains, auto-add a few minutes to expiration time
+	  - `*ADDTIME*` command: Make sure new expiration time gives at least 30 minutes remaining
+	- Server closes connections to rejected clients or bots
+	- Server Config Validation mode: Test the current config and exit, with new startup option:  
+	  `-t` or `--test-config`
+- Misc bugfixes:
+	- If a new game is created but no one has sat down, then another client joins and leaves it, don't delete that game
+- Database:
+     - Upgraded Schema `v2.0.00` adds:
+         - users table: Count of games won, lost
+         - games table: Obsoleted by games2. Upgrade won't delete it, but new games won't be added to it
+         - games2: Normalized "games" table with per-player sub-table; also added scenario field
+         - games2_players: Sub-table: Per-player scores for each player in a game
+     - Users' win/loss counts are updated when game won or lost, even if flag property
+       `jsettlers.db.save.games` isn't set
+     - Server `--pw-reset` now hides the password text
+     - Warn at startup if property `jsettlers.accounts.admins` isn't set, unless using Open Registration mode
+     - Can use MariaDB
+     - If using Oracle (unsupported): Upgrading to new v2.0.00 schema not yet implemented
+- Game internals:
+	- Game option key names can now be longer (8 characters)
+	- Some game options are meant to be set by the server during game creation, not requested by the client.
+	  Their option keynames all start with '_' and are hidden in the New Game options window.
+	- Player's inventory can hold more than just development cards
 - For AI/Robot development:
 	- The server can run bot-only games with new startup option:  
 	  `-Djsettlers.bots.botgames.total=7`
@@ -78,32 +106,33 @@ and backport minor new features until `2.0.00` is ready.
 	  To pause only 10% as long as in normal games, use  
 	  `-Djsettlers.bots.fast_pause_percent=10`
 	- New debug command `*STARTBOTGAME* [maxBots]` to begin current game as bots-only
-    - If the last human player leaves a game with bots and observers, server continues that game as bots-only
+	- If the last human player leaves a game with bots and observers, server continues that game as bots-only
 	  if property `jsettlers.bots.botgames.total` != 0
 	- Standalone bot clients shut down properly if they can't reconnect to server after 3 retries
 	- Example `soc.robot.sample3p.Sample3PBrain extending SOCRobotBrain`, `Sample3PClient extending SOCRobotClient`
 	- Some private SOCRobotClient fields made protected for use by bot developer 3rd-party subclasses
 	- If bot disconnects after server asks it to join a game that's starting,
 	  server looks for another bot so the game won't hang
-- Java 5+ features, including parameterized types (thank you Paul Bilnoski)
-- SOCBoard layout refactoring to SOCBoard4p, SOCBoard6p thanks to Ruud Poutsma
-- Major client refactoring (separate UI from network interface) thanks to Paul Bilnoski;
-    Paul's UI split preserves the spirit and flow of the code, with a more logical layered structure.
-- Server inbound message handling refactored in collaboration with Alessandro D'Ottavio,
-    and SOCMessage parsing moved from single-threaded Treater to per-client Connection thread
-- Robot client's inbound-message treat method calls super.treat in the default case,
-    so `SOCDisplaylessClient.treat()` handles all messages which don't need robot-specific handling.
-- For clarity rename genericServer classes: StringConnection -> Connection, NetStringConnection -> NetConnection,
-    LocalStringConnection -> StringConnection, etc
-- Game state renamed for clarity: SOCGame.PLAY -> ROLL_OR_CARD; PLAY1 not renamed; SOCRobotBrain.expectPLAY -> expectROLL_OR_CARD
-- Tightened class scope for clarity: Removed `public` from classes meant for internal use (thank you Colin Werner)
-- Minor refactoring
-- Built JARs include git commit hash if available, as Build-Revision in MANIFEST.MF
-- Project dir structure converted to maven/gradle layout
-- Project builds with gradle, not ant
-- To simplify build process, moved version and copyright info from `build.xml` to `version.info`
-- READMEs and VERSIONS.txt converted to Markdown (thank you Ruud Poutsma),
-    merged old-updates-rsthomas.html into Versions.md
+- Code internals:
+	- Java 5+ features, including generics/parameterized types (thank you Paul Bilnoski)
+	- SOCBoard layout refactoring to SOCBoard4p, SOCBoard6p thanks to Ruud Poutsma
+	- Major client refactoring (separate UI from network interface) thanks to Paul Bilnoski;
+	    Paul's UI split preserves the spirit and flow of the code, with a more logical layered structure.
+	- Server inbound message handling refactored in collaboration with Alessandro D'Ottavio,
+	    and SOCMessage parsing moved from single-threaded Treater to per-client Connection thread
+	- Robot client's inbound-message treat method calls super.treat in the default case,
+	    so `SOCDisplaylessClient.treat()` handles all messages which don't need robot-specific handling.
+	- For clarity rename genericServer classes: StringConnection -> Connection, NetStringConnection -> NetConnection,
+	    LocalStringConnection -> StringConnection, etc
+	- Game state renamed for clarity: SOCGame.PLAY -> ROLL_OR_CARD; PLAY1 not renamed; SOCRobotBrain.expectPLAY -> expectROLL_OR_CARD
+	- Tightened class scope for clarity: Removed `public` from classes meant for internal use (thank you Colin Werner)
+	- Minor refactoring
+	- Framework of unit tests for build, and extra automated tests for release, in java and python
+	- Built JARs include git commit hash if available, as Build-Revision in MANIFEST.MF
+	- Project dir structure converted to maven/gradle layout
+	- Project builds with gradle, not ant
+	- To simplify build process, moved version and copyright info from `build.xml` to `version.info`
+- READMEs and VERSIONS.txt converted to Markdown (thank you Ruud Poutsma), merged old-updates-rsthomas.html into Versions.md
 
 
 ## `1.2.01` (build OV20180526)
@@ -162,6 +191,7 @@ and backport minor new features until `2.0.00` is ready.
      - If using mysql: Newly created DBs now have unicode text encoding (UTF-8).
        (The postgresql and sqlite DB scripts have always created the DB as unicode.)
      - If using postgresql: Tables are created by socuser, not postgres system user
+     - Docs: Give workaround for sqlite-jdbc shared library "operation not permitted" startup error
 - Game window during debug: Reset "current player" indicator when exiting `*FREEPLACE*` debug mode
 - Client debug, bot debug: Print network message contents if system property `jsettlers.debug.traffic=Y` is set
 - Startup: Show error if can't read own JSettlers version info

@@ -40,9 +40,14 @@ import javax.swing.JComponent;
  * interactive, or non-interactive.  The possible
  * colors of the box correspond to resources in SoC.
  *<P>
- * Default size and minimum size are {@link #WIDTH} by {@link #HEIGHT} pixels: Call {@link #setSize(int, int)} to change
- * size, {@link #setMinimumSize(Dimension)} to change minimum. Minimum isn't set by setSize, to avoid a "disappearing"
- * 0-height or 0-width square when layout manager calls setSize or setBounds.
+ * Default size and minimum size are {@link #WIDTH} by {@link #HEIGHT} pixels,
+ * unless you call a constructor which overrides the default size.
+ * Those constructors will also increase font size of a larger ColorSquare;
+ * calling {@code setSize} or {@code setMinimumSize} won't change the font size.
+ *<P>
+ * You can call method {@link #setSize(int, int)} to change current size,
+ * {@link #setMinimumSize(Dimension)} to change minimum. Minimum isn't set by setSize,
+ * to avoid a "disappearing" 0-height or 0-width square when layout manager calls setSize or setBounds.
  *<P>
  * Most colorsquares in JSettlers are actually {@link ColorSquareLarger} instances:
  * Creating that subclass was easier than changing the values of {@link #WIDTH} and {@link #HEIGHT} here,
@@ -133,7 +138,7 @@ public class ColorSquare extends JComponent implements MouseListener
     int kind;
     int upperBound;
     int lowerBound;
-    final boolean interactive;
+    boolean interactive;
 
     /** Border color, BLACK by default
      * @since 1.1.13
@@ -436,6 +441,29 @@ public class ColorSquare extends JComponent implements MouseListener
     }
 
     /**
+     * Set this square to interactive or read-only mode.
+     * If read-only, user can't click the resource amount to change it.
+     *<P>
+     * If square was non-interactive when constructor called, and then this method is
+     * called to make interactive, adds a mouse listener. Calling it again later
+     * could add a duplicate mouse listener, so don't toggle interactivity
+     * more than once.
+     *
+     * @param inter  True for interactive, false for read-only
+     * @see 2.0.00
+     */
+    public void setInteractive(final boolean inter)
+    {
+        if (inter == interactive)
+            return;
+
+        if (inter && ! interactive)
+            addMouseListener(this);  // assumes won't be set true twice
+
+        interactive = inter;
+    }
+
+    /**
      * Set minimum and current size of this ColorSquare.
      * If {@code w} or {@code h} >= 4/3 of {@link ColorSquare#HEIGHT},
      * also update the font size to fill the square.
@@ -540,7 +568,7 @@ public class ColorSquare extends JComponent implements MouseListener
     }
 
     /**
-     * Set the size of this ColorSquare; overriden to call {@link #setSize(int, int)}.
+     * Set the size of this ColorSquare; overridden to call {@link #setSize(int, int)}.
      * @since 2.0.00
      */
     @Override
@@ -1195,52 +1223,54 @@ public class ColorSquare extends JComponent implements MouseListener
      */
     public void mousePressed(MouseEvent evt)
     {
-        if (interactive)
+        if (! interactive)
+            return;
+
+        int oldIVal = intValue;
+        boolean bvalChanged = false;
+
+        switch (kind)
         {
-            int oldIVal = intValue;
-            boolean bvalChanged = false;
+        case YES_NO:
+        case CHECKBOX:
+            boolValue = !boolValue;
+            bvalChanged = true;
 
-            switch (kind)
+            break;
+
+        case NUMBER:
+            intValue++;
+
+            break;
+
+        case BOUNDED_INC:
+
+            if (intValue < upperBound)
             {
-            case YES_NO:
-            case CHECKBOX:
-                boolValue = !boolValue;
-                bvalChanged = true;
-
-                break;
-
-            case NUMBER:
                 intValue++;
-
-                break;
-
-            case BOUNDED_INC:
-
-                if (intValue < upperBound)
-                {
-                    intValue++;
-                }
-
-                break;
-
-            case BOUNDED_DEC:
-
-                if (intValue > lowerBound)
-                {
-                    intValue--;
-                }
-
-                break;
             }
 
-            repaint();
-            if (sqListener != null)
+            break;
+
+        case BOUNDED_DEC:
+
+            if (intValue > lowerBound)
             {
-                if (bvalChanged)
-                    sqListener.squareChanged(this, boolValue ? 0 : 1, boolValue ? 1 : 0);
-                else if (oldIVal != intValue)
-                    sqListener.squareChanged(this, oldIVal, intValue);
+                intValue--;
             }
+
+            break;
+        }
+
+        repaint();
+
+        if (sqListener != null)
+        {
+            if (bvalChanged)
+                sqListener.squareChanged(this, boolValue ? 0 : 1, boolValue ? 1 : 0);
+            else if (oldIVal != intValue)
+                sqListener.squareChanged(this, oldIVal, intValue);
         }
     }
+
 }

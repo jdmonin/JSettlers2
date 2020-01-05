@@ -25,9 +25,9 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -48,15 +48,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JFrame;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JRootPane;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
@@ -69,7 +75,6 @@ import soc.game.SOCGameOption;
 import soc.game.SOCScenario;
 import soc.game.SOCVersionedItem;
 import soc.message.SOCMessage;
-import soc.message.SOCStatusMessage;
 import soc.util.SOCGameList;
 import soc.util.SOCStringManager;
 import soc.util.Version;
@@ -85,6 +90,8 @@ import soc.util.Version;
  *<P>
  * Changes to the {@code PREF_SOUND_ON} or {@code PREF_SOUND_MUTE} checkboxes
  * take effect immediately so the user can mute sound effects with minimal frustration.
+ * Other user preferences take effect only when Create/OK button is pressed,
+ * and not if Cancel or Escape key is pressed.
  *<P>
  * If this window already exists and you'd like to make it topmost,
  * call {@link #setVisible(boolean)} instead of {@link #requestFocus()}.
@@ -95,14 +102,17 @@ import soc.util.Version;
  *<P>
  * This class also contains the "Scenario Info" popup window, called from
  * this dialog's Scenario Info button, and from {@link SOCPlayerInterface}
- * when first joining a game with a scenario.
- * See {@link #showScenarioInfoDialog(SOCScenario, Map, int, MainDisplay, Frame)}.
+ * when first joining a game with a scenario:
+ * See {@link #showScenarioInfoDialog(SOCScenario, Map, int, MainDisplay, Window)}.
+ *<P>
+ * Although this class was changed in v2.0 from a Frame to a JDialog, it's still named
+ * "NewGameOptionsFrame": Many commit messages and local vars refer to "NGOF".
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
  */
 @SuppressWarnings("serial")
-/*package*/ class NewGameOptionsFrame extends JFrame
+/*package*/ class NewGameOptionsFrame extends JDialog
     implements ActionListener, DocumentListener, KeyListener, ItemListener, MouseListener
 {
     // See initInterfaceElements() for most of the UI setup.
@@ -124,6 +134,10 @@ import soc.util.Version;
      */
     private final SOCPlayerInterface pi;
 
+    /**
+     * UI's main display, with list of games and channels and status bar.
+     * Never null.
+     */
     private final MainDisplay mainDisplay;
 
     /** should this be sent to the remote tcp server, or local practice server? */
@@ -251,13 +265,13 @@ import soc.util.Version;
         (final SOCPlayerInterface pi, final MainDisplay md, String gaName,
          Map<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
     {
-        super( readOnly
+        super( pi, readOnly
                 ? (strings.get("game.options.title", gaName))
                 : (forPractice
                     ? strings.get("game.options.title.newpractice")
                     : strings.get("game.options.title.new")));
 
-        // Uses default BorderLayout, for simple stretching when frame is resized
+        // Uses default BorderLayout, for simple stretching when window is resized
 
         this.pi = pi;
         this.mainDisplay = md;
@@ -281,12 +295,12 @@ import soc.util.Version;
                 gaName = cli.DEFAULT_PRACTICE_GAMENAME + " " + (1 + cli.numPracticeGames);
         }
 
-        // same Frame setup as in SOCPlayerClient.main
+        // same Frame/Window setup as in SOCPlayerClient.main
         if (! SwingMainDisplay.isOSColorHighContrast())
         {
             setBackground(SwingMainDisplay.JSETTLERS_BG_GREEN);
             setForeground(Color.black);
-            getRootPane().setBackground(null);  // inherit from overall frame
+            getRootPane().setBackground(null);  // inherit from overall window
             getContentPane().setBackground(null);
         }
         setLocationByPlatform(true);
@@ -322,7 +336,8 @@ import soc.util.Version;
         (SOCPlayerInterface pi, MainDisplay md, String gaName,
          Map<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
     {
-        NewGameOptionsFrame ngof = new NewGameOptionsFrame(pi, md, gaName, opts, forPractice, readOnly);
+        final NewGameOptionsFrame ngof =
+            new NewGameOptionsFrame(pi, md, gaName, opts, forPractice, readOnly);
         ngof.pack();
         ngof.setVisible(true);
 
@@ -330,8 +345,8 @@ import soc.util.Version;
     }
 
     /**
-     * Interface setup for constructor. Assumes frame is using BorderLayout.
-     * Most elements are part of a sub-panel occupying most of this Frame, and using GridBagLayout.
+     * Interface setup for constructor. Assumes dialog is using BorderLayout.
+     * Most elements are part of a sub-panel occupying most of this dialog, and using GridBagLayout.
      * Fills {@link #localPrefs}.
      */
     private void initInterfaceElements(final String gaName)
@@ -344,7 +359,7 @@ import soc.util.Version;
 
         final JPanel bp = new JPanel(gbl);  // Actual button panel
         int n = 4 * displayScale;
-        bp.setBorder(new EmptyBorder(n, n, n, n));  // need padding around edges, because panel fills the frame
+        bp.setBorder(new EmptyBorder(n, n, n, n));  // need padding around edges, because panel fills the window
         if (! isOSHighContrast)
         {
             bp.setForeground(getForeground());
@@ -353,7 +368,7 @@ import soc.util.Version;
 
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.weightx = 1;  // stretch with frame resize
+        gbc.weightx = 1;  // stretch with dialog resize
 
         if ((! readOnly) && (opts != null))
         {
@@ -452,6 +467,20 @@ import soc.util.Version;
         getRootPane().setDefaultButton(readOnly ? cancel : create);
 
         add(btnPan, BorderLayout.SOUTH);
+
+        // Keyboard shortcut setup
+        {
+            final JRootPane rp = getRootPane();
+            final InputMap im = rp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+            final ActionMap am = rp.getActionMap();
+
+            // ESC to cancel/close dialog, even if nothing has keyboard focus (as seen on MacOSX)
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
+            am.put("cancel", new AbstractAction()
+            {
+                public void actionPerformed(ActionEvent ae) { clickCancel(); }
+            });
+        }
 
         // Final assembly setup
         bp.validate();
@@ -578,6 +607,14 @@ import soc.util.Version;
         }  // for(opts)
 
         initInterface_UserPrefs(bp, gbl, gbc);
+
+        // Check if there's a default/current scenario; if so, set other options' values from it (VP, etc)
+        if (! readOnly)
+        {
+            final SOCGameOption optSC = opts.get("SC");
+            if ((optSC != null) && ! optSC.getStringValue().isEmpty())
+                fireUserChangedOptListeners(optSC, scenDropdown, true, false);
+        }
     }
 
     /**
@@ -626,11 +663,12 @@ import soc.util.Version;
                 scens = sl;
             }
 
+            final String currScen = op.getStringValue();  // or "" if none
             for (final SOCScenario sc : scens)
             {
                 ++i;
                 jcb.addItem(sc);  // sc.toString() == sc.desc
-                if (sc.key.equals(op.getStringValue()))
+                if (sc.key.equals(currScen))
                     sel = i;
             }
             if (sel != 0)
@@ -640,7 +678,7 @@ import soc.util.Version;
             }
 
             scenDropdown = jcb;
-            initInterface_Opt1(op, jcb, true, true, bp, gbl, gbc);
+            initInterface_Opt1(op, jcb, true, true, false, bp, gbl, gbc);
                 // adds jcb, and a checkbox which will toggle this OTYPE_STR's op.boolValue
             jcb.addActionListener(this);  // when item selected, enable/disable Scenario Info button
 
@@ -678,7 +716,7 @@ import soc.util.Version;
         case SOCGameOption.OTYPE_BOOL:
             {
                 JCheckBox cb = new JCheckBox();
-                initInterface_Opt1(op, cb, true, false, bp, gbl, gbc);
+                initInterface_Opt1(op, cb, true, false, false, bp, gbl, gbc);
                 cb.addItemListener(this);
             }
             break;
@@ -687,7 +725,7 @@ import soc.util.Version;
         case SOCGameOption.OTYPE_INTBOOL:
             {
                 final boolean hasCheckbox = (op.optType == SOCGameOption.OTYPE_INTBOOL);
-                initInterface_Opt1(op, initOption_int(op), hasCheckbox, true, bp, gbl, gbc);
+                initInterface_Opt1(op, initOption_int(op), hasCheckbox, true, true, bp, gbl, gbc);
             }
             break;
 
@@ -696,7 +734,7 @@ import soc.util.Version;
             // JComboBox (popup menu)
             {
                 final boolean hasCheckbox = (op.optType == SOCGameOption.OTYPE_ENUMBOOL);
-                initInterface_Opt1(op, initOption_enum(op), hasCheckbox, true, bp, gbl, gbc);
+                initInterface_Opt1(op, initOption_enum(op), hasCheckbox, true, true, bp, gbl, gbc);
             }
             break;
 
@@ -717,7 +755,7 @@ import soc.util.Version;
                     tfDoc.putProperty("owner", txtc);
                     tfDoc.addDocumentListener(this);  // for gameopt.ChangeListener and userChanged
                 }
-                initInterface_Opt1(op, txtc, false, false, bp, gbl, gbc);
+                initInterface_Opt1(op, txtc, false, false, false, bp, gbl, gbc);
             }
             break;
 
@@ -737,13 +775,16 @@ import soc.util.Version;
      * @param hasCB  Add a checkbox?  If oc is {@link JCheckbox}, set this true;
      *            it won't add a second checkbox.
      *            The checkbox will be added to {@link #boolOptCheckboxes} and {@link #controlsOpts}.
+     * @param ocHasListener  If true, {@code oc} already has its ItemListener, KeyListener, DocumentListener, etc
+     *            (probably added by {@link #initOption_int(SOCGameOption)} or {@link #initOption_enum(SOCGameOption)})
+     *            and this method shouldn't add another one
      * @param allowPH  Allow the "#" placeholder within option desc?
      * @param bp  Add to this panel
      * @param gbl Use this layout
      * @param gbc Use these constraints; gridwidth will be set to 1 and then REMAINDER
      */
     private void initInterface_Opt1(SOCGameOption op, Component oc,
-            boolean hasCB, boolean allowPH,
+            final boolean hasCB, final boolean allowPH, final boolean ocHasListener,
             JPanel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
         final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
@@ -818,7 +859,9 @@ import soc.util.Version;
             controlsOpts.put(oc, op);
             oc.setEnabled(! readOnly);
             optp.add(oc);
-            if (hasCB && ! readOnly)
+
+            // add listeners, unless initOption_int or initOption_enum already did so
+            if (hasCB && ! (readOnly || ocHasListener))
             {
                 if (oc instanceof JTextField)
                 {
@@ -885,22 +928,25 @@ import soc.util.Version;
             int twidth = 1 + (int) Math.ceil(Math.log10(magn));
             if (twidth < 3)
                 twidth = 3;
+
             c = new IntTextField(op.getIntValue(), twidth);
+            c.addKeyListener(this);   // for ESC/ENTER
 
             Document tfDoc = ((IntTextField) c).getDocument();
             tfDoc.putProperty("owner", c);
             tfDoc.addDocumentListener(this);  // for op.ChangeListener and userChanged
         } else {
-            JComboBox<String> ch = new JComboBox<String>();
+            JComboBox<String> combo = new JComboBox<String>();
             for (int i = op.minIntValue; i <= op.maxIntValue; ++i)
-                ch.addItem(Integer.toString(i));
+                combo.addItem(Integer.toString(i));
 
             int defaultIdx = op.getIntValue() - op.minIntValue;
             if (defaultIdx > 0)
-                ch.setSelectedIndex(defaultIdx);
-            ch.addItemListener(this);  // for op.ChangeListener and userChanged
-            c = ch;
+                combo.setSelectedIndex(defaultIdx);
+            combo.addItemListener(this);  // for op.ChangeListener and userChanged
+            c = combo;
         }
+
         return c;
     }
 
@@ -950,7 +996,15 @@ import soc.util.Version;
 
         // reminder: same gbc widths/weights are used in initInterface_Opt1
 
-        // PREF_SOUND_ON
+        // PREF_HEX_GRAPHICS_SET is an integer for future expansion,
+        // but right now there's only 2 options, so use checkbox for simpler UI
+        boolean bval = (1 == UserPreferences.getPref(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, 0));
+        localPrefs.put(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, Boolean.valueOf(bval));
+        initInterface_Pref1
+            (bp, gbl, gbc, SOCPlayerClient.PREF_HEX_GRAPHICS_SET,
+             strings.get("game.options.hex.classic.all"),  // "Hex graphics: Use Classic theme (All games)"
+             true, false,
+             bval, 0, null);
 
         initInterface_Pref1
             (bp, gbl, gbc, null,
@@ -969,9 +1023,7 @@ import soc.util.Version;
         // Per-PI prefs:
         if (withPerGamePrefs)
         {
-            // PREF_SOUND_MUTE
-
-            boolean bval = (pi != null) ? pi.isSoundMuted() : false;
+            bval = (pi != null) ? pi.isSoundMuted() : false;
             localPrefs.put(SOCPlayerInterface.PREF_SOUND_MUTE, Boolean.valueOf(bval));
             initInterface_Pref1
                 (bp, gbl, gbc, null,
@@ -988,8 +1040,6 @@ import soc.util.Version;
                      }
                  });
 
-            // PREF_BOT_TRADE_REJECT_SEC
-
             int ival = (pi != null)
                 ? pi.getBotTradeRejectSec()
                 : UserPreferences.getPref(SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC, -8);
@@ -1002,6 +1052,16 @@ import soc.util.Version;
                  strings.get("game.options.bot.auto_reject"),  // "Auto-reject bot trades after # seconds"
                  true, true, bval, ival, null);
         }
+
+        int ival = UserPreferences.getPref(SOCPlayerClient.PREF_UI_SCALE_FORCE, 0);
+        localPrefs.put(SOCPlayerClient.PREF_UI_SCALE_FORCE, Integer.valueOf(ival));
+        bval = (ival > 0);
+        if (! bval)
+            ival = (ival < 0) ? (-ival) : 1;
+        initInterface_Pref1
+            (bp, gbl, gbc, SOCPlayerClient.PREF_UI_SCALE_FORCE,
+             strings.get("game.options.ui.scale.force"),  // "Force UI scale to # (requires restart)"
+             true, true, bval, ival, null);
     }
 
     /**
@@ -1032,7 +1092,7 @@ import soc.util.Version;
         throws IllegalArgumentException
     {
         if ((key == null) && (pcl == null))
-            throw new IllegalArgumentException("null key, pcl");
+            throw new IllegalArgumentException("null key & pcl");
 
         final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
 
@@ -1323,18 +1383,18 @@ import soc.util.Version;
         String errMsg = null;
         if (L > SOCGameList.GAME_NAME_MAX_LENGTH)
         {
-            errMsg = SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + SOCGameList.GAME_NAME_MAX_LENGTH;
-                // "Please choose a shorter name; maximum length: "  TODO I18N
+            errMsg = strings.get("netmsg.status.common.name_too_long", SOCGameList.GAME_NAME_MAX_LENGTH);
+                // "Please choose a shorter name; maximum length: {0}"
         }
         else if (! SOCMessage.isSingleLineAndSafe(gmName))
         {
-            errMsg = SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED;
-                // "This name is not permitted, please choose a different name."  TODO I18N
+            errMsg = strings.get("netmsg.status.common.newgame_name_rejected");
+                // "This name is not permitted, please choose a different name."
         }
         else if (SOCGameList.REGEX_ALL_DIGITS_OR_PUNCT.matcher(gmName).matches())
         {
-            errMsg = SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED_DIGITS_OR_PUNCT;
-                // "A name with only digits or punctuation is not permitted, please add a letter."  TODO I18N
+            errMsg = strings.get("netmsg.status.common.newgame_name_rejected_digits_or_punct");
+                // "A name with only digits or punctuation is not permitted, please add a letter."
         }
         if (errMsg != null)
         {
@@ -1352,7 +1412,9 @@ import soc.util.Version;
          */
         if (cl.doesGameExist(gmName, forPractice))
         {
-            NotifyDialog.createAndShow(mainDisplay, this, SOCStatusMessage.MSG_SV_NEWGAME_ALREADY_EXISTS, null, true);
+            NotifyDialog.createAndShow
+                (mainDisplay, this, strings.get("netmsg.status.common.newgame_already_exists"), null, true);
+                    // "A game with this name already exists, please choose a different name."
             return;
         }
 
@@ -1361,7 +1423,7 @@ import soc.util.Version;
             if (readOptsValuesFromControls(checkOptionsMinVers))
             {
                 // All fields OK, ready to create a new game.
-                setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));  // Immediate feedback in this frame
+                setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));  // Immediate feedback in this window
                 persistLocalPrefs();
                 mainDisplay.askStartGameWithOptions
                     (gmName, forPractice, opts, localPrefs);  // sets WAIT_CURSOR in main client frame
@@ -1381,18 +1443,28 @@ import soc.util.Version;
     }
 
     /**
-     * The "Cancel" button or window's close button was clicked, or ESC was pressed; dismiss the frame.
+     * The "Cancel" button or window's close button was clicked, or ESC was pressed; dismiss the dialog.
      * Note: Button text is "OK" in read-only mode ({@link #readOnly}) for a current game.
      */
     private void clickCancel()
     {
+        if ((! readOnly) && (opts != null))
+        {
+            // If scenario checkbox was manually cleared, clear scenario-name dropdown selection
+            // for next time this dialog is shown to create a new game
+
+            final SOCGameOption optSC = opts.get("SC");
+            if ((optSC != null) && ! optSC.getBoolValue())
+                optSC.setStringValue("");
+        }
+
         dispose();
     }
 
     /**
      * The "Scenario Info" button was clicked.
      * Reads the current scenario, if any, from {@link #scenDropdown}.
-     * Calls {@link #showScenarioInfoDialog(SOCScenario, Map, int, MainDisplay, Frame)}.
+     * Calls {@link #showScenarioInfoDialog(SOCScenario, Map, int, MainDisplay, Window)}.
      * @since 2.0.00
      */
     private void clickScenarioInfo()
@@ -1430,7 +1502,7 @@ import soc.util.Version;
     }
 
     /**
-     * Dismiss the frame, and if client's {@link MainDisplay} has a reference to this frame,
+     * Dismiss this dialog, and if client's {@link MainDisplay} has a reference to it,
      * clear it to null there.
      */
     @Override
@@ -1441,7 +1513,7 @@ import soc.util.Version;
     }
 
     /**
-     * When frame is closing, store any updated persistent local preferences
+     * When window is closing, store any updated persistent local preferences
      * like {@link SOCPlayerClient#PREF_BOT_TRADE_REJECT_SEC}.
      * If {@link #pi} != null, update its settings too.
      *<P>
@@ -1460,6 +1532,25 @@ import soc.util.Version;
                 pi.setBotTradeRejectSec(iv);
             if (iv != 0)
                 UserPreferences.putPref(k, iv);
+        }
+
+        k = SOCPlayerClient.PREF_UI_SCALE_FORCE;
+        v = localPrefs.get(k);
+        if ((v != null) && (v instanceof Integer))
+        {
+            int iv = ((Integer) v).intValue();
+            if (iv > 3)
+                iv = 3;
+            UserPreferences.putPref(k, iv);
+        }
+
+        k = SOCPlayerClient.PREF_HEX_GRAPHICS_SET;
+        v = localPrefs.get(k);
+        int setIdx = (Boolean.TRUE.equals(v)) ? 1 : 0;
+        if (setIdx != UserPreferences.getPref(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, 0))
+        {
+            UserPreferences.putPref(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, setIdx);
+            mainDisplay.getClient().reloadBoardGraphics();  // refresh all current PIs
         }
     }
 
@@ -1667,6 +1758,7 @@ import soc.util.Version;
             SOCGameOption opt = controlsOpts.get(srcObj);
             if (opt == null)
                 return;
+
             final String oldText = opt.getStringValue();
             boolean validChange = false;
             boolean otypeIsInt;
@@ -1680,8 +1772,8 @@ import soc.util.Version;
                 {
                     opt.setStringValue(newText);
                     validChange = true;
-                } catch (IllegalArgumentException ex)
-                { }
+                }
+                catch (IllegalArgumentException ex) {}
             } else {
                 otypeIsInt = true;
                 try   // OTYPE_INT, OTYPE_INTBOOL
@@ -1691,8 +1783,8 @@ import soc.util.Version;
                     opt.setIntValue(iv);  // ignored if outside min,max range
                     if (iv == opt.getIntValue())
                         validChange = true;
-                } catch (NumberFormatException ex)
-                { }
+                }
+                catch (NumberFormatException ex) {}
             }
 
             if (validChange && ! opt.userChanged)
@@ -1852,6 +1944,11 @@ import soc.util.Version;
      * gameopts' values on-screen if needed.
      * If <tt>oldValue</tt>.equals(<tt>newValue</tt>), nothing happens and
      * the ChangeListener is not called.
+     *<P>
+     * To avoid redundant calls and avoid setting {@link SOCGameOption#userChanged} flag
+     * from a programmatic value change, removes and re-adds {@code this} NGOF
+     * from gameopts' Swing widget listeners.
+     *
      * @param cl  The ChangeListener; must not be null
      * @param opt  The game option
      * @param oldValue  Old value, string or boxed primitive
@@ -1886,31 +1983,54 @@ import soc.util.Version;
 
         // Refresh each one now, depending on type:
         if (optsControls == null)
-            return;  // should only be null if readOnly, and thus no changes to values anyway
+            return;  // <--- Early return; should be null only if readOnly, and thus no changes to values anyway ---
+
         for (int i = refresh.size() - 1; i >= 0; --i)
         {
             final SOCGameOption op = refresh.get(i);
             final Component opComp = optsControls.get(op.key);
 
+            // reminder: Swing widget listeners are added in initInterface_OptLine, initInterface_Opt1, initOption_int,
+            // initOption_enum; see those methods to confirm which widget types get which listeners
+
             switch (op.optType)  // OTYPE_*
             {
             case SOCGameOption.OTYPE_BOOL:
-                ((JCheckBox) opComp).setSelected(op.getBoolValue());
+                {
+                    final JCheckBox cb = (JCheckBox) opComp;
+                    cb.removeItemListener(this);
+                    cb.setSelected(op.getBoolValue());
+                    cb.addItemListener(this);
+                }
                 break;
 
             case SOCGameOption.OTYPE_INT:
             case SOCGameOption.OTYPE_INTBOOL:
                 {
                     if (opComp instanceof JTextField)
-                        ((JTextField) opComp).setText(Integer.toString(op.getIntValue()));
-                    else
-                        ((JComboBox<?>) opComp).setSelectedIndex(op.getIntValue() - op.minIntValue);
+                    {
+                        final JTextField tf = (JTextField) opComp;
+                        final Document doc = tf.getDocument();
+                        doc.removeDocumentListener(this);
+                        tf.setText(Integer.toString(op.getIntValue()));
+                        doc.addDocumentListener(this);
+                    } else {
+                        final JComboBox<?> combo = (JComboBox<?>) opComp;
+                        combo.removeItemListener(this);
+                        combo.setSelectedIndex(op.getIntValue() - op.minIntValue);
+                        combo.addItemListener(this);
+                    }
+
                     final boolean hasCheckbox = (op.optType == SOCGameOption.OTYPE_INTBOOL);
                     if (hasCheckbox)
                     {
                         JCheckBox cb = boolOptCheckboxes.get(op.key);
                         if (cb != null)
+                        {
+                            cb.removeItemListener(this);
                             cb.setSelected(op.getBoolValue());
+                            cb.addItemListener(this);
+                        }
                     }
                 }
                 break;
@@ -1918,20 +2038,34 @@ import soc.util.Version;
             case SOCGameOption.OTYPE_ENUM:
             case SOCGameOption.OTYPE_ENUMBOOL:
                 {
-                    ((JComboBox<?>) opComp).setSelectedIndex(op.getIntValue() - op.minIntValue);
+                    final JComboBox<?> combo = (JComboBox<?>) opComp;
+                    combo.removeItemListener(this);
+                    combo.setSelectedIndex(op.getIntValue() - op.minIntValue);
+                    combo.addItemListener(this);
+
                     final boolean hasCheckbox = (op.optType == SOCGameOption.OTYPE_ENUMBOOL);
                     if (hasCheckbox)
                     {
                         JCheckBox cb = boolOptCheckboxes.get(op.key);
                         if (cb != null)
+                        {
+                            cb.removeItemListener(this);
                             cb.setSelected(op.getBoolValue());
+                            cb.addItemListener(this);
+                        }
                     }
                 }
                 break;
 
             case SOCGameOption.OTYPE_STR:
             case SOCGameOption.OTYPE_STRHIDE:
-                ((JTextField) opComp).setText(op.getStringValue());
+                {
+                    final JTextField tf = (JTextField) opComp;
+                    final Document doc = tf.getDocument();
+                    doc.removeDocumentListener(this);
+                    tf.setText(op.getStringValue());
+                    doc.addDocumentListener(this);
+                }
                 break;
 
                 // default: unknown, see above
@@ -1981,12 +2115,12 @@ import soc.util.Version;
      * Calls {@link EventQueue#invokeLater(Runnable)}.
      * @param ga  Game to display scenario info for; if game option {@code "SC"} missing or blank, does nothing.
      * @param md    Player client's main display, for {@link NotifyDialog} call
-     * @param parent  Current game's player interface, or another Frame for our parent window,
-     *                or null to look for {@code cli}'s Frame as parent
+     * @param parent  Current game's player interface, or another Frame or Dialog for our parent window,
+     *                or null to look for {@code cli}'s Frame/Dialog as parent
      * @since 2.0.00
      */
     public static void showScenarioInfoDialog
-        (final SOCGame ga, final MainDisplay md, final Frame parent)
+        (final SOCGame ga, final MainDisplay md, final Window parent)
     {
         final String scKey = ga.getGameOptionStringValue("SC");
         if (scKey == null)
@@ -2006,13 +2140,13 @@ import soc.util.Version;
      * @param gameOpts  All game options if current game, or null to extract from {@code sc}'s {@link SOCScenario#scOpts}
      * @param vpWinner  Number of victory points to win, or {@link SOCGame#VP_WINNER_STANDARD}.
      * @param md     Player client's main display, required for {@link AskDialog} constructor
-     * @param parent  Current game's player interface, or another Frame for our parent window,
-     *                or null to look for {@code cli}'s Frame as parent
+     * @param parent  Current game's player interface, or another Frame or Dialog for our parent window,
+     *                or null to look for {@code cli}'s Frame/Dialog as parent
      * @since 2.0.00
      */
     public static void showScenarioInfoDialog
         (final SOCScenario sc, Map<String, SOCGameOption> gameOpts, final int vpWinner,
-         final MainDisplay md, final Frame parent)
+         final MainDisplay md, final Window parent)
     {
         if (sc == null)
             return;

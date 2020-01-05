@@ -1033,13 +1033,22 @@ public class SOCDisplaylessPlayerClient implements Runnable
     {
         gotPassword = true;
 
-        SOCGame ga = new SOCGame(mes.getGame());
-
-        if (ga != null)
+        final Map<String, SOCGameOption> opts;
+        final int bh = mes.getBoardHeight(), bw = mes.getBoardWidth();
+        if ((bh != 0) || (bw != 0))
         {
-            ga.isPractice = isPractice;
-            games.put(mes.getGame(), ga);
+            // Encode board size to pass through game constructor.
+            opts = new HashMap<String, SOCGameOption>();
+            SOCGameOption opt = SOCGameOption.getOption("_BHW", true);
+            opt.setIntValue((bh << 8) | bw);
+            opts.put("_BHW", opt);
+        } else {
+            opts = null;
         }
+
+        final SOCGame ga = new SOCGame(mes.getGame(), opts);
+        ga.isPractice = isPractice;
+        games.put(mes.getGame(), ga);
     }
 
     /**
@@ -1056,18 +1065,15 @@ public class SOCDisplaylessPlayerClient implements Runnable
     {
         String gn = (mes.getGame());
         SOCGame ga = games.get(gn);
+        if (ga == null)
+            return;
 
-        if (ga != null)
+        SOCPlayer player = ga.getPlayer(mes.getNickname());
+
+        if (player != null)
         {
-            SOCPlayer player = ga.getPlayer(mes.getNickname());
-
-            if (player != null)
-            {
-                //
-                //  This user was not a spectator
-                //
-                ga.removePlayer(mes.getNickname());
-            }
+            //  This user was not a spectator
+            ga.removePlayer(mes.getNickname());
         }
     }
 
@@ -1162,29 +1168,28 @@ public class SOCDisplaylessPlayerClient implements Runnable
          * tell the game that a player is sitting
          */
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
+        ga.takeMonitor();
+
+        try
         {
-            ga.takeMonitor();
+            ga.addPlayer(mes.getNickname(), mes.getPlayerNumber());
 
-            try
-            {
-                ga.addPlayer(mes.getNickname(), mes.getPlayerNumber());
-
-                /**
-                 * set the robot flag
-                 */
-                ga.getPlayer(mes.getPlayerNumber()).setRobotFlag(mes.isRobot(), false);
-            }
-            catch (Exception e)
-            {
-                ga.releaseMonitor();
-                System.out.println("Exception caught - " + e);
-                e.printStackTrace();
-            }
-
-            ga.releaseMonitor();
+            /**
+             * set the robot flag
+             */
+            ga.getPlayer(mes.getPlayerNumber()).setRobotFlag(mes.isRobot(), false);
         }
+        catch (Exception e)
+        {
+            ga.releaseMonitor();
+            System.out.println("Exception caught - " + e);
+            e.printStackTrace();
+        }
+
+        ga.releaseMonitor();
     }
 
     /**
@@ -1194,16 +1199,15 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleBOARDLAYOUT(SOCBoardLayout mes)
     {
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            // BOARDLAYOUT is always the v1 board encoding (oldest format)
-            SOCBoard bd = ga.getBoard();
-            bd.setHexLayout(mes.getHexLayout());
-            bd.setNumberLayout(mes.getNumberLayout());
-            bd.setRobberHex(mes.getRobberHex(), false);
-            ga.updateAtBoardLayout();
-        }
+        // BOARDLAYOUT is always the v1 board encoding (oldest format)
+        SOCBoard bd = ga.getBoard();
+        bd.setHexLayout(mes.getHexLayout());
+        bd.setNumberLayout(mes.getNumberLayout());
+        bd.setRobberHex(mes.getRobberHex(), false);
+        ga.updateAtBoardLayout();
     }
 
     /**
@@ -1573,8 +1577,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
             pl.setSpecialVP(val);
             break;
 
-        case SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK:
-            pl.setScenarioPlayerEvents(val);
+        case SOCPlayerElement.PLAYEREVENTS_BITMASK:
+            pl.setPlayerEvents(val);
             break;
 
         case SOCPlayerElement.SCENARIO_SVP_LANDAREAS_BITMASK:
@@ -1847,11 +1851,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleDICERESULT(SOCDiceResult mes)
     {
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            ga.setCurrentDice(mes.getResult());
-        }
+        ga.setCurrentDice(mes.getResult());
     }
 
     /**
@@ -1864,44 +1867,44 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public static void handlePUTPIECE(final SOCPutPiece mes, SOCGame ga)
     {
-        if (ga != null)
+        if (ga == null)
+            return;
+
+        final int pieceType = mes.getPieceType();
+        final int coord = mes.getCoordinates();
+        final SOCPlayer pl = (pieceType != SOCPlayingPiece.VILLAGE)
+            ? ga.getPlayer(mes.getPlayerNumber())
+            : null;
+
+        switch (pieceType)
         {
-            final int pieceType = mes.getPieceType();
-            final int coord = mes.getCoordinates();
-            final SOCPlayer pl = (pieceType != SOCPlayingPiece.VILLAGE)
-                ? ga.getPlayer(mes.getPlayerNumber())
-                : null;
+        case SOCPlayingPiece.ROAD:
+            ga.putPiece(new SOCRoad(pl, coord, null));
+            break;
 
-            switch (pieceType)
-            {
-            case SOCPlayingPiece.ROAD:
-                ga.putPiece(new SOCRoad(pl, coord, null));
-                break;
+        case SOCPlayingPiece.SETTLEMENT:
+            ga.putPiece(new SOCSettlement(pl, coord, null));
+            break;
 
-            case SOCPlayingPiece.SETTLEMENT:
-                ga.putPiece(new SOCSettlement(pl, coord, null));
-                break;
+        case SOCPlayingPiece.CITY:
+            ga.putPiece(new SOCCity(pl, coord, null));
+            break;
 
-            case SOCPlayingPiece.CITY:
-                ga.putPiece(new SOCCity(pl, coord, null));
-                break;
+        case SOCPlayingPiece.SHIP:
+            ga.putPiece(new SOCShip(pl, coord, null));
+            break;
 
-            case SOCPlayingPiece.SHIP:
-                ga.putPiece(new SOCShip(pl, coord, null));
-                break;
+        case SOCPlayingPiece.FORTRESS:
+            ga.putPiece(new SOCFortress(pl, coord, ga.getBoard()));
+            break;
 
-            case SOCPlayingPiece.FORTRESS:
-                ga.putPiece(new SOCFortress(pl, coord, ga.getBoard()));
-                break;
+        case SOCPlayingPiece.VILLAGE:
+            ga.putPiece(new SOCVillage(coord, ga.getBoard()));
+            break;
 
-            case SOCPlayingPiece.VILLAGE:
-                ga.putPiece(new SOCVillage(coord, ga.getBoard()));
-                break;
-
-            default:
-                System.err.println
-                    ("Displayless.handlePUTPIECE: game " + ga.getName() + ": Unknown pieceType " + pieceType);
-            }
+        default:
+            System.err.println
+                ("Displayless.handlePUTPIECE: game " + ga.getName() + ": Unknown pieceType " + pieceType);
         }
     }
 
@@ -1964,20 +1967,19 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleMOVEROBBER(SOCMoveRobber mes)
     {
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            /**
-             * Note: Don't call ga.moveRobber() because that will call the
-             * functions to do the stealing.  We just want to say where
-             * the robber moved without seeing if something was stolen.
-             */
-            final int newHex = mes.getCoordinates();
-            if (newHex > 0)
-                ga.getBoard().setRobberHex(newHex, true);
-            else
-                ((SOCBoardLarge) ga.getBoard()).setPirateHex(-newHex, true);
-        }
+        /**
+         * Note: Don't call ga.moveRobber() because that will call the
+         * functions to do the stealing.  We just want to say where
+         * the robber moved without seeing if something was stolen.
+         */
+        final int newHex = mes.getCoordinates();
+        if (newHex > 0)
+            ga.getBoard().setRobberHex(newHex, true);
+        else
+            ((SOCBoardLarge) ga.getBoard()).setPirateHex(-newHex, true);
     }
 
     /**
@@ -1999,12 +2001,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleMAKEOFFER(SOCMakeOffer mes)
     {
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            SOCTradeOffer offer = mes.getOffer();
-            ga.getPlayer(offer.getFrom()).setCurrentOffer(offer);
-        }
+        SOCTradeOffer offer = mes.getOffer();
+        ga.getPlayer(offer.getFrom()).setCurrentOffer(offer);
     }
 
     /**
@@ -2014,17 +2015,16 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleCLEAROFFER(SOCClearOffer mes)
     {
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
+        final int pn = mes.getPlayerNumber();
+        if (pn != -1)
         {
-            final int pn = mes.getPlayerNumber();
-            if (pn != -1)
-            {
-                ga.getPlayer(pn).setCurrentOffer(null);
-            } else {
-                for (int i = 0; i < ga.maxPlayers; ++i)
-                    ga.getPlayer(i).setCurrentOffer(null);
-            }
+            ga.getPlayer(pn).setCurrentOffer(null);
+        } else {
+            for (int i = 0; i < ga.maxPlayers; ++i)
+                ga.getPlayer(i).setCurrentOffer(null);
         }
     }
 
@@ -2050,46 +2050,49 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * handle the "development card action" message
+     * handle the "development card action" message for 1 card in this game.
+     * Ignores messages where {@link SOCDevCardAction#getCardTypes()} != {@code null}.
      * @param isPractice  Is the server local, or remote?  Client can be connected
      *                only to local, or remote.
      * @param mes  the message
      */
     protected void handleDEVCARDACTION(final boolean isPractice, final SOCDevCardAction mes)
     {
+        if (mes.getCardTypes() != null)
+            return;  // <--- ignore: bots don't care about game-end VP card reveals ---
+
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
+        SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+
+        int ctype = mes.getCardType();
+        if ((! isPractice) && (sVersion < SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES))
         {
-            SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+            if (ctype == SOCDevCardConstants.KNIGHT_FOR_VERS_1_X)
+                ctype = SOCDevCardConstants.KNIGHT;
+            else if (ctype == SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X)
+                ctype = SOCDevCardConstants.UNKNOWN;
+        }
 
-            int ctype = mes.getCardType();
-            if ((! isPractice) && (sVersion < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
-            {
-                if (ctype == SOCDevCardConstants.KNIGHT_FOR_VERS_1_X)
-                    ctype = SOCDevCardConstants.KNIGHT;
-                else if (ctype == SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X)
-                    ctype = SOCDevCardConstants.UNKNOWN;
-            }
+        switch (mes.getAction())
+        {
+        case SOCDevCardAction.DRAW:
+            player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
+            break;
 
-            switch (mes.getAction())
-            {
-            case SOCDevCardAction.DRAW:
-                player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
-                break;
+        case SOCDevCardAction.PLAY:
+            player.getInventory().removeDevCard(SOCInventory.OLD, ctype);
+            break;
 
-            case SOCDevCardAction.PLAY:
-                player.getInventory().removeDevCard(SOCInventory.OLD, ctype);
-                break;
+        case SOCDevCardAction.ADD_OLD:
+            player.getInventory().addDevCard(1, SOCInventory.OLD, ctype);
+            break;
 
-            case SOCDevCardAction.ADD_OLD:
-                player.getInventory().addDevCard(1, SOCInventory.OLD, ctype);
-                break;
-
-            case SOCDevCardAction.ADD_NEW:
-                player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
-                break;
-            }
+        case SOCDevCardAction.ADD_NEW:
+            player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
+            break;
         }
     }
 
@@ -2100,11 +2103,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleSETPLAYEDDEVCARD(SOCSetPlayedDevCard mes)
     {
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-            handlePLAYERELEMENT_simple
-                (ga, null, mes.getPlayerNumber(), SOCPlayerElement.SET,
-                 SOCPlayerElement.PLAYED_DEV_CARD_FLAG, mes.hasPlayedDevCard() ? 1 : 0, null);
+        handlePLAYERELEMENT_simple
+            (ga, null, mes.getPlayerNumber(), SOCPlayerElement.SET,
+             SOCPlayerElement.PLAYED_DEV_CARD_FLAG, mes.hasPlayedDevCard() ? 1 : 0, null);
     }
 
     /**
@@ -2182,32 +2186,38 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (ga == null)
             return;
 
-        final List<Integer> vset = mes.getPotentialSettlements();
-        final HashSet<Integer>[] las = mes.landAreasLegalNodes;
-        final int[] loneSettles;  // must set for players after pl.setPotentialAndLegalSettlements, if not null
+        List<Integer> ps = mes.getPotentialSettlements(false);  // may be null if lan != null
+        final HashSet<Integer>[] lan = mes.landAreasLegalNodes;
+        final int[] loneSettles;    // usually null, except in _SC_PIRI
         final int[][] legalSeaEdges = mes.legalSeaEdges;  // usually null, except in _SC_PIRI
 
         int pn = mes.getPlayerNumber();
         SOCBoardLarge bl = ((SOCBoardLarge) ga.getBoard());
         if ((pn == -1) || ((pn == 0) && bl.getLegalSettlements().isEmpty()))
             bl.setLegalSettlements
-              (vset, mes.startingLandArea, las);  // throws IllegalStateException if board layout
-                                                  // has malformed Added Layout Part "AL"
+              (ps, mes.startingLandArea, lan);  // throws IllegalStateException if board layout
+                                                // has malformed Added Layout Part "AL"
         loneSettles = bl.getAddedLayoutPart("LS");  // usually null, except in _SC_PIRI
+
+        if (ps == null)
+            // bl.setLegalSettlements expects sometimes-null ps,
+            // but pl.setPotentialAndLegalSettlements needs non-null
+            // from lan[] nodes during game start
+            ps = mes.getPotentialSettlements(true);
 
         if (pn != -1)
         {
-            SOCPlayer player = ga.getPlayer(pn);
-            player.setPotentialAndLegalSettlements(vset, true, las);
+            SOCPlayer pl = ga.getPlayer(pn);
+            pl.setPotentialAndLegalSettlements(ps, true, lan);
             if (loneSettles != null)
-                player.addLegalSettlement(loneSettles[pn], false);
+                pl.addLegalSettlement(loneSettles[pn], false);
             if (legalSeaEdges != null)
-                player.setRestrictedLegalShips(legalSeaEdges[0]);
+                pl.setRestrictedLegalShips(legalSeaEdges[0]);
         } else {
             for (pn = ga.maxPlayers - 1; pn >= 0; --pn)
             {
                 SOCPlayer pl = ga.getPlayer(pn);
-                pl.setPotentialAndLegalSettlements(vset, true, las);
+                pl.setPotentialAndLegalSettlements(ps, true, lan);
                 if (loneSettles != null)
                     pl.addLegalSettlement(loneSettles[pn], false);
                 if (legalSeaEdges != null)
@@ -2223,12 +2233,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleCHANGEFACE(SOCChangeFace mes)
     {
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
-            player.setFaceId(mes.getFaceId());
-        }
+        SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+        player.setFaceId(mes.getFaceId());
     }
 
     /**
@@ -2267,7 +2276,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleSETSEATLOCK(SOCSetSeatLock mes)
     {
         SOCGame ga = games.get(mes.getGame());
-
         if (ga == null)
             return;
 
@@ -2504,8 +2512,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * Handle the "set special item" message.
      * This method handles only {@link SOCSetSpecialItem#OP_SET OP_SET} and {@link SOCSetSpecialItem#OP_CLEAR OP_CLEAR}
-     * and ignores other operations, such as {@link SOCSetSpecialItem#OP_PICK OP_PICK}.  If your client needs to react
-     * to those other operations, override this method.
+     * (and the "set" or "clear" part of {@link SOCSetSpecialItem#OP_SET_PICK OP_SET_PICK} and
+     * {@link SOCSetSpecialItem#OP_CLEAR_PICK OP_CLEAR_PICK}), and ignores other operations
+     * such as {@link SOCSetSpecialItem#OP_PICK OP_PICK} and {@link SOCSetSpecialItem#OP_DECLINE OP_DECLINE}.
+     * If your client needs to react to PICK or other operations, override this method
+     * or check {@link SOCSetSpecialItem#op} and call something else for those ops.
      *
      * @param games  Games the client is playing, for method reuse by SOCPlayerClient
      * @param mes  the message
@@ -2523,6 +2534,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
         switch (mes.op)
         {
         case SOCSetSpecialItem.OP_CLEAR:
+            // fall through
+        case SOCSetSpecialItem.OP_CLEAR_PICK:
             {
                 if (gi != -1)
                     ga.setSpecialItem(typeKey, gi, null);
@@ -2537,6 +2550,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
             break;
 
         case SOCSetSpecialItem.OP_SET:
+            // fall through
+        case SOCSetSpecialItem.OP_SET_PICK:
             {
                 if ((gi == -1) && ((pi == -1) || (pn == -1)))
                 {
@@ -2588,7 +2603,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     public void leaveChannel(String ch)
     {
         channels.remove(ch);
-        put(SOCLeaveChannel.toCmd(nickname, host, ch));
+        put(SOCLeaveChannel.toCmd(nickname, "-", ch));
     }
 
     /**
@@ -2737,13 +2752,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * send a text message to the people in the game
      *
-     * @param ga   the game
+     * @param ga   the game; does nothing if {@code null}
      * @param me   the message
      */
     public void sendText(SOCGame ga, String me)
     {
         if (ga == null)
             return;
+
         put(SOCGameTextMsg.toCmd(ga.getName(), nickname, me));
     }
 
@@ -2755,7 +2771,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     public void leaveGame(SOCGame ga)
     {
         games.remove(ga.getName());
-        put(SOCLeaveGame.toCmd(nickname, host, ga.getName()));
+        put(SOCLeaveGame.toCmd(nickname, "-", ga.getName()));
     }
 
     /**
@@ -2766,7 +2782,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void sitDown(SOCGame ga, int pn)
     {
-        put(SOCSitDown.toCmd(ga.getName(), "dummy", pn, false));
+        put(SOCSitDown.toCmd(ga.getName(), SOCMessage.EMPTYSTR, pn, false));
     }
 
     /**
@@ -2891,7 +2907,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void playDevCard(SOCGame ga, int dc)
     {
-        if ((! ga.isPractice) && (sVersion < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+        if ((! ga.isPractice) && (sVersion < SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES))
         {
             // Unlikely; the displayless client is currently used for SOCRobotClient,
             // and the built-in robots must be the same version as the server.
@@ -2979,4 +2995,5 @@ public class SOCDisplaylessPlayerClient implements Runnable
         new Thread(ex1).start();
         Thread.yield();
     }
+
 }

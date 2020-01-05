@@ -40,6 +40,23 @@ import soc.util.SOCStringManager;  // for javadoc
  */
 /*package*/ class SOCClientData
 {
+    /**
+     * For a scenario keyname in {@link #scenariosInfoSent}, value indicating that the client
+     * was sent localized scenario strings (not all scenario info fields), or that the client
+     * requested them and no localized strings were found for that scenario.
+     * @see #SENT_SCEN_INFO
+     * @since 2.0.00
+     */
+    public static final String SENT_SCEN_STRINGS = "S";
+
+    /**
+     * For a scenario keyname in {@link #scenariosInfoSent}, value indicating that the client
+     * was sent all scenario info fields (not only localized scenario strings).
+     * @see #SENT_SCEN_STRINGS
+     * @since 2.0.00
+     */
+    public static final String SENT_SCEN_INFO = "I";
+
     /** Number of games won and lost since client connected */
     private int wins, losses;
 
@@ -126,14 +143,27 @@ import soc.util.SOCStringManager;  // for javadoc
     private boolean sentGameList;
 
     /**
-     * If true we've called {@link SOCServer#clientHasLocalizedStrs_gameScenarios(Connection)},
+     * Has the server already sent a "Welcome to JSettlers!" status message to client,
+     * after user authenticated, for a newly joined or created game or channel?
+     * Is tracked to skip sending for later games/channels.
+     *<P>
+     * Client v1.x.xx should be sent the status message with each joingame/joinchannel for cosmetic reasons;
+     * otherwise its status line shows "Talking to server..." forever, making server look unresponsive.
+     * Check client version against {@link SOCStringManager#VERSION_FOR_I18N}.
+     *
+     * @since 2.0.00
+     */
+    public boolean sentPostAuthWelcome;
+
+    /**
+     * If true we've called {@link #localeHasGameScenarios(Connection)},
      * storing the result in {@link #localeHasScenStrings}.
      * @since 2.0.00
      */
     public boolean checkedLocaleScenStrings;
 
     /**
-     * If true we've called {@link SOCServer#clientHasLocalizedStrs_gameScenarios(Connection)},
+     * If true we've called {@link #localeHasGameScenarios(Connection)},
      * and this client's locale is not {@code null} and has at least some localized scenario strings
      * (see that method's javadoc for details).
      * @since 2.0.00
@@ -170,23 +200,6 @@ import soc.util.SOCStringManager;  // for javadoc
     public boolean sentAllScenarioInfo;
 
     /**
-     * For a scenario keyname in {@link #scenariosInfoSent}, value indicating that the client
-     * was sent localized scenario strings (not all scenario info fields), or that the client
-     * requested them and no localized strings were found for that scenario.
-     * @see #SENT_SCEN_INFO
-     * @since 2.0.00
-     */
-    public static final String SENT_SCEN_STRINGS = "S";
-
-    /**
-     * For a scenario keyname in {@link #scenariosInfoSent}, value indicating that the client
-     * was sent all scenario info fields (not only localized scenario strings).
-     * @see #SENT_SCEN_STRINGS
-     * @since 2.0.00
-     */
-    public static final String SENT_SCEN_INFO = "I";
-
-    /**
      * The {@link soc.game.SOCScenario SOCScenario} keynames for which we've
      * sent localized strings or all scenario info fields.
      * To reduce network traffic, those large strings aren't sent unless
@@ -195,6 +208,9 @@ import soc.util.SOCStringManager;  // for javadoc
      * For any scenario's keyname here, the value will be either {@link #SENT_SCEN_STRINGS} or {@link #SENT_SCEN_INFO}.
      * If a scenario's key isn't contained in this map, nothing has been sent about it
      * unless the {@link #sentAllScenarioStrings} flag is set.
+     *<P>
+     * The value can also be set after determining nothing needs to be sent,
+     * to skip doing the same determination next time it's requested.
      *<P>
      * Null if {@link #sentAllScenarioStrings} or if client hasn't requested any
      * or joined any game that has a scenario.
@@ -410,6 +426,28 @@ import soc.util.SOCStringManager;  // for javadoc
     public void setSentGameList()
     {
         sentGameList = true;
+    }
+
+    /**
+     * Does this {@link SOCClientData}'s client's locale have
+     * localized {@link soc.game.SOCScenario SOCScenario} names and descriptions?
+     * Checks these conditions:
+     * <UL>
+     *  <LI> {@link #wantsI18N} flag is set:
+     *      Has locale, new-enough version, has requested I18N strings (see that flag's javadocs).
+     *  <LI> {@link Connection#getLocalized(String) con.getLocalized}({@code "gamescen.SC_WOND.n"})
+     *      returns a string different than {@link SOCServer#i18n_scenario_SC_WOND_desc}:
+     *      This checks whether a fallback is being used because the client's locale has no scenario strings
+     * </UL>
+     * @param con  Client connection for this {@code SOCClientData}
+     * @return  True if the client meets all the conditions listed above, false otherwise
+     * @since 2.0.00
+     */
+    public final boolean localeHasGameScenarios(final Connection con)
+    {
+        return
+            wantsI18N
+            && ! SOCServer.i18n_scenario_SC_WOND_desc.equals(con.getLocalized("gamescen.SC_WOND.n"));
     }
 
     /**

@@ -17,9 +17,10 @@ The server can optionally use a database to store player account
 information and game stats (details below).  A client java app to
 create user accounts is also provided.
 
-If you're upgrading from an earlier version of JSettlers, check
-[doc/Versions.md](doc/Versions.md) for new features, bug fixes, and config changes
-and see **Upgrading from an earlier version** section below.
+If you're upgrading from an earlier version of JSettlers: Check
+[doc/Versions.md](doc/Versions.md) for new features, bug fixes, and
+config changes, then see **Upgrading from an earlier version** section
+of this Readme.
 
 JSettlers is an open-source project licensed under the GPL. The
 project is hosted at https://github.com/jdmonin/JSettlers2/ and
@@ -31,6 +32,7 @@ and pull requests can be posted at the github page.
 
 ## Contents
 
+-  Screenshots
 -  Documentation
 -  Requirements
 -  Client Command Line
@@ -42,11 +44,26 @@ and pull requests can be posted at the github page.
 -  Development and Building JSettlers
 
 
+## Screenshots
+
+New Game options:  
+![New Game options](doc/screenshots/screenshot-game-opts-20200103-cloth.gif)
+
+Classic 4-player board:  
+![Classic 4-player board](doc/screenshots/screenshot-play3-20161013.png)
+
+Classic 6-player board:  
+![Classic 6-player board](doc/screenshots/screenshot-play6-20161013.gif)
+
+Sea board: Cloth Villages scenario:  
+![Sea board with scenario](doc/screenshots/screenshot-playCloth-20200103.gif)
+
+
 ## Documentation
 
 User documentation for game play is available as .html pages located
 in the `src/site/users` directory. These can be put on a JSettlers server for
-its users using the applet.
+its users to access with a browser.
 
 Currently, this Readme and the `doc` directory are the only technical
 documentation for running the client or server, setup and other issues.
@@ -60,22 +77,20 @@ https://github.com/jdmonin/JSettlers2/blob/master/Readme.md .
 
 ## Requirements
 
-To play JSettlers by connecting to a remote server you will need the
-Java Runtime Version 8 or above. To connect as an applet, use any
-browser which is Java enabled (using the browser plug-in) or just
-download the JAR from http://nand.net/jsettlers/ and run it.
+To play JSettlers you will need either the Java Development Kit (JDK)
+version 8 or higher, or version 8 of the smaller Java Runtime (JRE).
+Then download JSettlers-full.jar from either
+https://github.com/jdmonin/JSettlers2/releases or http://nand.net/jsettlers/
+and run it.
 
-To Play JSettlers locally you need the Java Runtime 8 or above.
-`JSettlers-full.jar` can connect directly to any server over the Internet.
+To host a JSettlers server that provides a download for the full Jar,
+you will need any http server such as Apache's httpd (available from
+http://httpd.apache.org).
 
-To host a JSettlers server that provides a web applet for clients, you will
-need an http server such as Apache's httpd, available from http://httpd.apache.org.
+The JSettlers-full.jar file can also run locally as a server, without needing a
+web server.
 
-The JSettlers-full.jar file can also run locally as a server, without
-needing a web server.  The applet is considered more convenient,
-because you know everyone will have the same version.
-
-To build JSettlers from source, you will need Java JDK 8 or newer and
+To build JSettlers from source, you will need Java JDK 8 or higher, and either
 gradle 4 or 5, or an IDE such as Eclipse which understands gradle's format.
 See [doc/Readme.developer.md](doc/Readme.developer.md) for details.
 
@@ -112,7 +127,7 @@ instead of the full tar.gz, use that filename on the command lines shown below.
 ### Server Startup
 
 Start the server with the following command
-(server requires Java 8 JRE or higher, or JDK 8 or higher):
+(server requires Java JDK 8 or higher, or JRE version 8):
 
     java -jar JSettlersServer.jar
 
@@ -198,7 +213,9 @@ Instead of a long command line, any option can be added to `jsserver.properties`
 which is read at startup if it exists in the current directory.  Any option
 given on the command line overrides the same option in the properties file.
 Comment lines start with # .  See `src/main/bin/jsserver.properties.sample` for full
-descriptions of all available properties.
+descriptions of all available properties. (Also available online at
+https://raw.githubusercontent.com/jdmonin/JSettlers2/master/src/main/bin/jsserver.properties.sample).
+
 
 This example command line
 
@@ -312,7 +329,7 @@ a debug user.)
 
 #### Checklist:
 
-- If using the optional database, start MySQL or PostgreSQL server  
+- If using the optional database, start MariaDB, MySQL, or PostgreSQL server  
   (file-based sqlite is another lightweight DB option)
 - Copy and edit `jsserver.properties` (optional)
 - Start JSettlers Server
@@ -322,8 +339,8 @@ a debug user.)
 #### Details:
 
 If you want to maintain user accounts or save scores of all completed games,
-you will need to set up a MySQL, SQLite, or PostgreSQL database. This database
-is optional. If you will use a MySQL or PostgreSQL database, be sure to start
+you will need to set up a MariaDB, MySQL, SQLite, or PostgreSQL database. This database
+is optional. If you will use a non-SQLite database, be sure to start
 the database server software before installing JSettlers. For DB setup details
 see the "Database Setup" section of [doc/Database.md](doc/Database.md)
 (available online at https://github.com/jdmonin/JSettlers2/blob/master/doc/Database.md).
@@ -333,12 +350,13 @@ and Testing". Remember that you can set server parameters and game option
 default values with a `jsserver.properties` file: Copy the sample file
 `src/main/bin/jsserver.properties.sample` to the same directory as `JSettlersServer.jar`,
 rename it to `jsserver.properties`, and edit properties as needed.
+For more details see the **jsserver.properties** section of this Readme.
 
 Remote users can simply start their clients as described there,
 and connect to your server's DNS name or IP address.
 
-To provide a web page from which users can run the applet, you will
-need to set up an http server such as Apache.  We assume you have
+To provide a web page from which users can download the JAR or run the applet,
+you will need to set up an http server such as Apache.  We assume you have
 installed it already, and will refer to `${docroot}` as a directory
 to place files to be served by your web server.
 
@@ -353,7 +371,7 @@ run the applet in their browser.  If you're using `account.html`, also
 un-comment `index.html`'s link to `account.html`.
 
 Next copy the `JSettlers.jar` client file to `${docroot}`. This will allow users
-to use the web browser plug-in or download it to connect from their computer.
+to download it to connect from their computer, or use the web browser applet plug-in.
 If you've downloaded it as `JSettlers-{version}-full.jar`, rename it to `JSettlers.jar`.
 
 Your web server directory structure should now contain:
@@ -375,6 +393,10 @@ It's a simple process to upgrade to the latest version of JSettlers:
   config changes made from your version to the latest version.  Occasionally
   defaults change and you'll need to add a server config option to keep the
   same behavior, so read carefully.
+- When upgrading from 1.x to 2.x, the applet class name changes
+  from `soc.client.SOCPlayerClient` to `soc.client.SOCApplet`,
+  so update the applet tag in your download page html.
+  (Most people and most browsers don't use the applet anymore.)
 - If you're using the optional database, backup the database and see
   the "Upgrading from an earlier version" section of [doc/Database.md](doc/Database.md)
   for parameter changes and other actions to take.
@@ -415,9 +437,15 @@ and some constants, javadocs, throws declarations added by Jeremy D Monin.
 org.fedorahosted.tennera.antgettext.StringUtil is licensed under the
 "Lesser GPL" (LGPL) license, and is from the JBoss Ant-Gettext utilities.
 
-The hex and port images were created by Jeremy Monin, and are licensed
+The classic hex and port images were created by Jeremy Monin, and are licensed
 Creative Commons Attribution Share Alike (cc-by-sa 3.0 US) or Creative
 Commons Attribution (CC-BY 3.0 US); see each image's gif comments for details.
-goldHex.gif is based on a 2010-12-21 CC-BY 2.0 image by Xuan Che, available at
-http://www.flickr.com/photos/rosemania/5431942688/ , of ancient Greek coins.
-doc/graf/Logo.svg is (C) 2017 Ruud Poutsma.
+classic/goldHex.gif is based on a 2010-12-21 CC-BY 2.0 image by Xuan Che,
+available at http://www.flickr.com/photos/rosemania/5431942688/ , of
+ancient Greek coins.
+
+The pastel hex images were created and contributed by qubodup, (C) 2019,
+licensed CC-BY-SA 3.0, and were retrieved 2019-08-17 from
+https://github.com/qubodup/pastel-tiles (rendered with that repo's `hex.sh` script).
+
+doc/graf/Logo.svg was created and contributed by Ruud Poutsma, (C) 2017.

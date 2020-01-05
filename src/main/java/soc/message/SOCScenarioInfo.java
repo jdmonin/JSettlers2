@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2017-2019 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,10 +30,11 @@ import soc.util.SOCFeatureSet;  // for javadocs only
 /**
  * A <B>client's request</B> for updated info on {@link SOCScenario}s,
  * or <B>server's reply</B> with information on one available {@link SOCScenario}
- * (including localization). This message type is for clients to: Ask for scenario localization;
- * or find out about scenarios which were introduced in versions newer than the client's version,
- * but which may be usable at their version or all versions; or ask an older server what it knows
- * about scenario(s) changed since the server's version.
+ * (including localization). This message type is for clients to find out about scenarios which
+ * were introduced in versions newer than the client's version, but which may be usable at their version or all versions;
+ * or ask an older server what it knows about scenario(s) changed since that server's version.
+ * Server replies with scenario keynames and details.
+ * Server can also reply with localization strings for one or many scenarios.
  *
  *<H4>Timing:</H4>
  *
@@ -68,15 +69,17 @@ import soc.util.SOCFeatureSet;  // for javadocs only
  *      knows to end its reply sequence with a message having the {@link #noMoreScens} flag.
  *      The server's reply sequence will have a message about each scenario key in the client's request.
  * <LI> If client and server are the same version, and client only wants localized i18n scenario strings,
- *      client sends {@code SOCScenarioInfo} with 1 item, {@link #MARKER_ANY_CHANGED}.
+ *      client instead sends {@link SOCLocalizedStrings}({@link SOCLocalizedStrings#TYPE_SCENARIO TYPE_SCENARIO}):
+ *      See that class's javadoc.
  *</UL>
  * This scenario info sync protocol for different versions is very similar to that done for {@link SOCGameOption}s
  * at client connect with {@link SOCGameOptionGetInfos}/{@link SOCGameOptionInfo}. The list can be calculated with
  * {@link SOCVersionedItem#itemsNewerThanVersion(int, boolean, java.util.Map)}.
- *<P>
- * <B>I18N:</B> Because client has previously sent {@link SOCGameOptionGetInfos} if needed,
- * the server knows whether the client wants localized strings, so {@code SOCScenarioInfo} has
- * no i18n flag like {@link SOCGameOptionGetInfos#OPTKEY_GET_I18N_DESCS}.
+ *
+ * <H5>I18N:</H5>
+ * Because client has previously sent {@link SOCGameOptionGetInfos} if needed,
+ * the server knows whether the client wants localized strings, so {@code SOCScenarioInfo}
+ * doesn't need an i18n flag like {@link SOCGameOptionGetInfos#OPTKEY_GET_I18N_DESCS}.
  *
  * <H4>Server reply to client:</H4>
  *
@@ -84,7 +87,7 @@ import soc.util.SOCFeatureSet;  // for javadocs only
  *<UL>
  * <LI> If the client is a different version than the server,
  *   a <B>sequence of {@code SOCScenarioInfo} messages</B> sends all info about each new or changed scenario,
- *   including those scenarios' localized text.
+ *   including those scenarios' localized text (or if none, its {@link SOCScenario} hardcoded name and description text).
  *   The sequence ends with a message which has the {@link #noMoreScens} flag.
  *  <P>
  *   Any scenarios too new for the client (per {@link SOCVersionedItem#minVersion sc.minVersion})
@@ -98,7 +101,6 @@ import soc.util.SOCFeatureSet;  // for javadocs only
  *   a single <B>{@link SOCLocalizedStrings}</B> message can send all scenarios' localized text if available.
  *   If the client was sent {@code SOCScenarioInfo} about a given scenario,
  *   it won't also get {@code SOCLocalizedStrings} for the same scenario.
- *   See {@link SOCLocalizedStrings} javadoc for more information about that message type.
  *</UL>
  * The server's {@code SOCScenarioInfo} reply message provides the scenario's information,
  * including public fields with game options and description localized for the client,
@@ -139,7 +141,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
 
     /**
      * {@link #scKey} marker {@code "?"} from client to ask for any new or changed scenarios
-     * between the client and server versions.  When present, this is the last item in the parameter list.
+     * between the client and server versions. When present, this must be the last item in the parameter list.
      * The server will reply with a sequence of messages with scenario info, and a sequence-ending empty message
      * with only the {@link #noMoreScens} flag.
      */
@@ -150,6 +152,8 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
      * Indicates to parser that this message's contents are the client's list of requested
      * {@link SOCScenario} key names, not the server's reply about a single scenario.
      * Can omit if client is sending {@link #MARKER_ANY_CHANGED} as the sole field.
+     *<P>
+     * Added by client constructor, removed at server by parseDataStr/constructor.
      */
     public static final String MARKER_SCEN_NAME_LIST = "[";
 
@@ -301,6 +305,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
             for (final String sc : scKeys)
                 if (! SOCMessage.isSingleLineAndSafe(sc))
                     throw new IllegalArgumentException();
+            pa.add(0, MARKER_SCEN_NAME_LIST);  // required at start of non-empty list
         }
 
         if (addMarkerAnyChanged)
@@ -329,26 +334,26 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
             // won't find any EMPTYSTR unless data was malformed when passed to toCmd() at server
 
         final int L = pa.size();
-	final String s = pa.get(0);  // may throw IndexOutOfBoundsException if empty
-	final boolean startswithCliListMarker = s.equals(MARKER_SCEN_NAME_LIST);
+        final String s = pa.get(0);  // may throw IndexOutOfBoundsException if empty
+        final boolean startswithCliListMarker = s.equals(MARKER_SCEN_NAME_LIST);
 
-	isFromServer = ! (startswithCliListMarker || s.equals(MARKER_ANY_CHANGED));
+        isFromServer = ! (startswithCliListMarker || s.equals(MARKER_ANY_CHANGED));
 
-	if (! isFromServer)
-	{
-	    // remove MARKER_SCEN_NAME_LIST marker from param list
-	    if (startswithCliListMarker)
-	    {
-	        pa.remove(0);
+        if (! isFromServer)
+        {
+            // remove MARKER_SCEN_NAME_LIST marker from param list
+            if (startswithCliListMarker)
+            {
+                pa.remove(0);
                 if (pa.isEmpty())
                     throw new IndexOutOfBoundsException();
-	    }
+            }
 
-	    scKey = null;
-	    isKeyUnknown = false;
-	    noMoreScens = false;
-	} else {
-	    scKey = s;
+            scKey = null;
+            isKeyUnknown = false;
+            noMoreScens = false;
+        } else {
+            scKey = s;
             noMoreScens = (scKey.equals(MARKER_NO_MORE_SCENS));
             if (! noMoreScens)
             {
@@ -363,7 +368,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
             } else {
                 isKeyUnknown = false;
             }
-	}
+        }
     }
 
     /**

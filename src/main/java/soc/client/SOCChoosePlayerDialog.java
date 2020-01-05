@@ -54,12 +54,6 @@ import javax.swing.SwingConstants;
     extends SOCDialog implements ActionListener, Runnable
 {
     /**
-     * i18n text strings; will use same locale as SOCPlayerClient's string manager.
-     * @since 2.0.00
-     */
-    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
-
-    /**
      * Maximum number of {@link #players[]} buttons to show on a single horizontal line.
      * If asking about more than this many players (including {@code allowChooseNone}),
      * the layout will have each on its own line.
@@ -257,7 +251,8 @@ import javax.swing.SwingConstants;
         {
             if (target == buttons[i])
             {
-                playerInterface.getClient().getGameMessageMaker().choosePlayer(playerInterface.getGame(), players[i]);
+                playerInterface.getClient().getGameMessageSender()
+                    .choosePlayer(playerInterface.getGame(), players[i]);
                 dispose();
 
                 break;

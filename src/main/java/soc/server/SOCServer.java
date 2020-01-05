@@ -77,6 +77,7 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A server for Settlers of Catan
@@ -104,7 +105,7 @@ import java.util.Vector;
  * javadocs for more details.
  *<P>
  * The first message the server sends over the connection is its version
- * and features ({@link SOCVersion}). This is sent immediately without
+ * and features ({@link SOCVersion}). This is sent immediately, without
  * first waiting for the client to send its version.
  *<P>
  * The first message the client sends over the connection is its version and locale
@@ -512,6 +513,13 @@ public class SOCServer extends Server
     public static final String SERVERNAME = SOCGameTextMsg.SERVERNAME;  // "Server"
 
     /**
+     * Lowercase {@link #SERVERNAME} used for case-insensitive check
+     * in {@link #checkNickname(String, Connection, boolean, boolean)}.
+     * @since 2.0.00
+     */
+    private static final String SERVERNAME_LC = SERVERNAME.toLowerCase(Locale.US);  // "server"
+
+    /**
      * Minimum required client version, to connect and play a game.
      * Same format as {@link soc.util.Version#versionNumber()}.
      * Currently there is no enforced minimum (0000).
@@ -861,7 +869,7 @@ public class SOCServer extends Server
 
     /** Status Message to send, nickname already logged into the system */
     public static final String MSG_NICKNAME_ALREADY_IN_USE
-        = "Someone with that nickname is already logged into the system.";
+        = "Someone with that nickname is already logged into the system.";  // TODO i18n
 
     /**
      * Status Message to send, nickname already logged into the system.
@@ -1010,13 +1018,13 @@ public class SOCServer extends Server
 
     /**
      * Client version count stats since startup (includes bots).
-     * Incremented from {@link #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)};
-     * currently assumes single-threaded access to this map.
-     *<P>
      * Key = version number, Value = client count.
+     * Incremented from {@link #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)}.
+     * Must synchronize on the map when modifying its contents.
+     *
      * @since 1.1.19
      */
-    protected HashMap<Integer, Integer> clientPastVersionStats;
+    protected HashMap<Integer, AtomicInteger> clientPastVersionStats;
 
     /**
      * Number of robot-only games not yet started (optional feature).
@@ -1056,10 +1064,10 @@ public class SOCServer extends Server
      * String value is captured here as soon as SOCServer is referenced, in case SOCPlayerClient's
      * practice server will localize the scenario descriptions.
      *
-     * @see #clientHasLocalizedStrs_gameScenarios(Connection)
-     * @since 2.0.00
+     * @see SOCClientData#localeHasGameScenarios(Connection)
      * @see #i18n_gameopt_PL_desc
      * @see soctest.TestI18NGameoptScenStrings
+     * @since 2.0.00
      */
     final static String i18n_scenario_SC_WOND_desc;
     static
@@ -1515,7 +1523,7 @@ public class SOCServer extends Server
             // reminder: if props.getProperty(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET),
             // caller will need to prompt for and change the password
         }
-        catch (SQLException sqle)  // just a warning at this point; other code checks if db failed but is required
+        catch (SQLException sqle)  // just a warning at this point; other code here checks if db failed but is required
         {
             if (wants_upg_schema && db_err_printed)
             {
@@ -1547,6 +1555,8 @@ public class SOCServer extends Server
                 propReqDB = PROP_JSETTLERS_ACCOUNTS_REQUIRED;
             else if (props.containsKey(PROP_JSETTLERS_ACCOUNTS_ADMINS))
                 propReqDB = PROP_JSETTLERS_ACCOUNTS_ADMINS;
+            else if (getConfigBoolProperty(SOCDBHelper.PROP_JSETTLERS_DB_SAVE_GAMES, false))
+                propReqDB = SOCDBHelper.PROP_JSETTLERS_DB_SAVE_GAMES;
 
             if (propReqDB != null)
             {
@@ -1664,7 +1674,7 @@ public class SOCServer extends Server
         numberOfGamesStarted = 0;
         numberOfGamesFinished = 0;
         numberOfUsers = 0;
-        clientPastVersionStats = new HashMap<Integer, Integer>();
+        clientPastVersionStats = new HashMap<Integer, AtomicInteger>();
         numRobotOnlyGamesRemaining = getConfigIntProperty(PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0);
         if (numRobotOnlyGamesRemaining > 0)
         {
@@ -1731,7 +1741,7 @@ public class SOCServer extends Server
             System.err.println("* Config Validation Mode: No problems found.");
         }
 
-        if (test_mode_with_db)
+        if (test_mode_with_db && SOCDBHelper.isInitialized())
         {
             SOCDBHelper.testDBHelper();  // failures/errors throw SQLException for our caller to catch
         }
@@ -1826,7 +1836,7 @@ public class SOCServer extends Server
                 System.err.println
                     ("** User database is currently empty: Run SOCAccountClient to create the user admin account(s) named above.");
         }
-        else if (acctsNotOpenRegButNoUsers && ! wantsUpgSchema)
+        else if (! (wantsUpgSchema || features.isActive(SOCFeatureSet.SERVER_OPEN_REG)))
         {
             System.err.println
                 ("** To create users, you must list admin names in property " + PROP_JSETTLERS_ACCOUNTS_ADMINS + ".");
@@ -2535,13 +2545,13 @@ public class SOCServer extends Server
      * @param destroyIfEmpty  if true, this method will destroy the game if it's now empty.
      *           If false, the caller must call {@link #destroyGame(String)}
      *           before calling {@link SOCGameList#releaseMonitor()}.
-     * @param gameListLock  true if we have the {@link SOCGameList#takeMonitor()} lock when called;
+     * @param gameListLock  true if caller holds the {@link SOCGameList#takeMonitor()} lock when called;
      *           false if it must be acquired and released within this method
-     * @return true if the game was destroyed, or if it would have been destroyed but {@code destroyIfEmpty} is false.
+     * @return true only if the game was destroyed, or if it would have been destroyed but {@code destroyIfEmpty} is false
      * @throws IllegalArgumentException if both {@code ga} and {@code gm} are null
      */
     public boolean leaveGame
-        (Connection c, SOCGame ga, String gm, final boolean destroyIfEmpty, final boolean gameListLock)
+        (final Connection c, SOCGame ga, String gm, final boolean destroyIfEmpty, final boolean gameListLock)
         throws IllegalArgumentException
     {
         if (c == null)
@@ -4530,7 +4540,8 @@ public class SOCServer extends Server
     private int checkNickname
         (String n, Connection newc, final boolean withPassword, final boolean isBot)
     {
-        if (n.equals(SERVERNAME) || ! SOCMessage.isSingleLineAndSafe(n))
+        final String nLower = n.toLowerCase(Locale.US);
+        if (nLower.equals(SERVERNAME_LC) || ! SOCMessage.isSingleLineAndSafe(n))
         {
             return -2;
         }
@@ -4541,7 +4552,6 @@ public class SOCServer extends Server
         }
 
         // check "debug" and bot name prefixes used in setupLocalRobots
-        final String nLower = n.toLowerCase(Locale.US);
         if ((nLower.equals("debug") && ! isDebugUserEnabled())
             || ((! isBot)
                 && (nLower.startsWith("droid ") || nLower.startsWith("robot "))))
@@ -5171,8 +5181,9 @@ public class SOCServer extends Server
         if (msgUser.length() > PLAYER_NAME_MAX_LENGTH)
         {
             c.put(new SOCStatusMessage
-                    (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
-                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));
+                    (SOCStatusMessage.SV_NAME_TOO_LONG, cliVers,
+                     c.getLocalized("netmsg.status.common.name_too_long", PLAYER_NAME_MAX_LENGTH)));
+                         // "Please choose a shorter name; maximum length: 20"
             return;
         }
 
@@ -5181,11 +5192,6 @@ public class SOCServer extends Server
          * whether a new replacement connection can "take over" the existing one.
          */
         final int nameTimeout = checkNickname(msgUser, c, (msgPass != null) && (msgPass.length() > 0), false);
-        System.err.println
-            ("L4910 past checkNickname at " + System.currentTimeMillis()
-             + (((nameTimeout == 0) || (nameTimeout == -1))
-                ? (" for " + msgUser)
-                : ""));
 
         if (nameTimeout == -1)
         {
@@ -5198,20 +5204,17 @@ public class SOCServer extends Server
                          MSG_NICKNAME_ALREADY_IN_USE));
                 return;
             }
-        } else if (nameTimeout == -2)
-        {
+        } else if (nameTimeout == -2) {
             c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_NAME_NOT_ALLOWED, cliVers,
-                     c.getLocalized("account.auth.nickname_not_allowed")));  // "This nickname is not allowed."
+                     c.getLocalized("netmsg.status.nickname_not_allowed")));  // "This nickname is not allowed."
             return;
-        } else if (nameTimeout <= -1000)
-        {
+        } else if (nameTimeout <= -1000) {
             c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                      checkNickname_getVersionText(-nameTimeout)));
             return;
-        } else if (nameTimeout > 0)
-        {
+        } else if (nameTimeout > 0) {
             c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                      (allowTakeover) ? checkNickname_getRetryText(nameTimeout) : MSG_NICKNAME_ALREADY_IN_USE));
@@ -5237,9 +5240,9 @@ public class SOCServer extends Server
 
         if (msgPass.length() > SOCAuthRequest.PASSWORD_LEN_MAX)
         {
-            final String txt  // I18N TODO: Check client; might already substitute text based on SV value
-                = /*I*/"Incorrect password for '" + msgUser + "'." /*18N*/;
-            c.put(new SOCStatusMessage(SOCStatusMessage.SV_PW_WRONG, c.getVersion(), txt));
+            c.put(new SOCStatusMessage
+                     (SOCStatusMessage.SV_PW_WRONG, c.getVersion(),
+                      c.getLocalized("netmsg.status.incorrect_password", msgUser)));  // "Incorrect password for "msgUser"."
             return;
         }
 
@@ -5303,9 +5306,9 @@ public class SOCServer extends Server
         {
             // Password too long, or user found in database but password incorrect
 
-            final String txt  // I18N TODO: Check client; might already substitute text based on SV value
-                = /*I*/"Incorrect password for '" + msgUser + "'." /*18N*/;
-            final SOCStatusMessage msg = new SOCStatusMessage(SOCStatusMessage.SV_PW_WRONG, c.getVersion(), txt);
+            final SOCStatusMessage msg = new SOCStatusMessage
+                (SOCStatusMessage.SV_PW_WRONG, c.getVersion(),
+                 c.getLocalized("netmsg.status.incorrect_password", msgUser));  // "Incorrect password for "msgUser"."
             if (hadDelay)
                 c.put(msg);
             else
@@ -5549,14 +5552,14 @@ public class SOCServer extends Server
         // This will be displayed in the client's status line (v1.1.17 and newer).
         if (allowDebugUser)
         {
-            StringBuilder txt = new StringBuilder(c.getLocalized("member.welcome.debug"));  // "Debugging is On."
+            StringBuilder txt = new StringBuilder(c.getLocalized("netmsg.status.welcome.debug"));  // "Debugging is On."
             txt.append(' ');
             if (warnMsg != null)
             {
                 txt.append(warnMsg);
                 txt.append(' ');
             }
-            txt.append(c.getLocalized("member.welcome"));  // "Welcome to Java Settlers of Catan!"
+            txt.append(c.getLocalized("netmsg.status.welcome"));  // "Welcome to Java Settlers of Catan!"
             c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_OK_DEBUG_MODE_ON, cvers, txt.toString()));
         }
@@ -5566,14 +5569,18 @@ public class SOCServer extends Server
                     (SOCStatusMessage.SV_OK, cvers, warnMsg));
         }
 
-        // Increment version stats; currently assumes single-threaded access to the map.
+        // Increment version stats; this method is called from per-client threads.
         // We don't know yet if client is a bot, so bots are included in the stats.
         // (If this is not wanted, the bot could be subtracted at handleIMAROBOT.)
         final Integer cversObj = Integer.valueOf(cvers);
-        final int prevCount;
-        Integer prevCObj = clientPastVersionStats.get(cversObj);
-        prevCount = (prevCObj != null) ? prevCObj.intValue() : 0;
-        clientPastVersionStats.put(cversObj, Integer.valueOf(1 + prevCount));
+        synchronized(clientPastVersionStats)
+        {
+            AtomicInteger prevCountInt = clientPastVersionStats.get(cversObj);
+            if (prevCountInt != null)
+                prevCountInt.incrementAndGet();
+            else
+                clientPastVersionStats.put(cversObj, new AtomicInteger(1));
+        }
 
         // This client version is OK to connect
         return true;
@@ -5808,7 +5815,6 @@ public class SOCServer extends Server
         (Connection c, String msgUser, String msgPass,
          String gameName, final Map<String, SOCGameOption> gameOpts)
     {
-        System.err.println("L4885 createOrJoinGameIfUserOK at " + System.currentTimeMillis());
         if (gameName != null)
             gameName = gameName.trim();
         final int cliVers = c.getVersion();
@@ -5852,17 +5858,15 @@ public class SOCServer extends Server
         /**
          * Check that the game name length is ok
          */
-        // TODO I18N
         if (gameName.length() > SOCGameList.GAME_NAME_MAX_LENGTH)
         {
             c.put(new SOCStatusMessage
-                    (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
-                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + SOCGameList.GAME_NAME_MAX_LENGTH));
-            // Please choose a shorter name; maximum length: 30
+                    (SOCStatusMessage.SV_NAME_TOO_LONG, cliVers,
+                     c.getLocalized("netmsg.status.common.name_too_long", SOCGameList.GAME_NAME_MAX_LENGTH)));
+            // "Please choose a shorter name; maximum length: 30"
 
             return;  // <---- Early return ----
         }
-        System.err.println("L4965 past user,pw check at " + System.currentTimeMillis());
 
         /**
          * If creating a new game, check game name format
@@ -5877,8 +5881,8 @@ public class SOCServer extends Server
             {
                 c.put(new SOCStatusMessage
                         (SOCStatusMessage.SV_NEWGAME_TOO_MANY_CREATED, cliVers,
-                         SOCStatusMessage.MSG_SV_NEWGAME_TOO_MANY_CREATED + Integer.toString(CLIENT_MAX_CREATE_GAMES)));
-                // Too many of your games still active; maximum: 5
+                         c.getLocalized("netmsg.status.newgame_too_many_created", CLIENT_MAX_CREATE_GAMES)));
+                // "Too many of your games still active; maximum: 5"
 
                 return;  // <---- Early return ----
             }
@@ -5888,7 +5892,7 @@ public class SOCServer extends Server
             {
                 c.put(new SOCStatusMessage
                         (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
-                         SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
+                         c.getLocalized("netmsg.status.common.newgame_name_rejected")));
                 // "This name is not permitted, please choose a different name."
 
                 return;  // <---- Early return ----
@@ -5898,7 +5902,7 @@ public class SOCServer extends Server
             {
                 c.put(new SOCStatusMessage
                         (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
-                         SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED_DIGITS_OR_PUNCT));
+                         c.getLocalized("netmsg.status.common.newgame_name_rejected_digits_or_punct")));
                 // "A name with only digits or punctuation is not permitted, please add a letter."
 
                 return;  // <---- Early return ----
@@ -5910,14 +5914,13 @@ public class SOCServer extends Server
          * Validate them and ensure the game doesn't already exist.
          * For SOCScenarios, adjustOptionsToKnown will recognize game opt "SC".
          */
-        System.err.println("L4965 game opts check at " + System.currentTimeMillis());
         if (gameOpts != null)
         {
             if (gameList.isGame(gameName))
             {
                 c.put(new SOCStatusMessage
                       (SOCStatusMessage.SV_NEWGAME_ALREADY_EXISTS, cliVers,
-                       SOCStatusMessage.MSG_SV_NEWGAME_ALREADY_EXISTS));
+                       c.getLocalized("netmsg.status.common.newgame_already_exists")));
                 // "A game with this name already exists, please choose a different name."
 
                 return;  // <---- Early return ----
@@ -5948,14 +5951,13 @@ public class SOCServer extends Server
          *<P>
          * If rejoining after a lost connection, first rejoin all their other games.
          */
-        System.err.println("L5034 ready connectToGame at " + System.currentTimeMillis());
         try
         {
             if (0 != (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME))
                 c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_OK_SET_NICKNAME,
                      c.getData() + SOCMessage.sep2_char +
-                     c.getLocalized("member.welcome")));  // "Welcome to Java Settlers of Catan!"
+                     c.getLocalized("netmsg.status.welcome")));  // "Welcome to Java Settlers of Catan!"
 
             if (isTakingOver)
             {
@@ -5985,19 +5987,15 @@ public class SOCServer extends Server
                  * send the entire state of the game to client,
                  * send client join event to other players of game
                  */
-                System.err.println("L5065 past connectToGame at " + System.currentTimeMillis());
                 SOCGame gameData = gameList.getGameData(gameName);
-
                 if (gameData != null)
-                {
                     joinGame(gameData, c, false, false);
-                }
-                System.err.println("L5072 past joinGame at " + System.currentTimeMillis());
             }
         } catch (SOCGameOptionVersionException e)
         {
             // Let them know they can't join; include the game's version.
             // This cli asked to created it, otherwise gameOpts would be null.
+            // I18N note: If localizing "Cannot create" text, can't use sep2_char in that localized text
             c.put(new SOCStatusMessage
               (SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW, cliVers,
                 "Cannot create game with these options; requires version "
@@ -6032,7 +6030,6 @@ public class SOCServer extends Server
                     + ": " + gameName));
             }
         }
-        System.err.println("L5099 done createOrJoinGameIfUserOK at " + System.currentTimeMillis());
 
     }  //  createOrJoinGameIfUserOK
 
@@ -6228,7 +6225,7 @@ public class SOCServer extends Server
             {
                 if (robotSeatsConns[i] != null)
                 {
-                    D.ebugPrintln("@@@ JOIN GAME REQUEST for " + robotSeatsConns[i].getData());
+                    // D.ebugPrintln("@@@ JOIN GAME REQUEST for " + robotSeatsConns[i].getData());
                     robotSeatsConns[i].put(new SOCBotJoinGameRequest(gname, i, gopts));
                 }
             }
@@ -6391,11 +6388,9 @@ public class SOCServer extends Server
         {
             System.err.print("\t");
             SOCPlayingPiece sc = pe.nextElement();
-            Enumeration<Integer> hexes = board.getAdjacentHexesToNode(sc.getCoordinates()).elements();
 
-            while (hexes.hasMoreElements())
+            for (final int hexCoord : board.getAdjacentHexesToNode(sc.getCoordinates()))
             {
-                final int hexCoord = hexes.nextElement().intValue();
                 final int hdice = board.getNumberOnHexFromCoord(hexCoord);
                 if (hdice != 0)
                     System.err.print(hdice);
@@ -6478,30 +6473,8 @@ public class SOCServer extends Server
     }
 
     /**
-     * Does this client's locale have localized {@link SOCScenario} names and descriptions?
-     * Checks these conditions:
-     * <UL>
-     *  <LI> {@link SOCClientData#wantsI18N c.scd.wantsI18N} flag is set:
-     *      Has locale, new-enough version, has requested I18N strings (see that flag's javadocs).
-     *  <LI> {@link Connection#getLocalized(String) c.getLocalized}({@code "gamescen.SC_WOND.n"})
-     *      returns a string different than {@link #i18n_scenario_SC_WOND_desc}:
-     *      This checks whether a fallback is being used because the client's locale has no scenario strings
-     * </UL>
-     * @param c  Client connection
-     * @return  True if the client meets all the conditions listed above, false otherwise
-     * @since 2.0.00
-     */
-    public static final boolean clientHasLocalizedStrs_gameScenarios(final Connection c)
-    {
-        final SOCClientData scd = (SOCClientData) c.getAppData();
-        return
-            scd.wantsI18N
-            && ! i18n_scenario_SC_WOND_desc.equals(c.getLocalized("gamescen.SC_WOND.n"));
-    }
-
-    /**
      * Get localized strings for known {@link SOCScenario}s.  Assumes client locale has scenario strings:
-     * Call {@link #clientHasLocalizedStrs_gameScenarios(Connection)} before calling this method.
+     * Call {@link SOCClientData#localeHasGameScenarios(Connection)} before calling this method.
      * Fills and returns a list with each {@code scKeys} key, scenario name, scenario description
      * from {@code c.getLocalized("gamescen." + scKey + ".n")} and {@code ("gamescen." + scKey + ".d")}.
      *
@@ -6509,7 +6482,10 @@ public class SOCServer extends Server
      *    to simplify SOCPlayerClient's localizations before starting its practice server.
      * @param scKeys  Scenario keynames to localize, such as a {@link List} of keynames or the {@link Set}
      *    returned from {@link SOCScenario#getAllKnownScenarioKeynames()}.
-     *    If {@code null}, this method will call {@link SOCScenario#getAllKnownScenarioKeynames()}.
+     *    If is {@code null} or if {@code localizeAllKnown} true,
+     *    this method will call {@link SOCScenario#getAllKnownScenarioKeynames()}.
+     * @param localizeAllKnown  If true, localize all known scenarios,
+     *    ignoring contents of {@code scKeys} as if it was {@code null}.
      * @param checkUnknowns_skipFirst  Switch to allow calling this method from multiple places:
      *    <UL>
      *    <LI> If false, assumes {@code scKeys} has no unknown keys, will not call
@@ -6523,24 +6499,32 @@ public class SOCServer extends Server
      *         {@link SOCScenario#getScenario(String)} on each key to verify it exists.  The localized strings
      *         for each known scKey are looked up and added to the list.  If the scenario is unknown or its
      *         strings aren't localized, the key and {@link SOCLocalizedStrings#MARKER_KEY_UNKNOWN} are added instead.
+     *    <LI> If {@code localizeAllKnown} is true, treats this param as false
+     *         because that flag ignores contents of {@code scKeys}.
      *    </UL>
      * @param scd  Optional client data to track which scenario strings are sent to client, or {@code null}.
      *    This method will update {@link SOCClientData#scenariosInfoSent scd.scenariosInfoSent}.
      * @return  Localized string list, may be empty but will never be null, in same format as the message returned
      *    from server to client: Scenario keys with localized strings have 3 consecutive entries in the list:
-     *    Key, name, description.  If {@code checkUnknowns_skipFirst}, unknown scenarios have 2 consecutive entries
-     *    in the list: Key, {@link SOCLocalizedStrings#MARKER_KEY_UNKNOWN}.
+     *    Key, name (never {@code null}), description ({@code null} if none).
+     *   <P>
+     *    If {@code checkUnknowns_skipFirst}, any unknown or unlocalized scenarios from {@code scKeys} have
+     *    2 consecutive entries in the list: Key, {@link SOCLocalizedStrings#MARKER_KEY_UNKNOWN}.
+     *    If not {@code checkUnknowns_skipFirst}, any unlocalized scenario keys are omitted from the returned list.
+     *
      * @since 2.0.00
      */
     public static List<String> localizeGameScenarios
-        (final Locale loc, Collection<String> scKeys, final boolean checkUnknowns_skipFirst, final SOCClientData scd)
+        (final Locale loc, Collection<String> scKeys, final boolean localizeAllKnown,
+         boolean checkUnknowns_skipFirst, final SOCClientData scd)
     {
-        if (scKeys == null)
+        if (localizeAllKnown || (scKeys == null))
+        {
             scKeys = SOCScenario.getAllKnownScenarioKeynames();
+            checkUnknowns_skipFirst = false;
+        }
 
         final SOCStringManager sm = SOCStringManager.getServerManagerForClient(loc);
-        // No need to check hasLocalDescs = ! i18n_gameopt_PL_desc.equals(sm.get("gamescen.SC_WOND.n"))
-        // because caller has done so
 
         Map<String, String> scensSent;  // for optional tracking
         if (scd != null)
@@ -6557,28 +6541,43 @@ public class SOCServer extends Server
 
         List<String> rets = new ArrayList<String>();  // for reply to client
 
-        boolean skippedAlready = ! checkUnknowns_skipFirst;
+        boolean mustSkipFirst = checkUnknowns_skipFirst;
         for (final String scKey : scKeys)
         {
-            if (! skippedAlready)
+            if (mustSkipFirst)
             {
-                skippedAlready = true;
-                continue;  // assumes scKeys is a List
+                // assumes scKeys is a List, not an unordered Set
+                mustSkipFirst = false;
+                continue;
             }
 
             if ((scensSent != null) && ! scensSent.containsKey(scKey))
                 scensSent.put(scKey, SOCClientData.SENT_SCEN_STRINGS);
 
+            final SOCScenario sc = SOCScenario.getScenario(scKey);
             String nm = null, desc = null;
 
-            if (! (checkUnknowns_skipFirst && (SOCScenario.getScenario(scKey) == null)))
-            {
-                try { nm = sm.get("gamescen." + scKey + ".n"); }
-                catch (MissingResourceException e) {}
+            if (! (checkUnknowns_skipFirst && (sc == null)))
+                try
+                {
+                    nm = sm.get("gamescen." + scKey + ".n");
+                    desc = sm.get("gamescen." + scKey + ".d");
 
-                try { desc = sm.get("gamescen." + scKey + ".d"); }
+                    if (sc != null)
+                    {
+                        // Is it really localized? Check whether strings are from fallback locale/hardcoded text:
+                        // Can do so because of unit test TestI18NGameoptScenStrings.testScenariosText
+                        // which ensures SOCScenario strings match fallback/english localized strings.
+                        // If not localized, don't send fallback text: Client already has it
+                        // (See also similar logic in sendGameScenarioInfo)
+
+                        if ((nm != null) && nm.equals(sc.getDesc()))
+                            nm = null;
+                        else if ((desc != null) && desc.equals(sc.getLongDesc()))
+                            desc = null;
+                    }
+                }
                 catch (MissingResourceException e) {}
-            }
 
             if (nm != null)
             {
@@ -6601,7 +6600,7 @@ public class SOCServer extends Server
      * whether the scenario has strings in the client's locale, and whether the client has
      * already been sent this scenario's info or strings.
      *<P>
-     * Sends nothing if {@code scKey} and {@code sc} are both null.
+     * Sends nothing if {@code scKey} and {@code scData} are both null.
      * Sends nothing if client's version is older than 2.0.00 ({@link SOCScenario#VERSION_FOR_SCENARIOS}).
      * Will not send localized strings if locale is null.
      * Checks and updates the connection's {@link SOCClientData#sentAllScenarioStrings},
@@ -6613,30 +6612,34 @@ public class SOCServer extends Server
      *
      * @param scKey  Scenario keyname, from
      *     {@link SOCGame#getGameOptionStringValue(String) game.getGameOptionStringValue("SC")}, or null.
-     *     Sends nothing if {@code scKey} and {@code sc} are both null.
-     * @param sc  Scenario data if known, or null to use
+     *     Sends nothing if {@code scKey} and {@code scData} are both null.
+     * @param scData  Scenario data if known, or null to use
      *     {@link SOCScenario#getScenario(String) SOCScenario.getScenario(scKey)}.
-     *     When {@code sc != null}, will always send a {@link SOCScenarioInfo} message
-     *     even if {@link SOCClientData#sentAllScenarioInfo} is set, unless client version is too old.
+     *     When {@code scData != null}, will always send a {@link SOCScenarioInfo} message
+     *     even if {@link SOCClientData#sentAllScenarioInfo} is set, unless client version is too old
+     *     to recognize scenarios.
      * @param c  Client connection
+     * @param alwaysSend  If true, send {@link SOCScenarioInfo} even if scenario hasn't been
+     *     modified since client's version. Ignored if {@code stringsOnly}.
      * @param stringsOnly  If true, send only localized strings, not entire {@link SOCScenarioInfo}.
      * @since 2.0.00
      */
     void sendGameScenarioInfo
-        (String scKey, final SOCScenario sc, final Connection c, final boolean stringsOnly)
+        (String scKey, final SOCScenario scData, final Connection c,
+         final boolean alwaysSend, final boolean stringsOnly)
     {
         if (scKey == null)
         {
-            if (sc == null)
+            if (scData == null)
                 return;
             else
-                scKey = sc.key;
+                scKey = scData.key;
         }
 
         final SOCClientData scd = (SOCClientData) c.getAppData();
 
         if ((scd.sentAllScenarioInfo || (stringsOnly && scd.sentAllScenarioStrings))
-            && (sc == null))
+            && (scData == null))
         {
             return;  // <--- Already checked, nothing left to send ---
         }
@@ -6654,29 +6657,52 @@ public class SOCServer extends Server
         // If not, send now and update scd.scenariosInfoSent.
 
         Map<String, String> scensSent = scd.scenariosInfoSent;
+        final String statusAlreadySent;  // is scenariosInfoSent(scKey)
 
-        if ((sc == null) && (scensSent != null))
+        if ((scData == null) && (scensSent != null))
         {
-            final String alreadySent = scensSent.get(scKey);
-            if ((alreadySent != null)
-                && (stringsOnly || alreadySent.equals(SOCClientData.SENT_SCEN_INFO)))
+            statusAlreadySent = scensSent.get(scKey);
+            if ((statusAlreadySent != null)
+                && (stringsOnly || statusAlreadySent.equals(SOCClientData.SENT_SCEN_INFO)))
             {
-                return;  // <--- Already sent ---
+                return;  // <--- Already checked for/sent ---
             }
+        } else {
+            statusAlreadySent = null;
         }
 
-        SOCScenario scSend = null;  // If not null, send full scenario info instead of only strings
+        SOCScenario scSend = null;  // If not null, will send full scenario info instead of only strings
 
-        if (sc != null)
+        if (scData != null)
         {
-            scSend = sc;
+            scSend = scData;
         }
         else if (! stringsOnly)
         {
-            SOCScenario s = SOCScenario.getScenario(scKey);
-            if ((s != null) && (s.lastModVersion > cliVers))
-                scSend = s;
+            SOCScenario sc = SOCScenario.getScenario(scKey);
+            if ((sc != null) && ((sc.lastModVersion > cliVers) || alwaysSend))
+                scSend = sc;
         }
+
+        // Prep for remembering what we checked for/are about to send to this client
+        if (scensSent == null)
+        {
+            scensSent = new HashMap<String, String>();
+            scd.scenariosInfoSent = scensSent;
+        }
+
+        if ((scSend == null) && (statusAlreadySent != null))
+        {
+            if (! stringsOnly)
+                scensSent.put(scKey, SOCClientData.SENT_SCEN_INFO);  // scen status is now fully determined
+
+            return;  // <--- Strings already sent ---
+        }
+
+        // Remember status
+        scensSent.put(scKey, (stringsOnly) ? SOCClientData.SENT_SCEN_STRINGS : SOCClientData.SENT_SCEN_INFO);
+
+        // Check for localized strings:
 
         String nm = null, desc = null;
 
@@ -6685,7 +6711,7 @@ public class SOCServer extends Server
         {
             localeHasScenStrs = scd.localeHasScenStrings;
         } else {
-            localeHasScenStrs = SOCServer.clientHasLocalizedStrs_gameScenarios(c);
+            localeHasScenStrs = scd.localeHasGameScenarios(c);
 
             scd.localeHasScenStrings = localeHasScenStrs;
             scd.checkedLocaleScenStrings = true;
@@ -6699,19 +6725,46 @@ public class SOCServer extends Server
 
         if (localeHasScenStrs)
         {
-            try { nm = c.getLocalized("gamescen." + scKey + ".n"); }
+            try
+            {
+                nm = c.getLocalized("gamescen." + scKey + ".n");
+                desc = c.getLocalized("gamescen." + scKey + ".d");
+            }
             catch (MissingResourceException e) {}
 
-            if (nm != null)
+            if (scSend == null)
             {
-                try { desc = c.getLocalized("gamescen." + scKey + ".d"); }
-                catch (MissingResourceException e) {}
+                if (nm != null)
+                {
+                    // Sending locale strings instead of full SOCScenarioInfo:
+                    // Is it really localized? Check whether strings are from fallback locale/hardcoded text:
+                    // Can do so because of unit test TestI18NGameoptScenStrings.testScenariosText
+                    // which ensures SOCScenario strings match fallback/english localized strings.
+                    // If not localized, don't send fallback text: Client already has it
+                    // (See also similar logic in localizeGameScenarios)
+
+                    final SOCScenario sc = SOCScenario.getScenario(scKey);
+                    if (sc != null)
+                    {
+                        if (nm.equals(sc.getDesc()))
+                            nm = null;
+                        else if ((desc != null) && desc.equals(sc.getLongDesc()))
+                            desc = null;
+                    }
+                }
+
+                if (nm == null)
+                {
+                    return;  // <--- No scenario strings in locale, and no full info to send ---
+                }
             }
         }
         else if (scSend == null)
         {
             return;  // <--- No scenario strings in locale, and no full info to send ---
         }
+
+        // Actually send:
 
         if (scSend != null)
         {
@@ -6729,14 +6782,6 @@ public class SOCServer extends Server
 
             c.put(new SOCLocalizedStrings(SOCLocalizedStrings.TYPE_SCENARIO, 0, scenStrs));
         }
-
-        // Remember what we sent it
-        if (scensSent == null)
-        {
-            scensSent = new HashMap<String, String>();
-            scd.scenariosInfoSent = scensSent;
-        }
-        scensSent.put(scKey, (stringsOnly) ? SOCClientData.SENT_SCEN_STRINGS : SOCClientData.SENT_SCEN_INFO);
     }
 
     /**
@@ -6854,15 +6899,17 @@ public class SOCServer extends Server
         {
             c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
-                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
+                     c.getLocalized("netmsg.status.common.newgame_name_rejected")));
+                         // "This name is not permitted, please choose a different name."
             return;
         }
 
         if (userName.length() > PLAYER_NAME_MAX_LENGTH)
         {
             c.put(new SOCStatusMessage
-                    (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
-                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));
+                    (SOCStatusMessage.SV_NAME_TOO_LONG, cliVers,
+                     c.getLocalized("netmsg.status.common.name_too_long", PLAYER_NAME_MAX_LENGTH)));
+                         // "Please choose a shorter name; maximum length: 20"
             return;
         }
 
@@ -7061,7 +7108,7 @@ public class SOCServer extends Server
             SOCSitDown sitMessage = new SOCSitDown(gaName, c.getData(), pn, robot);
             messageToGame(gaName, sitMessage);
 
-            D.ebugPrintln("*** sent SOCSitDown message to game ***");
+            // D.ebugPrintln("*** sent SOCSitDown message to game ***");
 
             recordGameEvent(gaName, sitMessage);
 
@@ -7368,21 +7415,20 @@ public class SOCServer extends Server
      */
 
     /**
-     * Save game stats in the database.
-     * if all the players stayed for the whole game,
-     * or if the game has any human players,
-     * record the winner and scores in the database.
+     * Save game stats in the database: Record the winner, scores, and game options.
+     * For players whose users exist in the database, update their win-loss counts.
      *<P>
-     * Does nothing unless property {@code jsettlers.db.save.games}
-     * is true. ({@link SOCDBHelper#PROP_JSETTLERS_DB_SAVE_GAMES})
+     * Does nothing unless game has a human player and all players stayed for the entire game.
+     *<P>
+     * Win-loss records require schema version &gt;= {@link SOCDBHelper#SCHEMA_VERSION_2000}.
+     * If property {@code jsettlers.db.save.games} is false ({@link SOCDBHelper#PROP_JSETTLERS_DB_SAVE_GAMES}),
+     * will only update users' win-loss counts, not store game details.
      *
      * @param ga  the game; state should be {@link SOCGame#OVER}
      */
     protected void storeGameScores(SOCGame ga)
     {
         if ((ga == null) || ! SOCDBHelper.isInitialized())
-            return;
-        if (! getConfigBoolProperty(SOCDBHelper.PROP_JSETTLERS_DB_SAVE_GAMES, false))
             return;
 
         //D.ebugPrintln("allOriginalPlayers for "+ga.getName()+" : "+ga.allOriginalPlayers());
@@ -7393,7 +7439,8 @@ public class SOCServer extends Server
         try
         {
             final int gameSeconds = (int) (((System.currentTimeMillis() - ga.getStartTime().getTime())+500L) / 1000L);
-            SOCDBHelper.saveGameScores(ga, gameSeconds);
+            SOCDBHelper.saveGameScores
+                (ga, gameSeconds, ! getConfigBoolProperty(SOCDBHelper.PROP_JSETTLERS_DB_SAVE_GAMES, false));
         }
         catch (Exception e)
         {
@@ -7461,8 +7508,8 @@ public class SOCServer extends Server
                 {
                     final String gameName = gameData.getName();
                     expired.add(gameName);
-                    messageToGameKeyed(gameData, true, "game.time.expire.destroyed");
-                        // ">>> The time limit on this game has expired, it will now be destroyed."
+                    messageToGameKeyed(gameData, true, "game.time.expire.deleted");
+                        // ">>> The time limit on this game has expired, it will now be deleted."
                 }
                 else if ((gameExpir - warn_ms) <= currentTimeMillis)
                 {
@@ -7471,7 +7518,16 @@ public class SOCServer extends Server
                     //
                     int minutes = (int) ((gameExpir - currentTimeMillis) / 60000);
                     if (minutes < 1)
-                        minutes = 1;  // in case of rounding down
+                    {
+                        if (hasWarned)
+                        {
+                            minutes = 1;  // in case of rounding down
+                        } else {
+                            // minutes might be negative; can happen if server was on a sleeping laptop
+                            minutes = GAME_TIME_EXPIRE_CHECK_MINUTES + 1;
+                            gameData.setExpiration(currentTimeMillis + (minutes * 60 * 1000));
+                        }
+                    }
 
                     messageToGameKeyed(gameData, true, "game.time.expire.soon.addtime", Integer.valueOf(minutes));
                         // ">>> Less than {0} minutes remaining. Type *ADDTIME* to extend this game another 30 minutes."
