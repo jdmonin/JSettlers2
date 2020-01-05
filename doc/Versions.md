@@ -77,6 +77,7 @@ and backport minor new features until `2.0.00` was ready.
      - Server `--pw-reset` now hides the password text
      - Warn at startup if property `jsettlers.accounts.admins` isn't set, unless using Open Registration mode
      - Can use MariaDB
+     - Docs: Give workaround for sqlite-jdbc shared library "operation not permitted" startup error
      - If using Oracle (unsupported): Upgrading to new v2.0.00 schema not yet implemented
 - Game internals:
 	- Game option key names can now be longer (8 characters)
@@ -187,7 +188,6 @@ and backport minor new features until `2.0.00` was ready.
      - If using mysql: Newly created DBs now have unicode text encoding (UTF-8).
        (The postgresql and sqlite DB scripts have always created the DB as unicode.)
      - If using postgresql: Tables are created by socuser, not postgres system user
-     - Docs: Give workaround for sqlite-jdbc shared library "operation not permitted" startup error
 - Game window during debug: Reset "current player" indicator when exiting `*FREEPLACE*` debug mode
 - Client debug, bot debug: Print network message contents if system property `jsettlers.debug.traffic=Y` is set
 - Startup: Show error if can't read own JSettlers version info
