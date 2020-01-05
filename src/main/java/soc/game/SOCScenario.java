@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -248,18 +248,19 @@ public class SOCScenario
                 // The "all 4 levels" win condition is also stored in SOCSpecialItem.SC_WOND_WIN_LEVEL.
 
         // Uncomment to test scenario sync/negotiation between server and client versions.
-        // Assumes:
-        //   - Client and server are both current version 2.0.00
-        //   - For testing, client or server version has been temporarily set to 2.0.01
+        // Update the version numbers to current and current + 1.
+        // Assumptions for testing:
+        //   - Client and server are both current version (v2.0.00 is 2000 here)
+        //   - For testing, client or server version has been temporarily set to current + 1 (2001)
         // i18n/localization test reminder: resources/strings/server/toClient_*.properties:
         //   gamescen.SC_TSTNC.n = test-localizedname SC_TSTNC ...
         /*
         allSc.put("SC_TSTNC", new SOCScenario
             ("SC_TSTNC", 2000, 2001,
-            "New: v2001 back-compat", null, "PLB=t,VP=t11,NT=y"));
+            "New: v+1 back-compat", null, "PLB=t,VP=t11,NT=y"));
         allSc.put("SC_TSTNO", new SOCScenario
             ("SC_TSTNO", 2001, 2001,
-            "New: v2001 only", null, "PLB=t,VP=t15"));
+            "New: v+1 only", null, "PLB=t,VP=t15"));
          */
 
         return allSc;
