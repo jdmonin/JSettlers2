@@ -520,12 +520,12 @@ public class SOCServer extends Server
     private static final String SERVERNAME_LC = SERVERNAME.toLowerCase(Locale.US);  // "server"
 
     /**
-     * Minimum required client version, to connect and play a game.
+     * Minimum required client version (v2.0.00) to connect and play a game.
      * Same format as {@link soc.util.Version#versionNumber()}.
-     * Currently there is no enforced minimum (0000).
+     * Before v3.0.00 there was no enforced minimum.
      * @see #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)
      */
-    public static final int CLI_VERSION_MIN = 0000;
+    public static final int CLI_VERSION_MIN = 2000;
 
     /**
      * Minimum required client version, in "display" form, like "1.0.00".
@@ -7236,18 +7236,11 @@ public class SOCServer extends Server
          *    Robots will leave the game, and soon will be requested to re-join.
          */
         final SOCResetBoardAuth resetMsg = new SOCResetBoardAuth(gaName, -1, requestingPlayer);
-        final boolean hasOldClients = (reGame.clientVersionLowest < SOCResetBoardAuth.VERSION_FOR_BLANK_PLAYERNUM);
-            // TODO v3 cleanup: clients that old can't join a game
         for (int pn = 0; pn < reGame.maxPlayers; ++pn)
         {
             if (huConns[pn] != null)
             {
-                final SOCResetBoardAuth rMsg;
-                if (hasOldClients && (huConns[pn].getVersion() < SOCResetBoardAuth.VERSION_FOR_BLANK_PLAYERNUM))
-                    rMsg = new SOCResetBoardAuth(gaName, pn, requestingPlayer);
-                else
-                    rMsg = resetMsg;
-                messageToPlayer(huConns[pn], rMsg);
+                messageToPlayer(huConns[pn], resetMsg);
             }
             else if (roConns[pn] != null)
             {

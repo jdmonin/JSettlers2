@@ -257,8 +257,10 @@ When preparing to release a new version, testing should include:
          - Again have each client player note the current legals/potentials, leave and reconnect
            during the other's turn, and compare legals/potentials using the above process
 - Version compatibility testing
-    - Versions to test against: **1.1.06** (before Game Options); **1.1.11** (has 6-player option and client bugfixes);
-      latest **1.x.xx** (before Scenarios/sea boards); latest **2.x.xx** (doesn't use SOCBoardLarge for classic boards)
+    - Server and client versions to test v3 against: **2.0.00** (oldest client that can connect to v3 server);
+      latest **2.x.xx** (v2.x doesn't use SOCBoardLarge for classic boards)
+    - More server versions to test v3 client against: **1.1.06** (before Game Options);
+      **1.1.11** (has 6-player option and client bugfixes); latest **1.x.xx** (before Scenarios/sea boards)
     - New client, old server
     - New server, old client
     - Test these specific things for each version:
@@ -266,13 +268,13 @@ When preparing to release a new version, testing should include:
           should adapt to the older client version.  
           With a newer client connected to an older server, available new-game options
           should adapt to the older server version.  
-          This is especially visible when testing 1.x against 2.x or 3.x.
         - Create and start playing a 4-player game with no options (this uses an older message type)
         - Create and start playing a 4-player game with No Trading option
         - Create and start playing a 6-player game
         - In the 6-player game, request and use the Special Building Phase
-        - On a 3.x server, have 3.x client create game with a scenario (1.x can't join);
-          1.x client should see it in gamelist with "(cannot join)" prefix.
+        - On a 3.x server, have 3.x client create game with an option or scenario that older versions can't join;
+          if needed, see SOCScenario `SC_TSTNO` below for how to artificially create this situation.
+          Older client should see it in gamelist with "(cannot join)" prefix.
         - Connect with another client (same version as first client)
             - Should see 2nd game in list with that "(cannot join)" prefix
             - Join 1st game, take over for a robot
@@ -290,12 +292,7 @@ When preparing to release a new version, testing should include:
       `srv.leaveConnection('robot 3') found waiting ga: 'g' (3)`  
       If not, start another game and try again
 - StatusMessage "status value" fallback at older versions
-    - Start a 2.0.00 or newer server with `-Djsettlers.allow.debug=Y`
-    - Start a 2.0.00 client with vm property `-Djsettlers.debug.traffic=Y`
-    - That client's initial connection to the server should see at console: `SOCStatusMessage:sv=21`  
-      (which is `SV_OK_DEBUG_MODE_ON` added in 2.0.00)
-    - Start a 1.2.00 client with same vm property `-Djsettlers.debug.traffic=Y`
-    - That client's initial connection should get sv == 0, should see at console: `SOCStatusMessage:status=Debugging is On`
+    - Skip for now: Currently no status values are unknown to v2.0.00, the oldest client that connects to v3.x servers
 - Game Option and Scenario info sync/negotiation when server and client are different versions/locales
     - For these tests, use these JVM parameters when launching clients:  
       `-Djsettlers.debug.traffic=Y -Djsettlers.locale=en_US`  
