@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -583,6 +583,18 @@ message BotJoinGameRequest {
 message JoinGame {
     string ga_name = 1;      // Name of game being joined
     string member_name = 2;  // Nickname of the joining member (should be "" for client -> server)
+
+    /* Optional board size info, to help create the joining client's user interface to show this game.
+     * Otherwise this wouldn't be sent until a later {@code BoardLayout} message,
+     * after the interface was already sized and laid out.
+     *<P>
+     * If present: First 2 elements are board height and width, from {@link soc.game.SOCBoard#getBoardHeight()}
+     * and {@link soc.game.SOCBoard#getBoardWidth()}.
+     * Optionally 2 more elements: layout Visual Shift ("VS") amounts Down and Right, in units of 1/4 hex size,
+     * from Layout Part "VS".
+     * @see soc.game.SOCBoardLarge#getAddedLayoutPart(String)
+     */
+    repeated int32 board_size_vshift = 3;
 }
 
 /* This message lists all the members of a game: Players and observers.

@@ -8713,6 +8713,63 @@ public final class GameMessage {
 
     /**
      * <pre>
+     * several dev cards, like the Victory Point cards revealed at end of game.
+     * Flag values like is_VP are the same for all cards in the set.
+     * Not usable with action PLAY or CANNOT_PLAY.
+     * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+     * </pre>
+     *
+     * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+     */
+    java.util.List<soc.proto.Data.DevCardValue> getDevCardsSetList();
+    /**
+     * <pre>
+     * several dev cards, like the Victory Point cards revealed at end of game.
+     * Flag values like is_VP are the same for all cards in the set.
+     * Not usable with action PLAY or CANNOT_PLAY.
+     * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+     * </pre>
+     *
+     * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+     */
+    int getDevCardsSetCount();
+    /**
+     * <pre>
+     * several dev cards, like the Victory Point cards revealed at end of game.
+     * Flag values like is_VP are the same for all cards in the set.
+     * Not usable with action PLAY or CANNOT_PLAY.
+     * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+     * </pre>
+     *
+     * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+     */
+    soc.proto.Data.DevCardValue getDevCardsSet(int index);
+    /**
+     * <pre>
+     * several dev cards, like the Victory Point cards revealed at end of game.
+     * Flag values like is_VP are the same for all cards in the set.
+     * Not usable with action PLAY or CANNOT_PLAY.
+     * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+     * </pre>
+     *
+     * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+     */
+    java.util.List<java.lang.Integer>
+    getDevCardsSetValueList();
+    /**
+     * <pre>
+     * several dev cards, like the Victory Point cards revealed at end of game.
+     * Flag values like is_VP are the same for all cards in the set.
+     * Not usable with action PLAY or CANNOT_PLAY.
+     * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+     * </pre>
+     *
+     * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+     */
+    int getDevCardsSetValue(int index);
+
+    /**
+     * <pre>
      * Optional reason codes for the CANNOT_PLAY action, corresponding
      * to {&#64;link SOCGame#canPlayInventoryItem(int, int)} return codes, or 0.
      * </pre>
@@ -8768,11 +8825,25 @@ public final class GameMessage {
    * <pre>
    * Client player request, or server response or announcement, about
    * Development Cards or other {&#64;link SOCInventoryItem}s in a player's inventory.
+   * Server sometimes sends to a specific player, sometimes to all game members.
    *&lt;P&gt;
-   * Detailed message documentation location is TBD; for now see javadoc
-   * of {&#64;code soc.message.SOCDevCardAction} and {&#64;code SOCInventoryItemAction}.
+   * Dev Cards:
+   *&lt;P&gt;
+   * If a robot asks to play a dev card that they can't right now, the server
+   * replies to that bot with InventoryItemAction(-1, {&#64;code CANNOT_PLAY}, cardType).
    *&lt;P&gt;
    * Player Number field is -1 for action type {&#64;code CANNOT_PLAY}; see that enum value for details.
+   *&lt;P&gt;
+   * At end of game (state {&#64;code OVER}), server reveals players' hidden Victory Point cards by announcing an
+   * InventoryItemAction(playerNumber, ADD_OLD, devCardsSet={cardType, cardType, ...})
+   * for each player that has them. This is sent to all game members; a client player should ignore
+   * messages about their own cards in state {&#64;code OVER} by checking playerNumber.
+   * This multiple-cardtype form is currently used only at end of game.
+   *&lt;P&gt;
+   * Other Inventory Items:
+   *&lt;P&gt;
+   * Detailed message documentation location is TBD; for now see javadoc
+   * of {&#64;code soc.message.SOCInventoryItemAction}.
    *&lt;P&gt;
    * Before v3.0.00 this message was {&#64;code SOCDevCardAction} and {&#64;code SOCInventoryItemAction}.
    * </pre>
@@ -8790,6 +8861,7 @@ public final class GameMessage {
     }
     private InventoryItemAction() {
       actionType_ = 0;
+      devCardsSet_ = java.util.Collections.emptyList();
       reasonCode_ = 0;
       isPlayable_ = false;
       isKept_ = false;
@@ -8842,6 +8914,29 @@ public final class GameMessage {
               itemValue_ = input.readInt32();
               break;
             }
+            case 32: {
+              int rawValue = input.readEnum();
+              if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+                devCardsSet_ = new java.util.ArrayList<java.lang.Integer>();
+                mutable_bitField0_ |= 0x00000008;
+              }
+              devCardsSet_.add(rawValue);
+              break;
+            }
+            case 34: {
+              int length = input.readRawVarint32();
+              int oldLimit = input.pushLimit(length);
+              while(input.getBytesUntilLimit() > 0) {
+                int rawValue = input.readEnum();
+                if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+                  devCardsSet_ = new java.util.ArrayList<java.lang.Integer>();
+                  mutable_bitField0_ |= 0x00000008;
+                }
+                devCardsSet_.add(rawValue);
+              }
+              input.popLimit(oldLimit);
+              break;
+            }
             case 168: {
 
               reasonCode_ = input.readSInt32();
@@ -8875,6 +8970,9 @@ public final class GameMessage {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
+        if (((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+          devCardsSet_ = java.util.Collections.unmodifiableList(devCardsSet_);
+        }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
       }
@@ -9141,6 +9239,7 @@ public final class GameMessage {
       // @@protoc_insertion_point(enum_scope:InventoryItemAction._ActionType)
     }
 
+    private int bitField0_;
     private int itemValueCase_ = 0;
     private java.lang.Object itemValue_;
     public enum ItemValueCase
@@ -9242,6 +9341,86 @@ public final class GameMessage {
       return 0;
     }
 
+    public static final int DEV_CARDS_SET_FIELD_NUMBER = 4;
+    private java.util.List<java.lang.Integer> devCardsSet_;
+    private static final com.google.protobuf.Internal.ListAdapter.Converter<
+        java.lang.Integer, soc.proto.Data.DevCardValue> devCardsSet_converter_ =
+            new com.google.protobuf.Internal.ListAdapter.Converter<
+                java.lang.Integer, soc.proto.Data.DevCardValue>() {
+              public soc.proto.Data.DevCardValue convert(java.lang.Integer from) {
+                soc.proto.Data.DevCardValue result = soc.proto.Data.DevCardValue.valueOf(from);
+                return result == null ? soc.proto.Data.DevCardValue.UNRECOGNIZED : result;
+              }
+            };
+    /**
+     * <pre>
+     * several dev cards, like the Victory Point cards revealed at end of game.
+     * Flag values like is_VP are the same for all cards in the set.
+     * Not usable with action PLAY or CANNOT_PLAY.
+     * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+     * </pre>
+     *
+     * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+     */
+    public java.util.List<soc.proto.Data.DevCardValue> getDevCardsSetList() {
+      return new com.google.protobuf.Internal.ListAdapter<
+          java.lang.Integer, soc.proto.Data.DevCardValue>(devCardsSet_, devCardsSet_converter_);
+    }
+    /**
+     * <pre>
+     * several dev cards, like the Victory Point cards revealed at end of game.
+     * Flag values like is_VP are the same for all cards in the set.
+     * Not usable with action PLAY or CANNOT_PLAY.
+     * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+     * </pre>
+     *
+     * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+     */
+    public int getDevCardsSetCount() {
+      return devCardsSet_.size();
+    }
+    /**
+     * <pre>
+     * several dev cards, like the Victory Point cards revealed at end of game.
+     * Flag values like is_VP are the same for all cards in the set.
+     * Not usable with action PLAY or CANNOT_PLAY.
+     * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+     * </pre>
+     *
+     * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+     */
+    public soc.proto.Data.DevCardValue getDevCardsSet(int index) {
+      return devCardsSet_converter_.convert(devCardsSet_.get(index));
+    }
+    /**
+     * <pre>
+     * several dev cards, like the Victory Point cards revealed at end of game.
+     * Flag values like is_VP are the same for all cards in the set.
+     * Not usable with action PLAY or CANNOT_PLAY.
+     * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+     * </pre>
+     *
+     * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+     */
+    public java.util.List<java.lang.Integer>
+    getDevCardsSetValueList() {
+      return devCardsSet_;
+    }
+    /**
+     * <pre>
+     * several dev cards, like the Victory Point cards revealed at end of game.
+     * Flag values like is_VP are the same for all cards in the set.
+     * Not usable with action PLAY or CANNOT_PLAY.
+     * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+     * </pre>
+     *
+     * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+     */
+    public int getDevCardsSetValue(int index) {
+      return devCardsSet_.get(index);
+    }
+    private int devCardsSetMemoizedSerializedSize;
+
     public static final int REASON_CODE_FIELD_NUMBER = 21;
     private int reasonCode_;
     /**
@@ -9325,6 +9504,7 @@ public final class GameMessage {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (actionType_ != soc.proto.GameMessage.InventoryItemAction._ActionType._UNSENT_DEFAULT_ACTION.getNumber()) {
         output.writeEnum(1, actionType_);
       }
@@ -9334,6 +9514,13 @@ public final class GameMessage {
       if (itemValueCase_ == 3) {
         output.writeInt32(
             3, (int)((java.lang.Integer) itemValue_));
+      }
+      if (getDevCardsSetList().size() > 0) {
+        output.writeUInt32NoTag(34);
+        output.writeUInt32NoTag(devCardsSetMemoizedSerializedSize);
+      }
+      for (int i = 0; i < devCardsSet_.size(); i++) {
+        output.writeEnumNoTag(devCardsSet_.get(i));
       }
       if (reasonCode_ != 0) {
         output.writeSInt32(21, reasonCode_);
@@ -9370,6 +9557,18 @@ public final class GameMessage {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(
               3, (int)((java.lang.Integer) itemValue_));
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < devCardsSet_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeEnumSizeNoTag(devCardsSet_.get(i));
+        }
+        size += dataSize;
+        if (!getDevCardsSetList().isEmpty()) {  size += 1;
+          size += com.google.protobuf.CodedOutputStream
+            .computeUInt32SizeNoTag(dataSize);
+        }devCardsSetMemoizedSerializedSize = dataSize;
       }
       if (reasonCode_ != 0) {
         size += com.google.protobuf.CodedOutputStream
@@ -9408,6 +9607,7 @@ public final class GameMessage {
 
       boolean result = true;
       result = result && actionType_ == other.actionType_;
+      result = result && devCardsSet_.equals(other.devCardsSet_);
       result = result && (getReasonCode()
           == other.getReasonCode());
       result = result && (getIsPlayable()
@@ -9446,6 +9646,10 @@ public final class GameMessage {
       hash = (19 * hash) + getDescriptor().hashCode();
       hash = (37 * hash) + ACTION_TYPE_FIELD_NUMBER;
       hash = (53 * hash) + actionType_;
+      if (getDevCardsSetCount() > 0) {
+        hash = (37 * hash) + DEV_CARDS_SET_FIELD_NUMBER;
+        hash = (53 * hash) + devCardsSet_.hashCode();
+      }
       hash = (37 * hash) + REASON_CODE_FIELD_NUMBER;
       hash = (53 * hash) + getReasonCode();
       hash = (37 * hash) + IS_PLAYABLE_FIELD_NUMBER;
@@ -9569,11 +9773,25 @@ public final class GameMessage {
      * <pre>
      * Client player request, or server response or announcement, about
      * Development Cards or other {&#64;link SOCInventoryItem}s in a player's inventory.
+     * Server sometimes sends to a specific player, sometimes to all game members.
      *&lt;P&gt;
-     * Detailed message documentation location is TBD; for now see javadoc
-     * of {&#64;code soc.message.SOCDevCardAction} and {&#64;code SOCInventoryItemAction}.
+     * Dev Cards:
+     *&lt;P&gt;
+     * If a robot asks to play a dev card that they can't right now, the server
+     * replies to that bot with InventoryItemAction(-1, {&#64;code CANNOT_PLAY}, cardType).
      *&lt;P&gt;
      * Player Number field is -1 for action type {&#64;code CANNOT_PLAY}; see that enum value for details.
+     *&lt;P&gt;
+     * At end of game (state {&#64;code OVER}), server reveals players' hidden Victory Point cards by announcing an
+     * InventoryItemAction(playerNumber, ADD_OLD, devCardsSet={cardType, cardType, ...})
+     * for each player that has them. This is sent to all game members; a client player should ignore
+     * messages about their own cards in state {&#64;code OVER} by checking playerNumber.
+     * This multiple-cardtype form is currently used only at end of game.
+     *&lt;P&gt;
+     * Other Inventory Items:
+     *&lt;P&gt;
+     * Detailed message documentation location is TBD; for now see javadoc
+     * of {&#64;code soc.message.SOCInventoryItemAction}.
      *&lt;P&gt;
      * Before v3.0.00 this message was {&#64;code SOCDevCardAction} and {&#64;code SOCInventoryItemAction}.
      * </pre>
@@ -9615,6 +9833,8 @@ public final class GameMessage {
         super.clear();
         actionType_ = 0;
 
+        devCardsSet_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000008);
         reasonCode_ = 0;
 
         isPlayable_ = false;
@@ -9649,6 +9869,8 @@ public final class GameMessage {
 
       public soc.proto.GameMessage.InventoryItemAction buildPartial() {
         soc.proto.GameMessage.InventoryItemAction result = new soc.proto.GameMessage.InventoryItemAction(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
         result.actionType_ = actionType_;
         if (itemValueCase_ == 2) {
           result.itemValue_ = itemValue_;
@@ -9656,11 +9878,17 @@ public final class GameMessage {
         if (itemValueCase_ == 3) {
           result.itemValue_ = itemValue_;
         }
+        if (((bitField0_ & 0x00000008) == 0x00000008)) {
+          devCardsSet_ = java.util.Collections.unmodifiableList(devCardsSet_);
+          bitField0_ = (bitField0_ & ~0x00000008);
+        }
+        result.devCardsSet_ = devCardsSet_;
         result.reasonCode_ = reasonCode_;
         result.isPlayable_ = isPlayable_;
         result.isKept_ = isKept_;
         result.isVP_ = isVP_;
         result.canCancelPlay_ = canCancelPlay_;
+        result.bitField0_ = to_bitField0_;
         result.itemValueCase_ = itemValueCase_;
         onBuilt();
         return result;
@@ -9705,6 +9933,16 @@ public final class GameMessage {
         if (other == soc.proto.GameMessage.InventoryItemAction.getDefaultInstance()) return this;
         if (other.actionType_ != 0) {
           setActionTypeValue(other.getActionTypeValue());
+        }
+        if (!other.devCardsSet_.isEmpty()) {
+          if (devCardsSet_.isEmpty()) {
+            devCardsSet_ = other.devCardsSet_;
+            bitField0_ = (bitField0_ & ~0x00000008);
+          } else {
+            ensureDevCardsSetIsMutable();
+            devCardsSet_.addAll(other.devCardsSet_);
+          }
+          onChanged();
         }
         if (other.getReasonCode() != 0) {
           setReasonCode(other.getReasonCode());
@@ -9775,6 +10013,7 @@ public final class GameMessage {
         return this;
       }
 
+      private int bitField0_;
 
       private int actionType_ = 0;
       /**
@@ -9937,6 +10176,208 @@ public final class GameMessage {
           itemValue_ = null;
           onChanged();
         }
+        return this;
+      }
+
+      private java.util.List<java.lang.Integer> devCardsSet_ =
+        java.util.Collections.emptyList();
+      private void ensureDevCardsSetIsMutable() {
+        if (!((bitField0_ & 0x00000008) == 0x00000008)) {
+          devCardsSet_ = new java.util.ArrayList<java.lang.Integer>(devCardsSet_);
+          bitField0_ |= 0x00000008;
+        }
+      }
+      /**
+       * <pre>
+       * several dev cards, like the Victory Point cards revealed at end of game.
+       * Flag values like is_VP are the same for all cards in the set.
+       * Not usable with action PLAY or CANNOT_PLAY.
+       * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+       * </pre>
+       *
+       * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       */
+      public java.util.List<soc.proto.Data.DevCardValue> getDevCardsSetList() {
+        return new com.google.protobuf.Internal.ListAdapter<
+            java.lang.Integer, soc.proto.Data.DevCardValue>(devCardsSet_, devCardsSet_converter_);
+      }
+      /**
+       * <pre>
+       * several dev cards, like the Victory Point cards revealed at end of game.
+       * Flag values like is_VP are the same for all cards in the set.
+       * Not usable with action PLAY or CANNOT_PLAY.
+       * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+       * </pre>
+       *
+       * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       */
+      public int getDevCardsSetCount() {
+        return devCardsSet_.size();
+      }
+      /**
+       * <pre>
+       * several dev cards, like the Victory Point cards revealed at end of game.
+       * Flag values like is_VP are the same for all cards in the set.
+       * Not usable with action PLAY or CANNOT_PLAY.
+       * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+       * </pre>
+       *
+       * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       */
+      public soc.proto.Data.DevCardValue getDevCardsSet(int index) {
+        return devCardsSet_converter_.convert(devCardsSet_.get(index));
+      }
+      /**
+       * <pre>
+       * several dev cards, like the Victory Point cards revealed at end of game.
+       * Flag values like is_VP are the same for all cards in the set.
+       * Not usable with action PLAY or CANNOT_PLAY.
+       * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+       * </pre>
+       *
+       * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       */
+      public Builder setDevCardsSet(
+          int index, soc.proto.Data.DevCardValue value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureDevCardsSetIsMutable();
+        devCardsSet_.set(index, value.getNumber());
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * several dev cards, like the Victory Point cards revealed at end of game.
+       * Flag values like is_VP are the same for all cards in the set.
+       * Not usable with action PLAY or CANNOT_PLAY.
+       * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+       * </pre>
+       *
+       * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       */
+      public Builder addDevCardsSet(soc.proto.Data.DevCardValue value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureDevCardsSetIsMutable();
+        devCardsSet_.add(value.getNumber());
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * several dev cards, like the Victory Point cards revealed at end of game.
+       * Flag values like is_VP are the same for all cards in the set.
+       * Not usable with action PLAY or CANNOT_PLAY.
+       * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+       * </pre>
+       *
+       * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       */
+      public Builder addAllDevCardsSet(
+          java.lang.Iterable<? extends soc.proto.Data.DevCardValue> values) {
+        ensureDevCardsSetIsMutable();
+        for (soc.proto.Data.DevCardValue value : values) {
+          devCardsSet_.add(value.getNumber());
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * several dev cards, like the Victory Point cards revealed at end of game.
+       * Flag values like is_VP are the same for all cards in the set.
+       * Not usable with action PLAY or CANNOT_PLAY.
+       * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+       * </pre>
+       *
+       * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       */
+      public Builder clearDevCardsSet() {
+        devCardsSet_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * several dev cards, like the Victory Point cards revealed at end of game.
+       * Flag values like is_VP are the same for all cards in the set.
+       * Not usable with action PLAY or CANNOT_PLAY.
+       * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+       * </pre>
+       *
+       * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       */
+      public java.util.List<java.lang.Integer>
+      getDevCardsSetValueList() {
+        return java.util.Collections.unmodifiableList(devCardsSet_);
+      }
+      /**
+       * <pre>
+       * several dev cards, like the Victory Point cards revealed at end of game.
+       * Flag values like is_VP are the same for all cards in the set.
+       * Not usable with action PLAY or CANNOT_PLAY.
+       * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+       * </pre>
+       *
+       * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       */
+      public int getDevCardsSetValue(int index) {
+        return devCardsSet_.get(index);
+      }
+      /**
+       * <pre>
+       * several dev cards, like the Victory Point cards revealed at end of game.
+       * Flag values like is_VP are the same for all cards in the set.
+       * Not usable with action PLAY or CANNOT_PLAY.
+       * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+       * </pre>
+       *
+       * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       */
+      public Builder setDevCardsSetValue(
+          int index, int value) {
+        ensureDevCardsSetIsMutable();
+        devCardsSet_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * several dev cards, like the Victory Point cards revealed at end of game.
+       * Flag values like is_VP are the same for all cards in the set.
+       * Not usable with action PLAY or CANNOT_PLAY.
+       * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+       * </pre>
+       *
+       * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       */
+      public Builder addDevCardsSetValue(int value) {
+        ensureDevCardsSetIsMutable();
+        devCardsSet_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * several dev cards, like the Victory Point cards revealed at end of game.
+       * Flag values like is_VP are the same for all cards in the set.
+       * Not usable with action PLAY or CANNOT_PLAY.
+       * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+       * </pre>
+       *
+       * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       */
+      public Builder addAllDevCardsSetValue(
+          java.lang.Iterable<java.lang.Integer> values) {
+        ensureDevCardsSetIsMutable();
+        for (int value : values) {
+          devCardsSet_.add(value);
+        }
+        onChanged();
         return this;
       }
 
@@ -42512,141 +42953,142 @@ public final class GameMessage {
       "ieceType\022 \n\013coordinates\030\002 \001(\0132\013.BoardCoo" +
       "rd\"O\n\027BuyInventoryItemRequest\022\027\n\017is_not_" +
       "dev_card\030\001 \001(\010\022\033\n\023other_inv_item_type\030\002 " +
-      "\001(\021\"\202\003\n\023InventoryItemAction\0225\n\013action_ty",
+      "\001(\021\"\250\003\n\023InventoryItemAction\0225\n\013action_ty",
       "pe\030\001 \001(\0162 .InventoryItemAction._ActionTy" +
       "pe\022\'\n\016dev_card_value\030\002 \001(\0162\r.DevCardValu" +
-      "eH\000\022\035\n\023other_inv_item_type\030\003 \001(\005H\000\022\023\n\013re" +
-      "ason_code\030\025 \001(\021\022\023\n\013is_playable\030\026 \001(\010\022\017\n\007" +
-      "is_kept\030\027 \001(\010\022\r\n\005is_VP\030\030 \001(\010\022\027\n\017can_canc" +
-      "el_play\030\031 \001(\010\"{\n\013_ActionType\022\032\n\026_UNSENT_" +
-      "DEFAULT_ACTION\020\000\022\010\n\004DRAW\020\001\022\010\n\004PLAY\020\002\022\013\n\007" +
-      "ADD_NEW\020\003\022\013\n\007ADD_OLD\020\004\022\017\n\013CANNOT_PLAY\020\005\022" +
-      "\021\n\rPLACING_EXTRA\020\006B\014\n\nitem_value\"g\n\013Canc" +
-      "elBuild\022 \n\npiece_type\030\001 \001(\0162\n.PieceTypeH",
-      "\000\022\'\n\titem_type\030\002 \001(\0162\022.OtherPlayableItem" +
-      "H\000B\r\n\013cancel_type\"q\n\tMovePiece\022\030\n\004type\030\001" +
-      " \001(\0162\n.PieceType\022%\n\020from_coordinates\030\002 \001" +
-      "(\0132\013.BoardCoord\022#\n\016to_coordinates\030\003 \001(\0132" +
-      "\013.BoardCoord\"I\n\013RemovePiece\022\030\n\004type\030\001 \001(" +
-      "\0162\n.PieceType\022 \n\013coordinates\030\002 \001(\0132\013.Boa" +
-      "rdCoord\"\"\n\005State\022\031\n\005state\030\001 \001(\0162\n.GameSt" +
-      "ate\"\202\001\n\rPlayerElement\022%\n\006action\030\001 \001(\0162\025." +
-      "_PlayerElementAction\022)\n\014element_type\030\002 \001" +
-      "(\0162\023._PlayerElementType\022\016\n\006amount\030\003 \001(\021\022",
-      "\017\n\007is_news\030\004 \001(\010\"t\n\016PlayerElements\022%\n\006ac" +
-      "tion\030\001 \001(\0162\025._PlayerElementAction\022*\n\rele" +
-      "ment_types\030\002 \003(\0162\023._PlayerElementType\022\017\n" +
-      "\007amounts\030\003 \003(\021\"\376\001\n\014GameElements\0221\n\releme" +
-      "nt_types\030\001 \003(\0162\032.GameElements._ElementTy" +
-      "pe\022\016\n\006values\030\002 \003(\021\"\252\001\n\014_ElementType\022\035\n\031_" +
-      "UNSENT_DEFAULT_GAME_ELEM\020\000\022\017\n\013ROUND_COUN" +
-      "T\020\001\022\022\n\016DEV_CARD_COUNT\020\002\022\020\n\014FIRST_PLAYER\020" +
-      "\003\022\022\n\016CURRENT_PLAYER\020\004\022\027\n\023LARGEST_ARMY_PL" +
-      "AYER\020\005\022\027\n\023LONGEST_ROAD_PLAYER\020\006\"&\n\tStart",
-      "Game\022\031\n\005state\030\001 \001(\0162\n.GameState\"!\n\004Turn\022" +
-      "\031\n\005state\030\001 \001(\0162\n.GameState\"\t\n\007SetTurn\"\021\n" +
-      "\017DiceRollRequest\" \n\nDiceResult\022\022\n\ndice_t" +
-      "otal\030\001 \001(\021\"\264\001\n\023DiceResultResources\022>\n\020pl" +
-      "ayer_resources\030\001 \003(\0132$.DiceResultResourc" +
-      "es.PlayerResources\032]\n\017PlayerResources\022\025\n" +
-      "\rplayer_number\030\001 \001(\r\022 \n\nres_gained\030\002 \001(\013" +
-      "2\014.ResourceSet\022\021\n\tres_total\030\003 \001(\r\"\t\n\007End" +
-      "Turn\"F\n\rTradeWithBank\022\032\n\004give\030\001 \001(\0132\014.Re" +
-      "sourceSet\022\031\n\003get\030\002 \001(\0132\014.ResourceSet\"}\n\016",
-      "TradeMakeOffer\022\032\n\004give\030\001 \001(\0132\014.ResourceS" +
-      "et\022\031\n\003get\030\002 \001(\0132\014.ResourceSet\022\036\n\nto_play" +
-      "ers\030\003 \001(\0132\n._IntArray\022\024\n\014offer_serial\030\004 " +
-      "\001(\005\"\021\n\017TradeClearOffer\"\022\n\020TradeRejectOff" +
-      "er\"H\n\020TradeAcceptOffer\022\036\n\026offering_playe" +
-      "r_number\030\001 \001(\005\022\024\n\014offer_serial\030\002 \001(\005\";\n\r" +
-      "LoseResources\022\016\n\006amount\030\001 \001(\005\022\032\n\004lose\030\002 " +
-      "\001(\0132\014.ResourceSet\";\n\rGainResources\022\016\n\006am" +
-      "ount\030\001 \001(\005\022\032\n\004gain\030\002 \001(\0132\014.ResourceSet\"1" +
-      "\n\022ChooseResourceType\022\033\n\004type\030\001 \001(\0162\r.Res",
-      "ourceType\"g\n\014ChoosePlayer\022\034\n\024chosen_play" +
-      "er_number\030\001 \001(\021\022\027\n\017can_choose_none\030\002 \001(\010" +
-      "\022 \n\030chooseable_player_number\030\003 \003(\r\"N\n\nMo" +
-      "veRobber\022\032\n\007move_to\030\001 \001(\0132\t.HexCoord\022\021\n\t" +
-      "is_robber\030\002 \001(\010\022\021\n\tis_pirate\030\003 \001(\010\"\023\n\021Re" +
-      "setBoardRequest\" \n\016ResetBoardVote\022\016\n\006is_" +
-      "yes\030\001 \001(\010\"(\n\020ResetBoardResult\022\024\n\014was_rej" +
-      "ected\030\001 \001(\010\"\327\013\n\025GameMessageFromServer\022\021\n" +
-      "\tgame_name\030\001 \001(\t\022\025\n\rplayer_number\030\002 \001(\021\022" +
-      "\034\n\ngame_state\030\003 \001(\0132\006.StateH\000\022(\n\016player_",
-      "element\030\017 \001(\0132\016.PlayerElementH\000\022*\n\017playe" +
-      "r_elements\030\020 \001(\0132\017.PlayerElementsH\000\022&\n\rg" +
-      "ame_elements\030\021 \001(\0132\r.GameElementsH\000\022$\n\014b" +
-      "oard_layout\030\036 \001(\0132\014.BoardLayoutH\000\0226\n\025pot" +
-      "ential_settlements\030\037 \001(\0132\025.PotentialSett" +
-      "lementsH\000\022\"\n\013piece_value\030  \001(\0132\013.PieceVa" +
-      "lueH\000\022\"\n\013build_piece\030! \001(\0132\013.BuildPieceH" +
-      "\000\022$\n\014cancel_build\030\" \001(\0132\014.CancelBuildH\000\022" +
-      " \n\nmove_piece\030# \001(\0132\n.MovePieceH\000\022$\n\014rem" +
-      "ove_piece\030$ \001(\0132\014.RemovePieceH\000\022 \n\nstart",
-      "_game\030d \001(\0132\n.StartGameH\000\022\025\n\004turn\030e \001(\0132" +
-      "\005.TurnH\000\022\034\n\010set_turn\030f \001(\0132\010.SetTurnH\000\022-" +
-      "\n\021dice_roll_request\030g \001(\0132\020.DiceRollRequ" +
-      "estH\000\022\"\n\013dice_result\030h \001(\0132\013.DiceResultH" +
-      "\000\0225\n\025dice_result_resources\030i \001(\0132\024.DiceR" +
-      "esultResourcesH\000\0226\n\025inventory_item_actio" +
-      "n\030\256\002 \001(\0132\024.InventoryItemActionH\000\022*\n\017trad" +
-      "e_with_bank\030\220\003 \001(\0132\016.TradeWithBankH\000\022,\n\020" +
-      "trade_make_offer\030\221\003 \001(\0132\017.TradeMakeOffer" +
-      "H\000\022.\n\021trade_clear_offer\030\222\003 \001(\0132\020.TradeCl",
-      "earOfferH\000\0220\n\022trade_reject_offer\030\223\003 \001(\0132" +
-      "\021.TradeRejectOfferH\000\0220\n\022trade_accept_off" +
-      "er\030\224\003 \001(\0132\021.TradeAcceptOfferH\000\0220\n\025lose_r" +
-      "esources_prompt\030\364\003 \001(\0132\016.LoseResourcesH\000" +
-      "\022)\n\016lose_resources\030\365\003 \001(\0132\016.LoseResource" +
-      "sH\000\0220\n\025gain_resources_prompt\030\366\003 \001(\0132\016.Ga" +
-      "inResourcesH\000\022)\n\016gain_resources\030\367\003 \001(\0132\016" +
-      ".GainResourcesH\000\022.\n\024choose_player_prompt" +
-      "\030\370\003 \001(\0132\r.ChoosePlayerH\000\022#\n\013move_robber\030" +
-      "\371\003 \001(\0132\013.MoveRobberH\000\0222\n\023reset_board_req",
-      "uest\030\350\007 \001(\0132\022.ResetBoardRequestH\000\0223\n\027res" +
-      "et_board_vote_prompt\030\351\007 \001(\0132\017.ResetBoard" +
-      "VoteH\000\022,\n\020reset_board_vote\030\352\007 \001(\0132\017.Rese" +
-      "tBoardVoteH\000\0220\n\022reset_board_result\030\353\007 \001(" +
-      "\0132\021.ResetBoardResultH\000B\005\n\003msg\"\252\007\n\025GameMe" +
-      "ssageFromClient\022\021\n\tgame_name\030\001 \001(\t\022 \n\nst" +
-      "art_game\030d \001(\0132\n.StartGameH\000\022-\n\021dice_rol" +
-      "l_request\030e \001(\0132\020.DiceRollRequestH\000\022\034\n\010e" +
-      "nd_turn\030f \001(\0132\010.EndTurnH\000\022#\n\013build_piece" +
-      "\030\310\001 \001(\0132\013.BuildPieceH\000\022%\n\014cancel_build\030\311",
-      "\001 \001(\0132\014.CancelBuildH\000\022!\n\nmove_piece\030\312\001 \001" +
-      "(\0132\n.MovePieceH\000\0227\n\022buy_inventory_item\030\313" +
-      "\001 \001(\0132\030.BuyInventoryItemRequestH\000\0226\n\025inv" +
-      "entory_item_action\030\314\001 \001(\0132\024.InventoryIte" +
-      "mActionH\000\022*\n\017trade_with_bank\030\220\003 \001(\0132\016.Tr" +
-      "adeWithBankH\000\022,\n\020trade_make_offer\030\221\003 \001(\013" +
-      "2\017.TradeMakeOfferH\000\022.\n\021trade_clear_offer" +
-      "\030\222\003 \001(\0132\020.TradeClearOfferH\000\0220\n\022trade_rej" +
-      "ect_offer\030\223\003 \001(\0132\021.TradeRejectOfferH\000\0220\n" +
-      "\022trade_accept_offer\030\224\003 \001(\0132\021.TradeAccept",
-      "OfferH\000\022)\n\016lose_resources\030\364\003 \001(\0132\016.LoseR" +
-      "esourcesH\000\022)\n\016gain_resources\030\365\003 \001(\0132\016.Ga" +
-      "inResourcesH\000\0224\n\024choose_resource_type\030\366\003" +
-      " \001(\0132\023.ChooseResourceTypeH\000\022\'\n\rchoose_pl" +
-      "ayer\030\367\003 \001(\0132\r.ChoosePlayerH\000\022#\n\013move_rob" +
-      "ber\030\370\003 \001(\0132\013.MoveRobberH\000\0222\n\023reset_board" +
-      "_request\030\350\007 \001(\0132\022.ResetBoardRequestH\000\022,\n" +
-      "\020reset_board_vote\030\351\007 \001(\0132\017.ResetBoardVot" +
-      "eH\000B\005\n\003msg*O\n\024_PlayerElementAction\022\032\n\026_U" +
-      "NSENT_DEFAULT_ACTION\020\000\022\007\n\003SET\020\001\022\010\n\004GAIN\020",
-      "\002\022\010\n\004LOSE\020\003*\206\004\n\022_PlayerElementType\022\037\n\033_U" +
-      "NSENT_DEFAULT_PLAYER_ELEM\020\000\022\r\n\tELEM_CLAY" +
-      "\020\001\022\014\n\010ELEM_ORE\020\002\022\016\n\nELEM_SHEEP\020\003\022\016\n\nELEM" +
-      "_WHEAT\020\004\022\r\n\tELEM_WOOD\020\005\022\031\n\025ELEM_UNKNOWN_" +
-      "RESOURCE\020\006\022\t\n\005ROADS\020\n\022\017\n\013SETTLEMENTS\020\013\022\n" +
-      "\n\006CITIES\020\014\022\t\n\005SHIPS\020\r\022\016\n\nNUMKNIGHTS\020\017\022\025\n" +
-      "\021ASK_SPECIAL_BUILD\020\020\022\022\n\016RESOURCE_COUNT\020\021" +
-      "\022\030\n\024LAST_SETTLEMENT_NODE\020\022\022\030\n\024PLAYED_DEV" +
-      "_CARD_FLAG\020\023\022\037\n\033NUM_PICK_GOLD_HEX_RESOUR" +
-      "CES\020e\022\020\n\014SCENARIO_SVP\020f\022!\n\035SCENARIO_PLAY",
-      "EREVENTS_BITMASK\020g\022\"\n\036SCENARIO_SVP_LANDA" +
-      "REAS_BITMASK\020h\022\026\n\022STARTING_LANDAREAS\020i\022\030" +
-      "\n\024SCENARIO_CLOTH_COUNT\020j\022\032\n\026SCENARIO_WAR" +
-      "SHIP_COUNT\020kB\r\n\tsoc.protoH\001P\000b\006proto3"
+      "eH\000\022\035\n\023other_inv_item_type\030\003 \001(\005H\000\022$\n\rde" +
+      "v_cards_set\030\004 \003(\0162\r.DevCardValue\022\023\n\013reas" +
+      "on_code\030\025 \001(\021\022\023\n\013is_playable\030\026 \001(\010\022\017\n\007is" +
+      "_kept\030\027 \001(\010\022\r\n\005is_VP\030\030 \001(\010\022\027\n\017can_cancel" +
+      "_play\030\031 \001(\010\"{\n\013_ActionType\022\032\n\026_UNSENT_DE" +
+      "FAULT_ACTION\020\000\022\010\n\004DRAW\020\001\022\010\n\004PLAY\020\002\022\013\n\007AD" +
+      "D_NEW\020\003\022\013\n\007ADD_OLD\020\004\022\017\n\013CANNOT_PLAY\020\005\022\021\n" +
+      "\rPLACING_EXTRA\020\006B\014\n\nitem_value\"g\n\013Cancel",
+      "Build\022 \n\npiece_type\030\001 \001(\0162\n.PieceTypeH\000\022" +
+      "\'\n\titem_type\030\002 \001(\0162\022.OtherPlayableItemH\000" +
+      "B\r\n\013cancel_type\"q\n\tMovePiece\022\030\n\004type\030\001 \001" +
+      "(\0162\n.PieceType\022%\n\020from_coordinates\030\002 \001(\013" +
+      "2\013.BoardCoord\022#\n\016to_coordinates\030\003 \001(\0132\013." +
+      "BoardCoord\"I\n\013RemovePiece\022\030\n\004type\030\001 \001(\0162" +
+      "\n.PieceType\022 \n\013coordinates\030\002 \001(\0132\013.Board" +
+      "Coord\"\"\n\005State\022\031\n\005state\030\001 \001(\0162\n.GameStat" +
+      "e\"\202\001\n\rPlayerElement\022%\n\006action\030\001 \001(\0162\025._P" +
+      "layerElementAction\022)\n\014element_type\030\002 \001(\016",
+      "2\023._PlayerElementType\022\016\n\006amount\030\003 \001(\021\022\017\n" +
+      "\007is_news\030\004 \001(\010\"t\n\016PlayerElements\022%\n\006acti" +
+      "on\030\001 \001(\0162\025._PlayerElementAction\022*\n\releme" +
+      "nt_types\030\002 \003(\0162\023._PlayerElementType\022\017\n\007a" +
+      "mounts\030\003 \003(\021\"\376\001\n\014GameElements\0221\n\relement" +
+      "_types\030\001 \003(\0162\032.GameElements._ElementType" +
+      "\022\016\n\006values\030\002 \003(\021\"\252\001\n\014_ElementType\022\035\n\031_UN" +
+      "SENT_DEFAULT_GAME_ELEM\020\000\022\017\n\013ROUND_COUNT\020" +
+      "\001\022\022\n\016DEV_CARD_COUNT\020\002\022\020\n\014FIRST_PLAYER\020\003\022" +
+      "\022\n\016CURRENT_PLAYER\020\004\022\027\n\023LARGEST_ARMY_PLAY",
+      "ER\020\005\022\027\n\023LONGEST_ROAD_PLAYER\020\006\"&\n\tStartGa" +
+      "me\022\031\n\005state\030\001 \001(\0162\n.GameState\"!\n\004Turn\022\031\n" +
+      "\005state\030\001 \001(\0162\n.GameState\"\t\n\007SetTurn\"\021\n\017D" +
+      "iceRollRequest\" \n\nDiceResult\022\022\n\ndice_tot" +
+      "al\030\001 \001(\021\"\264\001\n\023DiceResultResources\022>\n\020play" +
+      "er_resources\030\001 \003(\0132$.DiceResultResources" +
+      ".PlayerResources\032]\n\017PlayerResources\022\025\n\rp" +
+      "layer_number\030\001 \001(\r\022 \n\nres_gained\030\002 \001(\0132\014" +
+      ".ResourceSet\022\021\n\tres_total\030\003 \001(\r\"\t\n\007EndTu" +
+      "rn\"F\n\rTradeWithBank\022\032\n\004give\030\001 \001(\0132\014.Reso",
+      "urceSet\022\031\n\003get\030\002 \001(\0132\014.ResourceSet\"}\n\016Tr" +
+      "adeMakeOffer\022\032\n\004give\030\001 \001(\0132\014.ResourceSet" +
+      "\022\031\n\003get\030\002 \001(\0132\014.ResourceSet\022\036\n\nto_player" +
+      "s\030\003 \001(\0132\n._IntArray\022\024\n\014offer_serial\030\004 \001(" +
+      "\005\"\021\n\017TradeClearOffer\"\022\n\020TradeRejectOffer" +
+      "\"H\n\020TradeAcceptOffer\022\036\n\026offering_player_" +
+      "number\030\001 \001(\005\022\024\n\014offer_serial\030\002 \001(\005\";\n\rLo" +
+      "seResources\022\016\n\006amount\030\001 \001(\005\022\032\n\004lose\030\002 \001(" +
+      "\0132\014.ResourceSet\";\n\rGainResources\022\016\n\006amou" +
+      "nt\030\001 \001(\005\022\032\n\004gain\030\002 \001(\0132\014.ResourceSet\"1\n\022",
+      "ChooseResourceType\022\033\n\004type\030\001 \001(\0162\r.Resou" +
+      "rceType\"g\n\014ChoosePlayer\022\034\n\024chosen_player" +
+      "_number\030\001 \001(\021\022\027\n\017can_choose_none\030\002 \001(\010\022 " +
+      "\n\030chooseable_player_number\030\003 \003(\r\"N\n\nMove" +
+      "Robber\022\032\n\007move_to\030\001 \001(\0132\t.HexCoord\022\021\n\tis" +
+      "_robber\030\002 \001(\010\022\021\n\tis_pirate\030\003 \001(\010\"\023\n\021Rese" +
+      "tBoardRequest\" \n\016ResetBoardVote\022\016\n\006is_ye" +
+      "s\030\001 \001(\010\"(\n\020ResetBoardResult\022\024\n\014was_rejec" +
+      "ted\030\001 \001(\010\"\327\013\n\025GameMessageFromServer\022\021\n\tg" +
+      "ame_name\030\001 \001(\t\022\025\n\rplayer_number\030\002 \001(\021\022\034\n",
+      "\ngame_state\030\003 \001(\0132\006.StateH\000\022(\n\016player_el" +
+      "ement\030\017 \001(\0132\016.PlayerElementH\000\022*\n\017player_" +
+      "elements\030\020 \001(\0132\017.PlayerElementsH\000\022&\n\rgam" +
+      "e_elements\030\021 \001(\0132\r.GameElementsH\000\022$\n\014boa" +
+      "rd_layout\030\036 \001(\0132\014.BoardLayoutH\000\0226\n\025poten" +
+      "tial_settlements\030\037 \001(\0132\025.PotentialSettle" +
+      "mentsH\000\022\"\n\013piece_value\030  \001(\0132\013.PieceValu" +
+      "eH\000\022\"\n\013build_piece\030! \001(\0132\013.BuildPieceH\000\022" +
+      "$\n\014cancel_build\030\" \001(\0132\014.CancelBuildH\000\022 \n" +
+      "\nmove_piece\030# \001(\0132\n.MovePieceH\000\022$\n\014remov",
+      "e_piece\030$ \001(\0132\014.RemovePieceH\000\022 \n\nstart_g" +
+      "ame\030d \001(\0132\n.StartGameH\000\022\025\n\004turn\030e \001(\0132\005." +
+      "TurnH\000\022\034\n\010set_turn\030f \001(\0132\010.SetTurnH\000\022-\n\021" +
+      "dice_roll_request\030g \001(\0132\020.DiceRollReques" +
+      "tH\000\022\"\n\013dice_result\030h \001(\0132\013.DiceResultH\000\022" +
+      "5\n\025dice_result_resources\030i \001(\0132\024.DiceRes" +
+      "ultResourcesH\000\0226\n\025inventory_item_action\030" +
+      "\256\002 \001(\0132\024.InventoryItemActionH\000\022*\n\017trade_" +
+      "with_bank\030\220\003 \001(\0132\016.TradeWithBankH\000\022,\n\020tr" +
+      "ade_make_offer\030\221\003 \001(\0132\017.TradeMakeOfferH\000",
+      "\022.\n\021trade_clear_offer\030\222\003 \001(\0132\020.TradeClea" +
+      "rOfferH\000\0220\n\022trade_reject_offer\030\223\003 \001(\0132\021." +
+      "TradeRejectOfferH\000\0220\n\022trade_accept_offer" +
+      "\030\224\003 \001(\0132\021.TradeAcceptOfferH\000\0220\n\025lose_res" +
+      "ources_prompt\030\364\003 \001(\0132\016.LoseResourcesH\000\022)" +
+      "\n\016lose_resources\030\365\003 \001(\0132\016.LoseResourcesH" +
+      "\000\0220\n\025gain_resources_prompt\030\366\003 \001(\0132\016.Gain" +
+      "ResourcesH\000\022)\n\016gain_resources\030\367\003 \001(\0132\016.G" +
+      "ainResourcesH\000\022.\n\024choose_player_prompt\030\370" +
+      "\003 \001(\0132\r.ChoosePlayerH\000\022#\n\013move_robber\030\371\003",
+      " \001(\0132\013.MoveRobberH\000\0222\n\023reset_board_reque" +
+      "st\030\350\007 \001(\0132\022.ResetBoardRequestH\000\0223\n\027reset" +
+      "_board_vote_prompt\030\351\007 \001(\0132\017.ResetBoardVo" +
+      "teH\000\022,\n\020reset_board_vote\030\352\007 \001(\0132\017.ResetB" +
+      "oardVoteH\000\0220\n\022reset_board_result\030\353\007 \001(\0132" +
+      "\021.ResetBoardResultH\000B\005\n\003msg\"\252\007\n\025GameMess" +
+      "ageFromClient\022\021\n\tgame_name\030\001 \001(\t\022 \n\nstar" +
+      "t_game\030d \001(\0132\n.StartGameH\000\022-\n\021dice_roll_" +
+      "request\030e \001(\0132\020.DiceRollRequestH\000\022\034\n\010end" +
+      "_turn\030f \001(\0132\010.EndTurnH\000\022#\n\013build_piece\030\310",
+      "\001 \001(\0132\013.BuildPieceH\000\022%\n\014cancel_build\030\311\001 " +
+      "\001(\0132\014.CancelBuildH\000\022!\n\nmove_piece\030\312\001 \001(\013" +
+      "2\n.MovePieceH\000\0227\n\022buy_inventory_item\030\313\001 " +
+      "\001(\0132\030.BuyInventoryItemRequestH\000\0226\n\025inven" +
+      "tory_item_action\030\314\001 \001(\0132\024.InventoryItemA" +
+      "ctionH\000\022*\n\017trade_with_bank\030\220\003 \001(\0132\016.Trad" +
+      "eWithBankH\000\022,\n\020trade_make_offer\030\221\003 \001(\0132\017" +
+      ".TradeMakeOfferH\000\022.\n\021trade_clear_offer\030\222" +
+      "\003 \001(\0132\020.TradeClearOfferH\000\0220\n\022trade_rejec" +
+      "t_offer\030\223\003 \001(\0132\021.TradeRejectOfferH\000\0220\n\022t",
+      "rade_accept_offer\030\224\003 \001(\0132\021.TradeAcceptOf" +
+      "ferH\000\022)\n\016lose_resources\030\364\003 \001(\0132\016.LoseRes" +
+      "ourcesH\000\022)\n\016gain_resources\030\365\003 \001(\0132\016.Gain" +
+      "ResourcesH\000\0224\n\024choose_resource_type\030\366\003 \001" +
+      "(\0132\023.ChooseResourceTypeH\000\022\'\n\rchoose_play" +
+      "er\030\367\003 \001(\0132\r.ChoosePlayerH\000\022#\n\013move_robbe" +
+      "r\030\370\003 \001(\0132\013.MoveRobberH\000\0222\n\023reset_board_r" +
+      "equest\030\350\007 \001(\0132\022.ResetBoardRequestH\000\022,\n\020r" +
+      "eset_board_vote\030\351\007 \001(\0132\017.ResetBoardVoteH" +
+      "\000B\005\n\003msg*O\n\024_PlayerElementAction\022\032\n\026_UNS",
+      "ENT_DEFAULT_ACTION\020\000\022\007\n\003SET\020\001\022\010\n\004GAIN\020\002\022" +
+      "\010\n\004LOSE\020\003*\206\004\n\022_PlayerElementType\022\037\n\033_UNS" +
+      "ENT_DEFAULT_PLAYER_ELEM\020\000\022\r\n\tELEM_CLAY\020\001" +
+      "\022\014\n\010ELEM_ORE\020\002\022\016\n\nELEM_SHEEP\020\003\022\016\n\nELEM_W" +
+      "HEAT\020\004\022\r\n\tELEM_WOOD\020\005\022\031\n\025ELEM_UNKNOWN_RE" +
+      "SOURCE\020\006\022\t\n\005ROADS\020\n\022\017\n\013SETTLEMENTS\020\013\022\n\n\006" +
+      "CITIES\020\014\022\t\n\005SHIPS\020\r\022\016\n\nNUMKNIGHTS\020\017\022\025\n\021A" +
+      "SK_SPECIAL_BUILD\020\020\022\022\n\016RESOURCE_COUNT\020\021\022\030" +
+      "\n\024LAST_SETTLEMENT_NODE\020\022\022\030\n\024PLAYED_DEV_C" +
+      "ARD_FLAG\020\023\022\037\n\033NUM_PICK_GOLD_HEX_RESOURCE",
+      "S\020e\022\020\n\014SCENARIO_SVP\020f\022!\n\035SCENARIO_PLAYER" +
+      "EVENTS_BITMASK\020g\022\"\n\036SCENARIO_SVP_LANDARE" +
+      "AS_BITMASK\020h\022\026\n\022STARTING_LANDAREAS\020i\022\030\n\024" +
+      "SCENARIO_CLOTH_COUNT\020j\022\032\n\026SCENARIO_WARSH" +
+      "IP_COUNT\020kB\r\n\tsoc.protoH\001P\000b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -42714,7 +43156,7 @@ public final class GameMessage {
     internal_static_InventoryItemAction_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_InventoryItemAction_descriptor,
-        new java.lang.String[] { "ActionType", "DevCardValue", "OtherInvItemType", "ReasonCode", "IsPlayable", "IsKept", "IsVP", "CanCancelPlay", "ItemValue", });
+        new java.lang.String[] { "ActionType", "DevCardValue", "OtherInvItemType", "DevCardsSet", "ReasonCode", "IsPlayable", "IsKept", "IsVP", "CanCancelPlay", "ItemValue", });
     internal_static_CancelBuild_descriptor =
       getDescriptor().getMessageTypes().get(6);
     internal_static_CancelBuild_fieldAccessorTable = new

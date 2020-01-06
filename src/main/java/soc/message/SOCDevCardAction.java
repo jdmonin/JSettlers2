@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012-2014,2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012-2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -300,12 +300,27 @@ public class SOCDevCardAction extends SOCMessage
     @Override
     protected Message.FromServer toProtoFromServer()
     {
-        final DevCardValue cvalue = ProtoMessageBuildHelper.toDevCardValue(cardType);
+        // use first or only dev card to determine flags
+        final int ctypeFirst = (cardTypes != null)
+            ? cardTypes.get(0)
+            : cardType;
+        final DevCardValue cvalue = ProtoMessageBuildHelper.toDevCardValue(ctypeFirst);
 
         GameMessage.InventoryItemAction.Builder b
             = GameMessage.InventoryItemAction.newBuilder();
-        if (cvalue != null)
+        if (cardTypes != null)
+        {
+            b.addDevCardsSet(cvalue);  // cardTypes[0]
+            final int S = cardTypes.size();
+            for (int i = 1; i < S; ++i)
+            {
+                final DevCardValue cv = ProtoMessageBuildHelper.toDevCardValue(cardTypes.get(i));
+                if (cv != null)
+                    b.addDevCardsSet(cv);
+            }
+        } else if (cvalue != null) {
             b.setDevCardValue(cvalue);
+        }
 
         final InventoryItemAction._ActionType act;
 

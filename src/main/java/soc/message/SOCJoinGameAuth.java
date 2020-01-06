@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014-2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -233,6 +233,16 @@ public class SOCJoinGameAuth extends SOCMessage
     {
         Message.JoinGame.Builder b = Message.JoinGame.newBuilder()
             .setGaName(game);
+        if (boardHeight != 0)
+        {
+            b.addBoardSizeVshift(boardHeight);
+            b.addBoardSizeVshift(boardWidth);
+            if (layoutVS != null)
+            {
+                b.addBoardSizeVshift(layoutVS[0]);
+                b.addBoardSizeVshift(layoutVS[1]);
+            }
+        }
         return Message.FromServer.newBuilder()
             .setGaJoin(b).build();
     }

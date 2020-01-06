@@ -16150,6 +16150,55 @@ public final class Message {
      */
     com.google.protobuf.ByteString
         getMemberNameBytes();
+
+    /**
+     * <pre>
+     * Optional board size info, to help create the joining client's user interface to show this game.
+     * Otherwise this wouldn't be sent until a later {&#64;code BoardLayout} message,
+     * after the interface was already sized and laid out.
+     *&lt;P&gt;
+     * If present: First 2 elements are board height and width, from {&#64;link soc.game.SOCBoard#getBoardHeight()}
+     * and {&#64;link soc.game.SOCBoard#getBoardWidth()}.
+     * Optionally 2 more elements: layout Visual Shift ("VS") amounts Down and Right, in units of 1/4 hex size,
+     * from Layout Part "VS".
+     * &#64;see soc.game.SOCBoardLarge#getAddedLayoutPart(String)
+     * </pre>
+     *
+     * <code>repeated int32 board_size_vshift = 3;</code>
+     */
+    java.util.List<java.lang.Integer> getBoardSizeVshiftList();
+    /**
+     * <pre>
+     * Optional board size info, to help create the joining client's user interface to show this game.
+     * Otherwise this wouldn't be sent until a later {&#64;code BoardLayout} message,
+     * after the interface was already sized and laid out.
+     *&lt;P&gt;
+     * If present: First 2 elements are board height and width, from {&#64;link soc.game.SOCBoard#getBoardHeight()}
+     * and {&#64;link soc.game.SOCBoard#getBoardWidth()}.
+     * Optionally 2 more elements: layout Visual Shift ("VS") amounts Down and Right, in units of 1/4 hex size,
+     * from Layout Part "VS".
+     * &#64;see soc.game.SOCBoardLarge#getAddedLayoutPart(String)
+     * </pre>
+     *
+     * <code>repeated int32 board_size_vshift = 3;</code>
+     */
+    int getBoardSizeVshiftCount();
+    /**
+     * <pre>
+     * Optional board size info, to help create the joining client's user interface to show this game.
+     * Otherwise this wouldn't be sent until a later {&#64;code BoardLayout} message,
+     * after the interface was already sized and laid out.
+     *&lt;P&gt;
+     * If present: First 2 elements are board height and width, from {&#64;link soc.game.SOCBoard#getBoardHeight()}
+     * and {&#64;link soc.game.SOCBoard#getBoardWidth()}.
+     * Optionally 2 more elements: layout Visual Shift ("VS") amounts Down and Right, in units of 1/4 hex size,
+     * from Layout Part "VS".
+     * &#64;see soc.game.SOCBoardLarge#getAddedLayoutPart(String)
+     * </pre>
+     *
+     * <code>repeated int32 board_size_vshift = 3;</code>
+     */
+    int getBoardSizeVshift(int index);
   }
   /**
    * <pre>
@@ -16192,6 +16241,7 @@ public final class Message {
     private JoinGame() {
       gaName_ = "";
       memberName_ = "";
+      boardSizeVshift_ = java.util.Collections.emptyList();
     }
 
     @java.lang.Override
@@ -16234,6 +16284,27 @@ public final class Message {
               memberName_ = s;
               break;
             }
+            case 24: {
+              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+                boardSizeVshift_ = new java.util.ArrayList<java.lang.Integer>();
+                mutable_bitField0_ |= 0x00000004;
+              }
+              boardSizeVshift_.add(input.readInt32());
+              break;
+            }
+            case 26: {
+              int length = input.readRawVarint32();
+              int limit = input.pushLimit(length);
+              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004) && input.getBytesUntilLimit() > 0) {
+                boardSizeVshift_ = new java.util.ArrayList<java.lang.Integer>();
+                mutable_bitField0_ |= 0x00000004;
+              }
+              while (input.getBytesUntilLimit() > 0) {
+                boardSizeVshift_.add(input.readInt32());
+              }
+              input.popLimit(limit);
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -16242,6 +16313,9 @@ public final class Message {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
+        if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+          boardSizeVshift_ = java.util.Collections.unmodifiableList(boardSizeVshift_);
+        }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
       }
@@ -16258,6 +16332,7 @@ public final class Message {
               soc.proto.Message.JoinGame.class, soc.proto.Message.JoinGame.Builder.class);
     }
 
+    private int bitField0_;
     public static final int GA_NAME_FIELD_NUMBER = 1;
     private volatile java.lang.Object gaName_;
     /**
@@ -16342,6 +16417,65 @@ public final class Message {
       }
     }
 
+    public static final int BOARD_SIZE_VSHIFT_FIELD_NUMBER = 3;
+    private java.util.List<java.lang.Integer> boardSizeVshift_;
+    /**
+     * <pre>
+     * Optional board size info, to help create the joining client's user interface to show this game.
+     * Otherwise this wouldn't be sent until a later {&#64;code BoardLayout} message,
+     * after the interface was already sized and laid out.
+     *&lt;P&gt;
+     * If present: First 2 elements are board height and width, from {&#64;link soc.game.SOCBoard#getBoardHeight()}
+     * and {&#64;link soc.game.SOCBoard#getBoardWidth()}.
+     * Optionally 2 more elements: layout Visual Shift ("VS") amounts Down and Right, in units of 1/4 hex size,
+     * from Layout Part "VS".
+     * &#64;see soc.game.SOCBoardLarge#getAddedLayoutPart(String)
+     * </pre>
+     *
+     * <code>repeated int32 board_size_vshift = 3;</code>
+     */
+    public java.util.List<java.lang.Integer>
+        getBoardSizeVshiftList() {
+      return boardSizeVshift_;
+    }
+    /**
+     * <pre>
+     * Optional board size info, to help create the joining client's user interface to show this game.
+     * Otherwise this wouldn't be sent until a later {&#64;code BoardLayout} message,
+     * after the interface was already sized and laid out.
+     *&lt;P&gt;
+     * If present: First 2 elements are board height and width, from {&#64;link soc.game.SOCBoard#getBoardHeight()}
+     * and {&#64;link soc.game.SOCBoard#getBoardWidth()}.
+     * Optionally 2 more elements: layout Visual Shift ("VS") amounts Down and Right, in units of 1/4 hex size,
+     * from Layout Part "VS".
+     * &#64;see soc.game.SOCBoardLarge#getAddedLayoutPart(String)
+     * </pre>
+     *
+     * <code>repeated int32 board_size_vshift = 3;</code>
+     */
+    public int getBoardSizeVshiftCount() {
+      return boardSizeVshift_.size();
+    }
+    /**
+     * <pre>
+     * Optional board size info, to help create the joining client's user interface to show this game.
+     * Otherwise this wouldn't be sent until a later {&#64;code BoardLayout} message,
+     * after the interface was already sized and laid out.
+     *&lt;P&gt;
+     * If present: First 2 elements are board height and width, from {&#64;link soc.game.SOCBoard#getBoardHeight()}
+     * and {&#64;link soc.game.SOCBoard#getBoardWidth()}.
+     * Optionally 2 more elements: layout Visual Shift ("VS") amounts Down and Right, in units of 1/4 hex size,
+     * from Layout Part "VS".
+     * &#64;see soc.game.SOCBoardLarge#getAddedLayoutPart(String)
+     * </pre>
+     *
+     * <code>repeated int32 board_size_vshift = 3;</code>
+     */
+    public int getBoardSizeVshift(int index) {
+      return boardSizeVshift_.get(index);
+    }
+    private int boardSizeVshiftMemoizedSerializedSize = -1;
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -16354,11 +16488,19 @@ public final class Message {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (!getGaNameBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, gaName_);
       }
       if (!getMemberNameBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, memberName_);
+      }
+      if (getBoardSizeVshiftList().size() > 0) {
+        output.writeUInt32NoTag(26);
+        output.writeUInt32NoTag(boardSizeVshiftMemoizedSerializedSize);
+      }
+      for (int i = 0; i < boardSizeVshift_.size(); i++) {
+        output.writeInt32NoTag(boardSizeVshift_.get(i));
       }
       unknownFields.writeTo(output);
     }
@@ -16373,6 +16515,20 @@ public final class Message {
       }
       if (!getMemberNameBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, memberName_);
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < boardSizeVshift_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeInt32SizeNoTag(boardSizeVshift_.get(i));
+        }
+        size += dataSize;
+        if (!getBoardSizeVshiftList().isEmpty()) {
+          size += 1;
+          size += com.google.protobuf.CodedOutputStream
+              .computeInt32SizeNoTag(dataSize);
+        }
+        boardSizeVshiftMemoizedSerializedSize = dataSize;
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -16394,6 +16550,8 @@ public final class Message {
           .equals(other.getGaName());
       result = result && getMemberName()
           .equals(other.getMemberName());
+      result = result && getBoardSizeVshiftList()
+          .equals(other.getBoardSizeVshiftList());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -16409,6 +16567,10 @@ public final class Message {
       hash = (53 * hash) + getGaName().hashCode();
       hash = (37 * hash) + MEMBER_NAME_FIELD_NUMBER;
       hash = (53 * hash) + getMemberName().hashCode();
+      if (getBoardSizeVshiftCount() > 0) {
+        hash = (37 * hash) + BOARD_SIZE_VSHIFT_FIELD_NUMBER;
+        hash = (53 * hash) + getBoardSizeVshiftList().hashCode();
+      }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -16568,6 +16730,8 @@ public final class Message {
 
         memberName_ = "";
 
+        boardSizeVshift_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
 
@@ -16590,8 +16754,16 @@ public final class Message {
 
       public soc.proto.Message.JoinGame buildPartial() {
         soc.proto.Message.JoinGame result = new soc.proto.Message.JoinGame(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
         result.gaName_ = gaName_;
         result.memberName_ = memberName_;
+        if (((bitField0_ & 0x00000004) == 0x00000004)) {
+          boardSizeVshift_ = java.util.Collections.unmodifiableList(boardSizeVshift_);
+          bitField0_ = (bitField0_ & ~0x00000004);
+        }
+        result.boardSizeVshift_ = boardSizeVshift_;
+        result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
@@ -16641,6 +16813,16 @@ public final class Message {
           memberName_ = other.memberName_;
           onChanged();
         }
+        if (!other.boardSizeVshift_.isEmpty()) {
+          if (boardSizeVshift_.isEmpty()) {
+            boardSizeVshift_ = other.boardSizeVshift_;
+            bitField0_ = (bitField0_ & ~0x00000004);
+          } else {
+            ensureBoardSizeVshiftIsMutable();
+            boardSizeVshift_.addAll(other.boardSizeVshift_);
+          }
+          onChanged();
+        }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
         return this;
@@ -16667,6 +16849,7 @@ public final class Message {
         }
         return this;
       }
+      private int bitField0_;
 
       private java.lang.Object gaName_ = "";
       /**
@@ -16842,6 +17025,156 @@ public final class Message {
   checkByteStringIsUtf8(value);
         
         memberName_ = value;
+        onChanged();
+        return this;
+      }
+
+      private java.util.List<java.lang.Integer> boardSizeVshift_ = java.util.Collections.emptyList();
+      private void ensureBoardSizeVshiftIsMutable() {
+        if (!((bitField0_ & 0x00000004) == 0x00000004)) {
+          boardSizeVshift_ = new java.util.ArrayList<java.lang.Integer>(boardSizeVshift_);
+          bitField0_ |= 0x00000004;
+         }
+      }
+      /**
+       * <pre>
+       * Optional board size info, to help create the joining client's user interface to show this game.
+       * Otherwise this wouldn't be sent until a later {&#64;code BoardLayout} message,
+       * after the interface was already sized and laid out.
+       *&lt;P&gt;
+       * If present: First 2 elements are board height and width, from {&#64;link soc.game.SOCBoard#getBoardHeight()}
+       * and {&#64;link soc.game.SOCBoard#getBoardWidth()}.
+       * Optionally 2 more elements: layout Visual Shift ("VS") amounts Down and Right, in units of 1/4 hex size,
+       * from Layout Part "VS".
+       * &#64;see soc.game.SOCBoardLarge#getAddedLayoutPart(String)
+       * </pre>
+       *
+       * <code>repeated int32 board_size_vshift = 3;</code>
+       */
+      public java.util.List<java.lang.Integer>
+          getBoardSizeVshiftList() {
+        return java.util.Collections.unmodifiableList(boardSizeVshift_);
+      }
+      /**
+       * <pre>
+       * Optional board size info, to help create the joining client's user interface to show this game.
+       * Otherwise this wouldn't be sent until a later {&#64;code BoardLayout} message,
+       * after the interface was already sized and laid out.
+       *&lt;P&gt;
+       * If present: First 2 elements are board height and width, from {&#64;link soc.game.SOCBoard#getBoardHeight()}
+       * and {&#64;link soc.game.SOCBoard#getBoardWidth()}.
+       * Optionally 2 more elements: layout Visual Shift ("VS") amounts Down and Right, in units of 1/4 hex size,
+       * from Layout Part "VS".
+       * &#64;see soc.game.SOCBoardLarge#getAddedLayoutPart(String)
+       * </pre>
+       *
+       * <code>repeated int32 board_size_vshift = 3;</code>
+       */
+      public int getBoardSizeVshiftCount() {
+        return boardSizeVshift_.size();
+      }
+      /**
+       * <pre>
+       * Optional board size info, to help create the joining client's user interface to show this game.
+       * Otherwise this wouldn't be sent until a later {&#64;code BoardLayout} message,
+       * after the interface was already sized and laid out.
+       *&lt;P&gt;
+       * If present: First 2 elements are board height and width, from {&#64;link soc.game.SOCBoard#getBoardHeight()}
+       * and {&#64;link soc.game.SOCBoard#getBoardWidth()}.
+       * Optionally 2 more elements: layout Visual Shift ("VS") amounts Down and Right, in units of 1/4 hex size,
+       * from Layout Part "VS".
+       * &#64;see soc.game.SOCBoardLarge#getAddedLayoutPart(String)
+       * </pre>
+       *
+       * <code>repeated int32 board_size_vshift = 3;</code>
+       */
+      public int getBoardSizeVshift(int index) {
+        return boardSizeVshift_.get(index);
+      }
+      /**
+       * <pre>
+       * Optional board size info, to help create the joining client's user interface to show this game.
+       * Otherwise this wouldn't be sent until a later {&#64;code BoardLayout} message,
+       * after the interface was already sized and laid out.
+       *&lt;P&gt;
+       * If present: First 2 elements are board height and width, from {&#64;link soc.game.SOCBoard#getBoardHeight()}
+       * and {&#64;link soc.game.SOCBoard#getBoardWidth()}.
+       * Optionally 2 more elements: layout Visual Shift ("VS") amounts Down and Right, in units of 1/4 hex size,
+       * from Layout Part "VS".
+       * &#64;see soc.game.SOCBoardLarge#getAddedLayoutPart(String)
+       * </pre>
+       *
+       * <code>repeated int32 board_size_vshift = 3;</code>
+       */
+      public Builder setBoardSizeVshift(
+          int index, int value) {
+        ensureBoardSizeVshiftIsMutable();
+        boardSizeVshift_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Optional board size info, to help create the joining client's user interface to show this game.
+       * Otherwise this wouldn't be sent until a later {&#64;code BoardLayout} message,
+       * after the interface was already sized and laid out.
+       *&lt;P&gt;
+       * If present: First 2 elements are board height and width, from {&#64;link soc.game.SOCBoard#getBoardHeight()}
+       * and {&#64;link soc.game.SOCBoard#getBoardWidth()}.
+       * Optionally 2 more elements: layout Visual Shift ("VS") amounts Down and Right, in units of 1/4 hex size,
+       * from Layout Part "VS".
+       * &#64;see soc.game.SOCBoardLarge#getAddedLayoutPart(String)
+       * </pre>
+       *
+       * <code>repeated int32 board_size_vshift = 3;</code>
+       */
+      public Builder addBoardSizeVshift(int value) {
+        ensureBoardSizeVshiftIsMutable();
+        boardSizeVshift_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Optional board size info, to help create the joining client's user interface to show this game.
+       * Otherwise this wouldn't be sent until a later {&#64;code BoardLayout} message,
+       * after the interface was already sized and laid out.
+       *&lt;P&gt;
+       * If present: First 2 elements are board height and width, from {&#64;link soc.game.SOCBoard#getBoardHeight()}
+       * and {&#64;link soc.game.SOCBoard#getBoardWidth()}.
+       * Optionally 2 more elements: layout Visual Shift ("VS") amounts Down and Right, in units of 1/4 hex size,
+       * from Layout Part "VS".
+       * &#64;see soc.game.SOCBoardLarge#getAddedLayoutPart(String)
+       * </pre>
+       *
+       * <code>repeated int32 board_size_vshift = 3;</code>
+       */
+      public Builder addAllBoardSizeVshift(
+          java.lang.Iterable<? extends java.lang.Integer> values) {
+        ensureBoardSizeVshiftIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, boardSizeVshift_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Optional board size info, to help create the joining client's user interface to show this game.
+       * Otherwise this wouldn't be sent until a later {&#64;code BoardLayout} message,
+       * after the interface was already sized and laid out.
+       *&lt;P&gt;
+       * If present: First 2 elements are board height and width, from {&#64;link soc.game.SOCBoard#getBoardHeight()}
+       * and {&#64;link soc.game.SOCBoard#getBoardWidth()}.
+       * Optionally 2 more elements: layout Visual Shift ("VS") amounts Down and Right, in units of 1/4 hex size,
+       * from Layout Part "VS".
+       * &#64;see soc.game.SOCBoardLarge#getAddedLayoutPart(String)
+       * </pre>
+       *
+       * <code>repeated int32 board_size_vshift = 3;</code>
+       */
+      public Builder clearBoardSizeVshift() {
+        boardSizeVshift_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000004);
         onChanged();
         return this;
       }
@@ -35271,63 +35604,64 @@ public final class Message {
       "\n\007NewGame\022\037\n\004game\030\001 \001(\0132\021._GameWithOptio",
       "ns\022\023\n\013min_version\030\002 \001(\r\"J\n\022BotJoinGameRe" +
       "quest\022\037\n\004game\030\001 \001(\0132\021._GameWithOptions\022\023" +
-      "\n\013seat_number\030\002 \001(\r\"0\n\010JoinGame\022\017\n\007ga_na" +
-      "me\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\"/\n\013GameMem" +
-      "bers\022\017\n\007ga_name\030\001 \001(\t\022\017\n\007members\030\002 \003(\t\"R" +
-      "\n\007SitDown\022\017\n\007ga_name\030\001 \001(\t\022\017\n\007pl_name\030\002 " +
-      "\001(\t\022\023\n\013seat_number\030\003 \001(\r\022\020\n\010is_robot\030\004 \001" +
-      "(\010\"R\n\013SetSeatLock\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013se" +
-      "at_number\030\002 \001(\r\022\035\n\005state\030\003 \003(\0162\016.SeatLoc" +
-      "kState\"/\n\016GameServerText\022\017\n\007ga_name\030\001 \001(",
-      "\t\022\014\n\004text\030\002 \001(\t\"D\n\016GamePlayerText\022\017\n\007ga_" +
-      "name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\022\014\n\004text\030" +
-      "\003 \001(\t\" \n\rBotTimingPing\022\017\n\007ga_name\030\001 \001(\t\"" +
-      "\037\n\014BotAdminPing\022\017\n\007ga_name\030\001 \001(\t\"\035\n\nBotD" +
-      "ismiss\022\017\n\007ga_name\030\001 \001(\t\"1\n\tLeaveGame\022\017\n\007" +
-      "ga_name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\"\035\n\nDe" +
-      "leteGame\022\017\n\007ga_name\030\001 \001(\t\"\322\010\n\nFromServer" +
-      "\022\030\n\004vers\030\001 \001(\0132\010.VersionH\000\022.\n\021reject_con" +
-      "nection\030\002 \001(\0132\021.RejectConnectionH\000\022(\n\013st" +
-      "atus_text\030\003 \001(\0132\021.ServerStatusTextH\000\022(\n\016",
-      "broadcast_text\030\004 \001(\0132\016.BroadcastTextH\000\022\"" +
-      "\n\013server_ping\030\005 \001(\0132\013.ServerPingH\000\022.\n\014ga" +
-      "me_message\030\017 \001(\0132\026.GameMessageFromServer" +
-      "H\000\022-\n\021bot_update_params\030\024 \001(\0132\020.BotUpdat" +
-      "eParamsH\000\022)\n\017bot_admin_reset\030\025 \001(\0132\016.Bot" +
-      "AdminResetH\000\022\035\n\010channels\030d \001(\0132\t.Channel" +
-      "sH\000\022\035\n\006ch_new\030e \001(\0132\013.NewChannelH\000\022\037\n\007ch" +
-      "_join\030f \001(\0132\014.JoinChannelH\000\022%\n\nch_member" +
-      "s\030g \001(\0132\017.ChannelMembersH\000\022\037\n\007ch_text\030h " +
-      "\001(\0132\014.ChannelTextH\000\022!\n\010ch_leave\030i \001(\0132\r.",
-      "LeaveChannelH\000\022#\n\tch_delete\030j \001(\0132\016.Dele" +
-      "teChannelH\000\022\030\n\005games\030\310\001 \001(\0132\006.GamesH\000\022\033\n" +
-      "\006ga_new\030\311\001 \001(\0132\010.NewGameH\000\022\035\n\007ga_join\030\312\001" +
-      " \001(\0132\t.JoinGameH\000\022,\n\014bot_join_req\030\313\001 \001(\013" +
-      "2\023.BotJoinGameRequestH\000\022#\n\nga_members\030\314\001" +
-      " \001(\0132\014.GameMembersH\000\022\035\n\010sit_down\030\315\001 \001(\0132" +
-      "\010.SitDownH\000\022&\n\rset_seat_lock\030\316\001 \001(\0132\014.Se" +
-      "tSeatLockH\000\022\'\n\013server_text\030\317\001 \001(\0132\017.Game" +
-      "ServerTextH\000\022*\n\016ga_player_text\030\320\001 \001(\0132\017." +
-      "GamePlayerTextH\000\022*\n\017bot_timing_ping\030\321\001 \001",
-      "(\0132\016.BotTimingPingH\000\022(\n\016bot_admin_ping\030\322" +
-      "\001 \001(\0132\r.BotAdminPingH\000\022#\n\013bot_dismiss\030\323\001" +
-      " \001(\0132\013.BotDismissH\000\022\037\n\010ga_leave\030\324\001 \001(\0132\n" +
-      ".LeaveGameH\000\022!\n\tga_delete\030\325\001 \001(\0132\013.Delet" +
-      "eGameH\000B\005\n\003msg\"\231\004\n\nFromClient\022\030\n\004vers\030\001 " +
-      "\001(\0132\010.VersionH\000\022 \n\010auth_req\030\002 \001(\0132\014.Auth" +
-      "RequestH\000\022\037\n\nim_a_robot\030\003 \001(\0132\t.ImARobot" +
-      "H\000\022\"\n\013server_ping\030\004 \001(\0132\013.ServerPingH\000\022\036" +
-      "\n\tleave_all\030\005 \001(\0132\t.LeaveAllH\000\022.\n\014game_m" +
-      "essage\030\017 \001(\0132\026.GameMessageFromClientH\000\022\037",
-      "\n\007ch_join\030d \001(\0132\014.JoinChannelH\000\022\037\n\007ch_te" +
-      "xt\030e \001(\0132\014.ChannelTextH\000\022!\n\010ch_leave\030f \001" +
-      "(\0132\r.LeaveChannelH\000\022\033\n\006ga_new\030\310\001 \001(\0132\010.N" +
-      "ewGameH\000\022\035\n\007ga_join\030\311\001 \001(\0132\t.JoinGameH\000\022" +
-      "\035\n\010sit_down\030\312\001 \001(\0132\010.SitDownH\000\022&\n\rset_se" +
-      "at_lock\030\313\001 \001(\0132\014.SetSeatLockH\000\022*\n\016ga_pla" +
-      "yer_text\030\314\001 \001(\0132\017.GamePlayerTextH\000\022\037\n\010ga" +
-      "_leave\030\315\001 \001(\0132\n.LeaveGameH\000B\005\n\003msgB\r\n\tso" +
-      "c.protoH\001P\000P\001b\006proto3"
+      "\n\013seat_number\030\002 \001(\r\"K\n\010JoinGame\022\017\n\007ga_na" +
+      "me\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\022\031\n\021board_s" +
+      "ize_vshift\030\003 \003(\005\"/\n\013GameMembers\022\017\n\007ga_na" +
+      "me\030\001 \001(\t\022\017\n\007members\030\002 \003(\t\"R\n\007SitDown\022\017\n\007" +
+      "ga_name\030\001 \001(\t\022\017\n\007pl_name\030\002 \001(\t\022\023\n\013seat_n" +
+      "umber\030\003 \001(\r\022\020\n\010is_robot\030\004 \001(\010\"R\n\013SetSeat" +
+      "Lock\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013seat_number\030\002 \001" +
+      "(\r\022\035\n\005state\030\003 \003(\0162\016.SeatLockState\"/\n\016Gam",
+      "eServerText\022\017\n\007ga_name\030\001 \001(\t\022\014\n\004text\030\002 \001" +
+      "(\t\"D\n\016GamePlayerText\022\017\n\007ga_name\030\001 \001(\t\022\023\n" +
+      "\013member_name\030\002 \001(\t\022\014\n\004text\030\003 \001(\t\" \n\rBotT" +
+      "imingPing\022\017\n\007ga_name\030\001 \001(\t\"\037\n\014BotAdminPi" +
+      "ng\022\017\n\007ga_name\030\001 \001(\t\"\035\n\nBotDismiss\022\017\n\007ga_" +
+      "name\030\001 \001(\t\"1\n\tLeaveGame\022\017\n\007ga_name\030\001 \001(\t" +
+      "\022\023\n\013member_name\030\002 \001(\t\"\035\n\nDeleteGame\022\017\n\007g" +
+      "a_name\030\001 \001(\t\"\322\010\n\nFromServer\022\030\n\004vers\030\001 \001(" +
+      "\0132\010.VersionH\000\022.\n\021reject_connection\030\002 \001(\013" +
+      "2\021.RejectConnectionH\000\022(\n\013status_text\030\003 \001",
+      "(\0132\021.ServerStatusTextH\000\022(\n\016broadcast_tex" +
+      "t\030\004 \001(\0132\016.BroadcastTextH\000\022\"\n\013server_ping" +
+      "\030\005 \001(\0132\013.ServerPingH\000\022.\n\014game_message\030\017 " +
+      "\001(\0132\026.GameMessageFromServerH\000\022-\n\021bot_upd" +
+      "ate_params\030\024 \001(\0132\020.BotUpdateParamsH\000\022)\n\017" +
+      "bot_admin_reset\030\025 \001(\0132\016.BotAdminResetH\000\022" +
+      "\035\n\010channels\030d \001(\0132\t.ChannelsH\000\022\035\n\006ch_new" +
+      "\030e \001(\0132\013.NewChannelH\000\022\037\n\007ch_join\030f \001(\0132\014" +
+      ".JoinChannelH\000\022%\n\nch_members\030g \001(\0132\017.Cha" +
+      "nnelMembersH\000\022\037\n\007ch_text\030h \001(\0132\014.Channel",
+      "TextH\000\022!\n\010ch_leave\030i \001(\0132\r.LeaveChannelH" +
+      "\000\022#\n\tch_delete\030j \001(\0132\016.DeleteChannelH\000\022\030" +
+      "\n\005games\030\310\001 \001(\0132\006.GamesH\000\022\033\n\006ga_new\030\311\001 \001(" +
+      "\0132\010.NewGameH\000\022\035\n\007ga_join\030\312\001 \001(\0132\t.JoinGa" +
+      "meH\000\022,\n\014bot_join_req\030\313\001 \001(\0132\023.BotJoinGam" +
+      "eRequestH\000\022#\n\nga_members\030\314\001 \001(\0132\014.GameMe" +
+      "mbersH\000\022\035\n\010sit_down\030\315\001 \001(\0132\010.SitDownH\000\022&" +
+      "\n\rset_seat_lock\030\316\001 \001(\0132\014.SetSeatLockH\000\022\'" +
+      "\n\013server_text\030\317\001 \001(\0132\017.GameServerTextH\000\022" +
+      "*\n\016ga_player_text\030\320\001 \001(\0132\017.GamePlayerTex",
+      "tH\000\022*\n\017bot_timing_ping\030\321\001 \001(\0132\016.BotTimin" +
+      "gPingH\000\022(\n\016bot_admin_ping\030\322\001 \001(\0132\r.BotAd" +
+      "minPingH\000\022#\n\013bot_dismiss\030\323\001 \001(\0132\013.BotDis" +
+      "missH\000\022\037\n\010ga_leave\030\324\001 \001(\0132\n.LeaveGameH\000\022" +
+      "!\n\tga_delete\030\325\001 \001(\0132\013.DeleteGameH\000B\005\n\003ms" +
+      "g\"\231\004\n\nFromClient\022\030\n\004vers\030\001 \001(\0132\010.Version" +
+      "H\000\022 \n\010auth_req\030\002 \001(\0132\014.AuthRequestH\000\022\037\n\n" +
+      "im_a_robot\030\003 \001(\0132\t.ImARobotH\000\022\"\n\013server_" +
+      "ping\030\004 \001(\0132\013.ServerPingH\000\022\036\n\tleave_all\030\005" +
+      " \001(\0132\t.LeaveAllH\000\022.\n\014game_message\030\017 \001(\0132",
+      "\026.GameMessageFromClientH\000\022\037\n\007ch_join\030d \001" +
+      "(\0132\014.JoinChannelH\000\022\037\n\007ch_text\030e \001(\0132\014.Ch" +
+      "annelTextH\000\022!\n\010ch_leave\030f \001(\0132\r.LeaveCha" +
+      "nnelH\000\022\033\n\006ga_new\030\310\001 \001(\0132\010.NewGameH\000\022\035\n\007g" +
+      "a_join\030\311\001 \001(\0132\t.JoinGameH\000\022\035\n\010sit_down\030\312" +
+      "\001 \001(\0132\010.SitDownH\000\022&\n\rset_seat_lock\030\313\001 \001(" +
+      "\0132\014.SetSeatLockH\000\022*\n\016ga_player_text\030\314\001 \001" +
+      "(\0132\017.GamePlayerTextH\000\022\037\n\010ga_leave\030\315\001 \001(\013" +
+      "2\n.LeaveGameH\000B\005\n\003msgB\r\n\tsoc.protoH\001P\000P\001" +
+      "b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -35474,7 +35808,7 @@ public final class Message {
     internal_static_JoinGame_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_JoinGame_descriptor,
-        new java.lang.String[] { "GaName", "MemberName", });
+        new java.lang.String[] { "GaName", "MemberName", "BoardSizeVshift", });
     internal_static_GameMembers_descriptor =
       getDescriptor().getMessageTypes().get(22);
     internal_static_GameMembers_fieldAccessorTable = new

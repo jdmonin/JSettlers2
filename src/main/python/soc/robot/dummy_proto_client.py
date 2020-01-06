@@ -207,8 +207,12 @@ class DummyProtoClient(object):
             self.request_join_game(msg.game.ga_name)
 
     def _treat_join_game(self, msg):
-        print("  JoinGame(ga_name=" + repr(msg.ga_name)
-            + ", member_name=" + repr(msg.member_name) + ")" )
+        s = "  JoinGame(ga_name=" + repr(msg.ga_name) \
+            + ", member_name=" + repr(msg.member_name)
+        if msg.board_size_vshift:
+            s += ", board_size_vshift=" + repr(msg.board_size_vshift)
+        s += ")"
+        print(s)
         if msg.member_name == self.nickname:
             print("  -- JOINED GAME as observer.")
             self.joined_games.add(msg.ga_name)
@@ -341,12 +345,15 @@ class DummyProtoClient(object):
         atype = msg.action_type
         if not atype:
             atype = game_message_pb2.InventoryItemAction.DRAW
-        if msg.dev_card_value:
+        if msg.dev_cards_set:
+            s = ", dev_cards_set=[" + ", ".join(data_pb2.DevCardValue.Name(card) for card in msg.dev_cards_set) + "]"
+        elif msg.dev_card_value:
             s = ", dev_card_value=" + data_pb2.DevCardValue.Name(msg.dev_card_value)
         elif msg.other_inv_item_type:
             s = ", other_inv_item_type=" + str(msg.other_inv_item_type)
         else:
             s = ", (unknown dev card or item)"
+
         if msg.reason_code:
             s += ", reason=" + str(msg.reason_code)
         if msg.is_playable:
@@ -573,7 +580,7 @@ if __name__ == '__main__':
 
 # This file is part of the JSettlers project.
 #
-# This file Copyright (C) 2017-2018 Jeremy D Monin <jeremy@nand.net>
+# This file Copyright (C) 2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

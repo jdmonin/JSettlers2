@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -239,11 +239,25 @@ message BuyInventoryItemRequest {
 
 /* Client player request, or server response or announcement, about
  * Development Cards or other {@link SOCInventoryItem}s in a player's inventory.
+ * Server sometimes sends to a specific player, sometimes to all game members.
  *<P>
- * Detailed message documentation location is TBD; for now see javadoc
- * of {@code soc.message.SOCDevCardAction} and {@code SOCInventoryItemAction}.
+ * Dev Cards:
+ *<P>
+ * If a robot asks to play a dev card that they can't right now, the server
+ * replies to that bot with InventoryItemAction(-1, {@code CANNOT_PLAY}, cardType).
  *<P>
  * Player Number field is -1 for action type {@code CANNOT_PLAY}; see that enum value for details.
+ *<P>
+ * At end of game (state {@code OVER}), server reveals players' hidden Victory Point cards by announcing an
+ * InventoryItemAction(playerNumber, ADD_OLD, devCardsSet={cardType, cardType, ...})
+ * for each player that has them. This is sent to all game members; a client player should ignore
+ * messages about their own cards in state {@code OVER} by checking playerNumber.
+ * This multiple-cardtype form is currently used only at end of game.
+ *<P>
+ * Other Inventory Items:
+ *<P>
+ * Detailed message documentation location is TBD; for now see javadoc
+ * of {@code soc.message.SOCInventoryItemAction}.
  *<P>
  * Before v3.0.00 this message was {@code SOCDevCardAction} and {@code SOCInventoryItemAction}.
  */
@@ -304,7 +318,7 @@ message InventoryItemAction {
 
     _ActionType action_type = 1;
 
-    /* Specific type of Dev Card or Inventory Item */
+    /* Specific type of Dev Card or Inventory Item. Not used if dev_cards_set is used. */
     oneof item_value {
         /* Type of dev card, like {@link DevCardValue#ROADS}.
          * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -314,6 +328,13 @@ message InventoryItemAction {
         /* Type of generic inventory item, from {@link SOCInventoryItem#itype} */
         int32 other_inv_item_type = 3;
     }
+
+    /* several dev cards, like the Victory Point cards revealed at end of game.
+     * Flag values like is_VP are the same for all cards in the set.
+     * Not usable with action PLAY or CANNOT_PLAY.
+     * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+     */
+    repeated DevCardValue dev_cards_set = 4;
 
     // detail/flag fields for non-DevCard inventory items:
 
