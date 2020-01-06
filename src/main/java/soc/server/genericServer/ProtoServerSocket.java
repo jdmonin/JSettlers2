@@ -1,6 +1,6 @@
 /**
  * JSettlers network message system.
- * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2017,2020 Jeremy D Monin <jeremy@nand.net>.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -36,11 +36,11 @@ public class ProtoServerSocket extends NetServerSocket
     /**
      * {@inheritDoc}
      *<P>
-     * To detect during startup whether the {@code protobuf-lite} JAR is on the classpath,
+     * To detect during startup whether the {@code protobuf-java} JAR is on the classpath,
      * instead of later when a connection comes in, attempts to instantiate a class
      * from that JAR. Throws {@link LinkageError} if that can't be done.
      * @throws IOException If an error occurs creating the ServerSocket
-     * @throws LinkageError If {@code protobuf-lite}'s JAR does not appear to be on the classpath;
+     * @throws LinkageError If {@code protobuf-java}'s JAR does not appear to be on the classpath;
      *     thrown if cannot instantiate class {@link com.google.protobuf.MessageLiteOrBuilder}
      */
     public ProtoServerSocket(int port, Server server)

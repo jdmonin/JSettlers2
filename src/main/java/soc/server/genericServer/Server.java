@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - parameterize types, removeConnection bugfix
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -112,6 +112,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
     /**
      * Optional Protobuf server socket, in addition to a NetServerSocket {@link #ss}.
+     * Runs on port number {@link #protoPort}.
      * In Practice mode (main server socket is a {@link StringServerSocket}), this is always null.
      * @see #startProtoAcceptThread()
      * @since 3.0.00
@@ -153,7 +154,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     /**
      * TCP portnumber for {@link ProtoServerSocket}, or 0 if not used.
      * Default is 4000 ({@link #PORT_DEFAULT_PROTOBUF}).
-     * @see {@link #port}
+     * @see #port
+     * @see #protoSS
      */
     protected int protoPort;
 
@@ -325,12 +327,12 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             }
             catch (IOException e)
             {
-                System.err.println("Could not listen to Protobuf TCP port " + port + ": " + e);
+                System.err.println("Could not listen on Protobuf TCP port " + protoPort + ": " + e);
                 error = e;
             }
             catch (LinkageError e)
             {
-                System.err.println("Error: Could not load Protobuf-lite JAR, check classpath: " + e);
+                System.err.println("Error: Could not load Protobuf-java JAR, check classpath: " + e);
                 error = e;
             }
         }
@@ -670,17 +672,21 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                     catch (IOException e)
                     {
                         error = e;
-                        D.ebugPrintln("Exception " + e + " during protobuf accept");
+                        if (isUp())
+                            D.ebugPrintln("Exception " + e + " during protobuf accept");
                     }
 
                     try
                     {
                         protoSS.close();
-                        protoSS = new ProtoServerSocket(protoPort, Server.this);
+                        if (isUp())
+                            // retry
+                            protoSS = new ProtoServerSocket(protoPort, Server.this);
                     }
                     catch (IOException e)
                     {
-                        System.err.println("Could not listen to Protobuf TCP port " + port + ": " + e);
+                        if (isUp())
+                            System.err.println("Could not listen on Protobuf TCP port " + protoPort + ": " + e);
                         up = false;
                         inQueue.stopMessageProcessing();
                         error = e;
@@ -688,7 +694,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                     catch (LinkageError e)
                     {
                         // unlikely at this point, server is already up and running
-                        System.err.println("Check protobuf JAR: Could not re-bind to Protobuf TCP port " + port + ": " + e);
+                        System.err.println
+                            ("Check protobuf JAR: Could not re-bind to Protobuf TCP port " + protoPort + ": " + e);
                         up = false;
                         inQueue.stopMessageProcessing();
                         error = e;
@@ -810,6 +817,10 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         {
             e.nextElement().disconnect();
         }
+
+        if (protoSS != null)
+            try { protoSS.close(); }
+            catch (IOException e) {}
 
         conns.clear();
         connNames.clear();
