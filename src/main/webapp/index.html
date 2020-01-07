@@ -5,7 +5,7 @@
 
  This file is part of the Java Settlers Web App.
 
- This file Copyright (C) 2017 Jeremy D Monin (jeremy@nand.net)
+ This file Copyright (C) 2017,2020 Jeremy D Monin (jeremy@nand.net)
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@
   <meta charset="UTF-8">
   <script src="inc/jquery-3.2.1.min.js"></script>
   <script async src="index-ws-dispatcher.js"></script>
-  <!-- note: index-ws-dispatcher loads chat-channel.js -->
+  <!-- note: index-ws-dispatcher loads chat-channel.js, game-ui.js -->
   <link rel="stylesheet" type="text/css" href="index.css">
 </head>
 <body>
@@ -86,6 +86,7 @@ wsURL = null;  // websocket url to connect to, calculated and displayed in init(
 wsConn = null;  // websocket, after doConnect()
 hasFirstMessage = false;  // true at first message received from server
 inChannels = [];  // chat channels we're in; see chat-channel.js
+inGames = [];     // games we're in; see game-ui.js
 
 // jquery setup
 $(function(){
@@ -217,7 +218,19 @@ function sendToServer(jsonObj)
 /* chat channel list, game list */
 
 $('#game_list').on('dblclick', 'li', function() {
-    alert("This demo client can't join games.");
+    var gaName = $(this).text();
+    var gaObj = inGames[gaName];
+    if (! gaObj)
+    {
+	newGameWindow(gaName);  // create here to allow popup/new tab
+	// ask, await server's reply
+	var joinMsg = { "gaJoin": { "gaName": gaName } };
+	sendToServer(joinMsg);
+    } else {
+	var winObj = gaObj.gaWindow;
+	if (winObj)
+	    winObj.alert('You have joined this game.');
+    }
 });
 
 $('#chat_channel_list').on('dblclick', 'li', function() {
@@ -225,7 +238,7 @@ $('#chat_channel_list').on('dblclick', 'li', function() {
     var chObj = inChannels[chName];
     if (! chObj)
     {
-	newChannelWindow(chName);  // create here to allow popup
+	newChannelWindow(chName);  // create here to allow popup/new tab
 	// ask, await server's reply
 	var joinMsg = { "chJoin": { "chName": chName } };
 	sendToServer(joinMsg);

@@ -1,11 +1,11 @@
 /*
  websocket dispatcher for index.html
 
- Also loads chat-channel.js asynchronously.
+ Also loads chat-channel.js and game-ui.js asynchronously.
 
  This file is part of the Java Settlers Web App.
 
- This file Copyright (C) 2017 Jeremy D Monin (jeremy@nand.net)
+ This file Copyright (C) 2017,2020 Jeremy D Monin (jeremy@nand.net)
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -110,10 +110,15 @@ function msgDispatch(mType, mData)
 $('#connect_btn').prop('disabled', false);
 
 // Now that dispatcher is loaded: In case it's needed soon,
-// load chat channel interface functions and message handlers.
+// load chat channel and game board UI functions and message handlers.
 // Don't use $.getScript since it disables caching
 $.ajax({
     'url': 'chat-channel.js',
+    'dataType': 'script',
+    'cache': (window.location.host != 'localhost')
+    });
+$.ajax({
+    'url': 'game-ui.js',
     'dataType': 'script',
     'cache': (window.location.host != 'localhost')
     });
