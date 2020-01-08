@@ -26,7 +26,10 @@ const BOARDWIDTH_VISUAL_MIN = 18, BOARDHEIGHT_VISUAL_MIN = 17;  // half-hex unit
 const BOARD_BORDER = 20;  // px on each side
 const DELTA_X = 54, DELTA_Y = 46, HALF_DELTA_X = DELTA_X / 2, HALF_DELTA_Y = DELTA_Y / 2;  // px offsets for each hex
 
-// Message handlers; see bottom of file for GameUI object and inGames[] entries //
+// Colors: water, clay, ore, sheep, wheat, wood, desert, gold, fog
+const HEXTYPE_COLORS = ['#33a', '#cc6666', '#999999', '#33cc33', '#cccc33', '#cc9966', '#ffff99', '#ff0', '#dcdcdc'];
+
+// Non-gameMessage handlers; see bottom of file for GameUI object, inGames[] entries, gameMessage handlers //
 
 function handleGameJoin(mData)
 {
@@ -103,10 +106,9 @@ function GameUI(gaName)
     this.handleJoin = function(memberName,bh,bw,vsD,vsR)
     {
 	// if we're in that game, add person to member list there
-	// otherwise if mData.memberName is us, open a game-UI window
-	// and expect gameMembers message soon
-	console.log("ga handleJoin: got here, bh=" + bh + ", bw=" + bw + ", cliJoined is " + this.cliJoined);
-	if ((memberName == nickname) && ! this.cliJoined)
+	// otherwise if mData doesn't have memberName, it's auth to join game:
+	// open a game-UI window and expect gameMembers message soon
+	if ((memberName === undefined) && ! this.cliJoined)
 	{
 	    if (bh < BOARDHEIGHT_VISUAL_MIN)
 		bh = BOARDHEIGHT_VISUAL_MIN;
@@ -116,9 +118,9 @@ function GameUI(gaName)
 	    this.hexOffsX = vsR * HALF_DELTA_X / 2;
 	    this.hexOffsY = vsD * HALF_DELTA_Y / 2;
 	    if (vsD > 0)
-		canH += hexOffsY;
+		canH += this.hexOffsY;
 	    if (vsR > 0)
-		canW += hexOffsX;
+		canW += this.hexOffsX;
 	    this.hexOffsX += BOARD_BORDER;  this.hexOffsY += BOARD_BORDER;
 
 	    let uiBody = this.gaWindow.document.body;
@@ -159,15 +161,21 @@ function GameUI(gaName)
 	const can = doc.getElementById("board");
 	this.gameCanvas = can;
 	let ctx = can.getContext('2d');
-	ctx.fillStyle = "#11a";  // dk blue
+	ctx.fillStyle = "#119";  // dk blue
 	ctx.fillRect(0, 0, can.width, can.height);
-	ctx.fillStyle = "#16f";  // cyan
 	for (let r = 1, y = this.hexOffsY; r < h; r += 2, y += DELTA_Y)
 	{
-	    let c = ((r % 4 == 1) ? 1 : 0);
+	    let c = ((r % 4 == 3) ? 1 : 0);
 	    for (let x = this.hexOffsX + c * HALF_DELTA_X; c < w; c += 2, x += DELTA_X)
-		ctx.fillRect(x+4, y+4, DELTA_X-8, DELTA_Y-8);  // TODO an actual hex, w/ id hex_RRCC
+		this.drawHex(r, c, 0);
         }
+    }
+    this.drawHex = function(r, c, htype)
+    {
+	let x = this.hexOffsX + c * HALF_DELTA_X, y = this.hexOffsY + r * HALF_DELTA_Y;
+	let ctx = this.gameCanvas.getContext('2d');
+	ctx.fillStyle = ((htype >= 0) && (htype < HEXTYPE_COLORS.length)) ? HEXTYPE_COLORS[htype] : 'gray';
+	ctx.fillRect(x+4, y+4, DELTA_X-8, DELTA_Y-8);  // TODO an actual hex, w/ id hex_RRCC
     }
     this.handleMembers = function(memberNames)
     {
@@ -271,3 +279,49 @@ dispatchTo['gaJoin'] = handleGameJoin;
 dispatchTo['gaMembers'] = handleGameMembers;
 dispatchTo['gaPlayerText'] = handleGameText;
 dispatchTo['gaLeave'] = handleLeaveGame;
+
+// gameMessage handlers: gets gameUI obj for gameName, gameName (or undef), playerNumber (or undef), mdata.
+// Handler order here roughly follows that of game_message.proto GameMessageFromServer
+
+var gaDispatchTo =
+{
+    boardLayout: function(gameui, gn, pn, mdata)
+    {
+	if (mdata.layoutEncoding != "BOARD_ENCODING_LARGE")
+	{
+	    this.gaWindow.alert('Cannot draw board: Unknown board encoding');  // TODO gaWindow not found
+	    return;
+	}
+	// TODO try-except in case LH not found
+	const LH = mdata.parts.LH.iArr.arr;
+	for (let i = 0; i < LH.length; i += 3)
+	{
+	    let hcoord = LH[i], htype = LH[i+1];
+	    gameui.drawHex((hcoord >> 8) & 0xFF, hcoord & 0xFF, htype);
+	}
+    }
+};
+
+dispatchTo['gameMessage'] = function(mdata)
+    {
+	let gaName = mdata.gameName, playerNumber = mdata.playerNumber;  // might be undefined
+	let mtype;
+	for (let kname of Object.keys(mdata))  // message type, and might contain: gameName, playerNumber
+	{
+	    if ((kname == 'gameName') || (kname == 'playerNumber'))
+		continue;
+	    if (mtype !== undefined)
+	    {
+		console.log("malformed: multiple keys: " + mtype + ", " + kname);
+		return;
+	    } else {
+		mtype = kname;
+	    }
+	}
+	let gfunc = gaDispatchTo[mtype];
+	if (gfunc)
+	    gfunc(inGames[gaName], gaName, playerNumber, mdata[mtype]);
+	else
+	    console.log("game-ui: no func for msgtype: " + mtype);
+    };
+
