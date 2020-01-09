@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
@@ -1882,15 +1882,10 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                     (client.nickname, pw, SOCMessage.EMPTYSTR, gmName, opts)
                 : SOCJoinGame.toCmd
                     (client.nickname, pw, SOCMessage.EMPTYSTR, gmName);
-            System.err.println("L1314 askStartGameWithOptions at " + System.currentTimeMillis());
-            System.err.println("      Got all opts,defaults? " + client.tcpServGameOpts.allOptionsReceived
-                + " " + client.tcpServGameOpts.defaultsReceived);
             net.putNet(askMsg);
             System.out.flush();  // for debug print output (temporary)
             status.setText(client.strings.get("pcli.message.talkingtoserv"));  // "Talking to server..."
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-            System.err.println("L1320 askStartGameWithOptions done at " + System.currentTimeMillis());
-            System.err.println("      sent: " + net.lastMessage_N);
         }
     }
 
