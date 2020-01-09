@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - parameterize types, removeConnection bugfix
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -85,6 +85,10 @@ import soc.server.SOCServer;
 public abstract class Server extends Thread implements Serializable, Cloneable
 {
 
+    /**
+     * TCP or practice-mode server socket.
+     * Runs on port number {@link #port}.
+     */
     SOCServerSocket ss;
 
     /**
@@ -110,6 +114,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     /**
      * TCP port number for {@link NetServerSocket}, or -1 for
      * local/practice mode ({@link StringServerSocket}).
+     * @see #ss
      */
     protected int port;
 
@@ -278,7 +283,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         }
         catch (IOException e)
         {
-            System.err.println("Could not listen to port " + port + ": " + e);
+            System.err.println("Could not listen on port " + port + ": " + e);
             error = e;
         }
 
@@ -542,7 +547,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             catch (IOException e)
             {
                 error = e;
-                D.ebugPrintln("Exception " + e + " during accept");
+                if (up)
+                    D.ebugPrintln("Exception " + e + " during accept");
 
                 //System.out.println("STOPPING SERVER");
                 //stopServer();
@@ -551,15 +557,22 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             try
             {
                 ss.close();
-                if (strSocketName == null)
-                    ss = new NetServerSocket(port, this);
-                else
-                    ss = new StringServerSocket(strSocketName);
+                if (up)
+                {
+                    // retry
+                    if (strSocketName == null)
+                        ss = new NetServerSocket(port, this);
+                    else
+                        ss = new StringServerSocket(strSocketName);
+                }
             }
             catch (IOException e)
             {
-                System.err.println("Could not listen to port " + port + ": " + e);
-                up = false;
+                if (up)
+                {
+                    System.err.println("Could not listen on port " + port + ": " + e);
+                    up = false;
+                }
                 inQueue.stopMessageProcessing();
                 error = e;
             }
@@ -671,10 +684,14 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
         serverDown();
 
-        for (Enumeration<Connection> e = conns.elements(); e.hasMoreElements();)
+        for (Enumeration<Connection> e = conns.elements(); e.hasMoreElements(); )
         {
             e.nextElement().disconnect();
         }
+
+        if (ss != null)
+            try { ss.close(); }
+            catch (IOException e) {}
 
         conns.clear();
         connNames.clear();
