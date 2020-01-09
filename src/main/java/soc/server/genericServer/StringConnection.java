@@ -1,6 +1,6 @@
 /**
  * Local (StringConnection) network system.
- * This file Copyright (C) 2007-2010,2012-2013,2016-2017 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2007-2010,2012-2013,2016-2017,2020 Jeremy D Monin <jeremy@nand.net>.
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -59,10 +59,10 @@ import soc.message.SOCMessage;
  *  2.0.0 - 2017-11-01 - Rename StringConnection -> Connection, NetStringConnection -> NetConnection,
  *                       LocalStringConnection -> StringConnection.
  *                       Connection is now a superclass, not an interface.
+ *  2.1.0 - 2020-01-09 - Only server-side changes: See {@link SOCServerSocket}
  *</PRE>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
- * @version 2.0.0
  */
 public class StringConnection
     extends Connection implements Runnable
