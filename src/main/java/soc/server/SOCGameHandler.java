@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2019 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2013-2020 Jeremy D Monin <jeremy@nand.net>.
  * Contents were formerly part of SOCServer.java;
  * portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
@@ -1352,11 +1352,10 @@ public class SOCGameHandler extends GameHandler
                 (cliVers >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES)
                 ? SOCDevCardConstants.UNKNOWN
                 : SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X;
-            final String cardUnknownCmd = new SOCDevCardAction(gameName, i, SOCDevCardAction.ADD_OLD, unknownType).toCmd();
+            final String cardUnknownMsg =
+                new SOCDevCardAction(gameName, i, SOCDevCardAction.ADD_OLD, unknownType).toCmd();
             for (int j = 0; j < numDevCards; j++)
-            {
-                c.put(cardUnknownCmd);
-            }
+                c.put(cardUnknownMsg);
 
             if (gameSITypes != null)
             {

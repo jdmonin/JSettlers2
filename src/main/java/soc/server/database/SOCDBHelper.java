@@ -113,7 +113,7 @@ import java.util.concurrent.Executors;
  * using {@link #checkSettings(boolean, boolean) checkSettings(true, true)}.
  *
  *<H3>Transactions:</H3>
- * Some database types and drivers use an "auto-commit" mode by default, others might not, for individual
+ * Some database types and drivers may use an "auto-commit" mode by default, others might not, for individual
  * SQL commands. To account for this when a longer transaction is needed, and abstract it a bit,
  * call methods {@link #enterTransactionMode()} and {@link #exitTransactionMode(boolean)} around your
  * transaction's SQL commands. See those methods' javadocs for details.
@@ -4766,7 +4766,7 @@ public class SOCDBHelper
             throws SQLException
         {
             final int UPG_BATCH = UPG_BATCH_MAX / 3 + 1;
-                // less than max, because loop body includes many tables' updates in same transaction
+                // less than max, because loop body includes per-game updates for several tables
 
             System.err.println("Schema upgrade: Normalizing games into games2");
 

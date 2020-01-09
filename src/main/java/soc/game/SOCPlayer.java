@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -3998,11 +3998,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Set which nodes are potential settlements.
-     * Called at client when joining/creating a game,
+     * Called at client when joining or starting a game,
      * when game's Potential Settlements message is received.
      * Called at server if {@link SOCGame#hasSeaBoard},
      * just after makeNewBoard in {@link SOCGame#startGame()};
-     * otherwise server copies the potentials list
+     * if not called, server copies the potentials list
      * at start of game from legalSettlements.
      *<P>
      * If player's game uses the large sea board ({@link SOCGame#hasSeaBoard}),

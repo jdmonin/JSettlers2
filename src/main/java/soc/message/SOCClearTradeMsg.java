@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010-2011,2014,2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2011,2014,2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message means that the server wants the trade message cleared.
+ * This message means that the server wants any trade messages/responses cleared in the client UI.
  *<P>
  * Note: When a player makes a new trade offer, the server announces that with a {@link SOCMakeOffer} message
  * followed immediately by a {@code SOCClearTradeMsg} to clear responses from any previous offer.
