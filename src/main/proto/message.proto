@@ -48,7 +48,7 @@ message Version {
     string vers_str = 2;    // version display string, as in {@link soc.util.Version#version()}
     string vers_build = 3;  // version build, as in {@link soc.util.Version#buildnum()}
     string cli_locale = 4;  // client's locale to server, from {@link java.util.Locale#toString()}
-    string srv_feats = 5;   // server's feats (active optional features) to client, from {@link SOCServerFeatures#getEncodedList()}
+    string feats = 5;   // server's or client's active optional features, from {@link SOCFeatureSet#getEncodedList()}; omit if none
 }
 
 message ImARobot {
@@ -557,17 +557,17 @@ message BotJoinGameRequest {
 }
 
 /* Client's request to join an existing game, or server's authorization for that client to join.
+ * The newly joined client may initially be an observer; if they are a player rejoining after disconnect,
+ * server will send {@link SitDown} too.
  *<P>
- * If server authorizes a client, the server sends {@code JoinGame} and further messages to
- * all members of that game (players and observers) including the requesting client, then
- * further messages to the requesting client (see below). The newly joined client may be an observer;
- * if they are a player, {@link SitDown} will be sent too.
+ * If request is declined, server replies to that client with a {@link ServerStatusText} instead of this message.
  *<P>
- * If authorization is declined, server instead replies to that
- * client with a {@link ServerStatusText}.
+ * If the join request is successful, the server sends requesting client {@code JoinGame} without member_name,
+ * and optionally with board_size_vshift. May then send some messages to all members of that game (players and observers)
+ * including the requesting client. The requesting client is sent a specific sequence
+ * of messages with details about the game; see {@link GameMembers}. Sequence ends with a {@code JoinGame}
+ * with client member's name, which is announced to all game members.
  *<P>
- * If the join request is successful, requesting client is sent a specific sequence
- * of messages with details about the game; see {@link GameMembers}.
  * In order for robot clients to be certain they have all details about a game
  * (board layout, player scores, piece counts, etc), they should take no action
  * before receiving {@link GameMembers} about that game.
@@ -576,13 +576,13 @@ message BotJoinGameRequest {
  * so it's handled by {@code SOCServer} instead of a {@code GameHandler}.
  *<P>
  * Before v3.0.00 this message was handled by {@code SOCJoinGameRequest} and {@code SOCJoinGameAuth}.
- * Before v2.0.00 this message was {@code SOCJoinAuth}.
  * @see JoinChannel
  * @see BotJoinGameRequest
  */
 message JoinGame {
     string ga_name = 1;      // Name of game being joined
-    string member_name = 2;  // Nickname of the joining member (should be "" for client -> server)
+    string member_name = 2;  // Nickname of the joining member (should be "" for client -> server);
+	// omitted if message is server's auth to requesting client to join game
 
     /* Optional board size info, to help create the joining client's user interface to show this game.
      * Otherwise this wouldn't be sent until a later {@code BoardLayout} message,
@@ -590,11 +590,11 @@ message JoinGame {
      *<P>
      * If present: First 2 elements are board height and width, from {@link soc.game.SOCBoard#getBoardHeight()}
      * and {@link soc.game.SOCBoard#getBoardWidth()}.
-     * Optionally 2 more elements: layout Visual Shift ("VS") amounts Down and Right, in units of 1/4 hex size,
-     * from Layout Part "VS".
+     * Optionally 2 more elements: layout Visual Shift ("VS") amounts Down and Right (negative for Up or Left),
+     * in units of 1/4 hex size, from Layout Part "VS".
      * @see soc.game.SOCBoardLarge#getAddedLayoutPart(String)
      */
-    repeated int32 board_size_vshift = 3;
+    repeated sint32 board_size_vshift = 3;
 }
 
 /* This message lists all the members of a game: Players and observers.

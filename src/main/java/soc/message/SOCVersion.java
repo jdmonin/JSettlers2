@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008-2009,2012-2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2009,2012-2015,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -238,7 +238,7 @@ public class SOCVersion extends SOCMessage
             .setVersNum(versNum).setVersStr(versStr)
             .setVersBuild(versBuild);
         if (feats != null)
-            vb.setSrvFeats(feats);
+            vb.setFeats(feats);
         return Message.FromServer.newBuilder()
             .setVers(vb).build();
     }

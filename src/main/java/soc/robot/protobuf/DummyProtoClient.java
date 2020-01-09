@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -90,6 +90,7 @@ public class DummyProtoClient
     {
         final Message.FromClient msgVers = Message.FromClient.newBuilder()
             .setVers(Message.Version.newBuilder()
+                .setFeats(";6pl;sb;sc=3000;")
                 .setVersNum(Version.versionNumber()).setVersStr(Version.version())
                 .setVersBuild(Version.buildnum())).build();
         final Message.FromClient msgImARobot = Message.FromClient.newBuilder()
@@ -159,7 +160,7 @@ public class DummyProtoClient
                 Message.Version m = msg.getVers();
                 System.out.println
                     ("  Version(" + m.getVersNum() + ", '" + m.getVersStr()
-                     + "', '" + m.getVersBuild() + "', '" + m.getSrvFeats() + "')");
+                     + "', '" + m.getVersBuild() + "', '" + m.getFeats() + "')");
             }
             break;
 

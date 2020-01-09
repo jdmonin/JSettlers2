@@ -27,7 +27,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='message.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\rmessage.proto\x1a\ndata.proto\x1a\x12game_message.proto\"h\n\x07Version\x12\x10\n\x08vers_num\x18\x01 \x01(\r\x12\x10\n\x08vers_str\x18\x02 \x01(\t\x12\x12\n\nvers_build\x18\x03 \x01(\t\x12\x12\n\ncli_locale\x18\x04 \x01(\t\x12\x11\n\tsrv_feats\x18\x05 \x01(\t\">\n\x08ImARobot\x12\x10\n\x08nickname\x18\x01 \x01(\t\x12\x0e\n\x06\x63ookie\x18\x02 \x01(\t\x12\x10\n\x08rb_class\x18\x03 \x01(\t\"\xff\x01\n\x0b\x41uthRequest\x12#\n\x04role\x18\x01 \x01(\x0e\x32\x15.AuthRequest.AuthRole\x12\x10\n\x08nickname\x18\x02 \x01(\t\x12\x10\n\x08password\x18\x03 \x01(\t\x12,\n\x0b\x61uth_scheme\x18\x04 \x01(\x0e\x32\x17.AuthRequest.AuthScheme\"@\n\x08\x41uthRole\x12\x13\n\x0f_UNSENT_DEFAULT\x10\x00\x12\x0f\n\x0bGAME_PLAYER\x10\x01\x12\x0e\n\nUSER_ADMIN\x10\x02\"7\n\nAuthScheme\x12\x13\n\x0f_UNUSED_DEFAULT\x10\x00\x12\x14\n\x10\x43LIENT_PLAINTEXT\x10\x01\"\'\n\x10RejectConnection\x12\x13\n\x0breason_text\x18\x01 \x01(\t\"\x98\x05\n\x10ServerStatusText\x12\x0c\n\x04text\x18\x01 \x01(\t\x12)\n\x02sv\x18\x02 \x01(\x0e\x32\x1d.ServerStatusText.StatusValue\x12\x0f\n\x07\x64\x65tails\x18\x03 \x03(\t\"\xb9\x04\n\x0bStatusValue\x12\x06\n\x02OK\x10\x00\x12\x12\n\x0eNOT_OK_GENERIC\x10\x01\x12\x12\n\x0eNAME_NOT_FOUND\x10\x02\x12\x0c\n\x08PW_WRONG\x10\x03\x12\x0f\n\x0bNAME_IN_USE\x10\x04\x12\x1a\n\x16\x43\x41NT_JOIN_GAME_VERSION\x10\x05\x12\x13\n\x0fPROBLEM_WITH_DB\x10\x06\x12\x13\n\x0f\x41\x43\x43T_CREATED_OK\x10\x07\x12\x18\n\x14\x41\x43\x43T_NOT_CREATED_ERR\x10\x08\x12\x1a\n\x16NEWGAME_OPTION_UNKNOWN\x10\t\x12\x1f\n\x1bNEWGAME_OPTION_VALUE_TOONEW\x10\n\x12\x1a\n\x16NEWGAME_ALREADY_EXISTS\x10\x0b\x12\x19\n\x15NEWGAME_NAME_REJECTED\x10\x0c\x12\x19\n\x15NEWGAME_NAME_TOO_LONG\x10\r\x12\x1c\n\x18NEWGAME_TOO_MANY_CREATED\x10\x0e\x12\x1f\n\x1bNEWCHANNEL_TOO_MANY_CREATED\x10\x0f\x12\x0f\n\x0bPW_REQUIRED\x10\x10\x12\x1b\n\x17\x41\x43\x43T_NOT_CREATED_DENIED\x10\x11\x12\x1d\n\x19\x41\x43\x43T_CREATED_OK_FIRST_ONE\x10\x12\x12\x14\n\x10NAME_NOT_ALLOWED\x10\x13\x12\x13\n\x0fOK_SET_NICKNAME\x10\x14\x12\x14\n\x10OK_DEBUG_MODE_ON\x10\x15\x12\x1f\n\x1bGAME_CLIENT_FEATURES_NEEDED\x10\x16\"\x1d\n\rBroadcastText\x12\x0c\n\x04text\x18\x01 \x01(\t\"\n\n\x08LeaveAll\" \n\nServerPing\x12\x12\n\nsleep_time\x18\x01 \x01(\x05\"\xf7\x01\n\x0f\x42otUpdateParams\x12\x17\n\x0fmax_game_length\x18\x01 \x01(\r\x12\x0f\n\x07max_eta\x18\x02 \x01(\r\x12\x18\n\x10\x65ta_bonus_factor\x18\x03 \x01(\x02\x12\x1a\n\x12\x61\x64versarial_factor\x18\x04 \x01(\x02\x12!\n\x19leader_adversarial_factor\x18\x05 \x01(\x02\x12\x1b\n\x13\x64\x65v_card_multiplier\x18\x06 \x01(\x02\x12\x19\n\x11threat_multiplier\x18\x07 \x01(\x02\x12\x15\n\rstrategy_type\x18\x08 \x01(\r\x12\x12\n\ntrade_flag\x18\t \x01(\x08\"\x0f\n\rBotAdminReset\"\x19\n\x08\x43hannels\x12\r\n\x05names\x18\x01 \x03(\t\"\x1d\n\nNewChannel\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\"3\n\x0bJoinChannel\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\x12\x13\n\x0bmember_name\x18\x02 \x01(\t\"2\n\x0e\x43hannelMembers\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\x12\x0f\n\x07members\x18\x02 \x03(\t\"A\n\x0b\x43hannelText\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\x12\x13\n\x0bmember_name\x18\x02 \x01(\t\x12\x0c\n\x04text\x18\x03 \x01(\t\"4\n\x0cLeaveChannel\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\x12\x13\n\x0bmember_name\x18\x02 \x01(\t\" \n\rDeleteChannel\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\"E\n\x10_GameWithOptions\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x0c\n\x04opts\x18\x02 \x01(\t\x12\x12\n\nunjoinable\x18\x03 \x01(\x08\"(\n\x05Games\x12\x1f\n\x04game\x18\x01 \x03(\x0b\x32\x11._GameWithOptions\"?\n\x07NewGame\x12\x1f\n\x04game\x18\x01 \x01(\x0b\x32\x11._GameWithOptions\x12\x13\n\x0bmin_version\x18\x02 \x01(\r\"J\n\x12\x42otJoinGameRequest\x12\x1f\n\x04game\x18\x01 \x01(\x0b\x32\x11._GameWithOptions\x12\x13\n\x0bseat_number\x18\x02 \x01(\r\"K\n\x08JoinGame\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x13\n\x0bmember_name\x18\x02 \x01(\t\x12\x19\n\x11\x62oard_size_vshift\x18\x03 \x03(\x05\"/\n\x0bGameMembers\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x0f\n\x07members\x18\x02 \x03(\t\"R\n\x07SitDown\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x0f\n\x07pl_name\x18\x02 \x01(\t\x12\x13\n\x0bseat_number\x18\x03 \x01(\r\x12\x10\n\x08is_robot\x18\x04 \x01(\x08\"R\n\x0bSetSeatLock\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x13\n\x0bseat_number\x18\x02 \x01(\r\x12\x1d\n\x05state\x18\x03 \x03(\x0e\x32\x0e.SeatLockState\"/\n\x0eGameServerText\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x0c\n\x04text\x18\x02 \x01(\t\"D\n\x0eGamePlayerText\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x13\n\x0bmember_name\x18\x02 \x01(\t\x12\x0c\n\x04text\x18\x03 \x01(\t\" \n\rBotTimingPing\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\"\x1f\n\x0c\x42otAdminPing\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\"\x1d\n\nBotDismiss\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\"1\n\tLeaveGame\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x13\n\x0bmember_name\x18\x02 \x01(\t\"\x1d\n\nDeleteGame\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\"\xd2\x08\n\nFromServer\x12\x18\n\x04vers\x18\x01 \x01(\x0b\x32\x08.VersionH\x00\x12.\n\x11reject_connection\x18\x02 \x01(\x0b\x32\x11.RejectConnectionH\x00\x12(\n\x0bstatus_text\x18\x03 \x01(\x0b\x32\x11.ServerStatusTextH\x00\x12(\n\x0e\x62roadcast_text\x18\x04 \x01(\x0b\x32\x0e.BroadcastTextH\x00\x12\"\n\x0bserver_ping\x18\x05 \x01(\x0b\x32\x0b.ServerPingH\x00\x12.\n\x0cgame_message\x18\x0f \x01(\x0b\x32\x16.GameMessageFromServerH\x00\x12-\n\x11\x62ot_update_params\x18\x14 \x01(\x0b\x32\x10.BotUpdateParamsH\x00\x12)\n\x0f\x62ot_admin_reset\x18\x15 \x01(\x0b\x32\x0e.BotAdminResetH\x00\x12\x1d\n\x08\x63hannels\x18\x64 \x01(\x0b\x32\t.ChannelsH\x00\x12\x1d\n\x06\x63h_new\x18\x65 \x01(\x0b\x32\x0b.NewChannelH\x00\x12\x1f\n\x07\x63h_join\x18\x66 \x01(\x0b\x32\x0c.JoinChannelH\x00\x12%\n\nch_members\x18g \x01(\x0b\x32\x0f.ChannelMembersH\x00\x12\x1f\n\x07\x63h_text\x18h \x01(\x0b\x32\x0c.ChannelTextH\x00\x12!\n\x08\x63h_leave\x18i \x01(\x0b\x32\r.LeaveChannelH\x00\x12#\n\tch_delete\x18j \x01(\x0b\x32\x0e.DeleteChannelH\x00\x12\x18\n\x05games\x18\xc8\x01 \x01(\x0b\x32\x06.GamesH\x00\x12\x1b\n\x06ga_new\x18\xc9\x01 \x01(\x0b\x32\x08.NewGameH\x00\x12\x1d\n\x07ga_join\x18\xca\x01 \x01(\x0b\x32\t.JoinGameH\x00\x12,\n\x0c\x62ot_join_req\x18\xcb\x01 \x01(\x0b\x32\x13.BotJoinGameRequestH\x00\x12#\n\nga_members\x18\xcc\x01 \x01(\x0b\x32\x0c.GameMembersH\x00\x12\x1d\n\x08sit_down\x18\xcd\x01 \x01(\x0b\x32\x08.SitDownH\x00\x12&\n\rset_seat_lock\x18\xce\x01 \x01(\x0b\x32\x0c.SetSeatLockH\x00\x12\'\n\x0bserver_text\x18\xcf\x01 \x01(\x0b\x32\x0f.GameServerTextH\x00\x12*\n\x0ega_player_text\x18\xd0\x01 \x01(\x0b\x32\x0f.GamePlayerTextH\x00\x12*\n\x0f\x62ot_timing_ping\x18\xd1\x01 \x01(\x0b\x32\x0e.BotTimingPingH\x00\x12(\n\x0e\x62ot_admin_ping\x18\xd2\x01 \x01(\x0b\x32\r.BotAdminPingH\x00\x12#\n\x0b\x62ot_dismiss\x18\xd3\x01 \x01(\x0b\x32\x0b.BotDismissH\x00\x12\x1f\n\x08ga_leave\x18\xd4\x01 \x01(\x0b\x32\n.LeaveGameH\x00\x12!\n\tga_delete\x18\xd5\x01 \x01(\x0b\x32\x0b.DeleteGameH\x00\x42\x05\n\x03msg\"\x99\x04\n\nFromClient\x12\x18\n\x04vers\x18\x01 \x01(\x0b\x32\x08.VersionH\x00\x12 \n\x08\x61uth_req\x18\x02 \x01(\x0b\x32\x0c.AuthRequestH\x00\x12\x1f\n\nim_a_robot\x18\x03 \x01(\x0b\x32\t.ImARobotH\x00\x12\"\n\x0bserver_ping\x18\x04 \x01(\x0b\x32\x0b.ServerPingH\x00\x12\x1e\n\tleave_all\x18\x05 \x01(\x0b\x32\t.LeaveAllH\x00\x12.\n\x0cgame_message\x18\x0f \x01(\x0b\x32\x16.GameMessageFromClientH\x00\x12\x1f\n\x07\x63h_join\x18\x64 \x01(\x0b\x32\x0c.JoinChannelH\x00\x12\x1f\n\x07\x63h_text\x18\x65 \x01(\x0b\x32\x0c.ChannelTextH\x00\x12!\n\x08\x63h_leave\x18\x66 \x01(\x0b\x32\r.LeaveChannelH\x00\x12\x1b\n\x06ga_new\x18\xc8\x01 \x01(\x0b\x32\x08.NewGameH\x00\x12\x1d\n\x07ga_join\x18\xc9\x01 \x01(\x0b\x32\t.JoinGameH\x00\x12\x1d\n\x08sit_down\x18\xca\x01 \x01(\x0b\x32\x08.SitDownH\x00\x12&\n\rset_seat_lock\x18\xcb\x01 \x01(\x0b\x32\x0c.SetSeatLockH\x00\x12*\n\x0ega_player_text\x18\xcc\x01 \x01(\x0b\x32\x0f.GamePlayerTextH\x00\x12\x1f\n\x08ga_leave\x18\xcd\x01 \x01(\x0b\x32\n.LeaveGameH\x00\x42\x05\n\x03msgB\r\n\tsoc.protoH\x01P\x00P\x01\x62\x06proto3')
+  serialized_pb=_b('\n\rmessage.proto\x1a\ndata.proto\x1a\x12game_message.proto\"d\n\x07Version\x12\x10\n\x08vers_num\x18\x01 \x01(\r\x12\x10\n\x08vers_str\x18\x02 \x01(\t\x12\x12\n\nvers_build\x18\x03 \x01(\t\x12\x12\n\ncli_locale\x18\x04 \x01(\t\x12\r\n\x05\x66\x65\x61ts\x18\x05 \x01(\t\">\n\x08ImARobot\x12\x10\n\x08nickname\x18\x01 \x01(\t\x12\x0e\n\x06\x63ookie\x18\x02 \x01(\t\x12\x10\n\x08rb_class\x18\x03 \x01(\t\"\xff\x01\n\x0b\x41uthRequest\x12#\n\x04role\x18\x01 \x01(\x0e\x32\x15.AuthRequest.AuthRole\x12\x10\n\x08nickname\x18\x02 \x01(\t\x12\x10\n\x08password\x18\x03 \x01(\t\x12,\n\x0b\x61uth_scheme\x18\x04 \x01(\x0e\x32\x17.AuthRequest.AuthScheme\"@\n\x08\x41uthRole\x12\x13\n\x0f_UNSENT_DEFAULT\x10\x00\x12\x0f\n\x0bGAME_PLAYER\x10\x01\x12\x0e\n\nUSER_ADMIN\x10\x02\"7\n\nAuthScheme\x12\x13\n\x0f_UNUSED_DEFAULT\x10\x00\x12\x14\n\x10\x43LIENT_PLAINTEXT\x10\x01\"\'\n\x10RejectConnection\x12\x13\n\x0breason_text\x18\x01 \x01(\t\"\x98\x05\n\x10ServerStatusText\x12\x0c\n\x04text\x18\x01 \x01(\t\x12)\n\x02sv\x18\x02 \x01(\x0e\x32\x1d.ServerStatusText.StatusValue\x12\x0f\n\x07\x64\x65tails\x18\x03 \x03(\t\"\xb9\x04\n\x0bStatusValue\x12\x06\n\x02OK\x10\x00\x12\x12\n\x0eNOT_OK_GENERIC\x10\x01\x12\x12\n\x0eNAME_NOT_FOUND\x10\x02\x12\x0c\n\x08PW_WRONG\x10\x03\x12\x0f\n\x0bNAME_IN_USE\x10\x04\x12\x1a\n\x16\x43\x41NT_JOIN_GAME_VERSION\x10\x05\x12\x13\n\x0fPROBLEM_WITH_DB\x10\x06\x12\x13\n\x0f\x41\x43\x43T_CREATED_OK\x10\x07\x12\x18\n\x14\x41\x43\x43T_NOT_CREATED_ERR\x10\x08\x12\x1a\n\x16NEWGAME_OPTION_UNKNOWN\x10\t\x12\x1f\n\x1bNEWGAME_OPTION_VALUE_TOONEW\x10\n\x12\x1a\n\x16NEWGAME_ALREADY_EXISTS\x10\x0b\x12\x19\n\x15NEWGAME_NAME_REJECTED\x10\x0c\x12\x19\n\x15NEWGAME_NAME_TOO_LONG\x10\r\x12\x1c\n\x18NEWGAME_TOO_MANY_CREATED\x10\x0e\x12\x1f\n\x1bNEWCHANNEL_TOO_MANY_CREATED\x10\x0f\x12\x0f\n\x0bPW_REQUIRED\x10\x10\x12\x1b\n\x17\x41\x43\x43T_NOT_CREATED_DENIED\x10\x11\x12\x1d\n\x19\x41\x43\x43T_CREATED_OK_FIRST_ONE\x10\x12\x12\x14\n\x10NAME_NOT_ALLOWED\x10\x13\x12\x13\n\x0fOK_SET_NICKNAME\x10\x14\x12\x14\n\x10OK_DEBUG_MODE_ON\x10\x15\x12\x1f\n\x1bGAME_CLIENT_FEATURES_NEEDED\x10\x16\"\x1d\n\rBroadcastText\x12\x0c\n\x04text\x18\x01 \x01(\t\"\n\n\x08LeaveAll\" \n\nServerPing\x12\x12\n\nsleep_time\x18\x01 \x01(\x05\"\xf7\x01\n\x0f\x42otUpdateParams\x12\x17\n\x0fmax_game_length\x18\x01 \x01(\r\x12\x0f\n\x07max_eta\x18\x02 \x01(\r\x12\x18\n\x10\x65ta_bonus_factor\x18\x03 \x01(\x02\x12\x1a\n\x12\x61\x64versarial_factor\x18\x04 \x01(\x02\x12!\n\x19leader_adversarial_factor\x18\x05 \x01(\x02\x12\x1b\n\x13\x64\x65v_card_multiplier\x18\x06 \x01(\x02\x12\x19\n\x11threat_multiplier\x18\x07 \x01(\x02\x12\x15\n\rstrategy_type\x18\x08 \x01(\r\x12\x12\n\ntrade_flag\x18\t \x01(\x08\"\x0f\n\rBotAdminReset\"\x19\n\x08\x43hannels\x12\r\n\x05names\x18\x01 \x03(\t\"\x1d\n\nNewChannel\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\"3\n\x0bJoinChannel\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\x12\x13\n\x0bmember_name\x18\x02 \x01(\t\"2\n\x0e\x43hannelMembers\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\x12\x0f\n\x07members\x18\x02 \x03(\t\"A\n\x0b\x43hannelText\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\x12\x13\n\x0bmember_name\x18\x02 \x01(\t\x12\x0c\n\x04text\x18\x03 \x01(\t\"4\n\x0cLeaveChannel\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\x12\x13\n\x0bmember_name\x18\x02 \x01(\t\" \n\rDeleteChannel\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\"E\n\x10_GameWithOptions\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x0c\n\x04opts\x18\x02 \x01(\t\x12\x12\n\nunjoinable\x18\x03 \x01(\x08\"(\n\x05Games\x12\x1f\n\x04game\x18\x01 \x03(\x0b\x32\x11._GameWithOptions\"?\n\x07NewGame\x12\x1f\n\x04game\x18\x01 \x01(\x0b\x32\x11._GameWithOptions\x12\x13\n\x0bmin_version\x18\x02 \x01(\r\"J\n\x12\x42otJoinGameRequest\x12\x1f\n\x04game\x18\x01 \x01(\x0b\x32\x11._GameWithOptions\x12\x13\n\x0bseat_number\x18\x02 \x01(\r\"K\n\x08JoinGame\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x13\n\x0bmember_name\x18\x02 \x01(\t\x12\x19\n\x11\x62oard_size_vshift\x18\x03 \x03(\x11\"/\n\x0bGameMembers\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x0f\n\x07members\x18\x02 \x03(\t\"R\n\x07SitDown\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x0f\n\x07pl_name\x18\x02 \x01(\t\x12\x13\n\x0bseat_number\x18\x03 \x01(\r\x12\x10\n\x08is_robot\x18\x04 \x01(\x08\"R\n\x0bSetSeatLock\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x13\n\x0bseat_number\x18\x02 \x01(\r\x12\x1d\n\x05state\x18\x03 \x03(\x0e\x32\x0e.SeatLockState\"/\n\x0eGameServerText\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x0c\n\x04text\x18\x02 \x01(\t\"D\n\x0eGamePlayerText\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x13\n\x0bmember_name\x18\x02 \x01(\t\x12\x0c\n\x04text\x18\x03 \x01(\t\" \n\rBotTimingPing\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\"\x1f\n\x0c\x42otAdminPing\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\"\x1d\n\nBotDismiss\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\"1\n\tLeaveGame\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x13\n\x0bmember_name\x18\x02 \x01(\t\"\x1d\n\nDeleteGame\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\"\xd2\x08\n\nFromServer\x12\x18\n\x04vers\x18\x01 \x01(\x0b\x32\x08.VersionH\x00\x12.\n\x11reject_connection\x18\x02 \x01(\x0b\x32\x11.RejectConnectionH\x00\x12(\n\x0bstatus_text\x18\x03 \x01(\x0b\x32\x11.ServerStatusTextH\x00\x12(\n\x0e\x62roadcast_text\x18\x04 \x01(\x0b\x32\x0e.BroadcastTextH\x00\x12\"\n\x0bserver_ping\x18\x05 \x01(\x0b\x32\x0b.ServerPingH\x00\x12.\n\x0cgame_message\x18\x0f \x01(\x0b\x32\x16.GameMessageFromServerH\x00\x12-\n\x11\x62ot_update_params\x18\x14 \x01(\x0b\x32\x10.BotUpdateParamsH\x00\x12)\n\x0f\x62ot_admin_reset\x18\x15 \x01(\x0b\x32\x0e.BotAdminResetH\x00\x12\x1d\n\x08\x63hannels\x18\x64 \x01(\x0b\x32\t.ChannelsH\x00\x12\x1d\n\x06\x63h_new\x18\x65 \x01(\x0b\x32\x0b.NewChannelH\x00\x12\x1f\n\x07\x63h_join\x18\x66 \x01(\x0b\x32\x0c.JoinChannelH\x00\x12%\n\nch_members\x18g \x01(\x0b\x32\x0f.ChannelMembersH\x00\x12\x1f\n\x07\x63h_text\x18h \x01(\x0b\x32\x0c.ChannelTextH\x00\x12!\n\x08\x63h_leave\x18i \x01(\x0b\x32\r.LeaveChannelH\x00\x12#\n\tch_delete\x18j \x01(\x0b\x32\x0e.DeleteChannelH\x00\x12\x18\n\x05games\x18\xc8\x01 \x01(\x0b\x32\x06.GamesH\x00\x12\x1b\n\x06ga_new\x18\xc9\x01 \x01(\x0b\x32\x08.NewGameH\x00\x12\x1d\n\x07ga_join\x18\xca\x01 \x01(\x0b\x32\t.JoinGameH\x00\x12,\n\x0c\x62ot_join_req\x18\xcb\x01 \x01(\x0b\x32\x13.BotJoinGameRequestH\x00\x12#\n\nga_members\x18\xcc\x01 \x01(\x0b\x32\x0c.GameMembersH\x00\x12\x1d\n\x08sit_down\x18\xcd\x01 \x01(\x0b\x32\x08.SitDownH\x00\x12&\n\rset_seat_lock\x18\xce\x01 \x01(\x0b\x32\x0c.SetSeatLockH\x00\x12\'\n\x0bserver_text\x18\xcf\x01 \x01(\x0b\x32\x0f.GameServerTextH\x00\x12*\n\x0ega_player_text\x18\xd0\x01 \x01(\x0b\x32\x0f.GamePlayerTextH\x00\x12*\n\x0f\x62ot_timing_ping\x18\xd1\x01 \x01(\x0b\x32\x0e.BotTimingPingH\x00\x12(\n\x0e\x62ot_admin_ping\x18\xd2\x01 \x01(\x0b\x32\r.BotAdminPingH\x00\x12#\n\x0b\x62ot_dismiss\x18\xd3\x01 \x01(\x0b\x32\x0b.BotDismissH\x00\x12\x1f\n\x08ga_leave\x18\xd4\x01 \x01(\x0b\x32\n.LeaveGameH\x00\x12!\n\tga_delete\x18\xd5\x01 \x01(\x0b\x32\x0b.DeleteGameH\x00\x42\x05\n\x03msg\"\x99\x04\n\nFromClient\x12\x18\n\x04vers\x18\x01 \x01(\x0b\x32\x08.VersionH\x00\x12 \n\x08\x61uth_req\x18\x02 \x01(\x0b\x32\x0c.AuthRequestH\x00\x12\x1f\n\nim_a_robot\x18\x03 \x01(\x0b\x32\t.ImARobotH\x00\x12\"\n\x0bserver_ping\x18\x04 \x01(\x0b\x32\x0b.ServerPingH\x00\x12\x1e\n\tleave_all\x18\x05 \x01(\x0b\x32\t.LeaveAllH\x00\x12.\n\x0cgame_message\x18\x0f \x01(\x0b\x32\x16.GameMessageFromClientH\x00\x12\x1f\n\x07\x63h_join\x18\x64 \x01(\x0b\x32\x0c.JoinChannelH\x00\x12\x1f\n\x07\x63h_text\x18\x65 \x01(\x0b\x32\x0c.ChannelTextH\x00\x12!\n\x08\x63h_leave\x18\x66 \x01(\x0b\x32\r.LeaveChannelH\x00\x12\x1b\n\x06ga_new\x18\xc8\x01 \x01(\x0b\x32\x08.NewGameH\x00\x12\x1d\n\x07ga_join\x18\xc9\x01 \x01(\x0b\x32\t.JoinGameH\x00\x12\x1d\n\x08sit_down\x18\xca\x01 \x01(\x0b\x32\x08.SitDownH\x00\x12&\n\rset_seat_lock\x18\xcb\x01 \x01(\x0b\x32\x0c.SetSeatLockH\x00\x12*\n\x0ega_player_text\x18\xcc\x01 \x01(\x0b\x32\x0f.GamePlayerTextH\x00\x12\x1f\n\x08ga_leave\x18\xcd\x01 \x01(\x0b\x32\n.LeaveGameH\x00\x42\x05\n\x03msgB\r\n\tsoc.protoH\x01P\x00P\x01\x62\x06proto3')
   ,
   dependencies=[data__pb2.DESCRIPTOR,game__message__pb2.DESCRIPTOR,],
   public_dependencies=[data__pb2.DESCRIPTOR,game__message__pb2.DESCRIPTOR,])
@@ -55,8 +55,8 @@ _AUTHREQUEST_AUTHROLE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=354,
-  serialized_end=418,
+  serialized_start=350,
+  serialized_end=414,
 )
 _sym_db.RegisterEnumDescriptor(_AUTHREQUEST_AUTHROLE)
 
@@ -77,8 +77,8 @@ _AUTHREQUEST_AUTHSCHEME = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=420,
-  serialized_end=475,
+  serialized_start=416,
+  serialized_end=471,
 )
 _sym_db.RegisterEnumDescriptor(_AUTHREQUEST_AUTHSCHEME)
 
@@ -183,8 +183,8 @@ _SERVERSTATUSTEXT_STATUSVALUE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=614,
-  serialized_end=1183,
+  serialized_start=610,
+  serialized_end=1179,
 )
 _sym_db.RegisterEnumDescriptor(_SERVERSTATUSTEXT_STATUSVALUE)
 
@@ -225,7 +225,7 @@ _VERSION = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='srv_feats', full_name='Version.srv_feats', index=4,
+      name='feats', full_name='Version.feats', index=4,
       number=5, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -244,7 +244,7 @@ _VERSION = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=49,
-  serialized_end=153,
+  serialized_end=149,
 )
 
 
@@ -288,8 +288,8 @@ _IMAROBOT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=155,
-  serialized_end=217,
+  serialized_start=151,
+  serialized_end=213,
 )
 
 
@@ -342,8 +342,8 @@ _AUTHREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=220,
-  serialized_end=475,
+  serialized_start=216,
+  serialized_end=471,
 )
 
 
@@ -373,8 +373,8 @@ _REJECTCONNECTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=477,
-  serialized_end=516,
+  serialized_start=473,
+  serialized_end=512,
 )
 
 
@@ -419,8 +419,8 @@ _SERVERSTATUSTEXT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=519,
-  serialized_end=1183,
+  serialized_start=515,
+  serialized_end=1179,
 )
 
 
@@ -450,8 +450,8 @@ _BROADCASTTEXT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1185,
-  serialized_end=1214,
+  serialized_start=1181,
+  serialized_end=1210,
 )
 
 
@@ -474,8 +474,8 @@ _LEAVEALL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1216,
-  serialized_end=1226,
+  serialized_start=1212,
+  serialized_end=1222,
 )
 
 
@@ -505,8 +505,8 @@ _SERVERPING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1228,
-  serialized_end=1260,
+  serialized_start=1224,
+  serialized_end=1256,
 )
 
 
@@ -592,8 +592,8 @@ _BOTUPDATEPARAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1263,
-  serialized_end=1510,
+  serialized_start=1259,
+  serialized_end=1506,
 )
 
 
@@ -616,8 +616,8 @@ _BOTADMINRESET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1512,
-  serialized_end=1527,
+  serialized_start=1508,
+  serialized_end=1523,
 )
 
 
@@ -647,8 +647,8 @@ _CHANNELS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1529,
-  serialized_end=1554,
+  serialized_start=1525,
+  serialized_end=1550,
 )
 
 
@@ -678,8 +678,8 @@ _NEWCHANNEL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1556,
-  serialized_end=1585,
+  serialized_start=1552,
+  serialized_end=1581,
 )
 
 
@@ -716,8 +716,8 @@ _JOINCHANNEL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1587,
-  serialized_end=1638,
+  serialized_start=1583,
+  serialized_end=1634,
 )
 
 
@@ -754,8 +754,8 @@ _CHANNELMEMBERS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1640,
-  serialized_end=1690,
+  serialized_start=1636,
+  serialized_end=1686,
 )
 
 
@@ -799,8 +799,8 @@ _CHANNELTEXT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1692,
-  serialized_end=1757,
+  serialized_start=1688,
+  serialized_end=1753,
 )
 
 
@@ -837,8 +837,8 @@ _LEAVECHANNEL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1759,
-  serialized_end=1811,
+  serialized_start=1755,
+  serialized_end=1807,
 )
 
 
@@ -868,8 +868,8 @@ _DELETECHANNEL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1813,
-  serialized_end=1845,
+  serialized_start=1809,
+  serialized_end=1841,
 )
 
 
@@ -913,8 +913,8 @@ __GAMEWITHOPTIONS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1847,
-  serialized_end=1916,
+  serialized_start=1843,
+  serialized_end=1912,
 )
 
 
@@ -944,8 +944,8 @@ _GAMES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1918,
-  serialized_end=1958,
+  serialized_start=1914,
+  serialized_end=1954,
 )
 
 
@@ -982,8 +982,8 @@ _NEWGAME = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1960,
-  serialized_end=2023,
+  serialized_start=1956,
+  serialized_end=2019,
 )
 
 
@@ -1020,8 +1020,8 @@ _BOTJOINGAMEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2025,
-  serialized_end=2099,
+  serialized_start=2021,
+  serialized_end=2095,
 )
 
 
@@ -1048,7 +1048,7 @@ _JOINGAME = _descriptor.Descriptor(
       options=None),
     _descriptor.FieldDescriptor(
       name='board_size_vshift', full_name='JoinGame.board_size_vshift', index=2,
-      number=3, type=5, cpp_type=1, label=3,
+      number=3, type=17, cpp_type=1, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -1065,8 +1065,8 @@ _JOINGAME = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2101,
-  serialized_end=2176,
+  serialized_start=2097,
+  serialized_end=2172,
 )
 
 
@@ -1103,8 +1103,8 @@ _GAMEMEMBERS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2178,
-  serialized_end=2225,
+  serialized_start=2174,
+  serialized_end=2221,
 )
 
 
@@ -1155,8 +1155,8 @@ _SITDOWN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2227,
-  serialized_end=2309,
+  serialized_start=2223,
+  serialized_end=2305,
 )
 
 
@@ -1200,8 +1200,8 @@ _SETSEATLOCK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2311,
-  serialized_end=2393,
+  serialized_start=2307,
+  serialized_end=2389,
 )
 
 
@@ -1238,8 +1238,8 @@ _GAMESERVERTEXT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2395,
-  serialized_end=2442,
+  serialized_start=2391,
+  serialized_end=2438,
 )
 
 
@@ -1283,8 +1283,8 @@ _GAMEPLAYERTEXT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2444,
-  serialized_end=2512,
+  serialized_start=2440,
+  serialized_end=2508,
 )
 
 
@@ -1314,8 +1314,8 @@ _BOTTIMINGPING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2514,
-  serialized_end=2546,
+  serialized_start=2510,
+  serialized_end=2542,
 )
 
 
@@ -1345,8 +1345,8 @@ _BOTADMINPING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2548,
-  serialized_end=2579,
+  serialized_start=2544,
+  serialized_end=2575,
 )
 
 
@@ -1376,8 +1376,8 @@ _BOTDISMISS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2581,
-  serialized_end=2610,
+  serialized_start=2577,
+  serialized_end=2606,
 )
 
 
@@ -1414,8 +1414,8 @@ _LEAVEGAME = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2612,
-  serialized_end=2661,
+  serialized_start=2608,
+  serialized_end=2657,
 )
 
 
@@ -1445,8 +1445,8 @@ _DELETEGAME = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2663,
-  serialized_end=2692,
+  serialized_start=2659,
+  serialized_end=2688,
 )
 
 
@@ -1675,8 +1675,8 @@ _FROMSERVER = _descriptor.Descriptor(
       name='msg', full_name='FromServer.msg',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=2695,
-  serialized_end=3801,
+  serialized_start=2691,
+  serialized_end=3797,
 )
 
 
@@ -1807,8 +1807,8 @@ _FROMCLIENT = _descriptor.Descriptor(
       name='msg', full_name='FromClient.msg',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=3804,
-  serialized_end=4341,
+  serialized_start=3800,
+  serialized_end=4337,
 )
 
 _AUTHREQUEST.fields_by_name['role'].enum_type = _AUTHREQUEST_AUTHROLE
