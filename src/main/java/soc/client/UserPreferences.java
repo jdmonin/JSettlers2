@@ -149,12 +149,11 @@ public class UserPreferences
         try
         {
             userPrefs.putBoolean(prefKey, val);
+            flushSoon();
         } catch (IllegalStateException e) {
             // unlikely
             System.err.println("Error setting userPref " + prefKey + ": " + e);
         }
-
-        flushSoon();
     }
 
     /**
@@ -181,12 +180,11 @@ public class UserPreferences
         try
         {
             userPrefs.putInt(prefKey, val);
+            flushSoon();
         } catch (IllegalStateException e) {
             // unlikely
             System.err.println("Error setting userPref " + prefKey + ": " + e);
         }
-
-        flushSoon();
     }
 
     /**
