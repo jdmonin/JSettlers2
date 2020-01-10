@@ -3188,7 +3188,7 @@ public class SOCGameMessageHandler
 
         if (sendDenyReply)
             c.put(new SOCSetSpecialItem
-                (gaName, SOCSetSpecialItem.OP_DECLINE, typeKey, gi, pi, mes.playerNumber).toCmd());
+                (gaName, SOCSetSpecialItem.OP_DECLINE, typeKey, gi, pi, mes.playerNumber));
     }
 
 }

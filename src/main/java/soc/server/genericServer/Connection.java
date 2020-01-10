@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.MissingResourceException;
 
 import soc.game.SOCGame;  // strictly for passthrough in getLocalizedSpecial, and javadocs; not used otherwise
+import soc.message.SOCMessage;
 import soc.util.SOCStringManager;
 
 /**
@@ -49,7 +50,7 @@ import soc.util.SOCStringManager;
  *                       SOCMessage parsing moved from single-threaded Treater to per-client Connection thread.
  *                       For I18N, add {@link #setI18NStringManager(SOCStringManager, String)} and
  *                       {@link #getLocalized(String)}.
- *  2.1.0 - 2020-01-09 - Only server-side changes: See {@link SOCServerSocket}
+ *  2.1.0 - 2020-01-09 - Connection +put({@link SOCMessage}). Misc server-side changes: See {@link SOCServerSocket}
  *</PRE>
  *<P>
  * Implementation note: {@code Connection} is used as a key in the server's client-management collections.
@@ -139,6 +140,25 @@ public abstract class Connection
      */
     public abstract void put(String str)
         throws IllegalStateException;
+
+    /**
+     * Send a message over the connection.
+     *<P>
+     * <B>Threads:</B> Safe to call from any thread.
+     *
+     * @param msg  Message to send. Calls <tt>{@link #put(String) put}(msg.{@link SOCMessage#toCmd() toCmd()})</tt>.
+     * @throws IllegalArgumentException if {@code msg} is {@code null}
+     * @throws IllegalStateException if not yet accepted by server
+     * @since 2.1.00
+     */
+    public void put(SOCMessage msg)
+        throws IllegalArgumentException, IllegalStateException
+    {
+        if (msg == null)
+            throw new IllegalArgumentException("null");
+
+        put(msg.toCmd());
+    }
 
     /** For server-side thread which reads and treats incoming messages */
     public abstract void run();

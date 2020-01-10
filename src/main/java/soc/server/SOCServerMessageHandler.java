@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2016-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2016-2020 Jeremy D Monin <jeremy@nand.net>
  * Some contents were formerly part of SOCServer.java;
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
@@ -479,7 +479,7 @@ public class SOCServerMessageHandler
             if (rejectReason.equals(SOCServer.MSG_NICKNAME_ALREADY_IN_USE))
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_NAME_IN_USE, c.getVersion(), rejectReason));
-            c.put(new SOCRejectConnection(rejectReason).toCmd());
+            c.put(new SOCRejectConnection(rejectReason));
             c.disconnectSoft();
 
             // make an effort to send reject message before closing socket
@@ -750,7 +750,7 @@ public class SOCServerMessageHandler
                     opt = SOCGameOption.trimEnumForVersion(opt, cliVers);
                 }
 
-                c.put(new SOCGameOptionInfo(opt, cliVers, localDesc).toCmd());
+                c.put(new SOCGameOptionInfo(opt, cliVers, localDesc));
             }
         }
 
@@ -771,11 +771,11 @@ public class SOCServerMessageHandler
             }
 
             c.put(new SOCLocalizedStrings
-                (SOCLocalizedStrings.TYPE_GAMEOPT, SOCLocalizedStrings.FLAG_SENT_ALL, strs).toCmd());
+                (SOCLocalizedStrings.TYPE_GAMEOPT, SOCLocalizedStrings.FLAG_SENT_ALL, strs));
         }
 
         // mark end of list, even if list was empty
-        c.put(SOCGameOptionInfo.OPTINFO_NO_MORE_OPTS.toCmd());  // GAMEOPTIONINFO("-")
+        c.put(SOCGameOptionInfo.OPTINFO_NO_MORE_OPTS);  // GAMEOPTIONINFO("-")
     }
 
     /**
@@ -831,7 +831,7 @@ public class SOCServerMessageHandler
                 if ((sc == null) || (sc.minVersion > cliVers))
                     // unknown scenario, or too new; send too-new ones in case client encounters one as a listed game's
                     // scenario (server also sends too-new SOCGameOptions as unknowns, with the same intention)
-                    c.put(new SOCScenarioInfo(scKey, true).toCmd());
+                    c.put(new SOCScenarioInfo(scKey, true));
                 else if (! changes.contains(sc))
                     changes.add(sc);
             }
@@ -842,7 +842,7 @@ public class SOCServerMessageHandler
                 if (sc.minVersion <= cliVers)
                     srv.sendGameScenarioInfo(null, sc, c, true, false);
                 else
-                    c.put(new SOCScenarioInfo(sc.key, true).toCmd());
+                    c.put(new SOCScenarioInfo(sc.key, true));
 
         if (hasAnyChangedMarker && scd.wantsI18N && ! scd.sentAllScenarioStrings)
         {
@@ -877,7 +877,7 @@ public class SOCServerMessageHandler
             scd.sentAllScenarioStrings = true;
         }
 
-        c.put(new SOCScenarioInfo(null, null, null).toCmd());  // send end of list
+        c.put(new SOCScenarioInfo(null, null, null));  // send end of list
 
         if (hasAnyChangedMarker)
         {
@@ -1599,11 +1599,11 @@ public class SOCServerMessageHandler
             if (! recents.isEmpty())
             {
                 c.put(new SOCChannelTextMsg(ch, SOCGameTextMsg.SERVER_FOR_CHAT,
-                        c.getLocalized("member.join.recap_begin")).toCmd());  // [:: ]"Recap of recent chat ::"
+                        c.getLocalized("member.join.recap_begin")));  // [:: ]"Recap of recent chat ::"
                 for (SOCChatRecentBuffer.Entry e : recents)
-                    c.put(new SOCChannelTextMsg(ch, e.nickname, e.text).toCmd());
+                    c.put(new SOCChannelTextMsg(ch, e.nickname, e.text));
                 c.put(new SOCChannelTextMsg(ch, SOCGameTextMsg.SERVER_FOR_CHAT,
-                        c.getLocalized("member.join.recap_end")).toCmd());    // [:: ]"Recap ends ::"
+                        c.getLocalized("member.join.recap_end")));    // [:: ]"Recap ends ::"
             }
         }
     }

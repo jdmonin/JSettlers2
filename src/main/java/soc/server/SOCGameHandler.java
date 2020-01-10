@@ -950,7 +950,7 @@ public class SOCGameHandler extends GameHandler
                 bh = bw = 0;
                 boardVS = null;
             }
-            c.put(new SOCJoinGameAuth(gameName, bh, bw, boardVS).toCmd());
+            c.put(new SOCJoinGameAuth(gameName, bh, bw, boardVS));
 
             final SOCClientData scd = (SOCClientData) c.getAppData();
             if ((! scd.sentPostAuthWelcome) || (c.getVersion() < SOCStringManager.VERSION_FOR_I18N))
@@ -1005,7 +1005,7 @@ public class SOCGameHandler extends GameHandler
         if ((gameState != SOCGame.NEW)
             || (cliVers < SOCBoardLayout.VERSION_FOR_OMIT_IF_EMPTY_NEW_GAME))
         {
-            c.put(getBoardLayoutMessage(gameData).toCmd());
+            c.put(getBoardLayoutMessage(gameData));
             //    No need to catch IllegalArgumentException:
             //    Since game is already started, getBoardLayoutMessage has previously
             //    been called for the creating player, and the board encoding is OK.
@@ -1050,7 +1050,7 @@ public class SOCGameHandler extends GameHandler
                 psMsg = new SOCPotentialSettlements
                     (gameName, -1, psList, pan, lan, SOCBoardAtServer.getLegalSeaEdges(gameData));
             }
-            c.put(psMsg.toCmd());
+            c.put(psMsg);
 
             if (gameData.isGameOptionSet(SOCGameOption.K_SC_CLVI))
                 c.put(SOCPlayerElement.toCmd
@@ -1093,7 +1093,7 @@ public class SOCGameHandler extends GameHandler
                 } else {
                     psMsg = new SOCPotentialSettlements(gameName, pn, psList, 0, lan, plLse);
                 }
-                c.put(psMsg.toCmd());
+                c.put(psMsg);
             }
         }
 
@@ -1144,7 +1144,7 @@ public class SOCGameHandler extends GameHandler
          */
         if (cliVers >= SOCGameElements.MIN_VERSION)
             c.put(new SOCGameElements
-                (gameName, SOCGameElements.CURRENT_PLAYER, gameData.getCurrentPlayerNumber()).toCmd());
+                (gameName, SOCGameElements.CURRENT_PLAYER, gameData.getCurrentPlayerNumber()));
         else
             c.put(SOCSetTurn.toCmd(gameName, gameData.getCurrentPlayerNumber()));
 
@@ -1187,7 +1187,7 @@ public class SOCGameHandler extends GameHandler
                     final SOCSpecialItem si = gsi.get(gi);
                     if (si == null)
                     {
-                        c.put(new SOCSetSpecialItem(gameName, SOCSetSpecialItem.OP_CLEAR, tkey, gi, -1, -1).toCmd());
+                        c.put(new SOCSetSpecialItem(gameName, SOCSetSpecialItem.OP_CLEAR, tkey, gi, -1, -1));
                         continue;
                     }
 
@@ -1209,7 +1209,7 @@ public class SOCGameHandler extends GameHandler
                         }
                     }
 
-                    c.put(new SOCSetSpecialItem(gameData, SOCSetSpecialItem.OP_SET, tkey, gi, pi, si).toCmd());
+                    c.put(new SOCSetSpecialItem(gameData, SOCSetSpecialItem.OP_SET, tkey, gi, pi, si));
 
                     if (pi != -1)
                     {
@@ -1310,7 +1310,7 @@ public class SOCGameHandler extends GameHandler
                     c.put(SOCPutPiece.toCmd(gameName, i, piece.getType(), coord));
 
                     if (str != SOCFortress.STARTING_STRENGTH)
-                        c.put(new SOCPieceValue(gameName, SOCPlayingPiece.FORTRESS, coord, str, 0).toCmd());
+                        c.put(new SOCPieceValue(gameName, SOCPlayingPiece.FORTRESS, coord, str, 0));
                 }
             }
 
@@ -1338,7 +1338,7 @@ public class SOCGameHandler extends GameHandler
                 c.put(new SOCPlayerElements
                     (gameName, i, SOCPlayerElement.SET,
                      (gameData.hasSeaBoard) ? ELEM_JOINGAME_WITH_PIECETYPES_SEA : ELEM_JOINGAME_WITH_PIECETYPES_CLASSIC,
-                     counts).toCmd());
+                     counts));
             } else {
                 c.put(SOCLastSettlement.toCmd(gameName, i, counts[0]));
                     // client too old for SOCPlayerElement.LAST_SETTLEMENT_NODE
@@ -1352,8 +1352,8 @@ public class SOCGameHandler extends GameHandler
                 (cliVers >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES)
                 ? SOCDevCardConstants.UNKNOWN
                 : SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X;
-            final String cardUnknownMsg =
-                new SOCDevCardAction(gameName, i, SOCDevCardAction.ADD_OLD, unknownType).toCmd();
+            final SOCMessage cardUnknownMsg =
+                new SOCDevCardAction(gameName, i, SOCDevCardAction.ADD_OLD, unknownType);
             for (int j = 0; j < numDevCards; j++)
                 c.put(cardUnknownMsg);
 
@@ -1379,14 +1379,14 @@ public class SOCGameHandler extends GameHandler
                         if (si == null)
                         {
                             c.put(new SOCSetSpecialItem
-                                    (gameName, SOCSetSpecialItem.OP_CLEAR, tkey, -1, pi, i).toCmd());
+                                    (gameName, SOCSetSpecialItem.OP_CLEAR, tkey, -1, pi, i));
                             continue;
                         }
 
                         if ((iList != null) && (iList.size() > pi) && (iList.get(pi) == si))
                             continue;  // already sent (shared with game)
 
-                        c.put(new SOCSetSpecialItem(gameData, SOCSetSpecialItem.OP_SET, tkey, -1, pi, si).toCmd());
+                        c.put(new SOCSetSpecialItem(gameData, SOCSetSpecialItem.OP_SET, tkey, -1, pi, si));
                     }
                 }
             }
@@ -1428,7 +1428,7 @@ public class SOCGameHandler extends GameHandler
                 (gameName, ELEM_JOINGAME_DEVCARDS_ROUNDS_PLNUMS_FIRST_LONGEST_LARGEST,
                  new int[]{ gameData.getNumDevCards(), gameData.getRoundCount(),
                      gameData.getFirstPlayer(), lrPlayerNum, laPlayerNum }
-                 ).toCmd());
+                 ));
         }
 
         /**
@@ -1460,11 +1460,11 @@ public class SOCGameHandler extends GameHandler
             if (! recents.isEmpty())
             {
                 c.put(new SOCGameTextMsg(gameName, SOCGameTextMsg.SERVER_FOR_CHAT,
-                        c.getLocalized("member.join.recap_begin")).toCmd());  // [:: ]"Recap of recent chat ::"
+                        c.getLocalized("member.join.recap_begin")));  // [:: ]"Recap of recent chat ::"
                 for (SOCChatRecentBuffer.Entry e : recents)
-                    c.put(new SOCGameTextMsg(gameName, e.nickname, e.text).toCmd());
+                    c.put(new SOCGameTextMsg(gameName, e.nickname, e.text));
                 c.put(new SOCGameTextMsg(gameName, SOCGameTextMsg.SERVER_FOR_CHAT,
-                        c.getLocalized("member.join.recap_end")).toCmd());    // [:: ]"Recap ends ::"
+                        c.getLocalized("member.join.recap_end")));    // [:: ]"Recap ends ::"
             }
         }
 
@@ -4017,7 +4017,7 @@ public class SOCGameHandler extends GameHandler
                 final Connection c = srv.getConnection(p.getName());
                 if (c != null)
                     for (int i = 0; i < L; ++i)
-                        c.put(((SOCMessage) pq.get(i)).toCmd());
+                        c.put(((SOCMessage) pq.get(i)));
 
                 pq.clear();
             }
