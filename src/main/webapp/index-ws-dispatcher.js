@@ -57,9 +57,11 @@ dispatchTo =
 	    }
 	    form.connect.disabled = authOK;
 	    if (authOK)
-		$("#login_pass_row").hide();
-	    else
+	    {
+		$("#login_pass_row").hide(); $("#src_link_row").hide();
+	    } else {
 		$("#login_pass_row").show();
+	    }
 	}
     },
     channels: function(mData)
