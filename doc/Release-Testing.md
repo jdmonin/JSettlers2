@@ -33,7 +33,8 @@ When preparing to release a new version, testing should include:
     - Have new client join and replace bot; verify all of player info is sent
     - On own turn, leave again, bot takes over
     - Lock 1 bot seat and reset game: that seat should remain empty, no bot
-    - Lock the only remaining bot seat (use v2.x lock button's new "Marked" state) and reset game: no bots in new game, it begins immediately
+    - Lock the only remaining bot seat (use lock button's "Marked" state, or "Locked" if client is v1.x)
+      and reset game: no bots in new game, it begins immediately
 - Game play: (as debug user or in practice game)
     - Get and play all non-VP dev card types, and give 1 VP card: Use debug commands
 
@@ -71,7 +72,7 @@ When preparing to release a new version, testing should include:
     - If you have a linux or windows server, use that instead of your laptop/desktop;
       on linux, end the command line with ` &` to keep running in background
     - Should stay up for several days including activity (bot games)
-    - v2.0.00+: Run several bot games (`-Djsettlers.bots.botgames.total=5`);
+    - Run several bot games (`-Djsettlers.bots.botgames.total=5`);
       join one as observer to make sure the pause is shorter than normal games
 - New features in previous 2 versions from [Versions.md](Versions.md)
 - Each available game option
@@ -198,7 +199,7 @@ When preparing to release a new version, testing should include:
         - Practice game: Test UI's trade behavior with and without preference
         - Re-launch client, new practice game, check setting is remembered
     - Sound: See section "Platform-specific"
-    - Hex Graphics Sets: Test switching between "Classic" and new-for-2.0 "Pastel":
+    - Hex Graphics Sets: Test switching between "Classic" and the default "Pastel":
         - All games mentioned here are Practice games, no server needed. "Start a game" here means to
           create a game, sit down, and start the game so a board will be generated.
         - For clean first run: Launch client with jvm property `-Djsettlers.debug.clear_prefs=hexGraphicsSet`
@@ -299,9 +300,11 @@ When preparing to release a new version, testing should include:
       Message traffic will be shown in the terminal/client output.
     - Test client newer than server:
         - Build server JAR as usual, make temp copy of it, and start the temp copy (has the actual current version number)
-        - In `SOCScenario.initAllScenarios()`, uncomment `SC_TSTNC` "New: v2001 back-compat" and `SC_TSTNO` "New: v2001 only"
+        - In `SOCScenario.initAllScenarios()`, uncomment `SC_TSTNC` "New: v+1 back-compat" and `SC_TSTNO` "New: v+1 only"  
+          Update their version parameters to current versionnum and current + 1. Example:  
+          `("SC_TSTNC", 3000, 3001, ...)`
         - In `SOCGameOption.initAllOptions()`, scroll to the end and uncomment `DEBUGBOOL` "Test option bool".
-          Increase its second version parameter to current version + 1. Example:  
+          Update its version parameters to current versionnum and current + 1. Example:  
           `("DEBUGBOOL", 3000, 3001, false, ...)`
         - In `version.info`, add 1 to versionnum and version. Example: 3000 -> 3001, 3.0.00 -> 3.0.01
         - Build and launch client (at that "new" version), don't connect to server
@@ -495,7 +498,7 @@ When preparing to release a new version, testing should include:
 
 ### Tests for each DB type
 
-Test all of these with each supported DB type: sqlite first, mysql, postgres.
+Test all of these with each supported DB type: sqlite first, mariadb, mysql, postgres.
 See [Database.md](Database.md) for versions to test ("JSettlers is tested with...").
 
 - Set up a new DB with instructions from the "Database Creation" section of [Database.md](Database.md),
@@ -519,7 +522,7 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
 - Test creating as old schema (before v2.0.00 or 1.2.00) and upgrading
     - Get the old schema SQL files you'll need from the git repo by using an earlier release tag
       - Files to test upgrade from schema v1.2.00:
-        - mysql:
+        - mariadb/mysql:
 
               git show release-1.2.00:src/bin/sql/jsettlers-create-mysql.sql > ../tmp/jsettlers-create-mysql-1200.sql
               git show release-1.2.00:src/bin/sql/jsettlers-tables-mysql.sql > ../tmp/jsettlers-tables-mysql-1200.sql
@@ -535,7 +538,7 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
               git show release-1.2.00:src/bin/sql/jsettlers-tables-sqlite.sql > ../tmp/jsettlers-tables-sqlite-1200.sql
 
       - Files to test upgrade from original schema:
-        - mysql:
+        - mariadb/mysql:
 
               git show release-1.1.20:src/bin/sql/jsettlers-create-mysql.sql > ../tmp/jsettlers-create-mysql-1120.sql
               git show release-1.1.20:src/bin/sql/jsettlers-tables.sql > ../tmp/jsettlers-tables-1120.sql

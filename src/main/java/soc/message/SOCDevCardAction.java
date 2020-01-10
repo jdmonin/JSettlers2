@@ -48,8 +48,7 @@ import soc.game.SOCDevCardConstants;  // for javadocs only
  * for each player that has them. Older server versions used {@link SOCGameTextMsg} instead.
  * Is sent to all game members; a client player should ignore messages about their own cards
  * in state {@code OVER} by checking {@link #getPlayerNumber()}.
- *<P>
- * The multiple-cardtype form ({@link #getCardTypes()} != {@code null}) is currently used only at end of game.
+ * That multiple-cardtype form ({@link #getCardTypes()} != {@code null}) is currently used only at end of game.
  *<P>
  * Before v2.0.00, this message type was {@code DEVCARD} (class name {@code SOCDevCard}).
  *
@@ -151,6 +150,9 @@ public class SOCDevCardAction extends SOCMessage
 
     /**
      * Create a DevCardAction message about multiple cards.
+     * All these cards should have the same flag values ({@link soc.game.SOCDevCard#isVPCard(int)} etc)
+     * to avoid client confusion.
+     *<P>
      * This form is currently used only at end of game (state {@link soc.game.SOCGame#OVER OVER})
      * to reveal hidden Victory Point cards. So, bots ignore it.
      *
@@ -170,7 +172,7 @@ public class SOCDevCardAction extends SOCMessage
         if (pn < 0)
             throw new IllegalArgumentException("pn: " + pn);
         if ((ac == PLAY) || (ac == CANNOT_PLAY))
-            throw new IllegalArgumentException("action: " + pn);
+            throw new IllegalArgumentException("action: " + ac);
         if (ct == null)
             throw new IllegalArgumentException("ct: null");
         final int S = ct.size();
@@ -211,8 +213,9 @@ public class SOCDevCardAction extends SOCMessage
 
     /**
      * Get the card type, if message is about one card.
-     * If about multiple cards, {@link #getCardTypes()} will be non-{@code null}.
-     * @return the card type, like {@link SOCDevCardConstants#ROADS} or {@link SOCDevCardConstants#UNKNOWN}
+     * If about multiple cards, {@link #getCardTypes()} will be non-{@code null} and this field is unused.
+     * @return the card type, like {@link SOCDevCardConstants#ROADS} or {@link SOCDevCardConstants#UNKNOWN},
+     *     or 0 (unused) if message uses {@link #getCardTypes()}
      */
     public int getCardType()
     {

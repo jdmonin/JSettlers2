@@ -1,6 +1,6 @@
 /**
  * JSettlers network message system.
- * This file Copyright (C) 2007-2009,2016-2017 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2007-2009,2016-2017,2020 Jeremy D Monin <jeremy@nand.net>.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@ import java.net.SocketException;
 
 /**
  * {@code SOCServerSocket} allows server applications to communicate with client
- * {@link Connection}s, with a common API for local and actual networked traffic.
+ * {@link Connection}s, with a common API for local Practice Mode and actual networked traffic.
  *
  *<PRE>
  *  1.0.0 - 2007-11-18 - initial release, becoming part of jsettlers v1.1.00
@@ -34,6 +34,7 @@ import java.net.SocketException;
  *  1.0.5.1- 2009-10-26- remove unused import EOFException
  *  2.0.0 - 2017-11-01 - Rename StringServerSocket -> SOCServerSocket, NetStringServerSocket -> NetServerSocket,
  *                       LocalStringServerSocket -> StringServerSocket
+ *  2.1.0 - 2020-01-09 - NetServerSocket call setReuseAddress (SO_REUSEADDR)
  *  3.0.0 - 2017-11-04 - ProtoServerSocket subclass for protobuf
  *</PRE>
  *

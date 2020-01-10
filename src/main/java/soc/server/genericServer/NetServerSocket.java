@@ -1,6 +1,6 @@
 /**
  * JSettlers network message system.
- * This file Copyright (C) 2007-2009,2016-2017 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2007-2009,2016-2017,2020 Jeremy D Monin <jeremy@nand.net>.
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -22,6 +22,7 @@
 package soc.server.genericServer;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -44,8 +45,10 @@ import java.net.SocketException;
     public NetServerSocket(int port, Server server)
         throws IOException
     {
-        this.implServSocket = new ServerSocket(port);
         this.server = server;
+        this.implServSocket = new ServerSocket();
+        implServSocket.setReuseAddress(true);
+        implServSocket.bind(new InetSocketAddress(port));
     }
 
     public Connection accept()

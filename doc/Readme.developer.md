@@ -551,6 +551,7 @@ ideas.
 - Occasionally the board does not re-scale at game reset
 - Docs: State diagram for `SOCGame` states, or sequence of important message flows
   (log into server, create/join game, roll dice, etc)
+- Docs: `PlayerClientListener` interface has some methods without javadocs: Add by checking `SOCPlayerInterface.ClientBridge` implementation
 - Add more scenarios' unit tests to `soctest.game.TestScenarioRules`
 - Kick robots if inactive but current player in game, assume they're buggy (use forceEndTurn)
 - Control the speed of robots, in practice games and with other humans

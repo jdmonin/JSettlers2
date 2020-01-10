@@ -5,13 +5,13 @@ A web-based client-server version of Settlers of Catan
 
 ## Introduction
 
-JSettlers is a web-based version of the board game Settlers of Catan
+JSettlers is a Java version of the board game Settlers of Catan
 written in Java. This client-server system supports multiple
 simultaneous games between people and computer-controlled
 opponents. Initially created as an AI research project.
 
-The client may be run as a Java application, or as an applet when
-accessed from a web site which also hosts a JSettlers server.
+The client can host a server, connect to dedicated JSettlers servers
+over the net, or play practice games offline against bots.
 
 The server can optionally use a database to store player account
 information and game stats (details below).  A client java app to
@@ -62,7 +62,7 @@ Sea board: Cloth Villages scenario:
 ## Documentation
 
 User documentation for game play is available as .html pages located
-in the `src/site/users` directory. These can be put on a JSettlers server for
+in the `src/site/users` directory. These can be put on a web server for
 its users to access with a browser.
 
 Currently, this Readme and the `doc` directory are the only technical
@@ -83,12 +83,12 @@ Then download JSettlers-full.jar from either
 https://github.com/jdmonin/JSettlers2/releases or http://nand.net/jsettlers/
 and run it.
 
-To host a JSettlers server that provides a download for the full Jar,
-you will need any http server such as Apache's httpd (available from
-http://httpd.apache.org).
+To host a JSettlers server, use any server OS and hosting provider you like.
+To also provide a download for the full Jar, you will need any http server
+such as Apache's httpd (available from http://httpd.apache.org).
 
 The JSettlers-full.jar file can also run locally as a server, without needing a
-web server.
+web server. If you're running a LAN game for friends, that Jar is all you need.
 
 To build JSettlers from source, you will need Java JDK 8 or higher, and either
 gradle 4 or 5, or an IDE such as Eclipse which understands gradle's format.
@@ -355,24 +355,26 @@ For more details see the **jsserver.properties** section of this Readme.
 Remote users can simply start their clients as described there,
 and connect to your server's DNS name or IP address.
 
-To provide a web page from which users can download the JAR or run the applet,
-you will need to set up an http server such as Apache.  We assume you have
-installed it already, and will refer to `${docroot}` as a directory
+To provide a web page where players can download the Jar, you will need to
+set up a web server such as Apache. Alternately, have them download the
+full Jar from https://github.com/jdmonin/JSettlers2/releases/latest .
+
+If setting up a web server: We assume you have installed the web server
+software already, and will refer to `${docroot}` as a directory
 to place files to be served by your web server.
 
 Copy `index.html` from `src/site/` to `${docroot}`.  If you're going to use an
 accounts database and anyone can register their own account (this is not
 the default setting), also copy `accounts.html`.
 
-Edit the html to make sure the PORT parameter in `index.html` and `account.html`
-applet tags match the port of your JSettlers server, and the text starting
-"this applet connects to" has the right server name and port for users who can't
-run the applet in their browser.  If you're using `account.html`, also
+Edit the html to make sure the port number mentioned in `index.html` and `account.html`
+matches the port of your JSettlers server, and the text starting
+"Connect to" has the right server name. If you're using `account.html`, also
 un-comment `index.html`'s link to `account.html`.
 
-Next copy the `JSettlers.jar` client file to `${docroot}`. This will allow users
-to download it to connect from their computer, or use the web browser applet plug-in.
-If you've downloaded it as `JSettlers-{version}-full.jar`, rename it to `JSettlers.jar`.
+Next copy the `JSettlers.jar` full client file to `${docroot}`. This will allow users
+to download it to connect from their computer.
+(If you've downloaded it as `JSettlers-{version}-full.jar`, rename it to `JSettlers.jar`.)
 
 Your web server directory structure should now contain:
 
@@ -380,7 +382,7 @@ Your web server directory structure should now contain:
     ${docroot}/account.html (optional)
     ${docroot}/JSettlers.jar
 
-Users should now be able to visit your web site to run the JSettlers client.
+Users should now be able to visit your web site to download the JSettlers client.
 
 ### Upgrading from an earlier version
 
@@ -393,7 +395,7 @@ It's a simple process to upgrade to the latest version of JSettlers:
   config changes made from your version to the latest version.  Occasionally
   defaults change and you'll need to add a server config option to keep the
   same behavior, so read carefully.
-- When upgrading from 1.x to 2.x, the applet class name changes
+- If using the applet: When upgrading from 1.x to 2.x, the applet class name changes
   from `soc.client.SOCPlayerClient` to `soc.client.SOCApplet`,
   so update the applet tag in your download page html.
   (Most people and most browsers don't use the applet anymore.)

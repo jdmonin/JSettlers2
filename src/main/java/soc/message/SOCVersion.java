@@ -31,9 +31,9 @@ import soc.util.SOCFeatureSet;  // for javadocs only
  * The server also sends its version to the client early, not in response to client's VERSION message.
  * Version numbers are read via {@link soc.util.Version}.
  *<P>
- * Before 2.0.00, the client did not send its locale or optional features. If locale not sent by client,
- * server should probably assume {@code en_US} since older versions had all messages in english.
- * For robots the locale field is ignored at server, because bots don't parse server text messages;
+ * Before 2.0.00, the client did not send its locale or optional features ({@link SOCFeatureSet}).
+ * If locale not sent by client, server should probably assume {@code en_US} since older versions had all messages
+ * in english. For robots the locale field is ignored at server, because bots don't parse server text messages;
  * sending a {@link SOCImARobot} message will clear the robot client's locale to {@code null} at the server.
  *<P>
  * Before 1.1.19, the server did not send its active optional features; new clients of older servers
@@ -43,7 +43,6 @@ import soc.util.SOCFeatureSet;  // for javadocs only
  * Before 1.1.06, in SOCPlayerClient, this was sent first from server to client, then client responded.
  * Robot clients have always sent first since the introduction in 1.1.00 of client-server versioning (2008-08-07).
  *
- * @version 2.0.00
  * @since 1.1.00
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
@@ -88,9 +87,10 @@ public class SOCVersion extends SOCMessage
      * @param verNum The version number, as in {@link soc.util.Version#versionNumber()}
      * @param verStr The version display string, as in {@link soc.util.Version#version()}
      * @param verBuild The version build, or null, as in {@link soc.util.Version#buildnum()}
-     * @param feats  The server's active optional features, or null, as in
-     *     {@link SOCServerFeatures#getEncodedList()};
-     *     not sent by servers older than 1.1.19 or clients older than 2.0.00.
+     * @param feats  The server's or client's active optional features, or null, as in
+     *     {@link SOCFeatureSet#getEncodedList()}.
+     *     Not sent by servers older than 1.1.19 or clients older than 2.0.00;
+     *     see {@link SOCFeatureSet#SOCFeatureSet(boolean, boolean)} for default features at older versions.
      *     Server can send this to a client older than 1.1.19, it is safely ignored.
      * @param cliLocale The client's JVM locale, or null, as in {@link java.util.Locale#toString()};
      *     not sent by servers or by clients older than 2.0.00.
@@ -156,9 +156,10 @@ public class SOCVersion extends SOCMessage
      * @param verNum  the version number, like 1100 for 1.1.00, as in {@link soc.util.Version#versionNumber()}; not null
      * @param verStr  the version as string, like "1.1.00"; not null
      * @param verBuild the version build, or null, from {@link soc.util.Version#buildnum()}
-     * @param feats  The server or client's active optional features, or null, as in
-     *     {@link SOCServerFeatures#getEncodedList()}.
-     *     Not sent by servers older than 1.1.19 or clients older than 2.0.00.
+     * @param feats  The server's or client's active optional features, or null, as in
+     *     {@link SOCFeatureSet#getEncodedList()}.
+     *     Not sent by servers older than 1.1.19 or clients older than 2.0.00;
+     *     see {@link SOCFeatureSet#SOCFeatureSet(boolean, boolean)} for default features at older versions.
      *     Server can send this to a client older than 1.1.19, it is safely ignored.
      * @param cliLocale The client's JVM locale, or null, as in {@link java.util.Locale#toString()}.
      *     Not sent by servers or by clients older than 2.0.00.

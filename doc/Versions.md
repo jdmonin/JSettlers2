@@ -2,13 +2,12 @@
 
 Project home and source history are at [https://github.com/jdmonin/JSettlers2](https://github.com/jdmonin/JSettlers2)
 
-Unless otherwise indicated, JARs for JSettlers versions are hosted at
-[https://github.com/jdmonin/JSettlers2/releases](https://github.com/jdmonin/JSettlers2/releases)
-and (for older versions) [http://nand.net/jsettlers/devel/](http://nand.net/jsettlers/devel/) .
+JARs for recent JSettlers versions can be downloaded from
+[https://github.com/jdmonin/JSettlers2/releases](https://github.com/jdmonin/JSettlers2/releases) .
 
 From `1.0` up through `1.1.13`, there was a single line of development.
-Right after `1.1.13` the master branch began `2.0.00`, with a
-stable branch for further `1.x.xx` version releases to bring out bugfixes
+Right after `1.1.13` the master branch started work on 2.0, with a
+stable branch for further 1.x versions to release bugfixes
 and backport minor new features until `2.0.00` was ready.
 
 ## `3.0.00` (build JX202xxxxx)
@@ -17,6 +16,11 @@ and backport minor new features until `2.0.00` was ready.
   Connecting clients or servers must now be v2.0.00 or higher.
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
 - Build requires Java 7 or newer
+
+
+
+## `2.1.00` (build JM2020xxxx)
+- Currently being developed
 
 
 ## `2.0.00` (build JM20200102)
@@ -81,6 +85,7 @@ and backport minor new features until `2.0.00` was ready.
      - Server `--pw-reset` now hides the password text
      - Warn at startup if property `jsettlers.accounts.admins` isn't set, unless using Open Registration mode
      - Can use MariaDB
+     - Docs: Give workaround for sqlite-jdbc shared library "operation not permitted" startup error
      - If using Oracle (unsupported): Upgrading to new v2.0.00 schema not yet implemented
 - Game internals:
 	- Game option key names can now be longer (8 characters)
@@ -191,7 +196,6 @@ and backport minor new features until `2.0.00` was ready.
      - If using mysql: Newly created DBs now have unicode text encoding (UTF-8).
        (The postgresql and sqlite DB scripts have always created the DB as unicode.)
      - If using postgresql: Tables are created by socuser, not postgres system user
-     - Docs: Give workaround for sqlite-jdbc shared library "operation not permitted" startup error
 - Game window during debug: Reset "current player" indicator when exiting `*FREEPLACE*` debug mode
 - Client debug, bot debug: Print network message contents if system property `jsettlers.debug.traffic=Y` is set
 - Startup: Show error if can't read own JSettlers version info

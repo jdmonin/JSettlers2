@@ -31,6 +31,8 @@ import static org.junit.Assert.*;
 
 /**
  * A few tests for {@link SOCBoard}.
+ *
+ * @see TestBoardLarge
  * @since 2.0.00
  */
 public class TestBoard

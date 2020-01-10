@@ -105,7 +105,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     public static final int PORT_DEFAULT_PROTOBUF = 4000;
 
     /**
-     * Main server socket: a {@link NetServerSocket} or (in Practice mode) {@link StringServerSocket}.
+     * Main server socket: a TCP {@link NetServerSocket} or (in Practice mode) {@link StringServerSocket}.
+     * Runs on port number {@link #port}.
      * @see #protoSS
      */
     SOCServerSocket ss;
@@ -148,6 +149,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * TCP port number for {@link NetServerSocket} for classic {@link SOCMessage}s,
      * or -1 for Practice mode ({@link StringServerSocket}).
      * @see #protoPort
+     * @see #ss
      */
     protected int port;
 
@@ -343,7 +345,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         }
         catch (IOException e)
         {
-            System.err.println("Could not listen to TCP port " + port + ": " + e);
+            System.err.println("Could not listen on TCP port " + port + ": " + e);
             error = e;
         }
 
@@ -623,7 +625,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             catch (IOException e)
             {
                 error = e;
-                D.ebugPrintln("Exception " + e + " during accept");
+                if (up)
+                    D.ebugPrintln("Exception " + e + " during accept");
 
                 //System.out.println("STOPPING SERVER");
                 //stopServer();
@@ -632,15 +635,22 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             try
             {
                 ss.close();
-                if (strSocketName == null)
-                    ss = new NetServerSocket(port, this);
-                else
-                    ss = new StringServerSocket(strSocketName);
+                if (up)
+                {
+                    // retry
+                    if (strSocketName == null)
+                        ss = new NetServerSocket(port, this);
+                    else
+                        ss = new StringServerSocket(strSocketName);
+                }
             }
             catch (IOException e)
             {
-                System.err.println("Could not listen to port " + port + ": " + e);
-                up = false;
+                if (up)
+                {
+                    System.err.println("Could not listen on port " + port + ": " + e);
+                    up = false;
+                }
                 inQueue.stopMessageProcessing();
                 error = e;
             }
@@ -813,10 +823,14 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
         serverDown();
 
-        for (Enumeration<Connection> e = conns.elements(); e.hasMoreElements();)
+        for (Enumeration<Connection> e = conns.elements(); e.hasMoreElements(); )
         {
             e.nextElement().disconnect();
         }
+
+        if (ss != null)
+            try { ss.close(); }
+            catch (IOException e) {}
 
         if (protoSS != null)
             try { protoSS.close(); }
@@ -1360,7 +1374,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * up to and including <tt>vmax</tt>, receive the broadcast.
      * If vmin > vmax, do nothing.
      *<P>
-     * Before v3.0.00 this method was {@code broadcastToVers(String)}.
+     * Before v3.0.00 this method was {@code broadcastToVers(String, vmin, vmax)}.
      *
      * @param m Message to send
      * @param vmin Minimum version, as returned by {@link Connection#getVersion()},

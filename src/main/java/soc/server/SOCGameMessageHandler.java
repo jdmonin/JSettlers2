@@ -3,7 +3,7 @@
  * This file Copyright (C) 2016 Alessandro D'Ottavio
  * Some contents were formerly part of SOCServer.java and SOCGameHandler.java;
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1182,7 +1182,7 @@ public class SOCGameMessageHandler
         if (ga.isGameOptionSet("NT"))
         {
             // Check here as a fallback;
-            // client should know not to show trade-offer UI when game has option NT
+            // client should know to not show trade-offer UI when game has option NT
             srv.messageToPlayer(c, gaName, "Trading is not allowed in this game.");  // i18n OK: is fallback only
 
             return;  // <---- Early return: No Trading ----
@@ -1231,7 +1231,7 @@ public class SOCGameMessageHandler
                 srv.recordGameEvent(gaName, makeOfferMessage);
 
                 /**
-                 * clear all the trade messages because a new offer has been made
+                 * clear client UIs of any previous trade messages/responses, because a new offer has been made
                  */
                 srv.gameList.takeMonitorForGame(gaName);
                 if (ga.clientVersionLowest >= SOCClearTradeMsg.VERSION_FOR_CLEAR_ALL)

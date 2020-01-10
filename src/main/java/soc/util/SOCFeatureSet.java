@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -163,7 +163,7 @@ public class SOCFeatureSet
      * @param withOldDefaults  If false, nothing is active. If true, include the default features
      *     assumed active in servers or clients older than {@link SOCFeatureSet} support;
      *     see {@code withOldDefaultsForServer}
-     * @param withOldDefaultsForServer  Include features for an old server, not old client:
+     * @param withOldDefaultsForServer  Include features for an old server, not for old client:
      *     <UL>
      *     <LI> If true, include features which were assumed always active in servers older than v1.1.19
      *         ({@link #VERSION_FOR_SERVERFEATURES}): {@link #SERVER_ACCOUNTS}, {@link #SERVER_CHANNELS},
