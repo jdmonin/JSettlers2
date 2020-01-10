@@ -3,7 +3,7 @@
 
 apply plugin: 'java'
 apply plugin: 'com.google.protobuf'
-apply plugin: 'war'  // for jsettlers-webapp servlet
+apply plugin: 'war'  // for optional socweb servlet and html5 jsettlers-webapp client
 apply plugin: 'application'
 apply plugin: 'idea'
 
@@ -214,10 +214,9 @@ protobuf {
     }
 }
 
-// The .WAR built here is socserver.war, not anything for an HTML5 web app/client:
-// The html5 client will be a separate build.
+// The .WAR built here is socweb.war, with the server and the HTML5 web app/client
 war {
-    archiveName = 'socserver.war'  // no version, for constant prefix at deploy
+    archiveName = 'socweb.war'  // no version, for bookmark-friendly prefix at deploy
     // includes src/main/webapp by default
     classpath = classpath - sourceSets.main.output  // excludes *.class: we'll include jsserver jar instead
     from(sourceSets.main.output) {
@@ -365,7 +364,7 @@ artifacts {
  * This file is part of the JSettlers project.
  *
  * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
- * Portions of this file Copyright (C) 2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

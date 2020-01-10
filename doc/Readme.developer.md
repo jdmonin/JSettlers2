@@ -7,6 +7,7 @@
 - Setup instructions for JSettlers as an Eclipse project
 - Build Setup and Results
 - Recommended debug/run configurations for testing
+- HTML5 web app (optional)
 - Using protobuf (optional)
 - To configure a sqlite database for testing
 - Current partially-done work
@@ -391,12 +392,32 @@ For automated functional testing, the project also includes the script
 you are developing anything related to game options or jsettlers properties.
 
 
+## HTML5 web app Quick notes: (optional; Details TBD)
+
+The web app is a work in progress.
+
+To build and run this web app and its server you will need Java 8 or higher,
+gradle 5 or higher, and a Java servlet container such as Jetty or Tomcat.
+
+Run `gradle war` or `gradle build` to assemble all components into **build/libs/socweb.war**
+
+The server has other run-time requirements (like protobuf JARs) which won't
+be part of its .war file: Those must be downloaded and placed into your Jetty
+or Tomcat installation. See
+https://github.com/jdmonin/JSettlers2/blob/v3/doc/Readme.developer.md
+sections "Download required library JARs" and "SOCServer Web Server for
+HTML5", and note any command-line flags you may need for Jetty or Tomcat to
+use those extra runtime JARs.
+
+
 ## Using protobuf (currently optional; work in progress)
 
 Right now protobuf support is a work in progress in the v3 branch.
+Unless you're using the HTML5 web app or custom protobuf bots, it's not needed.
 Until its conversion is complete, use the SOCMessage network described
-in the "Network Communication and interop" section. Here are some brief
-notes:
+in the "Network Communication and interop" section.
+
+Here are some brief notes:
 
 - Development and the JSettlers build require `protobuf-java-3.4.0.jar`,
   `protobuf-java-util-3.4.0.jar`, and other JARs.

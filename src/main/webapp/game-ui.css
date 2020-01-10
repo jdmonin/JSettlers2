@@ -1,0 +1,26 @@
+/*
+ css for game-board.js window
+
+ This file is part of the Java Settlers Web App (JSWeb).
+
+ This file Copyright (C) 2020 Jeremy D Monin (jeremy@nand.net)
+
+ JSWeb is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ JSWeb is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with JSWeb.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+body {
+    font-family: Verdana, Geneva, sans-serif;
+}
+
+#board { border: 1px solid black; } // canvas

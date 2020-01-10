@@ -1,0 +1,34 @@
+/*
+ css for chat-channel.js window
+
+ This file is part of the Java Settlers Web App (JSWeb).
+
+ This file Copyright (C) 2017,2020 Jeremy D Monin (jeremy@nand.net)
+
+ JSWeb is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ JSWeb is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with JSWeb.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+body {
+    font-family: Verdana, Geneva, sans-serif;
+}
+
+// list of active members
+ul.actives {
+  list-style: none;  list-style-type: none;
+  margin: 0;  padding: 3px;
+}
+ul.actives li {
+  background: #3333ff;  color: #ffffff;  margin: 3px;  padding: 3px;
+  min-width: 120px;  border-radius: 3px;
+}

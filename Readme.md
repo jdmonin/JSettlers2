@@ -1,16 +1,20 @@
 # ![logo](doc/graf/Logo32.png?raw=true) Java Settlers
 
-A web-based client-server version of Settlers of Catan
+A client-server (optionally browser-based) version of Settlers of Catan
 
 
 ## Introduction
 
 JSettlers is a Java version of the board game Settlers of Catan
-written in Java. This client-server system supports multiple
+written in Java and HTML5. This client-server system supports multiple
 simultaneous games between people and computer-controlled
 opponents. Initially created as an AI research project.
 
-The client can host a server, connect to dedicated JSettlers servers
+The new in-progress client is browser-based in HTML5.
+The server is a Java web app hosted in a servlet container like Jetty or Tomcat,
+which also provides the client html to visiting players' browsers.
+
+The stable Java client can host a server, connect to dedicated JSettlers servers
 over the net, or play practice games offline against bots.
 
 The server can optionally use a database to store player account
@@ -25,7 +29,8 @@ of this Readme.
 JSettlers is an open-source project licensed under the GPL. The
 project is hosted at https://github.com/jdmonin/JSettlers2/ and
 at http://nand.net/jsettlers/devel/ .  Questions, bugs, patches,
-and pull requests can be posted at the github page.
+and pull requests can be posted at the github page. The HTML5 web app's
+code is licensed under AGPL 3.0.
 
 \- The JSettlers Development Team
 
@@ -77,15 +82,21 @@ https://github.com/jdmonin/JSettlers2/blob/master/Readme.md .
 
 ## Requirements
 
-To play JSettlers you will need either the Java Development Kit (JDK)
-version 8 or higher, or version 8 of the smaller Java Runtime (JRE).
-Then download JSettlers-full.jar from either
+To play JSettlers in a browser, you will need one new enough for HTML5
+and Javascript version ES6. You will also need the servlet package `socweb.war`,
+and Java 8 servlet container software such as Jetty or Tomcat.
+Currently you must build `socweb.war` from source (see below),
+because no versions of it have yet been released.
+
+To play JSettlers with the traditional Java client, you will need either the
+Java Development Kit (JDK) version 8 or higher, or version 8 of the smaller
+Java Runtime (JRE). Then download JSettlers-full.jar from either
 https://github.com/jdmonin/JSettlers2/releases or http://nand.net/jsettlers/
 and run it.
 
-To host a JSettlers server, use any server OS and hosting provider you like.
-To also provide a download for the full Jar, you will need any http server
-such as Apache's httpd (available from http://httpd.apache.org).
+To host a non-HTML5 traditional JSettlers server, use any server OS and
+hosting provider you like. To also provide a download for the full Jar,
+you will need any http server such as Apache's httpd (available from http://httpd.apache.org).
 
 The JSettlers-full.jar file can also run locally as a server, without needing a
 web server. If you're running a LAN game for friends, that Jar is all you need.
@@ -250,16 +261,25 @@ such as:
 ### Server Web App Deployment (Optional)
 
 This deploys the optional part of the JSettlers Server which runs on a
-java web app server. This does not deploy the `/jsweb/` client web app,
-which is a separate build.
+java web app server, and the HTML5 client web app.
 
 - If you've started the JSettlers Server from the instructions in the
   previous sections, make sure it isn't currenly running. Deploying the
-  JSettlers Server web app will also start the server on its default port.
+  JSettlers Server web app will also start the server on the same default port.
 
-- Place `socserver.war` into your web app server's `webapps` directory
+- The server runs in a Java EE 8 servlet container like Jetty or Tomcat. The
+  client html5 app currently assumes it will be hosted on the same server and
+  port as the server.
 
-- The web app URL will be `http://localhost:8080/socserver/` if your
+- Place the server's other run-time requirements (like protobuf JARs) into your
+  web app server's external libs directory: See [doc/Readme.developer.md](doc/Readme.developer.md)
+  sections "Download required library JARs" and "SOCServer Web Server for HTML5",
+  and note any command-line flags you may need for Jetty or Tomcat to use those
+  extra runtime JARs.
+
+- Place `socweb.war` into your web app server's `webapps` directory
+
+- The web app URL will be `http://localhost:8080/socweb/` if your
   web app server runs on port 8080
 
 - If `/socserver/` does not show a JSettlers Web App Server page, check your
@@ -326,6 +346,10 @@ This will stop the server and all connected clients will be disconnected.
 a debug user.)
 
 ### Installing a JSettlers server
+
+This applies to the traditional Java command line server, not the servlet-based server
+for the new HTML5 client. For the servlet-based web app server, see above section
+"Server Web App Deployment (Optional)".
 
 #### Checklist:
 
@@ -431,6 +455,11 @@ lists contributors by year.  A copyright year range (for example, 2007-2011)
 means the file was contributed to by that person in each year of that range.
 See individual source files for the GPL version and other details.
 
+The HTML5 client web app is licensed under the
+Affero General Public License, Version 3.0 (AGPL v3).
+For the full Affero General Public License 3.0 text, see the included
+doc/COPYING-AGPLv3 file or https://www.gnu.org/licenses/agpl-3.0.html .
+
 BCrypt.java is licensed under the "new BSD" license, and is copyright
 (C) 2006 Damien Miller; see BCrypt.java for details.  jBCrypt-0.4.tar.gz
 retrieved 2017-05-27 from http://www.mindrot.org/projects/jBCrypt/
@@ -438,6 +467,8 @@ and some constants, javadocs, throws declarations added by Jeremy D Monin.
 
 org.fedorahosted.tennera.antgettext.StringUtil is licensed under the
 "Lesser GPL" (LGPL) license, and is from the JBoss Ant-Gettext utilities.
+
+Includes the jQuery JavaScript Library released under the MIT license.
 
 The classic hex and port images were created by Jeremy Monin, and are licensed
 Creative Commons Attribution Share Alike (cc-by-sa 3.0 US) or Creative
