@@ -53,19 +53,19 @@ https://github.com/jdmonin/jsettlers-webapp/blob/master/Readme.md .
 To play JSettlers in a browser, you will need one new enough for HTML5
 and Javascript version ES6.
 
-To run the server, you will need Java 7 or higher, a Java servlet container
+To run the server, you will need Java 8 or higher, a Java servlet container
 such as Jetty or Tomcat, and the `socserver.war` file built from the
 server repository `v3` branch. Currently you must build that file
 from source, because no servlet versions have yet been released.
 
-To build the server and JSettlers-WebApp from source, you will need Java JDK 1.7
+To build the server and JSettlers-WebApp from source, you will need Java JDK 8
 or newer and Gradle, or an IDE such as Eclipse which understands Gradle's
 build format. See [doc/Readme.developer.md](doc/Readme.developer.md) for details.
 
 
 ## Web App Setup and Testing
 
-The server runs in a Java EE 7 servlet container like Jetty or Tomcat. The
+The server runs in a Java EE 8 servlet container like Jetty or Tomcat. The
 client html5 app currently assumes it will be hosted on the same server and
 port as the server, so this project builds it as `socweb.war` to be deployed
 the same way as the server.
