@@ -961,6 +961,14 @@ import soc.util.Version;
             client.getMainDisplay().showErrorDialog(errMsg, client.strings.get("base.cancel"));
         }
         break;
+
+        case SOCStatusMessage.SV_SERVER_SHUTDOWN:
+        {
+            handleBCASTTEXTMSG(statusText);
+            client.getNet().disconnect();
+        }
+        break;
+
         }
     }
 
@@ -1015,13 +1023,21 @@ import soc.util.Version;
     }
 
     /**
-     * handle a broadcast text message
+     * Handle a broadcast text message. Calls {@link #handleBCASTTEXTMSG(String)}.
      * @param mes  the message
      */
     protected void handleBCASTTEXTMSG(SOCBCastTextMsg mes)
     {
-        final String txt = mes.getText();
+        handleBCASTTEXTMSG(mes.getText());
+    }
 
+    /**
+     * Handle a broadcast message containing text as if it were {@link SOCBCastTextMsg}.
+     * @param txt  the message text
+     * @since 2.1.00
+     */
+    protected void handleBCASTTEXTMSG(String txt)
+    {
         client.getMainDisplay().chatMessageBroadcast(txt);
 
         for (PlayerClientListener pcl : client.getClientListeners().values())

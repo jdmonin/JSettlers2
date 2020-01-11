@@ -5042,8 +5042,8 @@ public class SOCServer extends Server
      * and by SOCPlayerClient's locally hosted TCP server.
      *
      * @param stopMsg Final text message to send to all connected clients, or null.
-     *         Will be sent as a {@link SOCBCastTextMsg}.
-     *         As always, if message starts with ">>" it will be considered urgent.
+     *         Will be sent as a {@link SOCBCastTextMsg}. As with any broadcast text message,
+     *         if message starts with ">>" it will be considered urgent.
      */
     public synchronized void stopServer(String stopMsg)
     {
@@ -5051,7 +5051,9 @@ public class SOCServer extends Server
         {
             System.out.println("stopServer: " + stopMsg);
             System.out.println();
-            broadcast(SOCBCastTextMsg.toCmd(stopMsg));
+            broadcast(new SOCStatusMessage(SOCStatusMessage.SV_SERVER_SHUTDOWN, stopMsg));
+            if (getMinConnectedCliVersion() < SOCStatusMessage.VERSION_FOR_SV_SERVER_SHUTDOWN)
+                broadcastToVers(new SOCBCastTextMsg(stopMsg), 0, SOCStatusMessage.VERSION_FOR_SV_SERVER_SHUTDOWN - 1);
         }
 
         /// give time for messages to drain (such as urgent text messages

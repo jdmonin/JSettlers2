@@ -17,6 +17,11 @@ and backport minor new features until `2.0.00` was ready.
 
 ## `2.1.00` (build JM2020xxxx)
 - Currently being developed
+- Server:
+	- For quick restart, bind TCP socket with setReuseAddress (SO_REUSEADDR) flag
+	- At shutdown, server broadcasts StatusMessage(SV_SERVER_SHUTDOWN) for clean client shutdown
+- Bots/AI:
+	- Don't try to reconnect after server sends StatusMessage(SV_SERVER_SHUTDOWN)
 
 
 ## `2.0.00` (build JM20200102)
