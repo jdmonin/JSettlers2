@@ -152,8 +152,7 @@ function doLogin()
 	    hasFirstMessage = true;
 	    atFirstMessage(event);
 	}
-	showMessage(event.data);
-        var msgObj = null;
+	var msgObj = null;
 	try
 	{
 	    msgObj = JSON.parse(event.data);
@@ -172,7 +171,7 @@ function doLogin()
 	    {
 		msgDispatch(mkeys[0], msgObj[mkeys[0]]);
 	    } catch(e) {
-		console.log("dispatch error: " + e);
+		console.log("dispatch error: " + e + "\n\tat " + e.stack);
 	    }
 
 	if (! authSent)
@@ -194,12 +193,6 @@ function doLogin()
     {
 	alert("Websocket received error.");
     }
-}
-
-function showMessage(jsonTxt)
-{
-    // this is temporary until we have a message dispatcher
-    console.log("From server: " + jsonTxt);
 }
 
 function sendToServer(jsonObj)
