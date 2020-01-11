@@ -297,7 +297,9 @@ public class SOCScenario
     public static final String K_SC_4ISL = "SC_4ISL";
 
     /**
-     * Scenario key {@code SC_FOG} for {@link SOCGameEvent#SGE_FOG_HEX_REVEALED} (The Fog Islands scenario).
+     * Scenario key {@code SC_FOG} for Fog Islands.
+     * When a hex has been revealed from behind fog,
+     * {@link SOCGameEvent#SGE_FOG_HEX_REVEALED} is fired.
      * Main option is {@link SOCGameOption#K_SC_FOG}.
      */
     public static final String K_SC_FOG = "SC_FOG";
@@ -544,8 +546,7 @@ public class SOCScenario
      *<UL>
      *<LI> {@link #K_SC_NSHO SC_NSHO}  New Shores
      *<LI> {@link #K_SC_4ISL SC_4ISL}  The Four Islands (Six on the 6-player board)
-     *<LI> {@link #K_SC_FOG  SC_FOG}   A hex has been revealed from behind fog:
-     *                                  {@link SOCGameEvent#SGE_FOG_HEX_REVEALED}
+     *<LI> {@link #K_SC_FOG  SC_FOG}   Fog Islands
      *<LI> {@link #K_SC_TTD  SC_TTD}   Through The Desert
      *<LI> {@link #K_SC_CLVI SC_CLVI}  Cloth trade with neutral {@link SOCVillage villages}
      *<LI> {@link #K_SC_PIRI SC_PIRI}  Pirate Islands and {@link SOCFortress fortresses}
@@ -591,13 +592,9 @@ public class SOCScenario
      */
     public static boolean addKnownScenario(SOCScenario scNew)
     {
-        final String scKey = scNew.key;
-        final boolean hadIt = allScenarios.containsKey(scKey);
-        if (hadIt)
-            allScenarios.remove(scKey);
-        allScenarios.put(scKey, scNew);
+        final boolean hadOld = (null != allScenarios.put(scNew.key, scNew));
 
-        return ! hadIt;
+        return ! hadOld;
     }
 
     /**
@@ -644,6 +641,7 @@ public class SOCScenario
 
     /**
      * Get the scenario information about this known scenario.
+     * Treat the returned value as read-only (is not cloned).
      * @param key  Scenario key name, such as {@link #K_SC_4ISL SC_4ISL}, from {@link #getAllKnownScenarios()}
      * @return information about a known scenario, or null if none with that key
      */

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2018,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -75,6 +75,24 @@ public class TestScenarioOpts
         }
         catch (IllegalArgumentException e) {}  // is expected
 
+    }
+
+    /**
+     * Test adding a new known scenario and removing it.
+     * @since 2.1.00
+     */
+    @Test
+    public void testAddKnownScenario()
+    {
+        // add known
+        assertNull(SOCScenario.getScenario("_TESTF"));
+        final SOCScenario newKnown = new SOCScenario("_TESTF", 2100, -1, "desc", null, "-");
+        SOCScenario.addKnownScenario(newKnown);
+        assertTrue(newKnown == SOCScenario.getScenario("_TESTF"));
+
+        // cleanup/remove known
+        SOCScenario.removeUnknownScenario("_TESTF");
+        assertNull(SOCScenario.getScenario("_TESTF"));
     }
 
     /**
