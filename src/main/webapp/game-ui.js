@@ -37,7 +37,7 @@ const DELTA_X = 92, DELTA_Y = 80, HALF_DELTA_X = DELTA_X / 2, HALF_DELTA_Y = DEL
 const HEX_RADIUS = 53;
 
 // Colors: water, clay, ore, sheep, wheat, wood, desert, gold, fog
-const HEXTYPE_COLORS = ['#33a', '#cc6666', '#999999', '#33cc33', '#cccc33', '#cc9966', '#ffff99', '#ff0', '#dcdcdc'];
+const HEXTYPE_COLORS = ['#33a', '#cc5544', '#999999', '#22dd22', '#cccc33', '#339922', '#ffff99', '#ff0', '#dcdcdc'];
 
 // Other styles
 
