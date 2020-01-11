@@ -470,6 +470,9 @@ org.fedorahosted.tennera.antgettext.StringUtil is licensed under the
 
 Includes the jQuery JavaScript Library released under the MIT license.
 
+Includes the Konva JavaScript Library released under the MIT license,
+retrieved 2020-01-11 from https://unpkg.com/konva@4.0.0/konva.js, konva.min.js
+
 The classic hex and port images were created by Jeremy Monin, and are licensed
 Creative Commons Attribution Share Alike (cc-by-sa 3.0 US) or Creative
 Commons Attribution (CC-BY 3.0 US); see each image's gif comments for details.

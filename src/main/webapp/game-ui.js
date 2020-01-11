@@ -2,6 +2,7 @@
  game window/board javascript functions, for index.html and its inGames[] array
 
  Since this modifies the dispatcher array, is loaded asynchronously from index-ws-dispatcher.js.
+ This script loads konva.
 
  This file is part of the Java Settlers Web App (JSWeb).
 
@@ -21,14 +22,34 @@
  along with JSWeb.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+$.ajax({
+    'url': 'inc/konva-4.0.0.min.js',
+    'dataType': 'script',
+    'cache': (window.location.host != 'localhost'),
+    // success: function() { ... }  TODO allow queue up join-game reqs until konva loaded, then do so here
+    });
+
 // Board geometry constants; some are from SOCBoardPanel.java //
 
 const BOARDWIDTH_VISUAL_MIN = 18, BOARDHEIGHT_VISUAL_MIN = 17;  // half-hex units
 const BOARD_BORDER = 20;  // px on each side
-const DELTA_X = 54, DELTA_Y = 46, HALF_DELTA_X = DELTA_X / 2, HALF_DELTA_Y = DELTA_Y / 2;  // px offsets for each hex
+const DELTA_X = 56, DELTA_Y = 48, HALF_DELTA_X = DELTA_X / 2, HALF_DELTA_Y = DELTA_Y / 2;  // px offsets for each hex
+const HEX_RADIUS = 32;
 
 // Colors: water, clay, ore, sheep, wheat, wood, desert, gold, fog
 const HEXTYPE_COLORS = ['#33a', '#cc6666', '#999999', '#33cc33', '#cccc33', '#cc9966', '#ffff99', '#ff0', '#dcdcdc'];
+
+// Misc utilities
+
+function coordHex(r, c)  // -> "0b07"
+{
+	let hexR = Number(r).toString(16), hexC = Number(c).toString(16);
+	if (hexR.length == 1)
+	    hexR = '0' + hexR;
+	if (hexC.length == 1)
+	    hexC = '0' + hexC;
+	return hexR + hexC;
+}
 
 // Non-gameMessage handlers; see bottom of file for GameUI object, inGames[] entries, gameMessage handlers //
 
@@ -103,7 +124,7 @@ function GameUI(gaName)
     this.sentLeaveMsg = false;  // flag for closeGameWindow
     this.hexOffsX = 0;  // px; includes BOARD_BORDER
     this.hexOffsY = 0;
-    // initBoard sets this.gameCanvas
+    // initBoard sets this.klayer: Konva.Layer
     this.handleJoin = function(memberName,bh,bw,vsD,vsR)
     {
 	// if we're in that game, add person to member list there
@@ -131,8 +152,7 @@ function GameUI(gaName)
 		+ '<div style="display: flex; flex-flow: column; height: 100%;">'
 		+ '<div id="header" style="flex: 0 1 auto;">' // = flex-grow:0,flex-shrink:1,flex-basis:auto
 		+ 'Game: ' + gaName + '<HR noshade></div>'
-		+ '<div id="main" style="flex: 1 1 auto; overflow: auto;">'
-		+ '<canvas id="board" width=' + canW + ' height=' + canH + '></canvas></div>'
+		+ '<div id="main" style="flex: 1 1 auto; overflow: auto;"><div id="board" style="background-color: #119; height:' + canH + 'px; width:' + canW + 'px;"></div></div>'
 		+ '<div id="send" style="flex: 0 1 auto; margin: 3px;">'
 		+ '<form name="send" action="javascript:window.opener.sendLine(window.document);void(0);" autocomplete="off">'
 		+ '<input name="txt" size=80 autocomplete="off" /> &nbsp; <button type="submit">Send</button>'
@@ -156,27 +176,33 @@ function GameUI(gaName)
 	      }, 110);
 	}
     };
-    this.initBoard = function(h,w)
+    this.initBoard = function(h,w)  // assumes konva.js done loading
     {
-	let doc = this.gaWindow.document;
-	const can = doc.getElementById("board");
-	this.gameCanvas = can;
-	let ctx = can.getContext('2d');
-	ctx.fillStyle = "#119";  // dk blue
-	ctx.fillRect(0, 0, can.width, can.height);
+	let doc = this.gaWindow.document, div = doc.getElementById("board");
+	let kstage = new Konva.Stage({container: div, width: div.offsetWidth, height: div.offsetHeight});
+	let klayer = new Konva.Layer();
+	this.klayer = klayer;
+	kstage.add(klayer);
 	for (let r = 1, y = this.hexOffsY; r < h; r += 2, y += DELTA_Y)
 	{
 	    let c = ((r % 4 == 3) ? 1 : 0);
 	    for (let x = this.hexOffsX + c * HALF_DELTA_X; c < w; c += 2, x += DELTA_X)
 		this.drawHex(r, c, 0);
-        }
+	}
+	klayer.draw();
     }
     this.drawHex = function(r, c, htype)
     {
-	let x = this.hexOffsX + c * HALF_DELTA_X, y = this.hexOffsY + r * HALF_DELTA_Y;
-	let ctx = this.gameCanvas.getContext('2d');
-	ctx.fillStyle = ((htype >= 0) && (htype < HEXTYPE_COLORS.length)) ? HEXTYPE_COLORS[htype] : 'gray';
-	ctx.fillRect(x+4, y+4, DELTA_X-8, DELTA_Y-8);  // TODO an actual hex, w/ id hex_RRCC
+	let x = this.hexOffsX + (c+1) * HALF_DELTA_X, y = this.hexOffsY + (r+1) * HALF_DELTA_Y;
+	let fillStyle = ((htype >= 0) && (htype < HEXTYPE_COLORS.length)) ? HEXTYPE_COLORS[htype] : '#aaa';
+	let hID = 'hex_' + coordHex(r, c);
+	let klayer = this.klayer;
+	let coll = klayer.find("#" + hID);
+	if (coll.length != 0)
+		coll[0].fill(fillStyle);
+	else
+		klayer.add(new Konva.RegularPolygon
+		    ({ x: x, y: y, sides: 6, radius: HEX_RADIUS, id: hID, fill: fillStyle, stroke: '#666', strokeWidth: 1.5}));
     }
     this.handleMembers = function(memberNames)
     {
@@ -300,6 +326,7 @@ var gaDispatchTo =
 	    let hcoord = LH[i], htype = LH[i+1];
 	    gameui.drawHex((hcoord >> 8) & 0xFF, hcoord & 0xFF, htype);
 	}
+	gameui.klayer.draw();
     }
 };
 
