@@ -55,6 +55,11 @@ function coordHex(r, c)  // -> "0b07"
 	return hexR + hexC;
 }
 
+function hextypeStyle(htype)
+{
+	return ((htype >= 0) && (htype < HEXTYPE_COLORS.length)) ? HEXTYPE_COLORS[htype] : '#aaa';
+}
+
 // Non-gameMessage handlers; see bottom of file for GameUI object, inGames[] entries, gameMessage handlers //
 
 function handleGameJoin(mData)
@@ -198,7 +203,7 @@ function GameUI(gaName)
     this.drawHex = function(r, c, htype, hdice)
     {
 	let x = this.hexOffsX + (c+1) * HALF_DELTA_X, y = this.hexOffsY + (r+1) * HALF_DELTA_Y;
-	let fillStyle = ((htype >= 0) && (htype < HEXTYPE_COLORS.length)) ? HEXTYPE_COLORS[htype] : '#aaa';
+	let fillStyle = hextypeStyle(htype);
 	let klayer = this.klayer;
 
 	let hID = 'hex_' + coordHex(r, c);
@@ -222,13 +227,40 @@ function GameUI(gaName)
 		ktxt.text(dStr);
 	} else {
 		klayer.add(new Konva.Circle
-		    ({ x: x, y: y, radius: 15, fill: '#ddd'}));  // , stroke: 'black', strokeWidth: 1}));
+		    ({ x: x, y: y, radius: 15, fill: '#ddd'}));
 		ktxt = new Konva.Text
 		    ({ x: x, y: y, text: dStr, id: diceID, fontFamily: FONT_FAMILY, fontSize: 18, fill: 'black'});
 		klayer.add(ktxt);
 		ktxt.offsetY(ktxt.height() / 2);
 	}
 	ktxt.offsetX(ktxt.width() / 2); // center
+    }
+    this.addPort = function(r, c, ptype, pfacing)
+    {
+	let x = this.hexOffsX + (c+1) * HALF_DELTA_X, y = this.hexOffsY + (r+1) * HALF_DELTA_Y;
+	let fillStyle = (ptype > 0) ? hextypeStyle(ptype) : '#ddd';
+	let klayer = this.klayer;
+	let pgroup = new Konva.Group({x: 0, y: 0, id: 'port_' + coordHex(r, c)});
+	pgroup.add(new Konva.Circle
+	    ({ x: 0, y: 0, radius: 30, fill: fillStyle, stroke: '#fff', strokeWidth: 1.5}));
+	if (ptype == 0)
+	{
+	    let ktxt = new Konva.Text
+		({ x: 0, y: 0, text: '3:1', FontFamily: FONT_FAMILY, fontSize: 18, fill: 'black'});
+	    ktxt.offsetX(ktxt.width() / 2);  ktxt.offsetY(ktxt.height() / 2);  // center
+	    pgroup.add(ktxt);
+	}
+	// port facings: 1 is NE, 2 is E, etc: so if arrow #s are rotated to (facing-1) and facing, then facing=0 is top-center 45deg triangle
+	pgroup.add(new Konva.Line({
+	    points: [ 0, -8, -8, 0, 8, 0 ], fill: '#fff', closed: true,
+	    offset: { x: 0, y: 40 },  rotation: pfacing*60 }));
+	--pfacing;
+	pgroup.add(new Konva.Line({
+	    points: [ 0, -8, -8, 0, 8, 0 ], fill: '#fff', closed: true,
+	    offset: { x: 0, y: 40 },  rotation: pfacing*60 }));
+	pgroup.x(x);
+	pgroup.y(y);
+	this.klayer.add(pgroup);
     }
     this.handleMembers = function(memberNames)
     {
@@ -352,6 +384,18 @@ var gaDispatchTo =
 	    let hcoord = LH[i];
 	    gameui.drawHex((hcoord >> 8) & 0xFF, hcoord & 0xFF, LH[i+1], LH[i+2]);
 	}
+	// this is classic 4pl board; TODO decode entire part "PL" for actual sent port positions (all ports' types, then edge coords, then facings)
+	const PL = mdata.parts.PL.iArr.arr;
+	gameui.addPort(1, 2, PL[0], 3);  // at sea hex 0x0102 facing SE(#3)
+	gameui.addPort(1, 6, PL[1], 4);  // at 0x0106 facing SW
+	gameui.addPort(3, 9, PL[2], 4);  // at 0x0309 facing SW
+	gameui.addPort(7, 0xb, PL[3], 5);  //  0x070b facing W
+	gameui.addPort(0xb, 9, PL[4], 6);  //  0x0b09 facing NW
+	gameui.addPort(0xd, 6, PL[5], 6);  //  0x0d06 facing NW
+	gameui.addPort(0xd, 2, PL[6], 1);  //  0x0d02 facing NE
+	gameui.addPort(9, 0, PL[7], 2);    //  0x900 facing E
+	gameui.addPort(5, 0, PL[8], 2);    //  0x500 facing E
+
 	gameui.klayer.draw();
     }
 };
