@@ -33,11 +33,15 @@ $.ajax({
 
 const BOARDWIDTH_VISUAL_MIN = 18, BOARDHEIGHT_VISUAL_MIN = 17;  // half-hex units
 const BOARD_BORDER = 20;  // px on each side
-const DELTA_X = 56, DELTA_Y = 48, HALF_DELTA_X = DELTA_X / 2, HALF_DELTA_Y = DELTA_Y / 2;  // px offsets for each hex
-const HEX_RADIUS = 32;
+const DELTA_X = 92, DELTA_Y = 80, HALF_DELTA_X = DELTA_X / 2, HALF_DELTA_Y = DELTA_Y / 2;  // px offsets for each hex
+const HEX_RADIUS = 53;
 
 // Colors: water, clay, ore, sheep, wheat, wood, desert, gold, fog
 const HEXTYPE_COLORS = ['#33a', '#cc6666', '#999999', '#33cc33', '#cccc33', '#cc9966', '#ffff99', '#ff0', '#dcdcdc'];
+
+// Other styles
+
+const FONT_FAMILY = 'Verdana, Geneva, sans-serif';
 
 // Misc utilities
 
@@ -187,22 +191,44 @@ function GameUI(gaName)
 	{
 	    let c = ((r % 4 == 3) ? 1 : 0);
 	    for (let x = this.hexOffsX + c * HALF_DELTA_X; c < w; c += 2, x += DELTA_X)
-		this.drawHex(r, c, 0);
+		this.drawHex(r, c, 0, 0);
 	}
 	klayer.draw();
     }
-    this.drawHex = function(r, c, htype)
+    this.drawHex = function(r, c, htype, hdice)
     {
 	let x = this.hexOffsX + (c+1) * HALF_DELTA_X, y = this.hexOffsY + (r+1) * HALF_DELTA_Y;
 	let fillStyle = ((htype >= 0) && (htype < HEXTYPE_COLORS.length)) ? HEXTYPE_COLORS[htype] : '#aaa';
-	let hID = 'hex_' + coordHex(r, c);
 	let klayer = this.klayer;
+
+	let hID = 'hex_' + coordHex(r, c);
 	let coll = klayer.find("#" + hID);
 	if (coll.length != 0)
 		coll[0].fill(fillStyle);
 	else
 		klayer.add(new Konva.RegularPolygon
 		    ({ x: x, y: y, sides: 6, radius: HEX_RADIUS, id: hID, fill: fillStyle, stroke: '#666', strokeWidth: 1.5}));
+
+	if (hdice == 0)
+		return;
+
+	let dStr = "" + hdice;
+	let diceID = 'hdice_' + coordHex(r, c);
+	let ktxt;
+	coll = klayer.find("#" + diceID);
+	if (coll.length != 0)
+	{
+		ktxt = coll[0];
+		ktxt.text(dStr);
+	} else {
+		klayer.add(new Konva.Circle
+		    ({ x: x, y: y, radius: 15, fill: '#ddd'}));  // , stroke: 'black', strokeWidth: 1}));
+		ktxt = new Konva.Text
+		    ({ x: x, y: y, text: dStr, id: diceID, fontFamily: FONT_FAMILY, fontSize: 18, fill: 'black'});
+		klayer.add(ktxt);
+		ktxt.offsetY(ktxt.height() / 2);
+	}
+	ktxt.offsetX(ktxt.width() / 2); // center
     }
     this.handleMembers = function(memberNames)
     {
@@ -323,8 +349,8 @@ var gaDispatchTo =
 	const LH = mdata.parts.LH.iArr.arr;
 	for (let i = 0; i < LH.length; i += 3)
 	{
-	    let hcoord = LH[i], htype = LH[i+1];
-	    gameui.drawHex((hcoord >> 8) & 0xFF, hcoord & 0xFF, htype);
+	    let hcoord = LH[i];
+	    gameui.drawHex((hcoord >> 8) & 0xFF, hcoord & 0xFF, LH[i+1], LH[i+2]);
 	}
 	gameui.klayer.draw();
     }
