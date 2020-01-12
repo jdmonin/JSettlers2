@@ -458,7 +458,7 @@ function newGameWindow(gaName)
     if (gaWin)
     {
 	gaObj.gaWindow = gaWin;
-	gaWin.addEventListener("beforeunload", unloadGameDocEvent);
+	gaWin.addEventListener("beforeunload", unloadGameDocEvent);  // not guaranteed to fire
 	gaWin.document.write('Game: ' + gaName + '<HR noshade>Joining...');
 	gaWin.document.close();
 	let cLink = gaWin.document.createElement("link");
@@ -477,16 +477,16 @@ function closeGameWindow(gaName, isFromUnloadEvt)
     let gameObj = inGames[gaName];
     if (! gameObj)
 	return;
+
     gameObj.gaWindow.document.soc_gameui_obj = null;
-    delete inGames[gaName];  // remove before close(); undefined is OK since we aren't iterating all.
-    if (! isFromUnloadEvt)
-	gameObj.gaWindow.close();
+    delete inGames[gaName];  // remove before close(); undefined is OK
     if (gameObj.cliJoined && ! gameObj.sentLeaveMsg)
     {
-	let leaveMsg = { "gaLeave": { "gaName": gaName } };
-	sendToServer(leaveMsg);
+	sendToServer({ "gaLeave": { "gaName": gaName } });
 	gameObj.sentLeaveMsg = true;
     }
+    if (! (isFromUnloadEvt || gameObj.gaWindow.closed))
+	gameObj.gaWindow.close();
 }
 
 // Message dispatch //
