@@ -39,7 +39,7 @@ $.ajax({
 const BOARDWIDTH_VISUAL_MIN = 18, BOARDHEIGHT_VISUAL_MIN = 17;  // half-hex units
 const BOARD_BORDER = 20;  // px on each side
 const DELTA_X = 92, DELTA_Y = 80, HALF_DELTA_X = DELTA_X / 2, HALF_DELTA_Y = DELTA_Y / 2;  // px offsets for each hex
-const HEX_RADIUS = 53;
+const HEX_RADIUS = 53, DICENUM_RADIUS = 15;
 
 // Colors: water, clay, ore, sheep, wheat, wood, desert, gold, fog
 const HEXTYPE_COLORS = ['#33a', '#cc5544', '#999999', '#22dd22', '#cccc33', '#339922', '#ffff99', '#ff0', '#dcdcdc'];
@@ -69,7 +69,7 @@ function hextypeStyle(htype)
 	return ((htype >= 0) && (htype < HEXTYPE_COLORS.length)) ? HEXTYPE_COLORS[htype] : '#aaa';
 }
 
-// Non-gameMessage handlers; see bottom of file for GameUI object, inGames[] entries, gameMessage handlers //
+// Non-gameMessage handlers; scroll down for GameUI object, inGames[] entries, gameMessage handlers //
 
 function handleGameJoin(mData)
 {
@@ -142,7 +142,7 @@ function GameUI(gaName)
     this.sentLeaveMsg = false;  // flag for closeGameWindow
     this.hexOffsX = 0;  // px; includes BOARD_BORDER
     this.hexOffsY = 0;
-    // initBoard sets this.board (Board obj) and this.klayer (Konva.Layer)
+    // initBoard sets this.board (Board obj), .bLayer (board itself's Konva.Layer), .ppLayer (playing pieces)
     this.handleJoin = function(memberName,bh,bw,vsD,vsR)
     {
 	// if we're in that game, add person to member list there
@@ -200,29 +200,47 @@ function GameUI(gaName)
 	this.board = new Board(h, w);
 	let doc = this.gaWindow.document, div = doc.getElementById("board");
 	let kstage = new Konva.Stage({container: div, width: div.offsetWidth, height: div.offsetHeight});
-	let klayer = new Konva.Layer();
-	this.klayer = klayer;
-	kstage.add(klayer);
+	let bLayer = new Konva.Layer(), ppLayer = new Konva.Layer();
+	this.bLayer = bLayer; this.ppLayer = bLayer;
+	kstage.add(bLayer);   kstage.add(ppLayer);
 	for (let r = 1, y = this.hexOffsY; r < h; r += 2, y += DELTA_Y)
 	{
 	    let c = ((r % 4 == 3) ? 1 : 0);
 	    for (let x = this.hexOffsX + c * HALF_DELTA_X; c < w; c += 2, x += DELTA_X)
 		this.drawHex(r, c, 0, 0);
 	}
-	klayer.draw();
+	bLayer.draw();
     }
+
+    // geometry:
+    this.coordToRC = function(coord)
+    {
+	return [coord >> 8, coord & 0xFF];
+    }
+    this.rcToXY = function(r, c)
+    {
+	return [this.hexOffsX + (c+1) * HALF_DELTA_X, this.hexOffsY + (r+1) * HALF_DELTA_Y];
+    }
+    /** [x,y] for a hex center, node coord, center of vertical edge, left side of angled edge coord */
+    this.coordToXY = function(coord)
+    {
+	let [r,c] = this.coordToRC(coord);
+	return this.rcToXY(r, c);
+    }
+
+    // parts and pieces of board:
     this.drawHex = function(r, c, htype, hdice)
     {
-	let x = this.hexOffsX + (c+1) * HALF_DELTA_X, y = this.hexOffsY + (r+1) * HALF_DELTA_Y;
+	let [x, y] = this.rcToXY(r, c);
 	let fillStyle = hextypeStyle(htype);
-	let klayer = this.klayer;
+	let bLayer = this.bLayer;
 
 	let hID = 'hex_' + coordHex(r, c);
-	let coll = klayer.find("#" + hID);
+	let coll = bLayer.find("#" + hID);
 	if (coll.length != 0)
 		coll[0].fill(fillStyle);
 	else
-		klayer.add(new Konva.RegularPolygon
+		bLayer.add(new Konva.RegularPolygon
 		    ({ x: x, y: y, sides: 6, radius: HEX_RADIUS, id: hID, fill: fillStyle, stroke: '#666', strokeWidth: 1.5}));
 
 	if (hdice == 0)
@@ -231,17 +249,17 @@ function GameUI(gaName)
 	let dStr = "" + hdice;
 	let diceID = 'hdice_' + coordHex(r, c);
 	let ktxt;
-	coll = klayer.find("#" + diceID);
+	coll = bLayer.find("#" + diceID);
 	if (coll.length != 0)
 	{
 		ktxt = coll[0];
 		ktxt.text(dStr);
 	} else {
-		klayer.add(new Konva.Circle
-		    ({ x: x, y: y, radius: 15, fill: '#ddd'}));
+		bLayer.add(new Konva.Circle
+		    ({ x: x, y: y, radius: DICENUM_RADIUS, fill: '#ddd'}));
 		ktxt = new Konva.Text
 		    ({ x: x, y: y, text: dStr, id: diceID, fontFamily: FONT_FAMILY, fontSize: 18, fill: 'black'});
-		klayer.add(ktxt);
+		bLayer.add(ktxt);
 		ktxt.offsetY(ktxt.height() / 2);
 	}
 	ktxt.offsetX(ktxt.width() / 2); // center
@@ -253,12 +271,13 @@ function GameUI(gaName)
 	 * have invalid coordinates (r=0 or c=0).
 	 */
 	const DR_FACING = [0, -2, 0, 2, 2, 0, -2], DC_FACING = [0, 1, 2, 1, -1, -2, -1];
-	let landHex = this.board.getAdjacentHexToEdge(edge, facing),
-		r = (landHex >> 8) - DR_FACING[facing],
-		c = (landHex & 0xFF) - DC_FACING[facing];
-	let x = this.hexOffsX + (c+1) * HALF_DELTA_X, y = this.hexOffsY + (r+1) * HALF_DELTA_Y;
+	let landHex = this.board.getAdjacentHexToEdge(edge, facing);
+	let [r, c] = this.coordToRC(landHex);
+	r -= DR_FACING[facing],
+	c -= DC_FACING[facing];
+	let [x, y] = this.rcToXY(r, c);
 	let fillStyle = (ptype > 0) ? hextypeStyle(ptype) : '#ddd';
-	let klayer = this.klayer;
+	let bLayer = this.bLayer;
 	let pgroup = new Konva.Group({x: 0, y: 0, id: 'port_' + coordHex4(edge)});
 	pgroup.add(new Konva.Circle
 	    ({ x: 0, y: 0, radius: 30, fill: fillStyle, stroke: '#fff', strokeWidth: 1.5}));
@@ -279,8 +298,29 @@ function GameUI(gaName)
 	    offset: { x: 0, y: 40 },  rotation: facing*60 }));
 	pgroup.x(x);
 	pgroup.y(y);
-	this.klayer.add(pgroup);
+	this.bLayer.add(pgroup);
     }
+    this.placeRobber = function(r, c)
+    {
+	let ppLayer = this.ppLayer;
+	let robb;
+	let rID = 'robber';
+	let coll = ppLayer.find("#" + rID);
+	if (coll.length != 0)
+		robb = coll[0];
+	else
+	{
+		robb = new Konva.Line({
+			points: [-4, -4, -8, -8, -8, -12, -4, -16, 4, -16, 8, -12, 8, -8, 4, -4, 8, 0, 8, 16, -8, 16, -8, 0, -4, -4, 4, -4], // X -8 to +8; Y -16 to +16
+			id: rID, stroke: '#222', strokeWidth: 1.5, fill: '#999', closed: true });
+		ppLayer.add(robb);
+	}
+	let [x, y] = this.rcToXY(r, c);
+	robb.x(x + DICENUM_RADIUS + 11);
+	robb.y(y - DICENUM_RADIUS / 3);
+    }
+
+    // helpers called by gameMessage handlers
     this.handleMembers = function(memberNames)
     {
 	let doc = this.gaWindow.document;
@@ -396,19 +436,34 @@ var gaDispatchTo =
 	    this.gaWindow.alert('Cannot draw board: Unknown board encoding');  // TODO gaWindow not found
 	    return;
 	}
+	// the board itself:
 	// TODO try-except in case LH or PL not found
 	const LH = mdata.parts.LH.iArr.arr;
 	for (let i = 0; i < LH.length; i += 3)
 	{
-	    let hcoord = LH[i];
-	    gameui.drawHex((hcoord >> 8) & 0xFF, hcoord & 0xFF, LH[i+1], LH[i+2]);
+	    let [r, c] = gameui.coordToRC(LH[i]);
+	    gameui.drawHex(r, c, LH[i+1], LH[i+2]);
 	}
 	// port positions (all ports' types, then edge coords, then facings)
 	const PL = mdata.parts.PL.iArr.arr, nPort = PL.length / 3, n2 = 2 * nPort;
 	for (let i = 0; i < nPort; ++i)
 		gameui.addPort(PL[i], PL[i+nPort], PL[i+n2]);
-	gameui.klayer.draw();
-    }
+	gameui.bLayer.draw();
+	// playing pieces:
+	if (mdata.parts.RH)
+	{
+	    let [r, c] = gameui.coordToRC(mdata.parts.RH.iVal);
+	    gameui.placeRobber(r, c);
+	}
+	gameui.ppLayer.draw();
+    },
+    moveRobber: function(gameui, gn, pn, mdata)
+    {
+	if (! mdata.isRobber)
+	    return;  // TODO handle pirate
+	gameui.placeRobber(mdata.moveTo.row, mdata.moveTo.column);
+	gameui.ppLayer.draw();
+    },
 };
 
 dispatchTo['gameMessage'] = function(mdata)
