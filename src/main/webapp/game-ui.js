@@ -34,15 +34,25 @@ $.ajax({
     'cache': (window.location.host != 'localhost'),
     });
 
+// Board/game constants
+
+const PTYPE_ROAD = 0, PTYPE_SETTLEMENT = 1, PTYPE_CITY = 2, PTYPE_SHIP = 3, PTYPE_FORTRESS = 4, PTYPE_VILLAGE = 5;
+const PTYPE_NAMES = ['ROAD', 'SETTLEMENT', 'CITY', 'SHIP', 'FORTRESS', 'VILLAGE'];  // as in proto/json; also for ID prefix in rsLayer/ppLayer
+
+
 // Board geometry constants; some are from SOCBoardPanel.java //
 
 const BOARDWIDTH_VISUAL_MIN = 18, BOARDHEIGHT_VISUAL_MIN = 17;  // half-hex units
 const BOARD_BORDER = 20;  // px on each side
 const DELTA_X = 92, DELTA_Y = 80, HALF_DELTA_X = DELTA_X / 2, HALF_DELTA_Y = DELTA_Y / 2;  // px offsets for each hex
 const HEX_RADIUS = 53, DICENUM_RADIUS = 15;
+/** Half the vertical offset for A-nodes vs Y-nodes along a road; half height of an angled edge */
+const HEXY_ANGLED_HALF_HEIGHT = 12;
 
-// Colors: water, clay, ore, sheep, wheat, wood, desert, gold, fog
+
+/** water, clay, ore, sheep, wheat, wood, desert, gold, fog */
 const HEXTYPE_COLORS = ['#33a', '#cc5544', '#999999', '#22dd22', '#cccc33', '#339922', '#ffff99', '#ff0', '#dcdcdc'];
+const PLAYER_COLORS = ['#6d7ce7', '#e72323', '#f4eece', '#f9801d', '#619771', '#a658c9']; // TODO improve
 
 // Other styles
 
@@ -142,7 +152,7 @@ function GameUI(gaName)
     this.sentLeaveMsg = false;  // flag for closeGameWindow
     this.hexOffsX = 0;  // px; includes BOARD_BORDER
     this.hexOffsY = 0;
-    // initBoard sets this.board (Board obj), .bLayer (board itself's Konva.Layer), .ppLayer (playing pieces)
+    // initBoard sets this.board (Board obj), .bLayer (board itself's Konva.Layer), .rsLayer (roads/ships), .ppLayer (other playing pieces)
     this.handleJoin = function(memberName,bh,bw,vsD,vsR)
     {
 	// if we're in that game, add person to member list there
@@ -200,9 +210,11 @@ function GameUI(gaName)
 	this.board = new Board(h, w);
 	let doc = this.gaWindow.document, div = doc.getElementById("board");
 	let kstage = new Konva.Stage({container: div, width: div.offsetWidth, height: div.offsetHeight});
-	let bLayer = new Konva.Layer(), ppLayer = new Konva.Layer();
-	this.bLayer = bLayer; this.ppLayer = bLayer;
-	kstage.add(bLayer);   kstage.add(ppLayer);
+	let bLayer = new Konva.Layer();
+	this.bLayer = bLayer; this.rsLayer = new Konva.Layer(); this.ppLayer = new Konva.Layer();
+	kstage.add(bLayer);
+	kstage.add(this.rsLayer);
+	kstage.add(this.ppLayer);
 	for (let r = 1, y = this.hexOffsY; r < h; r += 2, y += DELTA_Y)
 	{
 	    let c = ((r % 4 == 3) ? 1 : 0);
@@ -210,6 +222,11 @@ function GameUI(gaName)
 		this.drawHex(r, c, 0, 0);
 	}
 	bLayer.draw();
+	// temporary player-color swatches
+	let y = div.offsetHeight - 36;
+	for (let pn = 0; pn < PLAYER_COLORS.length; ++pn)
+	    this.ppLayer.add(new Konva.Rect({x: pn*30+5, y: y, width: 26, height: 26, fill: PLAYER_COLORS[pn], cornerRadius: 3}));
+	this.ppLayer.draw();
     }
 
     // geometry:
@@ -219,13 +236,24 @@ function GameUI(gaName)
     }
     this.rcToXY = function(r, c)
     {
-	return [this.hexOffsX + (c+1) * HALF_DELTA_X, this.hexOffsY + (r+1) * HALF_DELTA_Y];
+	let [x,y] = [this.hexOffsX + (c+1) * HALF_DELTA_X, this.hexOffsY + (r+1) * HALF_DELTA_Y];
+	if (r % 2 == 0)  // along top/bottom of hex
+	    if (this.isEdgeAngledUp(r, c))
+		y += HEXY_ANGLED_HALF_HEIGHT;
+	    else
+		y -= HEXY_ANGLED_HALF_HEIGHT;
+	return [x,y];
     }
     /** [x,y] for a hex center, node coord, center of vertical edge, left side of angled edge coord */
     this.coordToXY = function(coord)
     {
 	let [r,c] = this.coordToRC(coord);
 	return this.rcToXY(r, c);
+    }
+    /** If true, edge angles up and right; if false, angles down and right. Do not call if r%2 == 1 (row is center of hex) */
+    this.isEdgeAngledUp = function(r, c)
+    {
+	return (((r % 4 == 0) && (c % 2 == 1)) || ((r % 4 == 2) && (c % 2 == 0)))
     }
 
     // parts and pieces of board:
@@ -237,7 +265,7 @@ function GameUI(gaName)
 
 	let hID = 'hex_' + coordHex(r, c);
 	let coll = bLayer.find("#" + hID);
-	if (coll.length != 0)
+	if (coll.length)
 		coll[0].fill(fillStyle);
 	else
 		bLayer.add(new Konva.RegularPolygon
@@ -250,7 +278,7 @@ function GameUI(gaName)
 	let diceID = 'hdice_' + coordHex(r, c);
 	let ktxt;
 	coll = bLayer.find("#" + diceID);
-	if (coll.length != 0)
+	if (coll.length)
 	{
 		ktxt = coll[0];
 		ktxt.text(dStr);
@@ -306,7 +334,7 @@ function GameUI(gaName)
 	let robb;
 	let rID = 'robber';
 	let coll = ppLayer.find("#" + rID);
-	if (coll.length != 0)
+	if (coll.length)
 		robb = coll[0];
 	else
 	{
@@ -318,6 +346,50 @@ function GameUI(gaName)
 	let [x, y] = this.rcToXY(r, c);
 	robb.x(x + DICENUM_RADIUS + 11);
 	robb.y(y - DICENUM_RADIUS / 3);
+    }
+    this.buildPiece = function(r, c, ptype, pn)
+    {
+	let layer = this.ppLayer;
+	let pts;
+	switch(ptype)
+	{
+	case PTYPE_ROAD:
+	    pts = [-4, -26, 4, -26, 4, 26, -4, 26, -4, -26];
+	    layer = this.rsLayer;
+	    break;
+	case PTYPE_SETTLEMENT:
+	    pts = [-11, -8, 0, -19, 11, -8, 11, 9, -11, 9, -11, -8];
+	    break;
+	case PTYPE_CITY:
+	    pts = [-16, -12, -6, -22, 3, -12, 3, -6, 16, -6, 16, 9, -16, 9, -16, -12];
+	    let coll = layer.find("#" + PTYPE_NAMES[PTYPE_SETTLEMENT] + "_" + coordHex(r, c));
+	    if (coll.length)
+		coll[0].destroy(); // replaced by city
+	    break;
+	case PTYPE_SHIP:
+	    pts = [-6, -16, 4, -14, 11, -6, 11, 0, 8, 8, 20, 8, 17, 16, -19, 16, -19, 8, -4, 8, -1, 3, -1, -3, -4, -11, -6, -16];
+	    layer = this.rsLayer;
+	    break;
+	// TODO PTYPE_FORTRESS, PTYPE_VILLAGE need special contents
+	default:
+	    throw new RangeError("ptype: " + ptype);
+	}
+	let piece = new Konva.Line({
+		points: pts, id: PTYPE_NAMES[ptype] + '_' + coordHex(r, c),
+		stroke: '#222', strokeWidth: 1.5, fill: PLAYER_COLORS[pn], closed: true });
+	piece.socPN = pn;
+	if ((ptype == PTYPE_ROAD) && (r % 2 == 0))
+	{
+	    // angled road
+	    piece.offsetY(26);
+	    piece.rotation((this.isEdgeAngledUp(r, c)) ? 60 : 120);
+	}
+
+	let [x, y] = this.rcToXY(r, c);
+	layer.add(piece);
+	piece.x(x);
+	piece.y(y);
+	layer.draw();
     }
 
     // helpers called by gameMessage handlers
@@ -457,6 +529,21 @@ var gaDispatchTo =
 	}
 	gameui.ppLayer.draw();
     },
+    buildPiece: function(gameui, gn, pn, mdata)
+    {
+	let r=0, c=0;
+	if (mdata.coordinates)
+	{
+	    let cfield = (mdata.coordinates.edgeCoord) ? mdata.coordinates.edgeCoord : mdata.coordinates.nodeCoord;
+	    if (cfield)
+	    {
+		r = cfield.row || 0;
+		c = cfield.column || 0;
+	    }
+	}
+	let ptype = (mdata.type) ? PTYPE_NAMES.indexOf(mdata.type) : 0;
+	gameui.buildPiece(r, c, ptype, pn);
+    },
     moveRobber: function(gameui, gn, pn, mdata)
     {
 	if (! mdata.isRobber)
@@ -468,7 +555,7 @@ var gaDispatchTo =
 
 dispatchTo['gameMessage'] = function(mdata)
     {
-	let gaName = mdata.gameName, playerNumber = mdata.playerNumber;  // might be undefined
+	let gaName = mdata.gameName, playerNumber = mdata.playerNumber || 0;
 	let mtype;
 	for (let kname of Object.keys(mdata))  // message type, and might contain: gameName, playerNumber
 	{
