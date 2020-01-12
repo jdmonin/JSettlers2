@@ -2,7 +2,7 @@
  game window/board javascript functions, for index.html and its inGames[] array
 
  Since this modifies the dispatcher array, is loaded asynchronously from index-ws-dispatcher.js.
- This script loads konva.
+ This script loads konva and board.js.
 
  This file is part of the Java Settlers Web App (JSWeb).
 
@@ -25,8 +25,13 @@
 $.ajax({
     'url': 'inc/konva-4.0.0.min.js',
     'dataType': 'script',
-    'cache': (window.location.host != 'localhost'),
+    'cache': true,
     // success: function() { ... }  TODO allow queue up join-game reqs until konva loaded, then do so here
+    });
+$.ajax({
+    'url': 'board.js',
+    'dataType': 'script',
+    'cache': (window.location.host != 'localhost'),
     });
 
 // Board geometry constants; some are from SOCBoardPanel.java //
@@ -53,6 +58,10 @@ function coordHex(r, c)  // -> "0b07"
 	if (hexC.length == 1)
 	    hexC = '0' + hexC;
 	return hexR + hexC;
+}
+function coordHex4(coord)  // -> "0007"
+{
+	return ("000" + Number(coord).toString(16)).slice(-4);
 }
 
 function hextypeStyle(htype)
@@ -133,7 +142,7 @@ function GameUI(gaName)
     this.sentLeaveMsg = false;  // flag for closeGameWindow
     this.hexOffsX = 0;  // px; includes BOARD_BORDER
     this.hexOffsY = 0;
-    // initBoard sets this.klayer: Konva.Layer
+    // initBoard sets this.board (Board obj) and this.klayer (Konva.Layer)
     this.handleJoin = function(memberName,bh,bw,vsD,vsR)
     {
 	// if we're in that game, add person to member list there
@@ -185,8 +194,10 @@ function GameUI(gaName)
 	      }, 110);
 	}
     };
+    /* set up empty board; see boardLayout dispatch function for further work */
     this.initBoard = function(h,w)  // assumes konva.js done loading
     {
+	this.board = new Board(h, w);
 	let doc = this.gaWindow.document, div = doc.getElementById("board");
 	let kstage = new Konva.Stage({container: div, width: div.offsetWidth, height: div.offsetHeight});
 	let klayer = new Konva.Layer();
@@ -235,12 +246,20 @@ function GameUI(gaName)
 	}
 	ktxt.offsetX(ktxt.width() / 2); // center
     }
-    this.addPort = function(r, c, ptype, pfacing)
+    this.addPort = function(ptype, edge, facing)
     {
+	/** r-offset, c-offset to move over 1 hex, for each port facing direction (1-6); 0 unused.
+	 * Position calc needs these because the some of the hexes overlaid by a port
+	 * have invalid coordinates (r=0 or c=0).
+	 */
+	const DR_FACING = [0, -2, 0, 2, 2, 0, -2], DC_FACING = [0, 1, 2, 1, -1, -2, -1];
+	let landHex = this.board.getAdjacentHexToEdge(edge, facing),
+		r = (landHex >> 8) - DR_FACING[facing],
+		c = (landHex & 0xFF) - DC_FACING[facing];
 	let x = this.hexOffsX + (c+1) * HALF_DELTA_X, y = this.hexOffsY + (r+1) * HALF_DELTA_Y;
 	let fillStyle = (ptype > 0) ? hextypeStyle(ptype) : '#ddd';
 	let klayer = this.klayer;
-	let pgroup = new Konva.Group({x: 0, y: 0, id: 'port_' + coordHex(r, c)});
+	let pgroup = new Konva.Group({x: 0, y: 0, id: 'port_' + coordHex4(edge)});
 	pgroup.add(new Konva.Circle
 	    ({ x: 0, y: 0, radius: 30, fill: fillStyle, stroke: '#fff', strokeWidth: 1.5}));
 	if (ptype == 0)
@@ -253,11 +272,11 @@ function GameUI(gaName)
 	// port facings: 1 is NE, 2 is E, etc: so if arrow #s are rotated to (facing-1) and facing, then facing=0 is top-center 45deg triangle
 	pgroup.add(new Konva.Line({
 	    points: [ 0, -8, -8, 0, 8, 0 ], fill: '#fff', closed: true,
-	    offset: { x: 0, y: 40 },  rotation: pfacing*60 }));
-	--pfacing;
+	    offset: { x: 0, y: 40 },  rotation: facing*60 }));
+	--facing;
 	pgroup.add(new Konva.Line({
 	    points: [ 0, -8, -8, 0, 8, 0 ], fill: '#fff', closed: true,
-	    offset: { x: 0, y: 40 },  rotation: pfacing*60 }));
+	    offset: { x: 0, y: 40 },  rotation: facing*60 }));
 	pgroup.x(x);
 	pgroup.y(y);
 	this.klayer.add(pgroup);
@@ -377,25 +396,17 @@ var gaDispatchTo =
 	    this.gaWindow.alert('Cannot draw board: Unknown board encoding');  // TODO gaWindow not found
 	    return;
 	}
-	// TODO try-except in case LH not found
+	// TODO try-except in case LH or PL not found
 	const LH = mdata.parts.LH.iArr.arr;
 	for (let i = 0; i < LH.length; i += 3)
 	{
 	    let hcoord = LH[i];
 	    gameui.drawHex((hcoord >> 8) & 0xFF, hcoord & 0xFF, LH[i+1], LH[i+2]);
 	}
-	// this is classic 4pl board; TODO decode entire part "PL" for actual sent port positions (all ports' types, then edge coords, then facings)
-	const PL = mdata.parts.PL.iArr.arr;
-	gameui.addPort(1, 2, PL[0], 3);  // at sea hex 0x0102 facing SE(#3)
-	gameui.addPort(1, 6, PL[1], 4);  // at 0x0106 facing SW
-	gameui.addPort(3, 9, PL[2], 4);  // at 0x0309 facing SW
-	gameui.addPort(7, 0xb, PL[3], 5);  //  0x070b facing W
-	gameui.addPort(0xb, 9, PL[4], 6);  //  0x0b09 facing NW
-	gameui.addPort(0xd, 6, PL[5], 6);  //  0x0d06 facing NW
-	gameui.addPort(0xd, 2, PL[6], 1);  //  0x0d02 facing NE
-	gameui.addPort(9, 0, PL[7], 2);    //  0x900 facing E
-	gameui.addPort(5, 0, PL[8], 2);    //  0x500 facing E
-
+	// port positions (all ports' types, then edge coords, then facings)
+	const PL = mdata.parts.PL.iArr.arr, nPort = PL.length / 3, n2 = 2 * nPort;
+	for (let i = 0; i < nPort; ++i)
+		gameui.addPort(PL[i], PL[i+nPort], PL[i+n2]);
 	gameui.klayer.draw();
     }
 };
