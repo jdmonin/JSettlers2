@@ -525,13 +525,6 @@ public class SOCServer extends Server
     public static final int CLI_VERSION_MIN = 0000;
 
     /**
-     * Minimum required client version, in "display" form, like "1.0.00".
-     * Currently there is no minimum.
-     * @see #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)
-     */
-    public static final String CLI_VERSION_MIN_DISPLAY = "0.0.00";
-
-    /**
      * If client never tells us their version, assume they are version 1.0.0 (1000).
      * @see #CLI_VERSION_TIMER_FIRE_MS
      * @see SOCServerMessageHandler#handleJOINGAME(Connection, SOCJoinGame)
@@ -5516,7 +5509,7 @@ public class SOCServer extends Server
             else
                 rejectMsg = "Sorry, your client version is too old, version number ";
             rejectMsg += Integer.toString(CLI_VERSION_MIN)
-                + " (" + CLI_VERSION_MIN_DISPLAY + ") or above is required.";
+                + " (" + Version.version(CLI_VERSION_MIN) + ") or above is required.";
             rejectLogMsg = "Rejected client: Version " + cvers + " too old";
         }
         if (wasKnown && isKnown && (cvers != prevVers))
