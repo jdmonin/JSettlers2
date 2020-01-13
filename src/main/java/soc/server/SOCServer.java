@@ -5884,7 +5884,8 @@ public class SOCServer extends Server
             }
 
             if ( (! SOCMessage.isSingleLineAndSafe(gameName))
-                 || "*".equals(gameName))
+                 || "*".equals(gameName)
+                 || (gameName.charAt(0) == '?') )
             {
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,

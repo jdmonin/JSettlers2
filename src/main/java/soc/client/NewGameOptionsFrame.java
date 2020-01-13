@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2009-2015,2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009-2015,2017-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1386,7 +1386,7 @@ import soc.util.Version;
             errMsg = strings.get("netmsg.status.common.name_too_long", SOCGameList.GAME_NAME_MAX_LENGTH);
                 // "Please choose a shorter name; maximum length: {0}"
         }
-        else if (! SOCMessage.isSingleLineAndSafe(gmName))
+        else if ((gmName.charAt(0) == '?') || ! SOCMessage.isSingleLineAndSafe(gmName))
         {
             errMsg = strings.get("netmsg.status.common.newgame_name_rejected");
                 // "This name is not permitted, please choose a different name."
