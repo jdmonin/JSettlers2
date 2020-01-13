@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1087,9 +1087,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case Message.FromClient.VERS_FIELD_NUMBER:
                 {
                     Message.Version m = msg.getVers();
-                    // TODO proto Version needs feats field like SOCVersion
                     return new SOCVersion
-                        (m.getVersNum(), m.getVersStr(), m.getVersBuild(), null, m.getCliLocale());
+                        (m.getVersNum(), m.getVersStr(), m.getVersBuild(), m.getFeats(), m.getCliLocale());
                 }
 
             case Message.FromClient.AUTH_REQ_FIELD_NUMBER:

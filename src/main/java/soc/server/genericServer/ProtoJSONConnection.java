@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -178,6 +178,7 @@ public final class ProtoJSONConnection
     /**
      * Callback to process or queue an inbound message from the client.
      * This method has the same structure as other {@link Connection} types' {@code run()} method.
+     * Parsed via {@link SOCMessage#toMsg(soc.proto.Message.FromClient)}.
      * @param asJson  Message data, formatted as JSON
      * @see ProtoJSONConnection.ClientSession#sendJSON(String)
      */
