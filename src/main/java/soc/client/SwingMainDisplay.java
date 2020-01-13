@@ -2138,9 +2138,12 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     public void channelsClosed(String message)
     {
         for (ChannelFrame cf : channels.values())
-        {
             cf.over(message);
-        }
+
+        channels.clear();
+        DefaultListModel<JoinableListItem> lm = (DefaultListModel<JoinableListItem>) chlist.getModel();
+        lm.clear();
+        lm.addElement(JoinableListItem.BLANK);
     }
 
     /**
@@ -2399,9 +2402,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                 gmlist.clearSelection();
 
                 if ((! isPractice) && (client.serverGames != null))
-                {
                     client.serverGames.deleteGame(gameName);  // may not be in there
-                }
 
                 gi.setEnabled(false);
 
@@ -2421,9 +2422,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         }
 
         if (found && (! isPractice) && (client.serverGames != null))
-        {
             client.serverGames.deleteGame(gameName);  // may not be in there
-        }
 
         return found;
     }

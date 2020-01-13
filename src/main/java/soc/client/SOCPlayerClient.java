@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, nested class refactoring, parameterize types
  *
@@ -911,6 +911,7 @@ public class SOCPlayerClient
      * network trouble; if possible, ask if they want to play locally (practiceServer vs. robots).
      * Otherwise, go ahead and shut down. Either way, calls {@link MainDisplay#showErrorPanel(String, boolean)}
      * to show an error message or network exception detail.
+     * Removes server's games and channels from MainDisplay's lists.
      *<P>
      * "If possible" is determined from return value of {@link ClientNetwork#putLeaveAll()}.
      *<P>
@@ -935,11 +936,15 @@ public class SOCPlayerClient
         // Stop network games; continue Practice games if possible.
         for (Map.Entry<String, PlayerClientListener> e : clientListeners.entrySet())
         {
-            String gameName = e.getKey();
-            SOCGame game = games.get(gameName);
+            String gaName = e.getKey();
+            SOCGame game = games.get(gaName);
             boolean isPractice = canPractice && (game != null) && game.isPractice;
             if (! isPractice)
+            {
                 e.getValue().gameDisconnected(false, err);
+                if (! mainDisplay.deleteFromGameList(gaName, false, false))
+                    mainDisplay.deleteFromGameList(gaName, false, true);
+            }
         }
 
         net.dispose();

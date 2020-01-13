@@ -5383,7 +5383,6 @@ import javax.swing.JComponent;
         final Font bpf = new Font("Dialog", Font.PLAIN, 10 * playerInterface.displayScale);
 
         // Do we need to calculate the metrics?
-
         if (superTextTop_w == 0)
         {
             final FontMetrics fm = g.getFontMetrics(bpf);
@@ -5406,18 +5405,18 @@ import javax.swing.JComponent;
 
             superTextTopBox_w += 2 * SUPERTEXT_INSET + 2 * SUPERTEXT_PADDING_HORIZ;
             superTextTopBox_h += SUPERTEXT_INSET + 2 * fm.getDescent();
-
-            superTextTopBox_x = (scaledPanelW - superTextTopBox_w) / 2;
         }
 
-        // adj from center
+        // draw box
+        superTextTopBox_x = (scaledPanelW - superTextTopBox_w) / 2;
         g.setColor(Color.black);
         g.fillRoundRect(superTextTopBox_x, SUPERTEXT_INSET, superTextTopBox_w, superTextTopBox_h, SUPERTEXT_INSET, SUPERTEXT_INSET);
         g.setColor(Color.white);
         g.fillRoundRect(superTextTopBox_x + SUPERTEXT_INSET, 2 * SUPERTEXT_INSET,
              superTextTopBox_w - 2 * SUPERTEXT_INSET, superTextTopBox_h - 2 * SUPERTEXT_INSET, SUPERTEXT_INSET, SUPERTEXT_INSET);
         g.setColor(Color.black);
-        // draw text at center
+
+        // draw centered text
         int tx = (scaledPanelW - superTextTop_w) / 2;
         int ty = 2 * SUPERTEXT_INSET + superTextTop_h;
         g.setFont(bpf);

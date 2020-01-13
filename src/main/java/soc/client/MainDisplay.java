@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -220,6 +220,11 @@ public interface MainDisplay
     void channelList(Collection<String> channelNames, boolean isPractice);
 
     void channelDeleted(String channelName);
+
+    /**
+     * All channels are being closed due to server error.
+     * Announce error in each joined channel window, then empty the channel list.
+     */
     void channelsClosed(String message);
 
     /**

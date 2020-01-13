@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2005 Chadwick A McHenry <mchenryc@acm.org>
- * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -526,13 +526,6 @@ public class SOCServer extends Server
      * @see #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)
      */
     public static final int CLI_VERSION_MIN = 2000;
-
-    /**
-     * Minimum required client version, in "display" form, like "1.0.00".
-     * Currently there is no minimum.
-     * @see #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)
-     */
-    public static final String CLI_VERSION_MIN_DISPLAY = "0.0.00";
 
     /**
      * If client never tells us their version, assume they are version 1.0.0 (1000).
@@ -5041,8 +5034,8 @@ public class SOCServer extends Server
      * and by SOCPlayerClient's locally hosted TCP server.
      *
      * @param stopMsg Final text message to send to all connected clients, or null.
-     *         Will be sent as a {@link SOCBCastTextMsg}.
-     *         As always, if message starts with ">>" it will be considered urgent.
+     *         Will be sent as a {@link SOCBCastTextMsg}. As with any broadcast text message,
+     *         if message starts with ">>" it will be considered urgent.
      */
     public synchronized void stopServer(String stopMsg)
     {
@@ -5050,7 +5043,9 @@ public class SOCServer extends Server
         {
             System.out.println("stopServer: " + stopMsg);
             System.out.println();
-            broadcast(new SOCBCastTextMsg(stopMsg));
+            broadcast(new SOCStatusMessage(SOCStatusMessage.SV_SERVER_SHUTDOWN, stopMsg));
+            if (getMinConnectedCliVersion() < SOCStatusMessage.VERSION_FOR_SV_SERVER_SHUTDOWN)
+                broadcastToVers(new SOCBCastTextMsg(stopMsg), 0, SOCStatusMessage.VERSION_FOR_SV_SERVER_SHUTDOWN - 1);
         }
 
         /// give time for messages to drain (such as urgent text messages
@@ -5513,7 +5508,7 @@ public class SOCServer extends Server
             else
                 rejectMsg = "Sorry, your client version is too old, version number ";
             rejectMsg += Integer.toString(CLI_VERSION_MIN)
-                + " (" + CLI_VERSION_MIN_DISPLAY + ") or above is required.";
+                + " (" + Version.version(CLI_VERSION_MIN) + ") or above is required.";
             rejectLogMsg = "Rejected client: Version " + cvers + " too old";
         }
         if (wasKnown && isKnown && (cvers != prevVers))
@@ -5888,7 +5883,8 @@ public class SOCServer extends Server
             }
 
             if ( (! SOCMessage.isSingleLineAndSafe(gameName))
-                 || "*".equals(gameName))
+                 || "*".equals(gameName)
+                 || (gameName.charAt(0) == '?') )
             {
                 c.put(new SOCStatusMessage
                         (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,

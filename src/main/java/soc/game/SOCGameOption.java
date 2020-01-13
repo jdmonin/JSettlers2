@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1443,16 +1443,16 @@ public class SOCGameOption
     public static boolean addKnownOption(SOCGameOption onew)
     {
         final String oKey = onew.key;
-        final boolean hadIt;
+        final boolean hadOld;
 
         synchronized (allOptions)
         {
             final SOCGameOption oldcopy = allOptions.remove(oKey);
-            hadIt = (oldcopy != null);
+            hadOld = (oldcopy != null);
 
             if (onew.optType != OTYPE_UNKNOWN)
             {
-                if (hadIt)
+                if (hadOld)
                 {
                     final ChangeListener cl = oldcopy.getChangeListener();
                     if (cl != null)
@@ -1463,7 +1463,7 @@ public class SOCGameOption
             }
         }
 
-        return ! hadIt;
+        return ! hadOld;
     }
 
     /**

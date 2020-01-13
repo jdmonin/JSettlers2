@@ -21,6 +21,16 @@ and backport minor new features until `2.0.00` was ready.
 
 ## `2.1.00` (build JM2020xxxx)
 - Currently being developed
+- Client:
+	- Game window:
+	  - Properly re-center top text ("Last round for no 7s") if window made larger/smaller while top text displayed
+- Server:
+	- For quick restart, bind TCP socket with setReuseAddress (SO_REUSEADDR) flag
+	- At shutdown, server broadcasts StatusMessage(SV_SERVER_SHUTDOWN) for clean client shutdown
+- Bots/AI:
+	- Don't try to reconnect after server sends StatusMessage(SV_SERVER_SHUTDOWN)
+- Network/Message traffic:
+	- Game names can't start with reserved character '?'
 
 
 ## `2.0.00` (build JM20200102)

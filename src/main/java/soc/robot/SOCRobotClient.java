@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -895,6 +895,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * handle the "status message" message by printing it to System.err;
      * messages with status value 0 are ignored (no problem is being reported)
      * once the initial welcome message has been printed.
+     * Status {@link SOCStatusMessage#SV_SERVER_SHUTDOWN} calls {@link #disconnect()}
+     * so as to not print futile reconnect attempts on the terminal.
      * @param mes  the message
      */
     @Override
@@ -903,6 +905,12 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         int sv = mes.getStatusValue();
         if (sv == SOCStatusMessage.SV_OK_DEBUG_MODE_ON)
             sv = 0;
+        else if (sv == SOCStatusMessage.SV_SERVER_SHUTDOWN)
+        {
+            disconnect();
+            return;
+        }
+
         if ((sv != 0) || ! printedInitialWelcome)
         {
             System.err.println("Robot " + getNickname() + ": Status "

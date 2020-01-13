@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2018-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2018-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -122,10 +122,11 @@ public class TestGameOptions
     public void testAddKnownOption()
     {
         // add known opt
+        assertNull(SOCGameOption.getOption("_TESTF", false));
         final SOCGameOption newKnown = new SOCGameOption
             ("_TESTF", 2000, 2000, false, 0, "For unit test");
-        assertNull(SOCGameOption.getOption("_TESTF", false));
-        SOCGameOption.addKnownOption(newKnown);
+        boolean hadNoOld = SOCGameOption.addKnownOption(newKnown);
+        assertTrue(hadNoOld);
 
         // getOption without clone should be same object
         SOCGameOption opt = SOCGameOption.getOption("_TESTF", false);
@@ -140,8 +141,9 @@ public class TestGameOptions
         assertEquals(2000, opt.minVersion);
         assertEquals(2000, opt.lastModVersion);
 
-        // cleanup/remove known opt
-        SOCGameOption.addKnownOption(new SOCGameOption("_TESTF"));
+        // cleanup/remove known opt, by adding unknown opt
+        hadNoOld = SOCGameOption.addKnownOption(new SOCGameOption("_TESTF"));
+        assertFalse(hadNoOld);
         assertNull(SOCGameOption.getOption("_TESTF", false));
     }
 

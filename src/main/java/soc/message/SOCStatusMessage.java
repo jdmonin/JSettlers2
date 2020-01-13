@@ -319,6 +319,22 @@ public class SOCStatusMessage extends SOCMessage
      */
     public static final int SV_GAME_CLIENT_FEATURES_NEEDED = 22;
 
+    /**
+     * Server broadcasts SOCStatusMessage({@link #SV_SERVER_SHUTDOWN}) at clean shutdown.
+     * Clients and bots shouldn't immediately try to reconnect when the server closes their connection.
+     * Versions older than {@link #VERSION_FOR_SV_SERVER_SHUTDOWN} should instead be sent {@link SOCBCastTextMsg}
+     * so they'll visually announce the shutdown in all their games and channels.
+     * @since 2.1.00
+     */
+    public static final int SV_SERVER_SHUTDOWN = 23;
+
+    /**
+     * Minimum server version which broadcasts SOCStatusMessage({@link #SV_SERVER_SHUTDOWN}) at clean shutdown,
+     * minimum client/bot version which recognizes that status and won't immediately try to reconnect.
+     * @since 2.1.00
+     */
+    public static final int VERSION_FOR_SV_SERVER_SHUTDOWN = 2100;
+
     // IF YOU ADD A STATUS VALUE:
     // Do not change or remove the numeric values of earlier ones.
     // Be sure to update statusValidAtVersion() and statusFallbackForVersion().
@@ -494,10 +510,12 @@ public class SOCStatusMessage extends SOCMessage
                 return (statusValue < SV_PW_REQUIRED);
             else if (cliVersion < 2000)  // for 1201 - 1999 inclusive
                 return (statusValue < SV_OK_DEBUG_MODE_ON);
+            else if (cliVersion < 2100)  // for 2000 - 2999 inclusive
+                return (statusValue < SV_SERVER_SHUTDOWN);
             else
-                // 2000 or newer; check vs highest constant that we know
-                // (since none has been added yet after 2000)
-                return (statusValue <= SV_GAME_CLIENT_FEATURES_NEEDED);
+                // 2100 or newer; check vs highest constant that we know
+                // (since none has been added yet after 2100)
+                return (statusValue <= SV_SERVER_SHUTDOWN);
             }
         }
     }
