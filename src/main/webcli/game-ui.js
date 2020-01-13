@@ -234,14 +234,21 @@ function GameUI(gaName)
     {
 	return [coord >> 8, coord & 0xFF];
     }
-    this.rcToXY = function(r, c)
+    this.rcToXY = function(r, c) { return this._rcToXY(r,c,false); }
+    this.rcEdgeToXY = function(r, c) { return this._rcToXY(r,c,true); }
+    this._rcToXY = function(r, c, midEdge)
     {
 	let [x,y] = [this.hexOffsX + (c+1) * HALF_DELTA_X, this.hexOffsY + (r+1) * HALF_DELTA_Y];
 	if (r % 2 == 0)  // along top/bottom of hex
-	    if (this.isEdgeAngledUp(r, c))
-		y += HEXY_ANGLED_HALF_HEIGHT;
+	{
+	    if (midEdge)
+		x += HALF_DELTA_X / 2;
 	    else
-		y -= HEXY_ANGLED_HALF_HEIGHT;
+		if (this.isEdgeAngledUp(r, c))
+		    y += HEXY_ANGLED_HALF_HEIGHT;
+		else
+		    y -= HEXY_ANGLED_HALF_HEIGHT;
+	}
 	return [x,y];
     }
     /** [x,y] for a hex center, node coord, center of vertical edge, left side of angled edge coord */
@@ -350,6 +357,7 @@ function GameUI(gaName)
     this.buildPiece = function(r, c, ptype, pn)
     {
 	let layer = this.ppLayer;
+	let midEdge = false;
 	let pts;
 	switch(ptype)
 	{
@@ -369,6 +377,7 @@ function GameUI(gaName)
 	case PTYPE_SHIP:
 	    pts = [-6, -16, 4, -14, 11, -6, 11, 0, 8, 8, 20, 8, 17, 16, -19, 16, -19, 8, -4, 8, -1, 3, -1, -3, -4, -11, -6, -16];
 	    layer = this.rsLayer;
+	    midEdge = true;
 	    break;
 	// TODO PTYPE_FORTRESS, PTYPE_VILLAGE need special contents
 	default:
@@ -385,7 +394,7 @@ function GameUI(gaName)
 	    piece.rotation((this.isEdgeAngledUp(r, c)) ? 60 : 120);
 	}
 
-	let [x, y] = this.rcToXY(r, c);
+	let [x, y] = (midEdge) ? this.rcEdgeToXY(r, c) : this.rcToXY(r, c);
 	layer.add(piece);
 	piece.x(x);
 	piece.y(y);
