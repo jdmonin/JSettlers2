@@ -152,7 +152,7 @@ function GameUI(gaName)
     this.sentLeaveMsg = false;  // flag for closeGameWindow
     this.hexOffsX = 0;  // px; includes BOARD_BORDER
     this.hexOffsY = 0;
-    // initBoard sets this.board (Board obj), .bLayer (board itself's Konva.Layer), .rsLayer (roads/ships), .ppLayer (other playing pieces)
+    // initBoard sets this.board (Board obj), .bLayer (board itself's Konva.Layer), .rsLayer (roads/ships), .ppLayer (other playing pieces, pirate)
     this.handleJoin = function(memberName,bh,bw,vsD,vsR)
     {
 	// if we're in that game, add person to member list there
@@ -337,10 +337,9 @@ function GameUI(gaName)
     }
     this.placeRobber = function(r, c)
     {
-	let ppLayer = this.ppLayer;
 	let robb;
 	let rID = 'robber';
-	let coll = ppLayer.find("#" + rID);
+	let coll = this.ppLayer.find("#" + rID);
 	if (coll.length)
 		robb = coll[0];
 	else
@@ -348,11 +347,29 @@ function GameUI(gaName)
 		robb = new Konva.Line({
 			points: [-4, -4, -8, -8, -8, -12, -4, -16, 4, -16, 8, -12, 8, -8, 4, -4, 8, 0, 8, 16, -8, 16, -8, 0, -4, -4, 4, -4], // X -8 to +8; Y -16 to +16
 			id: rID, stroke: '#222', strokeWidth: 1.5, fill: '#999', closed: true });
-		ppLayer.add(robb);
+		this.ppLayer.add(robb);
 	}
 	let [x, y] = this.rcToXY(r, c);
 	robb.x(x + DICENUM_RADIUS + 11);
 	robb.y(y - DICENUM_RADIUS / 3);
+    }
+    this._SHIP_PTS = [-6, -16, 4, -14, 11, -6, 11, 0, 8, 8, 20, 8, 17, 16, -19, 16, -19, 8, -4, 8, -1, 3, -1, -3, -4, -11, -6, -16];
+    this.placePirate = function(r, c)
+    {
+	let pir;
+	let pID = 'pirate';
+	let coll = this.ppLayer.find("#" + pID);
+	if (coll.length)
+		pir = coll[0];
+	else
+	{
+		pir = new Konva.Line({
+			points: this._SHIP_PTS, id: pID, stroke: '#888', strokeWidth: 1.5, fill: '#111', closed: true });
+		this.ppLayer.add(pir);
+	}
+	let [x, y] = this.rcToXY(r, c);
+	pir.x(x);
+	pir.y(y);
     }
     this.buildPiece = function(r, c, ptype, pn)
     {
@@ -375,7 +392,7 @@ function GameUI(gaName)
 		coll[0].destroy(); // replaced by city
 	    break;
 	case PTYPE_SHIP:
-	    pts = [-6, -16, 4, -14, 11, -6, 11, 0, 8, 8, 20, 8, 17, 16, -19, 16, -19, 8, -4, 8, -1, 3, -1, -3, -4, -11, -6, -16];
+	    pts = this._SHIP_PTS;
 	    layer = this.rsLayer;
 	    midEdge = true;
 	    break;
@@ -399,6 +416,19 @@ function GameUI(gaName)
 	piece.x(x);
 	piece.y(y);
 	layer.draw();
+    }
+    this.moveShip = function(fr, fc, tr, tc)
+    {
+	const pfix = PTYPE_NAMES[PTYPE_SHIP] + '_';
+	let coll = this.rsLayer.find('#' + pfix + coordHex(fr, fc));
+	if (! (coll.length))
+	    return;
+	let ship = coll[0];
+	ship.id(pfix + coordHex(tr, tc));
+	let [x, y] = this.rcEdgeToXY(tr, tc);
+	ship.x(x);
+	ship.y(y);
+	this.rsLayer.draw();
     }
 
     // helpers called by gameMessage handlers
@@ -505,6 +535,23 @@ dispatchTo['gaMembers'] = handleGameMembers;
 dispatchTo['gaPlayerText'] = handleGameText;
 dispatchTo['gaLeave'] = handleLeaveGame;
 
+// message-parsing utilities
+
+function msgCoord(msgField)
+{
+    let r=0, c=0;
+    if (msgField)
+    {
+	let cfield = (msgField.edgeCoord) ? msgField.edgeCoord : msgField.nodeCoord;
+	if (cfield)
+	{
+	    r = cfield.row || 0;
+	    c = cfield.column || 0;
+	}
+    }
+    return [r, c];
+}
+
 // gameMessage handlers: gets gameUI obj for gameName, gameName (or undef), playerNumber (or undef), mdata.
 // Handler order here roughly follows that of game_message.proto GameMessageFromServer
 
@@ -536,28 +583,33 @@ var gaDispatchTo =
 	    let [r, c] = gameui.coordToRC(mdata.parts.RH.iVal);
 	    gameui.placeRobber(r, c);
 	}
+	if (mdata.parts.PH)
+	{
+	    let [r, c] = gameui.coordToRC(mdata.parts.PH.iVal);
+	    gameui.placePirate(r, c);
+	}
 	gameui.ppLayer.draw();
     },
     buildPiece: function(gameui, gn, pn, mdata)
     {
-	let r=0, c=0;
-	if (mdata.coordinates)
-	{
-	    let cfield = (mdata.coordinates.edgeCoord) ? mdata.coordinates.edgeCoord : mdata.coordinates.nodeCoord;
-	    if (cfield)
-	    {
-		r = cfield.row || 0;
-		c = cfield.column || 0;
-	    }
-	}
+	let [r,c] = msgCoord(mdata.coordinates);
 	let ptype = (mdata.type) ? PTYPE_NAMES.indexOf(mdata.type) : 0;
 	gameui.buildPiece(r, c, ptype, pn);
     },
+    movePiece: function(gameui, gn, pn, mdata)
+    {
+	if (mdata.type != 'SHIP')
+	    return;
+	let [fr,fc] = msgCoord(mdata.fromCoordinates);
+	let [tr,tc] = msgCoord(mdata.toCoordinates);
+	gameui.moveShip(fr,fc, tr, tc);
+    },
     moveRobber: function(gameui, gn, pn, mdata)
     {
-	if (! mdata.isRobber)
-	    return;  // TODO handle pirate
-	gameui.placeRobber(mdata.moveTo.row, mdata.moveTo.column);
+	if (mdata.isRobber)
+	    gameui.placeRobber(mdata.moveTo.row, mdata.moveTo.column);
+	else
+	    gameui.placePirate(mdata.moveTo.row, mdata.moveTo.column);
 	gameui.ppLayer.draw();
     },
 };
