@@ -33,3 +33,7 @@ ul.actives li {
   background: #3333ff;  color: #ffffff;  margin: 4px;  padding: 6px;
   min-width: 120px;  border-radius: 4px;
 }
+ul.actives li.cantjoin {
+  background: #aaaaff;  color: #000066;  margin: 4px;  padding: 6px;
+  min-width: 120px;  border-radius: 4px;
+}

@@ -212,8 +212,13 @@ function sendToServer(jsonObj)
 /* chat channel list, game list */
 
 $('#game_list').on('dblclick', 'li', function() {
-    var gaName = $(this).text();
-    var gaObj = inGames[gaName];
+    let gaNode = $(this);
+    if (gaNode.hasClass('cantjoin'))
+    {
+	alert("Can't join: This client is missing features required to join this game.");
+	return;
+    }
+    let gaName = gaNode.text(), gaObj = inGames[gaName];
     if (gaObj && gaObj.gaWindow && gaObj.gaWindow.closed)
     {
 	// workaround if tab closed but no beforeunload fired to leave game
@@ -263,10 +268,16 @@ function listPopulate(listId, itemNames, tooltip)
 	return;  // empty, undefined, null
 
     itemNames.sort(alphaCompareStrings);
-    var newUL = $('<ul />', {'class': 'actives', 'style': "padding-left: 0;" });  // must force 0 padding here too
+    let newUL = $('<ul />', {'class': 'actives', 'style': "padding-left: 0;" });  // must force 0 padding here too
     $.each(itemNames, function(i)
     {
-	var li = $('<li />').text(itemNames[i]).appendTo(newUL);
+	let na = itemNames[i];
+	let cantJoin = na.startsWith('?');
+	if (cantJoin)
+	    na = na.substr(1);
+	let li = $('<li />').text(na).appendTo(newUL);
+	if (cantJoin)
+	    li.addClass("cantjoin");
 	if (tooltip)
 	    li.prop('title', tooltip);
     });
@@ -285,17 +296,22 @@ function listAdd(listId, itemName, tooltip)
 // add itemName to any div
 function listAddJq(divJqueryObj, itemName, fadeMS, tooltip)
 {
-    var newLI = $('<li />').text(itemName);
+    let cantJoin = itemName.startsWith('?');
+    if (cantJoin)
+	itemName = itemName.substr(1);
+    let newLI = $('<li />').text(itemName);
     if (tooltip)
 	newLI.prop('title', tooltip);
-    var UL = divJqueryObj.find('ul');
+    if (cantJoin)
+	newLI.addClass("cantjoin");
+    let UL = divJqueryObj.find('ul');
     if (UL.length)
     {
 	newLI.hide();
 	$('li', UL).add(newLI.fadeIn(fadeMS)).sort(alphaCompareElems).appendTo(UL);
     } else {
 	// is first channel or game: no list yet
-        var newUL = $('<ul />', {'class': 'actives', 'style': "padding-left: 0;" });
+        let newUL = $('<ul />', {'class': 'actives', 'style': "padding-left: 0;" });
 	newLI.fadeIn(fadeMS).appendTo(newUL);
 	divJqueryObj.append(newUL);
     }
