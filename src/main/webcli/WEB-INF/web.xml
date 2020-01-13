@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+ This file is part of the Java Settlers Web App (JSWeb).
+
+ This file Copyright (C) 2017,2020 Jeremy D Monin (jeremy@nand.net)
+
+ JSWeb is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ JSWeb is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with JSWeb.  If not, see https://www.gnu.org/licenses/ .
+ -->
+
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+	version="3.1" >
+
+    <display-name>JSettlers Web App Client</display-name>
+    <description>
+	Browser-based web app for JSettlers2. Contains html5 /socweb interface.
+	To be used alongside socserver.war containing the socweb.server servlets and JSettlersServer jar.
+    </description>
+
+    <!--
+    No servlets here, only the html5 /socweb web app; is packaged
+    as socweb.war for deployment convenience alongside socserver.war
+    -->
+
+</web-app>

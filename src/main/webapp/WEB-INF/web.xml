@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <!--
- This file is part of the Java Settlers Web App (JSWeb).
+ This file is part of Java Settlers of Catan (JSettlers).
 
- This file Copyright (C) 2017,2020 Jeremy D Monin (jeremy@nand.net)
+ This file Copyright (C) 2020 Jeremy D Monin (jeremy@nand.net)
 
- JSWeb is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
+ JSettlers is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
 
- JSWeb is distributed in the hope that it will be useful,
+ JSettlers is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
+ GNU General Public License for more details.
 
- You should have received a copy of the GNU Affero General Public License
- along with JSWeb.  If not, see https://www.gnu.org/licenses/ .
+ You should have received a copy of the GNU General Public License
+ along with JSettlers.  If not, see https://www.gnu.org/licenses/ .
  -->
 
 <web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
@@ -24,10 +24,10 @@
 	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
 	version="3.1" >
 
-    <display-name>JSettlers Web App</display-name>
+    <display-name>JSettlers Server</display-name>
     <description>
-        Browser-based web app for JSettlers2. Contains html5 /socweb interface,
-        socweb.server servlets, and JSettlersServer jar.
+	Servlet deployment of JSettlers Server.
+	To be used alongside socweb.war, the browser-based web app for JSettlers2.
     </description>
 
     <!--

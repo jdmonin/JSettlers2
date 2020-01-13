@@ -27,7 +27,7 @@
 
 ### Project layout
 
-This project uses gradle 4 or 5 (or IDEs) to build. For developer familiarity,
+This project uses gradle 5.6 or 6.x (or IDEs) to build. For developer familiarity,
 the project uses the directory structure/layout of a maven/gradle project.
 (v2 and newer versions use gradle to build. The 1.x.xx versions used ant.)
 
@@ -59,8 +59,8 @@ the `FromServer` and `FromClient` main message types. For more details see
 the "Network Communication and interop" section below.
 
 The v3 web app server runs in a Java servlet container such as Jetty or Tomcat.
-This is currently optional. Web app HTML content is under src/main/webapp and
-servlets are under src/main/java/socweb/ .
+This is currently optional. Web app HTML content is under `src/main/webcli` and
+servlets are under `src/main/java/socweb` .
 
 Game options and scenario rules are controlled through SOCGameOption;
 see initAllOptions javadoc for a list. Options have flags for their properties
@@ -92,7 +92,7 @@ To no longer show those coordinates, type: `=*= hidecoords`
 
 Coding is done in Java 8, but should compile cleanly in newer JDKs.
 (v2.0 used java 6 for backwards compatibility; earlier versions used 1.4 or 5.)
-The build system is gradle 4 or 5. Use any IDE you want, including vi.
+The build system is gradle 5.6 or 6.x. Use any IDE you want, including vi.
 Use spaces, not tabs.  Please try to keep the other conventions of the
 current code (see "Coding Style" below for more details.).
 
@@ -328,8 +328,8 @@ If you wish to maintain a user database for your server, you need MySQL
 or PostgreSQL installed and configured, or the sqlite jdbc driver for a
 file-based local database.
 
-This project was designed to build with gradle 4 or 5, and from within an IDE
-like eclipse. Gradle builds output to `build/libs/`.
+This project was designed to build with gradle 5.6 or 6.x, or from
+within an IDE like eclipse. Gradle builds output to `build/libs/`.
 
 If not using an IDE like eclipse, check the `build.gradle` file. There may be
 build variables you may want to change locally. These can be changed by
@@ -397,9 +397,10 @@ you are developing anything related to game options or jsettlers properties.
 The web app is a work in progress.
 
 To build and run this web app and its server you will need Java 8 or higher,
-gradle 5 or higher, and a Java servlet container such as Jetty or Tomcat.
+gradle 5.6 or higher, and a Java servlet container such as Jetty or Tomcat.
 
 Run `gradle war` or `gradle build` to assemble all components into **build/libs/socweb.war**
+(the html5 client) and **build/libs/socserver.war** (the server/servlet).
 
 The server has other run-time requirements (like protobuf JARs) which won't
 be part of its .war file: Those must be downloaded and placed into your Jetty
@@ -467,13 +468,13 @@ Here are some brief notes:
 ### SOCServer Web Server for HTML5: Protobuf as JSON over websockets
 
 To run JSettlersServer under Jetty or Tomcat to use protobuf as JSON over websockets,
-you will need to build `socserver.war` and copy related runtime JARs.
+you will need to build `socweb.war` and `socserver.war` and copy related runtime JARs.
 
 #### Details for Jetty 9.2:
 
 - Run `gradle war` to build socserver.war, which includes JSettlersServer.jar
-  but not its runtime-dependency JARs
-- Copy `build/libs/socserver.war` to $JETTY_HOME/webapps/
+  but not its runtime-dependency JARs, and socweb.war the HTML5 client.
+- Copy `build/libs/socserver.war` and `socweb.war` to $JETTY_HOME/webapps/
 - Copy the runtime JARs to $JETTY_HOME/lib/ext/  
   gson-2.7.jar, guava-19.0.jar, protobuf-java-3.4.0.jar, protobuf-java-util-3.4.0.jar
 - To run with those libs, start jetty with a command like: `java -jar $JETTY_HOME/start.jar --module=ext`

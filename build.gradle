@@ -214,10 +214,11 @@ protobuf {
     }
 }
 
-// The .WAR built here is socweb.war, with the server and the HTML5 web app/client
+// Build 2 .WAR files, so we can develop the html5 client without restarting server each deploy:
+// - socserver.war: the server, from src/main/webapp/
+// - socweb.war: HTML5 web app/client, from src/main/webcli/
 war {
-    archiveName = 'socweb.war'  // no version, for bookmark-friendly prefix at deploy
-    // includes src/main/webapp by default
+    archiveName = 'socserver.war'  // no version, for stable prefix at deploy
     classpath = classpath - sourceSets.main.output  // excludes *.class: we'll include jsserver jar instead
     from(sourceSets.main.output) {
         into "WEB-INF/classes"
@@ -227,6 +228,13 @@ war {
         into "WEB-INF/lib"
     }
 }
+// socweb.war as a zip file, because gradle dislikes multiple war tasks and the settings get confused
+task socwebWar(type: Zip) {
+    archiveName = 'socweb.war'  // no version, for bookmark-friendly prefix at deploy
+    from 'src/main/webcli'
+    destinationDirectory = file("$buildDir/libs")  // to go alongside socserver.war
+}
+war.finalizedBy socwebWar
 
 // distribution tgzs and zip
 

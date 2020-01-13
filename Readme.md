@@ -83,9 +83,9 @@ https://github.com/jdmonin/JSettlers2/blob/master/Readme.md .
 ## Requirements
 
 To play JSettlers in a browser, you will need one new enough for HTML5
-and Javascript version ES6. You will also need the servlet package `socweb.war`,
-and Java 8 servlet container software such as Jetty or Tomcat.
-Currently you must build `socweb.war` from source (see below),
+and Javascript version ES6. You will also need the `socweb.war` and `socserver.war`
+packages, and Java 8 servlet container software such as Jetty or Tomcat.
+Currently you must build `socweb.war` and `socserver.war` from source (see below),
 because no versions of it have yet been released.
 
 To play JSettlers with the traditional Java client, you will need either the
@@ -102,7 +102,7 @@ The JSettlers-full.jar file can also run locally as a server, without needing a
 web server. If you're running a LAN game for friends, that Jar is all you need.
 
 To build JSettlers from source, you will need Java JDK 8 or higher, and either
-gradle 4 or 5, or an IDE such as Eclipse which understands gradle's format.
+gradle 5.6 or 6.x, or an IDE such as Eclipse which understands gradle's format.
 See [doc/Readme.developer.md](doc/Readme.developer.md) for details.
 
 
@@ -277,7 +277,7 @@ java web app server, and the HTML5 client web app.
   and note any command-line flags you may need for Jetty or Tomcat to use those
   extra runtime JARs.
 
-- Place `socweb.war` into your web app server's `webapps` directory
+- Place `socweb.war` and `socserver.war` into your web app server's `webapps` directory
 
 - The web app URL will be `http://localhost:8080/socweb/` if your
   web app server runs on port 8080
