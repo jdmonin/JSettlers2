@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -64,6 +64,10 @@ import soc.util.IntPair;
  * The board layout is sent using {@link #getLandHexLayout()} and {@link #getPortsLayout()},
  * followed by the robber hex and pirate hex (if they're &gt; 0),
  * and then (a separate message) the legal settlement/city nodes and land areas.
+ *<P>
+ * This board class is used for all boards, including classic 4- and 6-player games,
+ * by server v3.0 and newer ({@link #VERSION_FOR_ALSO_CLASSIC}). In previous versions
+ * those would use {@link SOCBoard4p} or {@link SOCBoard6p}.
  *<P>
  * Road and ship pieces extend the {@link SOCRoutePiece} class; road-related getters/setters
  * will work on both types, but check {@link SOCRoutePiece#isRoadNotShip()} to differentiate.
@@ -237,8 +241,20 @@ public class SOCBoardLarge extends SOCBoard
     /** SOCBoardLarge serial, to suppress warning. SOCBoardLarge isn't sent over the network as a serialized object. */
     private static final long serialVersionUID = 2000L;
 
-    /** Minimum client and server version required: v2.0.00. */
+    /**
+     * Minimum client and server version required: v2.0.00.
+     * @see #VERSION_FOR_ALSO_CLASSIC
+     */
     public static final int MIN_VERSION = 2000;
+
+    /**
+     * Mininum server version which uses {@link SOCBoardLarge} for all games,
+     * including classic 4-and 6-player games: v3.0.
+     * {@link SOCGameOption} strings sent to older clients must contain {@code SBL=t}
+     * so the proper board type will be created.
+     * @since 3.0.00
+     */
+    public static final int VERSION_FOR_ALSO_CLASSIC = 3000;
 
     /**
      * Hex type for the Gold Hex, where the adjacent players

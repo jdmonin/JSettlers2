@@ -1582,6 +1582,30 @@ public class SOCGameOption
     }
 
     /**
+     * Gameopt-specific version of {@link SOCVersionedItem#itemsMinimumVersion(Map, boolean)},
+     * in case any special logic is needed. See that method for javadocs.
+     *<P>
+     * Currently checks opt {@code "SBL"} for v2 clients: See {@link SOCBoardLarge#VERSION_FOR_ALSO_CLASSIC}.
+     *
+     * @since 3.0.00
+     */
+    public static int optionsMinimumVersion
+        (final Map<?, SOCGameOption> items, final boolean calcMinVersionForUnchanged)
+         throws NullPointerException
+    {
+        int minVers = SOCVersionedItem.itemsMinimumVersion(items, calcMinVersionForUnchanged);
+
+        if (calcMinVersionForUnchanged && (minVers < SOCBoardLarge.VERSION_FOR_ALSO_CLASSIC))
+        {
+            // force SBL true for clients < 3.0
+            if (! (items.containsKey("SBL") && items.get("SBL").boolValue))
+                minVers = SOCBoardLarge.VERSION_FOR_ALSO_CLASSIC;
+        }
+
+        return minVers;
+    }
+
+    /**
      * Utility - build a string of option name-value pairs from the
      *           {@link #getAllKnownOptions() known options}' current values.
      *
@@ -1659,8 +1683,13 @@ public class SOCGameOption
         (final Map<String, SOCGameOption> omap, boolean hideEmptyStringOpts, final int cliVers)
         throws ClassCastException
     {
+        /** true if client version must be told to create SOCBoardLarge for all boards from this server version */
+        final boolean forceSBLTrue = (cliVers < SOCBoardLarge.VERSION_FOR_ALSO_CLASSIC) && (cliVers > -2);
+
         if ((omap == null) || omap.size() == 0)
-            return "-";
+        {
+            return (forceSBLTrue) ? "SBL=t" : "-";
+        }
 
         // If the "PLB" option is set, old client versions
         //  may need adjustment of the "PL" option.
@@ -1706,10 +1735,23 @@ public class SOCGameOption
                     op.intValue = realValue;
                 }
 
+                else if (forceSBLTrue && op.key.equals("SBL") && ! op.boolValue)
+                {
+                    sb.append('t');
+                    wroteValueAlready = true;
+                }
+
                 // NEW_OPTION - Check your option vs old clients here.
             }
             if (! wroteValueAlready)
                 op.packValue(sb);
+        }
+
+        if (forceSBLTrue && ! omap.containsKey("SBL"))
+        {
+            if (hadAny)
+                sb.append(SOCMessage.sep2_char);
+            sb.append("SBL=t");
         }
 
         return sb.toString();

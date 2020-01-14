@@ -25,15 +25,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import soc.game.SOCGame;
-import soc.proto.Message;
-
 
 /**
  * This backwards-compatibility message lists the names of all the games currently
  * created on a server, without their {@link soc.game.SOCGameOption game options}.
  * It's constructed and sent for each connecting client
  * having an old version which doesn't support game options.
+ * Sent only by servers older than v3.0 ({@link soc.game.SOCBoardLarge#VERSION_FOR_ALSO_CLASSIC});
+ * v3.0 and higher always send {@link SOCGamesWithOptions} instead.
  *<P>
  * Version 1.1.07 and later clients are sent {@link SOCGamesWithOptions}
  * instead of this message type.
@@ -95,28 +94,6 @@ public class SOCGames extends SOCMessage
     }
 
     /**
-     * Create a Games message at the server.
-     *
-     * @param ga  the game names, as a mixed-content list of Strings and/or {@link SOCGame}s;
-     *            if a client can't join a game, it should be a String prefixed with
-     *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
-     * @param ignoredBoolean  This param is unused, but helps the compiler distinguish this constructor
-     *            from the client-side one.
-     * @since 3.0.00
-     */
-    public SOCGames(List<Object> ga, boolean ignoredBoolean)
-    {
-        this(new ArrayList<String>());  // games field gets new ArrayList
-
-        for (Object ob : ga)
-            if (ob instanceof SOCGame)
-                games.add(((SOCGame) ob).getName());
-            else
-                games.add(ob.toString());  // ob's almost certainly a String already
-    }
-
-
-    /**
      * @return the list of game names
      */
     public List<String> getGames()
@@ -125,42 +102,14 @@ public class SOCGames extends SOCMessage
     }
 
     /**
-     * GAMES sep games
+     * This method is required, but this message is not sent by v3 or newer server or client.
      *
-     * @return the command string
+     * @throws UnsupportedOperationException in v3 and newer
      */
     @Override
     public String toCmd()
     {
-        return toCmd(games);
-    }
-
-    /**
-     * GAMES sep games
-     *
-     * @param ga  the game names, as a mixed-content list of Strings and/or {@link SOCGame}s;
-     *            if a client can't join a game, it should be a String prefixed with
-     *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
-     * @return    the command string
-     */
-    public static String toCmd(List<String> ga)
-    {
-        StringBuilder cmd = new StringBuilder();
-        cmd.append(GAMES);
-        cmd.append(sep);
-
-        boolean first = true;
-        for (Object ob : ga)
-        {
-            if (! first)
-                cmd.append(sep2);
-            else
-                first = false;
-
-            cmd.append(ob);
-        }
-
-        return cmd.toString();
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -189,21 +138,6 @@ public class SOCGames extends SOCMessage
         }
 
         return new SOCGames(ga);
-    }
-
-    protected Message.FromServer toProtoFromServer()
-    {
-        Message.Games.Builder b = Message.Games.newBuilder();
-        Message._GameWithOptions.Builder gb = Message._GameWithOptions.newBuilder();
-        gb.setOpts("-");
-        for (String gaName : games)
-        {
-            gb.setGaName(gaName);
-            b.addGame(gb);
-        }
-
-        return Message.FromServer.newBuilder()
-            .setGames(b).build();
     }
 
     /**

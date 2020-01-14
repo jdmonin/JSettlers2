@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2014,2016-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2014,2016-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -764,10 +764,7 @@ public class SOCGameListAtServer extends SOCGameList
             if (! alreadySent)
             {
                 // send the full list as 1 message
-                if (cliVers >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
-                    c.put(new SOCGamesWithOptions(gl, cliVers));
-                else
-                    c.put(new SOCGames(gl, false));
+                c.put(new SOCGamesWithOptions(gl, cliVers));
             } else {
                 // send deltas only
                 for (int i = 0; i < gl.size(); ++i)
@@ -785,7 +782,7 @@ public class SOCGameListAtServer extends SOCGameList
                         c.put(new SOCDeleteGame(gaName));
                     }
                     // announce as 'new game' to client
-                    if ((ob instanceof SOCGame) && (cliVers >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
+                    if (ob instanceof SOCGame)
                         c.put(new SOCNewGameWithOptions((SOCGame) ob, cliVers));
                     else
                         c.put(new SOCNewGame(gaName));

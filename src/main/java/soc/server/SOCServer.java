@@ -2341,7 +2341,7 @@ public class SOCServer extends Server
         // check required client version before we broadcast
         final int cversMin = getMinConnectedCliVersion();
 
-        if ((gVers <= cversMin) && (gaOpts == null))
+        if ((gVers <= cversMin) && (gaOpts == null) && (cversMin >= SOCBoardLarge.VERSION_FOR_ALSO_CLASSIC))
         {
             // All clients can join it, and no game options: use simplest message
             broadcast(new SOCNewGame(gaName));
@@ -2361,7 +2361,7 @@ public class SOCServer extends Server
 
             final int gVersMinGameOptsNoChange;
             if (cversMin < Version.versionNumber())
-                gVersMinGameOptsNoChange = SOCVersionedItem.itemsMinimumVersion(gaOpts, true);
+                gVersMinGameOptsNoChange = SOCGameOption.optionsMinimumVersion(gaOpts, true);
             else
                 gVersMinGameOptsNoChange = -1;  // all clients are our current version
 
