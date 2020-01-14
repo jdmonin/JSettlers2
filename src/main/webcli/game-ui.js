@@ -209,13 +209,19 @@ function GameUI(gaName)
     this.initBoard = function(h,w)  // assumes konva.js done loading
     {
 	this.board = new Board(h, w);
-	let doc = this.gaWindow.document, div = doc.getElementById("board");
-	let kstage = new Konva.Stage({container: div, width: div.offsetWidth, height: div.offsetHeight});
+	let doc = this.gaWindow.document, div = doc.getElementById("board"), bw = div.offsetWidth, bh = div.offsetHeight;
+	let kstage = new Konva.Stage({container: div, width: bw, height: bh});
 	let bLayer = new Konva.Layer();
 	this.bLayer = bLayer; this.rsLayer = new Konva.Layer(); this.ppLayer = new Konva.Layer();
 	kstage.add(bLayer);
 	kstage.add(this.rsLayer);
 	kstage.add(this.ppLayer);
+	let pt = {x: bw/3, y: bh/2};
+	bLayer.add(new Konva.Rect( // bg
+	    {x:0, y:0, width: bw, height: bh,
+		fillRadialGradientStartPoint: pt, fillRadialGradientStartRadius: 10,
+		fillRadialGradientEndPoint: pt, fillRadialGradientEndRadius: bw/2,
+		fillRadialGradientColorStops: [0, '#35c', 1, '#119'] }));
 	for (let r = 1, y = this.hexOffsY; r < h; r += 2, y += DELTA_Y)
 	{
 	    let c = ((r % 4 == 3) ? 1 : 0);
@@ -224,7 +230,7 @@ function GameUI(gaName)
 	}
 	bLayer.draw();
 	// temporary player-color swatches
-	let y = div.offsetHeight - 36;
+	let y = bh - 36;
 	for (let pn = 0; pn < PLAYER_COLORS.length; ++pn)
 	    this.ppLayer.add(new Konva.Rect({x: pn*30+5, y: y, width: 26, height: 26, fill: PLAYER_COLORS[pn], cornerRadius: 3}));
 	this.ppLayer.draw();
@@ -268,16 +274,18 @@ function GameUI(gaName)
     this.drawHex = function(r, c, htype, hdice)
     {
 	let [x, y] = this.rcToXY(r, c);
-	let fillStyle = hextypeStyle(htype);
+	let fillStyle = hextypeStyle(htype), op = (htype != 0) ? 1 : 0.6;
 	let bLayer = this.bLayer;
 
 	let hID = 'hex_' + coordHex(r, c);
 	let coll = bLayer.find("#" + hID);
 	if (coll.length)
+	{
 		coll[0].fill(fillStyle);
-	else
+		coll[0].opacity(op);
+	} else
 		bLayer.add(new Konva.RegularPolygon
-		    ({ x: x, y: y, sides: 6, radius: HEX_RADIUS, id: hID, fill: fillStyle, stroke: '#666', strokeWidth: 1.5}));
+		    ({ x: x, y: y, sides: 6, radius: HEX_RADIUS, id: hID, fill: fillStyle, opacity: op, stroke: '#666', strokeWidth: 1.5}));
 
 	if (hdice == 0)
 		return;
@@ -354,7 +362,7 @@ function GameUI(gaName)
 	robb.x(x + DICENUM_RADIUS + 11);
 	robb.y(y - DICENUM_RADIUS / 3);
     }
-    this._SHIP_PTS = [-6, -16, 4, -14, 11, -6, 11, 0, 8, 8, 20, 8, 17, 16, -19, 16, -19, 8, -4, 8, -1, 3, -1, -3, -4, -11, -6, -16];
+    this._SHIP_PTS = [-5, -15, 4, -13, 9, -6, 9, -1, 7, 6, 18, 6, 15, 15, -16, 15, -16, 6, -4, 6, -1, 1, -1, -3, -4, -10, -5, -15];
     this.placePirate = function(r, c)
     {
 	let pir;
