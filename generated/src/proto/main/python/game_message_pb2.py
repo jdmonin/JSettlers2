@@ -22,7 +22,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='game_message.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x12game_message.proto\x1a\ndata.proto\"\xb3\x04\n\x0b\x42oardLayout\x12;\n\x0flayout_encoding\x18\x01 \x01(\x0e\x32\".BoardLayout._LayoutEncodingFormat\x12&\n\x05parts\x18\x02 \x03(\x0b\x32\x17.BoardLayout.PartsEntry\x1a\xe6\x01\n\x10_BoardLayoutPart\x12\x0f\n\x05i_val\x18\x01 \x01(\x05H\x00\x12\x0f\n\x05s_val\x18\x02 \x01(\tH\x00\x12\x1b\n\x05i_arr\x18\x03 \x01(\x0b\x32\n._IntArrayH\x00\x12+\n\x0f\x63oordinate_list\x18\x04 \x01(\x0b\x32\x10._BoardCoordListH\x00\x12\x1f\n\tedge_list\x18\x05 \x01(\x0b\x32\n._EdgeListH\x00\x12\x1d\n\x08hex_list\x18\x06 \x01(\x0b\x32\t._HexListH\x00\x12\x1f\n\tnode_list\x18\x07 \x01(\x0b\x32\n._NodeListH\x00\x42\x05\n\x03val\x1aK\n\nPartsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12,\n\x05value\x18\x02 \x01(\x0b\x32\x1d.BoardLayout._BoardLayoutPart:\x02\x38\x01\"\x88\x01\n\x15_LayoutEncodingFormat\x12\x1c\n\x18_UNSENT_DEFAULT_ENCODING\x10\x00\x12\x1b\n\x17\x42OARD_ENCODING_ORIGINAL\x10\x01\x12\x1a\n\x16\x42OARD_ENCODING_6PLAYER\x10\x02\x12\x18\n\x14\x42OARD_ENCODING_LARGE\x10\x03\"\xa1\x02\n\x14PotentialSettlements\x12\x1c\n\x08ps_nodes\x18\x01 \x03(\x0b\x32\n.NodeCoord\x12\x12\n\narea_count\x18\x02 \x01(\r\x12\x1a\n\x12starting_land_area\x18\x03 \x01(\r\x12N\n\x16land_areas_legal_nodes\x18\x04 \x03(\x0b\x32..PotentialSettlements.LandAreasLegalNodesEntry\x12#\n\x0flegal_sea_edges\x18\x05 \x03(\x0b\x32\n._EdgeList\x1a\x46\n\x18LandAreasLegalNodesEntry\x12\x0b\n\x03key\x18\x01 \x01(\r\x12\x19\n\x05value\x18\x02 \x01(\x0b\x32\n._NodeList:\x02\x38\x01\"t\n\nPieceValue\x12\x18\n\x04type\x18\x01 \x01(\x0e\x32\n.PieceType\x12 \n\x0b\x63oordinates\x18\x02 \x01(\x0b\x32\x0b.BoardCoord\x12\x14\n\x0cpiece_value1\x18\x03 \x01(\x11\x12\x14\n\x0cpiece_value2\x18\x04 \x01(\x11\"H\n\nBuildPiece\x12\x18\n\x04type\x18\x01 \x01(\x0e\x32\n.PieceType\x12 \n\x0b\x63oordinates\x18\x02 \x01(\x0b\x32\x0b.BoardCoord\"O\n\x17\x42uyInventoryItemRequest\x12\x17\n\x0fis_not_dev_card\x18\x01 \x01(\x08\x12\x1b\n\x13other_inv_item_type\x18\x02 \x01(\x11\"\xa8\x03\n\x13InventoryItemAction\x12\x35\n\x0b\x61\x63tion_type\x18\x01 \x01(\x0e\x32 .InventoryItemAction._ActionType\x12\'\n\x0e\x64\x65v_card_value\x18\x02 \x01(\x0e\x32\r.DevCardValueH\x00\x12\x1d\n\x13other_inv_item_type\x18\x03 \x01(\x05H\x00\x12$\n\rdev_cards_set\x18\x04 \x03(\x0e\x32\r.DevCardValue\x12\x13\n\x0breason_code\x18\x15 \x01(\x11\x12\x13\n\x0bis_playable\x18\x16 \x01(\x08\x12\x0f\n\x07is_kept\x18\x17 \x01(\x08\x12\r\n\x05is_VP\x18\x18 \x01(\x08\x12\x17\n\x0f\x63\x61n_cancel_play\x18\x19 \x01(\x08\"{\n\x0b_ActionType\x12\x1a\n\x16_UNSENT_DEFAULT_ACTION\x10\x00\x12\x08\n\x04\x44RAW\x10\x01\x12\x08\n\x04PLAY\x10\x02\x12\x0b\n\x07\x41\x44\x44_NEW\x10\x03\x12\x0b\n\x07\x41\x44\x44_OLD\x10\x04\x12\x0f\n\x0b\x43\x41NNOT_PLAY\x10\x05\x12\x11\n\rPLACING_EXTRA\x10\x06\x42\x0c\n\nitem_value\"g\n\x0b\x43\x61ncelBuild\x12 \n\npiece_type\x18\x01 \x01(\x0e\x32\n.PieceTypeH\x00\x12\'\n\titem_type\x18\x02 \x01(\x0e\x32\x12.OtherPlayableItemH\x00\x42\r\n\x0b\x63\x61ncel_type\"q\n\tMovePiece\x12\x18\n\x04type\x18\x01 \x01(\x0e\x32\n.PieceType\x12%\n\x10\x66rom_coordinates\x18\x02 \x01(\x0b\x32\x0b.BoardCoord\x12#\n\x0eto_coordinates\x18\x03 \x01(\x0b\x32\x0b.BoardCoord\"I\n\x0bRemovePiece\x12\x18\n\x04type\x18\x01 \x01(\x0e\x32\n.PieceType\x12 \n\x0b\x63oordinates\x18\x02 \x01(\x0b\x32\x0b.BoardCoord\"\"\n\x05State\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"\x82\x01\n\rPlayerElement\x12%\n\x06\x61\x63tion\x18\x01 \x01(\x0e\x32\x15._PlayerElementAction\x12)\n\x0c\x65lement_type\x18\x02 \x01(\x0e\x32\x13._PlayerElementType\x12\x0e\n\x06\x61mount\x18\x03 \x01(\x11\x12\x0f\n\x07is_news\x18\x04 \x01(\x08\"t\n\x0ePlayerElements\x12%\n\x06\x61\x63tion\x18\x01 \x01(\x0e\x32\x15._PlayerElementAction\x12*\n\relement_types\x18\x02 \x03(\x0e\x32\x13._PlayerElementType\x12\x0f\n\x07\x61mounts\x18\x03 \x03(\x11\"\xfe\x01\n\x0cGameElements\x12\x31\n\relement_types\x18\x01 \x03(\x0e\x32\x1a.GameElements._ElementType\x12\x0e\n\x06values\x18\x02 \x03(\x11\"\xaa\x01\n\x0c_ElementType\x12\x1d\n\x19_UNSENT_DEFAULT_GAME_ELEM\x10\x00\x12\x0f\n\x0bROUND_COUNT\x10\x01\x12\x12\n\x0e\x44\x45V_CARD_COUNT\x10\x02\x12\x10\n\x0c\x46IRST_PLAYER\x10\x03\x12\x12\n\x0e\x43URRENT_PLAYER\x10\x04\x12\x17\n\x13LARGEST_ARMY_PLAYER\x10\x05\x12\x17\n\x13LONGEST_ROAD_PLAYER\x10\x06\"&\n\tStartGame\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"!\n\x04Turn\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"\t\n\x07SetTurn\"\x11\n\x0f\x44iceRollRequest\" \n\nDiceResult\x12\x12\n\ndice_total\x18\x01 \x01(\x11\"\xb4\x01\n\x13\x44iceResultResources\x12>\n\x10player_resources\x18\x01 \x03(\x0b\x32$.DiceResultResources.PlayerResources\x1a]\n\x0fPlayerResources\x12\x15\n\rplayer_number\x18\x01 \x01(\r\x12 \n\nres_gained\x18\x02 \x01(\x0b\x32\x0c.ResourceSet\x12\x11\n\tres_total\x18\x03 \x01(\r\"\t\n\x07\x45ndTurn\"F\n\rTradeWithBank\x12\x1a\n\x04give\x18\x01 \x01(\x0b\x32\x0c.ResourceSet\x12\x19\n\x03get\x18\x02 \x01(\x0b\x32\x0c.ResourceSet\"}\n\x0eTradeMakeOffer\x12\x1a\n\x04give\x18\x01 \x01(\x0b\x32\x0c.ResourceSet\x12\x19\n\x03get\x18\x02 \x01(\x0b\x32\x0c.ResourceSet\x12\x1e\n\nto_players\x18\x03 \x01(\x0b\x32\n._IntArray\x12\x14\n\x0coffer_serial\x18\x04 \x01(\x05\"\x11\n\x0fTradeClearOffer\"\x12\n\x10TradeRejectOffer\"H\n\x10TradeAcceptOffer\x12\x1e\n\x16offering_player_number\x18\x01 \x01(\x05\x12\x14\n\x0coffer_serial\x18\x02 \x01(\x05\";\n\rLoseResources\x12\x0e\n\x06\x61mount\x18\x01 \x01(\x05\x12\x1a\n\x04lose\x18\x02 \x01(\x0b\x32\x0c.ResourceSet\";\n\rGainResources\x12\x0e\n\x06\x61mount\x18\x01 \x01(\x05\x12\x1a\n\x04gain\x18\x02 \x01(\x0b\x32\x0c.ResourceSet\"1\n\x12\x43hooseResourceType\x12\x1b\n\x04type\x18\x01 \x01(\x0e\x32\r.ResourceType\"g\n\x0c\x43hoosePlayer\x12\x1c\n\x14\x63hosen_player_number\x18\x01 \x01(\x11\x12\x17\n\x0f\x63\x61n_choose_none\x18\x02 \x01(\x08\x12 \n\x18\x63hooseable_player_number\x18\x03 \x03(\r\"N\n\nMoveRobber\x12\x1a\n\x07move_to\x18\x01 \x01(\x0b\x32\t.HexCoord\x12\x11\n\tis_robber\x18\x02 \x01(\x08\x12\x11\n\tis_pirate\x18\x03 \x01(\x08\"\x13\n\x11ResetBoardRequest\" \n\x0eResetBoardVote\x12\x0e\n\x06is_yes\x18\x01 \x01(\x08\"(\n\x10ResetBoardResult\x12\x14\n\x0cwas_rejected\x18\x01 \x01(\x08\"\xd7\x0b\n\x15GameMessageFromServer\x12\x11\n\tgame_name\x18\x01 \x01(\t\x12\x15\n\rplayer_number\x18\x02 \x01(\x11\x12\x1c\n\ngame_state\x18\x03 \x01(\x0b\x32\x06.StateH\x00\x12(\n\x0eplayer_element\x18\x0f \x01(\x0b\x32\x0e.PlayerElementH\x00\x12*\n\x0fplayer_elements\x18\x10 \x01(\x0b\x32\x0f.PlayerElementsH\x00\x12&\n\rgame_elements\x18\x11 \x01(\x0b\x32\r.GameElementsH\x00\x12$\n\x0c\x62oard_layout\x18\x1e \x01(\x0b\x32\x0c.BoardLayoutH\x00\x12\x36\n\x15potential_settlements\x18\x1f \x01(\x0b\x32\x15.PotentialSettlementsH\x00\x12\"\n\x0bpiece_value\x18  \x01(\x0b\x32\x0b.PieceValueH\x00\x12\"\n\x0b\x62uild_piece\x18! \x01(\x0b\x32\x0b.BuildPieceH\x00\x12$\n\x0c\x63\x61ncel_build\x18\" \x01(\x0b\x32\x0c.CancelBuildH\x00\x12 \n\nmove_piece\x18# \x01(\x0b\x32\n.MovePieceH\x00\x12$\n\x0cremove_piece\x18$ \x01(\x0b\x32\x0c.RemovePieceH\x00\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12\x15\n\x04turn\x18\x65 \x01(\x0b\x32\x05.TurnH\x00\x12\x1c\n\x08set_turn\x18\x66 \x01(\x0b\x32\x08.SetTurnH\x00\x12-\n\x11\x64ice_roll_request\x18g \x01(\x0b\x32\x10.DiceRollRequestH\x00\x12\"\n\x0b\x64ice_result\x18h \x01(\x0b\x32\x0b.DiceResultH\x00\x12\x35\n\x15\x64ice_result_resources\x18i \x01(\x0b\x32\x14.DiceResultResourcesH\x00\x12\x36\n\x15inventory_item_action\x18\xae\x02 \x01(\x0b\x32\x14.InventoryItemActionH\x00\x12*\n\x0ftrade_with_bank\x18\x90\x03 \x01(\x0b\x32\x0e.TradeWithBankH\x00\x12,\n\x10trade_make_offer\x18\x91\x03 \x01(\x0b\x32\x0f.TradeMakeOfferH\x00\x12.\n\x11trade_clear_offer\x18\x92\x03 \x01(\x0b\x32\x10.TradeClearOfferH\x00\x12\x30\n\x12trade_reject_offer\x18\x93\x03 \x01(\x0b\x32\x11.TradeRejectOfferH\x00\x12\x30\n\x12trade_accept_offer\x18\x94\x03 \x01(\x0b\x32\x11.TradeAcceptOfferH\x00\x12\x30\n\x15lose_resources_prompt\x18\xf4\x03 \x01(\x0b\x32\x0e.LoseResourcesH\x00\x12)\n\x0elose_resources\x18\xf5\x03 \x01(\x0b\x32\x0e.LoseResourcesH\x00\x12\x30\n\x15gain_resources_prompt\x18\xf6\x03 \x01(\x0b\x32\x0e.GainResourcesH\x00\x12)\n\x0egain_resources\x18\xf7\x03 \x01(\x0b\x32\x0e.GainResourcesH\x00\x12.\n\x14\x63hoose_player_prompt\x18\xf8\x03 \x01(\x0b\x32\r.ChoosePlayerH\x00\x12#\n\x0bmove_robber\x18\xf9\x03 \x01(\x0b\x32\x0b.MoveRobberH\x00\x12\x32\n\x13reset_board_request\x18\xe8\x07 \x01(\x0b\x32\x12.ResetBoardRequestH\x00\x12\x33\n\x17reset_board_vote_prompt\x18\xe9\x07 \x01(\x0b\x32\x0f.ResetBoardVoteH\x00\x12,\n\x10reset_board_vote\x18\xea\x07 \x01(\x0b\x32\x0f.ResetBoardVoteH\x00\x12\x30\n\x12reset_board_result\x18\xeb\x07 \x01(\x0b\x32\x11.ResetBoardResultH\x00\x42\x05\n\x03msg\"\xaa\x07\n\x15GameMessageFromClient\x12\x11\n\tgame_name\x18\x01 \x01(\t\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12-\n\x11\x64ice_roll_request\x18\x65 \x01(\x0b\x32\x10.DiceRollRequestH\x00\x12\x1c\n\x08\x65nd_turn\x18\x66 \x01(\x0b\x32\x08.EndTurnH\x00\x12#\n\x0b\x62uild_piece\x18\xc8\x01 \x01(\x0b\x32\x0b.BuildPieceH\x00\x12%\n\x0c\x63\x61ncel_build\x18\xc9\x01 \x01(\x0b\x32\x0c.CancelBuildH\x00\x12!\n\nmove_piece\x18\xca\x01 \x01(\x0b\x32\n.MovePieceH\x00\x12\x37\n\x12\x62uy_inventory_item\x18\xcb\x01 \x01(\x0b\x32\x18.BuyInventoryItemRequestH\x00\x12\x36\n\x15inventory_item_action\x18\xcc\x01 \x01(\x0b\x32\x14.InventoryItemActionH\x00\x12*\n\x0ftrade_with_bank\x18\x90\x03 \x01(\x0b\x32\x0e.TradeWithBankH\x00\x12,\n\x10trade_make_offer\x18\x91\x03 \x01(\x0b\x32\x0f.TradeMakeOfferH\x00\x12.\n\x11trade_clear_offer\x18\x92\x03 \x01(\x0b\x32\x10.TradeClearOfferH\x00\x12\x30\n\x12trade_reject_offer\x18\x93\x03 \x01(\x0b\x32\x11.TradeRejectOfferH\x00\x12\x30\n\x12trade_accept_offer\x18\x94\x03 \x01(\x0b\x32\x11.TradeAcceptOfferH\x00\x12)\n\x0elose_resources\x18\xf4\x03 \x01(\x0b\x32\x0e.LoseResourcesH\x00\x12)\n\x0egain_resources\x18\xf5\x03 \x01(\x0b\x32\x0e.GainResourcesH\x00\x12\x34\n\x14\x63hoose_resource_type\x18\xf6\x03 \x01(\x0b\x32\x13.ChooseResourceTypeH\x00\x12\'\n\rchoose_player\x18\xf7\x03 \x01(\x0b\x32\r.ChoosePlayerH\x00\x12#\n\x0bmove_robber\x18\xf8\x03 \x01(\x0b\x32\x0b.MoveRobberH\x00\x12\x32\n\x13reset_board_request\x18\xe8\x07 \x01(\x0b\x32\x12.ResetBoardRequestH\x00\x12,\n\x10reset_board_vote\x18\xe9\x07 \x01(\x0b\x32\x0f.ResetBoardVoteH\x00\x42\x05\n\x03msg*O\n\x14_PlayerElementAction\x12\x1a\n\x16_UNSENT_DEFAULT_ACTION\x10\x00\x12\x07\n\x03SET\x10\x01\x12\x08\n\x04GAIN\x10\x02\x12\x08\n\x04LOSE\x10\x03*\x86\x04\n\x12_PlayerElementType\x12\x1f\n\x1b_UNSENT_DEFAULT_PLAYER_ELEM\x10\x00\x12\r\n\tELEM_CLAY\x10\x01\x12\x0c\n\x08\x45LEM_ORE\x10\x02\x12\x0e\n\nELEM_SHEEP\x10\x03\x12\x0e\n\nELEM_WHEAT\x10\x04\x12\r\n\tELEM_WOOD\x10\x05\x12\x19\n\x15\x45LEM_UNKNOWN_RESOURCE\x10\x06\x12\t\n\x05ROADS\x10\n\x12\x0f\n\x0bSETTLEMENTS\x10\x0b\x12\n\n\x06\x43ITIES\x10\x0c\x12\t\n\x05SHIPS\x10\r\x12\x0e\n\nNUMKNIGHTS\x10\x0f\x12\x15\n\x11\x41SK_SPECIAL_BUILD\x10\x10\x12\x12\n\x0eRESOURCE_COUNT\x10\x11\x12\x18\n\x14LAST_SETTLEMENT_NODE\x10\x12\x12\x18\n\x14PLAYED_DEV_CARD_FLAG\x10\x13\x12\x1f\n\x1bNUM_PICK_GOLD_HEX_RESOURCES\x10\x65\x12\x10\n\x0cSCENARIO_SVP\x10\x66\x12!\n\x1dSCENARIO_PLAYEREVENTS_BITMASK\x10g\x12\"\n\x1eSCENARIO_SVP_LANDAREAS_BITMASK\x10h\x12\x16\n\x12STARTING_LANDAREAS\x10i\x12\x18\n\x14SCENARIO_CLOTH_COUNT\x10j\x12\x1a\n\x16SCENARIO_WARSHIP_COUNT\x10kB\r\n\tsoc.protoH\x01P\x00\x62\x06proto3')
+  serialized_pb=_b('\n\x12game_message.proto\x1a\ndata.proto\"\xb3\x04\n\x0b\x42oardLayout\x12;\n\x0flayout_encoding\x18\x01 \x01(\x0e\x32\".BoardLayout._LayoutEncodingFormat\x12&\n\x05parts\x18\x02 \x03(\x0b\x32\x17.BoardLayout.PartsEntry\x1a\xe6\x01\n\x10_BoardLayoutPart\x12\x0f\n\x05i_val\x18\x01 \x01(\x05H\x00\x12\x0f\n\x05s_val\x18\x02 \x01(\tH\x00\x12\x1b\n\x05i_arr\x18\x03 \x01(\x0b\x32\n._IntArrayH\x00\x12+\n\x0f\x63oordinate_list\x18\x04 \x01(\x0b\x32\x10._BoardCoordListH\x00\x12\x1f\n\tedge_list\x18\x05 \x01(\x0b\x32\n._EdgeListH\x00\x12\x1d\n\x08hex_list\x18\x06 \x01(\x0b\x32\t._HexListH\x00\x12\x1f\n\tnode_list\x18\x07 \x01(\x0b\x32\n._NodeListH\x00\x42\x05\n\x03val\x1aK\n\nPartsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12,\n\x05value\x18\x02 \x01(\x0b\x32\x1d.BoardLayout._BoardLayoutPart:\x02\x38\x01\"\x88\x01\n\x15_LayoutEncodingFormat\x12\x1c\n\x18_UNSENT_DEFAULT_ENCODING\x10\x00\x12\x1b\n\x17\x42OARD_ENCODING_ORIGINAL\x10\x01\x12\x1a\n\x16\x42OARD_ENCODING_6PLAYER\x10\x02\x12\x18\n\x14\x42OARD_ENCODING_LARGE\x10\x03\"\xa1\x02\n\x14PotentialSettlements\x12\x1c\n\x08ps_nodes\x18\x01 \x03(\x0b\x32\n.NodeCoord\x12\x12\n\narea_count\x18\x02 \x01(\r\x12\x1a\n\x12starting_land_area\x18\x03 \x01(\r\x12N\n\x16land_areas_legal_nodes\x18\x04 \x03(\x0b\x32..PotentialSettlements.LandAreasLegalNodesEntry\x12#\n\x0flegal_sea_edges\x18\x05 \x03(\x0b\x32\n._EdgeList\x1a\x46\n\x18LandAreasLegalNodesEntry\x12\x0b\n\x03key\x18\x01 \x01(\r\x12\x19\n\x05value\x18\x02 \x01(\x0b\x32\n._NodeList:\x02\x38\x01\"u\n\nPieceValue\x12\x19\n\x05ptype\x18\x01 \x01(\x0e\x32\n.PieceType\x12 \n\x0b\x63oordinates\x18\x02 \x01(\x0b\x32\x0b.BoardCoord\x12\x14\n\x0cpiece_value1\x18\x03 \x01(\x11\x12\x14\n\x0cpiece_value2\x18\x04 \x01(\x11\"I\n\nBuildPiece\x12\x19\n\x05ptype\x18\x01 \x01(\x0e\x32\n.PieceType\x12 \n\x0b\x63oordinates\x18\x02 \x01(\x0b\x32\x0b.BoardCoord\"O\n\x17\x42uyInventoryItemRequest\x12\x17\n\x0fis_not_dev_card\x18\x01 \x01(\x08\x12\x1b\n\x13other_inv_item_type\x18\x02 \x01(\x11\"\xa8\x03\n\x13InventoryItemAction\x12\x35\n\x0b\x61\x63tion_type\x18\x01 \x01(\x0e\x32 .InventoryItemAction._ActionType\x12\'\n\x0e\x64\x65v_card_value\x18\x02 \x01(\x0e\x32\r.DevCardValueH\x00\x12\x1d\n\x13other_inv_item_type\x18\x03 \x01(\x05H\x00\x12$\n\rdev_cards_set\x18\x04 \x03(\x0e\x32\r.DevCardValue\x12\x13\n\x0breason_code\x18\x15 \x01(\x11\x12\x13\n\x0bis_playable\x18\x16 \x01(\x08\x12\x0f\n\x07is_kept\x18\x17 \x01(\x08\x12\r\n\x05is_VP\x18\x18 \x01(\x08\x12\x17\n\x0f\x63\x61n_cancel_play\x18\x19 \x01(\x08\"{\n\x0b_ActionType\x12\x1a\n\x16_UNSENT_DEFAULT_ACTION\x10\x00\x12\x08\n\x04\x44RAW\x10\x01\x12\x08\n\x04PLAY\x10\x02\x12\x0b\n\x07\x41\x44\x44_NEW\x10\x03\x12\x0b\n\x07\x41\x44\x44_OLD\x10\x04\x12\x0f\n\x0b\x43\x41NNOT_PLAY\x10\x05\x12\x11\n\rPLACING_EXTRA\x10\x06\x42\x0c\n\nitem_value\"g\n\x0b\x43\x61ncelBuild\x12 \n\npiece_type\x18\x01 \x01(\x0e\x32\n.PieceTypeH\x00\x12\'\n\titem_type\x18\x02 \x01(\x0e\x32\x12.OtherPlayableItemH\x00\x42\r\n\x0b\x63\x61ncel_type\"r\n\tMovePiece\x12\x19\n\x05ptype\x18\x01 \x01(\x0e\x32\n.PieceType\x12%\n\x10\x66rom_coordinates\x18\x02 \x01(\x0b\x32\x0b.BoardCoord\x12#\n\x0eto_coordinates\x18\x03 \x01(\x0b\x32\x0b.BoardCoord\"J\n\x0bRemovePiece\x12\x19\n\x05ptype\x18\x01 \x01(\x0e\x32\n.PieceType\x12 \n\x0b\x63oordinates\x18\x02 \x01(\x0b\x32\x0b.BoardCoord\"S\n\x0cRevealFogHex\x12\x18\n\x05\x63oord\x18\x01 \x01(\x0b\x32\t.HexCoord\x12\x17\n\x05htype\x18\x02 \x01(\x0e\x32\x08.HexType\x12\x10\n\x08\x64ice_num\x18\x03 \x01(\x11\"\"\n\x05State\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"\x82\x01\n\rPlayerElement\x12%\n\x06\x61\x63tion\x18\x01 \x01(\x0e\x32\x15._PlayerElementAction\x12)\n\x0c\x65lement_type\x18\x02 \x01(\x0e\x32\x13._PlayerElementType\x12\x0e\n\x06\x61mount\x18\x03 \x01(\x11\x12\x0f\n\x07is_news\x18\x04 \x01(\x08\"t\n\x0ePlayerElements\x12%\n\x06\x61\x63tion\x18\x01 \x01(\x0e\x32\x15._PlayerElementAction\x12*\n\relement_types\x18\x02 \x03(\x0e\x32\x13._PlayerElementType\x12\x0f\n\x07\x61mounts\x18\x03 \x03(\x11\"\xfe\x01\n\x0cGameElements\x12\x31\n\relement_types\x18\x01 \x03(\x0e\x32\x1a.GameElements._ElementType\x12\x0e\n\x06values\x18\x02 \x03(\x11\"\xaa\x01\n\x0c_ElementType\x12\x1d\n\x19_UNSENT_DEFAULT_GAME_ELEM\x10\x00\x12\x0f\n\x0bROUND_COUNT\x10\x01\x12\x12\n\x0e\x44\x45V_CARD_COUNT\x10\x02\x12\x10\n\x0c\x46IRST_PLAYER\x10\x03\x12\x12\n\x0e\x43URRENT_PLAYER\x10\x04\x12\x17\n\x13LARGEST_ARMY_PLAYER\x10\x05\x12\x17\n\x13LONGEST_ROAD_PLAYER\x10\x06\"&\n\tStartGame\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"!\n\x04Turn\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"\t\n\x07SetTurn\"\x11\n\x0f\x44iceRollRequest\" \n\nDiceResult\x12\x12\n\ndice_total\x18\x01 \x01(\x11\"\xb4\x01\n\x13\x44iceResultResources\x12>\n\x10player_resources\x18\x01 \x03(\x0b\x32$.DiceResultResources.PlayerResources\x1a]\n\x0fPlayerResources\x12\x15\n\rplayer_number\x18\x01 \x01(\r\x12 \n\nres_gained\x18\x02 \x01(\x0b\x32\x0c.ResourceSet\x12\x11\n\tres_total\x18\x03 \x01(\r\"\t\n\x07\x45ndTurn\"F\n\rTradeWithBank\x12\x1a\n\x04give\x18\x01 \x01(\x0b\x32\x0c.ResourceSet\x12\x19\n\x03get\x18\x02 \x01(\x0b\x32\x0c.ResourceSet\"}\n\x0eTradeMakeOffer\x12\x1a\n\x04give\x18\x01 \x01(\x0b\x32\x0c.ResourceSet\x12\x19\n\x03get\x18\x02 \x01(\x0b\x32\x0c.ResourceSet\x12\x1e\n\nto_players\x18\x03 \x01(\x0b\x32\n._IntArray\x12\x14\n\x0coffer_serial\x18\x04 \x01(\x05\"\x11\n\x0fTradeClearOffer\"\x12\n\x10TradeRejectOffer\"H\n\x10TradeAcceptOffer\x12\x1e\n\x16offering_player_number\x18\x01 \x01(\x05\x12\x14\n\x0coffer_serial\x18\x02 \x01(\x05\";\n\rLoseResources\x12\x0e\n\x06\x61mount\x18\x01 \x01(\x05\x12\x1a\n\x04lose\x18\x02 \x01(\x0b\x32\x0c.ResourceSet\";\n\rGainResources\x12\x0e\n\x06\x61mount\x18\x01 \x01(\x05\x12\x1a\n\x04gain\x18\x02 \x01(\x0b\x32\x0c.ResourceSet\"2\n\x12\x43hooseResourceType\x12\x1c\n\x05rtype\x18\x01 \x01(\x0e\x32\r.ResourceType\"g\n\x0c\x43hoosePlayer\x12\x1c\n\x14\x63hosen_player_number\x18\x01 \x01(\x11\x12\x17\n\x0f\x63\x61n_choose_none\x18\x02 \x01(\x08\x12 \n\x18\x63hooseable_player_number\x18\x03 \x03(\r\"N\n\nMoveRobber\x12\x1a\n\x07move_to\x18\x01 \x01(\x0b\x32\t.HexCoord\x12\x11\n\tis_robber\x18\x02 \x01(\x08\x12\x11\n\tis_pirate\x18\x03 \x01(\x08\"\x13\n\x11ResetBoardRequest\" \n\x0eResetBoardVote\x12\x0e\n\x06is_yes\x18\x01 \x01(\x08\"(\n\x10ResetBoardResult\x12\x14\n\x0cwas_rejected\x18\x01 \x01(\x08\"\x80\x0c\n\x15GameMessageFromServer\x12\x11\n\tgame_name\x18\x01 \x01(\t\x12\x15\n\rplayer_number\x18\x02 \x01(\x11\x12\x1c\n\ngame_state\x18\x03 \x01(\x0b\x32\x06.StateH\x00\x12(\n\x0eplayer_element\x18\x0f \x01(\x0b\x32\x0e.PlayerElementH\x00\x12*\n\x0fplayer_elements\x18\x10 \x01(\x0b\x32\x0f.PlayerElementsH\x00\x12&\n\rgame_elements\x18\x11 \x01(\x0b\x32\r.GameElementsH\x00\x12$\n\x0c\x62oard_layout\x18\x1e \x01(\x0b\x32\x0c.BoardLayoutH\x00\x12\x36\n\x15potential_settlements\x18\x1f \x01(\x0b\x32\x15.PotentialSettlementsH\x00\x12\"\n\x0bpiece_value\x18  \x01(\x0b\x32\x0b.PieceValueH\x00\x12\"\n\x0b\x62uild_piece\x18! \x01(\x0b\x32\x0b.BuildPieceH\x00\x12$\n\x0c\x63\x61ncel_build\x18\" \x01(\x0b\x32\x0c.CancelBuildH\x00\x12 \n\nmove_piece\x18# \x01(\x0b\x32\n.MovePieceH\x00\x12$\n\x0cremove_piece\x18$ \x01(\x0b\x32\x0c.RemovePieceH\x00\x12\'\n\x0ereveal_fog_hex\x18% \x01(\x0b\x32\r.RevealFogHexH\x00\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12\x15\n\x04turn\x18\x65 \x01(\x0b\x32\x05.TurnH\x00\x12\x1c\n\x08set_turn\x18\x66 \x01(\x0b\x32\x08.SetTurnH\x00\x12-\n\x11\x64ice_roll_request\x18g \x01(\x0b\x32\x10.DiceRollRequestH\x00\x12\"\n\x0b\x64ice_result\x18h \x01(\x0b\x32\x0b.DiceResultH\x00\x12\x35\n\x15\x64ice_result_resources\x18i \x01(\x0b\x32\x14.DiceResultResourcesH\x00\x12\x36\n\x15inventory_item_action\x18\xae\x02 \x01(\x0b\x32\x14.InventoryItemActionH\x00\x12*\n\x0ftrade_with_bank\x18\x90\x03 \x01(\x0b\x32\x0e.TradeWithBankH\x00\x12,\n\x10trade_make_offer\x18\x91\x03 \x01(\x0b\x32\x0f.TradeMakeOfferH\x00\x12.\n\x11trade_clear_offer\x18\x92\x03 \x01(\x0b\x32\x10.TradeClearOfferH\x00\x12\x30\n\x12trade_reject_offer\x18\x93\x03 \x01(\x0b\x32\x11.TradeRejectOfferH\x00\x12\x30\n\x12trade_accept_offer\x18\x94\x03 \x01(\x0b\x32\x11.TradeAcceptOfferH\x00\x12\x30\n\x15lose_resources_prompt\x18\xf4\x03 \x01(\x0b\x32\x0e.LoseResourcesH\x00\x12)\n\x0elose_resources\x18\xf5\x03 \x01(\x0b\x32\x0e.LoseResourcesH\x00\x12\x30\n\x15gain_resources_prompt\x18\xf6\x03 \x01(\x0b\x32\x0e.GainResourcesH\x00\x12)\n\x0egain_resources\x18\xf7\x03 \x01(\x0b\x32\x0e.GainResourcesH\x00\x12.\n\x14\x63hoose_player_prompt\x18\xf8\x03 \x01(\x0b\x32\r.ChoosePlayerH\x00\x12#\n\x0bmove_robber\x18\xf9\x03 \x01(\x0b\x32\x0b.MoveRobberH\x00\x12\x32\n\x13reset_board_request\x18\xe8\x07 \x01(\x0b\x32\x12.ResetBoardRequestH\x00\x12\x33\n\x17reset_board_vote_prompt\x18\xe9\x07 \x01(\x0b\x32\x0f.ResetBoardVoteH\x00\x12,\n\x10reset_board_vote\x18\xea\x07 \x01(\x0b\x32\x0f.ResetBoardVoteH\x00\x12\x30\n\x12reset_board_result\x18\xeb\x07 \x01(\x0b\x32\x11.ResetBoardResultH\x00\x42\x05\n\x03msg\"\xaa\x07\n\x15GameMessageFromClient\x12\x11\n\tgame_name\x18\x01 \x01(\t\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12-\n\x11\x64ice_roll_request\x18\x65 \x01(\x0b\x32\x10.DiceRollRequestH\x00\x12\x1c\n\x08\x65nd_turn\x18\x66 \x01(\x0b\x32\x08.EndTurnH\x00\x12#\n\x0b\x62uild_piece\x18\xc8\x01 \x01(\x0b\x32\x0b.BuildPieceH\x00\x12%\n\x0c\x63\x61ncel_build\x18\xc9\x01 \x01(\x0b\x32\x0c.CancelBuildH\x00\x12!\n\nmove_piece\x18\xca\x01 \x01(\x0b\x32\n.MovePieceH\x00\x12\x37\n\x12\x62uy_inventory_item\x18\xcb\x01 \x01(\x0b\x32\x18.BuyInventoryItemRequestH\x00\x12\x36\n\x15inventory_item_action\x18\xcc\x01 \x01(\x0b\x32\x14.InventoryItemActionH\x00\x12*\n\x0ftrade_with_bank\x18\x90\x03 \x01(\x0b\x32\x0e.TradeWithBankH\x00\x12,\n\x10trade_make_offer\x18\x91\x03 \x01(\x0b\x32\x0f.TradeMakeOfferH\x00\x12.\n\x11trade_clear_offer\x18\x92\x03 \x01(\x0b\x32\x10.TradeClearOfferH\x00\x12\x30\n\x12trade_reject_offer\x18\x93\x03 \x01(\x0b\x32\x11.TradeRejectOfferH\x00\x12\x30\n\x12trade_accept_offer\x18\x94\x03 \x01(\x0b\x32\x11.TradeAcceptOfferH\x00\x12)\n\x0elose_resources\x18\xf4\x03 \x01(\x0b\x32\x0e.LoseResourcesH\x00\x12)\n\x0egain_resources\x18\xf5\x03 \x01(\x0b\x32\x0e.GainResourcesH\x00\x12\x34\n\x14\x63hoose_resource_type\x18\xf6\x03 \x01(\x0b\x32\x13.ChooseResourceTypeH\x00\x12\'\n\rchoose_player\x18\xf7\x03 \x01(\x0b\x32\r.ChoosePlayerH\x00\x12#\n\x0bmove_robber\x18\xf8\x03 \x01(\x0b\x32\x0b.MoveRobberH\x00\x12\x32\n\x13reset_board_request\x18\xe8\x07 \x01(\x0b\x32\x12.ResetBoardRequestH\x00\x12,\n\x10reset_board_vote\x18\xe9\x07 \x01(\x0b\x32\x0f.ResetBoardVoteH\x00\x42\x05\n\x03msg*O\n\x14_PlayerElementAction\x12\x1a\n\x16_UNSENT_DEFAULT_ACTION\x10\x00\x12\x07\n\x03SET\x10\x01\x12\x08\n\x04GAIN\x10\x02\x12\x08\n\x04LOSE\x10\x03*\x86\x04\n\x12_PlayerElementType\x12\x1f\n\x1b_UNSENT_DEFAULT_PLAYER_ELEM\x10\x00\x12\r\n\tELEM_CLAY\x10\x01\x12\x0c\n\x08\x45LEM_ORE\x10\x02\x12\x0e\n\nELEM_SHEEP\x10\x03\x12\x0e\n\nELEM_WHEAT\x10\x04\x12\r\n\tELEM_WOOD\x10\x05\x12\x19\n\x15\x45LEM_UNKNOWN_RESOURCE\x10\x06\x12\t\n\x05ROADS\x10\n\x12\x0f\n\x0bSETTLEMENTS\x10\x0b\x12\n\n\x06\x43ITIES\x10\x0c\x12\t\n\x05SHIPS\x10\r\x12\x0e\n\nNUMKNIGHTS\x10\x0f\x12\x15\n\x11\x41SK_SPECIAL_BUILD\x10\x10\x12\x12\n\x0eRESOURCE_COUNT\x10\x11\x12\x18\n\x14LAST_SETTLEMENT_NODE\x10\x12\x12\x18\n\x14PLAYED_DEV_CARD_FLAG\x10\x13\x12\x1f\n\x1bNUM_PICK_GOLD_HEX_RESOURCES\x10\x65\x12\x10\n\x0cSCENARIO_SVP\x10\x66\x12!\n\x1dSCENARIO_PLAYEREVENTS_BITMASK\x10g\x12\"\n\x1eSCENARIO_SVP_LANDAREAS_BITMASK\x10h\x12\x16\n\x12STARTING_LANDAREAS\x10i\x12\x18\n\x14SCENARIO_CLOTH_COUNT\x10j\x12\x1a\n\x16SCENARIO_WARSHIP_COUNT\x10kB\r\n\tsoc.protoH\x01P\x00\x62\x06proto3')
   ,
   dependencies=[data__pb2.DESCRIPTOR,],
   public_dependencies=[data__pb2.DESCRIPTOR,])
@@ -52,8 +52,8 @@ __PLAYERELEMENTACTION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=5970,
-  serialized_end=6049,
+  serialized_start=6101,
+  serialized_end=6180,
 )
 _sym_db.RegisterEnumDescriptor(__PLAYERELEMENTACTION)
 
@@ -159,8 +159,8 @@ __PLAYERELEMENTTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=6052,
-  serialized_end=6570,
+  serialized_start=6183,
+  serialized_end=6701,
 )
 _sym_db.RegisterEnumDescriptor(__PLAYERELEMENTTYPE)
 
@@ -261,8 +261,8 @@ _INVENTORYITEMACTION__ACTIONTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1453,
-  serialized_end=1576,
+  serialized_start=1455,
+  serialized_end=1578,
 )
 _sym_db.RegisterEnumDescriptor(_INVENTORYITEMACTION__ACTIONTYPE)
 
@@ -303,8 +303,8 @@ _GAMEELEMENTS__ELEMENTTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=2259,
-  serialized_end=2429,
+  serialized_start=2348,
+  serialized_end=2518,
 )
 _sym_db.RegisterEnumDescriptor(_GAMEELEMENTS__ELEMENTTYPE)
 
@@ -564,7 +564,7 @@ _PIECEVALUE = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='type', full_name='PieceValue.type', index=0,
+      name='ptype', full_name='PieceValue.ptype', index=0,
       number=1, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -604,7 +604,7 @@ _PIECEVALUE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=892,
-  serialized_end=1008,
+  serialized_end=1009,
 )
 
 
@@ -616,7 +616,7 @@ _BUILDPIECE = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='type', full_name='BuildPiece.type', index=0,
+      name='ptype', full_name='BuildPiece.ptype', index=0,
       number=1, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -641,8 +641,8 @@ _BUILDPIECE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1010,
-  serialized_end=1082,
+  serialized_start=1011,
+  serialized_end=1084,
 )
 
 
@@ -679,8 +679,8 @@ _BUYINVENTORYITEMREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1084,
-  serialized_end=1163,
+  serialized_start=1086,
+  serialized_end=1165,
 )
 
 
@@ -770,8 +770,8 @@ _INVENTORYITEMACTION = _descriptor.Descriptor(
       name='item_value', full_name='InventoryItemAction.item_value',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=1166,
-  serialized_end=1590,
+  serialized_start=1168,
+  serialized_end=1592,
 )
 
 
@@ -811,8 +811,8 @@ _CANCELBUILD = _descriptor.Descriptor(
       name='cancel_type', full_name='CancelBuild.cancel_type',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=1592,
-  serialized_end=1695,
+  serialized_start=1594,
+  serialized_end=1697,
 )
 
 
@@ -824,7 +824,7 @@ _MOVEPIECE = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='type', full_name='MovePiece.type', index=0,
+      name='ptype', full_name='MovePiece.ptype', index=0,
       number=1, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -856,8 +856,8 @@ _MOVEPIECE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1697,
-  serialized_end=1810,
+  serialized_start=1699,
+  serialized_end=1813,
 )
 
 
@@ -869,7 +869,7 @@ _REMOVEPIECE = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='type', full_name='RemovePiece.type', index=0,
+      name='ptype', full_name='RemovePiece.ptype', index=0,
       number=1, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -894,8 +894,53 @@ _REMOVEPIECE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1812,
-  serialized_end=1885,
+  serialized_start=1815,
+  serialized_end=1889,
+)
+
+
+_REVEALFOGHEX = _descriptor.Descriptor(
+  name='RevealFogHex',
+  full_name='RevealFogHex',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='coord', full_name='RevealFogHex.coord', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='htype', full_name='RevealFogHex.htype', index=1,
+      number=2, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='dice_num', full_name='RevealFogHex.dice_num', index=2,
+      number=3, type=17, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1891,
+  serialized_end=1974,
 )
 
 
@@ -925,8 +970,8 @@ _STATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1887,
-  serialized_end=1921,
+  serialized_start=1976,
+  serialized_end=2010,
 )
 
 
@@ -977,8 +1022,8 @@ _PLAYERELEMENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1924,
-  serialized_end=2054,
+  serialized_start=2013,
+  serialized_end=2143,
 )
 
 
@@ -1022,8 +1067,8 @@ _PLAYERELEMENTS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2056,
-  serialized_end=2172,
+  serialized_start=2145,
+  serialized_end=2261,
 )
 
 
@@ -1061,8 +1106,8 @@ _GAMEELEMENTS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2175,
-  serialized_end=2429,
+  serialized_start=2264,
+  serialized_end=2518,
 )
 
 
@@ -1092,8 +1137,8 @@ _STARTGAME = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2431,
-  serialized_end=2469,
+  serialized_start=2520,
+  serialized_end=2558,
 )
 
 
@@ -1123,8 +1168,8 @@ _TURN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2471,
-  serialized_end=2504,
+  serialized_start=2560,
+  serialized_end=2593,
 )
 
 
@@ -1147,8 +1192,8 @@ _SETTURN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2506,
-  serialized_end=2515,
+  serialized_start=2595,
+  serialized_end=2604,
 )
 
 
@@ -1171,8 +1216,8 @@ _DICEROLLREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2517,
-  serialized_end=2534,
+  serialized_start=2606,
+  serialized_end=2623,
 )
 
 
@@ -1202,8 +1247,8 @@ _DICERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2536,
-  serialized_end=2568,
+  serialized_start=2625,
+  serialized_end=2657,
 )
 
 
@@ -1247,8 +1292,8 @@ _DICERESULTRESOURCES_PLAYERRESOURCES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2658,
-  serialized_end=2751,
+  serialized_start=2747,
+  serialized_end=2840,
 )
 
 _DICERESULTRESOURCES = _descriptor.Descriptor(
@@ -1277,8 +1322,8 @@ _DICERESULTRESOURCES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2571,
-  serialized_end=2751,
+  serialized_start=2660,
+  serialized_end=2840,
 )
 
 
@@ -1301,8 +1346,8 @@ _ENDTURN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2753,
-  serialized_end=2762,
+  serialized_start=2842,
+  serialized_end=2851,
 )
 
 
@@ -1339,8 +1384,8 @@ _TRADEWITHBANK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2764,
-  serialized_end=2834,
+  serialized_start=2853,
+  serialized_end=2923,
 )
 
 
@@ -1391,8 +1436,8 @@ _TRADEMAKEOFFER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2836,
-  serialized_end=2961,
+  serialized_start=2925,
+  serialized_end=3050,
 )
 
 
@@ -1415,8 +1460,8 @@ _TRADECLEAROFFER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2963,
-  serialized_end=2980,
+  serialized_start=3052,
+  serialized_end=3069,
 )
 
 
@@ -1439,8 +1484,8 @@ _TRADEREJECTOFFER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2982,
-  serialized_end=3000,
+  serialized_start=3071,
+  serialized_end=3089,
 )
 
 
@@ -1477,8 +1522,8 @@ _TRADEACCEPTOFFER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3002,
-  serialized_end=3074,
+  serialized_start=3091,
+  serialized_end=3163,
 )
 
 
@@ -1515,8 +1560,8 @@ _LOSERESOURCES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3076,
-  serialized_end=3135,
+  serialized_start=3165,
+  serialized_end=3224,
 )
 
 
@@ -1553,8 +1598,8 @@ _GAINRESOURCES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3137,
-  serialized_end=3196,
+  serialized_start=3226,
+  serialized_end=3285,
 )
 
 
@@ -1566,7 +1611,7 @@ _CHOOSERESOURCETYPE = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='type', full_name='ChooseResourceType.type', index=0,
+      name='rtype', full_name='ChooseResourceType.rtype', index=0,
       number=1, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -1584,8 +1629,8 @@ _CHOOSERESOURCETYPE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3198,
-  serialized_end=3247,
+  serialized_start=3287,
+  serialized_end=3337,
 )
 
 
@@ -1629,8 +1674,8 @@ _CHOOSEPLAYER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3249,
-  serialized_end=3352,
+  serialized_start=3339,
+  serialized_end=3442,
 )
 
 
@@ -1674,8 +1719,8 @@ _MOVEROBBER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3354,
-  serialized_end=3432,
+  serialized_start=3444,
+  serialized_end=3522,
 )
 
 
@@ -1698,8 +1743,8 @@ _RESETBOARDREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3434,
-  serialized_end=3453,
+  serialized_start=3524,
+  serialized_end=3543,
 )
 
 
@@ -1729,8 +1774,8 @@ _RESETBOARDVOTE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3455,
-  serialized_end=3487,
+  serialized_start=3545,
+  serialized_end=3577,
 )
 
 
@@ -1760,8 +1805,8 @@ _RESETBOARDRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3489,
-  serialized_end=3529,
+  serialized_start=3579,
+  serialized_end=3619,
 )
 
 
@@ -1864,154 +1909,161 @@ _GAMEMESSAGEFROMSERVER = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='start_game', full_name='GameMessageFromServer.start_game', index=13,
+      name='reveal_fog_hex', full_name='GameMessageFromServer.reveal_fog_hex', index=13,
+      number=37, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='start_game', full_name='GameMessageFromServer.start_game', index=14,
       number=100, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='turn', full_name='GameMessageFromServer.turn', index=14,
+      name='turn', full_name='GameMessageFromServer.turn', index=15,
       number=101, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='set_turn', full_name='GameMessageFromServer.set_turn', index=15,
+      name='set_turn', full_name='GameMessageFromServer.set_turn', index=16,
       number=102, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='dice_roll_request', full_name='GameMessageFromServer.dice_roll_request', index=16,
+      name='dice_roll_request', full_name='GameMessageFromServer.dice_roll_request', index=17,
       number=103, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='dice_result', full_name='GameMessageFromServer.dice_result', index=17,
+      name='dice_result', full_name='GameMessageFromServer.dice_result', index=18,
       number=104, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='dice_result_resources', full_name='GameMessageFromServer.dice_result_resources', index=18,
+      name='dice_result_resources', full_name='GameMessageFromServer.dice_result_resources', index=19,
       number=105, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='inventory_item_action', full_name='GameMessageFromServer.inventory_item_action', index=19,
+      name='inventory_item_action', full_name='GameMessageFromServer.inventory_item_action', index=20,
       number=302, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='trade_with_bank', full_name='GameMessageFromServer.trade_with_bank', index=20,
+      name='trade_with_bank', full_name='GameMessageFromServer.trade_with_bank', index=21,
       number=400, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='trade_make_offer', full_name='GameMessageFromServer.trade_make_offer', index=21,
+      name='trade_make_offer', full_name='GameMessageFromServer.trade_make_offer', index=22,
       number=401, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='trade_clear_offer', full_name='GameMessageFromServer.trade_clear_offer', index=22,
+      name='trade_clear_offer', full_name='GameMessageFromServer.trade_clear_offer', index=23,
       number=402, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='trade_reject_offer', full_name='GameMessageFromServer.trade_reject_offer', index=23,
+      name='trade_reject_offer', full_name='GameMessageFromServer.trade_reject_offer', index=24,
       number=403, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='trade_accept_offer', full_name='GameMessageFromServer.trade_accept_offer', index=24,
+      name='trade_accept_offer', full_name='GameMessageFromServer.trade_accept_offer', index=25,
       number=404, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='lose_resources_prompt', full_name='GameMessageFromServer.lose_resources_prompt', index=25,
+      name='lose_resources_prompt', full_name='GameMessageFromServer.lose_resources_prompt', index=26,
       number=500, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='lose_resources', full_name='GameMessageFromServer.lose_resources', index=26,
+      name='lose_resources', full_name='GameMessageFromServer.lose_resources', index=27,
       number=501, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='gain_resources_prompt', full_name='GameMessageFromServer.gain_resources_prompt', index=27,
+      name='gain_resources_prompt', full_name='GameMessageFromServer.gain_resources_prompt', index=28,
       number=502, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='gain_resources', full_name='GameMessageFromServer.gain_resources', index=28,
+      name='gain_resources', full_name='GameMessageFromServer.gain_resources', index=29,
       number=503, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='choose_player_prompt', full_name='GameMessageFromServer.choose_player_prompt', index=29,
+      name='choose_player_prompt', full_name='GameMessageFromServer.choose_player_prompt', index=30,
       number=504, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='move_robber', full_name='GameMessageFromServer.move_robber', index=30,
+      name='move_robber', full_name='GameMessageFromServer.move_robber', index=31,
       number=505, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='reset_board_request', full_name='GameMessageFromServer.reset_board_request', index=31,
+      name='reset_board_request', full_name='GameMessageFromServer.reset_board_request', index=32,
       number=1000, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='reset_board_vote_prompt', full_name='GameMessageFromServer.reset_board_vote_prompt', index=32,
+      name='reset_board_vote_prompt', full_name='GameMessageFromServer.reset_board_vote_prompt', index=33,
       number=1001, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='reset_board_vote', full_name='GameMessageFromServer.reset_board_vote', index=33,
+      name='reset_board_vote', full_name='GameMessageFromServer.reset_board_vote', index=34,
       number=1002, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='reset_board_result', full_name='GameMessageFromServer.reset_board_result', index=34,
+      name='reset_board_result', full_name='GameMessageFromServer.reset_board_result', index=35,
       number=1003, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -2032,8 +2084,8 @@ _GAMEMESSAGEFROMSERVER = _descriptor.Descriptor(
       name='msg', full_name='GameMessageFromServer.msg',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=3532,
-  serialized_end=5027,
+  serialized_start=3622,
+  serialized_end=5158,
 )
 
 
@@ -2206,8 +2258,8 @@ _GAMEMESSAGEFROMCLIENT = _descriptor.Descriptor(
       name='msg', full_name='GameMessageFromClient.msg',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=5030,
-  serialized_end=5968,
+  serialized_start=5161,
+  serialized_end=6099,
 )
 
 _BOARDLAYOUT__BOARDLAYOUTPART.fields_by_name['i_arr'].message_type = data__pb2.__INTARRAY
@@ -2247,9 +2299,9 @@ _POTENTIALSETTLEMENTS_LANDAREASLEGALNODESENTRY.containing_type = _POTENTIALSETTL
 _POTENTIALSETTLEMENTS.fields_by_name['ps_nodes'].message_type = data__pb2._NODECOORD
 _POTENTIALSETTLEMENTS.fields_by_name['land_areas_legal_nodes'].message_type = _POTENTIALSETTLEMENTS_LANDAREASLEGALNODESENTRY
 _POTENTIALSETTLEMENTS.fields_by_name['legal_sea_edges'].message_type = data__pb2.__EDGELIST
-_PIECEVALUE.fields_by_name['type'].enum_type = data__pb2._PIECETYPE
+_PIECEVALUE.fields_by_name['ptype'].enum_type = data__pb2._PIECETYPE
 _PIECEVALUE.fields_by_name['coordinates'].message_type = data__pb2._BOARDCOORD
-_BUILDPIECE.fields_by_name['type'].enum_type = data__pb2._PIECETYPE
+_BUILDPIECE.fields_by_name['ptype'].enum_type = data__pb2._PIECETYPE
 _BUILDPIECE.fields_by_name['coordinates'].message_type = data__pb2._BOARDCOORD
 _INVENTORYITEMACTION.fields_by_name['action_type'].enum_type = _INVENTORYITEMACTION__ACTIONTYPE
 _INVENTORYITEMACTION.fields_by_name['dev_card_value'].enum_type = data__pb2._DEVCARDVALUE
@@ -2269,11 +2321,13 @@ _CANCELBUILD.fields_by_name['piece_type'].containing_oneof = _CANCELBUILD.oneofs
 _CANCELBUILD.oneofs_by_name['cancel_type'].fields.append(
   _CANCELBUILD.fields_by_name['item_type'])
 _CANCELBUILD.fields_by_name['item_type'].containing_oneof = _CANCELBUILD.oneofs_by_name['cancel_type']
-_MOVEPIECE.fields_by_name['type'].enum_type = data__pb2._PIECETYPE
+_MOVEPIECE.fields_by_name['ptype'].enum_type = data__pb2._PIECETYPE
 _MOVEPIECE.fields_by_name['from_coordinates'].message_type = data__pb2._BOARDCOORD
 _MOVEPIECE.fields_by_name['to_coordinates'].message_type = data__pb2._BOARDCOORD
-_REMOVEPIECE.fields_by_name['type'].enum_type = data__pb2._PIECETYPE
+_REMOVEPIECE.fields_by_name['ptype'].enum_type = data__pb2._PIECETYPE
 _REMOVEPIECE.fields_by_name['coordinates'].message_type = data__pb2._BOARDCOORD
+_REVEALFOGHEX.fields_by_name['coord'].message_type = data__pb2._HEXCOORD
+_REVEALFOGHEX.fields_by_name['htype'].enum_type = data__pb2._HEXTYPE
 _STATE.fields_by_name['state'].enum_type = data__pb2._GAMESTATE
 _PLAYERELEMENT.fields_by_name['action'].enum_type = __PLAYERELEMENTACTION
 _PLAYERELEMENT.fields_by_name['element_type'].enum_type = __PLAYERELEMENTTYPE
@@ -2293,7 +2347,7 @@ _TRADEMAKEOFFER.fields_by_name['get'].message_type = data__pb2._RESOURCESET
 _TRADEMAKEOFFER.fields_by_name['to_players'].message_type = data__pb2.__INTARRAY
 _LOSERESOURCES.fields_by_name['lose'].message_type = data__pb2._RESOURCESET
 _GAINRESOURCES.fields_by_name['gain'].message_type = data__pb2._RESOURCESET
-_CHOOSERESOURCETYPE.fields_by_name['type'].enum_type = data__pb2._RESOURCETYPE
+_CHOOSERESOURCETYPE.fields_by_name['rtype'].enum_type = data__pb2._RESOURCETYPE
 _MOVEROBBER.fields_by_name['move_to'].message_type = data__pb2._HEXCOORD
 _GAMEMESSAGEFROMSERVER.fields_by_name['game_state'].message_type = _STATE
 _GAMEMESSAGEFROMSERVER.fields_by_name['player_element'].message_type = _PLAYERELEMENT
@@ -2306,6 +2360,7 @@ _GAMEMESSAGEFROMSERVER.fields_by_name['build_piece'].message_type = _BUILDPIECE
 _GAMEMESSAGEFROMSERVER.fields_by_name['cancel_build'].message_type = _CANCELBUILD
 _GAMEMESSAGEFROMSERVER.fields_by_name['move_piece'].message_type = _MOVEPIECE
 _GAMEMESSAGEFROMSERVER.fields_by_name['remove_piece'].message_type = _REMOVEPIECE
+_GAMEMESSAGEFROMSERVER.fields_by_name['reveal_fog_hex'].message_type = _REVEALFOGHEX
 _GAMEMESSAGEFROMSERVER.fields_by_name['start_game'].message_type = _STARTGAME
 _GAMEMESSAGEFROMSERVER.fields_by_name['turn'].message_type = _TURN
 _GAMEMESSAGEFROMSERVER.fields_by_name['set_turn'].message_type = _SETTURN
@@ -2361,6 +2416,9 @@ _GAMEMESSAGEFROMSERVER.fields_by_name['move_piece'].containing_oneof = _GAMEMESS
 _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
   _GAMEMESSAGEFROMSERVER.fields_by_name['remove_piece'])
 _GAMEMESSAGEFROMSERVER.fields_by_name['remove_piece'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
+_GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
+  _GAMEMESSAGEFROMSERVER.fields_by_name['reveal_fog_hex'])
+_GAMEMESSAGEFROMSERVER.fields_by_name['reveal_fog_hex'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
 _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
   _GAMEMESSAGEFROMSERVER.fields_by_name['start_game'])
 _GAMEMESSAGEFROMSERVER.fields_by_name['start_game'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
@@ -2516,6 +2574,7 @@ DESCRIPTOR.message_types_by_name['InventoryItemAction'] = _INVENTORYITEMACTION
 DESCRIPTOR.message_types_by_name['CancelBuild'] = _CANCELBUILD
 DESCRIPTOR.message_types_by_name['MovePiece'] = _MOVEPIECE
 DESCRIPTOR.message_types_by_name['RemovePiece'] = _REMOVEPIECE
+DESCRIPTOR.message_types_by_name['RevealFogHex'] = _REVEALFOGHEX
 DESCRIPTOR.message_types_by_name['State'] = _STATE
 DESCRIPTOR.message_types_by_name['PlayerElement'] = _PLAYERELEMENT
 DESCRIPTOR.message_types_by_name['PlayerElements'] = _PLAYERELEMENTS
@@ -2632,6 +2691,13 @@ RemovePiece = _reflection.GeneratedProtocolMessageType('RemovePiece', (_message.
   # @@protoc_insertion_point(class_scope:RemovePiece)
   ))
 _sym_db.RegisterMessage(RemovePiece)
+
+RevealFogHex = _reflection.GeneratedProtocolMessageType('RevealFogHex', (_message.Message,), dict(
+  DESCRIPTOR = _REVEALFOGHEX,
+  __module__ = 'game_message_pb2'
+  # @@protoc_insertion_point(class_scope:RevealFogHex)
+  ))
+_sym_db.RegisterMessage(RevealFogHex)
 
 State = _reflection.GeneratedProtocolMessageType('State', (_message.Message,), dict(
   DESCRIPTOR = _STATE,

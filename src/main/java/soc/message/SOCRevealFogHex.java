@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012,2014,2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012,2014,2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,6 +22,8 @@ package soc.message;
 import java.util.StringTokenizer;
 
 import soc.game.SOCBoard;  // for javadocs only
+import soc.proto.GameMessage;
+import soc.proto.Message;
 
 /**
  * This message from server reveals a hex previously hidden by fog on the large sea board.
@@ -92,5 +94,19 @@ public class SOCRevealFogHex extends SOCMessageTemplate3i
      * @return Version number, 2000 for JSettlers 2.0.00.
      */
     public int getMinimumVersion() { return 2000; }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        GameMessage.RevealFogHex.Builder b
+            = GameMessage.RevealFogHex.newBuilder();
+        b.setCoord(ProtoMessageBuildHelper.toHexCoord(p1))
+         .setHtypeValue(p2)
+         .setDiceNum(p3);
+        GameMessage.GameMessageFromServer.Builder gb
+            = GameMessage.GameMessageFromServer.newBuilder()
+                .setGameName(game).setRevealFogHex(b);
+        return Message.FromServer.newBuilder().setGameMessage(gb).build();
+    }
 
 }

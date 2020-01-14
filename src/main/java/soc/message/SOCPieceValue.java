@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012,2014,2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012,2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -100,7 +100,7 @@ public class SOCPieceValue extends SOCMessageTemplate4i
     {
         GameMessage.PieceValue.Builder b
             = GameMessage.PieceValue.newBuilder();
-        b.setTypeValue(p1)
+        b.setPtypeValue(p1)
          .setCoordinates(ProtoMessageBuildHelper.toBoardCoord(p2, p1))
          .setPieceValue1(p3)
          .setPieceValue2(p4);

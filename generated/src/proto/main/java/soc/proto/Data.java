@@ -16,6 +16,199 @@ public final class Data {
   }
   /**
    * <pre>
+   * Hex types, as in SOCBoard. Same numeric values as {&#64;link SOCBoard#getHexTypeFromCoord(int)}. 
+   * </pre>
+   *
+   * Protobuf enum {@code HexType}
+   */
+  public enum HexType
+      implements com.google.protobuf.ProtocolMessageEnum {
+    /**
+     * <code>WATER_HEX = 0;</code>
+     */
+    WATER_HEX(0),
+    /**
+     * <pre>
+     * Clay; lowest-numbered hex type. Same numeric value as ResourceType.CLAY 
+     * </pre>
+     *
+     * <code>CLAY_HEX = 1;</code>
+     */
+    CLAY_HEX(1),
+    /**
+     * <code>ORE_HEX = 2;</code>
+     */
+    ORE_HEX(2),
+    /**
+     * <code>SHEEP_HEX = 3;</code>
+     */
+    SHEEP_HEX(3),
+    /**
+     * <code>WHEAT_HEX = 4;</code>
+     */
+    WHEAT_HEX(4),
+    /**
+     * <code>WOOD_HEX = 5;</code>
+     */
+    WOOD_HEX(5),
+    /**
+     * <code>DESERT_HEX = 6;</code>
+     */
+    DESERT_HEX(6),
+    /**
+     * <pre>
+     * Hex type for the Gold Hex, where the adjacent players choose their resource(s) every roll. 
+     * </pre>
+     *
+     * <code>GOLD_HEX = 7;</code>
+     */
+    GOLD_HEX(7),
+    /**
+     * <pre>
+     * Hex type for the Fog Hex, with actual type revealed when roads or ships are placed. Scenario SC_FOG.
+     * Bots can treat this as {&#64;link SOCBoard#DESERT_HEX DESERT_HEX} until revealed.
+     * Current maximum land hex type.
+     * </pre>
+     *
+     * <code>FOG_HEX = 8;</code>
+     */
+    FOG_HEX(8),
+    UNRECOGNIZED(-1),
+    ;
+
+    /**
+     * <code>WATER_HEX = 0;</code>
+     */
+    public static final int WATER_HEX_VALUE = 0;
+    /**
+     * <pre>
+     * Clay; lowest-numbered hex type. Same numeric value as ResourceType.CLAY 
+     * </pre>
+     *
+     * <code>CLAY_HEX = 1;</code>
+     */
+    public static final int CLAY_HEX_VALUE = 1;
+    /**
+     * <code>ORE_HEX = 2;</code>
+     */
+    public static final int ORE_HEX_VALUE = 2;
+    /**
+     * <code>SHEEP_HEX = 3;</code>
+     */
+    public static final int SHEEP_HEX_VALUE = 3;
+    /**
+     * <code>WHEAT_HEX = 4;</code>
+     */
+    public static final int WHEAT_HEX_VALUE = 4;
+    /**
+     * <code>WOOD_HEX = 5;</code>
+     */
+    public static final int WOOD_HEX_VALUE = 5;
+    /**
+     * <code>DESERT_HEX = 6;</code>
+     */
+    public static final int DESERT_HEX_VALUE = 6;
+    /**
+     * <pre>
+     * Hex type for the Gold Hex, where the adjacent players choose their resource(s) every roll. 
+     * </pre>
+     *
+     * <code>GOLD_HEX = 7;</code>
+     */
+    public static final int GOLD_HEX_VALUE = 7;
+    /**
+     * <pre>
+     * Hex type for the Fog Hex, with actual type revealed when roads or ships are placed. Scenario SC_FOG.
+     * Bots can treat this as {&#64;link SOCBoard#DESERT_HEX DESERT_HEX} until revealed.
+     * Current maximum land hex type.
+     * </pre>
+     *
+     * <code>FOG_HEX = 8;</code>
+     */
+    public static final int FOG_HEX_VALUE = 8;
+
+
+    public final int getNumber() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
+      return value;
+    }
+
+    /**
+     * @deprecated Use {@link #forNumber(int)} instead.
+     */
+    @java.lang.Deprecated
+    public static HexType valueOf(int value) {
+      return forNumber(value);
+    }
+
+    public static HexType forNumber(int value) {
+      switch (value) {
+        case 0: return WATER_HEX;
+        case 1: return CLAY_HEX;
+        case 2: return ORE_HEX;
+        case 3: return SHEEP_HEX;
+        case 4: return WHEAT_HEX;
+        case 5: return WOOD_HEX;
+        case 6: return DESERT_HEX;
+        case 7: return GOLD_HEX;
+        case 8: return FOG_HEX;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf.Internal.EnumLiteMap<HexType>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static final com.google.protobuf.Internal.EnumLiteMap<
+        HexType> internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<HexType>() {
+            public HexType findValueByNumber(int number) {
+              return HexType.forNumber(number);
+            }
+          };
+
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      return getDescriptor().getValues().get(ordinal());
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return soc.proto.Data.getDescriptor().getEnumTypes().get(0);
+    }
+
+    private static final HexType[] VALUES = values();
+
+    public static HexType valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
+      return VALUES[desc.getIndex()];
+    }
+
+    private final int value;
+
+    private HexType(int value) {
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:HexType)
+  }
+
+  /**
+   * <pre>
    * Structs here are suffixed "Data" since we eventually want them used in the java code. Many struct names will then get
    *the same name as its OO counterparts. As in Java OO is central, I choose to suffix the data.
    * </pre>
@@ -154,7 +347,7 @@ public final class Data {
     }
     public static final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptor() {
-      return soc.proto.Data.getDescriptor().getEnumTypes().get(0);
+      return soc.proto.Data.getDescriptor().getEnumTypes().get(1);
     }
 
     private static final ResourceType[] VALUES = values();
@@ -183,7 +376,7 @@ public final class Data {
   /**
    * <pre>
    * Piece Types for {&#64;link soc.game.SOCPlayingPiece}; same constant values as that class.
-   * Used in {&#64;link GameMessage.PutPiece}, {&#64;link GameMessage.CancelBuild}, etc.
+   * Used in {&#64;link GameMessage.BuildPiece}, {&#64;link GameMessage.CancelBuild}, etc.
    * For the resources needed to build a piece type, see {&#64;link soc.game.SOCPlayingPiece#getResourcesToBuild(int)}.
    * &#64;see BoardCoord
    * &#64;see OtherPlayableItem
@@ -358,7 +551,7 @@ public final class Data {
     }
     public static final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptor() {
-      return soc.proto.Data.getDescriptor().getEnumTypes().get(1);
+      return soc.proto.Data.getDescriptor().getEnumTypes().get(2);
     }
 
     private static final PieceType[] VALUES = values();
@@ -501,7 +694,7 @@ public final class Data {
     }
     public static final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptor() {
-      return soc.proto.Data.getDescriptor().getEnumTypes().get(2);
+      return soc.proto.Data.getDescriptor().getEnumTypes().get(3);
     }
 
     private static final OtherPlayableItem[] VALUES = values();
@@ -776,7 +969,7 @@ public final class Data {
     }
     public static final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptor() {
-      return soc.proto.Data.getDescriptor().getEnumTypes().get(3);
+      return soc.proto.Data.getDescriptor().getEnumTypes().get(4);
     }
 
     private static final DevCardValue[] VALUES = values();
@@ -1287,7 +1480,7 @@ public final class Data {
     }
     public static final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptor() {
-      return soc.proto.Data.getDescriptor().getEnumTypes().get(4);
+      return soc.proto.Data.getDescriptor().getEnumTypes().get(5);
     }
 
     private static final GameState[] VALUES = values();
@@ -1446,7 +1639,7 @@ public final class Data {
     }
     public static final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptor() {
-      return soc.proto.Data.getDescriptor().getEnumTypes().get(5);
+      return soc.proto.Data.getDescriptor().getEnumTypes().get(6);
     }
 
     private static final SeatLockState[] VALUES = values();
@@ -10272,39 +10465,42 @@ public final class Data {
       "(\005\022\r\n\005sheep\030\003 \001(\005\022\r\n\005wheat\030\004 \001(\005\022\014\n\004wood" +
       "\030\005 \001(\005\022*\n\006others\030\006 \003(\0132\032.ResourceSet.Oth" +
       "erResource\032@\n\rOtherResource\022\037\n\010res_type\030" +
-      "\001 \001(\0162\r.ResourceType\022\016\n\006amount\030\002 \001(\005*a\n\014" +
-      "ResourceType\022\021\n\r_NOT_YET_USED\020\000\022\010\n\004CLAY\020" +
-      "\001\022\007\n\003ORE\020\002\022\t\n\005SHEEP\020\003\022\t\n\005WHEAT\020\004\022\010\n\004WOOD" +
-      "\020\005\022\013\n\007UNKNOWN\020\006*T\n\tPieceType\022\010\n\004ROAD\020\000\022\016",
-      "\n\nSETTLEMENT\020\001\022\010\n\004CITY\020\002\022\010\n\004SHIP\020\003\022\014\n\010FO" +
-      "RTRESS\020\004\022\013\n\007VILLAGE\020\005*I\n\021OtherPlayableIt" +
-      "em\022\030\n\024_UNSENT_DEFAULT_ITEM\020\000\022\014\n\010DEV_CARD" +
-      "\020\002\022\014\n\010INV_ITEM\020\003*\333\001\n\014DevCardValue\022 \n\034_UN" +
-      "SENT_DEFAULT_DEVCARDVALUE\020\000\022\024\n\020UNKNOWN_D" +
-      "EV_CARD\020\001\022\n\n\006KNIGHT\020\002\022\014\n\010MONOPOLY\020\003\022\021\n\rR" +
-      "OAD_BUILDING\020\004\022\022\n\016YEAR_OF_PLENTY\020\005\022\r\n\tVP" +
-      "_CHAPEL\0202\022\021\n\rVP_GREAT_HALL\0203\022\016\n\nVP_LIBRA" +
-      "RY\0204\022\r\n\tVP_MARKET\0205\022\021\n\rVP_UNIVERSITY\0206*\245" +
-      "\005\n\tGameState\022\007\n\003NEW\020\000\022\t\n\005READY\020\001\022\"\n\036READ",
-      "Y_RESET_WAIT_ROBOT_DISMISS\020\004\022\013\n\007START1A\020" +
-      "\005\022\013\n\007START1B\020\006\022\013\n\007START2A\020\n\022)\n%STARTS_WA" +
-      "ITING_FOR_PICK_GOLD_RESOURCE\020\016\022\013\n\007START2" +
-      "B\020\013\022\013\n\007START3A\020\014\022\013\n\007START3B\020\r\022\020\n\014ROLL_OR" +
-      "_CARD\020\017\022\t\n\005PLAY1\020\024\022\020\n\014PLACING_ROAD\020\036\022\026\n\022" +
-      "PLACING_SETTLEMENT\020\037\022\020\n\014PLACING_CITY\020 \022\022" +
-      "\n\016PLACING_ROBBER\020!\022\022\n\016PLACING_PIRATE\020\"\022\020" +
-      "\n\014PLACING_SHIP\020#\022\026\n\022PLACING_FREE_ROAD1\020(" +
-      "\022\026\n\022PLACING_FREE_ROAD2\020)\022\024\n\020PLACING_INV_" +
-      "ITEM\020*\022\030\n\024WAITING_FOR_DISCARDS\0202\022!\n\035WAIT",
-      "ING_FOR_ROB_CHOOSE_PLAYER\0203\022\031\n\025WAITING_F" +
-      "OR_DISCOVERY\0204\022\030\n\024WAITING_FOR_MONOPOLY\0205" +
-      "\022 \n\034WAITING_FOR_ROBBER_OR_PIRATE\0206\022%\n!WA" +
-      "ITING_FOR_ROB_CLOTH_OR_RESOURCE\0207\022\"\n\036WAI" +
-      "TING_FOR_PICK_GOLD_RESOURCE\0208\022\024\n\020SPECIAL" +
-      "_BUILDING\020d\022\t\n\004OVER\020\350\007\022\016\n\tRESET_OLD\020\351\007*=" +
-      "\n\rSeatLockState\022\014\n\010UNLOCKED\020\000\022\n\n\006LOCKED\020" +
-      "\001\022\022\n\016CLEAR_ON_RESET\020\002B\r\n\tsoc.protoH\001b\006pr" +
-      "oto3"
+      "\001 \001(\0162\r.ResourceType\022\016\n\006amount\030\002 \001(\005*\212\001\n" +
+      "\007HexType\022\r\n\tWATER_HEX\020\000\022\014\n\010CLAY_HEX\020\001\022\013\n" +
+      "\007ORE_HEX\020\002\022\r\n\tSHEEP_HEX\020\003\022\r\n\tWHEAT_HEX\020\004" +
+      "\022\014\n\010WOOD_HEX\020\005\022\016\n\nDESERT_HEX\020\006\022\014\n\010GOLD_H",
+      "EX\020\007\022\013\n\007FOG_HEX\020\010*a\n\014ResourceType\022\021\n\r_NO" +
+      "T_YET_USED\020\000\022\010\n\004CLAY\020\001\022\007\n\003ORE\020\002\022\t\n\005SHEEP" +
+      "\020\003\022\t\n\005WHEAT\020\004\022\010\n\004WOOD\020\005\022\013\n\007UNKNOWN\020\006*T\n\t" +
+      "PieceType\022\010\n\004ROAD\020\000\022\016\n\nSETTLEMENT\020\001\022\010\n\004C" +
+      "ITY\020\002\022\010\n\004SHIP\020\003\022\014\n\010FORTRESS\020\004\022\013\n\007VILLAGE" +
+      "\020\005*I\n\021OtherPlayableItem\022\030\n\024_UNSENT_DEFAU" +
+      "LT_ITEM\020\000\022\014\n\010DEV_CARD\020\002\022\014\n\010INV_ITEM\020\003*\333\001" +
+      "\n\014DevCardValue\022 \n\034_UNSENT_DEFAULT_DEVCAR" +
+      "DVALUE\020\000\022\024\n\020UNKNOWN_DEV_CARD\020\001\022\n\n\006KNIGHT" +
+      "\020\002\022\014\n\010MONOPOLY\020\003\022\021\n\rROAD_BUILDING\020\004\022\022\n\016Y",
+      "EAR_OF_PLENTY\020\005\022\r\n\tVP_CHAPEL\0202\022\021\n\rVP_GRE" +
+      "AT_HALL\0203\022\016\n\nVP_LIBRARY\0204\022\r\n\tVP_MARKET\0205" +
+      "\022\021\n\rVP_UNIVERSITY\0206*\245\005\n\tGameState\022\007\n\003NEW" +
+      "\020\000\022\t\n\005READY\020\001\022\"\n\036READY_RESET_WAIT_ROBOT_" +
+      "DISMISS\020\004\022\013\n\007START1A\020\005\022\013\n\007START1B\020\006\022\013\n\007S" +
+      "TART2A\020\n\022)\n%STARTS_WAITING_FOR_PICK_GOLD" +
+      "_RESOURCE\020\016\022\013\n\007START2B\020\013\022\013\n\007START3A\020\014\022\013\n" +
+      "\007START3B\020\r\022\020\n\014ROLL_OR_CARD\020\017\022\t\n\005PLAY1\020\024\022" +
+      "\020\n\014PLACING_ROAD\020\036\022\026\n\022PLACING_SETTLEMENT\020" +
+      "\037\022\020\n\014PLACING_CITY\020 \022\022\n\016PLACING_ROBBER\020!\022",
+      "\022\n\016PLACING_PIRATE\020\"\022\020\n\014PLACING_SHIP\020#\022\026\n" +
+      "\022PLACING_FREE_ROAD1\020(\022\026\n\022PLACING_FREE_RO" +
+      "AD2\020)\022\024\n\020PLACING_INV_ITEM\020*\022\030\n\024WAITING_F" +
+      "OR_DISCARDS\0202\022!\n\035WAITING_FOR_ROB_CHOOSE_" +
+      "PLAYER\0203\022\031\n\025WAITING_FOR_DISCOVERY\0204\022\030\n\024W" +
+      "AITING_FOR_MONOPOLY\0205\022 \n\034WAITING_FOR_ROB" +
+      "BER_OR_PIRATE\0206\022%\n!WAITING_FOR_ROB_CLOTH" +
+      "_OR_RESOURCE\0207\022\"\n\036WAITING_FOR_PICK_GOLD_" +
+      "RESOURCE\0208\022\024\n\020SPECIAL_BUILDING\020d\022\t\n\004OVER" +
+      "\020\350\007\022\016\n\tRESET_OLD\020\351\007*=\n\rSeatLockState\022\014\n\010",
+      "UNLOCKED\020\000\022\n\n\006LOCKED\020\001\022\022\n\016CLEAR_ON_RESET" +
+      "\020\002B\r\n\tsoc.protoH\001b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

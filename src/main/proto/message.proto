@@ -204,7 +204,7 @@ message ServerStatusText {
          * being created, or server doesn't use accounts.
          *<P>
          * To see whether a server v1.1.19 or newer uses accounts and passwords, check
-         * whether {@link soc.server.SOCServerFeatures#FEAT_ACCTS} is sent when the client connects.
+         * whether {@link soc.server.SOCFeatureSet#FEAT_ACCTS} is sent when the client connects.
          * @since 1.1.06
          * @see #ACCT_NOT_CREATED_DENIED
          */
@@ -280,7 +280,7 @@ message ServerStatusText {
          * This separate code is provided to let the client know they
          * must authenticate before creating any other accounts.
          *<P>
-         * This status is not sent if the server is in Open Registration mode ({@link soc.server.SOCServerFeatures#FEAT_OPEN_REG}),
+         * This status is not sent if the server is in Open Registration mode ({@link soc.server.SOCFeatureSet#FEAT_OPEN_REG}),
          * because in that mode there's nothing special about the first account and no need to authenticate
          * before creating others.
          * @since 1.1.20
@@ -337,6 +337,12 @@ message ServerStatusText {
          * @since 2.0.00
          */
         GAME_CLIENT_FEATURES_NEEDED = 22;
+
+        /* Server broadcasts StatusMessage(SV_SERVER_SHUTDOWN) at clean shutdown.
+         * Clients and bots shouldn't immediately try to reconnect when the server closes their connection.
+         * @since 2.1.00
+         */
+        SV_SERVER_SHUTDOWN = 23;
 
         // IF YOU ADD A STATUS VALUE:
         // Do not change or remove the numeric values of earlier ones.
@@ -427,7 +433,7 @@ message BotAdminReset {
 /* This message lists names of all the chat channels on a server.
  * It's one of the first messages sent from the server after {@link Version}
  * when connecting. {@code Channels} is sent even if the server isn't using
- * {@link soc.util.SOCServerFeatures#FEAT_CHANNELS} because clients see it as a
+ * {@link soc.util.SOCFeatureSet#FEAT_CHANNELS} because clients see it as a
  * signal the connection is complete, and display their main user interface panel.
  *<P>
  * Robots ignore {@code Channels}. They don't need to wait for "connection complete"
@@ -581,7 +587,7 @@ message BotJoinGameRequest {
  */
 message JoinGame {
     string ga_name = 1;      // Name of game being joined
-    string member_name = 2;  // Nickname of the joining member (should be "" for client -> server);
+    string member_name = 2;  // Nickname of the joining member (should be omitted or "" for client -> server);
 	// omitted if message is server's auth to requesting client to join game
 
     /* Optional board size info, to help create the joining client's user interface to show this game.
@@ -611,7 +617,7 @@ message JoinGame {
  * When forming a new game, clients will be sent the sequence as described above, and
  * then will each choose a position and sit down. Any client can then send {@link StartGame}
  * to start the game. Server responds with the newly generated board layout and
- * other game and board details, any scenario-specific {@link PutPiece}s, then
+ * other game and board details, any scenario-specific {@link BuildPiece}s, then
  * {@link GameState}({@link soc.game.SOCGame#START1A START1A}), then finally {@link StartGame}.
  *
  * @see Games

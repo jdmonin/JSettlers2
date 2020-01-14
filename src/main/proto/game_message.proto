@@ -157,7 +157,7 @@ message PieceValue {
     /* Type of playing piece, like {@code VILLAGE} or {@code FORTRESS}.
      * Client can ignore this field unless the game's scenario uses values on multiple piece types.
      */
-    PieceType type = 1;
+    PieceType ptype = 1;
     BoardCoord coordinates = 2;  // Coordinate of the piece
     sint32 piece_value1 = 3;  // New value for the piece
     sint32 piece_value2 = 4;  // New secondary value (if piece has 2 value fields)
@@ -196,7 +196,7 @@ message PieceValue {
  * @see BuyInventoryItemRequest
  */
 message BuildPiece {
-    PieceType type = 1;
+    PieceType ptype = 1;
 
     /* The piece's edge, node, or hex coordinate.
      * See data.BoardCoord doc for which types set which field
@@ -252,7 +252,7 @@ message BuyInventoryItemRequest {
  * InventoryItemAction(playerNumber, ADD_OLD, devCardsSet={cardType, cardType, ...})
  * for each player that has them. This is sent to all game members; a client player should ignore
  * messages about their own cards in state {@code OVER} by checking playerNumber.
- * This multiple-cardtype form is currently used only at end of game.
+ * That multiple-cardtype form is currently used only at end of game.
  *<P>
  * Other Inventory Items:
  *<P>
@@ -394,11 +394,11 @@ message InventoryItemAction {
  *<LI> During piece placement (PLACING_ROAD, PLACING_CITY, PLACING_SETTLEMENT,
  *   PLACING_FREE_ROAD1 or PLACING_FREE_ROAD2): <BR>
  *   Sent from server, CancelBuild means the player has sent
- *   an illegal {@link PutPiece} (bad building location). Humans can probably
+ *   an illegal {@link BuildPiece} (bad building location). Humans can probably
  *   decide a better place to put their road, but robots must cancel
  *   the build request and decide on a new plan.
  *   <P>
- *   This can also be the reply if the client sends an illegal {@link PutPiece}
+ *   This can also be the reply if the client sends an illegal {@link BuildPiece}
  *   or {@link BuyInventoryItemRequest} (no resources, not the right game state, etc.)
  *   or {@link MovePiece}.
  *
@@ -425,7 +425,7 @@ message CancelBuild {
  */
 message MovePiece {
     /* Type of playing piece; only {@code SHIP} so far */
-    PieceType type = 1;
+    PieceType ptype = 1;
     BoardCoord from_coordinates = 2;
     BoardCoord to_coordinates = 3;
 }
@@ -439,8 +439,22 @@ message MovePiece {
  */
 message RemovePiece {
     /* Type of playing piece; only {@code SHIP} so far */
-    PieceType type = 1;
+    PieceType ptype = 1;
     BoardCoord coordinates = 2;
+}
+
+/* This message from server reveals a hex previously hidden by fog on the large sea board.
+ * Hexes are revealed by placing roads or ships that touch a corner of a fog hex.
+ * This message is sent out before the {@link BuildPiece} or {@link MovePiece} for the road
+ * or ship, to reveal the hex so the piece message can update players' potential placement edge sets.
+ * Client should call {@link soc.game.SOCGame#revealFogHiddenHex(int, int, int)}.
+ *
+ * Used with game option/scenario SC_FOG.
+ */
+message RevealFogHex {
+    HexCoord coord = 1;   // Coordinate of the hex to reveal
+    HexType htype = 2;     // Revealed hex type, same value as {@link SOCBoard#getHexTypeFromCoord(int)}
+    sint32 dice_num = 3;  // Revealed hex dice number, same value as {@link SOCBoard#getNumberOnHexFromCoord(int)}, or 0/omitted
 }
 
 
@@ -945,7 +959,7 @@ message TradeMakeOffer {
 }
 
 /* A the player is retracting an offer.
- * Or, all players are clearing all offers (usually at end of turn).
+ * Or, server wants any trade messages/responses cleared in the client UI (usually at end of turn).
  *<P>
  * player_number can be -1 to clear all offers by all players.
  * @see TradeMakeOffer
@@ -1014,7 +1028,7 @@ message GainResources {
  * Before v3.0.00 this message type was SOCPickResourceType.
  */
 message ChooseResourceType {
-    ResourceType type = 1;  // choose this resource type
+    ResourceType rtype = 1;  // choose this resource type
 }
 
 /* A player chooses another player, typically to rob from.
@@ -1136,6 +1150,7 @@ message GameMessageFromServer {
         CancelBuild cancel_build = 34;
         MovePiece move_piece = 35;
         RemovePiece remove_piece = 36;
+        RevealFogHex reveal_fog_hex = 37;
 
         // turn
         StartGame start_game = 100;

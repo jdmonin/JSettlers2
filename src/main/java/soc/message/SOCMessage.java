@@ -1259,7 +1259,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
                         return null;
                     else
                         return new SOCPutPiece
-                            (gaName, -1, m.getTypeValue(), ProtoMessageBuildHelper.fromBoardCoord(pc));
+                            (gaName, -1, m.getPtypeValue(), ProtoMessageBuildHelper.fromBoardCoord(pc));
                 }
 
             case GameMessage.GameMessageFromClient.CANCEL_BUILD_FIELD_NUMBER:
@@ -1276,7 +1276,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
                         return null;
                     else
                         return new SOCMovePiece
-                            (gaName, -1, m.getTypeValue(),
+                            (gaName, -1, m.getPtypeValue(),
                              ProtoMessageBuildHelper.fromBoardCoord(pcFrom),
                              ProtoMessageBuildHelper.fromBoardCoord(pcTo));
                 }
@@ -1363,7 +1363,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case GameMessage.GameMessageFromClient.CHOOSE_RESOURCE_TYPE_FIELD_NUMBER:
                 return new SOCPickResourceType
-                    (gaName, msg.getChooseResourceType().getTypeValue());
+                    (gaName, msg.getChooseResourceType().getRtypeValue());
 
             case GameMessage.GameMessageFromClient.CHOOSE_PLAYER_FIELD_NUMBER:
                 return new SOCChoosePlayer

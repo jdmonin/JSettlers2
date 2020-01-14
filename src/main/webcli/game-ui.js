@@ -37,8 +37,9 @@ $.ajax({
 // Board/game constants
 
 const PTYPE_ROAD = 0, PTYPE_SETTLEMENT = 1, PTYPE_CITY = 2, PTYPE_SHIP = 3, PTYPE_FORTRESS = 4, PTYPE_VILLAGE = 5;
-const PTYPE_NAMES = ['ROAD', 'SETTLEMENT', 'CITY', 'SHIP', 'FORTRESS', 'VILLAGE'];  // as in proto/json; also for ID prefix in rsLayer/ppLayer
-
+// type names as in proto/json
+const HEXTYPE_NAMES = ['WATER_HEX', 'CLAY_HEX', 'ORE_HEX', 'SHEEP_HEX', 'WHEAT_HEX', 'WOOD_HEX', 'DESERT_HEX', 'GOLD_HEX', 'FOG_HEX'];
+const PTYPE_NAMES = ['ROAD', 'SETTLEMENT', 'CITY', 'SHIP', 'FORTRESS', 'VILLAGE'];  // also for ID prefix in rsLayer/ppLayer
 
 // Board geometry constants; some are from SOCBoardPanel.java //
 
@@ -542,11 +543,17 @@ function msgCoord(msgField)
     let r=0, c=0;
     if (msgField)
     {
-	let cfield = (msgField.edgeCoord) ? msgField.edgeCoord : msgField.nodeCoord;
-	if (cfield)
+	if (msgField.row || msgField.col)
 	{
-	    r = cfield.row || 0;
-	    c = cfield.column || 0;
+	    r = msgField.row || 0;
+	    c = msgField.column || 0;
+	} else {
+	    let cfield = (msgField.edgeCoord) ? msgField.edgeCoord : msgField.nodeCoord;
+	    if (cfield)
+	    {
+		r = cfield.row || 0;
+		c = cfield.column || 0;
+	    }
 	}
     }
     return [r, c];
@@ -575,7 +582,7 @@ var gaDispatchTo =
 	// port positions (all ports' types, then edge coords, then facings)
 	const PL = mdata.parts.PL.iArr.arr, nPort = PL.length / 3, n2 = 2 * nPort;
 	for (let i = 0; i < nPort; ++i)
-		gameui.addPort(PL[i], PL[i+nPort], PL[i+n2]);
+	    gameui.addPort(PL[i], PL[i+nPort], PL[i+n2]);
 	gameui.bLayer.draw();
 	// playing pieces:
 	if (mdata.parts.RH)
@@ -590,15 +597,20 @@ var gaDispatchTo =
 	}
 	gameui.ppLayer.draw();
     },
+    revealFogHex: function(gameui, gn, pn, mdata)
+    {
+	let [r,c] = msgCoord(mdata.coord);
+	gameui.drawHex(r, c, ((mdata.htype) ? HEXTYPE_NAMES.indexOf(mdata.htype) : 0), mdata.diceNum || 0);
+	gameui.bLayer.draw();
+    },
     buildPiece: function(gameui, gn, pn, mdata)
     {
 	let [r,c] = msgCoord(mdata.coordinates);
-	let ptype = (mdata.type) ? PTYPE_NAMES.indexOf(mdata.type) : 0;
-	gameui.buildPiece(r, c, ptype, pn);
+	gameui.buildPiece(r, c, ((mdata.ptype) ? PTYPE_NAMES.indexOf(mdata.ptype) : 0), pn);
     },
     movePiece: function(gameui, gn, pn, mdata)
     {
-	if (mdata.type != 'SHIP')
+	if (mdata.ptype != 'SHIP')
 	    return;
 	let [fr,fc] = msgCoord(mdata.fromCoordinates);
 	let [tr,tc] = msgCoord(mdata.toCoordinates);

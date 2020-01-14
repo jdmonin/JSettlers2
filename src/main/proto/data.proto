@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
- * Portions of this file Copyright (C) 2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -93,6 +93,25 @@ message _NodeList { repeated NodeCoord node = 1; }
 /* Data type for list of BoardCoord, since oneof and map can't directly contain a repeated field. */
 message _BoardCoordList { repeated BoardCoord coord = 1; }
 
+/* Hex types, as in SOCBoard. Same numeric values as {@link SOCBoard#getHexTypeFromCoord(int)}. */
+enum HexType {
+    WATER_HEX = 0;
+    /* Clay; lowest-numbered hex type. Same numeric value as ResourceType.CLAY */
+    CLAY_HEX = 1;
+    ORE_HEX = 2;
+    SHEEP_HEX = 3;
+    WHEAT_HEX = 4;
+    WOOD_HEX = 5;
+    DESERT_HEX = 6;
+    /* Hex type for the Gold Hex, where the adjacent players choose their resource(s) every roll. */
+    GOLD_HEX = 7;
+    /* Hex type for the Fog Hex, with actual type revealed when roads or ships are placed. Scenario SC_FOG.
+     * Bots can treat this as {@link SOCBoard#DESERT_HEX DESERT_HEX} until revealed.
+     * Current maximum land hex type.
+     */
+    FOG_HEX = 8;
+}
+
 /* Structs here are suffixed "Data" since we eventually want them used in the java code. Many struct names will then get
 the same name as its OO counterparts. As in Java OO is central, I choose to suffix the data.
 */
@@ -130,7 +149,7 @@ message ResourceSet {
 }
 
 /* Piece Types for {@link soc.game.SOCPlayingPiece}; same constant values as that class.
- * Used in {@link GameMessage.PutPiece}, {@link GameMessage.CancelBuild}, etc.
+ * Used in {@link GameMessage.BuildPiece}, {@link GameMessage.CancelBuild}, etc.
  * For the resources needed to build a piece type, see {@link soc.game.SOCPlayingPiece#getResourcesToBuild(int)}.
  * @see BoardCoord
  * @see OtherPlayableItem

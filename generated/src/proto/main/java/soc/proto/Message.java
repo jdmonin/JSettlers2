@@ -4086,7 +4086,7 @@ public final class Message {
        * being created, or server doesn't use accounts.
        *&lt;P&gt;
        * To see whether a server v1.1.19 or newer uses accounts and passwords, check
-       * whether {&#64;link soc.server.SOCServerFeatures#FEAT_ACCTS} is sent when the client connects.
+       * whether {&#64;link soc.server.SOCFeatureSet#FEAT_ACCTS} is sent when the client connects.
        * &#64;since 1.1.06
        * &#64;see #ACCT_NOT_CREATED_DENIED
        * </pre>
@@ -4202,7 +4202,7 @@ public final class Message {
        * This separate code is provided to let the client know they
        * must authenticate before creating any other accounts.
        *&lt;P&gt;
-       * This status is not sent if the server is in Open Registration mode ({&#64;link soc.server.SOCServerFeatures#FEAT_OPEN_REG}),
+       * This status is not sent if the server is in Open Registration mode ({&#64;link soc.server.SOCFeatureSet#FEAT_OPEN_REG}),
        * because in that mode there's nothing special about the first account and no need to authenticate
        * before creating others.
        * &#64;since 1.1.20
@@ -4278,6 +4278,16 @@ public final class Message {
        * <code>GAME_CLIENT_FEATURES_NEEDED = 22;</code>
        */
       GAME_CLIENT_FEATURES_NEEDED(22),
+      /**
+       * <pre>
+       * Server broadcasts StatusMessage(SV_SERVER_SHUTDOWN) at clean shutdown.
+       * Clients and bots shouldn't immediately try to reconnect when the server closes their connection.
+       * &#64;since 2.1.00
+       * </pre>
+       *
+       * <code>SV_SERVER_SHUTDOWN = 23;</code>
+       */
+      SV_SERVER_SHUTDOWN(23),
       UNRECOGNIZED(-1),
       ;
 
@@ -4391,7 +4401,7 @@ public final class Message {
        * being created, or server doesn't use accounts.
        *&lt;P&gt;
        * To see whether a server v1.1.19 or newer uses accounts and passwords, check
-       * whether {&#64;link soc.server.SOCServerFeatures#FEAT_ACCTS} is sent when the client connects.
+       * whether {&#64;link soc.server.SOCFeatureSet#FEAT_ACCTS} is sent when the client connects.
        * &#64;since 1.1.06
        * &#64;see #ACCT_NOT_CREATED_DENIED
        * </pre>
@@ -4507,7 +4517,7 @@ public final class Message {
        * This separate code is provided to let the client know they
        * must authenticate before creating any other accounts.
        *&lt;P&gt;
-       * This status is not sent if the server is in Open Registration mode ({&#64;link soc.server.SOCServerFeatures#FEAT_OPEN_REG}),
+       * This status is not sent if the server is in Open Registration mode ({&#64;link soc.server.SOCFeatureSet#FEAT_OPEN_REG}),
        * because in that mode there's nothing special about the first account and no need to authenticate
        * before creating others.
        * &#64;since 1.1.20
@@ -4583,6 +4593,16 @@ public final class Message {
        * <code>GAME_CLIENT_FEATURES_NEEDED = 22;</code>
        */
       public static final int GAME_CLIENT_FEATURES_NEEDED_VALUE = 22;
+      /**
+       * <pre>
+       * Server broadcasts StatusMessage(SV_SERVER_SHUTDOWN) at clean shutdown.
+       * Clients and bots shouldn't immediately try to reconnect when the server closes their connection.
+       * &#64;since 2.1.00
+       * </pre>
+       *
+       * <code>SV_SERVER_SHUTDOWN = 23;</code>
+       */
+      public static final int SV_SERVER_SHUTDOWN_VALUE = 23;
 
 
       public final int getNumber() {
@@ -4626,6 +4646,7 @@ public final class Message {
           case 20: return OK_SET_NICKNAME;
           case 21: return OK_DEBUG_MODE_ON;
           case 22: return GAME_CLIENT_FEATURES_NEEDED;
+          case 23: return SV_SERVER_SHUTDOWN;
           default: return null;
         }
       }
@@ -8308,7 +8329,7 @@ public final class Message {
    * This message lists names of all the chat channels on a server.
    * It's one of the first messages sent from the server after {&#64;link Version}
    * when connecting. {&#64;code Channels} is sent even if the server isn't using
-   * {&#64;link soc.util.SOCServerFeatures#FEAT_CHANNELS} because clients see it as a
+   * {&#64;link soc.util.SOCFeatureSet#FEAT_CHANNELS} because clients see it as a
    * signal the connection is complete, and display their main user interface panel.
    *&lt;P&gt;
    * Robots ignore {&#64;code Channels}. They don't need to wait for "connection complete"
@@ -8586,7 +8607,7 @@ public final class Message {
      * This message lists names of all the chat channels on a server.
      * It's one of the first messages sent from the server after {&#64;link Version}
      * when connecting. {&#64;code Channels} is sent even if the server isn't using
-     * {&#64;link soc.util.SOCServerFeatures#FEAT_CHANNELS} because clients see it as a
+     * {&#64;link soc.util.SOCFeatureSet#FEAT_CHANNELS} because clients see it as a
      * signal the connection is complete, and display their main user interface panel.
      *&lt;P&gt;
      * Robots ignore {&#64;code Channels}. They don't need to wait for "connection complete"
@@ -16135,7 +16156,7 @@ public final class Message {
 
     /**
      * <pre>
-     * Nickname of the joining member (should be "" for client -&gt; server);
+     * Nickname of the joining member (should be omitted or "" for client -&gt; server);
      * </pre>
      *
      * <code>string member_name = 2;</code>
@@ -16143,7 +16164,7 @@ public final class Message {
     java.lang.String getMemberName();
     /**
      * <pre>
-     * Nickname of the joining member (should be "" for client -&gt; server);
+     * Nickname of the joining member (should be omitted or "" for client -&gt; server);
      * </pre>
      *
      * <code>string member_name = 2;</code>
@@ -16378,7 +16399,7 @@ public final class Message {
     private volatile java.lang.Object memberName_;
     /**
      * <pre>
-     * Nickname of the joining member (should be "" for client -&gt; server);
+     * Nickname of the joining member (should be omitted or "" for client -&gt; server);
      * </pre>
      *
      * <code>string member_name = 2;</code>
@@ -16397,7 +16418,7 @@ public final class Message {
     }
     /**
      * <pre>
-     * Nickname of the joining member (should be "" for client -&gt; server);
+     * Nickname of the joining member (should be omitted or "" for client -&gt; server);
      * </pre>
      *
      * <code>string member_name = 2;</code>
@@ -16941,7 +16962,7 @@ public final class Message {
       private java.lang.Object memberName_ = "";
       /**
        * <pre>
-       * Nickname of the joining member (should be "" for client -&gt; server);
+       * Nickname of the joining member (should be omitted or "" for client -&gt; server);
        * </pre>
        *
        * <code>string member_name = 2;</code>
@@ -16960,7 +16981,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * Nickname of the joining member (should be "" for client -&gt; server);
+       * Nickname of the joining member (should be omitted or "" for client -&gt; server);
        * </pre>
        *
        * <code>string member_name = 2;</code>
@@ -16980,7 +17001,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * Nickname of the joining member (should be "" for client -&gt; server);
+       * Nickname of the joining member (should be omitted or "" for client -&gt; server);
        * </pre>
        *
        * <code>string member_name = 2;</code>
@@ -16997,7 +17018,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * Nickname of the joining member (should be "" for client -&gt; server);
+       * Nickname of the joining member (should be omitted or "" for client -&gt; server);
        * </pre>
        *
        * <code>string member_name = 2;</code>
@@ -17010,7 +17031,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * Nickname of the joining member (should be "" for client -&gt; server);
+       * Nickname of the joining member (should be omitted or "" for client -&gt; server);
        * </pre>
        *
        * <code>string member_name = 2;</code>
@@ -17274,7 +17295,7 @@ public final class Message {
    * When forming a new game, clients will be sent the sequence as described above, and
    * then will each choose a position and sit down. Any client can then send {&#64;link StartGame}
    * to start the game. Server responds with the newly generated board layout and
-   * other game and board details, any scenario-specific {&#64;link PutPiece}s, then
+   * other game and board details, any scenario-specific {&#64;link BuildPiece}s, then
    * {&#64;link GameState}({&#64;link soc.game.SOCGame#START1A START1A}), then finally {&#64;link StartGame}.
    * &#64;see Games
    * &#64;see ChannelMembers
@@ -17613,7 +17634,7 @@ public final class Message {
      * When forming a new game, clients will be sent the sequence as described above, and
      * then will each choose a position and sit down. Any client can then send {&#64;link StartGame}
      * to start the game. Server responds with the newly generated board layout and
-     * other game and board details, any scenario-specific {&#64;link PutPiece}s, then
+     * other game and board details, any scenario-specific {&#64;link BuildPiece}s, then
      * {&#64;link GameState}({&#64;link soc.game.SOCGame#START1A START1A}), then finally {&#64;link StartGame}.
      * &#64;see Games
      * &#64;see ChannelMembers
@@ -35562,10 +35583,10 @@ public final class Message {
       "\022\023\n\017_UNSENT_DEFAULT\020\000\022\017\n\013GAME_PLAYER\020\001\022\016",
       "\n\nUSER_ADMIN\020\002\"7\n\nAuthScheme\022\023\n\017_UNUSED_" +
       "DEFAULT\020\000\022\024\n\020CLIENT_PLAINTEXT\020\001\"\'\n\020Rejec" +
-      "tConnection\022\023\n\013reason_text\030\001 \001(\t\"\230\005\n\020Ser" +
+      "tConnection\022\023\n\013reason_text\030\001 \001(\t\"\260\005\n\020Ser" +
       "verStatusText\022\014\n\004text\030\001 \001(\t\022)\n\002sv\030\002 \001(\0162" +
       "\035.ServerStatusText.StatusValue\022\017\n\007detail" +
-      "s\030\003 \003(\t\"\271\004\n\013StatusValue\022\006\n\002OK\020\000\022\022\n\016NOT_O" +
+      "s\030\003 \003(\t\"\321\004\n\013StatusValue\022\006\n\002OK\020\000\022\022\n\016NOT_O" +
       "K_GENERIC\020\001\022\022\n\016NAME_NOT_FOUND\020\002\022\014\n\010PW_WR" +
       "ONG\020\003\022\017\n\013NAME_IN_USE\020\004\022\032\n\026CANT_JOIN_GAME" +
       "_VERSION\020\005\022\023\n\017PROBLEM_WITH_DB\020\006\022\023\n\017ACCT_" +
@@ -35579,87 +35600,87 @@ public final class Message {
       "D_DENIED\020\021\022\035\n\031ACCT_CREATED_OK_FIRST_ONE\020" +
       "\022\022\024\n\020NAME_NOT_ALLOWED\020\023\022\023\n\017OK_SET_NICKNA" +
       "ME\020\024\022\024\n\020OK_DEBUG_MODE_ON\020\025\022\037\n\033GAME_CLIEN" +
-      "T_FEATURES_NEEDED\020\026\"\035\n\rBroadcastText\022\014\n\004",
-      "text\030\001 \001(\t\"\n\n\010LeaveAll\" \n\nServerPing\022\022\n\n" +
-      "sleep_time\030\001 \001(\005\"\367\001\n\017BotUpdateParams\022\027\n\017" +
-      "max_game_length\030\001 \001(\r\022\017\n\007max_eta\030\002 \001(\r\022\030" +
-      "\n\020eta_bonus_factor\030\003 \001(\002\022\032\n\022adversarial_" +
-      "factor\030\004 \001(\002\022!\n\031leader_adversarial_facto" +
-      "r\030\005 \001(\002\022\033\n\023dev_card_multiplier\030\006 \001(\002\022\031\n\021" +
-      "threat_multiplier\030\007 \001(\002\022\025\n\rstrategy_type" +
-      "\030\010 \001(\r\022\022\n\ntrade_flag\030\t \001(\010\"\017\n\rBotAdminRe" +
-      "set\"\031\n\010Channels\022\r\n\005names\030\001 \003(\t\"\035\n\nNewCha" +
-      "nnel\022\017\n\007ch_name\030\001 \001(\t\"3\n\013JoinChannel\022\017\n\007",
-      "ch_name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\"2\n\016Ch" +
-      "annelMembers\022\017\n\007ch_name\030\001 \001(\t\022\017\n\007members" +
-      "\030\002 \003(\t\"A\n\013ChannelText\022\017\n\007ch_name\030\001 \001(\t\022\023" +
-      "\n\013member_name\030\002 \001(\t\022\014\n\004text\030\003 \001(\t\"4\n\014Lea" +
-      "veChannel\022\017\n\007ch_name\030\001 \001(\t\022\023\n\013member_nam" +
-      "e\030\002 \001(\t\" \n\rDeleteChannel\022\017\n\007ch_name\030\001 \001(" +
-      "\t\"E\n\020_GameWithOptions\022\017\n\007ga_name\030\001 \001(\t\022\014" +
-      "\n\004opts\030\002 \001(\t\022\022\n\nunjoinable\030\003 \001(\010\"(\n\005Game" +
-      "s\022\037\n\004game\030\001 \003(\0132\021._GameWithOptions\"?\n\007Ne" +
-      "wGame\022\037\n\004game\030\001 \001(\0132\021._GameWithOptions\022\023",
-      "\n\013min_version\030\002 \001(\r\"J\n\022BotJoinGameReques" +
-      "t\022\037\n\004game\030\001 \001(\0132\021._GameWithOptions\022\023\n\013se" +
-      "at_number\030\002 \001(\r\"K\n\010JoinGame\022\017\n\007ga_name\030\001" +
-      " \001(\t\022\023\n\013member_name\030\002 \001(\t\022\031\n\021board_size_" +
-      "vshift\030\003 \003(\021\"/\n\013GameMembers\022\017\n\007ga_name\030\001" +
-      " \001(\t\022\017\n\007members\030\002 \003(\t\"R\n\007SitDown\022\017\n\007ga_n" +
-      "ame\030\001 \001(\t\022\017\n\007pl_name\030\002 \001(\t\022\023\n\013seat_numbe" +
-      "r\030\003 \001(\r\022\020\n\010is_robot\030\004 \001(\010\"R\n\013SetSeatLock" +
-      "\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013seat_number\030\002 \001(\r\022\035" +
-      "\n\005state\030\003 \003(\0162\016.SeatLockState\"/\n\016GameSer",
-      "verText\022\017\n\007ga_name\030\001 \001(\t\022\014\n\004text\030\002 \001(\t\"D" +
-      "\n\016GamePlayerText\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013mem" +
-      "ber_name\030\002 \001(\t\022\014\n\004text\030\003 \001(\t\" \n\rBotTimin" +
-      "gPing\022\017\n\007ga_name\030\001 \001(\t\"\037\n\014BotAdminPing\022\017" +
-      "\n\007ga_name\030\001 \001(\t\"\035\n\nBotDismiss\022\017\n\007ga_name" +
-      "\030\001 \001(\t\"1\n\tLeaveGame\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013" +
-      "member_name\030\002 \001(\t\"\035\n\nDeleteGame\022\017\n\007ga_na" +
-      "me\030\001 \001(\t\"\322\010\n\nFromServer\022\030\n\004vers\030\001 \001(\0132\010." +
-      "VersionH\000\022.\n\021reject_connection\030\002 \001(\0132\021.R" +
-      "ejectConnectionH\000\022(\n\013status_text\030\003 \001(\0132\021",
-      ".ServerStatusTextH\000\022(\n\016broadcast_text\030\004 " +
-      "\001(\0132\016.BroadcastTextH\000\022\"\n\013server_ping\030\005 \001" +
-      "(\0132\013.ServerPingH\000\022.\n\014game_message\030\017 \001(\0132" +
-      "\026.GameMessageFromServerH\000\022-\n\021bot_update_" +
-      "params\030\024 \001(\0132\020.BotUpdateParamsH\000\022)\n\017bot_" +
-      "admin_reset\030\025 \001(\0132\016.BotAdminResetH\000\022\035\n\010c" +
-      "hannels\030d \001(\0132\t.ChannelsH\000\022\035\n\006ch_new\030e \001" +
-      "(\0132\013.NewChannelH\000\022\037\n\007ch_join\030f \001(\0132\014.Joi" +
-      "nChannelH\000\022%\n\nch_members\030g \001(\0132\017.Channel" +
-      "MembersH\000\022\037\n\007ch_text\030h \001(\0132\014.ChannelText",
-      "H\000\022!\n\010ch_leave\030i \001(\0132\r.LeaveChannelH\000\022#\n" +
-      "\tch_delete\030j \001(\0132\016.DeleteChannelH\000\022\030\n\005ga" +
-      "mes\030\310\001 \001(\0132\006.GamesH\000\022\033\n\006ga_new\030\311\001 \001(\0132\010." +
-      "NewGameH\000\022\035\n\007ga_join\030\312\001 \001(\0132\t.JoinGameH\000" +
-      "\022,\n\014bot_join_req\030\313\001 \001(\0132\023.BotJoinGameReq" +
-      "uestH\000\022#\n\nga_members\030\314\001 \001(\0132\014.GameMember" +
-      "sH\000\022\035\n\010sit_down\030\315\001 \001(\0132\010.SitDownH\000\022&\n\rse" +
-      "t_seat_lock\030\316\001 \001(\0132\014.SetSeatLockH\000\022\'\n\013se" +
-      "rver_text\030\317\001 \001(\0132\017.GameServerTextH\000\022*\n\016g" +
-      "a_player_text\030\320\001 \001(\0132\017.GamePlayerTextH\000\022",
-      "*\n\017bot_timing_ping\030\321\001 \001(\0132\016.BotTimingPin" +
-      "gH\000\022(\n\016bot_admin_ping\030\322\001 \001(\0132\r.BotAdminP" +
-      "ingH\000\022#\n\013bot_dismiss\030\323\001 \001(\0132\013.BotDismiss" +
-      "H\000\022\037\n\010ga_leave\030\324\001 \001(\0132\n.LeaveGameH\000\022!\n\tg" +
-      "a_delete\030\325\001 \001(\0132\013.DeleteGameH\000B\005\n\003msg\"\231\004" +
-      "\n\nFromClient\022\030\n\004vers\030\001 \001(\0132\010.VersionH\000\022 " +
-      "\n\010auth_req\030\002 \001(\0132\014.AuthRequestH\000\022\037\n\nim_a" +
-      "_robot\030\003 \001(\0132\t.ImARobotH\000\022\"\n\013server_ping" +
-      "\030\004 \001(\0132\013.ServerPingH\000\022\036\n\tleave_all\030\005 \001(\013" +
-      "2\t.LeaveAllH\000\022.\n\014game_message\030\017 \001(\0132\026.Ga",
-      "meMessageFromClientH\000\022\037\n\007ch_join\030d \001(\0132\014" +
-      ".JoinChannelH\000\022\037\n\007ch_text\030e \001(\0132\014.Channe" +
-      "lTextH\000\022!\n\010ch_leave\030f \001(\0132\r.LeaveChannel" +
-      "H\000\022\033\n\006ga_new\030\310\001 \001(\0132\010.NewGameH\000\022\035\n\007ga_jo" +
-      "in\030\311\001 \001(\0132\t.JoinGameH\000\022\035\n\010sit_down\030\312\001 \001(" +
-      "\0132\010.SitDownH\000\022&\n\rset_seat_lock\030\313\001 \001(\0132\014." +
-      "SetSeatLockH\000\022*\n\016ga_player_text\030\314\001 \001(\0132\017" +
-      ".GamePlayerTextH\000\022\037\n\010ga_leave\030\315\001 \001(\0132\n.L" +
-      "eaveGameH\000B\005\n\003msgB\r\n\tsoc.protoH\001P\000P\001b\006pr" +
-      "oto3"
+      "T_FEATURES_NEEDED\020\026\022\026\n\022SV_SERVER_SHUTDOW",
+      "N\020\027\"\035\n\rBroadcastText\022\014\n\004text\030\001 \001(\t\"\n\n\010Le" +
+      "aveAll\" \n\nServerPing\022\022\n\nsleep_time\030\001 \001(\005" +
+      "\"\367\001\n\017BotUpdateParams\022\027\n\017max_game_length\030" +
+      "\001 \001(\r\022\017\n\007max_eta\030\002 \001(\r\022\030\n\020eta_bonus_fact" +
+      "or\030\003 \001(\002\022\032\n\022adversarial_factor\030\004 \001(\002\022!\n\031" +
+      "leader_adversarial_factor\030\005 \001(\002\022\033\n\023dev_c" +
+      "ard_multiplier\030\006 \001(\002\022\031\n\021threat_multiplie" +
+      "r\030\007 \001(\002\022\025\n\rstrategy_type\030\010 \001(\r\022\022\n\ntrade_" +
+      "flag\030\t \001(\010\"\017\n\rBotAdminReset\"\031\n\010Channels\022" +
+      "\r\n\005names\030\001 \003(\t\"\035\n\nNewChannel\022\017\n\007ch_name\030",
+      "\001 \001(\t\"3\n\013JoinChannel\022\017\n\007ch_name\030\001 \001(\t\022\023\n" +
+      "\013member_name\030\002 \001(\t\"2\n\016ChannelMembers\022\017\n\007" +
+      "ch_name\030\001 \001(\t\022\017\n\007members\030\002 \003(\t\"A\n\013Channe" +
+      "lText\022\017\n\007ch_name\030\001 \001(\t\022\023\n\013member_name\030\002 " +
+      "\001(\t\022\014\n\004text\030\003 \001(\t\"4\n\014LeaveChannel\022\017\n\007ch_" +
+      "name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\" \n\rDelet" +
+      "eChannel\022\017\n\007ch_name\030\001 \001(\t\"E\n\020_GameWithOp" +
+      "tions\022\017\n\007ga_name\030\001 \001(\t\022\014\n\004opts\030\002 \001(\t\022\022\n\n" +
+      "unjoinable\030\003 \001(\010\"(\n\005Games\022\037\n\004game\030\001 \003(\0132" +
+      "\021._GameWithOptions\"?\n\007NewGame\022\037\n\004game\030\001 ",
+      "\001(\0132\021._GameWithOptions\022\023\n\013min_version\030\002 " +
+      "\001(\r\"J\n\022BotJoinGameRequest\022\037\n\004game\030\001 \001(\0132" +
+      "\021._GameWithOptions\022\023\n\013seat_number\030\002 \001(\r\"" +
+      "K\n\010JoinGame\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013member_n" +
+      "ame\030\002 \001(\t\022\031\n\021board_size_vshift\030\003 \003(\021\"/\n\013" +
+      "GameMembers\022\017\n\007ga_name\030\001 \001(\t\022\017\n\007members\030" +
+      "\002 \003(\t\"R\n\007SitDown\022\017\n\007ga_name\030\001 \001(\t\022\017\n\007pl_" +
+      "name\030\002 \001(\t\022\023\n\013seat_number\030\003 \001(\r\022\020\n\010is_ro" +
+      "bot\030\004 \001(\010\"R\n\013SetSeatLock\022\017\n\007ga_name\030\001 \001(" +
+      "\t\022\023\n\013seat_number\030\002 \001(\r\022\035\n\005state\030\003 \003(\0162\016.",
+      "SeatLockState\"/\n\016GameServerText\022\017\n\007ga_na" +
+      "me\030\001 \001(\t\022\014\n\004text\030\002 \001(\t\"D\n\016GamePlayerText" +
+      "\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\022\014" +
+      "\n\004text\030\003 \001(\t\" \n\rBotTimingPing\022\017\n\007ga_name" +
+      "\030\001 \001(\t\"\037\n\014BotAdminPing\022\017\n\007ga_name\030\001 \001(\t\"" +
+      "\035\n\nBotDismiss\022\017\n\007ga_name\030\001 \001(\t\"1\n\tLeaveG" +
+      "ame\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(" +
+      "\t\"\035\n\nDeleteGame\022\017\n\007ga_name\030\001 \001(\t\"\322\010\n\nFro" +
+      "mServer\022\030\n\004vers\030\001 \001(\0132\010.VersionH\000\022.\n\021rej" +
+      "ect_connection\030\002 \001(\0132\021.RejectConnectionH",
+      "\000\022(\n\013status_text\030\003 \001(\0132\021.ServerStatusTex" +
+      "tH\000\022(\n\016broadcast_text\030\004 \001(\0132\016.BroadcastT" +
+      "extH\000\022\"\n\013server_ping\030\005 \001(\0132\013.ServerPingH" +
+      "\000\022.\n\014game_message\030\017 \001(\0132\026.GameMessageFro" +
+      "mServerH\000\022-\n\021bot_update_params\030\024 \001(\0132\020.B" +
+      "otUpdateParamsH\000\022)\n\017bot_admin_reset\030\025 \001(" +
+      "\0132\016.BotAdminResetH\000\022\035\n\010channels\030d \001(\0132\t." +
+      "ChannelsH\000\022\035\n\006ch_new\030e \001(\0132\013.NewChannelH" +
+      "\000\022\037\n\007ch_join\030f \001(\0132\014.JoinChannelH\000\022%\n\nch" +
+      "_members\030g \001(\0132\017.ChannelMembersH\000\022\037\n\007ch_",
+      "text\030h \001(\0132\014.ChannelTextH\000\022!\n\010ch_leave\030i" +
+      " \001(\0132\r.LeaveChannelH\000\022#\n\tch_delete\030j \001(\013" +
+      "2\016.DeleteChannelH\000\022\030\n\005games\030\310\001 \001(\0132\006.Gam" +
+      "esH\000\022\033\n\006ga_new\030\311\001 \001(\0132\010.NewGameH\000\022\035\n\007ga_" +
+      "join\030\312\001 \001(\0132\t.JoinGameH\000\022,\n\014bot_join_req" +
+      "\030\313\001 \001(\0132\023.BotJoinGameRequestH\000\022#\n\nga_mem" +
+      "bers\030\314\001 \001(\0132\014.GameMembersH\000\022\035\n\010sit_down\030" +
+      "\315\001 \001(\0132\010.SitDownH\000\022&\n\rset_seat_lock\030\316\001 \001" +
+      "(\0132\014.SetSeatLockH\000\022\'\n\013server_text\030\317\001 \001(\013" +
+      "2\017.GameServerTextH\000\022*\n\016ga_player_text\030\320\001",
+      " \001(\0132\017.GamePlayerTextH\000\022*\n\017bot_timing_pi" +
+      "ng\030\321\001 \001(\0132\016.BotTimingPingH\000\022(\n\016bot_admin" +
+      "_ping\030\322\001 \001(\0132\r.BotAdminPingH\000\022#\n\013bot_dis" +
+      "miss\030\323\001 \001(\0132\013.BotDismissH\000\022\037\n\010ga_leave\030\324" +
+      "\001 \001(\0132\n.LeaveGameH\000\022!\n\tga_delete\030\325\001 \001(\0132" +
+      "\013.DeleteGameH\000B\005\n\003msg\"\231\004\n\nFromClient\022\030\n\004" +
+      "vers\030\001 \001(\0132\010.VersionH\000\022 \n\010auth_req\030\002 \001(\013" +
+      "2\014.AuthRequestH\000\022\037\n\nim_a_robot\030\003 \001(\0132\t.I" +
+      "mARobotH\000\022\"\n\013server_ping\030\004 \001(\0132\013.ServerP" +
+      "ingH\000\022\036\n\tleave_all\030\005 \001(\0132\t.LeaveAllH\000\022.\n",
+      "\014game_message\030\017 \001(\0132\026.GameMessageFromCli" +
+      "entH\000\022\037\n\007ch_join\030d \001(\0132\014.JoinChannelH\000\022\037" +
+      "\n\007ch_text\030e \001(\0132\014.ChannelTextH\000\022!\n\010ch_le" +
+      "ave\030f \001(\0132\r.LeaveChannelH\000\022\033\n\006ga_new\030\310\001 " +
+      "\001(\0132\010.NewGameH\000\022\035\n\007ga_join\030\311\001 \001(\0132\t.Join" +
+      "GameH\000\022\035\n\010sit_down\030\312\001 \001(\0132\010.SitDownH\000\022&\n" +
+      "\rset_seat_lock\030\313\001 \001(\0132\014.SetSeatLockH\000\022*\n" +
+      "\016ga_player_text\030\314\001 \001(\0132\017.GamePlayerTextH" +
+      "\000\022\037\n\010ga_leave\030\315\001 \001(\0132\n.LeaveGameH\000B\005\n\003ms" +
+      "gB\r\n\tsoc.protoH\001P\000P\001b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
