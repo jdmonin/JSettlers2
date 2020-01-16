@@ -21,6 +21,8 @@ and backport minor new features until `2.0.00` was ready.
 	- Game window:
 	  - Properly re-center top text ("Last round for no 7s") if window made larger/smaller while top text displayed
 - Server:
+	- Bugfix when client sits down, taking over a bot's seat, during first initial-settlement round:
+	  Some players' first placement was skipped because "first player" changed during that bot replacement
 	- For quick restart, bind TCP socket with setReuseAddress (SO_REUSEADDR) flag
 	- At shutdown, server broadcasts StatusMessage(SV_SERVER_SHUTDOWN) for clean client shutdown
 - Bots/AI:

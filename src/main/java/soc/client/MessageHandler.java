@@ -1194,7 +1194,7 @@ import soc.util.Version;
         {
             //  This user was not a spectator.
             //  Remove first from listener, then from game data.
-            ga.removePlayer(name);
+            ga.removePlayer(name, false);
         }
     }
 

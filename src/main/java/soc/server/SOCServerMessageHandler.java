@@ -1865,8 +1865,8 @@ public class SOCServerMessageHandler
                     robotCon.put(SOCRobotDismiss.toCmd(gaName));
 
                     /**
-                     * this connection has to wait for the robot to leave
-                     * and then it can sit down
+                     * this connection has to wait for the robot to leave,
+                     * will then be told they've sat down
                      */
                     Vector<SOCReplaceRequest> disRequests = srv.robotDismissRequests.get(gaName);
                     SOCReplaceRequest req = new SOCReplaceRequest(c, robotCon, mes);

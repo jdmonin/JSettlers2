@@ -1058,7 +1058,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (player != null)
         {
             //  This user was not a spectator
-            ga.removePlayer(mes.getNickname());
+            ga.removePlayer(mes.getNickname(), false);
         }
     }
 

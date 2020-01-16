@@ -1867,7 +1867,7 @@ public class SOCGameMessageHandler
             SOCPlayer player = ga.getPlayer(plName);
 
             /**
-             * make sure the player can do it
+             * make sure is current player and can place now, then do so
              */
             if (handler.checkTurn(c, ga))
             {

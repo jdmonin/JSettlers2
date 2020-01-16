@@ -705,7 +705,7 @@ public class SOCGameHandler extends GameHandler
      * </UL>
      * @param ga Game to force end turn
      * @param plName Current player's name. Needed because if they have been disconnected by
-     *          {@link #leaveGame(SOCGame, Connection)},
+     *          {@link #leaveGame(SOCGame, Connection, boolean)},
      *          their name within game object is already null.
      * @return true if the turn was ended and game is still active;
      *          false if we find that all players have left and
@@ -1688,7 +1688,7 @@ public class SOCGameHandler extends GameHandler
     }
 
     // javadoc inherited from GameHandler. Return true if game is empty and should be ended.
-    public boolean leaveGame(SOCGame ga, Connection c)
+    public boolean leaveGame(SOCGame ga, Connection c, final boolean hasReplacement)
     {
         final String gm = ga.getName();
         final String plName = c.getData();  // Retain name, since will become null within game obj.
@@ -1736,7 +1736,7 @@ public class SOCGameHandler extends GameHandler
                 /**
                  * Remove the player.
                  */
-                ga.removePlayer(plName);  // player obj name becomes null
+                ga.removePlayer(plName, hasReplacement);  // player obj name becomes null
 
                 //broadcastGameStats(cg);
                 break;
@@ -3438,7 +3438,7 @@ public class SOCGameHandler extends GameHandler
      * End this player's turn cleanly, or force-end if needed.
      *<P>
      * Can be called for a player still in the game, or for a player
-     * who has left ({@link SOCGame#removePlayer(String)} has been called).
+     * who has left ({@link SOCGame#removePlayer(String, boolean)} has been called).
      * Can be called for a player who isn't current player; in that case
      * it takes action if the game was waiting for the player (picking random
      * resources for discard or gold-hex picks) but won't end the current turn.
