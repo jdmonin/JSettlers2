@@ -70,6 +70,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 
+import soc.game.SOCBoardLarge;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCScenario;
@@ -161,6 +162,15 @@ import soc.util.Version;
     /** is this for display only (shown for an existing game)? If false, dialog is to create a new game. */
     private final boolean readOnly;
 
+    /**
+     * For making a new game, true if option "SBL" should always be set:
+     * Is for compatibility with a server older than v3.0.
+     * True only if {@link #forNewGame}, not {@link #readOnly} or {@link #forPractice},
+     * and {@link SOCPlayerClient#sVersion} &lt; {@link SOCBoardLarge#VERSION_FOR_ALSO_CLASSIC}.
+     * @since 3.0.00
+     */
+    private final boolean alwaysSetSBL;
+
     /** Contains this game's {@link SOCGameOption}s, or null if none.
      *  Unknowns (OTYPE_UNKNOWN) are removed in initInterface_options.
      *<P>
@@ -243,7 +253,7 @@ import soc.util.Version;
      * Once created, resets the mouse cursor from hourglass to normal, and clears main panel's status text.
      *<P>
      * See also convenience method
-     * {@link #createAndShow(SOCPlayerInterface, MainDisplay, String, Map, boolean, boolean)}.
+     * {@link #createAndShow(SOCPlayerInterface, MainDisplay, String, Map, int, boolean, boolean)}.
      *
      * @param pi  Interface of existing game, or {@code null} for a new game.
      *     Used for updating settings like {@link SOCPlayerInterface#isSoundMuted()}.
@@ -258,12 +268,14 @@ import soc.util.Version;
      *                 Unknown options ({@link SOCGameOption#OTYPE_UNKNOWN}) will be removed.
      *                 If not <tt>readOnly</tt>, each option's {@link SOCGameOption#userChanged userChanged}
      *                 flag will be cleared, to reset status from any previously shown NewGameOptionsFrame.
+     * @param serverVersion  For making a new game: Server version number for remote tcp server,
+     *      from {@link SOCPlayerClient#sVersion}. Ignored if {@code forPractice} or {@code readOnly}.
      * @param forPractice For making a new game: Will the game be on local practice server, vs remote tcp server?
      * @param readOnly    Is this display-only (for use during a game), or can it be changed (making a new game)?
      */
     public NewGameOptionsFrame
         (final SOCPlayerInterface pi, final MainDisplay md, String gaName,
-         Map<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
+         Map<String, SOCGameOption> opts, final int serverVersion, boolean forPractice, boolean readOnly)
     {
         super( pi, readOnly
                 ? (strings.get("game.options.title", gaName))
@@ -281,6 +293,9 @@ import soc.util.Version;
         localPrefs = new HashMap<String, Object>();
         this.forPractice = forPractice;
         this.readOnly = readOnly;
+        alwaysSetSBL = forNewGame && (! (forPractice || readOnly))
+            && (serverVersion < SOCBoardLarge.VERSION_FOR_ALSO_CLASSIC);
+
         controlsOpts = new HashMap<Component, SOCGameOption>();
         if (! readOnly)
         {
@@ -334,10 +349,10 @@ import soc.util.Version;
      */
     public static NewGameOptionsFrame createAndShow
         (SOCPlayerInterface pi, MainDisplay md, String gaName,
-         Map<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
+         Map<String, SOCGameOption> opts, final int serverVersion, boolean forPractice, boolean readOnly)
     {
         final NewGameOptionsFrame ngof =
-            new NewGameOptionsFrame(pi, md, gaName, opts, forPractice, readOnly);
+            new NewGameOptionsFrame(pi, md, gaName, opts, serverVersion, forPractice, readOnly);
         ngof.pack();
         ngof.setVisible(true);
 
@@ -531,7 +546,12 @@ import soc.util.Version;
         else if (! readOnly)
         {
             for (SOCGameOption opt : opts.values())
+            {
                 opt.userChanged = false;  // clear flag from any previously shown NGOF
+
+                if (alwaysSetSBL && opt.key.equals("SBL"))
+                    opt.setBoolValue(true);
+            }
         }
 
         if (opts.containsKey("SC"))
@@ -787,8 +807,21 @@ import soc.util.Version;
             final boolean hasCB, final boolean allowPH, final boolean ocHasListener,
             JPanel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
+        boolean isReadOnly = readOnly;
         final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
         JLabel L;
+
+        String opDesc = op.getDesc();
+        String ttText = null;
+        if (alwaysSetSBL && op.key.equals("SBL"))
+        {
+            // SBL was set true earlier in initInterface_Options.
+            // Explain why, and make sure isn't set false
+            isReadOnly = true;
+            opDesc = strings.get("game.options.required_by_server") + ' ' + opDesc;  // "(Required by server)"
+            ttText = strings.get("game.options.required_by_server.tip");
+                // "For compatibility with the server's older version, this option must be used."
+        }
 
         // reminder: same gbc widths/weights are used in initInterface_UserPrefs/initInterface_Pref1
 
@@ -803,7 +836,7 @@ import soc.util.Version;
                 cb = new JCheckBox();
             controlsOpts.put(cb, op);
             cb.setSelected(op.getBoolValue());
-            cb.setEnabled(! readOnly);
+            cb.setEnabled(! isReadOnly);
             if (! isOSHighContrast)
             {
                 cb.setBackground(null);  // needed on win32 to avoid gray border
@@ -811,7 +844,7 @@ import soc.util.Version;
             }
             gbl.setConstraints(cb, gbc);
             bp.add(cb);
-            if (! readOnly)
+            if (! isReadOnly)
             {
                 boolOptCheckboxes.put(op.key, cb);
                 cb.addItemListener(this);  // for op's ChangeListener and userChanged
@@ -822,7 +855,6 @@ import soc.util.Version;
             bp.add(L);
         }
 
-        final String opDesc = op.getDesc();
         final int placeholderIdx = allowPH ? opDesc.indexOf('#') : -1;
         JPanel optp = new JPanel();  // with FlowLayout
         if (! isOSHighContrast)
@@ -843,10 +875,12 @@ import soc.util.Version;
         if (placeholderIdx > 0)
         {
             L = new JLabel(opDesc.substring(0, placeholderIdx));
+            if (ttText != null)
+                L.setToolTipText(ttText);
             if (! isOSHighContrast)
                 L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
             optp.add(L);
-            if (hasCB && ! readOnly)
+            if (hasCB && ! isReadOnly)
             {
                 controlsOpts.put(L, op);
                 L.addMouseListener(this);  // Click label to toggle checkbox
@@ -857,11 +891,11 @@ import soc.util.Version;
         if (! (oc instanceof JCheckBox))
         {
             controlsOpts.put(oc, op);
-            oc.setEnabled(! readOnly);
+            oc.setEnabled(! isReadOnly);
             optp.add(oc);
 
             // add listeners, unless initOption_int or initOption_enum already did so
-            if (hasCB && ! (readOnly || ocHasListener))
+            if (hasCB && ! (isReadOnly || ocHasListener))
             {
                 if (oc instanceof JTextField)
                 {
@@ -876,7 +910,7 @@ import soc.util.Version;
                 }
             }
         }
-        if (! readOnly)
+        if (! isReadOnly)
             optsControls.put(op.key, oc);
 
         // Any text to the right of placeholder?  Also creates
@@ -884,10 +918,12 @@ import soc.util.Version;
         if (placeholderIdx + 1 < opDesc.length())
         {
             L = new JLabel(opDesc.substring(placeholderIdx + 1));
+            if (ttText != null)
+                L.setToolTipText(ttText);
             if (! isOSHighContrast)
                 L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
             optp.add(L);
-            if (hasCB && ! readOnly)
+            if (hasCB && ! isReadOnly)
             {
                 controlsOpts.put(L, op);
                 L.addMouseListener(this);  // Click label to toggle checkbox
@@ -1989,6 +2025,8 @@ import soc.util.Version;
         {
             final SOCGameOption op = refresh.get(i);
             final Component opComp = optsControls.get(op.key);
+            if (opComp == null)  // unlikely, but could happen from listener changing related opt which is read-only (SBL)
+                continue;
 
             // reminder: Swing widget listeners are added in initInterface_OptLine, initInterface_Opt1, initOption_int,
             // initOption_enum; see those methods to confirm which widget types get which listeners

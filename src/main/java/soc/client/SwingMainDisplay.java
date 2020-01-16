@@ -1482,7 +1482,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
             // don't overwrite newGameOptsFrame field; this popup is to show an existing game.
             NewGameOptionsFrame.createAndShow
-                (playerInterfaces.get(gm), this, gm, opts, false, true);
+                (playerInterfaces.get(gm), this, gm, opts, 0, false, true);
             return true;
         }
 
@@ -1787,7 +1787,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         {
             // All done, present the options window frame
             newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                (null, this, null, opts.optionSet, forPracticeServer, false);
+                (null, this, null, opts.optionSet, client.sVersion, forPracticeServer, false);
             return;  // <--- Early return: Show options to user ----
         }
 
@@ -2322,7 +2322,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     {
         gameOptionsCancelTimeoutTask();
         newGameOptsFrame = NewGameOptionsFrame.createAndShow
-            (null, SwingMainDisplay.this, (String) null, opts.optionSet, isPractice, false);
+            (null, SwingMainDisplay.this, (String) null, opts.optionSet, client.sVersion, isPractice, false);
     }
 
     public void optionsReceived(ServerGametypeInfo opts, boolean isPractice, boolean isDash, boolean hasAllNow)
@@ -2351,7 +2351,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                     client.checkGameoptsForUnknownScenario(gameOpts);
                 newGameOptsFrame = NewGameOptionsFrame.createAndShow
                     (playerInterfaces.get(gameInfoWaiting), SwingMainDisplay.this,
-                     gameInfoWaiting, gameOpts, isPractice, true);
+                     gameInfoWaiting, gameOpts, 0, isPractice, true);
             }
             else if (newGameWaiting)
             {
@@ -2360,7 +2360,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                     opts.newGameWaitingForOpts = false;
                 }
                 newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                    (null, SwingMainDisplay.this, (String) null, opts.optionSet, isPractice, false);
+                    (null, SwingMainDisplay.this, (String) null, opts.optionSet, client.sVersion, isPractice, false);
             }
         }
     }
