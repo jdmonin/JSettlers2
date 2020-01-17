@@ -19,6 +19,7 @@ and backport minor new features until `2.0.00` was ready.
 - Currently being developed
 - Client:
 	- Game window:
+	  - Game Options dialog: If Enter pressed while in text field, save prefs instead of saying "Game with this name already exists"
 	  - Properly re-center top text ("Last round for no 7s") if window made larger/smaller while top text displayed
 - Server:
 	- Bugfix when client sits down, taking over a bot's seat, during first initial-settlement round:
