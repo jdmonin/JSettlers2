@@ -762,13 +762,7 @@ public class SOCPlayerInterface extends Frame
 
         /**
          * setup interface elements.
-         * PERF: hide window while doing so (osx firefox)
          */
-        final boolean didHideTemp = isShowing();
-        if (didHideTemp)
-        {
-            setVisible(false);
-        }
         initInterfaceElements(true);
 
         /**
@@ -855,11 +849,6 @@ public class SOCPlayerInterface extends Frame
         wasResized = false;
         setSize(piWidth, piHeight);
         validate();
-
-        if (didHideTemp)
-        {
-            setVisible(true);
-        }
         repaint();
 
         addComponentListener(new ComponentAdapter()

@@ -2279,8 +2279,25 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
         final SOCPlayerInterface pi = new SOCPlayerInterface
             (game.getName(), SwingMainDisplay.this, game, layoutVS, localPrefs);
-        pi.setVisible(true);
         playerInterfaces.put(game.getName(), pi);
+
+        // slight delay before PI window visibility, otherwise
+        // MainDisplay might get back in front of it while
+        // processing double-click event (seen MacOSX in 2020-01)
+        eventTimer.schedule(new TimerTask()
+        {
+            public void run()
+            {
+                EventQueue.invokeLater(new Runnable()
+                {
+                    public void run()
+                    {
+                        pi.setVisible(true);
+                        pi.toFront();
+                    }
+                });
+            }
+        }, 80 /* ms */ );
 
         return pi.getClientListener();
     }
