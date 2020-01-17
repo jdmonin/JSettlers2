@@ -11,7 +11,7 @@ stable branch for further 1.x versions to release bugfixes
 and backport minor new features until `2.0.00` was ready.
 
 ## `3.0.00` (build JX202xxxxx)
-- Experimental features: protobuf
+- Experimental features: html5 client, jetty/tomcat servlet; protobuf option for bots
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
 
 
@@ -120,7 +120,7 @@ and backport minor new features until `2.0.00` was ready.
 	  `-Djsettlers.bots.fast_pause_percent=10`
 	- New debug command `*STARTBOTGAME* [maxBots]` to begin current game as bots-only
 	- If the last human player leaves a game with bots and observers, server continues that game as bots-only
-	  if property `jsettlers.bots.botgames.total` != 0
+	  if server property `jsettlers.bots.botgames.total` != 0
 	- Standalone bot clients shut down properly if they can't reconnect to server after 3 retries
 	- Example `soc.robot.sample3p.Sample3PBrain extending SOCRobotBrain`, `Sample3PClient extending SOCRobotClient`
 	- Some private SOCRobotClient fields made protected for use by bot developer 3rd-party subclasses
