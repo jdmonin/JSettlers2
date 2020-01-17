@@ -1699,15 +1699,13 @@ public class SOCGameOption
                     // make sure "PL" is large enough to make the
                     // client use that board.
 
-                    final int realValue = op.intValue;
-                    op.intValue = 5;  // big enough for 6-player
-                    op.packValue(sb);
-                        wroteValueAlready = true;
-                    op.intValue = realValue;
+                    sb.append('5');  // big enough for 6-player
+                    wroteValueAlready = true;
                 }
 
                 // NEW_OPTION - Check your option vs old clients here.
             }
+
             if (! wroteValueAlready)
                 op.packValue(sb);
         }

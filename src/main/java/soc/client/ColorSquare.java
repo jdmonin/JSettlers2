@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2012,2018-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012,2018-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -41,8 +41,8 @@ import javax.swing.JComponent;
  * colors of the box correspond to resources in SoC.
  *<P>
  * Default size and minimum size are {@link #WIDTH} by {@link #HEIGHT} pixels,
- * unless you call a constructor which overrides the default size.
- * Those constructors will also increase font size of a larger ColorSquare;
+ * unless you call a constructor with size parameters. Using
+ * such a constructor will also increase font size of a larger ColorSquare;
  * calling {@code setSize} or {@code setMinimumSize} won't change the font size.
  *<P>
  * You can call method {@link #setSize(int, int)} to change current size,
@@ -51,7 +51,7 @@ import javax.swing.JComponent;
  *<P>
  * Most colorsquares in JSettlers are actually {@link ColorSquareLarger} instances:
  * Creating that subclass was easier than changing the values of {@link #WIDTH} and {@link #HEIGHT} here,
- * which are used for setting the size of many GUI elements.
+ * which are also used for setting the size of many UI elements.
  *
  * @author Robert S Thomas
  */

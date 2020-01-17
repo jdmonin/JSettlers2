@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -236,7 +236,7 @@ public class SOCBoardLarge extends SOCBoard
     /** SOCBoardLarge serial, to suppress warning. SOCBoardLarge isn't sent over the network as a serialized object. */
     private static final long serialVersionUID = 2000L;
 
-    /** Minimum client and server version required: v2.0.00. */
+    /** Minimum client and server version required: v2.0.00, which also adds {@link SOCGameOption} {@code "SBL"}. */
     public static final int MIN_VERSION = 2000;
 
     /**

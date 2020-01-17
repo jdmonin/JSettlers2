@@ -26,6 +26,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import soc.game.SOCGameOption;
+import soc.game.SOCVersionedItem;
 
 /**
  * Tests for {@link SOCGameOption}.
@@ -173,6 +174,20 @@ public class TestGameOptions
         // cleanup
         SOCGameOption.addKnownOption(new SOCGameOption("_TESTF"));
         assertNull(SOCGameOption.getOption("_TESTF", false));
+    }
+
+    /**
+     * Test {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
+     * @since 2.1.00
+     */
+    @Test
+    public void testItemsMinimumVersion()
+    {
+        assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(null, false));
+
+        assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(new HashMap<String, SOCGameOption>(), false));
+
+        // TODO expand beyond empty/null tests
     }
 
     public static void main(String[] args)

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2015,2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015,2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file from SOCGameOption.java Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -265,7 +265,7 @@ public abstract class SOCVersionedItem implements Cloneable
      *<P>
      * Calls {@link #itemsMinimumVersion(Map, boolean) itemsMinimumVersion(items, false)}.
      *
-     * @param items  a set of items; not null
+     * @param items  a set of items; may be empty or {@code null}
      * @return the highest 'minimum version' among these items, or -1
      * @see #itemsMinimumVersion(Map, boolean)
      * @see #getMinVersion(Map)
@@ -300,20 +300,21 @@ public abstract class SOCVersionedItem implements Cloneable
      * If {@code calcMinVersionForUnchanged} is true, the returned version may be higher than if false;
      * older clients may support {@code items} only by changing some item values for compatibility.
      *
-     * @param items  a set of SOCVersionedItems; not null
+     * @param items  a set of items; may be empty or {@code null}
      * @param calcMinVersionForUnchanged  If true, return the minimum version at which these
      *         options' values aren't changed (for compatibility) by the presence of new options.
      * @return the highest 'minimum version' among these options, or -1.
      *         If {@code calcMinVersionForUnchanged}, the returned version will either be -1 or >= 1107
      *         (the first version with game options).
-     * @throws NullPointerException if {@code items} is null
      * @see #itemsMinimumVersion(Map)
      * @see #getMinVersion(Map)
      */
     public static int itemsMinimumVersion
         (final Map<?, ? extends SOCVersionedItem> items, final boolean calcMinVersionForUnchanged)
-         throws NullPointerException
     {
+        if (items == null)
+            return -1;
+
         int minVers = -1;
         final Map<?, ? extends SOCVersionedItem> itemsChk = calcMinVersionForUnchanged ? items : null;
 
