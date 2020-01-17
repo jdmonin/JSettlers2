@@ -2773,7 +2773,7 @@ public class SOCServer extends Server
             {
                 String rname = "droid " + (i+1);
                 SOCLocalRobotClient.createAndStartRobotClientThread(rname, strSocketName, port, robotCookie);
-                    // includes yield() and sleep(75 ms) this thread.
+                    // to ratelimit, create includes Thread.yield() and sleep(75 ms) on caller's thread
             }
 
             // Make a few smarter ones now:
@@ -2784,7 +2784,6 @@ public class SOCServer extends Server
             {
                 String rname = "robot " + (i+1+numFast);
                 SOCLocalRobotClient.createAndStartRobotClientThread(rname, strSocketName, port, robotCookie);
-                    // includes yield() and sleep(75 ms) this thread.
             }
         }
         catch (Exception e)
