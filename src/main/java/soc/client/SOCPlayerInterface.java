@@ -689,7 +689,14 @@ public class SOCPlayerInterface extends Frame
         setLocationByPlatform(true);  // cascade, not all same hard-coded position as in v1.1.xx
 
         this.mainDisplay = md;
-        displayScale = md.getDisplayScaleFactor();
+        // set displayScale from NGOF if pref is there, otherwise from MainDisplay startup
+        {
+            int ds = 0;
+            Object pref = (localPrefs != null) ? (localPrefs.get(SOCPlayerClient.PREF_UI_SCALE_FORCE)) : null;
+            if ((pref != null) && (pref instanceof Integer))
+                ds = ((Integer) pref).intValue();
+            displayScale = ((ds > 0) && (ds <= 3)) ? ds : md.getDisplayScaleFactor();
+        }
         client = md.getClient();
         game = ga;
         game.setGameEventListener(this);

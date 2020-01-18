@@ -18,6 +18,7 @@ and backport minor new features until `2.0.00` was ready.
 ## `2.1.00` (build JM2020xxxx)
 - Currently being developed
 - Client:
+	- New Game dialog: If "force UI scale" option is changed, use new value for new game's window
 	- Game window:
 	  - Game Options dialog: If Enter pressed while in text field, save prefs instead of saying "Game with this name already exists"
 	  - Properly re-center top text ("Last round for no 7s") if window made larger/smaller while top text displayed

@@ -184,7 +184,9 @@ public class SOCPlayerClient
      *<P>
      * Default value is 0 (unused). Ignored if above 3.
      *<P>
-     * Is overridden by command-line JVM property {@link SwingMainDisplay#PROP_JSETTLERS_UI_SCALE}.
+     * When determining {@link MainDisplay#getDisplayScaleFactor()} at startup,
+     * Is overridden if command-line JVM property {@link SwingMainDisplay#PROP_JSETTLERS_UI_SCALE} is used.
+     * That in turn is overridden for a new game if preference value is changed in game's {@link NewGameOptionsFrame}.
      *
      * @see UserPreferences#getPref(String, int)
      * @since 2.0.00
@@ -577,6 +579,7 @@ public class SOCPlayerClient
 
     /**
      * @return the local game preferences of this SOCPlayerClient object.
+     * @see #putGameReqLocalPrefs(String, Map)
      */
     /*package*/ HashMap<String, Map<String, Object>> getGameReqLocalPrefs()
     {
@@ -879,6 +882,7 @@ public class SOCPlayerClient
      *
      * @param gaName  Game name
      * @param localPrefs  Local prefs to store for {@code gaName}
+     * @see #getGameReqLocalPrefs()
      * @since 2.0.00
      */
     void putGameReqLocalPrefs(final String gaName, final Map<String, Object> localPrefs)
