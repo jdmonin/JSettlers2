@@ -22,8 +22,6 @@
 
 package soc.game;
 
-import java.util.Map;
-
 /**
  * The standard (non-sea) board layout for the 6-player extension,
  * rotated 90 degrees clockwise at the client.

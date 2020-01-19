@@ -22,7 +22,6 @@ package soc.message;
 import java.io.Serializable;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 

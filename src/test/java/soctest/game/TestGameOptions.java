@@ -89,9 +89,18 @@ public class TestGameOptions
 
         final Map<String, SOCGameOption> opts = new HashMap<String, SOCGameOption>();
 
+        // null map, sent to v3 client: no change
+        assertEquals(3000, SOCGameOption.optionsMinimumVersion(null, true));
+        String ostr = SOCGameOption.packOptionsToString(null, false, 3000);
+        assertFalse(ostr.contains("SBL="));
+
+        // null map, sent to v2 client: add, set true
+        ostr = SOCGameOption.packOptionsToString(null, false, 2999);
+        assertTrue(ostr.contains("SBL=t"));
+
         // empty map, sent to v3 client: no change
         assertEquals(3000, SOCGameOption.optionsMinimumVersion(opts, true));
-        String ostr = SOCGameOption.packOptionsToString(opts, false, 3000);
+        ostr = SOCGameOption.packOptionsToString(opts, false, 3000);
         assertFalse(ostr.contains("SBL="));
 
         // empty map, sent to v2 client: add, set true

@@ -1585,7 +1585,8 @@ public class SOCGameOption
      * Gameopt-specific version of {@link SOCVersionedItem#itemsMinimumVersion(Map, boolean)},
      * in case any special logic is needed. See that method for javadocs.
      *<P>
-     * Currently checks opt {@code "SBL"} for v2 clients: See {@link SOCBoardLarge#VERSION_FOR_ALSO_CLASSIC}.
+     * When {@code calcMinVersionForUnchanged}, checks opt {@code "SBL"} for v2 clients:
+     * See {@link SOCBoardLarge#VERSION_FOR_ALSO_CLASSIC}.
      *
      * @since 3.0.00
      */
@@ -1598,7 +1599,7 @@ public class SOCGameOption
         if (calcMinVersionForUnchanged && (minVers < SOCBoardLarge.VERSION_FOR_ALSO_CLASSIC))
         {
             // force SBL true for clients < 3.0
-            if (! (items.containsKey("SBL") && items.get("SBL").boolValue))
+            if ((items == null) || ! (items.containsKey("SBL") && items.get("SBL").boolValue))
                 minVers = SOCBoardLarge.VERSION_FOR_ALSO_CLASSIC;
         }
 

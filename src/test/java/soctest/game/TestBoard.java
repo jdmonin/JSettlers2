@@ -23,7 +23,6 @@ package soctest.game;
 import java.util.Arrays;
 
 import soc.game.SOCBoard;
-import soc.game.SOCBoard4p;
 
 import org.junit.Ignore;
 import org.junit.Test;
