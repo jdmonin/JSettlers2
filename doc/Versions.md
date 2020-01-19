@@ -15,14 +15,13 @@ and backport minor new features until `2.0.00` was ready.
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
 
 
-## `2.1.00` (build JM2020xxxx)
-- Currently being developed
+## `2.1.00` (build JM20200119)
 - Client:
 	- New Game dialog: If "force UI scale" option is changed, use new value for new game's window
+	- While joining game, try to prevent game-list window from getting in front of that game's new window
 	- Game window:
 	  - Game Options dialog: If Enter pressed while in text field, save prefs instead of saying "Game with this name already exists"
 	  - Properly re-center top text ("Last round for no 7s") if window made larger/smaller while top text displayed
-	- While joining game, try to prevent game-list window from getting in front of that game's new window
 - Server:
 	- Bugfix when client sits down, taking over a bot's seat, during first initial-settlement round:
 	  Some players' first placement was skipped because "first player" changed during that bot replacement
