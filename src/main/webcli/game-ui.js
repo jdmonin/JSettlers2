@@ -362,7 +362,7 @@ function GameUI(gaName)
 	robb.x(x + DICENUM_RADIUS + 11);
 	robb.y(y - DICENUM_RADIUS / 3);
     }
-    this._SHIP_PTS = [-5, -15, 4, -13, 9, -6, 9, -1, 7, 6, 18, 6, 15, 15, -16, 15, -16, 6, -4, 6, -1, 1, -1, -3, -4, -10, -5, -15];
+    this._SHIP_PTS = [-3, -15, 4, -12, 8, -6, 8, 1, 6, 6, 18, 6, 15, 15, -16, 15, -16, 6, -2, 6, -1, 3, 0, 0, 0, -9, -3, -15];
     this.placePirate = function(r, c)
     {
 	let pir;
