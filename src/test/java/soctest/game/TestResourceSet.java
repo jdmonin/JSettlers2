@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
- * Portions of this file Copyright (C) 2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -212,6 +212,20 @@ public class TestResourceSet
         SOCResourceSet all = onePerType();
         SOCResourceSet copy = new SOCResourceSet(all);
         assertEquals(all, copy);
+    }
+
+    /**
+     * Test to use during protobuf transition, until code no longer uses {@link SOCResourceConstants}.
+     * @since 3.0.00
+     */
+    @Test
+    public void protoResourceType_ResourceConstants_values()
+    {
+        assertEquals(SOCResourceConstants.CLAY, Data.ResourceType.CLAY_VALUE);
+        assertEquals(SOCResourceConstants.ORE, Data.ResourceType.ORE_VALUE);
+        assertEquals(SOCResourceConstants.SHEEP, Data.ResourceType.SHEEP_VALUE);
+        assertEquals(SOCResourceConstants.WHEAT, Data.ResourceType.WHEAT_VALUE);
+        assertEquals(SOCResourceConstants.WOOD, Data.ResourceType.WOOD_VALUE);
     }
 
 }

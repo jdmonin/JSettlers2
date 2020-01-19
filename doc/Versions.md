@@ -15,7 +15,6 @@ and backport minor new features until `2.0.00` was ready.
 - Major refactoring: SOCBoard types combined, removing 'classic' v1.x.xx coordinate system:
   Connecting clients or servers must now be v2.0.00 or higher.
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
-- Build requires Java 7 or newer
 
 
 

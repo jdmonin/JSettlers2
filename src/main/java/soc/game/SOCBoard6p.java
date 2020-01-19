@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2017,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,8 +26,10 @@ package soc.game;
  * The standard (non-sea) board layout for the 6-player extension,
  * rotated 90 degrees clockwise at the client.
  * Implements {@link SOCBoard#BOARD_ENCODING_6PLAYER}.
- * In v3.0.00 and newer all boards use the same v3 coordinate encoding
- * ({@link SOCBoard#BOARD_ENCODING_LARGE}).
+ *<P>
+ * In v3.0 and newer ({@link SOCBoardLarge#VERSION_FOR_ALSO_CLASSIC}),
+ * all games instead use {@link SOCBoardLarge} ({@link SOCBoard#BOARD_ENCODING_LARGE}).
+ *
  * @since 2.0.00
  */
 public abstract class SOCBoard6p extends SOCBoard
