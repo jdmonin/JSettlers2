@@ -110,7 +110,7 @@ function atFirstMessage(wsEvent)
 
     // send our version
       // TODO get an actual locale
-    var versMsg = { "vers": { "versNum": 3000, "versStr": "3.0.00", "versBuild": "WS20200113", "feats": ";6pl;sb;sc=3000;", "cliLocale": "en_US" } };
+    var versMsg = { "vers": { "versNum": 3000, "versStr": "3.0.00", "versBuild": "WS20200119", "feats": ";6pl;sb;sc=3000;", "cliLocale": "en_US" } };
     sendToServer(versMsg);
 }
 
@@ -159,11 +159,11 @@ function doLogin()
 	    var mkeys = Object.keys(msgObj);
 	    if (mkeys.length != 1)
 	    {
-		console.log("(malformed: keys)");
+		console.warn("(malformed: keys)");
 		msgObj = null;
 	    }
 	} catch(e) {
-	    console.log("(malformed: parser)");
+	    console.warn("(malformed: parser)");
 	}
 
 	if (msgObj != null)
@@ -171,7 +171,7 @@ function doLogin()
 	    {
 		msgDispatch(mkeys[0], msgObj[mkeys[0]]);
 	    } catch(e) {
-		console.log("dispatch error: " + e + "\n\tat " + e.stack);
+		console.error("dispatch error: " + e + "\n\tat " + e.stack);
 	    }
 
 	if (! authSent)

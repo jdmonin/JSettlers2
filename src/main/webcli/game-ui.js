@@ -153,7 +153,7 @@ function GameUI(gaName)
     this.sentLeaveMsg = false;  // flag for closeGameWindow
     this.hexOffsX = 0;  // px; includes BOARD_BORDER
     this.hexOffsY = 0;
-    // initBoard sets this.board (Board obj), .bLayer (board itself's Konva.Layer), .rsLayer (roads/ships), .ppLayer (other playing pieces, pirate)
+    // initBoard sets this.board (Board obj), .bLayer (board itself's Konva.Layer), .rsLayer (roads/ships), .ppLayer (other playing pieces, pirate), .ovLayer (UI overlays, tooltips), .ttip
     this.handleJoin = function(memberName,bh,bw,vsD,vsR)
     {
 	// if we're in that game, add person to member list there
@@ -212,10 +212,13 @@ function GameUI(gaName)
 	let doc = this.gaWindow.document, div = doc.getElementById("board"), bw = div.offsetWidth, bh = div.offsetHeight;
 	let kstage = new Konva.Stage({container: div, width: bw, height: bh});
 	let bLayer = new Konva.Layer();
-	this.bLayer = bLayer; this.rsLayer = new Konva.Layer(); this.ppLayer = new Konva.Layer();
+	this.bLayer = bLayer; this.rsLayer = new Konva.Layer();
+	this.ppLayer = new Konva.Layer(); this.ovLayer = new Konva.Layer();
+	this.ovLayer.hitGraphEnabled(false); // tooltip perf
 	kstage.add(bLayer);
 	kstage.add(this.rsLayer);
 	kstage.add(this.ppLayer);
+	kstage.add(this.ovLayer);
 	let pt = {x: bw/3, y: bh/2};
 	bLayer.add(new Konva.Rect( // bg
 	    {x:0, y:0, width: bw, height: bh,
@@ -229,6 +232,16 @@ function GameUI(gaName)
 		this.drawHex(r, c, 0, 0);
 	}
 	bLayer.draw();
+	// shared tooltip; see addTooltipToShape
+	let ttip = new Konva.Label({opacity: 0.85, visible: false});
+	this.ttip = ttip;
+	let ta = new Konva.Tag({fill: '#777', stroke: '#111', lineJoin: 'round', cornerRadius: 5 }),
+	    tx = new Konva.Text({text: 'tooltip test', padding: 5, fill: 'white'});
+	ttip.add(ta);
+	ttip.add(tx);
+	ta.perfectDrawEnabled(false);
+	tx.perfectDrawEnabled(false);
+	this.ovLayer.add(ttip);
 	// temporary player-color swatches
 	let y = bh - 36;
 	for (let pn = 0; pn < PLAYER_COLORS.length; ++pn)
@@ -268,6 +281,30 @@ function GameUI(gaName)
     this.isEdgeAngledUp = function(r, c)
     {
 	return (((r % 4 == 0) && (c % 2 == 1)) || ((r % 4 == 2) && (c % 2 == 0)))
+    }
+
+    // UI for board pieces:
+    this.addTooltipToShape = function(shape, txt)
+    {
+	const ttip = this.ttip, ovLayer = this.ovLayer;
+	shape.on('mouseenter', function() {
+	    ttip.getText().text(txt);
+	    let mPos = ttip.getStage().getPointerPosition();
+	    ttip.position({x: mPos.x + 7, y: mPos.y + 7});
+	    ttip.show();
+	    ovLayer.batchDraw();
+	});
+	shape.on('mousemove', function() {
+	    let mPos = ttip.getStage().getPointerPosition(), mPrev = ttip.position();
+	    if ((Math.abs(mPrev.x - 7 - mPos.x) + Math.abs(mPrev.y - 7 - mPos.y)) < 2)
+		return;
+	    ttip.position({x: mPos.x + 7, y: mPos.y + 7});
+	    ovLayer.batchDraw();
+	});
+	shape.on('mouseleave', function() {
+	    ttip.hide();
+	    ovLayer.draw();
+	});
     }
 
     // parts and pieces of board:
@@ -343,6 +380,7 @@ function GameUI(gaName)
 	pgroup.x(x);
 	pgroup.y(y);
 	this.bLayer.add(pgroup);
+	this.addTooltipToShape(pgroup, 'port');  // TODO add port type to desc
     }
     this.placeRobber = function(r, c)
     {
@@ -357,6 +395,7 @@ function GameUI(gaName)
 			points: [-4, -4, -8, -8, -8, -12, -4, -16, 4, -16, 8, -12, 8, -8, 4, -4, 8, 0, 8, 16, -8, 16, -8, 0, -4, -4, 4, -4], // X -8 to +8; Y -16 to +16
 			id: rID, stroke: '#222', strokeWidth: 1.5, fill: '#999', closed: true });
 		this.ppLayer.add(robb);
+		this.addTooltipToShape(robb, rID);
 	}
 	let [x, y] = this.rcToXY(r, c);
 	robb.x(x + DICENUM_RADIUS + 11);
@@ -375,6 +414,7 @@ function GameUI(gaName)
 		pir = new Konva.Line({
 			points: this._SHIP_PTS, id: pID, stroke: '#888', strokeWidth: 1.5, fill: '#111', closed: true });
 		this.ppLayer.add(pir);
+		this.addTooltipToShape(pir, pID);
 	}
 	let [x, y] = this.rcToXY(r, c);
 	pir.x(x);
@@ -422,6 +462,7 @@ function GameUI(gaName)
 
 	let [x, y] = (midEdge) ? this.rcEdgeToXY(r, c) : this.rcToXY(r, c);
 	layer.add(piece);
+	this.addTooltipToShape(piece, PTYPE_NAMES[ptype].toLowerCase() + ': player ' + pn);  // TODO add player name when available
 	piece.x(x);
 	piece.y(y);
 	layer.draw();
@@ -591,6 +632,7 @@ var gaDispatchTo =
 	const PL = mdata.parts.PL.iArr.arr, nPort = PL.length / 3, n2 = 2 * nPort;
 	for (let i = 0; i < nPort; ++i)
 	    gameui.addPort(PL[i], PL[i+nPort], PL[i+n2]);
+	gameui.bLayer.cache();
 	gameui.bLayer.draw();
 	// playing pieces:
 	if (mdata.parts.RH)
@@ -609,6 +651,7 @@ var gaDispatchTo =
     {
 	let [r,c] = msgCoord(mdata.coord);
 	gameui.drawHex(r, c, ((mdata.htype) ? HEXTYPE_NAMES.indexOf(mdata.htype) : 0), mdata.diceNum || 0);
+	gameui.bLayer.cache();
 	gameui.bLayer.draw();
     },
     buildPiece: function(gameui, gn, pn, mdata)
