@@ -2281,6 +2281,8 @@ public class SOCPlayerInterface extends Frame
      * has removed them if necessary.
      *<P>
      * If this game has observers, list them in the textDisplay now.
+     *<P>
+     * Should be called from event dispatch thread, using {@link EventQueue#invokeLater(Runnable)} if needed.
      *
      * @param members Game member names from {@link soc.message.SOCGameMembers#getMembers()} (added in 1.1.12)
      */
@@ -2584,9 +2586,12 @@ public class SOCPlayerInterface extends Frame
      * If {@code setToInitial} true, sets its status, foreground color, and the prompt text
      * unless player already sent chat text ({@link #textInputHasSent}).
      *<P>
+     * Should be called from event dispatch thread, using {@link EventQueue#invokeLater(Runnable)} if needed.
+     * This avoids an occasional race bug where prompt is appended twice ("Type here to chat.Type here to chat.").
+     *<P>
      * Do not call this directly from a Swing {@link DocumentListener},
      * which will throw "IllegalStateException: Attempt to mutate in notification":
-     * Instead add to event queue with invokeLater.
+     * Instead add to event queue with {@code invokeLater}.
      *
      * @param setToInitial If false, clear initial-prompt status, and
      *    clear contents (if they are the initial-prompt message);
@@ -4108,9 +4113,13 @@ public class SOCPlayerInterface extends Frame
          * game is about to start.  Calls {@link SOCPlayerInterface#began(List)}.
          * @param names  Game member names; to see if each is a player, call {@link SOCGame#getPlayer(String)}.
          */
-        public void membersListed(List<String> names)
+        public void membersListed(final List<String> names)
         {
-            pi.began(names);
+            EventQueue.invokeLater(new Runnable()
+            {
+                public void run()
+                { pi.began(names); }
+            });
         }
 
         public void boardLayoutUpdated()
