@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011,2013-2014,2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011,2013-2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -63,7 +63,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
     private int gameMinVers = -1;
 
     /**
-     * Create a SOCNewGameWithOptions message.
+     * Create a SOCNewGameWithOptions message at client.
      *
      * @param ga  the name of the game; may have the
      *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
@@ -73,7 +73,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      *            or null
      * @param minVers Minimum client version required for this game, or -1
      */
-    public SOCNewGameWithOptions(final String ga, final String optstr, final int minVers)
+    private SOCNewGameWithOptions(final String ga, final String optstr, final int minVers)
     {
         super(NEWGAMEWITHOPTIONS,
               ga,
@@ -83,7 +83,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
     }
 
     /**
-     * Create a SOCNewGameWithOptions message to send to a specific client version,
+     * Create a SOCNewGameWithOptions message to send to a specific client version, at server,
      * with the game's options and minimum required version info taken from its {@code game} object.
      *<P>
      * Before v3.0.00 this constructor was a static {@code toCmd(..)} method.
@@ -102,7 +102,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
     }
 
     /**
-     * Create a SOCNewGameWithOptions message, optionally for a specific client version.
+     * Create a SOCNewGameWithOptions message, optionally for a specific client version, at server.
      * This constructor may adjust encoded option values for backwards compatibility with the client version.
      * If so, contents of the referenced {@code opts} map aren't changed: Calls
      * {@link SOCGameOption#packOptionsToString(Map, boolean, int) SOCGameOption.packOptionsToString(opts, false, cliVers)}.

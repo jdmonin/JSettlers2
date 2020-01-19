@@ -126,7 +126,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * System property {@code "jsettlers.uiScale"} for UI scaling override ("high-DPI") if needed
      * for {@link #checkDisplayScaleFactor(Component)}.
      *<P>
-     * Overrides optional user preference {@link SOCPlayerClient#PREF_UI_SCALE_FORCE}.
+     * At startup, overrides optional user preference {@link SOCPlayerClient#PREF_UI_SCALE_FORCE}.
      *<P>
      * Name is based on similar {@code "sun.java2d.uiScale"},
      * but that property might not be available for all java versions.
@@ -648,6 +648,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * component sizes, window sizes, and font sizes would be too small to comfortably use.
      *<P>
      * Returns a high-DPI scaling factor if screen height is at least twice {@link #DISPLAY_MIN_UNSCALED_HEIGHT}.
+     * Called at startup, available afterwards from {@link #getDisplayScaleFactor()}.
      *<P>
      * After determining scale here, be sure to call {@link #scaleUIManagerFonts(int)} once.
      *<P>
@@ -752,6 +753,11 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     *<P>
+     * Determined at startup by {@link #checkDisplayScaleFactor(Component)}.
+     */
     public final int getDisplayScaleFactor()
     {
         return displayScale;
@@ -2279,8 +2285,25 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
         final SOCPlayerInterface pi = new SOCPlayerInterface
             (game.getName(), SwingMainDisplay.this, game, layoutVS, localPrefs);
-        pi.setVisible(true);
         playerInterfaces.put(game.getName(), pi);
+
+        // slight delay before PI window visibility, otherwise
+        // MainDisplay might get back in front of it while
+        // processing double-click event (seen MacOSX in 2020-01)
+        eventTimer.schedule(new TimerTask()
+        {
+            public void run()
+            {
+                EventQueue.invokeLater(new Runnable()
+                {
+                    public void run()
+                    {
+                        pi.setVisible(true);
+                        pi.toFront();
+                    }
+                });
+            }
+        }, 80 /* ms */ );
 
         return pi.getClientListener();
     }

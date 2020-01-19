@@ -242,7 +242,7 @@ public class SOCBoardLarge extends SOCBoard
     private static final long serialVersionUID = 2000L;
 
     /**
-     * Minimum client and server version required: v2.0.00.
+     * Minimum client and server version required: v2.0.00, which also adds {@link SOCGameOption} {@code "SBL"}.
      * @see #VERSION_FOR_ALSO_CLASSIC
      */
     public static final int MIN_VERSION = 2000;

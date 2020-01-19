@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, type parameterization, GUI API updates, etc
  *
@@ -689,7 +689,14 @@ public class SOCPlayerInterface extends Frame
         setLocationByPlatform(true);  // cascade, not all same hard-coded position as in v1.1.xx
 
         this.mainDisplay = md;
-        displayScale = md.getDisplayScaleFactor();
+        // set displayScale from NGOF if pref is there, otherwise from MainDisplay startup
+        {
+            int ds = 0;
+            Object pref = (localPrefs != null) ? (localPrefs.get(SOCPlayerClient.PREF_UI_SCALE_FORCE)) : null;
+            if ((pref != null) && (pref instanceof Integer))
+                ds = ((Integer) pref).intValue();
+            displayScale = ((ds > 0) && (ds <= 3)) ? ds : md.getDisplayScaleFactor();
+        }
         client = md.getClient();
         game = ga;
         game.setGameEventListener(this);
@@ -762,13 +769,7 @@ public class SOCPlayerInterface extends Frame
 
         /**
          * setup interface elements.
-         * PERF: hide window while doing so (osx firefox)
          */
-        final boolean didHideTemp = isShowing();
-        if (didHideTemp)
-        {
-            setVisible(false);
-        }
         initInterfaceElements(true);
 
         /**
@@ -855,11 +856,6 @@ public class SOCPlayerInterface extends Frame
         wasResized = false;
         setSize(piWidth, piHeight);
         validate();
-
-        if (didHideTemp)
-        {
-            setVisible(true);
-        }
         repaint();
 
         addComponentListener(new ComponentAdapter()
@@ -2372,7 +2368,7 @@ public class SOCPlayerInterface extends Frame
      * about the player leaving the game.
      *<P>
      * To prevent inconsistencies, call this <em>before</em> calling
-     * {@link SOCGame#removePlayer(String)}.
+     * {@link SOCGame#removePlayer(String, boolean)}.
      *
      * @param pn the number of the player
      */

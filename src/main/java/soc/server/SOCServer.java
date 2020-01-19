@@ -956,12 +956,14 @@ public class SOCServer extends Server
      * @see #readyGameAskRobotsJoin(SOCGame, Connection[], int)
      * @see #leaveConnection(Connection)
      * @see GameHandler#findRobotAskJoinGame(SOCGame, Object, boolean)
+     * @see #robotDismissRequests
      */
     final Hashtable<String, Hashtable<Connection, Object>> robotJoinRequests
         = new Hashtable<String, Hashtable<Connection, Object>>();
 
     /**
      * table of requests for robots to leave games
+     * @see #robotJoinRequests
      */
     final Hashtable<String, Vector<SOCReplaceRequest>> robotDismissRequests
         = new Hashtable<String, Vector<SOCReplaceRequest>>();
@@ -2363,7 +2365,7 @@ public class SOCServer extends Server
             if (cversMin < Version.versionNumber())
                 gVersMinGameOptsNoChange = SOCGameOption.optionsMinimumVersion(gaOpts, true);
             else
-                gVersMinGameOptsNoChange = -1;  // all clients are our current version
+                gVersMinGameOptsNoChange = -1;  // all clients are our current version or higher
 
             // Check whether any clients have only limited features and can't join:
 
@@ -2535,6 +2537,8 @@ public class SOCServer extends Server
      *           still connected and in other games.
      * @param ga  game to leave, if already known from {@link SOCGameListAtServer#getGameData(String)}
      * @param gm  game name, if {@code ga} object not already known
+     * @param hasReplacement  If true the leaving connection is a bot, and there's a waiting client who will be told
+     *           next to sit down in this bot's seat, so that isn't really becoming vacant
      * @param destroyIfEmpty  if true, this method will destroy the game if it's now empty.
      *           If false, the caller must call {@link #destroyGame(String)}
      *           before calling {@link SOCGameList#releaseMonitor()}.
@@ -2544,7 +2548,8 @@ public class SOCServer extends Server
      * @throws IllegalArgumentException if both {@code ga} and {@code gm} are null
      */
     public boolean leaveGame
-        (final Connection c, SOCGame ga, String gm, final boolean destroyIfEmpty, final boolean gameListLock)
+        (final Connection c, SOCGame ga, String gm,
+         final boolean hasReplacement, final boolean destroyIfEmpty, final boolean gameListLock)
         throws IllegalArgumentException
     {
         if (c == null)
@@ -2575,7 +2580,7 @@ public class SOCServer extends Server
         GameHandler hand = gameList.getGameTypeHandler(gm);
         if (hand != null)
         {
-            gameDestroyed = hand.leaveGame(ga, c) || gameList.isGameEmpty(gm);
+            gameDestroyed = hand.leaveGame(ga, c, hasReplacement) || gameList.isGameEmpty(gm);
         } else {
             gameDestroyed = true;
                 // should not happen. If no handler, game data is inconsistent
@@ -2642,22 +2647,43 @@ public class SOCServer extends Server
             gaName = game.getName();
         }
 
-        boolean gameDestroyed = false;
         if (! gameList.takeMonitorForGame(gaName))
         {
             return;  // <--- Early return: game not in gamelist ---
         }
 
+        boolean gameDestroyed = false;
+        final Vector<SOCReplaceRequest> reqList = robotDismissRequests.get(gaName);
+        SOCReplaceRequest req = null;
+
         try
         {
-            gameDestroyed = leaveGame(c, game, gaName, true, false);
+            // check for robot-replace request; if so,
+            // we'll soon tell waiting client to sit down
+            if (reqList != null)
+            {
+                Enumeration<SOCReplaceRequest> reqEnum = reqList.elements();
+
+                while (reqEnum.hasMoreElements())
+                {
+                    SOCReplaceRequest rr = reqEnum.nextElement();
+
+                    if (rr.getLeaving() == c)
+                    {
+                        req = rr;
+                        break;
+                    }
+                }
+            }
+
+            gameDestroyed = leaveGame(c, game, gaName, (req != null), true, false);
         }
         catch (Exception e)
         {
             D.ebugPrintStackTrace(e, "Exception in handleLEAVEGAME (leaveGame)");
+        } finally {
+            gameList.releaseMonitorForGame(gaName);
         }
-
-        gameList.releaseMonitorForGame(gaName);
 
         if (gameDestroyed)
         {
@@ -2673,43 +2699,21 @@ public class SOCServer extends Server
         }
 
         /**
-         * if it's a robot, remove it from the request list
+         * if it's a robot, and another client's waiting to take over its spot,
+         * remove it from the request list and let that client sit down
          */
-        Vector<SOCReplaceRequest> requests = robotDismissRequests.get(gaName);
-
-        if (requests != null)
+        if (req != null)
         {
-            Enumeration<SOCReplaceRequest> reqEnum = requests.elements();
-            SOCReplaceRequest req = null;
+            reqList.removeElement(req);
 
-            while (reqEnum.hasMoreElements())
-            {
-                SOCReplaceRequest tempReq = reqEnum.nextElement();
+            if (game == null)
+                game = gameList.getGameData(gaName);
+            final int pn = req.getSitDownMessage().getPlayerNumber();
+            final boolean isRobot = req.getSitDownMessage().isRobot();
+            if (! isRobot)
+                game.getPlayer(pn).setFaceId(1);  // Don't keep the robot face icon
 
-                if (tempReq.getLeaving() == c)
-                {
-                    req = tempReq;
-                    break;
-                }
-            }
-
-            if (req != null)
-            {
-                requests.removeElement(req);
-
-                /**
-                 * Taking over a robot spot: let the person replacing the robot sit down
-                 */
-                if (game == null)
-                    game = gameList.getGameData(gaName);
-                final int pn = req.getSitDownMessage().getPlayerNumber();
-                final boolean isRobot = req.getSitDownMessage().isRobot();
-                if (! isRobot)
-                {
-                    game.getPlayer(pn).setFaceId(1);  // Don't keep the robot face icon
-                }
-                sitDown(game, req.getArriving(), pn, isRobot, false);
-            }
+            sitDown(game, req.getArriving(), pn, isRobot, false);
         }
     }
 
@@ -2776,7 +2780,7 @@ public class SOCServer extends Server
             {
                 String rname = "droid " + (i+1);
                 SOCLocalRobotClient.createAndStartRobotClientThread(rname, strSocketName, port, robotCookie);
-                    // includes yield() and sleep(75 ms) this thread.
+                    // to ratelimit, create includes Thread.yield() and sleep(75 ms) on caller's thread
             }
 
             // Make a few smarter ones now:
@@ -2787,7 +2791,6 @@ public class SOCServer extends Server
             {
                 String rname = "robot " + (i+1+numFast);
                 SOCLocalRobotClient.createAndStartRobotClientThread(rname, strSocketName, port, robotCookie);
-                    // includes yield() and sleep(75 ms) this thread.
             }
         }
         catch (Exception e)
@@ -2816,7 +2819,7 @@ public class SOCServer extends Server
      * before calling this method.
      *
      * @param gm  Name of the game to destroy
-     * @see #leaveGame(Connection, SOCGame, String, boolean, boolean)
+     * @see #leaveGame(Connection, SOCGame, String, boolean, boolean, boolean)
      * @see #destroyGameAndBroadcast(String, String)
      */
     public void destroyGame(String gm)
@@ -3153,7 +3156,7 @@ public class SOCServer extends Server
 
                     try
                     {
-                        thisGameDestroyed = leaveGame(c, null, ga, false, true);
+                        thisGameDestroyed = leaveGame(c, null, ga, false, false, true);
                     }
                     catch (Exception e)
                     {

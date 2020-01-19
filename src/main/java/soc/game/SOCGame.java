@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
@@ -504,7 +504,15 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * seat states
      */
-    public static final int VACANT = 0, OCCUPIED = 1;
+    private static final int VACANT = 0, OCCUPIED = 1;
+
+    /**
+     * Seat state {@link #VACANT}, but {@link #removePlayer(String, boolean)} was called
+     * with flag that another player will be seated here momentarily; used at server only.
+     * See that method for threading assumption/race prevention.
+     * @since 2.1.00
+     */
+    private static final int VACANT_PENDING_REPLACE = 2;
 
     // for seatLock states, see SeatLockState enum javadoc.
 
@@ -1572,6 +1580,7 @@ public class SOCGame implements Serializable, Cloneable
      * @throws IllegalArgumentException if name fails {@link SOCMessage#isSingleLineAndSafe(String)}.
      *           This exception was added in 1.1.07.
      * @see #isSeatVacant(int)
+     * @see #removePlayer(String, boolean)
      */
     public void addPlayer(final String name, final int pn)
         throws IllegalStateException, IllegalArgumentException
@@ -1580,6 +1589,7 @@ public class SOCGame implements Serializable, Cloneable
             throw new IllegalArgumentException("name");
 
         final boolean wasVacant = (seats[pn] == VACANT);
+            // but not VACANT_PENDING_REPLACE, so firstPlayer/lastPlayer won't be recalc'd while temporarily vacant
         if (wasVacant)
         {
             if (0 == getAvailableSeatCount())
@@ -1618,17 +1628,22 @@ public class SOCGame implements Serializable, Cloneable
      * You'll need to then call {@link #endTurn()} or {@link #forceEndTurn()}.
      *
      * @param name  the player's name
+     * @param hasReplacement  if true (server only), the leaving connection is a bot, and there's a
+     *     waiting client who will be told to sit down in this bot's seat, so that isn't really becoming vacant.
+     *     To prevent a race condition where a different client could take this seat as bot leaves,
+     *     assumes single-threaded processing of incoming messages to this game.
      * @throws IllegalArgumentException if name isn't in this game.
      *           This exception was added in 1.1.07.
+     * @see #addPlayer(String, int)
      */
-    public void removePlayer(final String name)
+    public void removePlayer(final String name, final boolean hasReplacement)
         throws IllegalArgumentException
     {
         SOCPlayer pl = getPlayer(name);
         if (pl == null)
             throw new IllegalArgumentException("name");
         pl.setName(null);
-        seats[pl.getPlayerNumber()] = VACANT;
+        seats[pl.getPlayerNumber()] = (hasReplacement) ? VACANT_PENDING_REPLACE : VACANT;
 
         //D.ebugPrintln("seats["+pl.getPlayerNumber()+"] = VACANT");
     }
@@ -1641,7 +1656,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean isSeatVacant(final int pn)
     {
-        return (seats[pn] == VACANT);
+        return (seats[pn] != OCCUPIED);
     }
 
     /**
@@ -2756,9 +2771,8 @@ public class SOCGame implements Serializable, Cloneable
     {
         final int prevCPN = currentPlayerNumber;
 
-        //D.ebugPrintln("ADVANCE TURN FORWARDS");
-        forcingEndTurn = false;
         currentPlayerNumber++;
+        forcingEndTurn = false;
 
         if (currentPlayerNumber == maxPlayers)
         {
@@ -2767,6 +2781,7 @@ public class SOCGame implements Serializable, Cloneable
         while (isSeatVacant (currentPlayerNumber))
         {
             ++currentPlayerNumber;
+
             if (currentPlayerNumber == maxPlayers)
             {
                 currentPlayerNumber = 0;
@@ -6809,9 +6824,10 @@ public class SOCGame implements Serializable, Cloneable
     {
         for (int i = 0; i < maxPlayers; ++i)
         {
-            if ((seats[i] != VACANT) && (players[i].getCurrentOffer() != null))
+            if ((seats[i] == OCCUPIED) && (players[i].getCurrentOffer() != null))
                 return true;
         }
+
         return false;
     }
 
@@ -8328,7 +8344,7 @@ public class SOCGame implements Serializable, Cloneable
         for (int i = 0; i < maxPlayers; i++)
         {
             boolean wasRobot = false;
-            if ((seats[i] != VACANT) && (players[i] != null) && (players[i].getName() != null))
+            if ((seats[i] == OCCUPIED) && (players[i] != null) && (players[i].getName() != null))
             {
                 wasRobot = players[i].isRobot();
                 if (! wasRobot)
@@ -8344,7 +8360,7 @@ public class SOCGame implements Serializable, Cloneable
             else
             {
                 cp.seats[i] = seats[i];  // reset in case addPlayer cleared VACANT for non-in-use player position
-                if (cp.seats[i] == VACANT)
+                if (cp.seats[i] != OCCUPIED)
                     cp.seatLocks[i] = SeatLockState.CLEAR_ON_RESET;
             }
         }

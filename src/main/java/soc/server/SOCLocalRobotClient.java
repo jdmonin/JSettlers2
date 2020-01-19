@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2016-2018 Jeremy D Monin <jeremy@nand.net>. Contents were
+ * This file Copyright (C) 2013,2016-2018,2020 Jeremy D Monin <jeremy@nand.net>. Contents were
  * formerly part of SOCServer.java; portions of this file Copyright (C) 2007-2013 Jeremy D Monin.
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -28,7 +28,8 @@ import soc.robot.SOCRobotClient;
 /**
  * Each local robot in the {@link SOCServer} gets its own client thread.
  * Equivalent to main thread used in {@link SOCRobotClient} when connected
- * over the TCP network.
+ * over the TCP network. Create by calling convenience method
+ * {@link #createAndStartRobotClientThread(String, String, int, String)}.
  *<P>
  * This class was originally SOCPlayerClient.SOCPlayerLocalRobotRunner,
  * then moved in 1.1.09 to SOCServer.SOCPlayerLocalRobotRunner.
@@ -71,9 +72,10 @@ import soc.robot.SOCRobotClient;
 
     /**
      * Create and start a robot client within a {@link SOCLocalRobotClient} thread.
-     * After creating it, {@link Thread#yield() yield} the current thread and then sleep
-     * 75 milliseconds, to give the robot time to start itself up.
-     * The SOCPlayerLocalRobotRunner's run() will add the {@link SOCRobotClient} to {@link #robotClients}.
+     * After creating it, {@link Thread#yield() yield} the current thread (from caller)
+     * and then sleep 75 milliseconds, to give the robot time to start itself up.
+     * The {@link SOCLocalRobotClient}'s {@code run()} will add the {@link SOCRobotClient} to {@link #robotClients}.
+     *
      * @param rname  Name of robot
      * @param strSocketName  Server's stringport socket name, or null
      * @param port    Server's tcp port, if <tt>strSocketName</tt> is null

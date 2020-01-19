@@ -159,7 +159,11 @@ import soc.util.Version;
      */
     private final boolean forNewGame;
 
-    /** is this for display only (shown for an existing game)? If false, dialog is to create a new game. */
+    /**
+     * Is this for display only (shown for an existing game)? If false, dialog is to create a new game.
+     * @see #pi
+     * @see #forNewGame
+     */
     private final boolean readOnly;
 
     /**
@@ -327,7 +331,7 @@ import soc.util.Version;
 
         addWindowListener(new WindowAdapter() {
             @Override
-            public void windowClosing(WindowEvent e) { clickCancel(); }
+            public void windowClosing(WindowEvent e) { clickCancel(false); }
             });
 
         /**
@@ -493,7 +497,7 @@ import soc.util.Version;
             im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
             am.put("cancel", new AbstractAction()
             {
-                public void actionPerformed(ActionEvent ae) { clickCancel(); }
+                public void actionPerformed(ActionEvent ae) { clickCancel(false); }
             });
         }
 
@@ -1347,11 +1351,7 @@ import soc.util.Version;
             }
             else if (src == cancel)
             {
-                if (readOnly && (pi != null))
-                    // remember changes, since this is the "OK" button during game play
-                    persistLocalPrefs();
-
-                clickCancel();
+                clickCancel(true);
             }
             else if (src == scenInfo)
             {
@@ -1481,9 +1481,14 @@ import soc.util.Version;
     /**
      * The "Cancel" button or window's close button was clicked, or ESC was pressed; dismiss the dialog.
      * Note: Button text is "OK" in read-only mode ({@link #readOnly}) for a current game.
+     * @param savePrefsIfCurrent  If true, and is {@link #readOnly} for a current game ({@link #pi} != null),
+     *     remember local-prefs changes by calling {@link #persistLocalPrefs()}.
      */
-    private void clickCancel()
+    private void clickCancel(final boolean savePrefsIfCurrent)
     {
+        if (savePrefsIfCurrent && readOnly && (pi != null))
+            persistLocalPrefs();
+
         if ((! readOnly) && (opts != null))
         {
             // If scenario checkbox was manually cleared, clear scenario-name dropdown selection
@@ -1728,12 +1733,15 @@ import soc.util.Version;
             switch (e.getKeyCode())
             {
             case KeyEvent.VK_ENTER:
-                clickCreate(true);
+                if (readOnly)
+                    clickCancel(true);
+                else
+                    clickCreate(true);
                 break;
 
             case KeyEvent.VK_CANCEL:
             case KeyEvent.VK_ESCAPE:
-                clickCancel();
+                clickCancel(false);
                 break;
             }  // switch(e)
         }  // try
@@ -2289,12 +2297,15 @@ import soc.util.Version;
             switch (e.getKeyCode())
             {
             case KeyEvent.VK_ENTER:
-                clickCreate(true);
+                if (readOnly)
+                    clickCancel(true);
+                else
+                    clickCreate(true);
                 break;
 
             case KeyEvent.VK_CANCEL:
             case KeyEvent.VK_ESCAPE:
-                clickCancel();
+                clickCancel(false);
                 break;
 
             default:

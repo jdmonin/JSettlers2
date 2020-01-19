@@ -11,7 +11,7 @@ stable branch for further 1.x versions to release bugfixes
 and backport minor new features until `2.0.00` was ready.
 
 ## `3.0.00` (build JX202xxxxx)
-- Experimental features: protobuf
+- Experimental features: html5 client, jetty/tomcat servlet; protobuf option for bots
 - Major refactoring: SOCBoard types combined, removing 'classic' v1.x.xx coordinate system:
   Connecting clients or servers must now be v2.0.00 or higher.
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
@@ -22,9 +22,14 @@ and backport minor new features until `2.0.00` was ready.
 ## `2.1.00` (build JM2020xxxx)
 - Currently being developed
 - Client:
+	- New Game dialog: If "force UI scale" option is changed, use new value for new game's window
 	- Game window:
+	  - Game Options dialog: If Enter pressed while in text field, save prefs instead of saying "Game with this name already exists"
 	  - Properly re-center top text ("Last round for no 7s") if window made larger/smaller while top text displayed
+	- While joining game, try to prevent game-list window from getting in front of that game's new window
 - Server:
+	- Bugfix when client sits down, taking over a bot's seat, during first initial-settlement round:
+	  Some players' first placement was skipped because "first player" changed during that bot replacement
 	- For quick restart, bind TCP socket with setReuseAddress (SO_REUSEADDR) flag
 	- At shutdown, server broadcasts StatusMessage(SV_SERVER_SHUTDOWN) for clean client shutdown
 - Bots/AI:
@@ -122,7 +127,7 @@ and backport minor new features until `2.0.00` was ready.
 	  `-Djsettlers.bots.fast_pause_percent=10`
 	- New debug command `*STARTBOTGAME* [maxBots]` to begin current game as bots-only
 	- If the last human player leaves a game with bots and observers, server continues that game as bots-only
-	  if property `jsettlers.bots.botgames.total` != 0
+	  if server property `jsettlers.bots.botgames.total` != 0
 	- Standalone bot clients shut down properly if they can't reconnect to server after 3 retries
 	- Example `soc.robot.sample3p.Sample3PBrain extending SOCRobotBrain`, `Sample3PClient extending SOCRobotClient`
 	- Some private SOCRobotClient fields made protected for use by bot developer 3rd-party subclasses

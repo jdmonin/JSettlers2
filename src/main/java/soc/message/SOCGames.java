@@ -29,17 +29,20 @@ import java.util.StringTokenizer;
 /**
  * This backwards-compatibility message lists the names of all the games currently
  * created on a server, without their {@link soc.game.SOCGameOption game options}.
- * It's constructed and sent for each connecting client
+ * It's constructed and sent to each connecting client
  * having an old version which doesn't support game options.
  * Sent only by servers older than v3.0 ({@link soc.game.SOCBoardLarge#VERSION_FOR_ALSO_CLASSIC});
  * v3.0 and higher always send {@link SOCGamesWithOptions} instead.
  *<P>
  * Version 1.1.07 and later clients are sent {@link SOCGamesWithOptions}
- * instead of this message type.
+ * instead of this message type. (Check {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS})
  *<P>
  * Version 1.1.06 and later:
  * Any game's name within the list may start with the "unjoinable"
  * marker prefix {@link #MARKER_THIS_GAME_UNJOINABLE}.
+ *<P>
+ * Servers older than v1.1.07 always sent this message;
+ * {@link SOCGamesWithOptions} was not yet defined.
  *
  * @author Robert S Thomas
  * @see SOCGamesWithOptions
@@ -81,13 +84,13 @@ public class SOCGames extends SOCMessage
     private List<String> games;
 
     /**
-     * Create a Games Message.
+     * Create a Games Message at client.
      *
      * @param ga  list of game names (Strings).
      *         Mark unjoinable games with the prefix
      *         {@link #MARKER_THIS_GAME_UNJOINABLE}.
      */
-    public SOCGames(List<String> ga)
+    private SOCGames(List<String> ga)
     {
         messageType = GAMES;
         games = ga;

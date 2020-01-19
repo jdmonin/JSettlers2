@@ -231,7 +231,7 @@ These debug commands are used at the client to help show the board's status:
   and SOCPlayerInterface frame sizes and margins to System.err.
 
 If you want the robots to play a few games without any humans, set this
-property on the command line when starting the server:
+server property on the command line (after `-jar ...`) when starting the server:
 `-Djsettlers.bots.botgames.total=5`. As each game finishes, a new bot-only
 game will be started until 5 have been played. You can optionally use the client
 to observe a bot-only game. Also if `jsettlers.bots.botgames.total` != 0, at any
@@ -807,7 +807,7 @@ view the cookie by starting the server with `-Djsettlers.bots.showcookie=Y` or
 override it with something like `-Djsettlers.bots.cookie=foo`
 
 For bot testing and statistics, you can have the server run some robot-only
-games (no human players) with the jsettlers.bots.botgames.total property.
+games (no human players) with the jsettlers.bots.botgames.total server property.
 To run 7 robot-only games in a row, with each game randomly choosing from 10
 robot players, you could start the server with:
 `-Djsettlers.startrobots=10 -Djsettlers.bots.botgames.total=7`. The robot-only

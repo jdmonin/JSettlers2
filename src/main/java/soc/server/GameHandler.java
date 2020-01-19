@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -191,7 +191,7 @@ public abstract class GameHandler
     /**
      * This member (player or observer) has left the game.
      * Check the game and clean up, forcing end of current turn if necessary.
-     * Call {@link SOCGame#removePlayer(String)}.
+     * Call {@link SOCGame#removePlayer(String, boolean)}.
      * If the game still has other players, continue it, otherwise it will be ended after
      * returning from {@code leaveGame}. Send messages out to other game members
      * notifying them the player has left.
@@ -209,6 +209,8 @@ public abstract class GameHandler
      *           {@link Connection#disconnect()} has already been called.
      *           Don't exclude {@code c} from any communication about leaving the game,
      *           in case they are still connected and in other games.
+     * @param hasReplacement  If true the leaving connection is a bot, and there's a waiting client who will be told
+     *           next to sit down in this bot's seat, so that isn't really becoming vacant
      * @return true if the game should be ended and deleted (does not have other observers or non-robot players,
      *           and game's {@code isBotsOnly} flag is false).
      *           <P>
@@ -217,7 +219,7 @@ public abstract class GameHandler
      *           {@link SOCServer#getConfigIntProperty(String, int) SOCServer.getConfigIntProperty}
      *           ({@link SOCServer#PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL}, 0).
      */
-    public abstract boolean leaveGame(SOCGame ga, Connection c);
+    public abstract boolean leaveGame(SOCGame ga, Connection c, boolean hasReplacement);
 
     /**
      * When a human player has left an active game, or a game is starting and a
