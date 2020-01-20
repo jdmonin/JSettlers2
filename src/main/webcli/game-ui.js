@@ -39,7 +39,9 @@ $.ajax({
 const PTYPE_ROAD = 0, PTYPE_SETTLEMENT = 1, PTYPE_CITY = 2, PTYPE_SHIP = 3, PTYPE_FORTRESS = 4, PTYPE_VILLAGE = 5;
 // type names as in proto/json
 const HEXTYPE_NAMES = ['WATER_HEX', 'CLAY_HEX', 'ORE_HEX', 'SHEEP_HEX', 'WHEAT_HEX', 'WOOD_HEX', 'DESERT_HEX', 'GOLD_HEX', 'FOG_HEX'];
-const PTYPE_NAMES = ['ROAD', 'SETTLEMENT', 'CITY', 'SHIP', 'FORTRESS', 'VILLAGE'];  // also for ID prefix in rsLayer/ppLayer
+const PTYPE_NAMES = ['ROAD', 'SETTLEMENT', 'CITY', 'SHIP', 'FORTRESS', 'VILLAGE'];  // also for tooltip text, ID prefix
+// type names for display
+const HEXTYPE_DISP_NAMES = ['water', 'clay', 'ore', 'sheep', 'wheat', 'wood', 'desert', 'gold', 'fog'];
 
 // Board geometry constants; some are from SOCBoardPanel.java //
 
@@ -224,7 +226,7 @@ function GameUI(gaName)
 	    {x:0, y:0, width: bw, height: bh,
 		fillRadialGradientStartPoint: pt, fillRadialGradientStartRadius: 10,
 		fillRadialGradientEndPoint: pt, fillRadialGradientEndRadius: bw/2,
-		fillRadialGradientColorStops: [0, '#35c', 1, '#119'] }));
+		fillRadialGradientColorStops: [0, '#57e', 1, '#119'] }));
 	for (let r = 1, y = this.hexOffsY; r < h; r += 2, y += DELTA_Y)
 	{
 	    let c = ((r % 4 == 3) ? 1 : 0);
@@ -311,7 +313,7 @@ function GameUI(gaName)
     this.drawHex = function(r, c, htype, hdice)
     {
 	let [x, y] = this.rcToXY(r, c);
-	let fillStyle = hextypeStyle(htype), op = (htype != 0) ? 1 : 0.6;
+	let fillStyle = hextypeStyle(htype), op = (htype != 0) ? 1 : 0.45, ecolor = (htype != 0) ? '#555' : '#777';
 	let bLayer = this.bLayer;
 
 	let hID = 'hex_' + coordHex(r, c);
@@ -320,9 +322,10 @@ function GameUI(gaName)
 	{
 		coll[0].fill(fillStyle);
 		coll[0].opacity(op);
+		coll[0].stroke(ecolor);
 	} else
 		bLayer.add(new Konva.RegularPolygon
-		    ({ x: x, y: y, sides: 6, radius: HEX_RADIUS, id: hID, fill: fillStyle, opacity: op, stroke: '#666', strokeWidth: 1.5}));
+		    ({ x: x, y: y, sides: 6, radius: HEX_RADIUS, id: hID, fill: fillStyle, opacity: op, stroke: ecolor, strokeWidth: 1.5}));
 
 	if (hdice == 0)
 		return;
@@ -357,6 +360,7 @@ function GameUI(gaName)
 	r -= DR_FACING[facing],
 	c -= DC_FACING[facing];
 	let [x, y] = this.rcToXY(r, c);
+	let pText;
 	let fillStyle = (ptype > 0) ? hextypeStyle(ptype) : '#ddd';
 	let bLayer = this.bLayer;
 	let pgroup = new Konva.Group({x: 0, y: 0, id: 'port_' + coordHex4(edge)});
@@ -364,10 +368,13 @@ function GameUI(gaName)
 	    ({ x: 0, y: 0, radius: 30, fill: fillStyle, stroke: '#fff', strokeWidth: 1.5}));
 	if (ptype == 0)
 	{
+	    pText = '3:1';
 	    let ktxt = new Konva.Text
-		({ x: 0, y: 0, text: '3:1', FontFamily: FONT_FAMILY, fontSize: 18, fill: 'black'});
+		({ x: 0, y: 0, text: pText, FontFamily: FONT_FAMILY, fontSize: 18, fill: 'black'});
 	    ktxt.offsetX(ktxt.width() / 2);  ktxt.offsetY(ktxt.height() / 2);  // center
 	    pgroup.add(ktxt);
+	} else {
+	    pText = '2:1 ' + HEXTYPE_DISP_NAMES[ptype];
 	}
 	// port facings: 1 is NE, 2 is E, etc: so if arrow #s are rotated to (facing-1) and facing, then facing=0 is top-center 45deg triangle
 	pgroup.add(new Konva.Line({
@@ -380,7 +387,7 @@ function GameUI(gaName)
 	pgroup.x(x);
 	pgroup.y(y);
 	this.bLayer.add(pgroup);
-	this.addTooltipToShape(pgroup, 'port');  // TODO add port type to desc
+	this.addTooltipToShape(pgroup, pText + ' port');
     }
     this.placeRobber = function(r, c)
     {
