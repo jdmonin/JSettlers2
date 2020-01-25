@@ -1,4 +1,4 @@
-// JSettlers build script for gradle 4 and gradle 5
+// JSettlers build script for gradle 5.6 or higher
 // See bottom of file for copyright and license information (GPLv3).
 
 apply plugin: 'java'
@@ -12,7 +12,7 @@ buildscript {
     }
 }
 
-version = '2.1.00'  // same as in src/main/resources/resources/version.info
+version = '2.2.00'  // same as in src/main/resources/resources/version.info
 ext.i18neditor_version = '1.1.0'  // for PTE editor; same as in src/main/resources/pteResources/pteversion.properties
 ext.git_revision = '?'  // placed in jar manifests as Build-Revision attrib; will be filled in by findGitRevision task
 

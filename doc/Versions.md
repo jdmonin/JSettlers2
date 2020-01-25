@@ -15,6 +15,10 @@ and backport minor new features until `2.0.00` was ready.
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
 
 
+## `2.2.00` (build JM2020xxxx)
+- Currently being developed
+
+
 ## `2.1.00` (build JM20200119)
 - Client:
 	- New Game dialog: If "force UI scale" option is changed, use new value for new game's window
