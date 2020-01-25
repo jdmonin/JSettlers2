@@ -192,6 +192,13 @@ task i18neditorJar(type: Jar) {
 
 ant.defaultexcludes remove: "**/.gitignore"
 
+task cleanRemovePyc(type: Delete) {
+    outputs.upToDateWhen { false }  // never skip if asked for
+    delete fileTree('src') {
+        include '**/*.pyc'
+    }
+}
+
 // This copies everything in your "src" directory, so be sure to run on a clean repository only!
 // Includes target/lib/ to prevent eclipse ant import error
 FileTree srcTree = fileTree(dir: '.', includes: ['src/**', 'doc/**', 'build.*', 'Readme.*', '*.txt', '.gitignore', 'target/lib/.gitignore'])
@@ -200,6 +207,7 @@ FileTree srcTree = fileTree(dir: '.', includes: ['src/**', 'doc/**', 'build.*', 
 
 // jsettlers-2.x.xx-src.tar.gz
 task distSrcTar(type: Tar) {
+    dependsOn cleanRemovePyc
     baseName = 'jsettlers'
     classifier = 'src'
     compression = Compression.GZIP
@@ -210,6 +218,7 @@ task distSrcTar(type: Tar) {
 
 // jsettlers-2.x.xx-full.tar.gz
 task distFullTar(type: Tar) {
+    dependsOn cleanRemovePyc
     baseName = 'jsettlers'
     classifier = 'full'
     compression = Compression.GZIP
@@ -220,6 +229,7 @@ task distFullTar(type: Tar) {
 
 // jsettlers-2.x.xx-full.zip
 task distFullZip(type: Zip) {
+    dependsOn cleanRemovePyc
     baseName = 'jsettlers'
     classifier = 'full'
     from srcTree, fullJar.outputs.files, serverJar.outputs.files
@@ -232,6 +242,7 @@ tasks.withType(AbstractArchiveTask) {
 
 // For dist, ensure no git-untracked files or uncommited changes in repo
 task distCheckSrcDirty {
+    dependsOn cleanRemovePyc  // prevent "Untracked files in repo: src/main/bin/sql/template/render.pyc"
     outputs.upToDateWhen { false }  // prevent "Task has not declared any outputs despite executing actions"
 
     // Git command adapted from mark-longair's 2011-02-28 answer at
@@ -260,7 +271,7 @@ task distCheckSrcDirty {
 task dist {
     dependsOn distCheckSrcDirty, distSrcTar, distFullTar, distFullZip
     doLast {
-        println "Built for distribution:"
+        println "Built for distribution in " + project.distsDir + ":"
         [distSrcTar, distFullTar, distFullZip].each { dtask -> dtask.outputs.files.each { File file ->
             println file.name
     }}}
