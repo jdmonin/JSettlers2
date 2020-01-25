@@ -1,6 +1,6 @@
 /*
  * nand.net i18n utilities for Java: Property file editor for translators (side-by-side source and destination languages).
- * This file Copyright (C) 2013-2014,2016,2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2014,2016,2019-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2011 Jim Morris: RequestFocusListener (CC BY-SA 3.0)
  *
  * This program is free software; you can redistribute it and/or
@@ -44,6 +44,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -93,7 +94,6 @@ import net.nand.util.i18n.mgr.StringManager;
  *<UL>
  * <LI> Can only change string values, not key names
  * <LI> Can't delete or move lines in the files
- * <LI> To test this editor's own localization in other locales, you must change your system default locale
  * <LI> Search the source for {@code TODO} for other minor items
  *</UL>
  * There are other properties editors out there, I wanted to see what writing one would be like.
@@ -102,9 +102,27 @@ import net.nand.util.i18n.mgr.StringManager;
 public class PropertiesTranslatorEditor
     implements ActionListener, MouseListener
 {
+    /**
+     * Optional JVM property {@code pte.locale} to specify the locale,
+     * overriding the default from {@link java.util.Locale#getDefault()}.
+     * @see StringManager#parseLocale(String)
+     * @since 1.2
+     */
+    public static final String PROP_PTE_LOCALE = "pte.locale";
 
-    /** i18n text strings; if null, call {@link #initStringManager()} to initialize. */
+    /**
+     * i18n text strings; if null, call {@link #initStringManager()} to initialize.
+     * Locale might be different than system default: see {@link #pteLocale}.
+     */
     static StringManager strings;
+
+    /**
+     * Locale for the PTE editor's own {@link #strings}, or system default.
+     * Override default if needed in {@link #initStringManager()} by reading
+     * system property {@link #PROP_PTE_LOCALE} ({@code "pte.locale"}).
+     * @since 1.2
+     */
+    private static Locale pteLocale;
 
     /**
      * Pair of properties files being edited, and their contents.
@@ -924,7 +942,23 @@ public class PropertiesTranslatorEditor
         if (strings != null)
             return;
 
-        strings = new StringManager("pteResources/strings/pte");
+          String ls = System.getProperty(PROP_PTE_LOCALE);
+          Locale lo = null;
+          if (ls != null)
+          {
+              try
+              {
+                  lo = StringManager.parseLocale(ls.trim());
+              } catch (IllegalArgumentException e) {
+                  System.err.println("Could not parse locale " + ls);
+              }
+          }
+          if (lo != null)
+              pteLocale = lo;
+          else
+              pteLocale = Locale.getDefault();
+
+        strings = new StringManager("pteResources/strings/pte", pteLocale);
     }
 
     /**

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2015,2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015,2017,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,7 +20,6 @@
 package soc.util;
 
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Common helper functions for internationalization and localization (I18N).
@@ -34,30 +33,11 @@ import java.util.Locale;
 public abstract class I18n
 {
     /**
-     * Property {@code jsettlers.locale} to specify the locale,
-     * overriding the default from {@link java.util.Locale#getDefault()}.toString().
+     * Optional JVM property {@code jsettlers.locale} to specify the locale,
+     * overriding the default from {@link java.util.Locale#getDefault()}.
+     * @see net.nand.util.i18n.mgr.StringManager#parseLocale(String)
      */
     public static final String PROP_JSETTLERS_LOCALE = "jsettlers.locale";
-
-    /**
-     * Parse and construct a Locale for this locale string.
-     * @param loc  Locale string, such as "en_US" from {@link Locale#toString()}
-     * @return A Locale object, or if 0-length, {@link Locale#getDefault()}.
-     * @throws IllegalArgumentException if no locale can be parsed or found
-     */
-    public static final Locale parseLocale(final String loc)
-        throws IllegalArgumentException
-    {
-        if (loc.length() == 0)
-            return Locale.getDefault();
-        final String[] lc = loc.split("_");
-        if (lc.length == 1)
-            return new Locale(lc[0]);
-        else if (lc.length == 2)
-            return new Locale(lc[0], lc[1]);
-        else
-            return new Locale(lc[0], lc[1], lc[2]);
-    }
 
     /**
      * Build a string with the contents of this list, such as "x, y, and z".

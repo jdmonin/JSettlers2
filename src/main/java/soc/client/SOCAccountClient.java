@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2009-2011,2013-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2011,2013-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,6 +34,8 @@ import soc.message.SOCVersion;
 import soc.util.I18n;
 import soc.util.SOCFeatureSet;
 import soc.util.Version;
+
+import net.nand.util.i18n.mgr.StringManager;
 
 import java.applet.Applet;
 
@@ -221,7 +223,7 @@ public class SOCAccountClient extends Applet
      * Also sent to server when connecting.
      * Override if needed in the constructor by reading the
      * {@link I18n#PROP_JSETTLERS_LOCALE PROP_JSETTLERS_LOCALE}
-     * system property {@code "jsettlers.locale"}.
+     * JVM property {@code "jsettlers.locale"}.
      * @since 2.0.00
      */
     final Locale cliLocale;
@@ -256,7 +258,7 @@ public class SOCAccountClient extends Applet
      *<P>
      * The {@code SOCAccountClient} GUI's own localized strings use the
      * current user's default locale, unless overridden by setting the
-     * {@link I18n#PROP_JSETTLERS_LOCALE PROP_JSETTLERS_LOCALE} system property {@code "jsettlers.locale"}.
+     * {@link I18n#PROP_JSETTLERS_LOCALE PROP_JSETTLERS_LOCALE} JVM property {@code "jsettlers.locale"}.
      *
      * @param h  host
      * @param p  port; JSettlers default is 8880 ({@link ClientNetwork#SOC_PORT_DEFAULT})
@@ -280,7 +282,7 @@ public class SOCAccountClient extends Applet
         {
             try
             {
-                lo = I18n.parseLocale(jsLocale.trim());
+                lo = StringManager.parseLocale(jsLocale.trim());
             } catch (IllegalArgumentException e) {
                 System.err.println("Could not parse locale " + jsLocale);
             }

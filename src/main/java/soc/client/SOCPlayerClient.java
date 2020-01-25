@@ -38,6 +38,8 @@ import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 
+import net.nand.util.i18n.mgr.StringManager;
+
 import soc.baseclient.SOCDisplaylessPlayerClient;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
@@ -249,8 +251,8 @@ public class SOCPlayerClient
 
     /**
      * Locale for i18n message lookups used for {@link #strings}.  Also sent to server while connecting.
-     * Override if needed in the constructor by reading the
-     * {@link I18n#PROP_JSETTLERS_LOCALE PROP_JSETTLERS_LOCALE} system property {@code "jsettlers.locale"}.
+     * Override if needed in the constructor by reading JVM property
+     * {@link I18n#PROP_JSETTLERS_LOCALE PROP_JSETTLERS_LOCALE} ({@code "jsettlers.locale"}).
      * @since 2.0.00
      */
     final Locale cliLocale;
@@ -417,7 +419,7 @@ public class SOCPlayerClient
      * Create a SOCPlayerClient connecting to localhost port {@link ClientNetwork#SOC_PORT_DEFAULT}.
      * Initializes helper objects (except {@link MainDisplay}), locale, {@link SOCStringManager}.
      * The locale will be the current user's default locale, unless overridden by setting the
-     * {@link I18n#PROP_JSETTLERS_LOCALE PROP_JSETTLERS_LOCALE} system property {@code "jsettlers.locale"}.
+     * {@link I18n#PROP_JSETTLERS_LOCALE PROP_JSETTLERS_LOCALE} JVM property {@code "jsettlers.locale"}.
      *<P>
      * Must call {@link SOCApplet#init()}, or {@link #setMainDisplay(MainDisplay)} and then
      * {@link MainDisplay#initVisualElements()}, to start up and do layout.
@@ -440,7 +442,7 @@ public class SOCPlayerClient
         {
             try
             {
-                lo = I18n.parseLocale(jsLocale.trim());
+                lo = StringManager.parseLocale(jsLocale.trim());
             } catch (IllegalArgumentException e) {
                 System.err.println("Could not parse locale " + jsLocale);
             }

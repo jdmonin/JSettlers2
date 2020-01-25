@@ -231,7 +231,7 @@ details on bot testing.
 ### JSettlers client properties for debugging and testing
 
 To use any of these, specify them in the IDE or java command line as JVM
-parameters (before the SOCPlayerClient class name, not after):
+parameters (before, not after, `-jar` or the SOCPlayerClient class name):
 
 - `-Djsettlers.locale=es_MX` - Use a different locale
 - `-Djsettlers.debug.traffic=Y` - Print network traffic; see above for details

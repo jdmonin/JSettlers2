@@ -1,6 +1,6 @@
 /**
  * nand.net i18n utilities for Java: String Manager.
- * This file Copyright (C) 2013,2018-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2018-2020 Jeremy D Monin <jeremy@nand.net>
  * Some parts of this file Copyright (C) 2013 Luis A. Ramirez <lartkma@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -72,6 +72,30 @@ public class StringManager
     public StringManager(final String bundlePath, final Locale loc)
     {
         bundle = ResourceBundle.getBundle(bundlePath, loc);
+    }
+
+    /**
+     * Parse and construct a Locale for this locale string.
+     *<P>
+     * This method in the JSettlers {@code soc.util.I18n} package; moved here for JSettlers v2.2
+     * and net.nand.util.i18n editor version 1.2.
+     *
+     * @param loc  Locale string, such as "en_US" from {@link Locale#toString()}
+     * @return A Locale object, or if 0-length, {@link Locale#getDefault()}.
+     * @throws IllegalArgumentException if no locale can be parsed or found
+     */
+    public static final Locale parseLocale(final String loc)
+        throws IllegalArgumentException
+    {
+        if (loc.length() == 0)
+            return Locale.getDefault();
+        final String[] lc = loc.split("_");
+        if (lc.length == 1)
+            return new Locale(lc[0]);
+        else if (lc.length == 2)
+            return new Locale(lc[0], lc[1]);
+        else
+            return new Locale(lc[0], lc[1], lc[2]);
     }
 
     /**

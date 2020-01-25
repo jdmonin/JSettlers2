@@ -37,7 +37,6 @@ import soc.server.genericServer.InboundMessageQueue;
 import soc.server.genericServer.Server;
 import soc.server.genericServer.StringConnection;
 
-import soc.util.I18n;
 import soc.util.SOCFeatureSet;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;  // used in javadoc
@@ -45,6 +44,8 @@ import soc.util.SOCRobotParameters;
 import soc.util.SOCStringManager;
 import soc.util.Triple;
 import soc.util.Version;
+
+import net.nand.util.i18n.mgr.StringManager;
 
 import java.io.BufferedReader;
 import java.io.Console;
@@ -5483,7 +5484,7 @@ public class SOCServer extends Server
         scd.localeStr = clocale;
         try
         {
-            scd.locale = I18n.parseLocale(clocale);
+            scd.locale = StringManager.parseLocale(clocale);
         } catch (IllegalArgumentException e) {
             warnMsg = "Sorry, cannot parse your locale.";  // i18n OK: We don't know client locale
             scd.localeStr = "en_US";  // fallback

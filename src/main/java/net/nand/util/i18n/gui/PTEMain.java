@@ -1,6 +1,6 @@
 /*
  * nand.net i18n utilities for Java: Property file editor for translators (side-by-side source and destination languages).
- * This file Copyright (C) 2013,2015-2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -86,8 +86,8 @@ public class PTEMain extends JFrame
      * i18n text strings, taken from {@link PropertiesTranslatorEditor#strings};
      * if that's null, call {@link PropertiesTranslatorEditor#initStringManager()} to initialize.
      *<P>
-     * Initialization is in PropertiesTranslatorEditor because the editor will always use that class
-     * but not always use PTEMain.
+     * Initialization and the editor's own locale are in PropertiesTranslatorEditor,
+     * because the editor always uses that class but not always PTEMain.
      */
     private static StringManager strings;
 
