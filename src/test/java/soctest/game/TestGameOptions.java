@@ -83,8 +83,8 @@ public class TestGameOptions
     @Test
     public void testServerRemovesFalseVP()
     {
-        final Map<String, SOCGameOption> newOpts = new HashMap<String, SOCGameOption>(),
-            knownOpts = new HashMap<String, SOCGameOption>();
+        final Map<String, SOCGameOption> newOpts = new HashMap<>(),
+            knownOpts = new HashMap<>();
 
         final SOCGameOption optVP = SOCGameOption.getOption("VP", true);
         optVP.setIntValue(12);
@@ -164,7 +164,7 @@ public class TestGameOptions
         assertNotNull(SOCGameOption.getOption("_TESTF", false));
 
         // should remove internal option if sent from "client" to "server"
-        final Map<String, SOCGameOption> newGameOpts = new HashMap<String, SOCGameOption>();
+        final Map<String, SOCGameOption> newGameOpts = new HashMap<>();
         final SOCGameOption opt = SOCGameOption.getOption("_TESTF", true);
         opt.setIntValue(0x2211);
         newGameOpts.put("_TESTF", opt);

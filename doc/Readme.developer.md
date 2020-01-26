@@ -427,6 +427,14 @@ ideas.
 - Docs: State diagram for `SOCGame` states, or sequence of important message flows
   (log into server, create/join game, roll dice, etc)
 - Docs: `PlayerClientListener` interface has some methods without javadocs: Add by checking `SOCPlayerInterface.ClientBridge` implementation
+- Java 7 cleanup: Use diamond operator where possible
+  - Example: change  
+    `Map<String, SOCGameOption> newOpts = new HashMap<String, SOCGameOption>()`  
+    to  
+    `Map<String, SOCGameOption> newOpts = new HashMap<>()`
+  - This regexp search will find some candidates: `= new \w+\s*<[^>]`
+  - For clarity, decide case-by-case whether to use diamond with deeply nested types like  
+    `new Stack<Pair<NodeLenVis<Integer>, List<Integer>>>()`
 - Add more scenarios' unit tests to `soctest.game.TestScenarioRules`
 - Kick robots if inactive but current player in game, assume they're buggy (use forceEndTurn)
 - Control the speed of robots, in practice games and with other humans
