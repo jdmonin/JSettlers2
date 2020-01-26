@@ -78,7 +78,7 @@ https://github.com/jdmonin/JSettlers2/blob/master/Readme.md .
 ## Requirements
 
 To play JSettlers you will need either the Java Development Kit (JDK)
-version 6 or higher, or version 8 or earlier of the smaller Java Runtime (JRE).
+version 7 or higher, or version 7 or 8 of the smaller Java Runtime (JRE).
 Then download JSettlers-full.jar from either
 https://github.com/jdmonin/JSettlers2/releases or http://nand.net/jsettlers/
 and run it.
@@ -90,8 +90,9 @@ such as Apache's httpd (available from http://httpd.apache.org).
 The JSettlers-full.jar file can also run locally as a server, without needing a
 web server. If you're running a LAN game for friends, that Jar is all you need.
 
-To build JSettlers from source, you will need Java JDK 6 or higher, and either
-gradle 4 or 5, or an IDE such as Eclipse which understands gradle's format.
+To build JSettlers from source, you will need Java JDK 7 or higher, and either
+gradle 5.6 or higher (which requires java 8), or an IDE such as Eclipse which
+understands gradle's format.
 See [doc/Readme.developer.md](doc/Readme.developer.md) for details.
 
 
@@ -127,7 +128,7 @@ instead of the full tar.gz, use that filename on the command lines shown below.
 ### Server Startup
 
 Start the server with the following command
-(server requires Java JDK 6 or higher, or JRE version 6, 7, or 8):
+(server requires Java JDK 7 or higher, or JRE version 7 or 8):
 
     java -jar JSettlersServer.jar
 

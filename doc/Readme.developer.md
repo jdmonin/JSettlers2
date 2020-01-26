@@ -24,9 +24,8 @@
 
 ### Project layout
 
-This project uses gradle 4 or 5 (or IDEs) to build. For developer familiarity,
+This project uses gradle 5.6 or higher (or IDEs) to build. For developer familiarity,
 the project uses the directory structure/layout of a maven/gradle project.
-(v2 and newer versions use gradle to build. The 1.x.xx versions used ant.)
 
 Also see the "Build Setup and Results" section.
 
@@ -79,9 +78,9 @@ To no longer show those coordinates, type: `=*= hidecoords`
 
 ### Development
 
-Coding is done in Java 6, but should compile cleanly in newer JDKs.
-(v1.2 used java 5 for backwards compatibility; earlier versions used 1.4.)
-The build system is gradle 4 or 5. Use any IDE you want, including vi.
+Coding is done in Java 7, but should compile cleanly in newer JDKs.
+(v2.0 and 2.1 used java 6 for backwards compatibility; 1.2 used java 5.)
+The build system is gradle 5.6 or higher (which requires java 8). Use any IDE you want, including vi.
 Use spaces, not tabs.  Please try to keep the other conventions of the
 current code (see "Coding Style" below for more details.).
 
@@ -273,7 +272,7 @@ its `build.gradle` into other IDEs.
     - Java Compiler:
 	    - Enable project specific settings
 	    - JDK compliance
-    	    - Compliance level: 1.6
+    	    - Compliance level: 1.7
     - OK
     	- If eclipse asks "Build the project now?", hit Yes
 - Run the `assemble` or `build` gradle task now to copy resources from `src/main/resources/`.  
@@ -287,9 +286,9 @@ patch submissions; to set up Eclipse now to use that style, see section
 
 ## Build Setup and Results
 
-Before building, make sure you have the Java Development Kit (JDK) version 6 or higher.
-If you only want to run the client or server, you can use either the JDK, or
-version 8 or earlier of the smaller Java Runtime (JRE).
+Before building, make sure you have the Java Development Kit (JDK) version 8 or higher.
+If you only want to run the client or server, you can use either JDK 7 or higher,
+or version 7 or 8 of the smaller Java Runtime (JRE).
 
 Extra tests in the build want python 2.7 or later for unittest discovery.
 Java unit tests and extraTests use JUnit 4, which is downloaded by `build.gradle`.
@@ -299,7 +298,7 @@ If you wish to maintain a user database for your server, you need MySQL
 or PostgreSQL installed and configured, or the sqlite jdbc driver for a
 file-based local database.
 
-This project was designed to build with gradle 4 or 5, and from within an IDE
+This project is designed to build with gradle 5.6 or higher, or from within an IDE
 like eclipse. Gradle builds output to `build/libs/`.
 
 If not using an IDE like eclipse, check the `build.gradle` file. There may be

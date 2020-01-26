@@ -19,8 +19,8 @@ ext.git_revision = '?'  // placed in jar manifests as Build-Revision attrib; wil
 mainClassName = "soc.client.SOCPlayerClient"
 
 compileJava {
-    sourceCompatibility = '1.6'
-    targetCompatibility = '1.6'
+    sourceCompatibility = '1.7'
+    targetCompatibility = '1.7'
 }
 
 repositories {
