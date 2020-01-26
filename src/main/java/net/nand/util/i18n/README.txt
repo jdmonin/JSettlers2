@@ -75,6 +75,7 @@ Version history
 
 1.2.0
 - Current beta version being developed.
+- Add project website to About dialog
 - For testing translations of the editor UI itself, can specify a different locale with JVM parameter -Dpte.locale=es_MX
 
 1.1.0 (2019-04-27 03df7a1)

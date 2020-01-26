@@ -210,15 +210,21 @@ public class PTEMain extends JFrame
             isp = PTEMain.class.getResourceAsStream("/pteResources/pteversion.properties");
             Properties vprop = new Properties();
             vprop.load(isp);
-            String vers = (String) vprop.get("pte.version");  // "1.0.0"
-                // Could alternately use PTEMain.class.getPackage().getImplementationVersion()
-                // to read Implementation-Version from the jar manifest,
-                // but if we're running in eclipse there is no jar file.
+            final String websiteURL = (String) vprop.get("pte.website"),  // "http://nand.net/jsettlers/devel/i18n/"
+                vers = (String) vprop.get("pte.version");  // "1.2.0"
+                    // Could alternately use PTEMain.class.getPackage().getImplementationVersion()
+                    // to read Implementation-Version from the jar manifest,
+                    // but if we're running in an IDE there is no jar file.
 
+            if (websiteURL != null)
+            {
+                sb.append("\n\n");
+                sb.append(strings.get("dialog.about.website", websiteURL));  // "Website: {0}"
+            }
             if (vers != null)
             {
                 sb.append("\n\n");
-                sb.append(strings.get("dialog.about.version", vers));  // "Version: {0}" -> "Version: 1.0.0"
+                sb.append(strings.get("dialog.about.version", vers));  // "Version: {0}" -> "Version: 1.2.0"
             }
         }
         catch (Exception e) { System.err.println(e); }
