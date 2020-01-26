@@ -59,7 +59,6 @@ import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -6585,7 +6584,7 @@ import javax.swing.JComponent;
                         tempChangedMode = true;
                     }
                 }
-                else if (((evt.getModifiers() & InputEvent.BUTTON1_MASK) == InputEvent.BUTTON1_MASK)
+                else if (((evt.getButton() & MouseEvent.BUTTON1) != 0)
                     && (player != null) && (game.getCurrentPlayerNumber() == playerNumber)
                     && (player.getPublicVP() == 2) && (hintShownCount_RightClickToBuild < 2))
                 {

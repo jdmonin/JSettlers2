@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2009,2012,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2012,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -181,8 +181,8 @@ import soc.game.SOCResourceSet;
     }
 
     /** Don't "roll" plus/minus if shift or ctrl key is held during click */
-    public static final int shiftKeysMask = MouseEvent.SHIFT_MASK
-        | MouseEvent.CTRL_MASK | MouseEvent.ALT_MASK | MouseEvent.META_MASK;
+    private static final int shiftKeysMask = MouseEvent.SHIFT_DOWN_MASK
+        | MouseEvent.CTRL_DOWN_MASK | MouseEvent.ALT_DOWN_MASK | MouseEvent.META_DOWN_MASK;
 
     /**
      * DOCUMENT ME!
@@ -196,7 +196,7 @@ import soc.game.SOCResourceSet;
         if ( ! interactive )
             return;
 
-        if (0 != (shiftKeysMask & e.getModifiers()))
+        if (0 != (shiftKeysMask & e.getModifiersEx()))
         {
             /**
              * Shift, Ctrl, or a similar key is being held.

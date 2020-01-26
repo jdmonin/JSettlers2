@@ -988,10 +988,10 @@ public class SOCDBHelper
                     final URL[] urls = { jf.toURI().toURL() };
                     URLClassLoader child = new URLClassLoader(urls, ClassLoader.getSystemClassLoader());
                     final Class<?> dclass = Class.forName(driverclass, true, child);
-                    driverinstance = (Driver) dclass.newInstance();
+                    driverinstance = (Driver) dclass.getDeclaredConstructor().newInstance();
                 } else {
                     // JDBC driver class must already be loaded.
-                    driverinstance = (Driver) (Class.forName(driverclass).newInstance());
+                    driverinstance = (Driver) (Class.forName(driverclass).getDeclaredConstructor().newInstance());
                 }
             }
             catch (Throwable x)

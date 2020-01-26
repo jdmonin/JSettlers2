@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file copyright (C) 2007,2013,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007,2013,2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -406,14 +406,14 @@ import soc.game.SOCGame;
             break;
 
         case KeyEvent.VK_HOME:
-            if (0 != (e.getModifiers() & KeyEvent.CTRL_MASK))
+            if (0 != (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK))
                 fcl.moveCursor (-3, -2, e);
             else
                 fcl.moveCursor (0, -2, e);
             break;
 
         case KeyEvent.VK_END:
-            if (0 != (e.getModifiers() & KeyEvent.CTRL_MASK))
+            if (0 != (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK))
                 fcl.moveCursor (+3, +2, e);
             else
                 fcl.moveCursor (0, +2, e);
