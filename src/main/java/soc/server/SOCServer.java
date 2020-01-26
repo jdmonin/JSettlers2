@@ -8089,6 +8089,19 @@ public class SOCServer extends Server
             argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "");
         }
 
+        // For convenience, copy org.sqlite.tmpdir to JVM params if set in jsserver.properties or command line
+        // but not already in JVM params
+        try
+        {
+            if (argp.containsKey(SOCDBHelper.PROP_SQLITE_TMPDIR)
+                && (null == System.getProperty(SOCDBHelper.PROP_SQLITE_TMPDIR)))
+            {
+                final String arg = argp.getProperty(SOCDBHelper.PROP_SQLITE_TMPDIR);
+                if ((arg != null) && ! arg.isEmpty())
+                    System.setProperty(SOCDBHelper.PROP_SQLITE_TMPDIR, arg);
+            }
+        } catch (SecurityException e) {}
+
         // Make sure no more flagged parameters
         if (aidx < args.length)
         {

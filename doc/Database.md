@@ -113,9 +113,12 @@ If sqlite gives you that "operation not permitted" error:
   - A user's home directory may satisfy this
   - To check mount flags, use the command `mount -v`
 - Make a directory within that one, for example:  
-  `mkdir -p /home/jeremy/jsettlers/sqlite-tmp`
-- When starting the server, give sqlite-jdbc that directory name *before* the `-jar` parameter:  
-  `java -Dorg.sqlite.tmpdir=/home/jeremy/jsettlers/sqlite-tmp -jar JSettlersServer-...`
+  `mkdir -p /home/jsuser/jsettlers/sqlite-tmp`
+- Do whichever of these 2 options is easier for you:
+  - Add to your `jsserver.properties` file:  
+    `org.sqlite.tmpdir=/home/jsuser/jsettlers/sqlite-tmp`
+  - When starting the server, give sqlite-jdbc that directory name before the `-jar` parameter:  
+    `java -Dorg.sqlite.tmpdir=/home/jsuser/jsettlers/sqlite-tmp -jar JSettlersServer-...`
 
 ### If your database server isn't a type listed above
 

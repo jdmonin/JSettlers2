@@ -144,6 +144,13 @@
 # download the driver JAR for your DB type; see README.txt for URLs.
 # jsettlers.db.jar=...    # (Blank by default)
 
+# For SQLite, the JVM property name that xerial sqlite-jdbc uses
+# when extracting its native library to a non-default temp directory.
+# See /doc/Database.md for more info about org.sqlite.tmpdir and whether you
+# need it. If so, you can set it here in jsserver.properties and the server
+# will copy that value to the JVM property if it isn't already there.
+# org.sqlite.tmpdir=/home/jsuser/jsettlers/sqlite-tmp
+
 # JDBC DB driver class name. Common DB types will automatically set this
 # based on the database type prefix in jsettlers.db.url:
 #   mysql ->    com.mysql.jdbc.Driver
@@ -232,12 +239,14 @@
 # -- End of list of recognized available properties --
 
 # This sample file is documentation about the available properties.
-# Any jsserver.properties file you create belongs to you.
+# Any jsserver.properties file you create is original and belongs to you,
+# and is not a modification or derivative work of this sample file.
+
 # Attribution and copyright info for this sample file:
 #
 # This file is part of the JSettlers project.
 #
-# This file Copyright (C) 2016-2019 Jeremy D Monin (jeremy@nand.net)
+# This file Copyright (C) 2016-2020 Jeremy D Monin (jeremy@nand.net)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

@@ -17,6 +17,10 @@ and backport minor new features until `2.0.00` was ready.
 
 ## `2.2.00` (build JM2020xxxx)
 - Currently being developed
+- Server:
+	- SQLite database:
+	  - For convenience, if JVM properties don't contain `org.sqlite.tmpdir` but that property is set in
+	    `jsserver.properties` file or command line, copy it into JVM properties
 
 
 ## `2.1.00` (build JM20200119)

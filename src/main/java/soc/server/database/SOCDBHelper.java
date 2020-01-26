@@ -239,6 +239,16 @@ public class SOCDBHelper
     public static final String PROP_IMPL_JSETTLERS_PW_RESET = "_jsettlers.user.pw_reset";
 
     /**
+     * For convenience/reference, the JVM property name that xerial sqlite-jdbc uses
+     * when extracting its native library to a non-default temp directory.
+     *<P>
+     * JSettlers server v2.2.00 and newer will set the JVM property if it's not already set
+     * but is in {@code jsserver.properties} file or the server command line.
+     * @since 2.2.00
+     */
+    public static final String PROP_SQLITE_TMPDIR = "org.sqlite.tmpdir";
+
+    /**
      * Original JSettlers schema version (1.0.00), before any new extra tables/fields.
      * {@code games} table has columns for only 4 players' names and scores, not 6.
      *<P>
