@@ -702,9 +702,9 @@ Start with a recently-created database with latest schema/setup scripts.
     - See `TestBoardLayoutsRounds` in "extraTest" section
 - Build contents and built artifacts:
     - `gradle dist` runs without errors, under gradle 4 and also gradle 5
-    - Full jar and server jar should include correct git commit id:
-        - `unzip -q -c build/libs/JSettlers-*.jar META-INF/MANIFEST.MF | grep Build-Revision`
-        - `unzip -q -c build/libs/JSettlersServer-*.jar META-INF/MANIFEST.MF | grep Build-Revision`
+    - Full jar and server jar manifests should include correct JSettlers version and git commit id:
+        - `unzip -q -c build/libs/JSettlers-*.jar META-INF/MANIFEST.MF | grep 'Build-Revision\|Implementation-Version'`
+        - `unzip -q -c build/libs/JSettlersServer-*.jar META-INF/MANIFEST.MF | grep 'Build-Revision\|Implementation-Version'`
     - Diff list of files from `gradle dist` outputs in `build/distributions/`:
         - `unzip -t jsettlers-2.*-full.zip | sort`
         - `tar tzf jsettlers-2.*-full.tar.gz | sort` (same files as above)

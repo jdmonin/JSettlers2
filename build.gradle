@@ -128,6 +128,7 @@ task serverJar(type: Jar) {
     manifest {
         attributes(
             'Main-Class': 'soc.server.SOCServer',
+            'Implementation-Version': project.version,
             'Build-Revision': project.git_revision,
         )
     }
@@ -154,6 +155,7 @@ task fullJar(type: Jar) {
     manifest {
         attributes(
             'Main-Class': 'soc.client.SOCPlayerClient',
+            'Implementation-Version': project.version,
             'Build-Revision': project.git_revision,
         )
     }
