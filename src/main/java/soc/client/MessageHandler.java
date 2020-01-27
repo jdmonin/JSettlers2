@@ -2104,7 +2104,8 @@ import soc.util.Version;
     }
 
     /**
-     * handle the "development card action" message
+     * Handle the "development card action" message, which may have multiple cards.
+     * Updates game data, then calls {@link PlayerClientListener#playerDevCardsUpdated(SOCPlayer, boolean)}.
      * @param mes  the message
      */
     protected void handleDEVCARDACTION(final boolean isPractice, final SOCDevCardAction mes)
@@ -2113,16 +2114,22 @@ import soc.util.Version;
         if (ga == null)
             return;
 
-        final SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+        final int pn = mes.getPlayerNumber();
+        final SOCPlayer player = ga.getPlayer(pn);
         final PlayerClientListener pcl = client.getClientListener(mes.getGame());
         final int clientPN = (pcl != null) ? pcl.getClientPlayerNumber() : -2;  // not -1: message may have that
         final int act = mes.getAction();
+
+        if ((pn == clientPN) && (act == SOCDevCardAction.ADD_OLD) && (ga.getGameState() == SOCGame.OVER))
+        {
+            return;  // ignore messages at OVER about our own VP dev cards
+        }
 
         final List<Integer> ctypes = mes.getCardTypes();
         if (ctypes != null)
         {
             for (final int ctype : ctypes)
-                handleDEVCARDACTION(ga, player, act, ctype, pcl, clientPN);
+                handleDEVCARDACTION(ga, player, act, ctype);
         } else {
             int ctype = mes.getCardType();
             if ((! isPractice) && (client.sVersion < SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES))
@@ -2132,18 +2139,18 @@ import soc.util.Version;
                 else if (ctype == SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X)
                     ctype = SOCDevCardConstants.UNKNOWN;
             }
-            handleDEVCARDACTION(ga, player, act, ctype, pcl, clientPN);
+            handleDEVCARDACTION(ga, player, act, ctype);
         }
+
+        if (pcl != null)
+            pcl.playerDevCardsUpdated(player, (act == SOCDevCardAction.ADD_OLD));
     }
 
     /**
-     * Handle one dev card for {@link #handleDEVCARDACTION(boolean, SOCDevCardAction)},
-     * which may have multiple cards in its message. Updates game data and calls
-     * {@link PlayerClientListener#playerDevCardUpdated(SOCPlayer, boolean)}.
+     * Handle one dev card's game data update for {@link #handleDEVCARDACTION(boolean, SOCDevCardAction)}.
      */
     private void handleDEVCARDACTION
-        (final SOCGame ga, final SOCPlayer player, final int act, final int ctype,
-         final PlayerClientListener pcl, final int clientPN)
+        (final SOCGame ga, final SOCPlayer player, final int act, final int ctype)
     {
         switch (act)
         {
@@ -2156,10 +2163,6 @@ import soc.util.Version;
             break;
 
         case SOCDevCardAction.ADD_OLD:
-            if ((player.getPlayerNumber() == clientPN) && (ga.getGameState() == SOCGame.OVER))
-            {
-                return;  // ignore messages at OVER about our own VP dev cards
-            }
             player.getInventory().addDevCard(1, SOCInventory.OLD, ctype);
             break;
 
@@ -2167,9 +2170,6 @@ import soc.util.Version;
             player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
             break;
         }
-
-        if (pcl != null)
-            pcl.playerDevCardUpdated(player, (act == SOCDevCardAction.ADD_OLD));
     }
 
     /**
@@ -2831,7 +2831,7 @@ import soc.util.Version;
             if (ga != null)
             {
                 final SOCPlayer pl = ga.getPlayer(mes.playerNumber);
-                pcl.playerDevCardUpdated
+                pcl.playerDevCardsUpdated
                     (pl, (mes.action == SOCInventoryItemAction.ADD_PLAYABLE));
                 if (mes.action == SOCInventoryItemAction.PLAYED)
                     pcl.playerCanCancelInvItemPlay(pl, mes.canCancelPlay);

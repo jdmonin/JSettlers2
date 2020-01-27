@@ -4042,7 +4042,7 @@ public class SOCPlayerInterface extends Frame
             hpan.updatePickGoldHexResources();
         }
 
-        public void playerDevCardUpdated(SOCPlayer player, final boolean addedPlayable)
+        public void playerDevCardsUpdated(SOCPlayer player, final boolean addedPlayable)
         {
             if (pi.isClientPlayer(player))
             {
@@ -4052,7 +4052,7 @@ public class SOCPlayerInterface extends Frame
             }
             else if (player != null)
             {
-                pi.getPlayerHandPanel(player.getPlayerNumber()).updateValue(PlayerClientListener.UpdateType.DevCards);
+                pi.getPlayerHandPanel(player.getPlayerNumber()).updateDevCards(addedPlayable);
             }
         }
 

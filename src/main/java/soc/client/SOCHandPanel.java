@@ -497,6 +497,18 @@ import javax.swing.UIManager;
 
     // More Trading interface/message balloon fields:
 
+    /**
+     * For non-client players, a text area for low-priority miscellaneous info.
+     * Call {@link #showMiscInfo(String)} to set or clear text.
+     * Currently used only to reveal VP cards at end of game,
+     * when {@link #messagePanel} is always hidden.
+     *<P>
+     * Is {@code null} until needed.
+     * Shares layout space with {@link #messagePanel}.
+     * @since 2.2.00
+     */
+    private JLabel miscInfoArea;
+
     /** Three player numbers to send trade offers to.
      *  For i from 0 to 2, playerSendMap[i] is playerNumber for checkbox i.
      *  This is null if {@link #playerTradingDisabled}.
@@ -549,6 +561,7 @@ import javax.swing.UIManager;
      *
      * @see #messageIsReset
      * @see #messageIsDiscardOrPick
+     * @see #miscInfoArea
      * @since 2.0.00
      */
     private final MessagePanel messagePanel;
@@ -2637,7 +2650,18 @@ import javax.swing.UIManager;
     }
 
     /**
-     * Update the displayed list of player's development cards and other inventory items,
+     * Update a player's displayed dev card/inventory item info.
+     *
+     *<H3>For non-client player:</H3>
+     *
+     * Calls {@link #updateValue(soc.client.PlayerClientListener.UpdateType) updateValue}
+     * ({@link soc.client.PlayerClientListener.UpdateType#DevCards DevCards}).
+     *<P>
+     * If game state is {@link SOCGame#OVER}, show a list of the player's revealed VP cards.
+     *
+     *<H3>For client player:</H3>
+     *
+     * Updates the displayed list of player's development cards and other inventory items,
      * and enable or disable the "Play Card" button.
      *<P>
      * Enables the "Play Card" button for {@link SOCInventory#PLAYABLE PLAYABLE} cards,
@@ -2650,7 +2674,33 @@ import javax.swing.UIManager;
      */
     public void updateDevCards(final boolean addedPlayable)
     {
-        SOCInventory items = player.getInventory();
+        if (! playerIsClient)
+        {
+            updateValue(PlayerClientListener.UpdateType.DevCards);
+
+            if (game.getGameState() == SOCGame.OVER)
+            {
+                StringBuffer sb = new StringBuffer();
+
+                for (SOCInventoryItem item : player.getInventory().getByState(SOCInventory.KEPT))
+                {
+                    if (! item.isVPItem())
+                        continue;
+
+                    sb.append((sb.length() != 0)
+                        ? "<br>"
+                        : "<html><B>" + strings.get("game.end.player.vpcards") + "</B><br>"); // "Victory Point cards:"
+                    sb.append(item.getItemName(game, false, strings));
+                }
+
+                if (sb.length() > 0)
+                    showMiscInfo(sb.toString());
+            }
+
+            return;
+        }
+
+        final SOCInventory items = player.getInventory();
 
         boolean hasOldCards = false;
 
@@ -3132,6 +3182,7 @@ import javax.swing.UIManager;
      *      Message can be 1 line, or 2 lines with <tt>'\n'</tt>;
      *      will not automatically wrap based on message length.
      * @see #hideMessage()
+     * @see #showMiscInfo(String)
      */
     private void showMessage(String message)
     {
@@ -3221,6 +3272,43 @@ import javax.swing.UIManager;
 
         showMessage(null);
         messageIsDiscardOrPick = false;
+    }
+
+    /**
+     * For a non-client player, show miscellaneous info in {@link #miscInfoArea} or clear it.
+     * Will be visible only if {@link #messagePanel} is hidden.
+     * @param info  Info text, or {@code null} to clear and hide.
+     *    Since {@code miscInfoArea} is a {@link JLabel}, any newlines must be formatted as HTML:
+     *    Caller must start text with <tt>&lt;html&gt;</tt> tag and replace
+     *    newlines with <tt>&lt;br&gt;</tt>
+     * @throws IllegalStateException if {@link #playerIsClient}
+     * @see #showMessage(String)
+     * @since 2.2.00
+     */
+    private void showMiscInfo(final String info)
+        throws IllegalStateException
+    {
+        if (playerIsClient)
+            throw new IllegalStateException("playerIsClient");
+
+        if (miscInfoArea == null)
+        {
+            JLabel la = new JLabel(info != null ? info : "");
+            miscInfoArea = la;
+            la.setFont(vpLab.getFont());
+            la.setForeground(null);  // inherit panel's colors
+            la.setBackground(null);
+            add(la);
+        }
+
+        if ((info == null) || info.isEmpty())
+        {
+            miscInfoArea.setText("");
+            miscInfoArea.setVisible(false);
+        } else {
+            miscInfoArea.setText(info);
+            invalidate();  // doLayout will setVisible(true)
+        }
     }
 
     /**
@@ -4208,6 +4296,18 @@ import javax.swing.UIManager;
 
                         messagePanel.setBounds(inset, py, msgPrefSize.width, msgPrefSize.height);
                     }
+
+                    if (miscInfoArea != null)
+                    {
+                        if ((messagePanel != null) && messagePanel.isVisible())
+                        {
+                            miscInfoArea.setVisible(false);
+                        } else {
+                            miscInfoArea.setBounds(inset, py, dim.width - inset, availHeightNoHide - inset);
+                            miscInfoArea.setVisible(true);
+                        }
+                    }
+
                     offerCounterHidesFace = false;
                 }
                 if (offerPanel != null)
