@@ -905,7 +905,10 @@ public class SOCGameHandler extends GameHandler
      * If <tt>isTakingOver</tt>, some details are sent by calling
      * {@link #sitDown_sendPrivateInfo(SOCGame, Connection, int)}.
      * The group of messages sent here ends with GAMEMEMBERS, SETTURN and GAMESTATE.
-     * Then, the entire game is sent a JOINGAME for the new game member.
+     * If state is {@link SOCGame#OVER}: Right after sending GAMESTATE, calls
+     * {@link #sendGameStateOVER(SOCGame, Connection) sendGameStateOver(gameData, c)}.
+     *<P>
+     * After all that is sent, the entire game is sent a JOINGAME for the new game member.
      *<P>
      * *<B>I18N:</B> If the game has a {@link SOCScenario} and the client needs scenario info or localized strings
      * for the scenario name and description, {@link SOCScenarioInfo} or {@link SOCLocalizedStrings} is
@@ -1478,8 +1481,7 @@ public class SOCGameHandler extends GameHandler
          */
         try
         {
-            Vector<Connection> gameMembers = srv.gameList.getMembers(gameName);
-            membersCommand = SOCGameMembers.toCmd(gameName, gameMembers);
+            membersCommand = SOCGameMembers.toCmd(gameName, srv.gameList.getMembers(gameName));
         }
         catch (Exception e)
         {
@@ -1487,11 +1489,16 @@ public class SOCGameHandler extends GameHandler
         }
 
         srv.gameList.releaseMonitorForGame(gameName);
+
         if (membersCommand != null)
             c.put(membersCommand);
         // before v2.0.00, current player number (SETTURN) was sent here,
         // between membersCommand and GAMESTATE.
+
         c.put(SOCGameState.toCmd(gameName, gameState));
+        if (gameState == SOCGame.OVER)
+            sendGameStateOVER(gameData, c);
+
         if (D.ebugOn)
             D.ebugPrintln("*** " + cliName + " joined the game " + gameName + " at "
                 + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
@@ -2058,7 +2065,7 @@ public class SOCGameHandler extends GameHandler
      * State {@link SOCGame#OVER OVER}: Announces winner, each player's total VP, and related game and player stats.
      *<P>
      * <b>Note:</b> If game is now {@code OVER} and the {@link SOCGame#isBotsOnly} flag is set,
-     * {@link #sendGameStateOVER(SOCGame)} will call {@link SOCServer#destroyGameAndBroadcast(String, String)}.
+     * {@link #sendGameStateOVER(SOCGame, Connection)} will call {@link SOCServer#destroyGameAndBroadcast(String, String)}.
      * Be sure that callers to {@code sendGameState} don't assume the game will still exist after calling this method.
      * Also, {@code destroyGame} might create more {@link SOCGame#isBotsOnly} games, depending on server settings.
      *<P>
@@ -2068,7 +2075,7 @@ public class SOCGameHandler extends GameHandler
      *
      * @see #sendTurn(SOCGame, boolean)
      * @see #sendGameState(SOCGame)
-     * @see #sendGameStateOVER(SOCGame)
+     * @see #sendGameStateOVER(SOCGame, Connection)
      *
      * @param ga  the game
      * @param omitGameStateMessage  if true, don't send the {@link SOCGameState} message itself
@@ -2207,7 +2214,7 @@ public class SOCGameHandler extends GameHandler
             break;
 
         case SOCGame.OVER:
-            sendGameStateOVER(ga);
+            sendGameStateOVER(ga, null);
             break;
 
         }  // switch ga.getGameState
@@ -2342,9 +2349,17 @@ public class SOCGameHandler extends GameHandler
     }
 
     /**
+     *  Either announce Game Over to entire game (with side effects), or send end-of-game
+     *  info to a single {@code joiningConn}'s connection (no side effects):
+     *<P>
      *  If game is OVER, send messages reporting winner, final score,
      *  and each player's victory-point cards.
-     *  Also give stats on game length, and on each player's connect time.
+     *<P>
+     *  If {@code joiningConn != null}, returns at that point.
+     *  The rest of the method has side effects, like stat increments and DB updates,
+     *  which should happen only once per game.
+     *<P>
+     *  Give stats on game length, and send each player their connect time.
      *  If player has finished more than 1 game since connecting, send their win-loss count.
      *<P>
      *  Increments server stats' numberOfGamesFinished.
@@ -2357,9 +2372,10 @@ public class SOCGameHandler extends GameHandler
      *  Make sure {@link SOCGameState}({@link SOCGame#OVER OVER}) is sent before calling this method.
      *
      * @param ga This game is over; state should be OVER
+     * @param joiningConn  Send the messages only to this connection, not all game members, if not {@code null}
      * @since 1.1.00
      */
-    private void sendGameStateOVER(SOCGame ga)
+    private void sendGameStateOVER(final SOCGame ga, final Connection joiningConn)
     {
         final String gname = ga.getName();
 
@@ -2370,7 +2386,7 @@ public class SOCGameHandler extends GameHandler
          */
         SOCPlayer winPl = ga.getPlayer(ga.getCurrentPlayerNumber());
 
-        if ((winPl.getTotalVP() < ga.vp_winner) && ! ga.hasScenarioWinCondition)
+        if ((joiningConn == null) && (winPl.getTotalVP() < ga.vp_winner) && ! ga.hasScenarioWinCondition)
         {
             // Should not happen: By rules FAQ, only current player can be winner.
             // This is fallback code.
@@ -2384,8 +2400,12 @@ public class SOCGameHandler extends GameHandler
             }
         }
 
-        srv.messageToGameKeyed(ga, true, "stats.game.winner.withpoints", winPl.getName(), winPl.getTotalVP());
-            // "{0} has won the game with {1,number} points."
+        if (joiningConn == null)
+            srv.messageToGameKeyed(ga, true, "stats.game.winner.withpoints", winPl.getName(), winPl.getTotalVP());
+                // "{0} has won the game with {1,number} points."
+        else
+            srv.messageToPlayerKeyed
+                (joiningConn, gname, "stats.game.winner.withpoints", winPl.getName(), winPl.getTotalVP());
 
         ///
         /// send a message saying what VP cards each player has;
@@ -2398,18 +2418,23 @@ public class SOCGameHandler extends GameHandler
             if (vpCards.isEmpty())
                 continue;
 
-            List<Integer> vpCardsITypes = null;
-            if (ga.clientVersionHighest >= SOCDevCardAction.VERSION_FOR_MULTIPLE)
+            if ((ga.clientVersionHighest >= SOCDevCardAction.VERSION_FOR_MULTIPLE) || (joiningConn != null))
             {
-                vpCardsITypes = new ArrayList<Integer>();
+                List<Integer> vpCardsITypes = new ArrayList<Integer>();
                 for (SOCInventoryItem i : vpCards)
                     vpCardsITypes.add(Integer.valueOf(i.itype));
+                final SOCDevCardAction dcaMsg = new SOCDevCardAction(gname, pn, SOCDevCardAction.ADD_OLD, vpCardsITypes);
 
-                if (ga.clientVersionLowest >= SOCDevCardAction.VERSION_FOR_MULTIPLE)
+                if (joiningConn != null)
                 {
+                    if (joiningConn.getVersion() >= SOCDevCardAction.VERSION_FOR_MULTIPLE)
+                        joiningConn.put(dcaMsg);
+                    // else:
+                    //    Server v1.x never sent these to a client joining a game after it ends;
+                    //    don't send them to a 1.x client
+                } else if (ga.clientVersionLowest >= SOCDevCardAction.VERSION_FOR_MULTIPLE) {
                     // clients are all 2.0 or newer
-                    srv.messageToGame(gname,
-                        new SOCDevCardAction(gname, pn, SOCDevCardAction.ADD_OLD, vpCardsITypes));
+                    srv.messageToGame(gname, dcaMsg);
                 } else {
                     // mixed versions:
                     // v2.0.00 and newer clients will announce this with localized text;
@@ -2421,10 +2446,10 @@ public class SOCGameHandler extends GameHandler
                     srv.messageToGameForVersions(ga, 0, SOCDevCardAction.VERSION_FOR_MULTIPLE - 1,
                         new SOCGameTextMsg(gname, SOCServer.SERVERNAME, txt), true);
                     srv.messageToGameForVersions(ga, SOCDevCardAction.VERSION_FOR_MULTIPLE, Integer.MAX_VALUE,
-                        new SOCDevCardAction(gname, pn, SOCDevCardAction.ADD_OLD, vpCardsITypes), true);
+                        dcaMsg, true);
                 }
             } else {
-                // clients are all 1.1.xx
+                // clients are all v1.x, and there's no joiningConn
                 srv.messageToGame
                     (gname, SOCStringManager.getFallbackServerManagerForClient().formatSpecial
                         (ga, "{0} has {1,dcards}.", pl.getName(), vpCards));
@@ -2444,7 +2469,17 @@ public class SOCGameHandler extends GameHandler
                 scores[i] = ga.getPlayer(i).getTotalVP();
                 isRobot[i] = ga.getPlayer(i).isRobot();
             }
-            srv.messageToGame(gname, new SOCGameStats(gname, scores, isRobot));
+
+            final SOCGameStats statsMsg = new SOCGameStats(gname, scores, isRobot);
+            if (joiningConn == null)
+                srv.messageToGame(gname, statsMsg);
+            else
+                joiningConn.put(statsMsg);
+        }
+
+        if (joiningConn != null)
+        {
+            return;  // <--- Early return, to avoid side effects that should happen only once ---
         }
 
         /**
@@ -2553,7 +2588,7 @@ public class SOCGameHandler extends GameHandler
             srv.destroyGameAndBroadcast(gname, "sendGameStateOVER");
         }
 
-        // Server structure more or less ensures sendGameStateOVER is called only once.
+        // Server structure more or less ensures sendGameStateOVER(ga, null) is called only once.
         // TODO consider refactor to be completely sure, especially for storeGameScores.
     }
 

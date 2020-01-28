@@ -1239,7 +1239,8 @@ public class SOCServerMessageHandler
 
     /**
      * Print time-remaining and other game stats.
-     * Includes more detail beyond the end-game stats sent in {@link SOCGameHandler#sendGameStateOVER(SOCGame)}.
+     * Includes more detail beyond the end-game stats sent in
+     * {@link SOCGameHandler#sendGameStateOVER(SOCGame, Connection)}.
      *<P>
      * Before v1.1.20, this method was {@code processDebugCommand_checktime(..)}.
      *

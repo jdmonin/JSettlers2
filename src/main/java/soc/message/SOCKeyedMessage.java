@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014,2017,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,7 +19,7 @@ package soc.message;
 
 /**
  * This indicates that a {@link SOCMessage} type contains a keyed text field which needs
- * to be localized while sending to clients.  This is different from {@link SOCGameTextMsg}
+ * to be localized while sending to clients.  This is different from {@link SOCGameServerText}
  * because this message type also contains non-text data fields: See {@link SOCSVPTextMessage}
  * for an example.
  *
