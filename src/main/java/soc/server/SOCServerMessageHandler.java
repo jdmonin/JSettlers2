@@ -1249,6 +1249,7 @@ public class SOCServerMessageHandler
      * @param gameData  Game to print stats
      * @param isCheckTime  True if called from *CHECKTIME* server command, false for *STATS*.
      *     If true, mark text as urgent when sending remaining time before game expires.
+     * @see SOCServer#processDebugCommand_connStats(Connection, String, boolean)
      * @since 1.1.07
      */
     void processDebugCommand_gameStats

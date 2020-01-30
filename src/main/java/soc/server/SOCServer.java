@@ -4959,7 +4959,7 @@ public class SOCServer extends Server
 
     /**
      * Process the {@code *STATS*} unprivileged debug command:
-     * Send the client a list of server statistics and stats for the game they sent the command from.
+     * Send the client a list of server statistics, and stats for the game and connection they sent the command from.
      * Calls {@link SOCServerMessageHandler#processDebugCommand_gameStats(Connection, String, SOCGame, boolean)}.
      *<P>
      * Before v2.0.00, this method was part of {@code handleGAMETEXTMSG(..)}.
@@ -4967,6 +4967,7 @@ public class SOCServer extends Server
      * @param ga  Game in which the message is sent
      * @since 2.0.00
      * @see SOCServerMessageHandler#processDebugCommand_dbSettings(Connection, SOCGame)
+     * @see #processDebugCommand_connStats(Connection, String, boolean)
      */
     final void processDebugCommand_serverStats(final Connection c, final SOCGame ga)
     {
@@ -5017,6 +5018,47 @@ public class SOCServer extends Server
                 + Version.version(ga.clientVersionLowest) + " - " + Version.version(ga.clientVersionHighest));
 
         srvMsgHandler.processDebugCommand_gameStats(c, gaName, ga, false);
+        processDebugCommand_connStats(c, gaName, false);
+    }
+
+    /**
+     * Send connection stats to a client, appearing in the message pane of a game they're a member of.
+     *<UL>
+     * <LI> If client has finished at least 1 or 2 games since connecting, send their win-loss count for this session.
+     *</UL>
+     *
+     * @param c  Client that just finished a game or sent the {@code *STATS*} command; not null
+     * @param gaName  Game that {@code c} is a member of
+     * @param skipWinLossBefore2  If true, don't send win/loss record if less than 2 completed games.
+     *     If false, don't send if less than 1 completed game.
+     * @since 2.2.00
+     * @see #processDebugCommand_serverStats(Connection, SOCGame)
+     * @see SOCServerMessageHandler#processDebugCommand_gameStats(Connection, String, SOCGame, boolean)
+     */
+    final void processDebugCommand_connStats
+        (final Connection c, final String gaName, final boolean skipWinLossBefore2)
+    {
+        final SOCClientData scd = (SOCClientData) c.getAppData();
+        if (scd == null)
+            return;
+
+        int wins = scd.getWins();
+        int losses = scd.getLosses();
+        if (wins + losses < ((skipWinLossBefore2) ? 2 : 1))
+            return;  // Not enough games completed so far
+
+        if (wins > 0)
+        {
+            if (losses == 0)
+                messageToPlayerKeyed(c, gaName, "stats.cli.winloss.won", wins);
+                    // "You have won {0,choice, 1#1 game|1<{0,number} games} since connecting."
+            else
+                messageToPlayerKeyed(c, gaName, "stats.cli.winloss.wonlost", wins, losses);
+                    // "You have won {0,choice, 1#1 game|1<{0,number} games} and lost {1,choice, 1#1 game|1<{1,number} games} since connecting."
+        } else {
+            messageToPlayerKeyed(c, gaName, "stats.cli.winloss.lost", losses);
+                // "You have lost {0,choice, 1#1 game|1<{0,number} games} since connecting."
+        }
     }
 
     /**

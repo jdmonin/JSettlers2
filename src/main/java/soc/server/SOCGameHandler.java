@@ -2556,25 +2556,7 @@ public class SOCGameHandler extends GameHandler
 
                     // Send client's win-loss count for this session,
                     // if more than 1 game has been played
-                    {
-                        int wins = cd.getWins();
-                        int losses = cd.getLosses();
-                        if (wins + losses < 2)
-                            continue;  // Only 1 game played so far
-
-                        if (wins > 0)
-                        {
-                            if (losses == 0)
-                                srv.messageToPlayerKeyed(plConn, gname, "stats.cli.winloss.won", wins);
-                                    // "You have won {0,choice, 1#1 game|1<{0,number} games} since connecting."
-                            else
-                                srv.messageToPlayerKeyed(plConn, gname, "stats.cli.winloss.wonlost", wins, losses);
-                                    // "You have won {0,choice, 1#1 game|1<{0,number} games} and lost {1,choice, 1#1 game|1<{1,number} games} since connecting."
-                        } else {
-                            srv.messageToPlayerKeyed(plConn, gname, "stats.cli.winloss.lost", losses);
-                                // "You have lost {0,choice, 1#1 game|1<{0,number} games} since connecting."
-                        }
-                    }
+                    srv.processDebugCommand_connStats(plConn, gname, true);
                 }
             }  // for each player
 
