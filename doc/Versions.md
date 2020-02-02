@@ -626,6 +626,15 @@ Further development is based on 1.1.04.
 	- 1088775 drichardson (Douglas Ryan Richardson) [1039250] Auto-rejecting impossible offers; Make accept button invisible when user cannot accept offer
 
 
+## Older versions:
+
+These older releases were in a separate cvs repo at sourceforge
+maintained by Robert S Thomas and Chad McHenry.
+
+For historical reference, Jeremy Monin has converted that repo to git:
+https://github.com/jdmonin/JSettlers1
+
+
 ## `1.0.6` (build 2004-11-17)  http://sourceforge.net/projects/jsettlers
 - Fixed the same PORT property error in the Account client
 - Fixed bug which could allow modified clients to invoke admin

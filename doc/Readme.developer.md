@@ -922,5 +922,6 @@ Then: `git tag -a release-1.1.14 -m 'Version 1.1.14 is build OV20120930'`
 
 The github repo includes the JSettlers2 v1.1.xx CVS history formerly hosted at
 http://sourceforge.net/projects/jsettlers2/ through 2012-09-28.
-The old 1.0.x source history from Robert S Thomas (2004-2005) can be found at
-http://sourceforge.net/projects/jsettlers/ .
+The old 1.0.x source history (2004-2005) from Robert S Thomas and Chad McHenry
+can be found at https://github.com/jdmonin/JSettlers1
+or http://sourceforge.net/projects/jsettlers/ .
