@@ -662,7 +662,9 @@ separately from the server through the `SOCRobotClient` constructor or main
 method. For trivial example subclasses extending `SOCRobotClient` and
 `SOCRobotBrain`, see `soc.robot.sample3p.Sample3PClient` and `Sample3PBrain`.
 The `Sample3PClient` class javadoc mentions useful server properties such as
-`jsettlers.bots.percent3p` and `jsettlers.bots.timeout.turn`.
+`jsettlers.bots.percent3p` and `jsettlers.bots.timeout.turn`. `Sample3PBrain`
+demonstrates using a custom strategy subclass, and using the
+`_EXT_BOT` game option to send data to the bot when joining a game.
 
 The server generates a security cookie that bots must send at connect. You can
 view the cookie by starting the server with `-Djsettlers.bots.showcookie=Y` or

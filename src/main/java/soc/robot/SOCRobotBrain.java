@@ -126,9 +126,17 @@ import java.util.Vector;
  *
  * The bot can be sent debug commands to examine its state; see
  * {@link SOCRobotClient#handleGAMETEXTMSG(soc.message.SOCGameTextMsg)}.
- * Extending this class is one way to begin developing a custom JSettlers bot.
- * For a trivial example see {@link soc.robot.sample3p.Sample3PBrain}.
- * See {@code README.developer} for more about bot development.
+ *<P>
+ * Extending this class is one way to begin developing a custom JSettlers bot:
+ *<UL>
+ * <LI> Factory is {@link SOCRobotClient#createBrain(SOCRobotParameters, SOCGame, CappedQueue)},
+ *      which can be overridden in a custom bot client like {@link soc.robot.sample3p.Sample3PClient}
+ * <LI> For a trivial example see {@link soc.robot.sample3p.Sample3PBrain}
+ * <LI> For more complicated extensions, extend strategy classes and override {@link #setStrategyFields()}
+ * <LI> Game option {@link SOCGameOption#K__EXT_BOT}, which can be set at server startup using the command line
+ *      or {@code jsserver.properties} file, can be used to send custom data or config from server to third-party bots
+ *</UL>
+ * See {@code Readme.developer.md} for more about bot development.
  *
  * @author Robert S Thomas
  */
@@ -136,7 +144,7 @@ public class SOCRobotBrain extends Thread
 {
     /**
      * Bot pause speed-up factor when {@link SOCGame#isBotsOnly} in {@link #pause(int)}.
-     * Default 0.25 (25% of normal pause time: 4x speed-up).
+     * Default 0.25 (use 25% of normal pause time: 4x speed-up).
      * Use .01 for a shorter delay (1% of normal pauses).
      * @since 2.0.00
      */
@@ -167,7 +175,8 @@ public class SOCRobotBrain extends Thread
     private static final int TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY = 5;
 
     /**
-     * The robot parameters
+     * The robot parameters. See {@link #getRobotParameters()} for details.
+     * @see SOCRobotClient#currentRobotParameters
      */
     SOCRobotParameters robotParameters;
 
@@ -661,20 +670,28 @@ public class SOCRobotBrain extends Thread
     private int lastStartingRoadTowardsNode;
 
     /**
+     * Strategy to choose discards.
+     * @since 2.2.00
+     */
+    protected DiscardStrategy discardStrategy;
+
+    /**
      * Strategy to plan and build initial settlements and roads.
-     * Set in {@link #setOurPlayerData()}.
      * @since 2.0.00
      */
-    private OpeningBuildStrategy openingBuildStrategy;
+    protected OpeningBuildStrategy openingBuildStrategy;
 
     /**
      * Strategy to choose whether to monopolize, and which resource.
-     * Set in {@link #setOurPlayerData()}.
      * @since 2.0.00
      */
-    private MonopolyStrategy monopolyStrategy;
+    protected MonopolyStrategy monopolyStrategy;
 
-    // RobberStrategy is used but has no state, its methods are static.
+    /**
+     * Strategy to rob players.
+     * @since 2.2.00
+     */
+    protected RobberStrategy robberStrategy;
 
     /**
      * a thread that sends ping messages to this one
@@ -785,6 +802,8 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
+     * Get this bot's parameters, as set in constructor.
+     *
      * @return the robot parameters
      */
     public SOCRobotParameters getRobotParameters()
@@ -957,9 +976,10 @@ public class SOCRobotBrain extends Thread
      * find our player data using our nickname.
      * Called from {@link SOCRobotClient} when the
      * server sends a {@link SOCSitDown} message.
-     * Initializes our game and {@link #ourPlayerData},
-     * {@link SOCRobotDM}, {@link SOCRobotNegotiator},
-     * strategy fields, {@link SOCPlayerTracker}s, etc.
+     *<P>
+     * Initializes our game and {@link #ourPlayerData}, {@link SOCPlayerTracker}s, etc.
+     * Calls {@link #setStrategyFields()} to set {@link SOCRobotDM}, {@link SOCRobotNegotiator},
+     * {@link RobberStrategy}, and other strategy fields,
      */
     public void setOurPlayerData()
     {
@@ -978,10 +998,7 @@ public class SOCRobotBrain extends Thread
             }
         }
 
-        decisionMaker = new SOCRobotDM(this);
-        negotiator = new SOCRobotNegotiator(this);
-        openingBuildStrategy = new OpeningBuildStrategy(game, ourPlayerData);
-        monopolyStrategy = new MonopolyStrategy(game, ourPlayerData);
+        setStrategyFields();
 
         dummyCancelPlayerData = new SOCPlayer(-2, game);
 
@@ -1001,6 +1018,38 @@ public class SOCRobotBrain extends Thread
             ourPlayerData.setFaceId(faceId);
             // robotclient will handle sending it to server
         }
+    }
+
+    /**
+     * Make the bot strategy selections, as part of getting ready to sit and play
+     * in {@link #setOurPlayerData()}. Fields like {@link #game}, {@link #ourPlayerData},
+     * and {@link #playerTrackers} are set before calling this method.
+     *<P>
+     * Selections or behavior within strategy classes may be influenced by
+     * {@link #getRobotParameters()}.{@link SOCRobotParameters#getStrategyType() getStrategyType()}.
+     *<P>
+     * Fields set here:
+     *<UL>
+     * <LI> {@link #decisionMaker}
+     * <LI> {@link #negotiator}
+     * <LI> {@link #discardStrategy}
+     * <LI> {@link #monopolyStrategy}
+     * <LI> {@link #openingBuildStrategy}
+     * <LI> {@link #robberStrategy}
+     *</UL>
+     * When overriding this class: You may either set all those fields yourself,
+     * or call {@code super.setStrategyFields()} and then change the ones you need customized.
+     *
+     * @since 2.2.00
+     */
+    protected void setStrategyFields()
+    {
+        decisionMaker = new SOCRobotDM(this);
+        negotiator = new SOCRobotNegotiator(this);
+        discardStrategy = new DiscardStrategy(game, ourPlayerData, this, rand);
+        monopolyStrategy = new MonopolyStrategy(game, ourPlayerData);
+        openingBuildStrategy = new OpeningBuildStrategy(game, ourPlayerData);
+        robberStrategy = new RobberStrategy(game, ourPlayerData, this, rand);
     }
 
     /**
@@ -1945,12 +1994,6 @@ public class SOCRobotBrain extends Thread
                     case SOCMessage.DISCARDREQUEST:
                         expectDISCARD = false;
 
-                        /**
-                         * If we haven't recently discarded...
-                         */
-
-                        //  if (! ((expectPLACING_ROBBER || expectPLAY1) && (counter < 4000)))
-                        //  {
                         if ((game.getCurrentDice() == 7) && ourTurn)
                         {
                             if (! game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
@@ -1964,18 +2007,16 @@ public class SOCRobotBrain extends Thread
                         }
 
                         counter = 0;
-                        client.discard(game, DiscardStrategy.discard
-                            (((SOCDiscardRequest) mes).getNumberOfDiscards(), buildingPlan, rand,
-                              ourPlayerData, robotParameters, decisionMaker, negotiator));
+                        client.discard(game, discardStrategy.discard
+                            (((SOCDiscardRequest) mes).getNumberOfDiscards(), buildingPlan));
 
-                        //  }
                         break;
 
                     case SOCMessage.CHOOSEPLAYERREQUEST:
                         {
                             final SOCChoosePlayerRequest msg = (SOCChoosePlayerRequest) mes;
-                            final int choicePl = RobberStrategy.chooseRobberVictim
-                                (msg.getChoices(), msg.canChooseNone(), game, playerTrackers);
+                            final int choicePl = robberStrategy.chooseRobberVictim
+                                (msg.getChoices(), msg.canChooseNone());
                             counter = 0;
                             client.choosePlayer(game, choicePl);
                         }
@@ -4611,7 +4652,7 @@ public class SOCRobotBrain extends Thread
      */
     protected void moveRobber()
     {
-        final int bestHex = RobberStrategy.getBestRobberHex(game, ourPlayerData, playerTrackers, rand);
+        final int bestHex = robberStrategy.getBestRobberHex();
         D.ebugPrintln("!!! MOVING ROBBER !!!");
         client.moveRobber(game, ourPlayerData, bestHex);
         pause(2000);

@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
- * Portions of this file copyright (C) 2009,2011,2012,2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2011,2012,2018,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -26,25 +26,59 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
 
-// import org.apache.log4j.Logger;
-
 import soc.disableDebug.D;
 import soc.game.SOCBoard;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 
+/**
+ * Discard strategy for a {@link SOCRobotBrain} in a game.
+ * For details see {@link #getBestRobberHex()} and {@link #chooseRobberVictim(boolean[], boolean)}.
+ *<P>
+ * Before version 2.2.00 these methods were static and could not easily be extended.
+ */
 public class RobberStrategy
 {
 
+    /** Our game */
+    protected final SOCGame game;
+
+    /** Our {@link #brain}'s player in {@link #game} */
+    protected final SOCPlayer ourPlayerData;
+
+    /** Our brain for {@link #ourPlayerData} */
+    protected final SOCRobotBrain brain;
+
+    /** Random number generator from {@link #brain} */
+    protected final Random rand;
+
     /** debug logging */
-    // private transient Logger log = Logger.getLogger(this.getClass().getName());
     private static transient D log = new D();
 
+    /**
+     * Create a RobberStrategy for a {@link SOCRobotBrain}'s player.
+     * @param ga  Our game
+     * @param pl  Our player data in {@code ga}
+     * @param br  Robot brain for {@code pl}
+     * @param rand  Random number generator from {@code br}
+     */
+    public RobberStrategy(SOCGame ga, SOCPlayer pl, SOCRobotBrain br, Random rand)
+    {
+        if ((pl == null) || (br == null))
+            throw new IllegalArgumentException();
+
+        game = ga;
+        ourPlayerData = pl;
+        brain = br;
+        this.rand = rand;
+    }
+
    /**
-    * Determine the best hex to move the robber.
+    * Determine the best hex to move the robber, based on
+    * board and current opponent info in {@link SOCPlayerTracker}s.
+    * @return Hex coordinate to move robber to. Should be a member of {@link SOCBoard#getLandHexCoords()}.
     */
-   public static int getBestRobberHex
-       (SOCGame game, SOCPlayer ourPlayerData, HashMap<Integer, SOCPlayerTracker> playerTrackers, Random rand)
+   public int getBestRobberHex()
    {
        log.debug("%%% MOVEROBBER");
 
@@ -59,7 +93,7 @@ public class RobberStrategy
        for (int i = game.maxPlayers - 1; i >= 0; --i)
            winGameETAs[i] = 100;
 
-       Iterator<SOCPlayerTracker> trackersIter = playerTrackers.values().iterator();
+       Iterator<SOCPlayerTracker> trackersIter = brain.playerTrackers.values().iterator();
        while (trackersIter.hasNext())
        {
            SOCPlayerTracker tracker = trackersIter.next();
@@ -178,19 +212,20 @@ public class RobberStrategy
    }
 
    /**
-    * Choose a robber victim.
+    * Choose a robbery victim, from players with pieces adjacent to the robber (or pirate).
     *
-    * @param choices  a boolean array representing which players are possible victims;
-    *                 1 element per player number (0 to <tt>game.maxPlayers</tt> - 1).
+    * @param isVictim  Boolean array indicating which players are possible victims;
+    *     1 element per player number (0 to {@code game.maxPlayers} - 1).
     * @param canChooseNone   In some game scenarios (such as <tt>SC_PIRI</tt>),
     *     the robot may have the option to choose to not rob anyone. This strategy
     *     ignores that and always chooses a victim to rob.
     * @return  Player number to rob, or -1 if none could be decided
     */
-   public static int chooseRobberVictim
-       (final boolean[] choices, final boolean canChooseNone,
-        final SOCGame game, final HashMap<Integer, SOCPlayerTracker> playerTrackers)
+   public int chooseRobberVictim
+       (final boolean[] isVictim, final boolean canChooseNone)
    {
+       final HashMap<Integer, SOCPlayerTracker> playerTrackers = brain.playerTrackers;
+
        int choice = -1;
 
        /**
@@ -198,7 +233,7 @@ public class RobberStrategy
         */
        for (int i = 0; i < game.maxPlayers; i++)
        {
-           if (game.isSeatVacant(i) || ! choices[i])
+           if (game.isSeatVacant(i) || ! isVictim[i])
                continue;
 
            if (choice == -1)

@@ -1,6 +1,6 @@
 /*
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -35,6 +35,7 @@ import soc.util.SOCRobotParameters;
  * See {@link #buildClientFeats()}.
  *
  *<H5>Connecting to the Server:</H5>
+ *
  * Since this bot isn't started up as part of the SOCServer,
  * it must know the server's robot cookie to connect:
  *<UL>
@@ -47,6 +48,7 @@ import soc.util.SOCRobotParameters;
  *</UL>
  *
  *<H5>Other Useful Server Properties:</H5>
+ *
  * See {@code /src/main/bin/jsserver.properties.sample} comments for more details on any parameter.
  *<BR>
  * All server properties can be specified in a {@code jsserver.properties} file,

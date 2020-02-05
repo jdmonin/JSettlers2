@@ -216,6 +216,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
     /**
      * the current robot parameters for robot brains
+     * @see #handleUPDATEROBOTPARAMS(SOCUpdateRobotParams)
      */
     protected SOCRobotParameters currentRobotParameters;
 

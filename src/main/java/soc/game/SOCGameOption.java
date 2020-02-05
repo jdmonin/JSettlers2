@@ -285,8 +285,9 @@ public class SOCGameOption
     /**
      * An "extra" option key {@code _EXT_BOT} available for robot development.
      * Available for third-party bot developers: Not used by JSettlers core itself.
-     * Can hold a string of data which is sent to all robot clients,
-     * entered on the server command line or properties file.
+     * Can hold a string of data which is sent to all robot clients joining a game,
+     * entered on the server command line or properties file. A third-party bot might
+     * want to use this option's value to configure its behavior or debug settings.
      * Maximum length of this option's value is {@link #TEXT_OPTION_MAX_LENGTH}.
      * @see #K__EXT_CLI
      * @see #K__EXT_GAM

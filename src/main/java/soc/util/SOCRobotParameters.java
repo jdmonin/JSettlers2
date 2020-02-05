@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009 Jeremy D. Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2009,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.util;
 
@@ -29,6 +29,9 @@ import soc.game.SOCGameOption;
 
 /**
  * This is a class to store a list of robot parameters.
+ * Different bots may have different parameters, especially {@link #getStrategyType()}.
+ * Sent from server via network message.
+ *<P>
  * I put it in soc.util because the SOCServer and the
  * SOCDBHelper needed to use it, but I didn't think
  * they should have to include the soc.robot package.
@@ -182,7 +185,7 @@ public class SOCRobotParameters
     }
 
     /**
-     * @return strategyType: {@link soc.robot.SOCRobotDM#FAST_STRATEGY FAST_STRATEGY}
+     * @return strategyType: {@link soc.robot.SOCRobotDM#FAST_STRATEGY}
      *         or {@link soc.robot.SOCRobotDM#SMART_STRATEGY}
      */
     public int getStrategyType()
