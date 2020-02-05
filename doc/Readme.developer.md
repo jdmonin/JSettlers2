@@ -103,6 +103,9 @@ or dev cards to players, freely place pieces on the board, remove a bot from the
 game, etc.  There are also a few robot debugging commands, not listed in `*help*`;
 see the "Robots (AI)" section.
 
+Since the game window remembers recently sent chat text, you can use the Up/Down arrow keys
+to browse and re-send debug commands.
+
 To help with security and prevent cheats, by default debug commands are disabled
 except for practice games.  If you need to use debug commands on a multi-player
 server, start that server with `-Djsettlers.allow.debug=Y` and connect with username `debug`.

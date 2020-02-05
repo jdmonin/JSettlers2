@@ -202,7 +202,7 @@ import javax.swing.UIManager;
      * Blank area which is normally hidden, except during addPlayer when handpanel is hidden.
      * This prevents a big black area on the display (which looks like a crash).
      * For perf/display-bugs during component layout (OSX firefox).
-     * Added to pi's layout by {@link SOCPlayerInterface#initInterfaceElements(boolean)}.
+     * Added to PI's layout by {@link SOCPlayerInterface#initUIElements(boolean)}.
      * @since 1.1.06
      */
     private ColorSquare blankStandIn;

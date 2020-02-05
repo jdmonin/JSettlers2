@@ -108,6 +108,19 @@ import javax.swing.event.DocumentListener;
  * {@link #addPlayer(String, int)}; when all this activity is complete, and the interface is
  * ready for interaction, the client calls {@link #began(List)}.
  *<P>
+ * <B>Chat text history:</B>
+ * Remembers chat text sent by client player to the game/server, including local debug commands.
+ *<UL>
+ * <LI> If text is exact copy of previously sent line, don't add another copy to history
+ * <LI> Up arrow key browses back in time, Down browses forward (same direction as the chat output window)
+ * <LI> While browsing history, can edit currently-displayed line in input field.
+ *      Can then hit Enter to send, or continue browsing (changes are discarded).
+ * <LI> At start of browsing (first Up arrow), saves current contents of chat input field.
+ * <LI> When browsing Down past the most recent history, restores those saved contents.
+ * <LI> When board is reset, keeps sent history but discards contents of the scrolling chat pane.
+ *      After the reset, server sends a "recap" of recent chat text.
+ *</UL>
+ *
  * <B>Local preferences:</B>
  * For optional per-game preferences like {@link #PREF_SOUND_MUTE}, see {@code localPrefs} parameter in
  * the {@link #SOCPlayerInterface(String, MainDisplay, SOCGame, Map)} constructor javadoc.
@@ -258,14 +271,40 @@ public class SOCPlayerInterface extends Frame
     //========================================================
 
     /**
-     * where the player types in text
+     * The input line where player can type chat text.
+     * History is stored in {@link #textInputHistory}.
+     * @see #textInputIsInitial
      */
     private JTextField textInput;
 
     /**
-     * Not yet typed-in; display prompt message.
+     * History for chat text sent to server from {@link #textInput}.
+     * For UI/behavior, see class javadoc.
      *
-     * @see #textInput
+     *<UL>
+     * <LI> Each line must be a non-empty string
+     * <LI> Newly sent lines are added to the end (highest index)
+     * <LI> Element 0 is reserved for "unsent" contents of {@link #textInput},
+     *      to avoid losing that with an accidental up-arrow keypress
+     * <LI> During browsing, {@link #textInputHistoryBrowsePos} tracks displayed index.
+     *      Sending a line resets that index to 0.
+     * <LI> Not thread-safe: Changed only on AWT event thread
+     *</UL>
+     * @since 2.2.00
+     */
+    private final List<String> textInputHistory;
+
+    /**
+     * Currently displayed position while browsing chat text history;
+     * otherwise 0. See {@link #textInputHistory} for details.
+     * @since 2.2.00
+     */
+    private int textInputHistoryBrowsePos;
+
+    /**
+     * {@link #textInput} not yet typed into; display prompt message.
+     *
+     * @see #textInputHasSent
      * @see #TEXTINPUT_INITIAL_PROMPT_MSG
      * @since 1.1.00
      */
@@ -278,6 +317,7 @@ public class SOCPlayerInterface extends Frame
      *
      * @see #textInput
      * @see #TEXTINPUT_INITIAL_PROMPT_MSG
+     * @since 1.1.00
      */
     protected boolean textInputHasSent;
 
@@ -295,6 +335,7 @@ public class SOCPlayerInterface extends Frame
      * Initial value (20 turns) for textInputGreyCountdown
      *
      * @see #textInputGreyCountdown
+     * @since 1.1.00
      */
     protected static int textInputGreyCountFrom = 20;
 
@@ -308,9 +349,11 @@ public class SOCPlayerInterface extends Frame
         = strings.get("interface.type.here.chat");  // "Type here to chat."
 
     /**
-     * Used for responding to textfield changes by setting/clearing prompt message.
+     * Used for responding to chat textfield changes by setting/clearing prompt message,
+     * and up/down arrow keys for history.
      *
      * @see #textInput
+     * @since 1.1.00
      */
     protected SOCPITextfieldListener textInputListener;
 
@@ -762,19 +805,17 @@ public class SOCPlayerInterface extends Frame
         }
         setFont(new Font("SansSerif", Font.PLAIN, 10 * displayScale));
 
-        /**
-         * we're doing our own layout management
-         */
+        /** we're doing our own layout management */
         setLayout(null);
 
-        /**
-         * setup interface elements.
-         */
-        initInterfaceElements(true);
+        initUIElements(true);
 
         /**
          * more initialization stuff
          */
+
+        textInputHistory = new ArrayList<String>();
+        textInputHistory.add("");
 
         final Dimension boardExtraSize = boardPanel.getExtraSizeFromBoard(false);
             // use unscaled board-internal pixels, to simplify assumptions at this early part of init/layout setup
@@ -935,12 +976,15 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * Setup the interface elements
+     * Set up the user interface elements. Called for initial setup and board reset.
+     * Creates all new components, adds them to layout.
+     *<P>
+     * Before v2.2.00 this method was {@code initInterfaceElements}.
      *
      * @param firstCall First setup call for this window; do global things
      *   such as windowListeners, not just component-specific things.
      */
-    protected void initInterfaceElements(boolean firstCall)
+    protected void initUIElements(final boolean firstCall)
     {
         final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
 
@@ -999,6 +1043,7 @@ public class SOCPlayerInterface extends Frame
         textInput.setFont(sans10Font);
         textInputListener = new SOCPITextfieldListener(this);
         textInputHasSent = false;
+        textInputHistoryBrowsePos = 0;  // reset position, keep contents
         textInputGreyCountdown = textInputGreyCountFrom;
         textInput.addKeyListener(textInputListener);
         textInput.getDocument().addDocumentListener(textInputListener);
@@ -1719,15 +1764,23 @@ public class SOCPlayerInterface extends Frame
             {
                 textInputHasSent = true;
                 if (textInputListener != null)
-                {
-                    textInput.removeKeyListener(textInputListener);
                     textInput.getDocument().removeDocumentListener(textInputListener);
-                    textInputListener = null;
-                }
             }
 
-            // Clear and send to game at server
+            /**
+             * Clear field and send to game at server, or process as local debug command
+             */
+
             textInput.setText("");
+
+            // add to chat history, unless is repeat of previous item
+            {
+                final int S = textInputHistory.size();
+                if ((S == 1) || ! textInputHistory.get(S - 1).equals(s))
+                    textInputHistory.add(s);
+                textInputHistoryBrowsePos = 0;
+            }
+
             if (s.startsWith("=*="))
             {
                 String sLower = s.toLowerCase();
@@ -3169,7 +3222,7 @@ public class SOCPlayerInterface extends Frame
         clientHandPlayerNum = -1;
 
         removeAll();  // old sub-components
-        initInterfaceElements(false);  // new sub-components
+        initUIElements(false);  // new sub-components
 
         // Clear from possible "game over" titlebar
         setTitle(strings.get("interface.title.game", game.getName()) +
@@ -4874,10 +4927,59 @@ public class SOCPlayerInterface extends Frame
             pi = spi;
         }
 
-        /** If first keypress in initially empty field, clear that prompt message */
+        /**
+         * Handle key presses.
+         *<UL>
+         * <LI> If first keypress in initially empty field, clear that prompt message
+         * <LI> Use up/down arrows to browse sent-chat history in {@link SOCPlayerInterface#textInputHistory}
+         *</UL>
+         */
         @Override
         public void keyPressed(KeyEvent e)
         {
+            switch (e.getKeyCode())
+            {
+            case KeyEvent.VK_UP:
+                {
+                    final int S = pi.textInputHistory.size();
+                    if (S > 1)
+                    {
+                        int i = pi.textInputHistoryBrowsePos;
+                        if (i == 0)
+                        {
+                            pi.textInputHistory.set(0, pi.textInput.getText());  // save unsent text
+                            i = S - 1;
+                        } else {
+                            --i;
+                        }
+
+                        if (i > 0)
+                        {
+                            pi.textInput.setText(pi.textInputHistory.get(i));
+                            pi.textInputHistoryBrowsePos = i;
+                            e.consume();
+                        }
+                    }
+                }
+                break;
+
+            case KeyEvent.VK_DOWN:
+                {
+                    int i = pi.textInputHistoryBrowsePos;
+                    if (i > 0)
+                    {
+                        ++i;
+                        if (i == pi.textInputHistory.size())
+                            i = 0;  // restore unsent text
+
+                        pi.textInput.setText(pi.textInputHistory.get(i));
+                        pi.textInputHistoryBrowsePos = i;
+                        e.consume();
+                    }
+                }
+                break;
+            }
+
             if (! pi.textInputIsInitial)
             {
                 return;

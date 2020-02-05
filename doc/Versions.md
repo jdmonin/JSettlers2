@@ -19,6 +19,7 @@ and backport minor new features until `2.0.00` was ready.
 - Currently being developed
 - Client:
 	- Game window:
+	  - Remember recently sent chat text; browse history with Up/Down arrow keys in input field (based on Chad McHenry idea)
 	  - At end of game, reveal VP cards in players' hand panels
 - Server:
 	- `*STATS*` command: Send client's win-loss count for this session, if at least 1 game won or lost
