@@ -34,10 +34,10 @@ public class MonopolyStrategy
 {
 
     /** Our game */
-    private final SOCGame game;
+    protected final SOCGame game;
 
     /** Our {@link SOCRobotBrain}'s player in {@link #game} */
-    private final SOCPlayer ourPlayerData;
+    protected final SOCPlayer ourPlayerData;
 
     /**
      * The resource type we want to monopolize,
@@ -52,7 +52,7 @@ public class MonopolyStrategy
      * @param ga  Our game
      * @param pl  Our player data in {@code ga}
      */
-    MonopolyStrategy(SOCGame ga, SOCPlayer pl)
+    public MonopolyStrategy(SOCGame ga, SOCPlayer pl)
     {
         if (pl == null)
             throw new IllegalArgumentException();

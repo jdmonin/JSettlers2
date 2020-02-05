@@ -164,7 +164,7 @@ public class SOCRobotBrain extends Thread
      * Longer than {@link #TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY}.
      * @since 2.0.00
      */
-    private static final int TRADE_RESPONSE_TIMEOUT_SEC_HUMANS = 100;
+    protected static final int TRADE_RESPONSE_TIMEOUT_SEC_HUMANS = 100;
 
     /**
      * When a trade has been offered to only bots (not to any humans),
@@ -172,13 +172,13 @@ public class SOCRobotBrain extends Thread
      * Shorter than {@link #TRADE_RESPONSE_TIMEOUT_SEC_HUMANS}.
      * @since 2.0.00
      */
-    private static final int TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY = 5;
+    protected static final int TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY = 5;
 
     /**
      * The robot parameters. See {@link #getRobotParameters()} for details.
      * @see SOCRobotClient#currentRobotParameters
      */
-    SOCRobotParameters robotParameters;
+    protected SOCRobotParameters robotParameters;
 
     /**
      * Flag for whether or not we're alive.
@@ -231,7 +231,7 @@ public class SOCRobotBrain extends Thread
      * If true, the {@link #game} we're playing is on the 6-player board.
      * @since 1.1.08
      */
-    final private boolean gameIs6Player;
+    final protected boolean gameIs6Player;
 
     /**
      * Our player data.
@@ -246,7 +246,7 @@ public class SOCRobotBrain extends Thread
      * Our player number; set in {@link #setOurPlayerData()}.
      * @since 2.0.00
      */
-    private int ourPlayerNumber;
+    protected int ourPlayerNumber;
 
     /**
      * Our player nickname. Convenience field, set from
@@ -269,14 +269,14 @@ public class SOCRobotBrain extends Thread
      * The game messages received this turn / previous turn, for debugging.
      * @since 1.1.13
      */
-    private Vector<SOCMessage> turnEventsCurrent, turnEventsPrev;
+    protected Vector<SOCMessage> turnEventsCurrent, turnEventsPrev;
 
     /**
      * Number of exceptions caught this turn, if any.
      * Resets at each player's turn during {@link SOCMessage#TURN TURN} message.
      * @since 1.1.20
      */
-    private int turnExceptionCount;
+    protected int turnExceptionCount;
 
     /**
      * A counter used to measure passage of time.
@@ -292,14 +292,14 @@ public class SOCRobotBrain extends Thread
      * (for the 6-player board)?
      * @since 1.1.08
      */
-    private boolean decidedIfSpecialBuild;
+    protected boolean decidedIfSpecialBuild;
 
     /**
      * true when we're waiting for our requested Special Building phase
      * (for the 6-player board).
      * @since 1.1.08
      */
-    private boolean waitingForSpecialBuild;
+    protected boolean waitingForSpecialBuild;
 
     /**
      * This is the piece we want to build now.
@@ -634,7 +634,7 @@ public class SOCRobotBrain extends Thread
      * Otherwise -1.
      * @since 1.1.17
      */
-    private int rejectedPlayDevCardType;
+    protected int rejectedPlayDevCardType;
 
     /**
      * If not {@code null}, the server rejected our play of this {@link SOCInventoryItem}
@@ -642,7 +642,7 @@ public class SOCRobotBrain extends Thread
      * play an item of the same {@link SOCInventoryItem#itype itype} again this turn.
      * @since 2.0.00
      */
-    private SOCInventoryItem rejectedPlayInvItem;
+    protected SOCInventoryItem rejectedPlayInvItem;
         // TODO refine later: must build/play something else first, have that clear this field. After building/playing
         // something else, the previously rejected inv item type might be okay to play again this turn.
         // Don't need to also add a count of play inv item rejections this turn (to avoid loop forever
@@ -659,7 +659,7 @@ public class SOCRobotBrain extends Thread
      * Used to avoid repeats in {@link #cancelWrongPiecePlacement(SOCCancelBuildRequest)}.
      * @since 1.1.09
      */
-    private int lastStartingPieceCoord;
+    protected int lastStartingPieceCoord;
 
     /**
      * During START1B and START2B states, coordinate of the potential settlement node
@@ -667,7 +667,7 @@ public class SOCRobotBrain extends Thread
      * Used to avoid repeats in {@link #cancelWrongPiecePlacementLocal(SOCPlayingPiece)}.
      * @since 1.1.09
      */
-    private int lastStartingRoadTowardsNode;
+    protected int lastStartingRoadTowardsNode;
 
     /**
      * Strategy to choose discards.
@@ -1153,7 +1153,8 @@ public class SOCRobotBrain extends Thread
      * @param toList  Add to this list
      * @since 1.1.13
      */
-    private static void debugPrintTurnMessages(Vector<?> msgV, final String msgDesc, List<String> toList)
+    protected static void debugPrintTurnMessages
+        (List<?> msgV, final String msgDesc, List<String> toList)
     {
         final int n = msgV.size();
         if (n == 0)
@@ -1162,9 +1163,7 @@ public class SOCRobotBrain extends Thread
         } else {
             toList.add("  " + msgDesc + " turn: " + n + " messages received:");
             for (int i = 0; i < n; ++i)
-            {
-                toList.add("\t" + msgV.elementAt(i));
-            }
+                toList.add("\t" + msgV.get(i));
         }
     }
 
@@ -2156,7 +2155,7 @@ public class SOCRobotBrain extends Thread
      * @param gs  New game state; if 0, does nothing
      * @since 2.0.00
      */
-    private void handleGAMESTATE(final int gs)
+    protected void handleGAMESTATE(final int gs)
     {
         if (gs == 0)
             return;
@@ -2185,7 +2184,7 @@ public class SOCRobotBrain extends Thread
      * Does not call {@link SOCRobotClient#endTurn(SOCGame)}.
      * @since 2.0.00
      */
-    private final void resetFieldsAtEndTurn()
+    protected void resetFieldsAtEndTurn()
     {
         waitingForGameState = true;
         counter = 0;

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2003-2004  Robert S. Thomas
- * Portions of this file copyright (C) 2009-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -118,7 +118,7 @@ public class SOCRobotDM
    * {@link #ourPlayerData}'s player number.
    * @since 2.0.00
    */
-  private final int ourPlayerNumber;
+  protected final int ourPlayerNumber;
 
   /**
    * {@link #ourPlayerData}'s building plan; a stack of {@link SOCPossiblePiece}.
@@ -1014,7 +1014,7 @@ public class SOCRobotDM
    *</UL>
    * @since 2.0.00
    */
-  private final void planRoadBuildingTwoRoads()
+  protected void planRoadBuildingTwoRoads()
   {
       SOCPossibleRoad secondFavoriteRoad = null;
       D.ebugPrintln("*** making a plan for road building");
@@ -1186,7 +1186,7 @@ public class SOCRobotDM
    *         (farthest from <tt>startNode</tt>) on top, or <tt>null</tt> if it can't be done.
    *         If ! <tt>wantsStack</tt>: Integer: the number of roads needed, or 500 if it can't be done
    */
-  static Object recalcLongestRoadETAAux
+  protected static Object recalcLongestRoadETAAux
       (SOCPlayer pl, final boolean wantsStack, final int startNode,
        final int pathLength, final int lrLength, final int searchDepth)
   {
@@ -1991,7 +1991,7 @@ public class SOCRobotDM
    * @throws IllegalArgumentException if {@code smartGameStrategy} didn't calculate {@code cardScoreOrETA} and it's -1
    * @since 2.0.00
    */
-  private final boolean scenarioGameStrategyPlan
+  protected boolean scenarioGameStrategyPlan
       (final float bestScoreOrETA, float cardScoreOrETA, final boolean isScoreNotETA,
        final boolean bestPlanIsDevCard, final SOCBuildingSpeedEstimate ourBSE, final int leadersCurrentWGETA,
        final boolean forSpecialBuildingPhase)
@@ -2704,7 +2704,7 @@ public class SOCRobotDM
    *          the player(s) with lowest {@link SOCPlayerTracker#getWinGameETA()}.
    *          Contains only one element, unless there is an ETA tie.
    */
-  private float calcWGETABonusAux
+  protected float calcWGETABonusAux
       (final int[] originalWGETAs, HashMap<Integer, SOCPlayerTracker> trackersAfter, Vector<SOCPlayerTracker> leaders)
   {
     int WGETAdiffs[] = new int[game.maxPlayers];

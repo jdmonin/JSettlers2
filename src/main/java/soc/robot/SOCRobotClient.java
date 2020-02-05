@@ -140,7 +140,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * @see #debugRandomPauseActive
      * @since 1.1.11
      */
-    private static boolean debugRandomPause = false;  // set true to use this debug type
+    protected static boolean debugRandomPause = false;  // set true to use this debug type
 
     /**
      * Is {@link #debugRandomPause} currently in effect for this client?
@@ -153,7 +153,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * This is all handled within {@link #treat(SOCMessage)}.
      * @since 1.1.11
      */
-    private boolean debugRandomPauseActive = false;
+    protected boolean debugRandomPauseActive = false;
 
     /**
      * When {@link #debugRandomPauseActive} is true, store incoming messages
@@ -161,7 +161,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * Initialized in {@link #treat(SOCMessage)}.
      * @since 1.1.11
      */
-    private Vector<SOCMessage> debugRandomPauseQueue = null;
+    protected Vector<SOCMessage> debugRandomPauseQueue = null;
 
     /**
      * When {@link #debugRandomPauseActive} is true, resume at this time;
@@ -169,7 +169,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * @see #DEBUGRANDOMPAUSE_SECONDS
      * @since 1.1.11
      */
-    private long debugRandomPauseUntil;
+    protected long debugRandomPauseUntil;
 
     /**
      * When {@link #debugRandomPause} is true but not {@link #debugRandomPauseActive},
@@ -178,14 +178,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * Default is 0.04 (4%).
      * @since 1.1.11
      */
-    private static final double DEBUGRANDOMPAUSE_FREQ = .04;  // 4%
+    protected static final double DEBUGRANDOMPAUSE_FREQ = .04;  // 4%
 
     /**
      * When {@link #debugRandomPauseActive} is activated, pause this many seconds
      * before continuing. Default is 12.
      * @see #debugRandomPauseUntil
      */
-    private static final int DEBUGRANDOMPAUSE_SECONDS = 12;
+    protected static final int DEBUGRANDOMPAUSE_SECONDS = 12;
 
     /**
      * Robot class, to be reported to the server when connecting and
@@ -201,13 +201,13 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * Initialized in {@link #init()}.
      * @since 2.0.00
      */
-    private SOCFeatureSet cliFeats;
+    protected SOCFeatureSet cliFeats;
 
     /**
      * The security cookie value; required by server v1.1.19 and higher.
      * @since 1.1.19
      */
-    private String cookie = null;
+    protected String cookie = null;
 
     /**
      * the thread that reads incoming messages
@@ -1032,7 +1032,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * the robot's nickname + ":".
      * @since 1.1.12
      */
-    private final void handleGAMETEXTMSG_debug(SOCGameTextMsg mes)
+    protected void handleGAMETEXTMSG_debug(SOCGameTextMsg mes)
     {
         final int nL = nickname.length();
         try

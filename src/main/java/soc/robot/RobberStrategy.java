@@ -53,7 +53,7 @@ public class RobberStrategy
     protected final Random rand;
 
     /** debug logging */
-    private static transient D log = new D();
+    protected static transient D log = new D();
 
     /**
      * Create a RobberStrategy for a {@link SOCRobotBrain}'s player.
