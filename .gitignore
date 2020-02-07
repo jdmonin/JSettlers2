@@ -18,6 +18,7 @@
 /.idea
 /.settings
 __pycache__
+*.pyc
 # for eclipse:
 /.classpath
 /.project
