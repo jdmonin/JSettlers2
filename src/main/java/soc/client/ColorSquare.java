@@ -116,18 +116,21 @@ public class ColorSquare extends JComponent implements MouseListener
     public final static int WIDTH = 16;
     public final static int HEIGHT = 16;
 
-    /** The warning-level text color (high, low, or zero)
+    /**
+     * The warning-level text color (high, low, or zero)
      *
-     *  @see #setHighWarningLevel(int)
-     *  @see #setLowWarningLevel(int)
-     *  @see #setToolTipZeroText(String)
-     *  @see #WARN_LEVEL_COLOR_BG_FROMGREY
+     * @see #setHighWarningLevel(int)
+     * @see #setLowWarningLevel(int)
+     * @see #setToolTipZeroText(String)
+     * @see #WARN_LEVEL_COLOR_BG_FROMGREY
+     * @since 1.1.00
      */
     public static Color WARN_LEVEL_COLOR = new Color(200, 0, 0);
 
     /**
      * Background color for warning-level, if grey normally
      * @see #WARN_LEVEL_COLOR
+     * @since 1.1.00
      */
     public static Color WARN_LEVEL_COLOR_BG_FROMGREY = new Color(255, 255, 0);
 
@@ -140,7 +143,8 @@ public class ColorSquare extends JComponent implements MouseListener
     int lowerBound;
     boolean interactive;
 
-    /** Border color, BLACK by default
+    /**
+     * Border color, BLACK by default
      * @since 1.1.13
      */
     private Color borderColor = Color.BLACK;
@@ -151,28 +155,38 @@ public class ColorSquare extends JComponent implements MouseListener
      * Normal background color is GREY (when not high or low "warning" color).
      * Background does not change for warning, unless this is true.
      * @see #WARN_LEVEL_COLOR_BG_FROMGREY
+     * @since 1.1.00
      */
     protected boolean warn_bg_grey;
 
     /**
      * Text to use when numeric value is in normal range (not low-warning-level).
      * Field contents are unused unless a low-bound or high-bound or zero-level-text is set.
+     * @since 1.1.00
      */
     protected String ttip_text;
+
     /** Optional text for low-warning-level and high-warning-level (intValue). */
     protected String ttip_text_warnLow, ttip_text_warnHigh;
+
     /** Optional text for zero level (intValue). */
     protected String ttip_text_zero;
+
     /** Low-level or high-level warning level has been set (intValue). */
     protected boolean hasWarnLow, hasWarnHigh;
-    /** At low-level warning, or at zero if ttip_text_zero was set. */
+
+    /** True if at low-level warning, or at zero if ttip_text_zero was set. */
     protected boolean isWarnLow;
-    /** At high-level warning. */
+
+    /** True if at high-level warning. */
     protected boolean isWarnHigh;
     protected int warnLowBound;  // TODO rename any warn-thing from "bound" incl comments
     protected int warnHighBound;  // TODO rename any warn-thing from "bound" incl comments
 
-    /** Size per instance, for ColorSquareLarger */
+    /**
+     * Width/height, for ColorSquareLarger
+     * @since 1.1.00
+     */
     protected int squareW, squareH;
 
     /**
@@ -502,6 +516,7 @@ public class ColorSquare extends JComponent implements MouseListener
      * TODO DOCU - what do other squares do?
      *
      * @param c New background color
+     * @since 1.1.00
      */
     public void setBackground(Color c)
     {
@@ -613,6 +628,7 @@ public class ColorSquare extends JComponent implements MouseListener
      * @throws IllegalArgumentException if warnLevel is above high level, or is zero.
      *     To set text for value 0, use {@link #setToolTipZeroText(String)} instead.
      *     To clear the warning level, use {@link #clearLowWarningLevel()} instead.
+     * @since 1.1.00
      */
     public void setLowWarningLevel(int warnLevel)
         throws IllegalArgumentException
@@ -646,6 +662,7 @@ public class ColorSquare extends JComponent implements MouseListener
     /**
      * If a tooltip low-warning has been set, it is also cleared
      * TODO docu
+     * @since 1.1.00
      */
     public void clearLowWarningLevel()
     {
@@ -686,6 +703,7 @@ public class ColorSquare extends JComponent implements MouseListener
      * @throws IllegalArgumentException if warnLevel is above high level, or is zero.
      *     To set text for value 0, use {@link #setToolTipZeroText(String)} instead.
      *     To clear the warning level, use {@link #clearLowWarningLevel()} instead.
+     * @since 1.1.00
      */
     public void setToolTipLowWarningLevel(String warnTip, int warnLevel)
         throws IllegalStateException, IllegalArgumentException
@@ -738,6 +756,7 @@ public class ColorSquare extends JComponent implements MouseListener
      * @see #clearHighWarningLevel()
      *
      * @throws IllegalArgumentException if warnLevel is below low-warning level.
+     * @since 1.1.00
      */
     public void setHighWarningLevel(int warnLevel)
         throws IllegalArgumentException
@@ -767,6 +786,7 @@ public class ColorSquare extends JComponent implements MouseListener
     /**
      * If a tooltip high-warning has been set, it is also cleared
      * TODO docu
+     * @since 1.1.00
      */
     public void clearHighWarningLevel()
     {
@@ -802,6 +822,7 @@ public class ColorSquare extends JComponent implements MouseListener
      *     and warnTip is not null
      *
      * @throws IllegalArgumentException if warnLevel is below low-warning level.
+     * @since 1.1.00
      */
     public void setToolTipHighWarningLevel(String warnTip, int warnLevel)
         throws IllegalStateException, IllegalArgumentException
@@ -850,6 +871,7 @@ public class ColorSquare extends JComponent implements MouseListener
      *
      * @throws IllegalStateException if setToolTipText has not yet been called
      *     and zeroTip is not null
+     * @since 1.1.00
      */
     public void setToolTipZeroText(String zeroTip)
         throws IllegalStateException

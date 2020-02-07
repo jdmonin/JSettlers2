@@ -39,6 +39,11 @@ import soc.util.CutoffExceededException;
     private CappedQueue<SOCMessage> messageQueue;
     private final SOCTimingPing ping;
     private volatile boolean alive;
+
+    /**
+     * Name of the bot being pinged, for thread naming.
+     * @since 1.1.00
+     */
     private final String robotNickname;
 
     /**

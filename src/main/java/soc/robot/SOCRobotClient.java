@@ -331,6 +331,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * @param nn   nickname for robot
      * @param pw   password for robot
      * @param co   cookie for robot connections to server
+     * @since 1.1.00
      */
     public SOCRobotClient(final String s, final String nn, final String pw, final String co)
     {

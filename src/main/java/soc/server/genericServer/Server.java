@@ -87,7 +87,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
     /**
      * TCP or practice-mode server socket.
-     * Runs on port number {@link #port}.
+     * Runs on port number {@link #port}, or {@link #strSocketName} in practice mode.
      */
     SOCServerSocket ss;
 
@@ -112,13 +112,17 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     protected Exception error = null;
 
     /**
-     * TCP port number for {@link NetServerSocket}, or -1 for
+     * TCP port number for {@link #ss} when using {@link NetServerSocket}, or -1 for
      * local/practice mode ({@link StringServerSocket}).
-     * @see #ss
+     * @see #strSocketName
      */
     protected int port;
 
-    /** {@link StringServerSocket} name, or {@code null} for network mode. */
+    /**
+     * {@link StringServerSocket} name for {@link #ss}, or {@code null} for network mode.
+     * @see #port
+     * @since 1.1.00
+     */
     protected String strSocketName;
 
     /**
@@ -299,6 +303,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @param stringSocketName  Arbitrary name for string "port" to use
      * @param props  Optional properties to configure and run the server.
      *       If null, the properties field will be created empty.
+     * @since 1.1.00
      */
     public Server(final String stringSocketName, final InboundMessageDispatcher imd, Properties props)
         throws IllegalArgumentException

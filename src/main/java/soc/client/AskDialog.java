@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2007-2010,2013-2014,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007-2010,2013-2014,2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -512,6 +512,7 @@ public abstract class AskDialog extends JDialog
 
     /**
      * Adjust size (vs insets) and set focus to the default button (if any).
+     * @since 1.1.00
      */
     protected void checkSizeAndFocus()
     {
@@ -596,12 +597,14 @@ public abstract class AskDialog extends JDialog
     /**
      * Button 1 has been chosen by the user. React accordingly.
      * actionPerformed has already called dialog.dispose().
+     * @since 1.1.00
      */
     public abstract void button1Chosen();
 
     /**
      * Button 2 has been chosen by the user. React accordingly.
      * actionPerformed has already called dialog.dispose().
+     * @since 1.1.00
      */
     public abstract void button2Chosen();
 
@@ -615,6 +618,7 @@ public abstract class AskDialog extends JDialog
     /**
      * The dialog window was closed by the user, or ESC was pressed. React accordingly.
      * AskDialog has already called dialog.dispose().
+     * @since 1.1.00
      */
     public abstract void windowCloseChosen();
 

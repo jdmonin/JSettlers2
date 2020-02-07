@@ -961,7 +961,7 @@ public class SOCPlayerInterface extends Frame
         /**
          * init is almost complete - when window appears and doLayout() is called,
          * it will reset mouse cursor from WAIT_CURSOR to normal (WAIT_CURSOR is
-         * set in SOCPlayerClient.startPracticeGame or .guardedActionPerform).
+         * set in SOCPlayerClient.startPracticeGame or SwingMainDisplay.guardedActionPerform).
          * Then, if the game has any scenario description, it will be shown once in a popup
          * via showScenarioInfoDialog().
          */
@@ -3651,7 +3651,7 @@ public class SOCPlayerInterface extends Frame
 
         /**
          * Reset mouse cursor from WAIT_CURSOR to normal
-         * (set in SOCPlayerClient.startPracticeGame or .guardedActionPerform).
+         * (set in SOCPlayerClient.startPracticeGame or SwingMainDisplay.guardedActionPerform).
          */
         if (layoutNotReadyYet)
         {

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2007-2011,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2007-2011,2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -73,6 +73,7 @@ import java.net.URL;
      * number of robot faces, which are separately numbered.
      * Robot face 0 is just robot.gif, otherwise robot1.gif, robot2.gif, etc.
      * Internally, robot faces are negative faceIds.
+     * @since 1.1.00
      */
     public static final int NUM_ROBOT_FACES = 2;
 
@@ -85,11 +86,23 @@ import java.net.URL;
     /** width,height of button with border around the face icon (bordered mode) */
     public static final int FACE_WIDTH_BORDERED_PX = FACE_WIDTH_PX + 2 * FACE_BORDER_WIDTH_PX;
 
-    /** Shared images */
+    /**
+     * Human-player face images, shared by all instances.
+     * @see #robotImages
+     */
     private static Image[] images;
+
+    /**
+     * Robot-player face images, shared by all instances.
+     * @see #images
+     * @since 1.1.00
+     */
     private static Image[] robotImages;
 
-    /** For status in drawFace */
+    /**
+     * Track images' load status, for drawFace to fall back if missing.
+     * @since 1.1.00
+     */
     private static MediaTracker tracker;
 
     /**

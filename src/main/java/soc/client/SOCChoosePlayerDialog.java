@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2010,2012-2015,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2010,2012-2015,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -74,7 +74,10 @@ import javax.swing.SwingConstants;
      */
     final int[] players;
 
-    /** Show Count of resources of each player. Length is {@link #number}. */
+    /**
+     * Show each player's resource count. Length is {@link #number}.
+     * @since 1.1.00
+     */
     JLabel[] player_res_lbl;
 
     /** Number of players to choose from for {@link #buttons} and {@link #players}. */

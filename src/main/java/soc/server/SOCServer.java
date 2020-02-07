@@ -647,6 +647,7 @@ public class SOCServer extends Server
      * Used to distinguish practice vs "real" games.
      *
      * @see StringConnection
+     * @since 1.1.00
      */
     public static String PRACTICE_STRINGPORT = "SOCPRACTICE";
 
@@ -858,12 +859,15 @@ public class SOCServer extends Server
      */
     public static boolean hasSetGameOptions = false;
 
-    /** Status Message to send, nickname already logged into the system */
+    /**
+     * Status Message to send: Nickname already logged into the system.
+     * @since 1.1.00
+     */
     public static final String MSG_NICKNAME_ALREADY_IN_USE
         = "Someone with that nickname is already logged into the system.";  // TODO i18n
 
     /**
-     * Status Message to send, nickname already logged into the system.
+     * Status Message to send: Nickname already logged into the system.
      * Prepend to {@link #MSG_NICKNAME_ALREADY_IN_USE}.
      * The "take over" option is used for reconnect when a client loses
      * connection, and server doesn't realize it.
@@ -874,7 +878,7 @@ public class SOCServer extends Server
         = " and try again. ";
 
     /**
-     * Part 1 of Status Message to send, nickname already logged into the system
+     * Part 1 of Status Message to send: Nickname already logged into the system
      * with a newer client version.  Prepend to version number required.
      * The "take over" option is used for reconnect when a client loses
      * connection, and server doesn't realize it.
@@ -885,7 +889,7 @@ public class SOCServer extends Server
         = "You need client version ";
 
     /**
-     * Part 2 of Status Message to send, nickname already logged into the system
+     * Part 2 of Status Message to send: Nickname already logged into the system
      * with a newer client version.  Append to version number required.
      * @see #MSG_NICKNAME_ALREADY_IN_USE_NEWER_VERSION_P1
      * @since 1.1.08

@@ -316,6 +316,7 @@ public class SOCPlayerClient
     /**
      * For practice games, default game name ("Practice").
      * Set in constructor using i18n {@link #strings} lookup.
+     * @since 1.1.00
      */
     public final String DEFAULT_PRACTICE_GAMENAME;
 
@@ -412,6 +413,7 @@ public class SOCPlayerClient
 
     /**
      * Number of practice games started; used for naming practice games
+     * @since 1.1.00
      */
     protected int numPracticeGames = 0;
 

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014,2016-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014,2016-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net> - GameStatisticsFrame
  *
  * This program is free software; you can redistribute it and/or
@@ -110,10 +110,22 @@ import javax.swing.SwingConstants;
     final ColorSquare[] citySq;
     JLabel cardT;
     ArrowheadPanel cardC;
+
+    /**
+     * label for {@link #cardCount}
+     * @since 1.1.00
+     */
     JLabel cardCountLab;
+
     private JLabel vpToWinLab;  // null unless hasSeaBoard or vp != 10; @since 1.1.14
     final ColorSquare[] cardSq;
+
+    /**
+     * Number of remaining development cards; updated in {@link #updateDevCardCount()}
+     * @since 1.1.00
+     */
     ColorSquare cardCount;
+
     private ColorSquare vpToWin;  // null unless hasSeaBoard or vp != 10; @since 1.1.14
 
     /** For game scenario {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, the
@@ -1086,6 +1098,7 @@ import javax.swing.SwingConstants;
     /**
      * The game's count of development cards remaining has changed.
      * Update the display.
+     * @since 1.1.00
      */
     public void updateDevCardCount()
     {

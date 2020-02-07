@@ -174,7 +174,10 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     /** main panel, in cardlayout */
     private static final String MAIN_PANEL = "main";
 
-    /** message panel, in cardlayout */
+    /**
+     * Message main panel for showing errors, in cardlayout.
+     * @see #showErrorPanel(String, boolean)
+     */
     private static final String MESSAGE_PANEL = "message";
 
     /** Connect-or-practice panel (if jar launch), in cardlayout.
@@ -185,6 +188,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
     /**
      * For practice games, reminder message for network problems.
+     * @since 1.1.00
      */
     public final String NET_UNAVAIL_CAN_PRACTICE_MSG;
 
@@ -361,7 +365,10 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      */
     private boolean mainPaneLayoutIsDone, mainPaneLayoutIsDone_hasChannels;
 
-    /** Nickname (username) to connect to server and use in games */
+    /**
+     * Nickname (username) to connect to server and use in games.
+     * Default value is set in {@link #guardedActionPerform_games(Object)} if still blank.
+     */
     protected JTextField nick;
 
     /** Password for {@link #nick} while connecting to server, or blank */
@@ -428,6 +435,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     /**
      * Practice Game button: Create game to play against
      * {@link ClientNetwork#practiceServer}, not {@link ClientNetwork#localTCPServer}.
+     * @since 1.1.00
      */
     protected JButton pg;
 
@@ -454,9 +462,24 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      */
     private JLabel versionOrlocalTCPPortLabel;
 
-    protected JLabel messageLabel;  // error message for messagepanel
-    protected JLabel messageLabel_top;   // secondary message
-    protected JButton pgm;  // practice game on messagepanel
+    /**
+     * Error message display in {@link #MESSAGE_PANEL}.
+     * Updated by {@link #showErrorPanel(String, boolean)}.
+     */
+    protected JLabel messageLabel;
+
+    /**
+     * Secondary message at top of {@link #MESSAGE_PANEL}.
+     * Updated by {@link #showErrorPanel(String, boolean)}.
+     * @since 1.1.00
+     */
+    protected JLabel messageLabel_top;
+
+    /**
+     * Practice Game button in {@link #MESSAGE_PANEL}.
+     * @since 1.1.00
+     */
+    protected JButton pgm;
 
     /**
      * This class displays one of several panels to the user:
@@ -1866,8 +1889,8 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     /**
      * {@inheritDoc}
      *<P>
-     * Assumes {@link #getValidNickname(boolean) getValidNickname(true)}, {@link #getPassword()}, {@link ClientNetwork#host},
-     * and {@link #gotPassword} are already called and valid.
+     * Assumes {@link #getValidNickname(boolean) getValidNickname(true)}, {@link #getPassword()},
+     * {@link ClientNetwork#host}, and {@link #gotPassword} are already called and valid.
      *
      * @since 1.1.07
      */

@@ -717,11 +717,13 @@ public class SOCGame implements Serializable, Cloneable
      * NOT CURRENTLY SET AT SERVER.  Instead check if server's strSocketName != null,
      * or if connection instanceof {@link StringConnection}.
      *<P>
-     * Since 1.1.09: This flag is set at the server, only if the server is a local practice
-     * server whose stringport name is <tt>SOCServer.PRACTICE_STRINGPORT</tt>.
+     * Since 1.1.09: This flag is set at the server, true only if the server is a local practice
+     * server whose stringport name equals {@code SOCServer.PRACTICE_STRINGPORT}.
      *<P>
-     * Before 1.1.13, this field was called <tt>isLocal</tt>, but that was misleading;
+     * Before 1.1.13 this field was called {@code isLocal}, but that was misleading;
      * the full client can launch a locally hosted tcp LAN server.
+     *
+     * @since 1.1.00
      */
     public boolean isPractice;
 
