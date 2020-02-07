@@ -4549,8 +4549,9 @@ public class SOCServer extends Server
             return -2;  // TODO distinct ret value, to send localized error to client
         }
 
-        // check "debug" and bot name prefixes used in setupLocalRobots
-        if ((nLower.equals("debug") && ! isDebugUserEnabled())
+        // check for "debug" (if not a Practice server)
+        // and bot name prefixes used in setupLocalRobots
+        if ((nLower.equals("debug") && (port > 0) && ! isDebugUserEnabled())
             || ((! isBot)
                 && (nLower.startsWith("droid ") || nLower.startsWith("robot "))))
         {
