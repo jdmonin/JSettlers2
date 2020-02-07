@@ -2513,12 +2513,6 @@ public class SOCGameHandler extends GameHandler
              * Tell each player how long they've been connected.
              * (Robot players aren't told this, it's not necessary.)
              */
-            final String connMsgKey;
-            if (ga.isPractice)
-                connMsgKey = "stats.cli.connected.minutes.prac";  // "You have been practicing # minutes."
-            else
-                connMsgKey = "stats.cli.connected.minutes";  // "You have been connected # minutes."
-
             for (int i = 0; i < ga.maxPlayers; i++)
             {
                 if (ga.isSeatVacant(i))
@@ -2550,13 +2544,10 @@ public class SOCGameHandler extends GameHandler
                         srv.messageToPlayer(plConn, new SOCPlayerStats(pl, SOCPlayerStats.STYPE_RES_ROLL));
                     }
 
-                    final long connTime = plConn.getConnectTime().getTime();
-                    final long connMinutes = (((now.getTime() - connTime)) + 30000L) / 60000L;
-                    srv.messageToPlayerKeyed(plConn, gname, connMsgKey, connMinutes);  // "You have been connected # minutes."
-
-                    // Send client's win-loss count for this session,
-                    // if more than 1 game has been played
-                    srv.processDebugCommand_connStats(plConn, gname, true);
+                    // Send client how long they've been connected
+                    // and, if more than 1 game has been played,
+                    // their win-loss count for this session
+                    srv.processDebugCommand_connStats(plConn, ga, true);
                 }
             }  // for each player
 

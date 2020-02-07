@@ -5018,17 +5018,18 @@ public class SOCServer extends Server
                 + Version.version(ga.clientVersionLowest) + " - " + Version.version(ga.clientVersionHighest));
 
         srvMsgHandler.processDebugCommand_gameStats(c, gaName, ga, false);
-        processDebugCommand_connStats(c, gaName, false);
+        processDebugCommand_connStats(c, ga, false);
     }
 
     /**
-     * Send connection stats to a client, appearing in the message pane of a game they're a member of.
+     * Send connection stats text to a client, appearing in the message pane of a game they're a member of.
      *<UL>
-     * <LI> If client has finished at least 1 or 2 games since connecting, send their win-loss count for this session.
+     * <LI> How long they've been connected to server (duration in minutes)
+     * <LI> If client has finished at least 1 or 2 games since connecting, their win-loss count for this session.
      *</UL>
      *
      * @param c  Client that just finished a game or sent the {@code *STATS*} command; not null
-     * @param gaName  Game that {@code c} is a member of
+     * @param ga  Game that {@code c} is a member of
      * @param skipWinLossBefore2  If true, don't send win/loss record if less than 2 completed games.
      *     If false, don't send if less than 1 completed game.
      * @since 2.2.00
@@ -5036,8 +5037,16 @@ public class SOCServer extends Server
      * @see SOCServerMessageHandler#processDebugCommand_gameStats(Connection, String, SOCGame, boolean)
      */
     final void processDebugCommand_connStats
-        (final Connection c, final String gaName, final boolean skipWinLossBefore2)
+        (final Connection c, final SOCGame ga, final boolean skipWinLossBefore2)
     {
+        final String gaName = ga.getName();
+
+        final long connMinutes = (((System.currentTimeMillis() - c.getConnectTime().getTime())) + 30000L) / 60000L;
+        final String connMsgKey = (ga.isPractice)
+            ? "stats.cli.connected.minutes.prac"  // "You have been practicing # minutes."
+            : "stats.cli.connected.minutes";      // "You have been connected # minutes."
+        messageToPlayerKeyed(c, gaName, connMsgKey, connMinutes);
+
         final SOCClientData scd = (SOCClientData) c.getAppData();
         if (scd == null)
             return;
