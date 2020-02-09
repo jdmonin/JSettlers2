@@ -329,6 +329,23 @@ fail with this error:
 
     Packaging error: Cannot determine JSettlers version
 
+### Including JSettlers as a subproject build
+
+JSettlers can be used as a subproject within a gradle build project.
+If the JSettlers repo is at (for example) `lib/jsettlers2/` within your
+project directory structure, and in your gradle project as  
+`include ':lib:jsettlers2'`  
+then in your build.gradle you can add the JSettlers jar to your code's compile classpath with:
+```
+dependencies {
+    implementation project(':lib:jsettlers2')
+}
+
+compileJava {
+    classpath = tasks.getByPath(':lib:jsettlers2:serverJar').outputs.files
+}
+```
+
 
 ## Recommended debug/run configurations for testing
 
