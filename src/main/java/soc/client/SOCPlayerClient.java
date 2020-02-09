@@ -713,7 +713,7 @@ public class SOCPlayerClient
     public boolean doesGameExist(final String gameName, final boolean checkPractice)
     {
         boolean gameExists = (checkPractice)
-            ? ((net.practiceServer != null) && (-1 != net.practiceServer.getGameState(gameName)))
+            ? ((net.practiceServer != null) && (net.practiceServer.getGame(gameName) != null))
             : false;
         if ((! gameExists) && (serverGames != null))
             gameExists = gameExists || serverGames.isGame(gameName);

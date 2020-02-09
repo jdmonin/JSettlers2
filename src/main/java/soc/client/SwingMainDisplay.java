@@ -1477,7 +1477,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
             Map<String,SOCGameOption> opts = null;
 
-            if ((net.practiceServer != null) && (-1 != net.practiceServer.getGameState(gm)))
+            if ((net.practiceServer != null) && (net.practiceServer.getGame(gm) != null))
             {
                 opts = net.practiceServer.getGameOptions(gm);  // won't ever need to parse from string on practice server
             }
