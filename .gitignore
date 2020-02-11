@@ -22,3 +22,4 @@ __pycache__
 # for eclipse:
 /.classpath
 /.project
+/bin
