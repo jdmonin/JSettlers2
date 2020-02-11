@@ -196,7 +196,8 @@
 # 1.6 seconds), in order to give bot clients more time to connect first. The
 # server will print a reminder message:
 # "Waiting 30 seconds before starting robot-only games."
-# jsettlers.bots.botgames.wait_sec=30
+# (See also jsettlers.bots.percent3p)
+# jsettlers.bots.botgames.wait_sec=2
 
 # Adjust the speed-up factor for bots' pause times between actions when game
 # is bots-only. Default is 25, for 25% of normal pauses (4x speed). Use 1 for
@@ -227,7 +228,7 @@
 # game, the built-in bots will be used instead so that the game can begin.
 # If also using jsettlers.bots.botgames.total, remember those games will be
 # started as soon as the server is ready, so the third-party bots may not
-# yet be connected.
+# yet be connected. To wait longer, use jsettlers.bots.botgames.wait_sec.
 # jsettlers.bots.percent3p=50
 
 # Robot turn timeout (seconds) for third-party robots, which may have more

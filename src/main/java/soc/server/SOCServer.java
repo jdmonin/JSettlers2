@@ -241,6 +241,7 @@ public class SOCServer extends Server
      * the built-in bots will be used instead so that the game can begin. If also using
      * {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL}, remember those games will be started
      * as soon as the server is ready, so the third-party bots may not yet be connected.
+     * To wait longer, use {@link #PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC}.
      * @since 2.0.00
      */
     public static final String PROP_JSETTLERS_BOTS_PERCENT3P = "jsettlers.bots.percent3p";
@@ -320,6 +321,7 @@ public class SOCServer extends Server
      * before starting robot-only games with {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL}.
      * This is useful if some bots are slow to start, or are third-party bots not automatically
      * started with the server. (The default is 1.6 seconds.)
+     * @see #PROP_JSETTLERS_BOTS_PERCENT3P
      * @since 2.0.00
      */
     public static final String PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC = "jsettlers.bots.botgames.wait_sec";
