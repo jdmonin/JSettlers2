@@ -28,7 +28,11 @@ and backport minor new features until `2.0.00` was ready.
 	  - For convenience, if JVM properties don't contain `org.sqlite.tmpdir` but that property is set in
 	    `jsserver.properties` file or command line, copy it into JVM properties
 - For AI/Robot development:
+	- Server can automatically start some third-party bots with new startup option:  
+	  `-Djsettlers.bots.start3p=3,com.example.BotXClient,5,net.example.BotZClient`  
+	  For details, search for that property in src/main/bin/jsserver.properties.sample
 	- Strategy classes made easier to change or subclass for 3rd-party bots; added SampleDiscardStrategy
+	- Human players can't use the robot nickname prefix "extrabot "
 
 
 ## `2.1.00` (build JM20200119)

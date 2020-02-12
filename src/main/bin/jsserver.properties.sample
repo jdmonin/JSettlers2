@@ -196,6 +196,7 @@
 # 1.6 seconds), in order to give bot clients more time to connect first. The
 # server will print a reminder message:
 # "Waiting 30 seconds before starting robot-only games."
+# To start some third-party bots with the server, see jsettlers.bots.start3p.
 # (See also jsettlers.bots.percent3p)
 # jsettlers.bots.botgames.wait_sec=2
 
@@ -230,6 +231,22 @@
 # started as soon as the server is ready, so the third-party bots may not
 # yet be connected. To wait longer, use jsettlers.bots.botgames.wait_sec.
 # jsettlers.bots.percent3p=50
+
+# List of third-party bot classes to be started automatically by the server.
+# The server can do this for any bots whose client class:
+# - Is a subclass of SOCRobotClient
+# - Is on the server's CLASSPATH
+# - Has a constructor which takes the same args as soc.robot.SOCRobotClient's
+#   and soc.robot.sample3p.Sample3PClient's: (ServerConnectInfo, String, String)
+# Third-party bots don't need to extend SOCRobotClient, but the current server code
+# only knows how to start such subclasses. So, non-subclassed bots will need to be
+# started and connected manually.
+# (See also jsettlers.bots.botgames.wait_sec)
+# This example starts 3 of bot X, 1 of bot Y, 5 of bot Z:
+# jsettlers.bots.start3p=3,com.example.BotXClient,org.example.BotYClient,5,net.example.BotZClient
+# This starts 2 of the example "third-party" bot:
+# jsettlers.bots.start3p=2,soc.robot.sample3p.Sample3PClient
+
 
 # Robot turn timeout (seconds) for third-party robots, which may have more
 # complex logic than the built-in bots. The third-party bots will have this

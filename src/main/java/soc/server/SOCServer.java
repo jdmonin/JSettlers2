@@ -56,6 +56,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Constructor;
 import java.net.SocketException;
 import java.sql.SQLException;
 import java.text.DateFormat;
@@ -249,6 +250,32 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_BOTS_PERCENT3P = "jsettlers.bots.percent3p";
 
     /**
+     * String property <tt>jsettlers.bots.start3p</tt>:
+     * List of third-party bot classes to be started automatically by the server.
+     *<P>
+     * The server can do this for any bots whose client class:
+     *<UL>
+     * <LI> Is a subclass of SOCRobotClient
+     * <LI> Is on the server's CLASSPATH
+     * <LI> Has a constructor which takes the same args as soc.robot.SOCRobotClient's
+     *      and soc.robot.sample3p.Sample3PClient's: ({@link ServerConnectInfo}, String, String)
+     *</UL>
+     * Third-party bots don't need to extend SOCRobotClient, but the current server code
+     * only knows how to start such subclasses. So, non-subclassed bots will need to be
+     * started and connected manually.
+     *<P>
+     * This example starts 3 of bot X, 1 of bot Y, 5 of bot Z:<BR>
+     * <tt>jsettlers.bots.start3p=3,com.example.BotXClient,org.example.BotYClient,5,net.example.BotZClient</tt>
+     *<P>
+     * This starts 2 of the example "third-party" bot:<BR>
+     * <tt>jsettlers.bots.start3p=2,soc.robot.sample3p.Sample3PClient</tt>
+     *
+     * @see #PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC
+     * @since 2.2.00
+     */
+    public static final String PROP_JSETTLERS_BOTS_START3P = "jsettlers.bots.start3p";
+
+    /**
      * Integer property <tt>jsettlers.bots.timeout.turn</tt> to increase
      * {@link #ROBOT_FORCE_ENDTURN_SECONDS} for third-party robots, which may
      * have more complex logic than the built-in bots. The third-party bots will
@@ -323,6 +350,9 @@ public class SOCServer extends Server
      * before starting robot-only games with {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL}.
      * This is useful if some bots are slow to start, or are third-party bots not automatically
      * started with the server. (The default is 1.6 seconds.)
+     *<P>
+     * To start some third-party bots with the server, see {@link #PROP_JSETTLERS_BOTS_START3P}.
+     *
      * @see #PROP_JSETTLERS_BOTS_PERCENT3P
      * @since 2.0.00
      */
@@ -493,6 +523,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_BOTS_SHOWCOOKIE,         "Flag to show the robot cookie value at startup",
         PROP_JSETTLERS_BOTS_FAST__PAUSE__PERCENT, "Pause at percent of normal pause time (0 to 100) for robot-only games (default 25)",
         PROP_JSETTLERS_BOTS_PERCENT3P,          "Percent of bots which should be third-party (0 to 100) if available",
+        PROP_JSETTLERS_BOTS_START3P,            "Third-party bot client classes to start up with server",
         PROP_JSETTLERS_BOTS_TIMEOUT_TURN,       "Robot turn timeout (seconds) for third-party bots",
         PROP_JSETTLERS_TEST_VALIDATE__CONFIG,   "Flag to validate server and DB config, then exit (same as -t command-line option)",
         PROP_JSETTLERS_TEST_DB,                 "Flag to test database methods, then exit",
@@ -798,14 +829,24 @@ public class SOCServer extends Server
 
     /**
      * A list of third-party bot clients connected to this server, if any.
-     * A subset of {@link #robots} which also includes built-in bots.
+     * A subset of {@link #robots} (which also includes built-in bots).
      * Third-party bot clients' {@link SOCClientData#robot3rdPartyBrainClass} != {@code null}.
      *<P>
      *<B>Locking:</B> Adding or removing from this list should synchronize on {@link #robots}
      * to keep the two lists in sync.
+     * @see #robots3pCliConstrucs
      * @since 2.0.00
      */
     protected Vector<Connection> robots3p = new Vector<Connection>();
+
+    /**
+     * A list of third-party bot clients started up by server like the built-in bots, or {@code null} if none.
+     * Initialized during server startup by parsing property from {@link #PROP_JSETTLERS_BOTS_START3P}.
+     * Used in {@link #setupLocalRobots(int, int)}.
+     * @see #robots3p
+     * @since 2.2.00
+     */
+    private List<Constructor<? extends SOCRobotClient>> robots3pCliConstrucs;
 
     /**
      * The limited-feature clients' connections: Those with the {@link SOCClientData#hasLimitedFeatures} flag set.
@@ -1445,6 +1486,15 @@ public class SOCServer extends Server
             robotCookie = generateRobotCookie();
         }
 
+        /**
+         * See if user wants any third-party bots started with server:
+         * Set up robots3pCliConstrucs if so
+         */
+        if (props.containsKey(PROP_JSETTLERS_BOTS_START3P)
+            && ! (hasUtilityModeProp && ! validate_config_mode))
+            initSocServer_bots_start3p();
+                // throws IllegalArgumentException if problems found
+
         final boolean accountsRequired = getConfigBoolProperty(PROP_JSETTLERS_ACCOUNTS_REQUIRED, false);
 
         /**
@@ -1759,6 +1809,81 @@ public class SOCServer extends Server
         }
 
         System.err.println();
+    }
+
+    /**
+     * Third-party bot startup with server:
+     * Parse {@link #PROP_JSETTLERS_BOTS_START3P} and set up {@link #robots3pCliConstrucs}.
+     * @throws IllegalArgumentException if property can't be parsed or a named bot class can't be found.
+     *     {@link Throwable#getMessage()} will have problem details.
+     * @since 2.2.00
+     */
+    private void initSocServer_bots_start3p()
+        throws IllegalArgumentException
+    {
+        String errMsg = null;
+
+        robots3pCliConstrucs = new ArrayList<>();
+        int count = 1;
+        for (String part : props.getProperty(PROP_JSETTLERS_BOTS_START3P).trim().split(","))
+        {
+            if (part.isEmpty())
+                continue;
+
+            if (Character.isDigit(part.charAt(0)))
+            {
+                count = 0;
+                try
+                {
+                    count = Integer.parseInt(part);
+                } catch (NumberFormatException e) {
+                    errMsg = "Expected number but can't parse: " + part;
+                    break;
+                }
+                if (count <= 0)
+                {
+                    errMsg = "Count must be at least 1: " + count;
+                    break;
+                }
+            } else if (part.indexOf('.') > 0) {
+                try
+                {
+                    Class<?> rcli3p = Class.forName(part);
+                    if (! SOCRobotClient.class.isAssignableFrom(rcli3p))
+                    {
+                        errMsg = "3p client not subclass of SOCRobotClient, can't be auto-started: " + part;
+                        break;
+                    }
+
+                    try
+                    {
+                        @SuppressWarnings("unchecked")
+                        Constructor<? extends SOCRobotClient> cliConstruc3p
+                            = (Constructor<? extends SOCRobotClient>) rcli3p.getDeclaredConstructor
+                                (ServerConnectInfo.class, String.class, String.class);
+
+                        // looks good; queue up those bots
+                        for (; count > 0; --count)
+                            robots3pCliConstrucs.add(cliConstruc3p);
+                        count = 1;
+                    } catch(NoSuchMethodException e) {
+                        errMsg = "3p client " + part
+                            + " missing constructor(ServerConnectInfo, String, String)";
+                        break;
+                    }
+                } catch(Exception|LinkageError err) {
+                    errMsg = "3p client class " + part + " can't be loaded: " + err;
+                    break;
+                }
+            } else {
+                errMsg = "Expected digits or fully qualified class name";
+                break;
+            }
+        }
+
+        if (errMsg != null)
+            throw new IllegalArgumentException
+                ("Setup failed from property " + PROP_JSETTLERS_BOTS_START3P + ": " + errMsg);
     }
 
     /**
@@ -2757,8 +2882,12 @@ public class SOCServer extends Server
      * {@code FAST} or {@code SMART} strategy params in {@link #handleIMAROBOT(Connection, SOCImARobot)}
      * based on their name prefixes ("droid " or "robot " respectively).
      *<P>
-     * In v1.2.00 and newer, human players can't use names with bot prefixes "droid " or "robot ":
-     * see {@link #checkNickname(String, Connection, boolean, boolean)}.
+     * Some third-party bot clients can automatically be started here,
+     * if they're named in {@link #PROP_JSETTLERS_BOTS_START3P} and meet the criteria documented there.
+     * Those bots will be named "extrabot 1", "extrabot 2", etc.
+     *<P>
+     * In v1.2.00 and newer, human players can't use names with bot prefixes "droid " or "robot ",
+     * and in v2.2.00 and newer "extrabot " also; see {@link #checkNickname(String, Connection, boolean, boolean)}.
      *<P>
      * Before 1.1.09, this method was part of SOCPlayerClient.
      *
@@ -2780,13 +2909,14 @@ public class SOCServer extends Server
             ? new ServerConnectInfo(strSocketName, robotCookie)
             : new ServerConnectInfo("localhost", port, robotCookie);
 
+        String curr3pBotClass = null;  // for context when reporting third-party bot instantiation errors
         try
         {
             // Make some faster ones first.
             for (int i = 0; i < numFast; ++i)
             {
                 String rname = "droid " + (i+1);
-                SOCLocalRobotClient.createAndStartRobotClientThread(rname, sci);
+                SOCLocalRobotClient.createAndStartRobotClientThread(rname, sci, null);
                     // to ratelimit, create includes Thread.yield() and sleep(75 ms) on caller's thread
             }
 
@@ -2797,11 +2927,33 @@ public class SOCServer extends Server
             for (int i = 0; i < numSmart; ++i)
             {
                 String rname = "robot " + (i+1+numFast);
-                SOCLocalRobotClient.createAndStartRobotClientThread(rname, sci);
+                SOCLocalRobotClient.createAndStartRobotClientThread(rname, sci, null);
+            }
+
+            // Now, any third-party bots starting up with server.
+            if (robots3pCliConstrucs != null)
+            {
+                int i = 0;
+                for (final Constructor<? extends SOCRobotClient> con : robots3pCliConstrucs)
+                {
+                    ++i;
+                    curr3pBotClass = con.getDeclaringClass().getName();
+                    SOCLocalRobotClient.createAndStartRobotClientThread("extrabot " + i, sci, con);
+                }
             }
         }
         catch (Exception e)
         {
+            if (curr3pBotClass != null)
+            {
+                System.err.println("*** Can't start third-party bot " + curr3pBotClass + ": " + e);
+                if ((e instanceof ReflectiveOperationException) && (e.getCause() instanceof Exception))
+                {
+                    e = (Exception) e.getCause();
+                    System.err.println("    caused by " + e);
+                }
+                e.printStackTrace();
+            }
             //TODO: log
             return false;
         }
@@ -4566,7 +4718,7 @@ public class SOCServer extends Server
         // and bot name prefixes used in setupLocalRobots
         if ((nLower.equals("debug") && (port > 0) && ! isDebugUserEnabled())
             || ((! isBot)
-                && (nLower.startsWith("droid ") || nLower.startsWith("robot "))))
+                && (nLower.startsWith("droid ") || nLower.startsWith("robot ") || nLower.startsWith("extrabot "))))
         {
             return -2;
         }

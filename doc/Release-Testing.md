@@ -455,27 +455,27 @@ When preparing to release a new version, testing should include:
         - Should allow connect after appropriate number of seconds, and automatically rejoin the first 2 games but
 		  not the game with scenario
         - Game with scenario should disappear from game list, because there were no other human players
-    - For standalone robot clients, which server invites to games:
-        - Start a server which expects third-party bots, with these command-line parameters:
+    - For standalone/third-party robot clients, which server invites to games:
+        - Start a server which expects third-party bots, with these command-line parameters:  
           `-Djsettlers.bots.cookie=foo  -Djsettlers.bots.percent3p=50`
-        - Start the `soc.robot.sample3p.Sample3PClient` "third-party" bot, which does not have the Game Scenarios client feature, with these command-line parameters:
-          `localhost 8880 samplebot x foo`
-        - Start another Sample3PClient:
+        - Start the `soc.robot.sample3p.Sample3PClient` "third-party" bot, which does not use the Game Scenarios client feature, with these command-line parameters:  
+          `localhost 8880 samplebot1 x foo`
+        - Start another Sample3PClient:  
           `localhost 8880 samplebot2 x foo`
-    	- Launch a standard client, connect to server
-    	- Create and start a 4-player game: Some samplebots should join (no features required) along with the built-in bots
-    	- Create and start a 6-player game: Some samplebots should join (requires a feature which they have) along with the built-in bots
-    	- Create and start a game having any Scenario (New Shores, etc): No samplebots should join, only built-in bots
-    	- Quit the standard client and stop the server
-        - Start a server which expects third-party bots and has no built-in bots, with these command-line parameters:
-          `-Djsettlers.bots.cookie=foo  -Djsettlers.bots.percent3p=50  -Djsettlers.startrobots=0`
-        - Start two Sample3PClients, same way as above
-    	- Launch a standard client, connect to server
-    	- Create and start a game having any Scenario: No samplebots should join, server should tell game-starting client to lock all empty seats
-    	- Start a second standard client, connect, join that game and sit down
-    	- Start that game (with the two human players)
-    	- After initial placement, have one player leave
-    	- Server should tell game it can't find a robot
+        - Launch a standard client, connect to server
+        - Create and start a 4-player game: Some samplebots should join (no features required) along with the built-in bots
+        - Create and start a 6-player game: Some samplebots should join (requires a feature which they have) along with the built-in bots
+        - Create and start a game having any Scenario (New Shores, etc): No samplebots should join, only built-in bots
+        - Quit the standard client and stop the server
+        - Start a server with third-party bots and no built-in bots, with these command-line parameters:  
+          `-Djsettlers.bots.percent3p=50  -Djsettlers.startrobots=0  -Djsettlers.bots.start3p=2,soc.robot.sample3p.Sample3PClient`
+        - Server should automatically start sample bots, joining as "extrabot 1" and "extrabot 2"
+        - Launch a standard client, connect to server
+        - Create and start a game having any Scenario: No extrabots should join, server should tell game-starting client to lock all empty seats
+        - Start a second standard client, connect, join that game and sit down
+        - Start that game (with the two human players)
+        - After initial placement, have one player leave
+        - Server should tell game it can't find a robot
 - Command line and jsserver.properties
     - Server and client: `-h` / `--help` / `-?`, `--version`
     - Server: Unknown args `-x -z` should print both, then not continue startup
