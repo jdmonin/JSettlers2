@@ -19,6 +19,7 @@
  */
 package soc.robot.sample3p;
 
+import soc.baseclient.ServerConnectInfo;
 import soc.game.SOCGame;
 import soc.message.SOCMessage;
 import soc.robot.SOCRobotBrain;
@@ -73,17 +74,18 @@ public class Sample3PClient extends SOCRobotClient
     private static final String RBCLASSNAME_SAMPLE = Sample3PClient.class.getName();
 
     /**
-     * Constructor for connecting to the specified server, on the specified port.
+     * Constructor for connecting to the specified server. Does not actually connect here:
+     * Afterwards, must call {@link SOCRobotClient#init()} to actually initialize, start threads, and connect.
      *
-     * @param h  server hostname
-     * @param p  server port
+     * @param sci server connect info with {@code robotCookie}; not {@code null}
      * @param nn nickname for robot
      * @param pw password for robot
-     * @param co  required cookie for robot connections to server
+     * @throws IllegalArgumentException if {@code sci == null}
      */
-    public Sample3PClient(final String h, final int p, final String nn, final String pw, final String co)
+    public Sample3PClient(final ServerConnectInfo sci, final String nn, final String pw)
+        throws IllegalArgumentException
     {
-        super(h, p, nn, pw, co);
+        super(sci, nn, pw);
 
         rbclass = RBCLASSNAME_SAMPLE;
     }
@@ -134,7 +136,8 @@ public class Sample3PClient extends SOCRobotClient
             return;
         }
 
-        Sample3PClient cli = new Sample3PClient(args[0], Integer.parseInt(args[1]), args[2], args[3], args[4]);
+        Sample3PClient cli = new Sample3PClient
+            (new ServerConnectInfo(args[0], Integer.parseInt(args[1]), args[4]), args[2], args[3]);
         cli.init();
     }
 

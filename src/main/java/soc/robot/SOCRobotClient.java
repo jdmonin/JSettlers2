@@ -21,6 +21,7 @@
  **/
 package soc.robot;
 
+import soc.baseclient.ServerConnectInfo;
 import soc.baseclient.SOCDisplaylessPlayerClient;
 
 import soc.disableDebug.D;
@@ -203,11 +204,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      */
     protected SOCFeatureSet cliFeats;
 
-    /**
-     * The security cookie value; required by server v1.1.19 and higher.
-     * @since 1.1.19
-     */
-    protected String cookie = null;
+    // Note: v2.2.00 moved the security cookie field to serverConnectInfo.robotCookie
 
     /**
      * the thread that reads incoming messages
@@ -291,28 +288,27 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     public boolean printedInitialWelcome = false;
 
     /**
-     * Constructor for a robot which will connect to the specified host, on the specified port.
-     * Does not actually connect: Call {@link #init()} when ready.
+     * Constructor for a robot which will connect to a TCP or local server.
+     * Does not actually connect here: Call {@link #init()} when ready.
      *
-     * @param h  host
-     * @param p  port
+     * @param sci  Server connect info (TCP or local) with {@code robotCookie}; not {@code null}
      * @param nn nickname for robot
-     * @param pw password for robot
-     * @param co  cookie for robot connections to server
+     * @param pw Optional password for robot, or {@code null}
+     * @throws IllegalArgumentException if {@code sci == null}
+     * @since 2.2.00
      */
-    public SOCRobotClient(final String h, final int p, final String nn, final String pw, final String co)
+    public SOCRobotClient(final ServerConnectInfo sci, final String nn, final String pw)
+        throws IllegalArgumentException
     {
+        super(sci, false);
+
         gamesPlayed = 0;
         gamesFinished = 0;
         gamesWon = 0;
         cleanBrainKills = 0;
         startTime = System.currentTimeMillis();
-        host = h;
-        port = p;
         nickname = nn;
         password = pw;
-        cookie = co;
-        strSocketName = null;
 
         String val = System.getProperty(PROP_JSETTLERS_BOTS_TEST_QUIT_AT_JOINREQ);
         if (val != null)
@@ -324,19 +320,23 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     }
 
     /**
-     * Constructor for a robot which will connect to a practice game on a local stringport.
-     * Does not actually connect: Call {@link #init()} when ready.
+     * Constructor for a robot which will connect to the specified host, on the specified port.
+     * Does not actually connect here: Call {@link #init()} when ready.
+     *<P>
+     * This deprecated constructor is kept only for compatibility with third-party bot clients.
      *
-     * @param s    the stringport that the server listens on
-     * @param nn   nickname for robot
-     * @param pw   password for robot
-     * @param co   cookie for robot connections to server
-     * @since 1.1.00
+     * @param h  host
+     * @param p  port
+     * @param nn nickname for robot
+     * @param pw password for robot
+     * @param co  cookie for robot connections to server
+     * @deprecated In v2.2.00 and newer, use the {@link #SOCRobotClient(ServerConnectInfo, String, String)}
+     *     constructor instead:<BR>
+     *     {@code new SOCRobotClient(new ServerConnectInfo(h, p, co), nn, pw);}
      */
-    public SOCRobotClient(final String s, final String nn, final String pw, final String co)
+    public SOCRobotClient(final String h, final int p, final String nn, final String pw, final String co)
     {
-        this(null, 0, nn, pw, co);
-        strSocketName = s;
+        this(new ServerConnectInfo(h, p, co), nn, pw);
     }
 
     /**
@@ -347,16 +347,16 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     {
         try
         {
-            if (strSocketName == null)
+            if (serverConnectInfo.stringSocketName == null)
             {
-                s = new Socket(host, port);
+                s = new Socket(serverConnectInfo.hostname, serverConnectInfo.port);
                 s.setSoTimeout(300000);
                 in = new DataInputStream(s.getInputStream());
                 out = new DataOutputStream(s.getOutputStream());
             }
             else
             {
-                sLocal = StringServerSocket.connectTo(strSocketName);
+                sLocal = StringServerSocket.connectTo(serverConnectInfo.stringSocketName);
             }
             connected = true;
             readerRobot = new Thread(this);
@@ -374,7 +374,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             //resetThread.start();
             put(SOCVersion.toCmd
                 (Version.versionNumber(), Version.version(), Version.buildnum(), cliFeats.getEncodedList(), null));
-            put(SOCImARobot.toCmd(nickname, cookie, rbclass));
+            put(SOCImARobot.toCmd(nickname, serverConnectInfo.robotCookie, rbclass));
         }
         catch (Exception e)
         {
@@ -399,17 +399,17 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             try
             {
                 connected = false;
-                if (strSocketName == null)
+                if (serverConnectInfo.stringSocketName == null)
                 {
                     s.close();
-                    s = new Socket(host, port);
+                    s = new Socket(serverConnectInfo.hostname, serverConnectInfo.port);
                     in = new DataInputStream(s.getInputStream());
                     out = new DataOutputStream(s.getOutputStream());
                 }
                 else
                 {
                     sLocal.disconnect();
-                    sLocal = StringServerSocket.connectTo(strSocketName);
+                    sLocal = StringServerSocket.connectTo(serverConnectInfo.stringSocketName);
                 }
                 connected = true;
                 readerRobot = new Thread(this);
@@ -419,7 +419,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 //resetThread.start();
                 put(SOCVersion.toCmd
                     (Version.versionNumber(), Version.version(), Version.buildnum(), cliFeats.getEncodedList(), null));
-                put(SOCImARobot.toCmd(nickname, cookie, SOCImARobot.RBCLASS_BUILTIN));
+                put(SOCImARobot.toCmd(nickname, serverConnectInfo.robotCookie, SOCImARobot.RBCLASS_BUILTIN));
 
                 break;  // <--- Exit attempt-loop ---
             }
@@ -1601,7 +1601,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             return;
         }
 
-        SOCRobotClient ex1 = new SOCRobotClient(args[0], Integer.parseInt(args[1]), args[2], args[3], args[4]);
+        SOCRobotClient ex1 = new SOCRobotClient
+            (new ServerConnectInfo(args[0], Integer.parseInt(args[1]), args[4]), args[2], args[3]);
         ex1.init();
     }
 

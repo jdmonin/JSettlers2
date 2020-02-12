@@ -22,6 +22,8 @@
  **/
 package soc.server;
 
+import soc.baseclient.ServerConnectInfo;
+
 import soc.debug.D;  // JM
 
 import soc.game.*;
@@ -2773,13 +2775,18 @@ public class SOCServer extends Server
      */
     public boolean setupLocalRobots(final int numFast, final int numSmart)
     {
+        final ServerConnectInfo sci =
+            (strSocketName != null)
+            ? new ServerConnectInfo(strSocketName, robotCookie)
+            : new ServerConnectInfo("localhost", port, robotCookie);
+
         try
         {
             // Make some faster ones first.
             for (int i = 0; i < numFast; ++i)
             {
                 String rname = "droid " + (i+1);
-                SOCLocalRobotClient.createAndStartRobotClientThread(rname, strSocketName, port, robotCookie);
+                SOCLocalRobotClient.createAndStartRobotClientThread(rname, sci);
                     // to ratelimit, create includes Thread.yield() and sleep(75 ms) on caller's thread
             }
 
@@ -2790,7 +2797,7 @@ public class SOCServer extends Server
             for (int i = 0; i < numSmart; ++i)
             {
                 String rname = "robot " + (i+1+numFast);
-                SOCLocalRobotClient.createAndStartRobotClientThread(rname, strSocketName, port, robotCookie);
+                SOCLocalRobotClient.createAndStartRobotClientThread(rname, sci);
             }
         }
         catch (Exception e)
