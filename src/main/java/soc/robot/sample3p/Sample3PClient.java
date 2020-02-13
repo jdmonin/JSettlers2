@@ -35,9 +35,16 @@ import soc.util.SOCRobotParameters;
  * programmed to handle seafarers scenarios ({@link SOCFeatureSet#CLIENT_SCENARIO_VERSION}):
  * See {@link #buildClientFeats()}.
  *
+ *<H5>Starting this bot as part of the Server:</H5>
+ *
+ * To have this bot run automatically as part of the server,
+ * start the server with command-line parameter
+ * {@code -Djsettlers.bots.start3p=2,soc.robot.sample3p.Sample3PClient} <BR>
+ * For details, see {@link soc.server.SOCServer#PROP_JSETTLERS_BOTS_START3P}.
+ *
  *<H5>Connecting to the Server:</H5>
  *
- * Since this bot isn't started up as part of the SOCServer,
+ * If this bot isn't started up as part of the SOCServer,
  * it must know the server's robot cookie to connect:
  *<UL>
  * <LI> Start the server with command-line parameter {@code -Djsettlers.bots.showcookie=Y}

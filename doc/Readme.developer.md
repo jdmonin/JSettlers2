@@ -663,23 +663,9 @@ then click the location you're asking the bot about:
 | `\clt-set ` _botname_  |  _botname_`:consider-target settlement ` _coord_ |
 | `\clt-city ` _botname_ | _botname_`:consider-target city ` _coord_ |
 
-When they join a game, third-party bots can be sent configuration or debug
-settings using `SOCGameOption.K__EXT_BOT`. This game option's string value can
-be set at the server command line like  
-`java -jar JSettlersServer.jar -o _EXT_BOT=abcde`  
-and then read in the bot's brain class. For an example see
-`Sample3PBrain.setOurPlayerData()`.
-
-If you're looking to make minor changes, it's probably best to fork the
-`soc.robot` package and go from the classes and javadocs there.  For a larger
-change, some parts of soc.robot might still be useful to talk with the server
-and track the game's other players.  Robert S Thomas' dissertation also has
-some discussion on those structures.
-
-Right now bots are instantiated within the server for security; for a 3rd-party
-bot, start with the `soc.robot.SOCRobotClient` class. You can start a bot
-separately from the server through the `SOCRobotClient` constructor or main
-method. For trivial example subclasses extending `SOCRobotClient` and
+If you're looking to make minor changes, it's probably best to fork or extend
+the `soc.robot` package and go from the classes and javadocs there.
+For trivial example subclasses extending `SOCRobotClient` and
 `SOCRobotBrain`, see `soc.robot.sample3p.Sample3PClient` and `Sample3PBrain`.
 The `Sample3PClient` class javadoc mentions useful server properties such as
 `jsettlers.bots.percent3p`, `jsettlers.bots.botgames.wait_sec`, and
@@ -687,12 +673,30 @@ The `Sample3PClient` class javadoc mentions useful server properties such as
 strategy subclass, and using the `_EXT_BOT` game option to send data to the
 bot when joining a game.
 
+For a larger change, some parts of soc.robot might still be useful for
+talking with the server and tracking the game's other players.
+Robert S Thomas' dissertation also has some discussion on those structures.
+
+The built-in bots run within the server JVM for security. To have it
+also start your third-party bot, start the server with something like
+`-Djsettlers.bots.start3p=3,com.example.yourbot.BotClient` .
+For details see the SOCServer.PROP_JSETTLERS_BOTS_START3P javadoc.
+
+If your bot runs separately from the server and connects:
+You can start a bot through `SOCRobotClient`'s constructor or main method.
 The server generates a security cookie that bots must send at connect. You can
 view the cookie by starting the server with `-Djsettlers.bots.showcookie=Y` or
-override it with something like `-Djsettlers.bots.cookie=foo`
+override it with `-Djsettlers.bots.cookie=foo`.
+
+When they join a game, third-party bots can be sent configuration or debug
+settings using the `_EXT_BOT` game option. This option's string value can
+be set at the server command line with  
+`java -jar JSettlersServer.jar -o _EXT_BOT=abcde`  
+and then read in the bot's brain class. For an example see
+`Sample3PBrain.setOurPlayerData()`.
 
 For bot testing and statistics, you can have the server run some robot-only
-games (no human players) with the jsettlers.bots.botgames.total server property.
+games (no human players) with the `jsettlers.bots.botgames.total` server property.
 To run 7 robot-only games in a row, with each game randomly choosing from 10
 robot players, you could start the server with:
 `-Djsettlers.startrobots=10 -Djsettlers.bots.botgames.total=7`. The robot-only

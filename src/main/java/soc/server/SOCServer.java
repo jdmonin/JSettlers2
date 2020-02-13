@@ -245,6 +245,8 @@ public class SOCServer extends Server
      * {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL}, remember those games will be started
      * as soon as the server is ready, so the third-party bots may not yet be connected.
      * To wait longer, use {@link #PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC}.
+     *
+     * @see #PROP_JSETTLERS_BOTS_START3P
      * @since 2.0.00
      */
     public static final String PROP_JSETTLERS_BOTS_PERCENT3P = "jsettlers.bots.percent3p";
@@ -271,6 +273,7 @@ public class SOCServer extends Server
      * <tt>jsettlers.bots.start3p=2,soc.robot.sample3p.Sample3PClient</tt>
      *
      * @see #PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC
+     * @see #PROP_JSETTLERS_BOTS_PERCENT3P
      * @since 2.2.00
      */
     public static final String PROP_JSETTLERS_BOTS_START3P = "jsettlers.bots.start3p";
