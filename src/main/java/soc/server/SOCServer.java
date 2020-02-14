@@ -2009,8 +2009,7 @@ public class SOCServer extends Server
                 boolean loadSuccess = setupLocalRobots(fast30, rcount - fast30);  // each bot gets a thread
                 if (! loadSuccess)
                 {
-                    System.err.println("** Cannot start robots with this JAR.");
-                    System.err.println("** For robots, please use the Full JAR instead of the server-only JAR.");
+                    System.err.println("** Cannot start the requested robots. Check server properties and classpath.");
                 }
                 else if (hcount < reserve)
                 {
@@ -2897,8 +2896,7 @@ public class SOCServer extends Server
      * @param numFast number of fast robots, with {@link soc.robot.SOCRobotDM#FAST_STRATEGY FAST_STRATEGY}
      * @param numSmart number of smart robots, with {@link soc.robot.SOCRobotDM#SMART_STRATEGY SMART_STRATEGY}
      * @return True if robots were set up, false if an exception occurred.
-     *     This typically happens if a robot class or SOCDisplaylessClient
-     *     can't be loaded, due to packaging of the server-only JAR.
+     *     This typically happens if a third-party robot class can't be loaded.
      * @see soc.client.SOCPlayerClient#startPracticeGame()
      * @see soc.client.MainDisplay#startLocalTCPServer(int)
      * @see #startRobotOnlyGames(boolean, boolean)
