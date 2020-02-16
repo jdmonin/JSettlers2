@@ -147,10 +147,14 @@ public abstract class AskDialog extends JDialog
     /** Optional button for third choice, or null.
      *
      * @see #button3Chosen()
+     * @since 1.1.00
      */
     protected final JButton choice3But;
 
-    /** Default button (0 for none, or button 1, 2, or 3) */
+    /**
+     * Default button (0 for none, or button 1, 2, or 3).
+     * @since 1.1.00
+     */
     protected final int choiceDefault;
 
     /** Desired size (visible size inside of insets) **/
@@ -259,6 +263,7 @@ public abstract class AskDialog extends JDialog
      * @throws IllegalArgumentException If defaultChoice out of range 0..3,
      *    or if any of these is null: cli, gamePI, prompt, choice1, choice2,
      *    or if choice3 is null and defaultChoice is 3.
+     * @since 1.1.00
      */
     public AskDialog(MainDisplay cli, SOCPlayerInterface gamePI,
         String titlebar, String prompt, String choice1, String choice2, String choice3,
@@ -612,6 +617,7 @@ public abstract class AskDialog extends JDialog
      * The optional button 3 has been chosen by the user. React accordingly.
      * actionPerformed has already called dialog.dispose().
      * Please override this empty stub if you have a third button.
+     * @since 1.1.00
      */
     public void button3Chosen() { }
 

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2014,2016-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2014,2016-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -70,6 +70,7 @@ public class SOCGameListAtServer extends SOCGameList
      * @see #createGame(String, String, String, Map, GameHandler)
      * @see SOCGame#setExpiration(long)
      * @see SOCServer#checkForExpiredGames(long)
+     * @since 1.1.00
      */
     public static int GAME_TIME_EXPIRE_MINUTES = 120;
 
@@ -455,6 +456,7 @@ public class SOCGameListAtServer extends SOCGameList
      * @return New game if gaName was found and copied; null if no game called gaName,
      *         or if a problem occurs during reset
      * @see soc.game.SOCGame#resetAsCopy()
+     * @since 1.1.00
      */
     public SOCGameBoardReset resetBoard(String gaName)
     {

@@ -197,6 +197,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      *
      * @see #NEED_NICKNAME_BEFORE_JOIN_2
      * @see #NEED_NICKNAME_BEFORE_JOIN_G
+     * @since 1.1.00
      */
     public final String NEED_NICKNAME_BEFORE_JOIN;
 
@@ -205,6 +206,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      *
      * @see #NEED_NICKNAME_BEFORE_JOIN
      * @see #NEED_NICKNAME_BEFORE_JOIN_G2
+     * @since 1.1.00
      */
     public final String NEED_NICKNAME_BEFORE_JOIN_2;
 

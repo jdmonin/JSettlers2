@@ -1,5 +1,5 @@
 /**
- * Testing for cross-platform context-click (right-click)
+ * Testing for click events and context-click (right-click)
  *
  * This file copyright (C) 2007-2010,2016,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
@@ -30,7 +30,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 /**
- * Testing for cross-platform context-click (right-click); standalone class.
+ * Standalone class to test for per-platform differences
+ * of click events and context-click (right-click).
+ *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.00
  */

@@ -923,6 +923,7 @@ public class SOCGameHandler extends GameHandler
      *          is defunct because of a network problem.
      *          If <tt>isTakingOver</tt>, don't send anything to other players.
      * @see SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, Map)
+     * @since 1.1.00
      */
     @SuppressWarnings("unchecked")  // for new ArrayList<SOCSpecialItem>[]
     public void joinGame

@@ -115,26 +115,44 @@ import java.net.URL;
     /** player number */
     private int pNumber;
     private SOCGame game;
-    private final SOCPlayerInterface pi;  // For callbacks (stack-trace print)
 
-    /** Null unless being used in the face chooser */
+    /**
+     * Our PI, for callbacks and stack-trace print.
+     * @since 1.1.00
+     */
+    private final SOCPlayerInterface pi;
+
+    /**
+     * Null unless being used in the face chooser.
+     * @since 1.1.00
+     */
     private FaceChooserFrame faceChooser;
 
-    /** Hilight selection border? always false if faceChooser == null. */
+    /**
+     * If true, hilight selection border; always false if faceChooser == null.
+     * @since 1.1.00
+     */
     private boolean hilightBorderShown;
 
-    /** Recently shown hilight selection border? (Used in paint method to clear it away) Always false if faceChooser == null. */
+    /**
+     * True if recently showed hilight selection border.
+     * (Used in paint method to clear it away)
+     * Always false if faceChooser == null.
+     * @since 1.1.00
+     */
     private boolean hilightBorderWasShown;
 
     /**
      * Color for selection border; ignored if faceChooser == null.
      *
      * @see soc.client.SOCPlayerInterface#makeGhostColor(Color)
+     * @since 1.1.00
      */
     private Color hilightBorderColor;
 
     /**
      * Context menu for face icon chooser
+     * @since 1.1.00
      */
     private FaceButtonPopupMenu popupMenu;
 
@@ -142,11 +160,14 @@ import java.net.URL;
      * Tracks last popup-menu time.  Avoids misinterpretation of popup-click with placement-click
      * during initial placement: On Windows, popup-click must be caught in mouseReleased,
      * but mousePressed is called immediately afterwards.
+     * @since 1.1.00
      */
     private long popupMenuSystime;
 
-    /** For popup-menu, length of time after popup to ignore further mouse-clicks.
-     *  Avoids Windows accidental left-click by popup-click. (150 ms)
+    /**
+     * For popup-menu, length of time after popup to ignore further mouse-clicks.
+     * Avoids Windows accidental left-click by popup-click. (150 ms)
+     * @since 1.1.00
      */
     protected static int POPUP_MENU_IGNORE_MS = 150;
 
@@ -157,6 +178,7 @@ import java.net.URL;
 
     /**
      * size
+     * @since 1.1.00
      */
     protected Dimension ourSize;
 

@@ -806,6 +806,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * true if the game came from a board reset
+     * @since 1.1.00
      */
     private boolean isFromBoardReset;
 
@@ -1049,6 +1050,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * the player declared winner, if gamestate == OVER; otherwise -1
+     * @since 1.1.00
      */
     private int playerWithWin;
 
@@ -2123,6 +2125,8 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * @return whether this game was created by board reset of an earlier game
+     * @see #resetAsCopy()
+     * @since 1.1.00
      */
     public boolean isBoardReset()
     {
@@ -2315,6 +2319,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return the old game state
      * @throws IllegalStateException Game state must be RESET_OLD
      *    when called; during normal game play, oldGameState is private.
+     * @since 1.1.00
      */
     public int getResetOldGameState() throws IllegalStateException
     {
@@ -2652,6 +2657,7 @@ public class SOCGame implements Serializable, Cloneable
      * This is determined in {@link #checkForWinner()}; there is no corresponding setter.
      *
      * @return the winning player, or null if none, or if game is not yet over.
+     * @since 1.1.00
      */
     public SOCPlayer getPlayerWithWin()
     {
@@ -2699,6 +2705,7 @@ public class SOCGame implements Serializable, Cloneable
      *       "The game is over; <someone> won."
      *       "The game is over; no one won."
      * @throws IllegalStateException If the game state is not OVER
+     * @since 1.1.00
      */
     public String gameOverMessageToPlayer(SOCPlayer pl)
         throws IllegalStateException

@@ -2281,6 +2281,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *
      * @see soc.server.SOCServer#resetBoardAndNotify(String, int)
      * @see soc.game.SOCGame#resetAsCopy()
+     * @since 1.1.00
      */
     protected void handleRESETBOARDAUTH(SOCResetBoardAuth mes)
     {

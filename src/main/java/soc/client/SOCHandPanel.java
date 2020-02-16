@@ -2145,6 +2145,7 @@ import javax.swing.UIManager;
      * Remove elements to clean up this panel.
      * Calls removePlayer() as part of cleanup.
      * @see #gameDisconnected()
+     * @since 1.1.00
      */
     public void destroy()
     {
@@ -3220,6 +3221,7 @@ import javax.swing.UIManager;
      *
      * @param message Message to show, or null to hide
      * @throws IllegalStateException if offerIsDiscardMessage true when called
+     * @since 1.1.00
      */
     public void resetBoardSetMessage(String message)
         throws IllegalStateException

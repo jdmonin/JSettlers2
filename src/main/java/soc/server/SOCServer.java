@@ -594,6 +594,7 @@ public class SOCServer extends Server
      * @see SOCGameTimeoutChecker#run()
      * @see SOCGameListAtServer#GAME_TIME_EXPIRE_MINUTES
      * @see #GAME_TIME_EXPIRE_ADDTIME_MINUTES
+     * @since 1.1.00
      */
     public static int GAME_TIME_EXPIRE_WARN_MINUTES = 15;
 
@@ -4321,6 +4322,7 @@ public class SOCServer extends Server
      * @param ga  the name of the game
      * @param mes the message to send. If mes does not begin with ">>>",
      *            will prepend ">>> " before sending mes.
+     * @since 1.1.00
      */
     public void messageToGameUrgent(String ga, String mes)
     {
@@ -7260,6 +7262,7 @@ public class SOCServer extends Server
      *
      * @see #connectToGame(Connection, String, Map)
      * @see #createOrJoinGameIfUserOK(Connection, String, String, String, Map)
+     * @since 1.1.00
      */
     private void joinGame(SOCGame gameData, Connection c, boolean isReset, boolean isTakingOver)
     {

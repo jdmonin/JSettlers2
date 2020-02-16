@@ -1,7 +1,7 @@
 package soc.util;
 
 // Version.java - mchenryc@acm.org Chadwick A. McHenry
-// Portions copyright (C) 2008,2010,2011,2013-2015,2017 Jeremy D Monin <jeremy@nand.net>
+// Portions copyright (C) 2008,2010,2011,2013-2015,2017,2020 Jeremy D Monin <jeremy@nand.net>
 
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -31,6 +31,11 @@ public class Version {
   public static final String VERSNUM_NOWARN_MAXIMUM = "project.versionnumMaxNoWarn";
 
   public static String COPYRIGHT = "project.copyright";
+
+  /**
+   * Build-number string property name.
+   * @since 1.1.00
+   */
   public static String BUILDNUM  = "project.buildnum";
 
   public static String JRE_MIN_VERSION = "project.jre.min.version";
@@ -97,6 +102,7 @@ public class Version {
   /**
    * Return the current version string.
    * @see #versionNumber()
+   * @see #buildnum()
    */
   public static String version() {
     return versionInfo.getProperty(VERSION);
@@ -151,7 +157,11 @@ public class Version {
     return versionInfo.getProperty(COPYRIGHT);
   }
 
-  /** Return the build-number string. */
+  /**
+   * Return the build-number string.
+   * @see #version()
+   * @since 1.1.00
+   */
   public static String buildnum() {
     return versionInfo.getProperty(BUILDNUM);
   }
