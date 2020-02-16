@@ -33,6 +33,7 @@ import java.net.SocketAddress;
 import java.util.Collection;
 import java.util.Map;
 
+import soc.baseclient.ServerConnectInfo;
 import soc.disableDebug.D;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
@@ -100,14 +101,14 @@ import soc.util.Version;
     private MainDisplay mainDisplay;
 
     /**
-     * Hostname we're connected to, or null
+     * Server connection info. {@code null} until {@link #connect(String, int)} is called.
+     * Unlike {@code connect} params, localhost is not represented here as {@code null}:
+     * see {@link ServerConnectInfo#hostname} javadoc.
+     *<P>
+     * Versions before 2.2.00 instead had {@code host} and {@code port} fields.
+     * @since 2.2.00
      */
-    private String host;
-
-    /**
-     * TCP port we're connected to; default is {@link #SOC_PORT_DEFAULT}.
-     */
-    private int port = SOC_PORT_DEFAULT;
+    protected ServerConnectInfo serverConnectInfo;
 
     /**
      * Client-hosted TCP server. If client is running this server, it's also connected
@@ -160,6 +161,7 @@ import soc.util.Version;
     /**
      * Are we connected to a TCP server (remote or {@link #localTCPServer})?
      * {@link #practiceServer} is not a TCP server.
+     * If true, {@link #serverConnectInfo} != null.
      * @see #ex
      */
     boolean connected = false;
@@ -192,6 +194,7 @@ import soc.util.Version;
      * Create our client's ClientNetwork.
      * Before using the ClientNetwork, caller client must construct their GUI
      * and call {@link #setMainDisplay(MainDisplay)}.
+     * Then, call {@link #connect(String, int)}.
      */
     public ClientNetwork(SOCPlayerClient c)
     {
@@ -332,19 +335,31 @@ import soc.util.Version;
         return true;
     }
 
-    /** Port number of the tcp server we're a client of; default is {@link #SOC_PORT_DEFAULT}. */
+    /**
+     * Port number of the tcp server we're a client of,
+     * or default {@link #SOC_PORT_DEFAULT} if not {@link #isConnected()}.
+     * @see #getHost()
+     */
     public int getPort()
     {
-        return port;
+        return (connected) ? serverConnectInfo.port : SOC_PORT_DEFAULT;
     }
 
-    /** Hostname of the tcp server we're a client of */
+    /**
+     * Hostname of the tcp server we're a client of,
+     * from {@link ServerConnectInfo#hostname},
+     * or {@code null} if not {@link #isConnected()}.
+     * @see #getPort()
+     */
     public String getHost()
     {
-        return host;
+        return (connected) ? serverConnectInfo.hostname : null;
     }
 
-    /** Are we connected to a tcp server? */
+    /**
+     * Are we connected to a tcp server?
+     * @see #getHost()
+     */
     public synchronized boolean isConnected()
     {
         return connected;
@@ -353,30 +368,27 @@ import soc.util.Version;
     /**
      * Attempts to connect to the server. See {@link #isConnected()} for success or
      * failure. Once connected, starts a {@link #reader} thread.
-     * The first message over the connection is our version,
-     * and the second is the server's response:
-     * Either {@link SOCRejectConnection}, or the lists of
-     * channels and games ({@link SOCChannels}, {@link SOCGames}).
+     * The first message sent from client to server is our {@link SOCVersion}.
+     * From server to client when client connects: If server is full, it sends {@link SOCRejectConnection}.
+     * Otherwise its {@code SOCVersion} and current channels and games ({@link SOCChannels}, {@link SOCGames}) are sent.
      *<P>
      * Since user login and authentication don't occur until a game or channel join is requested,
      * no username or password is needed here.
-     *<P>
-     * Before 1.1.06, the server's response was first,
-     * and version was sent in reply to server's version.
      *
-     * @param chost  Server host to connect to, or {@code null} for localhost
-     * @param sPort  Server TCP port to connect to; the default server port is {@link ClientNetwork#SOC_PORT_DEFAULT}.
+     * @param host  Server host to connect to, or {@code null} for localhost
+     * @param port  Server TCP port to connect to; the default server port is {@link ClientNetwork#SOC_PORT_DEFAULT}.
      * @throws IllegalStateException if already connected
      *     or if {@link Version#versionNumber()} returns 0 (packaging error)
      * @see soc.server.SOCServer#newConnection1(Connection)
      */
-    public synchronized void connect(String chost, int sPort)
+    public synchronized void connect(final String host, final int port)
         throws IllegalStateException
     {
         if (connected)
         {
             throw new IllegalStateException
-                ("Already connected to " + (host != null ? host : "localhost") + ":" + port);
+                ("Already connected to " + (serverConnectInfo.hostname != null ? serverConnectInfo.hostname : "localhost")
+                 + ":" + serverConnectInfo.port);
         }
 
         if (Version.versionNumber() == 0)
@@ -385,11 +397,10 @@ import soc.util.Version;
         }
 
         ex = null;
-        host = chost;
-        port = sPort;
+        final String hostString = (host != null) ? host : "localhost";
+        serverConnectInfo = new ServerConnectInfo(hostString, port, null);
 
-        String hostString = (chost != null ? chost : "localhost") + ":" + sPort;
-        System.out.println(/*I*/"Connecting to " + hostString/*18N*/);  // I18N: Not localizing console output yet
+        System.out.println(/*I*/"Connecting to " + hostString + ":" + port/*18N*/);  // I18N: Not localizing console output yet
         mainDisplay.setMessage
             (client.strings.get("pcli.message.connecting.serv"));  // "Connecting to server..."
 
@@ -426,8 +437,7 @@ import soc.util.Version;
                 disconnect();
                 connected = false;
             }
-            host = null;
-            port = 0;
+            serverConnectInfo = null;
             if (in != null)
             {
                 try { in.close(); } catch (Throwable th) {}

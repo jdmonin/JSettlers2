@@ -27,8 +27,8 @@ import soc.util.SOCFeatureSet;  // for javadocs only
 /**
  * This message sends the server's version and features, or client's version and locale,
  * to the other side of the connection.  VERSION is the first message sent from client to server.
- * The server also sends its version to the client early, not in response to client's VERSION message.
- * Version numbers are read via {@link soc.util.Version}.
+ * The server sends its version to the client as its first outbound message,
+ * not in response to client's {@code SOCVersion}. Version numbers are read via {@link soc.util.Version}.
  *<P>
  * Before 2.0.00, the client did not send its locale or optional features ({@link SOCFeatureSet}).
  * If locale not sent by client, server should probably assume {@code en_US} since older versions had all messages

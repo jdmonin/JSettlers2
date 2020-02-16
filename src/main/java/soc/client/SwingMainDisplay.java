@@ -1892,7 +1892,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * {@inheritDoc}
      *<P>
      * Assumes {@link #getValidNickname(boolean) getValidNickname(true)}, {@link #getPassword()},
-     * {@link ClientNetwork#host}, and {@link #gotPassword} are already called and valid.
+     * {@link ClientNetwork#connect(String, int)}, and {@link #gotPassword} are already called and valid.
      *
      * @since 1.1.07
      */
