@@ -109,7 +109,7 @@ public interface MainDisplay
 
     /**
      * Ask server to start a game with options.
-     * If it's practice, will call {@link #startPracticeGame(String, Map, boolean)}.
+     * If it's practice, will call {@link SOCPlayerClient#startPracticeGame(String, Map, boolean)}.
      * Otherwise, ask tcp server, and also set {@code WAIT_CURSOR} and status line ("Talking to server...").
      *<P>
      * Assumes we're already connected to server, and that nickname, password, hostname are already validated.

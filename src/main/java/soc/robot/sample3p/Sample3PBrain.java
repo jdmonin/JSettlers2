@@ -1,6 +1,6 @@
 /*
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -38,6 +38,7 @@ import soc.util.SOCRobotParameters;
  * Trivial behavioral changes from standard {@code SOCRobotBrain}:
  *<UL>
  * <LI> When sitting down, greet the game members: {@link #setOurPlayerData()}
+ * <LI> Uses third-party {@link SampleDiscardStrategy}: {@link #setStrategyFields()}
  * <LI> Reject trades unless we're offered clay or sheep: {@link #considerOffer(SOCTradeOffer)}
  *</UL>
  *
@@ -56,10 +57,9 @@ public class Sample3PBrain extends SOCRobotBrain
     }
 
     /**
-     * {@inheritDoc}
-     *<P>
      * After the standard actions of {@link SOCRobotBrain#setOurPlayerData()},
      * sends a "hello" chat message as a sample action using {@link SOCRobotClient#sendText(SOCGame, String)}.
+     * This bot also overrides {@link #setStrategyFields()}.
      *<P>
      * If the for-bots extra game option {@link SOCGameOption#K__EXT_BOT} was set at the server command line,
      * prints its value to {@link System#err}. A third-party bot might want to use that option's value
@@ -80,6 +80,17 @@ public class Sample3PBrain extends SOCRobotBrain
         final String optExtBot = game.getGameOptionStringValue(SOCGameOption.K__EXT_BOT);
         if (optExtBot != null)
             System.err.println("Bot " + botName + ": __EXT_BOT is: " + optExtBot);
+    }
+
+    /**
+     * Override to use our custom {@link SampleDiscardStrategy}.
+     * All other strategies are standard.
+     */
+    @Override
+    protected void setStrategyFields()
+    {
+        super.setStrategyFields();
+        discardStrategy = new SampleDiscardStrategy(game, ourPlayerData, this, rand);
     }
 
     /**

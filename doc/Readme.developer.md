@@ -29,7 +29,6 @@
 
 This project uses gradle 5.6 or 6.x (or IDEs) to build. For developer familiarity,
 the project uses the directory structure/layout of a maven/gradle project.
-(v2 and newer versions use gradle to build. The 1.x.xx versions used ant.)
 
 Also see the "Build Setup and Results" section.
 
@@ -91,7 +90,7 @@ To no longer show those coordinates, type: `=*= hidecoords`
 ### Development
 
 Coding is done in Java 8, but should compile cleanly in newer JDKs.
-(v2.0 used java 6 for backwards compatibility; earlier versions used 1.4 or 5.)
+(v2.2 used java 7 for backwards compatibility; v2.0 and 2.1 used 6; 1.2 used java 5.)
 The build system is gradle 5.6 or 6.x. Use any IDE you want, including vi.
 Use spaces, not tabs.  Please try to keep the other conventions of the
 current code (see "Coding Style" below for more details.).
@@ -114,6 +113,9 @@ textfield.  Type `*help*` for a list of commands.  Debug commands can give resou
 or dev cards to players, freely place pieces on the board, remove a bot from the
 game, etc.  There are also a few robot debugging commands, not listed in `*help*`;
 see the "Robots (AI)" section.
+
+Since the game window remembers recently sent chat text, you can use the Up/Down arrow keys
+to browse and re-send debug commands.
 
 To help with security and prevent cheats, by default debug commands are disabled
 except for practice games.  If you need to use debug commands on a multi-player
@@ -242,7 +244,7 @@ details on bot testing.
 ### JSettlers client properties for debugging and testing
 
 To use any of these, specify them in the IDE or java command line as JVM
-parameters (before the SOCPlayerClient class name, not after):
+parameters (before, not after, `-jar` or the SOCPlayerClient class name):
 
 - `-Djsettlers.locale=es_MX` - Use a different locale
 - `-Djsettlers.debug.traffic=Y` - Print network traffic; see above for details
@@ -355,6 +357,23 @@ to their built location from `src/main/resources`; otherwise startup will
 fail with this error:
 
     Packaging error: Cannot determine JSettlers version
+
+### Including JSettlers as a subproject build
+
+JSettlers can be used as a subproject within a gradle build project.
+If the JSettlers repo is at (for example) `lib/jsettlers2/` within your
+project directory structure, and in your gradle project as  
+`include ':lib:jsettlers2'`  
+then in your build.gradle you can add the JSettlers jar to your code's compile classpath with:
+```
+dependencies {
+    implementation project(':lib:jsettlers2')
+}
+
+compileJava {
+    classpath = tasks.getByPath(':lib:jsettlers2:serverJar').outputs.files
+}
+```
 
 
 ## Recommended debug/run configurations for testing
@@ -574,6 +593,14 @@ ideas.
 - Docs: State diagram for `SOCGame` states, or sequence of important message flows
   (log into server, create/join game, roll dice, etc)
 - Docs: `PlayerClientListener` interface has some methods without javadocs: Add by checking `SOCPlayerInterface.ClientBridge` implementation
+- Java 7 cleanup: Use diamond operator where possible
+  - Example: change  
+    `Map<String, SOCGameOption> newOpts = new HashMap<String, SOCGameOption>()`  
+    to  
+    `Map<String, SOCGameOption> newOpts = new HashMap<>()`
+  - This regexp search will find some candidates: `= new \w+\s*<[^>]`
+  - For clarity, decide case-by-case whether to use diamond with deeply nested types like  
+    `new Stack<Pair<NodeLenVis<Integer>, List<Integer>>>()`
 - Add more scenarios' unit tests to `soctest.game.TestScenarioRules`
 - Kick robots if inactive but current player in game, assume they're buggy (use forceEndTurn)
 - Control the speed of robots, in practice games and with other humans
@@ -781,33 +808,40 @@ then click the location you're asking the bot about:
 | `\clt-set ` _botname_  |  _botname_`:consider-target settlement ` _coord_ |
 | `\clt-city ` _botname_ | _botname_`:consider-target city ` _coord_ |
 
+If you're looking to make minor changes, it's probably best to fork or extend
+the `soc.robot` package and go from the classes and javadocs there.
+For trivial example subclasses extending `SOCRobotClient` and
+`SOCRobotBrain`, see `soc.robot.sample3p.Sample3PClient` and `Sample3PBrain`.
+The `Sample3PClient` class javadoc mentions useful server properties such as
+`jsettlers.bots.percent3p`, `jsettlers.bots.botgames.wait_sec`, and
+`jsettlers.bots.timeout.turn`. `Sample3PBrain` demonstrates using a custom
+strategy subclass, and using the `_EXT_BOT` game option to send data to the
+bot when joining a game.
+
+For a larger change, some parts of soc.robot might still be useful for
+talking with the server and tracking the game's other players.
+Robert S Thomas' dissertation also has some discussion on those structures.
+
+The built-in bots run within the server JVM for security. To have it
+also start your third-party bot, start the server with something like
+`-Djsettlers.bots.start3p=3,com.example.yourbot.BotClient` .
+For details see the SOCServer.PROP_JSETTLERS_BOTS_START3P javadoc.
+
+If your bot runs separately from the server and connects:
+You can start a bot through `SOCRobotClient`'s constructor or main method.
+The server generates a security cookie that bots must send at connect. You can
+view the cookie by starting the server with `-Djsettlers.bots.showcookie=Y` or
+override it with `-Djsettlers.bots.cookie=foo`.
+
 When they join a game, third-party bots can be sent configuration or debug
-settings using `SOCGameOption.K__EXT_BOT`. This game option's string value can
-be set at the server command line like  
+settings using the `_EXT_BOT` game option. This option's string value can
+be set at the server command line with  
 `java -jar JSettlersServer.jar -o _EXT_BOT=abcde`  
 and then read in the bot's brain class. For an example see
 `Sample3PBrain.setOurPlayerData()`.
 
-If you're looking to make minor changes, it's probably best to fork the
-`soc.robot` package and go from the classes and javadocs there.  For a larger
-change, some parts of soc.robot might still be useful to talk with the server
-and track the game's other players.  Robert S Thomas' dissertation also has
-some discussion on those structures.
-
-Right now bots are instantiated within the server for security; for a 3rd-party
-bot, start with the `soc.robot.SOCRobotClient` class. You can start a bot
-separately from the server through the `SOCRobotClient` constructor or main
-method. For trivial example subclasses extending `SOCRobotClient` and
-`SOCRobotBrain`, see `soc.robot.sample3p.Sample3PClient` and `Sample3PBrain`.
-The `Sample3PClient` class javadoc mentions useful server properties such as
-`jsettlers.bots.percent3p` and `jsettlers.bots.timeout.turn`.
-
-The server generates a security cookie that bots must send at connect. You can
-view the cookie by starting the server with `-Djsettlers.bots.showcookie=Y` or
-override it with something like `-Djsettlers.bots.cookie=foo`
-
 For bot testing and statistics, you can have the server run some robot-only
-games (no human players) with the jsettlers.bots.botgames.total server property.
+games (no human players) with the `jsettlers.bots.botgames.total` server property.
 To run 7 robot-only games in a row, with each game randomly choosing from 10
 robot players, you could start the server with:
 `-Djsettlers.startrobots=10 -Djsettlers.bots.botgames.total=7`. The robot-only
@@ -1065,8 +1099,9 @@ Then: `git tag -a release-1.1.14 -m 'Version 1.1.14 is build OV20120930'`
 
 The github repo includes the JSettlers2 v1.1.xx CVS history formerly hosted at
 http://sourceforge.net/projects/jsettlers2/ through 2012-09-28.
-The old 1.0.x source history from Robert S Thomas (2004-2005) can be found at
-http://sourceforge.net/projects/jsettlers/ .
+The old 1.0.x source history (2004-2005) from Robert S Thomas and Chad McHenry
+can be found at https://github.com/jdmonin/JSettlers1
+or http://sourceforge.net/projects/jsettlers/ .
 
 
 ### Reference: Required library JARs

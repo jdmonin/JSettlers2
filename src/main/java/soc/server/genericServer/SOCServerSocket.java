@@ -39,6 +39,7 @@ import java.net.SocketException;
  *</PRE>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+ * @since 1.1.00
  */
 /*package*/ interface SOCServerSocket
 {

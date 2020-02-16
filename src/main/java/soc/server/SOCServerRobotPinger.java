@@ -69,6 +69,8 @@ import soc.server.genericServer.Connection;
      */
     public SOCServerRobotPinger(SOCServer s, Vector<Connection> robots)
     {
+        setDaemon(true);
+
         srv = s;
         robotConnections = robots;
         ping = new SOCServerPing(sleepTime);

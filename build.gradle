@@ -1,4 +1,4 @@
-// JSettlers build script for gradle 4 and gradle 5
+// JSettlers build script for gradle 5.6 or higher
 // See bottom of file for copyright and license information (GPLv3).
 
 apply plugin: 'java'
@@ -18,7 +18,7 @@ buildscript {
 }
 
 version = '3.0.00'  // same as in src/main/resources/resources/version.info
-ext.i18neditor_version = '1.1.0'  // for PTE editor; same as in src/main/resources/pteResources/pteversion.properties
+ext.i18neditor_version = '1.2.0'  // for PTE editor; same as in src/main/resources/pteResources/pteversion.properties
 ext.git_revision = '?'  // placed in jar manifests as Build-Revision attrib; will be filled in by findGitRevision task
 
 mainClassName = "soc.client.SOCPlayerClient"
@@ -137,6 +137,7 @@ task serverJar(type: Jar) {
     manifest {
         attributes(
             'Main-Class': 'soc.server.SOCServer',
+            'Implementation-Version': project.version,
             'Build-Revision': project.git_revision,
         )
     }
@@ -164,6 +165,7 @@ task fullJar(type: Jar) {
     manifest {
         attributes(
             'Main-Class': 'soc.client.SOCPlayerClient',
+            'Implementation-Version': project.version,
             'Build-Revision': project.git_revision,
         )
     }
@@ -240,6 +242,13 @@ war.finalizedBy socwebWar
 
 ant.defaultexcludes remove: "**/.gitignore"
 
+task cleanRemovePyc(type: Delete) {
+    outputs.upToDateWhen { false }  // never skip if asked for
+    delete fileTree('src') {
+        include '**/*.pyc'
+    }
+}
+
 // This copies everything in your "src" directory, so be sure to run on a clean repository only!
 // Includes target/lib/ to prevent eclipse ant import error
 FileTree srcTree = fileTree(dir: '.', includes: ['src/**', 'doc/**', 'build.*', 'Readme.*', '*.txt', '.gitignore', 'target/lib/.gitignore'])
@@ -248,6 +257,7 @@ FileTree srcTree = fileTree(dir: '.', includes: ['src/**', 'doc/**', 'build.*', 
 
 // jsettlers-3.x.xx-src.tar.gz
 task distSrcTar(type: Tar) {
+    dependsOn cleanRemovePyc
     baseName = 'jsettlers'
     classifier = 'src'
     compression = Compression.GZIP
@@ -258,6 +268,7 @@ task distSrcTar(type: Tar) {
 
 // jsettlers-3.x.xx-full.tar.gz
 task distFullTar(type: Tar) {
+    dependsOn cleanRemovePyc
     baseName = 'jsettlers'
     classifier = 'full'
     compression = Compression.GZIP
@@ -268,6 +279,7 @@ task distFullTar(type: Tar) {
 
 // jsettlers-3.x.xx-full.zip
 task distFullZip(type: Zip) {
+    dependsOn cleanRemovePyc
     baseName = 'jsettlers'
     classifier = 'full'
     from srcTree, fullJar.outputs.files, serverJar.outputs.files
@@ -280,6 +292,7 @@ tasks.withType(AbstractArchiveTask) {
 
 // For dist, ensure no git-untracked files or uncommited changes in repo
 task distCheckSrcDirty {
+    dependsOn cleanRemovePyc  // prevent "Untracked files in repo: src/main/bin/sql/template/render.pyc"
     outputs.upToDateWhen { false }  // prevent "Task has not declared any outputs despite executing actions"
 
     // Git command adapted from mark-longair's 2011-02-28 answer at
@@ -308,7 +321,7 @@ task distCheckSrcDirty {
 task dist {
     dependsOn distCheckSrcDirty, distSrcTar, distFullTar, distFullZip
     doLast {
-        println "Built for distribution:"
+        println "Built for distribution in " + project.distsDir + ":"
         [distSrcTar, distFullTar, distFullZip].each { dtask -> dtask.outputs.files.each { File file ->
             println file.name
     }}}

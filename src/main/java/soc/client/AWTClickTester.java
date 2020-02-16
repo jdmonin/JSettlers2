@@ -1,7 +1,7 @@
 /**
- * Testing for cross-platform context-click (right-click)
+ * Testing for click events and context-click (right-click)
  *
- * This file copyright (C) 2007-2010,2016 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007-2010,2016,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -30,7 +30,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 /**
- * Testing for cross-platform context-click (right-click); standalone class.
+ * Standalone class to test for per-platform differences
+ * of click events and context-click (right-click).
+ *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.00
  */
@@ -125,7 +127,7 @@ import java.awt.event.MouseListener;
             + e.getWhen() + " button=0x"
             + Integer.toHexString(e.getButton())
             + " mods=0x"
-            + Integer.toHexString(e.getModifiers())
+            + Integer.toHexString(e.getModifiersEx())
             + popclick);
         setLastClick (x, y);
     }
@@ -134,16 +136,16 @@ import java.awt.event.MouseListener;
     {
         System.out.println("BUTTON:");
         System.out.println("  1:  0x" + Integer.toHexString(MouseEvent.BUTTON1)
-            + " mask 0x" + Integer.toHexString(InputEvent.BUTTON1_MASK));
+            + " mask 0x" + Integer.toHexString(InputEvent.BUTTON1_DOWN_MASK));
         System.out.println("  2:  0x" + Integer.toHexString(MouseEvent.BUTTON2)
-            + " mask 0x" + Integer.toHexString(InputEvent.BUTTON2_MASK));
+            + " mask 0x" + Integer.toHexString(InputEvent.BUTTON2_DOWN_MASK));
         System.out.println("  3:  0x" + Integer.toHexString(MouseEvent.BUTTON3)
-            + " mask 0x" + Integer.toHexString(InputEvent.BUTTON3_MASK));
+            + " mask 0x" + Integer.toHexString(InputEvent.BUTTON3_DOWN_MASK));
         System.out.println("MODS:");
-        System.out.println("  Shift: 0x" + Integer.toHexString(InputEvent.SHIFT_MASK));
-        System.out.println("  Ctrl:  0x" + Integer.toHexString(InputEvent.CTRL_MASK));
-        System.out.println("  Alt:   0x" + Integer.toHexString(InputEvent.ALT_MASK));
-        System.out.println("  Meta:  0x" + Integer.toHexString(InputEvent.META_MASK));
+        System.out.println("  Shift: 0x" + Integer.toHexString(InputEvent.SHIFT_DOWN_MASK));
+        System.out.println("  Ctrl:  0x" + Integer.toHexString(InputEvent.CTRL_DOWN_MASK));
+        System.out.println("  Alt:   0x" + Integer.toHexString(InputEvent.ALT_DOWN_MASK));
+        System.out.println("  Meta:  0x" + Integer.toHexString(InputEvent.META_DOWN_MASK));
         System.out.println();
     }
 

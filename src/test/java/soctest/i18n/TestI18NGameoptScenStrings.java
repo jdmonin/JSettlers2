@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -80,8 +80,8 @@ public class TestI18NGameoptScenStrings
     {
         boolean allOK = true;
 
-        final TreeSet<String> mismatchKeys = new TreeSet<String>(),  // use TreeSet for sorted results
-                              missingKeys  = new TreeSet<String>();
+        final TreeSet<String> mismatchKeys = new TreeSet<>(),  // use TreeSet for sorted results
+                              missingKeys  = new TreeSet<>();
         for (final SOCGameOption opt : allOpts.values())
         {
             // "Hidden" gameopts starting with "_" don't need to be in sm, nor do temporary DEBUG options,
@@ -134,8 +134,8 @@ public class TestI18NGameoptScenStrings
 
         boolean allOK = true;
 
-        final TreeSet<String> mismatchKeys = new TreeSet<String>(),  // use TreeSet for sorted results
-                              missingKeys  = new TreeSet<String>();
+        final TreeSet<String> mismatchKeys = new TreeSet<>(),  // use TreeSet for sorted results
+                              missingKeys  = new TreeSet<>();
         for (final SOCScenario sc : allScens.values())
         {
             String strKey = sc.key + ".n";
@@ -196,10 +196,10 @@ public class TestI18NGameoptScenStrings
 
         boolean allOK = true;
 
-        final TreeSet<String> optBadChar  = new TreeSet<String>(), // use TreeSet for sorted results
-                              scenBadChar = new TreeSet<String>();
-        final ArrayList<String> optsStr = new ArrayList<String>(),
-                                scenStr = new ArrayList<String>();
+        final TreeSet<String> optBadChar  = new TreeSet<>(), // use TreeSet for sorted results
+                              scenBadChar = new TreeSet<>();
+        final ArrayList<String> optsStr = new ArrayList<>(),
+                                scenStr = new ArrayList<>();
 
         for (final SOCGameOption opt : allOpts.values())
         {

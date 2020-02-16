@@ -142,7 +142,7 @@ Start the server with the following command
 
     java -jar JSettlersServer.jar
 
-This will start the server on the default port of `8880` with `7` robots.
+This will start the server on the default port of `8880` with 7 robots.
 It will try to connect to an optional mysql database named `socdata`; startup
 will continue even if there is no DB or the DB connect doesn't work.
 
@@ -415,6 +415,8 @@ already been running JSettlers, skip this section.
 
 It's a simple process to upgrade to the latest version of JSettlers:
 
+- Read this readme's "Requirements" section, in case the minimum java version
+  or another requirement has changed
 - Read [doc/Versions.md](doc/Versions.md) for new features, bug fixes, and
   config changes made from your version to the latest version.  Occasionally
   defaults change and you'll need to add a server config option to keep the

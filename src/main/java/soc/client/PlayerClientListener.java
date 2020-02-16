@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2013-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2013-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -155,15 +155,18 @@ public interface PlayerClientListener
     /**
      * A player is drawing or playing a development card, or a card or special
      * {@link SOCInventoryItem} has been added or removed from their hand's inventory.
+     * Also called at end of game, once per player when server sends list of revealed VP cards.
      *<P>
      * If this inventory update comes from playing a special {@link SOCInventoryItem}, call
      * {@link #playerCanCancelInvItemPlay(SOCPlayer, boolean)} after calling this method.
+     *<P>
+     * Before v2.2.00 this method was {@code playerDevCardUpdated}.
      *
      * @param player  The player
      * @param addedPlayable  True if the update added a dev card or item that's playable now
      *     ({@link SOCInventory#OLD}, not {@link SOCInventory#NEW NEW})
      */
-    void playerDevCardUpdated(SOCPlayer player, final boolean addedPlayable);
+    void playerDevCardsUpdated(SOCPlayer player, final boolean addedPlayable);
 
     /**
      * A player is playing or placing a special {@link SOCInventoryItem}, such as

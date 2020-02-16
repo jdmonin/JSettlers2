@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
- * Portions of this file copyright (C) 2009,2012,2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2012,2018,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,10 +34,10 @@ public class MonopolyStrategy
 {
 
     /** Our game */
-    private final SOCGame game;
+    protected final SOCGame game;
 
-    /** Our {@link SOCRobotBrain}'s player */
-    private final SOCPlayer ourPlayerData;
+    /** Our {@link SOCRobotBrain}'s player in {@link #game} */
+    protected final SOCPlayer ourPlayerData;
 
     /**
      * The resource type we want to monopolize,
@@ -50,9 +50,9 @@ public class MonopolyStrategy
     /**
      * Create a MonopolyStrategy for a {@link SOCRobotBrain}'s player.
      * @param ga  Our game
-     * @param pl  Our player data in <tt>ga</tt>
+     * @param pl  Our player data in {@code ga}
      */
-    MonopolyStrategy(SOCGame ga, SOCPlayer pl)
+    public MonopolyStrategy(SOCGame ga, SOCPlayer pl)
     {
         if (pl == null)
             throw new IllegalArgumentException();

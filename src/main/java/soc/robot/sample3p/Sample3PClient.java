@@ -1,6 +1,6 @@
 /*
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,6 +19,7 @@
  */
 package soc.robot.sample3p;
 
+import soc.baseclient.ServerConnectInfo;
 import soc.game.SOCGame;
 import soc.message.SOCMessage;
 import soc.robot.SOCRobotBrain;
@@ -34,8 +35,16 @@ import soc.util.SOCRobotParameters;
  * programmed to handle seafarers scenarios ({@link SOCFeatureSet#CLIENT_SCENARIO_VERSION}):
  * See {@link #buildClientFeats()}.
  *
+ *<H5>Starting this bot as part of the Server:</H5>
+ *
+ * To have this bot run automatically as part of the server,
+ * start the server with command-line parameter
+ * {@code -Djsettlers.bots.start3p=2,soc.robot.sample3p.Sample3PClient} <BR>
+ * For details, see {@link soc.server.SOCServer#PROP_JSETTLERS_BOTS_START3P}.
+ *
  *<H5>Connecting to the Server:</H5>
- * Since this bot isn't started up as part of the SOCServer,
+ *
+ * If this bot isn't started up as part of the SOCServer,
  * it must know the server's robot cookie to connect:
  *<UL>
  * <LI> Start the server with command-line parameter {@code -Djsettlers.bots.showcookie=Y}
@@ -47,6 +56,7 @@ import soc.util.SOCRobotParameters;
  *</UL>
  *
  *<H5>Other Useful Server Properties:</H5>
+ *
  * See {@code /src/main/bin/jsserver.properties.sample} comments for more details on any parameter.
  *<BR>
  * All server properties can be specified in a {@code jsserver.properties} file,
@@ -71,17 +81,18 @@ public class Sample3PClient extends SOCRobotClient
     private static final String RBCLASSNAME_SAMPLE = Sample3PClient.class.getName();
 
     /**
-     * Constructor for connecting to the specified server, on the specified port.
+     * Constructor for connecting to the specified server. Does not actually connect here:
+     * Afterwards, must call {@link SOCRobotClient#init()} to actually initialize, start threads, and connect.
      *
-     * @param h  server hostname
-     * @param p  server port
+     * @param sci server connect info with {@code robotCookie}; not {@code null}
      * @param nn nickname for robot
      * @param pw password for robot
-     * @param co  required cookie for robot connections to server
+     * @throws IllegalArgumentException if {@code sci == null}
      */
-    public Sample3PClient(final String h, final int p, final String nn, final String pw, final String co)
+    public Sample3PClient(final ServerConnectInfo sci, final String nn, final String pw)
+        throws IllegalArgumentException
     {
-        super(h, p, nn, pw, co);
+        super(sci, nn, pw);
 
         rbclass = RBCLASSNAME_SAMPLE;
     }
@@ -132,7 +143,8 @@ public class Sample3PClient extends SOCRobotClient
             return;
         }
 
-        Sample3PClient cli = new Sample3PClient(args[0], Integer.parseInt(args[1]), args[2], args[3], args[4]);
+        Sample3PClient cli = new Sample3PClient
+            (new ServerConnectInfo(args[0], Integer.parseInt(args[1]), args[4]), args[2], args[3]);
         cli.init();
     }
 

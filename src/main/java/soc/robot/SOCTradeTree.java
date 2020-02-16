@@ -1,7 +1,8 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
+ * Portions of this file copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.robot;
 
@@ -29,12 +30,12 @@ import java.util.Vector;
  * This is a tree that contains possible
  * trade offers and how they're related
  * to each other.  Also contains a flag
- * for wheather or not this offer should
+ * for whether or not this offer should
  * be expanded to other offers.
  *
  * @author Robert S. Thomas
  */
-/*package*/ class SOCTradeTree
+public class SOCTradeTree
 {
     SOCResourceSet resourceSet;
     SOCTradeTree parent;
@@ -138,4 +139,5 @@ import java.util.Vector;
         children.addElement(child);
         child.setParent(this);
     }
+
 }

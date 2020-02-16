@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2012-2013,2015-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2012-2013,2015-2018,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -783,11 +783,11 @@ public class SOCBuildingSpeedEstimate
         int lastRoll = 0;
         int thisRoll = 1;
 
-        resourcesOnRoll[lastRoll].put(ourResources, new Float(1.0));
+        resourcesOnRoll[lastRoll].put(ourResources, Float.valueOf(1.0f));
 
         boolean targetReached = ourResources.contains(targetResources);
         SOCResourceSet targetReachedResources = null;
-        float targetReachedProb = (float) 0.0;
+        float targetReachedProb = 0.0f;
 
         while (!targetReached)
         {
@@ -984,7 +984,7 @@ public class SOCBuildingSpeedEstimate
                     }
                     else
                     {
-                        resourcesOnRoll[thisRoll].put(newResources, new Float(newProb2));
+                        resourcesOnRoll[thisRoll].put(newResources, Float.valueOf(newProb2));
                     }
                 }
             }
@@ -1002,7 +1002,7 @@ public class SOCBuildingSpeedEstimate
 
         if (D.ebugOn)
         {
-            float probSum = (float) 0.0;
+            float probSum = 0.0f;
             D.ebugPrintln("**************** TARGET REACHED ************");
             D.ebugPrintln("targetReachedResources: " + targetReachedResources);
             D.ebugPrintln("targetReachedProb: " + targetReachedProb);

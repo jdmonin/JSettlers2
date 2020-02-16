@@ -102,7 +102,7 @@ public class TestScenarioOpts
     @Test
     public void testAllScenarios()
     {
-        final TreeSet<String> badScens = new TreeSet<String>(); // use TreeSet for sorted results
+        final TreeSet<String> badScens = new TreeSet<>(); // use TreeSet for sorted results
 
         for (final SOCScenario sc : SOCScenario.getAllKnownScenarios().values())
         {

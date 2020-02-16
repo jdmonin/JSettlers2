@@ -1282,7 +1282,7 @@ public class SOCBoardLarge extends SOCBoard
      * edges may change.  The server announces each change with a
      * {@code SOCSimpleAction(BOARD_EDGE_SET_SPECIAL)} message.
      *
-     *<H4>Adding a Layout Part:</H4>
+     *<H3>Adding a Layout Part:</H3>
      *
      * If you add a Layout Part, add it to this javadoc; {@link soc.message.SOCBoardLayout2} class javadoc
      * and its {@code KNOWN_KEYS}. Add it to the board layout in {@link soc.server.SOCBoardAtServer#makeNewBoard(Map)}.

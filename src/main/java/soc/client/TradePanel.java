@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -70,7 +70,7 @@ import soc.util.SOCStringManager;
  *<P>
  * Any reference to "unscaled pixels" means a dimension not yet multiplied by {@link SOCPlayerInterface#displayScale}.
  *<P>
- * Before v2.0.00 the trade interface was class {@code TradeOfferPanel}, which handled the offer and counter-offer
+ * Before v2.0.00 the trade UI was {@code TradeOfferPanel}, which handled the offer and counter-offer
  * and also included {@link MessagePanel}.
  *
  * @since 2.0.00

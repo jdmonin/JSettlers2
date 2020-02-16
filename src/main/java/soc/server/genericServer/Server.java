@@ -106,7 +106,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
     /**
      * Main server socket: a TCP {@link NetServerSocket} or (in Practice mode) {@link StringServerSocket}.
-     * Runs on port number {@link #port}.
+     * Runs on port number {@link #port}, or {@link #strSocketName} in Practice mode.
      * @see #protoSS
      */
     SOCServerSocket ss;
@@ -146,10 +146,10 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     protected Throwable error = null;
 
     /**
-     * TCP port number for {@link NetServerSocket} for classic {@link SOCMessage}s,
-     * or -1 for Practice mode ({@link StringServerSocket}).
+     * TCP port number for {@link #ss} when using {@link NetServerSocket} for classic {@link SOCMessage}s,
+     * or -1 for local/Practice mode ({@link StringServerSocket}).
      * @see #protoPort
-     * @see #ss
+     * @see #strSocketName
      */
     protected int port;
 
@@ -161,7 +161,11 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     protected int protoPort;
 
-    /** {@link StringServerSocket} name, or {@code null} for network mode. */
+    /**
+     * {@link StringServerSocket} name for {@link #ss}, or {@code null} for network mode.
+     * @see #port
+     * @since 1.1.00
+     */
     protected String strSocketName;
 
     /**
@@ -362,6 +366,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @param stringSocketName  Arbitrary name for string "port" to use
      * @param props  Optional properties to configure and run the server.
      *       If null, the properties field will be created empty.
+     * @since 1.1.00
      */
     public Server(final String stringSocketName, final InboundMessageDispatcher imd, Properties props)
         throws IllegalArgumentException

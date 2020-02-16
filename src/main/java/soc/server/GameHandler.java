@@ -135,6 +135,7 @@ public abstract class GameHandler
      *                      If <tt>isTakingOver</tt>, don't send anything to other players.
      *
      * @see SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, java.util.Map)
+     * @since 1.1.00
      */
     public abstract void joinGame(SOCGame gameData, Connection c, boolean isReset, boolean isTakingOver);
 

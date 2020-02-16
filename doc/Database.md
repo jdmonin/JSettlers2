@@ -113,9 +113,12 @@ If sqlite gives you that "operation not permitted" error:
   - A user's home directory may satisfy this
   - To check mount flags, use the command `mount -v`
 - Make a directory within that one, for example:  
-  `mkdir -p /home/jeremy/jsettlers/sqlite-tmp`
-- When starting the server, give sqlite-jdbc that directory name *before* the `-jar` parameter:  
-  `java -Dorg.sqlite.tmpdir=/home/jeremy/jsettlers/sqlite-tmp -jar JSettlersServer-...`
+  `mkdir -p /home/jsuser/jsettlers/sqlite-tmp`
+- Do whichever of these 2 options is easier for you:
+  - Add to your `jsserver.properties` file:  
+    `org.sqlite.tmpdir=/home/jsuser/jsettlers/sqlite-tmp`
+  - When starting the server, give sqlite-jdbc that directory name before the `-jar` parameter:  
+    `java -Dorg.sqlite.tmpdir=/home/jsuser/jsettlers/sqlite-tmp -jar JSettlersServer-...`
 
 ### If your database server isn't a type listed above
 
@@ -388,20 +391,18 @@ Use the docs to plan before starting your upgrade:
     In [Versions.md](Versions.md) look for the word "**schema**" in the list of changes.
 
 ### Checklist before starting the upgrade:
-- Make a DB backup or export its contents. JSettlers **1.2.00** is the first
-  version which has schema changes, which are recommended but optional
-  (see below). Technical problems during the upgrade are very unlikely;
-  having the backup gives you more flexibility if a problem comes up.
-- If you're upgrading from JSettlers **1.1.20** or earlier:  
-  To create more users, you must have an account admin list configured
-  (`jsettlers.accounts.admins` property, in the `jsserver.properties`
-  file or command line) unless your server is in "open registration" mode.
-- If you're upgrading from JSettlers **1.1.20** or earlier:  
-  Test bcrypt speed, to decide on and set the work_factor property,
-  before starting the upgrade process. For details search for
-  "Password Encryption (BCrypt)" in this file.
+- Make a DB backup or export its contents. Technical problems during the
+  upgrade are very unlikely; having the backup gives you more flexibility
+  if a problem comes up.
+- If you're upgrading from JSettlers **1.1.20** or earlier:
+  - To create more users, you must have an account admin list configured
+    (`jsettlers.accounts.admins` property, in the `jsserver.properties`
+    file or command line) unless your server is in "open registration" mode.
+  - Test bcrypt speed, to decide on and set the work_factor property,
+    before starting the upgrade process. For details search for
+    "Password Encryption (BCrypt)" in this file.
 - If you're upgrading from JSettlers **1.1.18** or earlier:  
-  For security reasons, newer versions by default disallow user account
+  For security reasons, newer versions default to disable user account
   self-registration. If you still want to use that option, search this
   doc for "open registration".
 - If using **Oracle**: Upgrading to the latest DB schema (v2.0.00) isn't yet implemented:

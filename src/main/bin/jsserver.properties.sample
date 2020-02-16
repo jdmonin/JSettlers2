@@ -151,6 +151,13 @@
 # download the driver JAR for your DB type; see README.txt for URLs.
 # jsettlers.db.jar=...    # (Blank by default)
 
+# For SQLite, the JVM property name that xerial sqlite-jdbc uses
+# when extracting its native library to a non-default temp directory.
+# See /doc/Database.md for more info about org.sqlite.tmpdir and whether you
+# need it. If so, you can set it here in jsserver.properties and the server
+# will copy that value to the JVM property if it isn't already there.
+# org.sqlite.tmpdir=/home/jsuser/jsettlers/sqlite-tmp
+
 # JDBC DB driver class name. Common DB types will automatically set this
 # based on the database type prefix in jsettlers.db.url:
 #   mysql ->    com.mysql.jdbc.Driver
@@ -196,7 +203,9 @@
 # 1.6 seconds), in order to give bot clients more time to connect first. The
 # server will print a reminder message:
 # "Waiting 30 seconds before starting robot-only games."
-# jsettlers.bots.botgames.wait_sec=30
+# To start some third-party bots with the server, see jsettlers.bots.start3p.
+# (See also jsettlers.bots.percent3p)
+# jsettlers.bots.botgames.wait_sec=2
 
 # Adjust the speed-up factor for bots' pause times between actions when game
 # is bots-only. Default is 25, for 25% of normal pauses (4x speed). Use 1 for
@@ -227,8 +236,24 @@
 # game, the built-in bots will be used instead so that the game can begin.
 # If also using jsettlers.bots.botgames.total, remember those games will be
 # started as soon as the server is ready, so the third-party bots may not
-# yet be connected.
+# yet be connected. To wait longer, use jsettlers.bots.botgames.wait_sec.
 # jsettlers.bots.percent3p=50
+
+# List of third-party bot classes to be started automatically by the server.
+# The server can do this for any bots whose client class:
+# - Is a subclass of SOCRobotClient
+# - Is on the server's CLASSPATH
+# - Has a constructor which takes the same args as soc.robot.SOCRobotClient's
+#   and soc.robot.sample3p.Sample3PClient's: (ServerConnectInfo, String, String)
+# Third-party bots don't need to extend SOCRobotClient, but the current server code
+# only knows how to start such subclasses. So, non-subclassed bots will need to be
+# started and connected manually.
+# (See also jsettlers.bots.botgames.wait_sec)
+# This example starts 3 of bot X, 1 of bot Y, 5 of bot Z:
+# jsettlers.bots.start3p=3,com.example.BotXClient,org.example.BotYClient,5,net.example.BotZClient
+# This starts 2 of the example "third-party" bot:
+# jsettlers.bots.start3p=2,soc.robot.sample3p.Sample3PClient
+
 
 # Robot turn timeout (seconds) for third-party robots, which may have more
 # complex logic than the built-in bots. The third-party bots will have this
@@ -239,12 +264,14 @@
 # -- End of list of recognized available properties --
 
 # This sample file is documentation about the available properties.
-# Any jsserver.properties file you create belongs to you.
+# Any jsserver.properties file you create is original and belongs to you,
+# and is not a modification or derivative work of this sample file.
+
 # Attribution and copyright info for this sample file:
 #
 # This file is part of the JSettlers project.
 #
-# This file Copyright (C) 2016-2019 Jeremy D Monin (jeremy@nand.net)
+# This file Copyright (C) 2016-2020 Jeremy D Monin (jeremy@nand.net)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

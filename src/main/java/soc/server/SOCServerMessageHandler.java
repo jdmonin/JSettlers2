@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2016-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2016-2020 Jeremy D Monin <jeremy@nand.net>
  * Some contents were formerly part of SOCServer.java;
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
@@ -1239,7 +1239,8 @@ public class SOCServerMessageHandler
 
     /**
      * Print time-remaining and other game stats.
-     * Includes more detail beyond the end-game stats sent in {@link SOCGameHandler#sendGameStateOVER(SOCGame)}.
+     * Includes more detail beyond the end-game stats sent in
+     * {@link SOCGameHandler#sendGameStateOVER(SOCGame, Connection)}.
      *<P>
      * Before v1.1.20, this method was {@code processDebugCommand_checktime(..)}.
      *
@@ -1248,6 +1249,7 @@ public class SOCServerMessageHandler
      * @param gameData  Game to print stats
      * @param isCheckTime  True if called from *CHECKTIME* server command, false for *STATS*.
      *     If true, mark text as urgent when sending remaining time before game expires.
+     * @see SOCServer#processDebugCommand_connStats(Connection, String, boolean)
      * @since 1.1.07
      */
     void processDebugCommand_gameStats

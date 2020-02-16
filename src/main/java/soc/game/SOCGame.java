@@ -718,11 +718,13 @@ public class SOCGame implements Serializable, Cloneable
      * NOT CURRENTLY SET AT SERVER.  Instead check if server's strSocketName != null,
      * or if connection instanceof {@link StringConnection}.
      *<P>
-     * Since 1.1.09: This flag is set at the server, only if the server is a local practice
-     * server whose stringport name is <tt>SOCServer.PRACTICE_STRINGPORT</tt>.
+     * Since 1.1.09: This flag is set at the server, true only if the server is a local practice
+     * server whose stringport name equals {@code SOCServer.PRACTICE_STRINGPORT}.
      *<P>
-     * Before 1.1.13, this field was called <tt>isLocal</tt>, but that was misleading;
+     * Before 1.1.13 this field was called {@code isLocal}, but that was misleading;
      * the full client can launch a locally hosted tcp LAN server.
+     *
+     * @since 1.1.00
      */
     public boolean isPractice;
 
@@ -805,6 +807,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * true if the game came from a board reset
+     * @since 1.1.00
      */
     private boolean isFromBoardReset;
 
@@ -1046,6 +1049,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * the player declared winner, if gamestate == OVER; otherwise -1
+     * @since 1.1.00
      */
     private int playerWithWin;
 
@@ -2120,6 +2124,8 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * @return whether this game was created by board reset of an earlier game
+     * @see #resetAsCopy()
+     * @since 1.1.00
      */
     public boolean isBoardReset()
     {
@@ -2311,6 +2317,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return the old game state
      * @throws IllegalStateException Game state must be RESET_OLD
      *    when called; during normal game play, oldGameState is private.
+     * @since 1.1.00
      */
     public int getResetOldGameState() throws IllegalStateException
     {
@@ -2648,6 +2655,7 @@ public class SOCGame implements Serializable, Cloneable
      * This is determined in {@link #checkForWinner()}; there is no corresponding setter.
      *
      * @return the winning player, or null if none, or if game is not yet over.
+     * @since 1.1.00
      */
     public SOCPlayer getPlayerWithWin()
     {
@@ -2695,6 +2703,7 @@ public class SOCGame implements Serializable, Cloneable
      *       "The game is over; <someone> won."
      *       "The game is over; no one won."
      * @throws IllegalStateException If the game state is not OVER
+     * @since 1.1.00
      */
     public String gameOverMessageToPlayer(SOCPlayer pl)
         throws IllegalStateException

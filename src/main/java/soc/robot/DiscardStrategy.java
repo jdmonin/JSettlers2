@@ -3,7 +3,7 @@
  * This file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
  * Portions of this file copyright (C) 2008 Eli McGowan <http://sourceforge.net/users/emcgowan>
- * Portions of this file copyright (C) 2009,2012-2013,2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2012-2013,2015,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -26,24 +26,48 @@ package soc.robot;
 import java.util.Random;
 import java.util.Stack;
 
-// import org.apache.log4j.Logger;
-
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.game.SOCResourceSet;
 import soc.proto.Data;
-import soc.util.SOCRobotParameters;
 
 /**
- * Strategy when we need to discard.
- * For details see javadoc for
- * {@link #discard(int, Stack, Random, SOCPlayer, SOCRobotParameters, SOCRobotDM, SOCRobotNegotiator)}.
+ * Discard strategy for a {@link SOCRobotBrain} in a game.
+ * For details see {@link #discard(int, Stack)}.
+ *<P>
+ * Before version 2.2.00 that method was static and could not easily be extended.
  */
 public class DiscardStrategy
 {
+    /** Our game */
+    protected final SOCGame game;
 
-    /** debug logging */
-    // private transient Logger log = Logger.getLogger(this.getClass().getName());
+    /** Our {@link #brain}'s player in {@link #game} */
+    protected final SOCPlayer ourPlayerData;
+
+    /** Our brain for {@link #ourPlayerData} */
+    protected final SOCRobotBrain brain;
+
+    /** Random number generator from {@link #brain} */
+    protected final Random rand;
+
+    /**
+     * Create a DiscardStrategy for a {@link SOCRobotBrain}'s player.
+     * @param ga  Our game
+     * @param pl  Our player data in {@code ga}
+     * @param br  Robot brain for {@code pl}
+     * @param rand  Random number generator from {@code br}
+     */
+    public DiscardStrategy(SOCGame ga, SOCPlayer pl, SOCRobotBrain br, Random rand)
+    {
+        if ((pl == null) || (br == null))
+            throw new IllegalArgumentException();
+
+        game = ga;
+        ourPlayerData = pl;
+        brain = br;
+        this.rand = rand;
+    }
 
     /**
      * When we have to discard, try to keep the resources needed for our building plan.
@@ -52,17 +76,17 @@ public class DiscardStrategy
      * Calls {@link SOCRobotNegotiator#setTargetPiece(int, SOCPossiblePiece)}
      * to remember the piece we want to build,
      * in case we'll need to trade for its lost resources.
+     *
+     * @param numDiscards  Required number of discards
+     * @param buildingPlan  Brain's current building plan
+     * @return  Resources to discard, which should be a subset of
+     *     {@code ourPlayerData}.{@link SOCPlayer#getResources() getResources()}
      */
-    public static SOCResourceSet discard
-        (final int numDiscards, Stack<SOCPossiblePiece> buildingPlan, Random rand,
-         SOCPlayer ourPlayerData, SOCRobotParameters robotParameters, SOCRobotDM decisionMaker, SOCRobotNegotiator negotiator)
+    public SOCResourceSet discard
+        (final int numDiscards, Stack<SOCPossiblePiece> buildingPlan)
     {
         //log.debug("DISCARDING...");
 
-        /**
-         * if we have a plan, then try to keep the resources
-         * needed for that plan, otherwise discard at random
-         */
         SOCResourceSet discards = new SOCResourceSet();
 
         /**
@@ -70,13 +94,17 @@ public class DiscardStrategy
          */
         if (buildingPlan.empty())
         {
-            decisionMaker.planStuff(robotParameters.getStrategyType());
+            brain.decisionMaker.planStuff(brain.getRobotParameters().getStrategyType());
         }
 
+        /**
+         * if we have a plan, then try to keep the resources
+         * needed for that plan, otherwise discard at random
+         */
         if (! buildingPlan.empty())
         {
             SOCPossiblePiece targetPiece = buildingPlan.peek();
-            negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), targetPiece);
+            brain.negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), targetPiece);
 
             //log.debug("targetPiece="+targetPiece);
 
@@ -171,4 +199,5 @@ public class DiscardStrategy
 
         return discards;
     }
+
 }

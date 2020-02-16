@@ -21,15 +21,17 @@
  **/
 package soc.server;
 
+import java.lang.reflect.Constructor;
 import java.util.Hashtable;
 
+import soc.baseclient.ServerConnectInfo;
 import soc.robot.SOCRobotClient;
 
 /**
  * Each local robot in the {@link SOCServer} gets its own client thread.
  * Equivalent to main thread used in {@link SOCRobotClient} when connected
  * over the TCP network. Create by calling convenience method
- * {@link #createAndStartRobotClientThread(String, String, int, String)}.
+ * {@link #createAndStartRobotClientThread(String, ServerConnectInfo, Constructor)}.
  *<P>
  * This class was originally SOCPlayerClient.SOCPlayerLocalRobotRunner,
  * then moved in 1.1.09 to SOCServer.SOCPlayerLocalRobotRunner.
@@ -77,24 +79,27 @@ import soc.robot.SOCRobotClient;
      * The {@link SOCLocalRobotClient}'s {@code run()} will add the {@link SOCRobotClient} to {@link #robotClients}.
      *
      * @param rname  Name of robot
-     * @param strSocketName  Server's stringport socket name, or null
-     * @param port    Server's tcp port, if <tt>strSocketName</tt> is null
-     * @param cookie  Cookie for robot connections to server
+     * @param sci  Server connect info (TCP or local) with {@code robotCookie}; not {@code null}
+     * @param cliConstruc3p  For a third-party bot client, its constructor with same parameters and
+     *     behavior as {@link SOCRobotClient#SOCRobotClient(ServerConnectInfo, String, String)};
+     *     {@code null} for built-in bots
      * @since 1.1.09
      * @see SOCServer#setupLocalRobots(int, int)
      * @throws ClassNotFoundException  if a robot class, or SOCDisplaylessClient,
      *           can't be loaded. This can happen due to packaging of the server-only JAR.
      * @throws LinkageError  for same reason as ClassNotFoundException
+     * @throws IllegalArgumentException if {@code sci == null}
+     * @throws ReflectiveOperationException if there's a problem instantiating from a non-null {@link cliConstruc3p}
      */
     public static void createAndStartRobotClientThread
-        (final String rname, final String strSocketName, final int port, final String cookie)
-        throws ClassNotFoundException, LinkageError
+        (final String rname, final ServerConnectInfo sci, final Constructor<? extends SOCRobotClient> cliConstruc3p)
+        throws ClassNotFoundException, IllegalArgumentException, LinkageError, ReflectiveOperationException
     {
-        SOCRobotClient rcli;
-        if (strSocketName != null)
-            rcli = new SOCRobotClient(strSocketName, rname, "pw", cookie);
-        else
-            rcli = new SOCRobotClient("localhost", port, rname, "pw", cookie);
+        final SOCRobotClient rcli =
+            (cliConstruc3p == null)
+            ? new SOCRobotClient(sci, rname, "pw")
+            : cliConstruc3p.newInstance(sci, rname, "pw");
+
         rcli.printedInitialWelcome = true;  // don't clutter the server console
 
         Thread rth = new Thread(new SOCLocalRobotClient(rcli));
@@ -110,4 +115,4 @@ import soc.robot.SOCRobotClient;
         catch (InterruptedException ie) {}
     }
 
-}  // class SOCPlayerLocalRobotRunner
+}

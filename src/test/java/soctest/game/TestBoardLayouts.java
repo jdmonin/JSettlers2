@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -74,7 +74,7 @@ public class TestBoardLayouts
      * Members are "scenarioKey:playerCount" strings from {@link #layoutNameKey(SOCScenario, int)}.
      * Uses TreeSet for sorted results.
      */
-    private final TreeSet<String> badLayouts = new TreeSet<String>();
+    private final TreeSet<String> badLayouts = new TreeSet<>();
 
     /** Current scenario, or null, being tested in {@link #testSingleLayout(SOCScenario, int)} */
     private SOCScenario currentScen;
@@ -194,8 +194,8 @@ public class TestBoardLayouts
         // to compare CV contents, must sort them by village location
         assertEquals("CV[0]", cvPart[0], cvLayout[0]);
         assertEquals("CV[1]", cvPart[1], cvLayout[1]);
-        TreeMap<Integer, Integer> partMap = new TreeMap<Integer, Integer>(),
-            layoutMap = new TreeMap<Integer, Integer>();
+        TreeMap<Integer, Integer> partMap = new TreeMap<>(),
+            layoutMap = new TreeMap<>();
         for (int i = 2; i < cvPart.length; i += 2)  // arrays have equal length
         {
             partMap.put(cvPart[i], cvPart[i+1]);
@@ -345,13 +345,13 @@ public class TestBoardLayouts
             if ((htype == SOCBoard.WATER_HEX) && checkWater)
             {
                 if (waterInLandSet == null)
-                    waterInLandSet = new ArrayList<Integer>();
+                    waterInLandSet = new ArrayList<>();
                 waterInLandSet.add(hexCoord);
             }
             else if ((htype == SOCBoard.DESERT_HEX) && (0 != board.getNumberOnHexFromCoord(hexCoord)))
             {
                 if (desertWithDice == null)
-                    desertWithDice = new ArrayList<Integer>();
+                    desertWithDice = new ArrayList<>();
                 desertWithDice.add(hexCoord);
             }
         }

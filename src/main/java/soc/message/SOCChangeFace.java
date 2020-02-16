@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2013-2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2013-2014,2017,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +24,7 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message says that a player is changing the
- * face icon.
+ * This message says that a player is changing their face icon.
  *<P>
  * Although this is a game-specific message, it's handled by {@code SOCServer} instead of a {@code GameHandler}.
  *
@@ -47,7 +46,7 @@ public class SOCChangeFace extends SOCMessage
     private int playerNumber;
 
     /**
-     * The id of the face image
+     * The id of the face image; see {@link #getFaceId()} for details
      */
     private int faceId;
 
@@ -107,7 +106,7 @@ public class SOCChangeFace extends SOCMessage
      *
      * @param ga  the name of the game
      * @param pn  the number of the changing player
-     * @param id  the id of the face image
+     * @param id  the id of the face image; see {@link #getFaceId()} for values
      * @return the command string
      */
     public static String toCmd(String ga, int pn, int id)

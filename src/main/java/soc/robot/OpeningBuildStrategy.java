@@ -3,7 +3,7 @@
  * This file copyright (C) 2008 Eli McGowan <http://sourceforge.net/users/emcgowan>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
  * Portions of this file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
- * Portions of this file copyright (C) 2009-2013,2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2013,2017-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -46,14 +46,14 @@ import soc.util.CutoffExceededException;
 public class OpeningBuildStrategy {
 
     /** Our game */
-    private final SOCGame game;
+    protected final SOCGame game;
 
     /** Our {@link SOCRobotBrain}'s player */
-    private final SOCPlayer ourPlayerData;
+    protected final SOCPlayer ourPlayerData;
 
     /** debug logging */
     // private transient Logger log = Logger.getLogger(this.getClass().getName());
-    private transient D log = new D();
+    protected transient D log = new D();
 
     /**
      * used in planning where to put our first and second settlements
@@ -71,7 +71,7 @@ public class OpeningBuildStrategy {
      * Valid after calling {@link #planInitRoad()}.
      * @since 2.0.00
      */
-    private int plannedRoadDestinationNode;
+    protected int plannedRoadDestinationNode;
 
     /**
      * Cached resource estimates for the board;
@@ -86,7 +86,7 @@ public class OpeningBuildStrategy {
      * @param ga  Our game
      * @param pl  Our player data in <tt>ga</tt>
      */
-    OpeningBuildStrategy(SOCGame ga, SOCPlayer pl)
+    public OpeningBuildStrategy(SOCGame ga, SOCPlayer pl)
     {
         if (pl == null)
             throw new IllegalArgumentException();

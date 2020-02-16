@@ -18,14 +18,33 @@ and backport minor new features until `2.0.00` was ready.
 
 
 
-## `2.1.00` (build JM2020xxxx)
+## `2.2.00` (build JM2020xxxx)
 - Currently being developed
 - Client:
+	- Game window:
+	  - Remember recently sent chat text; browse history with Up/Down arrow keys in input field (based on Chad McHenry idea)
+	  - At end of game, reveal VP cards in players' hand panels
+- Server:
+	- `*STATS*` command: Send client how long they've been connected and, if at least 1 game won or lost, their win-loss count for this session
+	- If client joins a game that's already over, send final scores and revealed VP cards
+	- SQLite database:
+	  - For convenience, if JVM properties don't contain `org.sqlite.tmpdir` but that property is set in
+	    `jsserver.properties` file or command line, copy it into JVM properties
+- For AI/Robot development:
+	- Server can automatically start some third-party bots with new startup option:  
+	  `-Djsettlers.bots.start3p=3,com.example.BotXClient,5,net.example.BotZClient`  
+	  For details, search for that property in src/main/bin/jsserver.properties.sample
+	- Strategy classes made easier to change or subclass for 3rd-party bots; added SampleDiscardStrategy
+	- Human players can't use the robot nickname prefix "extrabot "
+
+
+## `2.1.00` (build JM20200119)
+- Client:
 	- New Game dialog: If "force UI scale" option is changed, use new value for new game's window
+	- While joining game, try to prevent game-list window from getting in front of that game's new window
 	- Game window:
 	  - Game Options dialog: If Enter pressed while in text field, save prefs instead of saying "Game with this name already exists"
 	  - Properly re-center top text ("Last round for no 7s") if window made larger/smaller while top text displayed
-	- While joining game, try to prevent game-list window from getting in front of that game's new window
 - Server:
 	- Bugfix when client sits down, taking over a bot's seat, during first initial-settlement round:
 	  Some players' first placement was skipped because "first player" changed during that bot replacement
@@ -615,6 +634,15 @@ Further development is based on 1.1.04.
 	- 1812257 jdmonin Debug help, minor comments
 	- N/A     sfhonza (John Vicherek) "Swinging" number of resources, http://john.vicherek.com/jsettlers-1.0.6.swing_resources.patch
 	- 1088775 drichardson (Douglas Ryan Richardson) [1039250] Auto-rejecting impossible offers; Make accept button invisible when user cannot accept offer
+
+
+## Older versions:
+
+These older releases were in a separate cvs repo at sourceforge
+maintained by Robert S Thomas and Chad McHenry.
+
+For historical reference, Jeremy Monin has converted that repo to git:
+https://github.com/jdmonin/JSettlers1
 
 
 ## `1.0.6` (build 2004-11-17)  http://sourceforge.net/projects/jsettlers

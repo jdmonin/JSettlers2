@@ -70,6 +70,7 @@ public class SOCGameListAtServer extends SOCGameList
      * @see #createGame(String, String, String, Map, GameHandler)
      * @see SOCGame#setExpiration(long)
      * @see SOCServer#checkForExpiredGames(long)
+     * @since 1.1.00
      */
     public static int GAME_TIME_EXPIRE_MINUTES = 120;
 
@@ -455,6 +456,7 @@ public class SOCGameListAtServer extends SOCGameList
      * @return New game if gaName was found and copied; null if no game called gaName,
      *         or if a problem occurs during reset
      * @see soc.game.SOCGame#resetAsCopy()
+     * @since 1.1.00
      */
     public SOCGameBoardReset resetBoard(String gaName)
     {

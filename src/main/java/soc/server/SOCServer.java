@@ -22,6 +22,8 @@
  **/
 package soc.server;
 
+import soc.baseclient.ServerConnectInfo;
+
 import soc.debug.D;  // JM
 
 import soc.game.*;
@@ -37,7 +39,6 @@ import soc.server.genericServer.InboundMessageQueue;
 import soc.server.genericServer.Server;
 import soc.server.genericServer.StringConnection;
 
-import soc.util.I18n;
 import soc.util.SOCFeatureSet;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;  // used in javadoc
@@ -46,6 +47,8 @@ import soc.util.SOCStringManager;
 import soc.util.Triple;
 import soc.util.Version;
 
+import net.nand.util.i18n.mgr.StringManager;
+
 import java.io.BufferedReader;
 import java.io.Console;
 import java.io.EOFException;
@@ -53,6 +56,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Constructor;
 import java.net.SocketException;
 import java.sql.SQLException;
 import java.text.DateFormat;
@@ -240,9 +244,39 @@ public class SOCServer extends Server
      * the built-in bots will be used instead so that the game can begin. If also using
      * {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL}, remember those games will be started
      * as soon as the server is ready, so the third-party bots may not yet be connected.
+     * To wait longer, use {@link #PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC}.
+     *
+     * @see #PROP_JSETTLERS_BOTS_START3P
      * @since 2.0.00
      */
     public static final String PROP_JSETTLERS_BOTS_PERCENT3P = "jsettlers.bots.percent3p";
+
+    /**
+     * String property <tt>jsettlers.bots.start3p</tt>:
+     * List of third-party bot classes to be started automatically by the server.
+     *<P>
+     * The server can do this for any bots whose client class:
+     *<UL>
+     * <LI> Is a subclass of SOCRobotClient
+     * <LI> Is on the server's CLASSPATH
+     * <LI> Has a constructor which takes the same args as soc.robot.SOCRobotClient's
+     *      and soc.robot.sample3p.Sample3PClient's: ({@link ServerConnectInfo}, String, String)
+     *</UL>
+     * Third-party bots don't need to extend SOCRobotClient, but the current server code
+     * only knows how to start such subclasses. So, non-subclassed bots will need to be
+     * started and connected manually.
+     *<P>
+     * This example starts 3 of bot X, 1 of bot Y, 5 of bot Z:<BR>
+     * <tt>jsettlers.bots.start3p=3,com.example.BotXClient,org.example.BotYClient,5,net.example.BotZClient</tt>
+     *<P>
+     * This starts 2 of the example "third-party" bot:<BR>
+     * <tt>jsettlers.bots.start3p=2,soc.robot.sample3p.Sample3PClient</tt>
+     *
+     * @see #PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC
+     * @see #PROP_JSETTLERS_BOTS_PERCENT3P
+     * @since 2.2.00
+     */
+    public static final String PROP_JSETTLERS_BOTS_START3P = "jsettlers.bots.start3p";
 
     /**
      * Integer property <tt>jsettlers.bots.timeout.turn</tt> to increase
@@ -319,6 +353,10 @@ public class SOCServer extends Server
      * before starting robot-only games with {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL}.
      * This is useful if some bots are slow to start, or are third-party bots not automatically
      * started with the server. (The default is 1.6 seconds.)
+     *<P>
+     * To start some third-party bots with the server, see {@link #PROP_JSETTLERS_BOTS_START3P}.
+     *
+     * @see #PROP_JSETTLERS_BOTS_PERCENT3P
      * @since 2.0.00
      */
     public static final String PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC = "jsettlers.bots.botgames.wait_sec";
@@ -491,6 +529,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_BOTS_SHOWCOOKIE,         "Flag to show the robot cookie value at startup",
         PROP_JSETTLERS_BOTS_FAST__PAUSE__PERCENT, "Pause at percent of normal pause time (0 to 100) for robot-only games (default 25)",
         PROP_JSETTLERS_BOTS_PERCENT3P,          "Percent of bots which should be third-party (0 to 100) if available",
+        PROP_JSETTLERS_BOTS_START3P,            "Third-party bot client classes to start up with server",
         PROP_JSETTLERS_BOTS_TIMEOUT_TURN,       "Robot turn timeout (seconds) for third-party bots",
         PROP_JSETTLERS_TEST_VALIDATE__CONFIG,   "Flag to validate server and DB config, then exit (same as -t command-line option)",
         PROP_JSETTLERS_TEST_DB,                 "Flag to test database methods, then exit",
@@ -558,6 +597,7 @@ public class SOCServer extends Server
      * @see SOCGameTimeoutChecker#run()
      * @see SOCGameListAtServer#GAME_TIME_EXPIRE_MINUTES
      * @see #GAME_TIME_EXPIRE_ADDTIME_MINUTES
+     * @since 1.1.00
      */
     public static int GAME_TIME_EXPIRE_WARN_MINUTES = 15;
 
@@ -649,6 +689,7 @@ public class SOCServer extends Server
      * Used to distinguish practice vs "real" games.
      *
      * @see StringConnection
+     * @since 1.1.00
      */
     public static String PRACTICE_STRINGPORT = "SOCPRACTICE";
 
@@ -795,14 +836,24 @@ public class SOCServer extends Server
 
     /**
      * A list of third-party bot clients connected to this server, if any.
-     * A subset of {@link #robots} which also includes built-in bots.
+     * A subset of {@link #robots} (which also includes built-in bots).
      * Third-party bot clients' {@link SOCClientData#robot3rdPartyBrainClass} != {@code null}.
      *<P>
      *<B>Locking:</B> Adding or removing from this list should synchronize on {@link #robots}
      * to keep the two lists in sync.
+     * @see #robots3pCliConstrucs
      * @since 2.0.00
      */
     protected Vector<Connection> robots3p = new Vector<Connection>();
+
+    /**
+     * A list of third-party bot clients started up by server like the built-in bots, or {@code null} if none.
+     * Initialized during server startup by parsing property from {@link #PROP_JSETTLERS_BOTS_START3P}.
+     * Used in {@link #setupLocalRobots(int, int)}.
+     * @see #robots3p
+     * @since 2.2.00
+     */
+    private List<Constructor<? extends SOCRobotClient>> robots3pCliConstrucs;
 
     /**
      * The limited-feature clients' connections: Those with the {@link SOCClientData#hasLimitedFeatures} flag set.
@@ -860,12 +911,15 @@ public class SOCServer extends Server
      */
     public static boolean hasSetGameOptions = false;
 
-    /** Status Message to send, nickname already logged into the system */
+    /**
+     * Status Message to send: Nickname already logged into the system.
+     * @since 1.1.00
+     */
     public static final String MSG_NICKNAME_ALREADY_IN_USE
         = "Someone with that nickname is already logged into the system.";  // TODO i18n
 
     /**
-     * Status Message to send, nickname already logged into the system.
+     * Status Message to send: Nickname already logged into the system.
      * Prepend to {@link #MSG_NICKNAME_ALREADY_IN_USE}.
      * The "take over" option is used for reconnect when a client loses
      * connection, and server doesn't realize it.
@@ -876,7 +930,7 @@ public class SOCServer extends Server
         = " and try again. ";
 
     /**
-     * Part 1 of Status Message to send, nickname already logged into the system
+     * Part 1 of Status Message to send: Nickname already logged into the system
      * with a newer client version.  Prepend to version number required.
      * The "take over" option is used for reconnect when a client loses
      * connection, and server doesn't realize it.
@@ -887,7 +941,7 @@ public class SOCServer extends Server
         = "You need client version ";
 
     /**
-     * Part 2 of Status Message to send, nickname already logged into the system
+     * Part 2 of Status Message to send: Nickname already logged into the system
      * with a newer client version.  Append to version number required.
      * @see #MSG_NICKNAME_ALREADY_IN_USE_NEWER_VERSION_P1
      * @since 1.1.08
@@ -1439,6 +1493,15 @@ public class SOCServer extends Server
             robotCookie = generateRobotCookie();
         }
 
+        /**
+         * See if user wants any third-party bots started with server:
+         * Set up robots3pCliConstrucs if so
+         */
+        if (props.containsKey(PROP_JSETTLERS_BOTS_START3P)
+            && ! (hasUtilityModeProp && ! validate_config_mode))
+            initSocServer_bots_start3p();
+                // throws IllegalArgumentException if problems found
+
         final boolean accountsRequired = getConfigBoolProperty(PROP_JSETTLERS_ACCOUNTS_REQUIRED, false);
 
         /**
@@ -1760,6 +1823,81 @@ public class SOCServer extends Server
     }
 
     /**
+     * Third-party bot startup with server:
+     * Parse {@link #PROP_JSETTLERS_BOTS_START3P} and set up {@link #robots3pCliConstrucs}.
+     * @throws IllegalArgumentException if property can't be parsed or a named bot class can't be found.
+     *     {@link Throwable#getMessage()} will have problem details.
+     * @since 2.2.00
+     */
+    private void initSocServer_bots_start3p()
+        throws IllegalArgumentException
+    {
+        String errMsg = null;
+
+        robots3pCliConstrucs = new ArrayList<>();
+        int count = 1;
+        for (String part : props.getProperty(PROP_JSETTLERS_BOTS_START3P).trim().split(","))
+        {
+            if (part.isEmpty())
+                continue;
+
+            if (Character.isDigit(part.charAt(0)))
+            {
+                count = 0;
+                try
+                {
+                    count = Integer.parseInt(part);
+                } catch (NumberFormatException e) {
+                    errMsg = "Expected number but can't parse: " + part;
+                    break;
+                }
+                if (count <= 0)
+                {
+                    errMsg = "Count must be at least 1: " + count;
+                    break;
+                }
+            } else if (part.indexOf('.') > 0) {
+                try
+                {
+                    Class<?> rcli3p = Class.forName(part);
+                    if (! SOCRobotClient.class.isAssignableFrom(rcli3p))
+                    {
+                        errMsg = "3p client not subclass of SOCRobotClient, can't be auto-started: " + part;
+                        break;
+                    }
+
+                    try
+                    {
+                        @SuppressWarnings("unchecked")
+                        Constructor<? extends SOCRobotClient> cliConstruc3p
+                            = (Constructor<? extends SOCRobotClient>) rcli3p.getDeclaredConstructor
+                                (ServerConnectInfo.class, String.class, String.class);
+
+                        // looks good; queue up those bots
+                        for (; count > 0; --count)
+                            robots3pCliConstrucs.add(cliConstruc3p);
+                        count = 1;
+                    } catch(NoSuchMethodException e) {
+                        errMsg = "3p client " + part
+                            + " missing constructor(ServerConnectInfo, String, String)";
+                        break;
+                    }
+                } catch(Exception|LinkageError err) {
+                    errMsg = "3p client class " + part + " can't be loaded: " + err;
+                    break;
+                }
+            } else {
+                errMsg = "Expected digits or fully qualified class name";
+                break;
+            }
+        }
+
+        if (errMsg != null)
+            throw new IllegalArgumentException
+                ("Setup failed from property " + PROP_JSETTLERS_BOTS_START3P + ": " + errMsg);
+    }
+
+    /**
      * Set some DB-related SOCServer fields and features:
      * {@link #databaseUserAdmins} from {@link #PROP_JSETTLERS_ACCOUNTS_ADMINS},
      * {@link #features}({@link SOCFeatureSet#SERVER_OPEN_REG}) and {@link #acctsNotOpenRegButNoUsers}
@@ -1879,8 +2017,7 @@ public class SOCServer extends Server
                 boolean loadSuccess = setupLocalRobots(fast30, rcount - fast30);  // each bot gets a thread
                 if (! loadSuccess)
                 {
-                    System.err.println("** Cannot start robots with this JAR.");
-                    System.err.println("** For robots, please use the Full JAR instead of the server-only JAR.");
+                    System.err.println("** Cannot start the requested robots. Check server properties and classpath.");
                 }
                 else if (hcount < reserve)
                 {
@@ -2755,16 +2892,19 @@ public class SOCServer extends Server
      * {@code FAST} or {@code SMART} strategy params in {@link #handleIMAROBOT(Connection, SOCImARobot)}
      * based on their name prefixes ("droid " or "robot " respectively).
      *<P>
-     * In v1.2.00 and newer, human players can't use names with bot prefixes "droid " or "robot ":
-     * see {@link #checkNickname(String, Connection, boolean, boolean)}.
+     * Some third-party bot clients can automatically be started here,
+     * if they're named in {@link #PROP_JSETTLERS_BOTS_START3P} and meet the criteria documented there.
+     * Those bots will be named "extrabot 1", "extrabot 2", etc.
+     *<P>
+     * In v1.2.00 and newer, human players can't use names with bot prefixes "droid " or "robot ",
+     * and in v2.2.00 and newer "extrabot " also; see {@link #checkNickname(String, Connection, boolean, boolean)}.
      *<P>
      * Before 1.1.09, this method was part of SOCPlayerClient.
      *
      * @param numFast number of fast robots, with {@link soc.robot.SOCRobotDM#FAST_STRATEGY FAST_STRATEGY}
      * @param numSmart number of smart robots, with {@link soc.robot.SOCRobotDM#SMART_STRATEGY SMART_STRATEGY}
      * @return True if robots were set up, false if an exception occurred.
-     *     This typically happens if a robot class or SOCDisplaylessClient
-     *     can't be loaded, due to packaging of the server-only JAR.
+     *     This typically happens if a third-party robot class can't be loaded.
      * @see soc.client.SOCPlayerClient#startPracticeGame()
      * @see soc.client.MainDisplay#startLocalTCPServer(int)
      * @see #startRobotOnlyGames(boolean, boolean)
@@ -2773,13 +2913,19 @@ public class SOCServer extends Server
      */
     public boolean setupLocalRobots(final int numFast, final int numSmart)
     {
+        final ServerConnectInfo sci =
+            (strSocketName != null)
+            ? new ServerConnectInfo(strSocketName, robotCookie)
+            : new ServerConnectInfo("localhost", port, robotCookie);
+
+        String curr3pBotClass = null;  // for context when reporting third-party bot instantiation errors
         try
         {
             // Make some faster ones first.
             for (int i = 0; i < numFast; ++i)
             {
                 String rname = "droid " + (i+1);
-                SOCLocalRobotClient.createAndStartRobotClientThread(rname, strSocketName, port, robotCookie);
+                SOCLocalRobotClient.createAndStartRobotClientThread(rname, sci, null);
                     // to ratelimit, create includes Thread.yield() and sleep(75 ms) on caller's thread
             }
 
@@ -2790,11 +2936,33 @@ public class SOCServer extends Server
             for (int i = 0; i < numSmart; ++i)
             {
                 String rname = "robot " + (i+1+numFast);
-                SOCLocalRobotClient.createAndStartRobotClientThread(rname, strSocketName, port, robotCookie);
+                SOCLocalRobotClient.createAndStartRobotClientThread(rname, sci, null);
+            }
+
+            // Now, any third-party bots starting up with server.
+            if (robots3pCliConstrucs != null)
+            {
+                int i = 0;
+                for (final Constructor<? extends SOCRobotClient> con : robots3pCliConstrucs)
+                {
+                    ++i;
+                    curr3pBotClass = con.getDeclaringClass().getName();
+                    SOCLocalRobotClient.createAndStartRobotClientThread("extrabot " + i, sci, con);
+                }
             }
         }
         catch (Exception e)
         {
+            if (curr3pBotClass != null)
+            {
+                System.err.println("*** Can't start third-party bot " + curr3pBotClass + ": " + e);
+                if ((e instanceof ReflectiveOperationException) && (e.getCause() instanceof Exception))
+                {
+                    e = (Exception) e.getCause();
+                    System.err.println("    caused by " + e);
+                }
+                e.printStackTrace();
+            }
             //TODO: log
             return false;
         }
@@ -4153,6 +4321,7 @@ public class SOCServer extends Server
      * @param ga  the name of the game
      * @param mes the message to send. If mes does not begin with ">>>",
      *            will prepend ">>> " before sending mes.
+     * @since 1.1.00
      */
     public void messageToGameUrgent(String ga, String mes)
     {
@@ -4547,10 +4716,11 @@ public class SOCServer extends Server
             return -2;  // TODO distinct ret value, to send localized error to client
         }
 
-        // check "debug" and bot name prefixes used in setupLocalRobots
-        if ((nLower.equals("debug") && ! isDebugUserEnabled())
+        // check for "debug" (if not a Practice server)
+        // and bot name prefixes used in setupLocalRobots
+        if ((nLower.equals("debug") && (port > 0) && ! isDebugUserEnabled())
             || ((! isBot)
-                && (nLower.startsWith("droid ") || nLower.startsWith("robot "))))
+                && (nLower.startsWith("droid ") || nLower.startsWith("robot ") || nLower.startsWith("extrabot "))))
         {
             return -2;
         }
@@ -4957,7 +5127,7 @@ public class SOCServer extends Server
 
     /**
      * Process the {@code *STATS*} unprivileged debug command:
-     * Send the client a list of server statistics and stats for the game they sent the command from.
+     * Send the client a list of server statistics, and stats for the game and connection they sent the command from.
      * Calls {@link SOCServerMessageHandler#processDebugCommand_gameStats(Connection, String, SOCGame, boolean)}.
      *<P>
      * Before v2.0.00, this method was part of {@code handleGAMETEXTMSG(..)}.
@@ -4965,6 +5135,7 @@ public class SOCServer extends Server
      * @param ga  Game in which the message is sent
      * @since 2.0.00
      * @see SOCServerMessageHandler#processDebugCommand_dbSettings(Connection, SOCGame)
+     * @see #processDebugCommand_connStats(Connection, String, boolean)
      */
     final void processDebugCommand_serverStats(final Connection c, final SOCGame ga)
     {
@@ -5015,6 +5186,56 @@ public class SOCServer extends Server
                 + Version.version(ga.clientVersionLowest) + " - " + Version.version(ga.clientVersionHighest));
 
         srvMsgHandler.processDebugCommand_gameStats(c, gaName, ga, false);
+        processDebugCommand_connStats(c, ga, false);
+    }
+
+    /**
+     * Send connection stats text to a client, appearing in the message pane of a game they're a member of.
+     *<UL>
+     * <LI> How long they've been connected to server (duration in minutes)
+     * <LI> If client has finished at least 1 or 2 games since connecting, their win-loss count for this session.
+     *</UL>
+     *
+     * @param c  Client that just finished a game or sent the {@code *STATS*} command; not null
+     * @param ga  Game that {@code c} is a member of
+     * @param skipWinLossBefore2  If true, don't send win/loss record if less than 2 completed games.
+     *     If false, don't send if less than 1 completed game.
+     * @since 2.2.00
+     * @see #processDebugCommand_serverStats(Connection, SOCGame)
+     * @see SOCServerMessageHandler#processDebugCommand_gameStats(Connection, String, SOCGame, boolean)
+     */
+    final void processDebugCommand_connStats
+        (final Connection c, final SOCGame ga, final boolean skipWinLossBefore2)
+    {
+        final String gaName = ga.getName();
+
+        final long connMinutes = (((System.currentTimeMillis() - c.getConnectTime().getTime())) + 30000L) / 60000L;
+        final String connMsgKey = (ga.isPractice)
+            ? "stats.cli.connected.minutes.prac"  // "You have been practicing # minutes."
+            : "stats.cli.connected.minutes";      // "You have been connected # minutes."
+        messageToPlayerKeyed(c, gaName, connMsgKey, connMinutes);
+
+        final SOCClientData scd = (SOCClientData) c.getAppData();
+        if (scd == null)
+            return;
+
+        int wins = scd.getWins();
+        int losses = scd.getLosses();
+        if (wins + losses < ((skipWinLossBefore2) ? 2 : 1))
+            return;  // Not enough games completed so far
+
+        if (wins > 0)
+        {
+            if (losses == 0)
+                messageToPlayerKeyed(c, gaName, "stats.cli.winloss.won", wins);
+                    // "You have won {0,choice, 1#1 game|1<{0,number} games} since connecting."
+            else
+                messageToPlayerKeyed(c, gaName, "stats.cli.winloss.wonlost", wins, losses);
+                    // "You have won {0,choice, 1#1 game|1<{0,number} games} and lost {1,choice, 1#1 game|1<{1,number} games} since connecting."
+        } else {
+            messageToPlayerKeyed(c, gaName, "stats.cli.winloss.lost", losses);
+                // "You have lost {0,choice, 1#1 game|1<{0,number} games} since connecting."
+        }
     }
 
     /**
@@ -5482,7 +5703,7 @@ public class SOCServer extends Server
         scd.localeStr = clocale;
         try
         {
-            scd.locale = I18n.parseLocale(clocale);
+            scd.locale = StringManager.parseLocale(clocale);
         } catch (IllegalArgumentException e) {
             warnMsg = "Sorry, cannot parse your locale.";  // i18n OK: We don't know client locale
             scd.localeStr = "en_US";  // fallback
@@ -7040,6 +7261,7 @@ public class SOCServer extends Server
      *
      * @see #connectToGame(Connection, String, Map)
      * @see #createOrJoinGameIfUserOK(Connection, String, String, String, Map)
+     * @since 1.1.00
      */
     private void joinGame(SOCGame gameData, Connection c, boolean isReset, boolean isTakingOver)
     {
@@ -8080,6 +8302,19 @@ public class SOCServer extends Server
             // specified _USER but not _PASS: store "" for empty password instead of default
             argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "");
         }
+
+        // For convenience, copy org.sqlite.tmpdir to JVM params if set in jsserver.properties or command line
+        // but not already in JVM params
+        try
+        {
+            if (argp.containsKey(SOCDBHelper.PROP_SQLITE_TMPDIR)
+                && (null == System.getProperty(SOCDBHelper.PROP_SQLITE_TMPDIR)))
+            {
+                final String arg = argp.getProperty(SOCDBHelper.PROP_SQLITE_TMPDIR);
+                if ((arg != null) && ! arg.isEmpty())
+                    System.setProperty(SOCDBHelper.PROP_SQLITE_TMPDIR, arg);
+            }
+        } catch (SecurityException e) {}
 
         // Make sure no more flagged parameters
         if (aidx < args.length)

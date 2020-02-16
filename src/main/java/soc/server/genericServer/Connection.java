@@ -59,6 +59,7 @@ import soc.util.SOCStringManager;
  * or {@link Object#equals(Object)} because there's no need to compare Connection field contents.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+ * @since 1.1.00
  */
 public abstract class Connection
 {

@@ -131,9 +131,15 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected long nextServerPingExpectedAt;
 
-    protected String host;
-    protected int port;
-    protected String strSocketName;  // For robots in local practice games
+    /**
+     * Server connection info.
+     * Robot clients should set non-null {@link ServerConnectInfo#robotCookie} when constructing.
+     *<P>
+     * Versions before 2.2.00 instead had {@code host}, {@code port}, {@code strSocketName} fields.
+     * @since 2.2.00
+     */
+    protected final ServerConnectInfo serverConnectInfo;
+
     protected Socket s;
     protected DataInputStream in;
     protected DataOutputStream out;
@@ -194,47 +200,25 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected boolean debugTraffic;
 
     /**
-     * Create a SOCDisplaylessPlayerClient, which would connect to localhost port 8889.
-     * Does not actually connect; subclass must connect, such as {@link soc.robot.SOCRobotClient#init()}
-     *<P>
-     * <b>Note:</b> The default JSettlers server port is 8880.
-     */
-    public SOCDisplaylessPlayerClient()
-    {
-        this(null, 8889, false);
-    }
-
-    /**
-     * Constructor for connecting to the specified host, on the specified port.
-     * Does not actually connect; subclass must connect, such as {@link soc.robot.SOCRobotClient#init()}
-     *
-     * @param h  host
-     * @param p  port
+     * Constructor to set up using this server connect info. Does not actually connect here;
+     * subclass methods such as {@link soc.robot.SOCRobotClient#init()} must do so.
+     * 
+     * @param sci  Server connect info (TCP or stringPort); not {@code null}
      * @param visual  true if this client is visual
+     * @throws IllegalArgumentException if {@code sci == null}
+     * @since 2.2.00
      */
-    public SOCDisplaylessPlayerClient(String h, int p, boolean visual)
+    public SOCDisplaylessPlayerClient(ServerConnectInfo sci, boolean visual)
+        throws IllegalArgumentException
     {
-        host = h;
-        port = p;
-        strSocketName = null;
+        if (sci == null)
+            throw new IllegalArgumentException("sci");
+        this.serverConnectInfo = sci;
+
         sVersion = -1;  sLocalVersion = -1;
 
         if (null != System.getProperty(PROP_JSETTLERS_DEBUG_TRAFFIC))
             debugTraffic = true;  // set flag if debug prop has any value at all
-    }
-
-    /**
-     * Constructor for connecting to a local game (practice) on a local stringport.
-     * Does not actually connect; subclass must connect, such as {@link soc.robot.SOCRobotClient#init()}
-     *
-     * @param s    the stringport that the server listens on
-     * @param visual  true if this client is visual
-     */
-    public SOCDisplaylessPlayerClient(String s, boolean visual)
-    {
-        this(null, 0, visual);
-
-        strSocketName = s;
     }
 
     /**
@@ -2304,6 +2288,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *
      * @see soc.server.SOCServer#resetBoardAndNotify(String, int)
      * @see soc.game.SOCGame#resetAsCopy()
+     * @since 1.1.00
      */
     protected void handleRESETBOARDAUTH(SOCResetBoardAuth mes)
     {
@@ -2997,7 +2982,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public static void main(String[] args)
     {
-        SOCDisplaylessPlayerClient ex1 = new SOCDisplaylessPlayerClient(args[0], Integer.parseInt(args[1]), true);
+        SOCDisplaylessPlayerClient ex1 = new SOCDisplaylessPlayerClient
+            (new ServerConnectInfo(args[0], Integer.parseInt(args[1]), null), true);
         new Thread(ex1).start();
         Thread.yield();
     }
