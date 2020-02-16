@@ -24,8 +24,8 @@ import java.util.Stack;
 
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
-import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
+import soc.proto.Data;
 import soc.robot.DiscardStrategy;
 import soc.robot.SOCPossiblePiece;
 import soc.robot.SOCRobotBrain;
@@ -65,10 +65,10 @@ public class SampleDiscardStrategy extends DiscardStrategy
     {
         SOCResourceSet currRes = ourPlayerData.getResources().copy();
 
-        if (currRes.getAmount(SOCResourceConstants.CLAY) >= numDiscards)
+        if (currRes.getAmount(Data.ResourceType.CLAY_VALUE) >= numDiscards)
         {
             SOCResourceSet discards = new SOCResourceSet();
-            discards.add(numDiscards, SOCResourceConstants.CLAY);
+            discards.add(numDiscards, Data.ResourceType.CLAY_VALUE);
             return discards;
         } else {
             return super.discard(numDiscards, buildingPlan);
