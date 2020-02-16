@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012-2013,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,6 +26,10 @@ import soc.proto.Data;
 /**
  * This is a list of constants for representing
  * types of resources in Settlers of Catan.
+ *<P>
+ * Same value as protobuf resource-type constants
+ * {@link Data.ResourceType#CLAY_VALUE} to {@link Data.ResourceType#WOOD_VALUE};
+ * some code uses those constants instead of this class.
  *<P>
  * Warning: Many pieces of code depend on these values and their count.
  *          Clay is first (1), Wood is last (5), Unknown is after wood.
