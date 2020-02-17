@@ -21,6 +21,7 @@ and backport minor new features until `2.0.00` was ready.
 	- Game window:
 	  - Remember recently sent chat text; browse history with Up/Down arrow keys in input field (based on Chad McHenry idea)
 	  - At end of game, reveal VP cards in players' hand panels
+	  - If user clicks board to dismiss the right-click build menu, don't show "to build pieces, right-click" reminder dialog
 - Server:
 	- `*STATS*` command: Send client how long they've been connected and, if at least 1 game won or lost, their win-loss count for this session
 	- If client joins a game that's already over, send final scores and revealed VP cards
